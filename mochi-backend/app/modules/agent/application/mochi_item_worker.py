@@ -1,4 +1,4 @@
-"""Capture outbox 워커.
+"""MochiItem outbox 워커.
 
 `SELECT ... FOR UPDATE SKIP LOCKED` 패턴으로 outbox 행을 한 건씩 잠그고
 ``AgentOrchestrator`` 를 (per-run 새 instance, AgentRunPersistence 주입) 실행한 뒤
@@ -29,7 +29,7 @@ LOCK_DURATION_SECONDS = 60
 MAX_ATTEMPTS = 5
 
 
-class CaptureWorker:
+class MochiItemWorker:
     def __init__(self, *, max_steps: int):
         self._max_steps = max_steps
         self._stop = asyncio.Event()

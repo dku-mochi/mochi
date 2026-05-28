@@ -43,8 +43,8 @@ class AgentOrchestrator:
         self._max_steps = max_steps
         self._persistence = persistence
 
-    async def run(self, capture_id: UUID) -> AsyncIterator[StreamEvent]:
-        agent_run = AgentRun(capture_id=capture_id)
+    async def run(self, mochi_item_id: UUID) -> AsyncIterator[StreamEvent]:
+        agent_run = AgentRun(mochi_item_id=mochi_item_id)
 
         if self._persistence is not None:
             await self._persistence.start(agent_run)
@@ -96,7 +96,7 @@ class AgentRunPersistence:
             ),
             {
                 "id": run.id,
-                "capture_id": run.capture_id,
+                "capture_id": run.mochi_item_id,
                 "node": run.current_node.value,
                 "started_at": run.started_at,
             },

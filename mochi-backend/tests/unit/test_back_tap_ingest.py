@@ -1,14 +1,14 @@
-"""BackTapCapture use case 도메인-레벨 E2E (in-memory repo + fake classifier)."""
+"""BackTapIngest use case 도메인-레벨 E2E (in-memory repo + fake classifier)."""
 
 from uuid import uuid4
 
 import pytest
 
-from app.modules.mochi_items.application.back_tap_capture import (
-    BackTapCapture,
-    BackTapCaptureCommand,
+from app.modules.mochi_items.application.back_tap_ingest import (
+    BackTapIngest,
+    BackTapIngestCommand,
 )
-from app.modules.mochi_items.domain.entities import Capture, CaptureChannel, LifecycleState
+from app.modules.mochi_items.domain.entities import IngestChannel, LifecycleState, MochiItem
 from app.modules.mochi_items.domain.value_objects import (
     IntentClassification,
     IntentClassificationResult,
@@ -18,45 +18,45 @@ from app.shared.intent import Intent
 
 class _InMemoryRepository:
     def __init__(self) -> None:
-        self._captures: dict = {}
+        self._items: dict = {}
         self._idem: dict = {}
 
-    async def add(self, *, owner_id, capture: Capture) -> None:
-        self._captures[(owner_id, capture.id)] = capture
+    async def add(self, *, owner_id, item: MochiItem) -> None:
+        self._items[(owner_id, item.id)] = item
 
-    async def find_by_id(self, *, owner_id, capture_id):
-        return self._captures.get((owner_id, capture_id))
+    async def find_by_id(self, *, owner_id, mochi_item_id):
+        return self._items.get((owner_id, mochi_item_id))
 
-    async def update_lifecycle(self, *, owner_id, capture_id, new_state: LifecycleState) -> None:
-        self._captures[(owner_id, capture_id)].lifecycle = new_state
+    async def update_lifecycle(self, *, owner_id, mochi_item_id, new_state: LifecycleState) -> None:
+        self._items[(owner_id, mochi_item_id)].lifecycle = new_state
 
     async def update_primary_intent(
-        self, *, owner_id, capture_id, new_primary, new_secondary
+        self, *, owner_id, mochi_item_id, new_primary, new_secondary
     ) -> None:
-        cap = self._captures[(owner_id, capture_id)]
-        cap.intent = new_primary
-        cap.secondary_intents = new_secondary
+        item = self._items[(owner_id, mochi_item_id)]
+        item.intent = new_primary
+        item.secondary_intents = new_secondary
 
     async def list_recent(self, *, owner_id, limit):
-        return list(self._captures.values())[:limit]
+        return list(self._items.values())[:limit]
 
     async def list_by_intent(self, *, owner_id, intent, limit):
-        return [c for c in self._captures.values() if c.intent == intent][:limit]
+        return [c for c in self._items.values() if c.intent == intent][:limit]
 
     async def already_ingested(self, *, owner_id, idempotency_key):
-        capture_id = self._idem.get((owner_id, idempotency_key))
-        return self._captures.get((owner_id, capture_id)) if capture_id else None
+        mochi_item_id = self._idem.get((owner_id, idempotency_key))
+        return self._items.get((owner_id, mochi_item_id)) if mochi_item_id else None
 
-    async def remember_idempotency(self, *, owner_id, idempotency_key, capture_id) -> None:
-        self._idem[(owner_id, idempotency_key)] = capture_id
+    async def remember_idempotency(self, *, owner_id, idempotency_key, mochi_item_id) -> None:
+        self._idem[(owner_id, idempotency_key)] = mochi_item_id
 
 
 class _CollectingNotifier:
     def __init__(self) -> None:
         self.events: list = []
 
-    async def emit(self, *, owner_id, capture_id) -> None:
-        self.events.append((owner_id, capture_id))
+    async def emit(self, *, owner_id, mochi_item_id) -> None:
+        self.events.append((owner_id, mochi_item_id))
 
 
 class _FakeClassifier:
@@ -83,10 +83,10 @@ async def test_classifies_and_persists_primary_secondary_applicability() -> None
         ("가격 비교", Intent.KNOWLEDGE, 0.75),
         ("위시리스트", Intent.MEMO, 0.40),
     )
-    use_case = BackTapCapture(repository=repo, notifier=notifier, classifier=classifier)
+    use_case = BackTapIngest(repository=repo, notifier=notifier, classifier=classifier)
 
     owner = uuid4()
-    cmd = BackTapCaptureCommand(
+    cmd = BackTapIngestCommand(
         owner_id=owner,
         idempotency_key="bt-1",
         image=b"PNG-bytes",
@@ -99,18 +99,18 @@ async def test_classifies_and_persists_primary_secondary_applicability() -> None
 
     assert not result.was_idempotent_replay
     assert classifier.call_count == 1
-    assert result.capture.intent is Intent.TODO
-    assert result.capture.secondary_intents == (Intent.KNOWLEDGE, Intent.MEMO)
-    assert result.capture.intent_applicability[Intent.TODO] == 0.95
-    assert result.capture.source.channel is CaptureChannel.SCREENSHOT
-    assert len(result.capture.source.image_refs) == 1
-    assert result.capture.source.image_refs[0].sha256 == "a" * 64
-    assert notifier.events == [(owner, result.capture.id)]
+    assert result.item.intent is Intent.TODO
+    assert result.item.secondary_intents == (Intent.KNOWLEDGE, Intent.MEMO)
+    assert result.item.intent_applicability[Intent.TODO] == 0.95
+    assert result.item.source.channel is IngestChannel.SCREENSHOT
+    assert len(result.item.source.image_refs) == 1
+    assert result.item.source.image_refs[0].sha256 == "a" * 64
+    assert notifier.events == [(owner, result.item.id)]
     assert len(result.candidates) == 3
 
 
 @pytest.mark.asyncio
-async def test_idempotent_replay_returns_same_capture_without_calling_classifier() -> None:
+async def test_idempotent_replay_returns_same_item_without_calling_classifier() -> None:
     """같은 Idempotency-Key 로 재요청하면 Gemini 호출 비용·latency 가 다시 발생하지 않는다."""
     repo = _InMemoryRepository()
     notifier = _CollectingNotifier()
@@ -119,10 +119,10 @@ async def test_idempotent_replay_returns_same_capture_without_calling_classifier
         ("대화 박제", Intent.MEMO, 0.6),
         ("약속 잡기", Intent.SCHEDULE, 0.4),
     )
-    use_case = BackTapCapture(repository=repo, notifier=notifier, classifier=classifier)
+    use_case = BackTapIngest(repository=repo, notifier=notifier, classifier=classifier)
 
     owner = uuid4()
-    cmd = BackTapCaptureCommand(
+    cmd = BackTapIngestCommand(
         owner_id=owner,
         idempotency_key="dup",
         image=b"x",
@@ -134,7 +134,7 @@ async def test_idempotent_replay_returns_same_capture_without_calling_classifier
     second = await use_case.execute(cmd)
 
     assert second.was_idempotent_replay is True
-    assert second.capture.id == first.capture.id
+    assert second.item.id == first.item.id
     assert classifier.call_count == 1  # 두 번째 요청에선 호출 안 함
     assert len(notifier.events) == 1
     assert second.candidates == ()  # 멱등 replay 시 candidates 는 빈 리스트.

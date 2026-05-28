@@ -23,7 +23,7 @@ class SearchQuery:
 
 @dataclass(slots=True)
 class Citation:
-    capture_id: UUID
+    mochi_item_id: UUID
     snippet: str
     score: float
 

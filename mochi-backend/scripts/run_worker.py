@@ -1,4 +1,4 @@
-"""Capture outbox 워커 진입점.
+"""MochiItem outbox 워커 진입점.
 
 사용법:
     uv run python scripts/run_worker.py
@@ -16,13 +16,13 @@ if str(_REPO_ROOT) not in sys.path:
 
 from app.core.config import get_settings  # noqa: E402
 from app.core.logging import configure_logging  # noqa: E402
-from app.modules.agent.application.capture_worker import CaptureWorker  # noqa: E402
+from app.modules.agent.application.mochi_item_worker import MochiItemWorker  # noqa: E402
 
 
 async def main() -> None:
     configure_logging()
     settings = get_settings()
-    worker = CaptureWorker(max_steps=settings.agent_max_steps)
+    worker = MochiItemWorker(max_steps=settings.agent_max_steps)
     await worker.run_forever()
 
 

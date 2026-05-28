@@ -1,11 +1,11 @@
-"""Capture aggregate root 의 multi-intent invariant 와 변환 메서드 검증."""
+"""MochiItem aggregate root 의 multi-intent invariant 와 변환 메서드 검증."""
 
 import pytest
 
 from app.modules.mochi_items.domain.entities import (
-    Capture,
-    CaptureChannel,
-    CaptureSource,
+    IngestChannel,
+    IngestSource,
+    MochiItem,
 )
 from app.modules.mochi_items.domain.value_objects import (
     IntentClassification,
@@ -14,8 +14,8 @@ from app.modules.mochi_items.domain.value_objects import (
 from app.shared.intent import Intent
 
 
-def _source(channel: CaptureChannel = CaptureChannel.SCREENSHOT) -> CaptureSource:
-    return CaptureSource(channel=channel)
+def _source(channel: IngestChannel = IngestChannel.SCREENSHOT) -> IngestSource:
+    return IngestSource(channel=channel)
 
 
 def _result(
@@ -30,15 +30,15 @@ def _result(
 
 def test_default_intent_is_memo_for_unclassified_ingestion() -> None:
     """일반 ingestion (분류 전) 의 fallback default 는 MEMO 다."""
-    cap = Capture(id=_source().id, source=_source())
-    assert cap.intent is Intent.MEMO
-    assert cap.secondary_intents == ()
-    assert cap.intent_applicability == {}
+    item = MochiItem(id=_source().id, source=_source())
+    assert item.intent is Intent.MEMO
+    assert item.secondary_intents == ()
+    assert item.intent_applicability == {}
 
 
 def test_post_init_rejects_primary_in_secondary() -> None:
     with pytest.raises(ValueError, match="must not appear in secondary"):
-        Capture(
+        MochiItem(
             id=_source().id,
             source=_source(),
             intent=Intent.TODO,
@@ -48,7 +48,7 @@ def test_post_init_rejects_primary_in_secondary() -> None:
 
 def test_post_init_rejects_duplicate_secondary() -> None:
     with pytest.raises(ValueError, match="must not contain duplicates"):
-        Capture(
+        MochiItem(
             id=_source().id,
             source=_source(),
             intent=Intent.TODO,
@@ -58,7 +58,7 @@ def test_post_init_rejects_duplicate_secondary() -> None:
 
 def test_post_init_rejects_out_of_range_applicability() -> None:
     with pytest.raises(ValueError, match="must be in"):
-        Capture(
+        MochiItem(
             id=_source().id,
             source=_source(),
             intent=Intent.TODO,
@@ -73,11 +73,11 @@ def test_from_classification_picks_top_applicability_as_primary() -> None:
         ("위시리스트", Intent.MEMO, 0.40),
     )
     source = _source()
-    cap = Capture.from_classification(source=source, classification=result)
+    item = MochiItem.from_classification(source=source, classification=result)
 
-    assert cap.intent is Intent.TODO
-    assert cap.secondary_intents == (Intent.KNOWLEDGE, Intent.MEMO)
-    assert cap.intent_applicability == {
+    assert item.intent is Intent.TODO
+    assert item.secondary_intents == (Intent.KNOWLEDGE, Intent.MEMO)
+    assert item.intent_applicability == {
         Intent.TODO: 0.95,
         Intent.KNOWLEDGE: 0.75,
         Intent.MEMO: 0.40,
@@ -91,11 +91,11 @@ def test_from_classification_deduplicates_same_intent_across_candidates() -> Non
         ("연락처 저장", Intent.TODO, 0.55),
         ("대화 박제", Intent.MEMO, 0.6),
     )
-    cap = Capture.from_classification(source=_source(), classification=result)
+    item = MochiItem.from_classification(source=_source(), classification=result)
 
-    assert cap.intent is Intent.TODO
-    assert cap.secondary_intents == (Intent.MEMO,)
-    assert cap.intent_applicability == {Intent.TODO: 0.9, Intent.MEMO: 0.6}
+    assert item.intent is Intent.TODO
+    assert item.secondary_intents == (Intent.MEMO,)
+    assert item.intent_applicability == {Intent.TODO: 0.9, Intent.MEMO: 0.6}
 
 
 def test_swap_primary_moves_old_primary_to_front_of_secondary() -> None:
@@ -104,14 +104,14 @@ def test_swap_primary_moves_old_primary_to_front_of_secondary() -> None:
         ("가격 비교", Intent.KNOWLEDGE, 0.75),
         ("위시리스트", Intent.MEMO, 0.40),
     )
-    cap = Capture.from_classification(source=_source(), classification=result)
-    cap.swap_primary(Intent.KNOWLEDGE)
+    item = MochiItem.from_classification(source=_source(), classification=result)
+    item.swap_primary(Intent.KNOWLEDGE)
 
-    assert cap.intent is Intent.KNOWLEDGE
+    assert item.intent is Intent.KNOWLEDGE
     # 이전 primary (TODO) 가 secondary 의 맨 앞으로 이동, KNOWLEDGE 는 secondary 에서 제거.
-    assert cap.secondary_intents == (Intent.TODO, Intent.MEMO)
+    assert item.secondary_intents == (Intent.TODO, Intent.MEMO)
     # applicability 는 보존 — calibration 자료로 유지.
-    assert cap.intent_applicability[Intent.TODO] == 0.95
+    assert item.intent_applicability[Intent.TODO] == 0.95
 
 
 def test_swap_primary_to_same_intent_is_noop() -> None:
@@ -120,12 +120,12 @@ def test_swap_primary_to_same_intent_is_noop() -> None:
         ("가격 비교", Intent.KNOWLEDGE, 0.75),
         ("위시리스트", Intent.MEMO, 0.40),
     )
-    cap = Capture.from_classification(source=_source(), classification=result)
-    secondary_before = cap.secondary_intents
-    cap.swap_primary(Intent.TODO)
+    item = MochiItem.from_classification(source=_source(), classification=result)
+    secondary_before = item.secondary_intents
+    item.swap_primary(Intent.TODO)
 
-    assert cap.intent is Intent.TODO
-    assert cap.secondary_intents == secondary_before
+    assert item.intent is Intent.TODO
+    assert item.secondary_intents == secondary_before
 
 
 def test_swap_primary_to_intent_not_in_secondary_still_demotes_old() -> None:
@@ -135,8 +135,8 @@ def test_swap_primary_to_intent_not_in_secondary_still_demotes_old() -> None:
         ("가격 비교", Intent.KNOWLEDGE, 0.75),
         ("위시리스트", Intent.MEMO, 0.40),
     )
-    cap = Capture.from_classification(source=_source(), classification=result)
-    cap.swap_primary(Intent.SCHEDULE)
+    item = MochiItem.from_classification(source=_source(), classification=result)
+    item.swap_primary(Intent.SCHEDULE)
 
-    assert cap.intent is Intent.SCHEDULE
-    assert cap.secondary_intents == (Intent.TODO, Intent.KNOWLEDGE, Intent.MEMO)
+    assert item.intent is Intent.SCHEDULE
+    assert item.secondary_intents == (Intent.TODO, Intent.KNOWLEDGE, Intent.MEMO)

@@ -3,7 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from app.modules.mochi_items.domain.entities import CaptureChannel
+from app.modules.mochi_items.domain.entities import IngestChannel
 from app.shared.intent import Intent
 
 
@@ -22,7 +22,7 @@ class ImageRefDTO(BaseModel):
 
 
 class ImageRefResponse(BaseModel):
-    """캡처 응답에 포함되는 이미지 참조."""
+    """MochiItem 응답에 포함되는 이미지 참조."""
 
     object_key: str | None = Field(default=None, alias="objectKey")
     mime_type: str = Field(alias="mimeType")
@@ -32,13 +32,13 @@ class ImageRefResponse(BaseModel):
     model_config = {"populate_by_name": True}
 
 
-class CaptureCreateRequest(BaseModel):
-    """클라이언트(iOS)가 보내는 capture ingestion payload.
+class MochiItemCreateRequest(BaseModel):
+    """클라이언트(iOS)가 보내는 MochiItem ingestion payload.
 
-    iOS는 본 스키마와 동일한 모양의 ``CaptureIngestRequest`` 를 송신한다 — 양쪽이 OpenAPI 로 검증된다.
+    iOS는 본 스키마와 동일한 모양의 ``MochiItemIngestRequest`` 를 송신한다 — 양쪽이 OpenAPI 로 검증된다.
     """
 
-    channel: CaptureChannel
+    channel: IngestChannel
     url: str | None = None
     text: str | None = None
     user_memo: str | None = Field(default=None, alias="userMemo")
@@ -47,9 +47,9 @@ class CaptureCreateRequest(BaseModel):
     model_config = {"populate_by_name": True}
 
 
-class CaptureResponse(BaseModel):
+class MochiItemResponse(BaseModel):
     id: UUID
-    channel: CaptureChannel
+    channel: IngestChannel
     url: str | None
     text: str | None
     user_memo: str | None = Field(default=None, alias="userMemo")
@@ -79,15 +79,15 @@ class IntentCandidateResponse(BaseModel):
     reasoning: str
 
 
-class BackTapCaptureResponse(BaseModel):
-    """백탭 ingestion 응답 — capture 본체 + 사용자에게 보여줄 후보 3개.
+class BackTapMochiItemResponse(BaseModel):
+    """백탭 ingestion 응답 — MochiItem 본체 + 사용자에게 보여줄 후보 3개.
 
     멱등 재요청 (``wasReplay=true``) 시 ``candidates`` 는 빈 리스트로 반환된다.
-    저장된 capture 자체에는 LLM 의 원본 후보 reasoning 이 보관되지 않으므로
+    저장된 MochiItem 자체에는 LLM 의 원본 후보 reasoning 이 보관되지 않으므로
     재현이 의미를 갖지 않는다.
     """
 
-    capture: CaptureResponse
+    item: MochiItemResponse
     candidates: list[IntentCandidateResponse] = Field(default_factory=list)
     was_replay: bool = Field(alias="wasReplay")
 

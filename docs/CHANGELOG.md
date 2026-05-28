@@ -16,6 +16,15 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 ---
 
 ## 2026-05-29 — infra
+- **하네스 v3.1 — lab 경계 ②티어 승격 + harness 변형 의도 명문화 + 에이전트 출력 규약.** 동기: harness 메타스킬 기준 자가점검에서 (a)~(e) 약점 도출. 깨진 세션(thinking block 400) 부분작업을 복구·완성.
+  - **(a) `lab-experimenter` 경계를 ③(프롬프트)→②(기계 강제) 승격.** `.claude/hooks/pre-edit-scope.sh` 신설 — PreToolUse(Edit|Write) 에서 payload `agent_type=="lab-experimenter"` 일 때만 대상 경로가 `cwd/lab/` 밖이면 exit 2 차단. **fail-open**(agent_type 빈 값=부모 Claude·타 에이전트는 무조건 통과)이라 부모 편집은 안 막힌다. payload 필드(`agent_type`/`cwd`/절대 `file_path`)와 서브에이전트 내부 exit 2 차단 동작은 lab-experimenter 실띄움으로 **실측 검증**. `settings.json` PreToolUse 에 Edit|Write 매처 등록. CLAUDE.md §1 "기계로 막을 수 있는 걸 ③에 두지 말라" 와의 정면 모순 해소.
+  - **(b)** `docs/WORKFLOW.md` §5 에 "왜 에이전트 팀이 아니라 서브에이전트+커맨드+hooks 인가" 변형 의도 3줄 기록 — 다음 세션·팀원이 안 흔들리게.
+  - **(c)** 5개 서브에이전트 정의에 공통 출력 규약 추가 — 첫 줄 `## VERDICT: …`, 위치 인용 `상대경로:줄` 통일. WORKFLOW §5.1 신설. 부모 재해석 비용 ↓.
+  - **(d)** `qa-validator` 에 점진 검증(incremental) + 경계면 교차 비교(openapi↔iOS shape) 철학 명문화.
+  - **(e)** `ship-precheck.sh`·`/ship` 에 "부모 Claude 가 작업 루프 중간 자율 호출 가능" 명시. WORKFLOW §5.2 신설.
+  - 부수: WORKFLOW §5.1 예시 경로 `capture`→`mochi_items` rename 반영 (drift 수정), 티어 표 ② 셀에 hooks 추가.
+
+## 2026-05-29 — infra
 - **하네스 v2.7 — OpenAPI drift 자동 검사 게이트 (codex 권고 흡수).** 동기: codex 7차 평가가 9점대 보강으로 명시한 "`openapi.json` 기반 iOS generator 를 `/ship` 게이트에 연결해 API drift 를 ⓪/② 로 끌어올리기". 정식 swift-openapi-generator 배선은 시간 비용 큼(post-submission 작업, `docs/l2/aspirational/FUTURE_OPENAPI_GENERATOR.md`) → 그때까지의 **fallback ② 게이트**로 drift 자동 검사 도입.
   - `.claude/scripts/openapi-check.sh` 신설 — `mochi-backend/openapi.json` path 와 iOS `URLSessionMochiAPIClient.swift` 의 endpoint 호출을 양방향 비교. path-parameter `{capture_id}` 와 Swift string interpolation `\(id.uuidString)` 둘 다 `{var}` 로 정규화해 매칭. exit code 1 = drift 발견.
   - `.claude/scripts/ship-precheck.sh` §5 추가 — openapi-check 자동 호출. drift 가 *CHANGELOG 등재(openapi-drift 토큰)* 면 warn, *신규* 면 fail. audit 의 STOP 신규/등재 분기와 같은 패턴.

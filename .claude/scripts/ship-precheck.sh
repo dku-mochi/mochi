@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# /ship 의 *자동 사전 체크 엔진* — 명령 문서 절차의 일부를 실제 실행.
+# *자동 사전 체크 엔진* — 정합성 게이트를 실제 실행한다.
+# /ship 전용이 아니다: 부모 Claude 는 Flow A/B 중간 어디서든 이 스크립트를
+# 자율 호출해 정합성을 빠르게 확인할 수 있다 (docs/WORKFLOW.md §5.2).
 # 사용: bash .claude/scripts/ship-precheck.sh [ios|backend|docs|all]
 # 출력: 통과/실패 체크리스트 + 머지 전 사람 확인 항목.
 

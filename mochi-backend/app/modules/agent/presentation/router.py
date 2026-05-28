@@ -11,18 +11,18 @@ from app.core.error_envelope import NotFoundError
 from app.core.security import CurrentUser
 from app.modules.agent.application.orchestrator import AgentOrchestrator, StreamEvent
 from app.modules.agent.infrastructure.registry import StaticToolRegistry
-from app.modules.mochi_items.application.queries import GetCaptureForOwner, make_capture_repository
+from app.modules.mochi_items.application.queries import GetMochiItemForOwner, make_mochi_item_repository
 
-router = APIRouter(prefix="/captures", tags=["agent"])
+router = APIRouter(prefix="/mochi_items", tags=["agent"])
 
 
-@router.get("/{capture_id}/stream")
+@router.get("/{mochi_item_id}/stream")
 async def stream_agent_run(
-    capture_id: UUID,
+    mochi_item_id: UUID,
     db: DBSession,
     user: CurrentUser,
 ) -> StreamingResponse:
-    """SSE 스트림. capture owner 가 아닌 경우 404로 응답한다 (자원 존재 노출 방지).
+    """SSE 스트림. MochiItem owner 가 아닌 경우 404로 응답한다 (자원 존재 노출 방지).
 
     스트림 포맷:
     ```
@@ -33,11 +33,11 @@ async def stream_agent_run(
     data: {"run_id":"...","tokens":1234}
     ```
     """
-    capture = await GetCaptureForOwner(repository=make_capture_repository(db)).execute(
-        owner_id=user, capture_id=capture_id
+    item = await GetMochiItemForOwner(repository=make_mochi_item_repository(db)).execute(
+        owner_id=user, mochi_item_id=mochi_item_id
     )
-    if capture is None:
-        raise NotFoundError("Capture not found", code="capture.not_found")
+    if item is None:
+        raise NotFoundError("Mochi item not found", code="mochi_item.not_found")
 
     settings = get_settings()
     orchestrator = AgentOrchestrator(
@@ -49,7 +49,7 @@ async def stream_agent_run(
     async def event_source() -> AsyncIterator[bytes]:
         yield b": stream-open\n\n"
         try:
-            async for event in orchestrator.run(capture_id):
+            async for event in orchestrator.run(mochi_item_id):
                 yield _serialize(event)
         except Exception as exc:  # noqa: BLE001
             err = StreamEvent("failed", {"message": str(exc), "run_id": "unknown"})

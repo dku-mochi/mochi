@@ -167,6 +167,7 @@ iOS 쪽은 `tuist test`, 백엔드는 `make test` / `make lint` / `make typechec
 **Hooks (`.claude/hooks/`, ②티어 강제력):**
 - `session-start.sh` — 경진대회 제출 D-day + 활성 known-drift + 직전 journal 의 "다음 할 일" 1줄
 - `pre-bash.sh` — 위험 Bash 패턴 차단 (force-push, reset --hard, rm -rf /, .env 직접 출력)
+- `pre-edit-scope.sh` — `lab-experimenter` 의 Edit/Write 를 `lab/` 안으로 제한 (payload `agent_type` 로 판별, fail-open 이라 부모 Claude 는 자유). lab 경계를 ③(프롬프트)에서 ②(기계 강제)로 승격.
 - `post-edit-md.sh` — `.md` Edit/Write 직후 front-matter 7필드 누락 알림
 - `stop-summary.sh` — 세션 종료 직전 CHANGELOG 누락 + CLAUDE↔AGENTS mtime drift 알림
 - `settings.json` permissions.deny — `Read/Edit/Write(**/.env)` 등 비밀파일 차단

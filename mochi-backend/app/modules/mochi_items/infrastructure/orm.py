@@ -13,7 +13,7 @@ from app.core.db import Base
 from app.shared.intent import Intent
 
 
-class CaptureRow(Base):
+class MochiItemRow(Base):
     __tablename__ = "captures"
 
     id: Mapped[UUID] = mapped_column(PgUUIDColumn(as_uuid=True), primary_key=True, insert_default=uuid4, init=False)
@@ -48,10 +48,10 @@ class CaptureRow(Base):
 
     entities: Mapped[list["EntityRow"]] = relationship(back_populates="capture", cascade="all, delete-orphan", default_factory=list)
     embeddings: Mapped[list["EmbeddingRow"]] = relationship(back_populates="capture", cascade="all, delete-orphan", default_factory=list)
-    image_refs: Mapped[list["CaptureImageRefRow"]] = relationship(back_populates="capture", cascade="all, delete-orphan", default_factory=list)
+    image_refs: Mapped[list["MochiItemImageRefRow"]] = relationship(back_populates="capture", cascade="all, delete-orphan", default_factory=list)
 
 
-class CaptureImageRefRow(Base):
+class MochiItemImageRefRow(Base):
     __tablename__ = "capture_image_refs"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True, init=False)
@@ -60,7 +60,7 @@ class CaptureImageRefRow(Base):
     mime_type: Mapped[str] = mapped_column(String(64))
     byte_size: Mapped[int] = mapped_column(BigInteger)
     object_key: Mapped[str | None] = mapped_column(String(512), default=None)
-    capture: Mapped["CaptureRow"] = relationship(back_populates="image_refs", default=None)
+    capture: Mapped["MochiItemRow"] = relationship(back_populates="image_refs", default=None)
 
 
 class EntityRow(Base):
@@ -70,7 +70,7 @@ class EntityRow(Base):
     capture_id: Mapped[UUID] = mapped_column(PgUUIDColumn(as_uuid=True), ForeignKey("captures.id", ondelete="CASCADE"), index=True)
     kind: Mapped[str] = mapped_column(String(16))
     value: Mapped[str] = mapped_column(String(512))
-    capture: Mapped["CaptureRow"] = relationship(back_populates="entities", default=None)
+    capture: Mapped["MochiItemRow"] = relationship(back_populates="entities", default=None)
 
 
 class EmbeddingRow(Base):
@@ -81,7 +81,7 @@ class EmbeddingRow(Base):
     chunk_text: Mapped[str] = mapped_column(String)
     embedding: Mapped[list[float]] = mapped_column(Vector(768))
     model_version: Mapped[str] = mapped_column(String(64))
-    capture: Mapped["CaptureRow"] = relationship(back_populates="embeddings", default=None)
+    capture: Mapped["MochiItemRow"] = relationship(back_populates="embeddings", default=None)
 
     __table_args__ = (
         Index(

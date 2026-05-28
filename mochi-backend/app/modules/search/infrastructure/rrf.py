@@ -16,14 +16,14 @@ def reciprocal_rank_fusion(
     snippet: dict[str, Citation] = {}
     for ranking in lists:
         for rank, citation in enumerate(ranking, start=1):
-            key = str(citation.capture_id)
+            key = str(citation.mochi_item_id)
             score[key] += 1.0 / (k + rank)
             # 더 높은 원점수의 snippet을 보관
             if key not in snippet or citation.score > snippet[key].score:
                 snippet[key] = citation
 
     merged = [
-        Citation(capture_id=c.capture_id, snippet=c.snippet, score=score[str(c.capture_id)])
+        Citation(mochi_item_id=c.mochi_item_id, snippet=c.snippet, score=score[str(c.mochi_item_id)])
         for c in snippet.values()
     ]
     merged.sort(key=lambda c: c.score, reverse=True)

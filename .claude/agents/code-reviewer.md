@@ -29,10 +29,12 @@ codex exec "이 작업트리 변경을 리뷰해줘. 기준: <CLAUDE.md 원칙 +
 - **도메인 불변식**: 4-Intent lifecycle, Idempotency, ownership 강제, SSRF 가드를 깼나?
 
 ## 출력 형식
+첫 줄은 공통 판정(`docs/WORKFLOW.md` §5.1). 위치는 `상대경로:줄` 로 인용한다:
 ```
+## VERDICT: PASS | FAIL — <한 줄: P1 없음 / must-fix 요약>
 ## codex 리뷰 요약
 ## P1 (must-fix) / P2 (should) / nit
-  - [파일:줄] 문제 → 제안
+  - [상대경로:줄] 문제 → 제안
 ## 티어/공유표면 위반 여부
 ```
-발견사항이 없으면 명확히 "통과" 라고 말한다.
+P1 이 없으면 `PASS`, 있으면 `FAIL`. 발견사항이 없으면 명확히 "통과" 라고 말한다.

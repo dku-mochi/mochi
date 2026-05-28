@@ -14,6 +14,8 @@ bash .claude/scripts/ship-precheck.sh $ARGUMENTS
 
 스크립트가 자동으로 한다 — audit 정합성, CHANGELOG 오늘 항목 검사, CLAUDE↔AGENTS 미러 mtime, 하위 repo git status. 통과/실패 마크업 출력. ❌ 가 있으면 멈추고 고친다.
 
+> 이 스크립트는 `/ship` 전용이 아니다 — 부모 Claude 는 작업 루프 중간 어디서든 `bash .claude/scripts/ship-precheck.sh <범위>` 로 자율 호출할 수 있다 (`docs/WORKFLOW.md` §5.2).
+
 ## backend 인 경우 (`mochi-backend/` 에서)
 1. `make lint` — ruff 통과
 2. `make typecheck` — mypy strict 통과

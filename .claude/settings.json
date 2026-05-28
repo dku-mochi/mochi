@@ -52,6 +52,15 @@
             "command": "bash \"${CLAUDE_PROJECT_DIR:-$PWD}/.claude/hooks/pre-bash.sh\""
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR:-$PWD}/.claude/hooks/pre-edit-scope.sh\""
+          }
+        ]
       }
     ],
     "PostToolUse": [

@@ -36,7 +36,7 @@ description: 3인 + AI 협업의 운영 매뉴얼. 갈라질 수 있는 모든 �
 |---|---|---|---|
 | **⓪ 불가능하게** | 단일 원천에서 생성 | 0% | 디자인 토큰 = `DesignSystem` 모듈. **API 계약은 목표 상태** — `mochi-backend/openapi.json` 을 단일원천으로 iOS 생성하려 하나, 현재 iOS 는 `swift-openapi-runtime` 의존성만 있고 generator 미설정 + 수기 `URLSessionMochiAPIClient` 라 실제론 ③(drift 위험). generator 배선 시 ⓪ 승격. |
 | **① 자동 결정** | 포매터 | ~0% | `ruff format` (py) · SwiftLint autocorrect/swiftformat (swift) |
-| **② 자동 검출** | 린터·타입체커·경계테스트 | ~0% | `ruff check`(E,F,I,B,UP,**N**,SIM,ASYNC) · `mypy --strict` · `tests/unit/test_module_boundaries.py` · `.swiftlint.yml` |
+| **② 자동 검출** | 린터·타입체커·경계테스트·훅 | ~0% | `ruff check`(E,F,I,B,UP,**N**,SIM,ASYNC) · `mypy --strict` · `tests/unit/test_module_boundaries.py` · `.swiftlint.yml` · `.claude/hooks/`(pre-bash, **pre-edit-scope**=lab 경계) |
 | **③ AI 판단** | 문서 + 서브에이전트 | ~80% | 이 문서의 네이밍 사전(§7)·파일위치 맵(§8) + `code-reviewer`/`doc-guardian` |
 
 ③(AI가 문서 따르기)는 ~80%만 맞으므로, **검증 게이트**(§5 의 `/ship`·code-reviewer·qa-validator·CI)가 새는 20%를 잡는다.
@@ -102,16 +102,38 @@ Flow B — 완료
 
 ## 5. 서브에이전트 + codex
 
+> **왜 에이전트 팀이 아니라 "서브에이전트 + 슬래시커맨드 + hooks"인가** — harness 메타스킬의 기본형(에이전트 팀 `TeamCreate`/`SendMessage` + 오케스트레이터 스킬 + 커맨드 금지)에서 *의도적으로* 변형한 결정이다. 흔들리지 않도록 근거를 남긴다:
+> - **서브에이전트(팀 아님)**: 모찌의 작업 루프는 부모 Claude 단일 오케스트레이터로 충분하다. 팀 통신(`SendMessage`) 오버헤드가 이득보다 크다. 서브에이전트는 read-only 분석·검증 전담, **코드 수정은 부모만** → 책임 단일화·감사 추적 단순화.
+> - **슬래시커맨드 사용(스킬 대신)**: `/ship` `/daily` `/sprint-end` 등은 자동 흐름이 아니라 **사람이 트리거하는 결정점("의식")**이다. 사람 결정점에는 커맨드가 자연스럽다. 단, 검증 *로직*은 `.claude/scripts/`에 두어 부모가 자율 재사용할 수 있게 한다 (§5.2).
+> - **hooks/scripts(②티어)**: harness 기본형에 없는 강제력이다. 기계로 막을 수 있는 갈라짐은 ③(문서)이 아니라 hook/script 로 올린다 (§1 원칙의 직접 구현).
+
 | 에이전트 | 권한 | 역할 |
 |---|---|---|
 | `architect` | read-only | 설계·플랜 |
 | `code-reviewer` | read + Bash, 수정 없음 | diff 리뷰, **codex 위임** |
 | `qa-validator` | read + Bash, 수정 없음 | 테스트·동작검증, codex 보강 |
 | `doc-guardian` | read-only | 작업 전 문서 정합성 스캔 |
-| `lab-experimenter` | **write (lab/ 한정)** | 실험·벤치 |
+| `lab-experimenter` | **write (lab/ 한정 — `pre-edit-scope.sh` 훅이 ②로 강제)** | 실험·벤치 |
 | 부모 Claude | write (ios/backend) | 코드 수정 주체 |
 
 **codex** 는 QA·리뷰의 검증 엔진이다 (`brew/npm 설치, ChatGPT 인증 완료`). `code-reviewer`/`qa-validator` 가 `codex review` · `codex exec` 로 호출한다. codex 가 직접 읽는 규칙은 `AGENTS.md`(= CLAUDE.md 미러)에 있다.
+
+### 5.1 서브에이전트 출력 공통 규약
+
+서브에이전트마다 출력 포맷이 제각각이면 부모가 매번 재해석해야 한다. 모든 서브에이전트는 다음을 지킨다:
+
+- **첫 줄은 한 줄 판정**: `## VERDICT: <PASS|FAIL|STOP|OK|BLOCKED> — <핵심 한 줄>`. 부모가 결과를 재해석 없이 분기(다음 단계 진행 / 사람에게 질문 / 수정 루프)할 수 있게 한다.
+  - `architect` → `OK`(플랜 준비됨) / `STOP`(모호성·결정 필요)
+  - `doc-guardian` → `OK`(정합) / `STOP`(논리적 모순·사람 결정 필요)
+  - `code-reviewer` → `PASS`(P1 없음) / `FAIL`(must-fix 있음)
+  - `qa-validator` → `PASS` / `FAIL`
+  - `lab-experimenter` → `OK`(실험 완료, lab/ 한정) / `BLOCKED`(프로덕션 변경 필요 — 부모가 실행)
+- **위치 인용은 `상대경로:줄`** 형식으로 통일한다 (예: `mochi-backend/app/modules/mochi_items/application/ingest.py:42`). 부모가 바로 점프할 수 있다.
+- **codex 위임 결과는 codex 결론을 먼저**, 그 다음 자기 판단을 적는다.
+
+### 5.2 검증 스크립트 자율 호출
+
+`.claude/scripts/` 의 게이트(`ship-precheck.sh`, `audit.sh`, `openapi-check.sh`, `ios-boundaries.sh`)는 `/ship`·`/audit` 커맨드(사람 트리거)에만 묶이지 않는다. **부모 Claude 는 Flow A/B 중간 어디서든** `bash .claude/scripts/ship-precheck.sh <scope>` 등을 자율 호출해 정합성을 빠르게 확인할 수 있다 — 커맨드는 사람용 진입점, 스크립트는 부모용 재사용 엔진이다.
 
 ---
 

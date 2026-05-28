@@ -19,7 +19,7 @@ class SearchRequest(BaseModel):
 
 
 class CitationDTO(BaseModel):
-    capture_id: UUID = Field(alias="captureId")
+    mochi_item_id: UUID = Field(alias="mochiItemId")
     snippet: str
     score: float
 
@@ -64,7 +64,7 @@ async def search(payload: SearchRequest, db: DBSession, user: CurrentUser) -> Se
     return SearchResponse(
         answer=result.answer,
         citations=[
-            CitationDTO(capture_id=c.capture_id, snippet=c.snippet, score=c.score)
+            CitationDTO(mochi_item_id=c.mochi_item_id, snippet=c.snippet, score=c.score)
             for c in result.citations
         ],
         total_tokens=result.total_tokens,

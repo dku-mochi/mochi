@@ -9,7 +9,7 @@ from app.modules.mochi_items.domain.value_objects import IntentClassificationRes
 from app.shared.intent import Intent
 
 
-class CaptureChannel(StrEnum):
+class IngestChannel(StrEnum):
     KAKAO_TALK = "kakaoTalk"
     INSTAGRAM = "instagram"
     YOUTUBE = "youtube"
@@ -37,8 +37,8 @@ class ImageRef:
 
 
 @dataclass(frozen=True, slots=True)
-class CaptureSource:
-    channel: CaptureChannel
+class IngestSource:
+    channel: IngestChannel
     url: str | None = None
     text: str | None = None
     image_refs: tuple[ImageRef, ...] = ()
@@ -95,12 +95,12 @@ class SyncState:
     detail: str | None = None
 
 
-# ---------- Capture (aggregate root) ----------
+# ---------- MochiItem (aggregate root) ----------
 
 
 @dataclass(slots=True)
-class Capture:
-    """캡쳐 aggregate root.
+class MochiItem:
+    """MochiItem aggregate root — URL·이미지·링크를 통합한 모찌 항목.
 
     Intent 표현:
     - ``intent``: primary — 알림에서 사용자에게 가장 먼저 제시될 의도.
@@ -112,7 +112,7 @@ class Capture:
     """
 
     id: UUID
-    source: CaptureSource
+    source: IngestSource
     intent: Intent = Intent.MEMO
     secondary_intents: tuple[Intent, ...] = ()
     intent_applicability: Mapping[Intent, float] = field(default_factory=dict)
@@ -142,10 +142,10 @@ class Capture:
     def from_classification(
         cls,
         *,
-        source: CaptureSource,
+        source: IngestSource,
         classification: IntentClassificationResult,
-    ) -> "Capture":
-        """LLM 분류 결과로부터 새 Capture 를 생성한다 (백탭 ingestion 경로)."""
+    ) -> "MochiItem":
+        """LLM 분류 결과로부터 새 MochiItem 을 생성한다 (백탭 ingestion 경로)."""
         return cls(
             id=source.id,
             source=source,

@@ -1,6 +1,6 @@
 """Transactional outbox 패턴.
 
-Capture가 persisted 되는 트랜잭션 내에서 같은 트랜잭션에 `capture_outbox` 행을 한 줄 추가한다.
+MochiItem 이 persisted 되는 트랜잭션 내에서 같은 트랜잭션에 `capture_outbox` 행을 한 줄 추가한다.
 별도 worker가 outbox를 polling 하며 ``AgentOrchestrator`` 를 호출하고,
 처리 완료 시 행을 archived 시킨다.
 
@@ -21,7 +21,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.core.db import Base
 
 
-class CaptureOutboxRow(Base):
+class MochiItemOutboxRow(Base):
     __tablename__ = "capture_outbox"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True, init=False)
@@ -36,9 +36,9 @@ class CaptureOutboxRow(Base):
 
 
 class OutboxNotifier:
-    """Capture 생성 트랜잭션 안에서 호출되어, 같은 트랜잭션에 outbox 행을 적재한다.
+    """MochiItem 생성 트랜잭션 안에서 호출되어, 같은 트랜잭션에 outbox 행을 적재한다.
 
-    호출자(`PostgresCaptureRepository` + `IngestCapture`)가 `session.commit()` 하면
+    호출자(`PostgresMochiItemRepository` + `Ingest`)가 `session.commit()` 하면
     트랜잭션이 함께 커밋되어 atomic 보장. 이후 Postgres `pg_notify('capture_outbox', ...)` 로
     백그라운드 worker 에 즉시 wake-up 신호를 보낸다.
     """
@@ -46,15 +46,15 @@ class OutboxNotifier:
     def __init__(self, session: AsyncSession):
         self._session = session
 
-    async def emit(self, *, owner_id: UUID, capture_id: UUID) -> None:
-        row = CaptureOutboxRow(
-            capture_id=capture_id,
+    async def emit(self, *, owner_id: UUID, mochi_item_id: UUID) -> None:
+        row = MochiItemOutboxRow(
+            capture_id=mochi_item_id,
             owner_id=owner_id,
         )
         self._session.add(row)
         await self._session.flush()
-        # LISTEN/NOTIFY 즉시 wake-up — payload 는 capture_id 만으로 충분.
+        # LISTEN/NOTIFY 즉시 wake-up — payload 는 mochi_item_id 만으로 충분.
         from sqlalchemy import text
 
-        await self._session.execute(text("SELECT pg_notify('capture_outbox', :capture_id)"),
-                                    {"capture_id": str(capture_id)})
+        await self._session.execute(text("SELECT pg_notify('capture_outbox', :mochi_item_id)"),
+                                    {"mochi_item_id": str(mochi_item_id)})

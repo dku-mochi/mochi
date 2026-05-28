@@ -7,24 +7,24 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.modules.mochi_items.domain.entities import (
-    Capture,
-    CaptureChannel,
-    CaptureSource,
     ImageRef,
+    IngestChannel,
+    IngestSource,
     LifecycleState,
     LifecycleStateKind,
+    MochiItem,
     SyncState,
 )
-from app.modules.mochi_items.domain.ports import CaptureRepository
+from app.modules.mochi_items.domain.ports import MochiItemRepository
 from app.modules.mochi_items.infrastructure.orm import (
-    CaptureImageRefRow,
-    CaptureRow,
     IdempotencyKeyRow,
+    MochiItemImageRefRow,
+    MochiItemRow,
 )
 from app.shared.intent import Intent
 
 
-def _row_to_entity(row: CaptureRow) -> Capture:
+def _row_to_entity(row: MochiItemRow) -> MochiItem:
     image_refs = tuple(
         ImageRef(
             sha256=img.sha256,
@@ -34,16 +34,16 @@ def _row_to_entity(row: CaptureRow) -> Capture:
         )
         for img in row.image_refs
     )
-    source = CaptureSource(
+    source = IngestSource(
         id=row.id,
-        channel=CaptureChannel(row.channel),
+        channel=IngestChannel(row.channel),
         url=row.url,
         text=row.text,
         user_memo=row.user_memo,
         image_refs=image_refs,
         captured_at=row.captured_at,
     )
-    return Capture(
+    return MochiItem(
         id=row.id,
         source=source,
         intent=Intent(row.intent),
@@ -60,37 +60,37 @@ def _row_to_entity(row: CaptureRow) -> Capture:
     )
 
 
-class PostgresCaptureRepository(CaptureRepository):
+class PostgresMochiItemRepository(MochiItemRepository):
     def __init__(self, session: AsyncSession):
         self._session = session
 
-    async def add(self, *, owner_id: UUID, capture: Capture) -> None:
-        row = CaptureRow(
+    async def add(self, *, owner_id: UUID, item: MochiItem) -> None:
+        row = MochiItemRow(
             owner_id=owner_id,
-            channel=capture.source.channel.value,
-            url=capture.source.url,
-            text=capture.source.text,
-            user_memo=capture.source.user_memo,
-            intent=capture.intent.value,
-            secondary_intents=[s.value for s in capture.secondary_intents],
-            intent_applicability={k.value: v for k, v in capture.intent_applicability.items()},
-            summary=capture.summary,
-            importance=capture.importance,
-            confidence=capture.confidence,
-            model_version=capture.model_version,
-            lifecycle_kind=capture.lifecycle.kind.value,
-            lifecycle_archive_reason=capture.lifecycle.archive_reason.value if capture.lifecycle.archive_reason else None,
-            lifecycle_failure_reason=capture.lifecycle.failure_reason,
-            sync_kind=capture.sync.kind,
-            sync_detail=capture.sync.detail,
-            captured_at=capture.source.captured_at,
-            created_at=capture.created_at,
-            updated_at=capture.updated_at,
+            channel=item.source.channel.value,
+            url=item.source.url,
+            text=item.source.text,
+            user_memo=item.source.user_memo,
+            intent=item.intent.value,
+            secondary_intents=[s.value for s in item.secondary_intents],
+            intent_applicability={k.value: v for k, v in item.intent_applicability.items()},
+            summary=item.summary,
+            importance=item.importance,
+            confidence=item.confidence,
+            model_version=item.model_version,
+            lifecycle_kind=item.lifecycle.kind.value,
+            lifecycle_archive_reason=item.lifecycle.archive_reason.value if item.lifecycle.archive_reason else None,
+            lifecycle_failure_reason=item.lifecycle.failure_reason,
+            sync_kind=item.sync.kind,
+            sync_detail=item.sync.detail,
+            captured_at=item.source.captured_at,
+            created_at=item.created_at,
+            updated_at=item.updated_at,
         )
-        row.id = capture.id  # type: ignore[assignment]
-        for img in capture.source.image_refs:
+        row.id = item.id  # type: ignore[assignment]
+        for img in item.source.image_refs:
             row.image_refs.append(
-                CaptureImageRefRow(
+                MochiItemImageRefRow(
                     sha256=img.sha256,
                     mime_type=img.mime_type,
                     byte_size=img.byte_size,
@@ -100,11 +100,11 @@ class PostgresCaptureRepository(CaptureRepository):
         self._session.add(row)
         await self._session.flush()
 
-    async def find_by_id(self, *, owner_id: UUID, capture_id: UUID) -> Capture | None:
+    async def find_by_id(self, *, owner_id: UUID, mochi_item_id: UUID) -> MochiItem | None:
         stmt = (
-            select(CaptureRow)
-            .where(CaptureRow.id == capture_id, CaptureRow.owner_id == owner_id)
-            .options(selectinload(CaptureRow.image_refs))
+            select(MochiItemRow)
+            .where(MochiItemRow.id == mochi_item_id, MochiItemRow.owner_id == owner_id)
+            .options(selectinload(MochiItemRow.image_refs))
         )
         row = (await self._session.scalars(stmt)).one_or_none()
         return _row_to_entity(row) if row else None
@@ -113,13 +113,13 @@ class PostgresCaptureRepository(CaptureRepository):
         self,
         *,
         owner_id: UUID,
-        capture_id: UUID,
+        mochi_item_id: UUID,
         new_state: LifecycleState,
     ) -> None:
         from app.core.error_envelope import DomainError
         from app.modules.intents.domain.lifecycle_policy import is_allowed
 
-        stmt = select(CaptureRow).where(CaptureRow.id == capture_id, CaptureRow.owner_id == owner_id)
+        stmt = select(MochiItemRow).where(MochiItemRow.id == mochi_item_id, MochiItemRow.owner_id == owner_id)
         row = (await self._session.scalars(stmt)).one_or_none()
         if row is None:
             return
@@ -130,7 +130,7 @@ class PostgresCaptureRepository(CaptureRepository):
             raise DomainError(
                 f"Illegal lifecycle transition for {intent.value}: "
                 f"{current.kind.value} → {new_state.kind.value} (reason={new_state.archive_reason})",
-                code="capture.illegal_lifecycle_transition",
+                code="mochi_item.illegal_lifecycle_transition",
             )
 
         row.lifecycle_kind = new_state.kind.value
@@ -142,12 +142,12 @@ class PostgresCaptureRepository(CaptureRepository):
         self,
         *,
         owner_id: UUID,
-        capture_id: UUID,
+        mochi_item_id: UUID,
         new_primary: Intent,
         new_secondary: tuple[Intent, ...],
     ) -> None:
-        stmt = select(CaptureRow).where(
-            CaptureRow.id == capture_id, CaptureRow.owner_id == owner_id
+        stmt = select(MochiItemRow).where(
+            MochiItemRow.id == mochi_item_id, MochiItemRow.owner_id == owner_id
         )
         row = (await self._session.scalars(stmt)).one_or_none()
         if row is None:
@@ -157,48 +157,48 @@ class PostgresCaptureRepository(CaptureRepository):
         row.updated_at = datetime.utcnow()
         await self._session.flush()
 
-    async def list_recent(self, *, owner_id: UUID, limit: int) -> list[Capture]:
+    async def list_recent(self, *, owner_id: UUID, limit: int) -> list[MochiItem]:
         stmt = (
-            select(CaptureRow)
-            .where(CaptureRow.owner_id == owner_id)
-            .options(selectinload(CaptureRow.image_refs))
-            .order_by(CaptureRow.created_at.desc())
+            select(MochiItemRow)
+            .where(MochiItemRow.owner_id == owner_id)
+            .options(selectinload(MochiItemRow.image_refs))
+            .order_by(MochiItemRow.created_at.desc())
             .limit(limit)
         )
         rows = (await self._session.scalars(stmt)).all()
         return [_row_to_entity(r) for r in rows]
 
-    async def list_by_intent(self, *, owner_id: UUID, intent: Intent, limit: int) -> list[Capture]:
+    async def list_by_intent(self, *, owner_id: UUID, intent: Intent, limit: int) -> list[MochiItem]:
         stmt = (
-            select(CaptureRow)
-            .where(CaptureRow.owner_id == owner_id, CaptureRow.intent == intent.value)
-            .options(selectinload(CaptureRow.image_refs))
-            .order_by(CaptureRow.created_at.desc())
+            select(MochiItemRow)
+            .where(MochiItemRow.owner_id == owner_id, MochiItemRow.intent == intent.value)
+            .options(selectinload(MochiItemRow.image_refs))
+            .order_by(MochiItemRow.created_at.desc())
             .limit(limit)
         )
         rows = (await self._session.scalars(stmt)).all()
         return [_row_to_entity(r) for r in rows]
 
-    async def already_ingested(self, *, owner_id: UUID, idempotency_key: str) -> Capture | None:
+    async def already_ingested(self, *, owner_id: UUID, idempotency_key: str) -> MochiItem | None:
         scoped_key = self._scope_idempotency_key(owner_id=owner_id, raw_key=idempotency_key)
         row = await self._session.get(IdempotencyKeyRow, scoped_key)
         if row is None:
             return None
-        return await self.find_by_id(owner_id=owner_id, capture_id=row.capture_id)
+        return await self.find_by_id(owner_id=owner_id, mochi_item_id=row.capture_id)
 
     async def remember_idempotency(
         self,
         *,
         owner_id: UUID,
         idempotency_key: str,
-        capture_id: UUID,
+        mochi_item_id: UUID,
     ) -> None:
         scoped_key = self._scope_idempotency_key(owner_id=owner_id, raw_key=idempotency_key)
-        self._session.add(IdempotencyKeyRow(key=scoped_key, capture_id=capture_id))
+        self._session.add(IdempotencyKeyRow(key=scoped_key, capture_id=mochi_item_id))
         await self._session.flush()
 
     @staticmethod
     def _scope_idempotency_key(*, owner_id: UUID, raw_key: str) -> str:
         """오너 + 라우트 + raw key 의 sha256 — 길이 안정성과 충돌 회피를 동시에 보장."""
-        digest = hashlib.sha256(f"capture:{owner_id}:{raw_key}".encode()).hexdigest()
+        digest = hashlib.sha256(f"mochi_item:{owner_id}:{raw_key}".encode()).hexdigest()
         return digest  # 64-char hex, fits in varchar(128)

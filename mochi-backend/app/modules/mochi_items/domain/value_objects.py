@@ -1,4 +1,4 @@
-"""Capture 분류에 관한 value objects.
+"""MochiItem 분류에 관한 value objects.
 
 LLM (Vertex AI Gemini) 이 한 캡쳐에 대해 출력하는 사용자 의도 후보 셋과,
 그것으로부터 primary/secondary intent + intent별 적용 강도 (applicability) 를
@@ -42,7 +42,7 @@ class IntentClassification:
 class IntentClassificationResult:
     """후보 3개로 구성된 LLM 분류 결과.
 
-    `Capture.from_classification` 이 이 값으로부터 primary/secondary/applicability
+    `MochiItem.from_classification` 이 이 값으로부터 primary/secondary/applicability
     를 결정한다.
     """
 

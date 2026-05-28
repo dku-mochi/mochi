@@ -1,10 +1,10 @@
 """백탭 캡쳐 ingestion use case.
 
 흐름 — `_workspace/2026-05-25-intent-classification-bench.md` 의 권장 spec:
-1. Idempotency-Key 로 멱등 재요청을 차단 (이미 적재된 capture 가 있으면 그대로 반환,
+1. Idempotency-Key 로 멱등 재요청을 차단 (이미 적재된 MochiItem 이 있으면 그대로 반환,
    재호출 시 Gemini 비용/latency 발생 안 함).
 2. 이미지를 ``IntentClassifier`` 로 분류 → 후보 3개 + applicability.
-3. ``Capture.from_classification`` 으로 primary/secondary/applicability_map 도출.
+3. ``MochiItem.from_classification`` 으로 primary/secondary/applicability_map 도출.
 4. Repository.add → idempotency 기록 → notifier.emit (transactional outbox).
 """
 
@@ -12,21 +12,21 @@ from dataclasses import dataclass
 from uuid import UUID
 
 from app.modules.mochi_items.domain.entities import (
-    Capture,
-    CaptureChannel,
-    CaptureSource,
     ImageRef,
+    IngestChannel,
+    IngestSource,
+    MochiItem,
 )
 from app.modules.mochi_items.domain.ports import (
-    CaptureCreatedNotifier,
-    CaptureRepository,
     IntentClassifier,
+    MochiItemCreatedNotifier,
+    MochiItemRepository,
 )
 from app.modules.mochi_items.domain.value_objects import IntentClassification
 
 
 @dataclass(slots=True)
-class BackTapCaptureCommand:
+class BackTapIngestCommand:
     owner_id: UUID
     idempotency_key: str
     image: bytes
@@ -37,13 +37,13 @@ class BackTapCaptureCommand:
 
 
 @dataclass(slots=True)
-class BackTapCaptureResult:
-    capture: Capture
+class BackTapIngestResult:
+    item: MochiItem
     candidates: tuple[IntentClassification, ...]
     was_idempotent_replay: bool
 
 
-class BackTapCapture:
+class BackTapIngest:
     """백탭 캡쳐를 동기적으로 분류하고 저장하는 use case.
 
     분류 latency (~2.8s p50) 는 호출자가 알림 UX 의 일부로 흡수한다.
@@ -54,22 +54,22 @@ class BackTapCapture:
     def __init__(
         self,
         *,
-        repository: CaptureRepository,
-        notifier: CaptureCreatedNotifier,
+        repository: MochiItemRepository,
+        notifier: MochiItemCreatedNotifier,
         classifier: IntentClassifier,
     ):
         self._repo = repository
         self._notifier = notifier
         self._classifier = classifier
 
-    async def execute(self, command: BackTapCaptureCommand) -> BackTapCaptureResult:
+    async def execute(self, command: BackTapIngestCommand) -> BackTapIngestResult:
         replayed = await self._repo.already_ingested(
             owner_id=command.owner_id,
             idempotency_key=command.idempotency_key,
         )
         if replayed is not None:
-            return BackTapCaptureResult(
-                capture=replayed,
+            return BackTapIngestResult(
+                item=replayed,
                 candidates=(),
                 was_idempotent_replay=True,
             )
@@ -79,8 +79,8 @@ class BackTapCapture:
             mime=command.mime_type,
         )
 
-        source = CaptureSource(
-            channel=CaptureChannel.SCREENSHOT,
+        source = IngestSource(
+            channel=IngestChannel.SCREENSHOT,
             url=None,
             text=None,
             user_memo=command.user_memo,
@@ -93,21 +93,21 @@ class BackTapCapture:
                 ),
             ),
         )
-        capture = Capture.from_classification(
+        item = MochiItem.from_classification(
             source=source,
             classification=classification,
         )
 
-        await self._repo.add(owner_id=command.owner_id, capture=capture)
+        await self._repo.add(owner_id=command.owner_id, item=item)
         await self._repo.remember_idempotency(
             owner_id=command.owner_id,
             idempotency_key=command.idempotency_key,
-            capture_id=capture.id,
+            mochi_item_id=item.id,
         )
-        await self._notifier.emit(owner_id=command.owner_id, capture_id=capture.id)
+        await self._notifier.emit(owner_id=command.owner_id, mochi_item_id=item.id)
 
-        return BackTapCaptureResult(
-            capture=capture,
+        return BackTapIngestResult(
+            item=item,
             candidates=classification.candidates,
             was_idempotent_replay=False,
         )

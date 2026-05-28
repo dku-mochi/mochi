@@ -19,7 +19,7 @@ class ToolCall:
 
 @dataclass(slots=True)
 class AgentRun:
-    capture_id: UUID
+    mochi_item_id: UUID
     id: UUID = field(default_factory=uuid4)
     current_node: AgentNode = AgentNode.INGESTED
     tool_calls: list[ToolCall] = field(default_factory=list)

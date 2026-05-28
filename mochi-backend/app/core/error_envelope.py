@@ -14,7 +14,7 @@ log = get_logger("error")
 class ErrorEnvelope(BaseModel):
     """모든 4xx/5xx 응답이 따르는 통일 포맷. iOS `APIErrorEnvelope` 와 1:1 매칭."""
 
-    code: str = Field(description="도트(.)로 구분된 도메인.사유 코드 — 예: capture.not_found")
+    code: str = Field(description="도트(.)로 구분된 도메인.사유 코드 — 예: mochi_item.not_found")
     message: str
     request_id: str = Field(alias="requestId")
     retry_after: float | None = Field(default=None, alias="retryAfter")

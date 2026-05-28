@@ -1,50 +1,50 @@
 from typing import Protocol
 from uuid import UUID
 
-from app.modules.mochi_items.domain.entities import Capture, LifecycleState
+from app.modules.mochi_items.domain.entities import LifecycleState, MochiItem
 from app.modules.mochi_items.domain.value_objects import IntentClassificationResult
 from app.shared.intent import Intent
 
 
-class CaptureRepository(Protocol):
+class MochiItemRepository(Protocol):
     """Hexagonal outbound port — application layer가 의존하는 추상 저장소.
 
     모든 read/write 메서드는 ``owner_id`` 를 강제로 받아 cross-tenant 누설을 방지한다.
     """
 
-    async def add(self, *, owner_id: UUID, capture: Capture) -> None: ...
-    async def find_by_id(self, *, owner_id: UUID, capture_id: UUID) -> Capture | None: ...
+    async def add(self, *, owner_id: UUID, item: MochiItem) -> None: ...
+    async def find_by_id(self, *, owner_id: UUID, mochi_item_id: UUID) -> MochiItem | None: ...
     async def update_lifecycle(
         self,
         *,
         owner_id: UUID,
-        capture_id: UUID,
+        mochi_item_id: UUID,
         new_state: LifecycleState,
     ) -> None: ...
     async def update_primary_intent(
         self,
         *,
         owner_id: UUID,
-        capture_id: UUID,
+        mochi_item_id: UUID,
         new_primary: Intent,
         new_secondary: tuple[Intent, ...],
     ) -> None: ...
-    async def list_recent(self, *, owner_id: UUID, limit: int) -> list[Capture]: ...
-    async def list_by_intent(self, *, owner_id: UUID, intent: Intent, limit: int) -> list[Capture]: ...
-    async def already_ingested(self, *, owner_id: UUID, idempotency_key: str) -> Capture | None: ...
+    async def list_recent(self, *, owner_id: UUID, limit: int) -> list[MochiItem]: ...
+    async def list_by_intent(self, *, owner_id: UUID, intent: Intent, limit: int) -> list[MochiItem]: ...
+    async def already_ingested(self, *, owner_id: UUID, idempotency_key: str) -> MochiItem | None: ...
     async def remember_idempotency(
         self,
         *,
         owner_id: UUID,
         idempotency_key: str,
-        capture_id: UUID,
+        mochi_item_id: UUID,
     ) -> None: ...
 
 
-class CaptureCreatedNotifier(Protocol):
-    """Capture 생성 후 비동기 워커가 듣는 outbound port — 이벤트 디스패치."""
+class MochiItemCreatedNotifier(Protocol):
+    """MochiItem 생성 후 비동기 워커가 듣는 outbound port — 이벤트 디스패치."""
 
-    async def emit(self, *, owner_id: UUID, capture_id: UUID) -> None: ...
+    async def emit(self, *, owner_id: UUID, mochi_item_id: UUID) -> None: ...
 
 
 class IntentClassifier(Protocol):
