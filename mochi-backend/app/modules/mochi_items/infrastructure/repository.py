@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.modules.captures.domain.entities import (
+from app.modules.mochi_items.domain.entities import (
     Capture,
     CaptureChannel,
     CaptureSource,
@@ -15,8 +15,8 @@ from app.modules.captures.domain.entities import (
     LifecycleStateKind,
     SyncState,
 )
-from app.modules.captures.domain.ports import CaptureRepository
-from app.modules.captures.infrastructure.orm import (
+from app.modules.mochi_items.domain.ports import CaptureRepository
+from app.modules.mochi_items.infrastructure.orm import (
     CaptureImageRefRow,
     CaptureRow,
     IdempotencyKeyRow,

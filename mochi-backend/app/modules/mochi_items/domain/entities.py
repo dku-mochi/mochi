@@ -5,7 +5,7 @@ from enum import StrEnum
 from typing import Literal
 from uuid import UUID, uuid4
 
-from app.modules.captures.domain.value_objects import IntentClassificationResult
+from app.modules.mochi_items.domain.value_objects import IntentClassificationResult
 from app.shared.intent import Intent
 
 

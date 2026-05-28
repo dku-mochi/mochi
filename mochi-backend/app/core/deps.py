@@ -5,8 +5,8 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import get_session
-from app.modules.captures.domain.ports import IntentClassifier
-from app.modules.captures.infrastructure.gemini_classifier import VertexAIGeminiClassifier
+from app.modules.mochi_items.domain.ports import IntentClassifier
+from app.modules.mochi_items.infrastructure.gemini_classifier import VertexAIGeminiClassifier
 
 DBSession = Annotated[AsyncSession, Depends(get_session)]
 

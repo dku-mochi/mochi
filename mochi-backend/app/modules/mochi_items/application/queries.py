@@ -9,9 +9,9 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.modules.captures.domain.entities import Capture
-from app.modules.captures.domain.ports import CaptureRepository
-from app.modules.captures.infrastructure.repository import PostgresCaptureRepository
+from app.modules.mochi_items.domain.entities import Capture
+from app.modules.mochi_items.domain.ports import CaptureRepository
+from app.modules.mochi_items.infrastructure.repository import PostgresCaptureRepository
 
 
 def make_capture_repository(session: AsyncSession) -> CaptureRepository:

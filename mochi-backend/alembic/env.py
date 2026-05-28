@@ -11,7 +11,7 @@ from app.core.db import Base
 
 # 모든 ORM 모델을 import해 metadata에 등록 (Alembic autogenerate가 인식)
 from app.modules.auth.infrastructure import orm as auth_orm  # noqa: F401
-from app.modules.captures.infrastructure import orm, outbox  # noqa: F401
+from app.modules.mochi_items.infrastructure import orm, outbox  # noqa: F401
 
 config = context.config
 if config.config_file_name is not None:

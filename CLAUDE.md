@@ -171,11 +171,11 @@ iOS 쪽은 `tuist test`, 백엔드는 `make test` / `make lint` / `make typechec
 - `stop-summary.sh` — 세션 종료 직전 CHANGELOG 누락 + CLAUDE↔AGENTS mtime drift 알림
 - `settings.json` permissions.deny — `Read/Edit/Write(**/.env)` 등 비밀파일 차단
 
-**자동 채점 스크립트 (`.claude/scripts/`):**
+**자동 채점 스크립트 (`.claude/scripts/`):** — `.sh` 모두 git mode 100755 executable, `lib/*.py` 는 정적 import 모듈이라 100644.
 - `audit.sh <l1|l2|l3|all>` — 시간 강등 + 코드 식별자 grep 강등 + STOP 후보. 모노레포·macOS/Linux 이식.
-- `ship-precheck.sh <ios|backend|docs|all>` — `/ship` 자동 사전 체크 (audit + CHANGELOG + 미러 mtime + iOS 경계 + **OpenAPI drift** + git status). 게이트 무결성 보장(exit code 명시).
+- `ship-precheck.sh <ios|backend|docs|all>` — `/ship` 자동 사전 체크 **7단계** (audit / CHANGELOG / 미러 mtime / iOS 경계 / OpenAPI drift / **백엔드 lint+typecheck** / git status). 게이트 무결성 보장(exit code 명시).
 - `ios-boundaries.sh` — TCA 레이어 위반 자동 검출 (Features 간 import / Cores 역방향 / @main 위치).
-- `openapi-check.sh` — OpenAPI ↔ iOS 클라이언트 drift 자동 검사 (path-parameter 정규화 양방향). 정식 swift-openapi-generator 배선까지의 fallback ② 게이트.
+- `openapi-check.sh` (+ `lib/extract_paths.py`) — OpenAPI ↔ iOS 클라이언트 drift 자동 검사 (path-parameter 정규화 양방향). 정식 swift-openapi-generator 배선까지의 fallback ② 게이트.
 
 **표준 작업 루프:**
 ```

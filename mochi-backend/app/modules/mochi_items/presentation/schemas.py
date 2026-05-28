@@ -3,7 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from app.modules.captures.domain.entities import CaptureChannel
+from app.modules.mochi_items.domain.entities import CaptureChannel
 from app.shared.intent import Intent
 
 

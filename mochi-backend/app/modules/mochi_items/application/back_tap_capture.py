@@ -11,18 +11,18 @@
 from dataclasses import dataclass
 from uuid import UUID
 
-from app.modules.captures.domain.entities import (
+from app.modules.mochi_items.domain.entities import (
     Capture,
     CaptureChannel,
     CaptureSource,
     ImageRef,
 )
-from app.modules.captures.domain.ports import (
+from app.modules.mochi_items.domain.ports import (
     CaptureCreatedNotifier,
     CaptureRepository,
     IntentClassifier,
 )
-from app.modules.captures.domain.value_objects import IntentClassification
+from app.modules.mochi_items.domain.value_objects import IntentClassification
 
 
 @dataclass(slots=True)

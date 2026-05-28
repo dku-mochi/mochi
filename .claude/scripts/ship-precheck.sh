@@ -154,8 +154,38 @@ if [[ "$SCOPE" == "ios" ]] || [[ "$SCOPE" == "backend" ]] || [[ "$SCOPE" == "all
   echo
 fi
 
-# 6) git status — 모노레포 통합 후엔 루트 한 번만, 통합 전엔 하위 각각
-echo "### 6) git status"
+# 6) 백엔드 정적 검사 (make lint / typecheck) — 빠른 게이트만 자동 포함
+if [[ "$SCOPE" == "backend" ]] || [[ "$SCOPE" == "all" ]]; then
+  echo "### 6) 백엔드 정적 검사 (make lint / typecheck)"
+  if [[ -f "$REPO/mochi-backend/Makefile" ]]; then
+    # Makefile 의 lint/typecheck 타겟이 있는지 확인
+    if grep -qE '^(lint|typecheck):' "$REPO/mochi-backend/Makefile" 2>/dev/null; then
+      # 환경 의존성 (venv, ruff/mypy 설치) 때문에 *시도* 만 하고 실패 시 skip 알림.
+      lint_out=$(cd "$REPO/mochi-backend" && make lint 2>&1) ; lint_rc=$?
+      type_out=$(cd "$REPO/mochi-backend" && make typecheck 2>&1) ; type_rc=$?
+      if [[ "$lint_rc" -eq 0 ]] && [[ "$type_rc" -eq 0 ]]; then
+        mark_pass "백엔드 lint + typecheck 통과."
+      elif [[ "$lint_rc" -ne 0 ]] || [[ "$type_rc" -ne 0 ]]; then
+        # 환경 미설정(uv/venv 없음) vs 실제 위반 구분
+        # 환경 이슈 vs 실제 위반 구분 — 패턴 확장 (uv cache 권한, Permission denied, venv 미생성 등 모두 환경).
+        if echo "$lint_out$type_out" | grep -qE "command not found|No module|not found|Permission denied|uv cache|Cache directory|virtualenv|pyproject"; then
+          mark_warn "백엔드 lint/typecheck 환경 이슈 — \`cd mochi-backend && make install\` 후 재실행 권장."
+        else
+          mark_fail "백엔드 lint 또는 typecheck 실제 위반 — 출력 확인."
+          echo "$lint_out$type_out" | tail -5 | sed 's|^|    |'
+        fi
+      fi
+    else
+      mark_warn "mochi-backend/Makefile 에 lint/typecheck 타겟 부재."
+    fi
+  else
+    mark_warn "mochi-backend/Makefile 부재 — 백엔드 정적 검사 건너뜀."
+  fi
+  echo
+fi
+
+# 7) git status — 모노레포 통합 후엔 루트 한 번만, 통합 전엔 하위 각각
+echo "### 7) git status"
 if [[ -d "$REPO/.git" ]]; then
   # 모노레포 통합 완료
   changes=$(git -C "$REPO" status --porcelain 2>/dev/null | wc -l | tr -d ' ')

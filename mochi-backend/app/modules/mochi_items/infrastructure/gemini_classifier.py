@@ -20,7 +20,7 @@ from google.genai import types
 from pydantic import BaseModel, Field, ValidationError
 
 from app.core.config import get_settings
-from app.modules.captures.domain.value_objects import (
+from app.modules.mochi_items.domain.value_objects import (
     IntentClassification,
     IntentClassificationResult,
 )

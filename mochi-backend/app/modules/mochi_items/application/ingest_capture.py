@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from uuid import UUID
 
-from app.modules.captures.domain.entities import (
+from app.modules.mochi_items.domain.entities import (
     Capture,
     CaptureChannel,
     CaptureSource,
@@ -9,7 +9,7 @@ from app.modules.captures.domain.entities import (
     LifecycleState,
     LifecycleStateKind,
 )
-from app.modules.captures.domain.ports import CaptureCreatedNotifier, CaptureRepository
+from app.modules.mochi_items.domain.ports import CaptureCreatedNotifier, CaptureRepository
 
 
 @dataclass(slots=True)

@@ -1,9 +1,9 @@
-from app.modules.captures.domain.entities import (
+from app.modules.intents.domain.lifecycle_policy import is_allowed
+from app.modules.mochi_items.domain.entities import (
     ArchiveReason,
     LifecycleState,
     LifecycleStateKind,
 )
-from app.modules.intents.domain.lifecycle_policy import is_allowed
 from app.shared.intent import Intent
 
 

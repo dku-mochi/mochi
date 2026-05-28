@@ -5,12 +5,12 @@ from uuid import uuid4
 import pytest
 
 from app.core.error_envelope import NotFoundError
-from app.modules.captures.application.override_capture_intent import (
+from app.modules.mochi_items.application.override_capture_intent import (
     OverrideCaptureIntent,
     OverrideIntentCommand,
 )
-from app.modules.captures.domain.entities import Capture, CaptureChannel, CaptureSource, LifecycleState
-from app.modules.captures.domain.value_objects import (
+from app.modules.mochi_items.domain.entities import Capture, CaptureChannel, CaptureSource, LifecycleState
+from app.modules.mochi_items.domain.value_objects import (
     IntentClassification,
     IntentClassificationResult,
 )

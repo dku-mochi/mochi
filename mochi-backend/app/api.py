@@ -2,7 +2,7 @@ from fastapi import APIRouter, status
 
 from app.modules.agent.presentation.router import router as agent_router
 from app.modules.auth.presentation.router import auth_router, users_router
-from app.modules.captures.presentation.router import router as captures_router
+from app.modules.mochi_items.presentation.router import router as captures_router
 from app.modules.search.presentation.router import router as search_router
 
 

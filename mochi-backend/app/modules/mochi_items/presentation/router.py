@@ -7,19 +7,19 @@ from fastapi import APIRouter, File, Form, Header, UploadFile, status
 from app.core.deps import DBSession, IntentClassifierDep
 from app.core.error_envelope import DomainError, NotFoundError
 from app.core.security import CurrentUser
-from app.modules.captures.application.back_tap_capture import (
+from app.modules.mochi_items.application.back_tap_capture import (
     BackTapCapture,
     BackTapCaptureCommand,
 )
-from app.modules.captures.application.ingest_capture import IngestCapture, IngestCaptureCommand
-from app.modules.captures.application.override_capture_intent import (
+from app.modules.mochi_items.application.ingest_capture import IngestCapture, IngestCaptureCommand
+from app.modules.mochi_items.application.override_capture_intent import (
     OverrideCaptureIntent,
     OverrideIntentCommand,
 )
-from app.modules.captures.domain.entities import Capture, ImageRef
-from app.modules.captures.infrastructure.outbox import OutboxNotifier
-from app.modules.captures.infrastructure.repository import PostgresCaptureRepository
-from app.modules.captures.presentation.schemas import (
+from app.modules.mochi_items.domain.entities import Capture, ImageRef
+from app.modules.mochi_items.infrastructure.outbox import OutboxNotifier
+from app.modules.mochi_items.infrastructure.repository import PostgresCaptureRepository
+from app.modules.mochi_items.presentation.schemas import (
     BackTapCaptureResponse,
     CaptureCreateRequest,
     CaptureResponse,

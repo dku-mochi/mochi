@@ -4,12 +4,12 @@ from uuid import uuid4
 
 import pytest
 
-from app.modules.captures.application.back_tap_capture import (
+from app.modules.mochi_items.application.back_tap_capture import (
     BackTapCapture,
     BackTapCaptureCommand,
 )
-from app.modules.captures.domain.entities import Capture, CaptureChannel, LifecycleState
-from app.modules.captures.domain.value_objects import (
+from app.modules.mochi_items.domain.entities import Capture, CaptureChannel, LifecycleState
+from app.modules.mochi_items.domain.value_objects import (
     IntentClassification,
     IntentClassificationResult,
 )

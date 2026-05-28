@@ -1,8 +1,8 @@
 from typing import Protocol
 from uuid import UUID
 
-from app.modules.captures.domain.entities import Capture, LifecycleState
-from app.modules.captures.domain.value_objects import IntentClassificationResult
+from app.modules.mochi_items.domain.entities import Capture, LifecycleState
+from app.modules.mochi_items.domain.value_objects import IntentClassificationResult
 from app.shared.intent import Intent
 
 

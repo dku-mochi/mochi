@@ -3,7 +3,7 @@
 `is_allowed` 는 (kind 전이) + (archive reason 의 Intent 적합성) 둘 다 검증한다.
 """
 
-from app.modules.captures.domain.entities import (
+from app.modules.mochi_items.domain.entities import (
     ArchiveReason,
     LifecycleState,
     LifecycleStateKind,

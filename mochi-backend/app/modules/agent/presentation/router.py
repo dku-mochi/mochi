@@ -11,7 +11,7 @@ from app.core.error_envelope import NotFoundError
 from app.core.security import CurrentUser
 from app.modules.agent.application.orchestrator import AgentOrchestrator, StreamEvent
 from app.modules.agent.infrastructure.registry import StaticToolRegistry
-from app.modules.captures.application.queries import GetCaptureForOwner, make_capture_repository
+from app.modules.mochi_items.application.queries import GetCaptureForOwner, make_capture_repository
 
 router = APIRouter(prefix="/captures", tags=["agent"])
 

@@ -2,12 +2,12 @@
 
 import pytest
 
-from app.modules.captures.domain.entities import (
+from app.modules.mochi_items.domain.entities import (
     Capture,
     CaptureChannel,
     CaptureSource,
 )
-from app.modules.captures.domain.value_objects import (
+from app.modules.mochi_items.domain.value_objects import (
     IntentClassification,
     IntentClassificationResult,
 )

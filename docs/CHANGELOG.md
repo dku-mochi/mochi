@@ -22,6 +22,14 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 - **openapi-drift 등재 (known-drift)** · owner: 송준서 · since: 2026-05-29 · resolve_by: post-submission: 현재 검출되는 8건 — 의도된 미구현이므로 등재 후 추적. `/api/v1/auth/{apple,dev,google,logout,refresh}` 는 `AuthCoordinator` 가 클라이언트 외부에서 별도 처리 (구조적 분리). `/api/v1/captures/{var}/stream` (스트리밍 채널), `/api/v1/health`, `/api/v1/users/me` 는 데모 핵심 기능 외라 iOS 미호출 — 마감 후 재검토. 신규 endpoint 가 추가되면 같은 게이트가 fail 로 잡음.
 
 ## 2026-05-29 — infra
+- **하네스 v3.0 — CI 실행권한 영구화 + 정적 검사 게이트 통합.** 동기: codex 10차 rubric 평가가 (a) "hooks 실행권한이 CI 검사 기준과 어긋남 — pre-bash.sh, session-start.sh 가 executable 아님 → 로컬 통과/CI 실패", (b) "make lint/typecheck 자동 미포함 — 핵심 품질 게이트 일부 사람 절차" 를 가장 큰 약점으로 지목.
+  - 모든 `.claude/hooks/*.sh`, `.claude/scripts/*.sh` 의 실행권한을 `git update-index --chmod=+x` 로 영구 박음. mode 100755 git index 확정. CI 의 실행권한 검사 step 정합. **로컬-CI 불일치 0.**
+  - `.claude/scripts/ship-precheck.sh` §6 추가 — `mochi-backend` 의 `make lint` + `make typecheck` 자동 호출. 환경 미설정(`command not found`/`No module`) 은 warn 으로 친절히 구분. 실제 위반은 mark_fail. 사람 절차 → 자동 게이트.
+
+## 2026-05-29 — docs
+- **mochi_item known-drift — 임시 정본 표명.** owner: 송준서 · since: 2026-05-27 · resolve_by: W4 sprint. `docs/DOMAIN_DESIGN.md` 머리에 임시 결정 박스 추가 — "코드 변경 없이 문서가 코드(`capture`)를 따라간다, 본 문서의 `mochi_item` 은 논리 모델 설명으로 읽는다." `audit.sh` 의 강등은 W4 결정까지 의도된 정직 신호로 유지. 데모데이 직전 폭발 위험 가시화 + 결정 압박.
+
+## 2026-05-29 — infra
 - **하네스 v2.9 — CI 게이트 통합 + audit grep 범위 확장.** 동기: codex 9차 평가가 (a) "hooks 일부는 실행권한/호출방식까지 CI 에서 재검증해야 이식성 완전히 닫힘", (b) "audit grep 신뢰도 강등이 오탐·과소탐 가능성" 을 지적.
   - `.github/workflows/ship-precheck.yml` 신설 — main push / PR 머지 시 자동으로 6단계 ship-precheck 재실행. 실행권한 확인 step + audit + iOS 경계 + OpenAPI drift (등재 known-drift 분기) + ship-precheck 종합. 로컬과 CI 양쪽에서 같은 게이트 강제 — 이식성 완전화.
   - `.claude/scripts/audit.sh` `COMMITTED_RULES` 확장 — `IngestCapture`(BE), `on_device_detection`(iOS), `WebFetch`(BE) 추가. 5건 → 8건. 의미 식별자 커버리지 ↑ (codex 의 "audit 의 grep 신뢰도 한계" 부분 보강).

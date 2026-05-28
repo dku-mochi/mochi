@@ -8,11 +8,11 @@ from uuid import uuid4
 
 import pytest
 
-from app.modules.captures.application.ingest_capture import (
+from app.modules.mochi_items.application.ingest_capture import (
     IngestCapture,
     IngestCaptureCommand,
 )
-from app.modules.captures.domain.entities import (
+from app.modules.mochi_items.domain.entities import (
     Capture,
     CaptureChannel,
     ImageRef,

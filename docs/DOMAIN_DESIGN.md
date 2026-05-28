@@ -13,6 +13,12 @@ description: 도메인 모델·DB 스키마·4-Intent lifecycle 의 committed �
 > Backend: Postgres 16 + pgvector
 > iOS: Realm (mirror)
 
+> ⚠️ **활성 known-drift — 임시 정본 표명** (owner: 송준서 · since: 2026-05-27 · resolve_by: W4 sprint)
+>
+> 이 문서는 `mochi_item` 정규화 모델(3-table)을 서술한다. **그러나 현재 코드의 정본은 `capture` 단일 테이블**이다(백엔드 `captures`, iOS `CaptureRepository`). 명명·구조 분기가 데모데이 직전 폭발 위험.
+>
+> **임시 결정** (W4 sprint 까지 유지, 그 후 팀 합의로 최종): 코드 변경 없이 *문서가 코드를 따라간다* — 본 문서의 `mochi_item` 표현은 모두 *논리 모델 설명* 으로 읽고, 물리 정본은 `capture` 다. `audit.sh` 의 `mochi_item` grep 강등은 **의도된 정직 신호** 로 유지.
+
 ---
 
 ## 1. 설계 원칙
