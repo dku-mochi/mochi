@@ -1,0 +1,30 @@
+opt_in_rules:
+  - empty_count
+  - explicit_init
+  - first_where
+  - last_where
+  - sorted_imports
+  - implicit_return
+  - redundant_nil_coalescing
+  - convenience_type
+
+disabled_rules:
+  - todo
+  - file_length
+  - type_body_length
+
+included:
+  - Targets
+
+excluded:
+  - Tests
+  - Derived
+  - Tuist
+  - .build
+
+line_length:
+  warning: 130
+  error: 200
+
+identifier_name:
+  excluded: [id, ok, x, y]

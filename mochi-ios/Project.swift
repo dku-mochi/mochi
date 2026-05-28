@@ -1,0 +1,503 @@
+import ProjectDescription
+
+// MARK: - Constants
+
+private let bundleIdPrefix = "com.IndexFinger.mochi"
+private let deploymentTarget = "17.0"
+private let swiftVersion = "5.10"
+private let developmentTeam = "H857U5DNT9"
+private let marketingVersion = "0.1.0"
+private let currentProjectVersion = "1"
+private let appGroup = "group.com.IndexFinger.mochi"
+
+private let baseSettings: SettingsDictionary = [
+    "SWIFT_VERSION": .string(swiftVersion),
+    "DEVELOPMENT_TEAM": .string(developmentTeam),
+    "IPHONEOS_DEPLOYMENT_TARGET": .string(deploymentTarget),
+    "SWIFT_STRICT_CONCURRENCY": "complete",
+    "ENABLE_USER_SCRIPT_SANDBOXING": "YES",
+    // App·ShareExtension 의 Info.plist 가 모두 이 두 변수를 참조한다.
+    // 확장 타겟에서 누락되면 CFBundleVersion 이 빈 문자열이 되어 installd 가 설치를 거부한다.
+    "MARKETING_VERSION": .string(marketingVersion),
+    "CURRENT_PROJECT_VERSION": .string(currentProjectVersion),
+]
+
+// MARK: - Helpers
+
+private enum Layer: String {
+    case core = "Cores"
+    case feature = "Features"
+}
+
+private func module(
+    _ name: String,
+    layer: Layer,
+    dependencies: [TargetDependency] = []
+) -> Target {
+    .target(
+        name: name,
+        destinations: .iOS,
+        product: .framework,
+        bundleId: "\(bundleIdPrefix).\(name)",
+        deploymentTargets: .iOS(deploymentTarget),
+        sources: ["Targets/\(layer.rawValue)/\(name)/Sources/**"],
+        dependencies: dependencies,
+        settings: .settings(base: baseSettings)
+    )
+}
+
+private func unitTests(
+    for moduleName: String,
+    layer: Layer,
+    dependencies: [TargetDependency] = []
+) -> Target {
+    .target(
+        name: "\(moduleName)Tests",
+        destinations: .iOS,
+        product: .unitTests,
+        bundleId: "\(bundleIdPrefix).\(moduleName)Tests",
+        deploymentTargets: .iOS(deploymentTarget),
+        sources: ["Tests/\(layer.rawValue)/\(moduleName)Tests/Sources/**"],
+        dependencies: [.target(name: moduleName)] + dependencies,
+        settings: .settings(base: baseSettings)
+    )
+}
+
+// MARK: - Project
+
+let project = Project(
+    name: "Mochi",
+    organizationName: "IndexFinger",
+    options: .options(
+        defaultKnownRegions: ["en", "ko"],
+        developmentRegion: "ko"
+    ),
+    packages: [
+        .remote(url: "https://github.com/pointfreeco/swift-composable-architecture.git", requirement: .exact("1.17.1")),
+        .remote(url: "https://github.com/pointfreeco/swift-dependencies.git", requirement: .exact("1.5.1")),
+        // ComposableArchitecture transitive — App 타겟에서 직접 link 해서 undefined symbol 방지.
+        .remote(url: "https://github.com/pointfreeco/swift-case-paths.git", requirement: .exact("1.7.3")),
+        .remote(url: "https://github.com/pointfreeco/swift-identified-collections.git", requirement: .exact("1.1.1")),
+        .remote(url: "https://github.com/apple/swift-openapi-runtime.git", requirement: .exact("1.6.0")),
+        .remote(url: "https://github.com/apple/swift-openapi-urlsession.git", requirement: .exact("1.0.2")),
+        .remote(url: "https://github.com/realm/realm-swift.git", requirement: .exact("10.54.6")),
+        .remote(url: "https://github.com/onevcat/Kingfisher.git", requirement: .exact("8.1.3")),
+        // Sign In with Google + transitive (AppAuth / GTM*) — packageSettings 에서 framework 화.
+        .remote(url: "https://github.com/google/GoogleSignIn-iOS.git", requirement: .exact("8.0.0")),
+        .remote(url: "https://github.com/openid/AppAuth-iOS.git", requirement: .upToNextMajor(from: "1.7.5")),
+        .remote(url: "https://github.com/google/GTMAppAuth.git", requirement: .upToNextMajor(from: "4.1.1")),
+        .remote(url: "https://github.com/google/gtm-session-fetcher.git", requirement: .upToNextMajor(from: "3.4.0")),
+    ],
+    settings: .settings(base: baseSettings),
+    targets: [
+        // MARK: Cores
+        module(
+            "CoreDomain",
+            layer: .core,
+            dependencies: []
+        ),
+        module(
+            "CorePersistence",
+            layer: .core,
+            dependencies: [
+                .target(name: "CoreDomain"),
+                .target(name: "CoreNetworking"),
+                .package(product: "RealmSwift"),
+                .package(product: "Dependencies"),
+            ]
+        ),
+        module(
+            "CoreNetworking",
+            layer: .core,
+            dependencies: [
+                .target(name: "CoreDomain"),
+                .package(product: "OpenAPIRuntime"),
+                .package(product: "OpenAPIURLSession"),
+                .package(product: "Dependencies"),
+            ]
+        ),
+        module(
+            "CoreAgentClient",
+            layer: .core,
+            dependencies: [
+                .target(name: "CoreDomain"),
+                .target(name: "CoreNetworking"),
+                .package(product: "Dependencies"),
+            ]
+        ),
+        module(
+            "CoreIntegrations",
+            layer: .core,
+            dependencies: [
+                .target(name: "CoreDomain"),
+                .package(product: "Dependencies"),
+                .sdk(name: "EventKit", type: .framework),
+                .sdk(name: "EventKitUI", type: .framework),
+            ]
+        ),
+        module(
+            "DesignSystem",
+            layer: .core,
+            dependencies: [
+                .package(product: "Kingfisher"),
+            ]
+        ),
+        module(
+            "CoreLiveActivity",
+            layer: .core,
+            dependencies: []
+        ),
+
+        module(
+            "CoreAuth",
+            layer: .core,
+            dependencies: [
+                .target(name: "CoreDomain"),
+                .target(name: "CoreNetworking"),
+                .package(product: "Dependencies"),
+                // GoogleSignIn 은 **최상위 App 타겟에서만** link 한다.
+                // 이유: GoogleSignIn-iOS Package.swift 가 AppAuthCore (ObjC: OIDAuthState 등)
+                // 를 product 의존성에 명시하지 않아 하위 framework 에서 link 하면 undefined symbol
+                // 발생 (google/GoogleSignIn-iOS#408, tuist/tuist#6360).
+                // CoreAuth 는 GoogleAuthClient protocol 만 제공하고, Live 구현
+                // (Targets/App/Sources/LiveGoogleAuthClient.swift) 가 App 타겟 안에서 GoogleSignIn import.
+                .sdk(name: "AuthenticationServices", type: .framework),
+                .sdk(name: "Security", type: .framework),
+            ]
+        ),
+
+        // MARK: Features
+        // TCA 는 static product 이고 @_exported import 로 Dependencies / CasePaths /
+        // IdentifiedCollections 의 타입을 노출한다. 이 타입을 직접 쓰는 dynamic
+        // framework (Feature*) 는 해당 패키지들을 명시적으로 link 해야
+        // "Undefined symbol: Dependencies.Dependency / CasePathsCore.* / IdentifiedCollections.*"
+        // linker error 가 발생하지 않는다 (App 타겟과 동일한 이유).
+        module(
+            "FeatureCapture",
+            layer: .feature,
+            dependencies: [
+                .target(name: "CoreDomain"),
+                .target(name: "CorePersistence"),
+                .target(name: "CoreNetworking"),
+                .target(name: "CoreAgentClient"),
+                .target(name: "DesignSystem"),
+                .package(product: "ComposableArchitecture"),
+                .package(product: "Dependencies"),
+                .package(product: "CasePaths"),
+                .package(product: "IdentifiedCollections"),
+            ]
+        ),
+        module(
+            "FeatureInbox",
+            layer: .feature,
+            dependencies: [
+                .target(name: "CoreDomain"),
+                .target(name: "CorePersistence"),
+                .target(name: "CoreIntegrations"),
+                .target(name: "DesignSystem"),
+                .package(product: "ComposableArchitecture"),
+                .package(product: "Dependencies"),
+                .package(product: "CasePaths"),
+                .package(product: "IdentifiedCollections"),
+            ]
+        ),
+        module(
+            "FeatureSearch",
+            layer: .feature,
+            dependencies: [
+                .target(name: "CoreDomain"),
+                .target(name: "CoreAgentClient"),
+                .target(name: "DesignSystem"),
+                .package(product: "ComposableArchitecture"),
+                .package(product: "Dependencies"),
+                .package(product: "CasePaths"),
+                .package(product: "IdentifiedCollections"),
+            ]
+        ),
+        module(
+            "FeatureDetail",
+            layer: .feature,
+            dependencies: [
+                .target(name: "CoreDomain"),
+                .target(name: "CorePersistence"),
+                .target(name: "CoreIntegrations"),
+                .target(name: "DesignSystem"),
+                .package(product: "ComposableArchitecture"),
+                .package(product: "Dependencies"),
+                .package(product: "CasePaths"),
+                .package(product: "IdentifiedCollections"),
+            ]
+        ),
+        module(
+            "FeatureSettings",
+            layer: .feature,
+            dependencies: [
+                .target(name: "CoreDomain"),
+                .target(name: "DesignSystem"),
+                .package(product: "ComposableArchitecture"),
+                .package(product: "Dependencies"),
+                .package(product: "CasePaths"),
+                .package(product: "IdentifiedCollections"),
+            ]
+        ),
+        module(
+            "FeatureAuth",
+            layer: .feature,
+            dependencies: [
+                .target(name: "CoreDomain"),
+                .target(name: "CoreAuth"),
+                .target(name: "DesignSystem"),
+                .package(product: "ComposableArchitecture"),
+                .package(product: "Dependencies"),
+                .package(product: "CasePaths"),
+                .package(product: "IdentifiedCollections"),
+            ]
+        ),
+        module(
+            "FeatureOnboarding",
+            layer: .feature,
+            dependencies: [
+                .target(name: "DesignSystem"),
+                .package(product: "ComposableArchitecture"),
+                .package(product: "Dependencies"),
+                .package(product: "CasePaths"),
+                .package(product: "IdentifiedCollections"),
+            ]
+        ),
+
+        // MARK: App Shell
+        .target(
+            name: "Mochi",
+            destinations: .iOS,
+            product: .app,
+            bundleId: bundleIdPrefix,
+            deploymentTargets: .iOS(deploymentTarget),
+            infoPlist: .file(path: "Targets/App/Support/Info.plist"),
+            sources: ["Targets/App/Sources/**"],
+            resources: ["Targets/App/Resources/**"],
+            entitlements: .file(path: "Targets/App/Support/App.entitlements"),
+            // realm-swift 는 자체 Xcode project 를 가진 mixed Swift/ObjC 패키지라
+            // Tuist 의 dynamic PackageProduct embed 자동화(<Name>_<hash>_PackageProduct.framework
+            // 규칙)에서 빠진다. 결과적으로 link 는 되지만 .app/Frameworks/ 에 RealmSwift.framework
+            // 가 embed 되지 않아 실기기에서 dyld 가 @rpath/RealmSwift.framework/RealmSwift 를
+            // 찾지 못하고 즉시 크래시한다. PackageFrameworks 산출물을 강제로 복사·서명한다.
+            // ShareExtension 은 부모 .app 의 Frameworks/ 를 공유하므로 본 App 타겟에서만 embed 하면 된다.
+            scripts: [
+                .post(
+                    script: #"""
+                    set -e
+                    SRC="${BUILT_PRODUCTS_DIR}/PackageFrameworks/RealmSwift.framework"
+                    DST_DIR="${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}"
+                    DST="${DST_DIR}/RealmSwift.framework"
+                    if [ ! -d "$SRC" ]; then
+                        echo "error: RealmSwift.framework not found at $SRC" >&2
+                        exit 1
+                    fi
+                    mkdir -p "$DST_DIR"
+                    /usr/bin/rsync -a --delete "$SRC/" "$DST/"
+                    if [ -n "${EXPANDED_CODE_SIGN_IDENTITY:-}" ]; then
+                        /usr/bin/codesign --force --sign "${EXPANDED_CODE_SIGN_IDENTITY}" \
+                            --preserve-metadata=identifier,entitlements --timestamp=none "$DST"
+                    fi
+                    """#,
+                    name: "Embed RealmSwift.framework",
+                    inputPaths: ["$(BUILT_PRODUCTS_DIR)/PackageFrameworks/RealmSwift.framework/RealmSwift"],
+                    outputPaths: ["$(BUILT_PRODUCTS_DIR)/$(FRAMEWORKS_FOLDER_PATH)/RealmSwift.framework/RealmSwift"],
+                    basedOnDependencyAnalysis: true
+                ),
+                // Debug 빌드에서 호스트 Mac 의 현재 LAN IP 를 .app/Info.plist 의 ``MOCHI_DEV_HOST``
+                // 키에 박는다 (AppDependencies.resolveBaseURL 이 우선 참조). 실기기에서 같은 Wi-Fi
+                // 의 macOS 백엔드(localhost:8000)를 가리키도록 빌드만 다시 누르면 자동 갱신된다.
+                //
+                // Release 에선 noop — MOCHI_DEV_HOST 가 빈 문자열로 남아 운영 URL fallback 이 쓰인다.
+                // Info.plist 수정 후 codesign 을 다시 적용하지 않으면 실기기에서 launch 가 거부된다.
+                //
+                // basedOnDependencyAnalysis=false: 입력 파일이 호스트 네트워크 상태이므로 Xcode 가
+                // up-to-date 로 판단해 스킵하지 않게 매 빌드 강제 실행.
+                .post(
+                    script: #"""
+                    set -e
+                    if [ "${CONFIGURATION}" != "Debug" ]; then
+                        exit 0
+                    fi
+                    LAN_HOST=$(/usr/sbin/ipconfig getifaddr en0 2>/dev/null || true)
+                    if [ -z "$LAN_HOST" ]; then
+                        LAN_HOST=$(/usr/sbin/ipconfig getifaddr en1 2>/dev/null || true)
+                    fi
+                    if [ -z "$LAN_HOST" ]; then
+                        echo "warning: Mac LAN IP not detectable (en0/en1). MOCHI_DEV_HOST left empty — app will fall back to localhost." >&2
+                        exit 0
+                    fi
+                    PLIST="${BUILT_PRODUCTS_DIR}/${INFOPLIST_PATH}"
+                    if [ ! -f "$PLIST" ]; then
+                        echo "error: Info.plist not found at $PLIST" >&2
+                        exit 1
+                    fi
+                    /usr/libexec/PlistBuddy -c "Set :MOCHI_DEV_HOST $LAN_HOST" "$PLIST" 2>/dev/null \
+                        || /usr/libexec/PlistBuddy -c "Add :MOCHI_DEV_HOST string $LAN_HOST" "$PLIST"
+                    echo "MOCHI_DEV_HOST → $LAN_HOST"
+                    # Info.plist 가 codesign 의 일부이므로 수정 후 .app 전체를 다시 서명.
+                    if [ -n "${EXPANDED_CODE_SIGN_IDENTITY:-}" ]; then
+                        /usr/bin/codesign --force --sign "${EXPANDED_CODE_SIGN_IDENTITY}" \
+                            --preserve-metadata=identifier,entitlements --timestamp=none \
+                            "${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}"
+                    fi
+                    """#,
+                    name: "Inject Dev LAN Host",
+                    basedOnDependencyAnalysis: false
+                ),
+            ],
+            dependencies: [
+                .target(name: "FeatureAuth"),
+                .target(name: "FeatureOnboarding"),
+                .target(name: "FeatureCapture"),
+                .target(name: "FeatureInbox"),
+                .target(name: "FeatureSearch"),
+                .target(name: "FeatureDetail"),
+                .target(name: "FeatureSettings"),
+                .target(name: "CoreDomain"),
+                .target(name: "CoreAuth"),
+                .target(name: "CorePersistence"),
+                .target(name: "CoreNetworking"),
+                .target(name: "CoreIntegrations"),
+                .target(name: "DesignSystem"),
+                .target(name: "CoreLiveActivity"),
+                .target(name: "ShareExtension"),
+                .target(name: "MochiNotificationContent"),
+                .target(name: "MochiWidgets"),
+                .package(product: "ComposableArchitecture"),
+                // RealmStoreFactory.makeConfiguration() 의 반환 타입(Realm.Configuration) 의
+                // metadata 가 MochiApp 에서 참조되므로 App 타겟에서 직접 link.
+                .package(product: "RealmSwift"),
+                .package(product: "GoogleSignIn"),
+                .package(product: "AppAuth"),
+                .package(product: "AppAuthCore"),
+                .package(product: "GTMAppAuth"),
+                .package(product: "GTMSessionFetcherCore"),
+                // TCA 는 static product 라 transitive deps 가 자동 링크되지 않는다.
+                // App 타겟 최종 링킹 시 undefined symbol 을 막기 위해 명시.
+                .package(product: "CasePaths"),
+                .package(product: "IdentifiedCollections"),
+                .package(product: "Dependencies"),
+            ],
+            settings: .settings(
+                base: baseSettings.merging([
+                    "PRODUCT_NAME": "Mochi",
+                    // GoogleSignIn 의 ObjC 카테고리/클래스(OIDAuthState 등)가 link 단계에서
+                    // dead-strip 되지 않도록 -ObjC 강제. AppAuthCore 가 static product 일 때 필수.
+                    "OTHER_LDFLAGS": .array(["$(inherited)", "-ObjC"]),
+                    // "Embed RealmSwift.framework" post-build script 가 BUILT_PRODUCTS_DIR
+                    // (DerivedData) 에 접근하려면 user script sandbox 를 꺼야 한다. baseSettings
+                    // 는 보안 목적으로 YES 를 유지하고 App 타겟에서만 override.
+                    "ENABLE_USER_SCRIPT_SANDBOXING": "NO",
+                ])
+            )
+        ),
+
+        // MARK: Share Extension
+        .target(
+            name: "ShareExtension",
+            destinations: .iOS,
+            product: .appExtension,
+            bundleId: "\(bundleIdPrefix).ShareExtension",
+            deploymentTargets: .iOS(deploymentTarget),
+            infoPlist: .file(path: "Targets/ShareExtension/Support/Info.plist"),
+            sources: ["Targets/ShareExtension/Sources/**"],
+            entitlements: .file(path: "Targets/ShareExtension/Support/ShareExtension.entitlements"),
+            dependencies: [
+                .target(name: "CoreDomain"),
+                .target(name: "CorePersistence"),
+                .target(name: "DesignSystem"),
+            ],
+            settings: .settings(base: baseSettings)
+        ),
+
+        // MARK: Notification Content Extension (DEBUG prototype — Tier 2)
+        // 알림 펼침 시 custom SwiftUI view 노출. Info.plist 의
+        // UNNotificationExtensionCategory = "MOCK_USECASE_V0" 가 알림의 categoryIdentifier 와 매칭.
+        .target(
+            name: "MochiNotificationContent",
+            destinations: .iOS,
+            product: .appExtension,
+            bundleId: "\(bundleIdPrefix).MochiNotificationContent",
+            deploymentTargets: .iOS(deploymentTarget),
+            infoPlist: .file(path: "Targets/NotificationContent/Support/Info.plist"),
+            sources: ["Targets/NotificationContent/Sources/**"],
+            entitlements: .file(path: "Targets/NotificationContent/Support/NotificationContent.entitlements"),
+            dependencies: [
+                .target(name: "CoreLiveActivity"),
+            ],
+            settings: .settings(base: baseSettings)
+        ),
+
+        // MARK: Widget Extension (Live Activity prototype — Tier 3)
+        // Lock Screen + Dynamic Island. ActivityKit + WidgetKit + App Intents (iOS 17+) 로
+        // interactive button. ActivityAttributes 의 type identity 는 CoreLiveActivity 공유.
+        .target(
+            name: "MochiWidgets",
+            destinations: .iOS,
+            product: .appExtension,
+            bundleId: "\(bundleIdPrefix).MochiWidgets",
+            deploymentTargets: .iOS(deploymentTarget),
+            infoPlist: .file(path: "Targets/Widgets/Support/Info.plist"),
+            sources: ["Targets/Widgets/Sources/**"],
+            entitlements: .file(path: "Targets/Widgets/Support/Widgets.entitlements"),
+            dependencies: [
+                .target(name: "CoreLiveActivity"),
+            ],
+            settings: .settings(base: baseSettings)
+        ),
+
+        // App Intents (QuickCaptureIntent / CaptureScreenshotIntent / MochiShortcuts) 는
+        // 별도 extension 타겟이 아니라 **메인 App 타겟 안** 에 있다 (`Targets/App/Sources/AppIntents/`).
+        // 이유: `AppShortcutsProvider` 와 그것이 참조하는 `AppIntent` 들은 반드시 메인 앱 타겟에
+        // 위치해야 시스템이 인덱싱한다 (Apple Developer Forums thread/759160).
+        // extension 타겟에 두면 단축어 앱·"앱과 공유"·Siri·Spotlight 어디에서도 발견되지 않음.
+
+        // MARK: Tests
+        unitTests(for: "CoreDomain", layer: .core),
+        unitTests(for: "CorePersistence", layer: .core, dependencies: [.target(name: "CoreDomain")]),
+        unitTests(
+            for: "FeatureCapture",
+            layer: .feature,
+            dependencies: [.package(product: "ComposableArchitecture")]
+        ),
+        unitTests(
+            for: "FeatureInbox",
+            layer: .feature,
+            dependencies: [.package(product: "ComposableArchitecture")]
+        ),
+        unitTests(
+            for: "FeatureSearch",
+            layer: .feature,
+            dependencies: [.package(product: "ComposableArchitecture")]
+        ),
+    ],
+    schemes: [
+        .scheme(
+            name: "Mochi",
+            shared: true,
+            buildAction: .buildAction(targets: ["Mochi"]),
+            testAction: .targets([
+                "CoreDomainTests",
+                "CorePersistenceTests",
+                "FeatureCaptureTests",
+                "FeatureInboxTests",
+                "FeatureSearchTests",
+            ]),
+            runAction: .runAction(executable: "Mochi")
+        ),
+    ],
+    additionalFiles: [
+        "README.md",
+        ".swiftlint.yml",
+        "Targets/App/Support/Info.plist",
+        "Targets/App/Support/App.entitlements",
+    ]
+)
+
+// MARK: - App Group constant export (for documentation only — not consumed by Tuist)
+
+// AppGroup identifier used across App, ShareExtension, and CorePersistence:
+// "\(appGroup)" → must match the entitlements files in Targets/*/Support/*.entitlements.
+_ = appGroup

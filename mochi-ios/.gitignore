@@ -1,0 +1,53 @@
+# macOS
+.DS_Store
+
+# Xcode
+build/
+DerivedData/
+Derived/
+*.xcodeproj
+*.xcworkspace
+!default.xcworkspace
+xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+*.moved-aside
+
+# Swift Package Manager
+.swiftpm/
+.build/
+Packages/
+Package.pins
+Package.resolved
+.package.resolved
+
+# Tuist
+.tuist-bin/
+Tuist/.build/
+Tuist/Dependencies/
+graph.dot
+graph.png
+.tuist-version
+
+# CocoaPods (사용 안 함, 안전망)
+Pods/
+
+# fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# Provisioning / Secrets
+*.mobileprovision
+*.cer
+*.p12
+*.p8
+GoogleService-Info.plist
+.env
+.env.*
+!.env.example
+
+# Misc
+*.log
+*.swp

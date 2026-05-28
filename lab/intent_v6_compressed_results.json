@@ -1,0 +1,417 @@
+{
+  "prompt_version": "v6",
+  "preprocess": "fhd_jpeg_q60",
+  "n": 13,
+  "latency_ms": {
+    "min": 2095.0,
+    "p50": 2821.8,
+    "mean": 3440.0,
+    "max": 6581.9
+  },
+  "bytes": {
+    "min": 38323,
+    "mean": 99884,
+    "max": 172846
+  },
+  "thresholds": {
+    "dominant_top": 0.7,
+    "dominant_others_max": 0.3,
+    "multi_min_applicability": 0.5,
+    "multi_min_count": 2
+  },
+  "n_dominant": 0,
+  "n_multi_intent": 13,
+  "n_ambiguous_fallback": 0,
+  "results": [
+    {
+      "file": "IMG_8121.PNG",
+      "bytes": 95465,
+      "latency_ms": 4026.6,
+      "candidates": [
+        {
+          "label": "편의점 쿠폰 사용",
+          "intent": "todo",
+          "applicability": 0.95,
+          "reasoning": "CU 편의점에서 바코드를 직접 제시하여 결제해야 하는 실질적인 행동이 필요함."
+        },
+        {
+          "label": "쿠폰 유효기간 확인",
+          "intent": "schedule",
+          "applicability": 0.75,
+          "reasoning": "유효기간 내에 사용해야 하므로 마감 기한을 인지하고 관리하려는 의도가 있음."
+        },
+        {
+          "label": "발급 내역 보관",
+          "intent": "memo",
+          "applicability": 0.45,
+          "reasoning": "쿠폰이 정상적으로 발급되었는지 확인하고 나중에 필요할 때 찾기 위해 기록해둠."
+        }
+      ],
+      "derived_flags": {
+        "dominant_single_intent": false,
+        "likely_multi_intent": true,
+        "_n_above_multi_threshold": 2
+      }
+    },
+    {
+      "file": "IMG_8350.PNG",
+      "bytes": 38323,
+      "latency_ms": 3402.5,
+      "candidates": [
+        {
+          "label": "기상 시간 기록",
+          "intent": "memo",
+          "applicability": 0.85,
+          "reasoning": "특정 시간에 일어났음을 증명하거나 수면 패턴을 확인하기 위해 화면을 남겼을 가능성이 높음."
+        },
+        {
+          "label": "일정 확인",
+          "intent": "schedule",
+          "applicability": 0.65,
+          "reasoning": "알람이 울린 시점이 특정 약속이나 마감 시간에 맞춰져 있어, 해당 일정을 상기하려는 의도일 수 있음."
+        },
+        {
+          "label": "루틴 점검",
+          "intent": "todo",
+          "applicability": 0.5,
+          "reasoning": "매일 반복되는 알람을 통해 수행해야 할 아침 루틴이나 할 일을 체크하려는 목적일 수 있음."
+        }
+      ],
+      "derived_flags": {
+        "dominant_single_intent": false,
+        "likely_multi_intent": true,
+        "_n_above_multi_threshold": 3
+      }
+    },
+    {
+      "file": "IMG_8361.PNG",
+      "bytes": 68762,
+      "latency_ms": 2821.8,
+      "candidates": [
+        {
+          "label": "대화 박제",
+          "intent": "memo",
+          "applicability": 0.9,
+          "reasoning": "친구들과의 재미있는 대화 내용을 나중에 다시 보며 웃거나 추억하기 위해 저장함."
+        },
+        {
+          "label": "회신",
+          "intent": "todo",
+          "applicability": 0.6,
+          "reasoning": "대화 흐름상 나중에 적절한 답변을 하거나 반응을 남기기 위해 기록해둠."
+        },
+        {
+          "label": "약속 잡기",
+          "intent": "schedule",
+          "applicability": 0.45,
+          "reasoning": "오마카세나 카지노 등 대화 중에 언급된 구체적인 장소나 계획을 나중에 구체화하기 위해 저장함."
+        }
+      ],
+      "derived_flags": {
+        "dominant_single_intent": false,
+        "likely_multi_intent": true,
+        "_n_above_multi_threshold": 2
+      }
+    },
+    {
+      "file": "IMG_8387.PNG",
+      "bytes": 97621,
+      "latency_ms": 2754.5,
+      "candidates": [
+        {
+          "label": "연락처 저장",
+          "intent": "todo",
+          "applicability": 0.95,
+          "reasoning": "최근 통화 목록에서 특정 번호를 확인하고 주소록에 추가하기 위해 캡쳐했을 가능성이 매우 높음."
+        },
+        {
+          "label": "부재중 확인",
+          "intent": "todo",
+          "applicability": 0.75,
+          "reasoning": "놓친 전화나 반복된 발신 기록을 확인하고 다시 전화를 걸어야 할 필요성을 느꼈을 수 있음."
+        },
+        {
+          "label": "통화 기록 보관",
+          "intent": "memo",
+          "applicability": 0.5,
+          "reasoning": "특정 업체와의 통화 이력을 증빙하거나 나중에 다시 찾아보기 위해 기록해두려는 의도."
+        }
+      ],
+      "derived_flags": {
+        "dominant_single_intent": false,
+        "likely_multi_intent": true,
+        "_n_above_multi_threshold": 3
+      }
+    },
+    {
+      "file": "IMG_8394.PNG",
+      "bytes": 124776,
+      "latency_ms": 5042.3,
+      "candidates": [
+        {
+          "label": "입영 연기 확인",
+          "intent": "knowledge",
+          "applicability": 0.95,
+          "reasoning": "병무청으로부터 받은 입영 연기 처리 결과를 공식 문서처럼 보관해두려는 의도가 가장 큽니다."
+        },
+        {
+          "label": "입영 일정 관리",
+          "intent": "schedule",
+          "applicability": 0.75,
+          "reasoning": "연기된 입영 기간과 향후 절차를 확인하여 개인 일정에 반영하기 위한 목적입니다."
+        },
+        {
+          "label": "병무청 문의 준비",
+          "intent": "todo",
+          "applicability": 0.55,
+          "reasoning": "추후 입영일자 선택이나 추가 문의가 필요할 때를 대비해 발신 연락처와 처리 내용을 남겨두려는 의도입니다."
+        }
+      ],
+      "derived_flags": {
+        "dominant_single_intent": false,
+        "likely_multi_intent": true,
+        "_n_above_multi_threshold": 3
+      }
+    },
+    {
+      "file": "IMG_8431.PNG",
+      "bytes": 107787,
+      "latency_ms": 3405.2,
+      "candidates": [
+        {
+          "label": "대회 접수 준비",
+          "intent": "todo",
+          "applicability": 0.95,
+          "reasoning": "5월 27일까지 팀장이 메일로 회신해야 할 구체적인 과업이 명시되어 있어 즉각적인 행동이 필요함."
+        },
+        {
+          "label": "대회 일정 확인",
+          "intent": "schedule",
+          "applicability": 0.8,
+          "reasoning": "5월 27일이라는 마감 기한이 포함되어 있어, 이를 일정 관리 도구에 등록해두려는 의도가 강함."
+        },
+        {
+          "label": "합격 인증",
+          "intent": "memo",
+          "applicability": 0.5,
+          "reasoning": "대표팀 선발이라는 성취를 기록하고 나중에 다시 확인하거나 공유하기 위해 저장했을 가능성이 있음."
+        }
+      ],
+      "derived_flags": {
+        "dominant_single_intent": false,
+        "likely_multi_intent": true,
+        "_n_above_multi_threshold": 3
+      }
+    },
+    {
+      "file": "IMG_8439.PNG",
+      "bytes": 51742,
+      "latency_ms": 2095.0,
+      "candidates": [
+        {
+          "label": "단축어 설정",
+          "intent": "todo",
+          "applicability": 0.95,
+          "reasoning": "화면에 명시된 '단축어 등록하기' 버튼을 눌러 실제 기능을 활성화하려는 의도가 가장 큽니다."
+        },
+        {
+          "label": "사용법 참고",
+          "intent": "knowledge",
+          "applicability": 0.75,
+          "reasoning": "아이폰 뒷면 탭 설정 방법을 나중에 다시 확인하거나 다른 사람에게 알려주기 위해 저장할 수 있습니다."
+        },
+        {
+          "label": "나중에 하기",
+          "intent": "memo",
+          "applicability": 0.55,
+          "reasoning": "지금 당장 설정하기 어려운 상황이라, 나중에 시간을 내어 설정을 완료하려고 기록해두는 경우입니다."
+        }
+      ],
+      "derived_flags": {
+        "dominant_single_intent": false,
+        "likely_multi_intent": true,
+        "_n_above_multi_threshold": 3
+      }
+    },
+    {
+      "file": "IMG_8477.PNG",
+      "bytes": 115833,
+      "latency_ms": 2765.4,
+      "candidates": [
+        {
+          "label": "미용실 예약",
+          "intent": "todo",
+          "applicability": 0.9,
+          "reasoning": "헤어 스타일링 영상이므로 다음에 미용실에 가서 이 머리를 하기 위해 저장했을 가능성이 매우 높음."
+        },
+        {
+          "label": "스타일 참고",
+          "intent": "knowledge",
+          "applicability": 0.75,
+          "reasoning": "머리 손질 방법이나 스타일링 정보를 나중에 다시 확인하고 학습하기 위한 용도."
+        },
+        {
+          "label": "나중에 해볼 머리",
+          "intent": "memo",
+          "applicability": 0.6,
+          "reasoning": "다음에 머리를 자를 때 참고하려고 가볍게 기록해두는 정서적/기록적 의도."
+        }
+      ],
+      "derived_flags": {
+        "dominant_single_intent": false,
+        "likely_multi_intent": true,
+        "_n_above_multi_threshold": 3
+      }
+    },
+    {
+      "file": "마우스 살까 말까 고민중.PNG",
+      "bytes": 84114,
+      "latency_ms": 3885.7,
+      "candidates": [
+        {
+          "label": "구매 고민",
+          "intent": "todo",
+          "applicability": 0.95,
+          "reasoning": "할인 중인 상품의 가격과 정보를 확인하고 구매 여부를 결정하기 위해 저장했을 가능성이 매우 높습니다."
+        },
+        {
+          "label": "가격 비교",
+          "intent": "knowledge",
+          "applicability": 0.75,
+          "reasoning": "현재 할인 가격이 합리적인지 다른 판매처와 비교해보기 위해 정보를 남겨두려는 의도입니다."
+        },
+        {
+          "label": "장비 위시리스트",
+          "intent": "memo",
+          "applicability": 0.55,
+          "reasoning": "당장 구매하지 않더라도 나중에 사고 싶은 장비 목록으로 기록해두는 경우입니다."
+        }
+      ],
+      "derived_flags": {
+        "dominant_single_intent": false,
+        "likely_multi_intent": true,
+        "_n_above_multi_threshold": 3
+      }
+    },
+    {
+      "file": "아키텍쳐 참고 해보려고.PNG",
+      "bytes": 75761,
+      "latency_ms": 2556.1,
+      "candidates": [
+        {
+          "label": "기술 학습",
+          "intent": "knowledge",
+          "applicability": 0.95,
+          "reasoning": "실시간 메시징 시스템의 아키텍처 구조를 이해하고 공부하기 위해 저장했을 가능성이 매우 높음."
+        },
+        {
+          "label": "시스템 설계 참고",
+          "intent": "todo",
+          "applicability": 0.75,
+          "reasoning": "현재 진행 중인 프로젝트나 업무에서 유사한 아키텍처를 설계할 때 레퍼런스로 활용하려는 의도."
+        },
+        {
+          "label": "나중에 읽어보기",
+          "intent": "memo",
+          "applicability": 0.5,
+          "reasoning": "당장 분석하기엔 시간이 부족하여, 나중에 여유 있을 때 자세히 살펴보려고 저장해두는 경우."
+        }
+      ],
+      "derived_flags": {
+        "dominant_single_intent": false,
+        "likely_multi_intent": true,
+        "_n_above_multi_threshold": 3
+      }
+    },
+    {
+      "file": "이뻐서 구매고민중 기록.PNG",
+      "bytes": 150153,
+      "latency_ms": 6581.9,
+      "candidates": [
+        {
+          "label": "코디 참고",
+          "intent": "knowledge",
+          "applicability": 0.9,
+          "reasoning": "모델의 착장과 스타일링을 나중에 다시 보고 참고하기 위해 저장했을 가능성이 높음."
+        },
+        {
+          "label": "구매 고민",
+          "intent": "todo",
+          "applicability": 0.8,
+          "reasoning": "상품명과 가격 정보가 포함되어 있어, 구매 여부를 결정하기 위해 기록했을 가능성이 큼."
+        },
+        {
+          "label": "나중에 사기",
+          "intent": "memo",
+          "applicability": 0.6,
+          "reasoning": "당장 구매하지 않더라도 나중에 다시 찾아보기 위해 위시리스트 용도로 저장했을 수 있음."
+        }
+      ],
+      "derived_flags": {
+        "dominant_single_intent": false,
+        "likely_multi_intent": true,
+        "_n_above_multi_threshold": 3
+      }
+    },
+    {
+      "file": "나중에 공부해보려고 저장.png",
+      "bytes": 172846,
+      "latency_ms": 2608.3,
+      "candidates": [
+        {
+          "label": "나중에 보기",
+          "intent": "todo",
+          "applicability": 0.95,
+          "reasoning": "유튜브 영상은 나중에 시간을 내어 시청하려는 목적으로 저장하는 경우가 가장 일반적입니다."
+        },
+        {
+          "label": "기술 학습",
+          "intent": "knowledge",
+          "applicability": 0.8,
+          "reasoning": "LLM 위키 구축이라는 전문적인 주제를 다루고 있어, 학습이나 업무 참고용으로 기록했을 가능성이 큽니다."
+        },
+        {
+          "label": "흥미로운 콘텐츠",
+          "intent": "memo",
+          "applicability": 0.45,
+          "reasoning": "단순히 나중에 다시 보고 싶은 흥미로운 영상이나 자료로 남겨두려는 의도입니다."
+        }
+      ],
+      "derived_flags": {
+        "dominant_single_intent": false,
+        "likely_multi_intent": true,
+        "_n_above_multi_threshold": 2
+      }
+    },
+    {
+      "file": "나중에 확인하고 공부하려고 저장.png",
+      "bytes": 115309,
+      "latency_ms": 2774.5,
+      "candidates": [
+        {
+          "label": "토익 공부",
+          "intent": "todo",
+          "applicability": 0.9,
+          "reasoning": "상단에 노출된 토익 단어 학습 영상을 나중에 시청하거나 학습하기 위해 저장했을 가능성이 매우 높음."
+        },
+        {
+          "label": "커피 구매",
+          "intent": "todo",
+          "applicability": 0.75,
+          "reasoning": "화면 하단에 광고 중인 코코넛 바닐라향 커피에 관심이 생겨 나중에 구매하려고 저장했을 수 있음."
+        },
+        {
+          "label": "나중에 볼 영상",
+          "intent": "knowledge",
+          "applicability": 0.6,
+          "reasoning": "학습 자료나 흥미로운 콘텐츠를 나중에 다시 찾아보기 위해 기록해두는 일반적인 상황임."
+        }
+      ],
+      "derived_flags": {
+        "dominant_single_intent": false,
+        "likely_multi_intent": true,
+        "_n_above_multi_threshold": 3
+      }
+    }
+  ]
+}

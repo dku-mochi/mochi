@@ -1,0 +1,937 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>모찌(MOCHI) — GCP 백엔드 MVP 아키텍처</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-soft: #fafafa;
+    --bg-card: #f5f5f5;
+    --border: #e5e5e5;
+    --border-strong: #cccccc;
+    --text: #0a0a0a;
+    --text-sub: #6b6b6b;
+    --text-mute: #8a8a8a;
+    --accent: #8b6cff;
+    --accent-soft: #ede7ff;
+    --warn: #d4632b;
+    --warn-soft: #ffe8da;
+    --ok: #1f8a5c;
+    --ok-soft: #dff8ec;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Helvetica, Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+  body { line-height: 1.55; font-size: 15px; }
+
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 56px 28px 96px; }
+  header.hero { padding-bottom: 24px; border-bottom: 1px solid var(--border); margin-bottom: 48px; }
+  header.hero .eyebrow { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-mute); font-family: var(--mono); }
+  header.hero h1 { font-size: 44px; line-height: 1.1; margin: 12px 0 8px; letter-spacing: -.02em; }
+  header.hero h1 .accent { color: var(--accent); }
+  header.hero p.lede { font-size: 17px; color: var(--text-sub); max-width: 760px; margin: 6px 0 0; }
+  header.hero .meta { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 13px; color: var(--text-sub); font-family: var(--mono); }
+  header.hero .meta strong { color: var(--text); font-weight: 600; }
+  header.hero .meta .pill { background: var(--accent-soft); color: var(--accent); padding: 1px 8px; border-radius: 999px; font-weight: 700; }
+
+  nav.toc { margin: 32px 0 56px; padding: 18px 22px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-soft); }
+  nav.toc h2 { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-mute); margin: 0 0 12px; font-family: var(--mono); font-weight: 600; }
+  nav.toc ol { margin: 0; padding-left: 22px; columns: 2; column-gap: 32px; }
+  nav.toc li { margin: 4px 0; font-size: 14px; }
+  nav.toc a { color: var(--text); text-decoration: none; border-bottom: 1px dashed transparent; }
+  nav.toc a:hover { border-bottom-color: var(--accent); }
+
+  section { margin: 64px 0; }
+  section > h2 { font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--text-mute); font-family: var(--mono); margin: 0 0 6px; font-weight: 600; }
+  section > h3.title { font-size: 30px; margin: 0 0 14px; letter-spacing: -.01em; line-height: 1.2; }
+  section > p.intro { font-size: 16px; color: var(--text-sub); max-width: 820px; margin: 0 0 28px; }
+
+  h4 { font-size: 18px; margin: 28px 0 10px; letter-spacing: -.005em; }
+  p { margin: 0 0 12px; }
+  code { font-family: var(--mono); font-size: .9em; background: var(--bg-card); padding: 1px 6px; border-radius: 3px; }
+  pre { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.5; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 12px 0 18px; }
+  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { font-weight: 600; color: var(--text-sub); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; background: var(--bg-soft); border-bottom: 1px solid var(--border-strong); }
+  td.num { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  td.mono { font-family: var(--mono); font-size: 13px; }
+  tr.total td { border-top: 1px solid var(--border-strong); font-weight: 700; background: var(--bg-soft); }
+  tr.subtotal td { background: var(--bg-soft); font-weight: 600; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  @media (max-width: 780px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+  .card { border: 1px solid var(--border); border-radius: 6px; padding: 18px 20px; background: var(--bg); }
+  .card.soft { background: var(--bg-soft); }
+
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-family: var(--mono); letter-spacing: .03em; vertical-align: middle; margin-left: 8px; }
+  .badge.accent { background: var(--accent-soft); color: var(--accent); }
+  .badge.warn   { background: var(--warn-soft); color: var(--warn); }
+  .badge.ok     { background: var(--ok-soft); color: var(--ok); }
+  .badge.muted  { background: var(--bg-card); color: var(--text-sub); border: 1px solid var(--border); }
+
+  .decision { border-left: 3px solid var(--ok); background: var(--ok-soft); padding: 14px 18px; border-radius: 0 6px 6px 0; margin: 12px 0; }
+  .decision .label { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--ok); font-weight: 700; }
+  .tradeoff { border-left: 3px solid var(--warn); background: var(--warn-soft); padding: 14px 18px; border-radius: 0 6px 6px 0; margin: 12px 0; }
+  .tradeoff .label { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--warn); font-weight: 700; }
+  .openq { border-left: 3px solid var(--text-sub); background: var(--bg-soft); padding: 14px 18px; border-radius: 0 6px 6px 0; margin: 12px 0; }
+  .openq .label { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-sub); font-weight: 700; }
+
+  ul, ol { margin: 6px 0 14px; padding-left: 22px; }
+  ul li, ol li { margin: 4px 0; }
+
+  .diagram { border: 1px solid var(--border); border-radius: 6px; padding: 18px; background: var(--bg); overflow-x: auto; }
+  .diagram svg { display: block; max-width: 100%; height: auto; }
+  .diagram .caption { font-size: 12px; color: var(--text-sub); margin-top: 10px; font-family: var(--mono); }
+
+  footer { margin-top: 96px; padding-top: 24px; border-top: 1px solid var(--border); font-size: 13px; color: var(--text-sub); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  footer .mono { font-family: var(--mono); }
+
+  section[id] { scroll-margin-top: 24px; }
+  a.anchor { color: var(--accent); text-decoration: none; border-bottom: 1px dashed var(--accent); }
+  a.anchor:hover { border-bottom-style: solid; }
+
+  .bar { display: inline-flex; align-items: center; gap: 8px; min-width: 180px; }
+  .bar .track { background: var(--bg-card); height: 8px; flex: 1; border-radius: 4px; overflow: hidden; }
+  .bar .fill { background: var(--accent); height: 100%; }
+  .bar .pct { font-family: var(--mono); font-size: 11px; color: var(--text-sub); min-width: 36px; text-align: right; }
+
+  .strike { text-decoration: line-through; color: var(--text-mute); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ============================== HERO ============================== -->
+<header class="hero">
+  <div class="eyebrow">2026 SW중심대학 디지털 경진대회 · 팀 세얼간이</div>
+  <h1>모찌(MOCHI) <span class="accent">GCP MVP</span> 아키텍처</h1>
+  <p class="lede">DAU 100 콘테스트/베타 수준에 맞춰 <strong>over-engineering 을 모두 걷어낸</strong> 단일-서비스 구성. FastAPI 1 process 가 API · SSE · Worker 를 모두 담는다. Cloud SQL public IP + native Unix socket, Vertex AI 는 Gemini 3.1 Flash-Lite. 기본 region <strong>asia-northeast3 (Seoul)</strong>, Vertex AI 만 도쿄/아이오와 분기.</p>
+  <div class="meta">
+    <span>Date · <strong>2026-05-25</strong></span>
+    <span>Scale · <strong>DAU 100 / 6K capture / 6K 대화 · 월</strong></span>
+    <span>Target · <span class="pill">월 ≈ $95</span></span>
+    <span>철학 · <strong>premature optimization 금지</strong></span>
+  </div>
+</header>
+
+<!-- ============================== TOC ============================== -->
+<nav class="toc">
+  <h2>목차</h2>
+  <ol>
+    <li><a href="#requirements">트래픽 가정 (DAU 100)</a></li>
+    <li><a href="#topology">GCP 토폴로지</a></li>
+    <li><a href="#services">서비스 카탈로그</a></li>
+    <li><a href="#flows">데이터 흐름</a></li>
+    <li><a href="#ai">AI 모델 결정 — Gemini 3.1 Flash-Lite</a></li>
+    <li><a href="#security">보안</a></li>
+    <li><a href="#tradeoffs">Trade-off 결정 매트릭스</a></li>
+    <li><a href="#cost">월별 비용 산정</a></li>
+    <li><a href="#openq">미결정 / 알아볼 부분</a></li>
+    <li><a href="#roadmap">언제 무엇을 추가하나</a></li>
+  </ol>
+</nav>
+
+<!-- ============================== 1. REQUIREMENTS ============================== -->
+<section id="requirements">
+  <h2>01 — Assumptions</h2>
+  <h3 class="title">트래픽 가정에서 출발</h3>
+  <p class="intro">이 트래픽 수치는 모든 의사결정의 출발점이다. 모찌의 MVP 는 콘테스트 시연 + 초기 베타 단계로, 사실상 idle 시스템.</p>
+
+  <div class="grid-3">
+    <div class="card soft">
+      <div class="badge accent">유저</div>
+      <h4>DAU 100</h4>
+      <ul>
+        <li>MAU 500 가정</li>
+        <li>피크 동시 사용자 ~ 20명</li>
+      </ul>
+    </div>
+    <div class="card soft">
+      <div class="badge accent">캡쳐</div>
+      <h4>2건/유저/일</h4>
+      <ul>
+        <li>200건/일 = <strong>6,000/월</strong></li>
+        <li>평균 RPS 0.002, 피크 0.05</li>
+        <li>이미지 평균 500 KB</li>
+      </ul>
+    </div>
+    <div class="card soft">
+      <div class="badge accent">대화</div>
+      <h4>2건/유저/일</h4>
+      <ul>
+        <li>200건/일 = <strong>6,000/월</strong></li>
+        <li>동시 SSE 연결 피크 ~5</li>
+        <li>평균 응답 시간 5~10s</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="tradeoff">
+    <div class="label">철학 — 이 트래픽에서 over-engineering 의 위험</div>
+    <p>DAU 100 은 1 vCPU instance 하나가 95% 시간 idle 인 상태다. 이 위에 LB + Armor + NAT + VPC Connector + Redis + 4개 service 분리를 얹는 건 <strong>비용보다도 운영 복잡도</strong> 가 더 큰 문제다. 콘테스트 1주일 전 인프라 장애 디버깅 시간이 늘어남. 그래서 이번 MVP 는 <strong>"빠질 수 있는 건 다 뺀다"</strong> 원칙으로 재설계한다. 확장은 임계 (DAU 500+, p95 SLO 위반) 가 측정될 때.</p>
+  </div>
+</section>
+
+<!-- ============================== 2. TOPOLOGY ============================== -->
+<section id="topology">
+  <h2>02 — Topology</h2>
+  <h3 class="title">단일 service + 1 cron job</h3>
+  <p class="intro">2 Cloud Run + 1 SQL + 1 GCS + Vertex AI. 그 외 모든 인프라 컴포넌트 (LB · NAT · VPC Connector · Redis · Armor) 는 MVP 에서 제거.</p>
+
+  <div class="diagram">
+    <svg viewBox="0 0 1080 580" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="GCP MVP 토폴로지">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#0a0a0a"/>
+        </marker>
+        <marker id="arrAccent" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#8b6cff"/>
+        </marker>
+        <marker id="arrWarn" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#d4632b"/>
+        </marker>
+        <style>
+          .lbl { font-family: ui-monospace, Menlo, monospace; font-size: 11px; fill: #0a0a0a; }
+          .lblSm { font-family: ui-monospace, Menlo, monospace; font-size: 10px; fill: #6b6b6b; }
+          .grp { font-family: ui-monospace, Menlo, monospace; font-size: 10px; fill: #6b6b6b; letter-spacing: .12em; text-transform: uppercase; }
+          .title { font-family: -apple-system, "Segoe UI", sans-serif; font-size: 13px; font-weight: 600; fill: #0a0a0a; }
+          .sub { font-family: ui-monospace, Menlo, monospace; font-size: 10px; fill: #6b6b6b; }
+          .pillTxt { font-family: ui-monospace, Menlo, monospace; font-size: 10px; fill: #8b6cff; font-weight: 700; }
+        </style>
+      </defs>
+
+      <!-- iOS zone -->
+      <rect x="30" y="30" width="280" height="120" rx="6" fill="#fafafa" stroke="#cccccc"/>
+      <text x="44" y="50" class="grp">iOS device</text>
+      <rect x="46" y="62" width="120" height="74" rx="4" fill="#fff" stroke="#e5e5e5"/>
+      <text x="56" y="80" class="title">Main App</text>
+      <text x="56" y="96" class="sub">SwiftUI + TCA</text>
+      <text x="56" y="110" class="sub">Realm (mirror)</text>
+      <text x="56" y="124" class="sub">CaptureSyncWorker</text>
+      <rect x="176" y="62" width="120" height="74" rx="4" fill="#fff" stroke="#e5e5e5"/>
+      <text x="186" y="80" class="title">Extensions</text>
+      <text x="186" y="96" class="sub">Share / AppIntents</text>
+      <text x="186" y="110" class="sub">App Group</text>
+      <text x="186" y="124" class="sub">pending-backtap</text>
+
+      <!-- Cloud Run direct entry -->
+      <rect x="350" y="30" width="320" height="120" rx="6" fill="#fafafa" stroke="#cccccc"/>
+      <text x="364" y="50" class="grp">Entry · Cloud Run native HTTPS</text>
+      <rect x="366" y="62" width="290" height="74" rx="4" fill="#fff" stroke="#e5e5e5"/>
+      <text x="376" y="80" class="title">api.mochi.app  →  *.run.app</text>
+      <text x="376" y="96" class="sub">Cloud Run domain mapping (무료, managed cert)</text>
+      <text x="376" y="110" class="sub">기본 TLS + HTTP/2 + DDoS basic 보호</text>
+      <text x="376" y="124" class="sub" fill="#d4632b">※ Cloud LB · Cloud Armor 미사용 (MVP)</text>
+
+      <!-- Vertex AI other region -->
+      <rect x="710" y="30" width="340" height="120" rx="6" fill="#fafafa" stroke="#cccccc"/>
+      <text x="724" y="50" class="grp">Vertex AI · asia-northeast1 (Tokyo)</text>
+      <rect x="726" y="62" width="150" height="74" rx="4" fill="#fff" stroke="#8b6cff"/>
+      <text x="736" y="80" class="title">Gemini 3.1 Flash-Lite</text>
+      <text x="736" y="96" class="sub">$0.25 / $1.50 per 1M</text>
+      <text x="736" y="110" class="sub">multimodal · 1M ctx</text>
+      <text x="736" y="124" class="sub">function calling</text>
+      <rect x="884" y="62" width="150" height="74" rx="4" fill="#fff" stroke="#e5e5e5"/>
+      <text x="894" y="80" class="title">text-embedding-005</text>
+      <text x="894" y="96" class="sub">768d · public endpoint</text>
+      <text x="894" y="110" class="sub">batched calls</text>
+      <text x="894" y="124" class="sub">SA 인증</text>
+
+      <!-- Seoul region -->
+      <rect x="30" y="190" width="1020" height="320" rx="8" fill="#ffffff" stroke="#8b6cff" stroke-width="1.5"/>
+      <text x="50" y="212" class="grp">GCP region · asia-northeast3 (Seoul)</text>
+      <text x="1030" y="212" class="grp" text-anchor="end">no custom VPC needed (default network)</text>
+
+      <!-- Single Cloud Run -->
+      <rect x="60" y="232" width="540" height="180" rx="6" fill="#fafafa" stroke="#cccccc"/>
+      <text x="74" y="250" class="grp">Compute · Cloud Run (단일 service)</text>
+
+      <rect x="76" y="262" width="510" height="138" rx="4" fill="#fff" stroke="#8b6cff" stroke-width="1.4"/>
+      <text x="90" y="284" class="title">mochi-api  <tspan class="pillTxt">· 1 process · 1 service</tspan></text>
+      <text x="90" y="304" class="sub">1 vCPU · 1 GiB · gen2 · min=1 · max=3 · concurrency=80</text>
+      <text x="90" y="320" class="sub">CPU always allocated · request timeout=3600s (SSE 위해)</text>
+      <text x="90" y="340" class="sub" fill="#8b6cff">FastAPI 안에 모두 통합:</text>
+      <text x="100" y="358" class="sub">①  /api/v1/* HTTP endpoints (sync 요청)</text>
+      <text x="100" y="374" class="sub">②  /captures/{id}/stream SSE</text>
+      <text x="100" y="390" class="sub">③  asyncio.create_task(outbox_poller()) 백그라운드</text>
+
+      <!-- Housekeeper -->
+      <rect x="620" y="232" width="420" height="180" rx="6" fill="#fafafa" stroke="#cccccc"/>
+      <text x="634" y="250" class="grp">Scheduled · Cloud Run Jobs</text>
+
+      <rect x="636" y="262" width="394" height="80" rx="4" fill="#fff" stroke="#e5e5e5"/>
+      <text x="650" y="280" class="title">mochi-housekeeper</text>
+      <text x="650" y="296" class="sub">Cloud Run Job · 1 vCPU · 512 MiB</text>
+      <text x="650" y="310" class="sub">Cloud Scheduler · 매 1시간 cron</text>
+      <text x="650" y="324" class="sub">knowledge decay · idempotency TTL purge · DLQ alert</text>
+
+      <rect x="636" y="354" width="394" height="50" rx="4" fill="#fff" stroke="#e5e5e5"/>
+      <text x="650" y="372" class="title">Cloud Scheduler</text>
+      <text x="650" y="388" class="sub">cron 0 * * * *  →  invoke housekeeper job</text>
+
+      <!-- Data tier -->
+      <rect x="60" y="430" width="990" height="68" rx="6" fill="#fafafa" stroke="#cccccc"/>
+      <text x="74" y="448" class="grp">Data + secrets</text>
+      <rect x="76" y="458" width="240" height="36" rx="4" fill="#fff" stroke="#8b6cff"/>
+      <text x="90" y="476" class="title">Cloud SQL · db-g1-small</text>
+      <text x="90" y="489" class="sub">PG 16 · pgvector · 10 GB SSD · public IP</text>
+      <rect x="328" y="458" width="200" height="36" rx="4" fill="#fff" stroke="#e5e5e5"/>
+      <text x="342" y="476" class="title">Cloud Storage</text>
+      <text x="342" y="489" class="sub">mochi-attachments-mvp · Standard</text>
+      <rect x="540" y="458" width="150" height="36" rx="4" fill="#fff" stroke="#e5e5e5"/>
+      <text x="554" y="476" class="title">Cloud KMS</text>
+      <text x="554" y="489" class="sub">JWT signing key</text>
+      <rect x="702" y="458" width="160" height="36" rx="4" fill="#fff" stroke="#e5e5e5"/>
+      <text x="716" y="476" class="title">Secret Manager</text>
+      <text x="716" y="489" class="sub">~5 secrets</text>
+      <rect x="874" y="458" width="160" height="36" rx="4" fill="#fff" stroke="#e5e5e5"/>
+      <text x="888" y="476" class="title">Cloud Logging</text>
+      <text x="888" y="489" class="sub">structlog (무료 tier)</text>
+
+      <!-- Arrows: iOS to Cloud Run -->
+      <line x1="310" y1="98" x2="366" y2="98" stroke="#0a0a0a" stroke-width="1.4" marker-end="url(#arr)"/>
+      <text x="316" y="92" class="lblSm">HTTPS</text>
+
+      <!-- Cloud Run domain → mochi-api -->
+      <path d="M510 136 C510 200, 340 220, 340 262" fill="none" stroke="#0a0a0a" stroke-width="1.4" marker-end="url(#arr)"/>
+      <text x="376" y="226" class="lblSm">/api/v1/* · /captures/*/stream</text>
+
+      <!-- API → Vertex AI (cross-region) -->
+      <path d="M586 320 C700 300, 720 180, 800 150" fill="none" stroke="#d4632b" stroke-width="1.4" marker-end="url(#arrWarn)"/>
+      <text x="650" y="232" class="lblSm" fill="#d4632b">cross-region (RTT ~30ms · Tokyo)</text>
+
+      <!-- API → Cloud SQL (native socket) -->
+      <path d="M340 412 L196 458" fill="none" stroke="#8b6cff" stroke-width="1.6" marker-end="url(#arrAccent)"/>
+      <text x="200" y="425" class="lblSm" fill="#8b6cff">Cloud SQL Unix socket  (--add-cloudsql-instances)</text>
+
+      <!-- API → GCS (presigned 발급) -->
+      <path d="M540 412 L420 458" fill="none" stroke="#0a0a0a" stroke-width="1.2" marker-end="url(#arr)"/>
+      <text x="430" y="425" class="lblSm">presigned URL 발급</text>
+
+      <!-- iOS → GCS direct PUT -->
+      <path d="M310 100 C470 100, 470 350, 528 458" fill="none" stroke="#0a0a0a" stroke-width="1" stroke-dasharray="3 3" marker-end="url(#arr)"/>
+      <text x="476" y="270" class="lblSm">iOS → GCS direct PUT (presigned)</text>
+
+      <!-- Scheduler → Housekeeper -->
+      <line x1="833" y1="354" x2="833" y2="342" stroke="#0a0a0a" stroke-width="1.2" marker-end="url(#arr)"/>
+
+      <!-- Housekeeper → SQL -->
+      <path d="M700 342 C700 420, 250 440, 196 458" fill="none" stroke="#0a0a0a" stroke-width="1" stroke-dasharray="2 3" marker-end="url(#arr)"/>
+    </svg>
+    <div class="caption">실선 = primary 데이터 경로 · 점선 = secondary · 주황 = cross-region (Vertex AI) · 보라 = 핵심 컴포넌트</div>
+  </div>
+
+  <div class="grid-2" style="margin-top:18px">
+    <div class="card">
+      <h4>MVP 에 포함된 GCP 서비스</h4>
+      <ul>
+        <li><strong>Cloud Run</strong> service × 1 (<code>mochi-api</code>)</li>
+        <li><strong>Cloud Run Jobs</strong> × 1 (<code>mochi-housekeeper</code>)</li>
+        <li><strong>Cloud Scheduler</strong> 1 cron</li>
+        <li><strong>Cloud SQL for PostgreSQL 16</strong> (db-g1-small)</li>
+        <li><strong>Cloud Storage</strong> 1 bucket</li>
+        <li><strong>Vertex AI</strong> Gemini 3.1 Flash-Lite + text-embedding-005</li>
+        <li><strong>Cloud KMS</strong> (JWT 서명 키 1개)</li>
+        <li><strong>Secret Manager</strong> (~5 secrets)</li>
+        <li><strong>Artifact Registry + Cloud Build</strong> (이미지 + CI)</li>
+        <li><strong>Cloud Logging / Monitoring / Trace</strong> (무료 tier)</li>
+        <li><strong>Cloud DNS</strong> (도메인 매핑용 1 zone)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4 style="color:var(--warn)">의도적으로 뺀 서비스</h4>
+      <ul>
+        <li class="strike">Cloud Load Balancing — Cloud Run 자체 endpoint</li>
+        <li class="strike">Cloud Armor — LB 가 없어 못 붙임. 트래픽 작아 불필요</li>
+        <li class="strike">Cloud NAT — Cloud Run 기본 egress 사용</li>
+        <li class="strike">Serverless VPC Connector — Cloud SQL native socket 으로 대체</li>
+        <li class="strike">Private Service Connect — Vertex AI public + SA auth</li>
+        <li class="strike">Memorystore Redis — in-process LRU cache</li>
+        <li class="strike">VPC Service Controls — 운영기 도입 검토</li>
+        <li class="strike">Cloud CDN — content 모두 private</li>
+        <li class="strike">별도 mochi-sse · mochi-worker service — mochi-api 에 통합</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== 3. SERVICES ============================== -->
+<section id="services">
+  <h2>03 — Services</h2>
+  <h3 class="title">서비스 카탈로그 — 정확한 인스턴스 명세</h3>
+  <p class="intro">전체 8개 컴포넌트 (compute 2 + data 2 + AI 2 + 보안 2). 리전은 별도 표기 없으면 <code>asia-northeast3 (Seoul)</code>.</p>
+
+  <h4>3.1 컴퓨트</h4>
+  <table>
+    <thead><tr><th>서비스</th><th>역할</th><th>인스턴스</th><th>설정</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="mono">mochi-api<br/><span style="color:var(--text-sub)">Cloud Run service (gen2)</span></td>
+        <td>FastAPI 단일 process — REST · SSE · outbox worker 통합. iOS 의 모든 요청 entry.</td>
+        <td class="mono">1 vCPU · 1 GiB<br/>min=1 / max=3<br/>concurrency=80</td>
+        <td>CPU always allocated · request timeout=3600s (SSE) · ingress=all · <code>--add-cloudsql-instances</code> 로 Cloud SQL 자동 mount · domain mapping <code>api.mochi.app</code></td>
+      </tr>
+      <tr>
+        <td class="mono">mochi-housekeeper<br/><span style="color:var(--text-sub)">Cloud Run Job</span></td>
+        <td>주기 정리 — knowledge decay 자동 전이, idempotency TTL purge, DLQ 알림, stale outbox lease 회수.</td>
+        <td class="mono">1 vCPU · 512 MiB<br/>on-demand</td>
+        <td>task timeout=300s · max-retries=1 · Cloud Scheduler 가 <code>0 * * * *</code> (매 시각 정각) trigger</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="decision">
+    <div class="label">결정 · API · SSE · Worker 를 한 process 안에</div>
+    <p>이전 안의 4-service 분리는 DAU 100 에서 over-engineering. FastAPI startup 이벤트에 <code>asyncio.create_task(outbox_poller())</code> 하나 띄우면 같은 process 가 (1) HTTP 요청, (2) SSE 연결, (3) background outbox poll 을 모두 처리. <strong>안전성</strong>: instance 가 scale up (1→2→3) 되어도 outbox 의 <code>FOR UPDATE SKIP LOCKED</code> 가 중복 픽업 막음 — 멀티-instance race 안전이 이미 schema 수준에 보장됨. <strong>운영성</strong>: 코드 한 곳, 배포 한 번, 로그 한 stream.</p>
+  </div>
+
+  <h4>3.2 데이터</h4>
+  <table>
+    <thead><tr><th>서비스</th><th>인스턴스</th><th>설정</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="mono">Cloud SQL · PostgreSQL 16<br/><span style="color:var(--text-sub)">mochi-pg-mvp</span></td>
+        <td class="mono">Enterprise edition<br/><strong>db-g1-small</strong><br/>(1 shared vCPU · 1.7 GiB)</td>
+        <td>SSD 10 GB (auto-grow 50 GB cap) · backup 일 1회, retention 3일 · PITR off · <code>pgvector</code>·<code>pg_trgm</code>·<code>pgcrypto</code> ext 활성 · <strong>public IP</strong> + Authorized Networks 0개 (외부 차단) · IAM auth (Cloud Run SA <code>cloudsql.client</code>) · maintenance Sun 04:00 KST</td>
+      </tr>
+      <tr>
+        <td class="mono">Cloud Storage<br/><span style="color:var(--text-sub)">mochi-attachments-mvp</span></td>
+        <td class="mono">Standard · Seoul</td>
+        <td>Uniform bucket-level access · <code>users/{user_id}/...</code> prefix 강제 (presigned 발급 시) · public access prevention=enforced · Lifecycle: 180d → Nearline · Object Versioning OFF · CMEK 미적용 (MVP) — 기본 GCS 암호화로 충분</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h4>3.3 AI · ML — Vertex AI</h4>
+  <table>
+    <thead><tr><th>모델</th><th>리전</th><th>사용처</th><th>가드레일</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="mono"><strong>Gemini 3.1 Flash-Lite</strong><br/>(Preview, multimodal + tool use)</td>
+        <td class="mono" style="color:var(--warn)">asia-northeast1<br/>fallback us-central1</td>
+        <td>Capture 분석 (intent / summary / entities / actions / importance), agent function calling, conversation generation, search answer synthesis</td>
+        <td>max_output_tokens=1024, safety_settings=BLOCK_MEDIUM_AND_ABOVE, function calling = <code>StaticToolRegistry</code> 등록 도구만, 입력 이미지 ≤ 2MB, retry exponential backoff</td>
+      </tr>
+      <tr>
+        <td class="mono">text-embedding-005</td>
+        <td class="mono" style="color:var(--warn)">asia-northeast1</td>
+        <td>chunk_text → 768d 벡터. embed 시 task_type=RETRIEVAL_DOCUMENT, 검색 시 RETRIEVAL_QUERY</td>
+        <td>batch=10 단위 호출, chunk 길이 ≤ 8000 chars (DB CHECK 동일)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h4>3.4 보안 · 관측</h4>
+  <table>
+    <thead><tr><th>서비스</th><th>구성</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">Cloud KMS</td><td>1 key ring · JWT 서명 키 1개 (asymmetric, RS256). signing 은 KMS 에 위임 — private key 가 Cloud Run instance 메모리에 안 뜸.</td></tr>
+      <tr><td class="mono">Secret Manager</td><td>~5 secrets: DB password, Apple OAuth client secret, Google OAuth client secret, Vertex AI service account 키 (Workload Identity 쓰면 0개), Slack webhook (DLQ alert).</td></tr>
+      <tr><td class="mono">Cloud Run domain mapping</td><td><code>api.mochi.app</code> → <code>mochi-api-XXXX.run.app</code>. managed TLS cert 자동, 무료. Cloud DNS 1 zone 으로 도메인 인증.</td></tr>
+      <tr><td class="mono">Cloud Logging</td><td>structlog JSON sink. 30일 retention. 무료 50 GiB 안에 들어옴 (DAU 100 트래픽).</td></tr>
+      <tr><td class="mono">Cloud Monitoring</td><td>Uptime check 1개 (<code>api.mochi.app/health</code>, 60s 간격). SLO: ingest p95 &lt; 400ms. alert → 이메일 + Slack.</td></tr>
+      <tr><td class="mono">Cloud Trace</td><td>X-Mochi-Request-ID → trace_id 매핑. sample rate 100% (트래픽 작아 OK).</td></tr>
+      <tr><td class="mono">Artifact Registry</td><td><code>asia-northeast3-docker.pkg.dev/mochi-mvp/services/mochi-api</code> · 이미지 보관.</td></tr>
+      <tr><td class="mono">Cloud Build</td><td>GitHub push trigger. <code>cloudbuild.yaml</code> 한 파일로 build → push → Cloud Run deploy. 무료 tier 안.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============================== 4. FLOWS ============================== -->
+<section id="flows">
+  <h2>04 — Flows</h2>
+  <h3 class="title">핵심 데이터 흐름</h3>
+  <p class="intro">서비스가 단순해진 만큼 데이터 흐름도 단순. <strong>같은 process 안에서</strong> ingest → outbox → worker → SSE push 가 모두 일어난다.</p>
+
+  <h4>4.1 Capture ingestion (POST /captures)</h4>
+  <div class="diagram">
+    <svg viewBox="0 0 1040 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ingest flow">
+      <defs>
+        <marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0a0a0a"/></marker>
+        <style>
+          .actor { font-family: ui-monospace, Menlo, monospace; font-size: 11px; fill: #0a0a0a; font-weight: 600; }
+          .step { font-family: ui-monospace, Menlo, monospace; font-size: 10px; fill: #6b6b6b; }
+          .note { font-family: -apple-system, sans-serif; font-size: 11px; fill: #0a0a0a; }
+        </style>
+      </defs>
+      <line x1="100" y1="40" x2="100" y2="300" stroke="#cccccc" stroke-dasharray="3 3"/>
+      <line x1="350" y1="40" x2="350" y2="300" stroke="#cccccc" stroke-dasharray="3 3"/>
+      <line x1="650" y1="40" x2="650" y2="300" stroke="#cccccc" stroke-dasharray="3 3"/>
+      <line x1="940" y1="40" x2="940" y2="300" stroke="#cccccc" stroke-dasharray="3 3"/>
+
+      <text x="100" y="30" text-anchor="middle" class="actor">iOS</text>
+      <text x="350" y="30" text-anchor="middle" class="actor">mochi-api</text>
+      <text x="650" y="30" text-anchor="middle" class="actor">Cloud SQL</text>
+      <text x="940" y="30" text-anchor="middle" class="actor">GCS</text>
+
+      <line x1="100" y1="60" x2="350" y2="60" stroke="#0a0a0a" marker-end="url(#arr2)"/>
+      <text x="225" y="56" text-anchor="middle" class="step">1. POST /captures/presign (sha256, mime)</text>
+
+      <line x1="350" y1="82" x2="940" y2="82" stroke="#0a0a0a" marker-end="url(#arr2)"/>
+      <text x="600" y="78" text-anchor="middle" class="step">2. presigned URL 발급 (15분 TTL · prefix=users/{uid}/)</text>
+
+      <line x1="100" y1="106" x2="940" y2="106" stroke="#0a0a0a" marker-end="url(#arr2)"/>
+      <text x="540" y="102" text-anchor="middle" class="step">3. iOS → GCS 직접 PUT (이미지 바이너리 · API 우회)</text>
+
+      <line x1="100" y1="138" x2="350" y2="138" stroke="#0a0a0a" marker-end="url(#arr2)"/>
+      <text x="225" y="134" text-anchor="middle" class="step">4. POST /captures (Idempotency-Key, attachments[sha256], 메타)</text>
+
+      <rect x="360" y="150" width="280" height="120" rx="4" fill="#ede7ff" stroke="#8b6cff"/>
+      <text x="500" y="170" text-anchor="middle" class="note">단일 DB 트랜잭션</text>
+      <text x="500" y="190" text-anchor="middle" class="step">a. idempotency_keys lookup → hit 면 기존 응답</text>
+      <text x="500" y="208" text-anchor="middle" class="step">b. INSERT mochi_items / sources / attachments</text>
+      <text x="500" y="226" text-anchor="middle" class="step">c. INSERT idempotency_keys</text>
+      <text x="500" y="244" text-anchor="middle" class="step">d. INSERT mochi_outbox (pending)</text>
+      <text x="500" y="262" text-anchor="middle" class="step">COMMIT (a-d atomic)</text>
+
+      <line x1="350" y1="288" x2="100" y2="288" stroke="#0a0a0a" marker-end="url(#arr2)"/>
+      <text x="225" y="284" text-anchor="middle" class="step">5. 201 Created (lifecycle=ingested)</text>
+
+      <text x="780" y="200" text-anchor="middle" class="step" fill="#8b6cff">↻ 같은 process 안에서 outbox poller (asyncio task)</text>
+      <text x="780" y="215" text-anchor="middle" class="step" fill="#8b6cff">가 SELECT ... FOR UPDATE SKIP LOCKED 로 lease</text>
+    </svg>
+    <div class="caption">5번 응답 후, 같은 instance 의 background outbox poller 가 다음 polling cycle (기본 1초) 에 새 row 를 lease 해 처리한다.</div>
+  </div>
+
+  <h4>4.2 Outbox worker (background task)</h4>
+  <pre># FastAPI startup
+@app.on_event("startup")
+async def start_outbox_poller():
+    asyncio.create_task(outbox_poller_loop())
+
+async def outbox_poller_loop():
+    while True:
+        try:
+            async with db_session() as s:
+                rows = await pick_outbox_lease(s, lease_owner=POD_ID, lease_ms=60_000, limit=4)
+            for row in rows:
+                await process_capture(row)        # Gemini 호출 + 임베딩 + derived row
+        except Exception as e:
+            log.error("outbox_poller_error", exc_info=e)
+        await asyncio.sleep(1.0)</pre>
+
+  <ul>
+    <li>Cloud Run instance 가 scale up 으로 2-3개가 되어도 <code>FOR UPDATE SKIP LOCKED</code> 가 race 안전 보장</li>
+    <li>instance 가 죽으면 <code>locked_until</code> 만료 후 다른 instance 의 poller 가 자동 reclaim</li>
+    <li>polling 1s × DAU 100 트래픽 = DB 부하 무시 가능 (single user 시야)</li>
+  </ul>
+
+  <h4>4.3 SSE 스트리밍</h4>
+  <p>iOS 가 <code>GET /captures/{id}/stream</code> 으로 연결 → 같은 instance 의 SSE 핸들러가 <code>agent_runs.current_node</code> 를 1초 간격 폴링 → 변경 시 client 로 push. 멀티-instance 가 되어도 worker 와 SSE 가 다른 instance 에 있을 수 있는데, DB 가 진실의 원천이라 polling 이 정상 동작 (Redis pub/sub 같은 fan-out 불필요).</p>
+
+  <h4>4.4 Hybrid search</h4>
+  <p>POST /search → 같은 process 안에서 (1) Vertex AI embed query (~30-100ms, Tokyo 라 빠름), (2) BM25 + 벡터 두 쿼리 병렬, (3) RRF k=60 결합, (4) Gemini synthesizer 로 answer 생성, (5) citations 와 함께 반환. 모든 단계가 <strong>같은 한 process 안</strong>.</p>
+</section>
+
+<!-- ============================== 5. AI DECISION ============================== -->
+<section id="ai">
+  <h2>05 — AI</h2>
+  <h3 class="title">왜 Gemini 3.1 Flash-Lite 인가</h3>
+  <p class="intro">3.x Flash 라인 4종을 모찌 워크로드로 환산해 비교.</p>
+
+  <h4>5.1 Gemini Flash 라인업 (2026-05 기준)</h4>
+  <table>
+    <thead><tr><th>모델</th><th>Release</th><th>Input / 1M</th><th>Output / 1M</th><th>비고</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">2.5 Flash</td><td>2025</td><td class="num">$0.30</td><td class="num">$2.50</td><td>구형 (제외)</td></tr>
+      <tr><td class="mono">3 Flash (standard)</td><td>2026-03</td><td class="num">$0.50</td><td class="num">$3.00</td><td>GA, 균형</td></tr>
+      <tr><td class="mono" style="color:var(--ok)"><strong>3.1 Flash-Lite</strong></td><td>2026 초 (Preview)</td><td class="num">$0.25</td><td class="num">$1.50</td><td><strong>채택</strong> · 2.5 Flash 대비 2.5x 빠른 TTFT · 45% 빠른 output · Arena Elo 1432</td></tr>
+      <tr><td class="mono">3.5 Flash</td><td>2026-05 (I/O)</td><td class="num">$1.50</td><td class="num">$9.00</td><td>최강이지만 6x 비쌈</td></tr>
+    </tbody>
+  </table>
+
+  <h4>5.2 모찌 워크로드 환산</h4>
+  <p>월 단위: 캡쳐 6K × (3,500 input + 500 output) + 대화 6K × (3,000 input + 1,000 output) = <strong>39M input + 9M output tokens</strong></p>
+  <table>
+    <thead><tr><th>모델</th><th>월 비용 (standard)</th><th>월 비용 (capture batch 50% off)</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">2.5 Flash</td><td class="num">$34</td><td class="num">$26</td></tr>
+      <tr><td class="mono">3 Flash</td><td class="num">$47</td><td class="num">$36</td></tr>
+      <tr><td class="mono" style="color:var(--ok)"><strong>3.1 Flash-Lite</strong></td><td class="num"><strong>$23</strong></td><td class="num"><strong>$17</strong></td></tr>
+      <tr><td class="mono">3.5 Flash</td><td class="num">$140</td><td class="num">$98</td></tr>
+    </tbody>
+  </table>
+
+  <div class="decision">
+    <div class="label">결정 · Gemini 3.1 Flash-Lite (사용자 검증 OK)</div>
+    <p>가격이 <strong>가장 싸고</strong>, 응답 속도가 <strong>가장 빠르고</strong>, 3.x 라인 최신 (2.5 Flash 보다 신모델). Preview 상태는 사용자가 직접 실사용으로 안정성 확인 완료. multimodal · 1M context · function calling 모두 지원해 모찌의 모든 use case (캡쳐 분석 · agent function calling · 대화 · search answer synthesis) 커버.</p>
+  </div>
+
+  <div class="tradeoff">
+    <div class="label">Trade-off · Preview 단계의 위험</div>
+    <p>(a) Google 이 Preview 모델을 변경/디프리케이션 할 권리가 있음 — 단가·rate limit 변경 가능. <strong>완화</strong>: 추상화 layer (<code>LLMClient port</code>) 가 이미 backend 에 있어 모델 교체 비용 낮음. (b) Vertex AI Tokyo 에서 Flash-Lite 가용성은 §<a href="#openq" class="anchor">openq-1</a>. fallback us-central1 (RTT +100ms).</p>
+  </div>
+</section>
+
+<!-- ============================== 6. SECURITY ============================== -->
+<section id="security">
+  <h2>06 — Security</h2>
+  <h3 class="title">보안 — 핵심만 남기기</h3>
+  <p class="intro">정교한 perimeter (VPC SC · Armor · NAT 고정 IP) 는 운영기 이슈. MVP 는 application + IAM 레벨에서 정확하게 막는다.</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <h4>인증 (Authentication)</h4>
+      <ul>
+        <li>iOS 가 Apple/Google ID token 획득 → POST /auth/{provider}</li>
+        <li>서버가 Apple/Google JWKS 로 검증 (in-process TTL cache)</li>
+        <li>자체 JWT (RS256) 발급 — Cloud KMS 가 서명 위임, private key 미노출</li>
+        <li>access token 30분, refresh token 30일 (rotating)</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h4>인가 (Authorization)</h4>
+      <ul>
+        <li>repository 레이어가 keyword-only <code>owner_id</code> 강제 — cross-tenant 누설 컴파일 시점 차단</li>
+        <li>presigned URL 발급 시 <code>users/{user_id}/</code> prefix 검증</li>
+        <li>Cloud SQL: Cloud Run SA 의 <code>cloudsql.client</code> IAM 만 허용</li>
+        <li>GCS: uniform IAM + public prevention=enforced</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h4>네트워크</h4>
+      <ul>
+        <li>Cloud SQL <strong>public IP</strong> 켜되 Authorized Networks 0개 — 외부 접근 차단</li>
+        <li>Cloud Run 의 <code>--add-cloudsql-instances</code> 가 내부 Unix socket 자동 mount (TLS + IAM)</li>
+        <li>Vertex AI 는 public endpoint + service account 인증 (PSC 미사용)</li>
+        <li>Cloud Run 의 기본 ingress 가 DDoS basic 보호 + TLS</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h4>App-level (기존 backend 유지)</h4>
+      <ul>
+        <li>Idempotency-Key — owner-scoped SHA-256, TTL 30일</li>
+        <li>WebFetchTool — 사설/링크로컬/메타데이터/multicast IP 차단, redirect hop 별 재검증, MIME 화이트리스트, byte limit</li>
+        <li>Pydantic 입력 검증, DTO 레벨 길이·타입·enum 강제</li>
+        <li>Rate limit — 앱 레벨 token bucket (in-process, per user)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="tradeoff">
+    <div class="label">Trade-off · MVP 가 받는 위험과 그 의식적 수용</div>
+    <p><strong>(a)</strong> Cloud Armor 없음 → L7 DDoS 시 Cloud Run 이 max=3 까지 scale 후 throttle. 콘테스트 데모 단계엔 noise 미미. <strong>(b)</strong> Cloud NAT 없음 → WebFetchTool outbound IP 가 가변. 일부 사이트가 차단할 수 있음 — 실측 후 대응. <strong>(c)</strong> VPC SC 없음 → service account 키 유출 시 데이터 exfil 가능 — Workload Identity 강제, key 발급 자체를 안 함. <strong>(d)</strong> CMEK 미적용 (GCS · SQL) → 기본 Google-managed encryption-at-rest. compliance 요구 들어오면 toggle 만으로 on.</p>
+  </div>
+</section>
+
+<!-- ============================== 7. TRADE-OFFS ============================== -->
+<section id="tradeoffs">
+  <h2>07 — Trade-offs</h2>
+  <h3 class="title">결정 매트릭스</h3>
+  <p class="intro">모든 의미 있는 결정과 그 대안. <span class="badge ok">선택</span> 채택, <span class="badge muted">기각</span> 미채택, <span class="badge warn">보류</span> → <a href="#openq" class="anchor">미결정</a>.</p>
+
+  <div class="decision">
+    <div class="label">결정 #1 · 컴퓨트 = Cloud Run service 1개로 통합</div>
+    <p><strong>대안</strong>: API · SSE · Worker · Housekeeper 4개 분리 (이전 안). <strong>이유</strong>: DAU 100 트래픽에선 instance 가 거의 idle. 분리하면 idle 비용 × 4. 같은 process 안에서 asyncio background task 로 worker 띄우는 게 표준. <strong>대가</strong>: instance burst 시 worker 도 같이 늘어남 (idle worker capacity 낭비 가능) — DAU 100 에서 무시 가능. <strong>전환 임계</strong>: 동시 SSE 100+, 또는 worker 처리 시간이 request CPU 와 충돌하기 시작할 때.</p>
+  </div>
+
+  <div class="decision">
+    <div class="label">결정 #2 · DB = Cloud SQL db-g1-small (shared CPU)</div>
+    <p><strong>대안</strong>: db-custom-1-3840 ($50/월, 안전), AlloyDB ($300+/월). <strong>이유</strong>: HNSW 메모리 6K caps × 5 chunks × 768 × 4B = 92 MB raw, 1.5x overhead = 140 MB. 1.7 GiB 인스턴스에서 30 GiB pglogical buffer 까지 여유. <strong>대가</strong>: shared CPU 라 burst 성능 제한. 5명 동시 search 시 latency 튈 수 있음. <strong>전환 임계</strong>: DAU 300, 또는 search p95 &gt; 1.5s 측정 시 db-custom-1-3840 으로.</p>
+  </div>
+
+  <div class="decision">
+    <div class="label">결정 #3 · Cloud SQL = public IP + Cloud Run native socket</div>
+    <p><strong>대안</strong>: private IP + Serverless VPC Connector. <strong>이유</strong>: Cloud Run 의 <code>--add-cloudsql-instances</code> 가 IAM 기반 + TLS Unix socket — public IP 라도 외부 접근 차단 + 내부 통신은 private 와 동일 보안. VPC Connector $16/월 + 운영 부담 절약. <strong>대가</strong>: Memorystore Redis 같은 다른 private VPC resource 가 필요해지면 VPC Connector 도 같이 들어와야 함.</p>
+  </div>
+
+  <div class="decision">
+    <div class="label">결정 #4 · 외부 진입 = Cloud Run domain mapping (LB 미사용)</div>
+    <p><strong>대안</strong>: External HTTPS LB + Cloud Armor. <strong>이유</strong>: Cloud Run 의 domain mapping 은 무료, managed TLS 자동, HTTP/2 + HTTP/3 모두 지원. LB 의 $20/월 + Armor $6/월 + 운영 복잡도 절약. <strong>대가</strong>: rolling deploy 시 traffic split 은 Cloud Run revision-level 기능으로 대체. URL map 기반 path routing 안 됨 (불필요).</p>
+  </div>
+
+  <div class="decision">
+    <div class="label">결정 #5 · 메시징 = DB Outbox (기존 결정 유지)</div>
+    <p><strong>대안</strong>: Pub/Sub topic + push subscription. <strong>이유</strong>: capture INSERT 와 enqueue 가 같은 트랜잭션 안에 있어야 일관성 보장. outbox 패턴이 retry / DLQ / lease 까지 한 테이블에서 통일. <strong>대가</strong>: 멀티 region 확장 시 outbox 동기화 문제 — 현재 single region 이므로 무관.</p>
+  </div>
+
+  <div class="decision">
+    <div class="label">결정 #6 · iOS → GCS 직접 업로드 (presigned PUT)</div>
+    <p><strong>대안</strong>: API 가 multipart 받아서 GCS 에 relay. <strong>이유</strong>: API 가 이미지 트래픽을 안 처리해도 됨 → Cloud Run 메모리/timeout 압박 감소. <strong>대가</strong>: presigned URL 의 prefix 검증을 정확히 해야 cross-tenant 누설 방지 — 기존 domain rule 로 강제됨.</p>
+  </div>
+
+  <div class="decision">
+    <div class="label">결정 #7 · AI = Gemini 3.1 Flash-Lite (Preview, 사용자 검증)</div>
+    <p><strong>대안</strong>: 2.5 Flash (구형, 사용자 reject), 3 Flash GA ($47/월), 3.5 Flash ($140/월). <strong>이유</strong>: 가장 싸고 빠르며 3.x 최신. 사용자가 다른 프로젝트에서 실사용해 안정성 확인. <strong>대가</strong>: Preview 단계라 SLA 미보장 — 추상화 layer 로 모델 교체 비용 낮춤. asia-northeast1 가용성 (§<a href="#openq" class="anchor">openq-1</a>).</p>
+  </div>
+
+  <div class="decision">
+    <div class="label">결정 #8 · 인증 = 자체 JWT (KMS 서명)</div>
+    <p><strong>대안</strong>: Firebase Authentication, Identity Platform. <strong>이유</strong>: iOS 측이 이미 Apple/Google SDK 로 ID token 받음. 자체 JWT 면 dev/prod 일관. KMS 위임으로 키 노출 없음. <strong>대가</strong>: Firebase 의 user management UI / 분석 기능 직접 구현 필요 — 모찌 규모에서 불필요.</p>
+  </div>
+
+  <div class="decision">
+    <div class="label">결정 #9 · Cloud NAT 없이 시작</div>
+    <p><strong>대안</strong>: Cloud NAT + 고정 IP. <strong>이유</strong>: $35/월 비용 + WebFetchTool 의 outbound 대상이 allowlist 강제하는 사이트 거의 없음. Cloud Run 기본 egress 가 가변 IP 라도 SSRF 가드는 호스트 정책 + IP 검증이라 무관. <strong>대가</strong>: 특정 사이트에서 IP 차단 받으면 그 때 도입. <strong>전환 임계</strong>: WebFetch 실패율 5% 초과 시.</p>
+  </div>
+
+  <div class="decision">
+    <div class="label">결정 #10 · Housekeeper = 1 시간 cron (5분 아님)</div>
+    <p><strong>대안</strong>: 5분 cron, 또는 background task 안에 합치기. <strong>이유</strong>: knowledge decay · idempotency TTL · DLQ alert 모두 시간 민감하지 않음. 1 시간이면 충분. schedule_ended 자동 archive 는 1 시간 지연 가능 — 사용자가 캡쳐 다시 열 때 lazy 평가로 즉시 처리. <strong>대가</strong>: 거의 없음.</p>
+  </div>
+</section>
+
+<!-- ============================== 8. COST ============================== -->
+<section id="cost">
+  <h2>08 — Cost</h2>
+  <h3 class="title">월별 비용 산정</h3>
+  <p class="intro">DAU 100 / 6K capture / 6K 대화 기준. 가격은 2026-05 GCP public pricing.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>카테고리</th>
+        <th>서비스 · 인스턴스</th>
+        <th>산정 근거</th>
+        <th>월 비용 (USD)</th>
+        <th>비중</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="subtotal"><td colspan="4">컴퓨트 — Cloud Run</td><td class="num"></td></tr>
+      <tr>
+        <td>mochi-api</td>
+        <td>1 vCPU · 1 GiB · min=1 · always-on</td>
+        <td>vCPU $0.000018 × 2,628,000s (730h) = $47.3 · Mem $0.0000025 × 1 × 2,628,000 = $6.6 · request 6K × $0.40/M = $0.003</td>
+        <td class="num">$54</td>
+        <td><span class="bar"><span class="track"><span class="fill" style="width:57%"></span></span><span class="pct">57%</span></span></td>
+      </tr>
+      <tr>
+        <td>mochi-housekeeper</td>
+        <td>Cloud Run Job · 매 1시간 · ~10s 실행</td>
+        <td>720 jobs/월 × 10s × 1 vCPU × $0.000024 = $0.17 · Mem 미미</td>
+        <td class="num">$1</td>
+        <td><span class="bar"><span class="track"><span class="fill" style="width:1%"></span></span><span class="pct">1%</span></span></td>
+      </tr>
+      <tr>
+        <td>Cloud Scheduler</td>
+        <td>1 cron job</td>
+        <td>$0.10/job · 첫 3개 무료</td>
+        <td class="num">$0</td>
+        <td><span class="bar"><span class="track"><span class="fill" style="width:0%"></span></span><span class="pct">0%</span></span></td>
+      </tr>
+
+      <tr class="subtotal"><td colspan="4">데이터</td><td class="num"></td></tr>
+      <tr>
+        <td>Cloud SQL</td>
+        <td>db-g1-small · 10 GB SSD · single zone</td>
+        <td>shared instance $0.015/h × 730 = $10.95 · SSD 10 × $0.187 = $1.87 · backup ~$1</td>
+        <td class="num">$14</td>
+        <td><span class="bar"><span class="track"><span class="fill" style="width:15%"></span></span><span class="pct">15%</span></span></td>
+      </tr>
+      <tr>
+        <td>Cloud Storage</td>
+        <td>Standard · Seoul · ~3 GB</td>
+        <td>3 GB × $0.023 = $0.07 · class A ops 6K × $0.05/10K = $0.03</td>
+        <td class="num">$0.10</td>
+        <td><span class="bar"><span class="track"><span class="fill" style="width:1%"></span></span><span class="pct">&lt;1%</span></span></td>
+      </tr>
+
+      <tr class="subtotal"><td colspan="4">AI · ML</td><td class="num"></td></tr>
+      <tr>
+        <td><strong>Gemini 3.1 Flash-Lite</strong></td>
+        <td>multimodal + tool use · asia-northeast1</td>
+        <td>39M input × $0.25/M = $9.75 · 9M output × $1.50/M = $13.5</td>
+        <td class="num">$23</td>
+        <td><span class="bar"><span class="track"><span class="fill" style="width:24%"></span></span><span class="pct">24%</span></span></td>
+      </tr>
+      <tr>
+        <td>text-embedding-005</td>
+        <td>asia-northeast1</td>
+        <td>6K × 5 chunks × 500 chars = 15M chars · $0.025/1M chars = $0.37 · search query 6K × ~30 chars = $0.005</td>
+        <td class="num">$1</td>
+        <td><span class="bar"><span class="track"><span class="fill" style="width:1%"></span></span><span class="pct">1%</span></span></td>
+      </tr>
+
+      <tr class="subtotal"><td colspan="4">보안 · 관측 · CI/CD</td><td class="num"></td></tr>
+      <tr>
+        <td>Cloud KMS</td>
+        <td>1 key version (JWT)</td>
+        <td>$0.06/version + sign ops 미미</td>
+        <td class="num">$0.10</td>
+        <td><span class="bar"><span class="track"><span class="fill" style="width:0%"></span></span><span class="pct">&lt;1%</span></span></td>
+      </tr>
+      <tr>
+        <td>Secret Manager</td>
+        <td>~5 secrets</td>
+        <td>$0.06 × 5 + access ops</td>
+        <td class="num">$0.50</td>
+        <td><span class="bar"><span class="track"><span class="fill" style="width:0%"></span></span><span class="pct">&lt;1%</span></span></td>
+      </tr>
+      <tr>
+        <td>Cloud Logging / Monitoring / Trace</td>
+        <td>structlog · uptime check · trace 100%</td>
+        <td>50 GiB ingestion 무료 안, datapoint 6M 무료 안, trace 2.5M 무료 안</td>
+        <td class="num">$0</td>
+        <td><span class="bar"><span class="track"><span class="fill" style="width:0%"></span></span><span class="pct">0%</span></span></td>
+      </tr>
+      <tr>
+        <td>Cloud DNS</td>
+        <td>1 zone (api.mochi.app)</td>
+        <td>$0.20/zone + queries 미미</td>
+        <td class="num">$0.30</td>
+        <td><span class="bar"><span class="track"><span class="fill" style="width:0%"></span></span><span class="pct">&lt;1%</span></span></td>
+      </tr>
+      <tr>
+        <td>Artifact Registry</td>
+        <td>~1 GB image</td>
+        <td>$0.10 / GB</td>
+        <td class="num">$0.10</td>
+        <td><span class="bar"><span class="track"><span class="fill" style="width:0%"></span></span><span class="pct">&lt;1%</span></span></td>
+      </tr>
+      <tr>
+        <td>Cloud Build</td>
+        <td>GitHub trigger</td>
+        <td>120 build-min/일 무료</td>
+        <td class="num">$0</td>
+        <td><span class="bar"><span class="track"><span class="fill" style="width:0%"></span></span><span class="pct">0%</span></span></td>
+      </tr>
+
+      <tr class="total">
+        <td>합계</td>
+        <td colspan="2">MVP 월 비용</td>
+        <td class="num">≈ $94</td>
+        <td><strong>100%</strong></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p style="color:var(--text-sub); font-size:13px">≈ <strong>약 12만 7천원</strong> (KRW 1,350/USD). GCP 신규 가입 $300 크레딧 (90일) 적용 시 <strong>첫 3개월 사실상 무료</strong>. Vertex AI Gemini 의 batch mode 50% off 적용 시 $11/월 추가 절감 가능.</p>
+
+  <div class="grid-3" style="margin-top:20px">
+    <div class="card soft">
+      <div class="badge accent">Top 1</div>
+      <h4>Cloud Run mochi-api</h4>
+      <p style="font-family:var(--mono); font-size:13px">$54/월 · 57%</p>
+      <p>min=1 always-on 의 idle 비용. min=0 으로 가면 cold start 1-3s 발생.</p>
+    </div>
+    <div class="card soft">
+      <div class="badge accent">Top 2</div>
+      <h4>Vertex AI Gemini</h4>
+      <p style="font-family:var(--mono); font-size:13px">$23/월 · 24%</p>
+      <p>capture 분석 batch off 기준. batch 50% 적용 시 $14.</p>
+    </div>
+    <div class="card soft">
+      <div class="badge accent">Top 3</div>
+      <h4>Cloud SQL</h4>
+      <p style="font-family:var(--mono); font-size:13px">$14/월 · 15%</p>
+      <p>db-g1-small. db-custom-1-3840 으로 올리면 $50 (안전).</p>
+    </div>
+  </div>
+
+  <h4 style="margin-top:32px">8.1 더 줄이는 방법 (실험적)</h4>
+  <ul>
+    <li><strong>Cloud Run min=0</strong> — idle 시간 비용 0. 단 cold start 1-3s (uvicorn + asyncpg 초기화). 콘테스트 데모에는 부적합. → −$54 → $40/월. ⚠️ background outbox task 가 cold 인 동안 안 도므로 캡쳐 분석이 첫 요청 들어올 때까지 지연됨. <strong>비추</strong></li>
+    <li><strong>Vertex AI batch mode</strong> — capture 분석은 사용자가 즉시 결과 안 봐도 되는 경우가 많음. batch API 로 50% off → −$11/월. <strong>강추</strong> (단 SSE 의 실시간성과 trade-off)</li>
+    <li><strong>Logging 레벨 조정</strong> — INFO 대신 WARNING 부터. 트래픽 작아 이미 무료 안이지만 안전망</li>
+    <li><strong>region 통합</strong> — Vertex AI 가 asia-northeast3 에 GA 되면 cross-region 자체 없어짐 (§<a href="#openq" class="anchor">openq-1</a>)</li>
+  </ul>
+</section>
+
+<!-- ============================== 9. OPEN QUESTIONS ============================== -->
+<section id="openq">
+  <h2>09 — Open questions</h2>
+  <h3 class="title">미결정 · 알아볼 부분</h3>
+
+  <div class="openq" id="openq-1">
+    <div class="label">openq-1 · Gemini 3.1 Flash-Lite 의 asia-northeast1 가용성</div>
+    <p><strong>질문</strong>: Vertex AI Tokyo 에 3.1 Flash-Lite Preview 가 서빙되는지. multimodal + function calling 모두 지원되는지.<br/>
+    <strong>왜 중요한가</strong>: us-central1 vs Tokyo 의 RTT 차이 ~100ms × 6K calls/월 = 600s 누적 latency.<br/>
+    <strong>어떻게 결정</strong>: <code>gcloud ai models list --region=asia-northeast1</code> 또는 콘솔 확인. 없으면 us-central1.</p>
+  </div>
+
+  <div class="openq" id="openq-2">
+    <div class="label">openq-2 · Cloud Run timeout=3600s vs SSE 실제 연결 길이</div>
+    <p><strong>질문</strong>: Cloud Run 의 max timeout 3600s (1시간) 는 SSE 연결에 충분한가? iOS 가 background 로 가면 connection 끊기는데, 재연결시 catch-up 흐름은?<br/>
+    <strong>어떻게 결정</strong>: iOS 측 SSE 클라이언트가 disconnect 감지 + exponential backoff 재연결. 서버는 idempotent state push 만 — 같은 node 이벤트 두 번 받아도 안전.</p>
+  </div>
+
+  <div class="openq" id="openq-3">
+    <div class="label">openq-3 · 민감 캡쳐의 자연어 검색 포함 여부</div>
+    <p><strong>질문</strong>: sensitivity ≥ 9 캡쳐는 서버 업로드 거부 → 서버 embedding 없음. 사용자가 검색해도 안 잡힘. 온디바이스 검색 인덱스 둘지?<br/>
+    <strong>어떻게 결정</strong>: PRIVACY_SENSITIVE_CAPTURE.md §9. iOS sqlite + Apple NL embedding 로 로컬 검색. 별도 design doc.</p>
+  </div>
+
+  <div class="openq" id="openq-4">
+    <div class="label">openq-4 · 서버 측 마스킹된 이미지 저장 여부</div>
+    <p><strong>질문</strong>: <code>mochi-temp-redacted</code> 버킷을 24h TTL 로 둘 가치가 있나? semantic payload 만으로 분류 정확도 충분한가?<br/>
+    <strong>어떻게 결정</strong>: 베타 5명에게 양쪽 분기 비교. 정확도 차이 5% 이내면 텍스트만 전송.</p>
+  </div>
+
+  <div class="openq" id="openq-5">
+    <div class="label">openq-5 · agent_runs · tool_calls 의 input/output PII</div>
+    <p><strong>질문</strong>: <code>tool_calls.input_json / output_json</code> 에 민감정보가 들어갈 수 있음. CMEK 없이 기본 암호화로 충분한가?<br/>
+    <strong>어떻게 결정</strong>: 개인정보처리방침 검토 후. MVP 는 기본 암호화 + log redaction, 필요시 column-level (pgcrypto) 도입.</p>
+  </div>
+
+  <div class="openq" id="openq-6">
+    <div class="label">openq-6 · DAU 100 가정이 깨지는 시점의 대응</div>
+    <p><strong>질문</strong>: 콘테스트 시연 후 갑작스런 DAU 1K spike 가 오면? 본 MVP 가 견디나?<br/>
+    <strong>어떻게 결정</strong>: db-g1-small + Cloud Run max=3 으로는 DAU 200 이 안전 천장. 임계 경보 SLO 설정 (DB CPU &gt; 70% for 10 min) → 자동 메시지 + 수동 scale up. P1 단계 (§<a href="#roadmap" class="anchor">로드맵</a>) 의 변경 사전 준비.</p>
+  </div>
+</section>
+
+<!-- ============================== 10. ROADMAP ============================== -->
+<section id="roadmap">
+  <h2>10 — Roadmap</h2>
+  <h3 class="title">언제 무엇을 추가하나</h3>
+  <p class="intro">측정 기반으로만 확장. premature optimization 금지.</p>
+
+  <table>
+    <thead><tr><th>Phase</th><th>트리거</th><th>변경</th><th>월 비용</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>P0 · MVP</strong></td>
+        <td>현재 — DAU 100</td>
+        <td>본 문서 default 구성. Cloud Run 1 + Job 1, db-g1-small, network 컴포넌트 없음.</td>
+        <td class="num">$94</td>
+      </tr>
+      <tr>
+        <td><strong>P1 · Stabilization</strong></td>
+        <td>DAU 200 또는 Cloud SQL CPU &gt; 50%</td>
+        <td>Cloud SQL → db-custom-1-3840 ($50). PITR on. Cloud Logging retention 60일. 도메인 매핑 → External LB (Cloud Armor 부착 가능)</td>
+        <td class="num">$170</td>
+      </tr>
+      <tr>
+        <td><strong>P2 · Scale</strong></td>
+        <td>DAU 500 또는 동시 SSE 100+</td>
+        <td>Cloud Run service 분리 (api / worker). Memorystore Redis 도입 (SSE fan-out · JWKS cache · rate limit). VPC Connector + private IP SQL.</td>
+        <td class="num">$300</td>
+      </tr>
+      <tr>
+        <td><strong>P3 · Production</strong></td>
+        <td>유료 사용자 / SLA 요구</td>
+        <td>Cloud SQL Regional HA, VPC Service Controls, Cloud Armor 정책 정교화, CMEK 활성, Cloud NAT (fixed egress)</td>
+        <td class="num">$500+</td>
+      </tr>
+      <tr>
+        <td><strong>P4 · Search heavy</strong></td>
+        <td>search RPS 10+ · 벡터 p95 &gt; 500ms</td>
+        <td>AlloyDB 전환 (ScaNN) 또는 read replica</td>
+        <td class="num">+$200~$500</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<footer>
+  <div>
+    <strong>모찌 GCP MVP 아키텍처</strong> · 팀 세얼간이 · 2026 SW중심대학 디지털 경진대회
+    <div style="margin-top:4px" class="mono">소스 문서: docs/ARCHITECTURE.md · docs/DOMAIN_DESIGN.md · docs/PRIVACY_SENSITIVE_CAPTURE.md · mochi-backend/README.md</div>
+  </div>
+  <div class="mono">Revision · 2026-05-25 (DAU 100 reset)</div>
+</footer>
+
+</div>
+</body>
+</html>

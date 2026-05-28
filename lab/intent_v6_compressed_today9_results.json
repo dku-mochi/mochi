@@ -1,0 +1,298 @@
+{
+  "prompt_version": "v6",
+  "preprocess": "fhd_jpeg_q60",
+  "subset": "today9_2026-05-27",
+  "n": 9,
+  "latency_ms": {
+    "min": 2880.3,
+    "p50": 3112.8,
+    "mean": 3561.4,
+    "max": 4870.9
+  },
+  "bytes": {
+    "min": 51277,
+    "mean": 99433,
+    "max": 134246
+  },
+  "thresholds": {
+    "dominant_top": 0.7,
+    "dominant_others_max": 0.3,
+    "multi_min_applicability": 0.5,
+    "multi_min_count": 2
+  },
+  "n_dominant": 0,
+  "n_multi_intent": 9,
+  "n_ambiguous_fallback": 0,
+  "results": [
+    {
+      "file": "IMG_2691.PNG",
+      "bytes": 66124,
+      "latency_ms": 3747.2,
+      "candidates": [
+        {
+          "label": "구매 고려",
+          "intent": "todo",
+          "applicability": 0.85,
+          "reasoning": "영상 속 제품 정보를 확인하고 나중에 구매를 검토하기 위해 저장했을 가능성이 높음."
+        },
+        {
+          "label": "스타일 참고",
+          "intent": "knowledge",
+          "applicability": 0.75,
+          "reasoning": "영상 속 인물의 착장이나 스타일링을 나중에 참고하기 위해 기록해두는 경우임."
+        },
+        {
+          "label": "나중에 다시 보기",
+          "intent": "memo",
+          "applicability": 0.55,
+          "reasoning": "영상 내용이 유익하거나 흥미로워 나중에 다시 시청하거나 내용을 확인하려는 의도임."
+        }
+      ],
+      "derived_flags": {
+        "dominant_single_intent": false,
+        "likely_multi_intent": true,
+        "_n_above_multi_threshold": 3
+      }
+    },
+    {
+      "file": "IMG_2692.PNG",
+      "bytes": 51277,
+      "latency_ms": 3112.8,
+      "candidates": [
+        {
+          "label": "구매 고민",
+          "intent": "todo",
+          "applicability": 0.9,
+          "reasoning": "제품명과 착용샷이 명확히 보여 해당 의류를 구매할지 고민 중일 가능성이 매우 높음."
+        },
+        {
+          "label": "코디 참고",
+          "intent": "knowledge",
+          "applicability": 0.75,
+          "reasoning": "영상 속 스타일링이나 핏을 나중에 참고하기 위해 기록해두려는 의도."
+        },
+        {
+          "label": "나중에 다시 보기",
+          "intent": "memo",
+          "applicability": 0.5,
+          "reasoning": "영상 내용 중 인상 깊은 부분을 단순히 나중에 다시 확인하기 위해 저장함."
+        }
+      ],
+      "derived_flags": {
+        "dominant_single_intent": false,
+        "likely_multi_intent": true,
+        "_n_above_multi_threshold": 3
+      }
+    },
+    {
+      "file": "IMG_2701.PNG",
+      "bytes": 134246,
+      "latency_ms": 3589.9,
+      "candidates": [
+        {
+          "label": "PX 쇼핑 리스트",
+          "intent": "todo",
+          "applicability": 0.95,
+          "reasoning": "군마트 PX 추천템이라는 영상 제목과 구체적인 상품명이 있어 실제 구매를 위한 목록으로 활용할 가능성이 매우 높음."
+        },
+        {
+          "label": "화장품 정보 저장",
+          "intent": "knowledge",
+          "applicability": 0.75,
+          "reasoning": "제품명과 구성이 명확히 나와 있어 나중에 화장품을 구매하거나 정보를 찾을 때 참고 자료로 쓰기 적합함."
+        },
+        {
+          "label": "나중에 살 것",
+          "intent": "memo",
+          "applicability": 0.6,
+          "reasoning": "가성비 좋은 제품으로 보여 추후 구매를 위해 개인적인 메모 차원에서 남겨두는 의도일 수 있음."
+        }
+      ],
+      "derived_flags": {
+        "dominant_single_intent": false,
+        "likely_multi_intent": true,
+        "_n_above_multi_threshold": 3
+      }
+    },
+    {
+      "file": "IMG_2702.PNG",
+      "bytes": 83850,
+      "latency_ms": 3013.4,
+      "candidates": [
+        {
+          "label": "구매 고민",
+          "intent": "todo",
+          "applicability": 0.9,
+          "reasoning": "제품명과 특징이 명확히 드러나 있어 나중에 구매할지 결정하기 위해 저장했을 가능성이 높음."
+        },
+        {
+          "label": "화장품 정보",
+          "intent": "knowledge",
+          "applicability": 0.7,
+          "reasoning": "민감성 피부를 위한 제품 정보를 나중에 다시 확인하거나 성분을 참고하려는 의도."
+        },
+        {
+          "label": "나중에 살 것",
+          "intent": "memo",
+          "applicability": 0.5,
+          "reasoning": "현재 사용 중인 제품이 다 떨어졌을 때를 대비해 위시리스트처럼 기록해두는 경우."
+        }
+      ],
+      "derived_flags": {
+        "dominant_single_intent": false,
+        "likely_multi_intent": true,
+        "_n_above_multi_threshold": 3
+      }
+    },
+    {
+      "file": "IMG_2703.PNG",
+      "bytes": 107984,
+      "latency_ms": 4625.1,
+      "candidates": [
+        {
+          "label": "구매 고민",
+          "intent": "todo",
+          "applicability": 0.9,
+          "reasoning": "화장품 제품명과 가격 정보가 명확히 보여, 나중에 구매를 결정하기 위해 저장했을 가능성이 높습니다."
+        },
+        {
+          "label": "가격 비교",
+          "intent": "knowledge",
+          "applicability": 0.75,
+          "reasoning": "군마트 가격과 일반 온라인 판매 가격을 비교해보고 합리적인 소비를 하려는 의도로 보입니다."
+        },
+        {
+          "label": "화장품 정보 저장",
+          "intent": "memo",
+          "applicability": 0.5,
+          "reasoning": "나중에 올리브영이나 다른 매장에서 제품을 찾거나 성분을 확인하기 위한 참고용 기록으로 적합합니다."
+        }
+      ],
+      "derived_flags": {
+        "dominant_single_intent": false,
+        "likely_multi_intent": true,
+        "_n_above_multi_threshold": 3
+      }
+    },
+    {
+      "file": "IMG_2704.PNG",
+      "bytes": 111160,
+      "latency_ms": 2880.3,
+      "candidates": [
+        {
+          "label": "구매 목록",
+          "intent": "todo",
+          "applicability": 0.9,
+          "reasoning": "화장품과 치실 등 구체적인 제품들이 보여, 나중에 구매하기 위해 기록해둔 것으로 보임."
+        },
+        {
+          "label": "제품 정보 확인",
+          "intent": "knowledge",
+          "applicability": 0.7,
+          "reasoning": "사용 중인 제품의 상세 정보나 성분을 나중에 다시 찾아보기 위해 저장했을 가능성이 높음."
+        },
+        {
+          "label": "일상 기록",
+          "intent": "memo",
+          "applicability": 0.5,
+          "reasoning": "사진첩 속 일상적인 제품 사진을 모찌에 따로 남겨두어 개인적인 기록으로 보관하려는 의도."
+        }
+      ],
+      "derived_flags": {
+        "dominant_single_intent": false,
+        "likely_multi_intent": true,
+        "_n_above_multi_threshold": 3
+      }
+    },
+    {
+      "file": "IMG_2727.PNG",
+      "bytes": 114513,
+      "latency_ms": 3112.4,
+      "candidates": [
+        {
+          "label": "투자 공부",
+          "intent": "knowledge",
+          "applicability": 0.95,
+          "reasoning": "스페이스X 상장과 관련된 ETF 정보를 학습하고 나중에 다시 확인하려는 의도가 가장 명확함."
+        },
+        {
+          "label": "매수 리스트",
+          "intent": "todo",
+          "applicability": 0.75,
+          "reasoning": "추천받은 ETF를 실제 투자 포트폴리오에 추가하거나 매수하기 위해 기록해두는 경우."
+        },
+        {
+          "label": "나중에 보기",
+          "intent": "memo",
+          "applicability": 0.55,
+          "reasoning": "영상 내용을 지금 당장 확인하기 어려워 나중에 여유 있을 때 다시 보려고 저장하는 경우."
+        }
+      ],
+      "derived_flags": {
+        "dominant_single_intent": false,
+        "likely_multi_intent": true,
+        "_n_above_multi_threshold": 3
+      }
+    },
+    {
+      "file": "IMG_2728.PNG",
+      "bytes": 112899,
+      "latency_ms": 3101.0,
+      "candidates": [
+        {
+          "label": "투자 공부",
+          "intent": "knowledge",
+          "applicability": 0.9,
+          "reasoning": "스페이스X 상장과 관련된 ETF 정보를 학습하고 나중에 다시 확인하기 위해 저장했을 가능성이 높음."
+        },
+        {
+          "label": "매수 리스트",
+          "intent": "todo",
+          "applicability": 0.75,
+          "reasoning": "추천받은 종목을 실제 투자 포트폴리오에 반영하기 위해 관심 종목으로 기록해두려는 의도."
+        },
+        {
+          "label": "나중에 찾아보기",
+          "intent": "memo",
+          "applicability": 0.5,
+          "reasoning": "영상 내용이 유익하여 나중에 다시 보거나 관련 정보를 더 찾아보기 위해 가볍게 저장한 경우."
+        }
+      ],
+      "derived_flags": {
+        "dominant_single_intent": false,
+        "likely_multi_intent": true,
+        "_n_above_multi_threshold": 3
+      }
+    },
+    {
+      "file": "IMG_2729.PNG",
+      "bytes": 112850,
+      "latency_ms": 4870.9,
+      "candidates": [
+        {
+          "label": "투자 공부",
+          "intent": "knowledge",
+          "applicability": 0.9,
+          "reasoning": "스페이스X 상장 관련 투자 정보를 학습하고 나중에 다시 확인하려는 의도가 가장 명확함."
+        },
+        {
+          "label": "종목 매수 검토",
+          "intent": "todo",
+          "applicability": 0.75,
+          "reasoning": "언급된 ETF를 실제 포트폴리오에 추가할지 고민하며 나중에 매수 시점을 잡으려는 의도임."
+        },
+        {
+          "label": "나중에 찾아보기",
+          "intent": "memo",
+          "applicability": 0.5,
+          "reasoning": "영상에서 본 내용을 잊지 않기 위해 가볍게 갈무리해두고 나중에 다시 보려는 의도임."
+        }
+      ],
+      "derived_flags": {
+        "dominant_single_intent": false,
+        "likely_multi_intent": true,
+        "_n_above_multi_threshold": 3
+      }
+    }
+  ]
+}

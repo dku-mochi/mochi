@@ -1,0 +1,222 @@
+{
+  "model": "gemini-3.1-flash-lite",
+  "thinking": "minimal",
+  "n": 8,
+  "n_ok": 8,
+  "latency_ms": {
+    "min": 3116.5,
+    "p50": 3372.8,
+    "mean": 3738.8,
+    "max": 5871.8
+  },
+  "results": [
+    {
+      "file": "IMG_8121.PNG",
+      "size_bytes": 290579,
+      "latency_ms": 3853.5,
+      "candidates": [
+        {
+          "label": "사용",
+          "intent": "todo",
+          "likelihood": 0.6,
+          "reasoning": "편의점에서 결제 시 바코드를 바로 제시하기 위해 저장했습니다."
+        },
+        {
+          "label": "확인",
+          "intent": "knowledge",
+          "likelihood": 0.25,
+          "reasoning": "쿠폰의 유효기간이나 발급 정보를 나중에 다시 확인하기 위해 저장했습니다."
+        },
+        {
+          "label": "일정 등록",
+          "intent": "schedule",
+          "likelihood": 0.15,
+          "reasoning": "유효기간 내에 쿠폰을 사용하기 위해 캘린더에 알림을 설정하려 합니다."
+        }
+      ],
+      "top_candidate_is_dominant": false
+    },
+    {
+      "file": "IMG_8350.PNG",
+      "size_bytes": 270497,
+      "latency_ms": 3289.3,
+      "candidates": [
+        {
+          "label": "일정 등록",
+          "intent": "schedule",
+          "likelihood": 0.5,
+          "reasoning": "알람이 울리는 상황을 기록하여 특정 시간의 사건이나 루틴을 관리하려는 의도입니다."
+        },
+        {
+          "label": "확인",
+          "intent": "memo",
+          "likelihood": 0.3,
+          "reasoning": "현재 알람이 울리고 있는 상황 자체를 단순히 기록하거나 나중에 확인하기 위해 캡처했습니다."
+        },
+        {
+          "label": "후속 작업",
+          "intent": "todo",
+          "likelihood": 0.2,
+          "reasoning": "알람을 끄거나 다시 설정해야 하는 상황을 인지하고, 이후에 수행할 작업을 관리하려는 의도입니다."
+        }
+      ],
+      "top_candidate_is_dominant": false
+    },
+    {
+      "file": "IMG_8361.PNG",
+      "size_bytes": 363737,
+      "latency_ms": 3116.5,
+      "candidates": [
+        {
+          "label": "추억",
+          "intent": "memo",
+          "likelihood": 0.5,
+          "reasoning": "대화 내용이 재미있거나 기억하고 싶은 순간이라서 저장했을 가능성이 높습니다."
+        },
+        {
+          "label": "참고",
+          "intent": "knowledge",
+          "likelihood": 0.3,
+          "reasoning": "대화 중에 언급된 오마카세 등 특정 장소나 정보를 나중에 확인하기 위해 저장했을 수 있습니다."
+        },
+        {
+          "label": "후속 작업",
+          "intent": "todo",
+          "likelihood": 0.2,
+          "reasoning": "대화 맥락상 카지노 방문이나 특정 약속에 대한 논의가 필요하여 할 일로 분류했을 수 있습니다."
+        }
+      ],
+      "top_candidate_is_dominant": false
+    },
+    {
+      "file": "IMG_8387.PNG",
+      "size_bytes": 876238,
+      "latency_ms": 3291.7,
+      "candidates": [
+        {
+          "label": "회신",
+          "intent": "todo",
+          "likelihood": 0.6,
+          "reasoning": "최근 통화 기록을 확인하고 다시 전화를 걸어야 할 필요가 있어 보입니다."
+        },
+        {
+          "label": "확인",
+          "intent": "knowledge",
+          "likelihood": 0.25,
+          "reasoning": "특정 번호로부터의 부재중 전화나 통화 이력을 나중에 참조하기 위해 저장했습니다."
+        },
+        {
+          "label": "연락처 저장",
+          "intent": "todo",
+          "likelihood": 0.15,
+          "reasoning": "기록된 번호를 주소록에 새로 등록하거나 관리하기 위한 목적입니다."
+        }
+      ],
+      "top_candidate_is_dominant": false
+    },
+    {
+      "file": "IMG_8394.PNG",
+      "size_bytes": 359730,
+      "latency_ms": 3742.2,
+      "candidates": [
+        {
+          "label": "확인",
+          "intent": "knowledge",
+          "likelihood": 0.6,
+          "reasoning": "병무청의 민원 처리 결과 내용을 나중에 다시 확인하기 위해 저장함."
+        },
+        {
+          "label": "일정 등록",
+          "intent": "schedule",
+          "likelihood": 0.25,
+          "reasoning": "입영 연기 기간 등 중요한 날짜 정보를 캘린더에 기록하기 위해 저장함."
+        },
+        {
+          "label": "후속 작업",
+          "intent": "todo",
+          "likelihood": 0.15,
+          "reasoning": "입영일자 선택 등 향후 처리해야 할 행정 절차를 잊지 않기 위해 저장함."
+        }
+      ],
+      "top_candidate_is_dominant": false
+    },
+    {
+      "file": "IMG_8431.PNG",
+      "size_bytes": 242559,
+      "latency_ms": 3434.0,
+      "candidates": [
+        {
+          "label": "회신",
+          "intent": "todo",
+          "likelihood": 0.6,
+          "reasoning": "5월 27일까지 메일 회신이 필요한 구체적인 업무 지시가 포함되어 있습니다."
+        },
+        {
+          "label": "확인",
+          "intent": "knowledge",
+          "likelihood": 0.3,
+          "reasoning": "경진대회 선발 결과와 향후 절차에 대한 중요한 안내 사항을 보관하려는 목적입니다."
+        },
+        {
+          "label": "추억",
+          "intent": "memo",
+          "likelihood": 0.1,
+          "reasoning": "경진대회 대표팀으로 선발된 기쁜 순간을 기록으로 남기려는 의도입니다."
+        }
+      ],
+      "top_candidate_is_dominant": false
+    },
+    {
+      "file": "IMG_8439.PNG",
+      "size_bytes": 1207287,
+      "latency_ms": 3311.6,
+      "candidates": [
+        {
+          "label": "설정 완료",
+          "intent": "todo",
+          "likelihood": 0.6,
+          "reasoning": "단축어 등록 과정을 수행하기 위해 필요한 안내 화면을 저장함."
+        },
+        {
+          "label": "사용법 확인",
+          "intent": "knowledge",
+          "likelihood": 0.3,
+          "reasoning": "모찌 호출을 위한 백탭 설정 방법을 나중에 다시 보기 위해 저장함."
+        },
+        {
+          "label": "추억",
+          "intent": "memo",
+          "likelihood": 0.1,
+          "reasoning": "모찌 서비스의 온보딩 화면을 기록으로 남겨두려는 의도."
+        }
+      ],
+      "top_candidate_is_dominant": false
+    },
+    {
+      "file": "IMG_8477.PNG",
+      "size_bytes": 5822663,
+      "latency_ms": 5871.8,
+      "candidates": [
+        {
+          "label": "미용실 예약",
+          "intent": "todo",
+          "likelihood": 0.5,
+          "reasoning": "헤어 스타일을 참고하여 추후 미용실 방문 시 보여주거나 예약하기 위해 저장했습니다."
+        },
+        {
+          "label": "스타일 참고",
+          "intent": "knowledge",
+          "likelihood": 0.3,
+          "reasoning": "시스루 댄디컷이라는 헤어 스타일 정보를 나중에 다시 확인하기 위해 저장했습니다."
+        },
+        {
+          "label": "기록",
+          "intent": "memo",
+          "likelihood": 0.2,
+          "reasoning": "단순히 나중에 해보고 싶은 머리 스타일을 기억해두기 위해 캡쳐했습니다."
+        }
+      ],
+      "top_candidate_is_dominant": false
+    }
+  ]
+}

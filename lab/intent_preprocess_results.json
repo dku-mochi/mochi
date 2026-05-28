@@ -1,0 +1,566 @@
+{
+  "model": "gemini-3.1-flash-lite",
+  "n_screenshots": 8,
+  "variants": [
+    {
+      "variant": "original",
+      "params": {
+        "max_edge": null,
+        "fmt": null,
+        "quality": null
+      },
+      "n_ok": 8,
+      "latency_ms": {
+        "min": 2843.8,
+        "p50": 3075.2,
+        "mean": 3439.0,
+        "max": 5522.2
+      },
+      "bytes": {
+        "min": 242559,
+        "mean": 1179161,
+        "max": 5822663
+      },
+      "rows": [
+        {
+          "file": "IMG_8121.PNG",
+          "bytes": 290579,
+          "latency_ms": 3920.6,
+          "top_label": "편의점 쿠폰 사용",
+          "top_intent": "todo",
+          "top_likelihood": 0.8,
+          "dominant": true
+        },
+        {
+          "file": "IMG_8350.PNG",
+          "bytes": 270497,
+          "latency_ms": 2981.6,
+          "top_label": "기상 시간 기록",
+          "top_intent": "memo",
+          "top_likelihood": 0.5,
+          "dominant": false
+        },
+        {
+          "file": "IMG_8361.PNG",
+          "bytes": 363737,
+          "latency_ms": 2901.4,
+          "top_label": "대화 박제",
+          "top_intent": "memo",
+          "top_likelihood": 0.5,
+          "dominant": false
+        },
+        {
+          "file": "IMG_8387.PNG",
+          "bytes": 876238,
+          "latency_ms": 3168.8,
+          "top_label": "연락처 저장",
+          "top_intent": "todo",
+          "top_likelihood": 0.5,
+          "dominant": false
+        },
+        {
+          "file": "IMG_8394.PNG",
+          "bytes": 359730,
+          "latency_ms": 2843.8,
+          "top_label": "입영 연기 확인",
+          "top_intent": "knowledge",
+          "top_likelihood": 0.6,
+          "dominant": false
+        },
+        {
+          "file": "IMG_8431.PNG",
+          "bytes": 242559,
+          "latency_ms": 3271.5,
+          "top_label": "대회 접수 회신",
+          "top_intent": "todo",
+          "top_likelihood": 0.6,
+          "dominant": false
+        },
+        {
+          "file": "IMG_8439.PNG",
+          "bytes": 1207287,
+          "latency_ms": 2901.9,
+          "top_label": "단축어 설정",
+          "top_intent": "todo",
+          "top_likelihood": 0.6,
+          "dominant": false
+        },
+        {
+          "file": "IMG_8477.PNG",
+          "bytes": 5822663,
+          "latency_ms": 5522.2,
+          "top_label": "미용실 예약",
+          "top_intent": "todo",
+          "top_likelihood": 0.6,
+          "dominant": false
+        }
+      ]
+    },
+    {
+      "variant": "fhd_png",
+      "params": {
+        "max_edge": 1920,
+        "fmt": "PNG",
+        "quality": null
+      },
+      "n_ok": 8,
+      "latency_ms": {
+        "min": 2701.4,
+        "p50": 3745.0,
+        "mean": 4631.8,
+        "max": 9295.5
+      },
+      "bytes": {
+        "min": 97974,
+        "mean": 488301,
+        "max": 1362766
+      },
+      "rows": [
+        {
+          "file": "IMG_8121.PNG",
+          "bytes": 273646,
+          "latency_ms": 3327.2,
+          "top_label": "편의점 쿠폰 사용",
+          "top_intent": "todo",
+          "top_likelihood": 0.8,
+          "dominant": true
+        },
+        {
+          "file": "IMG_8350.PNG",
+          "bytes": 97974,
+          "latency_ms": 4151.2,
+          "top_label": "기상 시간 기록",
+          "top_intent": "memo",
+          "top_likelihood": 0.5,
+          "dominant": false
+        },
+        {
+          "file": "IMG_8361.PNG",
+          "bytes": 273813,
+          "latency_ms": 9295.5,
+          "top_label": "대화 내용 박제",
+          "top_intent": "memo",
+          "top_likelihood": 0.5,
+          "dominant": false
+        },
+        {
+          "file": "IMG_8387.PNG",
+          "bytes": 404527,
+          "latency_ms": 3527.2,
+          "top_label": "전화번호 저장",
+          "top_intent": "todo",
+          "top_likelihood": 0.5,
+          "dominant": false
+        },
+        {
+          "file": "IMG_8394.PNG",
+          "bytes": 399771,
+          "latency_ms": 2701.4,
+          "top_label": "입영 일정 관리",
+          "top_intent": "schedule",
+          "top_likelihood": 0.5,
+          "dominant": false
+        },
+        {
+          "file": "IMG_8431.PNG",
+          "bytes": 274609,
+          "latency_ms": 3130.5,
+          "top_label": "대회 접수 회신",
+          "top_intent": "todo",
+          "top_likelihood": 0.6,
+          "dominant": false
+        },
+        {
+          "file": "IMG_8439.PNG",
+          "bytes": 819309,
+          "latency_ms": 3962.8,
+          "top_label": "단축어 설정",
+          "top_intent": "todo",
+          "top_likelihood": 0.6,
+          "dominant": false
+        },
+        {
+          "file": "IMG_8477.PNG",
+          "bytes": 1362766,
+          "latency_ms": 6958.3,
+          "top_label": "미용실 예약",
+          "top_intent": "todo",
+          "top_likelihood": 0.5,
+          "dominant": false
+        }
+      ]
+    },
+    {
+      "variant": "fhd_jpeg_q85",
+      "params": {
+        "max_edge": 1920,
+        "fmt": "JPEG",
+        "quality": 85
+      },
+      "n_ok": 8,
+      "latency_ms": {
+        "min": 2577.1,
+        "p50": 3170.4,
+        "mean": 3643.2,
+        "max": 6354.6
+      },
+      "bytes": {
+        "min": 54201,
+        "mean": 132263,
+        "max": 191692
+      },
+      "rows": [
+        {
+          "file": "IMG_8121.PNG",
+          "bytes": 138039,
+          "latency_ms": 6354.6,
+          "top_label": "편의점 쿠폰 사용",
+          "top_intent": "todo",
+          "top_likelihood": 0.7,
+          "dominant": true
+        },
+        {
+          "file": "IMG_8350.PNG",
+          "bytes": 54201,
+          "latency_ms": 2884.2,
+          "top_label": "알람 시간 기록",
+          "top_intent": "memo",
+          "top_likelihood": 0.5,
+          "dominant": false
+        },
+        {
+          "file": "IMG_8361.PNG",
+          "bytes": 100621,
+          "latency_ms": 2982.6,
+          "top_label": "대화 내용 보관",
+          "top_intent": "memo",
+          "top_likelihood": 0.5,
+          "dominant": false
+        },
+        {
+          "file": "IMG_8387.PNG",
+          "bytes": 147260,
+          "latency_ms": 3067.6,
+          "top_label": "연락처 저장",
+          "top_intent": "todo",
+          "top_likelihood": 0.5,
+          "dominant": false
+        },
+        {
+          "file": "IMG_8394.PNG",
+          "bytes": 184916,
+          "latency_ms": 2577.1,
+          "top_label": "입영 일정 확인",
+          "top_intent": "schedule",
+          "top_likelihood": 0.6,
+          "dominant": false
+        },
+        {
+          "file": "IMG_8431.PNG",
+          "bytes": 160073,
+          "latency_ms": 3273.2,
+          "top_label": "대회 접수 회신",
+          "top_intent": "todo",
+          "top_likelihood": 0.6,
+          "dominant": false
+        },
+        {
+          "file": "IMG_8439.PNG",
+          "bytes": 81303,
+          "latency_ms": 4620.2,
+          "top_label": "단축어 설정",
+          "top_intent": "todo",
+          "top_likelihood": 0.6,
+          "dominant": false
+        },
+        {
+          "file": "IMG_8477.PNG",
+          "bytes": 191692,
+          "latency_ms": 3386.5,
+          "top_label": "미용실 예약",
+          "top_intent": "todo",
+          "top_likelihood": 0.5,
+          "dominant": false
+        }
+      ]
+    },
+    {
+      "variant": "fhd_jpeg_q60",
+      "params": {
+        "max_edge": 1920,
+        "fmt": "JPEG",
+        "quality": 60
+      },
+      "n_ok": 8,
+      "latency_ms": {
+        "min": 2607.1,
+        "p50": 2757.2,
+        "mean": 2859.0,
+        "max": 3548.8
+      },
+      "bytes": {
+        "min": 38323,
+        "mean": 87538,
+        "max": 124776
+      },
+      "rows": [
+        {
+          "file": "IMG_8121.PNG",
+          "bytes": 95465,
+          "latency_ms": 2779.6,
+          "top_label": "편의점 쿠폰 사용",
+          "top_intent": "todo",
+          "top_likelihood": 0.7,
+          "dominant": true
+        },
+        {
+          "file": "IMG_8350.PNG",
+          "bytes": 38323,
+          "latency_ms": 2801.5,
+          "top_label": "기상 시간 기록",
+          "top_intent": "memo",
+          "top_likelihood": 0.5,
+          "dominant": false
+        },
+        {
+          "file": "IMG_8361.PNG",
+          "bytes": 68762,
+          "latency_ms": 2665.0,
+          "top_label": "대화 내용 박제",
+          "top_intent": "memo",
+          "top_likelihood": 0.6,
+          "dominant": false
+        },
+        {
+          "file": "IMG_8387.PNG",
+          "bytes": 97621,
+          "latency_ms": 2640.1,
+          "top_label": "연락처 저장",
+          "top_intent": "todo",
+          "top_likelihood": 0.6,
+          "dominant": false
+        },
+        {
+          "file": "IMG_8394.PNG",
+          "bytes": 124776,
+          "latency_ms": 3548.8,
+          "top_label": "입영 일정 관리",
+          "top_intent": "schedule",
+          "top_likelihood": 0.5,
+          "dominant": false
+        },
+        {
+          "file": "IMG_8431.PNG",
+          "bytes": 107787,
+          "latency_ms": 2607.1,
+          "top_label": "메일 회신 준비",
+          "top_intent": "todo",
+          "top_likelihood": 0.6,
+          "dominant": false
+        },
+        {
+          "file": "IMG_8439.PNG",
+          "bytes": 51742,
+          "latency_ms": 3095.3,
+          "top_label": "단축어 설정",
+          "top_intent": "todo",
+          "top_likelihood": 0.6,
+          "dominant": false
+        },
+        {
+          "file": "IMG_8477.PNG",
+          "bytes": 115833,
+          "latency_ms": 2734.9,
+          "top_label": "미용실 예약",
+          "top_intent": "todo",
+          "top_likelihood": 0.5,
+          "dominant": false
+        }
+      ]
+    },
+    {
+      "variant": "hd_jpeg_q70",
+      "params": {
+        "max_edge": 1280,
+        "fmt": "JPEG",
+        "quality": 70
+      },
+      "n_ok": 8,
+      "latency_ms": {
+        "min": 2613.5,
+        "p50": 2967.2,
+        "mean": 3630.4,
+        "max": 6781.8
+      },
+      "bytes": {
+        "min": 25998,
+        "mean": 58440,
+        "max": 85205
+      },
+      "rows": [
+        {
+          "file": "IMG_8121.PNG",
+          "bytes": 63775,
+          "latency_ms": 2710.8,
+          "top_label": "편의점 쿠폰 사용",
+          "top_intent": "todo",
+          "top_likelihood": 0.8,
+          "dominant": true
+        },
+        {
+          "file": "IMG_8350.PNG",
+          "bytes": 25998,
+          "latency_ms": 6781.8,
+          "top_label": "알람 시간 수정",
+          "top_intent": "todo",
+          "top_likelihood": 0.5,
+          "dominant": false
+        },
+        {
+          "file": "IMG_8361.PNG",
+          "bytes": 45838,
+          "latency_ms": 3215.7,
+          "top_label": "대화 박제",
+          "top_intent": "memo",
+          "top_likelihood": 0.5,
+          "dominant": false
+        },
+        {
+          "file": "IMG_8387.PNG",
+          "bytes": 65643,
+          "latency_ms": 2613.5,
+          "top_label": "연락처 저장",
+          "top_intent": "todo",
+          "top_likelihood": 0.5,
+          "dominant": false
+        },
+        {
+          "file": "IMG_8394.PNG",
+          "bytes": 85205,
+          "latency_ms": 5143.4,
+          "top_label": "입영 일정 확인",
+          "top_intent": "schedule",
+          "top_likelihood": 0.5,
+          "dominant": false
+        },
+        {
+          "file": "IMG_8431.PNG",
+          "bytes": 70841,
+          "latency_ms": 2763.1,
+          "top_label": "대회 접수 준비",
+          "top_intent": "todo",
+          "top_likelihood": 0.6,
+          "dominant": false
+        },
+        {
+          "file": "IMG_8439.PNG",
+          "bytes": 33998,
+          "latency_ms": 3171.3,
+          "top_label": "단축어 설정",
+          "top_intent": "todo",
+          "top_likelihood": 0.6,
+          "dominant": false
+        },
+        {
+          "file": "IMG_8477.PNG",
+          "bytes": 76227,
+          "latency_ms": 2643.9,
+          "top_label": "미용실 예약",
+          "top_intent": "todo",
+          "top_likelihood": 0.6,
+          "dominant": false
+        }
+      ]
+    }
+  ],
+  "consistency": [
+    {
+      "file": "IMG_8121.PNG",
+      "intents_across_variants": {
+        "original": "todo",
+        "fhd_png": "todo",
+        "fhd_jpeg_q85": "todo",
+        "fhd_jpeg_q60": "todo",
+        "hd_jpeg_q70": "todo"
+      },
+      "is_stable": true
+    },
+    {
+      "file": "IMG_8350.PNG",
+      "intents_across_variants": {
+        "original": "memo",
+        "fhd_png": "memo",
+        "fhd_jpeg_q85": "memo",
+        "fhd_jpeg_q60": "memo",
+        "hd_jpeg_q70": "todo"
+      },
+      "is_stable": false
+    },
+    {
+      "file": "IMG_8361.PNG",
+      "intents_across_variants": {
+        "original": "memo",
+        "fhd_png": "memo",
+        "fhd_jpeg_q85": "memo",
+        "fhd_jpeg_q60": "memo",
+        "hd_jpeg_q70": "memo"
+      },
+      "is_stable": true
+    },
+    {
+      "file": "IMG_8387.PNG",
+      "intents_across_variants": {
+        "original": "todo",
+        "fhd_png": "todo",
+        "fhd_jpeg_q85": "todo",
+        "fhd_jpeg_q60": "todo",
+        "hd_jpeg_q70": "todo"
+      },
+      "is_stable": true
+    },
+    {
+      "file": "IMG_8394.PNG",
+      "intents_across_variants": {
+        "original": "knowledge",
+        "fhd_png": "schedule",
+        "fhd_jpeg_q85": "schedule",
+        "fhd_jpeg_q60": "schedule",
+        "hd_jpeg_q70": "schedule"
+      },
+      "is_stable": false
+    },
+    {
+      "file": "IMG_8431.PNG",
+      "intents_across_variants": {
+        "original": "todo",
+        "fhd_png": "todo",
+        "fhd_jpeg_q85": "todo",
+        "fhd_jpeg_q60": "todo",
+        "hd_jpeg_q70": "todo"
+      },
+      "is_stable": true
+    },
+    {
+      "file": "IMG_8439.PNG",
+      "intents_across_variants": {
+        "original": "todo",
+        "fhd_png": "todo",
+        "fhd_jpeg_q85": "todo",
+        "fhd_jpeg_q60": "todo",
+        "hd_jpeg_q70": "todo"
+      },
+      "is_stable": true
+    },
+    {
+      "file": "IMG_8477.PNG",
+      "intents_across_variants": {
+        "original": "todo",
+        "fhd_png": "todo",
+        "fhd_jpeg_q85": "todo",
+        "fhd_jpeg_q60": "todo",
+        "hd_jpeg_q70": "todo"
+      },
+      "is_stable": true
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+name: backend-ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: mochi
+          POSTGRES_PASSWORD: mochi
+          POSTGRES_DB: mochi
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U mochi -d mochi"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql+asyncpg://mochi:mochi@localhost:5432/mochi
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+      - name: Set up Python
+        run: uv python install 3.12
+      - name: Install deps
+        run: uv sync
+      - name: Lint
+        run: uv run ruff check .
+      - name: Typecheck
+        run: uv run mypy --explicit-package-bases app
+      - name: Migrate
+        run: uv run alembic upgrade head
+      - name: Test
+        run: uv run pytest -q

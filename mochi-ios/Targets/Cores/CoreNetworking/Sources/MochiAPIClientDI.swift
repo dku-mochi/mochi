@@ -1,0 +1,35 @@
+import Dependencies
+import Foundation
+import CoreDomain
+
+public enum MochiAPIClientKey: DependencyKey {
+    public static let liveValue: any MochiAPIClient = NotConfiguredAPIClient()
+    public static let testValue: any MochiAPIClient = NotConfiguredAPIClient()
+}
+
+public extension DependencyValues {
+    var mochiAPIClient: any MochiAPIClient {
+        get { self[MochiAPIClientKey.self] }
+        set { self[MochiAPIClientKey.self] = newValue }
+    }
+}
+
+/// 라이브 클라이언트가 주입되지 않았을 때 즉시 명시적인 에러를 던지는 sentinel.
+public struct NotConfiguredAPIClient: MochiAPIClient {
+    public init() {}
+    public func ingestCapture(_ request: CaptureIngestRequest, idempotencyKey: String) async throws -> CaptureDTO {
+        throw Self.error
+    }
+    public func getCapture(id: UUID) async throws -> CaptureDTO {
+        throw Self.error
+    }
+    public func search(query: String, scope: SearchScope) async throws -> SearchResponse {
+        throw Self.error
+    }
+    private static let error = APIErrorEnvelope(
+        code: "client.not_configured",
+        message: "MochiAPIClient not wired",
+        requestID: "n/a",
+        retryAfter: nil
+    )
+}

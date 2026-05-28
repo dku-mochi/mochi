@@ -1,0 +1,371 @@
+{
+  "prompt_version": "v5",
+  "preprocess": "fhd_jpeg_q60",
+  "n": 13,
+  "latency_ms": {
+    "min": 2088.1,
+    "p50": 2869.4,
+    "mean": 2914.1,
+    "max": 3562.9
+  },
+  "bytes": {
+    "min": 38323,
+    "mean": 99884,
+    "max": 172846
+  },
+  "n_dominant": 0,
+  "n_multi_intent": 12,
+  "results": [
+    {
+      "file": "IMG_8121.PNG",
+      "bytes": 95465,
+      "latency_ms": 3327.8,
+      "dominant_single_intent": false,
+      "likely_multi_intent": true,
+      "candidates": [
+        {
+          "label": "편의점 쿠폰 사용",
+          "intent": "todo",
+          "likelihood": 0.9,
+          "reasoning": "바코드가 포함된 쿠폰 화면이므로 나중에 편의점에서 결제할 때 바로 보여주기 위해 저장했을 가능성이 매우 높습니다."
+        },
+        {
+          "label": "유효기간 확인",
+          "intent": "knowledge",
+          "likelihood": 0.5,
+          "reasoning": "쿠폰의 유효기간이 명시되어 있어 나중에 언제까지 사용할 수 있는지 확인하기 위해 정보를 보관하려는 의도입니다."
+        },
+        {
+          "label": "쿠폰 발급 내역",
+          "intent": "memo",
+          "likelihood": 0.3,
+          "reasoning": "쿠폰이 정상적으로 발급되었음을 증명하거나 나중에 문제가 생겼을 때 참고하기 위한 일회성 기록으로 남길 수 있습니다."
+        }
+      ]
+    },
+    {
+      "file": "IMG_8350.PNG",
+      "bytes": 38323,
+      "latency_ms": 2725.9,
+      "dominant_single_intent": false,
+      "likely_multi_intent": true,
+      "candidates": [
+        {
+          "label": "기상 시간 기록",
+          "intent": "memo",
+          "likelihood": 0.75,
+          "reasoning": "사용자가 특정 시간에 일어났다는 사실을 증명하거나 기록으로 남기기 위해 캡처했을 가능성이 높습니다."
+        },
+        {
+          "label": "알람 설정 확인",
+          "intent": "todo",
+          "likelihood": 0.55,
+          "reasoning": "현재 설정된 알람 시간이 의도한 대로인지 확인하고, 추후 수정이나 관리가 필요한지 검토하려는 의도입니다."
+        },
+        {
+          "label": "일정 시작 체크",
+          "intent": "schedule",
+          "likelihood": 0.5,
+          "reasoning": "특정 시간에 시작해야 하는 업무나 약속을 위해 알람을 확인하고, 이를 일정 관리의 시작점으로 삼으려는 의도입니다."
+        }
+      ]
+    },
+    {
+      "file": "IMG_8361.PNG",
+      "bytes": 68762,
+      "latency_ms": 3562.9,
+      "dominant_single_intent": false,
+      "likely_multi_intent": false,
+      "candidates": [
+        {
+          "label": "대화 박제",
+          "intent": "memo",
+          "likelihood": 0.85,
+          "reasoning": "친구들과의 재미있는 대화 내용을 추억하거나 나중에 다시 보며 웃기 위해 저장함."
+        },
+        {
+          "label": "회신",
+          "intent": "todo",
+          "likelihood": 0.45,
+          "reasoning": "대화 흐름상 나중에 적절한 답변을 하거나 반응을 남기기 위해 기록함."
+        },
+        {
+          "label": "참고",
+          "intent": "knowledge",
+          "likelihood": 0.3,
+          "reasoning": "대화 중에 언급된 특정 정보나 맥락을 나중에 확인하기 위해 저장함."
+        }
+      ]
+    },
+    {
+      "file": "IMG_8387.PNG",
+      "bytes": 97621,
+      "latency_ms": 2709.3,
+      "dominant_single_intent": false,
+      "likely_multi_intent": true,
+      "candidates": [
+        {
+          "label": "연락처 저장",
+          "intent": "todo",
+          "likelihood": 0.85,
+          "reasoning": "최근 통화 목록에서 특정 번호를 찾아 주소록에 등록하려는 의도가 가장 명확합니다."
+        },
+        {
+          "label": "부재중 확인",
+          "intent": "todo",
+          "likelihood": 0.6,
+          "reasoning": "걸려온 전화들을 확인하고 다시 전화를 걸어야 할지 판단하기 위해 남겼을 수 있습니다."
+        },
+        {
+          "label": "통화 기록 보관",
+          "intent": "memo",
+          "likelihood": 0.4,
+          "reasoning": "특정 시간대에 누구와 통화했는지 증빙하거나 단순히 기록을 남겨두려는 의도입니다."
+        }
+      ]
+    },
+    {
+      "file": "IMG_8394.PNG",
+      "bytes": 124776,
+      "latency_ms": 2761.6,
+      "dominant_single_intent": false,
+      "likely_multi_intent": true,
+      "candidates": [
+        {
+          "label": "입영 연기 확인",
+          "intent": "knowledge",
+          "likelihood": 0.8,
+          "reasoning": "병무청으로부터 받은 입영 연기 처리 결과를 나중에 다시 확인하기 위해 저장하는 경우입니다."
+        },
+        {
+          "label": "입영 일정 관리",
+          "intent": "schedule",
+          "likelihood": 0.6,
+          "reasoning": "2026년 10월 23일이라는 구체적인 연기 종료 시점을 달력에 등록하거나 기억하기 위한 목적입니다."
+        },
+        {
+          "label": "민원 처리 후속 확인",
+          "intent": "todo",
+          "likelihood": 0.5,
+          "reasoning": "안내된 대로 입영판정검사 취소 여부나 향후 입영일자 선택 등 추가적인 행정 절차를 챙기기 위한 목적입니다."
+        }
+      ]
+    },
+    {
+      "file": "IMG_8431.PNG",
+      "bytes": 107787,
+      "latency_ms": 3258.4,
+      "dominant_single_intent": false,
+      "likely_multi_intent": true,
+      "candidates": [
+        {
+          "label": "메일 회신 준비",
+          "intent": "todo",
+          "likelihood": 0.85,
+          "reasoning": "5월 27일까지 팀 정보를 정리해 메일을 보내야 하는 구체적인 행동이 명시되어 있습니다."
+        },
+        {
+          "label": "대회 일정 확인",
+          "intent": "schedule",
+          "likelihood": 0.65,
+          "reasoning": "5월 27일이라는 마감 기한이 포함되어 있어 이를 일정 관리 차원에서 확인하려는 의도가 있습니다."
+        },
+        {
+          "label": "선발 결과 보관",
+          "intent": "memo",
+          "likelihood": 0.4,
+          "reasoning": "대표팀으로 선발되었다는 성취감 있는 소식을 나중에 다시 보기 위해 기록으로 남겨두려는 의도입니다."
+        }
+      ]
+    },
+    {
+      "file": "IMG_8439.PNG",
+      "bytes": 51742,
+      "latency_ms": 2088.1,
+      "dominant_single_intent": false,
+      "likely_multi_intent": true,
+      "candidates": [
+        {
+          "label": "단축어 설정",
+          "intent": "todo",
+          "likelihood": 0.85,
+          "reasoning": "화면 하단의 '단축어 등록하기' 버튼을 보고 나중에 설정을 완료하기 위해 저장했을 가능성이 매우 높습니다."
+        },
+        {
+          "label": "사용법 참고",
+          "intent": "knowledge",
+          "likelihood": 0.6,
+          "reasoning": "아이폰 뒷면 탭 설정 방법이라는 구체적인 가이드 정보를 나중에 다시 확인하기 위해 저장했을 수 있습니다."
+        },
+        {
+          "label": "나중에 다시 보기",
+          "intent": "memo",
+          "likelihood": 0.4,
+          "reasoning": "앱의 초기 설정 과정을 잊지 않기 위해 단순히 화면을 보관해두려는 의도일 수 있습니다."
+        }
+      ]
+    },
+    {
+      "file": "IMG_8477.PNG",
+      "bytes": 115833,
+      "latency_ms": 2969.5,
+      "dominant_single_intent": false,
+      "likely_multi_intent": true,
+      "candidates": [
+        {
+          "label": "미용실 예약",
+          "intent": "todo",
+          "likelihood": 0.8,
+          "reasoning": "헤어 스타일을 확인하고 다음에 미용실에 갈 때 보여주기 위해 저장했을 가능성이 매우 높습니다."
+        },
+        {
+          "label": "스타일 참고",
+          "intent": "knowledge",
+          "likelihood": 0.6,
+          "reasoning": "시스루 댄디컷이라는 스타일 자체를 기억해두고 나중에 스타일링할 때 참고하려는 의도입니다."
+        },
+        {
+          "label": "기록",
+          "intent": "memo",
+          "likelihood": 0.4,
+          "reasoning": "단순히 나중에 다시 보고 싶어서 마음에 드는 스타일을 가볍게 남겨두는 경우입니다."
+        }
+      ]
+    },
+    {
+      "file": "마우스 살까 말까 고민중.PNG",
+      "bytes": 84114,
+      "latency_ms": 2699.1,
+      "dominant_single_intent": false,
+      "likely_multi_intent": true,
+      "candidates": [
+        {
+          "label": "구매 고민",
+          "intent": "todo",
+          "likelihood": 0.85,
+          "reasoning": "상품 페이지를 캡처한 가장 직접적인 이유는 나중에 구매 여부를 결정하기 위해 가격과 제품 정보를 확인하려는 의도입니다."
+        },
+        {
+          "label": "가격 비교",
+          "intent": "todo",
+          "likelihood": 0.65,
+          "reasoning": "현재 할인 중인 가격을 기록해두고 다른 쇼핑몰이나 최저가와 비교해보기 위해 저장했을 가능성이 높습니다."
+        },
+        {
+          "label": "위시리스트",
+          "intent": "memo",
+          "likelihood": 0.55,
+          "reasoning": "당장 구매하지 않더라도 나중에 사고 싶은 물건 목록으로 관리하기 위해 기록해두는 의도입니다."
+        }
+      ]
+    },
+    {
+      "file": "아키텍쳐 참고 해보려고.PNG",
+      "bytes": 75761,
+      "latency_ms": 3044.2,
+      "dominant_single_intent": false,
+      "likely_multi_intent": true,
+      "candidates": [
+        {
+          "label": "기술 학습",
+          "intent": "knowledge",
+          "likelihood": 0.85,
+          "reasoning": "시스템 아키텍처 다이어그램을 보고 기술적인 구조를 이해하거나 나중에 공부하기 위해 저장했을 가능성이 매우 높습니다."
+        },
+        {
+          "label": "아키텍처 설계 참고",
+          "intent": "todo",
+          "likelihood": 0.65,
+          "reasoning": "현재 진행 중인 프로젝트나 업무에서 유사한 시스템을 설계할 때 참고 자료로 활용하려는 의도가 있을 수 있습니다."
+        },
+        {
+          "label": "나중에 다시 보기",
+          "intent": "memo",
+          "likelihood": 0.4,
+          "reasoning": "구체적인 목적보다는 유용한 정보라고 판단하여 나중에 다시 찾아보기 위해 가볍게 저장해두는 경우입니다."
+        }
+      ]
+    },
+    {
+      "file": "이뻐서 구매고민중 기록.PNG",
+      "bytes": 150153,
+      "latency_ms": 2869.4,
+      "dominant_single_intent": false,
+      "likely_multi_intent": true,
+      "candidates": [
+        {
+          "label": "구매 고민",
+          "intent": "todo",
+          "likelihood": 0.85,
+          "reasoning": "상품 정보와 가격이 명시되어 있어 나중에 구매를 결정하기 위해 저장했을 가능성이 매우 높습니다."
+        },
+        {
+          "label": "코디 참고",
+          "intent": "knowledge",
+          "likelihood": 0.65,
+          "reasoning": "모델의 착장 스타일과 체형 정보가 포함되어 있어 향후 옷을 입을 때 스타일링 가이드로 활용하려는 의도입니다."
+        },
+        {
+          "label": "나중에 보기",
+          "intent": "memo",
+          "likelihood": 0.4,
+          "reasoning": "단순히 마음에 드는 스타일을 나중에 다시 꺼내보고 싶어서 기록했을 가능성도 있습니다."
+        }
+      ]
+    },
+    {
+      "file": "나중에 공부해보려고 저장.png",
+      "bytes": 172846,
+      "latency_ms": 2800.4,
+      "dominant_single_intent": false,
+      "likely_multi_intent": true,
+      "candidates": [
+        {
+          "label": "나중에 보기",
+          "intent": "todo",
+          "likelihood": 0.8,
+          "reasoning": "유튜브 영상은 나중에 시간을 내어 시청하기 위해 저장하는 경우가 가장 일반적입니다."
+        },
+        {
+          "label": "기술 참고",
+          "intent": "knowledge",
+          "likelihood": 0.6,
+          "reasoning": "영상 내용이 LLM 위키 구축이라는 전문적인 기술 주제를 다루고 있어 학습 자료로 활용하려는 의도가 있습니다."
+        },
+        {
+          "label": "관심 기록",
+          "intent": "memo",
+          "likelihood": 0.4,
+          "reasoning": "단순히 흥미로운 주제나 나중에 다시 찾아보고 싶은 정보성 콘텐츠를 가볍게 남겨두는 경우입니다."
+        }
+      ]
+    },
+    {
+      "file": "나중에 확인하고 공부하려고 저장.png",
+      "bytes": 115309,
+      "latency_ms": 3066.6,
+      "dominant_single_intent": false,
+      "likely_multi_intent": true,
+      "candidates": [
+        {
+          "label": "토익 공부",
+          "intent": "knowledge",
+          "likelihood": 0.8,
+          "reasoning": "화면 상단에 노출된 토익 단어 학습 영상 정보를 나중에 다시 확인하고 학습하기 위해 남겼을 가능성이 매우 높습니다."
+        },
+        {
+          "label": "커피 구매",
+          "intent": "todo",
+          "likelihood": 0.6,
+          "reasoning": "화면 하단에 광고 중인 코코넛 바닐라향 커피에 흥미를 느껴 나중에 구매하거나 찾아보려는 의도가 포함될 수 있습니다."
+        },
+        {
+          "label": "나중에 보기",
+          "intent": "memo",
+          "likelihood": 0.4,
+          "reasoning": "현재 시청 중인 영상이나 광고를 당장 처리하지 않고 나중에 다시 살펴보기 위해 임시로 기록해두는 상황입니다."
+        }
+      ]
+    }
+  ]
+}

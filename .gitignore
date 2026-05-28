@@ -1,0 +1,37 @@
+# 모찌 루트 모노레포 통합 *예정* — 통합 시 사용할 .gitignore 시드.
+# 현재(통합 전)는 mochi-ios, mochi-backend 가 각각 git. 이 파일은 통합 PR 의 초석.
+
+# macOS
+.DS_Store
+
+# 일시 작업물
+tmp/
+_workspace/
+*.log
+*.tmp
+
+# 환경/비밀 — 절대 커밋 금지 (.claude/settings.json deny 와 중첩 안전망)
+.env
+.env.*
+*.pem
+*.key
+
+# 빌드 산출
+build/
+.build/
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+DerivedData/
+.tuist-derived/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# 인증/세션 등 운영 외부 자산
+*.p8
+*.mobileprovision

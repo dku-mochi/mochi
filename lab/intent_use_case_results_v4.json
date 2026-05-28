@@ -1,0 +1,222 @@
+{
+  "model": "gemini-3.1-flash-lite",
+  "thinking": "minimal",
+  "n": 8,
+  "n_ok": 8,
+  "latency_ms": {
+    "min": 2627.0,
+    "p50": 4111.2,
+    "mean": 4496.8,
+    "max": 6345.6
+  },
+  "results": [
+    {
+      "file": "IMG_8121.PNG",
+      "size_bytes": 290579,
+      "latency_ms": 3322.2,
+      "candidates": [
+        {
+          "label": "편의점 결제",
+          "intent": "todo",
+          "likelihood": 0.8,
+          "reasoning": "바코드가 포함되어 있어 실제 매장에서 사용하기 위해 저장했을 가능성이 가장 높습니다."
+        },
+        {
+          "label": "유효기간 확인",
+          "intent": "schedule",
+          "likelihood": 0.15,
+          "reasoning": "쿠폰의 유효기간이 명시되어 있어 나중에 만료 전에 사용하기 위해 일정을 체크하려는 의도입니다."
+        },
+        {
+          "label": "발급 내역 보관",
+          "intent": "memo",
+          "likelihood": 0.05,
+          "reasoning": "쿠폰이 정상적으로 발급되었음을 증빙하거나 나중에 참고하기 위해 기록해두는 경우입니다."
+        }
+      ],
+      "top_candidate_is_dominant": true
+    },
+    {
+      "file": "IMG_8350.PNG",
+      "size_bytes": 270497,
+      "latency_ms": 6330.0,
+      "candidates": [
+        {
+          "label": "기상 시간 인증",
+          "intent": "memo",
+          "likelihood": 0.4,
+          "reasoning": "특정 시간에 일어났음을 증명하거나 기록으로 남기기 위해 캡처했을 가능성이 높습니다."
+        },
+        {
+          "label": "알람 설정 변경",
+          "intent": "todo",
+          "likelihood": 0.35,
+          "reasoning": "현재 알람 시간이 너무 이르거나 늦어 나중에 알람 설정을 수정해야겠다고 생각했을 수 있습니다."
+        },
+        {
+          "label": "중요 일정 시작",
+          "intent": "schedule",
+          "likelihood": 0.25,
+          "reasoning": "특정 시간에 시작해야 하는 중요한 일정을 앞두고 알람 화면을 캡처해 두었을 가능성이 있습니다."
+        }
+      ],
+      "top_candidate_is_dominant": false
+    },
+    {
+      "file": "IMG_8361.PNG",
+      "size_bytes": 363737,
+      "latency_ms": 3103.3,
+      "candidates": [
+        {
+          "label": "대화 박제",
+          "intent": "memo",
+          "likelihood": 0.5,
+          "reasoning": "친구들과의 재미있는 대화 내용을 나중에 다시 보려고 기록하는 경우입니다."
+        },
+        {
+          "label": "회신 준비",
+          "intent": "todo",
+          "likelihood": 0.3,
+          "reasoning": "상대방의 농담이나 제안에 대해 나중에 적절한 답변을 고민하기 위해 저장하는 경우입니다."
+        },
+        {
+          "label": "약속 잡기",
+          "intent": "schedule",
+          "likelihood": 0.2,
+          "reasoning": "대화 중에 언급된 오마카세나 카지노 등 구체적인 계획을 실행하기 위해 일정을 확인하려는 경우입니다."
+        }
+      ],
+      "top_candidate_is_dominant": false
+    },
+    {
+      "file": "IMG_8387.PNG",
+      "size_bytes": 876238,
+      "latency_ms": 3399.7,
+      "candidates": [
+        {
+          "label": "연락처 등록",
+          "intent": "todo",
+          "likelihood": 0.5,
+          "reasoning": "최근 통화 목록에서 중요한 번호를 찾아 주소록에 추가하려는 의도가 가장 높습니다."
+        },
+        {
+          "label": "부재중 확인",
+          "intent": "todo",
+          "likelihood": 0.3,
+          "reasoning": "빨간색으로 표시된 부재중 전화를 확인하고 다시 걸어야 할지 판단하기 위해 캡처했을 가능성이 있습니다."
+        },
+        {
+          "label": "통화 기록 보관",
+          "intent": "memo",
+          "likelihood": 0.2,
+          "reasoning": "특정 시점의 통화 내역을 증거로 남기거나 나중에 참고하기 위해 단순 기록용으로 저장했을 수 있습니다."
+        }
+      ],
+      "top_candidate_is_dominant": false
+    },
+    {
+      "file": "IMG_8394.PNG",
+      "size_bytes": 359730,
+      "latency_ms": 6023.8,
+      "candidates": [
+        {
+          "label": "입영 연기 확인",
+          "intent": "memo",
+          "likelihood": 0.4,
+          "reasoning": "병무청의 민원 처리 결과를 나중에 다시 확인하기 위해 증빙용으로 저장하는 경우입니다."
+        },
+        {
+          "label": "입영 일정 관리",
+          "intent": "schedule",
+          "likelihood": 0.35,
+          "reasoning": "연기된 입영 기간과 이후 절차를 달력에 등록하거나 일정 계획을 세우기 위해 저장하는 경우입니다."
+        },
+        {
+          "label": "추후 문의 대비",
+          "intent": "todo",
+          "likelihood": 0.25,
+          "reasoning": "안내된 발신 연락처로 추후 상담을 하거나, 후속 조치를 위해 정보를 따로 챙겨두는 경우입니다."
+        }
+      ],
+      "top_candidate_is_dominant": false
+    },
+    {
+      "file": "IMG_8431.PNG",
+      "size_bytes": 242559,
+      "latency_ms": 2627.0,
+      "candidates": [
+        {
+          "label": "회신 준비",
+          "intent": "todo",
+          "likelihood": 0.5,
+          "reasoning": "메일에 명시된 5월 27일까지 팀원들과 정보를 취합해 회신해야 하는 명확한 과업이 존재함."
+        },
+        {
+          "label": "대회 일정 확인",
+          "intent": "schedule",
+          "likelihood": 0.3,
+          "reasoning": "5월 27일이라는 마감 기한과 대회 선발이라는 중요한 일정을 달력에 등록해두려는 의도."
+        },
+        {
+          "label": "합격 인증",
+          "intent": "memo",
+          "likelihood": 0.2,
+          "reasoning": "대표팀으로 선발된 기쁜 소식을 기록하거나 지인에게 자랑하기 위해 남겨두는 경우."
+        }
+      ],
+      "top_candidate_is_dominant": false
+    },
+    {
+      "file": "IMG_8439.PNG",
+      "size_bytes": 1207287,
+      "latency_ms": 6345.6,
+      "candidates": [
+        {
+          "label": "설정 따라하기",
+          "intent": "todo",
+          "likelihood": 0.5,
+          "reasoning": "화면의 안내에 따라 실제 단축어 설정을 완료하기 위해 저장하는 경우입니다."
+        },
+        {
+          "label": "사용법 익히기",
+          "intent": "knowledge",
+          "likelihood": 0.3,
+          "reasoning": "앱의 기능이나 사용 방법을 나중에 다시 확인하기 위해 참고용으로 저장하는 경우입니다."
+        },
+        {
+          "label": "귀여워서 소장",
+          "intent": "memo",
+          "likelihood": 0.2,
+          "reasoning": "화면 속 캐릭터가 마음에 들어서 단순히 기록으로 남겨두고 싶은 경우입니다."
+        }
+      ],
+      "top_candidate_is_dominant": false
+    },
+    {
+      "file": "IMG_8477.PNG",
+      "size_bytes": 5822663,
+      "latency_ms": 4822.7,
+      "candidates": [
+        {
+          "label": "미용실 보여주기",
+          "intent": "todo",
+          "likelihood": 0.5,
+          "reasoning": "다음 머리 스타일을 결정하기 위해 미용사에게 직접 보여주려는 의도가 가장 강함."
+        },
+        {
+          "label": "나중에 따라하기",
+          "intent": "knowledge",
+          "likelihood": 0.3,
+          "reasoning": "영상 속 스타일링 방법을 익혀서 스스로 직접 해보려는 학습 목적의 저장."
+        },
+        {
+          "label": "스타일 영감",
+          "intent": "memo",
+          "likelihood": 0.2,
+          "reasoning": "단순히 머리 모양이 마음에 들어서 나중에 다시 보려고 남겨두는 기록."
+        }
+      ],
+      "top_candidate_is_dominant": false
+    }
+  ]
+}

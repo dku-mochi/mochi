@@ -1,0 +1,364 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e5]: Team 세얼간이 · 2026 SW 중심대 경진대회
+    - generic [ref=e6]:
+      - generic [ref=e7]: もち
+      - generic [ref=e8]: /
+      - generic [ref=e9]: mochi
+      - generic [ref=e10]: UX Flow · v0.1
+    - generic [ref=e11]:
+      - generic [ref=e12]: iOS 17+ · App Intents
+      - generic [ref=e13]: FastAPI · Gemini 3.5 Flash
+  - generic [ref=e14]:
+    - heading "The soft way to remember everything. 스크린샷 한 장이면, 모찌가 일정·할 일·메모로 부드럽게 정리합니다." [level=1] [ref=e15]:
+      - text: The
+      - emphasis [ref=e16]: soft
+      - text: way
+      - text: to remember
+      - text: everything.
+      - generic [ref=e17]: 스크린샷 한 장이면, 모찌가 일정·할 일·메모로 부드럽게 정리합니다.
+    - generic [ref=e18]:
+      - generic [ref=e19]:
+        - text: Screens
+        - generic [ref=e20]: "05"
+      - generic [ref=e21]:
+        - text: Intents
+        - generic [ref=e22]: "04"
+      - generic [ref=e23]:
+        - text: Channels
+        - generic [ref=e24]: "03"
+  - main [ref=e25]:
+    - complementary [ref=e26]:
+      - generic [ref=e27]: User Journey · 5 Acts
+      - generic [ref=e28] [cursor=pointer]:
+        - generic [ref=e29]: "01"
+        - generic [ref=e30]:
+          - generic [ref=e31]: Act One
+          - generic [ref=e32]: Hello, Mochi.
+          - generic [ref=e33]: 처음 만나는 부드러운 인사. 캐릭터, 톤, 약속을 한 화면에서 전달한다.
+      - generic [ref=e34] [cursor=pointer]:
+        - generic [ref=e35]: "02"
+        - generic [ref=e36]:
+          - generic [ref=e37]: Act Two
+          - generic [ref=e38]: Bind a shortcut.
+          - generic: 백탭 두 번 · Siri · 공유 시트 — 세 가지 채널을 한 카드로 등록.
+      - generic [ref=e39] [cursor=pointer]:
+        - generic [ref=e40]: "03"
+        - generic [ref=e41]:
+          - generic [ref=e42]: Act Three
+          - generic [ref=e43]: From anywhere.
+          - generic: 다른 앱 화면에서 스크린샷 → 백탭 두 번 → 모찌가 받아 든다.
+      - generic [ref=e44] [cursor=pointer]:
+        - generic [ref=e45]: "04"
+        - generic [ref=e46]:
+          - generic [ref=e47]: Act Four
+          - generic [ref=e48]: Watch it think.
+          - generic: Gemini가 분석 — 도구 호출과 상태 그래프를 실시간 스트림으로.
+      - generic [ref=e49] [cursor=pointer]:
+        - generic [ref=e50]: "05"
+        - generic [ref=e51]:
+          - generic [ref=e52]: Finale
+          - generic [ref=e53]: It lands gently.
+          - generic: 분류 결과는 캘린더로, 리마인더로, 지식으로 — 자동으로 안착한다.
+    - generic [ref=e54]:
+      - generic [ref=e61]:
+        - button "Previous" [ref=e62] [cursor=pointer]:
+          - img [ref=e63]
+        - button "Next" [ref=e65] [cursor=pointer]:
+          - img [ref=e66]
+        - generic [ref=e68]:
+          - generic [ref=e69]:
+            - img [ref=e70]
+            - generic [ref=e76]: 캡처 분석 중
+          - generic [ref=e81]:
+            - generic [ref=e82]:
+              - generic [ref=e83]:
+                - generic [ref=e84]: 9:41
+                - generic [ref=e91]: 5G
+              - generic [ref=e94]: A soft place to land
+              - generic [ref=e95]:
+                - emphasis [ref=e96]: hello
+                - text: ","
+                - generic [ref=e97]: 기록을 모찌가 받아둘게요
+              - img [ref=e99]
+              - generic [ref=e123]:
+                - generic [ref=e128]:
+                  - text: 시작하기
+                  - img [ref=e129]
+                - generic [ref=e132]: App Group · 단일 Realm · 0 추가 가입
+            - generic:
+              - generic:
+                - generic: 9:42
+                - generic:
+                  - generic: 5G
+              - generic:
+                - generic:
+                  - img
+                  - text: 설정
+                - generic: 단축어
+                - generic: 완료
+              - generic:
+                - generic:
+                  - img
+                - generic:
+                  - generic: QuickCapture · App Intents
+                  - generic: 모찌 캡처
+                  - generic: 어디서든 화면을 모찌에게 건네면, 알맞은 곳에 정리됩니다.
+              - generic:
+                - generic: 실행 채널
+                - generic:
+                  - generic:
+                    - generic:
+                      - img
+                    - generic:
+                      - generic: 백탭 두 번
+                      - generic: DOUBLE_TAP · ACCESSIBILITY
+                  - generic:
+                    - generic:
+                      - img
+                    - generic:
+                      - generic: Siri 호출
+                      - generic: "\"헤이 시리, 모찌에게 줘\""
+                  - generic:
+                    - generic:
+                      - img
+                    - generic:
+                      - generic: 공유 시트
+                      - generic: UTI · IMAGE / URL / TEXT
+                  - generic:
+                    - generic:
+                      - img
+                    - generic:
+                      - generic: Spotlight
+                      - generic: INDEXED · NSUserActivity
+              - generic:
+                - generic: 기본 동작
+                - generic:
+                  - generic:
+                    - generic:
+                      - img
+                    - generic:
+                      - generic: 자동 캘린더 동기화
+                      - generic: SCHEDULE INTENT → EVENTKIT
+              - generic:
+                - img
+                - generic:
+                  - text: 한 번 등록하면 끝. 모든 입력 채널이 동일한
+                  - code: SharePayload
+                  - text: 로 직렬화되어 App Group 인박스 큐에 안전하게 안착합니다.
+            - generic:
+              - generic:
+                - generic: 9:43
+                - generic:
+                  - generic: 5G
+              - generic:
+                - generic:
+                  - generic:
+                    - generic: 소영 ✶
+                    - generic: Active · Replied 2m ago
+                  - generic:
+                    - img
+                    - img
+                - generic: Tuesday · 9:42 AM
+                - generic: 내일 저녁 어때? 강남역 7시쯤?
+                - generic: 아 그리고 그 책 — 『도시는 무엇으로 사는가』 — 꼭 읽어봐 💌
+                - generic: 오 좋다, 7시 강남역!
+                - generic: 📍 강남역 11번 출구, 빈브라더스 (지난번 거기!)
+              - generic:
+                - generic: 백탭 × 2
+              - generic:
+                - img
+                - generic:
+                  - generic: Capture received · 모찌가 받았어요
+                  - generic: 스크린샷 + 대화 컨텍스트 분석 중
+                - img
+            - generic:
+              - generic:
+                - generic: 9:43
+                - generic:
+                  - generic: 5G
+              - generic:
+                - generic:
+                  - img
+                - generic:
+                  - generic: mochi
+                  - generic: Gemini 3.5 Flash · Streaming
+                - generic:
+                  - img
+              - generic:
+                - generic:
+                  - generic: Capture · screenshot
+                  - generic: 내일 저녁 어때? 강남역 7시쯤? 📍 빈브라더스
+                  - generic: SOYEONG · 09:42 · IMG_4821.png
+                - generic:
+                  - img
+                  - generic:
+                    - generic: 대화에서 약속 일정이 보여요. 정리해드릴게요.
+                    - generic:
+                      - generic:
+                        - img
+                      - generic:
+                        - text: multimodal_analyze
+                        - emphasis: screenshot + text
+                      - generic: running · 1.2s
+                    - generic:
+                      - generic:
+                        - img
+                      - generic:
+                        - text: web_fetch
+                        - emphasis: 빈브라더스 강남점
+                      - generic: 482ms
+                    - generic:
+                      - generic:
+                        - img
+                      - generic:
+                        - text: route_intent
+                        - emphasis: schedule (98% conf)
+                      - generic: done
+                    - generic:
+                      - generic: → Intent · schedule
+                      - generic: 소영이와 빈브라더스
+                      - generic:
+                        - generic:
+                          - img
+                          - text: TOMORROW · 19:00
+                        - generic:
+                          - img
+                          - text: 강남역 11번 출구
+              - generic:
+                - generic:
+                  - generic: ingest
+                - generic:
+                  - generic: normalize
+                - generic:
+                  - generic: analyze
+                - generic:
+                  - generic: route
+                - generic:
+                  - generic: index
+                - generic:
+                  - generic: sync
+            - generic:
+              - generic:
+                - generic: 9:44
+                - generic:
+                  - generic: 5G
+              - generic:
+                - generic:
+                  - generic: May2026
+                  - generic:
+                    - img
+                    - img
+              - generic:
+                - generic: 월
+                - generic: 화
+                - generic: 수
+                - generic: 목
+                - generic: 금
+                - generic: 토
+                - generic: 일
+                - generic: "18"
+                - generic:
+                  - generic: "19"
+                - generic: "20"
+                - generic: "21"
+                - generic: "22"
+                - generic: "23"
+                - generic: "24"
+              - generic:
+                - generic:
+                  - generic:
+                    - img
+                  - generic:
+                    - emphasis: iCloud · synced
+                    - text: 모찌가 일정 1건을 추가했어요
+                  - img
+                - generic:
+                  - generic:
+                    - text: 19:00
+                    - emphasis: WED · 20
+                  - generic:
+                    - generic: 소영이와 빈브라더스
+                    - generic:
+                      - generic: FROM 모찌
+                      - text: 강남역 11번 출구 · 2h
+                  - generic:
+                    - img
+                - generic:
+                  - generic:
+                    - text: 15:30
+                    - emphasis: WED · 20
+                  - generic:
+                    - generic: 캡스톤 중간발표 리허설
+                    - generic:
+                      - generic: CALENDAR
+                      - text: 공학관 3F
+                  - generic:
+                    - img
+                - generic:
+                  - generic:
+                    - text: 09:00
+                    - emphasis: THU · 21
+                  - generic:
+                    - generic: 『도시는 무엇으로 사는가』 리뷰
+                    - generic:
+                      - generic: KNOWLEDGE
+                      - text: 모찌 인덱싱 · RAG ready
+                  - generic:
+                    - img
+      - generic [ref=e133]:
+        - generic [ref=e134]:
+          - generic [ref=e135]: ←
+          - generic [ref=e136]: →
+          - generic [ref=e137]: navigate
+        - generic [ref=e140] [cursor=pointer]: auto · 6s
+    - complementary [ref=e141]:
+      - generic [ref=e142]: Scene Notes
+      - generic [ref=e144]:
+        - generic [ref=e145]: Act 01 · Welcome
+        - heading "부드러운 첫인상" [level=2] [ref=e146]:
+          - emphasis [ref=e147]: 부드러운
+          - text: 첫인상
+        - paragraph [ref=e148]: 앱이 시키는 일은 분명합니다 — 그러나 그 말투는 떡처럼 부드럽습니다. 모찌는 등장과 동시에 호흡하고, 깜빡이고, 인사합니다.
+        - generic [ref=e149]:
+          - generic [ref=e150]:
+            - term [ref=e151]: Hero copy
+            - definition [ref=e152]: “기록을 모찌가 받아둘게요”
+          - generic [ref=e153]:
+            - term [ref=e154]: Motion
+            - definition [ref=e155]: breathing 4s · sparkle stagger 1.2s
+          - generic [ref=e156]:
+            - term [ref=e157]: Onboarding
+            - definition [ref=e158]: 3 pages · permissions deferred
+          - generic [ref=e159]:
+            - term [ref=e160]: State
+            - definition [ref=e161]:
+              - code [ref=e162]: RootFeature.welcome
+        - generic [ref=e163]:
+          - generic [ref=e164]:
+            - generic [ref=e165]: Color
+            - generic [ref=e166]:
+              - text: Lilac
+              - text: Cream
+            - generic [ref=e167]: 받침 라일락과 떡빛 크림의 대비
+          - generic [ref=e168]:
+            - generic [ref=e169]: Typography
+            - generic [ref=e170]:
+              - text: Fraunces
+              - emphasis [ref=e171]: italic
+            - generic [ref=e172]: + Pretendard 200wt
+  - contentinfo [ref=e173]:
+    - generic [ref=e174]:
+      - text: Stack
+      - generic [ref=e175]: SwiftUI · TCA 1.x
+    - generic [ref=e176]:
+      - text: Backend
+      - generic [ref=e177]: FastAPI · Postgres · pgvector
+    - generic [ref=e178]:
+      - text: Model
+      - generic [ref=e179]:
+        - text: Gemini 3.5 Flash
+        - emphasis [ref=e180]: multimodal
+    - generic [ref=e181]:
+      - text: Reliability
+      - generic [ref=e182]: Idempotency · trace · SSE

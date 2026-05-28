@@ -1,0 +1,151 @@
+import Foundation
+import CoreDomain
+
+/// 백엔드 `/api/v1` 와의 계약. 백엔드 `openapi.json` 과 1:1 매칭되어야 한다.
+///
+/// 실제 구현은 빌드 타임에 `swift-openapi-generator` 가 `openapi.json` 에서 생성하는
+/// 클라이언트를 얇게 감싼다(`OpenAPIMochiClient`).
+///
+/// **계약 원칙:**
+/// - 모든 요청은 `X-Mochi-Request-ID` 헤더로 분산 추적
+/// - `POST /captures` 는 `Idempotency-Key` 헤더 필수 (owner-scoped)
+/// - 에러는 ``APIErrorEnvelope`` 통일 포맷
+///
+/// **백엔드에 없는 엔드포인트는 이 프로토콜에도 없다.** 분석은 ingest 후 백엔드 outbox/worker가 자동으로 트리거하고,
+/// 캘린더 sync는 iOS가 EventKit 으로 처리한 뒤 추후 PATCH 로 결과만 백엔드에 반영한다(향후 추가 예정).
+public protocol MochiAPIClient: Sendable {
+    /// `POST /api/v1/captures` — 사용자 캡처 ingestion. 응답은 분석 전 상태의 capture (lifecycle=`ingested`).
+    func ingestCapture(_ request: CaptureIngestRequest, idempotencyKey: String) async throws -> CaptureDTO
+
+    /// `GET /api/v1/captures/{id}` — owner-scoped capture 조회.
+    func getCapture(id: UUID) async throws -> CaptureDTO
+
+    /// `POST /api/v1/search` — 자연어 질의 → Hybrid Search RAG.
+    func search(query: String, scope: SearchScope) async throws -> SearchResponse
+}
+
+// MARK: - Request / Response DTOs
+
+public struct CaptureIngestRequest: Sendable, Hashable, Codable {
+    public let channel: CaptureChannel
+    public let url: URL?
+    public let text: String?
+    public let userMemo: String?
+    public let imageRefs: [ImageRefDTO]
+
+    public init(
+        channel: CaptureChannel,
+        url: URL? = nil,
+        text: String? = nil,
+        userMemo: String? = nil,
+        imageRefs: [ImageRefDTO] = []
+    ) {
+        self.channel = channel
+        self.url = url
+        self.text = text
+        self.userMemo = userMemo
+        self.imageRefs = imageRefs
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case channel, url, text
+        case userMemo = "userMemo"
+        case imageRefs = "imageRefs"
+    }
+}
+
+public struct ImageRefDTO: Sendable, Hashable, Codable {
+    public let objectKey: String?
+    public let mimeType: String
+    public let byteSize: Int
+    public let sha256: String
+
+    public init(objectKey: String?, mimeType: String, byteSize: Int, sha256: String) {
+        self.objectKey = objectKey
+        self.mimeType = mimeType
+        self.byteSize = byteSize
+        self.sha256 = sha256
+    }
+}
+
+public struct CaptureDTO: Sendable, Hashable, Codable, Identifiable {
+    public let id: UUID
+    public let channel: CaptureChannel
+    public let url: URL?
+    public let text: String?
+    public let userMemo: String?
+    public let intent: Intent?
+    public let summary: String?
+    public let importance: Int
+    public let confidence: Double
+    public let lifecycleKind: String
+    public let syncKind: String
+    public let imageRefs: [ImageRefDTO]
+    public let capturedAt: Date
+    public let createdAt: Date
+
+    private enum CodingKeys: String, CodingKey {
+        case id, channel, url, text, intent, summary, importance, confidence
+        case userMemo = "userMemo"
+        case lifecycleKind = "lifecycleKind"
+        case syncKind = "syncKind"
+        case imageRefs = "imageRefs"
+        case capturedAt = "capturedAt"
+        case createdAt = "createdAt"
+    }
+}
+
+public enum SearchScope: String, Codable, Sendable, CaseIterable {
+    case all
+    case schedule
+    case todo
+    case knowledge
+    case memo
+}
+
+public struct SearchResponse: Equatable, Sendable, Hashable, Codable {
+    public let answer: String
+    public let citations: [Citation]
+    public let totalTokens: Int
+    public let agentRunID: UUID?
+
+    public struct Citation: Equatable, Sendable, Hashable, Codable {
+        public let captureID: UUID
+        public let snippet: String
+        public let score: Double
+
+        private enum CodingKeys: String, CodingKey {
+            case captureID = "captureId"
+            case snippet, score
+        }
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case answer, citations
+        case totalTokens = "totalTokens"
+        case agentRunID = "agentRunId"
+    }
+}
+
+// MARK: - Error envelope
+
+/// 백엔드 에러 통일 포맷. 백엔드 `core/error_envelope.py` 와 동일 스키마.
+public struct APIErrorEnvelope: Error, Equatable, Sendable, Codable {
+    public let code: String                  // 예: "capture.not_found", "agent.tool_failed"
+    public let message: String
+    public let requestID: String
+    public let retryAfter: TimeInterval?
+
+    public init(code: String, message: String, requestID: String, retryAfter: TimeInterval?) {
+        self.code = code
+        self.message = message
+        self.requestID = requestID
+        self.retryAfter = retryAfter
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case code, message
+        case requestID = "requestId"
+        case retryAfter
+    }
+}
