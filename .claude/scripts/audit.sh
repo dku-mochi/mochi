@@ -70,9 +70,12 @@ declare -a DRIFT_LIST
 declare -a COMMITTED_RULES=(
   "docs/DOMAIN_DESIGN.md|mochi_item|mochi-backend/app mochi-ios/Targets|0.3|문서 'mochi_item' 코드 0건 (known-drift confirm)"
   "docs/DOMAIN_DESIGN.md|LifecyclePolicy|mochi-backend/app mochi-ios/Targets|0.2|LifecyclePolicy 양쪽 정합 grep 실패"
+  "docs/DOMAIN_DESIGN.md|IngestCapture|mochi-backend/app|0.2|IngestCapture 유스케이스 누락 가능성"
   "docs/PRIVACY_SENSITIVE_CAPTURE.md|ssrf|mochi-backend/app|0.2|SSRF 가드 식별자가 코드에 안 보임"
+  "docs/PRIVACY_SENSITIVE_CAPTURE.md|on_device_detection|mochi-ios/Targets|0.2|on-device 민감 감지가 iOS 코드에 안 보임"
   "docs/ARCHITECTURE.md|Idempotency-Key|mochi-backend/app|0.2|Idempotency-Key 처리가 코드에 안 보임"
   "docs/ARCHITECTURE.md|CaptureRepository|mochi-backend/app mochi-ios/Targets|0.2|CaptureRepository 포트가 코드에 안 보임"
+  "docs/ARCHITECTURE.md|WebFetch|mochi-backend/app|0.2|WebFetch 어댑터가 코드에 안 보임"
 )
 
 apply_grep_rule() {

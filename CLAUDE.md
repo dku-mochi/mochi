@@ -173,8 +173,9 @@ iOS 쪽은 `tuist test`, 백엔드는 `make test` / `make lint` / `make typechec
 
 **자동 채점 스크립트 (`.claude/scripts/`):**
 - `audit.sh <l1|l2|l3|all>` — 시간 강등 + 코드 식별자 grep 강등 + STOP 후보. 모노레포·macOS/Linux 이식.
-- `ship-precheck.sh <ios|backend|docs|all>` — `/ship` 자동 사전 체크 (audit + CHANGELOG + 미러 mtime + iOS 경계 + git status). 게이트 무결성 보장(exit code 명시).
+- `ship-precheck.sh <ios|backend|docs|all>` — `/ship` 자동 사전 체크 (audit + CHANGELOG + 미러 mtime + iOS 경계 + **OpenAPI drift** + git status). 게이트 무결성 보장(exit code 명시).
 - `ios-boundaries.sh` — TCA 레이어 위반 자동 검출 (Features 간 import / Cores 역방향 / @main 위치).
+- `openapi-check.sh` — OpenAPI ↔ iOS 클라이언트 drift 자동 검사 (path-parameter 정규화 양방향). 정식 swift-openapi-generator 배선까지의 fallback ② 게이트.
 
 **표준 작업 루프:**
 ```

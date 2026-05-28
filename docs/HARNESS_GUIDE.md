@@ -112,13 +112,14 @@ mochi/
 │  ├─ commands/
 │  └─ settings.json
 │
-├─ mochi-ios/          ← iOS 앱 (별도 git)
-├─ mochi-backend/      ← FastAPI 백엔드 (별도 git)
+├─ mochi-ios/          ← iOS 앱 (모노레포 통합 완료, 단일 루트 git)
+├─ mochi-backend/      ← FastAPI 백엔드 (모노레포 통합 완료, 단일 루트 git)
 ├─ lab/                ← 실험·벤치마크 (자유)
-└─ archive/            ← 폐기된 문서. 안 읽음.
+├─ archive/            ← 폐기된 문서. 안 읽음.
+└─ .git/               ← 루트 모노레포 git (2026-05-29 통합)
 ```
 
-> **꼭 기억할 것**: 루트(`mochi/`) 자체는 git 이 *아닙니다.* `mochi-ios/`, `mochi-backend/` 만 각자 git 입니다. 곧 모노레포로 합칠 예정이지만, 그때까지는 루트 파일(`docs/`, `journal/`, `.claude/`) 은 *팀 안에서 직접 공유* 가 필요해요.
+> **꼭 기억할 것**: 루트(`mochi/`) 가 단일 git repo 입니다 (2026-05-29 모노레포 통합 완료). `docs/`, `journal/`, `.claude/` 의 모든 변경이 자동으로 버전 관리됩니다. 하위 `mochi-ios/`, `mochi-backend/` 는 더 이상 별도 git 이 아니고, 루트 git 안의 디렉토리일 뿐입니다.
 
 ---
 

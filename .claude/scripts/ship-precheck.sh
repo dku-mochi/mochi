@@ -62,7 +62,21 @@ else
     if [[ "$new_drift" -gt 0 ]]; then
       mark_fail "신규 STOP 후보 $new_drift 건 — CHANGELOG 등재 known-drift 가 아님. 결정 후 머지."
     else
-      mark_warn "confidence < 0.3 STOP 은 모두 CHANGELOG 등재 known-drift — 진행 OK 단 추적 중."
+      # 등재 known-drift 의 미해결 일수 알림 (경고 피로 완화: 7일↑ 미결이면 "결정 압박" 라벨)
+      drift_age_days=""
+      first_drift_date=$(grep -B2 "known-drift" "$REPO/docs/CHANGELOG.md" 2>/dev/null | grep -oE "## [0-9]{4}-[0-9]{2}-[0-9]{2}" | head -1 | awk '{print $2}')
+      if [[ -n "$first_drift_date" ]]; then
+        # to_epoch — Linux/macOS portable
+        dts=$(date -j -f "%Y-%m-%d" "$first_drift_date" "+%s" 2>/dev/null || date -d "$first_drift_date" "+%s" 2>/dev/null || echo 0)
+        if [[ "$dts" -gt 0 ]]; then
+          drift_age_days=$(( ( $(date "+%s") - dts ) / 86400 ))
+        fi
+      fi
+      if [[ -n "$drift_age_days" && "$drift_age_days" -gt 7 ]]; then
+        mark_warn "등재 known-drift 미결 ${drift_age_days}일째 — 결정 압박. /sprint-end 또는 명시 결정 권장."
+      else
+        mark_warn "confidence < 0.3 STOP 은 모두 CHANGELOG 등재 known-drift — 추적 중."
+      fi
     fi
   fi
   if [[ -z "$stop_items" && -z "$drift_items" ]]; then
@@ -113,24 +127,54 @@ if [[ "$SCOPE" == "ios" ]] || [[ "$SCOPE" == "all" ]]; then
   echo
 fi
 
-# 5) 하위 repo git status (변경 있나, 모노레포 통합 전)
-echo "### 5) 하위 repo git status"
-for sub in mochi-ios mochi-backend; do
-  if [[ "$SCOPE" == "$sub" ]] || [[ "$SCOPE" == "all" ]] || \
-     ( [[ "$SCOPE" == "ios" ]] && [[ "$sub" == "mochi-ios" ]] ) || \
-     ( [[ "$SCOPE" == "backend" ]] && [[ "$sub" == "mochi-backend" ]] ); then
+# 5) OpenAPI ↔ iOS 클라이언트 drift — generator 미배선의 fallback ② 게이트
+if [[ "$SCOPE" == "ios" ]] || [[ "$SCOPE" == "backend" ]] || [[ "$SCOPE" == "all" ]]; then
+  echo "### 5) OpenAPI ↔ iOS 클라이언트 drift (openapi-check.sh)"
+  api_out=$(bash "$REPO/.claude/scripts/openapi-check.sh" 2>&1)
+  api_rc=$?
+  case "$api_rc" in
+    0)
+      mark_pass "OpenAPI ↔ iOS 클라이언트 정합 (drift 0)."
+      ;;
+    1)
+      # drift 발견. 등재 known-drift 면 warn, 신규면 fail.
+      if grep -q "openapi-drift" "$REPO/docs/CHANGELOG.md" 2>/dev/null; then
+        mark_warn "OpenAPI drift 발견 — CHANGELOG 등재 known-drift (openapi-drift). 추적 중."
+      else
+        mark_fail "OpenAPI drift 발견 — CHANGELOG 미등재. 결정 후 머지 (openapi-check.sh 출력 확인)."
+        echo "$api_out" | grep -E "^- /api" | sed 's|^|    |'
+      fi
+      ;;
+    *)
+      # exit 3/4/5 = extract 실패 / 입력 손상 / 환경 오류 — 절대 통과 표시 X
+      mark_fail "openapi-check.sh 가 exit $api_rc — 게이트 신뢰 불가. 출력 확인."
+      echo "$api_out" | sed 's|^|    |'
+      ;;
+  esac
+  echo
+fi
+
+# 6) git status — 모노레포 통합 후엔 루트 한 번만, 통합 전엔 하위 각각
+echo "### 6) git status"
+if [[ -d "$REPO/.git" ]]; then
+  # 모노레포 통합 완료
+  changes=$(git -C "$REPO" status --porcelain 2>/dev/null | wc -l | tr -d ' ')
+  if [[ "$changes" -gt 0 ]]; then
+    mark_warn "루트 작업트리 변경 $changes 개 — code-reviewer + codex review 통과 확인."
+  else
+    mark_pass "루트 git 작업트리 clean. (모노레포 통합 완료)"
+  fi
+else
+  # 통합 전 폴백 (가능성: 사용자가 .git 일시 제거 등)
+  for sub in mochi-ios mochi-backend; do
     if [[ -d "$REPO/$sub/.git" ]]; then
       changes=$(git -C "$REPO/$sub" status --porcelain 2>/dev/null | wc -l | tr -d ' ')
-      if [[ "$changes" -gt 0 ]]; then
-        mark_warn "$sub 작업트리 변경 $changes 개 — code-reviewer + codex review 통과 확인."
-      else
-        mark_pass "$sub 작업트리 clean."
-      fi
+      [[ "$changes" -gt 0 ]] && mark_warn "$sub 변경 $changes 개." || mark_pass "$sub clean."
     else
-      mark_warn "$sub 가 git repo 가 아님. (모노레포 통합 후엔 자연 해소)"
+      mark_warn "$sub 도 git repo 아님 — 루트 git 통합 필요."
     fi
-  fi
-done
+  done
+fi
 echo
 
 # 5) 요약

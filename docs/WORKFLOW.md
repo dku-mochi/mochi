@@ -190,9 +190,9 @@ Flow B — 완료
 
 ---
 
-## 10. 브랜치 · 커밋 (모노레포 통합 진행 중)
+## 10. 브랜치 · 커밋 (모노레포 통합 완료)
 
-> **팀 합의: 루트 모노레포 git 통합 예정.** 통합 PR 전까지는 convention 으로 따르고, 머지 전 `/ship` + code-reviewer 로 PR 리뷰를 대체한다. 통합 시점에 하위 git history 보존 방식(subtree merge / replace)을 결정한다.
+> **루트 모노레포 git 통합 완료** (2026-05-29). 하위 `.git` 제거 후 루트 단일 git 으로 합침. 이제 `.claude/`, `docs/`, `journal/` 의 변경이 모두 추적된다. PR 가 붙기 전엔 `/ship` + code-reviewer 로 PR 리뷰를 대체한다.
 
 - **트렁크 기반**: `main` + 짧은 feature 브랜치.
 - **브랜치명**: `feat|fix|docs|chore/<area>-<짧은설명>` — area ∈ `ios` `be` `docs` `infra`. 예: `feat/be-notifications`, `fix/ios-backtap-crash`.

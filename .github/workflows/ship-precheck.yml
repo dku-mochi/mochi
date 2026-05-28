@@ -1,0 +1,66 @@
+# 모찌 하네스 — CI 게이트 (GitHub Actions)
+# PR/push 시 자동으로 ship-precheck 스크립트 6단계 게이트를 다시 실행.
+# 로컬 hook/스크립트 의 실행권한·이식성·동작을 CI 에서 재검증한다 (codex 9차 평가 권고).
+#
+# 발화 시점:
+#   - main 브랜치 push (직접 머지 차단·확인)
+#   - feature/fix/docs/chore 브랜치 → main PR (머지 전 자동 게이트)
+
+name: ship-precheck
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  precheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # CHANGELOG 등재 검사를 위해 full history
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 실행 권한 확인
+        run: |
+          set -e
+          for s in .claude/scripts/*.sh .claude/hooks/*.sh; do
+            [[ -x "$s" ]] || { echo "❌ $s 실행권한 없음"; exit 1; }
+          done
+          echo "✅ 모든 hook/script 실행권한 OK"
+
+      - name: audit (전체 docs/journal)
+        run: bash .claude/scripts/audit.sh all
+
+      - name: iOS 경계 (TCA 레이어)
+        run: bash .claude/scripts/ios-boundaries.sh
+
+      - name: OpenAPI ↔ iOS drift
+        run: |
+          set +e
+          bash .claude/scripts/openapi-check.sh
+          rc=$?
+          # exit 1 = drift 발견. 등재 known-drift 면 OK, 신규면 fail.
+          if [[ "$rc" -eq 1 ]]; then
+            if grep -q "openapi-drift" docs/CHANGELOG.md; then
+              echo "⚠️  drift 발견 — 등재 known-drift 라 통과."
+              exit 0
+            else
+              echo "❌ drift 발견 — 등재 안 됨."
+              exit 1
+            fi
+          elif [[ "$rc" -gt 1 ]]; then
+            echo "❌ openapi-check 환경/입력 오류 — 절대 통과 안 함."
+            exit 1
+          fi
+
+      - name: ship-precheck 종합
+        run: bash .claude/scripts/ship-precheck.sh all

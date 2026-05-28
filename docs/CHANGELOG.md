@@ -16,6 +16,36 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 ---
 
 ## 2026-05-29 — infra
+- **하네스 v2.7 — OpenAPI drift 자동 검사 게이트 (codex 권고 흡수).** 동기: codex 7차 평가가 9점대 보강으로 명시한 "`openapi.json` 기반 iOS generator 를 `/ship` 게이트에 연결해 API drift 를 ⓪/② 로 끌어올리기". 정식 swift-openapi-generator 배선은 시간 비용 큼(post-submission 작업, `docs/l2/aspirational/FUTURE_OPENAPI_GENERATOR.md`) → 그때까지의 **fallback ② 게이트**로 drift 자동 검사 도입.
+  - `.claude/scripts/openapi-check.sh` 신설 — `mochi-backend/openapi.json` path 와 iOS `URLSessionMochiAPIClient.swift` 의 endpoint 호출을 양방향 비교. path-parameter `{capture_id}` 와 Swift string interpolation `\(id.uuidString)` 둘 다 `{var}` 로 정규화해 매칭. exit code 1 = drift 발견.
+  - `.claude/scripts/ship-precheck.sh` §5 추가 — openapi-check 자동 호출. drift 가 *CHANGELOG 등재(openapi-drift 토큰)* 면 warn, *신규* 면 fail. audit 의 STOP 신규/등재 분기와 같은 패턴.
+- **openapi-drift 등재 (known-drift)** · owner: 송준서 · since: 2026-05-29 · resolve_by: post-submission: 현재 검출되는 8건 — 의도된 미구현이므로 등재 후 추적. `/api/v1/auth/{apple,dev,google,logout,refresh}` 는 `AuthCoordinator` 가 클라이언트 외부에서 별도 처리 (구조적 분리). `/api/v1/captures/{var}/stream` (스트리밍 채널), `/api/v1/health`, `/api/v1/users/me` 는 데모 핵심 기능 외라 iOS 미호출 — 마감 후 재검토. 신규 endpoint 가 추가되면 같은 게이트가 fail 로 잡음.
+
+## 2026-05-29 — infra
+- **하네스 v2.9 — CI 게이트 통합 + audit grep 범위 확장.** 동기: codex 9차 평가가 (a) "hooks 일부는 실행권한/호출방식까지 CI 에서 재검증해야 이식성 완전히 닫힘", (b) "audit grep 신뢰도 강등이 오탐·과소탐 가능성" 을 지적.
+  - `.github/workflows/ship-precheck.yml` 신설 — main push / PR 머지 시 자동으로 6단계 ship-precheck 재실행. 실행권한 확인 step + audit + iOS 경계 + OpenAPI drift (등재 known-drift 분기) + ship-precheck 종합. 로컬과 CI 양쪽에서 같은 게이트 강제 — 이식성 완전화.
+  - `.claude/scripts/audit.sh` `COMMITTED_RULES` 확장 — `IngestCapture`(BE), `on_device_detection`(iOS), `WebFetch`(BE) 추가. 5건 → 8건. 의미 식별자 커버리지 ↑ (codex 의 "audit 의 grep 신뢰도 한계" 부분 보강).
+
+## 2026-05-29 — infra
+- **하네스 v2.8 — 게이트 무결성 강화 + known-drift 메타 컨벤션.** 동기: codex 8차 평가가 (a) "openapi-check.sh 가 read-only sandbox 에서 here-doc temp file 실패 후 0/0 으로 통과 — P1 게이트 무결성 결함", (b) "known-drift 가 정직 등재에 그치면 방치 — owner/date/해소 조건 필요" 를 지적.
+  - `.claude/scripts/openapi-check.sh` 의 python heredoc 제거. 별도 파일 `.claude/scripts/lib/extract_paths.py` 로 분리 (read-only sandbox 임시파일 의존 0). exit code 3/4/5 로 환경 오류·입력 손상 명시 구분. **sanity 검사**: spec/client 둘 다 path 0 개면 추출 손상 의심 → exit 5 (절대 통과 표시 안 함). PoC — `extract_paths.py` 일시 제거 시 mark_fail 정상 표면화.
+  - `.claude/scripts/ship-precheck.sh` §5 보강 — openapi-check 의 exit code 분기 (`0=pass / 1=drift 분기 / 기타=mark_fail`). 조용한 실패 절대 안 통과.
+  - **known-drift 메타 컨벤션 신설** — CHANGELOG known-drift 항목에 `owner / since / resolve_by` 메타 강제 (예: `owner: 송준서 · since: 2026-05-29 · resolve_by: post-submission`). 미해결 방치 회피. `openapi-drift` 항목에 즉시 적용.
+
+## 2026-05-29 — infra
+- **하네스 v2.7 — OpenAPI drift 자동 검사 게이트 (codex 권고 흡수).**
+
+## 2026-05-29 — infra
+- **하네스 v2.6 — HARNESS_GUIDE 통합 후 정합 + 경고 피로 완화.** 동기: codex 6차 평가가 (a) "HARNESS_GUIDE.md 에 '루트는 git 이 아님' 잔재 — 죽은 문서 냄새", (b) "ship-precheck 가 known-drift 를 warn 으로 통과 → 장기화 시 경고 피로" 를 지적.
+  - `docs/HARNESS_GUIDE.md` §3 구조 트리 — "별도 git" → "모노레포 통합 완료", 루트 `.git` 명시. "꼭 기억할 것" 박스도 통합 후 사실로 갱신. 죽은 표현 0.
+  - `.claude/scripts/ship-precheck.sh` — known-drift 등재 후 경과 일수 자동 계산. **7일↑ 미결**이면 단순 warn 대신 "결정 압박" 메시지 + `/sprint-end` 권장. 정직한 압박 — 차단은 아니지만 무한 warn 회피.
+
+## 2026-05-29 — infra
+- **하네스 v2.5 — 모노레포 git 통합 + ship-precheck here-doc 제거.** 동기: codex 5차 평가가 (a) "루트 git 미통합 — `.claude/`, `docs/`, `journal/` 변경 추적·배포 단위 약함" (4차에서도 반복 지적), (b) "ship-precheck 가 here-doc 임시파일 실패 메시지 + 최종 통과 — 게이트 신뢰성 흠" 을 지적.
+  - `mochi-ios/.git`, `mochi-backend/.git` 제거 → 루트 `git init`. 첫 커밋 `91c0f60` 으로 모찌 *전체* 가 단일 git 으로 통합. `.claude/`, `docs/`, `journal/`, `lab/` 모두 처음으로 버전 관리. 하위 git history 는 의도적 폐기 (사용자 명시 허가).
+  - `.claude/scripts/ship-precheck.sh` here-doc(`<<DRIFT_LIST_END`) 제거 — `IFS=$'\n'` 로 줄 단위 직접 순회로 교체. read-only sandbox 임시파일 의존 0.
+  - `ship-precheck.sh` §5 갱신 — 통합 후 루트 git status 한 번만 검사. 통합 *전* 폴백 분기 보존 (방어적).
+  - `AGENTS.md`, `docs/WORKFLOW.md` §10, `.claude/agents/code-reviewer.md` — "통합 전/후 분기" → "통합 완료" 로 정리. codex 호출도 루트 한 번으로 압축.
 - **하네스 v2.4 — iOS ②티어 + aspirational 분리 + STOP 등재/신규 구분.** 동기: codex 4차 평가가 (a) "openapi.json → iOS 생성 ⓪ 미완성", (b) "ship-precheck 가 audit STOP 을 warn 으로 두고 통과 — 차단력 약함", (c) "iOS 레이어 규칙 ③ — Tuist graph/import scan 같은 ② 게이트 필요", (d) "6/7필드 표현 잔재" 를 지적.
   - `.claude/scripts/ios-boundaries.sh` 신설 — iOS TCA 레이어 자동 게이트 (Features 간 직접 import / Cores → Features 역방향 / @main 위치). ③ → ② 승격. `ship-precheck.sh` §4 가 자동 호출.
   - `.claude/scripts/ship-precheck.sh` 보강: STOP 후보를 *등재된 known-drift(audit drift + CHANGELOG token)* vs *신규* 로 분기 — 신규만 ❌ fail, 등재는 ⚠️ warn. cascade paralysis 회피와 차단력 강화 양립.

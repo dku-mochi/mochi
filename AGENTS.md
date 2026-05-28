@@ -57,17 +57,17 @@ Codex 는 모찌의 **검증자**다. Claude 의 `code-reviewer` / `qa-validator
 **검증 명령:** 백엔드 `make test` / `make lint` / `make typecheck`, iOS `tuist test`.
 `xcodebuild` 류(시뮬레이터·실기기·archive)는 직접 실행하지 않고 사용자에게 요청한다.
 
-## 모노레포 git 컨텍스트 (전환 중)
+## 모노레포 git 컨텍스트 (통합 완료)
 
-**팀 합의: 루트 모노레포 git 으로 통합 예정.** 통합 시점까지는 *현재 상태* 와 *통합 후 상태* 가 공존하므로 둘 다 알아두라.
+**루트 모노레포 git 통합 완료** (2026-05-29). `mochi-ios/.git`, `mochi-backend/.git` 제거 후 루트 단일 git 으로 합쳤다. `.claude/`, `docs/`, `journal/` 등 운영 파일이 이제 모두 버전 관리된다.
 
-**현재 (통합 전)**: 루트는 git 이 아니다. `mochi-ios/` 와 `mochi-backend/` 만 각각 git. `codex review` / `codex exec` 는 변경된 하위 repo 안에서 실행해야 diff 를 본다:
+`codex review` / `codex exec` 는 **루트에서 한 번에** 실행하면 된다:
 
 ```bash
-cd mochi-backend && codex exec --skip-git-repo-check "이 작업트리 변경을 리뷰해줘. 기준: CLAUDE.md 원칙 + WORKFLOW 티어. P1/P2/nit 로."
+codex exec "이 작업트리 변경을 리뷰해줘. 기준: CLAUDE.md 원칙 + WORKFLOW 티어. P1/P2/nit 로."
 ```
 
-**통합 후**: 루트가 git 이 되므로 루트에서 한 번에 `codex review` 가능. 하위 git history 보존 방식(subtree merge / replace)은 통합 PR 시점에 결정. 통합 후엔 양 하위 `AGENTS.md` symlink 도 단일 루트 파일로 자연 흡수.
+양 하위 `mochi-{ios,backend}/AGENTS.md` symlink 는 호환성 + codex 가 하위에서 실행되는 경우 안전망으로 유지.
 
 ## 2달 단기 모드
 

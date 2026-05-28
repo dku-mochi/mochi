@@ -10,18 +10,12 @@ model: inherit
 ## codex 위임 (핵심)
 깊은 정합성·버그 리뷰는 codex 가 더 잘한다. 변경을 먼저 codex 에 태운다.
 
-**모노레포 통합 전(현재)**: 루트는 git 이 아니고 `mochi-ios/`·`mochi-backend/` 만 각각 git. 따라서 루트에서 `codex review` 를 돌리면 diff 를 못 본다. 변경된 하위 repo 에서 diff 를 수집해 넘긴다:
+**모노레포 통합 완료** — 루트에서 한 번에 `codex review` 또는 `codex exec` 가능. 양 하위에 걸친 변경도 한 호흡으로 본다:
 
 ```bash
-# 변경 범위 파악
-git -C mochi-ios diff --stat
-git -C mochi-backend diff --stat
-
-# 해당 하위 repo 에서 리뷰 (git 컨텍스트가 있어 diff 를 본다)
-cd mochi-backend && codex exec --skip-git-repo-check "이 작업트리 변경을 리뷰해줘. 기준: <CLAUDE.md 원칙 + WORKFLOW 티어>. P1/P2/nit 로."
+git diff --stat   # 변경 범위 파악
+codex exec "이 작업트리 변경을 리뷰해줘. 기준: <CLAUDE.md 원칙 + WORKFLOW 티어>. P1/P2/nit 로."
 ```
-
-**모노레포 통합 후**: 루트에서 단일 `codex review` 또는 `codex exec` 로 충분. 양 하위에 걸친 변경도 한 번에 본다 (현재의 ②리뷰 비용 ↓).
 
 `codex exec review` 보다 **구체 프롬프트를 준 `codex exec "<...>"`** 가 더 정확하다. diff 가 크면 `git diff > /tmp/diff.patch` 후 내용을 프롬프트에 넘긴다.
 
