@@ -16,6 +16,7 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 ---
 
 ## 2026-05-29 — infra
+- **개인 스크린샷 22장 git 히스토리 완전 제거 (`git filter-repo`).** `lab/screenshot/` 의 본인 일상 스크린샷(구매고민·메모 등)이 초기 통합 커밋(이전 `91c0f60`)에 박혀 있었음 → public repo(`dku-mochi`) push 전 개인정보·EXIF 영구노출 차단. 모든 커밋에서 blob 제거(`.git` 88M→32M), `lab/data/` 를 `.gitignore` 에 추가. 스크린샷 실물은 `lab/data/screenshot/`(추적제외)에 로컬 보존하여 팀에 별도 공유. 미커밋 agent 변경 21개는 stash 경유로 무손실 보존.
 - **commit-gate ③ 넛지 추가 (`pre-commit-reminder.sh`).** `git commit` 직전 부모 Claude 컨텍스트에 "review/qa 거쳤나? 사소하면 스킵 OK" 리마인더를 주입(차단 아님, `additionalContext`). 근거: 직전 rename 세션이 `code-reviewer`/`qa-validator` 게이트를 조용히 건너뜀(journal §8.1(C)). 강제(②)가 아니라 ③ 가시성만 높인 이유 — review/qa *필요 여부*는 판단 영역(사소한 변경엔 불필요)이라 기계가 대신 못 정한다. lint/typecheck 는 별도(`ship-precheck.sh` §6)라 여기 중복 안 둠. `settings.json` PreToolUse(Bash) 매처에 등록. CLAUDE.md §7 · WORKFLOW.md §1/§4 정합.
 
 ## 2026-05-29 — ios

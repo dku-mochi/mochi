@@ -10,6 +10,9 @@ _workspace/
 *.log
 *.tmp
 
+# lab 실험 데이터 (개인 스크린샷 등 — git 추적 금지, 별도 공유)
+lab/data/
+
 # 환경/비밀 — 절대 커밋 금지 (.claude/settings.json deny 와 중첩 안전망)
 .env
 .env.*
