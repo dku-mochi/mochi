@@ -164,12 +164,13 @@ iOS 쪽은 `tuist test`, 백엔드는 `make test` / `make lint` / `make typechec
 - `doc-guardian` — 작업 *전* 문서 정합성·모순·모호성 스캔 (read-only)
 - `lab-experimenter` — **유일하게 write 가능, `lab/` 한정**
 
-**Hooks (`.claude/hooks/`, ②티어 강제력):**
+**Hooks (`.claude/hooks/`, 대부분 ②티어 강제력 — 마지막 1개만 ③ 넛지):**
 - `session-start.sh` — 경진대회 제출 D-day + 활성 known-drift + 직전 journal 의 "다음 할 일" 1줄
 - `pre-bash.sh` — 위험 Bash 패턴 차단 (force-push, reset --hard, rm -rf /, .env 직접 출력)
 - `pre-edit-scope.sh` — `lab-experimenter` 의 Edit/Write 를 `lab/` 안으로 제한 (payload `agent_type` 로 판별, fail-open 이라 부모 Claude 는 자유). lab 경계를 ③(프롬프트)에서 ②(기계 강제)로 승격.
 - `post-edit-md.sh` — `.md` Edit/Write 직후 front-matter 7필드 누락 알림
 - `stop-summary.sh` — 세션 종료 직전 CHANGELOG 누락 + CLAUDE↔AGENTS mtime drift 알림
+- `pre-commit-reminder.sh` — **③ 넛지(차단 아님)**. `git commit` 직전 부모 Claude 컨텍스트에 "review/qa 거쳤나? 사소하면 스킵 OK" 리마인더 주입(`additionalContext`). review/qa *필요 여부*는 판단 영역이라 ②로 강제하지 않고 가시성만 높인다. lint/typecheck 는 `ship-precheck.sh` §6 담당(여기 중복 안 둠). 근거: 직전 세션이 review/qa 게이트를 조용히 건너뜀(journal §8.1(C)).
 - `settings.json` permissions.deny — `Read/Edit/Write(**/.env)` 등 비밀파일 차단
 
 **자동 채점 스크립트 (`.claude/scripts/`):** — `.sh` 모두 git mode 100755 executable, `lib/*.py` 는 정적 import 모듈이라 100644.

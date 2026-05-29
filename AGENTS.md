@@ -50,7 +50,7 @@ Codex 는 모찌의 **검증자**다. Claude 의 `code-reviewer` / `qa-validator
 **P1(must-fix) 으로 잡을 도메인 불변식:**
 - 4-Intent lifecycle 전이가 `lifecycle_policy.py`(백엔드) ↔ `CoreDomain.LifecyclePolicy`(iOS) 양쪽에서 일치
 - Idempotency-Key 재요청이 중복 캡처를 만들지 않음
-- `CaptureRepository` 의 `owner_id` 강제 (cross-tenant 누설 차단)
+- `MochiItemRepository` 의 `owner_id` 강제 (cross-tenant 누설 차단)
 - WebFetch SSRF 가드 (사설/링크로컬/메타데이터/multicast IP 차단, redirect hop 마다 재검증)
 - 민감 캡처 보호 경로(on-device 감지·마스킹·최소전송) 우회 없음
 

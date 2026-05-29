@@ -37,7 +37,7 @@ description: 3인 + AI 협업의 운영 매뉴얼. 갈라질 수 있는 모든 �
 | **⓪ 불가능하게** | 단일 원천에서 생성 | 0% | 디자인 토큰 = `DesignSystem` 모듈. **API 계약은 목표 상태** — `mochi-backend/openapi.json` 을 단일원천으로 iOS 생성하려 하나, 현재 iOS 는 `swift-openapi-runtime` 의존성만 있고 generator 미설정 + 수기 `URLSessionMochiAPIClient` 라 실제론 ③(drift 위험). generator 배선 시 ⓪ 승격. |
 | **① 자동 결정** | 포매터 | ~0% | `ruff format` (py) · SwiftLint autocorrect/swiftformat (swift) |
 | **② 자동 검출** | 린터·타입체커·경계테스트·훅 | ~0% | `ruff check`(E,F,I,B,UP,**N**,SIM,ASYNC) · `mypy --strict` · `tests/unit/test_module_boundaries.py` · `.swiftlint.yml` · `.claude/hooks/`(pre-bash, **pre-edit-scope**=lab 경계) |
-| **③ AI 판단** | 문서 + 서브에이전트 | ~80% | 이 문서의 네이밍 사전(§7)·파일위치 맵(§8) + `code-reviewer`/`doc-guardian` |
+| **③ AI 판단** | 문서 + 서브에이전트 | ~80% | 이 문서의 네이밍 사전(§7)·파일위치 맵(§8) + `code-reviewer`/`doc-guardian` + `pre-commit-reminder.sh`(커밋 직전 review/qa 환기 넛지 — 필요 여부가 판단이라 ②강제 불가) |
 
 ③(AI가 문서 따르기)는 ~80%만 맞으므로, **검증 게이트**(§5 의 `/ship`·code-reviewer·qa-validator·CI)가 새는 20%를 잡는다.
 
@@ -94,9 +94,11 @@ Flow B — 완료
 개발 완료
   → [부모 + doc-guardian]  문서 수정 + 정합성 폭포 동기화
   → /ship <범위>           최종 게이트
-  → 커밋 (Conventional Commits)
+  → 커밋 (Conventional Commits)   # pre-commit-reminder 훅이 review/qa 거쳤는지 환기(넛지, 차단 아님)
   → (remote 붙으면) PR
 ```
+
+> **review/qa 게이트는 강제하지 않는다(③ 유지).** 변경이 사소하면(오타·문구·간단 디자인 조정) 부모 Claude 가 스스로 판단해 게이트를 생략하고 리소스를 아낀다. 다만 직전 세션이 게이트를 *조용히* 건너뛴 사고(journal §8.1(C))를 막기 위해, `git commit` 직전 `pre-commit-reminder.sh` 가 그 판단을 의식하게 환기한다 — lint/typecheck 같은 결정적 검사가 아니라 review/qa "필요 여부 판단" 이라 ②로 못 올리고 ③ 가시성만 높인 것이다.
 
 ---
 

@@ -15,6 +15,9 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 ---
 
+## 2026-05-29 — infra
+- **commit-gate ③ 넛지 추가 (`pre-commit-reminder.sh`).** `git commit` 직전 부모 Claude 컨텍스트에 "review/qa 거쳤나? 사소하면 스킵 OK" 리마인더를 주입(차단 아님, `additionalContext`). 근거: 직전 rename 세션이 `code-reviewer`/`qa-validator` 게이트를 조용히 건너뜀(journal §8.1(C)). 강제(②)가 아니라 ③ 가시성만 높인 이유 — review/qa *필요 여부*는 판단 영역(사소한 변경엔 불필요)이라 기계가 대신 못 정한다. lint/typecheck 는 별도(`ship-precheck.sh` §6)라 여기 중복 안 둠. `settings.json` PreToolUse(Bash) 매처에 등록. CLAUDE.md §7 · WORKFLOW.md §1/§4 정합.
+
 ## 2026-05-29 — ios
 - **`capture` → `mochi_item` rename iOS 완결 (B4).** 40 파일 + 디렉토리/파일 rename + `Project.swift`. 모듈 `FeatureCapture`→`FeatureMochiItem`, 도메인 `Capture`→`MochiItem`, 채널/소스 `CaptureChannel`/`CaptureSource`→`IngestChannel`/`IngestSource`, Realm `RealmCapture`→`RealmMochiItem`, 네트워킹 `CaptureDTO`/`CaptureIngestRequest`→`MochiItemDTO`/`MochiItemIngestRequest`, `ingestCapture`/`getCapture`→`ingestMochiItem`/`getMochiItem`.
   - **wire 계약 정합**: `Citation` `captureID`+`"captureId"` → `mochiItemID`+`"mochiItemId"` (백엔드 CitationDTO 와 일치), URL path `/api/v1/captures`→`/api/v1/mochi_items`.
