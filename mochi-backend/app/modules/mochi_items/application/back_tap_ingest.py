@@ -1,29 +1,30 @@
 """백탭 캡쳐 ingestion use case.
 
-흐름 — `_workspace/2026-05-25-intent-classification-bench.md` 의 권장 spec:
-1. Idempotency-Key 로 멱등 재요청을 차단 (이미 적재된 MochiItem 이 있으면 그대로 반환,
-   재호출 시 Gemini 비용/latency 발생 안 함).
-2. 이미지를 ``IntentClassifier`` 로 분류 → 후보 3개 + applicability.
-3. ``MochiItem.from_classification`` 으로 primary/secondary/applicability_map 도출.
-4. Repository.add → idempotency 기록 → notifier.emit (transactional outbox).
+흐름 (worker 단일 분석 경로, 2026-05-30~):
+1. Idempotency-Key 로 멱등 재요청을 차단.
+2. 클라가 Signed URL 로 GCS 에 올린 이미지의 ``objectKey`` 로 MochiItem(`.screenshot`) 적재.
+3. Repository.add → idempotency 기록 → notifier.emit (transactional outbox).
+4. 실제 4-Intent 분석은 outbox worker(``AgentOrchestrator``)가 비동기로 수행한다.
+
+동기 분류(Gemini 즉시 호출)는 제거됐다 — 한 캡쳐에 Gemini 가 두 번 호출되던 이중 분석과
+DB↔Realm 불일치를 없애기 위함. 후보·confidence 는 worker 가 채우고 iOS 는 폴링으로 반영한다.
 """
 
 from dataclasses import dataclass
 from uuid import UUID
 
-from app.core.config import get_settings
 from app.modules.mochi_items.domain.entities import (
     ImageRef,
     IngestChannel,
     IngestSource,
+    LifecycleState,
+    LifecycleStateKind,
     MochiItem,
 )
 from app.modules.mochi_items.domain.ports import (
-    IntentClassifier,
     MochiItemCreatedNotifier,
     MochiItemRepository,
 )
-from app.modules.mochi_items.domain.value_objects import IntentClassification
 
 
 @dataclass(slots=True)
@@ -40,16 +41,14 @@ class BackTapIngestCommand:
 @dataclass(slots=True)
 class BackTapIngestResult:
     item: MochiItem
-    candidates: tuple[IntentClassification, ...]
     was_idempotent_replay: bool
 
 
 class BackTapIngest:
-    """백탭 캡쳐를 동기적으로 분류하고 저장하는 use case.
+    """백탭 캡쳐를 적재하고 비동기 분석을 트리거하는 use case.
 
-    분류 latency (~2.8s p50) 는 호출자가 알림 UX 의 일부로 흡수한다.
-    분류 실패 시 ``IntentClassifier`` 의 예외가 그대로 전파되어 라우터가
-    표준 에러 envelope 으로 변환한다.
+    동기 분류를 하지 않는다 — MochiItem 을 ``.ingested`` 로 적재하고 outbox 로 emit 하면
+    worker(``AgentOrchestrator``)가 4-Intent 후보·confidence 를 채운다.
     """
 
     def __init__(
@@ -57,11 +56,9 @@ class BackTapIngest:
         *,
         repository: MochiItemRepository,
         notifier: MochiItemCreatedNotifier,
-        classifier: IntentClassifier,
     ):
         self._repo = repository
         self._notifier = notifier
-        self._classifier = classifier
 
     async def execute(self, command: BackTapIngestCommand) -> BackTapIngestResult:
         replayed = await self._repo.already_ingested(
@@ -69,19 +66,7 @@ class BackTapIngest:
             idempotency_key=command.idempotency_key,
         )
         if replayed is not None:
-            return BackTapIngestResult(
-                item=replayed,
-                candidates=(),
-                was_idempotent_replay=True,
-            )
-
-        # 클라이언트가 Signed URL 로 이미 GCS 에 업로드했다. Gemini 가 gs:// 를 직접 읽어
-        # 분류하므로 서버는 이미지 bytes 를 들지 않는다.
-        image_uri = f"gs://{get_settings().gcs_capture_bucket}/{command.object_key}"
-        classification = await self._classifier.classify(
-            image_uri=image_uri,
-            mime=command.mime_type,
-        )
+            return BackTapIngestResult(item=replayed, was_idempotent_replay=True)
 
         source = IngestSource(
             channel=IngestChannel.SCREENSHOT,
@@ -97,9 +82,10 @@ class BackTapIngest:
                 ),
             ),
         )
-        item = MochiItem.from_classification(
+        item = MochiItem(
+            id=source.id,
             source=source,
-            classification=classification,
+            lifecycle=LifecycleState(kind=LifecycleStateKind.INGESTED),
         )
 
         await self._repo.add(owner_id=command.owner_id, item=item)
@@ -110,8 +96,4 @@ class BackTapIngest:
         )
         await self._notifier.emit(owner_id=command.owner_id, mochi_item_id=item.id)
 
-        return BackTapIngestResult(
-            item=item,
-            candidates=classification.candidates,
-            was_idempotent_replay=False,
-        )
+        return BackTapIngestResult(item=item, was_idempotent_replay=False)

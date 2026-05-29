@@ -4,7 +4,6 @@ from typing import Protocol
 from uuid import UUID
 
 from app.modules.mochi_items.domain.entities import LifecycleState, MochiItem
-from app.modules.mochi_items.domain.value_objects import IntentClassificationResult
 from app.shared.intent import Intent
 
 
@@ -47,9 +46,10 @@ class MochiItemRepository(Protocol):
         confidence: float,
         model_version: str,
         entities: tuple[tuple[str, str], ...],
+        intent_candidates: tuple[dict[str, object], ...],
     ) -> None:
         """Agent 분석 결과를 write-back 한다 — 분석 필드 갱신 + entities 재적재 +
-        lifecycle 를 분석 완료 상태(ACTIVE)로 확립."""
+        intent_candidates 영속 + lifecycle 를 분석 완료 상태(ACTIVE)로 확립."""
         ...
     async def already_ingested(self, *, owner_id: UUID, idempotency_key: str) -> MochiItem | None: ...
     async def remember_idempotency(
@@ -65,17 +65,6 @@ class MochiItemCreatedNotifier(Protocol):
     """MochiItem 생성 후 비동기 워커가 듣는 outbound port — 이벤트 디스패치."""
 
     async def emit(self, *, owner_id: UUID, mochi_item_id: UUID) -> None: ...
-
-
-class IntentClassifier(Protocol):
-    """백탭 캡쳐 이미지를 LLM 으로 분류해 의도 후보를 도출하는 outbound port.
-
-    구현체는 ``image_uri`` (gs:// URI) 와 ``mime`` (image/jpeg | image/png) 를 입력으로 받고,
-    후보 3개를 담은 ``IntentClassificationResult`` 를 반환한다. 클라이언트가 GCS 에 직접
-    업로드하므로 서버는 bytes 를 들지 않고, Gemini 가 gs:// 를 직접 읽는다.
-    """
-
-    async def classify(self, *, image_uri: str, mime: str) -> IntentClassificationResult: ...
 
 
 @dataclass(frozen=True, slots=True)

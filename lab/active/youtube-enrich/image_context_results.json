@@ -1,0 +1,274 @@
+[
+  {
+    "file": "IMG_8515.PNG",
+    "vision": {
+      "screen_type": "shorts",
+      "extracted_title": "벼락 리신 + 릴리아",
+      "extracted_channel": "@hanoozu",
+      "visible_text": "벼락과 요새 리신 데미지",
+      "intent": "memo",
+      "summary": "리그 오브 레전드 게임 내 리신과 릴리아 조합의 플레이 장면과 데미지 관련 쇼츠 영상",
+      "context_sufficient": true,
+      "needs_url_reason": "",
+      "search_query": "한우주 벼락 리신 릴리아",
+      "confidence": 1,
+      "_tok_in": 1767,
+      "_tok_out": 147,
+      "_ms": 5243,
+      "_cost": 0.000236
+    },
+    "recover": {
+      "query": "한우주 벼락 리신 릴리아",
+      "recovered": true,
+      "candidates": [
+        "E2Qxk3HHT7g",
+        "pM39h3RKgEs",
+        "AKyJWBPoo8s",
+        "mrexvqc1mZs",
+        "R_21gvMy3x4"
+      ],
+      "video_id": "E2Qxk3HHT7g",
+      "url": "https://www.youtube.com/watch?v=E2Qxk3HHT7g",
+      "recovered_title": "벼락 리신 + 릴리아",
+      "recovered_channel": "한우주 Hanoozu"
+    }
+  },
+  {
+    "file": "IMG_8516.PNG",
+    "vision": {
+      "screen_type": "shorts",
+      "extracted_title": "힘을 숨긴 찐따는 존재하는가 feat. 주짓수 블랙벨트",
+      "extracted_channel": "@피식대학",
+      "visible_text": "피식대학 사이버 강의, 으악쟁이, 힘을 숨긴 찐따는 존재하는가 feat. 주짓수 블랙벨트, 교내 통치자가 2명일 때 생기는 일",
+      "intent": "memo",
+      "summary": "피식대학의 '사이버 강의' 시리즈 중 '힘을 숨긴 찐따'를 주제로 한 코미디 쇼츠 영상입니다.",
+      "context_sufficient": true,
+      "needs_url_reason": "",
+      "search_query": "피식대학 힘을 숨긴 찐따는 존재하는가",
+      "confidence": 1,
+      "_tok_in": 1767,
+      "_tok_out": 200,
+      "_ms": 6453,
+      "_cost": 0.000257
+    },
+    "recover": {
+      "query": "피식대학 힘을 숨긴 찐따는 존재하는가",
+      "recovered": true,
+      "candidates": [
+        "1BLe4-Q6Crs",
+        "my4gYe6z1WQ",
+        "_D9dLH0ouEs",
+        "BrfZZ4XIiqA",
+        "VzNMi_eCe3s"
+      ],
+      "video_id": "1BLe4-Q6Crs",
+      "url": "https://www.youtube.com/watch?v=1BLe4-Q6Crs",
+      "recovered_title": "힘을 숨긴 찐따는 존재하는가 feat. 주짓수 블랙벨트 (수강생: 일오팔, 김원식, 최제우, 정재형)",
+      "recovered_channel": "피식대학Psick Univ"
+    }
+  },
+  {
+    "file": "IMG_8517.PNG",
+    "vision": {
+      "screen_type": "shorts",
+      "extracted_title": "노량진 수산시장 '킹크랩' 1kg 얼마일까?!",
+      "extracted_channel": "@루어갱",
+      "visible_text": "노량진 수산시장 '킹크랩' 1kg 얼마일까?!, 이것 좀 사려고 하는데",
+      "intent": "todo",
+      "summary": "노량진 수산시장에서 킹크랩 구매를 고려하며 시세를 확인하기 위해 저장함.",
+      "context_sufficient": true,
+      "needs_url_reason": "",
+      "search_query": "루어갱 노량진 수산시장 킹크랩 1kg 얼마일까",
+      "confidence": 1,
+      "_tok_in": 1767,
+      "_tok_out": 176,
+      "_ms": 4835,
+      "_cost": 0.000247
+    },
+    "recover": {
+      "query": "루어갱 노량진 수산시장 킹크랩 1kg 얼마일까",
+      "recovered": true,
+      "candidates": [
+        "N6TME7zfsdw",
+        "gYf_fDXF3pk",
+        "ZxdFK04WmsQ",
+        "qCGn91ZzETQ",
+        "tp4244ywdaw"
+      ],
+      "video_id": "N6TME7zfsdw",
+      "url": "https://www.youtube.com/watch?v=N6TME7zfsdw",
+      "recovered_title": "노량진 수산시장 '킹크랩' 1kg 얼마일까..?!",
+      "recovered_channel": "루어갱"
+    }
+  },
+  {
+    "file": "IMG_8518.PNG",
+    "vision": {
+      "screen_type": "shorts",
+      "extracted_title": "자꾸만 오해하게 만드는 송하영 가방 속 물건들",
+      "extracted_channel": "@하냥냥",
+      "visible_text": "자꾸만 오해하게 만드는 송하영 가방 속 물건들, 그러면 이렇게 걸리면 안 되는 거저?",
+      "intent": "memo",
+      "summary": "프로미스나인 송하영이 가방 속 물건을 소개하며 오해를 불러일으키는 상황을 담은 쇼츠 영상",
+      "context_sufficient": true,
+      "needs_url_reason": "",
+      "search_query": "@하냥냥 자꾸만 오해하게 만드는 송하영 가방 속 물건들",
+      "confidence": 1,
+      "_tok_in": 1767,
+      "_tok_out": 186,
+      "_ms": 4786,
+      "_cost": 0.000251
+    },
+    "recover": {
+      "query": "@하냥냥 자꾸만 오해하게 만드는 송하영 가방 속 물건들",
+      "recovered": true,
+      "candidates": [
+        "y4Cj9EkjF-k",
+        "g58-P4r_yqc",
+        "ewpHh0zVPdQ",
+        "77ki7ApHRDQ",
+        "hj61UUJN7ec"
+      ],
+      "video_id": "y4Cj9EkjF-k",
+      "url": "https://www.youtube.com/watch?v=y4Cj9EkjF-k",
+      "recovered_title": "오해할 만한 비주얼을 가진 송하영 가방 속 물건들",
+      "recovered_channel": "하냥"
+    }
+  },
+  {
+    "file": "IMG_8519.PNG",
+    "vision": {
+      "screen_type": "shorts",
+      "extracted_title": "행사장에서 만난 낯선 꼬마의 정체ㅋㅋ",
+      "extracted_channel": "@예능감각",
+      "visible_text": "행사장에서 만난 낯선 꼬마의 정체ㅋㅋ (한번은) 술을 먹고 있었어요 빌드업이 진짜 아름답다ㅋㅋㅋㅋ 조훈 능력치 보소ㅋㅋㅋ 또 봐도 웃긴 조훈 레전드 썰ㅋㅋ",
+      "intent": "memo",
+      "summary": "코미디언 조훈이 행사장에서 겪은 웃긴 에피소드를 담은 쇼츠 영상",
+      "context_sufficient": true,
+      "needs_url_reason": "",
+      "search_query": "예능감각 행사장 낯선 꼬마 조훈",
+      "confidence": 1,
+      "_tok_in": 1767,
+      "_tok_out": 201,
+      "_ms": 3159,
+      "_cost": 0.000257
+    },
+    "recover": {
+      "query": "예능감각 행사장 낯선 꼬마 조훈",
+      "recovered": true,
+      "candidates": [
+        "G2BZDLthtIg",
+        "wSk0kAS66m0",
+        "7fl_WHmyx9U",
+        "jGD3hMneMZI",
+        "Hm0zZYEba34"
+      ],
+      "video_id": "G2BZDLthtIg",
+      "url": "https://www.youtube.com/watch?v=G2BZDLthtIg",
+      "recovered_title": "[이선민 vs 조훈] FUNNY GAME: 웃겨봐 | EP.01",
+      "recovered_channel": "메타코미디클럽"
+    }
+  },
+  {
+    "file": "IMG_8520.PNG",
+    "vision": {
+      "screen_type": "video",
+      "extracted_title": "Opus 4.8 이제 토큰 한시간만에 다 쓸 수 있음 앙!",
+      "extracted_channel": "@codefactory_official",
+      "visible_text": "Opus 4.8 이제 토큰 한시간만에 다 쓸 수 있음 앙! nextjs-bug-hunt Hunt for real bugs across the meshive Next.js app, then adversarially verify each finding",
+      "intent": "knowledge",
+      "summary": "Claude Opus 4.8 모델의 토큰 사용 효율과 에이전트 기반 버그 헌팅 워크플로우에 대한 기술 영상",
+      "context_sufficient": true,
+      "needs_url_reason": "",
+      "search_query": "codefactory_official Opus 4.8 토큰",
+      "confidence": 1.0,
+      "_tok_in": 1767,
+      "_tok_out": 201,
+      "_ms": 4525,
+      "_cost": 0.000257
+    },
+    "recover": {
+      "query": "codefactory_official Opus 4.8 토큰",
+      "recovered": true,
+      "candidates": [
+        "h19erzb5GiA",
+        "VLLB0zOB2Yw",
+        "J3QLH4zBlA0",
+        "BgUpCdOyDHE",
+        "jfYH16efKlQ"
+      ],
+      "video_id": "h19erzb5GiA",
+      "url": "https://www.youtube.com/watch?v=h19erzb5GiA",
+      "recovered_title": "Opus 4.8 + Ultracode 앙!",
+      "recovered_channel": "코드팩토리"
+    }
+  },
+  {
+    "file": "IMG_8521.PNG",
+    "vision": {
+      "screen_type": "video",
+      "extracted_title": "Opus 4.8 이제 토큰 한시간만에 다 쓸 수 있음 앙!",
+      "extracted_channel": "@codefactory_official",
+      "visible_text": "Opus 4.8 (1M context), nextjs-bug-hunt, Hunt for real bugs across the meshive Next.js app",
+      "intent": "knowledge",
+      "summary": "Claude Opus 4.8 모델의 대규모 컨텍스트 처리 성능과 에이전트 활용 사례를 다룬 영상",
+      "context_sufficient": true,
+      "needs_url_reason": "",
+      "search_query": "codefactory_official Opus 4.8 토큰",
+      "confidence": 1,
+      "_tok_in": 1767,
+      "_tok_out": 179,
+      "_ms": 9968,
+      "_cost": 0.000248
+    },
+    "recover": {
+      "query": "codefactory_official Opus 4.8 토큰",
+      "recovered": true,
+      "candidates": [
+        "h19erzb5GiA",
+        "VLLB0zOB2Yw",
+        "J3QLH4zBlA0",
+        "xyAFUSQdBeg",
+        "wRhr3UBCdmI"
+      ],
+      "video_id": "h19erzb5GiA",
+      "url": "https://www.youtube.com/watch?v=h19erzb5GiA",
+      "recovered_title": "Opus 4.8 + Ultracode 앙!",
+      "recovered_channel": "코드팩토리"
+    }
+  },
+  {
+    "file": "IMG_8522.PNG",
+    "vision": {
+      "screen_type": "video",
+      "extracted_title": "nextjs-bug-hunt: Hunt for real bugs across the meshive Next.js app",
+      "extracted_channel": "",
+      "visible_text": "nextjs-bug-hunt, Hunt for real bugs across the meshive Next.js app, 16/19 agents, 6m15s, find:auth-tenancy, find:connections-webhoo, find:workflow-state, find:issues, find:projects-insights, find:mcp-adapter, find:trpc-serialize, find:db-layer, find:frontend-data, find:frontend-graph-boa, find:frontend-shell-pan",
+      "intent": "knowledge",
+      "summary": "Next.js 애플리케이션에서 AI 에이전트를 활용해 버그를 탐색하고 검증하는 워크플로우 화면",
+      "context_sufficient": false,
+      "needs_url_reason": "영상 제목과 채널명이 화면에 명시되지 않아 정확한 출처를 찾기 위해 검색이 필요함",
+      "search_query": "nextjs-bug-hunt meshive AI agents workflow",
+      "confidence": 0.85,
+      "_tok_in": 1767,
+      "_tok_out": 282,
+      "_ms": 4548,
+      "_cost": 0.00029
+    },
+    "recover": {
+      "query": "nextjs-bug-hunt meshive AI agents workflow",
+      "recovered": true,
+      "candidates": [
+        "uGsauG7Btlg",
+        "WT7_TJS0tFE",
+        "nBlkReXsRZE",
+        "0rm9bTlDx-A",
+        "VPu7R4jXpuE"
+      ],
+      "video_id": "uGsauG7Btlg",
+      "url": "https://www.youtube.com/watch?v=uGsauG7Btlg",
+      "recovered_title": "Build an AI Agent Workflow Builder using NextJs, Mongodb, React, Prisma, Upstash",
+      "recovered_channel": "TechWithEmma"
+    }
+  }
+]

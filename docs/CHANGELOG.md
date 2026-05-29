@@ -15,6 +15,29 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 >
 > **동시 세션 / 공유 파일 주의**: CHANGELOG 는 여러 세션·작업자가 함께 쓰는 append-only 공유 파일이다. 동시 작업 중에는 다른 세션이 자기 항목을 먼저 커밋할 수 있고, 한 워킹트리에 여러 세션의 미커밋 항목이 섞여 보일 수 있다. 이때 **항목을 분리하려 애쓰지 말고** 자기 변경과 함께 그대로 staging·커밋한다 — 섞인 다른 항목은 해당 세션이 자기 코드와 함께 정리한다. diff 에 모르는 CHANGELOG 항목이 보여도 멈추지 않는다 (단, CHANGELOG 외의 *코드* 파일은 절대 임의로 섞어 커밋하지 않는다).
 
+## 2026-05-30 — backend·ios·docs
+- **백탭 분석을 동기 `/back-tap` 분류에서 비동기 worker 단일 경로로 통합** — 백탭 스크린샷이 무조건 "모찌가 헷갈려요"로 분류되던 버그 수정. 원인: 동기 `from_classification` 이 confidence 를 안 채워 iOS 에 항상 0.0 이 박히고, iOS 가 백탭을 폴링에서 제외해 worker 가 채운 값을 영영 못 받던 구조(DB↔Realm 불일치).
+  - **backend**: `/mochi_items/back-tap` 의 동기 Gemini 분류(`VertexAIGeminiClassifier`·`IntentClassifier`·`IntentClassificationResult`·`BackTapMochiItemResponse`) 제거 → `.ingested` 적재 + outbox emit 만. agent `finalizeAnalysis` 를 use case 후보 3개(`candidates`) 모델로 전환(프롬프트 V5), `confidence := max(applicability)` 서버 derive, `intent_applicability` 를 candidates 전체로 풍부화(구 `{primary:confidence}` 버그 수정). `mochi_items.intent_candidates`(JSONB) 컬럼 추가(migration 0008) + GET 응답 round-trip. Gemini 호출 2회→1회.
+  - **ios**: `ingestBackTapMochiItem` → `MochiItemDTO` 반환, 백탭도 `pollAnalysisOnce` 대상에 포함. Live Activity `.ready` 트리거를 동기 응답→폴링으로 이동(foreground; background 는 APNs 후속). "헷갈려요" 판정 재설계 — `isUncertain := confidence < 0.6` (박빙 gap 조건 폐기), top1·top2 둘 다 ≥0.6 은 헷갈림이 아니라 **복수 의도**(`isMultiIntent`/`activeSecondaryIntents`, 추천·알림·채팅에서 활용). Realm schemaVersion 3→4(`intentTopGap` 제거).
+  - **docs**: DOMAIN_DESIGN — confidence 정의·3상태 판정·`intent_candidates` 스키마 명문화 + multi-intent 를 단일테이블 JSONB 정본으로 확정. ARCHITECTURE — agent finalizeAnalysis candidates 모델 반영. openapi.json 재생성.
+  - 검증: 백엔드 `make test`(95 passed)·lint·typecheck 통과, iOS `tuist build`(CorePersistence) + `tuist test`(CoreDomain·CorePersistence) 통과.
+- **DOMAIN_DESIGN DDL as-built 재정합 (known-drift)** · owner: 송준서 · since: 2026-05-30 · resolve_by: post-submission. `docs/DOMAIN_DESIGN.md` 의 ERD/§4.3 DDL 은 정규화 ~26테이블(`mochi_items`/`mochi_sources`/`mochi_attachments`/`mochi_analyses` 분리 등)을 서술하나, 실제 ORM 정본은 평탄 단일 `mochi_items` + 6테이블(`mochi_item_image_refs`·`entities`·`embeddings`·`idempotency_keys`·`agent_runs`·`tool_calls`)이다. **정규화 3테이블 안은 과설계로 폐기 → 1테이블 회귀가 의도된 정본**(L20 노트의 "정규화 분리는 별도 작업 큐"는 오기 — 폐기된 안을 미래 목표인 양 적어둠). `deleted_at` soft-delete·CHECK 제약만 정당한 design-ahead(미구현 목표). 컬럼 drift 포함: `title` vs `text`+`summary`, `intent_confidence` vs `confidence`, `occurred_at`(이벤트시각, schedule 전용 CHECK) vs `captured_at`(캡처시각, 항상 세팅), `importance_score` numeric(0–1) vs `importance` int(1–5). 전면 as-built 재작성(테이블별 "1테이블 흡수됨 vs 미구현 미래기능" 분류 + §4 폐기 배너 + frontmatter/§1 원칙#2·#7 정정)은 별도 작업으로 분리.
+
+## 2026-05-30 — ios
+- **탭바 글래스모피즘(translucent material) 제거.** `MainTabView.configureTabBarAppearance` 의 `configureWithDefaultBackground()` → `configureWithOpaqueBackground()` + `backgroundColor = .white`(라이트 고정, 다크모드 미대응) + `shadowColor = UIColor(white: 0.82)`(상단 1px 회색 hairline 구분선) 로 불투명 단색 배경 적용. 직전 탭바 리스타일에서 깔았던 translucent/블러 배경을 사용자 요청으로 불투명화. `tuist build Mochi` 통과.
+- **iOS 26 Liquid Glass 전역 opt-out.** 빌드 SDK 가 iOS 26.2(Xcode 26.2) 라 `UITabBarAppearance` 만으로는 탭바 리퀴드가 남아, `Targets/App/Support/Info.plist` 에 `UIDesignRequiresCompatibility=true` 추가해 앱 전체를 iOS 18 레거시 디자인으로 고정(사용자 선택). 탭바뿐 아니라 네비바·시트·버튼·검색바 등 전 시스템 UI 에 영향. Apple deprecate 예정 임시 호환 플래그. `tuist build Mochi` 통과.
+
+## 2026-05-30 — backend, docs
+- **YouTube/X/Instagram platform context tool 배선.** Agent loop 에 `platformContext` 를 추가해 YouTube 는 oEmbed+watch page metadata, X/Twitter 는 `publish.x.com/oembed`, Instagram 은 Meta oEmbed 토큰 또는 OG fallback 으로 URL 맥락을 먼저 수집한다. 시스템 프롬프트 v3 는 YouTube/X/Instagram URL 에서 `platformContext` 를 우선 호출하고, Instagram 은 캡션/OG 메타보다 screenshot Vision 맥락을 primary 로 보도록 명시한다. `INSTAGRAM_OEMBED_ACCESS_TOKEN`/`INSTAGRAM_OEMBED_API_VERSION` 설정을 `.env.example`/TODO 에 추가. **검증**: `platformContext` helper 단위 테스트 + agent loop tool-call 테스트 추가.
+- **이미지 추출 전략 C + 한국 기준 현재시각 주입.** `lab/active/extraction-strategy` 재검토 결과, B(`facts/opinions/key_info/entities` 모두 강제)는 풍부하지만 빈 버킷을 채우는 압력 때문에 과추출·`schedule_at` 환각 위험이 있어, prompt v4 에 C 전략(`fact`/`opinion`/`info` typed statement) 을 내부 grounding 기준으로 반영했다. `AgentOrchestrator` 첫 user turn 에 `# 시간 컨텍스트`(Asia/Seoul 현재시각)를 항상 넣어 상대 날짜·요일·마감 판단을 고정한다. **검증**: Korea time context 단위 테스트 + user_parts 주입 테스트 추가.
+
+## 2026-05-30 — ios
+- **탭바 디자인 시스템 정합 + 모찌 브랜드 컬러 코랄→퍼플 승격.**
+  - 기본 `TabView` 가 스타일 0(시스템 파란 tint, 회색 비선택)이라 퍼플/라벤더 홈·온보딩 화면과 부딪힘 → `MainTabView` 에 `.tint(MochiTheme.Palette.primary)` + `UITabBarAppearance`(비선택 `textSecondary`, 기본 translucent 배경 + hairline, `.rounded` 10pt 레이블) 적용. 범위는 **시스템 TabView 리스타일**(커스텀 탭바 아님).
+  - **드리프트 해소**: 코드상 "공식" 토큰 `MochiTheme.Palette.primary` 가 코랄 `(0.95,0.45,0.45)` 인데 실제 전 화면(홈·온보딩·로그인)은 퍼플이라 → `_workspace/home-mockup` 시안 `purple500 (0.545,0.424,1.0)` 으로 승격(사용자 OK 게이트 통과). 소비처 3곳(`MochiItemProgressView`, `BackTapModalView`×2) 자동 반영 — 전부 accent 용도라 오히려 응집. `secondary`/`accent` 는 소비처 0이라 미변경.
+  - 남은 일: `HomeDesign`(FeatureInbox internal) 의 퍼플 스케일은 아직 `MochiTheme` 를 직접 참조하지 않음 — 완전한 토큰 통합(HomeDesign→MochiTheme)은 후속 과제.
+  - `tuist build Mochi` 통과.
+
 ## 2026-05-30 — backend, ios, infra, docs
 - **iOS 이미지 업로드 계약 연결 — lab v6 전처리 기준을 클라이언트 업로드 경로에 반영.**
   - `MochiItemSyncWorker` 가 로컬 원본 PNG 를 업로드용 JPEG 파생본(긴 변 1920px 이하, q60)으로 변환하고, 파생본 bytes 기준 `sha256/mimeType/byteSize` 로 `/mochi_items/presign` 호출 → GCS Signed URL PUT → `objectKey` 를 back-tap JSON 또는 일반 ingest `imageRefs` 로 전달.

@@ -9,6 +9,9 @@ let packageSettings = PackageSettings(
         // ComposableArchitecture는 모듈마다 import하므로 dynamic framework가 빌드 시간 유리
         "ComposableArchitecture": .framework,
         "Dependencies": .framework,
+        "Perception": .framework,
+        "PerceptionCore": .framework,
+        "SwiftNavigation": .framework,
         // Realm dynamic framework — Swift/ObjC 브릿지 오류 방지
         "Realm": .framework,
         "RealmSwift": .framework,
@@ -29,6 +32,8 @@ let package = Package(
 
         // swift-dependencies — Core 모듈이 TCA 전체를 import하지 않고도 DI를 정의할 수 있게 한다
         .package(url: "https://github.com/pointfreeco/swift-dependencies.git", exact: "1.5.1"),
+        .package(url: "https://github.com/pointfreeco/swift-perception.git", exact: "1.6.0"),
+        .package(url: "https://github.com/pointfreeco/swift-navigation.git", exact: "2.8.0"),
 
         // OpenAPI generator 런타임 (백엔드 /api/v1 OpenAPI 스펙 기반 Swift 클라이언트 생성용)
         .package(url: "https://github.com/apple/swift-openapi-runtime.git", exact: "1.6.0"),

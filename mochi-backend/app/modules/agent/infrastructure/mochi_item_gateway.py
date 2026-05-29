@@ -59,6 +59,15 @@ class MochiItemGatewayAdapter(MochiItemGateway):
             confidence=result.confidence,
             model_version=result.model_version,
             entities=tuple((e.kind, e.value) for e in result.entities),
+            intent_candidates=tuple(
+                {
+                    "label": c.label,
+                    "intent": c.intent.value,
+                    "applicability": c.applicability,
+                    "reasoning": c.reasoning,
+                }
+                for c in result.candidates
+            ),
         )
 
     async def list_recent_window(

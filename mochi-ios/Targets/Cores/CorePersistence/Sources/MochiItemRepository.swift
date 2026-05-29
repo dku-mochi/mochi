@@ -10,6 +10,14 @@ public protocol MochiItemRepository: Sendable {
     func upsert(_ mochiItem: MochiItem) async throws
     func updateLifecycle(mochiItemID: UUID, to newState: LifecycleState) async throws
     func updateSync(mochiItemID: UUID, to newState: SyncState) async throws
+    func updateImageUploadMetadata(
+        mochiItemID: UUID,
+        imageRefID: UUID,
+        mimeType: String,
+        byteSize: Int,
+        sha256: String,
+        objectKey: String
+    ) async throws
     func find(id: UUID) async throws -> MochiItem?
     func listRecent(limit: Int) async throws -> [MochiItem]
     func listByIntent(_ intent: Intent, limit: Int) async throws -> [MochiItem]
@@ -100,6 +108,51 @@ public actor InMemoryMochiItemRepository: MochiItemRepository {
         notifyChange()
     }
 
+    public func updateImageUploadMetadata(
+        mochiItemID: UUID,
+        imageRefID: UUID,
+        mimeType: String,
+        byteSize: Int,
+        sha256: String,
+        objectKey: String
+    ) async throws {
+        guard let mochiItem = storage[mochiItemID] else {
+            throw DomainError.notFound(entity: "MochiItem", id: mochiItemID.uuidString)
+        }
+        let refs = mochiItem.source.imageRefs.map { ref in
+            ref.id == imageRefID
+                ? ImageRef(
+                    id: ref.id,
+                    relativePath: ref.relativePath,
+                    mimeType: mimeType,
+                    byteSize: byteSize,
+                    sha256: sha256,
+                    objectKey: objectKey
+                )
+                : ref
+        }
+        let source = IngestSource(
+            id: mochiItem.source.id,
+            channel: mochiItem.source.channel,
+            url: mochiItem.source.url,
+            text: mochiItem.source.text,
+            imageRefs: refs,
+            userMemo: mochiItem.source.userMemo,
+            capturedAt: mochiItem.source.capturedAt
+        )
+        var updated = MochiItem(
+            source: source,
+            analysis: mochiItem.analysis,
+            lifecycleState: mochiItem.lifecycleState,
+            syncState: mochiItem.syncState,
+            createdAt: mochiItem.createdAt,
+            updatedAt: Date()
+        )
+        updated.updatedAt = Date()
+        storage[mochiItemID] = updated
+        notifyChange()
+    }
+
     public func find(id: UUID) async throws -> MochiItem? { storage[id] }
 
     public func listRecent(limit: Int) async throws -> [MochiItem] {
@@ -164,7 +217,7 @@ public actor InMemoryMochiItemRepository: MochiItemRepository {
         let now = Date()
         if let existing = mochiItem.analysis {
             // 수동 확정 — Realm 경로와 동치: confidence 최대 + modelVersion "manual" + candidates 제거
-            // (candidates 생략 → 기본 []), topGap=1.0 효과 → "헷갈려요" 에서 빠진다.
+            // (candidates 생략 → 기본 []) → confidence 1.0 으로 "헷갈려요" 에서 빠진다.
             mochiItem.analysis = MochiItemAnalysis(
                 summary: existing.summary,
                 intent: intent,

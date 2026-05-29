@@ -60,7 +60,6 @@ public enum RealmMochiItemMapper {
         for candidate in mochiItem.analysis?.candidates ?? [] {
             row.intentCandidates.append(encode(intentCandidate: candidate))
         }
-        row.intentTopGap = mochiItem.analysis?.topGap ?? 1.0
         return row
     }
 

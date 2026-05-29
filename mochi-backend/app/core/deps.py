@@ -10,24 +10,10 @@ from app.modules.agent.domain.ports import LLMClient
 from app.modules.agent.domain.profile import UserProfileSummarizer
 from app.modules.agent.infrastructure.gemini_agent_client import GeminiAgentClient
 from app.modules.agent.infrastructure.gemini_profile_summarizer import GeminiProfileSummarizer
-from app.modules.mochi_items.domain.ports import CaptureImageStorage, IntentClassifier
+from app.modules.mochi_items.domain.ports import CaptureImageStorage
 from app.modules.mochi_items.infrastructure.gcs_storage import GCSSignedUrlIssuer
-from app.modules.mochi_items.infrastructure.gemini_classifier import VertexAIGeminiClassifier
 
 DBSession = Annotated[AsyncSession, Depends(get_session)]
-
-
-@lru_cache(maxsize=1)
-def _intent_classifier_singleton() -> IntentClassifier:
-    return VertexAIGeminiClassifier()
-
-
-def get_intent_classifier() -> IntentClassifier:
-    """프로세스당 1개의 Vertex AI client 를 공유한다 — adapter 안에서 lru_cache."""
-    return _intent_classifier_singleton()
-
-
-IntentClassifierDep = Annotated[IntentClassifier, Depends(get_intent_classifier)]
 
 
 @lru_cache(maxsize=1)

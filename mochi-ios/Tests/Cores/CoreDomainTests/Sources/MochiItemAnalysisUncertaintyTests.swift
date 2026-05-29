@@ -1,7 +1,12 @@
 import XCTest
 @testable import CoreDomain
 
-/// 홈 "모찌가 헷갈려요" 판정(`isUncertain`/`topGap`)과 의견 도출(`reviewOpinions`) 검증.
+/// 홈 "모찌가 헷갈려요" 판정(`isUncertain`) · 복수 의도(`isMultiIntent`/`activeSecondaryIntents`)
+/// · 의견 도출(`reviewOpinions`) 검증.
+///
+/// 핵심 모델: confidence(= 최상위 후보 applicability) 단일 기준으로 3상태가 갈린다 —
+/// 헷갈림(top1<0.6) / 단일 확신(top1≥0.6, top2<0.6) / 복수 의도(top1·top2 둘 다 ≥0.6).
+/// 박빙(gap) 조건은 폐기됐다.
 final class MochiItemAnalysisUncertaintyTests: XCTestCase {
 
     private func candidate(_ intent: Intent, _ applicability: Double, label: String? = nil) -> IntentCandidate {
@@ -23,53 +28,62 @@ final class MochiItemAnalysisUncertaintyTests: XCTestCase {
         )
     }
 
-    // MARK: - topGap
+    // MARK: - isUncertain (confidence 단일 기준)
 
-    func test_topGap_is_one_when_fewer_than_two_distinct_intents() {
-        XCTAssertEqual(analysis(confidence: 0.9, []).topGap, 1.0)
-        XCTAssertEqual(analysis(confidence: 0.9, [candidate(.memo, 0.8)]).topGap, 1.0)
-    }
-
-    func test_topGap_is_difference_of_top_two_distinct() {
-        let a = analysis(confidence: 0.9, [candidate(.memo, 0.4), candidate(.todo, 0.9), candidate(.knowledge, 0.7)])
-        XCTAssertEqual(a.topGap, 0.9 - 0.7, accuracy: 1e-9)
-    }
-
-    func test_topGap_dedupes_same_intent_taking_max() {
-        // todo 가 두 번 → 0.9 채택. distinct = [todo 0.9, memo 0.6] → gap 0.3
-        let a = analysis(confidence: 0.9, [candidate(.todo, 0.9), candidate(.todo, 0.5), candidate(.memo, 0.6)])
-        XCTAssertEqual(a.topGap, 0.9 - 0.6, accuracy: 1e-9)
-    }
-
-    // MARK: - isUncertain
-
-    func test_low_confidence_is_uncertain_even_with_wide_gap() {
-        // confidence 0.59 < 0.6 → 박빙 아니어도 헷갈림.
-        let a = analysis(confidence: 0.59, [candidate(.memo, 0.95), candidate(.todo, 0.1)])
+    func test_low_confidence_is_uncertain() {
+        // 최상위 후보(0.59) < 0.6 → 헷갈림.
+        let a = analysis(confidence: 0.59, [candidate(.memo, 0.59), candidate(.todo, 0.1)])
         XCTAssertTrue(a.isUncertain)
     }
 
-    func test_confidence_at_threshold_with_wide_gap_is_certain() {
-        // confidence 0.60 (not < 0.6) + 넓은 gap(0.85) → 확신.
-        let a = analysis(confidence: 0.60, [candidate(.memo, 0.95), candidate(.todo, 0.1)])
+    func test_confidence_at_threshold_is_certain() {
+        // 0.60 (not < 0.6) → 확신.
+        let a = analysis(confidence: 0.60, [candidate(.memo, 0.60), candidate(.todo, 0.1)])
         XCTAssertFalse(a.isUncertain)
     }
 
-    func test_close_top_two_is_uncertain_even_with_high_confidence() {
-        // gap 0.14 (< 0.15) → 박빙 헷갈림.
-        let a = analysis(confidence: 0.95, [candidate(.memo, 0.80), candidate(.todo, 0.66)])
+    func test_weak_top_two_is_uncertain_regardless_of_gap() {
+        // 둘 다 낮고 박빙 — 최상위(0.5) < 0.6 이라 헷갈림 (gap 과 무관).
+        let a = analysis(confidence: 0.5, [candidate(.memo, 0.5), candidate(.todo, 0.45)])
         XCTAssertTrue(a.isUncertain)
-    }
-
-    func test_wide_gap_and_high_confidence_is_certain() {
-        // gap 0.16 (>= 0.15) + confidence 0.95 → 확신.
-        let a = analysis(confidence: 0.95, [candidate(.memo, 0.80), candidate(.todo, 0.64)])
-        XCTAssertFalse(a.isUncertain)
+        XCTAssertFalse(a.isMultiIntent)
     }
 
     func test_single_confident_candidate_is_certain() {
         let a = analysis(confidence: 0.9, [candidate(.memo, 0.9)])
         XCTAssertFalse(a.isUncertain)
+        XCTAssertFalse(a.isMultiIntent)
+    }
+
+    // MARK: - isMultiIntent (둘 다 강함 = 복수 의도, 헷갈림 아님)
+
+    func test_two_strong_candidates_is_multi_intent_not_uncertain() {
+        // top1=0.9, top2=0.8 — 둘 다 ≥0.6 → 복수 의도. "헷갈려요" 아님.
+        let a = analysis(confidence: 0.9, [candidate(.todo, 0.9), candidate(.knowledge, 0.8)])
+        XCTAssertFalse(a.isUncertain)
+        XCTAssertTrue(a.isMultiIntent)
+        XCTAssertEqual(a.activeSecondaryIntents, [.knowledge])
+    }
+
+    func test_strong_primary_weak_secondary_is_single_intent() {
+        // top1=0.9, top2=0.3 — secondary < 0.6 → 단일 확신.
+        let a = analysis(confidence: 0.9, [candidate(.todo, 0.9), candidate(.knowledge, 0.3)])
+        XCTAssertFalse(a.isUncertain)
+        XCTAssertFalse(a.isMultiIntent)
+        XCTAssertEqual(a.activeSecondaryIntents, [])
+    }
+
+    func test_uncertain_item_has_no_active_secondary() {
+        // 헷갈리면 복수 의도 판정을 하지 않는다.
+        let a = analysis(confidence: 0.4, [candidate(.todo, 0.4), candidate(.knowledge, 0.35)])
+        XCTAssertTrue(a.isUncertain)
+        XCTAssertEqual(a.activeSecondaryIntents, [])
+    }
+
+    func test_active_secondary_takes_max_per_distinct_intent() {
+        // 같은 intent 중복 → 최댓값. todo 0.9 / todo 0.7(무시) / knowledge 0.65 → secondary [knowledge].
+        let a = analysis(confidence: 0.9, [candidate(.todo, 0.9), candidate(.todo, 0.7), candidate(.knowledge, 0.65)])
+        XCTAssertEqual(a.activeSecondaryIntents, [.knowledge])
     }
 
     // MARK: - reviewOpinions

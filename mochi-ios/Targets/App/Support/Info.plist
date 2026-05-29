@@ -67,6 +67,11 @@
 	<key>GIDClientID</key>
 	<!-- TODO(docs/TODO.md §2.1): Google OAuth iOS client_id 로 교체. -->
 	<string>PLACEHOLDER_REVERSED_CLIENT_ID.apps.googleusercontent.com</string>
+	<!-- iOS 26 Liquid Glass 전역 opt-out — 탭바 등 시스템 UI 를 iOS 18 레거시 디자인으로 고정.
+	     빌드 SDK 가 iOS 26.2 라 UITabBarAppearance 만으로는 탭바 리퀴드가 남아 전역 비활성화.
+	     Apple 이 향후 deprecate 예정인 임시 호환 플래그. -->
+	<key>UIDesignRequiresCompatibility</key>
+	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchScreen</key>

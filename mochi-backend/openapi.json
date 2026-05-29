@@ -431,7 +431,7 @@
           "mochi_items"
         ],
         "summary": "Create Back Tap Mochi Item",
-        "description": "백탭 캡쳐 — 클라이언트가 Signed URL 로 GCS 에 올린 ``objectKey`` 를 받아\nGemini(gs:// 직접 read)로 의도 후보 3개 도출 후 MochiItem 즉시 적재.\n\n응답의 ``candidates`` 가 알림 UX (top-1 강조 + 펼침 시 multi-select) 의 원천이다.\n사용자가 다른 의도를 고르면 ``PATCH /mochi_items/{id}/intent`` 로 primary 교체.",
+        "description": "백탭 캡쳐 — Signed URL 로 GCS 에 올린 ``objectKey`` 를 받아 MochiItem(`.screenshot`) 적재.\n\n4-Intent 후보·confidence 는 outbox worker(``AgentOrchestrator``)가 비동기로 채우고,\niOS 는 폴링(`GET /mochi_items/{id}`)으로 결과를 반영한다. 동기 분류는 제거됐다 —\nGemini 이중 호출 방지 + DB↔Realm 일관성.",
         "operationId": "create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post",
         "parameters": [
           {
@@ -483,7 +483,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/BackTapMochiItemResponse"
+                  "$ref": "#/components/schemas/MochiItemResponse"
                 }
               }
             }
@@ -902,31 +902,6 @@
         "title": "BackTapMochiItemRequest",
         "description": "백탭 ingestion 요청 — 클라이언트가 Signed URL 로 GCS 에 업로드한 뒤 objectKey 를 보낸다."
       },
-      "BackTapMochiItemResponse": {
-        "properties": {
-          "item": {
-            "$ref": "#/components/schemas/MochiItemResponse"
-          },
-          "candidates": {
-            "items": {
-              "$ref": "#/components/schemas/IntentCandidateResponse"
-            },
-            "type": "array",
-            "title": "Candidates"
-          },
-          "wasReplay": {
-            "type": "boolean",
-            "title": "Wasreplay"
-          }
-        },
-        "type": "object",
-        "required": [
-          "item",
-          "wasReplay"
-        ],
-        "title": "BackTapMochiItemResponse",
-        "description": "백탭 ingestion 응답 — MochiItem 본체 + 사용자에게 보여줄 후보 3개.\n\n멱등 재요청 (``wasReplay=true``) 시 ``candidates`` 는 빈 리스트로 반환된다.\n저장된 MochiItem 자체에는 LLM 의 원본 후보 reasoning 이 보관되지 않으므로\n재현이 의미를 갖지 않는다."
-      },
       "CitationDTO": {
         "properties": {
           "mochiItemId": {
@@ -1146,18 +1121,18 @@
           },
           "reasoning": {
             "type": "string",
-            "title": "Reasoning"
+            "title": "Reasoning",
+            "default": ""
           }
         },
         "type": "object",
         "required": [
           "label",
           "intent",
-          "applicability",
-          "reasoning"
+          "applicability"
         ],
         "title": "IntentCandidateResponse",
-        "description": "알림에 노출되는 LLM 의도 후보 1건."
+        "description": "홈 \"헷갈려요\" 카드·Live Activity 버튼에 노출되는 LLM use case 후보 1건."
       },
       "IntentOverrideRequest": {
         "properties": {
@@ -1317,6 +1292,13 @@
           "confidence": {
             "type": "number",
             "title": "Confidence"
+          },
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/IntentCandidateResponse"
+            },
+            "type": "array",
+            "title": "Candidates"
           },
           "lifecycleKind": {
             "type": "string",

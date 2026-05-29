@@ -6,12 +6,13 @@ from datetime import datetime
 from time import perf_counter
 from typing import Any
 from uuid import UUID
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.logging import get_logger
-from app.modules.agent.domain.analysis import AnalysisResult, ExtractedEntity
+from app.modules.agent.domain.analysis import AnalysisCandidate, AnalysisResult, ExtractedEntity
 from app.modules.agent.domain.gateway import AnalysisInput, MochiItemGateway
 from app.modules.agent.domain.ports import LLMClient, ToolRegistry
 from app.modules.agent.domain.profile import UserProfileStore
@@ -20,6 +21,7 @@ from app.modules.agent.domain.states import HAPPY_PATH, AgentNode
 from app.modules.agent.domain.tools import ToolExecutionError, ToolName, ToolUsage
 from app.modules.agent.infrastructure.tools.multimodal_analyze import MultimodalAnalyzeOutput
 from app.modules.agent.prompts.system_prompts import ACTIVE_PROMPT
+from app.shared.intent import Intent
 
 log = get_logger("agent")
 
@@ -333,18 +335,31 @@ def _profile_preamble(summary: str | None) -> str:
     return f"\n\n# 사용자 컨텍스트\n{summary}\n"
 
 
+KOREA_TZ = ZoneInfo("Asia/Seoul")
+
+
 def _initial_user_text(source: AnalysisInput) -> str:
     blocks: list[str] = []
+    blocks.append(_korea_time_context())
     if source.text:
         blocks.append(f"내용:\n{source.text}")
     if source.url:
         blocks.append(f"URL: {source.url}")
     if source.user_memo:
         blocks.append(f"사용자 메모: {source.user_memo}")
+    if source.images:
+        blocks.append("첨부된 스크린샷/이미지를 함께 분석하세요.")
     text = "\n\n".join(blocks)
-    if text:
-        return text
-    return "첨부된 스크린샷을 분석해 주세요." if source.images else "(빈 항목)"
+    return text if text else "(빈 항목)"
+
+
+def _korea_time_context(now: datetime | None = None) -> str:
+    kst = (now or datetime.now(KOREA_TZ)).astimezone(KOREA_TZ)
+    return (
+        "# 시간 컨텍스트\n"
+        f"현재 기준시각(Asia/Seoul): {kst.isoformat(timespec='seconds')}\n"
+        "상대 날짜·요일·마감 표현은 이 한국 기준시각으로 해석하세요."
+    )
 
 
 def _digest(args: dict[str, Any]) -> str:
@@ -354,15 +369,39 @@ def _digest(args: dict[str, Any]) -> str:
 
 def _to_analysis_result(payload: dict[str, Any]) -> AnalysisResult:
     out = MultimodalAnalyzeOutput.model_validate(payload)
-    primary = out.intent
-    secondary = tuple(dict.fromkeys(s for s in out.secondary_intents if s != primary))
+    cands = out.candidates
+    # primary = 최상위 applicability 후보 (동률 시 입력 순서가 빠른 쪽 — max 는 안정적).
+    primary_candidate = max(cands, key=lambda c: c.applicability)
+    primary = primary_candidate.intent
+    # confidence := 최상위 후보 applicability (헷갈림/복수의도 판정의 단일 원천).
+    confidence = primary_candidate.applicability
+    # intent_applicability: 같은 intent 가 여러 후보에 나오면 최댓값 채택.
+    applicability_map: dict[Intent, float] = {}
+    for c in cands:
+        if c.intent not in applicability_map or c.applicability > applicability_map[c.intent]:
+            applicability_map[c.intent] = c.applicability
+    # secondary: primary 제외 distinct intent, applicability 내림차순.
+    secondary = tuple(
+        intent
+        for intent, _ in sorted(applicability_map.items(), key=lambda kv: kv[1], reverse=True)
+        if intent != primary
+    )
     return AnalysisResult(
         intent=primary,
         summary=out.summary,
-        confidence=out.confidence,
+        confidence=confidence,
         secondary_intents=secondary,
-        intent_applicability={primary: out.confidence},
+        intent_applicability=applicability_map,
         importance=out.importance,
         model_version=out.model_version,
         entities=tuple(ExtractedEntity(kind=e.kind, value=e.value) for e in out.entities),
+        candidates=tuple(
+            AnalysisCandidate(
+                label=c.label,
+                intent=c.intent,
+                applicability=c.applicability,
+                reasoning=c.reasoning,
+            )
+            for c in cands
+        ),
     )

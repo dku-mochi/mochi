@@ -18,13 +18,13 @@ description: iOS 클라이언트 진입점·빌드 가이드·모듈 구조. iOS
 
 | 분류 | 기술 | 비고 |
 | --- | --- | --- |
-| 언어 | Swift 5.10 | strict concurrency = complete |
+| 언어 | Swift 5.x | `SWIFT_STRICT_CONCURRENCY=targeted` (TCA/Dependencies 링크 호환; complete 복귀는 후속) |
 | UI | **SwiftUI + The Composable Architecture (TCA) 1.x** | Combine 기반 effect, TestStore |
 | 최소 타겟 | iOS 17.0 | App Intents, EventKit fullAccess, Observable 매크로 |
 | 프로젝트 도구 | Tuist 4.x | Project.swift 단일 파일 + 다중 framework target |
 | 시스템 연동 | EventKit · EventKitUI · App Intents · ShareExtension | |
 | 로컬 DB | Realm | App Group 공유 컨테이너에 단일 파일 |
-| 네트워킹 | swift-openapi-runtime + URLSession | 백엔드 OpenAPI(`/api/v1`) → swift-openapi-generator |
+| 네트워킹 | swift-openapi-runtime + URLSession | 현재는 수기 `URLSessionMochiAPIClient`; OpenAPI generator 배선은 후속 |
 | AI 백엔드 | mochi-backend (FastAPI + Gemini 3.5 Flash) | SSE 스트림 + REST |
 | 이미지 캐싱 | Kingfisher | |
 | 디자인 시스템 | DesignSystem 모듈 자체 토큰 (코드 기반) | dynamic color, no Bundle |
@@ -129,6 +129,8 @@ tuist test
 - `X-Mochi-Request-ID` 헤더로 trace 가능
 - `Idempotency-Key` 로 중복 등록 방지
 - 에러 응답은 `APIErrorEnvelope` 통일 포맷
+
+이미지 첨부는 서버가 bytes 를 받지 않는다. iOS 가 업로드용 파생본(긴 변 1920px 이하, JPEG q60)을 만들고, 그 bytes 기준 `sha256/mimeType/byteSize` 로 `/mochi_items/presign` 을 호출한 뒤 GCS Signed URL 에 직접 PUT 한다. 이후 `objectKey` 를 `/mochi_items/back-tap` 또는 일반 ingest `imageRefs` 로 전달한다.
 
 ## 참고
 

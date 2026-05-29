@@ -71,6 +71,10 @@ class Settings(BaseSettings):
         "0.0.0.0",
     )
 
+    # PlatformContext tool — Instagram 공식 oEmbed 는 Meta app token + review 가 필요하다.
+    instagram_oembed_access_token: str | None = None
+    instagram_oembed_api_version: str = "v20.0"
+
     # Hybrid search
     bm25_k: int = 80
     vector_k: int = 80

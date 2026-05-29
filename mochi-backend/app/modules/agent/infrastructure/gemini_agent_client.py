@@ -6,7 +6,7 @@
 - 비용 최우선: flash-lite + ``thinking_budget=0`` (thought-signature 불필요 → 단순)
 
 함수 호출 루프 매핑:
-- LLM 이 능동적으로 부를 도구는 ``webFetch`` (URL 그라운딩) 하나.
+- LLM 이 능동적으로 부를 도구는 ``platformContext``/``webFetch`` (URL 그라운딩).
 - 종료는 별도 함수 ``finalizeAnalysis`` — 모델이 이를 호출하면 그 args 가 구조화 분석
   (``MultimodalAnalyzeOutput`` 모양)이다 → ``LLMResponseChunk.final_payload``.
 - ``tool_config`` mode=ANY 로 매 turn 함수 호출을 강제 → 루프가 항상 진행한다.
@@ -37,10 +37,20 @@ _FINALIZE_PARAMS: dict[str, Any] = {
     "type": "object",
     "properties": {
         "summary": {"type": "string"},
-        "intent": {"type": "string", "enum": _INTENT_ENUM},
-        "secondary_intents": {
+        "candidates": {
             "type": "array",
-            "items": {"type": "string", "enum": _INTENT_ENUM},
+            "minItems": 3,
+            "maxItems": 3,
+            "items": {
+                "type": "object",
+                "properties": {
+                    "label": {"type": "string"},
+                    "intent": {"type": "string", "enum": _INTENT_ENUM},
+                    "applicability": {"type": "number"},
+                    "reasoning": {"type": "string"},
+                },
+                "required": ["label", "intent", "applicability", "reasoning"],
+            },
         },
         "entities": {
             "type": "array",
@@ -54,14 +64,25 @@ _FINALIZE_PARAMS: dict[str, Any] = {
             },
         },
         "importance": {"type": "integer"},
-        "confidence": {"type": "number"},
     },
-    "required": ["summary", "intent", "confidence"],
+    "required": ["summary", "candidates"],
 }
 
 _WEBFETCH_PARAMS: dict[str, Any] = {
     "type": "object",
     "properties": {"url": {"type": "string"}},
+    "required": ["url"],
+}
+
+_PLATFORM_CONTEXT_PARAMS: dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "url": {"type": "string"},
+        "platform": {
+            "type": "string",
+            "enum": ["auto", "youtube", "x", "instagram"],
+        },
+    },
     "required": ["url"],
 }
 
@@ -79,6 +100,17 @@ def _shared_client() -> genai.Client:
 def _function_declarations(tools: list[Tool[Any, Any]]) -> list[types.FunctionDeclaration]:
     decls: list[types.FunctionDeclaration] = []
     for tool in tools:
+        if tool.name is ToolName.PLATFORM_CONTEXT:
+            decls.append(
+                types.FunctionDeclaration(
+                    name=ToolName.PLATFORM_CONTEXT.value,
+                    description=(
+                        "Fetch low-cost structured context for YouTube, X/Twitter, "
+                        "or Instagram URLs. Prefer this over webFetch for those platforms."
+                    ),
+                    parameters=_PLATFORM_CONTEXT_PARAMS,
+                )
+            )
         if tool.name is ToolName.WEB_FETCH:
             decls.append(
                 types.FunctionDeclaration(

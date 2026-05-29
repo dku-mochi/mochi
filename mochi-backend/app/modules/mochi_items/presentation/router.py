@@ -4,7 +4,7 @@ from uuid import UUID
 from fastapi import APIRouter, Header, status
 
 from app.core.config import get_settings
-from app.core.deps import CaptureImageStorageDep, DBSession, IntentClassifierDep
+from app.core.deps import CaptureImageStorageDep, DBSession
 from app.core.error_envelope import DomainError, FeatureUnavailableError, NotFoundError
 from app.core.security import CurrentUser
 from app.modules.mochi_items.application.back_tap_ingest import (
@@ -22,7 +22,6 @@ from app.modules.mochi_items.infrastructure.outbox import OutboxNotifier
 from app.modules.mochi_items.infrastructure.repository import PostgresMochiItemRepository
 from app.modules.mochi_items.presentation.schemas import (
     BackTapMochiItemRequest,
-    BackTapMochiItemResponse,
     ImageRefResponse,
     IntentCandidateResponse,
     IntentOverrideRequest,
@@ -99,6 +98,15 @@ def _to_response(item: MochiItem) -> MochiItemResponse:
         summary=item.summary,
         importance=item.importance,
         confidence=item.confidence,
+        candidates=[
+            IntentCandidateResponse(
+                label=c.label,
+                intent=c.intent,
+                applicability=c.applicability,
+                reasoning=c.reasoning,
+            )
+            for c in item.intent_candidates
+        ],
         lifecycle_kind=item.lifecycle.kind.value,
         sync_kind=item.sync.kind,
         image_refs=[
@@ -161,21 +169,20 @@ async def create_mochi_item(
 @router.post(
     "/back-tap",
     status_code=status.HTTP_201_CREATED,
-    response_model=BackTapMochiItemResponse,
+    response_model=MochiItemResponse,
 )
 async def create_back_tap_mochi_item(
     payload: BackTapMochiItemRequest,
     db: DBSession,
     user: CurrentUser,
-    classifier: IntentClassifierDep,
     storage: CaptureImageStorageDep,
     idempotency_key: Annotated[str | None, Header(alias="Idempotency-Key")] = None,
-) -> BackTapMochiItemResponse:
-    """백탭 캡쳐 — 클라이언트가 Signed URL 로 GCS 에 올린 ``objectKey`` 를 받아
-    Gemini(gs:// 직접 read)로 의도 후보 3개 도출 후 MochiItem 즉시 적재.
+) -> MochiItemResponse:
+    """백탭 캡쳐 — Signed URL 로 GCS 에 올린 ``objectKey`` 를 받아 MochiItem(`.screenshot`) 적재.
 
-    응답의 ``candidates`` 가 알림 UX (top-1 강조 + 펼침 시 multi-select) 의 원천이다.
-    사용자가 다른 의도를 고르면 ``PATCH /mochi_items/{id}/intent`` 로 primary 교체.
+    4-Intent 후보·confidence 는 outbox worker(``AgentOrchestrator``)가 비동기로 채우고,
+    iOS 는 폴링(`GET /mochi_items/{id}`)으로 결과를 반영한다. 동기 분류는 제거됐다 —
+    Gemini 이중 호출 방지 + DB↔Realm 일관성.
     """
 
     if not idempotency_key:
@@ -189,7 +196,6 @@ async def create_back_tap_mochi_item(
     use_case = BackTapIngest(
         repository=PostgresMochiItemRepository(db),
         notifier=OutboxNotifier(db),
-        classifier=classifier,
     )
     result = await use_case.execute(
         BackTapIngestCommand(
@@ -203,20 +209,7 @@ async def create_back_tap_mochi_item(
         )
     )
     await db.commit()
-
-    return BackTapMochiItemResponse(
-        item=_to_response(result.item),
-        candidates=[
-            IntentCandidateResponse(
-                label=c.label,
-                intent=c.intent,
-                applicability=c.applicability,
-                reasoning=c.reasoning,
-            )
-            for c in result.candidates
-        ],
-        was_replay=result.was_idempotent_replay,
-    )
+    return _to_response(result.item)
 
 
 @router.post("/presign", response_model=PresignResponse)

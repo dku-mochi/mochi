@@ -10,6 +10,7 @@ final class InboxFeatureTests: XCTestCase {
         let repo = InMemoryMochiItemRepository()
         let mochiItem = MochiItem(source: IngestSource(channel: .appDirectInput, text: "hello"))
         try? await repo.upsert(mochiItem)
+        let stored = try? await repo.find(id: mochiItem.id)
 
         let store = TestStore(initialState: InboxFeature.State()) {
             InboxFeature()
@@ -20,7 +21,7 @@ final class InboxFeatureTests: XCTestCase {
         await store.send(.onAppear) { $0.isLoading = true }
         await store.receive(\.mochiItemsLoaded) {
             $0.isLoading = false
-            $0.mochiItems = [mochiItem]
+            $0.mochiItems = stored.map { [$0] } ?? []
         }
     }
 }

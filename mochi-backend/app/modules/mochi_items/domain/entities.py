@@ -5,7 +5,7 @@ from enum import StrEnum
 from typing import Literal
 from uuid import UUID, uuid4
 
-from app.modules.mochi_items.domain.value_objects import IntentClassificationResult
+from app.modules.mochi_items.domain.value_objects import IntentClassification
 from app.shared.intent import Intent
 
 
@@ -116,6 +116,9 @@ class MochiItem:
     intent: Intent = Intent.MEMO
     secondary_intents: tuple[Intent, ...] = ()
     intent_applicability: Mapping[Intent, float] = field(default_factory=dict)
+    # LLM 이 펼친 use case 후보 (홈 "헷갈려요" 카드·Live Activity 버튼의 원천).
+    # applicability 가 confidence/multi-intent 판정의 단일 원천. worker 가 비동기로 채운다.
+    intent_candidates: tuple[IntentClassification, ...] = ()
     summary: str | None = None
     importance: int = 3
     confidence: float = 0.0
@@ -137,22 +140,6 @@ class MochiItem:
                 raise ValueError(
                     f"applicability for {intent.value} must be in [0, 1], got {score}"
                 )
-
-    @classmethod
-    def from_classification(
-        cls,
-        *,
-        source: IngestSource,
-        classification: IntentClassificationResult,
-    ) -> "MochiItem":
-        """LLM 분류 결과로부터 새 MochiItem 을 생성한다 (백탭 ingestion 경로)."""
-        return cls(
-            id=source.id,
-            source=source,
-            intent=classification.primary_intent,
-            secondary_intents=classification.secondary_intents,
-            intent_applicability=classification.applicability_map,
-        )
 
     def swap_primary(self, new_primary: Intent) -> None:
         """사용자가 알림에서 다른 의도를 골랐을 때 primary 를 교체한다.

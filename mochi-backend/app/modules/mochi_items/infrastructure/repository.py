@@ -16,6 +16,7 @@ from app.modules.mochi_items.domain.entities import (
     SyncState,
 )
 from app.modules.mochi_items.domain.ports import MochiItemRepository
+from app.modules.mochi_items.domain.value_objects import IntentClassification
 from app.modules.mochi_items.infrastructure.orm import (
     EntityRow,
     IdempotencyKeyRow,
@@ -50,6 +51,15 @@ def _row_to_entity(row: MochiItemRow) -> MochiItem:
         intent=Intent(row.intent),
         secondary_intents=tuple(Intent(s) for s in row.secondary_intents),
         intent_applicability={Intent(k): v for k, v in row.intent_applicability.items()},
+        intent_candidates=tuple(
+            IntentClassification(
+                label=str(c["label"]),
+                intent=Intent(str(c["intent"])),
+                applicability=float(c["applicability"]),
+                reasoning=str(c.get("reasoning", "")),
+            )
+            for c in row.intent_candidates
+        ),
         summary=row.summary,
         importance=row.importance,
         confidence=row.confidence,
@@ -75,6 +85,15 @@ class PostgresMochiItemRepository(MochiItemRepository):
             intent=item.intent.value,
             secondary_intents=[s.value for s in item.secondary_intents],
             intent_applicability={k.value: v for k, v in item.intent_applicability.items()},
+            intent_candidates=[
+                {
+                    "label": c.label,
+                    "intent": c.intent.value,
+                    "applicability": c.applicability,
+                    "reasoning": c.reasoning,
+                }
+                for c in item.intent_candidates
+            ],
             summary=item.summary,
             importance=item.importance,
             confidence=item.confidence,
@@ -197,6 +216,7 @@ class PostgresMochiItemRepository(MochiItemRepository):
         confidence: float,
         model_version: str,
         entities: tuple[tuple[str, str], ...],
+        intent_candidates: tuple[dict[str, object], ...],
     ) -> None:
         stmt = select(MochiItemRow).where(
             MochiItemRow.id == mochi_item_id, MochiItemRow.owner_id == owner_id
@@ -208,6 +228,7 @@ class PostgresMochiItemRepository(MochiItemRepository):
         row.intent = intent.value
         row.secondary_intents = [s.value for s in secondary_intents]
         row.intent_applicability = {k.value: v for k, v in intent_applicability.items()}
+        row.intent_candidates = [dict(c) for c in intent_candidates]
         row.summary = summary
         row.importance = importance
         row.confidence = confidence

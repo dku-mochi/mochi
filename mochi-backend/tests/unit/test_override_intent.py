@@ -10,10 +10,6 @@ from app.modules.mochi_items.application.override_intent import (
     OverrideIntentCommand,
 )
 from app.modules.mochi_items.domain.entities import IngestChannel, IngestSource, LifecycleState, MochiItem
-from app.modules.mochi_items.domain.value_objects import (
-    IntentClassification,
-    IntentClassificationResult,
-)
 from app.shared.intent import Intent
 
 
@@ -51,16 +47,13 @@ class _InMemoryRepository:
 
 
 def _seed_item(repo: _InMemoryRepository, owner_id) -> MochiItem:
-    result = IntentClassificationResult(
-        candidates=(
-            IntentClassification(label="구매 고민", intent=Intent.TODO, applicability=0.95, reasoning="-"),
-            IntentClassification(label="가격 비교", intent=Intent.KNOWLEDGE, applicability=0.75, reasoning="-"),
-            IntentClassification(label="위시리스트", intent=Intent.MEMO, applicability=0.40, reasoning="-"),
-        )
-    )
-    item = MochiItem.from_classification(
-        source=IngestSource(channel=IngestChannel.SCREENSHOT),
-        classification=result,
+    source = IngestSource(channel=IngestChannel.SCREENSHOT)
+    item = MochiItem(
+        id=source.id,
+        source=source,
+        intent=Intent.TODO,
+        secondary_intents=(Intent.KNOWLEDGE, Intent.MEMO),
+        intent_applicability={Intent.TODO: 0.95, Intent.KNOWLEDGE: 0.75, Intent.MEMO: 0.40},
     )
     repo._items[(owner_id, item.id)] = item
     return item
