@@ -101,8 +101,8 @@ echo
 
 # 3) AGENTS.md 미러 동기화
 echo "### 3) AGENTS.md 미러"
-claude_ts=$(stat -f "%m" "$REPO/CLAUDE.md" 2>/dev/null || stat -c "%Y" "$REPO/CLAUDE.md" 2>/dev/null || echo 0)
-agents_ts=$(stat -f "%m" "$REPO/AGENTS.md" 2>/dev/null || stat -c "%Y" "$REPO/AGENTS.md" 2>/dev/null || echo 0)
+claude_ts=$(stat -c "%Y" "$REPO/CLAUDE.md" 2>/dev/null || stat -f "%m" "$REPO/CLAUDE.md" 2>/dev/null || echo 0)
+agents_ts=$(stat -c "%Y" "$REPO/AGENTS.md" 2>/dev/null || stat -f "%m" "$REPO/AGENTS.md" 2>/dev/null || echo 0)
 if [[ "$claude_ts" -gt "$agents_ts" ]]; then
   diff_secs=$(( claude_ts - agents_ts ))
   if [[ "$diff_secs" -gt 300 ]]; then
