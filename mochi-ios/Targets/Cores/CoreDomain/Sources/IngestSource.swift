@@ -55,7 +55,7 @@ public struct IngestSource: Equatable, Sendable, Hashable, Codable {
 /// 백엔드로 업로드된 후에는 ``objectKey`` 가 서버 측 object storage key가 된다.
 public struct ImageRef: Equatable, Sendable, Hashable, Codable {
     public let id: UUID
-    /// App Group 컨테이너 기준 상대 경로 (예: `mochiItems/2026-05-22/abc.heic`).
+    /// App Group 컨테이너 기준 상대 경로 (예: `captures/2026-05-22/abc.heic`).
     public let relativePath: String
     public let mimeType: String
     public let byteSize: Int
