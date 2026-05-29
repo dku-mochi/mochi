@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleDisplayName</key>
+	<string>모찌</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<!-- Live Activity 활성화 (DEBUG prototype: MockUseCaseLiveActivity).
+	     `Activity<...>.request()` 가 거부되지 않으려면 필수. iOS 16.1+. -->
+	<key>NSSupportsLiveActivities</key>
+	<true/>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<false/>
+		<!-- iOS 10+. 사설 IP(RFC 1918) / .local / unqualified host 에 대한 ATS 예외.
+		     실기기를 같은 Wi-Fi의 macOS 백엔드에 붙일 때 192.168.x.x HTTP 호출을 허용한다.
+		     운영 빌드는 HTTPS 도메인만 쓰므로 영향 없음. -->
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
+	<!-- "Inject Dev LAN Host" post-build script(Project.swift) 가 Debug 빌드에서
+	     `ipconfig getifaddr en0` 결과로 이 값을 갱신한다. Release 빌드에서는 비워둠. -->
+	<key>MOCHI_DEV_HOST</key>
+	<string></string>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>일정 Intent로 분류된 기록을 캘린더에 등록·동기화하기 위해 사용합니다.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>현장에서 자료를 즉시 캡처하기 위해 사용합니다.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>스크린샷에서 URL·제목 등 정보를 추출하기 위해 사용합니다.</string>
+	<key>NSRemindersFullAccessUsageDescription</key>
+	<string>할일 Intent로 분류된 기록을 미리알림에 등록·동기화하기 위해 사용합니다.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.IndexFinger.mochi.google</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<!-- TODO(docs/TODO.md §3.1): Google OAuth iOS client 의 Reversed Client ID 로 교체. -->
+				<string>com.googleusercontent.apps.PLACEHOLDER_REVERSED_CLIENT_ID</string>
+			</array>
+		</dict>
+	</array>
+	<key>GIDClientID</key>
+	<!-- TODO(docs/TODO.md §2.1): Google OAuth iOS client_id 로 교체. -->
+	<string>PLACEHOLDER_REVERSED_CLIENT_ID.apps.googleusercontent.com</string>
+	<!-- iOS 26 Liquid Glass 전역 opt-out — 탭바 등 시스템 UI 를 iOS 18 레거시 디자인으로 고정.
+	     빌드 SDK 가 iOS 26.2 라 UITabBarAppearance 만으로는 탭바 리퀴드가 남아 전역 비활성화.
+	     Apple 이 향후 deprecate 예정인 임시 호환 플래그. -->
+	<key>UIDesignRequiresCompatibility</key>
+	<true/>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
+	<key>UILaunchScreen</key>
+	<dict/>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+	</array>
+</dict>
+</plist>

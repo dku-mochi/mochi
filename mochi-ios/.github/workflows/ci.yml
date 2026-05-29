@@ -1,0 +1,33 @@
+name: ios-ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-test:
+    runs-on: macos-15
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_16.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Tuist
+        run: brew install tuist
+      - name: Install SwiftLint
+        run: brew install swiftlint
+      - name: Lint
+        run: swiftlint --quiet --strict
+      - name: Tuist install
+        run: tuist install
+      - name: Tuist generate
+        run: tuist generate --no-open
+      - name: Build & Test
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -workspace Mochi.xcworkspace \
+            -scheme Mochi \
+            -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
+            clean test | xcpretty
