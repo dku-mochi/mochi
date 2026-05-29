@@ -12,7 +12,7 @@ allowed-tools: Bash, Read, Grep, Glob, Edit, Write
 
 ### 1. done/expired 일괄 청소
 
-- `docs/l2/aspirational/**/*.md` — `target_milestone == $ARGUMENTS` 이고 미실현이면 사용자에게 cut 여부 확인. 확인 시 `docs/archive/$ARGUMENTS/` 로 mv 후 front-matter `status: superseded` 로 갱신.
+- `docs/aspirational/**/*.md` — `target_milestone == $ARGUMENTS` 이고 미실현이면 사용자에게 cut 여부 확인. 확인 시 `docs/archive/$ARGUMENTS/` 로 mv 후 front-matter `status: superseded` 로 갱신.
 - `docs/TODO.md` — `[x]` 또는 `~~취소~~` 항목을 한 묶음으로 추출해 `journal/$(date +%Y-%m-%d)-$ARGUMENTS-closure.md` 에 옮긴다.
 - `journal/*.md` — 14일 이상 미수정 + 후속 결정 없는 항목은 `journal/archive/$ARGUMENTS/` 로 mv.
 

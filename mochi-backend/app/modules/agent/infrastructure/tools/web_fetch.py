@@ -119,7 +119,7 @@ class WebFetchTool(Tool[WebFetchInput, WebFetchOutput]):
                 raise ToolExecutionError(self.name, f"DNS resolution failed for {host}") from exc
             seen: set[str] = set()
             for info in infos:
-                addr = info[4][0]
+                addr = str(info[4][0])
                 if addr in seen:
                     continue
                 seen.add(addr)

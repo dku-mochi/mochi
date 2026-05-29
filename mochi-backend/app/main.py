@@ -39,9 +39,9 @@ def create_app() -> FastAPI:
 
     app.add_middleware(RequestContextMiddleware)
 
-    app.add_exception_handler(DomainError, handle_domain_exception)
-    app.add_exception_handler(StarletteHTTPException, handle_http_exception)
-    app.add_exception_handler(RequestValidationError, handle_validation_exception)
+    app.add_exception_handler(DomainError, handle_domain_exception)  # type: ignore[arg-type]
+    app.add_exception_handler(StarletteHTTPException, handle_http_exception)  # type: ignore[arg-type]
+    app.add_exception_handler(RequestValidationError, handle_validation_exception)  # type: ignore[arg-type]
     app.add_exception_handler(Exception, handle_unhandled_exception)
 
     app.include_router(build_v1_router())

@@ -2,7 +2,7 @@ import hashlib
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -17,6 +17,7 @@ from app.modules.mochi_items.domain.entities import (
 )
 from app.modules.mochi_items.domain.ports import MochiItemRepository
 from app.modules.mochi_items.infrastructure.orm import (
+    EntityRow,
     IdempotencyKeyRow,
     MochiItemImageRefRow,
     MochiItemRow,
@@ -87,7 +88,7 @@ class PostgresMochiItemRepository(MochiItemRepository):
             created_at=item.created_at,
             updated_at=item.updated_at,
         )
-        row.id = item.id  # type: ignore[assignment]
+        row.id = item.id
         for img in item.source.image_refs:
             row.image_refs.append(
                 MochiItemImageRefRow(
@@ -178,6 +179,62 @@ class PostgresMochiItemRepository(MochiItemRepository):
         )
         rows = (await self._session.scalars(stmt)).all()
         return [_row_to_entity(r) for r in rows]
+
+    async def count(self, *, owner_id: UUID) -> int:
+        stmt = select(func.count()).select_from(MochiItemRow).where(MochiItemRow.owner_id == owner_id)
+        return int((await self._session.execute(stmt)).scalar_one())
+
+    async def apply_analysis(
+        self,
+        *,
+        owner_id: UUID,
+        mochi_item_id: UUID,
+        intent: Intent,
+        secondary_intents: tuple[Intent, ...],
+        intent_applicability: dict[Intent, float],
+        summary: str,
+        importance: int,
+        confidence: float,
+        model_version: str,
+        entities: tuple[tuple[str, str], ...],
+    ) -> None:
+        stmt = select(MochiItemRow).where(
+            MochiItemRow.id == mochi_item_id, MochiItemRow.owner_id == owner_id
+        )
+        row = (await self._session.scalars(stmt)).one_or_none()
+        if row is None:
+            return
+
+        row.intent = intent.value
+        row.secondary_intents = [s.value for s in secondary_intents]
+        row.intent_applicability = {k.value: v for k, v in intent_applicability.items()}
+        row.summary = summary
+        row.importance = importance
+        row.confidence = confidence
+        row.model_version = model_version
+        row.updated_at = datetime.utcnow()
+
+        # 분석 완료 → lifecycle 확립. 정책(INGESTED→ANALYZING→ACTIVE)의 2단계를
+        # is_allowed 로 검증한다 (직접 INGESTED→ACTIVE 쌍은 정책상 불허이므로 우회 금지).
+        from app.modules.intents.domain.lifecycle_policy import is_allowed
+
+        current = LifecycleState(kind=LifecycleStateKind(row.lifecycle_kind))
+        analyzing = LifecycleState(kind=LifecycleStateKind.ANALYZING)
+        active = LifecycleState(kind=LifecycleStateKind.ACTIVE)
+        if current.kind is LifecycleStateKind.INGESTED and is_allowed(intent, current, analyzing):
+            current = analyzing
+        if current.kind is LifecycleStateKind.ANALYZING and is_allowed(intent, current, active):
+            row.lifecycle_kind = LifecycleStateKind.ACTIVE.value
+
+        # entities 재적재 — 재분석 시 멱등.
+        await self._session.execute(
+            delete(EntityRow).where(EntityRow.mochi_item_id == mochi_item_id)
+        )
+        for kind, value in entities:
+            self._session.add(
+                EntityRow(mochi_item_id=mochi_item_id, kind=kind[:16], value=value[:512])
+            )
+        await self._session.flush()
 
     async def already_ingested(self, *, owner_id: UUID, idempotency_key: str) -> MochiItem | None:
         scoped_key = self._scope_idempotency_key(owner_id=owner_id, raw_key=idempotency_key)

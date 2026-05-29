@@ -20,6 +20,7 @@ class ExtractedEntityDTO(BaseModel):
 class MultimodalAnalyzeOutput(BaseModel):
     summary: str
     intent: Intent
+    secondary_intents: list[Intent] = Field(default_factory=list)
     entities: list[ExtractedEntityDTO] = Field(default_factory=list)
     tags: list[str] = Field(default_factory=list)
     importance: int = 3

@@ -23,7 +23,7 @@ bash .claude/scripts/audit.sh <l1|l2|l3|all>
 
 대상 범위:
 - `l1` — `docs/WORKFLOW.md`, `docs/PRODUCT.md`, `docs/HARNESS_GUIDE.md`, `docs/INDEX.md`
-- `l2` — `docs/ARCHITECTURE.md`, `docs/DOMAIN_DESIGN.md`, `docs/PRIVACY_SENSITIVE_CAPTURE.md` (`l2/aspirational/` 는 제외 — 별도 의식인 `/sprint-end` 가 처리)
+- `l2` — `docs/ARCHITECTURE.md`, `docs/DOMAIN_DESIGN.md`, `docs/PRIVACY_SENSITIVE_CAPTURE.md` (`aspirational/` 는 제외 — 별도 의식인 `/sprint-end` 가 처리)
 - `l3` — `docs/TODO.md`, `docs/CHANGELOG.md`, `journal/*.md`
 - `all` — 위 셋 모두
 

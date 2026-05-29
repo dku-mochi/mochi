@@ -378,7 +378,13 @@ iOS `CoreNetworking.MochiAPIClient` 의 DTO 가 backend `openapi.json` 의 스�
 ### 5.4 `Tool` (Pydantic 기반 타입 안전)
 
 - `TIn`, `TOut` 두 Pydantic 모델로 generic. `schema()` 가 Gemini function-calling 용 JSON Schema 자동 생성.
-- 현재 wire: `WebFetchTool`, `EmbedTool`, `MultimodalAnalyzeTool`
+- agent loop 가 LLM 에 광고하는 호출 도구는 `WebFetchTool` (URL 그라운딩) 하나. `EmbedTool`/`MultimodalAnalyzeTool` 은 스키마 재사용·후속 wire 용으로 보존.
+
+### 5.5 Agent loop & 개인화 (Arch2 — LLM = 분석가)
+
+- **`GeminiAgentClient(LLMClient)`** (`gemini-3.1-flash-lite`/global) — function-calling 루프. LLM 이 분석가: `finalizeAnalysis` 로 구조화 분석(summary·intent·secondary·entities)을 직접 저술, `webFetch` 로 URL 그라운딩. orchestrator 의 `ANALYZED` 노드가 루프를, `PERSISTED` 노드가 `MochiItemGateway.apply_analysis` write-back(+lifecycle `→active`)을 담당.
+- **개인화**: `user_profiles` 에 유저 특성 요약(관심사·평소 분류 성향)을 sliding-window 로 적립(`RefreshUserProfile`, 디바운스), 분석 시 system prompt 에 주입 → 쓸수록 정확. 상세 흐름은 `DOMAIN_DESIGN.md §8.2`.
+- text+URL = 실연결. 이미지 bytes 분석·임베딩 적재(INDEXED)는 design-ahead.
 
 ---
 
@@ -409,7 +415,9 @@ iOS `CoreNetworking.MochiAPIClient` 의 DTO 가 backend `openapi.json` 의 스�
 | Backend FastAPI 진입 | `mochi-backend/app/main.py`, `mochi-backend/app/api.py` |
 | Backend 도메인 | `mochi-backend/app/modules/*/domain/` |
 | Backend 마이그레이션 | `mochi-backend/alembic/versions/` |
-| Backend 워커 | `mochi-backend/app/modules/agent/application/mochi_worker.py` |
+| Backend 워커 | `mochi-backend/app/modules/agent/application/mochi_item_worker.py` |
+| Backend agent loop | `mochi-backend/app/modules/agent/infrastructure/gemini_agent_client.py`, `application/orchestrator.py` |
+| Backend 개인화 | `mochi-backend/app/modules/agent/application/refresh_user_profile.py`, `infrastructure/profile_store.py` |
 | OpenAPI 스펙 | `mochi-backend/openapi.json` (정적 추출, `make openapi` 로 갱신) |
 
 — 끝 —

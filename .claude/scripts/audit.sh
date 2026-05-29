@@ -62,8 +62,8 @@ echo
 echo "| 파일 | level | 현재 conf | 제안 conf | 강등 사유 |"
 echo "|---|---|---|---|---|"
 
-declare -a STOP_LIST
-declare -a DRIFT_LIST
+declare -a STOP_LIST=()
+declare -a DRIFT_LIST=()
 
 # L2 committed 코드 정합 검사 규칙 — 확장 가능한 매핑.
 # 형식: "<docs 식별자>|<grep 패턴>|<코드 search root>|<강등량>|<드리프트 메시지>"

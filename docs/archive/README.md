@@ -26,7 +26,7 @@ description: docs/archive/ — 분기 마감되거나 superseded 된 문서가 �
 ## 들어오면 안 되는 것
 
 - 현재 결정 대기 중인 known-drift — 그건 `CHANGELOG.md` 의 활성 영역에 남긴다.
-- aspirational 이지만 미실현 — 그건 `docs/l2/aspirational/` 의 `target_milestone` 만료 처리.
+- aspirational 이지만 미실현 — 그건 `docs/aspirational/` 의 `target_milestone` 만료 처리.
 
 ## 루트 `archive/` 와 구분
 

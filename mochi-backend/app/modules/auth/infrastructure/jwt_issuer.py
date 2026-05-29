@@ -1,6 +1,7 @@
 """자체 발행 access JWT (HS256) — PyJWT 기반 ``AccessTokenIssuer`` 구현."""
 
 from datetime import datetime, timedelta
+from typing import Any
 from uuid import UUID, uuid4
 
 import jwt
@@ -82,5 +83,5 @@ class HS256AccessTokenIssuer(AccessTokenIssuer):
             ) from exc
 
     # Borrowing for fakes — exposed only for tests in this package.
-    def _decode_unverified(self, token: str) -> dict:  # pragma: no cover - debug only
+    def _decode_unverified(self, token: str) -> dict[str, Any]:  # pragma: no cover - debug only
         return jwt.decode(token, options={"verify_signature": False})

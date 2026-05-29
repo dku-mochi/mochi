@@ -28,7 +28,7 @@ This file provides guidance to Codex when working in this repository.
 ## docs 읽기 룰 (codex 가 작업 시작 시 따를 것)
 
 - `docs/INDEX.md` 가 path-first 길잡이 — 어떤 디렉토리를 읽고 어떤 디렉토리를 skip 할지 path 만으로 결정.
-- `docs/archive/**`, `docs/l2/aspirational/**`, 루트 `archive/**` — **default skip**. 명시 요청 시만 읽는다.
+- `docs/archive/**`, `docs/aspirational/**`, 루트 `archive/**` — **default skip**. 명시 요청 시만 읽는다.
 - `docs/*.md` 의 front-matter `mode`:
   - `committed` 만 코드 정합 검증 대상 (P1).
   - `aspirational` 은 검증 외 (단, `target_milestone` 만료 시 강등 후보).

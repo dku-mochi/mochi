@@ -1,7 +1,7 @@
 import uuid
 
 from fastapi import Request
-from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.responses import Response
 
 from app.core.logging import bind_contextvars, clear_contextvars, get_logger
@@ -20,7 +20,7 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
     - 응답 헤더에도 동일 값 echo
     """
 
-    async def dispatch(self, request: Request, call_next):  # type: ignore[override]
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         request_id = request.headers.get(REQUEST_ID_HEADER) or uuid.uuid4().hex
         idempotency_key = request.headers.get(IDEMPOTENCY_KEY_HEADER)
 

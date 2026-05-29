@@ -4,6 +4,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Header, status
 from fastapi.responses import Response
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
 from app.core.deps import DBSession
@@ -42,7 +43,7 @@ auth_router = APIRouter(prefix="/auth", tags=["auth"])
 users_router = APIRouter(prefix="/users", tags=["users"])
 
 
-def _build_sign_in(db) -> SignIn:
+def _build_sign_in(db: AsyncSession) -> SignIn:
     return SignIn(
         verifier=get_id_token_verifier(),
         users=PostgresUserRepository(db),
@@ -52,7 +53,7 @@ def _build_sign_in(db) -> SignIn:
     )
 
 
-def _build_rotate(db) -> RotateRefreshToken:
+def _build_rotate(db: AsyncSession) -> RotateRefreshToken:
     return RotateRefreshToken(
         refresh_tokens=PostgresRefreshTokenRepository(db),
         users=PostgresUserRepository(db),
@@ -61,14 +62,14 @@ def _build_rotate(db) -> RotateRefreshToken:
     )
 
 
-def _build_logout(db) -> Logout:
+def _build_logout(db: AsyncSession) -> Logout:
     return Logout(
         refresh_tokens=PostgresRefreshTokenRepository(db),
         refresh_issuer=get_refresh_token_issuer(),
     )
 
 
-def _build_dev_sign_in(db) -> DevSignIn:
+def _build_dev_sign_in(db: AsyncSession) -> DevSignIn:
     return DevSignIn(
         users=PostgresUserRepository(db),
         refresh_tokens=PostgresRefreshTokenRepository(db),

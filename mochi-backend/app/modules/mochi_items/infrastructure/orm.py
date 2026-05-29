@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any
 from uuid import UUID, uuid4
 
 from pgvector.sqlalchemy import Vector
@@ -127,4 +128,4 @@ class ToolCallRow(Base):
     tokens_out: Mapped[int] = mapped_column(Integer, default=0)
     latency_ms: Mapped[int] = mapped_column(Integer, default=0)
     succeeded: Mapped[bool] = mapped_column(default=True)
-    extra: Mapped[dict | None] = mapped_column(JSON, default=None)
+    extra: Mapped[dict[str, Any] | None] = mapped_column(JSON, default=None)

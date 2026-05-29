@@ -51,7 +51,7 @@ class _JwksCache:
             return cached[0]
         response = await http_client.get(url, timeout=5.0)
         response.raise_for_status()
-        jwks = response.json()
+        jwks: dict[str, Any] = response.json()
         self._cache[url] = (jwks, now + _JWKS_CACHE_TTL)
         return jwks
 
@@ -69,7 +69,7 @@ def _signing_key_from_jwk(jwk: dict[str, Any]) -> Any:
 
 
 def _find_jwk(jwks: dict[str, Any], kid: str | None) -> dict[str, Any]:
-    keys = jwks.get("keys", [])
+    keys: list[dict[str, Any]] = jwks.get("keys", [])
     if kid is None:
         if len(keys) == 1:
             return keys[0]

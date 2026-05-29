@@ -1,9 +1,10 @@
 """SQLAlchemy 기반 ``UserRepository`` + ``RefreshTokenRepository`` 구현."""
 
 from datetime import datetime
+from typing import Any, cast
 from uuid import UUID
 
-from sqlalchemy import select, update
+from sqlalchemy import CursorResult, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.auth.domain.entities import (
@@ -190,7 +191,7 @@ class PostgresRefreshTokenRepository(RefreshTokenRepositoryPort):
             .where(RefreshTokenRow.used_at.is_(None))
             .values(used_at=used_at)
         )
-        result = await self._session.execute(stmt)
+        result = cast(CursorResult[Any], await self._session.execute(stmt))
         return (result.rowcount or 0) > 0
 
     async def revoke(
@@ -221,5 +222,5 @@ class PostgresRefreshTokenRepository(RefreshTokenRepositoryPort):
             .where(RefreshTokenRow.revoked_at.is_(None))
             .values(revoked_at=revoked_at, revoked_reason=reason.value)
         )
-        result = await self._session.execute(stmt)
+        result = cast(CursorResult[Any], await self._session.execute(stmt))
         return result.rowcount or 0

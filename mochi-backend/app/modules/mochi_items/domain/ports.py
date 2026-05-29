@@ -31,6 +31,24 @@ class MochiItemRepository(Protocol):
     ) -> None: ...
     async def list_recent(self, *, owner_id: UUID, limit: int) -> list[MochiItem]: ...
     async def list_by_intent(self, *, owner_id: UUID, intent: Intent, limit: int) -> list[MochiItem]: ...
+    async def count(self, *, owner_id: UUID) -> int: ...
+    async def apply_analysis(
+        self,
+        *,
+        owner_id: UUID,
+        mochi_item_id: UUID,
+        intent: Intent,
+        secondary_intents: tuple[Intent, ...],
+        intent_applicability: dict[Intent, float],
+        summary: str,
+        importance: int,
+        confidence: float,
+        model_version: str,
+        entities: tuple[tuple[str, str], ...],
+    ) -> None:
+        """Agent 분석 결과를 write-back 한다 — 분석 필드 갱신 + entities 재적재 +
+        lifecycle 를 분석 완료 상태(ACTIVE)로 확립."""
+        ...
     async def already_ingested(self, *, owner_id: UUID, idempotency_key: str) -> MochiItem | None: ...
     async def remember_idempotency(
         self,

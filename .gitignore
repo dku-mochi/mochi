@@ -9,6 +9,7 @@ tmp/
 _workspace/
 *.log
 *.tmp
+.playwright-mcp/
 
 # lab 실험 데이터 (개인 스크린샷 등 — git 추적 금지, 별도 공유)
 lab/data/

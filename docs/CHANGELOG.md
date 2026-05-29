@@ -13,6 +13,16 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 > 모찌 저장소의 의미 있는 변경 이력. 새 항목은 항상 **맨 위**에 추가한다.
 > 범위는 `ios` / `backend` / `docs` / `infra` 중 하나 이상. "왜" 가 자명하지 않으면 한 줄 이유를 덧붙인다.
 
+## 2026-05-29 — backend, docs
+
+- **Agent 분석 파이프라인을 실제 Gemini agentic loop 로 연결** (핵심 가치 "AI 가 분석한다" 구현). 그동안 `orchestrator` 의 `ANALYZED`/`INDEXED` 노드가 `pass`, 워커는 `_NullLLM`, 스트림 라우터는 `_UnconfiguredLLM` 이라 ingest 된 항목이 분석 없이 `intent=MEMO, summary=None` 으로 남던 도넛 구조를 해소.
+  - **Arch2 (LLM = 분석가)**: Gemini 가 `finalizeAnalysis` 로 구조화 분석(summary·intent·secondary·entities·importance·confidence)을 직접 저술하고, 능동 호출 도구는 URL 그라운딩용 `webFetch` 하나. 새 `GeminiAgentClient(LLMClient)` 가 function-calling 루프를 캡슐화(`gemini_classifier.py` 패턴 재사용, `tool_config=ANY` 로 매 turn 진행 강제, `max_steps` 상한).
+  - **write-back**: `MochiItemRepository.apply_analysis` + `MochiItemGateway`(agent→mochi_items.application 경계) 로 분석 결과를 row 에 적재 + `entities` 재적재 + lifecycle `INGESTED→ANALYZING→ACTIVE` 확립. `MochiItemResponse` 가 이미 해당 필드를 노출하므로 GET 이 그대로 반영(openapi·iOS 폭포 없음).
+  - **모델 = `gemini-3.1-flash-lite` (global)** — 비용 최우선(백탭 분류와 동일). `gemini_agent_model`/`gemini_agent_location` 로 스왑 가능.
+  - **Gemini 3 thought_signature echo**: 멀티턴(webFetch 후)에서 직전 functionCall part 에 `thought_signature` 를 되돌려보내야 400 이 안 난다(thinking_budget=0 이어도 필수). chunk→parts→`_to_contents` 로 thread. 라이브(`lab/agent_loop_live_test.py`)로 검증 — text(할 일/지식)·URL(webFetch 그라운딩) 모두 정상 분석, 마감일·토픽 entity 추출 확인.
+- **사용자 맞춤형 개인화 프로필** (쓸수록 좋아진다). 최근 입력의 sliding window 에서 "유저 특성 요약(관심사·평소 분류 성향)"을 flash-lite 로 생성해 `user_profiles` 테이블(alembic 0007)에 적립하고, 분석 시 system prompt 에 주입. 워커가 분석 성공 후 디바운스(`profile_refresh_every_n_items` 개마다) 갱신. override 정정은 다음 window 에 자연히 반영. 추상 요약만 저장(raw 미보관) + owner 격리.
+- 검증: `make test` 88 passed(+8), `make lint` clean, `make typecheck` 내 코드 0 에러(순부채 35→21), alembic 0007 up/down/up 왕복 무결. (`make openapi` 는 라우트/응답 스키마 무변경이라 byte-identical 예상.)
+
 ---
 
 ## 2026-05-29 — infra

@@ -17,15 +17,22 @@ from uuid import UUID
 from sqlalchemy import bindparam, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import get_settings
 from app.core.db import get_session_factory
+from app.core.deps import get_agent_llm, get_profile_summarizer
 from app.core.logging import get_logger
 from app.modules.agent.application.orchestrator import AgentOrchestrator, AgentRunPersistence
+from app.modules.agent.application.refresh_user_profile import RefreshUserProfile
+from app.modules.agent.infrastructure.mochi_item_gateway import MochiItemGatewayAdapter
+from app.modules.agent.infrastructure.profile_store import PostgresUserProfileStore
 from app.modules.agent.infrastructure.registry import StaticToolRegistry
 
 log = get_logger("agent.worker")
 
 POLL_INTERVAL_SECONDS = 5
-LOCK_DURATION_SECONDS = 60
+# lock 은 한 건의 최대 처리시간(agent_total_timeout + 프로필 refresh)보다 길어야 한다.
+# 그렇지 않으면 처리 중에 lock 이 만료돼 다른 워커가 같은 행을 reclaim → 이중 실행.
+LOCK_DURATION_SECONDS = 180
 MAX_ATTEMPTS = 5
 
 
@@ -82,16 +89,43 @@ class MochiItemWorker:
 
     async def _handle(self, claimed: "ClaimedOutbox") -> None:
         session_factory = get_session_factory()
+        settings = get_settings()
         async with session_factory() as session:
+            gateway = MochiItemGatewayAdapter(session)
+            profile_store = PostgresUserProfileStore(session)
             orchestrator = AgentOrchestrator(
-                llm=_NullLLM(),
+                llm=get_agent_llm(),
                 tools=StaticToolRegistry(),
                 max_steps=self._max_steps,
                 persistence=AgentRunPersistence(session),
+                gateway=gateway,
+                profile_store=profile_store,
             )
             try:
-                async for _event in orchestrator.run(claimed.mochi_item_id):
-                    pass
+                # 전체 실행 상한 — lock(LOCK_DURATION_SECONDS)보다 짧게 강제해 mid-run reclaim 방지.
+                await asyncio.wait_for(
+                    _drain(orchestrator, claimed.mochi_item_id, claimed.owner_id),
+                    timeout=settings.agent_total_timeout_seconds,
+                )
+                # 개인화 프로필 디바운스 갱신 — best-effort (실패해도 분석은 이미 완료·커밋됨).
+                try:
+                    await RefreshUserProfile(
+                        gateway=gateway,
+                        store=profile_store,
+                        summarizer=get_profile_summarizer(),
+                        window_size=settings.profile_window_size,
+                        refresh_every_n=settings.profile_refresh_every_n_items,
+                        model_version=settings.gemini_agent_model,
+                    ).run(owner_id=claimed.owner_id)
+                except Exception as exc:  # noqa: BLE001
+                    # 프로필 flush 실패가 세션을 오염시키면 이후 outbox UPDATE 가 PendingRollbackError
+                    # 로 연쇄 실패한다 → rollback 으로 세션을 복구한 뒤 진행 (분석은 이미 커밋됨).
+                    await session.rollback()
+                    log.warning(
+                        "profile.refresh_failed",
+                        owner_id=str(claimed.owner_id),
+                        exception=str(exc),
+                    )
                 await session.execute(
                     text("UPDATE mochi_item_outbox SET status='done' WHERE id=:id").bindparams(id=claimed.id)
                 )
@@ -119,9 +153,7 @@ class ClaimedOutbox:
         self.attempts = attempts
 
 
-class _NullLLM:
-    """워커가 deterministic 시퀀스만 흘리도록 하는 placeholder."""
-
-    async def stream(self, **_: object):
-        if False:
-            yield None  # type: ignore[unreachable]
+async def _drain(orchestrator: AgentOrchestrator, mochi_item_id: UUID, owner_id: UUID) -> None:
+    """orchestrator.run 의 StreamEvent 를 소비한다 (워커는 SSE 를 흘리지 않음)."""
+    async for _event in orchestrator.run(mochi_item_id, owner_id):
+        pass

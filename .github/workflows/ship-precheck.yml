@@ -29,6 +29,15 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: 백엔드 의존성 설치 (lint/typecheck 도구)
+        run: uv sync --frozen
+        working-directory: mochi-backend
+
       - name: 실행 권한 확인
         run: |
           set -e

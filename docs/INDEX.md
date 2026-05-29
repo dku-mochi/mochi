@@ -22,7 +22,7 @@ description: 모찌 docs/ 의 path-first 길잡이. AI 가 파일을 열기 전 
 | `docs/ARCHITECTURE.md` | L2 committed — 시스템 토폴로지·API 계약 | 두 프로젝트에 걸친 변경 시 |
 | `docs/DOMAIN_DESIGN.md` | L2 committed — 도메인·DB·4-Intent | 도메인/마이그레이션 변경 시 |
 | `docs/PRIVACY_SENSITIVE_CAPTURE.md` | L2 committed — 민감 캡처 보호 | 캡처 ingestion/저장 경로 변경 시 |
-| `docs/l2/aspirational/` | L2 aspirational — *목표 상태* (검증 대상 외) | **default skip**. 명시 요청 시만. |
+| `docs/aspirational/` | L2 aspirational — *목표 상태* (검증 대상 외) | **default skip**. 명시 요청 시만. |
 | `docs/TODO.md` | L3 — 외부 설정·비밀 체크리스트 | 인증/외부 통합 작업 시 |
 | `docs/CHANGELOG.md` | L3 log — 변경 이력 (append-only) | 최근 변경 맥락 확인 시 |
 | `docs/archive/` | 분기 마감되거나 superseded | **default skip**. 과거 추적이 명시 필요할 때만. |
@@ -43,4 +43,4 @@ description: 모찌 docs/ 의 path-first 길잡이. AI 가 파일을 열기 전 
 1. front-matter 6개 필드 채우기: `level`, `mode`, `status`, `last_verified`, `confidence`, `description`.
 2. `description` 은 "**언제 이 문서를 읽어야 하는가**" 를 한 줄로. AI 트리거 조건이다.
 3. 이 INDEX 에 한 줄 추가.
-4. 적절한 디렉토리에 둔다 (현재는 path 기반 분리가 lite — `l2/aspirational/` 만 분리, 나머지는 front-matter 의 `mode` 로 판정).
+4. 적절한 디렉토리에 둔다 (현재는 path 기반 분리가 lite — `aspirational/` 만 분리, 나머지는 front-matter 의 `mode` 로 판정).

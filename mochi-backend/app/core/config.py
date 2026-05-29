@@ -42,6 +42,15 @@ class Settings(BaseSettings):
     agent_step_timeout_seconds: float = 30.0
     agent_total_timeout_seconds: float = 120.0
 
+    # Agent loop LLM (function-calling 분석) — 비용 최우선: 백탭 분류와 동일 flash-lite/global.
+    # 함수호출 신뢰도가 부족하면 .env 로 gemini-3.1-flash 등으로 상향 가능.
+    gemini_agent_model: str = "gemini-3.1-flash-lite"
+    gemini_agent_location: str = "global"
+
+    # 사용자 개인화 프로필 (sliding-window 특성 요약)
+    profile_window_size: int = 20              # 요약에 넣을 최근 항목 수
+    profile_refresh_every_n_items: int = 5     # 마지막 갱신 이후 N개 쌓이면 재요약 (비용 bound)
+
     # WebFetch tool guards
     web_fetch_max_bytes: int = 2 * 1024 * 1024
     web_fetch_timeout_seconds: float = 8.0

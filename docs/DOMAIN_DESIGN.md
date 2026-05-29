@@ -586,6 +586,18 @@ CREATE TABLE tool_calls (
 CREATE INDEX idx_tc__run ON tool_calls(agent_run_id);
 CREATE INDEX idx_tc__msg ON tool_calls(message_id);
 
+-- 사용자 개인화 프로필 (alembic 0007). owner 당 1행.
+-- agent loop 가 분석 시 system prompt 에 주입하는 "관심사·평소 분류 성향" 요약.
+-- 최근 입력 sliding window 에서 flash-lite 로 생성, 추상 요약만 저장(raw 미보관).
+CREATE TABLE user_profiles (
+    owner_id      uuid PRIMARY KEY,            -- == users(id), owner 격리
+    summary       text NOT NULL,               -- 자연어 특성 요약
+    model_version varchar(64) NOT NULL,
+    items_covered int  NOT NULL DEFAULT 0,     -- 마지막 요약 시점 누적 항목 수 (디바운스 기준)
+    refreshed_at  timestamptz,
+    created_at    timestamptz NOT NULL DEFAULT now()
+);
+
 CREATE TABLE idempotency_keys (
     id                     text PRIMARY KEY,           -- 'scope:user_id:sha256'
     user_id                uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -787,36 +799,39 @@ async with db_session() as s:
 return 201
 ```
 
-### 8.2 Agent Worker
+### 8.2 Agent Worker (Arch2 — LLM = 분석가)
+
+워커는 outbox 를 폴링해 항목당 `AgentOrchestrator` 를 실행한다. 분석은 결정적 파이프라인이
+아니라 **Gemini function-calling agent loop** 다 (`GeminiAgentClient`, 모델 `gemini-3.1-flash-lite`/global).
 
 ```python
-while True:
-    rows = await pick_outbox_lease(s, lease_owner=POD_ID, lease_ms=60_000, limit=8)
-    for row in rows:
-        try:
-            async with s.begin():
-                run = await insert_agent_run(s, row.mochi_item_id, attempt=row.attempt+1)
-                await update_mochi(s, row.mochi_item_id, lifecycle='analyzing')
+# AgentOrchestrator.run(mochi_item_id, owner_id) — ANALYZED 노드
+profile = profile_store.get(owner_id)                 # 개인화 컨텍스트 (없으면 cold-start)
+system  = CLASSIFY_AND_ACT_V2 + profile_preamble(profile)
+parts   = [user(text · user_memo · url)]
+for _ in range(max_steps):                            # tool_config=ANY → 매 turn 함수호출 강제
+    turn = await collect(llm.stream(system, parts, tools=[webFetch], ...))
+    if turn.final_payload:                            # 모델이 finalizeAnalysis 호출 → 종료
+        analysis = parse(turn.final_payload); break
+    if turn.tool_to_call == webFetch:                 # 모델이 URL 그라운딩 결정
+        out = await webFetch(args)
+        parts += [model.function_call, user.function_response(out)]; continue
+if analysis is None: raise                            # graceful → outbox 재시도/DLQ
 
-            analysis  = await gemini_multimodal(mi)
-            chunks    = chunk_text(mi.text, ...)
-            vectors   = await embed_chunks(chunks)
+# PERSISTED 노드: write-back (gateway → mochi_items.application)
+apply_analysis(owner, id, analysis)   # intent/secondary/applicability/summary/importance/confidence
+                                      # + entities 재적재 + lifecycle INGESTED→ANALYZING→ACTIVE
 
-            async with s.begin():
-                await insert_mochi_analysis(s, run.id, analysis)
-                await delete_entities(s, mi.id);  await bulk_insert_entities(s, mi.id, analysis.entities)
-                await delete_actions(s, mi.id);   await bulk_insert_actions(s, mi.id, analysis.actions)
-                await upsert_embeddings(s, mi.id, vectors)
-                await delete_derived(s, mi.id);   await insert_derived(s, mi.id, analysis.intent, analysis)
-                await update_mochi(s, mi.id, intent=analysis.intent, lifecycle='active',
-                                   importance_score=..., intent_confidence=...)
-                await refresh_search_index(s, mi.id, user.id)
-                await delete_outbox(s, mi.id)             # done → 즉시 삭제
-        except Exception as e:
-            await handle_failure(s, row, e)
-            # attempt < max  → status='pending', exponential backoff
-            # attempt = max  → dead_letters INSERT + mochi.lifecycle='failed'
+# 분석 성공 후: 개인화 프로필 디바운스 갱신 (best-effort)
+RefreshUserProfile.run(owner)   # 누적 N개마다 최근 window 재요약 → user_profiles upsert
 ```
+
+각 노드 전환·도구 호출(`tool_started`/`tool_finished`)은 `StreamEvent` 로 SSE 노출
+(`GET /mochi_items/{id}/stream`). 실패 시 워커가 outbox 재시도(backoff), `MAX_ATTEMPTS` 초과 시
+`dead_letter`.
+
+> **현재 wire 상태**: text+URL 분석·write-back·개인화 프로필 = 실연결. 이미지 bytes 분석(blob
+> storage 의존)·임베딩 적재(INDEXED 노드)·actions 파생은 design-ahead — 후속 단계.
 
 ### 8.3 Hybrid Search
 

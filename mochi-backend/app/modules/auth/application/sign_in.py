@@ -29,6 +29,7 @@ from app.modules.auth.domain.ports import (
     RefreshTokenRepository,
     UserRepository,
 )
+from app.shared.ids import UserID
 
 
 @dataclass(frozen=True, slots=True)
@@ -152,7 +153,7 @@ class SignIn:
     async def _issue_tokens(
         self,
         *,
-        user_id_,
+        user_id_: UserID,
         device_label: str | None,
         user_agent: str | None,
     ) -> AuthTokens:
