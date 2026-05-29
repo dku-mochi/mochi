@@ -12,6 +12,26 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 > 모찌 저장소의 의미 있는 변경 이력. 새 항목은 항상 **맨 위**에 추가한다.
 > 범위는 `ios` / `backend` / `docs` / `infra` 중 하나 이상. "왜" 가 자명하지 않으면 한 줄 이유를 덧붙인다.
+>
+> **동시 세션 / 공유 파일 주의**: CHANGELOG 는 여러 세션·작업자가 함께 쓰는 append-only 공유 파일이다. 동시 작업 중에는 다른 세션이 자기 항목을 먼저 커밋할 수 있고, 한 워킹트리에 여러 세션의 미커밋 항목이 섞여 보일 수 있다. 이때 **항목을 분리하려 애쓰지 말고** 자기 변경과 함께 그대로 staging·커밋한다 — 섞인 다른 항목은 해당 세션이 자기 코드와 함께 정리한다. diff 에 모르는 CHANGELOG 항목이 보여도 멈추지 않는다 (단, CHANGELOG 외의 *코드* 파일은 절대 임의로 섞어 커밋하지 않는다).
+
+## 2026-05-30 — backend, infra, docs
+- **캡처 이미지 분석 파이프라인 완성 — Signed URL 업로드 + Gemini `gs://` 직접 read. 서버는 이미지 bytes 를 만지지 않는다.**
+  - `POST /api/v1/mochi_items/presign` 신설 → `{objectKey, uploadURL, expiresAt}`. V4 Signed PUT URL 을 키 파일 없이 SA impersonation(IAM signBlob)으로 발급 (`GCSSignedUrlIssuer`).
+  - `POST /api/v1/mochi_items/back-tap` 계약을 multipart → `application/json {objectKey, sha256, mimeType, byteSize}` 로 변경. 클라가 Signed URL 로 GCS 에 직접 업로드 후 objectKey 만 전달.
+  - `IntentClassifier.classify` 와 agent 분석 모두 `Part.from_uri(gs://…)` 로 전환(이전 `Part.from_bytes`) — Gemini 가 GCS 를 직접 읽는다. `AnalysisInput.images` + orchestrator/`gemini_agent_client` 이미지 주입.
+  - GCP(infra): 버킷 `mochi-captures-axial-device-460408-i9`(asia-northeast3, 비공개), SA `mochi-storage-signer`(버킷 objectAdmin + 사용자 tokenCreator), Vertex AI 서비스 에이전트에 버킷 objectViewer.
+  - **검증**: presign 서명 → GCS PUT 200 → Gemini classify(gs://) 후보 반환 end-to-end 확인. lint/typecheck/88 tests 통과.
+  - 2026-05-29 항목의 "이미지가 본분석에 도달 못 함" 한계 해소. **iOS 측(presign→PUT→objectKey ingest, 백탭 단축어 흐름)은 후속** (TODO §3.5).
+  - **운영 설정 필요**: `.env` 에 `GCS_CAPTURE_BUCKET`, `GCS_SIGNER_SERVICE_ACCOUNT` 추가해야 presign 활성(미설정 시 503).
+  - 워커 기동 단일화: `scripts/run_worker.py` + Makefile `worker` 타깃 삭제, `app/main.py` lifespan(in-process) 을 정본으로. 단일 인스턴스 dev/제출 전제 — 프로덕션 스케일 분리는 후속.
+- **유튜브 enrich 경로 탐색 — "메타데이터 1차, 무거운 경로는 fallback" 결정** (`lab/active/youtube-enrich/`). 동기: 사용자(기획자)가 "스크린샷/링크에서 사용자가 직접 할 일을 최대한 줄인다"는 관점에서 유튜브 콘텐츠 enrich 플로우(규칙기반 + Agent 혼합)를 제안. **사전 조사**로 무거운 경로를 먼저 기각: (1) Gemini 멀티모달(YouTube URL 직접 입력)은 영상 토큰화 ~300 tok/s(low 100) → 10분=6만~18만 토큰, 지금은 프리뷰 무료지만 GA 시 비용 폭발 + 프리뷰 의존 리스크, (2) 자막은 공식 `captions.download` 가 OAuth+본인 영상만이고 무키 `youtube-transcript-api` 는 클라우드(GCP/AWS) IP 차단 → residential proxy 필수 = 지속성 취약. → **메타(oEmbed 무키 제목·채널 + watch page `shortDescription` 전체·길이·자막유무)를 1차 경로**로 채택(공식·무키·클라우드 OK). **검증**: 다양한 장르 13개 URL(리뷰·운동·강의·여행·먹방·쇼츠·음악)에서 메타 추출 13/13, flash-lite intent 분류·요약 13/13, **비용 ~$0.00013/건**(멀티모달 대비 수십~수백 배↓), 요약이 메타만으로 가게명·위치("역삼동 오다리집")까지 추출. `sufficient`(메타만으로 충분=fallback 회피) 본 데이터 100%이나 **데이터 편향**(검색 상위=설명 풍부) 인지 → `ablation_sufficiency.py` 로 판정기 검증: 설명 빈/모호 제목 5케이스 중 3건 `false`(제목에 단서 있으면 충분, 제목조차 모호하면 fallback), conf 0.9 vs 0.1~0.2 로 갈려 **fallback 트리거 신호로 사용 가능**. 잠정 결론: URL 케이스는 메타로 대부분 구제, 진짜 사용자 fallback 은 *제목조차 모호한 극소수*(= 사용자가 짚은 "추론 불가" 케이스와 일치). **미해결(후속)**: 실사용 분포로 진짜 fallback 율 측정(현재는 편향), 이미지→videoID 복원(URL 없는 스크린샷 케이스), 규칙 라우터의 플랫폼/민감신호 분기. (도메인/프로덕션 배선은 본 실험 범위 밖.)
+- **유튜브 스크린샷 → 비전 맥락추출 + URL 복원 (위 실험의 이미지 케이스 후속)** (`lab/active/youtube-enrich/image_context_bench.py`). URL 없는 실제 스샷 8장: **[1]** flash-lite Vision 만으로 맥락(제목·채널·intent·요약) **7/8(88%) 충분** — `@handle`·오버레이·자막을 읽어 intent 도 정확(8517 '구매 고려'=todo). 실패 1건은 영상 전체화면이라 유튜브 제목·채널 UI 가 화면에 없는 경우(터미널 영상)로, 비전이 `suf=false`+정확한 사유로 자기 한계 정직 인지. **[2]** 비전 단서로 무키 youtube 검색(`/results`)→첫 videoId→oEmbed 복원: videoId **8/8 발견**, 정확도는 제목 자카드 자동측정 4/8이나 쇼츠는 화면 오버레이≠공식제목이라 과소평가 — 채널+핵심어 수동검수 **6/8**. 실패 2건=채널 OCR 오독(`@예능감각`←메타코미디클럽)·메타 부재(터미널). **핵심: 비전 충분 ↔ 복원 정확이 같은 뿌리(화면에 제목·채널 단서가 있는가)** — URL 복원은 비전 실패를 구제하는 게 아니라 '단서를 읽은 뒤 더 풍부한 메타가 필요할 때'의 보강. 진짜 fallback(1/8)은 식별 단서 없는 화면 저장. **종합 결론·Agent Tool 적용 설계·타 플랫폼 확장 방향 → `lab/active/youtube-enrich/FINDINGS.md`**. 방향성(사용자 결정): enrich 를 Agent function-calling tool(`youtube_meta`/`youtube_search`/`image_context`)로 배선, 인스타·X·쓰레드도 동일 패턴(비전→단서→복원→메타) 적용 예정.
+
+## 2026-05-29 — backend
+- `MochiItemWorker` 를 `app/main.py` lifespan 에서 백그라운드 태스크로 기동 (in-process `asyncio.create_task` + graceful stop). 이전엔 워커가 어디에서도 인스턴스화되지 않아 outbox 가 `pending` 에 영구 정체 → 분석(요약·엔티티·임베딩) 0건이었다.
+  - **검증**: 정체돼 있던 outbox 행이 `done`(attempts=1) 으로 닫히고 `agent_runs` 1건 생성됨.
+  - **알려진 한계 (후속 필요)**: back-tap 은 이미지를 intent 분류에만 쓰고 `object_key=None` 으로 버리며(`back_tap_ingest.py:90`), 본분석 입력 `AnalysisInput` 에 이미지 필드가 없다(`gateway.py:26`). 그 결과 워커 본분석이 빈 컨텍스트로 돌아 summary 가 `"저장된 항목이 없습니다…"` 로 나옴 — blob storage 배선 + `AnalysisInput` 이미지 경로가 다음 작업.
 
 ## 2026-05-29 — infra, docs
 
