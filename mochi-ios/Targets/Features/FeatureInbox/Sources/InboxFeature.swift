@@ -7,7 +7,7 @@ import CorePersistence
 public struct InboxFeature: Sendable {
     @ObservableState
     public struct State: Equatable, Sendable {
-        public var captures: IdentifiedArrayOf<Capture> = []
+        public var mochiItems: IdentifiedArrayOf<MochiItem> = []
         public var filter: Intent? = nil
         public var isLoading: Bool = false
         public var lastError: String?
@@ -18,12 +18,12 @@ public struct InboxFeature: Sendable {
     public enum Action: Sendable {
         case onAppear
         case filterChanged(Intent?)
-        case capturesLoaded([Capture])
+        case mochiItemsLoaded([MochiItem])
         case loadFailed(String)
-        case captureTapped(Capture.ID)
+        case mochiItemTapped(MochiItem.ID)
     }
 
-    @Dependency(\.captureRepository) var repository
+    @Dependency(\.mochiItemRepository) var repository
 
     public init() {}
 
@@ -34,13 +34,13 @@ public struct InboxFeature: Sendable {
                 state.isLoading = true
                 return .run { [filter = state.filter] send in
                     do {
-                        let list: [Capture]
+                        let list: [MochiItem]
                         if let filter {
                             list = try await repository.listByIntent(filter, limit: 100)
                         } else {
                             list = try await repository.listRecent(limit: 100)
                         }
-                        await send(.capturesLoaded(list))
+                        await send(.mochiItemsLoaded(list))
                     } catch {
                         await send(.loadFailed(String(describing: error)))
                     }
@@ -50,9 +50,9 @@ public struct InboxFeature: Sendable {
                 state.filter = intent
                 return .send(.onAppear)
 
-            case let .capturesLoaded(list):
+            case let .mochiItemsLoaded(list):
                 state.isLoading = false
-                state.captures = IdentifiedArray(uniqueElements: list)
+                state.mochiItems = IdentifiedArray(uniqueElements: list)
                 return .none
 
             case let .loadFailed(message):
@@ -60,11 +60,11 @@ public struct InboxFeature: Sendable {
                 state.lastError = message
                 return .none
 
-            case .captureTapped:
+            case .mochiItemTapped:
                 return .none      // Navigation은 상위 RootFeature가 처리
             }
         }
     }
 }
 
-// Dependency key는 CorePersistence/Sources/CaptureRepositoryDI.swift에서 정의.
+// Dependency key는 CorePersistence/Sources/MochiItemRepositoryDI.swift에서 정의.

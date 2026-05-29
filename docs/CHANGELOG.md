@@ -15,6 +15,14 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 ---
 
+## 2026-05-29 — ios
+- **`capture` → `mochi_item` rename iOS 완결 (B4).** 40 파일 + 디렉토리/파일 rename + `Project.swift`. 모듈 `FeatureCapture`→`FeatureMochiItem`, 도메인 `Capture`→`MochiItem`, 채널/소스 `CaptureChannel`/`CaptureSource`→`IngestChannel`/`IngestSource`, Realm `RealmCapture`→`RealmMochiItem`, 네트워킹 `CaptureDTO`/`CaptureIngestRequest`→`MochiItemDTO`/`MochiItemIngestRequest`, `ingestCapture`/`getCapture`→`ingestMochiItem`/`getMochiItem`.
+  - **wire 계약 정합**: `Citation` `captureID`+`"captureId"` → `mochiItemID`+`"mochiItemId"` (백엔드 CitationDTO 와 일치), URL path `/api/v1/captures`→`/api/v1/mochi_items`.
+  - **캡처 행위 vocab 보존** (의미 분리): 백탭 캡처 서브시스템(AppGroup `captures/` 디렉토리·`captureID` pending-file 핸들, AppIntents `CaptureScreenshotIntent`/`CommitBackTapCaptureIntent`/`QuickCaptureIntent`, `screenshotCaptureID`/`memoCaptureID`, `capturedAt`).
+  - 검증: `tuist generate` ✔; `tuist build` CoreDomain/CorePersistence/CoreNetworking ✔ (도메인·Realm·wire 모듈 컴파일+링크). 전체 앱 link 실패는 `PerceptionCore.Perceptible`/`SwiftUICore`/`CoreAudioTypes` static-link 환경 이슈(rename 무관) → 사용자 Xcode/`tuist test` 최종 확인.
+  - Realm 마이그레이션 불필요(사용자 결정: prod 없음, 앱 삭제·재설치). openapi-check drift 14→12 (iOS captures 계약깨짐 해소, 남은 12=등록된 known-drift).
+  - **잔여**: B5(문서 정합 폭포) — backend+iOS 모두 rename 완료됐으므로 이제 unblocked.
+
 ## 2026-05-29 — backend
 - **`capture` → `mochi_item` rename 백엔드 완결 (B1~B3 묶음).** `capture` = 이미지 캡처 *행위*, `mochi_item` = URL+이미지+링크 통합 *도메인 객체* 로 의미 분리. DOMAIN_DESIGN 의 정규화 모델과 코드 정본을 일치시키고 audit.sh known-drift 를 코드 차원에서 해소.
   - B1 (`f0e3d50`): `app/modules/captures/` → `app/modules/mochi_items/` 디렉토리 mv + 외부 import 갱신.

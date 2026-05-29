@@ -46,7 +46,7 @@ import CorePersistence
 @available(iOS 17.0, *)
 struct BackTapSnippetView: View {
     /// `CaptureScreenshotIntent.perform()` 가 만든 UUID 의 문자열 형태. 캡쳐 분기의 Realm
-    /// `Capture.id` · 백엔드 idempotency key. 메모 분기는 새 UUID 를 발급한다 (P1 #3 invariant —
+    /// `MochiItem.id` · 백엔드 idempotency key. 메모 분기는 새 UUID 를 발급한다 (P1 #3 invariant —
     /// 메모와 캡쳐는 의미상 다른 capture, 같은 ID 재사용 시 Realm `update: .modified` 가 screenshot
     /// row 를 silent overwrite). pending PNG 파일명은 `AppGroup.pendingBackTapPNGFilename(captureID:)`
     /// 로 derive — P2 #10: 파일명 파라미터를 별도 전달하지 않아 parameter 신뢰 문제 차단.

@@ -17,10 +17,10 @@ public extension DependencyValues {
 /// 라이브 클라이언트가 주입되지 않았을 때 즉시 명시적인 에러를 던지는 sentinel.
 public struct NotConfiguredAPIClient: MochiAPIClient {
     public init() {}
-    public func ingestCapture(_ request: CaptureIngestRequest, idempotencyKey: String) async throws -> CaptureDTO {
+    public func ingestMochiItem(_ request: MochiItemIngestRequest, idempotencyKey: String) async throws -> MochiItemDTO {
         throw Self.error
     }
-    public func getCapture(id: UUID) async throws -> CaptureDTO {
+    public func getMochiItem(id: UUID) async throws -> MochiItemDTO {
         throw Self.error
     }
     public func search(query: String, scope: SearchScope) async throws -> SearchResponse {

@@ -8,17 +8,17 @@ import CoreDomain
 ///
 /// **계약 원칙:**
 /// - 모든 요청은 `X-Mochi-Request-ID` 헤더로 분산 추적
-/// - `POST /captures` 는 `Idempotency-Key` 헤더 필수 (owner-scoped)
+/// - `POST /mochi_items` 는 `Idempotency-Key` 헤더 필수 (owner-scoped)
 /// - 에러는 ``APIErrorEnvelope`` 통일 포맷
 ///
 /// **백엔드에 없는 엔드포인트는 이 프로토콜에도 없다.** 분석은 ingest 후 백엔드 outbox/worker가 자동으로 트리거하고,
 /// 캘린더 sync는 iOS가 EventKit 으로 처리한 뒤 추후 PATCH 로 결과만 백엔드에 반영한다(향후 추가 예정).
 public protocol MochiAPIClient: Sendable {
-    /// `POST /api/v1/captures` — 사용자 캡처 ingestion. 응답은 분석 전 상태의 capture (lifecycle=`ingested`).
-    func ingestCapture(_ request: CaptureIngestRequest, idempotencyKey: String) async throws -> CaptureDTO
+    /// `POST /api/v1/mochi_items` — 사용자 캡처 ingestion. 응답은 분석 전 상태의 mochiItem (lifecycle=`ingested`).
+    func ingestMochiItem(_ request: MochiItemIngestRequest, idempotencyKey: String) async throws -> MochiItemDTO
 
-    /// `GET /api/v1/captures/{id}` — owner-scoped capture 조회.
-    func getCapture(id: UUID) async throws -> CaptureDTO
+    /// `GET /api/v1/mochi_items/{id}` — owner-scoped mochiItem 조회.
+    func getMochiItem(id: UUID) async throws -> MochiItemDTO
 
     /// `POST /api/v1/search` — 자연어 질의 → Hybrid Search RAG.
     func search(query: String, scope: SearchScope) async throws -> SearchResponse
@@ -26,15 +26,15 @@ public protocol MochiAPIClient: Sendable {
 
 // MARK: - Request / Response DTOs
 
-public struct CaptureIngestRequest: Sendable, Hashable, Codable {
-    public let channel: CaptureChannel
+public struct MochiItemIngestRequest: Sendable, Hashable, Codable {
+    public let channel: IngestChannel
     public let url: URL?
     public let text: String?
     public let userMemo: String?
     public let imageRefs: [ImageRefDTO]
 
     public init(
-        channel: CaptureChannel,
+        channel: IngestChannel,
         url: URL? = nil,
         text: String? = nil,
         userMemo: String? = nil,
@@ -68,9 +68,9 @@ public struct ImageRefDTO: Sendable, Hashable, Codable {
     }
 }
 
-public struct CaptureDTO: Sendable, Hashable, Codable, Identifiable {
+public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
     public let id: UUID
-    public let channel: CaptureChannel
+    public let channel: IngestChannel
     public let url: URL?
     public let text: String?
     public let userMemo: String?
@@ -110,12 +110,12 @@ public struct SearchResponse: Equatable, Sendable, Hashable, Codable {
     public let agentRunID: UUID?
 
     public struct Citation: Equatable, Sendable, Hashable, Codable {
-        public let captureID: UUID
+        public let mochiItemID: UUID
         public let snippet: String
         public let score: Double
 
         private enum CodingKeys: String, CodingKey {
-            case captureID = "captureId"
+            case mochiItemID = "mochiItemId"
             case snippet, score
         }
     }
@@ -131,7 +131,7 @@ public struct SearchResponse: Equatable, Sendable, Hashable, Codable {
 
 /// 백엔드 에러 통일 포맷. 백엔드 `core/error_envelope.py` 와 동일 스키마.
 public struct APIErrorEnvelope: Error, Equatable, Sendable, Codable {
-    public let code: String                  // 예: "capture.not_found", "agent.tool_failed"
+    public let code: String                  // 예: "mochi_item.not_found", "agent.tool_failed"
     public let message: String
     public let requestID: String
     public let retryAfter: TimeInterval?

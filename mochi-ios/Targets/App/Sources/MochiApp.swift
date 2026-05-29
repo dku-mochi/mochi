@@ -14,7 +14,7 @@ struct MochiApp: App {
         Store(initialState: RootFeature.State()) { RootFeature() }
 
     private let inboundConsumer: InboundQueueConsumer
-    private let syncWorker: CaptureSyncWorker
+    private let syncWorker: MochiItemSyncWorker
 
     init() {
         // **순서 중요**: bootstrap 을 먼저 호출해 라이브 DI 값들을 prepareDependencies 로 등록한 뒤
@@ -22,13 +22,13 @@ struct MochiApp: App {
         // rootStore lazy 평가가 뒤늦게 호출되면 syncWorker 가 NotConfiguredAPIClient 를 잡는 race 가 발생한다.
         AppDependencies.bootstrap()
         _ = RealmStoreFactory.makeConfiguration()
-        let repository = RealmCaptureRepository()
+        let repository = RealmMochiItemRepository()
         self.inboundConsumer = InboundQueueConsumer(repository: repository)
         let api = DependencyValues._current.mochiAPIClient
         // tokenProvider = AuthCoordinator (이미 AuthTokenProvider 도 구현). bootstrap 이 등록 보장.
         // 미인증 시 worker 는 즉시 skip — 무인증 ingest 가 `.syncFailed` 영구 strand 를 만들지 않도록.
         let tokenProvider: any AuthTokenProvider = AppDependencies.liveAuthCoordinator!
-        self.syncWorker = CaptureSyncWorker(
+        self.syncWorker = MochiItemSyncWorker(
             repository: repository,
             apiClient: api,
             tokenProvider: tokenProvider

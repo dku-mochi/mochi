@@ -6,7 +6,7 @@ import Foundation
 /// iOS는 진행 상태를 시각화하고, 디버깅 시 사용자에게 노출하기 위해 동일한 enum을 사용한다.
 public struct AgentRun: Equatable, Sendable, Identifiable, Hashable {
     public let id: UUID
-    public let captureID: UUID
+    public let mochiItemID: UUID
     public var currentNode: AgentNode
     public var toolCalls: [ToolCall]
     public var totalTokens: Int
@@ -16,7 +16,7 @@ public struct AgentRun: Equatable, Sendable, Identifiable, Hashable {
 
     public init(
         id: UUID = UUID(),
-        captureID: UUID,
+        mochiItemID: UUID,
         currentNode: AgentNode = .ingested,
         toolCalls: [ToolCall] = [],
         totalTokens: Int = 0,
@@ -25,7 +25,7 @@ public struct AgentRun: Equatable, Sendable, Identifiable, Hashable {
         endedAt: Date? = nil
     ) {
         self.id = id
-        self.captureID = captureID
+        self.mochiItemID = mochiItemID
         self.currentNode = currentNode
         self.toolCalls = toolCalls
         self.totalTokens = totalTokens

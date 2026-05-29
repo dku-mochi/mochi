@@ -3,7 +3,7 @@ import Foundation
 /// Gemini 멀티모달 분석 결과.
 ///
 /// `confidence`는 0.0–1.0 범위, 사용자 메모 동반 시 백엔드에서 상향 보정.
-public struct CaptureAnalysis: Equatable, Sendable, Hashable, Codable {
+public struct MochiItemAnalysis: Equatable, Sendable, Hashable, Codable {
     public let summary: String
     public let intent: Intent
     public let entities: [ExtractedEntity]

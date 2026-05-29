@@ -16,7 +16,7 @@ import CorePersistence
 ///
 /// snippet 카드의 두 버튼이 그 다음을 결정한다:
 /// - **캡쳐** → ``CommitBackTapCaptureIntent`` — `openAppWhenRun = false` 로 background
-///   commit (pending → captures/ 이동 + Realm Capture upsert + 백엔드 ingest 시도). 외부 앱
+///   commit (pending → captures/ 이동 + Realm MochiItem upsert + 백엔드 ingest 시도). 외부 앱
 ///   계속 보임.
 /// - **메모** → ``OpenBackTapMemoIntent`` — `openAppWhenRun = true` 로 모찌 진입 (textarea
 ///   필요). pending PNG 폐기 + `.memo` marker stash. ``RootFeature`` 가 marker 발견 시
@@ -45,7 +45,7 @@ public struct CaptureScreenshotIntent: AppIntent {
             throw CaptureScreenshotIntentError.imageTooLarge(data.count)
         }
 
-        // captureID 가 곧 ``Capture.id`` · 백엔드 capture id · idempotency key 의 base 가 된다 —
+        // captureID 가 곧 ``MochiItem.id`` · 백엔드 capture id · idempotency key 의 base 가 된다 —
         // snippet 의 캡쳐 분기 (`CommitBackTapCaptureIntent`) 가 동일 ID 로 Realm upsert 한다.
         // 메모 분기는 새 UUID 발급 (P1 #3 invariant).
         let captureID = UUID().uuidString

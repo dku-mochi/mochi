@@ -7,8 +7,8 @@ struct ShareEntryView: View {
     let initialURL: URL?
     let initialText: String?
     let imageRefs: [ImageRef]
-    let channelGuess: CaptureChannel
-    let onSubmit: (InboundCapturePayload) -> Void
+    let channelGuess: IngestChannel
+    let onSubmit: (InboundIngestPayload) -> Void
     let onCancel: () -> Void
 
     @State private var memo: String = ""
@@ -49,7 +49,7 @@ struct ShareEntryView: View {
                 ToolbarItem(placement: .topBarLeading)  { Button("취소", action: onCancel) }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("저장") {
-                        onSubmit(InboundCapturePayload(
+                        onSubmit(InboundIngestPayload(
                             url: initialURL,
                             text: initialText,
                             userMemo: memo.isEmpty ? nil : memo,

@@ -2,35 +2,35 @@ import Foundation
 import RealmSwift
 import CoreDomain
 
-/// 도메인 ``Capture`` ↔ ``RealmCapture`` 의 명시적 매핑.
+/// 도메인 ``MochiItem`` ↔ ``RealmMochiItem`` 의 명시적 매핑.
 ///
 /// **무손실(round-trip) 매핑**을 보장한다: read → toRealm → toDomain 했을 때
 /// entities · actionCandidates · imageRefs · syncState 의 detail 까지 복원되어야 한다.
-public enum RealmCaptureMapper {
+public enum RealmMochiItemMapper {
 
     // MARK: - Domain → Realm
 
-    public static func toRealm(_ capture: Capture) -> RealmCapture {
-        let row = RealmCapture()
-        row.id = capture.id.uuidString
-        row.channelRawValue = capture.source.channel.rawValue
-        row.urlString = capture.source.url?.absoluteString
-        row.text = capture.source.text
-        row.userMemo = capture.source.userMemo
-        row.intentRawValue = capture.analysis?.intent.rawValue
-        row.summary = capture.analysis?.summary
-        row.importance = capture.analysis?.importance.rawValue ?? 3
-        row.confidence = capture.analysis?.confidence ?? 0
-        row.modelVersion = capture.analysis?.modelVersion
-        row.lifecycleStateRawValue = lifecycleStateRaw(capture.lifecycleState)
-        row.syncStateRawValue = syncStateRaw(capture.syncState)
-        row.capturedAt = capture.source.capturedAt
-        row.analyzedAt = capture.analysis?.analyzedAt
-        row.createdAt = capture.createdAt
-        row.updatedAt = capture.updatedAt
+    public static func toRealm(_ mochiItem: MochiItem) -> RealmMochiItem {
+        let row = RealmMochiItem()
+        row.id = mochiItem.id.uuidString
+        row.channelRawValue = mochiItem.source.channel.rawValue
+        row.urlString = mochiItem.source.url?.absoluteString
+        row.text = mochiItem.source.text
+        row.userMemo = mochiItem.source.userMemo
+        row.intentRawValue = mochiItem.analysis?.intent.rawValue
+        row.summary = mochiItem.analysis?.summary
+        row.importance = mochiItem.analysis?.importance.rawValue ?? 3
+        row.confidence = mochiItem.analysis?.confidence ?? 0
+        row.modelVersion = mochiItem.analysis?.modelVersion
+        row.lifecycleStateRawValue = lifecycleStateRaw(mochiItem.lifecycleState)
+        row.syncStateRawValue = syncStateRaw(mochiItem.syncState)
+        row.capturedAt = mochiItem.source.capturedAt
+        row.analyzedAt = mochiItem.analysis?.analyzedAt
+        row.createdAt = mochiItem.createdAt
+        row.updatedAt = mochiItem.updatedAt
 
         row.imageRefs.removeAll()
-        for ref in capture.source.imageRefs {
+        for ref in mochiItem.source.imageRefs {
             let imgRow = RealmImageRef()
             imgRow.id = ref.id.uuidString
             imgRow.relativePath = ref.relativePath
@@ -42,17 +42,17 @@ public enum RealmCaptureMapper {
         }
 
         row.entities.removeAll()
-        for entity in capture.analysis?.entities ?? [] {
+        for entity in mochiItem.analysis?.entities ?? [] {
             row.entities.append(encode(entity: entity))
         }
 
         row.actionCandidates.removeAll()
-        for candidate in capture.analysis?.actionCandidates ?? [] {
+        for candidate in mochiItem.analysis?.actionCandidates ?? [] {
             row.actionCandidates.append(encode(actionCandidate: candidate))
         }
 
         row.tags.removeAll()
-        for tag in capture.analysis?.tags ?? [] {
+        for tag in mochiItem.analysis?.tags ?? [] {
             row.tags.append(tag)
         }
         return row
@@ -60,10 +60,10 @@ public enum RealmCaptureMapper {
 
     // MARK: - Realm → Domain
 
-    public static func toDomain(_ row: RealmCapture) -> Capture {
-        let source = CaptureSource(
+    public static func toDomain(_ row: RealmMochiItem) -> MochiItem {
+        let source = IngestSource(
             id: UUID(uuidString: row.id) ?? UUID(),
-            channel: CaptureChannel(rawValue: row.channelRawValue) ?? .unknown,
+            channel: IngestChannel(rawValue: row.channelRawValue) ?? .unknown,
             url: row.urlString.flatMap(URL.init(string:)),
             text: row.text,
             imageRefs: row.imageRefs.map(decode(imageRef:)),
@@ -71,24 +71,24 @@ public enum RealmCaptureMapper {
             capturedAt: row.capturedAt
         )
 
-        var analysis: CaptureAnalysis?
+        var analysis: MochiItemAnalysis?
         if let intentRaw = row.intentRawValue,
            let intent = Intent(rawValue: intentRaw),
            let analyzedAt = row.analyzedAt {
-            analysis = CaptureAnalysis(
+            analysis = MochiItemAnalysis(
                 summary: row.summary ?? "",
                 intent: intent,
                 entities: row.entities.compactMap(decode(entity:)),
                 actionCandidates: row.actionCandidates.compactMap(decode(actionCandidate:)),
                 tags: Array(row.tags),
-                importance: CaptureAnalysis.Importance(rawValue: row.importance) ?? .medium,
+                importance: MochiItemAnalysis.Importance(rawValue: row.importance) ?? .medium,
                 confidence: row.confidence,
                 modelVersion: row.modelVersion ?? "unknown",
                 analyzedAt: analyzedAt
             )
         }
 
-        return Capture(
+        return MochiItem(
             source: source,
             analysis: analysis,
             lifecycleState: lifecycleState(from: row),
@@ -98,11 +98,11 @@ public enum RealmCaptureMapper {
         )
     }
 
-    public static func lifecycleState(from row: RealmCapture) -> LifecycleState {
+    public static func lifecycleState(from row: RealmMochiItem) -> LifecycleState {
         return decodeLifecycle(raw: row.lifecycleStateRawValue) ?? .ingested
     }
 
-    public static func apply(lifecycleState: LifecycleState, to row: RealmCapture) {
+    public static func apply(lifecycleState: LifecycleState, to row: RealmMochiItem) {
         row.lifecycleStateRawValue = lifecycleStateRaw(lifecycleState)
     }
 
@@ -159,7 +159,7 @@ public enum RealmCaptureMapper {
 
     // MARK: - ActionCandidate encoding
 
-    private static func encode(actionCandidate: CaptureAnalysis.ActionCandidate) -> RealmActionCandidate {
+    private static func encode(actionCandidate: MochiItemAnalysis.ActionCandidate) -> RealmActionCandidate {
         let row = RealmActionCandidate()
         switch actionCandidate {
         case let .createCalendarEvent(title, start, end):
@@ -181,7 +181,7 @@ public enum RealmCaptureMapper {
         return row
     }
 
-    private static func decode(actionCandidate row: RealmActionCandidate) -> CaptureAnalysis.ActionCandidate? {
+    private static func decode(actionCandidate row: RealmActionCandidate) -> MochiItemAnalysis.ActionCandidate? {
         switch row.kind {
         case "calendar":
             guard let title = row.title, let start = row.startISO8601 else { return nil }

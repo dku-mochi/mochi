@@ -1,10 +1,10 @@
 import Foundation
 import RealmSwift
 
-/// Realm 1급 객체. 도메인 객체 ``Capture`` 와 동치이지만 Realm 직렬화에 맞춰 평탄화.
+/// Realm 1급 객체. 도메인 객체 ``MochiItem`` 와 동치이지만 Realm 직렬화에 맞춰 평탄화.
 ///
-/// Mapper(`RealmCaptureMapper`)가 양방향 변환을 책임진다.
-public final class RealmCapture: Object, Identifiable {
+/// Mapper(`RealmMochiItemMapper`)가 양방향 변환을 책임진다.
+public final class RealmMochiItem: Object, Identifiable {
     @Persisted(primaryKey: true) public var id: String
     @Persisted public var channelRawValue: String
     @Persisted public var urlString: String?

@@ -8,23 +8,23 @@ import CoreIntegrations
 public struct DetailFeature: Sendable {
     @ObservableState
     public struct State: Equatable, Sendable {
-        public var captureID: UUID
-        public var capture: Capture?
+        public var mochiItemID: UUID
+        public var mochiItem: MochiItem?
         public var isSyncing: Bool = false
         public var lastError: String?
 
-        public init(captureID: UUID) { self.captureID = captureID }
+        public init(mochiItemID: UUID) { self.mochiItemID = mochiItemID }
     }
 
     public enum Action: Sendable {
         case onAppear
-        case loaded(Capture?)
+        case loaded(MochiItem?)
         case archiveTapped(LifecycleState.ArchiveReason)
         case syncToCalendarTapped
         case operationFailed(String)
     }
 
-    @Dependency(\.captureRepository) var repository
+    @Dependency(\.mochiItemRepository) var repository
     @Dependency(\.calendarSyncer)    var calendar
 
     public init() {}
@@ -33,28 +33,28 @@ public struct DetailFeature: Sendable {
         Reduce { state, action in
             switch action {
             case .onAppear:
-                return .run { [id = state.captureID] send in
-                    let capture = try await repository.find(id: id)
-                    await send(.loaded(capture))
+                return .run { [id = state.mochiItemID] send in
+                    let mochiItem = try await repository.find(id: id)
+                    await send(.loaded(mochiItem))
                 }
 
-            case let .loaded(capture):
-                state.capture = capture
+            case let .loaded(mochiItem):
+                state.mochiItem = mochiItem
                 return .none
 
             case let .archiveTapped(reason):
-                guard let capture = state.capture else { return .none }
+                guard let mochiItem = state.mochiItem else { return .none }
                 return .run { send in
                     do {
-                        try await repository.updateLifecycle(captureID: capture.id, to: .archived(reason: reason))
+                        try await repository.updateLifecycle(mochiItemID: mochiItem.id, to: .archived(reason: reason))
                     } catch {
                         await send(.operationFailed(String(describing: error)))
                     }
                 }
 
             case .syncToCalendarTapped:
-                guard let capture = state.capture,
-                      let analysis = capture.analysis,
+                guard let mochiItem = state.mochiItem,
+                      let analysis = mochiItem.analysis,
                       let candidate = analysis.actionCandidates.first(where: { if case .createCalendarEvent = $0 { return true } else { return false } })
                 else { return .none }
                 state.isSyncing = true

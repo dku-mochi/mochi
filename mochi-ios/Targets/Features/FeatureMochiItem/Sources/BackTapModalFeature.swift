@@ -16,8 +16,8 @@ import CoreNetworking
 /// ``RootFeature`` 가 marker 발견 시 captureID 를 추출해 본 reducer 를 띄운다.
 ///
 /// **두 분기**:
-/// - `memoSaveTapped` — 사용자 입력 텍스트로 `Capture(channel: .appDirectInput, text:)` upsert +
-///   `POST /api/v1/captures` 시도. 실패해도 `.pendingUpload` 가 Realm 에 남아 ``CaptureSyncWorker``
+/// - `memoSaveTapped` — 사용자 입력 텍스트로 `MochiItem(channel: .appDirectInput, text:)` upsert +
+///   `POST /api/v1/mochi_items` 시도. 실패해도 `.pendingUpload` 가 Realm 에 남아 ``MochiItemSyncWorker``
 ///   가 재시도.
 /// - `dismissTapped` — 사용자 취소. memo marker 폐기 후 모달 닫기.
 ///
@@ -27,7 +27,7 @@ import CoreNetworking
 public struct BackTapModalFeature: Sendable {
     @ObservableState
     public struct State: Equatable, Sendable {
-        /// `OpenBackTapMemoIntent` 가 생성한 ID. 그대로 ``Capture.id`` · 백엔드 capture id ·
+        /// `OpenBackTapMemoIntent` 가 생성한 ID. 그대로 ``MochiItem.id`` · 백엔드 capture id ·
         /// idempotency key 가 됨.
         public let captureID: UUID
         public var phase: Phase
@@ -59,7 +59,7 @@ public struct BackTapModalFeature: Sendable {
 
     public enum CancelID: Hashable, Sendable { case work }
 
-    @Dependency(\.captureRepository) var repository
+    @Dependency(\.mochiItemRepository) var repository
     @Dependency(\.mochiAPIClient)    var api
 
     public init() {}
@@ -86,7 +86,7 @@ public struct BackTapModalFeature: Sendable {
                             api: api
                         )
                     } catch {
-                        // 무시. fallback 은 CaptureSyncWorker 가 담당.
+                        // 무시. fallback 은 MochiItemSyncWorker 가 담당.
                     }
                     // 어떤 분기든 marker 폐기 — invariant.
                     discardMemoMarker(captureID: id)
@@ -120,29 +120,29 @@ private func discardMemoMarker(captureID: UUID) {
     try? FileManager.default.removeItem(at: url)
 }
 
-/// 사용자가 모달의 textarea 에서 입력한 메모를 Capture 로 저장 + 백엔드 ingest.
+/// 사용자가 모달의 textarea 에서 입력한 메모를 MochiItem 로 저장 + 백엔드 ingest.
 private func commitMemo(
     text: String,
     captureID: UUID,
-    repository: any CaptureRepository,
+    repository: any MochiItemRepository,
     api: any MochiAPIClient
 ) async throws {
-    let source = CaptureSource(
+    let source = IngestSource(
         id: captureID,
         channel: .appDirectInput,
         text: text
     )
-    try await repository.upsert(Capture(source: source))
+    try await repository.upsert(MochiItem(source: source))
 
-    let dto = try await api.ingestCapture(
-        CaptureIngestRequest(
+    let dto = try await api.ingestMochiItem(
+        MochiItemIngestRequest(
             channel: .appDirectInput,
             text: text
         ),
         idempotencyKey: captureID.uuidString
     )
     try await repository.updateSync(
-        captureID: captureID,
+        mochiItemID: captureID,
         to: .uploaded(serverID: dto.id, at: Date())
     )
 }

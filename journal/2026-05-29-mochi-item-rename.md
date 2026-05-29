@@ -91,7 +91,18 @@ description: capture → mochi_item 대규모 rename 작업 로그 + handoff. �
   - 검증: `make test` 80 passed, `make lint` clean, `make typecheck` 35(기존 부채·신규 0).
   - **⚠️ 환경 제약**: 에이전트 exec 컨텍스트가 Framework Python library-validation 으로 `cryptography`/`numpy` dylib 로드 거부 → `make openapi` 직접 실행 불가(`make test` 는 unit-only 라 해당 체인 미접촉, 통과). openapi.json 은 `/tmp/export_openapi_shim.py`(두 패키지만 MagicMock 스텁 후 `app.openapi()` 덤프 = generator 출력과 동일, 앱 무변경)로 생성. **사용자 터미널에선 `make openapi` 정상** — B4/B5 마무리 시 한 번 재실행해 byte 동일 확인 권장.
   - **잔여 cosmetic(무위험, 의도)**: Postgres 자동생성 인덱스/FK 제약명은 옛 이름 유지(`ix_capture_outbox_capture_id`, `capture_outbox_capture_id_fkey` 등) — rename_table 이 자동 개명 안 함. ORM 이 이름 고정 안 해 기능·검증 grep 무영향. 승인된 최소 스코프(ix_captures_fts 만 명시 rename)와 일치.
-- [ ] **B4 in_progress(다음, 사용자 협업)** — iOS 전체 rename + Tuist regenerate + `tuist test`. §1·§2.3 매핑표 기준. xcodebuild/시뮬레이터는 사용자 실행.
+- [x] **B4 완료** — iOS 전체 rename (40 파일 + 디렉토리/파일 git mv + Project.swift). 커밋 예정.
+  - 디렉토리: `FeatureCapture`→`FeatureMochiItem`, `FeatureCaptureTests`→`FeatureMochiItemTests`. 파일 11개 rename(Capture/CaptureAnalysis/CaptureSource/CaptureRepository*/CaptureSyncWorker/RealmCapture*/CaptureFeature/CaptureProgressView/CaptureFeatureTests).
+  - **2-그룹 전략** (교차그룹 라벨 위험 회피):
+    - GROUP_FULL(도메인/네트워킹/Inbox/Detail/Tests): 타입 + 소문자 `captureID`→`mochiItemID`·`capture`→`mochiItem`·`captures`→`mochiItems`·`captureTapped`→`mochiItemTapped`·`capturesLoaded`→`mochiItemsLoaded` 전부.
+    - GROUP_PRESERVE(AppGroup·AppIntents·RootFeature·BackTapModal·ShareExtension·Mock): 타입만 rename, **캡처 행위 vocab 보존**(`captureID` pending-file 핸들, `captures/` 디렉토리, `screenshotCaptureID`/`memoCaptureID`, `captureLabel`, `captureCaption`, `capturedImagesDirectoryURL`, AppIntent 명 `CaptureScreenshotIntent`/`CommitBackTapCaptureIntent`/`QuickCaptureIntent`).
+  - 타입 매핑: `Capture`→`MochiItem`, `CaptureChannel`→`IngestChannel`, `CaptureSource`→`IngestSource`, `CaptureAnalysis`→`MochiItemAnalysis`, `CaptureRepository`→`MochiItemRepository`, `RealmCapture`→`RealmMochiItem`, `CaptureDTO`→`MochiItemDTO`, `CaptureIngestRequest`→`MochiItemIngestRequest`, `InboundCapturePayload`→`InboundIngestPayload`, `ingestCapture`/`getCapture`→`ingestMochiItem`/`getMochiItem`, 모듈 `import FeatureCapture`→`FeatureMochiItem`.
+  - **wire 계약 정합**: `SearchResponse.Citation` `captureID`+CodingKey `"captureId"` → `mochiItemID`+`"mochiItemId"` (백엔드 CitationDTO=mochiItemId 확인). URL path `/api/v1/captures`→`/api/v1/mochi_items` (snake_case — sed가 camelCase `/mochiItems` 로 만든 것 교정). 에러코드 주석 `mochi_item.not_found`.
+  - **교차그룹 break 2건 잡음**: BackTapModalFeature `@Dependency(\.captureRepository)`→`\.mochiItemRepository`, `updateSync(captureID:)`→`updateSync(mochiItemID:)` (정의가 GROUP_FULL 에서 rename됨).
+  - **검증**: `tuist generate` ✔. `tuist build` — CoreDomain ✔, CorePersistence ✔, CoreNetworking ✔ (도메인·Realm·wire 계약 모듈 컴파일+링크 깨끗). 전 모듈 Swift 컴파일 통과. **전체 앱 link 실패는 `PerceptionCore.Perceptible`/`SwiftUICore not allowed client`/`CoreAudioTypes` — rename 무관 환경/static-product 링크 이슈** (사용자 Xcode/`tuist test` 에서 최종 확인 필요).
+  - openapi-check: iOS 가 `/mochi_items` 호출로 전환 → captures 계약깨짐 해소(drift 14→12, 남은 12 = 등록된 known-drift: auth 외부처리·미구현 endpoint).
+  - **zsh 함정**: `perl ... $FILES` 는 zsh 가 단어분할 안 해 실패 → `find -print0 | xargs -0` 사용. macOS sed 는 `\b` 미지원 → perl.
+  - **잔여 cosmetic**: 테스트 메서드명 `test_..._capture`(2건, `_capture` 워드경계로 미매칭, 무해).
 - [ ] **B5** — 문서 정합 폭포(B4 이후): `docs/DOMAIN_DESIGN.md` §18(코드 정본=capture 서술 폐기)·:257·:279, `docs/TODO.md` L118/120/182, `docs/PRIVACY_SENSITIVE_CAPTURE.md` L303/312/317/335, `docs/PRODUCT.md` L368, `docs/gcp-architecture.html` /captures→/mochi_items, CHANGELOG:137 known-drift 종결. + `audit.sh l2` DOMAIN_DESIGN drift 0 확인. docs 가 backend+iOS 함께 서술해 B4 뒤로 묶음.
 
 ## 4. 다음 할 일 (B3)

@@ -12,7 +12,7 @@ import CorePersistence
 /// 1. captureID 검증. invalid 면 pending PNG best-effort 폐기 후 종료.
 /// 2. `pending-backtap/<captureID>.png` 읽어 sha256 계산
 /// 3. 영구 `captures/<captureID>.png` 로 이동 (atomic write)
-/// 4. Realm `Capture(channel: .screenshot, syncState: .pendingUpload)` upsert
+/// 4. Realm `MochiItem(channel: .screenshot, syncState: .pendingUpload)` upsert
 /// 5. **성공 시에만** pending PNG 폐기. 실패 시 PNG 보존 → ``RootFeature.sweepStalePNGs`` 의
 ///    TTL 이 다음 active 시점에 청소 (데이터 손실 분기 제거).
 ///
@@ -28,11 +28,11 @@ import CorePersistence
 /// background process 에서 실행될 수 있고, 그 시점에는 ``AppDependencies.bootstrap()`` 가
 /// 호출되지 않아 `@Dependency(\.mochiAPIClient)` 와 `AuthCoordinator` 등 인증/네트워크
 /// 인프라가 부재한다. Realm 만 직접 열어 `.pendingUpload` 로 박아두면 다음 인증된 active
-/// 시점에 ``CaptureSyncWorker.runOnce()`` 가 ingest 시도 — 이게 모달 흐름의 "백엔드 +
+/// 시점에 ``MochiItemSyncWorker.runOnce()`` 가 ingest 시도 — 이게 모달 흐름의 "백엔드 +
 /// 로컬 fallback" 과 정합. 사용자가 즉시 결과를 못 봐도 데이터는 안전.
 ///
 /// **인증 무관 commit**: snippet 시점에 인증 상태를 알 수 없어도 Realm 에 박아둔 `.pendingUpload`
-/// 가 다음 인증된 active 시점에 ingest 됨 (`CaptureSyncWorker` 가 미인증이면 skip).
+/// 가 다음 인증된 active 시점에 ingest 됨 (`MochiItemSyncWorker` 가 미인증이면 skip).
 ///
 /// **실패 정책**: pre-upsert (File IO / Realm) 실패는 "저장하지 못했어요" dialog 를 띄우고
 /// pending PNG 는 보존 → `sweepStalePNGs` 가 청소. dismiss fix 의 부산물로 silent failure
@@ -70,7 +70,7 @@ public struct CommitBackTapCaptureIntent: AppIntent {
             try await commitScreenshot(
                 pendingURL: pendingURL,
                 captureID: id,
-                repository: RealmCaptureRepository()
+                repository: RealmMochiItemRepository()
             )
             // 성공 — pending PNG 폐기.
             try? FileManager.default.removeItem(at: pendingURL)
@@ -82,12 +82,12 @@ public struct CommitBackTapCaptureIntent: AppIntent {
     }
 }
 
-/// pending PNG → 영구 `captures/` 이동 + Realm Capture `.pendingUpload` 저장.
-/// 백엔드 ingest 는 안 한다 — `CaptureSyncWorker` 가 다음 active 시점에 시도.
+/// pending PNG → 영구 `captures/` 이동 + Realm MochiItem `.pendingUpload` 저장.
+/// 백엔드 ingest 는 안 한다 — `MochiItemSyncWorker` 가 다음 active 시점에 시도.
 private func commitScreenshot(
     pendingURL: URL,
     captureID: UUID,
-    repository: any CaptureRepository
+    repository: any MochiItemRepository
 ) async throws {
     let data = try Data(contentsOf: pendingURL)
     let digest = SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
@@ -103,11 +103,11 @@ private func commitScreenshot(
         sha256: digest,
         objectKey: nil
     )
-    let source = CaptureSource(
+    let source = IngestSource(
         id: captureID,
         channel: .screenshot,
         imageRefs: [ref]
     )
-    // pendingUpload 상태로 저장 — CaptureSyncWorker 가 다음 tick 에 ingest.
-    try await repository.upsert(Capture(source: source))
+    // pendingUpload 상태로 저장 — MochiItemSyncWorker 가 다음 tick 에 ingest.
+    try await repository.upsert(MochiItem(source: source))
 }

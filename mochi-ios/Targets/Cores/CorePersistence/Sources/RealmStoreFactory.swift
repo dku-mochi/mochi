@@ -18,7 +18,7 @@ public enum RealmStoreFactory {
                 _ = oldVersion
             },
             objectTypes: [
-                RealmCapture.self,
+                RealmMochiItem.self,
                 RealmImageRef.self,
                 RealmExtractedEntity.self,
                 RealmActionCandidate.self,

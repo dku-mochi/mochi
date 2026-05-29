@@ -2,21 +2,21 @@ import Foundation
 
 /// 모찌의 1급 도메인 객체.
 ///
-/// **Capture identity 규약**: `Capture.id == CaptureSource.id`.
+/// **MochiItem identity 규약**: `MochiItem.id == IngestSource.id`.
 /// 단일 캡처는 단일 UUID 만으로 식별되며, 이 ID가 그대로
-/// (a) Realm primary key, (b) 서버 측 capture id, (c) 멱등키 derivation 의 base 가 된다.
-public struct Capture: Equatable, Sendable, Identifiable, Hashable {
+/// (a) Realm primary key, (b) 서버 측 mochiItem id, (c) 멱등키 derivation 의 base 가 된다.
+public struct MochiItem: Equatable, Sendable, Identifiable, Hashable {
     public var id: UUID { source.id }
-    public let source: CaptureSource
-    public var analysis: CaptureAnalysis?
+    public let source: IngestSource
+    public var analysis: MochiItemAnalysis?
     public var lifecycleState: LifecycleState
     public var syncState: SyncState
     public let createdAt: Date
     public var updatedAt: Date
 
     public init(
-        source: CaptureSource,
-        analysis: CaptureAnalysis? = nil,
+        source: IngestSource,
+        analysis: MochiItemAnalysis? = nil,
         lifecycleState: LifecycleState = .ingested,
         syncState: SyncState = .pendingUpload,
         createdAt: Date = .init(),

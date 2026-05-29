@@ -6,17 +6,17 @@ import CoreAgentClient
 
 /// 새 캡처를 받아 백엔드 agent loop의 스트리밍 분석 결과를 점진적으로 표시한다.
 @Reducer
-public struct CaptureFeature: Sendable {
+public struct MochiItemFeature: Sendable {
     @ObservableState
     public struct State: Equatable, Sendable {
-        public var source: CaptureSource
+        public var source: IngestSource
         public var currentNode: AgentNode = .ingested
         public var partialSummary: String = ""
         public var toolCalls: [ToolCall] = []
-        public var finalAnalysis: CaptureAnalysis?
+        public var finalAnalysis: MochiItemAnalysis?
         public var lastError: String?
 
-        public init(source: CaptureSource) {
+        public init(source: IngestSource) {
             self.source = source
         }
     }
@@ -32,7 +32,7 @@ public struct CaptureFeature: Sendable {
     public enum CancelID: Hashable { case stream }
 
     @Dependency(\.agentStreamClient) var agentStream
-    @Dependency(\.captureRepository)  var repository
+    @Dependency(\.mochiItemRepository)  var repository
 
     public init() {}
 
@@ -40,10 +40,10 @@ public struct CaptureFeature: Sendable {
         Reduce { state, action in
             switch action {
             case .startAnalysis:
-                let captureID = state.source.id
+                let mochiItemID = state.source.id
                 return .run { send in
                     do {
-                        for try await event in agentStream.stream(captureID: captureID) {
+                        for try await event in agentStream.stream(mochiItemID: mochiItemID) {
                             await send(.event(event))
                         }
                         await send(.streamFinished)
@@ -76,7 +76,7 @@ public struct CaptureFeature: Sendable {
 
             case .streamFinished:
                 guard let analysis = state.finalAnalysis else { return .none }
-                let updated = Capture(
+                let updated = MochiItem(
                     source: state.source,
                     analysis: analysis,
                     lifecycleState: .active,

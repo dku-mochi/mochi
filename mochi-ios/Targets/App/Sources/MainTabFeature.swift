@@ -1,11 +1,11 @@
 import ComposableArchitecture
-import FeatureCapture
+import FeatureMochiItem
 import FeatureDetail
 import FeatureInbox
 import FeatureSearch
 import FeatureSettings
 
-/// 메인 탭 (Inbox/Search/Settings) 와 modal presentations (Detail/Capture) 의 reducer.
+/// 메인 탭 (Inbox/Search/Settings) 와 modal presentations (Detail/MochiItem) 의 reducer.
 ///
 /// 인증 이후의 모든 화면이 여기에 묶인다 — 인증 단계는 ``RootFeature`` 가 별도로 관리.
 @Reducer
@@ -18,7 +18,7 @@ struct MainTabFeature: Sendable {
         var settings = SettingsFeature.State()
 
         @Presents var detail: DetailFeature.State?
-        @Presents var capture: CaptureFeature.State?
+        @Presents var mochiItem: MochiItemFeature.State?
     }
 
     enum Tab: String, CaseIterable, Sendable {
@@ -47,7 +47,7 @@ struct MainTabFeature: Sendable {
         case search(SearchFeature.Action)
         case settings(SettingsFeature.Action)
         case detail(PresentationAction<DetailFeature.Action>)
-        case capture(PresentationAction<CaptureFeature.Action>)
+        case mochiItem(PresentationAction<MochiItemFeature.Action>)
     }
 
     var body: some ReducerOf<Self> {
@@ -60,14 +60,14 @@ struct MainTabFeature: Sendable {
             case let .tabSelected(tab):
                 state.selectedTab = tab
                 return .none
-            case let .inbox(.captureTapped(captureID)):
-                state.detail = DetailFeature.State(captureID: captureID)
+            case let .inbox(.mochiItemTapped(mochiItemID)):
+                state.detail = DetailFeature.State(mochiItemID: mochiItemID)
                 return .none
-            case .inbox, .search, .settings, .detail, .capture:
+            case .inbox, .search, .settings, .detail, .mochiItem:
                 return .none
             }
         }
         .ifLet(\.$detail,  action: \.detail)  { DetailFeature() }
-        .ifLet(\.$capture, action: \.capture) { CaptureFeature() }
+        .ifLet(\.$mochiItem, action: \.mochiItem) { MochiItemFeature() }
     }
 }

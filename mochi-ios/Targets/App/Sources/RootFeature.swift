@@ -3,7 +3,7 @@ import ComposableArchitecture
 import CoreAuth
 import CorePersistence
 import FeatureAuth
-import FeatureCapture
+import FeatureMochiItem
 import FeatureDetail
 import FeatureInbox
 import FeatureSearch

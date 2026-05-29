@@ -10,9 +10,9 @@ public struct DetailView: View {
 
     public var body: some View {
         Form {
-            if let capture = store.capture {
+            if let mochiItem = store.mochiItem {
                 Section("요약") {
-                    if let analysis = capture.analysis {
+                    if let analysis = mochiItem.analysis {
                         Text(analysis.summary).font(MochiTheme.Typography.body)
                         IntentBadge(intent: analysis.intent)
                     } else {
@@ -20,7 +20,7 @@ public struct DetailView: View {
                             .foregroundStyle(MochiTheme.Palette.textSecondary)
                     }
                 }
-                if let analysis = capture.analysis,
+                if let analysis = mochiItem.analysis,
                    analysis.actionCandidates.contains(where: { if case .createCalendarEvent = $0 { return true } else { return false } }) {
                     Section("자동 동기화") {
                         Button("캘린더에 등록", systemImage: "calendar.badge.plus") {
@@ -30,12 +30,12 @@ public struct DetailView: View {
                     }
                 }
                 Section("라이프사이클") {
-                    if capture.intent == .schedule {
+                    if mochiItem.intent == .schedule {
                         Button("이벤트 종료로 아카이브", role: .destructive) {
                             store.send(.archiveTapped(.scheduleEnded))
                         }
                     }
-                    if capture.intent == .todo {
+                    if mochiItem.intent == .todo {
                         Button("완료로 아카이브", role: .destructive) {
                             store.send(.archiveTapped(.todoCompleted))
                         }

@@ -10,7 +10,7 @@ import CorePersistence
 /// 이 Intent 는 음성/검색에서 빠른 메모(`memo`) 와 URL(`urlString`) 만 받는다.
 /// 자세한 surface 분리 근거는 `docs/ARCHITECTURE.md` §2.3 참고.
 ///
-/// `InboundCapturePayload` 를 그대로 App Group inbound 큐에 적재해
+/// `InboundIngestPayload` 를 그대로 App Group inbound 큐에 적재해
 /// 메인 앱이 다음 부팅·foreground 진입 시 ``InboundQueueConsumer`` 로 흡수한다.
 @available(iOS 17.0, *)
 public struct QuickCaptureIntent: AppIntent {
@@ -43,7 +43,7 @@ public struct QuickCaptureIntent: AppIntent {
             url = parsed
         }
 
-        let payload = InboundCapturePayload(
+        let payload = InboundIngestPayload(
             url: url,
             text: nil,
             userMemo: trimmedMemo.isEmpty ? nil : trimmedMemo,

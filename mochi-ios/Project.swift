@@ -173,7 +173,7 @@ let project = Project(
         // "Undefined symbol: Dependencies.Dependency / CasePathsCore.* / IdentifiedCollections.*"
         // linker error 가 발생하지 않는다 (App 타겟과 동일한 이유).
         module(
-            "FeatureCapture",
+            "FeatureMochiItem",
             layer: .feature,
             dependencies: [
                 .target(name: "CoreDomain"),
@@ -350,7 +350,7 @@ let project = Project(
             dependencies: [
                 .target(name: "FeatureAuth"),
                 .target(name: "FeatureOnboarding"),
-                .target(name: "FeatureCapture"),
+                .target(name: "FeatureMochiItem"),
                 .target(name: "FeatureInbox"),
                 .target(name: "FeatureSearch"),
                 .target(name: "FeatureDetail"),
@@ -458,7 +458,7 @@ let project = Project(
         unitTests(for: "CoreDomain", layer: .core),
         unitTests(for: "CorePersistence", layer: .core, dependencies: [.target(name: "CoreDomain")]),
         unitTests(
-            for: "FeatureCapture",
+            for: "FeatureMochiItem",
             layer: .feature,
             dependencies: [.package(product: "ComposableArchitecture")]
         ),
@@ -481,7 +481,7 @@ let project = Project(
             testAction: .targets([
                 "CoreDomainTests",
                 "CorePersistenceTests",
-                "FeatureCaptureTests",
+                "FeatureMochiItemTests",
                 "FeatureInboxTests",
                 "FeatureSearchTests",
             ]),

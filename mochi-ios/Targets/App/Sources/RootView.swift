@@ -1,6 +1,6 @@
 import ComposableArchitecture
 import FeatureAuth
-import FeatureCapture
+import FeatureMochiItem
 import FeatureInbox
 import FeatureSearch
 import FeatureSettings

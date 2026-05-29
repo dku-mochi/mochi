@@ -5,7 +5,7 @@ import CoreDomain
 ///
 /// **계약 보장:**
 /// - 모든 요청에 `X-Mochi-Request-ID` 생성·송신
-/// - `POST /captures` 는 `Idempotency-Key` 헤더 강제
+/// - `POST /mochi_items` 는 `Idempotency-Key` 헤더 강제
 /// - `Authorization: Bearer <token>` 은 ``AuthTokenProvider`` 가 주입
 /// - 응답이 2xx 이면 디코드, 아니면 ``APIErrorEnvelope`` 으로 디코드 후 throw
 ///
@@ -33,17 +33,17 @@ public final class URLSessionMochiAPIClient: MochiAPIClient, @unchecked Sendable
         self.decoder = dec
     }
 
-    public func ingestCapture(_ request: CaptureIngestRequest, idempotencyKey: String) async throws -> CaptureDTO {
+    public func ingestMochiItem(_ request: MochiItemIngestRequest, idempotencyKey: String) async throws -> MochiItemDTO {
         try await perform(
             method: "POST",
-            path: "/api/v1/captures",
+            path: "/api/v1/mochi_items",
             body: request,
             extraHeaders: ["Idempotency-Key": idempotencyKey]
         )
     }
 
-    public func getCapture(id: UUID) async throws -> CaptureDTO {
-        try await perform(method: "GET", path: "/api/v1/captures/\(id.uuidString)", body: Optional<Empty>.none)
+    public func getMochiItem(id: UUID) async throws -> MochiItemDTO {
+        try await perform(method: "GET", path: "/api/v1/mochi_items/\(id.uuidString)", body: Optional<Empty>.none)
     }
 
     public func search(query: String, scope: SearchScope) async throws -> SearchResponse {

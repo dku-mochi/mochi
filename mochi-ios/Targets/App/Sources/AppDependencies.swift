@@ -7,7 +7,7 @@ import CoreIntegrations
 import CoreNetworking
 import CoreAgentClient
 import FeatureInbox
-import FeatureCapture
+import FeatureMochiItem
 import FeatureSearch
 import FeatureDetail
 
@@ -40,7 +40,7 @@ enum AppDependencies {
         let liveAPI = URLSessionMochiAPIClient(baseURL: baseURL, tokenProvider: coordinator)
 
         prepareDependencies {
-            $0.captureRepository = RealmCaptureRepository()
+            $0.mochiItemRepository = RealmMochiItemRepository()
             $0.calendarSyncer    = LiveCalendarSyncer()
             $0.mochiAPIClient    = liveAPI
             $0.authCoordinator   = coordinator

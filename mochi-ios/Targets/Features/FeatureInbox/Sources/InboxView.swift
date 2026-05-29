@@ -12,9 +12,9 @@ public struct InboxView: View {
 
     public var body: some View {
         List {
-            ForEach(store.captures) { capture in
-                row(capture)
-                    .onTapGesture { store.send(.captureTapped(capture.id)) }
+            ForEach(store.mochiItems) { mochiItem in
+                row(mochiItem)
+                    .onTapGesture { store.send(.mochiItemTapped(mochiItem.id)) }
             }
         }
         .overlay {
@@ -36,18 +36,18 @@ public struct InboxView: View {
     }
 
     @ViewBuilder
-    private func row(_ capture: Capture) -> some View {
+    private func row(_ mochiItem: MochiItem) -> some View {
         VStack(alignment: .leading, spacing: MochiTheme.Spacing.xs) {
             HStack {
-                if let intent = capture.intent {
+                if let intent = mochiItem.intent {
                     IntentBadge(intent: intent)
                 }
                 Spacer()
-                Text(capture.createdAt, style: .relative)
+                Text(mochiItem.createdAt, style: .relative)
                     .font(MochiTheme.Typography.caption)
                     .foregroundStyle(MochiTheme.Palette.textSecondary)
             }
-            Text(capture.analysis?.summary ?? capture.source.text ?? capture.source.url?.absoluteString ?? "(분석 대기 중)")
+            Text(mochiItem.analysis?.summary ?? mochiItem.source.text ?? mochiItem.source.url?.absoluteString ?? "(분석 대기 중)")
                 .font(MochiTheme.Typography.body)
                 .lineLimit(2)
         }

@@ -3,10 +3,10 @@ import ComposableArchitecture
 import CoreDomain
 import DesignSystem
 
-public struct CaptureProgressView: View {
-    @Bindable public var store: StoreOf<CaptureFeature>
+public struct MochiItemProgressView: View {
+    @Bindable public var store: StoreOf<MochiItemFeature>
 
-    public init(store: StoreOf<CaptureFeature>) { self.store = store }
+    public init(store: StoreOf<MochiItemFeature>) { self.store = store }
 
     public var body: some View {
         VStack(alignment: .leading, spacing: MochiTheme.Spacing.m) {

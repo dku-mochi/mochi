@@ -1,7 +1,7 @@
 import Foundation
 
 /// 캡처가 들어온 채널(외부 앱·시스템 진입점)을 강타입으로 표현.
-public enum CaptureChannel: String, Codable, Sendable, CaseIterable {
+public enum IngestChannel: String, Codable, Sendable, CaseIterable {
     case kakaoTalk
     case instagram
     case youtube
@@ -19,9 +19,9 @@ public enum CaptureChannel: String, Codable, Sendable, CaseIterable {
 }
 
 /// 사용자가 흡수시킨 원본 입력.
-public struct CaptureSource: Equatable, Sendable, Hashable, Codable {
+public struct IngestSource: Equatable, Sendable, Hashable, Codable {
     public let id: UUID
-    public let channel: CaptureChannel
+    public let channel: IngestChannel
     public let url: URL?
     public let text: String?
     public let imageRefs: [ImageRef]
@@ -30,7 +30,7 @@ public struct CaptureSource: Equatable, Sendable, Hashable, Codable {
 
     public init(
         id: UUID = UUID(),
-        channel: CaptureChannel,
+        channel: IngestChannel,
         url: URL? = nil,
         text: String? = nil,
         imageRefs: [ImageRef] = [],
@@ -55,7 +55,7 @@ public struct CaptureSource: Equatable, Sendable, Hashable, Codable {
 /// 백엔드로 업로드된 후에는 ``objectKey`` 가 서버 측 object storage key가 된다.
 public struct ImageRef: Equatable, Sendable, Hashable, Codable {
     public let id: UUID
-    /// App Group 컨테이너 기준 상대 경로 (예: `captures/2026-05-22/abc.heic`).
+    /// App Group 컨테이너 기준 상대 경로 (예: `mochiItems/2026-05-22/abc.heic`).
     public let relativePath: String
     public let mimeType: String
     public let byteSize: Int

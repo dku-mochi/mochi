@@ -37,7 +37,7 @@ public final class ShareExtensionPrincipal: UIViewController {
         }
     }
 
-    private func persist(_ payload: InboundCapturePayload) {
+    private func persist(_ payload: InboundIngestPayload) {
         Task.detached {
             let fileURL = AppGroup.inboundQueueURL.appendingPathComponent("\(payload.id.uuidString).json")
             if let data = try? JSONEncoder().encode(payload) {
@@ -57,11 +57,11 @@ public final class ShareExtensionPrincipal: UIViewController {
         var url: URL?
         var text: String?
         var imageRefs: [ImageRef]
-        var channelGuess: CaptureChannel
+        var channelGuess: IngestChannel
     }
 
     /// 단일 캡처 ID 는 추출 시점에 결정되어 (메인 앱 · 백엔드까지) 동일 ID 로 흐른다.
-    /// 이 ID 는 ``InboundCapturePayload.id`` 로 들어가고, 그대로 멱등키 base가 된다.
+    /// 이 ID 는 ``InboundIngestPayload.id`` 로 들어가고, 그대로 멱등키 base가 된다.
     private static let payloadIDPrefix = "captures"
 
     private static let maxImageBytes = 20 * 1024 * 1024     // 단일 이미지 20MB 상한
@@ -122,7 +122,7 @@ public final class ShareExtensionPrincipal: UIViewController {
         )
     }
 
-    private static func guessChannel(from url: URL?, hasImage: Bool) -> CaptureChannel {
+    private static func guessChannel(from url: URL?, hasImage: Bool) -> IngestChannel {
         if hasImage && url == nil { return .screenshot }
         guard let host = url?.host?.lowercased() else { return .appShareSheet }
         if host.contains("youtube.com") || host.contains("youtu.be") { return .youtube }
