@@ -34,21 +34,36 @@ struct MochiApp: App {
             tokenProvider: tokenProvider
         )
 
-        // DEBUG 한정 prototype — 앱 launch 후 10초 뒤 mock use case 알림 발송.
-        // 사용자 (기획자) 의 "어떤 느낌인지 확인" 목적. lab/ 실험의 v6 마우스 케이스 사용.
-        // 끄려면 본 호출만 주석 처리.
-        #if DEBUG
-        MockUseCaseNotificationPrototype.scheduleAfterLaunch()
-        #endif
+        // Feature 레이어 (InboxFeature·HomeFeature) 가 pull-to-refresh / quick memo 저장 시 즉시 sync 를
+        // 트리거할 수 있게 노출. 또한 MochiItemSyncWorker 가 multipart 분류 흐름에서 Live Activity 를
+        // trigger 하도록 coordinator 주입.
+        prepareDependencies {
+            $0.syncTrigger = self.syncWorker
+            $0.liveActivityCoordinator = LiveActivityCoordinatorLive()
+        }
+
+        // 2026-05-27: mock prototype 폐기. 실 분류 흐름이 `MochiItemSyncWorker.uploadOne` 안에서
+        // `LiveActivityCoordinator` 를 통해 직접 trigger 한다 — 백탭 → ShareExt → 저장 → 모찌 active →
+        // multipart 호출 시작 시 `.analyzing` Activity, 응답 도착 시 `.ready(candidates)` update.
+        // (이전 호출: `MockUseCaseNotificationPrototype.scheduleAfterLaunch()` — `#if DEBUG` 가드로.)
     }
 
     var body: some Scene {
         WindowGroup {
             AppRootContainer(rootStore: Self.rootStore)
-                .task { await tick() }
+                .task {
+                    await tick()
+                    await syncWorker.startForegroundPolling()
+                }
                 .onChange(of: scenePhase) { _, newPhase in
                     if newPhase == .active {
-                        Task { await tick() }
+                        Task {
+                            await tick()
+                            await syncWorker.startForegroundPolling()
+                        }
+                    } else {
+                        // background/inactive 진입 시 metadata-only 폴링 중단 (foreground 한정).
+                        Task { await syncWorker.stopForegroundPolling() }
                     }
                 }
                 // Google Sign In 콜백 URL 처리 — Info.plist 에 등록한 reversed client ID 로 돌아온다.

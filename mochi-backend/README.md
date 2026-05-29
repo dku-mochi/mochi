@@ -124,6 +124,7 @@ gcloud config set project <YOUR_PROJECT_ID>
 - 모든 POST `/api/v1/mochi_items` 는 `Idempotency-Key` 헤더 필수
 - 키는 `mochi_item:{owner_id}:{raw_key}` 로 스코핑되어 다른 사용자의 동일 키와 충돌하지 않는다 (`PostgresMochiItemRepository._scope_idempotency_key`)
 - 동일 `(owner, key)` 재요청 시 새 캡처 생성 없이 기존 capture를 반환 (`idempotency_keys` 테이블 + `Ingest.execute` 가 보장)
+- 응답 본문의 `id` 는 **서버가 ingest 시 부여하는 자체 mochi_item PK** 다 (클라가 보낸 `Idempotency-Key` 와 별개 UUID). iOS 는 이 서버 id 로 이후 `GET /api/v1/mochi_items/{id}` 조회·폴링한다 — 로컬 id 로는 404.
 
 ### Ownership
 - `MochiItemRepository` 의 모든 read/write 메서드는 `owner_id` 키워드 인자를 강제로 받는다 — cross-tenant 누설을 컴파일 시점에 막는다

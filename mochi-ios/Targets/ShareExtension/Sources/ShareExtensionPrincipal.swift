@@ -16,14 +16,7 @@ public final class ShareExtensionPrincipal: UIViewController {
 
         Task { @MainActor in
             let extracted = await Self.extractInboundPayload(from: extensionContext)
-            let host = UIHostingController(rootView: ShareEntryView(
-                initialURL: extracted.url,
-                initialText: extracted.text,
-                imageRefs: extracted.imageRefs,
-                channelGuess: extracted.channelGuess,
-                onSubmit: { [weak self] payload in self?.persist(payload) },
-                onCancel: { [weak self] in self?.complete(success: false) }
-            ))
+            let host = UIHostingController(rootView: contentView(for: extracted))
             addChild(host)
             host.view.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview(host.view)
@@ -34,6 +27,31 @@ public final class ShareExtensionPrincipal: UIViewController {
                 host.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             ])
             host.didMove(toParent: self)
+        }
+    }
+
+    /// 백탭 단축어 진입(이미지 1장 단독, URL/text 없음) → 1-step UI ``BackTapShareView``,
+    /// 외부 공유시트 진입(URL/text 또는 다중 이미지) → 기존 ``ShareEntryView``.
+    @ViewBuilder
+    private func contentView(for extracted: ExtractedShareInput) -> some View {
+        if extracted.imageRefs.count == 1
+            && extracted.url == nil
+            && (extracted.text?.isEmpty ?? true) {
+            BackTapShareView(
+                imageRefs: extracted.imageRefs,
+                channelGuess: extracted.channelGuess,
+                onSubmit: { [weak self] payload in self?.persist(payload) },
+                onCancel: { [weak self] in self?.complete(success: false) }
+            )
+        } else {
+            ShareEntryView(
+                initialURL: extracted.url,
+                initialText: extracted.text,
+                imageRefs: extracted.imageRefs,
+                channelGuess: extracted.channelGuess,
+                onSubmit: { [weak self] payload in self?.persist(payload) },
+                onCancel: { [weak self] in self?.complete(success: false) }
+            )
         }
     }
 
@@ -75,17 +93,21 @@ public final class ShareExtensionPrincipal: UIViewController {
 
         for item in context.inputItems.compactMap({ $0 as? NSExtensionItem }) {
             for provider in item.attachments ?? [] {
-                if provider.hasItemConformingToTypeIdentifier(UTType.url.identifier), url == nil {
+                // **이미지를 url 보다 먼저 평가** — 단축어에서 보낸 image attachment 는 file:// URL
+                // 형태로도 전달되어 `UTType.url.identifier` (public.url) 에 conform 한다.
+                // url 분기를 먼저 잡으면 이미지가 url 로 오인되어 백탭 진입 감지 (이미지 1장 + URL 없음)
+                // 가 fail 하고 `ShareEntryView` fallback 으로 떠오른다.
+                if provider.hasItemConformingToTypeIdentifier(UTType.image.identifier) {
+                    if let ref = await persistImage(from: provider) {
+                        imageRefs.append(ref)
+                    }
+                } else if provider.hasItemConformingToTypeIdentifier(UTType.url.identifier), url == nil {
                     if let loaded = try? await provider.loadItem(forTypeIdentifier: UTType.url.identifier, options: nil) as? URL {
                         url = loaded
                     }
                 } else if provider.hasItemConformingToTypeIdentifier(UTType.plainText.identifier), text == nil {
                     if let loaded = try? await provider.loadItem(forTypeIdentifier: UTType.plainText.identifier, options: nil) as? String {
                         text = loaded
-                    }
-                } else if provider.hasItemConformingToTypeIdentifier(UTType.image.identifier) {
-                    if let ref = await persistImage(from: provider) {
-                        imageRefs.append(ref)
                     }
                 }
             }

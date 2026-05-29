@@ -73,9 +73,124 @@ public actor RealmMochiItemRepository: MochiItemRepository {
         }
     }
 
+    public func listAnalyzing(limit: Int) async throws -> [MochiItem] {
+        // "모찌가 분석 중이에요" — intentRawValue == nil (분석 응답 미수신).
+        // archived/failed 는 제외 (listByImportance 와 동일 lifecycle 정책).
+        try await read { realm in
+            realm.objects(RealmMochiItem.self)
+                .filter(
+                    "intentRawValue == nil AND " +
+                    "NOT (lifecycleStateRawValue BEGINSWITH 'archived') AND " +
+                    "NOT (lifecycleStateRawValue BEGINSWITH 'failed')"
+                )
+                .sorted(byKeyPath: "createdAt", ascending: false)
+                .prefix(limit)
+                .map(RealmMochiItemMapper.toDomain(_:))
+        }
+    }
+
+    public func listAmbiguous(limit: Int) async throws -> [MochiItem] {
+        // "모찌가 헷갈려요" — 분석은 끝났으나(intent != nil) 모찌가 확신 못 함:
+        // confidence 가 낮거나 top-2 의견이 박빙(intentTopGap 작음). 임계값은 도메인 단일원천.
+        // archived/failed 제외.
+        // 임계값은 상수(코드 단일원천)라 문자열 보간 — Double.description 은 locale 독립("0.6").
+        let conf = MochiItemAnalysis.uncertainConfidenceThreshold
+        let gap = MochiItemAnalysis.uncertainGapThreshold
+        return try await read { realm in
+            realm.objects(RealmMochiItem.self)
+                .filter(
+                    "intentRawValue != nil AND " +
+                    "(confidence < \(conf) OR intentTopGap < \(gap)) AND " +
+                    "NOT (lifecycleStateRawValue BEGINSWITH 'archived') AND " +
+                    "NOT (lifecycleStateRawValue BEGINSWITH 'failed')"
+                )
+                .sorted(byKeyPath: "createdAt", ascending: false)
+                .prefix(limit)
+                .map(RealmMochiItemMapper.toDomain(_:))
+        }
+    }
+
+    public func listByImportance(limit: Int) async throws -> [MochiItem] {
+        // lifecycleStateRawValue 는 'archived:<reason>' / 'failed:<reason>' 형태 (RealmMochiItemMapper).
+        // 그래서 BEGINSWITH 로 prefix 매칭해 둘 모두 제외.
+        try await read { realm in
+            realm.objects(RealmMochiItem.self)
+                .filter(
+                    "intentRawValue != nil AND importance >= 3 AND " +
+                    "NOT (lifecycleStateRawValue BEGINSWITH 'archived') AND " +
+                    "NOT (lifecycleStateRawValue BEGINSWITH 'failed')"
+                )
+                .sorted(by: [
+                    SortDescriptor(keyPath: "importance", ascending: false),
+                    SortDescriptor(keyPath: "createdAt", ascending: false),
+                ])
+                .prefix(limit)
+                .map(RealmMochiItemMapper.toDomain(_:))
+        }
+    }
+
+    public func setIntent(mochiItemID: UUID, intent: Intent) async throws {
+        try await write { realm in
+            guard let row = realm.object(ofType: RealmMochiItem.self, forPrimaryKey: mochiItemID.uuidString) else {
+                throw DomainError.notFound(entity: "MochiItem", id: mochiItemID.uuidString)
+            }
+            row.intentRawValue = intent.rawValue
+            // 사용자 수동 분류는 confidence 최대 + 모델 버전 'manual' 로 마킹.
+            row.confidence = 1.0
+            row.modelVersion = "manual"
+            // 확정됐으니 헷갈림 신호 제거 — 다시 "헷갈려요" 에 뜨지 않도록.
+            row.intentTopGap = 1.0
+            row.intentCandidates.removeAll()
+            if row.analyzedAt == nil { row.analyzedAt = Date() }
+            row.updatedAt = .init()
+        }
+    }
+
+    public func requeueForAnalysis(mochiItemID: UUID) async throws {
+        // serverID 보존을 위해 먼저 도메인 객체로 읽어 syncState 를 확인.
+        guard let item = try await find(id: mochiItemID),
+              case let .uploaded(serverID, _) = item.syncState else { return }
+        try await write { realm in
+            guard let row = realm.object(ofType: RealmMochiItem.self, forPrimaryKey: mochiItemID.uuidString) else {
+                throw DomainError.notFound(entity: "MochiItem", id: mochiItemID.uuidString)
+            }
+            // analysis 제거 → listAnalyzing 대상으로 복귀.
+            row.intentRawValue = nil
+            row.summary = nil
+            row.confidence = 0
+            row.modelVersion = nil
+            row.analyzedAt = nil
+            row.intentCandidates.removeAll()
+            row.intentTopGap = 1.0
+            row.lifecycleStateRawValue = RealmMochiItemMapper.lifecycleStateRaw(.ingested)
+            // 폴링 deadline 재시작 — serverID 유지하고 uploaded 타임스탬프만 now 로.
+            row.syncStateRawValue = RealmMochiItemMapper.syncStateRaw(.uploaded(serverID: serverID, at: Date()))
+            row.updatedAt = .init()
+        }
+    }
+
     public func deleteAll() async throws {
         try await write { realm in
             realm.deleteAll()
+        }
+    }
+
+    // MARK: - Change observation
+
+    /// Realm collection 알림으로 변경을 감지해 스트림으로 방출한다.
+    /// Realm 의 cross-process 알림 덕에 ShareExtension·AppIntents 등 **다른 프로세스의 쓰기**도 잡힌다.
+    ///
+    /// 알림 토큰은 run loop 가 있는 스레드에서만 콜백이 도므로 MainActor(메인 run loop) 에 둔다.
+    /// 화면(소비자)이 스트림을 끊으면 `onTermination` 에서 토큰을 무효화한다.
+    public nonisolated func observeChanges() -> AsyncStream<Void> {
+        AsyncStream { continuation in
+            Task { @MainActor in
+                let observer = RealmChangeObserver(continuation: continuation)
+                observer.start()
+                continuation.onTermination = { _ in
+                    Task { @MainActor in observer.stop() }
+                }
+            }
         }
     }
 
@@ -95,5 +210,47 @@ public actor RealmMochiItemRepository: MochiItemRepository {
                 try block(realm)
             }
         }.value
+    }
+}
+
+// MARK: - Realm change observer
+
+/// MainActor 에 머무는 알림 토큰 보유자. `observeChanges()` 스트림의 수명 동안 살아 있다.
+///
+/// Realm·NotificationToken 은 Sendable 이 아니라 한 스레드(여기선 메인)에 가둬야 한다.
+/// `continuation` 만 Sendable 이라 콜백에서 안전하게 yield 한다.
+@MainActor
+private final class RealmChangeObserver {
+    private let continuation: AsyncStream<Void>.Continuation
+    private var token: NotificationToken?
+    private var realm: Realm?
+
+    init(continuation: AsyncStream<Void>.Continuation) {
+        self.continuation = continuation
+    }
+
+    func start() {
+        do {
+            let realm = try RealmStoreFactory.openRealm()
+            self.realm = realm
+            // `.initial` 은 건너뛴다 — 소비자(화면)가 첫 load 를 따로 하므로 중복 방지.
+            // 실제 쓰기(`.update`) 에만 신호를 보낸다.
+            token = realm.objects(RealmMochiItem.self).observe { [continuation] change in
+                switch change {
+                case .update:
+                    continuation.yield(())
+                case .initial, .error:
+                    break
+                }
+            }
+        } catch {
+            continuation.finish()
+        }
+    }
+
+    func stop() {
+        token?.invalidate()
+        token = nil
+        realm = nil
     }
 }

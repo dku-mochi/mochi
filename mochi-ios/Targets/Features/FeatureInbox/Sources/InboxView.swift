@@ -32,6 +32,7 @@ public struct InboxView: View {
             }
         }
         .navigationTitle("받은 기록")
+        .refreshable { await store.send(.refresh).finish() }
         .task { store.send(.onAppear) }
     }
 

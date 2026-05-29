@@ -32,7 +32,10 @@ import os, sys
 target, cwd = sys.argv[1], sys.argv[2]
 t = target if os.path.isabs(target) else os.path.join(cwd, target)
 t = os.path.normpath(t)
-lab = os.path.normpath(os.path.join(cwd, 'lab')) + os.sep
+# lab 경계는 프로젝트 루트 기준. 서브에이전트 cwd 가 하위 프로젝트(mochi-backend)면
+# cwd/lab 은 없어서 루트 lab/ 의 정당한 쓰기를 fail-closed 로 막았다(2026-05-29 수정).
+root = os.environ.get('CLAUDE_PROJECT_DIR') or cwd
+lab = os.path.normpath(os.path.join(root, 'lab')) + os.sep
 print('1' if t.startswith(lab) else '0')
 " "$target" "$cwd" 2>/dev/null || echo "1")
 

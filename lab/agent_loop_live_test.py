@@ -107,7 +107,33 @@ async def run_agent_loop() -> None:
             print(f"   [ERROR] {type(exc).__name__}: {str(exc)[:300]}")
 
 
+async def run_one_url(url: str) -> None:
+    print("\n" + "=" * 70)
+    print(f"agent loop on URL: {url}")
+    print("=" * 70)
+    llm = GeminiAgentClient()
+    tools = StaticToolRegistry()
+    gateway = _FakeGateway(AnalysisInput(text=None, url=url, user_memo=None))
+    orch = AgentOrchestrator(llm=llm, tools=tools, max_steps=8, gateway=gateway)
+    events = []
+    async for ev in orch.run(uuid4(), uuid4()):
+        events.append(ev.kind)
+    a = gateway.applied
+    print(f"events: {events}")
+    if a:
+        print(f"→ intent={a.intent.value}  secondary={[i.value for i in a.secondary_intents]}"
+              f"  confidence={a.confidence:.2f}  importance={a.importance}")
+        print(f"→ summary: {a.summary}")
+        if a.entities:
+            print(f"→ entities: {[(e.kind, e.value) for e in a.entities]}")
+
+
 async def main() -> None:
+    import sys
+    if len(sys.argv) > 1:
+        for url in sys.argv[1:]:
+            await run_one_url(url)
+        return
     await run_classifier()
     await run_agent_loop()
 

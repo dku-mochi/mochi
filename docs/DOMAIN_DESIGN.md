@@ -76,7 +76,7 @@ iOS · 백엔드 · 프롬프트 모두 동일 용어를 쓴다.
 | **AgentRun** | MochiItem 1건 처리 LLM 오케스트레이션 실행 1회 |
 | **ToolCall** | AgentRun 또는 Message 내 단일 함수 호출 |
 | **Outbox Message** | mochi_items COMMIT 직후 worker 가 픽업할 메시지 |
-| **Idempotency Key** | `POST /mochi-items` 의 owner-scoped SHA-256 키 |
+| **Idempotency Key** | `POST /mochi_items` 의 owner-scoped SHA-256 키 |
 | **Embedding** | text-embedding-005 (768d) chunk 벡터 |
 | **Citation** | 챗봇 답변이 인용한 MochiItem ID + 발췌 |
 
@@ -684,7 +684,7 @@ final class MochiItemObject: Object {
 
 | Backend table | Realm representation |
 |---|---|
-| `mochi_items` | `MochiItemObject` (root, UUID 동일) |
+| `mochi_items` | `MochiItemObject` (root). **로컬 id ≠ 서버 PK** — 서버 id 는 `SyncState.uploaded(serverID:)` 에 보관 (부록 D 참고) |
 | `mochi_sources` | `MochiItemObject.source` (Embedded 1:1) |
 | `mochi_attachments` | `MochiItemObject.attachments` (Embedded 1:N) |
 | `mochi_entities` | `MochiItemObject.entities` (Embedded 1:N) |
@@ -697,10 +697,10 @@ final class MochiItemObject: Object {
 
 ### 동기화
 
-- **iOS → Backend**: `syncState=pendingUpload` 인 MochiItem 을 `CaptureSyncWorker` 가 POST `/mochi-items` (Idempotency-Key=item.id). 성공 → `syncState=uploaded`.
-- **Backend → iOS**: agent worker 가 mochi_items 갱신 → SSE `/mochi-items/{id}/stream` → iOS upsert.
-- **충돌**: backend master. iOS local edit 은 PATCH 로 push → server-wins.
-- **Catch-up**: cold start / reconnect 시 `GET /mochi-items/sync?after=<lastSyncedAt>` 로 누락 분 fetch.
+- **iOS → Backend**: `syncState=pendingUpload` 인 MochiItem 을 `MochiItemSyncWorker` 가 POST `/api/v1/mochi_items`(metadata-only) 또는 `/api/v1/mochi_items/back-tap`(스크린샷 multipart) 로 업로드 (Idempotency-Key=로컬 item.id). 성공 → `syncState=uploaded(serverID:)` — **응답의 서버 자체 PK 를 보관**(로컬 id 와 다름).
+- **Backend → iOS (현재)**: back-tap 은 동기 응답으로 분석을 즉시 반영. metadata-only 는 비동기 분석이라 **foreground 3초 폴링**(`GET /api/v1/mochi_items/{serverID}`)으로 lifecycle=active 시 결과를 반영. (SSE `/api/v1/mochi_items/{id}/stream` 엔드포인트는 백엔드에 있으나 **iOS 미구독** — push 기반 전환은 후속.)
+- **분류 확정 (현재)**: iOS `setIntent` 는 **로컬 전용**. 백엔드 override `PATCH /api/v1/mochi_items/{id}/intent` 는 **iOS 미배선** — 서버 반영은 후속.
+- **충돌/Catch-up**: backend master 원칙은 유지하나, 양방향 충돌 해소·cold-start catch-up(`/sync` 류)은 **미구현**(후속). 현 단계는 단방향 업로드 + 폴링 수신.
 
 ---
 
@@ -712,13 +712,13 @@ final class MochiItemObject: Object {
 | `POST` | `/api/v1/auth/google` | `{access, refresh}` | Google OAuth |
 | `GET` | `/api/v1/users/me` | `User` | |
 | `GET` | `/api/v1/health` | `{status:'ok'}` | 인증 불요 |
-| `POST` | `/api/v1/mochi-items` | `MochiItem (201)` | `Idempotency-Key` 헤더 필수 |
-| `GET` | `/api/v1/mochi-items/{id}` | `MochiItem` | owner 만 |
-| `PATCH` | `/api/v1/mochi-items/{id}` | `MochiItem` | server-wins |
-| `DELETE` | `/api/v1/mochi-items/{id}` | 204 | soft delete |
-| `GET` | `/api/v1/mochi-items` | `MochiItem[]` | filter: `intent`, `lifecycle_state`, `after`, `limit` |
-| `GET` | `/api/v1/mochi-items/sync?after=` | `MochiItem[]` | catch-up |
-| `GET` | `/api/v1/mochi-items/{id}/stream` | SSE | agent state graph |
+| `POST` | `/api/v1/mochi_items` | `MochiItem (201)` | `Idempotency-Key` 헤더 필수 |
+| `GET` | `/api/v1/mochi_items/{id}` | `MochiItem` | owner 만 |
+| `PATCH` | `/api/v1/mochi_items/{id}` | `MochiItem` | server-wins |
+| `DELETE` | `/api/v1/mochi_items/{id}` | 204 | soft delete |
+| `GET` | `/api/v1/mochi_items` | `MochiItem[]` | filter: `intent`, `lifecycle_state`, `after`, `limit` |
+| `GET` | `/api/v1/mochi_items/sync?after=` | `MochiItem[]` | catch-up |
+| `GET` | `/api/v1/mochi_items/{id}/stream` | SSE | agent state graph |
 | `POST` | `/api/v1/search` | `SearchResponse` | Hybrid (BM25 + 벡터 + RRF) |
 | `POST` | `/api/v1/conversations` | `Conversation (201)` | |
 | `POST` | `/api/v1/conversations/{id}/messages` | `Message + Citations` | |
@@ -729,7 +729,7 @@ final class MochiItemObject: Object {
 |---|---|---|
 | `Authorization: Bearer <token>` | 모든 라우트 (health 제외) | JWT (RS256) |
 | `X-Mochi-Request-ID` | 옵션 | 분산 추적 |
-| `Idempotency-Key` | `POST /mochi-items` | owner-scoped SHA-256 |
+| `Idempotency-Key` | `POST /mochi_items` | owner-scoped SHA-256 |
 
 ---
 
@@ -783,7 +783,7 @@ knowledge intent 만 추가 경로:
 
 ## 8. 데이터 흐름
 
-### 8.1 Ingestion (POST /mochi-items)
+### 8.1 Ingestion (POST /mochi_items)
 
 ```python
 async with db_session() as s:
@@ -976,3 +976,41 @@ DB 가 직접 강제할 수 없으나 `tests/unit/test_invariants.py` 가 강제
 | `ActionCandidate.payload_json` per-action_kind schema | Pydantic validator + unit test |
 | 모든 SELECT/UPDATE/DELETE 쿼리에 `user_id` 필터 | 정적 AST 검사 |
 | `embedding.chunk_text` 길이 ≤ 8000 chars | application chunker |
+
+### D. iOS 클라이언트 — 일일 importance 재분석 (Daily Importance Cache)
+
+> 2026-05-29 `dev/mochi` iOS 머지로 도입된 `CorePersistence/DailyImportanceAnalyzer` 의 설계.
+
+**왜 별도인가**: 항목마다 `mochi_analyses.importance_score` 가 산출되지만, 사용자 행동·시점
+(예: "마감 임박", "오늘의 흐름")에 따라 같은 항목의 *상대* 중요도는 바뀐다. 백엔드의
+per-item importance 는 "절대값", 일일 재분석은 "오늘의 상대 순위" 를 산출한다.
+
+**현 단계 (디자인 + 백엔드 sync 단계, stub)**:
+- iOS `CorePersistence/DailyImportanceAnalyzer` 가 책임.
+- **트리거**: 앱 진입 시 lazy — 마지막 분석으로부터 24h 경과 시 재계산, 아니면 캐시 반환.
+- **알고리즘**: 신규 Gemini 호출 없음. 로컬 `analysis.importance` (medium↑) 만 정렬 (`listByImportance`).
+- **결과 저장**: App Group `daily-importance/YYYY-MM-DD.json` (`{generatedAt, mochiItemIDs}`).
+- **GCS / 외부 업로드 우회**: 항목 이미지는 로컬 URI 만 유지 (`ImageRef.objectKey == nil`).
+  현 단계는 텍스트·메타데이터 위주 분석만 가능, 멀티모달 분석은 후속.
+
+**후속 (Gemini 1일 재분석 단계)**:
+- analyzer 가 최근 24h 항목을 묶어 Gemini Flash 에 보내 *상대* importance 재산출.
+- 응답은 같은 JSON 파일 포맷으로 캐시 — 같은 날 두 번째 진입 시 재호출 안 함.
+- 항목 이미지는 여전히 GCS 우회 — 텍스트 + 로컬 메타데이터(`relativePath`, `mimeType`,
+  `byteSize`, OCR 추출 텍스트) 만 모델에 노출. 정식 multimodal(GCS 업로드)은 별도 단계.
+
+**Repository API 매핑** (`MochiItemRepository`):
+
+| 홈 섹션 | Repository 메서드 | 비고 |
+|---|---|---|
+| "최근 추가한 모찌" | `listRecent(limit:)` | `createdAt desc` |
+| "모찌가 분석 중이에요" | `listAnalyzing(limit:)` | 분석 응답 미수신(`intentRawValue == nil`) + archived/failed 제외. 버튼 없음 |
+| "모찌가 헷갈려요" | `listAmbiguous(limit:)` | 분석됨(`intentRawValue != nil`)이나 **불확실** — `confidence < 0.6` OR `intentTopGap < 0.15` (`MochiItemAnalysis.isUncertain`). archived/failed 제외 |
+| "중요해 보여요" | `DailyImportanceAnalyzer.todaysImportant(limit:)` → `find(id:)` | 캐시 우선, fallback `listByImportance` |
+| Needs-review 분류 확정 | `setIntent(mochiItemID:intent:)` | `confidence = 1.0`, `modelVersion = "manual"`, `intentTopGap = 1.0` + candidates 제거 (헷갈려요에서 제외) |
+| Quick memo 저장 | `upsert(MochiItem(source:))` | `channel = .appDirectInput`, `imageRefs = []` |
+
+**헷갈려요 카드의 의견 버튼**: 고정 라벨이 아니라 LLM 후보(`MochiItemAnalysis.candidates` = `[IntentCandidate{label?, intent, applicability}]`)에서 도출한다. `reviewOpinions` = applicability 내림차순 dedup-by-intent 상위 2개를 `label ?? intent.displayName` 로 노출 + "다른 의도"(4-Intent 직접 지정). 후보 출처:
+- **back-tap(스크린샷)**: 백엔드 `BackTapMochiItemResponse.candidates` 의 한국어 시나리오 라벨("구매 고민" 등)을 그대로 보존.
+- **metadata-only(공유/메모/URL)**: 비동기 분석이라 **foreground 동안 3초마다 `getMochiItem` 폴링**(`MochiItemSyncWorker.startForegroundPolling`)으로 분석 결과 수신, `intent`+`secondaryIntents`+`intentApplicability` 로 후보 재구성(라벨 없음 → `intent.displayName` 폴백). 폴링은 **서버 PK(`syncState.uploaded(serverID:)`)** 로 조회한다 — 백엔드가 클라 id 를 무시하고 자체 uuid4 를 PK 로 부여하므로 로컬 id GET 은 404 가 된다(알려진 drift).
+- **분석 실패/지연 fallback**: GET lifecycle 이 `failed` 이거나 업로드 후 90s(deadline) 초과 시 `demoteToManual` 이 항목을 "헷갈려요(의견 없음)"로 강등 → 무한 폴링 종료. 카드는 "모찌가 잘 모르겠어요" + 직접 분류 + "다시 맡기기"(`requeueForAnalysis` → 재폴링). webFetch 실패(유튜브 등)가 무한 폴링되지 않게 한다.

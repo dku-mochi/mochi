@@ -2,9 +2,11 @@ import Foundation
 
 /// 모찌의 1급 도메인 객체.
 ///
-/// **MochiItem identity 규약**: `MochiItem.id == IngestSource.id`.
-/// 단일 캡처는 단일 UUID 만으로 식별되며, 이 ID가 그대로
-/// (a) Realm primary key, (b) 서버 측 mochiItem id, (c) 멱등키 derivation 의 base 가 된다.
+/// **MochiItem identity 규약**: `MochiItem.id == IngestSource.id` — 로컬 식별자.
+/// 이 ID가 (a) Realm primary key, (c) 멱등키(Idempotency-Key) 로 쓰인다.
+/// 단, (b) **서버 측 mochiItem id 는 다르다**: 백엔드 ingest 가 자체 uuid4 를 PK 로 부여하고
+/// (클라 UUID 는 멱등키로만 전달), iOS 는 업로드 응답의 서버 id 를 `SyncState.uploaded(serverID:)`
+/// 에 보관한다. 서버 조회(`getMochiItem`)는 이 serverID 로 한다 — 로컬 id 로 GET 하면 404.
 public struct MochiItem: Equatable, Sendable, Identifiable, Hashable {
     public var id: UUID { source.id }
     public let source: IngestSource

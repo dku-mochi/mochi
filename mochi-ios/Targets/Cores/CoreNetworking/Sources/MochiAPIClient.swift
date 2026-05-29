@@ -17,6 +17,16 @@ public protocol MochiAPIClient: Sendable {
     /// `POST /api/v1/mochi_items` — 사용자 캡처 ingestion. 응답은 분석 전 상태의 mochiItem (lifecycle=`ingested`).
     func ingestMochiItem(_ request: MochiItemIngestRequest, idempotencyKey: String) async throws -> MochiItemDTO
 
+    /// `POST /api/v1/mochi_items/back-tap` — 백탭 multipart ingestion. PNG bytes + user_memo 를 직접 보내
+    /// 백엔드가 Gemini 로 즉시 분류 후 mochiItem + candidates 반환.
+    /// Idempotency-Key 는 mochiItem id 그대로 사용한다 — 멱등 재요청 시 `wasReplay=true`, `candidates=[]`.
+    func ingestBackTapMochiItem(
+        pngData: Data,
+        mimeType: String,
+        userMemo: String?,
+        idempotencyKey: String
+    ) async throws -> BackTapMochiItemResponseDTO
+
     /// `GET /api/v1/mochi_items/{id}` — owner-scoped mochiItem 조회.
     func getMochiItem(id: UUID) async throws -> MochiItemDTO
 
@@ -75,6 +85,10 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
     public let text: String?
     public let userMemo: String?
     public let intent: Intent?
+    /// primary 를 제외한 보조 의도 (applicability 내림차순). metadata-only 분석 결과의 후보 재구성에 사용.
+    public let secondaryIntents: [Intent]
+    /// Intent → 적용 강도 (0.0–1.0). 후보에 등장하지 않은 intent 는 키에 없다.
+    public let intentApplicability: [String: Double]
     public let summary: String?
     public let importance: Int
     public let confidence: Double
@@ -86,6 +100,8 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
 
     private enum CodingKeys: String, CodingKey {
         case id, channel, url, text, intent, summary, importance, confidence
+        case secondaryIntents = "secondaryIntents"
+        case intentApplicability = "intentApplicability"
         case userMemo = "userMemo"
         case lifecycleKind = "lifecycleKind"
         case syncKind = "syncKind"
@@ -93,6 +109,48 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
         case capturedAt = "capturedAt"
         case createdAt = "createdAt"
     }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(UUID.self, forKey: .id)
+        channel = try c.decode(IngestChannel.self, forKey: .channel)
+        url = try c.decodeIfPresent(URL.self, forKey: .url)
+        text = try c.decodeIfPresent(String.self, forKey: .text)
+        userMemo = try c.decodeIfPresent(String.self, forKey: .userMemo)
+        intent = try c.decodeIfPresent(Intent.self, forKey: .intent)
+        secondaryIntents = try c.decodeIfPresent([Intent].self, forKey: .secondaryIntents) ?? []
+        intentApplicability = try c.decodeIfPresent([String: Double].self, forKey: .intentApplicability) ?? [:]
+        summary = try c.decodeIfPresent(String.self, forKey: .summary)
+        importance = try c.decode(Int.self, forKey: .importance)
+        confidence = try c.decode(Double.self, forKey: .confidence)
+        lifecycleKind = try c.decode(String.self, forKey: .lifecycleKind)
+        syncKind = try c.decode(String.self, forKey: .syncKind)
+        imageRefs = try c.decodeIfPresent([ImageRefDTO].self, forKey: .imageRefs) ?? []
+        capturedAt = try c.decode(Date.self, forKey: .capturedAt)
+        createdAt = try c.decode(Date.self, forKey: .createdAt)
+    }
+}
+
+/// 백엔드 `/mochi_items/back-tap` 응답 — mochiItem 본체 + Gemini 후보 3개 + 멱등 replay 여부.
+///
+/// `candidates` 는 멱등 재요청 (`wasReplay=true`) 시 빈 배열로 반환된다 — mochiItem 자체에는
+/// 후보 reasoning 이 보관되지 않아 재구성이 의미를 갖지 않기 때문.
+public struct BackTapMochiItemResponseDTO: Sendable, Hashable, Codable {
+    public let item: MochiItemDTO
+    public let candidates: [IntentCandidateDTO]
+    public let wasReplay: Bool
+
+    private enum CodingKeys: String, CodingKey {
+        case item, candidates
+        case wasReplay = "wasReplay"
+    }
+}
+
+public struct IntentCandidateDTO: Sendable, Hashable, Codable {
+    public let label: String
+    public let intent: Intent
+    public let applicability: Double
+    public let reasoning: String
 }
 
 public enum SearchScope: String, Codable, Sendable, CaseIterable {

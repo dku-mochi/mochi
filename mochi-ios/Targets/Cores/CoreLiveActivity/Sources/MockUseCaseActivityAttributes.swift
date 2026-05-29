@@ -50,7 +50,12 @@ public struct MockUseCaseActivityAttributes: ActivityAttributes {
     /// Activity 식별용 짧은 캡션. Lock Screen 헤더에 표시.
     public var captureCaption: String
 
-    public init(captureCaption: String) {
+    /// App Group container 기준 상대 경로 (예: `captures/<filename>.png`). 좌측 column 의
+    /// 스크린샷 썸네일 렌더에 사용. nil 이면 placeholder. 디스크에서 직접 읽으므로 4KB payload 한도 안 거침.
+    public var thumbnailRelativePath: String?
+
+    public init(captureCaption: String, thumbnailRelativePath: String? = nil) {
         self.captureCaption = captureCaption
+        self.thumbnailRelativePath = thumbnailRelativePath
     }
 }

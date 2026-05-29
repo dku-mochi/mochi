@@ -4,7 +4,7 @@ import XCTest
 final class LifecyclePolicyTests: XCTestCase {
     func test_schedule_can_archive_with_scheduleEnded() {
         let result = LifecyclePolicy.validate(from: .active, to: .archived(reason: .scheduleEnded), intent: .schedule)
-        XCTAssertEqual(result, .success(()))
+        assertValid(result)
     }
 
     func test_schedule_archive_with_wrong_reason_is_rejected() {
@@ -16,10 +16,7 @@ final class LifecyclePolicyTests: XCTestCase {
     }
 
     func test_memo_only_allows_userManual_archive() {
-        XCTAssertEqual(
-            LifecyclePolicy.validate(from: .active, to: .archived(reason: .userManual), intent: .memo),
-            .success(())
-        )
+        assertValid(LifecyclePolicy.validate(from: .active, to: .archived(reason: .userManual), intent: .memo))
         if case .failure = LifecyclePolicy.validate(from: .active, to: .archived(reason: .knowledgeStale), intent: .memo) {
             return
         }
@@ -27,17 +24,29 @@ final class LifecyclePolicyTests: XCTestCase {
     }
 
     func test_knowledge_can_decay_then_review_then_revive_or_archive() {
-        XCTAssertEqual(LifecyclePolicy.validate(from: .active, to: .decaying, intent: .knowledge), .success(()))
-        XCTAssertEqual(LifecyclePolicy.validate(from: .decaying, to: .reviewRequested, intent: .knowledge), .success(()))
-        XCTAssertEqual(LifecyclePolicy.validate(from: .reviewRequested, to: .active, intent: .knowledge), .success(()))
-        XCTAssertEqual(
-            LifecyclePolicy.validate(from: .reviewRequested, to: .archived(reason: .knowledgeStale), intent: .knowledge),
-            .success(())
-        )
+        assertValid(LifecyclePolicy.validate(from: .active, to: .decaying, intent: .knowledge))
+        assertValid(LifecyclePolicy.validate(from: .decaying, to: .reviewRequested, intent: .knowledge))
+        assertValid(LifecyclePolicy.validate(from: .reviewRequested, to: .active, intent: .knowledge))
+        assertValid(LifecyclePolicy.validate(from: .reviewRequested, to: .archived(reason: .knowledgeStale), intent: .knowledge))
     }
 
     func test_memo_cannot_enter_review_requested() {
         let result = LifecyclePolicy.validate(from: .active, to: .reviewRequested, intent: .memo)
         if case .failure = result {} else { XCTFail("memo must not enter reviewRequested") }
+    }
+
+    // MARK: - Helper
+
+    /// `LifecyclePolicy.validate` 는 `Result<Void, LifecycleTransitionError>` 를 반환하는데
+    /// `Void` 가 `Equatable` 이 아니라 `XCTAssertEqual(_, .success(()))` 로는 검증할 수 없다.
+    /// success 여부는 case 매칭으로 단언한다.
+    private func assertValid(
+        _ result: Result<Void, LifecycleTransitionError>,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        if case let .failure(error) = result {
+            XCTFail("expected .success but got .failure(\(error))", file: file, line: line)
+        }
     }
 }
