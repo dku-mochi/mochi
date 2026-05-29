@@ -231,8 +231,15 @@ class PostgresMochiItemRepository(MochiItemRepository):
             delete(EntityRow).where(EntityRow.mochi_item_id == mochi_item_id)
         )
         for kind, value in entities:
+            # mochi_item=row 를 함께 줘야 한다 — MappedAsDataclass + relationship(default=None) 조합에서
+            # FK 만 주면 relationship 의 None 이 flush 시 mochi_item_id 를 NULL 로 덮어쓴다(NotNullViolation).
             self._session.add(
-                EntityRow(mochi_item_id=mochi_item_id, kind=kind[:16], value=value[:512])
+                EntityRow(
+                    mochi_item_id=mochi_item_id,
+                    kind=kind[:16],
+                    value=value[:512],
+                    mochi_item=row,
+                )
             )
         await self._session.flush()
 
