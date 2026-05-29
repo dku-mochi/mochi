@@ -302,19 +302,19 @@ CorePrivacy
 - `ShareExtension`: inbound payload 생성 전 1차 감지
 - `CommitBackTapCaptureIntent`: 백탭 snippet 의 캡쳐 분기 1차 감지 지점 (계획 — pending PNG 를 영구 `captures/` 로 promote 하기 전에 호출. **MVP §8 구현 순서 기준 아직 미통합** 이며, 현재 intent 는 감지 없이 promote 한다. snippet `openAppWhenRun = false` background process 에서 Vision OCR 비용을 어디까지 허용할지는 별도 결정 필요)
 - `BackTapModalFeature`: 백탭 snippet 의 메모 분기 — 사용자 입력 텍스트에 대한 1차 감지 (계획). 메모 분기는 PNG 가 즉시 폐기되므로 OCR 대상은 아니며, 텍스트 내 인증번호/카드번호 등 패턴 감지 위주
-- `CaptureFeature`: 앱 내 직접 입력 감지
-- `CaptureSyncWorker`: 민감도에 따른 업로드 정책 적용
+- `MochiItemFeature`: 앱 내 직접 입력 감지
+- `MochiItemSyncWorker`: 민감도에 따른 업로드 정책 적용
 - `FeatureSettings`: 기본 privacy mode 설정
 
 ### 7.2 Backend
 
 ```text
-captures/domain
+mochi_items/domain
 - CapturePrivacy
 - SensitivityLevel
 - RedactionStatus
 
-captures/presentation
+mochi_items/presentation
 - CapturePrivacyRequest
 - CapturePrivacyResponse
 
@@ -331,8 +331,8 @@ agent/application
 3. 한국형 룰로 인증번호, 카드번호, 계좌, 토큰 문맥 탐지
 4. `SensitivityScorer` 로 0-10점 계산
 5. 6점 이상 경고 UI 표시
-6. `CaptureSyncWorker` 에서 `local_only`, `text_only`, `redacted_image`, `original_allowed` 분기
-7. 백엔드 captures API 에 privacy metadata 저장
+6. `MochiItemSyncWorker` 에서 `local_only`, `text_only`, `redacted_image`, `original_allowed` 분기
+7. 백엔드 mochi_items API 에 privacy metadata 저장
 8. Agent/search 가 원본 이미지 없는 캡처를 정상 처리하도록 fallback 구현
 
 ---

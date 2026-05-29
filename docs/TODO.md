@@ -110,15 +110,15 @@ snippet 흐름의 `CommitBackTapCaptureIntent` 와 모달의 `BackTapModalFeatur
 
 - [ ] **`CommitBackTapCaptureIntent` 실패 신호**: snippet 카드는 `openAppWhenRun = false` 라 background commit. Realm upsert 가 실패해도 사용자에게 알리지 못한다. (a) 실패 marker 파일 (`<captureID>.commit-failed`) stash → 다음 active 시점에 모찌 알림 표시. (b) `IntentResult` 가 `.result(dialog:)` 또는 `.result(view:)` 로 짧은 에러 snippet 반환. (b) 가 즉시성 우수.
 - [ ] **`commitMemo` 실패 시 UI state 유지**: Realm upsert 실패면 phase 를 `.memo` 로 복귀 + `memoText` 보존 + 인라인 에러 메시지. 사용자가 입력한 텍스트 손실 방지.
-- [ ] **`CaptureSyncWorker` 의 `.syncFailed` retry**: 현재 `.pendingUpload` 만 retry 대상이라 한 번 실패 후엔 자동 재시도 없음. (a) `.syncFailed` 도 backoff 후 한 번 더 retry 하거나, (b) Inbox 에 retry 버튼 UI 추가. (b) 가 사용자에게 명시적이라 권장. snippet 캡쳐 분기는 백엔드 ingest 를 안 하므로 모든 캡쳐가 `.pendingUpload` 로 진입 → `CaptureSyncWorker` retry 정책 신뢰도가 더 중요해졌다.
+- [ ] **`MochiItemSyncWorker` 의 `.syncFailed` retry**: 현재 `.pendingUpload` 만 retry 대상이라 한 번 실패 후엔 자동 재시도 없음. (a) `.syncFailed` 도 backoff 후 한 번 더 retry 하거나, (b) Inbox 에 retry 버튼 UI 추가. (b) 가 사용자에게 명시적이라 권장. snippet 캡쳐 분기는 백엔드 ingest 를 안 하므로 모든 캡쳐가 `.pendingUpload` 로 진입 → `MochiItemSyncWorker` retry 정책 신뢰도가 더 중요해졌다.
 - [ ] **ErrorReporter (sentry / firebase crashlytics) 도입** 후 위 세 흐름과 통합. 단순 catch 가 아닌 structured error 로 보고.
 
 ### 3.5 이미지 업로드 파이프라인 — 백엔드 ingest 가 PNG bytes 안 받음 (codex P1 #4)
 
-`CommitBackTapCaptureIntent` 가 영구 `captures/<captureID>.png` 로 이미지 bytes 를 저장하지만, `CaptureSyncWorker` 가 백엔드 `POST /api/v1/captures` 호출 시 보내는 `ImageRefDTO` 는 `objectKey/mimeType/byteSize/sha256` 만 — `objectKey: nil` 인 채로 metadata 만 전달된다. 백엔드는 multimodal 분석에 필요한 PNG 자체를 받지 못한다. 이건 snippet pivot 으로 도입된 결함이 아니라 **기존부터 비어 있던 업로드 파이프라인** — 모달 흐름에서도 동일했음. (`CommitBackTapCaptureIntent.swift:87`, `CaptureSyncWorker.swift:42`, `CaptureSource.swift:53`)
+`CommitBackTapCaptureIntent` 가 영구 `captures/<captureID>.png` 로 이미지 bytes 를 저장하지만, `MochiItemSyncWorker` 가 백엔드 `POST /api/v1/mochi_items` 호출 시 보내는 `ImageRefDTO` 는 `objectKey/mimeType/byteSize/sha256` 만 — `objectKey: nil` 인 채로 metadata 만 전달된다. 백엔드는 multimodal 분석에 필요한 PNG 자체를 받지 못한다. 이건 snippet pivot 으로 도입된 결함이 아니라 **기존부터 비어 있던 업로드 파이프라인** — 모달 흐름에서도 동일했음. (`CommitBackTapCaptureIntent.swift:87`, `MochiItemSyncWorker.swift:42`, `IngestSource.swift:53`)
 
-- [ ] **백엔드 presigned URL 발급 엔드포인트**: `POST /api/v1/captures/presign` → `{ objectKey, uploadURL, expiresAt }`. GCS / S3 multipart 업로드 url.
-- [ ] **iOS `CaptureSyncWorker.uploadOne`** 이 presign → PNG bytes PUT → `objectKey` 채워서 ingest 호출. 실패 시 backoff retry.
+- [ ] **백엔드 presigned URL 발급 엔드포인트**: `POST /api/v1/mochi_items/presign` → `{ objectKey, uploadURL, expiresAt }`. GCS / S3 multipart 업로드 url.
+- [ ] **iOS `MochiItemSyncWorker.uploadOne`** 이 presign → PNG bytes PUT → `objectKey` 채워서 ingest 호출. 실패 시 backoff retry.
 - [ ] **`ImageRef.objectKey` 채워지면 Realm 도 갱신**. 이후 sync 호출은 이미 채워진 `objectKey` 재사용 (중복 업로드 금지).
 - [ ] **백엔드 multimodal worker** 가 `objectKey` 를 통해 GCS 에서 PNG 다운로드 후 Gemini Vision 분석.
 
@@ -178,8 +178,8 @@ AUTH_GOOGLE_JWKS_URL=https://www.googleapis.com/oauth2/v3/certs
 - [ ] 한국형 룰 기반 탐지 추가: 주민등록번호 후보, 카드번호 Luhn check, 계좌/은행 문맥, 인증번호/OTP, API key/token, 병원/처방/계약/급여 문맥.
 - [ ] 민감도 점수 0-10 산출 및 `low/caution/sensitive/highly_sensitive` 등급화.
 - [ ] 점수 6 이상 캡처에 사용자 경고 UI 표시: `기기에만 저장`, `민감 영역 가리고 분석`, `텍스트만 분석`, `원본 분석 허용`.
-- [ ] `CaptureSyncWorker` 에 업로드 정책 분기 추가: `local_only`, `text_only`, `redacted_image`, `original_allowed`.
-- [ ] 서버 captures API 에 privacy metadata 추가: `sensitivity_score`, `sensitivity_level`, `redaction_status`, `original_image_uploaded`, `privacy_policy`.
+- [ ] `MochiItemSyncWorker` 에 업로드 정책 분기 추가: `local_only`, `text_only`, `redacted_image`, `original_allowed`.
+- [ ] 서버 mochi_items API 에 privacy metadata 추가: `sensitivity_score`, `sensitivity_level`, `redaction_status`, `original_image_uploaded`, `privacy_policy`.
 - [ ] Agent/search 가 원본 이미지 없는 semantic payload 를 정상 분석하도록 fallback 구현.
 - [ ] 민감 캡처 embedding 생성/삭제 정책 결정 및 계정 삭제 플로우에 반영.
 

@@ -103,7 +103,23 @@ description: capture → mochi_item 대규모 rename 작업 로그 + handoff. �
   - openapi-check: iOS 가 `/mochi_items` 호출로 전환 → captures 계약깨짐 해소(drift 14→12, 남은 12 = 등록된 known-drift: auth 외부처리·미구현 endpoint).
   - **zsh 함정**: `perl ... $FILES` 는 zsh 가 단어분할 안 해 실패 → `find -print0 | xargs -0` 사용. macOS sed 는 `\b` 미지원 → perl.
   - **잔여 cosmetic**: 테스트 메서드명 `test_..._capture`(2건, `_capture` 워드경계로 미매칭, 무해).
-- [ ] **B5** — 문서 정합 폭포(B4 이후): `docs/DOMAIN_DESIGN.md` §18(코드 정본=capture 서술 폐기)·:257·:279, `docs/TODO.md` L118/120/182, `docs/PRIVACY_SENSITIVE_CAPTURE.md` L303/312/317/335, `docs/PRODUCT.md` L368, `docs/gcp-architecture.html` /captures→/mochi_items, CHANGELOG:137 known-drift 종결. + `audit.sh l2` DOMAIN_DESIGN drift 0 확인. docs 가 backend+iOS 함께 서술해 B4 뒤로 묶음.
+- [x] **B5 완료** — 문서 정합 폭포. 커밋 예정.
+  - `DOMAIN_DESIGN.md`: §16-20 known-drift 헤더 → "명명 drift 해소" (구조 3-table vs 1-table 만 design-ahead 노트로 잔존), `captures.channel`/`CaptureChannel`→`mochi_items.channel`/`IngestChannel`, `Realm Capture`→`Realm MochiItem`, `단일 captures 테이블`→`mochi_items`.
+  - `TODO.md`: `CaptureSyncWorker`→`MochiItemSyncWorker`, `CaptureSource.swift`→`IngestSource.swift`, `/api/v1/captures`→`/api/v1/mochi_items`, `서버 captures API`→`mochi_items API`.
+  - `PRIVACY_SENSITIVE_CAPTURE.md`: 모듈경로 `captures/domain`·`captures/presentation`→`mochi_items/`, `CaptureSyncWorker`→`MochiItemSyncWorker`, `CaptureFeature`→`MochiItemFeature`, `백엔드 captures API`→`mochi_items API`.
+  - `PRODUCT.md`: `Capture(`→`MochiItem(`, `CaptureSyncWorker`→`MochiItemSyncWorker`, `/api/v1/captures`→`/api/v1/mochi_items`.
+  - `gcp-architecture.html`: 모든 API `/captures`→`/mochi_items`, `Capture ingestion`→`MochiItem ingestion`, `Capture 분석`→`MochiItem 분석`, `CaptureSyncWorker`→`MochiItemSyncWorker`.
+  - `ARCHITECTURE.md`: `InboundCapturePayload`→`InboundIngestPayload`, `CaptureSyncWorker`→`MochiItemSyncWorker`, `CaptureFeature`→`MochiItemFeature`, `FeatureCapture`→`FeatureMochiItem`, `Capture(`→`MochiItem(`, bare `Capture`→`MochiItem`.
+  - `mochi-backend/README.md`: 모듈 `captures/`→`mochi_items/`, `PostgresCaptureRepository`/`CaptureRepository`→`MochiItem*`, `CaptureSource`→`IngestSource`, `IngestCapture`→`Ingest`, 멱등 prefix `capture:`→`mochi_item:`, `"capture.not_found"`→`"mochi_item.not_found"`, API `/captures`→`/mochi_items`, `run(capture_id)`→`run(mochi_item_id)`.
+  - `mochi-ios/README.md`: `FeatureCapture`→`FeatureMochiItem`, `CaptureFeature`→`MochiItemFeature`, `CaptureRepository`→`MochiItemRepository`, `InboundCapturePayload`→`InboundIngestPayload`, bare `Capture`→`MochiItem`.
+  - `WORKFLOW.md`: 포트 명명 예시 `CaptureRepository`→`MochiItemRepository`.
+  - 보존: 모든 AppIntent 명(`CaptureScreenshotIntent`/`CommitBackTapCaptureIntent`/`QuickCaptureIntent`/`OpenBackTapMemoIntent`/`BackTapSnippetView`), `captures/` AppGroup 디렉토리, `captureID` pending-file, `BackTapModalFeature/View`, `capturedAt`, Korean 캡처/캡쳐(행위).
+  - `CHANGELOG.md`: append-only 라 과거 항목 보존(해소는 상단 신규 ios/backend 항목이 기록). `:137`/known-drift 도 과거 기록으로 보존.
+  - 검증: `audit.sh l2` DOMAIN_DESIGN 강등 사유 0(명명 drift 해소). 비-CHANGELOG docs 전역 domain-noun capture 0건.
+
+## 7. rename 전체 완료 요약 (B1~B5)
+- B1 `f0e3d50`, B2 `076b261`, B3 `f973dc2` (backend), B4 `8703c06` (iOS), B5 (docs, 이 커밋).
+- **남은 사용자 작업**: 사용자 Xcode 에서 `tuist test` (또는 빌드) 로 전체 앱 link+테스트 최종 확인 — 에이전트 환경은 `PerceptionCore`/`SwiftUICore` static-link 로 전체앱 link 불가(core 모듈 3종은 빌드 검증 완료). backend `make openapi` 도 사용자 터미널서 1회 재실행해 byte 동일 확인 권장(에이전트는 cryptography dylib 정책으로 셰임 생성).
 
 ## 4. 다음 할 일 (B3)
 

@@ -41,10 +41,10 @@ app/
 │   └── deps.py                    `DBSession = Annotated[AsyncSession, Depends(get_session)]`
 ├── shared/                        모듈 간 공통 enum (Intent, ids)
 ├── modules/
-│   ├── captures/
-│   │   ├── domain/                Capture, CaptureSource, LifecycleState (pure)
-│   │   ├── application/           IngestCapture use case
-│   │   ├── infrastructure/        SQLAlchemy ORM + PostgresCaptureRepository
+│   ├── mochi_items/
+│   │   ├── domain/                MochiItem, IngestSource, LifecycleState (pure)
+│   │   ├── application/           Ingest use case
+│   │   ├── infrastructure/        SQLAlchemy ORM + PostgresMochiItemRepository
 │   │   └── presentation/          FastAPI router + Pydantic API schemas
 │   ├── intents/
 │   │   └── domain/lifecycle_policy.py     4-Intent 상태 머신 (단일 진실 공급원)
@@ -121,12 +121,12 @@ gcloud config set project <YOUR_PROJECT_ID>
 ## 핵심 설계 포인트
 
 ### Idempotency-Key
-- 모든 POST `/api/v1/captures` 는 `Idempotency-Key` 헤더 필수
-- 키는 `capture:{owner_id}:{raw_key}` 로 스코핑되어 다른 사용자의 동일 키와 충돌하지 않는다 (`PostgresCaptureRepository._scope_idempotency_key`)
-- 동일 `(owner, key)` 재요청 시 새 캡처 생성 없이 기존 capture를 반환 (`idempotency_keys` 테이블 + `IngestCapture.execute` 가 보장)
+- 모든 POST `/api/v1/mochi_items` 는 `Idempotency-Key` 헤더 필수
+- 키는 `mochi_item:{owner_id}:{raw_key}` 로 스코핑되어 다른 사용자의 동일 키와 충돌하지 않는다 (`PostgresMochiItemRepository._scope_idempotency_key`)
+- 동일 `(owner, key)` 재요청 시 새 캡처 생성 없이 기존 capture를 반환 (`idempotency_keys` 테이블 + `Ingest.execute` 가 보장)
 
 ### Ownership
-- `CaptureRepository` 의 모든 read/write 메서드는 `owner_id` 키워드 인자를 강제로 받는다 — cross-tenant 누설을 컴파일 시점에 막는다
+- `MochiItemRepository` 의 모든 read/write 메서드는 `owner_id` 키워드 인자를 강제로 받는다 — cross-tenant 누설을 컴파일 시점에 막는다
 - 인증은 `app/core/security.py` — `Bearer dev:<subject>` 토큰은 `environment == "local"` 에서만 허용되고, 그 외 환경에서는 `auth.dev_token_not_allowed_in_env` 로 명시 거부된다
 
 ### Auth Boundary (dev vs prod)
@@ -141,7 +141,7 @@ gcloud config set project <YOUR_PROJECT_ID>
 
 ### Error Envelope (iOS `APIErrorEnvelope` 와 1:1)
 ```json
-{ "code": "capture.not_found", "message": "...", "requestId": "abc", "retryAfter": null }
+{ "code": "mochi_item.not_found", "message": "...", "requestId": "abc", "retryAfter": null }
 ```
 - DomainException 계층(`NotFoundError`, `UnauthorizedError`, `RateLimitedError`, `FeatureUnavailableError` …)이 모두 동일 포맷으로 직렬화
 
@@ -151,8 +151,8 @@ ingested → normalized → analyzed → routed → persisted → indexed → sy
                                                            ▼
                                                         failed
 ```
-- `AgentOrchestrator.run(capture_id)` 가 노드를 진전시키며 모든 `tool_calls` 의 input/output digest, tokens, latency 를 `agent_runs` / `tool_calls` 테이블에 기록
-- iOS는 `/captures/{id}/stream` SSE 로 노드 전환을 실시간 수신
+- `AgentOrchestrator.run(mochi_item_id)` 가 노드를 진전시키며 모든 `tool_calls` 의 input/output digest, tokens, latency 를 `agent_runs` / `tool_calls` 테이블에 기록
+- iOS는 `/mochi_items/{id}/stream` SSE 로 노드 전환을 실시간 수신
 
 ### Hybrid Search RAG
 - `bm25_k=80`, `vector_k=80` 두 후보를 만들어 RRF (`k=60`) 융합
@@ -181,7 +181,7 @@ ingested → normalized → analyzed → routed → persisted → indexed → sy
 | Method | Path | 인증 | 설명 |
 | --- | --- | --- | --- |
 | GET | `/api/v1/health` | 불필요 | 헬스체크 |
-| POST | `/api/v1/captures` | Bearer | 캡처 ingestion (Idempotency-Key 필수) |
-| GET | `/api/v1/captures/{id}` | Bearer | 캡처 조회 |
-| GET | `/api/v1/captures/{id}/stream` | Bearer | Agent state graph SSE 스트림 |
+| POST | `/api/v1/mochi_items` | Bearer | 캡처 ingestion (Idempotency-Key 필수) |
+| GET | `/api/v1/mochi_items/{id}` | Bearer | 캡처 조회 |
+| GET | `/api/v1/mochi_items/{id}/stream` | Bearer | Agent state graph SSE 스트림 |
 | POST | `/api/v1/search` | Bearer | Hybrid search RAG |

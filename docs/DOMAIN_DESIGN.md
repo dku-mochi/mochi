@@ -13,11 +13,11 @@ description: 도메인 모델·DB 스키마·4-Intent lifecycle 의 committed �
 > Backend: Postgres 16 + pgvector
 > iOS: Realm (mirror)
 
-> ⚠️ **활성 known-drift — 임시 정본 표명** (owner: 송준서 · since: 2026-05-27 · resolve_by: W4 sprint)
+> ℹ️ **명명 drift 해소됨** (2026-05-29, `capture` → `mochi_item` rename B1~B4 완료)
 >
-> 이 문서는 `mochi_item` 정규화 모델(3-table)을 서술한다. **그러나 현재 코드의 정본은 `capture` 단일 테이블**이다(백엔드 `captures`, iOS `CaptureRepository`). 명명·구조 분기가 데모데이 직전 폭발 위험.
+> 이전엔 문서가 `mochi_item`, 코드가 `capture` 로 갈라져 있었으나, 2026-05-29 rename 으로 **코드도 `mochi_item` 정본**이 되었다(백엔드 `mochi_items` 테이블·모듈, iOS `MochiItemRepository`·`MochiItem`). `capture` 는 이제 *이미지 캡처 행위* 만 의미(AppGroup `captures/` 디렉토리, 백탭 `CaptureScreenshotIntent` 등 보존).
 >
-> **임시 결정** (W4 sprint 까지 유지, 그 후 팀 합의로 최종): 코드 변경 없이 *문서가 코드를 따라간다* — 본 문서의 `mochi_item` 표현은 모두 *논리 모델 설명* 으로 읽고, 물리 정본은 `capture` 다. `audit.sh` 의 `mochi_item` grep 강등은 **의도된 정직 신호** 로 유지.
+> **남은 구조 divergence (명명 아님)**: 본 문서는 정규화 3-table(`mochi_items`/`mochi_sources`/`mochi_analyses`) 을 서술하나 현재 백엔드 구현은 단일 `mochi_items` 테이블(평탄화)이다. 이는 *설계가 구현보다 앞선* 의도된 design-ahead 노트로, 정규화 분리는 별도 작업 큐. `audit.sh` 의 `mochi_item` grep 규칙은 향후 회귀 감시용으로 유지.
 
 ---
 
@@ -254,16 +254,16 @@ CREATE TABLE mochi_sources (
     user_hint            text,
     raw_text             text,
     source_metadata_json jsonb NOT NULL DEFAULT '{}'::jsonb,
-    -- ⚠️ 현재 backend 구현은 `captures.channel String(32) NOT NULL` 의 평문 컬럼 (CHECK 없음).
-    -- iOS `CoreDomain.CaptureChannel` ↔ backend `CaptureChannel` (StrEnum) 의 raw value 가 그대로 저장된다:
+    -- ⚠️ 현재 backend 구현은 `mochi_items.channel String(32) NOT NULL` 의 평문 컬럼 (CHECK 없음).
+    -- iOS `CoreDomain.IngestChannel` ↔ backend `IngestChannel` (StrEnum) 의 raw value 가 그대로 저장된다:
     --   kakaoTalk / instagram / youtube / safari / screenshot
     --   appIntent (Siri / Spotlight / 사용자 단축어가 QuickCaptureIntent 직접 호출)
     --   appShareSheet / appDirectInput / unknown
     -- 백탭 캡처는 `.screenshot` 으로 라벨링됨 (단축어가 PNG 를 모찌 `pending-backtap/` 에 stash →
     -- `CaptureScreenshotIntent` 가 `ShowsSnippetView` 로 외부 앱 위에 카드 표시 → 사용자가 "캡쳐"
-    -- 선택 시 `CommitBackTapCaptureIntent` 가 background 에서 `.screenshot` 으로 Realm Capture
+    -- 선택 시 `CommitBackTapCaptureIntent` 가 background 에서 `.screenshot` 으로 Realm MochiItem
     -- 직접 upsert. "메모" 선택 시 `OpenBackTapMemoIntent` 가 marker 만 stash 후 모찌 진입 →
-    -- `BackTapModalFeature` 의 textarea 가 `.appDirectInput` 으로 Realm Capture upsert + 백엔드 ingest).
+    -- `BackTapModalFeature` 의 textarea 가 `.appDirectInput` 으로 Realm MochiItem upsert + 백엔드 ingest).
     -- 백탭은 inbound queue 를 우회한다 — 큐 경유는 ShareExtension·`QuickCaptureIntent` 뿐.
     -- ShareExtension 경로의 추론(`guessChannel(from:hasImage:)`) 은 외부 앱 공유시트 진입에만 적용된다.
     -- 아래 CHECK 절은 향후 정책 강화 시 enable. 현재는 backend Pydantic enum 이 validation 게이트.
@@ -276,7 +276,7 @@ CREATE TABLE mochi_sources (
 );
 
 -- 참고: 이 `mochi_sources` 스키마는 모듈 분리(`mochi_items` ↔ `mochi_sources`) 를 가정한 도메인 설계 문서이고,
--- 현재 백엔드 마이그레이션은 단일 `captures` 테이블로 더 평탄하게 구현되어 있다 (alembic/versions/20260522_2210_0001_initial.py).
+-- 현재 백엔드 마이그레이션은 단일 `mochi_items` 테이블로 더 평탄하게 구현되어 있다 (alembic 0001 + 0006 rename).
 -- 두 모델의 정합화는 별도 작업으로 큐 — 본 문서가 단일 진실 공급원이 될 때 backend 를 따라오게 한다.
 
 CREATE TABLE mochi_attachments (

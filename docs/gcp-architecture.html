@@ -214,7 +214,7 @@
       <text x="56" y="80" class="title">Main App</text>
       <text x="56" y="96" class="sub">SwiftUI + TCA</text>
       <text x="56" y="110" class="sub">Realm (mirror)</text>
-      <text x="56" y="124" class="sub">CaptureSyncWorker</text>
+      <text x="56" y="124" class="sub">MochiItemSyncWorker</text>
       <rect x="176" y="62" width="120" height="74" rx="4" fill="#fff" stroke="#e5e5e5"/>
       <text x="186" y="80" class="title">Extensions</text>
       <text x="186" y="96" class="sub">Share / AppIntents</text>
@@ -259,7 +259,7 @@
       <text x="90" y="320" class="sub">CPU always allocated · request timeout=3600s (SSE 위해)</text>
       <text x="90" y="340" class="sub" fill="#8b6cff">FastAPI 안에 모두 통합:</text>
       <text x="100" y="358" class="sub">①  /api/v1/* HTTP endpoints (sync 요청)</text>
-      <text x="100" y="374" class="sub">②  /captures/{id}/stream SSE</text>
+      <text x="100" y="374" class="sub">②  /mochi_items/{id}/stream SSE</text>
       <text x="100" y="390" class="sub">③  asyncio.create_task(outbox_poller()) 백그라운드</text>
 
       <!-- Housekeeper -->
@@ -301,7 +301,7 @@
 
       <!-- Cloud Run domain → mochi-api -->
       <path d="M510 136 C510 200, 340 220, 340 262" fill="none" stroke="#0a0a0a" stroke-width="1.4" marker-end="url(#arr)"/>
-      <text x="376" y="226" class="lblSm">/api/v1/* · /captures/*/stream</text>
+      <text x="376" y="226" class="lblSm">/api/v1/* · /mochi_items/*/stream</text>
 
       <!-- API → Vertex AI (cross-region) -->
       <path d="M586 320 C700 300, 720 180, 800 150" fill="none" stroke="#d4632b" stroke-width="1.4" marker-end="url(#arrWarn)"/>
@@ -416,7 +416,7 @@
       <tr>
         <td class="mono"><strong>Gemini 3.1 Flash-Lite</strong><br/>(Preview, multimodal + tool use)</td>
         <td class="mono" style="color:var(--warn)">asia-northeast1<br/>fallback us-central1</td>
-        <td>Capture 분석 (intent / summary / entities / actions / importance), agent function calling, conversation generation, search answer synthesis</td>
+        <td>MochiItem 분석 (intent / summary / entities / actions / importance), agent function calling, conversation generation, search answer synthesis</td>
         <td>max_output_tokens=1024, safety_settings=BLOCK_MEDIUM_AND_ABOVE, function calling = <code>StaticToolRegistry</code> 등록 도구만, 입력 이미지 ≤ 2MB, retry exponential backoff</td>
       </tr>
       <tr>
@@ -450,7 +450,7 @@
   <h3 class="title">핵심 데이터 흐름</h3>
   <p class="intro">서비스가 단순해진 만큼 데이터 흐름도 단순. <strong>같은 process 안에서</strong> ingest → outbox → worker → SSE push 가 모두 일어난다.</p>
 
-  <h4>4.1 Capture ingestion (POST /captures)</h4>
+  <h4>4.1 MochiItem ingestion (POST /mochi_items)</h4>
   <div class="diagram">
     <svg viewBox="0 0 1040 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ingest flow">
       <defs>
@@ -472,7 +472,7 @@
       <text x="940" y="30" text-anchor="middle" class="actor">GCS</text>
 
       <line x1="100" y1="60" x2="350" y2="60" stroke="#0a0a0a" marker-end="url(#arr2)"/>
-      <text x="225" y="56" text-anchor="middle" class="step">1. POST /captures/presign (sha256, mime)</text>
+      <text x="225" y="56" text-anchor="middle" class="step">1. POST /mochi_items/presign (sha256, mime)</text>
 
       <line x1="350" y1="82" x2="940" y2="82" stroke="#0a0a0a" marker-end="url(#arr2)"/>
       <text x="600" y="78" text-anchor="middle" class="step">2. presigned URL 발급 (15분 TTL · prefix=users/{uid}/)</text>
@@ -481,7 +481,7 @@
       <text x="540" y="102" text-anchor="middle" class="step">3. iOS → GCS 직접 PUT (이미지 바이너리 · API 우회)</text>
 
       <line x1="100" y1="138" x2="350" y2="138" stroke="#0a0a0a" marker-end="url(#arr2)"/>
-      <text x="225" y="134" text-anchor="middle" class="step">4. POST /captures (Idempotency-Key, attachments[sha256], 메타)</text>
+      <text x="225" y="134" text-anchor="middle" class="step">4. POST /mochi_items (Idempotency-Key, attachments[sha256], 메타)</text>
 
       <rect x="360" y="150" width="280" height="120" rx="4" fill="#ede7ff" stroke="#8b6cff"/>
       <text x="500" y="170" text-anchor="middle" class="note">단일 DB 트랜잭션</text>
@@ -524,7 +524,7 @@ async def outbox_poller_loop():
   </ul>
 
   <h4>4.3 SSE 스트리밍</h4>
-  <p>iOS 가 <code>GET /captures/{id}/stream</code> 으로 연결 → 같은 instance 의 SSE 핸들러가 <code>agent_runs.current_node</code> 를 1초 간격 폴링 → 변경 시 client 로 push. 멀티-instance 가 되어도 worker 와 SSE 가 다른 instance 에 있을 수 있는데, DB 가 진실의 원천이라 polling 이 정상 동작 (Redis pub/sub 같은 fan-out 불필요).</p>
+  <p>iOS 가 <code>GET /mochi_items/{id}/stream</code> 으로 연결 → 같은 instance 의 SSE 핸들러가 <code>agent_runs.current_node</code> 를 1초 간격 폴링 → 변경 시 client 로 push. 멀티-instance 가 되어도 worker 와 SSE 가 다른 instance 에 있을 수 있는데, DB 가 진실의 원천이라 polling 이 정상 동작 (Redis pub/sub 같은 fan-out 불필요).</p>
 
   <h4>4.4 Hybrid search</h4>
   <p>POST /search → 같은 process 안에서 (1) Vertex AI embed query (~30-100ms, Tokyo 라 빠름), (2) BM25 + 벡터 두 쿼리 병렬, (3) RRF k=60 결합, (4) Gemini synthesizer 로 answer 생성, (5) citations 와 함께 반환. 모든 단계가 <strong>같은 한 process 안</strong>.</p>

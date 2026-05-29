@@ -44,15 +44,15 @@ mochi-ios/
     │   ├── Resources/Assets.xcassets
     │   └── Support/Info.plist, App.entitlements
     ├── Cores/
-    │   ├── CoreDomain/        도메인 모델 (Intent, Capture, AgentRun, LifecyclePolicy ...)
-    │   ├── CorePersistence/   Realm + App Group + CaptureRepository protocol
+    │   ├── CoreDomain/        도메인 모델 (Intent, MochiItem, AgentRun, LifecyclePolicy ...)
+    │   ├── CorePersistence/   Realm + App Group + MochiItemRepository protocol
     │   ├── CoreNetworking/    MochiAPIClient, APIErrorEnvelope (OpenAPI 어댑터)
     │   ├── CoreAgentClient/   AgentStreamClient (SSE/WebSocket)
     │   ├── CoreIntegrations/  CalendarSyncing (EventKit/Reminders)
     │   └── DesignSystem/      MochiTheme, IntentBadge, ...
     ├── Features/
     │   ├── FeatureInbox/      받은 기록 목록 (필터 + 라우팅)
-    │   ├── FeatureCapture/    Agent loop stream UI
+    │   ├── FeatureMochiItem/    Agent loop stream UI
     │   ├── FeatureSearch/     자연어 질의
     │   ├── FeatureDetail/     상세 + 캘린더/리마인더 sync
     │   └── FeatureSettings/   서버 endpoint, 자동 동기화 토글
@@ -114,11 +114,11 @@ tuist test
 | 채널 | 진입점 | 모듈 / 위치 |
 | --- | --- | --- |
 | 외부 공유 시트 (의식적 캡처) | `ShareExtensionPrincipal` → `ShareEntryView` 메모/확인 모달 → inbound 큐 적재 | `ShareExtension` 타겟 |
-| 백탭 (snippet 카드) | 사용자 단축어 → `Take Screenshot` → 이미지 변환(PNG) → `CaptureScreenshotIntent` (`openAppWhenRun = false`) → `pending-backtap/<captureID>.png` stash + `BackTapSnippetView` 가 외부 앱 위에 카드 표시. "캡쳐" 선택 시 `CommitBackTapCaptureIntent` 가 background commit (모찌 앱 안 깸). "메모" 선택 시 `OpenBackTapMemoIntent` 가 `.memo` marker stash + 모찌 foreground → `BackTapModalFeature` 풀스크린 모달 (textarea) | App 타겟 `App/Sources/AppIntents/` + `FeatureCapture/BackTapModalFeature` |
+| 백탭 (snippet 카드) | 사용자 단축어 → `Take Screenshot` → 이미지 변환(PNG) → `CaptureScreenshotIntent` (`openAppWhenRun = false`) → `pending-backtap/<captureID>.png` stash + `BackTapSnippetView` 가 외부 앱 위에 카드 표시. "캡쳐" 선택 시 `CommitBackTapCaptureIntent` 가 background commit (모찌 앱 안 깸). "메모" 선택 시 `OpenBackTapMemoIntent` 가 `.memo` marker stash + 모찌 foreground → `BackTapModalFeature` 풀스크린 모달 (textarea) | App 타겟 `App/Sources/AppIntents/` + `FeatureMochiItem/BackTapModalFeature` |
 | Siri / Spotlight (텍스트 메모) | `QuickCaptureIntent` + `MochiShortcuts` (모찌 UI 우회, inbound 큐 직접 적재) | App 타겟 `App/Sources/AppIntents/` |
-| 앱 내 직접 입력 | `CaptureFeature` (TCA) | `FeatureCapture` |
+| 앱 내 직접 입력 | `MochiItemFeature` (TCA) | `FeatureMochiItem` |
 
-세 외부 surface 는 의도에 따라 분리되어 있다 (공유시트=의식적·메모 입력 / 백탭=외부 앱 컨텍스트 보존 snippet + 분기 선택 / 음성검색=텍스트). 출력 경로도 다르다 — 공유시트·Siri 는 동일한 `InboundCapturePayload` JSON 큐를 거치고, 백탭은 snippet 분기에 따라 Realm `Capture` 를 직접 upsert (큐 우회). surface 분리 근거는 [`docs/ARCHITECTURE.md`](../docs/ARCHITECTURE.md) §2.3 노트.
+세 외부 surface 는 의도에 따라 분리되어 있다 (공유시트=의식적·메모 입력 / 백탭=외부 앱 컨텍스트 보존 snippet + 분기 선택 / 음성검색=텍스트). 출력 경로도 다르다 — 공유시트·Siri 는 동일한 `InboundIngestPayload` JSON 큐를 거치고, 백탭은 snippet 분기에 따라 Realm `MochiItem` 를 직접 upsert (큐 우회). surface 분리 근거는 [`docs/ARCHITECTURE.md`](../docs/ARCHITECTURE.md) §2.3 노트.
 
 ## 백엔드 계약
 

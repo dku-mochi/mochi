@@ -159,7 +159,7 @@ Flow B — 완료
 
 **백엔드 (Python)** — ruff `N`(pep8-naming) 이 case 는 강제.
 - 유스케이스 클래스: 동사+명사 (`IngestCapture`, `HybridSearch`, `OverrideCaptureIntent`).
-- 포트(Protocol): 역할 명사 (`CaptureRepository`, `RetrievalIndex`, `LLMClient`).
+- 포트(Protocol): 역할 명사 (`MochiItemRepository`, `RetrievalIndex`, `LLMClient`).
 - 조회 함수: `queries.py` 에 모음. (TBD: `get_` vs `fetch_` 통일 — 첫 충돌 시 `/codify`)
 
 **iOS (Swift)** — `.swiftlint.yml` 이 case 강제. `id, ok, x, y` 는 짧은 이름 허용.

@@ -196,14 +196,14 @@ Share Extension 은 별도 프로세스로 실행되며, App Group + shared cont
 1. 학교 LMS 과제 화면에서 백탭
 2. 단축어가 현재 화면을 자동 캡처 + PNG 를 모찌 stash → 외부 앱(LMS) 위에 모찌 snippet 카드가 떠오름. **LMS 화면은 사라지지 않음** — 사용자 컨텍스트 보존.
 3. snippet 카드의 "캡쳐" 버튼 탭
-4. 카드만 사라지고 LMS 가 계속 보임. 백그라운드에서 모찌가 Realm `Capture(.pendingUpload)` 로 저장.
+4. 카드만 사라지고 LMS 가 계속 보임. 백그라운드에서 모찌가 Realm `MochiItem(.pendingUpload)` 로 저장.
 5. 다음에 모찌 앱을 열면 Inbox 에 새 캡쳐 표시 (분석 진행 중 → 완료 후 4-Intent 분류).
 
 **입력 화면**: 학교 LMS 의 과제 마감 안내 페이지
 
 **AI 결과**: Intent=일정, 제목="과제 제출", 마감 후보="다음 주 금요일 23:59", 액션="캘린더에 추가"
 
-**Fallback**: snippet 의 `CommitBackTapCaptureIntent` 는 `openAppWhenRun = false` 라 background process 에서 실행될 수 있고, 그 시점에 인증/네트워크 인프라가 부재할 수 있다 — 따라서 백엔드 ingest 는 시도하지 않고 Realm `.pendingUpload` 로 박아둔다. 다음 모찌 active 시점에 `CaptureSyncWorker` 가 ingest 시도하며, 실패하면 `.pendingUpload` 한 번 더 retry 후 `.syncFailed` marking — 이후 자동 재시도 없음 (사용자 retry UI 는 별도 TODO).
+**Fallback**: snippet 의 `CommitBackTapCaptureIntent` 는 `openAppWhenRun = false` 라 background process 에서 실행될 수 있고, 그 시점에 인증/네트워크 인프라가 부재할 수 있다 — 따라서 백엔드 ingest 는 시도하지 않고 Realm `.pendingUpload` 로 박아둔다. 다음 모찌 active 시점에 `MochiItemSyncWorker` 가 ingest 시도하며, 실패하면 `.pendingUpload` 한 번 더 retry 후 `.syncFailed` marking — 이후 자동 재시도 없음 (사용자 retry UI 는 별도 TODO).
 
 **AI 결과**: Intent=할 일, 제목="운영체제 과제 제출", 마감일="2026-05-30 23:59", 출처="X-learning"
 
@@ -357,15 +357,15 @@ Share Extension 은 별도 프로세스로 실행되며, App Group + shared cont
 - 두 버튼: **캡쳐** (`Button(intent: CommitBackTapCaptureIntent)`) / **메모** (`Button(intent: OpenBackTapMemoIntent)`)
 
 **캡쳐 분기** — `CommitBackTapCaptureIntent` (`openAppWhenRun = false`):
-- background 에서 pending → 영구 `captures/<captureID>.png` 로 이동 + sha256 계산 + Realm `Capture(channel: .screenshot, syncState: .pendingUpload)` upsert + pending PNG 폐기
-- **백엔드 ingest 시도 안 함** — snippet background process 는 `AppDependencies.bootstrap()` 미호출 상태일 수 있어 인증/네트워크 인프라 부재 가능. Realm 에 박아둔 `.pendingUpload` 가 안전. 다음 모찌 active 시점에 `CaptureSyncWorker` 가 ingest 시도 (실패 시 1회 더 retry 후 `.syncFailed` marking — 자동 재시도 종료, 사용자 retry UI 필요, 현재 TODO)
+- background 에서 pending → 영구 `captures/<captureID>.png` 로 이동 + sha256 계산 + Realm `MochiItem(channel: .screenshot, syncState: .pendingUpload)` upsert + pending PNG 폐기
+- **백엔드 ingest 시도 안 함** — snippet background process 는 `AppDependencies.bootstrap()` 미호출 상태일 수 있어 인증/네트워크 인프라 부재 가능. Realm 에 박아둔 `.pendingUpload` 가 안전. 다음 모찌 active 시점에 `MochiItemSyncWorker` 가 ingest 시도 (실패 시 1회 더 retry 후 `.syncFailed` marking — 자동 재시도 종료, 사용자 retry UI 필요, 현재 TODO)
 - snippet 카드 자동 dismiss. 외부 앱 그대로.
 
 **메모 분기** — `OpenBackTapMemoIntent` (`openAppWhenRun = true`):
 - pending PNG 즉시 폐기 (사용자가 스크린샷 의도가 아님을 명시한 것)
 - `pending-backtap/<captureID>.memo` marker 파일 stash
 - 모찌 앱 foreground 진입 → `RootFeature` 가 marker 발견 → `BackTapModalFeature` 풀스크린 모달 (`ultraThinMaterial` blur + 모찌 캐릭터 + textarea + 저장 버튼)
-- "저장" → `commitMemo` 가 Realm `Capture(channel: .appDirectInput, text:)` upsert + `POST /api/v1/captures` 시도 (모찌 앱 안이라 인프라 정상). 실패 시 fallback 은 `CaptureSyncWorker`.
+- "저장" → `commitMemo` 가 Realm `MochiItem(channel: .appDirectInput, text:)` upsert + `POST /api/v1/mochi_items` 시도 (모찌 앱 안이라 인프라 정상). 실패 시 fallback 은 `MochiItemSyncWorker`.
 - "취소" → marker 폐기 + dismiss.
 
 **invariant**:
