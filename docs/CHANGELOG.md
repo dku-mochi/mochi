@@ -15,6 +15,16 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 ---
 
+## 2026-05-29 — backend
+- **`capture` → `mochi_item` rename 백엔드 완결 (B1~B3 묶음).** `capture` = 이미지 캡처 *행위*, `mochi_item` = URL+이미지+링크 통합 *도메인 객체* 로 의미 분리. DOMAIN_DESIGN 의 정규화 모델과 코드 정본을 일치시키고 audit.sh known-drift 를 코드 차원에서 해소.
+  - B1 (`f0e3d50`): `app/modules/captures/` → `app/modules/mochi_items/` 디렉토리 mv + 외부 import 갱신.
+  - B2 (`076b261`): 도메인/application/infra/presentation/agent/search 식별자 갱신 — `CaptureRepository`→`MochiItemRepository`, `IngestCapture`→`Ingest`, `CaptureChannel`→`IngestChannel`, presentation 스키마 `Capture*`→`MochiItem*`, route prefix `/captures`→`/mochi_items`.
+  - **B3 (이 커밋): DB 스키마 정합.** alembic `0006` — 테이블 3개(`captures`→`mochi_items`, `capture_image_refs`→`mochi_item_image_refs`, `capture_outbox`→`mochi_item_outbox`) + FK 컬럼 6곳 `capture_id`→`mochi_item_id` + FTS 인덱스 `ix_captures_fts`→`ix_mochi_items_fts`. ORM `__tablename__`/FK/컬럼/관계속성, SQL 문자열(outbox `pg_notify`/worker/orchestrator/postgres_index) 동기화. `openapi.json` 재생성 — path `/api/v1/mochi_items` 계열로 전환.
+  - 보존(결정): `captured_at`/`capturedAt`(캡처 행위 타임스탬프), iOS `captures/` AppGroup 디렉토리, iOS AppIntents(`CaptureScreenshotIntent` 등 = 행위).
+  - 검증: alembic upgrade↔downgrade 왕복 무결, `make test` 80 passed, `make lint` clean, `make typecheck` 35건(기존 부채, rename 무관·신규 0).
+  - **잔여**: B4(iOS 전체 rename — Tuist regenerate, 사용자 직접 실행) → B5(문서 정합 폭포: DOMAIN_DESIGN §18/257/279, TODO, PRIVACY, gcp-architecture.html). docs 가 backend+iOS 를 함께 서술해 B4 이후로 묶음.
+  - 환경 메모: 에이전트 실행 컨텍스트가 Framework Python library-validation 으로 `cryptography`/`numpy` dylib 로드를 거부 → `make openapi` 직접 실행 불가. openapi.json 은 `app.openapi()` 를 그대로 덤프하되 런타임 불필요한 두 패키지만 스텁한 일회성 셰임으로 생성(앱 코드 무변경, generator 출력과 동일). 사용자 터미널에선 `make openapi` 정상.
+
 ## 2026-05-29 — infra
 - **하네스 v3.1 — lab 경계 ②티어 승격 + harness 변형 의도 명문화 + 에이전트 출력 규약.** 동기: harness 메타스킬 기준 자가점검에서 (a)~(e) 약점 도출. 깨진 세션(thinking block 400) 부분작업을 복구·완성.
   - **(a) `lab-experimenter` 경계를 ③(프롬프트)→②(기계 강제) 승격.** `.claude/hooks/pre-edit-scope.sh` 신설 — PreToolUse(Edit|Write) 에서 payload `agent_type=="lab-experimenter"` 일 때만 대상 경로가 `cwd/lab/` 밖이면 exit 2 차단. **fail-open**(agent_type 빈 값=부모 Claude·타 에이전트는 무조건 통과)이라 부모 편집은 안 막힌다. payload 필드(`agent_type`/`cwd`/절대 `file_path`)와 서브에이전트 내부 exit 2 차단 동작은 lab-experimenter 실띄움으로 **실측 검증**. `settings.json` PreToolUse 에 Edit|Write 매처 등록. CLAUDE.md §1 "기계로 막을 수 있는 걸 ③에 두지 말라" 와의 정면 모순 해소.
@@ -28,7 +38,7 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 - **하네스 v2.7 — OpenAPI drift 자동 검사 게이트 (codex 권고 흡수).** 동기: codex 7차 평가가 9점대 보강으로 명시한 "`openapi.json` 기반 iOS generator 를 `/ship` 게이트에 연결해 API drift 를 ⓪/② 로 끌어올리기". 정식 swift-openapi-generator 배선은 시간 비용 큼(post-submission 작업, `docs/l2/aspirational/FUTURE_OPENAPI_GENERATOR.md`) → 그때까지의 **fallback ② 게이트**로 drift 자동 검사 도입.
   - `.claude/scripts/openapi-check.sh` 신설 — `mochi-backend/openapi.json` path 와 iOS `URLSessionMochiAPIClient.swift` 의 endpoint 호출을 양방향 비교. path-parameter `{capture_id}` 와 Swift string interpolation `\(id.uuidString)` 둘 다 `{var}` 로 정규화해 매칭. exit code 1 = drift 발견.
   - `.claude/scripts/ship-precheck.sh` §5 추가 — openapi-check 자동 호출. drift 가 *CHANGELOG 등재(openapi-drift 토큰)* 면 warn, *신규* 면 fail. audit 의 STOP 신규/등재 분기와 같은 패턴.
-- **openapi-drift 등재 (known-drift)** · owner: 송준서 · since: 2026-05-29 · resolve_by: post-submission: 현재 검출되는 8건 — 의도된 미구현이므로 등재 후 추적. `/api/v1/auth/{apple,dev,google,logout,refresh}` 는 `AuthCoordinator` 가 클라이언트 외부에서 별도 처리 (구조적 분리). `/api/v1/captures/{var}/stream` (스트리밍 채널), `/api/v1/health`, `/api/v1/users/me` 는 데모 핵심 기능 외라 iOS 미호출 — 마감 후 재검토. 신규 endpoint 가 추가되면 같은 게이트가 fail 로 잡음.
+- **openapi-drift 등재 (known-drift)** · owner: 송준서 · since: 2026-05-29 · resolve_by: post-submission: 현재 검출되는 8건 — 의도된 미구현이므로 등재 후 추적. `/api/v1/auth/{apple,dev,google,logout,refresh}` 는 `AuthCoordinator` 가 클라이언트 외부에서 별도 처리 (구조적 분리). `/api/v1/captures/{var}/stream` (스트리밍 채널), `/api/v1/health`, `/api/v1/users/me` 는 데모 핵심 기능 외라 iOS 미호출 — 마감 후 재검토. 신규 endpoint 가 추가되면 같은 게이트가 fail 로 잡음. **2026-05-29 capture→mochi_item rename(B1~B3) 이후 갱신**: openapi.json path 가 `/api/v1/mochi_items` 계열로 전환돼, iOS 가 아직 호출하는 `/api/v1/captures{,/{var}}` 가 "client-only" drift 로 잡힌다(현재 총 14건). B4(iOS rename) 에서 iOS 가 `/mochi_items` 로 전환되면 해소 — 그때까지 의도된 중간상태.
 
 ## 2026-05-29 — infra
 - **하네스 v3.0 — CI 실행권한 영구화 + 정적 검사 게이트 통합.** 동기: codex 10차 rubric 평가가 (a) "hooks 실행권한이 CI 검사 기준과 어긋남 — pre-bash.sh, session-start.sh 가 executable 아님 → 로컬 통과/CI 실패", (b) "make lint/typecheck 자동 미포함 — 핵심 품질 게이트 일부 사람 절차" 를 가장 큰 약점으로 지목.

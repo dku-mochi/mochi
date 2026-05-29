@@ -90,13 +90,13 @@ class AgentRunPersistence:
         await self._session.execute(
             text(
                 """
-                INSERT INTO agent_runs (id, capture_id, current_node, total_tokens, total_latency_ms, started_at)
-                VALUES (:id, :capture_id, :node, 0, 0, :started_at)
+                INSERT INTO agent_runs (id, mochi_item_id, current_node, total_tokens, total_latency_ms, started_at)
+                VALUES (:id, :mochi_item_id, :node, 0, 0, :started_at)
                 """
             ),
             {
                 "id": run.id,
-                "capture_id": run.mochi_item_id,
+                "mochi_item_id": run.mochi_item_id,
                 "node": run.current_node.value,
                 "started_at": run.started_at,
             },

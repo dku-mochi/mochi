@@ -14,7 +14,7 @@ from app.shared.intent import Intent
 
 
 class MochiItemRow(Base):
-    __tablename__ = "captures"
+    __tablename__ = "mochi_items"
 
     id: Mapped[UUID] = mapped_column(PgUUIDColumn(as_uuid=True), primary_key=True, insert_default=uuid4, init=False)
     owner_id: Mapped[UUID] = mapped_column(PgUUIDColumn(as_uuid=True), index=True)
@@ -46,42 +46,42 @@ class MochiItemRow(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default_factory=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default_factory=datetime.utcnow)
 
-    entities: Mapped[list["EntityRow"]] = relationship(back_populates="capture", cascade="all, delete-orphan", default_factory=list)
-    embeddings: Mapped[list["EmbeddingRow"]] = relationship(back_populates="capture", cascade="all, delete-orphan", default_factory=list)
-    image_refs: Mapped[list["MochiItemImageRefRow"]] = relationship(back_populates="capture", cascade="all, delete-orphan", default_factory=list)
+    entities: Mapped[list["EntityRow"]] = relationship(back_populates="mochi_item", cascade="all, delete-orphan", default_factory=list)
+    embeddings: Mapped[list["EmbeddingRow"]] = relationship(back_populates="mochi_item", cascade="all, delete-orphan", default_factory=list)
+    image_refs: Mapped[list["MochiItemImageRefRow"]] = relationship(back_populates="mochi_item", cascade="all, delete-orphan", default_factory=list)
 
 
 class MochiItemImageRefRow(Base):
-    __tablename__ = "capture_image_refs"
+    __tablename__ = "mochi_item_image_refs"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True, init=False)
-    capture_id: Mapped[UUID] = mapped_column(PgUUIDColumn(as_uuid=True), ForeignKey("captures.id", ondelete="CASCADE"), index=True, init=False)
+    mochi_item_id: Mapped[UUID] = mapped_column(PgUUIDColumn(as_uuid=True), ForeignKey("mochi_items.id", ondelete="CASCADE"), index=True, init=False)
     sha256: Mapped[str] = mapped_column(String(64), index=True)
     mime_type: Mapped[str] = mapped_column(String(64))
     byte_size: Mapped[int] = mapped_column(BigInteger)
     object_key: Mapped[str | None] = mapped_column(String(512), default=None)
-    capture: Mapped["MochiItemRow"] = relationship(back_populates="image_refs", default=None)
+    mochi_item: Mapped["MochiItemRow"] = relationship(back_populates="image_refs", default=None)
 
 
 class EntityRow(Base):
     __tablename__ = "entities"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True, init=False)
-    capture_id: Mapped[UUID] = mapped_column(PgUUIDColumn(as_uuid=True), ForeignKey("captures.id", ondelete="CASCADE"), index=True)
+    mochi_item_id: Mapped[UUID] = mapped_column(PgUUIDColumn(as_uuid=True), ForeignKey("mochi_items.id", ondelete="CASCADE"), index=True)
     kind: Mapped[str] = mapped_column(String(16))
     value: Mapped[str] = mapped_column(String(512))
-    capture: Mapped["MochiItemRow"] = relationship(back_populates="entities", default=None)
+    mochi_item: Mapped["MochiItemRow"] = relationship(back_populates="entities", default=None)
 
 
 class EmbeddingRow(Base):
     __tablename__ = "embeddings"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True, init=False)
-    capture_id: Mapped[UUID] = mapped_column(PgUUIDColumn(as_uuid=True), ForeignKey("captures.id", ondelete="CASCADE"), index=True)
+    mochi_item_id: Mapped[UUID] = mapped_column(PgUUIDColumn(as_uuid=True), ForeignKey("mochi_items.id", ondelete="CASCADE"), index=True)
     chunk_text: Mapped[str] = mapped_column(String)
     embedding: Mapped[list[float]] = mapped_column(Vector(768))
     model_version: Mapped[str] = mapped_column(String(64))
-    capture: Mapped["MochiItemRow"] = relationship(back_populates="embeddings", default=None)
+    mochi_item: Mapped["MochiItemRow"] = relationship(back_populates="embeddings", default=None)
 
     __table_args__ = (
         Index(
@@ -98,7 +98,7 @@ class IdempotencyKeyRow(Base):
     __tablename__ = "idempotency_keys"
 
     key: Mapped[str] = mapped_column(String(128), primary_key=True)
-    capture_id: Mapped[UUID] = mapped_column(PgUUIDColumn(as_uuid=True))
+    mochi_item_id: Mapped[UUID] = mapped_column(PgUUIDColumn(as_uuid=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default_factory=datetime.utcnow)
 
 
@@ -106,7 +106,7 @@ class AgentRunRow(Base):
     __tablename__ = "agent_runs"
 
     id: Mapped[UUID] = mapped_column(PgUUIDColumn(as_uuid=True), primary_key=True, insert_default=uuid4, init=False)
-    capture_id: Mapped[UUID] = mapped_column(PgUUIDColumn(as_uuid=True), ForeignKey("captures.id", ondelete="CASCADE"), index=True)
+    mochi_item_id: Mapped[UUID] = mapped_column(PgUUIDColumn(as_uuid=True), ForeignKey("mochi_items.id", ondelete="CASCADE"), index=True)
     current_node: Mapped[str] = mapped_column(String(32), default="ingested")
     total_tokens: Mapped[int] = mapped_column(Integer, default=0)
     total_latency_ms: Mapped[int] = mapped_column(Integer, default=0)

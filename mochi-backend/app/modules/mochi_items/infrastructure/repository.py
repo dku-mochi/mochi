@@ -184,7 +184,7 @@ class PostgresMochiItemRepository(MochiItemRepository):
         row = await self._session.get(IdempotencyKeyRow, scoped_key)
         if row is None:
             return None
-        return await self.find_by_id(owner_id=owner_id, mochi_item_id=row.capture_id)
+        return await self.find_by_id(owner_id=owner_id, mochi_item_id=row.mochi_item_id)
 
     async def remember_idempotency(
         self,
@@ -194,7 +194,7 @@ class PostgresMochiItemRepository(MochiItemRepository):
         mochi_item_id: UUID,
     ) -> None:
         scoped_key = self._scope_idempotency_key(owner_id=owner_id, raw_key=idempotency_key)
-        self._session.add(IdempotencyKeyRow(key=scoped_key, capture_id=mochi_item_id))
+        self._session.add(IdempotencyKeyRow(key=scoped_key, mochi_item_id=mochi_item_id))
         await self._session.flush()
 
     @staticmethod

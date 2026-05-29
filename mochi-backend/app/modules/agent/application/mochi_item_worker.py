@@ -4,7 +4,7 @@
 ``AgentOrchestrator`` 를 (per-run 새 instance, AgentRunPersistence 주입) 실행한 뒤
 성공 시 status='done', 영구 실패 시 status='dead_letter', 재시도 가능 실패 시 status='pending' 로 닫는다.
 
-- Postgres `LISTEN capture_outbox` 채널로 즉시 wake-up (TODO)
+- Postgres `LISTEN mochi_item_outbox` 채널로 즉시 wake-up (TODO)
 - 신호 없어도 fallback 폴링 (POLL_INTERVAL_SECONDS)
 - 같은 행이 재처리되지 않도록 `locked_until` 사용
 - attempts 가 MAX_ATTEMPTS 에 도달하면 DLQ 로 격리
@@ -54,10 +54,10 @@ class MochiItemWorker:
         # 워커 크래시·재시작 시 stuck 방지를 위한 핵심.
         sql = text(
             """
-            UPDATE capture_outbox
+            UPDATE mochi_item_outbox
             SET status='in_flight', locked_until=:lock_until, attempts=attempts+1
             WHERE id = (
-                SELECT id FROM capture_outbox
+                SELECT id FROM mochi_item_outbox
                 WHERE (
                        status='pending'
                        OR (status='in_flight' AND locked_until IS NOT NULL AND locked_until < :now)
@@ -67,7 +67,7 @@ class MochiItemWorker:
                 FOR UPDATE SKIP LOCKED
                 LIMIT 1
             )
-            RETURNING id, capture_id, owner_id, attempts
+            RETURNING id, mochi_item_id, owner_id, attempts
             """
         ).bindparams(
             bindparam("lock_until", lock_until),
@@ -78,7 +78,7 @@ class MochiItemWorker:
         await session.commit()
         if row is None:
             return None
-        return ClaimedOutbox(id=row.id, capture_id=row.capture_id, owner_id=row.owner_id, attempts=row.attempts)
+        return ClaimedOutbox(id=row.id, mochi_item_id=row.mochi_item_id, owner_id=row.owner_id, attempts=row.attempts)
 
     async def _handle(self, claimed: "ClaimedOutbox") -> None:
         session_factory = get_session_factory()
@@ -90,17 +90,17 @@ class MochiItemWorker:
                 persistence=AgentRunPersistence(session),
             )
             try:
-                async for _event in orchestrator.run(claimed.capture_id):
+                async for _event in orchestrator.run(claimed.mochi_item_id):
                     pass
                 await session.execute(
-                    text("UPDATE capture_outbox SET status='done' WHERE id=:id").bindparams(id=claimed.id)
+                    text("UPDATE mochi_item_outbox SET status='done' WHERE id=:id").bindparams(id=claimed.id)
                 )
                 await session.commit()
             except Exception as exc:  # noqa: BLE001
-                log.error("worker.failed", capture_id=str(claimed.capture_id), exception=str(exc))
+                log.error("worker.failed", mochi_item_id=str(claimed.mochi_item_id), exception=str(exc))
                 status_value = "dead_letter" if claimed.attempts >= MAX_ATTEMPTS else "pending"
                 await session.execute(
-                    text("UPDATE capture_outbox SET status=:s, last_error=:err WHERE id=:id").bindparams(
+                    text("UPDATE mochi_item_outbox SET status=:s, last_error=:err WHERE id=:id").bindparams(
                         bindparam("s", status_value),
                         bindparam("err", str(exc)[:1024]),
                         bindparam("id", claimed.id),
@@ -110,11 +110,11 @@ class MochiItemWorker:
 
 
 class ClaimedOutbox:
-    __slots__ = ("id", "capture_id", "owner_id", "attempts")
+    __slots__ = ("id", "mochi_item_id", "owner_id", "attempts")
 
-    def __init__(self, *, id: int, capture_id: UUID, owner_id: UUID, attempts: int):
+    def __init__(self, *, id: int, mochi_item_id: UUID, owner_id: UUID, attempts: int):
         self.id = id
-        self.capture_id = capture_id
+        self.mochi_item_id = mochi_item_id
         self.owner_id = owner_id
         self.attempts = attempts
 

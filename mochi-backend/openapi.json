@@ -350,13 +350,13 @@
         }
       }
     },
-    "/api/v1/captures": {
+    "/api/v1/mochi_items": {
       "post": {
         "tags": [
-          "captures"
+          "mochi_items"
         ],
-        "summary": "Create Capture",
-        "operationId": "create_capture_api_v1_captures_post",
+        "summary": "Create Mochi Item",
+        "operationId": "create_mochi_item_api_v1_mochi_items_post",
         "parameters": [
           {
             "name": "Idempotency-Key",
@@ -396,7 +396,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CaptureCreateRequest"
+                "$ref": "#/components/schemas/MochiItemCreateRequest"
               }
             }
           }
@@ -407,7 +407,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CaptureResponse"
+                  "$ref": "#/components/schemas/MochiItemResponse"
                 }
               }
             }
@@ -425,22 +425,167 @@
         }
       }
     },
-    "/api/v1/captures/{capture_id}": {
-      "get": {
+    "/api/v1/mochi_items/back-tap": {
+      "post": {
         "tags": [
-          "captures"
+          "mochi_items"
         ],
-        "summary": "Get Capture",
-        "operationId": "get_capture_api_v1_captures__capture_id__get",
+        "summary": "Create Back Tap Mochi Item",
+        "description": "백탭 캡쳐 — Gemini 로 의도 후보 3개 도출 후 MochiItem 즉시 적재.\n\n응답의 ``candidates`` 가 알림 UX (top-1 강조 + 펼침 시 multi-select) 의 원천이다.\n사용자가 다른 의도를 고르면 ``PATCH /mochi_items/{id}/intent`` 로 primary 교체.",
+        "operationId": "create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post",
         "parameters": [
           {
-            "name": "capture_id",
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackTapMochiItemResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/mochi_items/{mochi_item_id}/intent": {
+      "patch": {
+        "tags": [
+          "mochi_items"
+        ],
+        "summary": "Override Mochi Item Intent",
+        "operationId": "override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch",
+        "parameters": [
+          {
+            "name": "mochi_item_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
               "format": "uuid",
-              "title": "Capture Id"
+              "title": "Mochi Item Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IntentOverrideRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MochiItemResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/mochi_items/{mochi_item_id}": {
+      "get": {
+        "tags": [
+          "mochi_items"
+        ],
+        "summary": "Get Mochi Item",
+        "operationId": "get_mochi_item_api_v1_mochi_items__mochi_item_id__get",
+        "parameters": [
+          {
+            "name": "mochi_item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Mochi Item Id"
             }
           },
           {
@@ -466,7 +611,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CaptureResponse"
+                  "$ref": "#/components/schemas/MochiItemResponse"
                 }
               }
             }
@@ -484,23 +629,23 @@
         }
       }
     },
-    "/api/v1/captures/{capture_id}/stream": {
+    "/api/v1/mochi_items/{mochi_item_id}/stream": {
       "get": {
         "tags": [
           "agent"
         ],
         "summary": "Stream Agent Run",
-        "description": "SSE 스트림. capture owner 가 아닌 경우 404로 응답한다 (자원 존재 노출 방지).\n\n스트림 포맷:\n```\nevent: node\ndata: {\"node\":\"normalized\",\"run_id\":\"...\"}\n\nevent: final\ndata: {\"run_id\":\"...\",\"tokens\":1234}\n```",
-        "operationId": "stream_agent_run_api_v1_captures__capture_id__stream_get",
+        "description": "SSE 스트림. MochiItem owner 가 아닌 경우 404로 응답한다 (자원 존재 노출 방지).\n\n스트림 포맷:\n```\nevent: node\ndata: {\"node\":\"normalized\",\"run_id\":\"...\"}\n\nevent: final\ndata: {\"run_id\":\"...\",\"tokens\":1234}\n```",
+        "operationId": "stream_agent_run_api_v1_mochi_items__mochi_item_id__stream_get",
         "parameters": [
           {
-            "name": "capture_id",
+            "name": "mochi_item_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
               "format": "uuid",
-              "title": "Capture Id"
+              "title": "Mochi Item Id"
             }
           },
           {
@@ -653,47 +798,38 @@
         ],
         "title": "AppleSignInRequest"
       },
-      "CaptureChannel": {
-        "type": "string",
-        "enum": [
-          "kakaoTalk",
-          "instagram",
-          "youtube",
-          "safari",
-          "screenshot",
-          "appIntent",
-          "appShareSheet",
-          "appDirectInput",
-          "unknown"
-        ],
-        "title": "CaptureChannel"
-      },
-      "CaptureCreateRequest": {
+      "BackTapMochiItemResponse": {
         "properties": {
-          "channel": {
-            "$ref": "#/components/schemas/CaptureChannel"
+          "item": {
+            "$ref": "#/components/schemas/MochiItemResponse"
           },
-          "url": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Url"
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/IntentCandidateResponse"
+            },
+            "type": "array",
+            "title": "Candidates"
           },
-          "text": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Text"
+          "wasReplay": {
+            "type": "boolean",
+            "title": "Wasreplay"
+          }
+        },
+        "type": "object",
+        "required": [
+          "item",
+          "wasReplay"
+        ],
+        "title": "BackTapMochiItemResponse",
+        "description": "백탭 ingestion 응답 — MochiItem 본체 + 사용자에게 보여줄 후보 3개.\n\n멱등 재요청 (``wasReplay=true``) 시 ``candidates`` 는 빈 리스트로 반환된다.\n저장된 MochiItem 자체에는 LLM 의 원본 후보 reasoning 이 보관되지 않으므로\n재현이 의미를 갖지 않는다."
+      },
+      "Body_create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post": {
+        "properties": {
+          "image": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "Image",
+            "description": "JPEG/PNG screenshot binary"
           },
           "userMemo": {
             "anyOf": [
@@ -705,143 +841,20 @@
               }
             ],
             "title": "Usermemo"
-          },
-          "imageRefs": {
-            "items": {
-              "$ref": "#/components/schemas/ImageRefDTO"
-            },
-            "type": "array",
-            "title": "Imagerefs"
           }
         },
         "type": "object",
         "required": [
-          "channel"
+          "image"
         ],
-        "title": "CaptureCreateRequest",
-        "description": "클라이언트(iOS)가 보내는 capture ingestion payload.\n\niOS는 본 스키마와 동일한 모양의 ``CaptureIngestRequest`` 를 송신한다 — 양쪽이 OpenAPI 로 검증된다."
-      },
-      "CaptureResponse": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Id"
-          },
-          "channel": {
-            "$ref": "#/components/schemas/CaptureChannel"
-          },
-          "url": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Url"
-          },
-          "text": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Text"
-          },
-          "userMemo": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Usermemo"
-          },
-          "intent": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/Intent"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "summary": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Summary"
-          },
-          "importance": {
-            "type": "integer",
-            "title": "Importance"
-          },
-          "confidence": {
-            "type": "number",
-            "title": "Confidence"
-          },
-          "lifecycleKind": {
-            "type": "string",
-            "title": "Lifecyclekind"
-          },
-          "syncKind": {
-            "type": "string",
-            "title": "Synckind"
-          },
-          "imageRefs": {
-            "items": {
-              "$ref": "#/components/schemas/ImageRefResponse"
-            },
-            "type": "array",
-            "title": "Imagerefs"
-          },
-          "capturedAt": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Capturedat"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Createdat"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "channel",
-          "url",
-          "text",
-          "intent",
-          "summary",
-          "importance",
-          "confidence",
-          "lifecycleKind",
-          "syncKind",
-          "capturedAt",
-          "createdAt"
-        ],
-        "title": "CaptureResponse"
+        "title": "Body_create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post"
       },
       "CitationDTO": {
         "properties": {
-          "captureId": {
+          "mochiItemId": {
             "type": "string",
             "format": "uuid",
-            "title": "Captureid"
+            "title": "Mochiitemid"
           },
           "snippet": {
             "type": "string",
@@ -854,7 +867,7 @@
         },
         "type": "object",
         "required": [
-          "captureId",
+          "mochiItemId",
           "snippet",
           "score"
         ],
@@ -1012,7 +1025,22 @@
           "sha256"
         ],
         "title": "ImageRefResponse",
-        "description": "캡처 응답에 포함되는 이미지 참조."
+        "description": "MochiItem 응답에 포함되는 이미지 참조."
+      },
+      "IngestChannel": {
+        "type": "string",
+        "enum": [
+          "kakaoTalk",
+          "instagram",
+          "youtube",
+          "safari",
+          "screenshot",
+          "appIntent",
+          "appShareSheet",
+          "appDirectInput",
+          "unknown"
+        ],
+        "title": "IngestChannel"
       },
       "Intent": {
         "type": "string",
@@ -1024,6 +1052,47 @@
         ],
         "title": "Intent",
         "description": "모찌의 4-Intent 분류. iOS `CoreDomain.Intent` 와 완전히 동일한 문자열 값."
+      },
+      "IntentCandidateResponse": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "intent": {
+            "$ref": "#/components/schemas/Intent"
+          },
+          "applicability": {
+            "type": "number",
+            "title": "Applicability"
+          },
+          "reasoning": {
+            "type": "string",
+            "title": "Reasoning"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "intent",
+          "applicability",
+          "reasoning"
+        ],
+        "title": "IntentCandidateResponse",
+        "description": "알림에 노출되는 LLM 의도 후보 1건."
+      },
+      "IntentOverrideRequest": {
+        "properties": {
+          "intent": {
+            "$ref": "#/components/schemas/Intent"
+          }
+        },
+        "type": "object",
+        "required": [
+          "intent"
+        ],
+        "title": "IntentOverrideRequest",
+        "description": "알림에서 사용자가 다른 primary intent 를 선택했을 때의 PATCH 본문."
       },
       "LogoutRequest": {
         "properties": {
@@ -1038,6 +1107,181 @@
           "refreshToken"
         ],
         "title": "LogoutRequest"
+      },
+      "MochiItemCreateRequest": {
+        "properties": {
+          "channel": {
+            "$ref": "#/components/schemas/IngestChannel"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "userMemo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Usermemo"
+          },
+          "imageRefs": {
+            "items": {
+              "$ref": "#/components/schemas/ImageRefDTO"
+            },
+            "type": "array",
+            "title": "Imagerefs"
+          }
+        },
+        "type": "object",
+        "required": [
+          "channel"
+        ],
+        "title": "MochiItemCreateRequest",
+        "description": "클라이언트(iOS)가 보내는 MochiItem ingestion payload.\n\niOS는 본 스키마와 동일한 모양의 ``MochiItemIngestRequest`` 를 송신한다 — 양쪽이 OpenAPI 로 검증된다."
+      },
+      "MochiItemResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "channel": {
+            "$ref": "#/components/schemas/IngestChannel"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "userMemo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Usermemo"
+          },
+          "intent": {
+            "$ref": "#/components/schemas/Intent"
+          },
+          "secondaryIntents": {
+            "items": {
+              "$ref": "#/components/schemas/Intent"
+            },
+            "type": "array",
+            "title": "Secondaryintents"
+          },
+          "intentApplicability": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Intentapplicability"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
+          },
+          "importance": {
+            "type": "integer",
+            "title": "Importance"
+          },
+          "confidence": {
+            "type": "number",
+            "title": "Confidence"
+          },
+          "lifecycleKind": {
+            "type": "string",
+            "title": "Lifecyclekind"
+          },
+          "syncKind": {
+            "type": "string",
+            "title": "Synckind"
+          },
+          "imageRefs": {
+            "items": {
+              "$ref": "#/components/schemas/ImageRefResponse"
+            },
+            "type": "array",
+            "title": "Imagerefs"
+          },
+          "capturedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Capturedat"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "channel",
+          "url",
+          "text",
+          "intent",
+          "summary",
+          "importance",
+          "confidence",
+          "lifecycleKind",
+          "syncKind",
+          "capturedAt",
+          "createdAt"
+        ],
+        "title": "MochiItemResponse"
       },
       "RefreshRequest": {
         "properties": {

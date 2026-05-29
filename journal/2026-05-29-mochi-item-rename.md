@@ -65,15 +65,110 @@ description: capture → mochi_item 대규모 rename 작업 로그 + handoff. �
 - ShareExtension: `InboundCapturePayload`, `channelGuess: CaptureChannel`
 - AppIntents: `CaptureScreenshotIntent`, `CommitBackTapCaptureIntent`, `QuickCaptureIntent` — **보존**
 
-## 3. 진행 상태 (실시간 갱신)
+## 3. 진행 상태
 
-- [x] 사전 grep snapshot (이 문서)
-- [ ] **B1 in_progress** — 백엔드 모듈 디렉토리 이동 + 외부 import path sed
-- [ ] B2 — 백엔드 식별자 rename
-- [ ] B3 — alembic 0006 + ORM tablename + openapi 재생성
-- [ ] B4 — iOS 전체 + Tuist regenerate (사용자 직접 실행 필요)
-- [ ] B5 — 문서 정합 + 게이트
+- [x] 사전 grep snapshot
+- [x] **B1 완료** — `f0e3d50` `refactor(be): rename captures module to mochi_items (paths only)`
+  - 디렉토리 mv (18 파일) + 외부 import sed (11 파일) + ruff fix 1건
+  - ruff 통과. mypy 35건 기존 부채 (rename 무관 — `app.modules.captures` 미해결 import 에러 0건).
+- [x] **B2 완료** — `076b261` `refactor(be): rename Capture identifiers to MochiItem/Ingest`
+  - 도메인/application/infrastructure/presentation/agent/search/shared/core 전부 식별자 갱신 (42 파일)
+  - 파일 rename 4건 (ingest_capture→ingest, back_tap_capture→back_tap_ingest, override_capture_intent→override_intent, capture_worker→mochi_item_worker)
+  - Tests rename 4건 + 본문 식별자 갱신
+  - **B3 까지 의도적으로 유지된 잔존** (정상):
+    - ORM `__tablename__ = "captures"/"capture_outbox"/"capture_image_refs"` (B3 alembic 과 짝)
+    - ForeignKey 문자열 `"captures.id"` (B3)
+    - ORM 컬럼 attribute name `capture_id` (B3 — column rename 과 일치 유지)
+    - SQL `FROM captures`, `JOIN captures`, `INSERT INTO agent_runs (... capture_id ...)`, `pg_notify('capture_outbox', ...)` (B3)
+    - worker 의 `ClaimedOutbox.capture_id` + SQL `RETURNING capture_id` (B3)
+  - 검증: ruff All checks passed. mypy Capture/mochi_item 관련 에러 0건.
+- [x] **B3 완료** — alembic 0006 + ORM/SQL 동기화 + openapi.json 재생성 (커밋 예정)
+  - alembic `0006_rename_captures_to_mochi_items`: rename_table 3 + alter_column 6(capture_id→mochi_item_id) + `ALTER INDEX ix_captures_fts → ix_mochi_items_fts`. downgrade 정확히 반대.
+  - 검증: `make db-up` → upgrade head(0005→0006) → downgrade -1 → upgrade head 왕복 무결. psql 로 mochi_items/mochi_item_outbox/mochi_item_id/ix_mochi_items_fts 확인.
+  - ORM(orm.py): __tablename__ 3 + FK 문자열 + capture_id→mochi_item_id 6 + **관계속성 `capture`→`mochi_item`(child 3곳 + back_populates 3곳)** — B2 에서 누락됐던 도메인명사 잔존. grep 상 `.capture` 접근자 외부 사용 0 이라 무위험, 최종 검증 grep(app/modules 도메인 Capture 0) 충족 위해 B3 에서 정리.
+  - SQL: outbox(`pg_notify('mochi_item_outbox')` + docstring), worker(UPDATE/SELECT/RETURNING + `ClaimedOutbox` slots + log key + LISTEN 주석), orchestrator(INSERT agent_runs + bind dict), postgres_index(FROM/JOIN/alias/row attr), repository(row.mochi_item_id + IdempotencyKeyRow kwarg). Makefile worker 주석.
+  - openapi.json: path `/api/v1/captures*`→`/api/v1/mochi_items*`, 스키마 `CaptureChannel→IngestChannel`/`CaptureCreateRequest→MochiItemCreateRequest`/`CaptureResponse→MochiItemResponse`. 보존 확인: `capturedAt` 만 잔존(결정 #7), `captureId`/`capture_id` wire 0.
+  - 검증: `make test` 80 passed, `make lint` clean, `make typecheck` 35(기존 부채·신규 0).
+  - **⚠️ 환경 제약**: 에이전트 exec 컨텍스트가 Framework Python library-validation 으로 `cryptography`/`numpy` dylib 로드 거부 → `make openapi` 직접 실행 불가(`make test` 는 unit-only 라 해당 체인 미접촉, 통과). openapi.json 은 `/tmp/export_openapi_shim.py`(두 패키지만 MagicMock 스텁 후 `app.openapi()` 덤프 = generator 출력과 동일, 앱 무변경)로 생성. **사용자 터미널에선 `make openapi` 정상** — B4/B5 마무리 시 한 번 재실행해 byte 동일 확인 권장.
+  - **잔여 cosmetic(무위험, 의도)**: Postgres 자동생성 인덱스/FK 제약명은 옛 이름 유지(`ix_capture_outbox_capture_id`, `capture_outbox_capture_id_fkey` 등) — rename_table 이 자동 개명 안 함. ORM 이 이름 고정 안 해 기능·검증 grep 무영향. 승인된 최소 스코프(ix_captures_fts 만 명시 rename)와 일치.
+- [ ] **B4 in_progress(다음, 사용자 협업)** — iOS 전체 rename + Tuist regenerate + `tuist test`. §1·§2.3 매핑표 기준. xcodebuild/시뮬레이터는 사용자 실행.
+- [ ] **B5** — 문서 정합 폭포(B4 이후): `docs/DOMAIN_DESIGN.md` §18(코드 정본=capture 서술 폐기)·:257·:279, `docs/TODO.md` L118/120/182, `docs/PRIVACY_SENSITIVE_CAPTURE.md` L303/312/317/335, `docs/PRODUCT.md` L368, `docs/gcp-architecture.html` /captures→/mochi_items, CHANGELOG:137 known-drift 종결. + `audit.sh l2` DOMAIN_DESIGN drift 0 확인. docs 가 backend+iOS 함께 서술해 B4 뒤로 묶음.
 
-## 4. 다음 할 일
+## 4. 다음 할 일 (B3)
 
-B1 — `git mv captures mochi_items` + 외부 import sed 후 `make typecheck && make lint`. test 는 docker DB 띄운 후.
+architect 플랜의 Step 9~11. 구체 작업:
+
+### 4.1 새 alembic 0006 마이그레이션 추가
+파일: `mochi-backend/alembic/versions/20260529_HHMM_0006_rename_captures_to_mochi_items.py`
+
+upgrade:
+```python
+op.rename_table("captures", "mochi_items")
+op.rename_table("capture_image_refs", "mochi_item_image_refs")
+op.rename_table("capture_outbox", "mochi_item_outbox")
+
+for table in ["entities", "embeddings", "idempotency_keys", "agent_runs",
+              "mochi_item_outbox", "mochi_item_image_refs"]:
+    op.alter_column(table, "capture_id", new_column_name="mochi_item_id")
+
+op.execute("ALTER INDEX ix_captures_fts RENAME TO ix_mochi_items_fts")
+```
+
+downgrade: 정확히 반대 (rename_table 3 + alter_column 6 + index rename 1).
+
+검증: `make db-up` → `alembic upgrade head` (0001~0006 차례대로) → `alembic downgrade -1` → `alembic upgrade head` 깨끗.
+
+### 4.2 ORM `__tablename__` / FK 문자열 / column attribute name 동기화
+파일:
+- `mochi-backend/app/modules/mochi_items/infrastructure/orm.py`:
+  - `MochiItemRow.__tablename__ = "mochi_items"`
+  - `MochiItemImageRefRow.__tablename__ = "mochi_item_image_refs"`, FK `mochi_items.id`, 컬럼 `capture_id` → `mochi_item_id`
+  - `EntityRow.capture_id` → `mochi_item_id`, FK `mochi_items.id`
+  - `EmbeddingRow.capture_id` → `mochi_item_id`, FK `mochi_items.id`
+  - `IdempotencyKeyRow.capture_id` → `mochi_item_id`
+  - `AgentRunRow.capture_id` → `mochi_item_id`, FK `mochi_items.id`
+- `mochi-backend/app/modules/mochi_items/infrastructure/outbox.py`:
+  - `MochiItemOutboxRow.__tablename__ = "mochi_item_outbox"`, FK `mochi_items.id`, 컬럼 `capture_id` → `mochi_item_id`
+  - SQL `pg_notify('mochi_item_outbox', :mochi_item_id)` (현재는 `pg_notify('capture_outbox', :mochi_item_id)` 인데 채널명 변경)
+- `mochi-backend/app/modules/mochi_items/infrastructure/repository.py`:
+  - `row.capture_id` → `row.mochi_item_id` (IdempotencyKeyRow 의 attribute name 따라)
+  - `IdempotencyKeyRow(key=..., capture_id=mochi_item_id)` → `IdempotencyKeyRow(key=..., mochi_item_id=mochi_item_id)`
+- `mochi-backend/app/modules/agent/application/mochi_item_worker.py`:
+  - SQL `UPDATE capture_outbox` → `UPDATE mochi_item_outbox`
+  - SQL `SELECT id, capture_id` → `SELECT id, mochi_item_id`
+  - SQL `RETURNING id, capture_id, owner_id, attempts` → `mochi_item_id`
+  - `ClaimedOutbox` slots + `__init__` + attribute: `capture_id` → `mochi_item_id`
+  - `row.capture_id` → `row.mochi_item_id`
+  - log key: `capture_id=str(claimed.capture_id)` → `mochi_item_id=str(claimed.mochi_item_id)`
+  - `orchestrator.run(claimed.capture_id)` → `orchestrator.run(claimed.mochi_item_id)`
+- `mochi-backend/app/modules/agent/application/orchestrator.py`:
+  - SQL `INSERT INTO agent_runs (id, capture_id, ...)` → `mochi_item_id`
+  - binding dict `"capture_id": run.mochi_item_id` → `"mochi_item_id": run.mochi_item_id` (key + value 일치)
+- `mochi-backend/app/modules/search/infrastructure/postgres_index.py`:
+  - SQL `FROM captures` → `FROM mochi_items`
+  - SQL `JOIN captures c ON c.id = e.capture_id` → `JOIN mochi_items c ON c.id = e.mochi_item_id`
+  - SQL `SELECT c.id AS capture_id` → `SELECT c.id AS mochi_item_id`
+  - `Citation(mochi_item_id=row.capture_id, ...)` → `Citation(mochi_item_id=row.mochi_item_id, ...)`
+
+### 4.3 `make openapi` → openapi.json 재생성
+명령: `cd mochi-backend && make openapi`
+검증:
+- `openapi.json` diff 에 path `/api/v1/captures` → `/api/v1/mochi_items` 변환
+- schema 명 `CaptureCreateRequest` → `MochiItemCreateRequest` 등
+- `bash .claude/scripts/openapi-check.sh` 통과 (혹은 iOS path 와 drift 가 *예상치*)
+
+### 4.4 검증
+- `make lint` + `make typecheck` 그린
+- `make test` — DB 필요, `make db-up` 띄운 뒤
+- 커밋: `refactor(be): migrate captures table → mochi_items + rename FK columns (alembic 0006)`
+
+## 5. 컨텍스트 부채 (다음 세션이 먼저 봐야 할 것)
+
+1. `/Users/jun/.claude/plans/modular-floating-reddy.md` — 5묶음 플랜 전체.
+2. architect 의 정밀 step-by-step 플랜 (위 4.1~4.4 가 그 압축).
+3. 사용자 결정 7개 (이 문서 §1).
+4. B1/B2 commit log 확인 (`git log --oneline -3`).
+
+## 6. 미완 결정 (사용자 선택 대기 X — 모두 결정됨)
+
+없음. 7개 모호성 모두 §1 에서 확정.

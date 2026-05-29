@@ -44,6 +44,6 @@ openapi:
 	PYTHONPATH=. $(UV) run python scripts/export_openapi.py > openapi.json
 	@echo "openapi.json updated ($(shell wc -c < openapi.json) bytes)"
 
-# Capture outbox 워커: AgentOrchestrator 실행 + outbox 상태 관리
+# MochiItem outbox 워커: AgentOrchestrator 실행 + outbox 상태 관리
 worker:
 	PYTHONPATH=. $(UV) run python scripts/run_worker.py

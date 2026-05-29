@@ -1,6 +1,6 @@
 """Transactional outbox 패턴.
 
-MochiItem 이 persisted 되는 트랜잭션 내에서 같은 트랜잭션에 `capture_outbox` 행을 한 줄 추가한다.
+MochiItem 이 persisted 되는 트랜잭션 내에서 같은 트랜잭션에 `mochi_item_outbox` 행을 한 줄 추가한다.
 별도 worker가 outbox를 polling 하며 ``AgentOrchestrator`` 를 호출하고,
 처리 완료 시 행을 archived 시킨다.
 
@@ -22,11 +22,11 @@ from app.core.db import Base
 
 
 class MochiItemOutboxRow(Base):
-    __tablename__ = "capture_outbox"
+    __tablename__ = "mochi_item_outbox"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True, init=False)
     event_id: Mapped[UUID] = mapped_column(PgUUIDColumn(as_uuid=True), insert_default=uuid4, init=False)
-    capture_id: Mapped[UUID] = mapped_column(PgUUIDColumn(as_uuid=True), ForeignKey("captures.id", ondelete="CASCADE"), index=True)
+    mochi_item_id: Mapped[UUID] = mapped_column(PgUUIDColumn(as_uuid=True), ForeignKey("mochi_items.id", ondelete="CASCADE"), index=True)
     owner_id: Mapped[UUID] = mapped_column(PgUUIDColumn(as_uuid=True), index=True)
     status: Mapped[str] = mapped_column(String(16), default="pending", index=True)
     attempts: Mapped[int] = mapped_column(Integer, default=0)
@@ -39,7 +39,7 @@ class OutboxNotifier:
     """MochiItem 생성 트랜잭션 안에서 호출되어, 같은 트랜잭션에 outbox 행을 적재한다.
 
     호출자(`PostgresMochiItemRepository` + `Ingest`)가 `session.commit()` 하면
-    트랜잭션이 함께 커밋되어 atomic 보장. 이후 Postgres `pg_notify('capture_outbox', ...)` 로
+    트랜잭션이 함께 커밋되어 atomic 보장. 이후 Postgres `pg_notify('mochi_item_outbox', ...)` 로
     백그라운드 worker 에 즉시 wake-up 신호를 보낸다.
     """
 
@@ -48,7 +48,7 @@ class OutboxNotifier:
 
     async def emit(self, *, owner_id: UUID, mochi_item_id: UUID) -> None:
         row = MochiItemOutboxRow(
-            capture_id=mochi_item_id,
+            mochi_item_id=mochi_item_id,
             owner_id=owner_id,
         )
         self._session.add(row)
@@ -56,5 +56,5 @@ class OutboxNotifier:
         # LISTEN/NOTIFY 즉시 wake-up — payload 는 mochi_item_id 만으로 충분.
         from sqlalchemy import text
 
-        await self._session.execute(text("SELECT pg_notify('capture_outbox', :mochi_item_id)"),
+        await self._session.execute(text("SELECT pg_notify('mochi_item_outbox', :mochi_item_id)"),
                                     {"mochi_item_id": str(mochi_item_id)})

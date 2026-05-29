@@ -37,7 +37,7 @@ class PostgresHybridIndex(RetrievalIndex):
                        plainto_tsquery('simple', :q)
                    ) AS score,
                    left(coalesce(summary, text, ''), 240) AS snippet
-            FROM captures
+            FROM mochi_items
             WHERE owner_id = :owner_id
               AND to_tsvector('simple', coalesce(summary,'') || ' ' || coalesce(text,''))
                   @@ plainto_tsquery('simple', :q)
@@ -60,11 +60,11 @@ class PostgresHybridIndex(RetrievalIndex):
         embedding = await self._embed(query.text)
         sql = text(
             """
-            SELECT c.id AS capture_id,
+            SELECT c.id AS mochi_item_id,
                    left(coalesce(c.summary, c.text, ''), 240) AS snippet,
                    1.0 - (e.embedding <=> CAST(:embedding AS vector)) AS score
             FROM embeddings e
-            JOIN captures   c ON c.id = e.capture_id
+            JOIN mochi_items c ON c.id = e.mochi_item_id
             WHERE c.owner_id = :owner_id
               AND (:scope = 'all' OR c.intent = :scope)
             ORDER BY e.embedding <=> CAST(:embedding AS vector)
@@ -77,7 +77,7 @@ class PostgresHybridIndex(RetrievalIndex):
             bindparam("k", query.vector_k),
         )
         rows = (await self._session.execute(sql)).all()
-        return [Citation(mochi_item_id=row.capture_id, snippet=row.snippet or "", score=float(row.score)) for row in rows]
+        return [Citation(mochi_item_id=row.mochi_item_id, snippet=row.snippet or "", score=float(row.score)) for row in rows]
 
 
 async def naive_embed(text_input: str) -> list[float]:
