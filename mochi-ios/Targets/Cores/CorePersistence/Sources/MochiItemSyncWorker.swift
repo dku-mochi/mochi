@@ -20,6 +20,8 @@ public actor MochiItemSyncWorker {
     private let apiClient: any MochiAPIClient
     private let tokenProvider: any AuthTokenProvider
     private var isRunning = false
+    /// foreground 동안만 도는 metadata-only 분석 폴링 루프. background 진입 시 cancel.
+    private var pollTask: Task<Void, Never>?
 
     /// Live Activity trigger — 백탭 multipart 분기에서 `.analyzing` / `.ready` / `end` 호출.
     /// DI 미주입 시 `NotConfiguredLiveActivityCoordinator` 가 no-op.
@@ -155,41 +157,183 @@ public actor MochiItemSyncWorker {
         return try? Data(contentsOf: url)
     }
 
-    /// 백탭 multipart ingest 응답으로 받은 분류 결과 (intent / summary / importance / confidence) 를
-    /// Realm 의 ``MochiItem.analysis`` 에 반영한다. Inbox / 홈 UI 가 `analysis?.summary` 가 nil 이면
-    /// "(분석 대기 중)" 으로 표시하기 때문 — 백엔드는 이미 분류를 끝낸 상태이므로 그 결과를 즉시 노출.
+    /// 분석 결과(intent / summary / importance / confidence / **후보**)를 Realm 의
+    /// ``MochiItem.analysis`` 에 반영하는 공통 writer. back-tap(동기) 과 metadata-only(폴링) 양쪽이 쓴다.
     ///
-    /// `lifecycleState` 도 `.active` 로 직접 박는다. `repository.upsert` 는 `LifecyclePolicy.validate`
-    /// 를 거치지 않아 `.ingested → .active` 직접 전이가 가능 (백엔드의 즉시 분류 결과를 반영하는
-    /// 의식적 우회 — `LifecyclePolicy` 의 `.analyzing` 중간 상태는 백엔드 응답이 도착하지 않은
-    /// 시점을 표현하기 위한 것이라 본 흐름엔 무관).
-    private func applyClassification(
+    /// `candidates` 는 홈 "모찌가 헷갈려요" 카드 버튼의 원천이며, `topGap` 영속화(매퍼)와 함께
+    /// 불확실성 판정(`MochiItemAnalysis.isUncertain`)을 가능케 한다.
+    ///
+    /// `lifecycleState` 는 `.active` 로 직접 박는다. `repository.upsert` 는 `LifecyclePolicy.validate`
+    /// 를 거치지 않아 `.ingested → .active` 직접 전이가 가능 (분류 결과 즉시 반영을 위한 의식적 우회).
+    /// 버킷(분석중/헷갈려요/자동정리)은 lifecycle 이 아니라 analysis 의 intent/confidence/topGap 에서 derive 한다.
+    private func applyAnalysis(
         to mochiItemID: UUID,
-        response: BackTapMochiItemResponseDTO
+        intent: Intent,
+        summary: String,
+        importance: Int,
+        confidence: Double,
+        candidates: [IntentCandidate],
+        expectedUpdatedAt: Date? = nil
     ) async {
         guard var current = try? await repository.find(id: mochiItemID) else { return }
-        let dto = response.item
-        guard let intent = dto.intent else { return }
-
-        // 백엔드 응답의 summary 가 비어 있으면 첫 후보 라벨 ("구매 고민" 등) 을 fallback.
-        // InboxView / 홈이 보여줄 첫 번째 사용자-facing 텍스트.
-        let summary: String = {
-            if let s = dto.summary, !s.isEmpty { return s }
-            return response.candidates.first?.label ?? ""
-        }()
-
+        // 세대 가드(폴링 경로): GET 을 await 하는 사이 수동 분류(setIntent)·재시도(requeue)가
+        // 끼어들 수 있다. 스냅샷 이후 항목이 바뀌었으면 stale 결과로 덮지 않는다.
+        if let expectedUpdatedAt, current.updatedAt != expectedUpdatedAt { return }
         current.analysis = MochiItemAnalysis(
             summary: summary,
             intent: intent,
             entities: [],
             actionCandidates: [],
             tags: [],
-            importance: MochiItemAnalysis.Importance(rawValue: dto.importance) ?? .medium,
-            confidence: dto.confidence,
+            importance: MochiItemAnalysis.Importance(rawValue: importance) ?? .medium,
+            confidence: confidence,
             modelVersion: "gemini-3.1-flash-lite",
-            analyzedAt: Date()
+            analyzedAt: Date(),
+            candidates: candidates
         )
         current.lifecycleState = .active
         try? await repository.upsert(current)
+    }
+
+    /// 백탭 multipart 응답 → 공통 writer. candidates 의 한국어 라벨("구매 고민" 등)을 보존한다.
+    /// 멱등 replay 로 candidates 가 비면 라벨 없이 confidence 만으로 판정된다.
+    private func applyClassification(
+        to mochiItemID: UUID,
+        response: BackTapMochiItemResponseDTO
+    ) async {
+        let dto = response.item
+        guard let intent = dto.intent else { return }
+        let candidates = response.candidates.map {
+            IntentCandidate(label: $0.label, intent: $0.intent, applicability: $0.applicability)
+        }
+        // summary 가 비면 첫 후보 라벨을 fallback (홈/Inbox 가 보여줄 첫 텍스트).
+        let summary = (dto.summary?.isEmpty == false ? dto.summary! : response.candidates.first?.label) ?? ""
+        await applyAnalysis(
+            to: mochiItemID,
+            intent: intent,
+            summary: summary,
+            importance: dto.importance,
+            confidence: dto.confidence,
+            candidates: candidates
+        )
+    }
+
+    // MARK: - metadata-only 분석 폴링 (foreground 한정)
+
+    /// foreground 동안 `interval` 초마다 metadata-only 항목의 분석 상태를 백엔드에서 재조회한다.
+    /// 이미 돌고 있으면 무시. background 진입 시 ``stopForegroundPolling()`` 으로 중단한다.
+    public func startForegroundPolling(every interval: Double = 3) {
+        guard pollTask == nil else { return }
+        pollTask = Task { [weak self] in
+            while !Task.isCancelled {
+                await self?.pollAnalysisOnce()
+                try? await Task.sleep(for: .seconds(interval))
+            }
+        }
+    }
+
+    public func stopForegroundPolling() {
+        pollTask?.cancel()
+        pollTask = nil
+    }
+
+    /// 업로드됐으나(syncState == .uploaded) 아직 분석이 안 붙은(analysis == nil) metadata-only 항목을
+    /// `GET /mochi_items/{id}` 로 재조회해, 백엔드 분석이 끝났으면(lifecycle == active) 결과를 반영한다.
+    /// back-tap 스크린샷은 동기 분류로 이미 analysis 가 있어 대상에서 자동 제외된다.
+    public func pollAnalysisOnce() async {
+        guard await tokenProvider.bearerToken() != nil else { return }
+        let pending: [MochiItem]
+        do {
+            pending = try await repository.listRecent(limit: 200).filter { item in
+                guard item.analysis == nil else { return false }
+                if case .uploaded = item.syncState { return true }
+                return false
+            }
+        } catch {
+            return
+        }
+        for item in pending {
+            if Task.isCancelled { return }
+            // 서버 PK 는 iOS 로컬 id 와 다르다 — 백엔드 ingest 가 자체 uuid4 를 부여하고
+            // iOS UUID 는 Idempotency-Key 로만 쓰인다. 업로드 응답에서 받은 serverID 로 조회한다.
+            // (로컬 id 로 GET 하면 404 → 무한 폴링.)
+            guard case let .uploaded(serverID, uploadedAt) = item.syncState else { continue }
+            let expired = Date().timeIntervalSince(uploadedAt) > Self.analysisPollDeadline
+
+            guard let dto = try? await apiClient.getMochiItem(id: serverID) else {
+                // GET 실패(네트워크/404 등): deadline 초과면 give-up, 아니면 다음 tick 재시도.
+                if expired { await demoteToManual(item) }
+                continue
+            }
+
+            // 백엔드가 분석을 끝내면 lifecycle 이 active 로 전이한다. 그 전엔 intent 가 MEMO 기본값일
+            // 수 있으므로 lifecycle 로 "분석 완료"를 판정한다.
+            switch dto.lifecycleKind {
+            case "active":
+                guard let intent = dto.intent else { continue }
+                await applyAnalysis(
+                    to: item.id,
+                    intent: intent,
+                    summary: dto.summary ?? "",
+                    importance: dto.importance,
+                    confidence: dto.confidence,
+                    candidates: Self.candidates(from: dto),
+                    expectedUpdatedAt: item.updatedAt
+                )
+            case "failed":
+                await demoteToManual(item) // 명시적 분석 실패 — 즉시 강등.
+            default:
+                // ingested/analyzing: 아직 처리 중. deadline 초과면 give-up.
+                if expired { await demoteToManual(item) }
+            }
+        }
+    }
+
+    /// 폴링 give-up deadline — 업로드 후 이 시간이 지나도 분석이 안 끝나면 강등한다.
+    private static let analysisPollDeadline: TimeInterval = 90
+
+    /// 분석 실패/지연 항목을 "분석 중"에서 빼 "헷갈려요"(의견 없음 → 직접 분류/다시 시도)로 강등한다.
+    /// `confidence = 0` + 빈 candidates → `isUncertain` 이면서 `reviewOpinions` 가 비어,
+    /// 홈 카드가 "모찌가 잘 모르겠어요" 분기로 렌더(직접 분류 + "다시 맡기기").
+    private func demoteToManual(_ item: MochiItem) async {
+        guard var current = try? await repository.find(id: item.id) else { return }
+        // 세대 가드: 스냅샷 이후 (분석 도착·수동 분류·재시도로) 바뀐 항목은 강등하지 않는다.
+        guard current.analysis == nil, current.updatedAt == item.updatedAt else { return }
+        let fallbackIntent: Intent = current.source.url != nil ? .knowledge : .memo
+        let summary = current.source.text
+            ?? current.source.url?.absoluteString
+            ?? "분석하지 못했어요"
+        current.analysis = MochiItemAnalysis(
+            summary: summary,
+            intent: fallbackIntent,
+            entities: [],
+            actionCandidates: [],
+            tags: [],
+            importance: .low,            // "중요해 보여요"(importance>=3)로 누출되지 않게 최저로.
+            confidence: 0,
+            modelVersion: MochiItemAnalysis.failedModelVersion,
+            analyzedAt: Date(),
+            candidates: []
+        )
+        current.lifecycleState = .active
+        try? await repository.upsert(current)
+    }
+
+    /// metadata-only 분석 결과(primary + secondaryIntents + applicability)를 라벨 없는 후보 리스트로 재구성.
+    private static func candidates(from dto: MochiItemDTO) -> [IntentCandidate] {
+        guard let primary = dto.intent else { return [] }
+        var result: [IntentCandidate] = [
+            IntentCandidate(
+                label: nil,
+                intent: primary,
+                applicability: dto.intentApplicability[primary.rawValue] ?? dto.confidence
+            )
+        ]
+        for sec in dto.secondaryIntents {
+            result.append(
+                IntentCandidate(label: nil, intent: sec, applicability: dto.intentApplicability[sec.rawValue] ?? 0)
+            )
+        }
+        return result
     }
 }

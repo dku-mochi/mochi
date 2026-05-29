@@ -6,6 +6,7 @@ struct NeedsReviewCard: View {
     let mochiItems: [MochiItem]
     @Binding var page: Int
     let onClassify: (MochiItem.ID, Intent) -> Void
+    let onRetry: (MochiItem.ID) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
@@ -14,7 +15,7 @@ struct NeedsReviewCard: View {
             } else {
                 TabView(selection: $page) {
                     ForEach(Array(mochiItems.enumerated()), id: \.element.id) { idx, mochiItem in
-                        AmbiguousBody(mochiItem: mochiItem, onClassify: onClassify)
+                        AmbiguousBody(mochiItem: mochiItem, onClassify: onClassify, onRetry: onRetry)
                             .tag(idx)
                     }
                 }
@@ -77,6 +78,13 @@ struct NeedsReviewCard: View {
 private struct AmbiguousBody: View {
     let mochiItem: MochiItem
     let onClassify: (MochiItem.ID, Intent) -> Void
+    let onRetry: (MochiItem.ID) -> Void
+    @State private var showsIntentPicker = false
+
+    /// LLM 의견(최대 2개). 강등 항목은 비어 있다.
+    private var opinions: [IntentCandidate] { mochiItem.analysis?.reviewOpinions ?? [] }
+    /// 분석 실패로 강등된 항목인가 — 명시 마커로 판별(멱등 replay 로 후보만 빈 정상 항목과 구분).
+    private var isFailed: Bool { mochiItem.analysis?.isAnalysisFailed ?? false }
 
     var body: some View {
         VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
@@ -85,12 +93,22 @@ private struct AmbiguousBody: View {
                 meta
             }
 
-            Text("어디로 정리할까요?")
+            Text(isFailed ? "모찌가 잘 모르겠어요" : "모찌는 이렇게 생각해요")
                 .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(HomeDesign.Color.textPrimary)
                 .padding(.top, 2)
 
             choices
+        }
+        .confirmationDialog(
+            "어떤 의도로 정리할까요?",
+            isPresented: $showsIntentPicker,
+            titleVisibility: .visible
+        ) {
+            ForEach(Intent.allCases, id: \.self) { intent in
+                Button(intent.displayName) { onClassify(mochiItem.id, intent) }
+            }
+            Button("취소", role: .cancel) {}
         }
     }
 
@@ -100,9 +118,12 @@ private struct AmbiguousBody: View {
         ZStack {
             switch kind {
             case .screenshot:
+                // 스크린샷은 대부분 세로(portrait) 비율 → 96×124 박스를 넘치는 부분은 상단 정렬로
+                // 크롭(상태바·제목이 보이도록)하고, 프레임 안에서 잘라 헤드라인과 겹치지 않게 한다.
                 LocalThumbnail(
                     relativePath: mochiItem.source.imageRefs.first?.relativePath,
-                    targetSize: CGSize(width: 96, height: 124)
+                    targetSize: CGSize(width: 96, height: 124),
+                    alignment: .top
                 ) {
                     ZStack {
                         RoundedRectangle(cornerRadius: HomeDesign.Radius.sm, style: .continuous)
@@ -118,6 +139,7 @@ private struct AmbiguousBody: View {
                             .foregroundStyle(HomeDesign.Color.purple600.opacity(0.6))
                     }
                 }
+                .frame(width: 96, height: 124)
                 .clipShape(RoundedRectangle(cornerRadius: HomeDesign.Radius.sm, style: .continuous))
 
             case .memo:
@@ -163,16 +185,24 @@ private struct AmbiguousBody: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
+    /// 의견 있음: LLM 의견(최대 2개, label 우선) + "다른 의도".
+    /// 의견 없음(분석 실패/강등): "다른 의도" + "모찌에게 다시 맡기기"(재시도).
     private var choices: some View {
-        let (primary, others) = mochiItem.classificationChoices
-        return HStack(spacing: HomeDesign.Spacing.sm) {
-            ChoiceChip(intent: primary, isPrimary: true) {
-                onClassify(mochiItem.id, primary.domain)
-            }
-            ForEach(others) { intent in
-                ChoiceChip(intent: intent, isPrimary: false) {
-                    onClassify(mochiItem.id, intent.domain)
+        VStack(spacing: HomeDesign.Spacing.sm) {
+            HStack(spacing: HomeDesign.Spacing.sm) {
+                ForEach(Array(opinions.enumerated()), id: \.offset) { idx, candidate in
+                    ChoiceChip(
+                        text: candidate.label ?? candidate.intent.displayName,
+                        intent: candidate.intent,
+                        isPrimary: idx == 0
+                    ) {
+                        onClassify(mochiItem.id, candidate.intent)
+                    }
                 }
+                ManualPickChip { showsIntentPicker = true }
+            }
+            if isFailed {
+                RetryChip { onRetry(mochiItem.id) }
             }
         }
     }
@@ -181,7 +211,8 @@ private struct AmbiguousBody: View {
 // MARK: - Choice chip
 
 private struct ChoiceChip: View {
-    let intent: MochiViewIntent
+    let text: String
+    let intent: Intent
     let isPrimary: Bool
     let action: () -> Void
 
@@ -189,10 +220,12 @@ private struct ChoiceChip: View {
         Button(action: action) {
             HStack(spacing: 6) {
                 Circle()
-                    .fill(intent.dotColor)
+                    .fill(MochiViewIntent(intent).dotColor)
                     .frame(width: 8, height: 8)
-                Text(intent.label)
+                Text(text)
                     .font(.system(size: 12.5, weight: .semibold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 10)
@@ -207,6 +240,157 @@ private struct ChoiceChip: View {
             .foregroundStyle(isPrimary ? HomeDesign.Color.purple600 : HomeDesign.Color.textPrimary)
         }
         .buttonStyle(PressableStyle())
+    }
+}
+
+/// "모찌에게 다시 맡기기" — 분석 실패/강등 항목을 다시 분석 큐로 돌린다.
+private struct RetryChip: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                Image(systemName: "arrow.clockwise")
+                    .font(.system(size: 11, weight: .bold))
+                Text("모찌에게 다시 맡기기")
+                    .font(.system(size: 12.5, weight: .semibold))
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: HomeDesign.Radius.sm, style: .continuous)
+                    .fill(HomeDesign.Color.purple50)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: HomeDesign.Radius.sm)
+                    .stroke(HomeDesign.Color.purple200, lineWidth: 1)
+            )
+            .foregroundStyle(HomeDesign.Color.purple600)
+        }
+        .buttonStyle(PressableStyle())
+    }
+}
+
+/// "다른 의도" — 4-Intent 전체에서 사용자가 직접 고르는 진입점 (confirmationDialog 호출).
+private struct ManualPickChip: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 5) {
+                Image(systemName: "ellipsis")
+                    .font(.system(size: 11, weight: .bold))
+                Text("다른 의도")
+                    .font(.system(size: 12.5, weight: .semibold))
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: HomeDesign.Radius.sm, style: .continuous)
+                    .fill(HomeDesign.Color.surface)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: HomeDesign.Radius.sm)
+                    .stroke(HomeDesign.Color.border, lineWidth: 1)
+            )
+            .foregroundStyle(HomeDesign.Color.textMuted)
+        }
+        .buttonStyle(PressableStyle())
+    }
+}
+
+// MARK: - Analyzing card ("모찌가 분석 중이에요")
+
+/// 분석 응답 대기 중인 항목 — 사용자 행동 불필요, 진행 표시만. 최대 3개 노출 + 나머지 카운트.
+struct AnalyzingCard: View {
+    let mochiItems: [MochiItem]
+
+    private var visible: [MochiItem] { Array(mochiItems.prefix(3)) }
+    private var overflow: Int { max(0, mochiItems.count - 3) }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
+            ForEach(visible) { mochiItem in
+                AnalyzingRow(mochiItem: mochiItem)
+            }
+            if overflow > 0 {
+                Text("외 \(overflow)개 분석 중")
+                    .font(.system(size: 11.5, weight: .medium))
+                    .foregroundStyle(HomeDesign.Color.textMuted)
+            }
+        }
+        .padding(HomeDesign.Spacing.lg)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous)
+                .fill(HomeDesign.Color.surface)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous)
+                .stroke(HomeDesign.Color.border, lineWidth: 1)
+        )
+        .cardShadow()
+    }
+}
+
+private struct AnalyzingRow: View {
+    let mochiItem: MochiItem
+
+    var body: some View {
+        HStack(spacing: HomeDesign.Spacing.md) {
+            thumbnail
+            VStack(alignment: .leading, spacing: 3) {
+                Text(mochiItem.displayTitle)
+                    .font(.system(size: 13.5, weight: .semibold))
+                    .foregroundStyle(HomeDesign.Color.textPrimary)
+                    .lineLimit(1)
+                HStack(spacing: 5) {
+                    ProgressView()
+                        .controlSize(.mini)
+                    Text("모찌가 분석 중…")
+                        .font(.system(size: 11.5, weight: .regular))
+                        .foregroundStyle(HomeDesign.Color.textMuted)
+                }
+            }
+            Spacer(minLength: 0)
+        }
+    }
+
+    @ViewBuilder
+    private var thumbnail: some View {
+        let kind = mochiItem.viewKind
+        ZStack {
+            switch kind {
+            case .screenshot:
+                LocalThumbnail(
+                    relativePath: mochiItem.source.imageRefs.first?.relativePath,
+                    targetSize: CGSize(width: 40, height: 52)
+                ) {
+                    RoundedRectangle(cornerRadius: HomeDesign.Radius.sm, style: .continuous)
+                        .fill(HomeDesign.Color.purple100)
+                }
+                .clipShape(RoundedRectangle(cornerRadius: HomeDesign.Radius.sm, style: .continuous))
+            case .memo:
+                RoundedRectangle(cornerRadius: HomeDesign.Radius.sm, style: .continuous)
+                    .fill(HomeDesign.Color.butter50)
+                Image(systemName: "doc.text")
+                    .font(.system(size: 16, weight: .light))
+                    .foregroundStyle(HomeDesign.Color.butter400.opacity(0.8))
+            case .url:
+                RoundedRectangle(cornerRadius: HomeDesign.Radius.sm, style: .continuous)
+                    .fill(HomeDesign.Color.purple50)
+                Image(systemName: "link")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(HomeDesign.Color.purple600.opacity(0.75))
+            }
+        }
+        .frame(width: 40, height: 52)
+        .overlay(
+            RoundedRectangle(cornerRadius: HomeDesign.Radius.sm)
+                .stroke(HomeDesign.Color.border, lineWidth: 1)
+        )
     }
 }
 

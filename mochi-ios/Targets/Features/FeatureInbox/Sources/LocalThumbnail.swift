@@ -13,6 +13,9 @@ import CorePersistence
 struct LocalThumbnail<Placeholder: View>: View {
     let relativePath: String?
     let targetSize: CGSize
+    /// `.fill` 로 채운 이미지가 프레임을 넘칠 때 어느 쪽을 보여줄지. 스크린샷(세로 비율)은
+    /// `.top` 으로 상단(상태바·제목)을 보여주는 게 알아보기 쉽다. 기본 `.center`.
+    var alignment: Alignment = .center
     @ViewBuilder var placeholder: () -> Placeholder
 
     @State private var image: UIImage?
@@ -23,11 +26,13 @@ struct LocalThumbnail<Placeholder: View>: View {
                 Image(uiImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: alignment)
             } else {
                 placeholder()
             }
         }
+        // `.fill` 오버플로를 프레임 경계에서 잘라 호출부 레이아웃(예: 헤드라인)을 침범하지 않게 한다.
+        .clipped()
         .task(id: relativePath) {
             // @3x 까지 커버하도록 셀 변 길이의 3배를 상한 픽셀로 둔다.
             let maxPixel = Int(max(targetSize.width, targetSize.height) * 3)

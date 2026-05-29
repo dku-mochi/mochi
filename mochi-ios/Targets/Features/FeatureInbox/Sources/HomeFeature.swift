@@ -5,7 +5,8 @@ import CorePersistence
 
 /// 홈 화면(시안의 메인 진입) reducer.
 ///
-/// - 최근 캡처 / 미분류(헷갈려요) / 중요해 보여요 세 섹션을 동시에 로드한다.
+/// - 최근 캡처 / 분석중 / 헷갈려요 / 중요해 보여요 네 섹션을 동시에 로드한다.
+///   분석중(`listAnalyzing`)=분석 응답 대기, 헷갈려요(`listAmbiguous`)=분석됐으나 모찌가 확신 못 함.
 /// - Quick memo 는 `appDirectInput` 채널로 즉시 Repository 에 upsert + 이어서 sync trigger.
 /// - Needs review 의 분류 버튼은 `repository.setIntent` 호출 → 카드 진행 페이지를 다음으로.
 /// - 진입 시 `dailyImportanceAnalyzer.todaysImportant` 를 호출해 1일 1회 lazy 분석.
@@ -15,6 +16,9 @@ public struct HomeFeature: Sendable {
     @ObservableState
     public struct State: Equatable, Sendable {
         public var recent: IdentifiedArrayOf<MochiItem> = []
+        /// 분석 응답 대기 중 ("모찌가 분석 중이에요").
+        public var analyzing: IdentifiedArrayOf<MochiItem> = []
+        /// 분석은 끝났으나 모찌가 확신 못 함 ("모찌가 헷갈려요").
         public var ambiguous: IdentifiedArrayOf<MochiItem> = []
         public var important: IdentifiedArrayOf<MochiItem> = []
         public var quickMemoText: String = ""
@@ -30,12 +34,13 @@ public struct HomeFeature: Sendable {
         case binding(BindingAction<State>)
         case onAppear
         case refresh
-        case sectionsLoaded(recent: [MochiItem], ambiguous: [MochiItem], important: [MochiItem])
+        case sectionsLoaded(recent: [MochiItem], analyzing: [MochiItem], ambiguous: [MochiItem], important: [MochiItem])
         case loadFailed(String)
         case quickMemoSubmitted
         case quickMemoSaved
         case classifyTapped(mochiItemID: MochiItem.ID, intent: Intent)
         case classifyFinished
+        case retryAnalysisTapped(MochiItem.ID)
         case mochiItemTapped(MochiItem.ID)
         case openSettingsTapped
         case openNotificationsTapped
@@ -80,9 +85,10 @@ public struct HomeFeature: Sendable {
                     await loadAll(send: send)
                 }
 
-            case let .sectionsLoaded(recent, ambiguous, important):
+            case let .sectionsLoaded(recent, analyzing, ambiguous, important):
                 state.isLoading = false
                 state.recent = IdentifiedArray(uniqueElements: recent)
+                state.analyzing = IdentifiedArray(uniqueElements: analyzing)
                 state.ambiguous = IdentifiedArray(uniqueElements: ambiguous)
                 state.important = IdentifiedArray(uniqueElements: important)
                 if state.needsReviewPage >= ambiguous.count {
@@ -140,6 +146,17 @@ public struct HomeFeature: Sendable {
                 state.needsReviewPage = 0
                 return .none
 
+            case let .retryAnalysisTapped(mochiItemID):
+                // "모찌에게 다시 맡기기" — 분석으로 되돌리고 foreground 폴링이 다시 집어가게 한다.
+                return .run { send in
+                    do {
+                        try await repository.requeueForAnalysis(mochiItemID: mochiItemID)
+                        await loadAll(send: send)
+                    } catch {
+                        await send(.loadFailed(String(describing: error)))
+                    }
+                }
+
             case .mochiItemTapped, .openSettingsTapped, .openNotificationsTapped,
                  .urlChipTapped, .screenshotChipTapped:
                 // 상위 Feature 가 처리 (모달·navigation·system picker).
@@ -155,10 +172,11 @@ public struct HomeFeature: Sendable {
     /// "오늘의 캐시된 ID 순서" 를 유지하면서 도메인 객체를 채운다.
     private func loadAll(send: Send<Action>) async {
         async let recentTask: [MochiItem] = (try? await repository.listRecent(limit: 12)) ?? []
+        async let analyzingTask: [MochiItem] = (try? await repository.listAnalyzing(limit: 10)) ?? []
         async let ambiguousTask: [MochiItem] = (try? await repository.listAmbiguous(limit: 10)) ?? []
         async let dailyIDs: [UUID] = dailyAnalyzer.todaysImportant(limit: 8)
 
-        let (recent, ambiguous, ids) = await (recentTask, ambiguousTask, dailyIDs)
+        let (recent, analyzing, ambiguous, ids) = await (recentTask, analyzingTask, ambiguousTask, dailyIDs)
 
         var important: [MochiItem] = []
         if !ids.isEmpty {
@@ -173,6 +191,6 @@ public struct HomeFeature: Sendable {
             important = (try? await repository.listByImportance(limit: 8)) ?? []
         }
 
-        await send(.sectionsLoaded(recent: recent, ambiguous: ambiguous, important: important))
+        await send(.sectionsLoaded(recent: recent, analyzing: analyzing, ambiguous: ambiguous, important: important))
     }
 }

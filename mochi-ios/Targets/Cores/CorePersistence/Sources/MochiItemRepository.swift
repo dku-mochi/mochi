@@ -13,7 +13,9 @@ public protocol MochiItemRepository: Sendable {
     func find(id: UUID) async throws -> MochiItem?
     func listRecent(limit: Int) async throws -> [MochiItem]
     func listByIntent(_ intent: Intent, limit: Int) async throws -> [MochiItem]
-    /// Intent 가 아직 결정되지 않은 (analysis 미수신 또는 명시적으로 미분류) 항목.
+    /// 분석 응답을 아직 못 받은 (analysis 미수신) 항목. 홈 "모찌가 분석 중이에요" 섹션의 원본.
+    func listAnalyzing(limit: Int) async throws -> [MochiItem]
+    /// 분석은 끝났으나 모찌가 확신하지 못하는 (`MochiItemAnalysis.isUncertain`) 항목.
     /// 홈 "모찌가 헷갈려요" 카드의 원본.
     func listAmbiguous(limit: Int) async throws -> [MochiItem]
     /// `analysis.importance` 가 높은 순으로 active 항목 정렬.
@@ -22,6 +24,10 @@ public protocol MochiItemRepository: Sendable {
     /// 사용자가 needs-review 카드에서 분류 버튼을 누른 경우 호출.
     /// `analysis` 가 없으면 manual entry 로 생성, 있으면 intent 만 덮어쓴다.
     func setIntent(mochiItemID: UUID, intent: Intent) async throws
+    /// "모찌에게 다시 맡기기" — 분석 실패/강등된 항목을 다시 "분석 중"으로 되돌린다.
+    /// analysis 를 비우고(→ `listAnalyzing` 대상), 업로드 타임스탬프를 갱신해 폴링 deadline 을 재시작한다.
+    /// 이미 업로드된(`.uploaded`) 항목만 대상 — serverID 가 있어야 재폴링이 가능하기 때문.
+    func requeueForAnalysis(mochiItemID: UUID) async throws
     func deleteAll() async throws
     /// 저장소에 쓰기가 발생할 때마다 `Void` 를 방출하는 스트림.
     /// Realm 구현은 같은 프로세스뿐 아니라 ShareExtension 등 **다른 프로세스의 쓰기까지** 감지한다
@@ -104,11 +110,25 @@ public actor InMemoryMochiItemRepository: MochiItemRepository {
         Array(storage.values.filter { $0.intent == intent }.sorted { $0.createdAt > $1.createdAt }.prefix(limit))
     }
 
+    public func listAnalyzing(limit: Int) async throws -> [MochiItem] {
+        Array(
+            storage.values
+                .filter { mochiItem in
+                    guard mochiItem.analysis == nil else { return false }
+                    if case .archived = mochiItem.lifecycleState { return false }
+                    if case .failed = mochiItem.lifecycleState { return false }
+                    return true
+                }
+                .sorted { $0.createdAt > $1.createdAt }
+                .prefix(limit)
+        )
+    }
+
     public func listAmbiguous(limit: Int) async throws -> [MochiItem] {
         Array(
             storage.values
                 .filter { mochiItem in
-                    guard mochiItem.intent == nil else { return false }
+                    guard let analysis = mochiItem.analysis, analysis.isUncertain else { return false }
                     if case .archived = mochiItem.lifecycleState { return false }
                     if case .failed = mochiItem.lifecycleState { return false }
                     return true
@@ -143,6 +163,8 @@ public actor InMemoryMochiItemRepository: MochiItemRepository {
         }
         let now = Date()
         if let existing = mochiItem.analysis {
+            // 수동 확정 — Realm 경로와 동치: confidence 최대 + modelVersion "manual" + candidates 제거
+            // (candidates 생략 → 기본 []), topGap=1.0 효과 → "헷갈려요" 에서 빠진다.
             mochiItem.analysis = MochiItemAnalysis(
                 summary: existing.summary,
                 intent: intent,
@@ -150,8 +172,8 @@ public actor InMemoryMochiItemRepository: MochiItemRepository {
                 actionCandidates: existing.actionCandidates,
                 tags: existing.tags,
                 importance: existing.importance,
-                confidence: 1.0, // 사용자 수동 분류는 confidence 최대.
-                modelVersion: existing.modelVersion,
+                confidence: 1.0,
+                modelVersion: "manual",
                 analyzedAt: existing.analyzedAt
             )
         } else {
@@ -168,6 +190,19 @@ public actor InMemoryMochiItemRepository: MochiItemRepository {
             )
         }
         mochiItem.updatedAt = now
+        storage[mochiItemID] = mochiItem
+        notifyChange()
+    }
+
+    public func requeueForAnalysis(mochiItemID: UUID) async throws {
+        guard var mochiItem = storage[mochiItemID] else {
+            throw DomainError.notFound(entity: "MochiItem", id: mochiItemID.uuidString)
+        }
+        guard case let .uploaded(serverID, _) = mochiItem.syncState else { return }
+        mochiItem.analysis = nil
+        mochiItem.lifecycleState = .ingested
+        mochiItem.syncState = .uploaded(serverID: serverID, at: Date()) // deadline 재시작
+        mochiItem.updatedAt = .init()
         storage[mochiItemID] = mochiItem
         notifyChange()
     }

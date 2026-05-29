@@ -54,10 +54,10 @@ description: 시스템 토폴로지·iOS↔Backend 데이터흐름·API 계약�
 │  FastAPI Modular Monolith + Hexagonal Architecture                    │
 │                                                                       │
 │  ┌────────────────────── /api/v1 ─────────────────────┐               │
-│  │  POST /mochi-items       GET /mochi-items/{id}     │               │
-│  │  PATCH /mochi-items/{id}                           │               │
-│  │  GET  /mochi-items/sync?after=                     │               │
-│  │  GET  /mochi-items/{id}/stream (SSE)               │               │
+│  │  POST /mochi_items       GET /mochi_items/{id}     │               │
+│  │  PATCH /mochi_items/{id}                           │               │
+│  │  GET  /mochi_items/sync?after=                     │               │
+│  │  GET  /mochi_items/{id}/stream (SSE)               │               │
 │  │  POST /search                                      │               │
 │  │  POST /conversations  POST /conversations/{id}/msg │               │
 │  │  GET  /health                                      │               │
@@ -204,7 +204,7 @@ app/
 │   │   │                          MochiAttachmentRow, MochiEntityRow, EmbeddingRow,
 │   │   │                          IdempotencyKeyRow, MochiOutboxRow,
 │   │   │                          AgentRunRow, ToolCallRow), OutboxNotifier
-│   │   └── presentation/          POST/GET/PATCH /mochi-items + Pydantic API schemas
+│   │   └── presentation/          POST/GET/PATCH /mochi_items + Pydantic API schemas
 │   ├── intents/
 │   │   └── domain/lifecycle_policy.py     4-Intent 상태 머신 (단일 진실 공급원)
 │   ├── agent/
@@ -214,7 +214,7 @@ app/
 │   │   │   ├── registry.py        StaticToolRegistry
 │   │   │   └── tools/             WebFetchTool / EmbedTool / MultimodalAnalyzeTool
 │   │   ├── prompts/system_prompts.py   PromptVersion(name/model/eval/revised_on/rationale)
-│   │   └── presentation/router.py      GET /mochi-items/{id}/stream (SSE)
+│   │   └── presentation/router.py      GET /mochi_items/{id}/stream (SSE)
 │   ├── search/
 │   │   ├── domain/                SearchQuery / Citation / 3 outbound ports
 │   │   ├── application/           HybridSearch use case
@@ -247,7 +247,7 @@ infrastructure  ──────►   ports  ──────┘
 #### MochiItem ingestion
 
 ```
-POST /mochi-items (with Idempotency-Key, Bearer)
+POST /mochi_items (with Idempotency-Key, Bearer)
   ↓
 RequestContextMiddleware (request_id 바인딩)
   ↓
@@ -332,20 +332,20 @@ SearchResponse
 |---|---|---|
 | `Authorization: Bearer <token>` | 모든 라우트 (health 제외) | dev 토큰 또는 JWT |
 | `X-Mochi-Request-ID` | 옵션 (없으면 서버가 생성) | 분산 추적 키 |
-| `Idempotency-Key` | `POST /mochi-items` | owner-scoped SHA-256 으로 정규화 |
+| `Idempotency-Key` | `POST /mochi_items` | owner-scoped SHA-256 으로 정규화 |
 
 ### 4.2 Endpoints
 
 | Method | Path | 응답 | 비고 |
 |---|---|---|---|
 | GET | `/api/v1/health` | `{status: "ok"}` | 인증 불요 |
-| POST | `/api/v1/mochi-items` | `MochiItemResponse` (201) | `MochiItemCreateRequest` body, `attachments` 포함 |
-| GET | `/api/v1/mochi-items/{id}` | `MochiItemResponse` | owner-scoped |
-| PATCH | `/api/v1/mochi-items/{id}` | `MochiItemResponse` | server-wins |
-| DELETE | `/api/v1/mochi-items/{id}` | 204 | soft delete |
-| GET | `/api/v1/mochi-items` | `MochiItemResponse[]` | filter: `intent`, `lifecycle_state`, `after`, `limit` |
-| GET | `/api/v1/mochi-items/sync?after=` | `MochiItemResponse[]` | catch-up sync |
-| GET | `/api/v1/mochi-items/{id}/stream` | SSE `text/event-stream` | Agent state graph (node/final/failed) |
+| POST | `/api/v1/mochi_items` | `MochiItemResponse` (201) | `MochiItemCreateRequest` body, `attachments` 포함 |
+| GET | `/api/v1/mochi_items/{id}` | `MochiItemResponse` | owner-scoped |
+| PATCH | `/api/v1/mochi_items/{id}` | `MochiItemResponse` | server-wins |
+| DELETE | `/api/v1/mochi_items/{id}` | 204 | soft delete |
+| GET | `/api/v1/mochi_items` | `MochiItemResponse[]` | filter: `intent`, `lifecycle_state`, `after`, `limit` |
+| GET | `/api/v1/mochi_items/sync?after=` | `MochiItemResponse[]` | catch-up sync |
+| GET | `/api/v1/mochi_items/{id}/stream` | SSE `text/event-stream` | Agent state graph (node/final/failed) |
 | POST | `/api/v1/search` | `SearchResponse` | Hybrid Search RAG, owner-scoped |
 | POST | `/api/v1/conversations` | `Conversation` (201) | |
 | POST | `/api/v1/conversations/{id}/messages` | `Message + Citations` | |
@@ -360,7 +360,7 @@ iOS `CoreNetworking.MochiAPIClient` 의 DTO 가 backend `openapi.json` 의 스�
 
 ### 5.1 `MochiItem` aggregate
 
-- 단일 UUID 식별 (iOS `MochiItem.id` == 백엔드 `mochi_items.id`)
+- iOS `MochiItem.id` 는 **로컬 식별자**(Realm PK + Idempotency-Key). 백엔드 `mochi_items.id` 는 ingest 시 **서버가 자체 부여하는 별개 UUID** 이며, iOS 는 업로드 응답의 서버 id 를 `SyncState.uploaded(serverID:)` 에 보관해 서버 조회(`getMochiItem`)에 쓴다 — 로컬 id 로 GET 하면 404.
 - 4-tuple: `source`, `analysis?`, `lifecycleState`, `syncState`
 - `analysis` 는 백엔드 agent loop 완료 후 채워짐
 

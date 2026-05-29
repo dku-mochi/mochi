@@ -55,6 +55,12 @@ public enum RealmMochiItemMapper {
         for tag in mochiItem.analysis?.tags ?? [] {
             row.tags.append(tag)
         }
+
+        row.intentCandidates.removeAll()
+        for candidate in mochiItem.analysis?.candidates ?? [] {
+            row.intentCandidates.append(encode(intentCandidate: candidate))
+        }
+        row.intentTopGap = mochiItem.analysis?.topGap ?? 1.0
         return row
     }
 
@@ -84,7 +90,8 @@ public enum RealmMochiItemMapper {
                 importance: MochiItemAnalysis.Importance(rawValue: row.importance) ?? .medium,
                 confidence: row.confidence,
                 modelVersion: row.modelVersion ?? "unknown",
-                analyzedAt: analyzedAt
+                analyzedAt: analyzedAt,
+                candidates: row.intentCandidates.compactMap(decode(intentCandidate:))
             )
         }
 
@@ -198,6 +205,21 @@ public enum RealmMochiItemMapper {
         default:
             return nil
         }
+    }
+
+    // MARK: - IntentCandidate encoding
+
+    private static func encode(intentCandidate: IntentCandidate) -> RealmIntentCandidate {
+        let row = RealmIntentCandidate()
+        row.label = intentCandidate.label
+        row.intentRawValue = intentCandidate.intent.rawValue
+        row.applicability = intentCandidate.applicability
+        return row
+    }
+
+    private static func decode(intentCandidate row: RealmIntentCandidate) -> IntentCandidate? {
+        guard let intent = Intent(rawValue: row.intentRawValue) else { return nil }
+        return IntentCandidate(label: row.label, intent: intent, applicability: row.applicability)
     }
 
     // MARK: - Lifecycle / Sync raw encoding

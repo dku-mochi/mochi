@@ -51,10 +51,19 @@ struct MochiApp: App {
     var body: some Scene {
         WindowGroup {
             AppRootContainer(rootStore: Self.rootStore)
-                .task { await tick() }
+                .task {
+                    await tick()
+                    await syncWorker.startForegroundPolling()
+                }
                 .onChange(of: scenePhase) { _, newPhase in
                     if newPhase == .active {
-                        Task { await tick() }
+                        Task {
+                            await tick()
+                            await syncWorker.startForegroundPolling()
+                        }
+                    } else {
+                        // background/inactive 진입 시 metadata-only 폴링 중단 (foreground 한정).
+                        Task { await syncWorker.stopForegroundPolling() }
                     }
                 }
                 // Google Sign In 콜백 URL 처리 — Info.plist 에 등록한 reversed client ID 로 돌아온다.

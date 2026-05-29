@@ -24,6 +24,7 @@ public struct HomeView: View {
                     topBar
                         .padding(.top, HomeDesign.Spacing.sm)
                     quickMemoCard
+                    analyzingSection
                     needsReviewSection
                     importantSection
                     recentSection
@@ -170,19 +171,32 @@ public struct HomeView: View {
             : [HomeDesign.Color.purple200, HomeDesign.Color.purple400.opacity(0.7)]
     }
 
-    // MARK: - Needs review
+    // MARK: - 모찌가 분석 중이에요
 
+    @ViewBuilder
+    private var analyzingSection: some View {
+        if !store.analyzing.isEmpty {
+            VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
+                SectionHeader(title: "모찌가 분석 중이에요", trailing: nil, subtitle: "잠깐만 기다려 주세요")
+                AnalyzingCard(mochiItems: Array(store.analyzing))
+            }
+        }
+    }
+
+    // MARK: - 모찌가 헷갈려요
+
+    @ViewBuilder
     private var needsReviewSection: some View {
-        VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
-            SectionHeader(
-                title: "모찌가 헷갈려요",
-                trailing: store.ambiguous.isEmpty ? nil : "전체 보기"
-            )
-            NeedsReviewCard(
-                mochiItems: Array(store.ambiguous),
-                page: $store.needsReviewPage,
-                onClassify: { id, intent in store.send(.classifyTapped(mochiItemID: id, intent: intent)) }
-            )
+        if !store.ambiguous.isEmpty {
+            VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
+                SectionHeader(title: "모찌가 헷갈려요", trailing: "전체 보기", subtitle: "둘 중 하나를 골라주세요")
+                NeedsReviewCard(
+                    mochiItems: Array(store.ambiguous),
+                    page: $store.needsReviewPage,
+                    onClassify: { id, intent in store.send(.classifyTapped(mochiItemID: id, intent: intent)) },
+                    onRetry: { id in store.send(.retryAnalysisTapped(id)) }
+                )
+            }
         }
     }
 

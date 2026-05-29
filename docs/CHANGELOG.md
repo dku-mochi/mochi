@@ -13,7 +13,11 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 > 모찌 저장소의 의미 있는 변경 이력. 새 항목은 항상 **맨 위**에 추가한다.
 > 범위는 `ios` / `backend` / `docs` / `infra` 중 하나 이상. "왜" 가 자명하지 않으면 한 줄 이유를 덧붙인다.
 
-## 2026-05-29 — infra
+## 2026-05-29 — infra, docs
+
+- **openapi-check 클라이언트 스코프 확장 → drift 9→3 실해소.** `openapi-check.sh` 가 `URLSessionMochiAPIClient.swift` 한 파일만 스캔해, 인증 endpoint 를 `CoreAuth/AuthAPIClient.swift`(full `/api/v1/...` 리터럴 사용)에서 호출하는데도 **위양성 drift** 로 잡혔다. `extract_paths.py` 를 멀티 클라이언트(`argv[2:]`) 로, 스크립트를 `CLIENTS=(MochiAPIClient, AuthAPIClient)` 배열로 바꿔 둘 다 스캔. `/api/v1/auth/{apple,google,dev,refresh,logout}` + `/api/v1/users/me` (6건) 가 정합으로 해소(검증: 재실행 시 client path 4→10, drift 9→3).
+- **openapi-drift 등재 갱신 (known-drift)** · owner: 송준서 · since: 2026-05-29 · resolve_by: post-submission. B1~B4(capture→mochi_item) 완료 + checker 확장 반영해 잔여 **3건**으로 정리 — 모두 *의도된 iOS 미구현*: `/api/v1/health`(ops, iOS 불요), `/api/v1/mochi_items/{var}/intent`(분류 확정 override — iOS `setIntent` 로컬 전용, 서버 PATCH 미배선), `/api/v1/mochi_items/{var}/stream`(SSE — iOS 는 foreground 폴링으로 대체). 신규 endpoint 추가 시 같은 게이트가 fail 로 잡는다. (이전 등재의 `/api/v1/captures/{var}/stream`·auth drift 서술은 본 항목으로 대체.)
+- **DOMAIN_DESIGN §동기화 정합화.** Realm 매핑표 "UUID 동일" → "로컬 id ≠ 서버 PK(serverID 보관)", `CaptureSyncWorker`→`MochiItemSyncWorker` 명칭, `/mochi-items`(하이픈)·미존재 `/sync` catch-up·미배선 SSE/PATCH 서술을 현재 구현(단방향 업로드 + foreground 폴링 수신, override·SSE·catch-up 후속)으로 교정. `ARCHITECTURE.md §5.1` id 규약·`mochi-backend/README.md` ingest 응답 id 규약도 동일 정합화.
 
 - **`pre-edit-scope.sh` cwd 의존 버그 수정**: lab 경계를 `cwd/lab` 대신 프로젝트 루트(`CLAUDE_PROJECT_DIR`, fallback `cwd`) 기준으로 계산. 서브에이전트(`lab-experimenter`)가 하위 프로젝트(`mochi-backend`)에서 돌면 허용 경로가 `mochi-backend/lab/` 로 잘못 계산돼 루트 `lab/` 의 정당한 쓰기를 fail-closed 로 막던 문제 해소(실험용 데이터셋 생성이 차단됐던 사례). 재현 테스트 4종 통과 — 루트 lab/ 통과 · lab 밖 차단(보호 유지) · 부모 fail-open · PROJECT_DIR 미주입 fallback.
 - **lab/ 디렉토리 정리**: active/archive 구조로 재편 — `active/extraction-strategy/`(추출 전략 실험)·`archive/intent-classification/`(05-25~27 intent 실험 보관, `git mv` 히스토리 보존). `data/`(gitignore)는 공유 입력 유지, `lab/README.md` 인덱스 추가. 추출 벤치 경로를 `lab/data/` 공유 참조로 수정.

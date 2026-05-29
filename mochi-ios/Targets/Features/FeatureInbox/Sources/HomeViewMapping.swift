@@ -4,8 +4,8 @@ import CoreDomain
 
 // MARK: - UI Intent (view-side)
 //
-// 도메인의 4-Intent (schedule / todo / knowledge / memo) 를 시안의 색·라벨에 매핑.
-// 시안의 "알림" 칩은 도메인의 `.todo` 에 대응한다 (할일 = 마감/알림이 붙는 항목).
+// 도메인의 4-Intent (schedule / todo / knowledge / memo) 를 시안의 색에 매핑.
+// 라벨은 도메인 `Intent.displayName`(일정/할일/지식/기록)과 일치시킨다 — 이전의 todo→"알림" 리라벨은 폐기.
 
 enum MochiViewIntent: String, CaseIterable, Identifiable {
     case record   // = memo
@@ -33,14 +33,7 @@ enum MochiViewIntent: String, CaseIterable, Identifiable {
         }
     }
 
-    var label: String {
-        switch self {
-        case .record:    return "기록"
-        case .alert:     return "알림"
-        case .schedule:  return "일정"
-        case .knowledge: return "지식"
-        }
-    }
+    var label: String { domain.displayName }
 
     var dotColor: Color {
         switch self {
@@ -165,23 +158,3 @@ extension IngestChannel {
     }
 }
 
-// MARK: - 헷갈려요 카드용 분류 후보
-
-extension MochiItem {
-    /// 카드에 노출할 3개 분류 후보. 첫 번째가 추천(primary).
-    /// 분석이 있으면 분석된 intent 를 추천으로, 없으면 record(memo) 를 기본 추천.
-    var classificationChoices: (primary: MochiViewIntent, others: [MochiViewIntent]) {
-        let primary: MochiViewIntent
-        if let intent = analysis?.intent {
-            primary = MochiViewIntent(intent)
-        } else if source.url != nil {
-            primary = .knowledge
-        } else if !source.imageRefs.isEmpty {
-            primary = .record
-        } else {
-            primary = .record
-        }
-        let others = MochiViewIntent.allCases.filter { $0 != primary }.prefix(2)
-        return (primary, Array(others))
-    }
-}

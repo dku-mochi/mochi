@@ -85,6 +85,10 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
     public let text: String?
     public let userMemo: String?
     public let intent: Intent?
+    /// primary 를 제외한 보조 의도 (applicability 내림차순). metadata-only 분석 결과의 후보 재구성에 사용.
+    public let secondaryIntents: [Intent]
+    /// Intent → 적용 강도 (0.0–1.0). 후보에 등장하지 않은 intent 는 키에 없다.
+    public let intentApplicability: [String: Double]
     public let summary: String?
     public let importance: Int
     public let confidence: Double
@@ -96,12 +100,34 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
 
     private enum CodingKeys: String, CodingKey {
         case id, channel, url, text, intent, summary, importance, confidence
+        case secondaryIntents = "secondaryIntents"
+        case intentApplicability = "intentApplicability"
         case userMemo = "userMemo"
         case lifecycleKind = "lifecycleKind"
         case syncKind = "syncKind"
         case imageRefs = "imageRefs"
         case capturedAt = "capturedAt"
         case createdAt = "createdAt"
+    }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(UUID.self, forKey: .id)
+        channel = try c.decode(IngestChannel.self, forKey: .channel)
+        url = try c.decodeIfPresent(URL.self, forKey: .url)
+        text = try c.decodeIfPresent(String.self, forKey: .text)
+        userMemo = try c.decodeIfPresent(String.self, forKey: .userMemo)
+        intent = try c.decodeIfPresent(Intent.self, forKey: .intent)
+        secondaryIntents = try c.decodeIfPresent([Intent].self, forKey: .secondaryIntents) ?? []
+        intentApplicability = try c.decodeIfPresent([String: Double].self, forKey: .intentApplicability) ?? [:]
+        summary = try c.decodeIfPresent(String.self, forKey: .summary)
+        importance = try c.decode(Int.self, forKey: .importance)
+        confidence = try c.decode(Double.self, forKey: .confidence)
+        lifecycleKind = try c.decode(String.self, forKey: .lifecycleKind)
+        syncKind = try c.decode(String.self, forKey: .syncKind)
+        imageRefs = try c.decodeIfPresent([ImageRefDTO].self, forKey: .imageRefs) ?? []
+        capturedAt = try c.decode(Date.self, forKey: .capturedAt)
+        createdAt = try c.decode(Date.self, forKey: .createdAt)
     }
 }
 

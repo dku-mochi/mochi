@@ -14,15 +14,24 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="${CLAUDE_PROJECT_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 
 SPEC="$REPO/mochi-backend/openapi.json"
-CLIENT="$REPO/mochi-ios/Targets/Cores/CoreNetworking/Sources/URLSessionMochiAPIClient.swift"
+# iOS 클라이언트는 한 파일이 아니다 — 도메인 API(MochiAPIClient)와 인증 API(AuthAPIClient)가 분리돼 있어
+# 둘 다 스캔해야 auth/users endpoint 가 위양성 drift 로 잡히지 않는다.
+CLIENTS=(
+  "$REPO/mochi-ios/Targets/Cores/CoreNetworking/Sources/URLSessionMochiAPIClient.swift"
+  "$REPO/mochi-ios/Targets/Cores/CoreAuth/Sources/AuthAPIClient.swift"
+)
 
 # 부재 시 안내 후 통과 (생성/이동 가능성)
 if [[ ! -f "$SPEC" ]]; then
   echo "ℹ️  $SPEC 없음 — 검사 건너뜀."
   exit 0
 fi
-if [[ ! -f "$CLIENT" ]]; then
-  echo "ℹ️  $CLIENT 없음 — 검사 건너뜀."
+existing_clients=()
+for c in "${CLIENTS[@]}"; do
+  [[ -f "$c" ]] && existing_clients+=("$c")
+done
+if [[ "${#existing_clients[@]}" -eq 0 ]]; then
+  echo "ℹ️  클라이언트 파일 없음 — 검사 건너뜀."
   exit 0
 fi
 
@@ -33,7 +42,7 @@ if [[ ! -f "$PY_LIB" ]]; then
   echo "❌ $PY_LIB 없음 — 환경 오류." >&2
   exit 3
 fi
-extract_paths=$(python3 "$PY_LIB" "$SPEC" "$CLIENT")
+extract_paths=$(python3 "$PY_LIB" "$SPEC" "${existing_clients[@]}")
 extract_rc=$?
 if [[ "$extract_rc" -ne 0 ]]; then
   echo "❌ extract_paths.py 가 exit $extract_rc 로 실패 — 게이트 신뢰 불가." >&2
