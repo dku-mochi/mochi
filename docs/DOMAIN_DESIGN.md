@@ -976,3 +976,35 @@ DB 가 직접 강제할 수 없으나 `tests/unit/test_invariants.py` 가 강제
 | `ActionCandidate.payload_json` per-action_kind schema | Pydantic validator + unit test |
 | 모든 SELECT/UPDATE/DELETE 쿼리에 `user_id` 필터 | 정적 AST 검사 |
 | `embedding.chunk_text` 길이 ≤ 8000 chars | application chunker |
+
+### D. iOS 클라이언트 — 일일 importance 재분석 (Daily Importance Cache)
+
+> 2026-05-29 `dev/mochi` iOS 머지로 도입된 `CorePersistence/DailyImportanceAnalyzer` 의 설계.
+
+**왜 별도인가**: 항목마다 `mochi_analyses.importance_score` 가 산출되지만, 사용자 행동·시점
+(예: "마감 임박", "오늘의 흐름")에 따라 같은 항목의 *상대* 중요도는 바뀐다. 백엔드의
+per-item importance 는 "절대값", 일일 재분석은 "오늘의 상대 순위" 를 산출한다.
+
+**현 단계 (디자인 + 백엔드 sync 단계, stub)**:
+- iOS `CorePersistence/DailyImportanceAnalyzer` 가 책임.
+- **트리거**: 앱 진입 시 lazy — 마지막 분석으로부터 24h 경과 시 재계산, 아니면 캐시 반환.
+- **알고리즘**: 신규 Gemini 호출 없음. 로컬 `analysis.importance` (medium↑) 만 정렬 (`listByImportance`).
+- **결과 저장**: App Group `daily-importance/YYYY-MM-DD.json` (`{generatedAt, mochiItemIDs}`).
+- **GCS / 외부 업로드 우회**: 항목 이미지는 로컬 URI 만 유지 (`ImageRef.objectKey == nil`).
+  현 단계는 텍스트·메타데이터 위주 분석만 가능, 멀티모달 분석은 후속.
+
+**후속 (Gemini 1일 재분석 단계)**:
+- analyzer 가 최근 24h 항목을 묶어 Gemini Flash 에 보내 *상대* importance 재산출.
+- 응답은 같은 JSON 파일 포맷으로 캐시 — 같은 날 두 번째 진입 시 재호출 안 함.
+- 항목 이미지는 여전히 GCS 우회 — 텍스트 + 로컬 메타데이터(`relativePath`, `mimeType`,
+  `byteSize`, OCR 추출 텍스트) 만 모델에 노출. 정식 multimodal(GCS 업로드)은 별도 단계.
+
+**Repository API 매핑** (`MochiItemRepository`):
+
+| 홈 섹션 | Repository 메서드 | 비고 |
+|---|---|---|
+| "최근 추가한 모찌" | `listRecent(limit:)` | `createdAt desc` |
+| "모찌가 헷갈려요" | `listAmbiguous(limit:)` | intent 미결정(`intentRawValue == nil`) + archived/failed 제외 |
+| "중요해 보여요" | `DailyImportanceAnalyzer.todaysImportant(limit:)` → `find(id:)` | 캐시 우선, fallback `listByImportance` |
+| Needs-review 분류 확정 | `setIntent(mochiItemID:intent:)` | `confidence = 1.0`, `modelVersion = "manual"` |
+| Quick memo 저장 | `upsert(MochiItem(source:))` | `channel = .appDirectInput`, `imageRefs = []` |

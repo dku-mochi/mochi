@@ -31,7 +31,18 @@ struct AutoSortPage: View {
                     Image(asset)
                         .resizable()
                         .aspectRatio(1, contentMode: .fit)
+                        .padding(8)
                         .frame(maxWidth: 100)
+                        .background(
+                            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                .fill(
+                                    Color.white
+                                        // 위쪽 highlight + 아래쪽 inner shadow → 위에서 빛이 떨어지는 raised(볼록) 효과
+                                        .shadow(.inner(color: .white.opacity(0.95), radius: 2, x: 0, y: 1.5))
+                                        .shadow(.inner(color: .black.opacity(0.12), radius: 2, x: 0, y: -1.5))
+                                )
+                                .shadow(color: Color.black.opacity(0.12), radius: 8, x: 0, y: 4)
+                        )
                 }
             }
             .frame(maxWidth: .infinity)

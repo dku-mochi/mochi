@@ -10,44 +10,53 @@ import CoreLiveActivity
 /// Lock Screen 과 Dynamic Island 에 표시되며, App Intents 로 interactive button 을 제공한다
 /// (iOS 17+). 사용자는 모찌 앱을 열지 않고 Lock Screen 에서 의도를 한 탭으로 confirm 한다.
 ///
-/// **3-phase UI**:
-/// - `.analyzing`: spinner + "🐹 모찌 분석 중…" 한 줄. 캡쳐 직후 ~3-10초.
-/// - `.ready`: top-1 후보 강조 + "확인" / "다른 의도" 두 버튼. dominant 가 명확한 케이스에선
-///   여기서 single-tap 으로 끝난다.
-/// - `.confirmed`: 사용자가 선택한 라벨 + 체크. 잠시 후 모찌 앱이 Activity 를 dismiss.
+/// **Layout (옵션 1 — 좌측 세로 썸네일 column)**:
+/// - Lock Screen: 좌측에 9:19.5 비율 스크린샷 썸네일 (46×100pt), 우측에 앱 아이콘 + phase 본문.
+/// - Dynamic Island expanded: leading 에 작은 세로 썸네일 (28×60), trailing 에 phaseTag,
+///   bottom 에 후보 row + "다른 의도". leading + bottom 합산 ≈ 132pt < cap 144pt.
+/// - 썸네일은 attributes 의 `thumbnailRelativePath` 를 App Group container 에서 디스크 read
+///   (4KB payload 한도 우회). nil 이면 photo placeholder.
 ///
-/// Dynamic Island 의 compact / minimal / expanded 도 같은 phase 로 분기.
+/// **3-phase UI**:
+/// - `.analyzing`: spinner + "사용자 의도 분석 중…" 한 줄.
+/// - `.ready`: top-1 prose + 후보 2개 가로 row + "다른 의도" 한 줄.
+/// - `.confirmed`: 사용자가 선택한 라벨 + 체크. 잠시 후 모찌 앱이 Activity 를 dismiss.
 struct MockUseCaseLiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: MockUseCaseActivityAttributes.self) { context in
-            // Lock Screen / Notification Center 의 expanded view.
             MockUseCaseLockScreenView(state: context.state, attributes: context.attributes)
                 .activityBackgroundTint(Color.black.opacity(0.85))
                 .activitySystemActionForegroundColor(Color.white)
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
-                    Text("🐹")
-                        .font(.system(size: 30))
+                    ThumbnailColumn(
+                        relativePath: context.attributes.thumbnailRelativePath,
+                        width: 28,
+                        height: 60,
+                        cornerRadius: 6
+                    )
                 }
                 DynamicIslandExpandedRegion(.trailing) {
                     phaseTagView(context.state.phase)
-                }
-                DynamicIslandExpandedRegion(.center) {
-                    Text(context.attributes.captureCaption)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
                 }
                 DynamicIslandExpandedRegion(.bottom) {
                     expandedBottom(state: context.state)
                 }
             } compactLeading: {
-                Text("🐹")
+                Image("AppIconImage")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 16, height: 16)
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
             } compactTrailing: {
                 compactTrailingView(state: context.state)
             } minimal: {
-                Text("🐹")
+                Image("AppIconImage")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 16, height: 16)
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
             }
         }
     }
@@ -95,21 +104,25 @@ struct MockUseCaseLiveActivity: Widget {
             }
             .padding(.top, 4)
         case .ready:
-            HStack(spacing: 8) {
-                ForEach(state.candidates.prefix(2)) { c in
-                    Button(intent: SelectCandidateIntent(label: c.label)) {
-                        Text(c.label)
-                            .font(.footnote.weight(.semibold))
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
+            VStack(spacing: 6) {
+                HStack(spacing: 6) {
+                    ForEach(state.candidates.prefix(2)) { c in
+                        Button(intent: SelectCandidateIntent(label: c.label)) {
+                            Text(c.label)
+                                .font(.footnote.weight(.semibold))
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.75)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 6)
+                        }
+                        .tint(brandPrimary)
+                        .buttonStyle(.borderedProminent)
                     }
-                    .tint(brandPrimary)
-                    .buttonStyle(.borderedProminent)
                 }
                 Button(intent: OpenMochiOtherIntentIntent()) {
                     Text("다른 의도")
                         .font(.footnote)
-                        .padding(.horizontal, 10)
+                        .frame(maxWidth: .infinity)
                         .padding(.vertical, 6)
                 }
                 .buttonStyle(.bordered)
@@ -128,48 +141,27 @@ struct MockUseCaseLiveActivity: Widget {
     private let brandPrimary = Color(red: 0.55, green: 0.46, blue: 0.93)
 }
 
-/// Lock Screen 펼침 view. Dynamic Island 의 expanded 와 같은 정보지만 더 넉넉한 layout.
+/// Lock Screen 펼침 view. 좌측 세로 썸네일 column + 우측 본문.
 private struct MockUseCaseLockScreenView: View {
     let state: MockUseCaseActivityAttributes.ContentState
     let attributes: MockUseCaseActivityAttributes
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 8) {
-                Text("🐹")
-                    .font(.system(size: 22))
-                Text("모찌")
-                    .font(.system(.subheadline, design: .rounded).weight(.bold))
-                    .foregroundStyle(.white)
-                Spacer()
-                phaseTag
+        HStack(alignment: .top, spacing: 12) {
+            ThumbnailColumn(
+                relativePath: attributes.thumbnailRelativePath,
+                width: 46,
+                height: 100,
+                cornerRadius: 8
+            )
+            VStack(alignment: .leading, spacing: 6) {
+                phaseBody
+                Spacer(minLength: 0)
             }
-            Text(attributes.captureCaption)
-                .font(.footnote)
-                .foregroundStyle(.white.opacity(0.7))
-                .lineLimit(1)
-            phaseBody
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 14)
-    }
-
-    @ViewBuilder
-    private var phaseTag: some View {
-        switch state.phase {
-        case .analyzing:
-            Label("분석 중", systemImage: "sparkles")
-                .font(.caption2)
-                .foregroundStyle(.white.opacity(0.7))
-        case .ready:
-            Label("선택", systemImage: "hand.tap")
-                .font(.caption2)
-                .foregroundStyle(Color(red: 0.75, green: 0.7, blue: 0.98))
-        case .confirmed:
-            Label("저장됨", systemImage: "checkmark.circle.fill")
-                .font(.caption2)
-                .foregroundStyle(.green)
-        }
+        .padding(.vertical, 12)
     }
 
     @ViewBuilder
@@ -177,6 +169,11 @@ private struct MockUseCaseLockScreenView: View {
         switch state.phase {
         case .analyzing:
             HStack(spacing: 8) {
+                Image("AppIconImage")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 18, height: 18)
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
                 ProgressView().controlSize(.small).tint(.white)
                 Text("사용자 의도 분석 중…")
                     .font(.footnote)
@@ -184,39 +181,101 @@ private struct MockUseCaseLockScreenView: View {
             }
         case .ready:
             VStack(alignment: .leading, spacing: 6) {
-                if let top = state.candidates.first {
-                    Text("가장 그럴듯한 건 \"\(top.label)\"")
-                        .font(.system(.subheadline, design: .rounded).weight(.semibold))
-                        .foregroundStyle(.white)
-                }
                 HStack(spacing: 8) {
+                    Image("AppIconImage")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 18, height: 18)
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                    if let top = state.candidates.first {
+                        Text("\"\(top.label)\" 이 그럴듯해요")
+                            .font(.system(.subheadline, design: .rounded).weight(.semibold))
+                            .foregroundStyle(.white)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                    }
+                }
+                HStack(spacing: 6) {
                     ForEach(state.candidates.prefix(2)) { c in
                         Button(intent: SelectCandidateIntent(label: c.label)) {
                             Text(c.label)
                                 .font(.footnote.weight(.semibold))
-                                .padding(.horizontal, 14)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.75)
+                                .frame(maxWidth: .infinity)
                                 .padding(.vertical, 6)
                         }
                         .tint(Color(red: 0.55, green: 0.46, blue: 0.93))
                         .buttonStyle(.borderedProminent)
                     }
-                    Button(intent: OpenMochiOtherIntentIntent()) {
-                        Text("다른 의도")
-                            .font(.footnote)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
-                    }
-                    .buttonStyle(.bordered)
-                    .tint(.white)
                 }
+                Button(intent: OpenMochiOtherIntentIntent()) {
+                    Text("다른 의도")
+                        .font(.footnote)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 6)
+                }
+                .buttonStyle(.bordered)
+                .tint(.white)
             }
         case .confirmed:
             HStack(spacing: 6) {
+                Image("AppIconImage")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 18, height: 18)
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
                 Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
                 Text("\(state.selectedLabel ?? "?") 로 저장됐어요")
                     .font(.footnote)
                     .foregroundStyle(.white)
             }
         }
+    }
+}
+
+/// 9:19.5 비율 (핸드폰 스크린샷) 세로 썸네일 column. `App Group container/relativePath` 의 PNG 를
+/// 디스크에서 직접 읽어 4KB payload 한도 우회. nil 또는 read 실패 시 photo placeholder.
+private struct ThumbnailColumn: View {
+    let relativePath: String?
+    let width: CGFloat
+    let height: CGFloat
+    let cornerRadius: CGFloat
+
+    var body: some View {
+        Group {
+            if let image = loadImage() {
+                Image(uiImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+            } else {
+                placeholder
+            }
+        }
+        .frame(width: width, height: height)
+        .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+        .overlay(
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .strokeBorder(Color.white.opacity(0.15), lineWidth: 0.5)
+        )
+    }
+
+    private var placeholder: some View {
+        RoundedRectangle(cornerRadius: cornerRadius)
+            .fill(Color.white.opacity(0.08))
+            .overlay(
+                Image(systemName: "photo")
+                    .font(.system(size: 16))
+                    .foregroundStyle(.white.opacity(0.3))
+            )
+    }
+
+    private func loadImage() -> UIImage? {
+        guard let relativePath else { return nil }
+        guard let container = FileManager.default.containerURL(
+            forSecurityApplicationGroupIdentifier: "group.com.IndexFinger.mochi"
+        ) else { return nil }
+        let url = container.appendingPathComponent(relativePath)
+        return UIImage(contentsOfFile: url.path)
     }
 }

@@ -403,6 +403,7 @@ let project = Project(
             deploymentTargets: .iOS(deploymentTarget),
             infoPlist: .file(path: "Targets/ShareExtension/Support/Info.plist"),
             sources: ["Targets/ShareExtension/Sources/**"],
+            resources: ["Targets/ShareExtension/Resources/**"],
             entitlements: .file(path: "Targets/ShareExtension/Support/ShareExtension.entitlements"),
             dependencies: [
                 .target(name: "CoreDomain"),
@@ -441,6 +442,7 @@ let project = Project(
             deploymentTargets: .iOS(deploymentTarget),
             infoPlist: .file(path: "Targets/Widgets/Support/Info.plist"),
             sources: ["Targets/Widgets/Sources/**"],
+            resources: ["Targets/Widgets/Resources/**"],
             entitlements: .file(path: "Targets/Widgets/Support/Widgets.entitlements"),
             dependencies: [
                 .target(name: "CoreLiveActivity"),

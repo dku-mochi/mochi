@@ -11,7 +11,7 @@ import SwiftUI
 /// **CTA 동작**:
 /// - 일반 페이지: `nextTapped` → 다음 페이지로
 /// - 마지막 페이지: `nextTapped` → ``OnboardingFeature.Action.Delegate.finished``
-/// - 백탭 페이지: `registerShortcutTapped` → `shortcuts://` 오픈
+/// - 백탭 페이지: `registerShortcutTapped` → iCloud Shortcuts 링크 오픈 (단축어 앱이 가져오기 미리보기 표시)
 public struct OnboardingView: View {
     @Bindable var store: StoreOf<OnboardingFeature>
     @Environment(\.openURL) private var openURL
@@ -78,9 +78,10 @@ public struct OnboardingView: View {
         switch store.currentSpec {
         case .backTap:
             store.send(.registerShortcutTapped)
-            // Delegate 가 발행되는 즉시 shortcuts:// 를 연다. 단축어 등록 후 사용자가
-            // 다시 돌아오면 그 다음 페이지로 자연스럽게 진행시킨다.
-            if let url = URL(string: "shortcuts://") {
+            // Delegate 가 발행되는 즉시 iCloud Shortcuts 링크를 연다. iOS 가 단축어 앱으로
+            // 핸드오프해 "단축어 가져오기" 미리보기를 띄우며, 사용자가 다시 돌아오면
+            // 그 다음 페이지로 자연스럽게 진행시킨다.
+            if let url = URL(string: "https://www.icloud.com/shortcuts/ff449fd3fe924e81bb0e7e931360701b") {
                 openURL(url) { _ in
                     // openURL 콜백은 메인 스레드 보장. 성공/실패 무관하게 다음 페이지로.
                     store.send(.nextTapped)

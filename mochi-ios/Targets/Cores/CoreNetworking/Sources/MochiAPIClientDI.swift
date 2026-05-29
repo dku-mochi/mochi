@@ -20,6 +20,14 @@ public struct NotConfiguredAPIClient: MochiAPIClient {
     public func ingestMochiItem(_ request: MochiItemIngestRequest, idempotencyKey: String) async throws -> MochiItemDTO {
         throw Self.error
     }
+    public func ingestBackTapMochiItem(
+        pngData: Data,
+        mimeType: String,
+        userMemo: String?,
+        idempotencyKey: String
+    ) async throws -> BackTapMochiItemResponseDTO {
+        throw Self.error
+    }
     public func getMochiItem(id: UUID) async throws -> MochiItemDTO {
         throw Self.error
     }

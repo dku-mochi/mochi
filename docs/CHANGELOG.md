@@ -13,6 +13,16 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 > 모찌 저장소의 의미 있는 변경 이력. 새 항목은 항상 **맨 위**에 추가한다.
 > 범위는 `ios` / `backend` / `docs` / `infra` 중 하나 이상. "왜" 가 자명하지 않으면 한 줄 이유를 덧붙인다.
 
+## 2026-05-29 — ios
+
+- **`dev/mochi` 의 iOS 기능을 현재 트리로 머지** (홈 화면·백탭·LiveActivity·온보딩). 두 코드베이스가 5/25경 공통 베이스에서 갈라진 뒤, `dev` 는 iOS UI/UX 를, 현재 트리는 `capture`→`mochi_item` rename + Gemini 실연결 + 하네스를 발전시켰다. 사용자 결정: **iOS 는 dev 기능을 가져오되 rename(`Capture`→`MochiItem`/`IngestSource`/`IngestChannel`, `captureID`→`mochiItemID`)을 입혀 포팅, 백엔드·문서는 현재 유지.**
+  - **홈 화면** (`FeatureInbox`): `HomeView`/`HomeFeature`/`HomeDesign`/`HomeViewMapping`/`RecentMochiCard`/`NeedsReviewCard` — 최근 / 헷갈려요(미분류) / 중요해보여요 3섹션 + quick memo. 4탭 구조(홈/채팅/일정/검색, 채팅·일정 placeholder), `InboxView` 는 설정 내 디버그 진입점으로 강등.
+  - **백탭 전체 복원**: `MochiItemSyncWorker` 가 `.screenshot`+단일 이미지를 multipart `POST /mochi_items/back-tap`(신규 `ingestBackTapMochiItem`)로 전송 → Gemini 즉시 분류 결과를 Realm 에 반영(`applyClassification`). LiveActivity(`LiveActivityCoordinator` port@CorePersistence + App `LiveActivityCoordinatorLive` + Widget 좌측 썸네일 컬럼) 가 분석중→ready 후보를 Lock Screen/Dynamic Island 에 표시. `ShareExtension` 백탭/공유 화면(`BackTapShareView`/`ShareEntryView`/`ShareDesign`, 이미지 우선 판정).
+  - **Repository 확장**: `MochiItemRepository` 에 `listAmbiguous`/`listByImportance`/`setIntent` 추가(InMemory+Realm). `DailyImportanceAnalyzer`(1일 1회 lazy importance, App Group `daily-importance/` 캐시, GCS 우회 — 현 단계 stub). `SyncTrigger` DI(pull-to-refresh·quick-memo 저장 시 즉시 sync).
+  - **온보딩**: `BackTapPage`(펄스/탭카운터/카드 reveal/sparkle)·`AutoSortPage`(3D 카드) dev 정교판 + chroma-key 처리 `iphone_back` 자산. 단축어 등록 URL 은 현재 `shortcuts://` 유지(dev iCloud 링크는 단축어 ID 유효성 확인 필요).
+  - **머지 중 추가 수정**: (1) 백엔드 microsecond datetime 대응 `tryParseDate`(현재 `.iso8601` 이 FastAPI `utcnow().isoformat()` 거부하던 버그). (2) 홈·받은기록 카드 탭 → 상세 sheet 연결(`MainTabFeature` 가 `state.detail` 을 세팅하지만 표시 binding 이 없던 dev/현재 공통 미구현 해소). (3) `listAmbiguous` 가 archived/failed 제외(`listByImportance` 와 lifecycle 정합).
+  - **검증**: `tuist build Mochi` 성공(40+ 파일 컴파일+link+서명), `CorePersistenceTests` 컴파일+서명 통과, code-reviewer+codex 리뷰 통과(rename 잔재 0·백엔드 계약 일치·DI·로직). 백엔드 변경 없음 — dev iOS 가 호출하는 API 가 현재 백엔드에 rename된 형태로 모두 존재. 기존 테스트 인프라의 Swift 6 strict-concurrency 이슈(`LifecyclePolicyTests` Void-Equatable 은 수정함, `FeatureInboxTests` case-path non-Sendable 은 머지 무관 기존 문제로 별도)는 남음.
+
 ## 2026-05-29 — backend, docs
 
 - **Agent 분석 파이프라인을 실제 Gemini agentic loop 로 연결** (핵심 가치 "AI 가 분석한다" 구현). 그동안 `orchestrator` 의 `ANALYZED`/`INDEXED` 노드가 `pass`, 워커는 `_NullLLM`, 스트림 라우터는 `_UnconfiguredLLM` 이라 ingest 된 항목이 분석 없이 `intent=MEMO, summary=None` 으로 남던 도넛 구조를 해소.

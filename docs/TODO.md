@@ -85,9 +85,9 @@ description: 외부 설정·비밀값 체크리스트 + 활성 작업·다음 sp
   - [ ] **취소 분기** — 메모 모달에서 "취소" → marker 폐기 + Inbox 변화 없음.
   - [ ] **snippet 시스템 dismiss 잔재** — snippet 떠 있는 상태에서 어느 버튼도 안 누르고 외부 영역 탭 → 다음 모찌 launch / scenePhase active 시점에 `RootFeature` 가 stale `.png` sweep 하는지 확인.
   - [ ] (대조군) Safari → 공유시트 → 모찌 → `ShareEntryView` 메모/저장 → Inbox. 백탭과 다른 surface 임을 확인.
-- [ ] **iCloud 공유 URL 발급**
-  - [ ] 단축어 길게 누름 → 공유 → `iCloud 링크 복사`. 결과 형태: `https://www.icloud.com/shortcuts/<hash>`
-  - [ ] 발급된 URL 을 `mochi-ios/Targets/Features/FeatureOnboarding/Sources/...` 의 `BackTapPage` "단축어 등록하기" CTA 가 여는 값으로 교체 (현재는 `shortcuts://` 만 열고 끝).
+- [x] **iCloud 공유 URL 발급** (2026-05-29 dev 머지로 반영)
+  - [x] 단축어 길게 누름 → 공유 → `iCloud 링크 복사`. 결과 형태: `https://www.icloud.com/shortcuts/<hash>`
+  - [x] 발급된 URL 을 `BackTapPage` "단축어 등록하기" CTA 가 여는 값으로 교체. 현재 적용된 URL: `https://www.icloud.com/shortcuts/ff449fd3fe924e81bb0e7e931360701b` (`OnboardingView.swift` 의 `handlePrimaryTap()`).
 - [ ] **버전 관리**: 단축어 정의나 `CaptureScreenshotIntent` 시그니처가 바뀌면 iCloud URL 도 함께 갱신. CHANGELOG 의 `ios` 범위로 한 줄 남길 것.
 
 ⚠️ `Show Preview ON` 또는 `이미지 변환` 액션 누락은 자동화를 깬다. 온보딩 가이드에서 두 가지 다 명시.
