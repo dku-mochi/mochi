@@ -201,7 +201,7 @@ def _shared_client() -> genai.Client:
     )
 
 
-def _call_sync(*, image: bytes, mime: str, model: str) -> str:
+def _call_sync(*, image_uri: str, mime: str, model: str) -> str:
     cfg = types.GenerateContentConfig(
         system_instruction=_SYSTEM_PROMPT,
         temperature=0.3,
@@ -210,7 +210,7 @@ def _call_sync(*, image: bytes, mime: str, model: str) -> str:
         response_schema=_RESPONSE_SCHEMA,
         thinking_config=types.ThinkingConfig(thinking_budget=0),
     )
-    part = types.Part.from_bytes(data=image, mime_type=mime)
+    part = types.Part.from_uri(file_uri=image_uri, mime_type=mime)
     resp = _shared_client().models.generate_content(
         model=model,
         contents=[part, _USER_PROMPT],
@@ -231,14 +231,14 @@ class VertexAIGeminiClassifier:
         self._model = model or settings.gemini_intent_model
         self._timeout = timeout_seconds or settings.agent_step_timeout_seconds
 
-    async def classify(self, *, image: bytes, mime: str) -> IntentClassificationResult:
+    async def classify(self, *, image_uri: str, mime: str) -> IntentClassificationResult:
         if mime not in ("image/jpeg", "image/png"):
             raise ValueError(f"Unsupported mime type for intent classification: {mime}")
-        if not image:
-            raise ValueError("image bytes must be non-empty")
+        if not image_uri.startswith("gs://"):
+            raise ValueError("image_uri must be a gs:// URI")
 
         raw = await asyncio.wait_for(
-            asyncio.to_thread(_call_sync, image=image, mime=mime, model=self._model),
+            asyncio.to_thread(_call_sync, image_uri=image_uri, mime=mime, model=self._model),
             timeout=self._timeout,
         )
 

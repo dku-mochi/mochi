@@ -132,11 +132,12 @@ def _to_contents(user_parts: list[dict[str, Any]]) -> list[types.Content]:
                 )
             )
         else:
+            content_parts: list[types.Part] = [types.Part(text=part.get("text", ""))]
+            # 멀티모달 입력: gs:// 이미지를 같은 user turn 에 첨부 (Gemini 가 직접 read).
+            for uri, mime in part.get("images", []):
+                content_parts.append(types.Part.from_uri(file_uri=uri, mime_type=mime))
             contents.append(
-                types.Content(
-                    role=part.get("role", "user"),
-                    parts=[types.Part(text=part.get("text", ""))],
-                )
+                types.Content(role=part.get("role", "user"), parts=content_parts)
             )
     return contents
 

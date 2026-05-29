@@ -697,7 +697,7 @@ final class MochiItemObject: Object {
 
 ### 동기화
 
-- **iOS → Backend**: `syncState=pendingUpload` 인 MochiItem 을 `MochiItemSyncWorker` 가 POST `/api/v1/mochi_items`(metadata-only) 또는 `/api/v1/mochi_items/back-tap`(스크린샷 multipart) 로 업로드 (Idempotency-Key=로컬 item.id). 성공 → `syncState=uploaded(serverID:)` — **응답의 서버 자체 PK 를 보관**(로컬 id 와 다름).
+- **iOS → Backend**: `syncState=pendingUpload` 인 MochiItem 을 `MochiItemSyncWorker` 가 POST `/api/v1/mochi_items`(metadata-only) 또는 `/api/v1/mochi_items/back-tap`(스크린샷) 로 업로드 (Idempotency-Key=로컬 item.id). **이미지는 `POST /api/v1/mochi_items/presign` 으로 받은 Signed URL 로 GCS 에 직접 PUT 한 뒤 `objectKey` 만 전달** — back-tap 도 2026-05-30 부터 multipart 가 아닌 `application/json {objectKey,…}` 계약. 성공 → `syncState=uploaded(serverID:)` — **응답의 서버 자체 PK 를 보관**(로컬 id 와 다름). (**iOS presign→PUT→objectKey 배선은 후속** — 현재 iOS 는 multipart 라 계약 불일치.)
 - **Backend → iOS (현재)**: back-tap 은 동기 응답으로 분석을 즉시 반영. metadata-only 는 비동기 분석이라 **foreground 3초 폴링**(`GET /api/v1/mochi_items/{serverID}`)으로 lifecycle=active 시 결과를 반영. (SSE `/api/v1/mochi_items/{id}/stream` 엔드포인트는 백엔드에 있으나 **iOS 미구독** — push 기반 전환은 후속.)
 - **분류 확정 (현재)**: iOS `setIntent` 는 **로컬 전용**. 백엔드 override `PATCH /api/v1/mochi_items/{id}/intent` 는 **iOS 미배선** — 서버 반영은 후속.
 - **충돌/Catch-up**: backend master 원칙은 유지하나, 양방향 충돌 해소·cold-start catch-up(`/sync` 류)은 **미구현**(후속). 현 단계는 단방향 업로드 + 폴링 수신.
@@ -830,8 +830,9 @@ RefreshUserProfile.run(owner)   # 누적 N개마다 최근 window 재요약 → 
 (`GET /mochi_items/{id}/stream`). 실패 시 워커가 outbox 재시도(backoff), `MAX_ATTEMPTS` 초과 시
 `dead_letter`.
 
-> **현재 wire 상태**: text+URL 분석·write-back·개인화 프로필 = 실연결. 이미지 bytes 분석(blob
-> storage 의존)·임베딩 적재(INDEXED 노드)·actions 파생은 design-ahead — 후속 단계.
+> **현재 wire 상태**: text+URL 분석·write-back·개인화 프로필·**이미지 분석(클라가 Signed URL 로 GCS
+> 직접 업로드 → Gemini 가 `gs://` 를 직접 read, 2026-05-30)** = 실연결. 임베딩 적재(INDEXED 노드)·
+> actions 파생은 design-ahead — 후속 단계.
 
 ### 8.3 Hybrid Search
 
@@ -867,7 +868,7 @@ async with db_session() as s:
 | 분산 추적 | `X-Mochi-Request-ID` 헤더 echo |
 | Error envelope | `{code, message, requestId, retryAfter}` 통일 포맷 |
 | SSRF | WebFetch: 호스트 블록리스트 + A/AAAA 답변 IP 검증 + redirect 재검증 + MIME 화이트리스트 |
-| Storage | `users/{user_id}/...` prefix + presigned URL (prefix 강제 검증) |
+| Storage | `captures/{owner_id}/...` prefix + V4 Signed PUT URL (SA impersonation 서명). ingest 진입점에서 owner-prefix 강제 검증 (IDOR 방지). |
 | PII purge | `users.deleted_at` set 시 email 익명화 (`deleted+{id}@invalid.local`) |
 
 ---
@@ -990,8 +991,7 @@ per-item importance 는 "절대값", 일일 재분석은 "오늘의 상대 순�
 - **트리거**: 앱 진입 시 lazy — 마지막 분석으로부터 24h 경과 시 재계산, 아니면 캐시 반환.
 - **알고리즘**: 신규 Gemini 호출 없음. 로컬 `analysis.importance` (medium↑) 만 정렬 (`listByImportance`).
 - **결과 저장**: App Group `daily-importance/YYYY-MM-DD.json` (`{generatedAt, mochiItemIDs}`).
-- **GCS / 외부 업로드 우회**: 항목 이미지는 로컬 URI 만 유지 (`ImageRef.objectKey == nil`).
-  현 단계는 텍스트·메타데이터 위주 분석만 가능, 멀티모달 분석은 후속.
+- **GCS / 외부 업로드 우회 (iOS 현 상태)**: iOS 가 presign→PUT 미배선이라 항목 이미지는 로컬 URI 만 유지 (`ImageRef.objectKey == nil`). **백엔드 멀티모달 분석 경로는 2026-05-30 실연결**(presign + Gemini gs:// 직접 read) — iOS 가 objectKey 를 채우면 자동으로 멀티모달 분석된다.
 
 **후속 (Gemini 1일 재분석 단계)**:
 - analyzer 가 최근 24h 항목을 묶어 Gemini Flash 에 보내 *상대* importance 재산출.

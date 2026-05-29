@@ -4,12 +4,14 @@ from typing import Annotated
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import get_settings
 from app.core.db import get_session
 from app.modules.agent.domain.ports import LLMClient
 from app.modules.agent.domain.profile import UserProfileSummarizer
 from app.modules.agent.infrastructure.gemini_agent_client import GeminiAgentClient
 from app.modules.agent.infrastructure.gemini_profile_summarizer import GeminiProfileSummarizer
-from app.modules.mochi_items.domain.ports import IntentClassifier
+from app.modules.mochi_items.domain.ports import CaptureImageStorage, IntentClassifier
+from app.modules.mochi_items.infrastructure.gcs_storage import GCSSignedUrlIssuer
 from app.modules.mochi_items.infrastructure.gemini_classifier import VertexAIGeminiClassifier
 
 DBSession = Annotated[AsyncSession, Depends(get_session)]
@@ -26,6 +28,27 @@ def get_intent_classifier() -> IntentClassifier:
 
 
 IntentClassifierDep = Annotated[IntentClassifier, Depends(get_intent_classifier)]
+
+
+@lru_cache(maxsize=1)
+def _capture_storage_singleton() -> CaptureImageStorage | None:
+    settings = get_settings()
+    if not settings.gcs_capture_bucket or not settings.gcs_signer_service_account:
+        return None
+    return GCSSignedUrlIssuer(
+        bucket=settings.gcs_capture_bucket,
+        prefix=settings.gcs_capture_prefix,
+        signer_email=settings.gcs_signer_service_account,
+        ttl_seconds=settings.gcs_signed_url_ttl_seconds,
+    )
+
+
+def get_capture_storage() -> CaptureImageStorage | None:
+    """캡처 이미지 Signed URL 발급기 (프로세스당 1개). 미설정 시 ``None`` → presign 503."""
+    return _capture_storage_singleton()
+
+
+CaptureImageStorageDep = Annotated[CaptureImageStorage | None, Depends(get_capture_storage)]
 
 
 @lru_cache(maxsize=1)

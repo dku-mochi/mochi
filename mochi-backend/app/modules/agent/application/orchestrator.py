@@ -120,7 +120,10 @@ class AgentOrchestrator:
             profile_summary = profile.summary if profile else None
         system_prompt = ACTIVE_PROMPT.body + _profile_preamble(profile_summary)
 
-        parts: list[dict[str, Any]] = [{"role": "user", "text": _initial_user_text(source)}]
+        first_user: dict[str, Any] = {"role": "user", "text": _initial_user_text(source)}
+        if source.images:
+            first_user["images"] = list(source.images)
+        parts: list[dict[str, Any]] = [first_user]
         final_payload: dict[str, Any] | None = None
 
         for _ in range(self._max_steps):
@@ -338,7 +341,10 @@ def _initial_user_text(source: AnalysisInput) -> str:
         blocks.append(f"URL: {source.url}")
     if source.user_memo:
         blocks.append(f"사용자 메모: {source.user_memo}")
-    return "\n\n".join(blocks) or "(빈 항목)"
+    text = "\n\n".join(blocks)
+    if text:
+        return text
+    return "첨부된 스크린샷을 분석해 주세요." if source.images else "(빈 항목)"
 
 
 def _digest(args: dict[str, Any]) -> str:

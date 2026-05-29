@@ -69,7 +69,7 @@ class _FakeClassifier:
             )
         )
 
-    async def classify(self, *, image: bytes, mime: str):
+    async def classify(self, *, image_uri: str, mime: str):
         self.call_count += 1
         return self._result
 
@@ -89,7 +89,7 @@ async def test_classifies_and_persists_primary_secondary_applicability() -> None
     cmd = BackTapIngestCommand(
         owner_id=owner,
         idempotency_key="bt-1",
-        image=b"PNG-bytes",
+        object_key="captures/o/a.png",
         mime_type="image/png",
         byte_size=9,
         sha256="a" * 64,
@@ -125,7 +125,7 @@ async def test_idempotent_replay_returns_same_item_without_calling_classifier() 
     cmd = BackTapIngestCommand(
         owner_id=owner,
         idempotency_key="dup",
-        image=b"x",
+        object_key="captures/o/b.jpg",
         mime_type="image/jpeg",
         byte_size=1,
         sha256="b" * 64,

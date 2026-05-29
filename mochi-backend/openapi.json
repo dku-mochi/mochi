@@ -431,7 +431,7 @@
           "mochi_items"
         ],
         "summary": "Create Back Tap Mochi Item",
-        "description": "백탭 캡쳐 — Gemini 로 의도 후보 3개 도출 후 MochiItem 즉시 적재.\n\n응답의 ``candidates`` 가 알림 UX (top-1 강조 + 펼침 시 multi-select) 의 원천이다.\n사용자가 다른 의도를 고르면 ``PATCH /mochi_items/{id}/intent`` 로 primary 교체.",
+        "description": "백탭 캡쳐 — 클라이언트가 Signed URL 로 GCS 에 올린 ``objectKey`` 를 받아\nGemini(gs:// 직접 read)로 의도 후보 3개 도출 후 MochiItem 즉시 적재.\n\n응답의 ``candidates`` 가 알림 UX (top-1 강조 + 펼침 시 multi-select) 의 원천이다.\n사용자가 다른 의도를 고르면 ``PATCH /mochi_items/{id}/intent`` 로 primary 교체.",
         "operationId": "create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post",
         "parameters": [
           {
@@ -470,9 +470,9 @@
         "requestBody": {
           "required": true,
           "content": {
-            "multipart/form-data": {
+            "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Body_create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post"
+                "$ref": "#/components/schemas/BackTapMochiItemRequest"
               }
             }
           }
@@ -484,6 +484,66 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BackTapMochiItemResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/mochi_items/presign": {
+      "post": {
+        "tags": [
+          "mochi_items"
+        ],
+        "summary": "Presign Capture Upload",
+        "description": "캡처 이미지 업로드용 V4 Signed PUT URL 발급.\n\n클라이언트는 이 URL 로 GCS 에 직접 PUT 한 뒤, 받은 ``objectKey`` 를\n``POST /mochi_items/back-tap`` (또는 ``POST /mochi_items``) 로 전달한다.\n서버는 이미지 bytes 를 만지지 않는다.",
+        "operationId": "presign_capture_upload_api_v1_mochi_items_presign_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PresignRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PresignResponse"
                 }
               }
             }
@@ -798,6 +858,50 @@
         ],
         "title": "AppleSignInRequest"
       },
+      "BackTapMochiItemRequest": {
+        "properties": {
+          "objectKey": {
+            "type": "string",
+            "title": "Objectkey"
+          },
+          "sha256": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 64,
+            "title": "Sha256"
+          },
+          "mimeType": {
+            "type": "string",
+            "title": "Mimetype"
+          },
+          "byteSize": {
+            "type": "integer",
+            "maximum": 52428800.0,
+            "minimum": 0.0,
+            "title": "Bytesize"
+          },
+          "userMemo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Usermemo"
+          }
+        },
+        "type": "object",
+        "required": [
+          "objectKey",
+          "sha256",
+          "mimeType",
+          "byteSize"
+        ],
+        "title": "BackTapMochiItemRequest",
+        "description": "백탭 ingestion 요청 — 클라이언트가 Signed URL 로 GCS 에 업로드한 뒤 objectKey 를 보낸다."
+      },
       "BackTapMochiItemResponse": {
         "properties": {
           "item": {
@@ -822,32 +926,6 @@
         ],
         "title": "BackTapMochiItemResponse",
         "description": "백탭 ingestion 응답 — MochiItem 본체 + 사용자에게 보여줄 후보 3개.\n\n멱등 재요청 (``wasReplay=true``) 시 ``candidates`` 는 빈 리스트로 반환된다.\n저장된 MochiItem 자체에는 LLM 의 원본 후보 reasoning 이 보관되지 않으므로\n재현이 의미를 갖지 않는다."
-      },
-      "Body_create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post": {
-        "properties": {
-          "image": {
-            "type": "string",
-            "contentMediaType": "application/octet-stream",
-            "title": "Image",
-            "description": "JPEG/PNG screenshot binary"
-          },
-          "userMemo": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Usermemo"
-          }
-        },
-        "type": "object",
-        "required": [
-          "image"
-        ],
-        "title": "Body_create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post"
       },
       "CitationDTO": {
         "properties": {
@@ -1282,6 +1360,52 @@
           "createdAt"
         ],
         "title": "MochiItemResponse"
+      },
+      "PresignRequest": {
+        "properties": {
+          "sha256": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 64,
+            "title": "Sha256"
+          },
+          "mimeType": {
+            "type": "string",
+            "title": "Mimetype"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sha256",
+          "mimeType"
+        ],
+        "title": "PresignRequest",
+        "description": "캡처 이미지 업로드용 Signed PUT URL 발급 요청."
+      },
+      "PresignResponse": {
+        "properties": {
+          "objectKey": {
+            "type": "string",
+            "title": "Objectkey"
+          },
+          "uploadURL": {
+            "type": "string",
+            "title": "Uploadurl"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expiresat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "objectKey",
+          "uploadURL",
+          "expiresAt"
+        ],
+        "title": "PresignResponse",
+        "description": "발급된 V4 Signed PUT URL + 서버가 부여한 object_key."
       },
       "RefreshRequest": {
         "properties": {

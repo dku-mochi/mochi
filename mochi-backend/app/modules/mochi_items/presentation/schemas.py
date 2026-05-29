@@ -98,3 +98,34 @@ class IntentOverrideRequest(BaseModel):
     """알림에서 사용자가 다른 primary intent 를 선택했을 때의 PATCH 본문."""
 
     intent: Intent
+
+
+class BackTapMochiItemRequest(BaseModel):
+    """백탭 ingestion 요청 — 클라이언트가 Signed URL 로 GCS 에 업로드한 뒤 objectKey 를 보낸다."""
+
+    object_key: str = Field(alias="objectKey")
+    sha256: str = Field(min_length=64, max_length=64)
+    mime_type: str = Field(alias="mimeType")
+    byte_size: int = Field(ge=0, le=50 * 1024 * 1024, alias="byteSize")
+    user_memo: str | None = Field(default=None, alias="userMemo")
+
+    model_config = {"populate_by_name": True}
+
+
+class PresignRequest(BaseModel):
+    """캡처 이미지 업로드용 Signed PUT URL 발급 요청."""
+
+    sha256: str = Field(min_length=64, max_length=64)
+    mime_type: str = Field(alias="mimeType")
+
+    model_config = {"populate_by_name": True}
+
+
+class PresignResponse(BaseModel):
+    """발급된 V4 Signed PUT URL + 서버가 부여한 object_key."""
+
+    object_key: str = Field(alias="objectKey")
+    upload_url: str = Field(alias="uploadURL")
+    expires_at: datetime = Field(alias="expiresAt")
+
+    model_config = {"populate_by_name": True}

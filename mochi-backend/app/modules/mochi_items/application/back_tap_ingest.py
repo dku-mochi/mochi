@@ -11,6 +11,7 @@
 from dataclasses import dataclass
 from uuid import UUID
 
+from app.core.config import get_settings
 from app.modules.mochi_items.domain.entities import (
     ImageRef,
     IngestChannel,
@@ -29,7 +30,7 @@ from app.modules.mochi_items.domain.value_objects import IntentClassification
 class BackTapIngestCommand:
     owner_id: UUID
     idempotency_key: str
-    image: bytes
+    object_key: str
     mime_type: str
     byte_size: int
     sha256: str
@@ -74,8 +75,11 @@ class BackTapIngest:
                 was_idempotent_replay=True,
             )
 
+        # 클라이언트가 Signed URL 로 이미 GCS 에 업로드했다. Gemini 가 gs:// 를 직접 읽어
+        # 분류하므로 서버는 이미지 bytes 를 들지 않는다.
+        image_uri = f"gs://{get_settings().gcs_capture_bucket}/{command.object_key}"
         classification = await self._classifier.classify(
-            image=command.image,
+            image_uri=image_uri,
             mime=command.mime_type,
         )
 
@@ -89,7 +93,7 @@ class BackTapIngest:
                     sha256=command.sha256,
                     mime_type=command.mime_type,
                     byte_size=command.byte_size,
-                    object_key=None,
+                    object_key=command.object_key,
                 ),
             ),
         )

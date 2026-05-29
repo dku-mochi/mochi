@@ -247,7 +247,9 @@ infrastructure  ──────►   ports  ──────┘
 #### MochiItem ingestion
 
 ```
-POST /mochi_items (with Idempotency-Key, Bearer)
+(이미지 첨부 시 선행) POST /mochi_items/presign → V4 Signed PUT URL → 클라가 GCS 직접 업로드 → objectKey 확보
+  ↓
+POST /mochi_items 또는 POST /mochi_items/back-tap (with Idempotency-Key, Bearer)
   ↓
 RequestContextMiddleware (request_id 바인딩)
   ↓
@@ -266,6 +268,8 @@ DB COMMIT (atomic)
 ```
 
 #### Agent worker
+
+> 기동: `app/main.py` lifespan 에서 API 와 같은 프로세스의 백그라운드 태스크로 실행 (`asyncio.create_task(worker.run_forever())`, shutdown 시 graceful stop). 별도 워커 프로세스 아님 — 단일 인스턴스 dev/제출 전제.
 
 ```
 MochiWorker.run_forever

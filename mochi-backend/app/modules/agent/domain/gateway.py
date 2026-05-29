@@ -23,7 +23,9 @@ class AnalysisInput:
     text: str | None
     url: str | None
     user_memo: str | None
-    # image_object_keys 는 blob storage wire 이후 추가 (현재 워커엔 이미지 bytes 없음).
+    # 멀티모달 분석용 이미지: (gs:// URI, mime_type) 목록. 이미지 없으면 빈 튜플.
+    # Gemini 가 Vertex AI 에서 gs:// URI 를 직접 읽으므로 백엔드는 bytes 를 들지 않는다.
+    images: tuple[tuple[str, str], ...] = ()
 
 
 class MochiItemGateway(Protocol):

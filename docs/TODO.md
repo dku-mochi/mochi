@@ -117,12 +117,13 @@ snippet 흐름의 `CommitBackTapCaptureIntent` 와 모달의 `BackTapModalFeatur
 
 `CommitBackTapCaptureIntent` 가 영구 `captures/<captureID>.png` 로 이미지 bytes 를 저장하지만, `MochiItemSyncWorker` 가 백엔드 `POST /api/v1/mochi_items` 호출 시 보내는 `ImageRefDTO` 는 `objectKey/mimeType/byteSize/sha256` 만 — `objectKey: nil` 인 채로 metadata 만 전달된다. 백엔드는 multimodal 분석에 필요한 PNG 자체를 받지 못한다. 이건 snippet pivot 으로 도입된 결함이 아니라 **기존부터 비어 있던 업로드 파이프라인** — 모달 흐름에서도 동일했음. (`CommitBackTapCaptureIntent.swift:87`, `MochiItemSyncWorker.swift:42`, `IngestSource.swift:53`)
 
-- [ ] **백엔드 presigned URL 발급 엔드포인트**: `POST /api/v1/mochi_items/presign` → `{ objectKey, uploadURL, expiresAt }`. GCS / S3 multipart 업로드 url.
+- [x] **백엔드 presigned URL 발급 엔드포인트** (2026-05-30): `POST /api/v1/mochi_items/presign` → `{ objectKey, uploadURL, expiresAt }`. GCS V4 Signed PUT URL, 키 파일 없이 SA impersonation(signBlob) 서명.
 - [ ] **iOS `MochiItemSyncWorker.uploadOne`** 이 presign → PNG bytes PUT → `objectKey` 채워서 ingest 호출. 실패 시 backoff retry.
 - [ ] **`ImageRef.objectKey` 채워지면 Realm 도 갱신**. 이후 sync 호출은 이미 채워진 `objectKey` 재사용 (중복 업로드 금지).
-- [ ] **백엔드 multimodal worker** 가 `objectKey` 를 통해 GCS 에서 PNG 다운로드 후 Gemini Vision 분석.
+- [ ] **iOS back-tap 호출 계약 변경**: 백엔드가 `POST /mochi_items/back-tap` 을 multipart → JSON `{objectKey, sha256, mimeType, byteSize}` 로 바꿨다(2026-05-30). iOS 는 presign→PUT 후 objectKey 를 JSON 으로 전달하도록 수정 필요.
+- [x] **백엔드 multimodal worker** (2026-05-30): `objectKey` → `gs://{bucket}/{objectKey}` 로 **Gemini 가 직접 read** (다운로드 불필요). classify·분석 모두 `Part.from_uri`.
 
-이 작업은 본 snippet 흐름 작업의 scope 밖. iOS + backend 양쪽 변경 필요.
+백엔드 측은 2026-05-30 완료. **iOS 측(presign→PUT→objectKey ingest, 백탭 단축어 흐름)은 미완** — iOS 변경 필요.
 
 ---
 

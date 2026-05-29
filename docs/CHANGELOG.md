@@ -21,7 +21,8 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
   - `POST /api/v1/mochi_items/back-tap` 계약을 multipart → `application/json {objectKey, sha256, mimeType, byteSize}` 로 변경. 클라가 Signed URL 로 GCS 에 직접 업로드 후 objectKey 만 전달.
   - `IntentClassifier.classify` 와 agent 분석 모두 `Part.from_uri(gs://…)` 로 전환(이전 `Part.from_bytes`) — Gemini 가 GCS 를 직접 읽는다. `AnalysisInput.images` + orchestrator/`gemini_agent_client` 이미지 주입.
   - GCP(infra): 버킷 `mochi-captures-axial-device-460408-i9`(asia-northeast3, 비공개), SA `mochi-storage-signer`(버킷 objectAdmin + 사용자 tokenCreator), Vertex AI 서비스 에이전트에 버킷 objectViewer.
-  - **검증**: presign 서명 → GCS PUT 200 → Gemini classify(gs://) 후보 반환 end-to-end 확인. lint/typecheck/88 tests 통과.
+  - **검증**: presign 서명 → GCS PUT 200 → Gemini classify(gs://) 후보 반환 end-to-end 확인. lint/typecheck/91 tests 통과.
+  - **코드리뷰(code-reviewer→codex) 대응**: (P1-1) object_key 를 owner-scoped prefix(`captures/{owner_id}/`)로 강제해 IDOR 차단 + 회귀 테스트 3건; (P1-2) back-tap 이 클라 self-report 대신 GCS 실제 객체 metadata(size·content-type, HEAD)로 검증; (P2-1) back-tap bucket 미설정 503 가드. **보류**: iOS multipart 계약 비호환(P1-3 — 커밋은 진행), PRIVACY 민감도/동의(P1-4 — 사용자 지시), 일반 POST 무결성·graceful stop in-flight·멀티워커(P2).
   - 2026-05-29 항목의 "이미지가 본분석에 도달 못 함" 한계 해소. **iOS 측(presign→PUT→objectKey ingest, 백탭 단축어 흐름)은 후속** (TODO §3.5).
   - **운영 설정 필요**: `.env` 에 `GCS_CAPTURE_BUCKET`, `GCS_SIGNER_SERVICE_ACCOUNT` 추가해야 presign 활성(미설정 시 503).
   - 워커 기동 단일화: `scripts/run_worker.py` + Makefile `worker` 타깃 삭제, `app/main.py` lifespan(in-process) 을 정본으로. 단일 인스턴스 dev/제출 전제 — 프로덕션 스케일 분리는 후속.
