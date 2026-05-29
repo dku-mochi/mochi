@@ -28,6 +28,15 @@ class Settings(BaseSettings):
     # Vertex AI / Gemini
     google_cloud_project: str | None = None
     google_cloud_location: str = "us-central1"
+
+    # 캡처 이미지 스토리지 — GCS (백탭 스크린샷 원본).
+    # 클라이언트가 Signed PUT URL 로 GCS 에 직접 업로드 → 서버는 bytes 무접촉.
+    # Gemini 가 gs://{bucket}/{object_key} 로 직접 읽으므로 다운로드 경로도 없다.
+    # bucket / signer 미설정 시 presign 비활성(503) — local 환경 fallback.
+    gcs_capture_bucket: str | None = None
+    gcs_capture_prefix: str = "captures"
+    gcs_signer_service_account: str | None = None   # Signed URL 서명용 impersonate 대상 SA email
+    gcs_signed_url_ttl_seconds: int = 900            # 15분
     gemini_model: str = "gemini-3.5-flash"
     gemini_embedding_model: str = "text-embedding-005"
     embedding_dim: int = 768
@@ -61,6 +70,10 @@ class Settings(BaseSettings):
         "metadata.google.internal",
         "0.0.0.0",
     )
+
+    # PlatformContext tool — Instagram 공식 oEmbed 는 Meta app token + review 가 필요하다.
+    instagram_oembed_access_token: str | None = None
+    instagram_oembed_api_version: str = "v20.0"
 
     # Hybrid search
     bm25_k: int = 80

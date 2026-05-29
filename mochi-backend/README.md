@@ -53,7 +53,7 @@ app/
 │   │   ├── application/           AgentOrchestrator (state graph)
 │   │   ├── infrastructure/
 │   │   │   ├── registry.py        StaticToolRegistry
-│   │   │   └── tools/             WebFetchTool (SSRF/MIME/size 가드), Embed, MultimodalAnalyze
+│   │   │   └── tools/             PlatformContextTool, WebFetchTool (SSRF/MIME/size 가드), Embed, MultimodalAnalyze
 │   │   ├── prompts/system_prompts.py     버전 관리되는 system prompt
 │   │   └── presentation/router.py        SSE 스트림 엔드포인트
 │   └── search/
@@ -167,6 +167,16 @@ ingested → normalized → analyzed → routed → persisted → indexed → sy
 - **스트리밍 byte counter** — `web_fetch_max_bytes` 초과 시 즉시 abort (전체 다운로드 후 길이 체크 아님)
 - redirect 최대 5회
 
+### PlatformContext
+- Agent loop 는 YouTube/X/Instagram URL 에 대해 `webFetch` 보다 먼저 `platformContext` 를 호출한다.
+- YouTube: oEmbed 제목/채널 + watch page 의 `ytInitialPlayerResponse` 설명/길이를 결합한다.
+- X/Twitter: `publish.x.com/oembed` 로 post text/author embed HTML 을 구조화한다.
+- Instagram: `INSTAGRAM_OEMBED_ACCESS_TOKEN` 이 있으면 Meta Instagram oEmbed, 없으면 OG meta fallback. Instagram은 이미지 맥락 의존도가 높아 screenshot Vision 결과를 primary context 로 두고 platform metadata 는 보조 신호로 쓴다.
+
+### Screenshot grounding
+- Agent 입력에는 항상 `Asia/Seoul` 현재 기준시각이 포함된다. `다음 주`, `금요일`, `5일 남음` 같은 상대 시간은 이 컨텍스트로 해석한다.
+- 이미지가 붙은 항목은 extraction-strategy C 기준을 따른다: 내부적으로 `fact` / `opinion` / `info` typed statement 로 근거를 세운 뒤 final summary/entities 를 만든다. `facts/opinions/key_info/entities` 버킷을 모두 채우도록 강제하지 않는다.
+
 ### 4-Intent 생명주기 검증
 - `app/modules/intents/domain/lifecycle_policy.is_allowed` 는 (current.kind → next.kind) 페어 + Intent별 archive reason 두 가지를 모두 검증
 - 예: `schedule` 캡처는 `archived(scheduleEnded|userManual)` 만 허용. `archived(todoCompleted)` 는 거부
@@ -183,6 +193,8 @@ ingested → normalized → analyzed → routed → persisted → indexed → sy
 | --- | --- | --- | --- |
 | GET | `/api/v1/health` | 불필요 | 헬스체크 |
 | POST | `/api/v1/mochi_items` | Bearer | 캡처 ingestion (Idempotency-Key 필수) |
+| POST | `/api/v1/mochi_items/presign` | Bearer | GCS Signed PUT URL 발급 |
+| POST | `/api/v1/mochi_items/back-tap` | Bearer | 백탭 캡처 JSON ingest |
 | GET | `/api/v1/mochi_items/{id}` | Bearer | 캡처 조회 |
 | GET | `/api/v1/mochi_items/{id}/stream` | Bearer | Agent state graph SSE 스트림 |
 | POST | `/api/v1/search` | Bearer | Hybrid search RAG |

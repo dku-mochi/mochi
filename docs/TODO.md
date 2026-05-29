@@ -117,12 +117,13 @@ snippet 흐름의 `CommitBackTapCaptureIntent` 와 모달의 `BackTapModalFeatur
 
 `CommitBackTapCaptureIntent` 가 영구 `captures/<captureID>.png` 로 이미지 bytes 를 저장하지만, `MochiItemSyncWorker` 가 백엔드 `POST /api/v1/mochi_items` 호출 시 보내는 `ImageRefDTO` 는 `objectKey/mimeType/byteSize/sha256` 만 — `objectKey: nil` 인 채로 metadata 만 전달된다. 백엔드는 multimodal 분석에 필요한 PNG 자체를 받지 못한다. 이건 snippet pivot 으로 도입된 결함이 아니라 **기존부터 비어 있던 업로드 파이프라인** — 모달 흐름에서도 동일했음. (`CommitBackTapCaptureIntent.swift:87`, `MochiItemSyncWorker.swift:42`, `IngestSource.swift:53`)
 
-- [ ] **백엔드 presigned URL 발급 엔드포인트**: `POST /api/v1/mochi_items/presign` → `{ objectKey, uploadURL, expiresAt }`. GCS / S3 multipart 업로드 url.
-- [ ] **iOS `MochiItemSyncWorker.uploadOne`** 이 presign → PNG bytes PUT → `objectKey` 채워서 ingest 호출. 실패 시 backoff retry.
-- [ ] **`ImageRef.objectKey` 채워지면 Realm 도 갱신**. 이후 sync 호출은 이미 채워진 `objectKey` 재사용 (중복 업로드 금지).
-- [ ] **백엔드 multimodal worker** 가 `objectKey` 를 통해 GCS 에서 PNG 다운로드 후 Gemini Vision 분석.
+- [x] **백엔드 presigned URL 발급 엔드포인트** (2026-05-30): `POST /api/v1/mochi_items/presign` → `{ objectKey, uploadURL, expiresAt }`. GCS V4 Signed PUT URL, 키 파일 없이 SA impersonation(signBlob) 서명.
+- [x] **iOS `MochiItemSyncWorker.uploadOne`** 이 원본 PNG 를 업로드용 파생본(긴 변 1920px 이하, JPEG q60)으로 변환 → 파생본 bytes 기준 `sha256/mimeType/byteSize` 계산 → presign → GCS PUT → `objectKey` 채워서 ingest 호출 (2026-05-30).
+- [x] **`ImageRef.objectKey` 채워지면 Realm 도 갱신**. 이후 sync 호출은 이미 채워진 `objectKey` 재사용 (중복 업로드 금지).
+- [x] **iOS back-tap 호출 계약 변경**: 백엔드가 `POST /mochi_items/back-tap` 을 multipart → JSON `{objectKey, sha256, mimeType, byteSize}` 로 바꿨다(2026-05-30). iOS 는 presign→PUT 후 objectKey 를 JSON 으로 전달한다.
+- [x] **백엔드 multimodal worker** (2026-05-30): `objectKey` → `gs://{bucket}/{objectKey}` 로 **Gemini 가 직접 read** (다운로드 불필요). classify·분석 모두 `Part.from_uri`.
 
-이 작업은 본 snippet 흐름 작업의 scope 밖. iOS + backend 양쪽 변경 필요.
+백엔드·iOS 측 모두 2026-05-30 완료. 남은 후속은 민감 캡처 정책(`CorePrivacy`)이 들어온 뒤 업로드 파생본 생성 지점에서 `local_only/text_only/redacted_image/original_allowed` 분기를 거는 일이다.
 
 ---
 
@@ -146,6 +147,11 @@ AUTH_APPLE_JWKS_URL=https://appleid.apple.com/auth/keys
 # iOS client_id (필수). 콤마로 web client_id 도 함께 허용 가능.
 AUTH_GOOGLE_CLIENT_IDS=XXXXXXXXX-YYYYYYYY.apps.googleusercontent.com
 AUTH_GOOGLE_JWKS_URL=https://www.googleapis.com/oauth2/v3/certs
+
+# === Agent PlatformContext ===
+# Instagram 공식 oEmbed 사용 시만 설정. 비우면 OG fallback 으로 동작.
+INSTAGRAM_OEMBED_ACCESS_TOKEN=
+INSTAGRAM_OEMBED_API_VERSION=v20.0
 ```
 
 ### 4.1 비밀값 생성
@@ -155,6 +161,11 @@ AUTH_GOOGLE_JWKS_URL=https://www.googleapis.com/oauth2/v3/certs
 
 ### 4.2 시크릿 회전 정책
 - [ ] `AUTH_ACCESS_SECRET` 교체 시 모든 사용자가 강제 재로그인됨 (refresh token 도 access 만 무효, refresh는 DB hash 매칭이라 영향 없음). 보안 사고 시 즉시 회전.
+
+### 4.3 PlatformContext / Instagram oEmbed
+- [x] YouTube/X/Instagram URL 은 Agent `platformContext` 로 먼저 그라운딩 (2026-05-30).
+- [ ] Instagram 공식 oEmbed 를 운영에서 쓰려면 Meta app token + oEmbed 권한/리뷰를 확보하고 `INSTAGRAM_OEMBED_ACCESS_TOKEN` 을 설정.
+- [ ] 토큰 미설정 상태에서는 Instagram OG fallback + screenshot Vision context 를 조합해 분석 정확도를 보강.
 
 ---
 

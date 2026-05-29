@@ -1,8 +1,9 @@
+from dataclasses import dataclass
+from datetime import datetime
 from typing import Protocol
 from uuid import UUID
 
 from app.modules.mochi_items.domain.entities import LifecycleState, MochiItem
-from app.modules.mochi_items.domain.value_objects import IntentClassificationResult
 from app.shared.intent import Intent
 
 
@@ -45,9 +46,10 @@ class MochiItemRepository(Protocol):
         confidence: float,
         model_version: str,
         entities: tuple[tuple[str, str], ...],
+        intent_candidates: tuple[dict[str, object], ...],
     ) -> None:
         """Agent 분석 결과를 write-back 한다 — 분석 필드 갱신 + entities 재적재 +
-        lifecycle 를 분석 완료 상태(ACTIVE)로 확립."""
+        intent_candidates 영속 + lifecycle 를 분석 완료 상태(ACTIVE)로 확립."""
         ...
     async def already_ingested(self, *, owner_id: UUID, idempotency_key: str) -> MochiItem | None: ...
     async def remember_idempotency(
@@ -65,12 +67,38 @@ class MochiItemCreatedNotifier(Protocol):
     async def emit(self, *, owner_id: UUID, mochi_item_id: UUID) -> None: ...
 
 
-class IntentClassifier(Protocol):
-    """백탭 캡쳐 이미지를 받아 LLM 으로 의도 후보를 도출하는 outbound port.
+@dataclass(frozen=True, slots=True)
+class SignedUpload:
+    """클라이언트가 GCS 에 직접 PUT 할 V4 Signed URL + 서버가 부여한 object_key."""
 
-    구현체는 ``image`` (bytes) 와 ``mime`` (image/jpeg | image/png) 만 입력으로 받고,
-    후보 3개를 담은 ``IntentClassificationResult`` 를 반환한다. 어떤 모델·프롬프트·
-    timeout 을 쓰는지는 adapter 가 캡슐화한다.
+    object_key: str
+    upload_url: str
+    expires_at: datetime
+
+
+@dataclass(frozen=True, slots=True)
+class ObjectStat:
+    """업로드된 객체의 실제 metadata (서버 검증용 — 클라 self-report 가 아님)."""
+
+    size: int
+    content_type: str | None
+
+
+class CaptureImageStorage(Protocol):
+    """캡처 이미지용 V4 Signed PUT URL 발급 + 업로드된 객체 검증 outbound port.
+
+    클라이언트가 이 URL 로 GCS 에 직접 업로드하므로 서버는 이미지 bytes 를 만지지 않는다.
+    동일 ``sha256`` → 동일 object_key (content-addressed). 이후 agent 는
+    ``gs://{bucket}/{object_key}`` 로 Gemini 에 직접 넘긴다.
     """
 
-    async def classify(self, *, image: bytes, mime: str) -> IntentClassificationResult: ...
+    async def issue_upload_url(
+        self, *, owner_id: UUID, sha256: str, mime_type: str
+    ) -> SignedUpload: ...
+
+    async def stat(self, *, object_key: str) -> ObjectStat | None:
+        """업로드된 객체의 실제 size/content-type 을 HEAD 로 조회. 객체 없으면 None.
+
+        클라가 신고한 byteSize/mimeType 을 신뢰하지 않고 ingest 시 이걸로 검증한다.
+        """
+        ...

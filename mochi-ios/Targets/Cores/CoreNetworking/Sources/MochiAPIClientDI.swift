@@ -21,11 +21,19 @@ public struct NotConfiguredAPIClient: MochiAPIClient {
         throw Self.error
     }
     public func ingestBackTapMochiItem(
-        pngData: Data,
+        objectKey: String,
+        sha256: String,
         mimeType: String,
+        byteSize: Int,
         userMemo: String?,
         idempotencyKey: String
-    ) async throws -> BackTapMochiItemResponseDTO {
+    ) async throws -> MochiItemDTO {
+        throw Self.error
+    }
+    public func presignCaptureUpload(sha256: String, mimeType: String) async throws -> PresignUploadDTO {
+        throw Self.error
+    }
+    public func putCaptureImage(uploadURL: URL, data: Data, mimeType: String) async throws {
         throw Self.error
     }
     public func getMochiItem(id: UUID) async throws -> MochiItemDTO {

@@ -4,7 +4,7 @@ import ProjectDescription
 
 private let bundleIdPrefix = "com.IndexFinger.mochi"
 private let deploymentTarget = "17.0"
-private let swiftVersion = "5.10"
+private let swiftVersion = "5.0"
 private let developmentTeam = "H857U5DNT9"
 private let marketingVersion = "0.1.0"
 private let currentProjectVersion = "1"
@@ -14,7 +14,7 @@ private let baseSettings: SettingsDictionary = [
     "SWIFT_VERSION": .string(swiftVersion),
     "DEVELOPMENT_TEAM": .string(developmentTeam),
     "IPHONEOS_DEPLOYMENT_TARGET": .string(deploymentTarget),
-    "SWIFT_STRICT_CONCURRENCY": "complete",
+    "SWIFT_STRICT_CONCURRENCY": "targeted",
     "ENABLE_USER_SCRIPT_SANDBOXING": "YES",
     // App·ShareExtension 의 Info.plist 가 모두 이 두 변수를 참조한다.
     // 확장 타겟에서 누락되면 CFBundleVersion 이 빈 문자열이 되어 installd 가 설치를 거부한다.
@@ -75,6 +75,8 @@ let project = Project(
     packages: [
         .remote(url: "https://github.com/pointfreeco/swift-composable-architecture.git", requirement: .exact("1.17.1")),
         .remote(url: "https://github.com/pointfreeco/swift-dependencies.git", requirement: .exact("1.5.1")),
+        .remote(url: "https://github.com/pointfreeco/swift-perception.git", requirement: .exact("1.6.0")),
+        .remote(url: "https://github.com/pointfreeco/swift-navigation.git", requirement: .exact("2.8.0")),
         // ComposableArchitecture transitive — App 타겟에서 직접 link 해서 undefined symbol 방지.
         .remote(url: "https://github.com/pointfreeco/swift-case-paths.git", requirement: .exact("1.7.3")),
         .remote(url: "https://github.com/pointfreeco/swift-identified-collections.git", requirement: .exact("1.1.1")),
@@ -139,6 +141,7 @@ let project = Project(
             "DesignSystem",
             layer: .core,
             dependencies: [
+                .target(name: "CoreDomain"),
                 .package(product: "Kingfisher"),
             ]
         ),
@@ -185,6 +188,9 @@ let project = Project(
                 .package(product: "Dependencies"),
                 .package(product: "CasePaths"),
                 .package(product: "IdentifiedCollections"),
+                .package(product: "Perception"),
+                .package(product: "PerceptionCore"),
+                .package(product: "SwiftNavigation"),
             ]
         ),
         module(
@@ -199,6 +205,9 @@ let project = Project(
                 .package(product: "Dependencies"),
                 .package(product: "CasePaths"),
                 .package(product: "IdentifiedCollections"),
+                .package(product: "Perception"),
+                .package(product: "PerceptionCore"),
+                .package(product: "SwiftNavigation"),
             ]
         ),
         module(
@@ -212,6 +221,9 @@ let project = Project(
                 .package(product: "Dependencies"),
                 .package(product: "CasePaths"),
                 .package(product: "IdentifiedCollections"),
+                .package(product: "Perception"),
+                .package(product: "PerceptionCore"),
+                .package(product: "SwiftNavigation"),
             ]
         ),
         module(
@@ -226,6 +238,9 @@ let project = Project(
                 .package(product: "Dependencies"),
                 .package(product: "CasePaths"),
                 .package(product: "IdentifiedCollections"),
+                .package(product: "Perception"),
+                .package(product: "PerceptionCore"),
+                .package(product: "SwiftNavigation"),
             ]
         ),
         module(
@@ -238,6 +253,9 @@ let project = Project(
                 .package(product: "Dependencies"),
                 .package(product: "CasePaths"),
                 .package(product: "IdentifiedCollections"),
+                .package(product: "Perception"),
+                .package(product: "PerceptionCore"),
+                .package(product: "SwiftNavigation"),
             ]
         ),
         module(
@@ -251,6 +269,9 @@ let project = Project(
                 .package(product: "Dependencies"),
                 .package(product: "CasePaths"),
                 .package(product: "IdentifiedCollections"),
+                .package(product: "Perception"),
+                .package(product: "PerceptionCore"),
+                .package(product: "SwiftNavigation"),
             ]
         ),
         module(
@@ -262,6 +283,9 @@ let project = Project(
                 .package(product: "Dependencies"),
                 .package(product: "CasePaths"),
                 .package(product: "IdentifiedCollections"),
+                .package(product: "Perception"),
+                .package(product: "PerceptionCore"),
+                .package(product: "SwiftNavigation"),
             ]
         ),
 
@@ -379,6 +403,9 @@ let project = Project(
                 .package(product: "CasePaths"),
                 .package(product: "IdentifiedCollections"),
                 .package(product: "Dependencies"),
+                .package(product: "Perception"),
+                .package(product: "PerceptionCore"),
+                .package(product: "SwiftNavigation"),
             ],
             settings: .settings(
                 base: baseSettings.merging([
@@ -462,17 +489,41 @@ let project = Project(
         unitTests(
             for: "FeatureMochiItem",
             layer: .feature,
-            dependencies: [.package(product: "ComposableArchitecture")]
+            dependencies: [
+                .package(product: "ComposableArchitecture"),
+                .package(product: "Dependencies"),
+                .package(product: "CasePaths"),
+                .package(product: "IdentifiedCollections"),
+                .package(product: "Perception"),
+                .package(product: "PerceptionCore"),
+                .package(product: "SwiftNavigation"),
+            ]
         ),
         unitTests(
             for: "FeatureInbox",
             layer: .feature,
-            dependencies: [.package(product: "ComposableArchitecture")]
+            dependencies: [
+                .package(product: "ComposableArchitecture"),
+                .package(product: "Dependencies"),
+                .package(product: "CasePaths"),
+                .package(product: "IdentifiedCollections"),
+                .package(product: "Perception"),
+                .package(product: "PerceptionCore"),
+                .package(product: "SwiftNavigation"),
+            ]
         ),
         unitTests(
             for: "FeatureSearch",
             layer: .feature,
-            dependencies: [.package(product: "ComposableArchitecture")]
+            dependencies: [
+                .package(product: "ComposableArchitecture"),
+                .package(product: "Dependencies"),
+                .package(product: "CasePaths"),
+                .package(product: "IdentifiedCollections"),
+                .package(product: "Perception"),
+                .package(product: "PerceptionCore"),
+                .package(product: "SwiftNavigation"),
+            ]
         ),
     ],
     schemes: [

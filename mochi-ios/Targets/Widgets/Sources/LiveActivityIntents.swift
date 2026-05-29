@@ -14,8 +14,8 @@ import CoreLiveActivity
 /// 사용자 선택을 기록한다. 모찌 앱이 다음 launch 시 그 marker 를 읽어 콘솔에 출력
 /// (실제 commit 흐름은 별도 작업).
 public struct SelectCandidateIntent: LiveActivityIntent {
-    public static var title: LocalizedStringResource = "모찌 후보 선택"
-    public static var description = IntentDescription("Live Activity 에서 use case 후보를 한 탭으로 선택")
+    public static let title: LocalizedStringResource = "모찌 후보 선택"
+    public static let description = IntentDescription("Live Activity 에서 use case 후보를 한 탭으로 선택")
 
     @Parameter(title: "label")
     public var label: String
@@ -69,9 +69,9 @@ public struct SelectCandidateIntent: LiveActivityIntent {
 /// `openAppWhenRun = true` 로 모찌 앱 진입. prototype 은 앱 진입까지만 표현하고
 /// 자유 입력 UI 는 별도 작업.
 public struct OpenMochiOtherIntentIntent: AppIntent {
-    public static var title: LocalizedStringResource = "다른 의도 입력"
-    public static var description = IntentDescription("모찌 앱을 열어 자유 입력 받기")
-    public static var openAppWhenRun: Bool = true
+    public static let title: LocalizedStringResource = "다른 의도 입력"
+    public static let description = IntentDescription("모찌 앱을 열어 자유 입력 받기")
+    public static let openAppWhenRun: Bool = true
 
     public init() {}
 

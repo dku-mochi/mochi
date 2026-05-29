@@ -50,6 +50,29 @@ public actor RealmMochiItemRepository: MochiItemRepository {
         }
     }
 
+    public func updateImageUploadMetadata(
+        mochiItemID: UUID,
+        imageRefID: UUID,
+        mimeType: String,
+        byteSize: Int,
+        sha256: String,
+        objectKey: String
+    ) async throws {
+        try await write { realm in
+            guard let row = realm.object(ofType: RealmMochiItem.self, forPrimaryKey: mochiItemID.uuidString) else {
+                throw DomainError.notFound(entity: "MochiItem", id: mochiItemID.uuidString)
+            }
+            guard let imageRef = row.imageRefs.first(where: { $0.id == imageRefID.uuidString }) else {
+                throw DomainError.notFound(entity: "ImageRef", id: imageRefID.uuidString)
+            }
+            imageRef.mimeType = mimeType
+            imageRef.byteSize = byteSize
+            imageRef.sha256 = sha256
+            imageRef.objectKey = objectKey
+            row.updatedAt = .init()
+        }
+    }
+
     public func find(id: UUID) async throws -> MochiItem? {
         try await read { realm in
             realm.object(ofType: RealmMochiItem.self, forPrimaryKey: id.uuidString).map(RealmMochiItemMapper.toDomain(_:))
@@ -90,17 +113,15 @@ public actor RealmMochiItemRepository: MochiItemRepository {
     }
 
     public func listAmbiguous(limit: Int) async throws -> [MochiItem] {
-        // "모찌가 헷갈려요" — 분석은 끝났으나(intent != nil) 모찌가 확신 못 함:
-        // confidence 가 낮거나 top-2 의견이 박빙(intentTopGap 작음). 임계값은 도메인 단일원천.
-        // archived/failed 제외.
-        // 임계값은 상수(코드 단일원천)라 문자열 보간 — Double.description 은 locale 독립("0.6").
+        // "모찌가 헷갈려요" — 분석은 끝났으나(intent != nil) 최상위 후보조차 확신 임계 미만.
+        // (박빙 gap 조건은 폐기 — top1·top2 둘 다 높은 건 복수 의도지 헷갈림이 아니다.)
+        // archived/failed 제외. 임계값은 도메인 단일원천 상수라 문자열 보간(locale 독립 "0.6").
         let conf = MochiItemAnalysis.uncertainConfidenceThreshold
-        let gap = MochiItemAnalysis.uncertainGapThreshold
         return try await read { realm in
             realm.objects(RealmMochiItem.self)
                 .filter(
                     "intentRawValue != nil AND " +
-                    "(confidence < \(conf) OR intentTopGap < \(gap)) AND " +
+                    "confidence < \(conf) AND " +
                     "NOT (lifecycleStateRawValue BEGINSWITH 'archived') AND " +
                     "NOT (lifecycleStateRawValue BEGINSWITH 'failed')"
                 )
@@ -138,8 +159,7 @@ public actor RealmMochiItemRepository: MochiItemRepository {
             // 사용자 수동 분류는 confidence 최대 + 모델 버전 'manual' 로 마킹.
             row.confidence = 1.0
             row.modelVersion = "manual"
-            // 확정됐으니 헷갈림 신호 제거 — 다시 "헷갈려요" 에 뜨지 않도록.
-            row.intentTopGap = 1.0
+            // 확정됐으니 헷갈림 신호 제거 — confidence 1.0 + 후보 제거로 "헷갈려요" 에서 빠진다.
             row.intentCandidates.removeAll()
             if row.analyzedAt == nil { row.analyzedAt = Date() }
             row.updatedAt = .init()
@@ -161,7 +181,6 @@ public actor RealmMochiItemRepository: MochiItemRepository {
             row.modelVersion = nil
             row.analyzedAt = nil
             row.intentCandidates.removeAll()
-            row.intentTopGap = 1.0
             row.lifecycleStateRawValue = RealmMochiItemMapper.lifecycleStateRaw(.ingested)
             // 폴링 deadline 재시작 — serverID 유지하고 uploaded 타임스탬프만 now 로.
             row.syncStateRawValue = RealmMochiItemMapper.syncStateRaw(.uploaded(serverID: serverID, at: Date()))
@@ -196,14 +215,14 @@ public actor RealmMochiItemRepository: MochiItemRepository {
 
     // MARK: - Realm thread bridge
 
-    private func read<T>(_ block: @escaping (Realm) throws -> T) async throws -> T {
+    private func read<T: Sendable>(_ block: @escaping @Sendable (Realm) throws -> T) async throws -> T {
         try await Task.detached {
             let realm = try RealmStoreFactory.openRealm()
             return try block(realm)
         }.value
     }
 
-    private func write(_ block: @escaping (Realm) throws -> Void) async throws {
+    private func write(_ block: @escaping @Sendable (Realm) throws -> Void) async throws {
         try await Task.detached {
             let realm = try RealmStoreFactory.openRealm()
             try realm.write {

@@ -17,15 +17,24 @@ public protocol MochiAPIClient: Sendable {
     /// `POST /api/v1/mochi_items` — 사용자 캡처 ingestion. 응답은 분석 전 상태의 mochiItem (lifecycle=`ingested`).
     func ingestMochiItem(_ request: MochiItemIngestRequest, idempotencyKey: String) async throws -> MochiItemDTO
 
-    /// `POST /api/v1/mochi_items/back-tap` — 백탭 multipart ingestion. PNG bytes + user_memo 를 직접 보내
-    /// 백엔드가 Gemini 로 즉시 분류 후 mochiItem + candidates 반환.
-    /// Idempotency-Key 는 mochiItem id 그대로 사용한다 — 멱등 재요청 시 `wasReplay=true`, `candidates=[]`.
+    /// `POST /api/v1/mochi_items/presign` — 캡처 이미지 업로드용 GCS Signed PUT URL 발급.
+    func presignCaptureUpload(sha256: String, mimeType: String) async throws -> PresignUploadDTO
+
+    /// GCS Signed URL 로 업로드용 이미지 bytes 를 직접 PUT.
+    func putCaptureImage(uploadURL: URL, data: Data, mimeType: String) async throws
+
+    /// `POST /api/v1/mochi_items/back-tap` — 백탭 ingestion. 클라이언트가 GCS 에 올린 objectKey 를 보내면
+    /// 백엔드가 `.screenshot` mochiItem 을 `ingested` 로 적재한다 (분석 전). 4-Intent 후보·confidence 는
+    /// worker 가 비동기로 채우고, iOS 는 폴링(`getMochiItem`)으로 반영한다.
+    /// Idempotency-Key 는 mochiItem id 그대로 사용 — 멱등 재요청 시 같은 item 반환.
     func ingestBackTapMochiItem(
-        pngData: Data,
+        objectKey: String,
+        sha256: String,
         mimeType: String,
+        byteSize: Int,
         userMemo: String?,
         idempotencyKey: String
-    ) async throws -> BackTapMochiItemResponseDTO
+    ) async throws -> MochiItemDTO
 
     /// `GET /api/v1/mochi_items/{id}` — owner-scoped mochiItem 조회.
     func getMochiItem(id: UUID) async throws -> MochiItemDTO
@@ -78,6 +87,18 @@ public struct ImageRefDTO: Sendable, Hashable, Codable {
     }
 }
 
+public struct PresignUploadDTO: Sendable, Hashable, Codable {
+    public let objectKey: String
+    public let uploadURL: URL
+    public let expiresAt: Date
+
+    private enum CodingKeys: String, CodingKey {
+        case objectKey = "objectKey"
+        case uploadURL = "uploadURL"
+        case expiresAt = "expiresAt"
+    }
+}
+
 public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
     public let id: UUID
     public let channel: IngestChannel
@@ -92,6 +113,8 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
     public let summary: String?
     public let importance: Int
     public let confidence: Double
+    /// LLM use case 후보 (홈 "헷갈려요" 카드·Live Activity 버튼의 원천). 분석 전엔 빈 배열.
+    public let candidates: [IntentCandidateDTO]
     public let lifecycleKind: String
     public let syncKind: String
     public let imageRefs: [ImageRefDTO]
@@ -99,7 +122,7 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
     public let createdAt: Date
 
     private enum CodingKeys: String, CodingKey {
-        case id, channel, url, text, intent, summary, importance, confidence
+        case id, channel, url, text, intent, summary, importance, confidence, candidates
         case secondaryIntents = "secondaryIntents"
         case intentApplicability = "intentApplicability"
         case userMemo = "userMemo"
@@ -123,26 +146,12 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
         summary = try c.decodeIfPresent(String.self, forKey: .summary)
         importance = try c.decode(Int.self, forKey: .importance)
         confidence = try c.decode(Double.self, forKey: .confidence)
+        candidates = try c.decodeIfPresent([IntentCandidateDTO].self, forKey: .candidates) ?? []
         lifecycleKind = try c.decode(String.self, forKey: .lifecycleKind)
         syncKind = try c.decode(String.self, forKey: .syncKind)
         imageRefs = try c.decodeIfPresent([ImageRefDTO].self, forKey: .imageRefs) ?? []
         capturedAt = try c.decode(Date.self, forKey: .capturedAt)
         createdAt = try c.decode(Date.self, forKey: .createdAt)
-    }
-}
-
-/// 백엔드 `/mochi_items/back-tap` 응답 — mochiItem 본체 + Gemini 후보 3개 + 멱등 replay 여부.
-///
-/// `candidates` 는 멱등 재요청 (`wasReplay=true`) 시 빈 배열로 반환된다 — mochiItem 자체에는
-/// 후보 reasoning 이 보관되지 않아 재구성이 의미를 갖지 않기 때문.
-public struct BackTapMochiItemResponseDTO: Sendable, Hashable, Codable {
-    public let item: MochiItemDTO
-    public let candidates: [IntentCandidateDTO]
-    public let wasReplay: Bool
-
-    private enum CodingKeys: String, CodingKey {
-        case item, candidates
-        case wasReplay = "wasReplay"
     }
 }
 

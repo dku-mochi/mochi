@@ -17,22 +17,34 @@ class ExtractedEntityDTO(BaseModel):
     value: str
 
 
-class MultimodalAnalyzeOutput(BaseModel):
-    summary: str
+class CandidateDTO(BaseModel):
+    """LLM 이 펼친 use case 후보 1개 — label(한국어)/intent/applicability/reasoning."""
+
+    label: str = Field(min_length=1)
     intent: Intent
-    secondary_intents: list[Intent] = Field(default_factory=list)
+    applicability: float = Field(ge=0.0, le=1.0)
+    reasoning: str = ""
+
+
+class MultimodalAnalyzeOutput(BaseModel):
+    """``finalizeAnalysis`` 가 내는 구조화 분석.
+
+    primary intent / confidence / secondary_intents 는 ``candidates`` 의 applicability 에서
+    orchestrator 가 derive 하므로 LLM 출력 필드에 두지 않는다 (단일 원천).
+    """
+
+    summary: str
+    candidates: list[CandidateDTO] = Field(min_length=1, max_length=3)
     entities: list[ExtractedEntityDTO] = Field(default_factory=list)
     tags: list[str] = Field(default_factory=list)
     importance: int = 3
-    confidence: float = 0.0
     model_version: str
 
 
 class MultimodalAnalyzeTool(Tool[MultimodalAnalyzeInput, MultimodalAnalyzeOutput]):
-    """Gemini 3 멀티모달 분석 진입점.
+    """Gemini 3 멀티모달 분석 진입점 (현재 미배선 — 스키마 보존용).
 
-    실제 구현은 google-genai의 generate_content + function calling을 사용한다.
-    여기서는 인터페이스 계약과 사용자 메모 보정 정책만 확정.
+    실제 분석은 orchestrator 의 agentic 루프(``finalizeAnalysis``)가 수행한다.
     """
 
     name = ToolName.MULTIMODAL_ANALYZE
@@ -41,17 +53,13 @@ class MultimodalAnalyzeTool(Tool[MultimodalAnalyzeInput, MultimodalAnalyzeOutput
 
     async def run(self, payload: MultimodalAnalyzeInput) -> tuple[MultimodalAnalyzeOutput, ToolUsage]:
         started = time.perf_counter()
-        # TODO: Vertex AI Gemini 3 multimodal call. 응답에서 intent / entities / actions 추출.
         base = MultimodalAnalyzeOutput(
             summary="",
-            intent=Intent.MEMO,
+            candidates=[CandidateDTO(label="메모", intent=Intent.MEMO, applicability=0.0)],
             entities=[],
             tags=[],
             importance=3,
-            confidence=0.0,
             model_version="gemini-3-flash@unwired",
         )
-        if payload.user_memo:
-            base.confidence = min(1.0, base.confidence + 0.1)
         usage = ToolUsage(tokens_in=0, tokens_out=0, latency_ms=int((time.perf_counter() - started) * 1000))
         return base, usage

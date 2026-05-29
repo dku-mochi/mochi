@@ -22,10 +22,8 @@ public final class RealmMochiItem: Object, Identifiable {
     @Persisted public var createdAt: Date
     @Persisted public var updatedAt: Date
 
-    /// LLM 의도 후보 (헷갈려요 카드 버튼의 원천). 미분석/단일확신 시 비어 있을 수 있다.
+    /// LLM 의도 후보 (헷갈려요 카드 버튼·복수 의도 derive 의 원천). 미분석/단일확신 시 비어 있을 수 있다.
     @Persisted public var intentCandidates: List<RealmIntentCandidate>
-    /// top-2 의견의 applicability 차 — "박빙" 헷갈림 판정용. 후보 2개 미만이면 1.0.
-    @Persisted public var intentTopGap: Double = 1.0
 
     @Persisted public var imageRefs: List<RealmImageRef>
     @Persisted public var entities: List<RealmExtractedEntity>

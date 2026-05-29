@@ -21,7 +21,7 @@ public struct IntentCandidate: Equatable, Sendable, Hashable, Codable {
 
 /// Gemini 멀티모달 분석 결과.
 ///
-/// `confidence`는 0.0–1.0 범위, 사용자 메모 동반 시 백엔드에서 상향 보정.
+/// `confidence`는 0.0–1.0 범위 — 최상위 use case 후보의 applicability(백엔드 derive).
 public struct MochiItemAnalysis: Equatable, Sendable, Hashable, Codable {
     public let summary: String
     public let intent: Intent
@@ -59,12 +59,11 @@ public struct MochiItemAnalysis: Equatable, Sendable, Hashable, Codable {
         self.candidates = candidates
     }
 
-    // MARK: - 불확실성 판정 ("모찌가 헷갈려요")
+    // MARK: - 불확실성 / 복수 의도 판정
 
-    /// confidence 가 이 값 미만이면 헷갈리는 것으로 본다.
+    /// confidence(= 최상위 후보 applicability, 백엔드 derive)가 이 값 미만이면 "헷갈려요" —
+    /// 가장 잘 맞는 후보조차 약해 모찌가 확신 못 함.
     public static let uncertainConfidenceThreshold: Double = 0.6
-    /// top-2 의견의 applicability 차가 이 값 미만이면 (= 박빙) 헷갈리는 것으로 본다.
-    public static let uncertainGapThreshold: Double = 0.15
 
     /// 분석이 실패/지연돼 클라이언트가 강등시킨 항목의 `modelVersion` 마커.
     /// (멱등 replay 로 candidates 만 빈 정상 항목과 구분하기 위한 명시 신호.)
@@ -83,17 +82,26 @@ public struct MochiItemAnalysis: Equatable, Sendable, Hashable, Codable {
         return byIntent.values.sorted { $0.applicability > $1.applicability }
     }
 
-    /// 1·2위 의견의 applicability 차. 서로 다른 의견이 2개 미만이면 `1.0` (박빙 아님).
-    public var topGap: Double {
-        let ops = distinctOpinions
-        guard ops.count >= 2 else { return 1.0 }
-        return ops[0].applicability - ops[1].applicability
+    /// 모찌가 확신하지 못하는가 — 최상위 후보조차 확신 임계 미만.
+    ///
+    /// 박빙(top-2 gap) 조건은 폐기됐다: top1·top2 가 둘 다 높은 건 "헷갈림"이 아니라 "복수 의도"다
+    /// (`activeSecondaryIntents`). 둘 다 낮고 박빙인 경우는 이미 `confidence < 임계` 로 잡힌다.
+    public var isUncertain: Bool {
+        confidence < Self.uncertainConfidenceThreshold
     }
 
-    /// 모찌가 확신하지 못하는가 — confidence 가 낮거나 top-2 가 박빙.
-    public var isUncertain: Bool {
-        confidence < Self.uncertainConfidenceThreshold || topGap < Self.uncertainGapThreshold
+    /// 확신 임계를 넘는 보조 의도들 — primary 외에 "둘 다 강한" 복수 의도. 추천·알림·채팅에서 활용한다.
+    /// (사용자 UI 엔 primary 만 노출.)
+    public var activeSecondaryIntents: [Intent] {
+        guard !isUncertain else { return [] }
+        return distinctOpinions
+            .dropFirst()
+            .filter { $0.applicability >= Self.uncertainConfidenceThreshold }
+            .map(\.intent)
     }
+
+    /// 복수 의도 — 확신하면서 보조 의도도 확신 임계 이상.
+    public var isMultiIntent: Bool { !activeSecondaryIntents.isEmpty }
 
     /// "모찌가 헷갈려요" 카드에 노출할 의견 — 서로 다른 intent 상위 2개.
     /// (직접 지정 버튼은 화면이 항상 함께 그린다.)

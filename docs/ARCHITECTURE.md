@@ -94,7 +94,7 @@ description: 시스템 토폴로지·iOS↔Backend 데이터흐름·API 계약�
 
 - **UI 스택**: SwiftUI + The Composable Architecture (TCA 1.x). `@Reducer`, `@ObservableState`, `@Bindable`, `TestStore`.
 - **프로젝트 도구**: Tuist 4.x — `Project.swift` 단일 파일에 다중 framework target.
-- **언어/타겟**: Swift 5.10, iOS 17+, `SWIFT_STRICT_CONCURRENCY=complete`.
+- **언어/타겟**: Swift 5.x, iOS 17+, `SWIFT_STRICT_CONCURRENCY=targeted` (TCA/Dependencies 동적 framework 링크 호환; `complete` 복귀는 후속).
 - **로컬 DB**: Realm (App Group 공유 파일, `mochi.realm`).
 - **네트워킹**: `URLSessionMochiAPIClient`. 향후 `swift-openapi-generator` 로 생성된 클라이언트로 교체.
 
@@ -212,7 +212,7 @@ app/
 │   │   ├── application/           AgentOrchestrator + AgentRunPersistence + MochiWorker
 │   │   ├── infrastructure/
 │   │   │   ├── registry.py        StaticToolRegistry
-│   │   │   └── tools/             WebFetchTool / EmbedTool / MultimodalAnalyzeTool
+│   │   │   └── tools/             PlatformContextTool / WebFetchTool / EmbedTool / MultimodalAnalyzeTool
 │   │   ├── prompts/system_prompts.py   PromptVersion(name/model/eval/revised_on/rationale)
 │   │   └── presentation/router.py      GET /mochi_items/{id}/stream (SSE)
 │   ├── search/
@@ -247,7 +247,11 @@ infrastructure  ──────►   ports  ──────┘
 #### MochiItem ingestion
 
 ```
-POST /mochi_items (with Idempotency-Key, Bearer)
+(이미지 첨부 시 선행) iOS 원본 PNG → 업로드용 JPEG(긴 변 1920px 이하, q60)
+  → POST /mochi_items/presign(업로드 bytes 기준 sha256/mimeType) → V4 Signed PUT URL
+  → 클라가 GCS 직접 업로드 → objectKey 확보
+  ↓
+POST /mochi_items 또는 POST /mochi_items/back-tap (with Idempotency-Key, Bearer)
   ↓
 RequestContextMiddleware (request_id 바인딩)
   ↓
@@ -266,6 +270,8 @@ DB COMMIT (atomic)
 ```
 
 #### Agent worker
+
+> 기동: `app/main.py` lifespan 에서 API 와 같은 프로세스의 백그라운드 태스크로 실행 (`asyncio.create_task(worker.run_forever())`, shutdown 시 graceful stop). 별도 워커 프로세스 아님 — 단일 인스턴스 dev/제출 전제.
 
 ```
 MochiWorker.run_forever
@@ -314,7 +320,7 @@ SearchResponse
 | 멱등성 | `Idempotency-Key` 헤더 필수. `mochi_item:{owner_id}:{raw_key}` 의 SHA-256 으로 owner-scoping |
 | 분산 추적 | `X-Mochi-Request-ID` 헤더 echo + structlog contextvars 자동 바인딩 |
 | 에러 envelope | `{code, message, requestId, retryAfter}` 통일 포맷, iOS `APIErrorEnvelope` 와 1:1 |
-| SSRF | WebFetchTool: 호스트 블록리스트 + 모든 A/AAAA 답변 IP 검증 (DNS rebinding 방어) + 매 redirect 재검증 + 스트리밍 byte limit + MIME 화이트리스트 |
+| SSRF | WebFetchTool/PlatformContextTool: 호스트 블록리스트 + 모든 A/AAAA 답변 IP 검증 (DNS rebinding 방어) + 매 redirect 재검증 + 스트리밍 byte limit + MIME 화이트리스트 |
 
 ### 3.6 OpenAPI 계약
 
@@ -340,6 +346,8 @@ SearchResponse
 |---|---|---|---|
 | GET | `/api/v1/health` | `{status: "ok"}` | 인증 불요 |
 | POST | `/api/v1/mochi_items` | `MochiItemResponse` (201) | `MochiItemCreateRequest` body, `attachments` 포함 |
+| POST | `/api/v1/mochi_items/presign` | `{objectKey, uploadURL, expiresAt}` | 클라이언트 직접 GCS PUT 업로드 |
+| POST | `/api/v1/mochi_items/back-tap` | `MochiItemResponse` (201) | 백탭 캡처 JSON ingest |
 | GET | `/api/v1/mochi_items/{id}` | `MochiItemResponse` | owner-scoped |
 | PATCH | `/api/v1/mochi_items/{id}` | `MochiItemResponse` | server-wins |
 | DELETE | `/api/v1/mochi_items/{id}` | 204 | soft delete |
@@ -378,11 +386,12 @@ iOS `CoreNetworking.MochiAPIClient` 의 DTO 가 backend `openapi.json` 의 스�
 ### 5.4 `Tool` (Pydantic 기반 타입 안전)
 
 - `TIn`, `TOut` 두 Pydantic 모델로 generic. `schema()` 가 Gemini function-calling 용 JSON Schema 자동 생성.
-- agent loop 가 LLM 에 광고하는 호출 도구는 `WebFetchTool` (URL 그라운딩) 하나. `EmbedTool`/`MultimodalAnalyzeTool` 은 스키마 재사용·후속 wire 용으로 보존.
+- agent loop 가 LLM 에 광고하는 URL 그라운딩 도구는 `PlatformContextTool` 과 `WebFetchTool` 이다. `PlatformContextTool` 은 YouTube/X/Instagram URL 을 먼저 처리한다: YouTube는 oEmbed+watch page metadata, X는 `publish.x.com/oembed`, Instagram은 Meta oEmbed 토큰이 있으면 공식 oEmbed·없으면 OG fallback 을 사용한다. Instagram은 이미지 맥락 의존도가 높아 screenshot Vision 결과를 primary context 로 둔다. `EmbedTool`/`MultimodalAnalyzeTool` 은 스키마 재사용·후속 wire 용으로 보존.
+- screenshot/image 분석은 `lab/active/extraction-strategy` 의 C 전략을 prompt-level grounding 으로 채택한다: 모델이 내부적으로 `fact` / `opinion` / `info` typed statement 를 세운 뒤 final summary/entities 를 만들며, `facts/opinions/key_info/entities` 버킷을 모두 채우도록 강제하지 않는다. Agent 입력에는 매 run `Asia/Seoul` 현재 기준시각을 넣어 상대 날짜·요일·마감 해석 기준을 고정한다.
 
 ### 5.5 Agent loop & 개인화 (Arch2 — LLM = 분석가)
 
-- **`GeminiAgentClient(LLMClient)`** (`gemini-3.1-flash-lite`/global) — function-calling 루프. LLM 이 분석가: `finalizeAnalysis` 로 구조화 분석(summary·intent·secondary·entities)을 직접 저술, `webFetch` 로 URL 그라운딩. orchestrator 의 `ANALYZED` 노드가 루프를, `PERSISTED` 노드가 `MochiItemGateway.apply_analysis` write-back(+lifecycle `→active`)을 담당.
+- **`GeminiAgentClient(LLMClient)`** (`gemini-3.1-flash-lite`/global) — function-calling 루프. LLM 이 분석가: `finalizeAnalysis` 로 use case 후보 3개(`candidates`: label·intent·applicability·reasoning)와 summary·entities 를 저술하고, primary intent·`confidence`(= 최상위 후보 applicability)·secondary 는 서버가 candidates 의 applicability 분포에서 derive 한다. `platformContext`/`webFetch` 로 URL 그라운딩. `AgentOrchestrator` 가 첫 user turn 에 `# 시간 컨텍스트`(Asia/Seoul 현재시각)를 주입한다. orchestrator 의 `ANALYZED` 노드가 루프를, `PERSISTED` 노드가 `MochiItemGateway.apply_analysis` write-back(+lifecycle `→active`)을 담당.
 - **개인화**: `user_profiles` 에 유저 특성 요약(관심사·평소 분류 성향)을 sliding-window 로 적립(`RefreshUserProfile`, 디바운스), 분석 시 system prompt 에 주입 → 쓸수록 정확. 상세 흐름은 `DOMAIN_DESIGN.md §8.2`.
 - text+URL = 실연결. 이미지 bytes 분석·임베딩 적재(INDEXED)는 design-ahead.
 

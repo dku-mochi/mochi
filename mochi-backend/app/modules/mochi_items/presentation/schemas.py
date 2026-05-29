@@ -47,6 +47,15 @@ class MochiItemCreateRequest(BaseModel):
     model_config = {"populate_by_name": True}
 
 
+class IntentCandidateResponse(BaseModel):
+    """홈 "헷갈려요" 카드·Live Activity 버튼에 노출되는 LLM use case 후보 1건."""
+
+    label: str
+    intent: Intent
+    applicability: float
+    reasoning: str = ""
+
+
 class MochiItemResponse(BaseModel):
     id: UUID
     channel: IngestChannel
@@ -61,6 +70,7 @@ class MochiItemResponse(BaseModel):
     summary: str | None
     importance: int
     confidence: float
+    candidates: list[IntentCandidateResponse] = Field(default_factory=list)
     lifecycle_kind: str = Field(alias="lifecycleKind")
     sync_kind: str = Field(alias="syncKind")
     image_refs: list[ImageRefResponse] = Field(default_factory=list, alias="imageRefs")
@@ -70,31 +80,38 @@ class MochiItemResponse(BaseModel):
     model_config = {"populate_by_name": True}
 
 
-class IntentCandidateResponse(BaseModel):
-    """알림에 노출되는 LLM 의도 후보 1건."""
-
-    label: str
-    intent: Intent
-    applicability: float
-    reasoning: str
-
-
-class BackTapMochiItemResponse(BaseModel):
-    """백탭 ingestion 응답 — MochiItem 본체 + 사용자에게 보여줄 후보 3개.
-
-    멱등 재요청 (``wasReplay=true``) 시 ``candidates`` 는 빈 리스트로 반환된다.
-    저장된 MochiItem 자체에는 LLM 의 원본 후보 reasoning 이 보관되지 않으므로
-    재현이 의미를 갖지 않는다.
-    """
-
-    item: MochiItemResponse
-    candidates: list[IntentCandidateResponse] = Field(default_factory=list)
-    was_replay: bool = Field(alias="wasReplay")
-
-    model_config = {"populate_by_name": True}
-
-
 class IntentOverrideRequest(BaseModel):
     """알림에서 사용자가 다른 primary intent 를 선택했을 때의 PATCH 본문."""
 
     intent: Intent
+
+
+class BackTapMochiItemRequest(BaseModel):
+    """백탭 ingestion 요청 — 클라이언트가 Signed URL 로 GCS 에 업로드한 뒤 objectKey 를 보낸다."""
+
+    object_key: str = Field(alias="objectKey")
+    sha256: str = Field(min_length=64, max_length=64)
+    mime_type: str = Field(alias="mimeType")
+    byte_size: int = Field(ge=0, le=50 * 1024 * 1024, alias="byteSize")
+    user_memo: str | None = Field(default=None, alias="userMemo")
+
+    model_config = {"populate_by_name": True}
+
+
+class PresignRequest(BaseModel):
+    """캡처 이미지 업로드용 Signed PUT URL 발급 요청."""
+
+    sha256: str = Field(min_length=64, max_length=64)
+    mime_type: str = Field(alias="mimeType")
+
+    model_config = {"populate_by_name": True}
+
+
+class PresignResponse(BaseModel):
+    """발급된 V4 Signed PUT URL + 서버가 부여한 object_key."""
+
+    object_key: str = Field(alias="objectKey")
+    upload_url: str = Field(alias="uploadURL")
+    expires_at: datetime = Field(alias="expiresAt")
+
+    model_config = {"populate_by_name": True}

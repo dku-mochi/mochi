@@ -2,10 +2,10 @@
 level: 2
 mode: committed
 status: active
-last_verified: 2026-05-29
-confidence: 0.5
+last_verified: 2026-05-30
+confidence: 0.6
 owners: [송준서, 이용찬, 박세현]
-description: 도메인 모델·DB 스키마·4-Intent lifecycle 의 committed 정본. 다음 중 하나라도 손대기 전 반드시 읽어라 — DB 마이그레이션, ORM, Intent 분류·전이 로직, capture/mochi_item 명명 결정, lifecycle_policy 양쪽(BE↔iOS) 정합. **활성 known-drift** — 문서는 `mochi_item`(정규화 3테이블), 코드는 `capture`(단일 테이블). 정본 결정 대기(CHANGELOG 2026-05-27). 변경 시 백엔드·iOS·양 README·plan(L3) 정합성 폭포 필수.
+description: 도메인 모델·DB 스키마·4-Intent lifecycle 의 committed 정본. 다음 중 하나라도 손대기 전 반드시 읽어라 — DB 마이그레이션, ORM, Intent 분류·전이 로직, lifecycle_policy 양쪽(BE↔iOS) 정합. **multi-intent·후보 표현은 단일 `mochi_items` 테이블 + JSONB(`secondary_intents`/`intent_applicability`/`intent_candidates`) 로 정본 확정**(2026-05-30, 정규화 3테이블 안은 폐기). 문서↔코드 컬럼명 일부 정합(`title`/`summary`, `intent_confidence`/`confidence`, `occurred_at`/`captured_at`)은 잔존 과제. 변경 시 백엔드·iOS·양 README·plan(L3) 정합성 폭포 필수.
 ---
 
 # 모찌(MOCHI) — 도메인 & 데이터베이스 설계
@@ -199,7 +199,10 @@ CREATE TABLE mochi_items (
     lifecycle_state     text NOT NULL DEFAULT 'ingested',
     archived_reason     text,
     importance_score    numeric(4,3) NOT NULL DEFAULT 0,
-    intent_confidence   numeric(4,3) NOT NULL DEFAULT 0,
+    intent_confidence   numeric(4,3) NOT NULL DEFAULT 0,  -- = 최상위 후보 applicability (worker derive)
+    secondary_intents   text[]  NOT NULL DEFAULT '{}',     -- primary 제외 보조 의도 (applicability 내림차순)
+    intent_applicability jsonb  NOT NULL DEFAULT '{}',     -- intent → 적용 강도 0–1 (multi-intent 신호)
+    intent_candidates   jsonb   NOT NULL DEFAULT '[]',     -- LLM use case 후보 [{label,intent,applicability,reasoning}]
     occurred_at         timestamptz,
     created_at          timestamptz NOT NULL DEFAULT now(),
     updated_at          timestamptz NOT NULL DEFAULT now(),
@@ -697,8 +700,8 @@ final class MochiItemObject: Object {
 
 ### 동기화
 
-- **iOS → Backend**: `syncState=pendingUpload` 인 MochiItem 을 `MochiItemSyncWorker` 가 POST `/api/v1/mochi_items`(metadata-only) 또는 `/api/v1/mochi_items/back-tap`(스크린샷 multipart) 로 업로드 (Idempotency-Key=로컬 item.id). 성공 → `syncState=uploaded(serverID:)` — **응답의 서버 자체 PK 를 보관**(로컬 id 와 다름).
-- **Backend → iOS (현재)**: back-tap 은 동기 응답으로 분석을 즉시 반영. metadata-only 는 비동기 분석이라 **foreground 3초 폴링**(`GET /api/v1/mochi_items/{serverID}`)으로 lifecycle=active 시 결과를 반영. (SSE `/api/v1/mochi_items/{id}/stream` 엔드포인트는 백엔드에 있으나 **iOS 미구독** — push 기반 전환은 후속.)
+- **iOS → Backend**: `syncState=pendingUpload` 인 MochiItem 을 `MochiItemSyncWorker` 가 POST `/api/v1/mochi_items`(metadata-only) 또는 `/api/v1/mochi_items/back-tap`(스크린샷) 로 업로드 (Idempotency-Key=로컬 item.id). **이미지는 iOS 가 원본 PNG 에서 업로드용 JPEG 파생본(긴 변 1920px 이하, q60)을 만든 뒤 그 bytes 기준 `sha256/mimeType/byteSize` 로 `POST /api/v1/mochi_items/presign` 을 호출하고, 받은 Signed URL 로 GCS 에 직접 PUT 한 뒤 `objectKey` 만 전달** — back-tap 도 2026-05-30 부터 multipart 가 아닌 `application/json {objectKey,…}` 계약. 성공 → `syncState=uploaded(serverID:)` — **응답의 서버 자체 PK 를 보관**(로컬 id 와 다름).
+- **Backend → iOS (현재)**: back-tap·metadata-only **모두 비동기 worker 분석** 후 **foreground 3초 폴링**(`GET /api/v1/mochi_items/{serverID}`)으로 lifecycle=active 시 결과를 반영한다. back-tap 의 동기 Gemini 분류는 제거됐다(2026-05-30) — 한 캡쳐에 Gemini 가 두 번 호출되던 이중 분석과 DB↔Realm 불일치를 없애기 위함. 백탭은 `.ingested` 로 적재되고 worker(`AgentOrchestrator`)가 후보·confidence 를 채운다. 백그라운드 분석 완료 시 즉시 갱신(Live Activity 포함)은 **APNs 도입 후** — 현재는 foreground 진입 시 폴링으로 반영. (SSE `/api/v1/mochi_items/{id}/stream` 은 백엔드에 있으나 iOS 미구독.)
 - **분류 확정 (현재)**: iOS `setIntent` 는 **로컬 전용**. 백엔드 override `PATCH /api/v1/mochi_items/{id}/intent` 는 **iOS 미배선** — 서버 반영은 후속.
 - **충돌/Catch-up**: backend master 원칙은 유지하나, 양방향 충돌 해소·cold-start catch-up(`/sync` 류)은 **미구현**(후속). 현 단계는 단방향 업로드 + 폴링 수신.
 
@@ -819,7 +822,7 @@ for _ in range(max_steps):                            # tool_config=ANY → 매 
 if analysis is None: raise                            # graceful → outbox 재시도/DLQ
 
 # PERSISTED 노드: write-back (gateway → mochi_items.application)
-apply_analysis(owner, id, analysis)   # intent/secondary/applicability/summary/importance/confidence
+apply_analysis(owner, id, analysis)   # intent/secondary/applicability/candidates/summary/importance/confidence
                                       # + entities 재적재 + lifecycle INGESTED→ANALYZING→ACTIVE
 
 # 분석 성공 후: 개인화 프로필 디바운스 갱신 (best-effort)
@@ -830,8 +833,9 @@ RefreshUserProfile.run(owner)   # 누적 N개마다 최근 window 재요약 → 
 (`GET /mochi_items/{id}/stream`). 실패 시 워커가 outbox 재시도(backoff), `MAX_ATTEMPTS` 초과 시
 `dead_letter`.
 
-> **현재 wire 상태**: text+URL 분석·write-back·개인화 프로필 = 실연결. 이미지 bytes 분석(blob
-> storage 의존)·임베딩 적재(INDEXED 노드)·actions 파생은 design-ahead — 후속 단계.
+> **현재 wire 상태**: text+URL 분석·write-back·개인화 프로필·**이미지 분석(클라가 Signed URL 로 GCS
+> 직접 업로드 → Gemini 가 `gs://` 를 직접 read, 2026-05-30)** = 실연결. 임베딩 적재(INDEXED 노드)·
+> actions 파생은 design-ahead — 후속 단계.
 
 ### 8.3 Hybrid Search
 
@@ -867,7 +871,7 @@ async with db_session() as s:
 | 분산 추적 | `X-Mochi-Request-ID` 헤더 echo |
 | Error envelope | `{code, message, requestId, retryAfter}` 통일 포맷 |
 | SSRF | WebFetch: 호스트 블록리스트 + A/AAAA 답변 IP 검증 + redirect 재검증 + MIME 화이트리스트 |
-| Storage | `users/{user_id}/...` prefix + presigned URL (prefix 강제 검증) |
+| Storage | `captures/{owner_id}/...` prefix + V4 Signed PUT URL (SA impersonation 서명). ingest 진입점에서 owner-prefix 강제 검증 (IDOR 방지). |
 | PII purge | `users.deleted_at` set 시 email 익명화 (`deleted+{id}@invalid.local`) |
 
 ---
@@ -990,8 +994,7 @@ per-item importance 는 "절대값", 일일 재분석은 "오늘의 상대 순�
 - **트리거**: 앱 진입 시 lazy — 마지막 분석으로부터 24h 경과 시 재계산, 아니면 캐시 반환.
 - **알고리즘**: 신규 Gemini 호출 없음. 로컬 `analysis.importance` (medium↑) 만 정렬 (`listByImportance`).
 - **결과 저장**: App Group `daily-importance/YYYY-MM-DD.json` (`{generatedAt, mochiItemIDs}`).
-- **GCS / 외부 업로드 우회**: 항목 이미지는 로컬 URI 만 유지 (`ImageRef.objectKey == nil`).
-  현 단계는 텍스트·메타데이터 위주 분석만 가능, 멀티모달 분석은 후속.
+- **GCS / 외부 업로드 (현재 상태)**: iOS 가 presign→PUT→objectKey ingest 를 수행한다. 항목 이미지는 로컬 원본 경로(`relativePath`)와 GCS object key(`objectKey`)를 함께 가진다. 백엔드 멀티모달 분석 경로는 `objectKey` 를 `gs://{bucket}/{objectKey}` 로 바꿔 Gemini 가 직접 읽는다.
 
 **후속 (Gemini 1일 재분석 단계)**:
 - analyzer 가 최근 24h 항목을 묶어 Gemini Flash 에 보내 *상대* importance 재산출.
@@ -1005,12 +1008,17 @@ per-item importance 는 "절대값", 일일 재분석은 "오늘의 상대 순�
 |---|---|---|
 | "최근 추가한 모찌" | `listRecent(limit:)` | `createdAt desc` |
 | "모찌가 분석 중이에요" | `listAnalyzing(limit:)` | 분석 응답 미수신(`intentRawValue == nil`) + archived/failed 제외. 버튼 없음 |
-| "모찌가 헷갈려요" | `listAmbiguous(limit:)` | 분석됨(`intentRawValue != nil`)이나 **불확실** — `confidence < 0.6` OR `intentTopGap < 0.15` (`MochiItemAnalysis.isUncertain`). archived/failed 제외 |
+| "모찌가 헷갈려요" | `listAmbiguous(limit:)` | 분석됨(`intentRawValue != nil`)이나 **불확실** — `confidence < 0.6` (`MochiItemAnalysis.isUncertain`; 최상위 후보조차 확신 임계 미만). archived/failed 제외 |
 | "중요해 보여요" | `DailyImportanceAnalyzer.todaysImportant(limit:)` → `find(id:)` | 캐시 우선, fallback `listByImportance` |
-| Needs-review 분류 확정 | `setIntent(mochiItemID:intent:)` | `confidence = 1.0`, `modelVersion = "manual"`, `intentTopGap = 1.0` + candidates 제거 (헷갈려요에서 제외) |
+| Needs-review 분류 확정 | `setIntent(mochiItemID:intent:)` | `confidence = 1.0`, `modelVersion = "manual"` + candidates 제거 (헷갈려요에서 제외) |
 | Quick memo 저장 | `upsert(MochiItem(source:))` | `channel = .appDirectInput`, `imageRefs = []` |
 
-**헷갈려요 카드의 의견 버튼**: 고정 라벨이 아니라 LLM 후보(`MochiItemAnalysis.candidates` = `[IntentCandidate{label?, intent, applicability}]`)에서 도출한다. `reviewOpinions` = applicability 내림차순 dedup-by-intent 상위 2개를 `label ?? intent.displayName` 로 노출 + "다른 의도"(4-Intent 직접 지정). 후보 출처:
-- **back-tap(스크린샷)**: 백엔드 `BackTapMochiItemResponse.candidates` 의 한국어 시나리오 라벨("구매 고민" 등)을 그대로 보존.
-- **metadata-only(공유/메모/URL)**: 비동기 분석이라 **foreground 동안 3초마다 `getMochiItem` 폴링**(`MochiItemSyncWorker.startForegroundPolling`)으로 분석 결과 수신, `intent`+`secondaryIntents`+`intentApplicability` 로 후보 재구성(라벨 없음 → `intent.displayName` 폴백). 폴링은 **서버 PK(`syncState.uploaded(serverID:)`)** 로 조회한다 — 백엔드가 클라 id 를 무시하고 자체 uuid4 를 PK 로 부여하므로 로컬 id GET 은 404 가 된다(알려진 drift).
+**confidence 와 3상태 판정**: `confidence := 최상위 후보 applicability` (worker 가 candidates 에서 derive). 이 단일 값으로 세 상태가 갈린다:
+- **헷갈림** (`confidence < 0.6` = `isUncertain`): 최상위 후보조차 약함 → "헷갈려요" 카드에서 사용자에게 물음.
+- **단일 확신** (top1 ≥ 0.6, top2 < 0.6): primary 단일 의도로 active.
+- **복수 의도** (top1·top2 둘 다 ≥ 0.6 = `isMultiIntent` / `activeSecondaryIntents`): 박빙이어도 헷갈림이 아니라 둘 다 적용. 사용자 UI 엔 top1 만 노출하고 보조 의도는 추천·알림·채팅에서 활용한다.
+
+박빙(top-2 gap) 조건은 **폐기**됐다 — 둘 다 높은 복수 의도를 헷갈림으로 오분류했기 때문. 헷갈림의 진짜 신호는 박빙이 아니라 "최상위 후보가 약함"이다.
+
+**헷갈려요 카드의 의견 버튼**: 고정 라벨이 아니라 LLM 후보(`MochiItemAnalysis.candidates` = `[IntentCandidate{label?, intent, applicability}]`)에서 도출한다. `reviewOpinions` = applicability 내림차순 dedup-by-intent 상위 2개를 `label ?? intent.displayName` 로 노출 + "다른 의도"(4-Intent 직접 지정). 후보는 **back-tap·metadata-only 공통**으로 worker(`AgentOrchestrator.finalizeAnalysis`)가 펼친 한국어 시나리오 라벨("구매 고민" 등)을 `intent_candidates`(JSONB) 에 영속 → `GET /mochi_items/{id}` 응답의 `candidates` 로 **foreground 3초 폴링**(`MochiItemSyncWorker.startForegroundPolling`)이 반영한다. 폴링은 **서버 PK(`syncState.uploaded(serverID:)`)** 로 조회한다 — 백엔드가 클라 id 를 무시하고 자체 uuid4 PK 를 부여하므로 로컬 id GET 은 404(알려진 drift).
 - **분석 실패/지연 fallback**: GET lifecycle 이 `failed` 이거나 업로드 후 90s(deadline) 초과 시 `demoteToManual` 이 항목을 "헷갈려요(의견 없음)"로 강등 → 무한 폴링 종료. 카드는 "모찌가 잘 모르겠어요" + 직접 분류 + "다시 맡기기"(`requeueForAnalysis` → 재폴링). webFetch 실패(유튜브 등)가 무한 폴링되지 않게 한다.

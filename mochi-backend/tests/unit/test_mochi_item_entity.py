@@ -1,4 +1,8 @@
-"""MochiItem aggregate root 의 multi-intent invariant 와 변환 메서드 검증."""
+"""MochiItem aggregate root 의 multi-intent invariant 와 swap_primary 검증.
+
+분류 결과는 worker(`apply_analysis`)가 채운다 — 도메인은 채워진 상태를 직접 표현한다
+(구 ``from_classification`` 생성자는 동기 분류 경로와 함께 제거됨).
+"""
 
 import pytest
 
@@ -7,10 +11,6 @@ from app.modules.mochi_items.domain.entities import (
     IngestSource,
     MochiItem,
 )
-from app.modules.mochi_items.domain.value_objects import (
-    IntentClassification,
-    IntentClassificationResult,
-)
 from app.shared.intent import Intent
 
 
@@ -18,14 +18,16 @@ def _source(channel: IngestChannel = IngestChannel.SCREENSHOT) -> IngestSource:
     return IngestSource(channel=channel)
 
 
-def _result(
-    *triples: tuple[str, Intent, float],
-) -> IntentClassificationResult:
-    candidates = tuple(
-        IntentClassification(label=label, intent=intent, applicability=score, reasoning="-")
-        for label, intent, score in triples
+def _classified_item() -> MochiItem:
+    """LLM 분류가 채워진 상태의 MochiItem (worker apply_analysis 결과와 동치)."""
+    source = _source()
+    return MochiItem(
+        id=source.id,
+        source=source,
+        intent=Intent.TODO,
+        secondary_intents=(Intent.KNOWLEDGE, Intent.MEMO),
+        intent_applicability={Intent.TODO: 0.95, Intent.KNOWLEDGE: 0.75, Intent.MEMO: 0.40},
     )
-    return IntentClassificationResult(candidates=candidates)
 
 
 def test_default_intent_is_memo_for_unclassified_ingestion() -> None:
@@ -34,6 +36,7 @@ def test_default_intent_is_memo_for_unclassified_ingestion() -> None:
     assert item.intent is Intent.MEMO
     assert item.secondary_intents == ()
     assert item.intent_applicability == {}
+    assert item.intent_candidates == ()
 
 
 def test_post_init_rejects_primary_in_secondary() -> None:
@@ -66,45 +69,8 @@ def test_post_init_rejects_out_of_range_applicability() -> None:
         )
 
 
-def test_from_classification_picks_top_applicability_as_primary() -> None:
-    result = _result(
-        ("구매 고민", Intent.TODO, 0.95),
-        ("가격 비교", Intent.KNOWLEDGE, 0.75),
-        ("위시리스트", Intent.MEMO, 0.40),
-    )
-    source = _source()
-    item = MochiItem.from_classification(source=source, classification=result)
-
-    assert item.intent is Intent.TODO
-    assert item.secondary_intents == (Intent.KNOWLEDGE, Intent.MEMO)
-    assert item.intent_applicability == {
-        Intent.TODO: 0.95,
-        Intent.KNOWLEDGE: 0.75,
-        Intent.MEMO: 0.40,
-    }
-
-
-def test_from_classification_deduplicates_same_intent_across_candidates() -> None:
-    """두 후보가 같은 intent 매핑이면 secondary 에 한 번만 등장하고 applicability 는 최댓값."""
-    result = _result(
-        ("회신", Intent.TODO, 0.9),
-        ("연락처 저장", Intent.TODO, 0.55),
-        ("대화 박제", Intent.MEMO, 0.6),
-    )
-    item = MochiItem.from_classification(source=_source(), classification=result)
-
-    assert item.intent is Intent.TODO
-    assert item.secondary_intents == (Intent.MEMO,)
-    assert item.intent_applicability == {Intent.TODO: 0.9, Intent.MEMO: 0.6}
-
-
 def test_swap_primary_moves_old_primary_to_front_of_secondary() -> None:
-    result = _result(
-        ("구매 고민", Intent.TODO, 0.95),
-        ("가격 비교", Intent.KNOWLEDGE, 0.75),
-        ("위시리스트", Intent.MEMO, 0.40),
-    )
-    item = MochiItem.from_classification(source=_source(), classification=result)
+    item = _classified_item()
     item.swap_primary(Intent.KNOWLEDGE)
 
     assert item.intent is Intent.KNOWLEDGE
@@ -115,12 +81,7 @@ def test_swap_primary_moves_old_primary_to_front_of_secondary() -> None:
 
 
 def test_swap_primary_to_same_intent_is_noop() -> None:
-    result = _result(
-        ("구매 고민", Intent.TODO, 0.95),
-        ("가격 비교", Intent.KNOWLEDGE, 0.75),
-        ("위시리스트", Intent.MEMO, 0.40),
-    )
-    item = MochiItem.from_classification(source=_source(), classification=result)
+    item = _classified_item()
     secondary_before = item.secondary_intents
     item.swap_primary(Intent.TODO)
 
@@ -130,12 +91,7 @@ def test_swap_primary_to_same_intent_is_noop() -> None:
 
 def test_swap_primary_to_intent_not_in_secondary_still_demotes_old() -> None:
     """알림 외 자유 입력으로 LLM 이 안 본 intent 를 골랐을 때도 swap 이 동작한다."""
-    result = _result(
-        ("구매 고민", Intent.TODO, 0.95),
-        ("가격 비교", Intent.KNOWLEDGE, 0.75),
-        ("위시리스트", Intent.MEMO, 0.40),
-    )
-    item = MochiItem.from_classification(source=_source(), classification=result)
+    item = _classified_item()
     item.swap_primary(Intent.SCHEDULE)
 
     assert item.intent is Intent.SCHEDULE

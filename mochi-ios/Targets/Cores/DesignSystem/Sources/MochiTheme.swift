@@ -7,7 +7,7 @@ import SwiftUI
 /// Tuist `resources` 슬롯을 켠다.
 public enum MochiTheme {
     public enum Palette {
-        public static let primary       = Color(red: 0.95, green: 0.45, blue: 0.45) // 모찌 코랄
+        public static let primary       = Color(red: 0.545, green: 0.424, blue: 1.0) // 모찌 퍼플 (home-mockup 시안 purple500 승격)
         public static let secondary     = Color(red: 0.99, green: 0.92, blue: 0.58) // 골드
         public static let background    = Color(uiColorLight: 0xFFFFFF, dark: 0x111111)
         public static let surface       = Color(uiColorLight: 0xF6F6F6, dark: 0x1C1C1E)

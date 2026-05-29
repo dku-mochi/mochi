@@ -31,6 +31,11 @@ class MochiItemRow(Base):
     intent_applicability: Mapped[dict[str, float]] = mapped_column(
         JSONB, default_factory=dict
     )
+    # LLM 이 펼친 use case 후보 (홈 "헷갈려요" 카드·Live Activity 버튼의 원천).
+    # [{label, intent, applicability, reasoning}] — applicability 가 confidence/multi-intent 의 단일 원천.
+    intent_candidates: Mapped[list[dict[str, Any]]] = mapped_column(
+        JSONB, default_factory=list
+    )
     summary: Mapped[str | None] = mapped_column(String, default=None)
     importance: Mapped[int] = mapped_column(Integer, default=3)
     confidence: Mapped[float] = mapped_column(Float, default=0.0)

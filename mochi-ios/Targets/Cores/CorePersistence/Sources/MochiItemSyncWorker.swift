@@ -69,16 +69,15 @@ public actor MochiItemSyncWorker {
         do {
             try? await repository.updateSync(mochiItemID: mochiItem.id, to: .uploading)
 
-            // 백탭 흐름 (`.screenshot` channel + 단일 이미지) 은 multipart back-tap endpoint 로
-            // PNG bytes 를 직접 보내 백엔드가 Gemini 분류까지 즉시 수행한다.
+            // 백탭 흐름 (`.screenshot` channel + 단일 이미지) 은 업로드용 JPEG 파생본을
+            // GCS Signed URL 로 직접 올린 뒤 objectKey 를 back-tap endpoint 로 보낸다.
             // 그 외 (외부 공유시트, AppIntent 텍스트 등) 는 metadata-only ingest.
             let serverID: UUID
             if mochiItem.source.channel == .screenshot,
                let imageRef = mochiItem.source.imageRefs.first,
-               mochiItem.source.imageRefs.count == 1,
-               let pngData = readImageBytes(imageRef.relativePath) {
-                // 분석 시작 시각 Live Activity 점유 — 사용자가 Lock Screen / Dynamic Island 에서
-                // "분류 중" 진행을 본다. caption 에 mochiItemID prefix 박아 후속 update 매칭.
+               mochiItem.source.imageRefs.count == 1 {
+                // 분석 시작 시각 Live Activity 점유 — Lock Screen / Dynamic Island 에 "분류 중" 표시.
+                // worker 분석 완료를 foreground 폴링(`pollAnalysisOnce`)이 `.ready` 로 전환한다.
                 let caption = liveActivityCaption(
                     mochiItemID: mochiItem.id,
                     body: mochiItem.source.userMemo?.prefix(40).description ?? "스크린샷 분석 중"
@@ -89,44 +88,35 @@ public actor MochiItemSyncWorker {
                     thumbnailRelativePath: imageRef.relativePath
                 )
 
-                let response = try await apiClient.ingestBackTapMochiItem(
-                    pngData: pngData,
-                    mimeType: imageRef.mimeType,
+                let uploaded = try await ensureUploadedImageRef(mochiItemID: mochiItem.id, imageRef: imageRef)
+                guard let objectKey = uploaded.objectKey else {
+                    throw APIErrorEnvelope(
+                        code: "client.image_upload_missing_object_key",
+                        message: "Uploaded image is missing objectKey",
+                        requestID: "n/a",
+                        retryAfter: nil
+                    )
+                }
+                // 동기 분류 없음 — 백엔드가 `.ingested` 로 적재하고 worker 가 비동기 분석한다.
+                // analysis 를 즉시 채우지 않으므로 이 항목은 `pollAnalysisOnce` 대상이 되고,
+                // 분석 완료 시 폴링이 결과 반영 + Live Activity `.ready` 전환을 함께 수행한다.
+                let dto = try await apiClient.ingestBackTapMochiItem(
+                    objectKey: objectKey,
+                    sha256: uploaded.sha256,
+                    mimeType: uploaded.mimeType,
+                    byteSize: uploaded.byteSize,
                     userMemo: mochiItem.source.userMemo,
                     idempotencyKey: mochiItem.id.uuidString
                 )
-                serverID = response.item.id
-                await applyClassification(to: mochiItem.id, response: response)
-
-                // 응답의 candidates 로 Live Activity `.ready` transition — 사용자 선택 대기.
-                // 멱등 replay 인 경우 candidates 가 빈 배열이라 LA end 로 폴백.
-                if !response.candidates.isEmpty {
-                    let liveCandidates = response.candidates.map {
-                        LiveActivityCandidate(
-                            label: $0.label,
-                            intent: $0.intent.rawValue,
-                            applicability: $0.applicability
-                        )
-                    }
-                    await liveActivity.transitionToReady(
-                        mochiItemID: mochiItem.id,
-                        candidates: liveCandidates
-                    )
-                } else {
-                    await liveActivity.endIfActive(mochiItemID: mochiItem.id, failed: false)
-                }
+                serverID = dto.id
             } else {
+                let imageRefs = try await uploadedImageRefDTOs(for: mochiItem)
                 let request = MochiItemIngestRequest(
                     channel: mochiItem.source.channel,
                     url: mochiItem.source.url,
                     text: mochiItem.source.text,
                     userMemo: mochiItem.source.userMemo,
-                    imageRefs: mochiItem.source.imageRefs.map { ImageRefDTO(
-                        objectKey: $0.objectKey,
-                        mimeType: $0.mimeType,
-                        byteSize: $0.byteSize,
-                        sha256: $0.sha256
-                    ) }
+                    imageRefs: imageRefs
                 )
                 let dto = try await apiClient.ingestMochiItem(request, idempotencyKey: mochiItem.id.uuidString)
                 serverID = dto.id
@@ -150,22 +140,74 @@ public actor MochiItemSyncWorker {
         }
     }
 
+    private func uploadedImageRefDTOs(for mochiItem: MochiItem) async throws -> [ImageRefDTO] {
+        var refs: [ImageRefDTO] = []
+        for imageRef in mochiItem.source.imageRefs {
+            let uploaded = try await ensureUploadedImageRef(mochiItemID: mochiItem.id, imageRef: imageRef)
+            refs.append(
+                ImageRefDTO(
+                    objectKey: uploaded.objectKey,
+                    mimeType: uploaded.mimeType,
+                    byteSize: uploaded.byteSize,
+                    sha256: uploaded.sha256
+                )
+            )
+        }
+        return refs
+    }
+
+    private func ensureUploadedImageRef(mochiItemID: UUID, imageRef: ImageRef) async throws -> ImageRefDTO {
+        if let objectKey = imageRef.objectKey, !objectKey.isEmpty {
+            return ImageRefDTO(
+                objectKey: objectKey,
+                mimeType: imageRef.mimeType,
+                byteSize: imageRef.byteSize,
+                sha256: imageRef.sha256
+            )
+        }
+        let originalData = try readImageBytes(imageRef.relativePath)
+        let uploadImage = try CaptureUploadImagePreprocessor.makeUploadVariant(from: originalData)
+        let signed = try await apiClient.presignCaptureUpload(
+            sha256: uploadImage.sha256,
+            mimeType: uploadImage.mimeType
+        )
+        try await apiClient.putCaptureImage(
+            uploadURL: signed.uploadURL,
+            data: uploadImage.data,
+            mimeType: uploadImage.mimeType
+        )
+        try await repository.updateImageUploadMetadata(
+            mochiItemID: mochiItemID,
+            imageRefID: imageRef.id,
+            mimeType: uploadImage.mimeType,
+            byteSize: uploadImage.byteSize,
+            sha256: uploadImage.sha256,
+            objectKey: signed.objectKey
+        )
+        return ImageRefDTO(
+            objectKey: signed.objectKey,
+            mimeType: uploadImage.mimeType,
+            byteSize: uploadImage.byteSize,
+            sha256: uploadImage.sha256
+        )
+    }
+
     /// `relativePath` 는 `RealmImageRef.relativePath` (예: `captures/<filename>`). App Group container
-    /// 기준으로 절대 경로 조립 후 bytes 를 읽는다. 파일이 없거나 읽기 실패 시 nil.
-    private func readImageBytes(_ relativePath: String) -> Data? {
+    /// 기준으로 절대 경로 조립 후 bytes 를 읽는다.
+    private func readImageBytes(_ relativePath: String) throws -> Data {
         let url = AppGroup.containerURL.appendingPathComponent(relativePath)
-        return try? Data(contentsOf: url)
+        return try Data(contentsOf: url)
     }
 
     /// 분석 결과(intent / summary / importance / confidence / **후보**)를 Realm 의
-    /// ``MochiItem.analysis`` 에 반영하는 공통 writer. back-tap(동기) 과 metadata-only(폴링) 양쪽이 쓴다.
+    /// ``MochiItem.analysis`` 에 반영하는 공통 writer. 폴링(`pollAnalysisOnce`)이 호출한다.
     ///
-    /// `candidates` 는 홈 "모찌가 헷갈려요" 카드 버튼의 원천이며, `topGap` 영속화(매퍼)와 함께
+    /// `candidates` 는 홈 "모찌가 헷갈려요" 카드 버튼·복수 의도 derive 의 원천이며,
     /// 불확실성 판정(`MochiItemAnalysis.isUncertain`)을 가능케 한다.
     ///
     /// `lifecycleState` 는 `.active` 로 직접 박는다. `repository.upsert` 는 `LifecyclePolicy.validate`
     /// 를 거치지 않아 `.ingested → .active` 직접 전이가 가능 (분류 결과 즉시 반영을 위한 의식적 우회).
-    /// 버킷(분석중/헷갈려요/자동정리)은 lifecycle 이 아니라 analysis 의 intent/confidence/topGap 에서 derive 한다.
+    /// 버킷(분석중/헷갈려요/자동정리)은 lifecycle 이 아니라 analysis 의 intent/confidence/candidates 에서 derive 한다.
     private func applyAnalysis(
         to mochiItemID: UUID,
         intent: Intent,
@@ -195,30 +237,7 @@ public actor MochiItemSyncWorker {
         try? await repository.upsert(current)
     }
 
-    /// 백탭 multipart 응답 → 공통 writer. candidates 의 한국어 라벨("구매 고민" 등)을 보존한다.
-    /// 멱등 replay 로 candidates 가 비면 라벨 없이 confidence 만으로 판정된다.
-    private func applyClassification(
-        to mochiItemID: UUID,
-        response: BackTapMochiItemResponseDTO
-    ) async {
-        let dto = response.item
-        guard let intent = dto.intent else { return }
-        let candidates = response.candidates.map {
-            IntentCandidate(label: $0.label, intent: $0.intent, applicability: $0.applicability)
-        }
-        // summary 가 비면 첫 후보 라벨을 fallback (홈/Inbox 가 보여줄 첫 텍스트).
-        let summary = (dto.summary?.isEmpty == false ? dto.summary! : response.candidates.first?.label) ?? ""
-        await applyAnalysis(
-            to: mochiItemID,
-            intent: intent,
-            summary: summary,
-            importance: dto.importance,
-            confidence: dto.confidence,
-            candidates: candidates
-        )
-    }
-
-    // MARK: - metadata-only 분석 폴링 (foreground 한정)
+    // MARK: - 분석 폴링 (foreground 한정) — 백탭·metadata-only 공통
 
     /// foreground 동안 `interval` 초마다 metadata-only 항목의 분석 상태를 백엔드에서 재조회한다.
     /// 이미 돌고 있으면 무시. background 진입 시 ``stopForegroundPolling()`` 으로 중단한다.
@@ -237,9 +256,10 @@ public actor MochiItemSyncWorker {
         pollTask = nil
     }
 
-    /// 업로드됐으나(syncState == .uploaded) 아직 분석이 안 붙은(analysis == nil) metadata-only 항목을
-    /// `GET /mochi_items/{id}` 로 재조회해, 백엔드 분석이 끝났으면(lifecycle == active) 결과를 반영한다.
-    /// back-tap 스크린샷은 동기 분류로 이미 analysis 가 있어 대상에서 자동 제외된다.
+    /// 업로드됐으나(syncState == .uploaded) 아직 분석이 안 붙은(analysis == nil) 항목을
+    /// `GET /mochi_items/{id}` 로 재조회해, 백엔드 worker 분석이 끝났으면(lifecycle == active) 결과를 반영한다.
+    /// 백탭 스크린샷도 동기 분류를 제거해 analysis == nil 로 적재되므로 이 폴링 대상에 포함된다 —
+    /// 분석 완료 시 결과 반영 + Live Activity `.ready` 전환을 함께 수행한다.
     public func pollAnalysisOnce() async {
         guard await tokenProvider.bearerToken() != nil else { return }
         let pending: [MochiItem]
@@ -280,6 +300,22 @@ public actor MochiItemSyncWorker {
                     candidates: Self.candidates(from: dto),
                     expectedUpdatedAt: item.updatedAt
                 )
+                // 백탭(screenshot) 은 분석 완료 시 후보와 함께 Live Activity 를 `.ready` 로 전환한다.
+                // (foreground 한정 — background push 는 APNs 도입 후. 후보 없으면 LA 종료.)
+                if item.source.channel == .screenshot {
+                    let liveCandidates = dto.candidates.map {
+                        LiveActivityCandidate(
+                            label: $0.label,
+                            intent: $0.intent.rawValue,
+                            applicability: $0.applicability
+                        )
+                    }
+                    if liveCandidates.isEmpty {
+                        await liveActivity.endIfActive(mochiItemID: item.id, failed: false)
+                    } else {
+                        await liveActivity.transitionToReady(mochiItemID: item.id, candidates: liveCandidates)
+                    }
+                }
             case "failed":
                 await demoteToManual(item) // 명시적 분석 실패 — 즉시 강등.
             default:
@@ -317,23 +353,17 @@ public actor MochiItemSyncWorker {
         )
         current.lifecycleState = .active
         try? await repository.upsert(current)
+        // 백탭(screenshot) 강등 시 점유 중이던 Live Activity 를 실패로 종료.
+        if item.source.channel == .screenshot {
+            await liveActivity.endIfActive(mochiItemID: item.id, failed: true)
+        }
     }
 
-    /// metadata-only 분석 결과(primary + secondaryIntents + applicability)를 라벨 없는 후보 리스트로 재구성.
+    /// 백엔드 분석 결과의 use case 후보(한국어 label 포함)를 그대로 보존해 재구성한다.
+    /// 분석 전이면 빈 배열 — 홈 카드/Live Activity 가 후보 없음으로 렌더.
     private static func candidates(from dto: MochiItemDTO) -> [IntentCandidate] {
-        guard let primary = dto.intent else { return [] }
-        var result: [IntentCandidate] = [
-            IntentCandidate(
-                label: nil,
-                intent: primary,
-                applicability: dto.intentApplicability[primary.rawValue] ?? dto.confidence
-            )
-        ]
-        for sec in dto.secondaryIntents {
-            result.append(
-                IntentCandidate(label: nil, intent: sec, applicability: dto.intentApplicability[sec.rawValue] ?? 0)
-            )
+        dto.candidates.map {
+            IntentCandidate(label: $0.label, intent: $0.intent, applicability: $0.applicability)
         }
-        return result
     }
 }

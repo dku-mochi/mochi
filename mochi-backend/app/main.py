@@ -1,5 +1,6 @@
+import asyncio
 from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
@@ -16,6 +17,7 @@ from app.core.error_envelope import (
 )
 from app.core.logging import configure_logging, get_logger
 from app.core.middleware import RequestContextMiddleware
+from app.modules.agent.application.mochi_item_worker import MochiItemWorker
 
 log = get_logger("app")
 
@@ -24,8 +26,18 @@ log = get_logger("app")
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     configure_logging()
     log.info("app.startup")
-    yield
-    log.info("app.shutdown")
+    settings = get_settings()
+    worker = MochiItemWorker(max_steps=settings.agent_max_steps)
+    worker_task = asyncio.create_task(worker.run_forever())
+    log.info("worker.started")
+    try:
+        yield
+    finally:
+        await worker.stop()
+        worker_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await worker_task
+        log.info("worker.stopped")
 
 
 def create_app() -> FastAPI:

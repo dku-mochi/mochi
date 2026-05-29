@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import DesignSystem
 import FeatureAuth
 import FeatureDetail
 import FeatureMochiItem
@@ -6,6 +7,7 @@ import FeatureInbox
 import FeatureSearch
 import FeatureSettings
 import SwiftUI
+import UIKit
 
 /// 인증 단계에 따라 ``LoginView`` 또는 메인 ``MainTabView`` 를 노출하는 분기.
 ///
@@ -58,6 +60,11 @@ struct RootView: View {
 struct MainTabView: View {
     @Bindable var store: StoreOf<MainTabFeature>
 
+    init(store: StoreOf<MainTabFeature>) {
+        self._store = Bindable(wrappedValue: store)
+        Self.configureTabBarAppearance()
+    }
+
     var body: some View {
         TabView(selection: $store.selectedTab.sending(\.tabSelected)) {
             HomeView(store: store.scope(state: \.home, action: \.home))
@@ -86,6 +93,8 @@ struct MainTabView: View {
             .tabItem { Label("검색", systemImage: "magnifyingglass") }
             .tag(MainTabFeature.Tab.search)
         }
+        // 선택 탭 = 모찌 퍼플(MochiTheme.primary). 비선택·배경·레이블 폰트는 configureTabBarAppearance 담당.
+        .tint(MochiTheme.Palette.primary)
         // 홈·받은기록 카드 탭 → 상세. MainTabFeature 가 .detail 을 세팅하면 sheet 로 표시.
         .sheet(item: $store.scope(state: \.detail, action: \.detail)) { detailStore in
             NavigationStack {
@@ -125,6 +134,43 @@ struct MainTabView: View {
                 }
             }
         }
+    }
+
+    // MARK: - Tab bar appearance
+
+    /// 시스템 `TabView` 의 비선택 색·배경·레이블 폰트를 디자인 시스템에 맞춘다.
+    /// 선택 색은 `.tint` 가, 여기선 비선택(textSecondary)·불투명 흰색 배경(라이트 고정)·rounded 레이블을 담당.
+    private static func configureTabBarAppearance() {
+        let appearance = UITabBarAppearance()
+        // 글래스모피즘(translucent material) 제거 — 불투명 흰색 배경(라이트 고정).
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = .white
+        // 탭바 상단 1px(1 physical pixel) 회색 hairline 구분선.
+        appearance.shadowColor = UIColor(white: 0.82, alpha: 1.0)
+
+        let selected = UIColor(MochiTheme.Palette.primary)
+        let normal = UIColor(MochiTheme.Palette.textSecondary)
+        let labelFont = roundedSystemFont(ofSize: 10, weight: .semibold)
+
+        let item = UITabBarItemAppearance()
+        item.selected.iconColor = selected
+        item.selected.titleTextAttributes = [.foregroundColor: selected, .font: labelFont]
+        item.normal.iconColor = normal
+        item.normal.titleTextAttributes = [.foregroundColor: normal, .font: labelFont]
+
+        appearance.stackedLayoutAppearance = item
+        appearance.inlineLayoutAppearance = item
+        appearance.compactInlineLayoutAppearance = item
+
+        UITabBar.appearance().standardAppearance = appearance
+        UITabBar.appearance().scrollEdgeAppearance = appearance
+    }
+
+    /// `MochiTheme.Typography` 가 `.rounded` 를 쓰므로 탭 레이블 폰트도 rounded 로 맞춘다.
+    private static func roundedSystemFont(ofSize size: CGFloat, weight: UIFont.Weight) -> UIFont {
+        let base = UIFont.systemFont(ofSize: size, weight: weight)
+        guard let descriptor = base.fontDescriptor.withDesign(.rounded) else { return base }
+        return UIFont(descriptor: descriptor, size: size)
     }
 }
 

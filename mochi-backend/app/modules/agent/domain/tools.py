@@ -10,6 +10,7 @@ class ToolName(StrEnum):
     MULTIMODAL_ANALYZE = "multimodalAnalyze"
     OCR_FALLBACK = "ocrFallback"
     WEB_FETCH = "webFetch"
+    PLATFORM_CONTEXT = "platformContext"
     EMBED = "embed"
     HYBRID_SEARCH = "hybridSearch"
     CALENDAR_SYNC = "calendarSync"

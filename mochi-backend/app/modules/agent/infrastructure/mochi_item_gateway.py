@@ -8,6 +8,7 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import get_settings
 from app.modules.agent.domain.analysis import AnalysisResult
 from app.modules.agent.domain.gateway import AnalysisInput, MochiItemGateway
 from app.modules.agent.domain.profile import ProfileWindowItem
@@ -29,10 +30,19 @@ class MochiItemGatewayAdapter(MochiItemGateway):
         )
         if item is None:
             return None
+        bucket = get_settings().gcs_capture_bucket
+        images: tuple[tuple[str, str], ...] = ()
+        if bucket:
+            images = tuple(
+                (f"gs://{bucket}/{ref.object_key}", ref.mime_type)
+                for ref in item.source.image_refs
+                if ref.object_key
+            )
         return AnalysisInput(
             text=item.source.text,
             url=item.source.url,
             user_memo=item.source.user_memo,
+            images=images,
         )
 
     async def apply_analysis(
@@ -49,6 +59,15 @@ class MochiItemGatewayAdapter(MochiItemGateway):
             confidence=result.confidence,
             model_version=result.model_version,
             entities=tuple((e.kind, e.value) for e in result.entities),
+            intent_candidates=tuple(
+                {
+                    "label": c.label,
+                    "intent": c.intent.value,
+                    "applicability": c.applicability,
+                    "reasoning": c.reasoning,
+                }
+                for c in result.candidates
+            ),
         )
 
     async def list_recent_window(

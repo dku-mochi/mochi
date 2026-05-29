@@ -84,54 +84,53 @@ public final class URLSessionMochiAPIClient: MochiAPIClient, @unchecked Sendable
         )
     }
 
-    public func ingestBackTapMochiItem(
-        pngData: Data,
-        mimeType: String,
-        userMemo: String?,
-        idempotencyKey: String
-    ) async throws -> BackTapMochiItemResponseDTO {
-        let boundary = "MochiBackTap-\(UUID().uuidString)"
-        var body = Data()
-        if let userMemo, !userMemo.isEmpty {
-            body.append("--\(boundary)\r\n".data(using: .utf8)!)
-            body.append("Content-Disposition: form-data; name=\"userMemo\"\r\n\r\n".data(using: .utf8)!)
-            body.append(userMemo.data(using: .utf8)!)
-            body.append("\r\n".data(using: .utf8)!)
-        }
-        body.append("--\(boundary)\r\n".data(using: .utf8)!)
-        body.append("Content-Disposition: form-data; name=\"image\"; filename=\"screenshot.png\"\r\n".data(using: .utf8)!)
-        body.append("Content-Type: \(mimeType)\r\n\r\n".data(using: .utf8)!)
-        body.append(pngData)
-        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+    public func presignCaptureUpload(sha256: String, mimeType: String) async throws -> PresignUploadDTO {
+        try await perform(
+            method: "POST",
+            path: "/api/v1/mochi_items/presign",
+            body: PresignRequestBody(sha256: sha256, mimeType: mimeType)
+        )
+    }
 
-        var url = baseURL
-        url.append(path: "/api/v1/mochi_items/back-tap")
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
-        request.setValue(UUID().uuidString, forHTTPHeaderField: "X-Mochi-Request-ID")
-        request.setValue(idempotencyKey, forHTTPHeaderField: "Idempotency-Key")
-        if let token = await tokenProvider.bearerToken() {
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        }
-        request.httpBody = body
+    public func putCaptureImage(uploadURL: URL, data: Data, mimeType: String) async throws {
+        var request = URLRequest(url: uploadURL)
+        request.httpMethod = "PUT"
+        request.setValue(mimeType, forHTTPHeaderField: "Content-Type")
+        request.httpBody = data
 
-        let (data, response) = try await session.data(for: request)
+        let (responseData, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse else {
             throw APIErrorEnvelope(code: "client.invalid_response", message: "Non-HTTP response", requestID: "n/a", retryAfter: nil)
         }
-        if (200..<300).contains(http.statusCode) {
-            return try decoder.decode(BackTapMochiItemResponseDTO.self, from: data)
+        guard (200..<300).contains(http.statusCode) else {
+            throw APIErrorEnvelope(
+                code: "client.gcs_put_\(http.statusCode)",
+                message: String(data: responseData, encoding: .utf8) ?? "",
+                requestID: "gcs",
+                retryAfter: nil
+            )
         }
-        if let envelope = try? decoder.decode(APIErrorEnvelope.self, from: data) {
-            throw envelope
-        }
-        throw APIErrorEnvelope(
-            code: "client.http_\(http.statusCode)",
-            message: String(data: data, encoding: .utf8) ?? "",
-            requestID: http.value(forHTTPHeaderField: "X-Mochi-Request-ID") ?? "unknown",
-            retryAfter: nil
+    }
+
+    public func ingestBackTapMochiItem(
+        objectKey: String,
+        sha256: String,
+        mimeType: String,
+        byteSize: Int,
+        userMemo: String?,
+        idempotencyKey: String
+    ) async throws -> MochiItemDTO {
+        try await perform(
+            method: "POST",
+            path: "/api/v1/mochi_items/back-tap",
+            body: BackTapRequestBody(
+                objectKey: objectKey,
+                sha256: sha256,
+                mimeType: mimeType,
+                byteSize: byteSize,
+                userMemo: userMemo
+            ),
+            extraHeaders: ["Idempotency-Key": idempotencyKey]
         )
     }
 
@@ -147,6 +146,17 @@ public final class URLSessionMochiAPIClient: MochiAPIClient, @unchecked Sendable
     // MARK: - Private
 
     private struct Empty: Encodable {}
+    private struct PresignRequestBody: Encodable {
+        let sha256: String
+        let mimeType: String
+    }
+    private struct BackTapRequestBody: Encodable {
+        let objectKey: String
+        let sha256: String
+        let mimeType: String
+        let byteSize: Int
+        let userMemo: String?
+    }
     private struct SearchRequestBody: Encodable {
         let query: String
         let scope: SearchScope
