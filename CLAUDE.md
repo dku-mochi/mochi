@@ -2,7 +2,7 @@
 level: 1
 mode: reference
 status: active
-last_verified: 2026-05-29
+last_verified: 2026-06-02
 confidence: 0.9
 owners: [송준서, 이용찬, 박세현]
 description: 모든 Claude 세션의 진입점이자 작업 원칙(Think Before Coding / Simplicity First / Surgical Changes / Goal-Driven)·저장소 구성·문서 포인터·변경기록 규칙·하네스 구성의 단일 원천. 모든 작업 시작 전 반드시 읽어라. AGENTS.md 는 이 파일의 미러다.
@@ -46,6 +46,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 해석이 여러 가지면 모두 제시한다. 조용히 하나를 고르지 않는다.
 - 더 단순한 길이 있으면 말한다. 필요하면 반박한다.
 - 모호하면 멈춘다. 무엇이 모호한지 짚고 묻는다.
+
+**모찌의 미션은 모든 제품·기능 결정의 기준이다 — "놓치기 쉬운 순간은 쉽게 남기고, 필요한 기억은 쉽게 떠오른다."** "떠올린다"(사용자가 직접)가 아니라 "떠오른다"(모찌가 알아서) — 회수의 능동 주체는 사용자가 아니라 모찌다. 사용자가 직접 찾고 정리하게 만드는 설계는 미션 위반이다. (상세·근거: `docs/PRODUCT.md` §1.5)
 
 특히 모찌는 **4-Intent 생명주기**와 **민감 캡처 처리**가 도메인의 본질이다. 이 두 축을 건드리는 변경은 반드시 `docs/DOMAIN_DESIGN.md` / `docs/PRIVACY_SENSITIVE_CAPTURE.md` 를 먼저 읽고 정합성을 확인한다.
 

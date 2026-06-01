@@ -15,6 +15,23 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 >
 > **동시 세션 / 공유 파일 주의**: CHANGELOG 는 여러 세션·작업자가 함께 쓰는 append-only 공유 파일이다. 동시 작업 중에는 다른 세션이 자기 항목을 먼저 커밋할 수 있고, 한 워킹트리에 여러 세션의 미커밋 항목이 섞여 보일 수 있다. 이때 **항목을 분리하려 애쓰지 말고** 자기 변경과 함께 그대로 staging·커밋한다 — 섞인 다른 항목은 해당 세션이 자기 코드와 함께 정리한다. diff 에 모르는 CHANGELOG 항목이 보여도 멈추지 않는다 (단, CHANGELOG 외의 *코드* 파일은 절대 임의로 섞어 커밋하지 않는다).
 
+## 2026-06-02 — docs
+- **2026-06-01 시작 회의 마무리 + 회의 기록 폴더 신설.** `docs/meetings/` 생성 — 회의록을 `2026-06-01.md`(확정 결과)로 편입, 어제 안건(`MEETING_2026-06-01.md`)은 `2026-06-01-agenda.md` 로 아카이브. 확정: 4-Intent 유지 · 데이터 intent **1:N** · 탭 4개 유지 · 민감캡처 낮은 우선순위. 일정 보강(6/28~7/7 예선 아이디어 기획서).
+  - **1:N 확인 결과**: 백엔드는 이미 multi-intent 를 단일 `mochi_items` + JSONB(`secondary_intents`/`intent_applicability`/`intent_candidates`)로 구현 완료(migration 0005·0008). "1:N 변경"의 실제 작업은 스키마 변경이 아니라 `DOMAIN_DESIGN.md` 옛 정규화 3-table 서술을 as-built 에 맞추는 문서 정합(known-drift). join 테이블 안은 2026-05-30 폐기됨.
+- **Intent 데이터 모델 재설계 노트 추가** (`docs/INTENT_REDESIGN.md`, 제안/미구현). 현재 4필드 파생 중복(`intent`/`secondary_intents`/`intent_applicability`/`intent_candidates`)을 flat `intents` 리스트 1개로 단순화, primary/secondary 위계 폐기, fallback=`memo`, `needs_review` 직교 플래그. 송준서·Claude 설계 토론 기록 — intent 스키마/agent 착수 전 필독. 지금 스키마 수정은 안 함(방향 합의만).
+
+## 2026-06-01 — docs
+- **제품 미션 확정·기록.** `docs/PRODUCT.md` §1.5 미션 신설 — *"놓치기 쉬운 순간은 쉽게 남기고, 필요한 기억은 쉽게 떠오른다"*. 입력↔회수 양쪽의 마찰 제거라는 핵심 가치(§1.3)의 정서적 선언. **"떠올린다"(사용자)가 아니라 "떠오른다"(모찌가 알아서)** 의도를 §1.5 에 명문화 — 사용자가 직접 찾게 만드는 설계는 미션 위반이라는 기능 결정 리트머스. `CLAUDE.md` §1 에 미션을 **제품 의사결정의 기준**으로 박음(미션문 단일 원천은 PRODUCT.md §1.5, CLAUDE 는 그 핵심을 판단 기준으로 인용).
+
+## 2026-05-31 — docs
+- 2026-06-01 프로젝트 본격 시작 전 회의 안건 문서 추가. L1 미션·협업 원칙과 L2 도메인/API/스키마 결정 후보를 회의에서 확정하기 위한 준비 자료.
+
+## 2026-05-30 — ios
+- **홈 "분석 중"·"헷갈려요" 카드 이미지 미리보기 비율·레이아웃 개편.** 다양한 스크린샷 비율(세로 ~9:20 / 가로 ~20:9)을 한눈에 보이게 정리.
+  - `LocalThumbnail` orientation 자동 분기: **세로(portrait) → `.scaledToFill` + 상단 크롭**(위아래 약간 잘려도 화면 크게), **가로(landscape) → `.scaledToFit` + 같은 이미지 블러 배경**(잘림 0, 레터박스 채움). `GeometryReader` + 각 이미지 명시 `frame` + `clipped()` 로 오버플로가 박스 밖으로 새던 버그 수정(직전 `maxInfinity`+`clipped` 조합 문제).
+  - 미리보기 박스 **2:1(세로)** 통일. "헷갈려요" preview `96×192`(carousel height 332), "분석 중"은 **가로 캐러셀 카드**로 재구성 — 이미지가 카드 폭을 꽉 채우는 `150×300`(2:1).
+  - `tuist build Mochi` 통과. 비율·크롭·캐러셀 시각은 시뮬레이터 확인 필요. 후속: 완료 전이 애니메이션(1단) + 그 자리 완료 피드백(2단).
+
 ## 2026-05-30 — backend·ios·docs
 - **백탭 분석을 동기 `/back-tap` 분류에서 비동기 worker 단일 경로로 통합** — 백탭 스크린샷이 무조건 "모찌가 헷갈려요"로 분류되던 버그 수정. 원인: 동기 `from_classification` 이 confidence 를 안 채워 iOS 에 항상 0.0 이 박히고, iOS 가 백탭을 폴링에서 제외해 worker 가 채운 값을 영영 못 받던 구조(DB↔Realm 불일치).
   - **backend**: `/mochi_items/back-tap` 의 동기 Gemini 분류(`VertexAIGeminiClassifier`·`IntentClassifier`·`IntentClassificationResult`·`BackTapMochiItemResponse`) 제거 → `.ingested` 적재 + outbox emit 만. agent `finalizeAnalysis` 를 use case 후보 3개(`candidates`) 모델로 전환(프롬프트 V5), `confidence := max(applicability)` 서버 derive, `intent_applicability` 를 candidates 전체로 풍부화(구 `{primary:confidence}` 버그 수정). `mochi_items.intent_candidates`(JSONB) 컬럼 추가(migration 0008) + GET 응답 round-trip. Gemini 호출 2회→1회.
