@@ -1,0 +1,31 @@
+{
+  "version": "0.1",
+  "description": "모찌 canonical 문서 + 코드표면의 의존성 그래프. JSON Graph Format 계열(nodes+edges). 권위가 아니라 docs/code 위의 '검증가능한 지도' — validate_graph.py 가 구조적 드리프트(죽은 path/dangling/self-loop)를 검출한다. 의미적 드리프트(엣지가 더는 사실이 아님)는 doc-guardian(AI) 몫.",
+  "directed": true,
+  "_lifecycle": "노드는 canonical(docs/ 의 안정 문서) + 코드표면만. redesign/handoff 같은 L3 ephemeral 문서는 노드로 넣지 않는다 — 그래야 코퍼스가 작고 검증이 싸다.",
+  "nodes": {
+    "PRODUCT": { "path": "docs/PRODUCT.md", "level": 1, "kind": "doc", "owns": "사용자 문제·미션·컨셉" },
+    "DOMAIN_DESIGN": { "path": "docs/DOMAIN_DESIGN.md", "level": 2, "kind": "doc", "owns": "엔티티·스키마·상태머신·DDL" },
+    "ARCHITECTURE": { "path": "docs/ARCHITECTURE.md", "level": 2, "kind": "doc", "owns": "토폴로지·데이터흐름·계약(interface)" },
+    "PRIVACY": { "path": "docs/PRIVACY_SENSITIVE_CAPTURE.md", "level": 2, "kind": "doc", "owns": "민감캡처 감지·마스킹 정책" },
+    "openapi": { "path": "mochi-backend/openapi.json", "kind": "code-surface", "owns": "API 계약(생성물 목표)" },
+    "alembic": { "path": "mochi-backend/alembic/versions", "kind": "code-surface", "owns": "DB 마이그레이션" },
+    "mochi_items_orm": { "path": "mochi-backend/app/modules/mochi_items/infrastructure/orm.py", "kind": "code-surface", "owns": "mochi_items ORM" },
+    "lifecycle_policy_py": { "path": "mochi-backend/app/modules/intents/domain/lifecycle_policy.py", "kind": "code-surface", "owns": "4-Intent lifecycle 정책(backend)" },
+    "CoreDomain": { "path": "mochi-ios/Targets/Cores/CoreDomain", "kind": "code-surface", "owns": "iOS 도메인(LifecyclePolicy 포함)" },
+    "DesignSystem": { "path": "mochi-ios/Targets/Cores/DesignSystem", "kind": "code-surface", "owns": "디자인 토큰(⓪ 단일원천, 문서 의존 없음 → 의도된 orphan)" }
+  },
+  "edges": [
+    { "from": "PRODUCT", "to": "DOMAIN_DESIGN", "rel": "impacts", "note": "미션·문제 변경 → 도메인 모델 재검토" },
+    { "from": "DOMAIN_DESIGN", "to": "ARCHITECTURE", "rel": "impacts", "note": "스키마 변경 → 아키텍처 데이터흐름 재검토" },
+    { "from": "ARCHITECTURE", "to": "DOMAIN_DESIGN", "rel": "depends_on", "note": "계약은 엔티티를 참조만(컬럼 복제 금지) → ARCH↔DOMAIN 양방향(P4)" },
+    { "from": "DOMAIN_DESIGN", "to": "openapi", "rel": "impacts", "note": "스키마 변경 → API 계약 재생성" },
+    { "from": "DOMAIN_DESIGN", "to": "alembic", "rel": "impacts", "note": "스키마 변경 → 마이그레이션 추가" },
+    { "from": "DOMAIN_DESIGN", "to": "mochi_items_orm", "rel": "impacts", "note": "스키마 변경 → ORM 갱신" },
+    { "from": "DOMAIN_DESIGN", "to": "lifecycle_policy_py", "rel": "impacts", "note": "상태머신 변경 → 정책 코드" },
+    { "from": "DOMAIN_DESIGN", "to": "CoreDomain", "rel": "impacts", "note": "상태머신 변경 → iOS 도메인" },
+    { "from": "ARCHITECTURE", "to": "openapi", "rel": "impacts", "note": "계약 변경 → openapi" },
+    { "from": "PRIVACY", "to": "DOMAIN_DESIGN", "rel": "depends_on", "note": "민감캡처 저장 경로는 스키마를 참조" },
+    { "from": "lifecycle_policy_py", "to": "CoreDomain", "rel": "mirror", "note": "lifecycle 불변식은 양측 동일(공유표면 §3-6)" }
+  ]
+}

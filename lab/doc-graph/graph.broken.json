@@ -1,0 +1,13 @@
+{
+  "version": "0.1",
+  "description": "음성 테스트 fixture — validator 가 오류를 실제로 잡는지 확인용. 일부러 깨뜨림: (a) 죽은 path, (b) dangling edge, (c) self-loop.",
+  "directed": true,
+  "nodes": {
+    "DOMAIN_DESIGN": { "path": "docs/DOMAIN_DESIGN.md", "level": 2, "kind": "doc" },
+    "GHOST": { "path": "docs/DOES_NOT_EXIST.md", "level": 2, "kind": "doc" }
+  },
+  "edges": [
+    { "from": "DOMAIN_DESIGN", "to": "UNDEFINED_NODE", "rel": "impacts" },
+    { "from": "GHOST", "to": "GHOST", "rel": "impacts" }
+  ]
+}
