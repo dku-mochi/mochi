@@ -15,6 +15,15 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 >
 > **동시 세션 / 공유 파일 주의**: CHANGELOG 는 여러 세션·작업자가 함께 쓰는 append-only 공유 파일이다. 동시 작업 중에는 다른 세션이 자기 항목을 먼저 커밋할 수 있고, 한 워킹트리에 여러 세션의 미커밋 항목이 섞여 보일 수 있다. 이때 **항목을 분리하려 애쓰지 말고** 자기 변경과 함께 그대로 staging·커밋한다 — 섞인 다른 항목은 해당 세션이 자기 코드와 함께 정리한다. diff 에 모르는 CHANGELOG 항목이 보여도 멈추지 않는다 (단, CHANGELOG 외의 *코드* 파일은 절대 임의로 섞어 커밋하지 않는다).
 
+## 2026-06-03 — docs
+- **`DOMAIN_DESIGN.md` 전면 재작성 (스키마 정본 확정).** 본문(§3 ERD·§4 DDL·§11 인덱스·§12 카탈로그)을 **as-built 12테이블 단일 `mochi_items` 모델**로 갈아엎어 코드와 정합 — 정규화 3테이블(`mochi_sources`/`mochi_analyses`)·typed 파생(`todos`/`calendar_events`/…)·conversations 일가 등 design-ahead 를 **§13 향후 계획(미구현·게이트)**로 격리. 1:N known-drift 해소.
+  - **§4.4 Intent 모델만 doc-leads-code**: intent 4컬럼 파생 중복(`intent`/`secondary_intents`/`intent_applicability`/`intent_candidates`+`confidence`) → flat `intents` jsonb 1개 타겟 명시. 결정 정책(active≥τ / 비면 memo fallback / needs_review=conf<τ_review 직교) + API projection(iOS 무중단) + migration 0009/0011 계획. **코드 미변경** — 문서가 코드 이행의 기준(사용자: 문서 최우선).
+  - **값 교정(코드 정본 추종)**: archive_reason `system_error` 제거 + camelCase(`scheduleEnded`/`todoCompleted`/`knowledgeStale`/`userManual`), knowledge decay 90→**30**(`KNOWLEDGE_ACTIVE_DAYS`), 명명 통일(`owner_id`/`captured_at`/`summary`/`importance`/`lifecycle_kind`). `user_profiles`(0007) 카탈로그 편입.
+  - `INTENT_REDESIGN.md` status: draft → **adopting** (DOMAIN_DESIGN §4.4 가 committed 타겟 보유).
+  - **정합성 폭포 → `ARCHITECTURE.md`**: 토폴로지 테이블 목록·ORM 행 이름(`MochiSourceRow`/`MochiAttachmentRow`/`MochiOutboxRow` → `MochiItemRow`/`MochiItemImageRefRow`/`EntityRow`/`MochiItemOutboxRow`)·`lifecycle_state`→`lifecycle_kind`·**archive_reason snake→camelCase(§2.4)**·outbox done/dead_letter·**§1 topology 없는 API(list/sync/search/conversations) 제거**·**§5.5 primary/secondary 위계에 "0009 폐기 예정" 표식**·front-matter 06-03 갱신. 구현상태 단일원천을 DOMAIN_DESIGN §6 으로 지정.
+  - **정합성 폭포 → `INDEX.md`**: 존재하지 않는 `MEETING_2026-06-01.md` 경로 → 실재 `meetings/2026-06-01.md`+`agenda.md` 로 정정, 신규 `INTENT_REDESIGN.md` 등재, front-matter 06-03 갱신.
+  - **검증**: 5축 적대 워크플로(코드정확성·내부정합·결정부합·보존·cascade) → 발견된 오류(인덱스명 `ix_captures_*`, AgentNode 8노드, refresh_tokens CHECK 2개, `reviewRequested`, `KNOWLEDGE_DECAY_DAYS=180`, ErrorEnvelope, 라우트 미존재 등) 코드 직접 재확인 후 전량 반영.
+
 ## 2026-06-02 — docs
 - **2026-06-01 시작 회의 마무리 + 회의 기록 폴더 신설.** `docs/meetings/` 생성 — 회의록을 `2026-06-01.md`(확정 결과)로 편입, 어제 안건(`MEETING_2026-06-01.md`)은 `2026-06-01-agenda.md` 로 아카이브. 확정: 4-Intent 유지 · 데이터 intent **1:N** · 탭 4개 유지 · 민감캡처 낮은 우선순위. 일정 보강(6/28~7/7 예선 아이디어 기획서).
   - **1:N 확인 결과**: 백엔드는 이미 multi-intent 를 단일 `mochi_items` + JSONB(`secondary_intents`/`intent_applicability`/`intent_candidates`)로 구현 완료(migration 0005·0008). "1:N 변경"의 실제 작업은 스키마 변경이 아니라 `DOMAIN_DESIGN.md` 옛 정규화 3-table 서술을 as-built 에 맞추는 문서 정합(known-drift). join 테이블 안은 2026-05-30 폐기됨.

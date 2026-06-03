@@ -2,7 +2,7 @@
 level: 1
 mode: reference
 status: active
-last_verified: 2026-05-29
+last_verified: 2026-06-03
 confidence: 0.9
 owners: [송준서, 이용찬, 박세현]
 description: 모찌 docs/ 의 path-first 길잡이. AI 가 파일을 열기 전 어떤 디렉토리를 읽고 어떤 디렉토리를 skip 할지 path 만 보고 결정하도록 한 줄로 안내. 새 문서가 생기면 여기 한 줄 추가.
@@ -20,11 +20,14 @@ description: 모찌 docs/ 의 path-first 길잡이. AI 가 파일을 열기 전 
 | `docs/PRODUCT.md` | L1 제품 정의 | UX·핵심 기능 결정 시 |
 | `docs/HARNESS_GUIDE.md` | L1 reference — 친절한 입문서 | 새 팀원/세션이 합류했을 때만 |
 | `docs/ARCHITECTURE.md` | L2 committed — 시스템 토폴로지·API 계약 | 두 프로젝트에 걸친 변경 시 |
-| `docs/DOMAIN_DESIGN.md` | L2 committed — 도메인·DB·4-Intent | 도메인/마이그레이션 변경 시 |
+| `docs/DOMAIN_DESIGN.md` | L2 committed — 도메인·DB·4-Intent (as-built 정본 + §4.4 flat intents 타겟) | 도메인/마이그레이션 변경 시 |
+| `docs/INTENT_REDESIGN.md` | L2 reference (adopting) — flat intents 재설계 근거·토론 | intent 스키마·agent·프롬프트 손대기 전 |
 | `docs/PRIVACY_SENSITIVE_CAPTURE.md` | L2 committed — 민감 캡처 보호 | 캡처 ingestion/저장 경로 변경 시 |
 | `docs/aspirational/` | L2 aspirational — *목표 상태* (검증 대상 외) | **default skip**. 명시 요청 시만. |
 | `docs/TODO.md` | L3 — 외부 설정·비밀 체크리스트 | 인증/외부 통합 작업 시 |
 | `docs/CHANGELOG.md` | L3 log — 변경 이력 (append-only) | 최근 변경 맥락 확인 시 |
+| `docs/meetings/2026-06-01.md` | L3 reference — 2026-06-01 회의 **확정 결과** (미션·4-Intent·1:N·역할·일정) | 결정 근거 확인 시 |
+| `docs/meetings/2026-06-01-agenda.md` | L3 reference — 같은 회의 **안건 원본** | 결정의 배경/후보 확인 시 |
 | `docs/archive/` | 분기 마감되거나 superseded | **default skip**. 과거 추적이 명시 필요할 때만. |
 | `docs/gcp-architecture.html` | L2 reference — 인프라 다이어그램 | 인프라 관련 작업 시 |
 | `journal/*.md` | L3 log — 하루 작업 로그·인수인계 | 어제/그저께 흐름 이어받을 때 |

@@ -1,18 +1,19 @@
 ---
 level: 2
 mode: reference
-status: draft
-last_verified: 2026-06-02
+status: adopting
+last_verified: 2026-06-03
 confidence: 0.8
 owners: [송준서, 이용찬, 박세현]
-description: Intent 데이터 모델 재설계 제안(미구현). 현재 4필드 파생 중복을 flat intents 리스트로, primary/secondary 위계 폐기, fallback=memo 정책. 2026-06-02 송준서·Claude 설계 토론 기록. intent 스키마·agent 파이프라인·프롬프트를 손대기 전 반드시 읽어라.
+description: Intent 데이터 모델 재설계 — flat intents 리스트, primary/secondary 위계 폐기, fallback=memo 정책. **채택됨(adopting)**: DOMAIN_DESIGN.md §4.4 가 committed 타겟으로 보유(코드는 migration 0009 로 이행 예정). 이 문서는 그 근거·토론 기록. intent 스키마·agent 파이프라인·프롬프트를 손대기 전 반드시 읽어라.
 ---
 
 # Intent 데이터 모델 재설계 — 설계 노트
 
-> **상태: 제안 / 미구현.** 2026-06-02 설계 토론(송준서 ↔ Claude) 기록.
+> **상태: 채택됨(adopting) / 코드 미구현.** 2026-06-02 설계 토론(송준서 ↔ Claude) 기록.
+> 2026-06-03: 이 방향이 [`DOMAIN_DESIGN.md`](DOMAIN_DESIGN.md) **§4.4 Intent 모델**에 committed 타겟으로 편입됨 — 거기가 정본 스펙, 이 문서는 **근거·토론 기록**이다.
 > intent 스키마 · agent 오케스트레이터 · 프롬프트 · iOS DTO 를 **손대기 전 필독.**
-> 지금 당장 스키마를 바꾸는 작업은 아니다 — **방향만 합의**했고, 실제 구현 시점/범위는 팀이 정한다.
+> 코드는 아직 4컬럼 상태 — migration `0009`(원천 도입) → `0011`(4컬럼 DROP)로 이행한다.
 
 ---
 

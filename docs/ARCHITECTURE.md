@@ -2,7 +2,7 @@
 level: 2
 mode: committed
 status: active
-last_verified: 2026-05-29
+last_verified: 2026-06-03
 confidence: 0.7
 owners: [송준서, 이용찬, 박세현]
 description: 시스템 토폴로지·iOS↔Backend 데이터흐름·API 계약의 committed 정본. 다음 중 하나라도 손대기 전 반드시 읽어라 — 두 프로젝트 모두 영향, presentation 스키마, openapi.json, Idempotency-Key, WebFetch SSRF 가드, 모노레포 빌드/배포. 일부 "목표 상태" 서술은 docs/l2/aspirational/ 로 분리 예정. 변경 시 양 README·openapi.json·plan(L3) 정합성 폭포 필수.
@@ -54,13 +54,13 @@ description: 시스템 토폴로지·iOS↔Backend 데이터흐름·API 계약�
 │  FastAPI Modular Monolith + Hexagonal Architecture                    │
 │                                                                       │
 │  ┌────────────────────── /api/v1 ─────────────────────┐               │
-│  │  POST /mochi_items       GET /mochi_items/{id}     │               │
-│  │  PATCH /mochi_items/{id}                           │               │
-│  │  GET  /mochi_items/sync?after=                     │               │
+│  │  POST /mochi_items     POST /mochi_items/back-tap  │               │
+│  │  POST /mochi_items/presign  GET /mochi_items/{id}  │               │
+│  │  PATCH /mochi_items/{id}/intent  (iOS unwired)     │               │
 │  │  GET  /mochi_items/{id}/stream (SSE)               │               │
-│  │  POST /search                                      │               │
-│  │  POST /conversations  POST /conversations/{id}/msg │               │
-│  │  GET  /health                                      │               │
+│  │  POST /auth/{apple,google,refresh,logout}          │               │
+│  │  GET  /users/me     GET /health                    │               │
+│  │  planned(no route): list /sync /search /conv.      │               │
 │  └────────┬────────────────────┬────────────────────┬─┘               │
 │           │                    │                    │                 │
 │           ▼                    ▼                    ▼                 │
@@ -74,11 +74,12 @@ description: 시스템 토폴로지·iOS↔Backend 데이터흐름·API 계약�
 │  └──────┬───────┘    └──────┬───────┘     └──────┬───────┘            │
 │         │                   │                    │                    │
 │         └──────► Postgres + pgvector ◄───────────┘                    │
-│                 (mochi_items, mochi_sources, mochi_attachments,       │
-│                  mochi_entities, embeddings, idempotency_keys,        │
-│                  mochi_outbox, agent_runs, tool_calls, ...)           │
+│                 (mochi_items, mochi_item_image_refs, entities,        │
+│                  embeddings, idempotency_keys, user_profiles,         │
+│                  mochi_item_outbox, agent_runs, tool_calls,           │
+│                  users, auth_accounts, refresh_tokens)               │
 │                                                                       │
-│  Mochi Worker  ──►  LISTEN mochi_outbox / poll                        │
+│  Mochi Worker  ──►  LISTEN mochi_item_outbox / poll                   │
 │  (FOR UPDATE SKIP LOCKED, AgentRunPersistence, DLQ)                   │
 │                                                                       │
 │  Vertex AI │ Gemini Flash (multimodal function calling)               │
@@ -153,10 +154,10 @@ App  ──► AppIntents/          (QuickCaptureIntent + CaptureScreenshotInten
 
 | Intent | 자동 동작 | 합법 전이 |
 | --- | --- | --- |
-| `schedule` | EventKit/Google Calendar sync | `ingested → analyzing → active → archived(schedule_ended\|user_manual)` |
-| `todo` | Reminders sync | `ingested → analyzing → active → archived(todo_completed\|user_manual)` |
-| `knowledge` | RAG 인덱싱 | `active → decaying → review_requested → archived(knowledge_stale\|user_manual)` 또는 → active 복귀 |
-| `memo` | 영구 보관 | `active → archived(user_manual)` 만 |
+| `schedule` | EventKit/Google Calendar sync | `ingested → analyzing → active → archived(scheduleEnded\|userManual)` |
+| `todo` | Reminders sync | `ingested → analyzing → active → archived(todoCompleted\|userManual)` |
+| `knowledge` | RAG 인덱싱 | `active → decaying → reviewRequested → archived(knowledgeStale\|userManual)` 또는 → active 복귀 |
+| `memo` | 영구 보관 | `active → archived(userManual)` 만 |
 
 위반 시 `LifecycleTransitionError`. 백엔드 `app/modules/intents/domain/lifecycle_policy.py` 가 동일 invariant 를 보장.
 
@@ -198,11 +199,11 @@ app/
 ├── shared/                        모듈 간 공통 어휘 (Intent, ID newtypes)
 ├── modules/
 │   ├── mochi_items/
-│   │   ├── domain/                MochiItem / MochiSource / Attachment / LifecycleState (pure)
+│   │   ├── domain/                MochiItem / LifecycleState (출처·intent 인라인, pure)
 │   │   ├── application/           IngestMochiItem, GetMochiItemForOwner, make_mochi_item_repository
-│   │   ├── infrastructure/        SQLAlchemy ORM (MochiItemRow, MochiSourceRow,
-│   │   │                          MochiAttachmentRow, MochiEntityRow, EmbeddingRow,
-│   │   │                          IdempotencyKeyRow, MochiOutboxRow,
+│   │   ├── infrastructure/        SQLAlchemy ORM (MochiItemRow, MochiItemImageRefRow,
+│   │   │                          EntityRow, EmbeddingRow,
+│   │   │                          IdempotencyKeyRow, MochiItemOutboxRow,
 │   │   │                          AgentRunRow, ToolCallRow), OutboxNotifier
 │   │   └── presentation/          POST/GET/PATCH /mochi_items + Pydantic API schemas
 │   ├── intents/
@@ -260,9 +261,9 @@ MochiItemCreateRequest (Pydantic validate)
 IngestMochiItem.execute (use case)
   ├─ idempotency_key 가 owner-scoped 로 이미 있나? → 있으면 기존 mochi_item 반환
   ├─ MochiItem aggregate 생성 (lifecycle=ingested)
-  ├─ PostgresMochiItemRepository.add → mochi_items + mochi_sources + mochi_attachments INSERT (한 트랜잭션)
+  ├─ PostgresMochiItemRepository.add → mochi_items(출처 인라인) + mochi_item_image_refs INSERT (한 트랜잭션)
   ├─ remember_idempotency → idempotency_keys INSERT
-  └─ OutboxNotifier.emit → mochi_outbox INSERT + pg_notify('mochi_outbox', mochi_item_id)
+  └─ OutboxNotifier.emit → mochi_item_outbox INSERT + pg_notify('mochi_item_outbox', mochi_item_id)
   ↓
 DB COMMIT (atomic)
   ↓
@@ -289,9 +290,9 @@ AgentOrchestrator(persistence=AgentRunPersistence(session)).run(mochi_item_id)
   ├─ finish() / fail()
   └─ (도중 실패하면 예외 re-raise → worker 가 outbox 재시도/DLQ 분기 결정)
   ↓
-성공: mochi_outbox DELETE (done 즉시 정리)
-실패 + attempt<max: status='pending', available_at=now()+backoff
-실패 + attempt=max: dead_letters INSERT + mochi_items.lifecycle_state='failed'
+성공: mochi_item_outbox status='done'
+실패 + attempt<max: status='pending' (재시도)
+실패 + attempt=max: status='dead_letter' + mochi_items.lifecycle_kind='failed'
 ```
 
 #### 자연어 검색
@@ -349,14 +350,11 @@ SearchResponse
 | POST | `/api/v1/mochi_items/presign` | `{objectKey, uploadURL, expiresAt}` | 클라이언트 직접 GCS PUT 업로드 |
 | POST | `/api/v1/mochi_items/back-tap` | `MochiItemResponse` (201) | 백탭 캡처 JSON ingest |
 | GET | `/api/v1/mochi_items/{id}` | `MochiItemResponse` | owner-scoped |
-| PATCH | `/api/v1/mochi_items/{id}` | `MochiItemResponse` | server-wins |
-| DELETE | `/api/v1/mochi_items/{id}` | 204 | soft delete |
-| GET | `/api/v1/mochi_items` | `MochiItemResponse[]` | filter: `intent`, `lifecycle_state`, `after`, `limit` |
-| GET | `/api/v1/mochi_items/sync?after=` | `MochiItemResponse[]` | catch-up sync |
-| GET | `/api/v1/mochi_items/{id}/stream` | SSE `text/event-stream` | Agent state graph (node/final/failed) |
-| POST | `/api/v1/search` | `SearchResponse` | Hybrid Search RAG, owner-scoped |
-| POST | `/api/v1/conversations` | `Conversation` (201) | |
-| POST | `/api/v1/conversations/{id}/messages` | `Message + Citations` | |
+| PATCH | `/api/v1/mochi_items/{id}/intent` | `MochiItemResponse` | 분류 override · iOS 미배선 |
+| GET | `/api/v1/mochi_items/{id}/stream` | SSE `text/event-stream` | Agent state graph · iOS 미구독 |
+| ~~PATCH/DELETE `/{id}`~~ · ~~GET list~~ · ~~`/sync`~~ · ~~`/search`~~ · ~~`/conversations`~~ | — | **계획·라우트 미존재** |
+
+> ⚠️ 구현 상태 단일 원천은 [`DOMAIN_DESIGN.md`](DOMAIN_DESIGN.md) §6 이다. 위 취소선 항목(list/delete/sync/search/conversations)은 라우트가 아직 없다(계획). 필드명은 `lifecycle_kind`(코드 정본).
 
 ### 4.3 DTO 매핑
 
@@ -391,7 +389,7 @@ iOS `CoreNetworking.MochiAPIClient` 의 DTO 가 backend `openapi.json` 의 스�
 
 ### 5.5 Agent loop & 개인화 (Arch2 — LLM = 분석가)
 
-- **`GeminiAgentClient(LLMClient)`** (`gemini-3.1-flash-lite`/global) — function-calling 루프. LLM 이 분석가: `finalizeAnalysis` 로 use case 후보 3개(`candidates`: label·intent·applicability·reasoning)와 summary·entities 를 저술하고, primary intent·`confidence`(= 최상위 후보 applicability)·secondary 는 서버가 candidates 의 applicability 분포에서 derive 한다. `platformContext`/`webFetch` 로 URL 그라운딩. `AgentOrchestrator` 가 첫 user turn 에 `# 시간 컨텍스트`(Asia/Seoul 현재시각)를 주입한다. orchestrator 의 `ANALYZED` 노드가 루프를, `PERSISTED` 노드가 `MochiItemGateway.apply_analysis` write-back(+lifecycle `→active`)을 담당.
+- **`GeminiAgentClient(LLMClient)`** (`gemini-3.1-flash-lite`/global) — function-calling 루프. LLM 이 분석가: `finalizeAnalysis` 로 use case 후보 3개(`candidates`: label·intent·applicability·reasoning)와 summary·entities 를 저술하고, primary intent·`confidence`(= 최상위 후보 applicability)·secondary 는 서버가 candidates 의 applicability 분포에서 derive 한다. ⚠️ **이 primary/secondary 위계는 as-built 임시 모델** — `DOMAIN_DESIGN.md §4.4` 의 flat `intents`(0009)에서 폐기되고, 대표/confidence 는 *저장 없이* projection 으로 계산된다(`candidates` wire 는 stable 유지). `platformContext`/`webFetch` 로 URL 그라운딩. `AgentOrchestrator` 가 첫 user turn 에 `# 시간 컨텍스트`(Asia/Seoul 현재시각)를 주입한다. orchestrator 의 `ANALYZED` 노드가 루프를, `PERSISTED` 노드가 `MochiItemGateway.apply_analysis` write-back(+lifecycle `→active`)을 담당.
 - **개인화**: `user_profiles` 에 유저 특성 요약(관심사·평소 분류 성향)을 sliding-window 로 적립(`RefreshUserProfile`, 디바운스), 분석 시 system prompt 에 주입 → 쓸수록 정확. 상세 흐름은 `DOMAIN_DESIGN.md §8.2`.
 - text+URL = 실연결. 이미지 bytes 분석·임베딩 적재(INDEXED)는 design-ahead.
 

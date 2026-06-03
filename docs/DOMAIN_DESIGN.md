@@ -2,62 +2,50 @@
 level: 2
 mode: committed
 status: active
-last_verified: 2026-05-30
-confidence: 0.6
+last_verified: 2026-06-03
+confidence: 0.8
 owners: [송준서, 이용찬, 박세현]
-description: 도메인 모델·DB 스키마·4-Intent lifecycle 의 committed 정본. 다음 중 하나라도 손대기 전 반드시 읽어라 — DB 마이그레이션, ORM, Intent 분류·전이 로직, lifecycle_policy 양쪽(BE↔iOS) 정합. **multi-intent·후보 표현은 단일 `mochi_items` 테이블 + JSONB(`secondary_intents`/`intent_applicability`/`intent_candidates`) 로 정본 확정**(2026-05-30, 정규화 3테이블 안은 폐기). 문서↔코드 컬럼명 일부 정합(`title`/`summary`, `intent_confidence`/`confidence`, `occurred_at`/`captured_at`)은 잔존 과제. 변경 시 백엔드·iOS·양 README·plan(L3) 정합성 폭포 필수.
+description: 도메인 모델·DB 스키마·4-Intent lifecycle 의 committed 정본. 다음 중 하나라도 손대기 전 반드시 읽어라 — DB 마이그레이션, ORM, Intent 분류·전이 로직, lifecycle_policy 양쪽(BE↔iOS) 정합. **본문 §3·§4·§12 는 as-built(alembic 0001~0008) 단일 테이블 모델이 정본**이며, §4.4 Intent 모델은 **flat `intents` 타겟**(코드가 따라올 doc-leads 지점, migration 0009 예정)이다. 정규화 3테이블·typed 파생·conversations 등 design-ahead 는 §13 향후 계획으로 격리. 변경 시 백엔드·iOS·양 README·openapi.json 정합성 폭포 필수.
 ---
 
 # 모찌(MOCHI) — 도메인 & 데이터베이스 설계
 
-> Backend: Postgres 16 + pgvector
-> iOS: Realm (mirror)
+> Backend: Postgres 16 + pgvector · iOS: Realm (mirror)
 
-> ℹ️ **명명 drift 해소됨** (2026-05-29, `capture` → `mochi_item` rename B1~B4 완료)
+> ⓘ **이 문서의 정본 규칙 (2026-06-03 전면 재작성)**
 >
-> 이전엔 문서가 `mochi_item`, 코드가 `capture` 로 갈라져 있었으나, 2026-05-29 rename 으로 **코드도 `mochi_item` 정본**이 되었다(백엔드 `mochi_items` 테이블·모듈, iOS `MochiItemRepository`·`MochiItem`). `capture` 는 이제 *이미지 캡처 행위* 만 의미(AppGroup `captures/` 디렉토리, 백탭 `CaptureScreenshotIntent` 등 보존).
->
-> **남은 구조 divergence (명명 아님)**: 본 문서는 정규화 3-table(`mochi_items`/`mochi_sources`/`mochi_analyses`) 을 서술하나 현재 백엔드 구현은 단일 `mochi_items` 테이블(평탄화)이다. 이는 *설계가 구현보다 앞선* 의도된 design-ahead 노트로, 정규화 분리는 별도 작업 큐. `audit.sh` 의 `mochi_item` grep 규칙은 향후 회귀 감시용으로 유지.
+> 1. **본문(§3 ERD · §4 DDL · §11 인덱스 · §12 카탈로그)은 as-built 가 정본**이다 — alembic `0001`~`0008` + ORM 이 실제로 만든 **단일 `mochi_items` 테이블 모델**. 이전 문서는 정규화 3테이블(`mochi_items`/`mochi_sources`/`mochi_analyses`)·typed 파생·conversations 일가를 본문 DDL 로 실어 코드와 갈라졌다(drift 의 근원). 그 design-ahead 비전은 버리지 않고 **§13 향후 계획(미구현·게이트)**로 옮겼다.
+> 2. **예외 — §4.4 Intent 모델은 "코드가 문서를 따라오는" 유일한 절**이다. intent 저장을 4컬럼 파생 중복(`intent`/`secondary_intents`/`intent_applicability`/`intent_candidates`)에서 **flat `intents` 리스트 1개**로 바꾸는 타겟을 정의한다. 코드는 현재 4컬럼 상태이고, migration `0009` 로 이 절을 향해 이행한다. 근거·토론은 [`INTENT_REDESIGN.md`](INTENT_REDESIGN.md).
+> 3. **명명 정본**: 코드가 `mochi_item`(2026-05-29 rename 완료). `capture` 는 이제 *이미지 캡처 행위* 만 의미(AppGroup `captures/`, 백탭 `CaptureScreenshotIntent`).
 
 ---
 
 ## 1. 설계 원칙
 
-| # | 원칙 | 구체 |
+| # | 원칙 | 구체 (as-built 기준) |
 |---|---|---|
-| 1 | Self-documenting names | 약어 금지. 컬럼·테이블·enum 값 모두 풀네임 (예: `lifecycle_state`) |
-| 2 | One concept = one table | God-table 금지. `mochi_items` 는 식별·상태만, 출처는 `mochi_sources`, 분석은 `mochi_analyses` 로 분리 |
-| 3 | Owner scoping | 모든 user-data 테이블에 `user_id NOT NULL` + 모든 read/write 쿼리에 owner 필터 강제 |
-| 4 | Explicit lifecycle | boolean `is_active` 금지. 모든 상태는 enum + CHECK + 전이 규칙 |
-| 5 | Time is UTC `timestamptz` | 모든 시각 컬럼 `_at` suffix |
-| 6 | Schema-level invariants | 가능한 모든 invariant 를 CHECK / UNIQUE / FK / partial index 로 표현 |
-| 7 | Append-only history | LLM 분석 결과 (`mochi_analyses`) 는 immutable append-only |
-| 8 | Soft delete | `deleted_at` + partial index `WHERE deleted_at IS NULL` |
+| 1 | Self-documenting names | 약어 금지. 컬럼·테이블·enum 값 풀네임 |
+| 2 | Owner scoping | 모든 user-data 행에 `owner_id` + 모든 read/write 에 owner 필터 (repository layer 강제, 테스트 검증) |
+| 3 | Explicit lifecycle | boolean `is_active` 금지. 상태는 enum(`lifecycle_kind`) + application `LifecyclePolicy` 전이 검증 |
+| 4 | Time is UTC `timestamptz` | 모든 시각 컬럼 `_at` suffix |
+| 5 | Intent = flat 원천 1개 | 대표·집계·confidence 는 **저장하지 말고 계산**(§4.4). 파생 중복 금지 |
+| 6 | Transactional Outbox | 비동기 AI 처리의 reliability foundation (`mochi_item_outbox`) |
+| 7 | Hybrid Search | BM25 tsvector(GIN) + 벡터 HNSW |
 
-### 핵심 패턴
-
-| 패턴 | 이유 |
-|---|---|
-| **4-Intent enum + lifecycle_state enum + CHECK** | 도메인의 본질 |
-| **intent × lifecycle 매트릭스 CHECK** | 잘못된 상태 진입 시 즉시 DB error |
-| **Intent 파생 1:0..1** (todos / calendar_events / knowledge_summaries / memos) | typed 쿼리 가능 + UI 친화 |
-| **Transactional Outbox** | 비동기 AI 처리의 reliability foundation |
-| **agent_runs UNIQUE(mochi_item_id, attempt)** | retry 중복 INSERT 차단 |
-| **Hybrid Search** (BM25 tsvector + 벡터 HNSW) | 검색 품질의 차별성 |
-| **Append-only mochi_analyses** | 모델/프롬프트 교체 시 비교 가능 |
+> ⚠️ 이전 문서의 원칙 "One concept = one table(`mochi_items`/`mochi_sources`/`mochi_analyses` 분리)" 와 "Append-only `mochi_analyses`" 는 **as-built 에서 채택되지 않았다**. 현재는 단일 `mochi_items` 에 출처(`channel`/`url`/`text`/`user_memo`)·분석결과(`summary`/`intents`/`importance`)를 인라인한다. 정규화 분리는 §13 의 향후 후보일 뿐 정본 원칙이 아니다.
 
 ### 명명 컨벤션
 
 ```
-Table        mochi_items                      (snake_case, 복수형)
-Column       lifecycle_state                  (snake_case, 단수형)
-FK column    user_id, mochi_item_id           ({referenced_singular}_id)
-Timestamp    created_at, archived_at          (_at suffix)
-JSONB        payload_json, source_metadata_json
-Index        idx_mochi_items__user_id__created_at
-CHECK        ck_mochi_items__intent_in_enum
-UNIQUE       uq_mochi_items__user_id__id
+Table        mochi_items                       (snake_case, 복수형)
+Column       lifecycle_kind, owner_id          (snake_case)
+FK column    mochi_item_id, agent_run_id       ({referenced_singular}_id)
+Timestamp    created_at, captured_at           (_at suffix)
+JSONB        intents, intent_applicability      (단수/내용 기술)
+Enum 값      schedule / todo / knowledge / memo (Intent), scheduleEnded (ArchiveReason, camelCase)
 ```
+
+> 명명 drift 잔존: 코드 `owner_id`(문서 옛 `user_id`), `captured_at`(옛 `occurred_at`), `summary`(옛 `title`), `importance` int(옛 `importance_score` numeric), `lifecycle_kind`(옛 `lifecycle_state`). **본 재작성에서 문서를 코드값으로 통일**했다.
 
 ---
 
@@ -67,797 +55,457 @@ iOS · 백엔드 · 프롬프트 모두 동일 용어를 쓴다.
 
 | 용어 | 정의 |
 |---|---|
-| **MochiItem** | 사용자가 저장한 단일 기록. aggregate root |
-| **Intent** | MochiItem 의 의미 분류. enum `schedule`/`todo`/`knowledge`/`memo` |
-| **Lifecycle State** | MochiItem 처리·생명 상태. 7값 enum (§7) |
-| **Source** | 입력 채널 + 원본 메타 |
-| **Entity** | AI 추출 의미 단위 (date/person/place/topic/url/task/amount) |
-| **ActionCandidate** | AI 제안 행동. 사용자 승인 → 실행 |
+| **MochiItem** | 사용자가 저장한 단일 기록. aggregate root. **입력 1건 = MochiItem 1개** (쪼개지 않는다) |
+| **Intent** | MochiItem 의 의미 분류. enum `schedule`/`todo`/`knowledge`/`memo` (표시: 일정/할일/지식/기록) |
+| **intents** | 한 MochiItem 의 **복수 의도 원천**. flat 리스트 `[{intent, applicability, label?, reasoning?}]`. **1:N** — 위계 없음 (§4.4) |
+| **applicability** | 한 의도의 적용 강도 0~1. **confidence = max(applicability)** (별개 축 아님) |
+| **active intents** | `applicability ≥ τ` 인 의도 집합. 비면 `memo` fallback |
+| **needs_review** | "헷갈려요". `confidence < τ_review`. 저장·active 와 **직교**한 derive 플래그 |
+| **Lifecycle Kind** | MochiItem 처리·생명 상태. 7값 enum (§7). intent 와 **독립**(레코드 단위) |
+| **Channel** | 입력 채널 (`screenshot`/`appDirectInput`/`appShareSheet`/`appIntent`/…). `mochi_items.channel` 인라인 |
+| **Entity** | AI 추출 의미 단위 (`entities.kind`/`value`) |
 | **AgentRun** | MochiItem 1건 처리 LLM 오케스트레이션 실행 1회 |
-| **ToolCall** | AgentRun 또는 Message 내 단일 함수 호출 |
-| **Outbox Message** | mochi_items COMMIT 직후 worker 가 픽업할 메시지 |
-| **Idempotency Key** | `POST /mochi_items` 의 owner-scoped SHA-256 키 |
-| **Embedding** | text-embedding-005 (768d) chunk 벡터 |
-| **Citation** | 챗봇 답변이 인용한 MochiItem ID + 발췌 |
+| **Outbox Message** | mochi_items COMMIT 직후 worker 가 픽업할 행 (`mochi_item_outbox`) |
+| **Idempotency Key** | `POST /mochi_items` 의 owner-scoped 키 |
+| **Embedding** | text-embedding (768d) chunk 벡터 |
+
+> design-ahead 용어(ActionCandidate · Citation · Tag · Conversation 등)는 §13 에서 정의. 본문은 as-built 만.
 
 ---
 
-## 3. ERD
+## 3. ERD (as-built)
 
 ```mermaid
 erDiagram
     users ||--o{ auth_accounts : has
-    users ||--o{ mochi_items : owns
-    users ||--o{ conversations : owns
+    users ||--o{ refresh_tokens : has
+    users ||--o{ mochi_items : "owns (owner_id, app-level)"
+    user_profiles |o--|| users : "1:1 (owner_id)"
 
-    mochi_items ||--|| mochi_sources : "1:1"
-    mochi_items ||--o{ mochi_attachments : has
-    mochi_items ||--o{ mochi_entities : extracts
-    mochi_items ||--o{ mochi_action_candidates : suggests
-    mochi_items ||--o{ mochi_item_tags : tagged
-    tags ||--o{ mochi_item_tags : labels
-
-    mochi_items ||--o| todos : "intent=todo"
-    mochi_items ||--o| calendar_events : "intent=schedule"
-    mochi_items ||--o| knowledge_summaries : "intent=knowledge"
-    mochi_items ||--o| memos : "intent=memo"
-
-    mochi_items ||--o{ mochi_analyses : "append-only"
-    mochi_items ||--o{ embeddings : "HNSW"
-    mochi_items ||--|| mochi_search_index : "tsvector"
-    mochi_analyses }o--|| prompt_versions : uses
-
-    mochi_items ||--|| mochi_outbox : "1:1 enqueue"
+    mochi_items ||--o{ mochi_item_image_refs : has
+    mochi_items ||--o{ entities : extracts
+    mochi_items ||--o{ embeddings : "HNSW 768d"
+    mochi_items ||--|| mochi_item_outbox : "1:1 enqueue"
     mochi_items ||--o{ agent_runs : "processed by"
-    agent_runs ||--o{ tool_calls : invokes
-    mochi_items ||--o| dead_letters : "moved on failure"
+    agent_runs  ||--o{ tool_calls : invokes
+    mochi_items ||--o| idempotency_keys : "create dedup"
 
-    conversations ||--o{ messages : contains
-    messages ||--o{ message_citations : cites
-    mochi_items ||--o{ message_citations : "cited by"
-
-    users {
-        uuid id PK
-        text email
-        text display_name
-        text locale
-        timestamptz created_at
-        timestamptz deleted_at
-    }
     mochi_items {
         uuid id PK
-        uuid user_id FK
-        text title
-        text intent
-        text lifecycle_state
-        text archived_reason
-        numeric importance_score
-        numeric intent_confidence
-        timestamptz occurred_at
-        timestamptz created_at
-        timestamptz updated_at
-        timestamptz deleted_at
+        uuid owner_id "app-level FK, idx"
+        text channel
+        text url
+        text text
+        text user_memo
+        text summary
+        int importance "default 3"
+        text lifecycle_kind "default ingested"
+        text lifecycle_archive_reason
+        text lifecycle_failure_reason
+        text intent "as-built 대표 (argmax)"
+        jsonb intent_candidates "as-built LLM 원천"
+        float confidence "= max(applicability)"
+        timestamptz captured_at
     }
 ```
+
+> ERD 는 mochi_items **주요 컬럼만** 보인다 (전체는 §4.3). intent 저장은 **현재 as-built 4컬럼+confidence**(`intent`/`secondary_intents`/`intent_applicability`/`intent_candidates`/`confidence`)이고, **§4.4 의 flat `intents` 는 0009 타겟(현재 미존재)**이다. `owner_id` 는 DB FK 가 아니라 **application-level** 격리(인덱스만). `idempotency_keys.mochi_item_id` 도 FK 없음. typed 파생·conversations·tags·search_index·mochi_analyses 는 **미존재** → §13.
 
 ---
 
-## 4. SQL DDL (Postgres 16 + pgvector)
+## 4. SQL DDL (as-built, Postgres 16 + pgvector)
 
-### 4.1 Extensions & helpers
+> 아래는 alembic `0001`~`0008` + ORM 이 만든 **실제 스키마**다. §4.4 만 타겟(0009 후).
+
+### 4.1 Extensions
 
 ```sql
-CREATE EXTENSION IF NOT EXISTS pgcrypto;   -- gen_random_uuid()
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
-CREATE EXTENSION IF NOT EXISTS vector;
-
-CREATE OR REPLACE FUNCTION touch_updated_at() RETURNS trigger AS $$
-BEGIN
-    NEW.updated_at := now();
-    RETURN NEW;
-END $$ LANGUAGE plpgsql;
+CREATE EXTENSION IF NOT EXISTS vector;     -- pgvector (0001)
+CREATE EXTENSION IF NOT EXISTS pgcrypto;   -- gen_random_uuid() (0004)
 ```
 
-### 4.2 Identity
+### 4.2 Identity (alembic 0004)
 
 ```sql
 CREATE TABLE users (
-    id                       uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    email                    text NOT NULL,
-    display_name             text NOT NULL DEFAULT '',
-    locale                   text NOT NULL DEFAULT 'ko-KR',
-    onboarding_completed_at  timestamptz,
-    created_at               timestamptz NOT NULL DEFAULT now(),
-    deleted_at               timestamptz,
+    id                      uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    email                   varchar(320) NOT NULL,
+    display_name            varchar(128) NOT NULL DEFAULT '',
+    locale                  varchar(16)  NOT NULL DEFAULT 'ko-KR',
+    onboarding_completed_at timestamptz,
+    created_at              timestamptz NOT NULL DEFAULT now(),
+    deleted_at              timestamptz,
     CONSTRAINT ck_users__email_lower CHECK (email = lower(email))
 );
-CREATE UNIQUE INDEX uq_users__email__active
-    ON users(email) WHERE deleted_at IS NULL;
+CREATE UNIQUE INDEX uq_users__email__active ON users(email) WHERE deleted_at IS NULL;
 
 CREATE TABLE auth_accounts (
     id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id       uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    provider      text NOT NULL,
-    subject       text NOT NULL,
-    email_at_link text NOT NULL,
+    provider      varchar(16)  NOT NULL,
+    subject       varchar(255) NOT NULL,
+    email_at_link varchar(320) NOT NULL,
     linked_at     timestamptz NOT NULL DEFAULT now(),
     revoked_at    timestamptz,
     CONSTRAINT ck_auth__provider CHECK (provider IN ('apple','google')),
     CONSTRAINT uq_auth__provider_subject UNIQUE (provider, subject)
 );
 CREATE INDEX idx_auth__user ON auth_accounts(user_id);
+
+CREATE TABLE refresh_tokens (
+    id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id        uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    token_hash     varchar(64) NOT NULL UNIQUE,
+    family_id      uuid NOT NULL,
+    parent_id      uuid REFERENCES refresh_tokens(id) ON DELETE SET NULL,  -- rotation chain
+    device_label   varchar(128),
+    user_agent     varchar(512),
+    issued_at      timestamptz NOT NULL DEFAULT now(),
+    expires_at     timestamptz NOT NULL,
+    used_at        timestamptz,
+    revoked_at     timestamptz,
+    revoked_reason varchar(32),
+    CONSTRAINT ck_rt__expires       CHECK (expires_at > issued_at),
+    CONSTRAINT ck_rt__revoke_paired CHECK ((revoked_at IS NULL) = (revoked_reason IS NULL)),
+    CONSTRAINT ck_rt__revoke_reason_enum CHECK (
+        revoked_reason IS NULL OR
+        revoked_reason IN ('rotated','logout','reuse_detected','user_account_deleted','admin'))
+);
+CREATE INDEX idx_rt__user            ON refresh_tokens(user_id);
+CREATE INDEX idx_rt__family_active   ON refresh_tokens(family_id)  WHERE revoked_at IS NULL;
+CREATE INDEX idx_rt__expires_active  ON refresh_tokens(expires_at) WHERE revoked_at IS NULL;
 ```
 
-### 4.3 Mochi Core
+### 4.3 Mochi Core (alembic 0001 + 0003 + 0005 + 0006 rename + 0008)
 
 ```sql
 CREATE TABLE mochi_items (
-    id                  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id             uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    title               text NOT NULL DEFAULT '',
-    intent              text NOT NULL,
-    lifecycle_state     text NOT NULL DEFAULT 'ingested',
-    archived_reason     text,
-    importance_score    numeric(4,3) NOT NULL DEFAULT 0,
-    intent_confidence   numeric(4,3) NOT NULL DEFAULT 0,  -- = 최상위 후보 applicability (worker derive)
-    secondary_intents   text[]  NOT NULL DEFAULT '{}',     -- primary 제외 보조 의도 (applicability 내림차순)
-    intent_applicability jsonb  NOT NULL DEFAULT '{}',     -- intent → 적용 강도 0–1 (multi-intent 신호)
-    intent_candidates   jsonb   NOT NULL DEFAULT '[]',     -- LLM use case 후보 [{label,intent,applicability,reasoning}]
-    occurred_at         timestamptz,
-    created_at          timestamptz NOT NULL DEFAULT now(),
-    updated_at          timestamptz NOT NULL DEFAULT now(),
-    deleted_at          timestamptz,
-    CONSTRAINT ck_mochi__intent
-        CHECK (intent IN ('schedule','todo','knowledge','memo')),
-    CONSTRAINT ck_mochi__lifecycle
-        CHECK (lifecycle_state IN ('ingested','analyzing','active','decaying','review_requested','archived','failed')),
-    CONSTRAINT ck_mochi__archived_reason
-        CHECK ((lifecycle_state='archived') = (archived_reason IS NOT NULL)),
-    CONSTRAINT ck_mochi__archived_reason_intent
-        CHECK (
-            archived_reason IS NULL
-         OR (intent='schedule'  AND archived_reason IN ('schedule_ended','user_manual','system_error'))
-         OR (intent='todo'      AND archived_reason IN ('todo_completed','user_manual','system_error'))
-         OR (intent='knowledge' AND archived_reason IN ('knowledge_stale','user_manual','system_error'))
-         OR (intent='memo'      AND archived_reason IN ('user_manual','system_error'))
-        ),
-    CONSTRAINT ck_mochi__intent_lifecycle_compat
-        CHECK (
-            (intent IN ('schedule','todo','memo') AND lifecycle_state NOT IN ('decaying','review_requested'))
-         OR intent='knowledge'
-        ),
-    CONSTRAINT ck_mochi__scores
-        CHECK (importance_score BETWEEN 0 AND 1 AND intent_confidence BETWEEN 0 AND 1),
-    CONSTRAINT ck_mochi__occurred_at
-        CHECK (intent='schedule' OR occurred_at IS NULL)
+    id                       uuid PRIMARY KEY,
+    owner_id                 uuid NOT NULL,          -- app-level 격리 (FK 없음), idx
+    channel                  varchar(32) NOT NULL,   -- 입력 채널 (Pydantic enum 게이트)
+    url                      varchar(2048),
+    text                     text,
+    user_memo                text,
+    summary                  text,                   -- LLM 요약
+    importance               int   NOT NULL DEFAULT 3,    -- 1~5 (numeric 0~1 아님)
+    model_version            varchar(64),
+    lifecycle_kind           varchar(32) NOT NULL DEFAULT 'ingested',  -- §7, idx
+    lifecycle_archive_reason varchar(32),            -- scheduleEnded|todoCompleted|knowledgeStale|userManual
+    lifecycle_failure_reason text,
+    sync_kind                varchar(32) NOT NULL DEFAULT 'pending',  -- pending|uploaded|calendar_synced|reminder_synced|failed
+    sync_detail              text,
+    captured_at              timestamptz NOT NULL,   -- idx
+    created_at               timestamptz NOT NULL DEFAULT now(),
+    updated_at               timestamptz NOT NULL DEFAULT now(),
+
+    -- ▼▼▼ Intent 저장 — 현재 as-built (4컬럼 파생 중복). §4.4 에서 flat `intents` 로 이행(0009). ▼▼▼
+    intent               varchar(32)   NOT NULL DEFAULT 'memo',  -- 대표 = argmax(candidates), idx
+    secondary_intents    varchar(32)[] NOT NULL DEFAULT '{}',    -- 대표 제외 distinct
+    intent_applicability jsonb         NOT NULL DEFAULT '{}',    -- {intent: max applicability}
+    intent_candidates    jsonb         NOT NULL DEFAULT '[]',    -- LLM 원천 [{label,intent,applicability,reasoning}]
+    confidence           float         NOT NULL DEFAULT 0        -- = max(applicability)
+    -- ▲▲▲ 0009 이후: 위 5컬럼 DROP, `intents jsonb` 1개로 대체 (§4.4). ▲▲▲
 );
-CREATE INDEX idx_mochi__user__created
-    ON mochi_items(user_id, created_at DESC) WHERE deleted_at IS NULL;
-CREATE INDEX idx_mochi__user__intent__lifecycle
-    ON mochi_items(user_id, intent, lifecycle_state) WHERE deleted_at IS NULL;
-CREATE INDEX idx_mochi__user__occurred
-    ON mochi_items(user_id, occurred_at)
-    WHERE intent='schedule' AND deleted_at IS NULL;
-CREATE INDEX idx_mochi__user__importance
-    ON mochi_items(user_id, importance_score DESC)
-    WHERE lifecycle_state='active' AND deleted_at IS NULL;
-CREATE INDEX idx_mochi__user__updated
-    ON mochi_items(user_id, updated_at DESC);  -- iOS sync 용
+-- ⚠️ 컬럼 인덱스는 `captures` 시절 SQLAlchemy 기본명(ix_<table>_<col>)이고 0006 이 rename 하지 않아
+--    실제 이름은 ix_captures_* 로 잔존(테이블만 mochi_items 로 rename). FTS 만 0006 이 rename 함.
+CREATE INDEX ix_captures_owner_id      ON mochi_items(owner_id);
+CREATE INDEX ix_captures_intent        ON mochi_items(intent);          -- 0009 후 GIN(intents) 로 교체
+CREATE INDEX ix_captures_lifecycle_kind ON mochi_items(lifecycle_kind);
+CREATE INDEX ix_captures_captured_at   ON mochi_items(captured_at);
+CREATE INDEX ix_mochi_items_fts ON mochi_items   -- 0006 이 ix_captures_fts → 로 rename (언더스코어 1개)
+    USING gin (to_tsvector('simple', coalesce(summary,'') || ' ' || coalesce(text,'')));
 
-CREATE TRIGGER trg_mochi__touch
-    BEFORE UPDATE ON mochi_items
-    FOR EACH ROW EXECUTE FUNCTION touch_updated_at();
-
-CREATE TABLE mochi_sources (
-    mochi_item_id        uuid PRIMARY KEY REFERENCES mochi_items(id) ON DELETE CASCADE,
-    input_channel        text NOT NULL,
-    content_kind         text NOT NULL,
-    source_app           text,
-    source_url           text,
-    user_hint            text,
-    raw_text             text,
-    source_metadata_json jsonb NOT NULL DEFAULT '{}'::jsonb,
-    -- ⚠️ 현재 backend 구현은 `mochi_items.channel String(32) NOT NULL` 의 평문 컬럼 (CHECK 없음).
-    -- iOS `CoreDomain.IngestChannel` ↔ backend `IngestChannel` (StrEnum) 의 raw value 가 그대로 저장된다:
-    --   kakaoTalk / instagram / youtube / safari / screenshot
-    --   appIntent (Siri / Spotlight / 사용자 단축어가 QuickCaptureIntent 직접 호출)
-    --   appShareSheet / appDirectInput / unknown
-    -- 백탭 캡처는 `.screenshot` 으로 라벨링됨 (단축어가 PNG 를 모찌 `pending-backtap/` 에 stash →
-    -- `CaptureScreenshotIntent` 가 `ShowsSnippetView` 로 외부 앱 위에 카드 표시 → 사용자가 "캡쳐"
-    -- 선택 시 `CommitBackTapCaptureIntent` 가 background 에서 `.screenshot` 으로 Realm MochiItem
-    -- 직접 upsert. "메모" 선택 시 `OpenBackTapMemoIntent` 가 marker 만 stash 후 모찌 진입 →
-    -- `BackTapModalFeature` 의 textarea 가 `.appDirectInput` 으로 Realm MochiItem upsert + 백엔드 ingest).
-    -- 백탭은 inbound queue 를 우회한다 — 큐 경유는 ShareExtension·`QuickCaptureIntent` 뿐.
-    -- ShareExtension 경로의 추론(`guessChannel(from:hasImage:)`) 은 외부 앱 공유시트 진입에만 적용된다.
-    -- 아래 CHECK 절은 향후 정책 강화 시 enable. 현재는 backend Pydantic enum 이 validation 게이트.
-    -- CONSTRAINT ck_src__channel CHECK (input_channel IN (
-    --     'kakaoTalk','instagram','youtube','safari','screenshot',
-    --     'appIntent','appShareSheet','appDirectInput','unknown'
-    -- )),
-    CONSTRAINT ck_src__kind    CHECK (content_kind IN ('url','text','image','screenshot','mixed')),
-    CONSTRAINT ck_src__url     CHECK (content_kind <> 'url' OR source_url IS NOT NULL)
+-- 이미지 참조 (0003 → 0006 rename)
+CREATE TABLE mochi_item_image_refs (
+    id            bigserial PRIMARY KEY,
+    mochi_item_id uuid NOT NULL REFERENCES mochi_items(id) ON DELETE CASCADE,  -- idx
+    sha256        varchar(64)  NOT NULL,   -- idx
+    mime_type     varchar(64)  NOT NULL,
+    byte_size     bigint       NOT NULL,
+    object_key    varchar(512)            -- GCS object key
 );
 
--- 참고: 이 `mochi_sources` 스키마는 모듈 분리(`mochi_items` ↔ `mochi_sources`) 를 가정한 도메인 설계 문서이고,
--- 현재 백엔드 마이그레이션은 단일 `mochi_items` 테이블로 더 평탄하게 구현되어 있다 (alembic 0001 + 0006 rename).
--- 두 모델의 정합화는 별도 작업으로 큐 — 본 문서가 단일 진실 공급원이 될 때 backend 를 따라오게 한다.
-
-CREATE TABLE mochi_attachments (
-    id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    mochi_item_id uuid NOT NULL REFERENCES mochi_items(id) ON DELETE CASCADE,
-    user_id       uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    object_key    text NOT NULL,
-    sha256        text NOT NULL,
-    mime_type     text NOT NULL,
-    byte_size     int  NOT NULL,
-    width         int,
-    height        int,
-    ocr_text      text,
-    uploaded_at   timestamptz NOT NULL DEFAULT now(),
-    CONSTRAINT ck_att__bytes CHECK (byte_size > 0),
-    CONSTRAINT ck_att__mime  CHECK (mime_type LIKE 'image/%' OR mime_type='application/pdf'),
-    CONSTRAINT uq_att__user_sha UNIQUE (user_id, sha256)
-);
-CREATE INDEX idx_att__item ON mochi_attachments(mochi_item_id);
-
-CREATE TABLE mochi_entities (
-    id                      uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    mochi_item_id           uuid NOT NULL REFERENCES mochi_items(id) ON DELETE CASCADE,
-    user_id                 uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    entity_kind             text NOT NULL,
-    raw_value               text NOT NULL,
-    normalized_value        text NOT NULL,
-    provenance              text NOT NULL,
-    provenance_payload_json jsonb NOT NULL DEFAULT '{}'::jsonb,
-    confidence              numeric(4,3) NOT NULL DEFAULT 0,
-    extracted_at            timestamptz NOT NULL DEFAULT now(),
-    CONSTRAINT ck_ent__kind CHECK (entity_kind IN ('date','person','place','topic','url','task','amount')),
-    CONSTRAINT ck_ent__prov CHECK (provenance IN ('text_range','ocr_bbox','inferred')),
-    CONSTRAINT ck_ent__conf CHECK (confidence BETWEEN 0 AND 1)
-);
-CREATE INDEX idx_ent__item_kind ON mochi_entities(mochi_item_id, entity_kind);
-
-CREATE TABLE mochi_action_candidates (
-    id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    mochi_item_id  uuid NOT NULL REFERENCES mochi_items(id) ON DELETE CASCADE,
-    user_id        uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    action_kind    text NOT NULL,
-    label          text NOT NULL,
-    payload_json   jsonb NOT NULL DEFAULT '{}'::jsonb,
-    status         text NOT NULL DEFAULT 'pending',
-    accepted_at    timestamptz,
-    executed_at    timestamptz,
-    expires_at     timestamptz,
-    CONSTRAINT ck_act__kind   CHECK (action_kind IN ('create_todo','create_event','open_url','remind','tag','follow_up_search')),
-    CONSTRAINT ck_act__status CHECK (status IN ('pending','accepted','rejected','executed','expired')),
-    CONSTRAINT ck_act__accept CHECK (status <> 'accepted' OR accepted_at IS NOT NULL),
-    CONSTRAINT ck_act__exec   CHECK (status <> 'executed' OR (executed_at IS NOT NULL AND accepted_at IS NOT NULL))
-);
-CREATE INDEX idx_act__item_status ON mochi_action_candidates(mochi_item_id, status);
-CREATE INDEX idx_act__user_pending
-    ON mochi_action_candidates(user_id, expires_at) WHERE status='pending';
-
-CREATE TABLE tags (
-    id      uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    name    text NOT NULL,
-    color   text,
-    CONSTRAINT uq_tags__user_name UNIQUE (user_id, name)
+-- 추출 엔티티 (0001 → 0006 rename). ※ as-built 는 단순 — user_id/normalized/provenance 없음
+CREATE TABLE entities (
+    id            bigserial PRIMARY KEY,
+    mochi_item_id uuid NOT NULL REFERENCES mochi_items(id) ON DELETE CASCADE,  -- idx
+    kind          varchar(16)  NOT NULL,   -- free str(미강제). 프롬프트 가이드 예시: date|person|place|topic|url|task|amount. repository 가 kind[:16] 절단
+    value         varchar(512) NOT NULL
 );
 
-CREATE TABLE mochi_item_tags (
-    mochi_item_id uuid NOT NULL REFERENCES mochi_items(id) ON DELETE CASCADE,
-    tag_id        uuid NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
-    tagged_at     timestamptz NOT NULL DEFAULT now(),
-    PRIMARY KEY (mochi_item_id, tag_id)
-);
-CREATE INDEX idx_mit__tag ON mochi_item_tags(tag_id);
-```
-
-### 4.4 Intent 파생 (1:0..1)
-
-`mochi_items.intent` 와 파생 테이블 존재 여부는 application 의 ingest/update use case 가 같은 트랜잭션 내에서 강제. `intent` 변경 시 옛 derived row DELETE + 새 derived row INSERT.
-
-```sql
-CREATE TABLE todos (
-    id                    uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    mochi_item_id         uuid NOT NULL REFERENCES mochi_items(id) ON DELETE CASCADE,
-    user_id               uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    title                 text NOT NULL,
-    due_at                timestamptz,
-    priority              text NOT NULL DEFAULT 'medium',
-    status                text NOT NULL DEFAULT 'open',
-    completed_at          timestamptz,
-    external_reminders_id text,
-    CONSTRAINT ck_todos__priority CHECK (priority IN ('low','medium','high')),
-    CONSTRAINT ck_todos__status   CHECK (status IN ('open','done','archived')),
-    CONSTRAINT ck_todos__done_at  CHECK ((status='done') = (completed_at IS NOT NULL)),
-    CONSTRAINT uq_todos__item UNIQUE (mochi_item_id)
-);
-CREATE INDEX idx_todos__user_status_due ON todos(user_id, status, due_at NULLS LAST);
-
-CREATE TABLE calendar_events (
-    id                         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    mochi_item_id              uuid NOT NULL REFERENCES mochi_items(id) ON DELETE CASCADE,
-    user_id                    uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    title                      text NOT NULL,
-    start_at                   timestamptz NOT NULL,
-    end_at                     timestamptz,
-    location                   text,
-    external_calendar_provider text,
-    external_event_id          text,
-    status                     text NOT NULL DEFAULT 'candidate',
-    CONSTRAINT ck_cal__order  CHECK (end_at IS NULL OR end_at >= start_at),
-    CONSTRAINT ck_cal__prov   CHECK ((external_calendar_provider IS NULL) = (external_event_id IS NULL)),
-    CONSTRAINT ck_cal__prov_enum CHECK (external_calendar_provider IS NULL OR external_calendar_provider IN ('apple','google')),
-    CONSTRAINT ck_cal__status CHECK (status IN ('candidate','confirmed','done','cancelled')),
-    CONSTRAINT uq_cal__item UNIQUE (mochi_item_id)
-);
-CREATE INDEX idx_cal__user_start ON calendar_events(user_id, start_at);
-
-CREATE TABLE knowledge_summaries (
-    id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    mochi_item_id  uuid NOT NULL REFERENCES mochi_items(id) ON DELETE CASCADE,
-    user_id        uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    headline       text NOT NULL,
-    body_markdown  text NOT NULL,
-    key_topics     text[] NOT NULL DEFAULT '{}',
-    indexed_at     timestamptz NOT NULL DEFAULT now(),
-    last_recall_at timestamptz,
-    recall_count   int NOT NULL DEFAULT 0,
-    CONSTRAINT uq_know__item UNIQUE (mochi_item_id)
-);
-CREATE INDEX idx_know__topics ON knowledge_summaries USING GIN (key_topics);
-CREATE INDEX idx_know__user_last_recall
-    ON knowledge_summaries(user_id, last_recall_at NULLS FIRST);
-
-CREATE TABLE memos (
-    id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    mochi_item_id uuid NOT NULL REFERENCES mochi_items(id) ON DELETE CASCADE,
-    user_id       uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    body_markdown text NOT NULL,
-    CONSTRAINT uq_memos__item UNIQUE (mochi_item_id)
-);
-```
-
-### 4.5 AI Analysis & Search
-
-```sql
-CREATE TABLE prompt_versions (
-    id            text PRIMARY KEY,         -- 'agent_orchestrator@v1'
-    name          text NOT NULL,
-    version       text NOT NULL,
-    model_name    text NOT NULL,
-    body_markdown text NOT NULL,
-    rationale     text NOT NULL DEFAULT '',
-    revised_at    timestamptz NOT NULL DEFAULT now(),
-    CONSTRAINT uq_prompt__name_ver UNIQUE (name, version)
-);
-
-CREATE TABLE mochi_analyses (
-    id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    mochi_item_id     uuid NOT NULL REFERENCES mochi_items(id) ON DELETE CASCADE,
-    user_id           uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    model_name        text NOT NULL,
-    prompt_version_id text NOT NULL REFERENCES prompt_versions(id),
-    intent_predicted  text NOT NULL,
-    intent_confidence numeric(4,3) NOT NULL,
-    importance_score  numeric(4,3) NOT NULL,
-    summary           text NOT NULL,
-    total_tokens      int NOT NULL,
-    latency_ms        int NOT NULL,
-    analyzed_at       timestamptz NOT NULL DEFAULT now(),
-    CONSTRAINT ck_ana__intent CHECK (intent_predicted IN ('schedule','todo','knowledge','memo')),
-    CONSTRAINT ck_ana__scores CHECK (intent_confidence BETWEEN 0 AND 1 AND importance_score BETWEEN 0 AND 1)
-);
-CREATE INDEX idx_ana__item_time ON mochi_analyses(mochi_item_id, analyzed_at DESC);
-
+-- 임베딩 (0001). ※ as-built 는 owner/chunk_index/uniq 없음
 CREATE TABLE embeddings (
-    id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    mochi_item_id uuid NOT NULL REFERENCES mochi_items(id) ON DELETE CASCADE,
-    user_id       uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    chunk_index   int NOT NULL,
+    id            bigserial PRIMARY KEY,
+    mochi_item_id uuid NOT NULL REFERENCES mochi_items(id) ON DELETE CASCADE,  -- idx
     chunk_text    text NOT NULL,
-    model_name    text NOT NULL DEFAULT 'text-embedding-005',
     embedding     vector(768) NOT NULL,
-    embedded_at   timestamptz NOT NULL DEFAULT now(),
-    CONSTRAINT uq_emb__item_model_chunk UNIQUE (mochi_item_id, model_name, chunk_index),
-    CONSTRAINT ck_emb__chunk_len CHECK (length(chunk_text) BETWEEN 1 AND 8000)
+    model_version varchar(64) NOT NULL
 );
-CREATE INDEX idx_emb__user ON embeddings(user_id);
-CREATE INDEX idx_emb__hnsw
-    ON embeddings USING hnsw (embedding vector_cosine_ops)
-    WITH (m=16, ef_construction=64);
-
-CREATE TABLE mochi_search_index (
-    mochi_item_id uuid PRIMARY KEY REFERENCES mochi_items(id) ON DELETE CASCADE,
-    user_id       uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    tsv_text      tsvector NOT NULL,
-    indexed_at    timestamptz NOT NULL DEFAULT now()
-);
-CREATE INDEX idx_search__tsv  ON mochi_search_index USING GIN (tsv_text);
-CREATE INDEX idx_search__user ON mochi_search_index(user_id);
-
--- ingest / update / agent worker 가 호출
-CREATE OR REPLACE FUNCTION refresh_search_index(_mochi_item_id uuid, _user_id uuid)
-RETURNS void AS $$
-BEGIN
-    INSERT INTO mochi_search_index (user_id, mochi_item_id, tsv_text)
-    SELECT
-        _user_id, _mochi_item_id,
-        to_tsvector('simple',
-            coalesce(mi.title,'') || ' ' ||
-            coalesce(ms.raw_text,'') || ' ' ||
-            coalesce(ms.user_hint,'') || ' ' ||
-            coalesce(ma.summary,''))
-    FROM mochi_items mi
-    LEFT JOIN mochi_sources ms ON ms.mochi_item_id = mi.id
-    LEFT JOIN LATERAL (
-        SELECT summary FROM mochi_analyses
-        WHERE mochi_item_id = mi.id
-        ORDER BY analyzed_at DESC LIMIT 1
-    ) ma ON true
-    WHERE mi.id = _mochi_item_id
-    ON CONFLICT (mochi_item_id)
-    DO UPDATE SET tsv_text = EXCLUDED.tsv_text, indexed_at = now();
-
-    DELETE FROM mochi_search_index
-    WHERE mochi_item_id = _mochi_item_id
-      AND EXISTS (SELECT 1 FROM mochi_items WHERE id = _mochi_item_id AND deleted_at IS NOT NULL);
-END $$ LANGUAGE plpgsql;
+CREATE INDEX ix_embeddings_vector_hnsw ON embeddings
+    USING hnsw (embedding vector_cosine_ops) WITH (m=16, ef_construction=64);
 ```
 
-### 4.6 Conversation
+### 4.4 Intent 모델 — flat `intents` (타겟 정본, 1:N)
+
+> **이 절만 doc-leads-code.** 코드는 현재 §4.3 의 4컬럼+confidence. migration `0009` 로 아래로 이행한다.
+> 동기: 4컬럼 중 3개가 `intent_candidates` 에서 파생되는 **중복**이라 이미 동기화 버그 2건 발생. 원천을 1개로 통일하면 구조적으로 사라진다. (전체 근거: [`INTENT_REDESIGN.md`](INTENT_REDESIGN.md))
+
+#### 저장 — 원천 1개
 
 ```sql
-CREATE TABLE conversations (
-    id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id         uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    title           text NOT NULL DEFAULT '',
-    created_at      timestamptz NOT NULL DEFAULT now(),
-    last_message_at timestamptz NOT NULL DEFAULT now(),
-    archived_at     timestamptz
-);
-CREATE INDEX idx_conv__user_last
-    ON conversations(user_id, last_message_at DESC) WHERE archived_at IS NULL;
-
-CREATE TABLE messages (
-    id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    conversation_id  uuid NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
-    user_id          uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    role             text NOT NULL,
-    content_markdown text NOT NULL,
-    total_tokens     int NOT NULL DEFAULT 0,
-    created_at       timestamptz NOT NULL DEFAULT now(),
-    CONSTRAINT ck_msg__role CHECK (role IN ('user','assistant','system','tool'))
-);
-CREATE INDEX idx_msg__conv_time ON messages(conversation_id, created_at);
-CREATE INDEX idx_msg__user_time ON messages(user_id, created_at DESC);
-
-CREATE TABLE message_citations (
-    message_id      uuid NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
-    mochi_item_id   uuid NOT NULL REFERENCES mochi_items(id) ON DELETE SET NULL,
-    user_id         uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    rank            int NOT NULL,
-    excerpt         text NOT NULL,
-    relevance_score numeric(4,3) NOT NULL,
-    PRIMARY KEY (message_id, mochi_item_id),
-    CONSTRAINT ck_cite__rank  CHECK (rank >= 1),
-    CONSTRAINT ck_cite__score CHECK (relevance_score BETWEEN 0 AND 1)
-);
-CREATE INDEX idx_cite__item ON message_citations(mochi_item_id);
+-- mochi_items 에 추가 (0009), 위 5컬럼은 DROP (0011):
+intents jsonb NOT NULL DEFAULT '[]'
+-- 형태: [{ "intent": "<schedule|todo|knowledge|memo>",
+--          "applicability": 0.0~1.0,
+--          "label": "<한국어 시나리오 라벨, 예: '구매 고민'>",   -- UI/디버깅 부속
+--          "reasoning": "<근거>" }, ... ]
+-- 위계 없음 — primary/secondary 폐기. LLM 이 동등하게 본 의도를 그대로 보존(argmax 줄세우기 금지).
 ```
 
-### 4.7 Operations
+```sql
+-- 1:N intent 필터용 (대표 단일컬럼으로는 1:N 표현 불가 → containment):
+CREATE INDEX idx_mochi__intents ON mochi_items USING gin (intents jsonb_path_ops);
+-- "할일 전부": WHERE owner_id = :o AND intents @> '[{"intent":"todo"}]'
+```
+
+- **`label`/`reasoning` 유지 확정**(슬림화 안 함). iOS "헷갈려요" 카드 버튼이 `label`(`?? intent.displayName`)에 의존. 단 **결정 입력은 `{intent, applicability}` 뿐**이고 `label`/`reasoning` 은 UI·디버깅 부속이다.
+
+#### 결정 정책 — 규칙 3개 + 직교 플래그 (저장과 분리)
+
+```
+τ        = active 임계값   (실험 결정 — 박세현 eval, 6/18. 잠정 0.6)
+τ_review = review 임계값   (실험 결정 — 미확정)
+
+1) active(item)   = { i ∈ intents : i.applicability ≥ τ }       # 복수 가능
+2) if active == ∅ : active = { memo }                            # 분류 실패 → 기록으로 안전 보존
+3) needs_review   = max(intents.applicability) < τ_review        # 저장·active 와 직교한 boolean
+```
+
+- **`memo` fallback** 은 우연이 아니다 — 미션("놓치기 쉬운 순간은 쉽게 남기고, 필요한 기억은 쉽게 떠오른다")과 정합. 분류를 못 해도 안 잃는다.
+- **"3개 의도 예상했는데 전부 낮음"** → active 비어 `memo` 보존 + `needs_review=true` "헷갈려요". 복수 intent 여도 fallback 은 **집합 규칙 하나**라 복잡해지지 않는다.
+- **τ/τ_review 는 감으로 박지 않는다**(회의 확정). 코드에선 **config 상수로 주입**, 실험 후 확정. 0009 스키마/이행은 τ 와 무관(0009 는 τ 를 쓰지 않는다).
+
+#### 파생 — 저장 안 함, read 시 계산 (projection)
+
+| 파생값 | 정의 | 용도 |
+|---|---|---|
+| `representative` (대표 intent) | `argmax(intents, applicability)` (active 비면 `memo`) | lifecycle archive_reason 호환, UI 대표 칩 |
+| `confidence` | `max(intents.applicability)` (없으면 0) | "헷갈려요" 3상태 판정(부록 C) |
+| API `candidates` | `intents` 그대로 | **wire 호환** (iOS 가 읽는 이름) |
+
+#### API projection — iOS 무중단의 핵심
+
+0009/0011 로 DB·agent 를 갈아도 **API 응답은 새 원천 위의 stable projection** 으로 둔다 → iOS wire 불변:
+
+- 응답 `intent` = `representative`(계산), `confidence` = `max(applicability)`(계산), `candidates` = `intents`. → **iOS 0줄 변경.**
+- 응답에서 `secondaryIntents`/`intentApplicability` **제거** — iOS dead-read(`decodeIfPresent ?? []`)라 무중단.
+
+#### lifecycle 결합 (1:N 조정)
+
+- 레코드 lifecycle(`lifecycle_kind`)는 intent 와 **독립**(record 단위) — 변경 없음.
+- `archive_reason × intent` 호환(§7.3)은 **대표 intent(`representative`)** 기준.
+- knowledge decay 자동전이(§7.4)는 **`knowledge ∈ active(intents)`** 기준으로 읽는다(옛 `intent='knowledge'` 단일 비교의 1:N 일반화).
+
+### 4.5 Operations (alembic 0001 + 0002 + 0006 + 0007)
 
 ```sql
+-- transactional outbox (0002 → 0006 rename)
+CREATE TABLE mochi_item_outbox (
+    id            bigserial PRIMARY KEY,
+    event_id      uuid NOT NULL,
+    mochi_item_id uuid NOT NULL REFERENCES mochi_items(id) ON DELETE CASCADE,  -- idx
+    owner_id      uuid NOT NULL,   -- idx
+    status        varchar(16) NOT NULL DEFAULT 'pending',  -- pending|in_flight|done|dead_letter, idx
+    attempts      int  NOT NULL DEFAULT 0,
+    last_error    text,
+    created_at    timestamptz NOT NULL DEFAULT now(),
+    locked_until  timestamptz
+);
+CREATE INDEX ix_capture_outbox_pending ON mochi_item_outbox(status, created_at) WHERE status='pending';
+
 CREATE TABLE agent_runs (
-    id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    mochi_item_id     uuid NOT NULL REFERENCES mochi_items(id) ON DELETE CASCADE,
-    user_id           uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    current_node      text NOT NULL DEFAULT 'ingested',
-    failure_reason    text,
-    prompt_version_id text NOT NULL REFERENCES prompt_versions(id),
-    attempt           int NOT NULL DEFAULT 1,
-    total_tokens      int NOT NULL DEFAULT 0,
-    total_latency_ms  int NOT NULL DEFAULT 0,
-    started_at        timestamptz NOT NULL DEFAULT now(),
-    ended_at          timestamptz,
-    CONSTRAINT ck_run__node CHECK (current_node IN ('ingested','normalized','analyzed','routed','persisted','indexed','synced','failed')),
-    CONSTRAINT ck_run__order CHECK (ended_at IS NULL OR ended_at >= started_at),
-    CONSTRAINT ck_run__failure CHECK (current_node <> 'failed' OR failure_reason IS NOT NULL),
-    CONSTRAINT uq_run__item_attempt UNIQUE (mochi_item_id, attempt)
+    id               uuid PRIMARY KEY,
+    mochi_item_id    uuid NOT NULL REFERENCES mochi_items(id) ON DELETE CASCADE,  -- idx
+    current_node     varchar(32) NOT NULL DEFAULT 'ingested',  -- 부록 B
+    total_tokens     int NOT NULL DEFAULT 0,
+    total_latency_ms int NOT NULL DEFAULT 0,
+    started_at       timestamptz NOT NULL DEFAULT now(),
+    ended_at         timestamptz,
+    failure_reason   text
 );
-CREATE INDEX idx_run__item_time ON agent_runs(mochi_item_id, started_at DESC);
 
 CREATE TABLE tool_calls (
-    id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    agent_run_id   uuid REFERENCES agent_runs(id) ON DELETE CASCADE,
-    message_id     uuid REFERENCES messages(id)  ON DELETE CASCADE,
-    user_id        uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    tool_name      text NOT NULL,
-    input_json     jsonb NOT NULL DEFAULT '{}'::jsonb,
-    output_json    jsonb,
-    status         text NOT NULL DEFAULT 'running',
-    failure_reason text,
-    latency_ms     int NOT NULL DEFAULT 0,
-    called_at      timestamptz NOT NULL DEFAULT now(),
-    CONSTRAINT ck_tc__owner_xor CHECK ((agent_run_id IS NOT NULL)::int + (message_id IS NOT NULL)::int = 1),
-    CONSTRAINT ck_tc__status CHECK (status IN ('running','success','failed')),
-    CONSTRAINT ck_tc__failure CHECK (status <> 'failed' OR failure_reason IS NOT NULL)
-);
-CREATE INDEX idx_tc__run ON tool_calls(agent_run_id);
-CREATE INDEX idx_tc__msg ON tool_calls(message_id);
-
--- 사용자 개인화 프로필 (alembic 0007). owner 당 1행.
--- agent loop 가 분석 시 system prompt 에 주입하는 "관심사·평소 분류 성향" 요약.
--- 최근 입력 sliding window 에서 flash-lite 로 생성, 추상 요약만 저장(raw 미보관).
-CREATE TABLE user_profiles (
-    owner_id      uuid PRIMARY KEY,            -- == users(id), owner 격리
-    summary       text NOT NULL,               -- 자연어 특성 요약
-    model_version varchar(64) NOT NULL,
-    items_covered int  NOT NULL DEFAULT 0,     -- 마지막 요약 시점 누적 항목 수 (디바운스 기준)
-    refreshed_at  timestamptz,
-    created_at    timestamptz NOT NULL DEFAULT now()
+    id            bigserial PRIMARY KEY,
+    agent_run_id  uuid NOT NULL REFERENCES agent_runs(id) ON DELETE CASCADE,  -- idx
+    name          varchar(64)  NOT NULL,
+    input_digest  varchar(128) NOT NULL,
+    output_digest varchar(128),
+    tokens_in     int NOT NULL DEFAULT 0,
+    tokens_out    int NOT NULL DEFAULT 0,
+    latency_ms    int NOT NULL DEFAULT 0,
+    succeeded     boolean NOT NULL DEFAULT true,
+    extra         jsonb    -- ⚠️ drift: migration=JSONB, ORM=generic JSON. 다음 BE 터치 시 ORM 1줄 정정
 );
 
 CREATE TABLE idempotency_keys (
-    id                     text PRIMARY KEY,           -- 'scope:user_id:sha256'
-    user_id                uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    scope                  text NOT NULL,
-    mochi_item_id          uuid REFERENCES mochi_items(id) ON DELETE SET NULL,
-    response_snapshot_json jsonb NOT NULL DEFAULT '{}'::jsonb,
-    created_at             timestamptz NOT NULL DEFAULT now(),
-    expires_at             timestamptz NOT NULL,
-    CONSTRAINT ck_idem__expires CHECK (expires_at > created_at),
-    CONSTRAINT ck_idem__scope CHECK (scope IN ('mochi_item_create'))
+    key           varchar(128) PRIMARY KEY,
+    mochi_item_id uuid NOT NULL,   -- FK 없음 (app-level)
+    created_at    timestamptz NOT NULL DEFAULT now()
 );
-CREATE INDEX idx_idem__user_scope ON idempotency_keys(user_id, scope);
-CREATE INDEX idx_idem__expires    ON idempotency_keys(expires_at);
 
-CREATE TABLE mochi_outbox (
-    mochi_item_id    uuid PRIMARY KEY REFERENCES mochi_items(id) ON DELETE CASCADE,
-    user_id          uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    status           text NOT NULL DEFAULT 'pending',
-    attempt          int NOT NULL DEFAULT 0,
-    max_attempt      int NOT NULL DEFAULT 5,
-    available_at     timestamptz NOT NULL DEFAULT now(),
-    locked_until     timestamptz,
-    last_lease_owner text,
-    last_error       text,
-    created_at       timestamptz NOT NULL DEFAULT now(),
-    updated_at       timestamptz NOT NULL DEFAULT now(),
-    CONSTRAINT ck_outbox__status CHECK (status IN ('pending','in_flight')),
-    CONSTRAINT ck_outbox__attempt CHECK (attempt <= max_attempt),
-    CONSTRAINT ck_outbox__inflight CHECK (status <> 'in_flight' OR locked_until IS NOT NULL)
+-- 개인화 프로필 (0007). owner 당 1행. ※ ORM 모델 없이 raw SQL(profile_store.py) 접근
+CREATE TABLE user_profiles (
+    owner_id      uuid PRIMARY KEY,        -- == users(id)
+    summary       text NOT NULL,
+    model_version varchar(64) NOT NULL,
+    items_covered int  NOT NULL DEFAULT 0,
+    refreshed_at  timestamptz,
+    created_at    timestamptz NOT NULL DEFAULT now()
 );
-CREATE INDEX idx_outbox__lease ON mochi_outbox(status, available_at, locked_until);
-CREATE TRIGGER trg_outbox__touch BEFORE UPDATE ON mochi_outbox
-    FOR EACH ROW EXECUTE FUNCTION touch_updated_at();
-
-CREATE TABLE dead_letters (
-    id                 uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    mochi_item_id      uuid REFERENCES mochi_items(id) ON DELETE SET NULL,
-    user_id            uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    reason             text NOT NULL,
-    error_payload_json jsonb NOT NULL DEFAULT '{}'::jsonb,
-    moved_at           timestamptz NOT NULL DEFAULT now(),
-    requeued_at        timestamptz
-);
-CREATE INDEX idx_dl__user_time ON dead_letters(user_id, moved_at DESC);
 ```
 
 ---
 
-## 5. iOS Realm Schema
+## 5. iOS Realm Schema (mirror)
 
-```swift
-final class MochiItemObject: Object {
-    @Persisted(primaryKey: true) var id: UUID
-    @Persisted var userID: UUID
-    @Persisted var title: String
-    @Persisted var intent: String                 // schedule|todo|knowledge|memo
-    @Persisted var lifecycleState: String
-    @Persisted var archivedReason: String?
-    @Persisted var importanceScore: Double
-    @Persisted var intentConfidence: Double
-    @Persisted var occurredAt: Date?
-    @Persisted var createdAt: Date
-    @Persisted var updatedAt: Date
-    @Persisted var deletedAt: Date?
+> Realm `schemaVersion = 4` (`RealmStoreFactory.currentSchemaVersion`). **로컬 id ≠ 서버 PK** — 서버 id 는 `SyncState.uploaded(serverID:)` 에 보관(부록 D). 0009/0011 은 **API projection** 이라 Realm 변경 불요(v4 유지). 1:N 을 UI 칩으로 노출하려면 v5 신설 필요(§13·향후 UI 결정).
 
-    @Persisted var source: MochiSourceEmbedded?
-    @Persisted var attachments: List<MochiAttachmentEmbedded>
-    @Persisted var entities: List<MochiEntityEmbedded>
-    @Persisted var actionCandidates: List<MochiActionCandidateEmbedded>
-    @Persisted var tagNames: List<String>
+intent 관련 검증된 필드(정확한 전체 스키마는 `CorePersistence/RealmObjects.swift` 가 정본):
 
-    @Persisted var todo: TodoEmbedded?
-    @Persisted var calendarEvent: CalendarEventEmbedded?
-    @Persisted var knowledgeSummary: KnowledgeSummaryEmbedded?
-    @Persisted var memo: MemoEmbedded?
+| Realm 필드 | 타입 | 의미 |
+|---|---|---|
+| `RealmMochiItem.intentRawValue` | `String?` | 대표 intent. `nil` = "분석 중" 버킷(`listAnalyzing`) |
+| `RealmMochiItem.confidence` | `Double` | `= max(applicability)`. `< 0.6` = "헷갈려요"(`listAmbiguous` NSPredicate). ※ 0.6 은 현 iOS client-derive 임계 — §4.4 의 실험값 `τ_review` 와 별개 |
+| `RealmMochiItem.intentCandidates` | `List<RealmIntentCandidate>` | `RealmIntentCandidate = {label: String?, intentRawValue: String, applicability: Double}`. `reasoning` 미저장 |
 
-    @Persisted var syncState: String              // pendingUpload|uploaded|syncFailed
-    @Persisted var syncServerID: UUID?
-    @Persisted var lastSyncedAt: Date?
-}
-```
-
-### Backend ↔ Realm 매핑
-
-| Backend table | Realm representation |
+| Backend | Realm |
 |---|---|
-| `mochi_items` | `MochiItemObject` (root). **로컬 id ≠ 서버 PK** — 서버 id 는 `SyncState.uploaded(serverID:)` 에 보관 (부록 D 참고) |
-| `mochi_sources` | `MochiItemObject.source` (Embedded 1:1) |
-| `mochi_attachments` | `MochiItemObject.attachments` (Embedded 1:N) |
-| `mochi_entities` | `MochiItemObject.entities` (Embedded 1:N) |
-| `mochi_action_candidates` | `MochiItemObject.actionCandidates` (Embedded 1:N) |
-| `mochi_item_tags` + `tags` | `MochiItemObject.tagNames` (List<String>) |
-| `todos` / `calendar_events` / `knowledge_summaries` / `memos` | `MochiItemObject.{todo, calendarEvent, knowledgeSummary, memo}` (Embedded 0..1) |
-| `mochi_analyses` / `embeddings` / `search_index` | 서버 only |
-| `conversations` / `messages` | `ConversationObject` / `MessageObject` (별도 root) |
-| `agent_runs` / `tool_calls` / `outbox` / `dead_letters` / `idempotency_keys` | 서버 only |
+| `mochi_items` (대표 `intent`/`confidence` projection) | `RealmMochiItem.intentRawValue` / `confidence` |
+| `mochi_items.intents` → API `candidates` | `RealmMochiItem.intentCandidates` (List, `reasoning` 미저장) |
+| `mochi_item_image_refs` / `entities` | Embedded List |
+| `embeddings`/`agent_runs`/`tool_calls`/`outbox`/`idempotency_keys`/`user_profiles` | 서버 only |
 
-### 동기화
+### 동기화 (as-built)
 
-- **iOS → Backend**: `syncState=pendingUpload` 인 MochiItem 을 `MochiItemSyncWorker` 가 POST `/api/v1/mochi_items`(metadata-only) 또는 `/api/v1/mochi_items/back-tap`(스크린샷) 로 업로드 (Idempotency-Key=로컬 item.id). **이미지는 iOS 가 원본 PNG 에서 업로드용 JPEG 파생본(긴 변 1920px 이하, q60)을 만든 뒤 그 bytes 기준 `sha256/mimeType/byteSize` 로 `POST /api/v1/mochi_items/presign` 을 호출하고, 받은 Signed URL 로 GCS 에 직접 PUT 한 뒤 `objectKey` 만 전달** — back-tap 도 2026-05-30 부터 multipart 가 아닌 `application/json {objectKey,…}` 계약. 성공 → `syncState=uploaded(serverID:)` — **응답의 서버 자체 PK 를 보관**(로컬 id 와 다름).
-- **Backend → iOS (현재)**: back-tap·metadata-only **모두 비동기 worker 분석** 후 **foreground 3초 폴링**(`GET /api/v1/mochi_items/{serverID}`)으로 lifecycle=active 시 결과를 반영한다. back-tap 의 동기 Gemini 분류는 제거됐다(2026-05-30) — 한 캡쳐에 Gemini 가 두 번 호출되던 이중 분석과 DB↔Realm 불일치를 없애기 위함. 백탭은 `.ingested` 로 적재되고 worker(`AgentOrchestrator`)가 후보·confidence 를 채운다. 백그라운드 분석 완료 시 즉시 갱신(Live Activity 포함)은 **APNs 도입 후** — 현재는 foreground 진입 시 폴링으로 반영. (SSE `/api/v1/mochi_items/{id}/stream` 은 백엔드에 있으나 iOS 미구독.)
-- **분류 확정 (현재)**: iOS `setIntent` 는 **로컬 전용**. 백엔드 override `PATCH /api/v1/mochi_items/{id}/intent` 는 **iOS 미배선** — 서버 반영은 후속.
-- **충돌/Catch-up**: backend master 원칙은 유지하나, 양방향 충돌 해소·cold-start catch-up(`/sync` 류)은 **미구현**(후속). 현 단계는 단방향 업로드 + 폴링 수신.
+- **iOS → Backend**: `syncState=pendingUpload` 인 item 을 `MochiItemSyncWorker` 가 업로드. 이미지는 원본 PNG → 업로드용 JPEG(긴 변 ≤1920px, q60) 파생 → `sha256/mimeType/byteSize` 로 `POST /mochi_items/presign` → Signed URL 로 GCS 직접 PUT → `objectKey` 만 전달. 성공 → `syncState=uploaded(serverID:)`(**서버 자체 PK 보관**).
+- **Backend → iOS**: back-tap·metadata-only **모두 비동기 worker 분석** 후 **foreground 3초 폴링**(`GET /mochi_items/{serverID}`)으로 `lifecycle=active` 시 반영. 동기 Gemini 분류는 제거됨(2026-05-30). SSE `/mochi_items/{id}/stream` 은 서버에 존재하나 iOS 미구독. APNs 도입 후 즉시 갱신.
+- **분류 확정**: iOS `setIntent` 는 로컬 전용. 서버 override `PATCH /mochi_items/{id}/intent` 는 존재하나 **iOS 미배선**.
+- **충돌/Catch-up**: backend master 원칙. 양방향 충돌 해소·cold-start catch-up(`/sync`)은 미구현.
 
 ---
 
 ## 6. API Endpoints
 
-| Method | Path | 응답 | 비고 |
+| Method | Path | 상태 | 비고 |
 |---|---|---|---|
-| `POST` | `/api/v1/auth/apple` | `{access, refresh}` | Apple OAuth |
-| `POST` | `/api/v1/auth/google` | `{access, refresh}` | Google OAuth |
-| `GET` | `/api/v1/users/me` | `User` | |
-| `GET` | `/api/v1/health` | `{status:'ok'}` | 인증 불요 |
-| `POST` | `/api/v1/mochi_items` | `MochiItem (201)` | `Idempotency-Key` 헤더 필수 |
-| `GET` | `/api/v1/mochi_items/{id}` | `MochiItem` | owner 만 |
-| `PATCH` | `/api/v1/mochi_items/{id}` | `MochiItem` | server-wins |
-| `DELETE` | `/api/v1/mochi_items/{id}` | 204 | soft delete |
-| `GET` | `/api/v1/mochi_items` | `MochiItem[]` | filter: `intent`, `lifecycle_state`, `after`, `limit` |
-| `GET` | `/api/v1/mochi_items/sync?after=` | `MochiItem[]` | catch-up |
-| `GET` | `/api/v1/mochi_items/{id}/stream` | SSE | agent state graph |
-| `POST` | `/api/v1/search` | `SearchResponse` | Hybrid (BM25 + 벡터 + RRF) |
-| `POST` | `/api/v1/conversations` | `Conversation (201)` | |
-| `POST` | `/api/v1/conversations/{id}/messages` | `Message + Citations` | |
+| `POST` | `/api/v1/auth/apple` · `/auth/google` · `/dev` · `/refresh` · `/logout` | ✅ | OAuth → JWT(RS256) + refresh rotation |
+| `GET` | `/api/v1/users/me` | ✅ | |
+| `POST` | `/api/v1/mochi_items` | ✅ | metadata-only ingest. `Idempotency-Key` 필수 |
+| `POST` | `/api/v1/mochi_items/back-tap` | ✅ | 스크린샷 ingest (`application/json {objectKey,…}`). ※ UX surface 이름 — §13 에서 `POST /mochi_items` 흡수 후보 |
+| `POST` | `/api/v1/mochi_items/presign` | ✅ | GCS V4 Signed PUT URL |
+| `GET` | `/api/v1/mochi_items/{id}` | ✅ | owner 만. 응답에 `intent`/`confidence`/`candidates` projection (§4.4) |
+| `PATCH` | `/api/v1/mochi_items/{id}/intent` | ◑ | 서버 존재 · iOS 미배선 |
+| `GET` | `/api/v1/mochi_items/{id}/stream` | ◑ | SSE agent state · iOS 미구독 |
+| `*` | list `GET /mochi_items` · `DELETE /{id}` · `POST /search` · `/conversations` · `/sync` | ○ | **라우트 미존재** → §13 |
 
-### Request headers
+> ⚠️ 현재 라우터 실재 경로는 위 ✅/◑ 9개뿐(`mochi_items/presentation/router.py`, `auth/presentation`). list·delete·search·conversations·sync 는 라우트 자체가 없다(홈/모찌들 탭은 현재 iOS 로컬 Realm 으로 구동, 서버 list API 후속).
 
 | Header | 필수 | 의미 |
 |---|---|---|
-| `Authorization: Bearer <token>` | 모든 라우트 (health 제외) | JWT (RS256) |
+| `Authorization: Bearer <token>` | health 제외 전부 | JWT(RS256) |
+| `Idempotency-Key` | `POST /mochi_items*` | owner-scoped |
 | `X-Mochi-Request-ID` | 옵션 | 분산 추적 |
-| `Idempotency-Key` | `POST /mochi_items` | owner-scoped SHA-256 |
 
 ---
 
-## 7. 4-Intent Lifecycle
+## 7. 4-Intent Lifecycle (코드 정본 — `lifecycle_policy.py` / `entities.py`)
 
-### 7.1 상태 다이어그램
+> 이 절은 코드의 **유일 진실**이다. 값은 코드(`LifecycleStateKind`/`ArchiveReason`/`KNOWLEDGE_ACTIVE_DAYS`)를 따른다.
+
+### 7.1 상태 (`lifecycle_kind`, 7값)
 
 ```
 ingested → analyzing → active → archived
                             ↘ failed
-
-knowledge intent 만 추가 경로:
-  active → decaying → review_requested → active 또는 archived
+knowledge 만:  active → decaying → reviewRequested → (active | archived)
 ```
 
-### 7.2 전이 매트릭스
+> 저장값(`lifecycle_kind`)은 camelCase: `ingested`/`analyzing`/`active`/`decaying`/`reviewRequested`/`archived`/`failed` (`LifecycleStateKind`).
 
-| from \ to | analyzing | active | decaying | review_req | archived | failed |
+### 7.2 전이 매트릭스 (`_ALLOWED_KIND_PAIRS`)
+
+| from \ to | analyzing | active | decaying | reviewRequested | archived | failed |
 |---|---|---|---|---|---|---|
 | ingested | ✅ all | — | — | — | — | ✅ all |
 | analyzing | — | ✅ all | — | — | — | ✅ all |
 | active | — | — | ✅ knowledge | — | ✅ all | — |
 | decaying | — | ✅ knowledge | — | ✅ knowledge | ✅ knowledge | — |
-| review_requested | — | ✅ knowledge | — | — | ✅ knowledge | — |
-| failed | — | — | — | — | ✅ all (user_manual) | — |
+| reviewRequested | — | ✅ knowledge | — | — | ✅ knowledge | — |
+| failed | — | — | — | — | ✅ all (userManual) | — |
 
-### 7.3 archived_reason × intent
+### 7.3 archive_reason × intent (camelCase, `_INTENT_ARCHIVE_REASONS`)
 
 | Intent | 허용 archived_reason |
 |---|---|
-| `schedule` | `schedule_ended`, `user_manual`, `system_error` |
-| `todo` | `todo_completed`, `user_manual`, `system_error` |
-| `knowledge` | `knowledge_stale`, `user_manual`, `system_error` |
-| `memo` | `user_manual`, `system_error` |
+| `schedule` | `scheduleEnded`, `userManual` |
+| `todo` | `todoCompleted`, `userManual` |
+| `knowledge` | `knowledgeStale`, `userManual` |
+| `memo` | `userManual` |
 
-### 7.4 자동 전이 (worker 가 5분 주기 실행)
+> 옛 문서의 `system_error` 는 **코드에 없다** — 제거. 값은 camelCase(`scheduleEnded`). 1:N 에선 **대표 intent** 기준(§4.4).
 
-| 조건 | 자동 전이 |
+### 7.4 자동 전이 (worker 주기 실행)
+
+| 조건 | 전이 |
 |---|---|
-| `intent='schedule' AND COALESCE(end_at, start_at) < now() AND lifecycle_state='active'` | → `archived(schedule_ended)` |
-| `intent='todo' AND todos.status='done' AND lifecycle_state='active'` | → `archived(todo_completed)` |
-| `intent='knowledge' AND last_recall_at < now() - INTERVAL '90 days' AND lifecycle_state='active'` | → `decaying` |
-| `intent='knowledge' AND lifecycle_state='decaying' AND created_at < now() - INTERVAL '180 days'` | → `review_requested` |
-| dead_letters INSERT | → `failed` |
+| `schedule ∈ active` 이고 일정 종료 시각 < now() 이고 `active` | → `archived(scheduleEnded)` |
+| `todo ∈ active` 이고 완료됨 이고 `active` | → `archived(todoCompleted)` |
+| `knowledge ∈ active` 이고 마지막 회수 후 `KNOWLEDGE_ACTIVE_DAYS=30`일 경과 이고 `active` | → `decaying` |
+| `knowledge` 이고 `decaying` 진입 후 `KNOWLEDGE_DECAY_DAYS=180`일 경과 | → `reviewRequested` |
+| dead-letter (outbox `attempts > max`) | → `failed` |
+
+> ⚠️ 옛 문서의 decay 90일 → **30일**(코드 `KNOWLEDGE_ACTIVE_DAYS=30`), review 전이는 `KNOWLEDGE_DECAY_DAYS=180`. 일정/할일 종료 판정의 실제 소스(종료시각·완료여부)는 typed 테이블(§13) 구현 후 정밀화 — 현재는 entity/lifecycle 기반.
 
 ### 7.5 전이 강제
 
-`intent × lifecycle_state` 매트릭스는 `ck_mochi__intent_lifecycle_compat` CHECK 로 schema 수준 강제. `archived_reason × intent` 매트릭스는 `ck_mochi__archived_reason_intent` CHECK 로 강제. 전이 자체 (from → to) 검증은 application `LifecyclePolicy.validate()` 가 수행.
+전이(from→to)·archive_reason×intent 검증은 application `LifecyclePolicy.validate()` / `expected_archive_reason()` 가 수행(DB CHECK 아님 — as-built `mochi_items` 에 intent/lifecycle CHECK 제약 **없음**).
 
 ---
 
 ## 8. 데이터 흐름
 
-### 8.1 Ingestion (POST /mochi_items)
+### 8.1 Ingestion (`POST /mochi_items`)
 
 ```python
-async with db_session() as s:
-    async with s.begin():
-        if existing := await find_idem_key(s, key, user.id):
-            return existing.response_snapshot
-        mi = await insert_mochi_item(s, ..., intent='memo', lifecycle='ingested')
-        await insert_source(s, mi, ...)
-        await bulk_insert_attachments(s, mi, ...)
-        await insert_outbox(s, mi)
-        await save_idem_response(s, key, mi.id, user.id)
-    await pg_notify('mochi_outbox', str(mi.id))
+async with db_session() as s, s.begin():
+    if existing := await already_ingested(s, owner_id, idem_key):
+        return existing                       # 멱등
+    mi = insert_mochi_item(s, ..., lifecycle_kind='ingested')   # intents=[] (분석 전)
+    bulk_insert_image_refs(s, mi, ...)
+    insert_outbox(s, mi)                       # transactional outbox
+    save_idem_key(s, idem_key, mi.id)
+await pg_notify('mochi_item_outbox', str(mi.id))
 return 201
 ```
 
-### 8.2 Agent Worker (Arch2 — LLM = 분석가)
+### 8.2 Agent Worker (LLM = 분석가)
 
-워커는 outbox 를 폴링해 항목당 `AgentOrchestrator` 를 실행한다. 분석은 결정적 파이프라인이
-아니라 **Gemini function-calling agent loop** 다 (`GeminiAgentClient`, 모델 `gemini-3.1-flash-lite`/global).
-
-```python
-# AgentOrchestrator.run(mochi_item_id, owner_id) — ANALYZED 노드
-profile = profile_store.get(owner_id)                 # 개인화 컨텍스트 (없으면 cold-start)
-system  = CLASSIFY_AND_ACT_V2 + profile_preamble(profile)
-parts   = [user(text · user_memo · url)]
-for _ in range(max_steps):                            # tool_config=ANY → 매 turn 함수호출 강제
-    turn = await collect(llm.stream(system, parts, tools=[webFetch], ...))
-    if turn.final_payload:                            # 모델이 finalizeAnalysis 호출 → 종료
-        analysis = parse(turn.final_payload); break
-    if turn.tool_to_call == webFetch:                 # 모델이 URL 그라운딩 결정
-        out = await webFetch(args)
-        parts += [model.function_call, user.function_response(out)]; continue
-if analysis is None: raise                            # graceful → outbox 재시도/DLQ
-
-# PERSISTED 노드: write-back (gateway → mochi_items.application)
-apply_analysis(owner, id, analysis)   # intent/secondary/applicability/candidates/summary/importance/confidence
-                                      # + entities 재적재 + lifecycle INGESTED→ANALYZING→ACTIVE
-
-# 분석 성공 후: 개인화 프로필 디바운스 갱신 (best-effort)
-RefreshUserProfile.run(owner)   # 누적 N개마다 최근 window 재요약 → user_profiles upsert
-```
-
-각 노드 전환·도구 호출(`tool_started`/`tool_finished`)은 `StreamEvent` 로 SSE 노출
-(`GET /mochi_items/{id}/stream`). 실패 시 워커가 outbox 재시도(backoff), `MAX_ATTEMPTS` 초과 시
-`dead_letter`.
-
-> **현재 wire 상태**: text+URL 분석·write-back·개인화 프로필·**이미지 분석(클라가 Signed URL 로 GCS
-> 직접 업로드 → Gemini 가 `gs://` 를 직접 read, 2026-05-30)** = 실연결. 임베딩 적재(INDEXED 노드)·
-> actions 파생은 design-ahead — 후속 단계.
-
-### 8.3 Hybrid Search
+워커가 outbox 를 폴링 → 항목당 `AgentOrchestrator` 실행. 결정적 파이프라인이 아니라 **Gemini function-calling agent loop**(`gemini-3.1-flash-lite`, webFetch 그라운딩). 모델이 `finalizeAnalysis` 호출 → 종료.
 
 ```python
-async with db_session() as s:
-    await s.execute(text("SET LOCAL hnsw.ef_search = 80"))
-    bm25 = await s.execute(text("""
-        SELECT mochi_item_id, ts_rank_cd(tsv_text, q) AS s
-        FROM mochi_search_index, plainto_tsquery('simple', :q) q
-        WHERE user_id=:uid AND tsv_text @@ q
-        ORDER BY s DESC LIMIT 50
-    """), {"q": query, "uid": user.id})
-    vec = await s.execute(text("""
-        SELECT mochi_item_id, 1 - (embedding <=> :v) AS s
-        FROM embeddings
-        WHERE user_id=:uid
-        ORDER BY embedding <=> :v
-        LIMIT 50
-    """), {"v": query_vec, "uid": user.id})
-    fused = reciprocal_rank_fusion(bm25, vec, k=60)
-    return fused[:10]
+# 분석 산출(현재): candidates [{label,intent,applicability,reasoning}] + summary + importance + entities
+# write-back (현재 4컬럼):
+apply_analysis(owner, id, analysis)   # intent/secondary/applicability/candidates/confidence + entities 재적재
+                                      # + lifecycle INGESTED→ANALYZING→ACTIVE
+# 0009 이후 (타겟): intents = candidates 를 원천으로 1컬럼 write. 대표/confidence 는 projection.
+RefreshUserProfile.run(owner)         # best-effort 개인화 디바운스
 ```
+
+> **현재 wire**: text+URL 분석 · write-back · 개인화 · **이미지 분석(클라 Signed URL → GCS, Gemini `gs://` 직접 read)** = 실연결. 임베딩 적재 · actions 파생 = design-ahead(§13).
+
+### 8.3 Hybrid Search (as-built 골격)
+
+`mochi_items` FTS GIN(tsvector) BM25 + `embeddings` HNSW 벡터 → RRF 융합. ※ embedding 적재·query embedding 품질은 아직 약함(known drift).
 
 ---
 
@@ -865,160 +513,153 @@ async with db_session() as s:
 
 | 항목 | 메커니즘 |
 |---|---|
-| 인증 | Apple/Google OAuth → JWT (RS256) + refresh token rotation |
-| 인가 | repository layer 가 `WHERE user_id=$current_user` 강제 (테스트로 검증) |
-| 멱등성 | `Idempotency-Key` 헤더 → `idempotency_keys` (owner-scoped SHA-256) |
+| 인증 | Apple/Google OAuth → JWT(RS256) + refresh token rotation(`refresh_tokens`) |
+| 인가 | repository layer 가 `owner_id` 필터 강제 (테스트 검증). DB FK 아닌 **app-level** 격리 |
+| 멱등성 | `Idempotency-Key` → `idempotency_keys` (owner-scoped) |
+| SSRF | WebFetch: 호스트 블록리스트 + A/AAAA IP 검증 + redirect 재검증 + MIME 화이트리스트 |
+| Storage | `captures/{owner_id}/...` prefix + V4 Signed PUT URL. ingest 진입점 owner-prefix 강제(IDOR 방지) |
+| Error envelope | 통일 응답 `{code, message, requestId, retryAfter}` (`ErrorEnvelope`, DomainError → JSONResponse) |
 | 분산 추적 | `X-Mochi-Request-ID` 헤더 echo |
-| Error envelope | `{code, message, requestId, retryAfter}` 통일 포맷 |
-| SSRF | WebFetch: 호스트 블록리스트 + A/AAAA 답변 IP 검증 + redirect 재검증 + MIME 화이트리스트 |
-| Storage | `captures/{owner_id}/...` prefix + V4 Signed PUT URL (SA impersonation 서명). ingest 진입점에서 owner-prefix 강제 검증 (IDOR 방지). |
-| PII purge | `users.deleted_at` set 시 email 익명화 (`deleted+{id}@invalid.local`) |
+| PII purge | `users.deleted_at` set (soft delete). ※ email 익명화는 **미구현**(design-ahead) |
 
 ---
 
 ## 10. 마이그레이션
 
+### 적용된 것 (alembic 0001~0008)
+
 ```
-alembic/versions/
-  0001_initial.py              # 본 문서 §4 DDL 전체
-  0002_seed_prompt_versions.py # 초기 프롬프트 등록
+0001 initial            captures, entities, embeddings, idempotency_keys, agent_runs, tool_calls + pgvector + FTS GIN
+0002 capture_outbox     transactional outbox
+0003 capture_image_refs 이미지 참조
+0004 auth               users, auth_accounts, refresh_tokens + pgcrypto
+0005 capture_multi_intent  intent NOT NULL + secondary_intents + intent_applicability
+0006 rename             captures → mochi_items (+ 모든 FK 컬럼 capture_id → mochi_item_id)
+0007 add_user_profiles  개인화 프로필
+0008 add_intent_candidates  intent_candidates(jsonb) — LLM 원천 후보
 ```
 
-이후 변경은 zero-downtime 패턴:
-1. ADD COLUMN nullable
-2. backfill
-3. NOT NULL / CHECK / FK 추가
+### 계획 (§4.4 이행 — doc-leads)
+
+```
+0009 intents_flat_source   ADD intents jsonb + GIN(jsonb_path_ops). 분기 backfill:
+       · intent_candidates ≠ '[]'  → intents := intent_candidates
+       · candidates='[]' 이나 applicability 채워짐(pre-0008 구형 row, 실서버 존재) → applicability/intent 로 합성
+       · 분석 전 → '[]'
+     동반 코드: apply_analysis 가 intents 원천 write, 대표/confidence/candidates 는 projection.
+     iOS·openapi 0줄 (projection). ※ needs_review DB 컬럼 안 만듦 — τ_review 미확정, iOS client-derive 유지.
+0011 drop_legacy_intent_columns  DROP intent / secondary_intents / intent_applicability / intent_candidates / confidence.
+     ix_captures_intent → idx_mochi__intents(GIN) 로 교체. 프롬프트 V7(flat 출력) + openapi 재덤프.
+     ※ DROP 전제 = "intents 원천 검증 + iOS 컷오버" (τ 확정과 분리).
+```
+
+> zero-downtime: 0009(additive)와 0011(파괴) 사이 `intents` + 4컬럼이 공존하는 dual-write 중간 상태가 존재한다. **영구 설계 아님** — 종료 조건은 0011. 중간 상태에서 `OverrideIntent` 는 `intents` 원천도 갱신해야 단일화가 유지된다.
 
 ---
 
-## 11. 인덱스 정책
+## 11. 인덱스 정책 (as-built)
 
 | 쿼리 패턴 | 인덱스 |
 |---|---|
-| 홈 피드 (user 최신 N) | `idx_mochi__user__created` (partial) |
-| 4-Intent 카드 | `idx_mochi__user__intent__lifecycle` (partial) |
-| 캘린더 뷰 | `idx_mochi__user__occurred` (partial WHERE intent='schedule') |
-| "중요해 보여요" | `idx_mochi__user__importance` (partial WHERE lifecycle='active') |
-| 할 일 마감 임박 | `idx_todos__user_status_due` |
-| 일정 시점 검색 | `idx_cal__user_start` |
-| 지식 decay 스캔 | `idx_know__user_last_recall` |
-| iOS catch-up sync | `idx_mochi__user__updated` |
-| BM25 검색 | GIN `tsv_text` |
-| 벡터 ANN | HNSW `embedding vector_cosine_ops` (m=16, ef_construction=64) |
-| Outbox worker pickup | `idx_outbox__lease` |
-| Idempotency lookup | `idx_idem__user_scope` |
-| 챗봇 대화 로드 | `idx_msg__conv_time` |
+| owner 격리 | `ix_captures_owner_id` |
+| intent 필터 (현재) | `ix_captures_intent` → **0009 후 `idx_mochi__intents`(GIN, containment)** |
+| lifecycle 필터 | `ix_captures_lifecycle_kind` |
+| 시간순 | `ix_captures_captured_at` |
+| BM25 검색 | `ix_mochi_items_fts` (GIN tsvector) |
+| auth rotation | `idx_rt__family_active` · `idx_rt__expires_active` (partial WHERE revoked_at IS NULL) |
+| 벡터 ANN | `ix_embeddings_vector_hnsw` (HNSW, m=16, ef_construction=64) |
+| Outbox pickup | `ix_capture_outbox_pending` (partial WHERE status='pending') |
+
+> 옛 문서의 partial 인덱스(`idx_mochi__user__importance` 등)는 as-built 에 **없다**. importance/occurred 기반 정렬은 현재 application 또는 iOS 측(부록 D).
 
 ---
 
-## 12. 테이블 카탈로그
+## 12. 테이블 카탈로그 (as-built, 12개)
 
 | Group | Table | 책임 |
 |---|---|---|
 | Identity | `users` | 사용자 식별, soft delete |
 | Identity | `auth_accounts` | Apple/Google OAuth 연결 |
-| Mochi | `mochi_items` | aggregate root, intent + lifecycle |
-| Mochi | `mochi_sources` | 입력 채널 + 원본 메타 (1:1) |
-| Mochi | `mochi_attachments` | 이미지/파일 첨부 |
-| Mochi | `mochi_entities` | AI 추출 의미 단위 |
-| Mochi | `mochi_action_candidates` | AI 제안 행동 |
-| Mochi | `tags` / `mochi_item_tags` | 사용자 태그 (N:M) |
-| Intent | `todos` | 할 일 (intent=todo 파생) |
-| Intent | `calendar_events` | 일정 (intent=schedule 파생) |
-| Intent | `knowledge_summaries` | 지식 요약 (intent=knowledge 파생) |
-| Intent | `memos` | 기록 (intent=memo 파생) |
-| AI | `prompt_versions` | 프롬프트 버전 이력 |
-| AI | `mochi_analyses` | LLM 분석 결과 (append-only) |
-| AI | `embeddings` | 청크 단위 벡터 (HNSW) |
-| AI | `mochi_search_index` | tsvector BM25 인덱스 |
-| Conversation | `conversations` | 챗봇 세션 |
-| Conversation | `messages` | 대화 메시지 |
-| Conversation | `message_citations` | assistant 답변 근거 |
-| Operations | `agent_runs` | AI 처리 실행 (UNIQUE attempt) |
+| Identity | `refresh_tokens` | refresh rotation chain |
+| Mochi | `mochi_items` | aggregate root. 출처·분석·intent(§4.4) 인라인 |
+| Mochi | `mochi_item_image_refs` | 이미지 참조(sha256/objectKey) |
+| Mochi | `entities` | AI 추출 의미 단위(kind/value) |
+| AI | `embeddings` | 청크 벡터(768d, HNSW) |
+| Operations | `agent_runs` | AI 처리 실행 로그 |
 | Operations | `tool_calls` | 도구 호출 로그 |
-| Operations | `idempotency_keys` | 멱등성 키 (TTL) |
-| Operations | `mochi_outbox` | 처리 대기 큐 (1 item ⇔ 1 outbox) |
-| Operations | `dead_letters` | 실패 격리 |
+| Operations | `mochi_item_outbox` | 처리 대기 큐(1 item ⇔ 1 outbox) |
+| Operations | `idempotency_keys` | 멱등성 키 |
+| Operations | `user_profiles` | 개인화 프로필(owner 1행, raw SQL) |
+
+---
+
+## 13. 향후 계획 (미구현 · 게이트)
+
+> 아래는 **roadmap** 이다 — 본문(§3·§4·§12)에 없고 코드에도 없다. DDL 은 **구현 시점에 확정**(여기 투기적 풀 DDL 을 들고 있지 않는다 — drift 원천 회피). 이전 정규화 설계 전문은 git 이력 / `docs/archive/` 참조.
+
+### 13.1 실행 단위 typed 테이블 (intent materialize)
+
+`todos` · `calendar_events` · `knowledge_summaries` · `memos` · `mochi_action_candidates`.
+
+- **위치**: MochiItem 아래 파생. 입력 1건 = MochiItem 1개를 **쪼개지 않고**, 실행 단위만 분리(회의 2026-06-01 확정).
+- **게이트**: "`active(intents)` 집합이 τ 로 안정 **+** 실제 materialize 소비 코드가 필요로 판명" 될 때 생성. τ 는 박세현 eval(6/18) 후 확정. 무한 연기 방지를 위해 이 정량 조건을 게이트로 명시.
+- **시점**: 6/19~ 통합 sprint 후보(`0012+`).
+
+### 13.2 검색·분석 부가
+
+`mochi_analyses`(append-only 분석 이력) · `prompt_versions` · `mochi_search_index`(별도 tsvector 테이블). 현재는 `mochi_items` 인라인(`summary`/FTS) + `embeddings` 로 충분. 모델/프롬프트 비교 필요가 생기면 분리.
+
+### 13.3 질문 탭 (RAG 대화)
+
+`conversations` · `messages` · `message_citations`. 데모 P0(질문 탭)이나 미구현. citation = 답변이 인용한 MochiItem ID + 발췌.
+
+### 13.4 기타
+
+`tags`/`mochi_item_tags`(사용자 태그) · `dead_letters`(현재는 `outbox.attempts>max` 인라인) · `owner_id` DB FK 승격 · intent/lifecycle DB CHECK 승격(현재 app-level). 전부 별도 축 — 필요 시 개별 큐.
 
 ---
 
 ## 부록
 
-### A. ActionCandidate payload schema
+### A. AgentRun current_node (`agent/domain/states.py` — `AgentNode` 8값, `HAPPY_PATH` 7노드)
 
-| action_kind | payload_json |
+| node | 의미 |
 |---|---|
-| `create_todo` | `{title: str, due_at?: iso, priority?: low\|medium\|high}` |
-| `create_event` | `{title: str, start_at: iso, end_at?: iso, location?: str}` |
-| `open_url` | `{url: str}` |
-| `remind` | `{at: iso, message?: str}` |
-| `tag` | `{tag_names: str[]}` |
-| `follow_up_search` | `{query: str}` |
+| `ingested` | DB INSERT 직후 |
+| `normalized` | 텍스트 정제·URL 정규화 |
+| `analyzed` | Gemini agent loop → candidates/summary/entities |
+| `routed` | intent 별 후속 처리 결정 |
+| `persisted` | write-back 완료 |
+| `indexed` | 임베딩·tsvector 갱신 — ⚠️ 현재 임베딩 적재는 **no-op**(gateway 미주입 시 skip) |
+| `synced` | iOS 반영(현재 폴링) |
+| `failed` | 실패 → outbox 재시도/DLQ |
 
-### B. AgentRun current_node 의미
+> 8값 전부 코드 `AgentNode` enum 의 live 멤버이고 `HAPPY_PATH` 가 `ingested`→…→`synced` 7노드를 실제 advance 한다(ARCHITECTURE §5.3·backend README 와 일치). `indexed` 의 임베딩 적재만 현재 no-op.
 
-| node | 의미 | 외부 호출 |
-|---|---|---|
-| `ingested` | DB INSERT 직후 | — |
-| `normalized` | 텍스트 정제, URL 정규화 | — |
-| `analyzed` | Gemini multimodal → intent/summary/entities/actions | Gemini Flash |
-| `routed` | Intent 별 파생 entity INSERT 결정 | — |
-| `persisted` | 파생 entity 저장 완료 | — |
-| `indexed` | 임베딩 + tsvector 인덱스 갱신 | text-embedding-005 |
-| `synced` | iOS SSE push 완료 | — |
-| `failed` | 어디서든 실패 → DLQ 분기 | — |
+### B. Application-enforced invariants
 
-### C. Application-enforced invariants
-
-DB 가 직접 강제할 수 없으나 `tests/unit/test_invariants.py` 가 강제하는 항목:
-
-| Invariant | 검증 위치 |
+| Invariant | 검증 |
 |---|---|
-| `content_kind IN ('image','screenshot') ⇒ EXISTS mochi_attachments` | E2E test |
-| `mochi_items.intent` 와 derived 테이블 1:0..1 일치 | ingest/update use case + unit test |
-| `LifecyclePolicy.validate(from, to, intent)` 전이 규칙 | unit test |
-| `ActionCandidate.payload_json` per-action_kind schema | Pydantic validator + unit test |
-| 모든 SELECT/UPDATE/DELETE 쿼리에 `user_id` 필터 | 정적 AST 검사 |
-| `embedding.chunk_text` 길이 ≤ 8000 chars | application chunker |
+| 모든 read/write 에 `owner_id` 필터 | repository + 테스트 |
+| `LifecyclePolicy.validate(from, to, intent)` 전이 | unit test |
+| **`intents` 비면 active=`{memo}`** (§4.4) | 정책 코드 + test (0009 후) |
 
-### D. iOS 클라이언트 — 일일 importance 재분석 (Daily Importance Cache)
+> `entities.kind` 는 **미강제** — `ExtractedEntity.kind: str`(free), repository 가 `kind[:16]` 절단만. 위 예시 값(date/person/…)은 프롬프트 가이드일 뿐 DB/앱 제약 아님.
 
-> 2026-05-29 `dev/mochi` iOS 머지로 도입된 `CorePersistence/DailyImportanceAnalyzer` 의 설계.
+### C. confidence 와 "헷갈려요" 3상태 (코드 정합)
 
-**왜 별도인가**: 항목마다 `mochi_analyses.importance_score` 가 산출되지만, 사용자 행동·시점
-(예: "마감 임박", "오늘의 흐름")에 따라 같은 항목의 *상대* 중요도는 바뀐다. 백엔드의
-per-item importance 는 "절대값", 일일 재분석은 "오늘의 상대 순위" 를 산출한다.
+`confidence := max(intents.applicability)` (현재 코드는 `intent_candidates` 에서 derive, 0009 후 `intents`). 이 단일 값으로 3상태:
 
-**현 단계 (디자인 + 백엔드 sync 단계, stub)**:
-- iOS `CorePersistence/DailyImportanceAnalyzer` 가 책임.
-- **트리거**: 앱 진입 시 lazy — 마지막 분석으로부터 24h 경과 시 재계산, 아니면 캐시 반환.
-- **알고리즘**: 신규 Gemini 호출 없음. 로컬 `analysis.importance` (medium↑) 만 정렬 (`listByImportance`).
-- **결과 저장**: App Group `daily-importance/YYYY-MM-DD.json` (`{generatedAt, mochiItemIDs}`).
-- **GCS / 외부 업로드 (현재 상태)**: iOS 가 presign→PUT→objectKey ingest 를 수행한다. 항목 이미지는 로컬 원본 경로(`relativePath`)와 GCS object key(`objectKey`)를 함께 가진다. 백엔드 멀티모달 분석 경로는 `objectKey` 를 `gs://{bucket}/{objectKey}` 로 바꿔 Gemini 가 직접 읽는다.
+- **헷갈림** (`confidence < 0.6` = `isUncertain`): 최상위 의도조차 약함 → "헷갈려요" 카드.
+- **단일 확신** (top1 ≥ 0.6, top2 < 0.6): 대표 단일 의도로 active.
+- **복수 의도** (top1·top2 둘 다 ≥ 0.6 = `isMultiIntent`): 박빙이어도 헷갈림 아님 — 둘 다 적용. UI 엔 대표만, 보조는 추천·알림·채팅 활용.
 
-**후속 (Gemini 1일 재분석 단계)**:
-- analyzer 가 최근 24h 항목을 묶어 Gemini Flash 에 보내 *상대* importance 재산출.
-- 응답은 같은 JSON 파일 포맷으로 캐시 — 같은 날 두 번째 진입 시 재호출 안 함.
-- 항목 이미지는 여전히 GCS 우회 — 텍스트 + 로컬 메타데이터(`relativePath`, `mimeType`,
-  `byteSize`, OCR 추출 텍스트) 만 모델에 노출. 정식 multimodal(GCS 업로드)은 별도 단계.
+> 박빙(top-2 gap) 헷갈림 판정은 **폐기**됨 — 복수 의도를 오분류했기 때문. 진짜 신호는 "최상위가 약함"이다.
+> `τ_review` 확정 전까지 "헷갈려요"는 iOS 가 `confidence < 0.6` 으로 **client-derive**(서버 `needs_review` 컬럼 없음).
 
-**Repository API 매핑** (`MochiItemRepository`):
+### D. iOS 헷갈려요 카드 · 폴링 · Daily Importance
 
-| 홈 섹션 | Repository 메서드 | 비고 |
-|---|---|---|
-| "최근 추가한 모찌" | `listRecent(limit:)` | `createdAt desc` |
-| "모찌가 분석 중이에요" | `listAnalyzing(limit:)` | 분석 응답 미수신(`intentRawValue == nil`) + archived/failed 제외. 버튼 없음 |
-| "모찌가 헷갈려요" | `listAmbiguous(limit:)` | 분석됨(`intentRawValue != nil`)이나 **불확실** — `confidence < 0.6` (`MochiItemAnalysis.isUncertain`; 최상위 후보조차 확신 임계 미만). archived/failed 제외 |
-| "중요해 보여요" | `DailyImportanceAnalyzer.todaysImportant(limit:)` → `find(id:)` | 캐시 우선, fallback `listByImportance` |
-| Needs-review 분류 확정 | `setIntent(mochiItemID:intent:)` | `confidence = 1.0`, `modelVersion = "manual"` + candidates 제거 (헷갈려요에서 제외) |
-| Quick memo 저장 | `upsert(MochiItem(source:))` | `channel = .appDirectInput`, `imageRefs = []` |
-
-**confidence 와 3상태 판정**: `confidence := 최상위 후보 applicability` (worker 가 candidates 에서 derive). 이 단일 값으로 세 상태가 갈린다:
-- **헷갈림** (`confidence < 0.6` = `isUncertain`): 최상위 후보조차 약함 → "헷갈려요" 카드에서 사용자에게 물음.
-- **단일 확신** (top1 ≥ 0.6, top2 < 0.6): primary 단일 의도로 active.
-- **복수 의도** (top1·top2 둘 다 ≥ 0.6 = `isMultiIntent` / `activeSecondaryIntents`): 박빙이어도 헷갈림이 아니라 둘 다 적용. 사용자 UI 엔 top1 만 노출하고 보조 의도는 추천·알림·채팅에서 활용한다.
-
-박빙(top-2 gap) 조건은 **폐기**됐다 — 둘 다 높은 복수 의도를 헷갈림으로 오분류했기 때문. 헷갈림의 진짜 신호는 박빙이 아니라 "최상위 후보가 약함"이다.
-
-**헷갈려요 카드의 의견 버튼**: 고정 라벨이 아니라 LLM 후보(`MochiItemAnalysis.candidates` = `[IntentCandidate{label?, intent, applicability}]`)에서 도출한다. `reviewOpinions` = applicability 내림차순 dedup-by-intent 상위 2개를 `label ?? intent.displayName` 로 노출 + "다른 의도"(4-Intent 직접 지정). 후보는 **back-tap·metadata-only 공통**으로 worker(`AgentOrchestrator.finalizeAnalysis`)가 펼친 한국어 시나리오 라벨("구매 고민" 등)을 `intent_candidates`(JSONB) 에 영속 → `GET /mochi_items/{id}` 응답의 `candidates` 로 **foreground 3초 폴링**(`MochiItemSyncWorker.startForegroundPolling`)이 반영한다. 폴링은 **서버 PK(`syncState.uploaded(serverID:)`)** 로 조회한다 — 백엔드가 클라 id 를 무시하고 자체 uuid4 PK 를 부여하므로 로컬 id GET 은 404(알려진 drift).
-- **분석 실패/지연 fallback**: GET lifecycle 이 `failed` 이거나 업로드 후 90s(deadline) 초과 시 `demoteToManual` 이 항목을 "헷갈려요(의견 없음)"로 강등 → 무한 폴링 종료. 카드는 "모찌가 잘 모르겠어요" + 직접 분류 + "다시 맡기기"(`requeueForAnalysis` → 재폴링). webFetch 실패(유튜브 등)가 무한 폴링되지 않게 한다.
+- **헷갈려요 버튼**: 고정 라벨 아님. `MochiItemAnalysis.reviewOpinions` = `candidates`(= `intents`) applicability 내림차순 dedup-by-intent 상위 2개를 `label ?? intent.displayName` 로 노출 + "다른 의도"(4-Intent 직접 지정).
+- **폴링**: `GET /mochi_items/{serverID}` (서버 PK) 3초 폴링. 로컬 id GET 은 404(서버가 자체 uuid4 PK 부여 — 알려진 drift).
+- **실패/지연 fallback**: lifecycle `failed` 또는 90s 초과 시 `demoteToManual` → "헷갈려요(의견 없음)" + 직접 분류 + "다시 맡기기"(`requeueForAnalysis`). webFetch 실패의 무한 폴링 차단.
+- **Daily Importance** (`CorePersistence/DailyImportanceAnalyzer`): 앱 진입 시 lazy(24h 캐시). 현재는 로컬 `analysis.importance`(medium↑) 정렬, 신규 Gemini 호출 없음. App Group `daily-importance/YYYY-MM-DD.json` 캐시. Gemini 1일 *상대* importance 재산출은 후속.
