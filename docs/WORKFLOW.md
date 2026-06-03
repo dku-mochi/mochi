@@ -34,7 +34,7 @@ description: 3인 + AI 협업의 운영 매뉴얼. 갈라질 수 있는 모든 �
 
 | 티어 | 원리 | 갈라질 확률 | 모찌에서의 구현 |
 |---|---|---|---|
-| **⓪ 불가능하게** | 단일 원천에서 생성 | 0% | 디자인 토큰 = `DesignSystem` 모듈. **API 계약은 목표 상태** — `mochi-backend/openapi.json` 을 단일원천으로 iOS 생성하려 하나, 현재 iOS 는 `swift-openapi-runtime` 의존성만 있고 generator 미설정 + 수기 `URLSessionMochiAPIClient` 라 실제론 ③(drift 위험). generator 배선 시 ⓪ 승격. |
+| **⓪ 불가능하게** | 단일 원천에서 생성 | 0% | 디자인 토큰 = `DesignSystem` 모듈. **API 계약 = `mochi-backend/openapi.json` 단일원천** (백엔드 code-first). iOS 는 `swift-openapi-generator`(`CodeGen/generate.sh`)가 `openapi.json`→`CoreNetworking/Sources/Generated/{Client,Types}.swift` 생성, `OpenAPIMochiClient` 어댑터가 라이브 구현 → endpoint/스키마 drift 구조적 불가. **(2026-06-04 ③→⓪ 승격: generator 배선 + 수기 `URLSessionMochiAPIClient` 삭제. FastAPI 3.1 `anyOf:[X,null]` 은 `export_openapi.py` 가 3.0 `nullable:true` 로 낮춰 generator 호환.)** |
 | **① 자동 결정** | 포매터 | ~0% | `ruff format` (py) · SwiftLint autocorrect/swiftformat (swift) |
 | **② 자동 검출** | 린터·타입체커·경계테스트·훅 | ~0% | `ruff check`(E,F,I,B,UP,**N**,SIM,ASYNC) · `mypy --strict` · `tests/unit/test_module_boundaries.py` · `.swiftlint.yml` · `.claude/hooks/`(pre-bash, **pre-edit-scope**=lab 경계) |
 | **③ AI 판단** | 문서 + 서브에이전트 | ~80% | 이 문서의 네이밍 사전(§7)·파일위치 맵(§8) + `code-reviewer`/`doc-guardian` + `pre-commit-reminder.sh`(커밋 직전 review/qa 환기 넛지 — 필요 여부가 판단이라 ②강제 불가) |
@@ -153,7 +153,7 @@ Flow B — 완료
 
 ### 5.2 검증 스크립트 자율 호출
 
-`.claude/scripts/` 의 게이트(`ship-precheck.sh`, `audit.sh`, `openapi-check.sh`, `ios-boundaries.sh`)는 `/ship`·`/audit` 커맨드(사람 트리거)에만 묶이지 않는다. **부모 Claude 는 Flow A/B 중간 어디서든** `bash .claude/scripts/ship-precheck.sh <scope>` 등을 자율 호출해 정합성을 빠르게 확인할 수 있다 — 커맨드는 사람용 진입점, 스크립트는 부모용 재사용 엔진이다.
+`.claude/scripts/` 의 게이트(`ship-precheck.sh`, `audit.sh`, `ios-boundaries.sh`)는 `/ship`·`/audit` 커맨드(사람 트리거)에만 묶이지 않는다. **부모 Claude 는 Flow A/B 중간 어디서든** `bash .claude/scripts/ship-precheck.sh <scope>` 등을 자율 호출해 정합성을 빠르게 확인할 수 있다 — 커맨드는 사람용 진입점, 스크립트는 부모용 재사용 엔진이다.
 
 ---
 

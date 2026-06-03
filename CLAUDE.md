@@ -181,9 +181,8 @@ iOS 쪽은 `tuist test`, 백엔드는 `make test` / `make lint` / `make typechec
 
 **자동 채점 스크립트 (`.claude/scripts/`):** — `.sh` 모두 git mode 100755 executable, `lib/*.py` 는 정적 import 모듈이라 100644.
 - `audit.sh <l1|l2|l3|all>` — 시간 강등 + 코드 식별자 grep 강등 + STOP 후보. 모노레포·macOS/Linux 이식.
-- `ship-precheck.sh <ios|backend|docs|all>` — `/ship` 자동 사전 체크 **7단계** (audit / CHANGELOG / 미러 mtime / iOS 경계 / OpenAPI drift / **백엔드 lint+typecheck** / git status). 게이트 무결성 보장(exit code 명시).
+- `ship-precheck.sh <ios|backend|docs|all>` — `/ship` 자동 사전 체크 **7단계** (audit / CHANGELOG / 미러 mtime / iOS 경계 / OpenAPI 단일계약 동기화(§5a make openapi · §5b generate.sh no-diff) / **백엔드 lint+typecheck** / git status). 게이트 무결성 보장(exit code 명시).
 - `ios-boundaries.sh` — TCA 레이어 위반 자동 검출 (Features 간 import / Cores 역방향 / @main 위치).
-- `openapi-check.sh` (+ `lib/extract_paths.py`) — OpenAPI ↔ iOS 클라이언트 drift 자동 검사 (path-parameter 정규화 양방향). 정식 swift-openapi-generator 배선까지의 fallback ② 게이트.
 
 **표준 작업 루프:**
 ```
@@ -194,7 +193,7 @@ iOS 쪽은 `tuist test`, 백엔드는 `make test` / `make lint` / `make typechec
 ```
 
 **정합성 통제 티어** (⓪ > ① > ② > ③): 갈라질 수 있는 결정은 가장 싼 통제에 둔다. 기계로 막을 수 있는 것을 ③(문서)에 두지 않는다.
-- ⓪ 불가능: API 계약 = `mochi-backend/openapi.json` 단일원천 (**목표 상태** — iOS 는 `swift-openapi-runtime` 의존성만 있고 generator 미설정, 현재는 수기 `URLSessionMochiAPIClient` 라 drift 위험. ⓪ 로 끌어올리려면 generator 배선 필요)
+- ⓪ 불가능: API 계약 = `mochi-backend/openapi.json` 단일원천 (백엔드 code-first → iOS `swift-openapi-generator`(`CodeGen/generate.sh`)가 `Generated/{Client,Types}.swift` 생성, `OpenAPIMochiClient` 어댑터가 라이브. 2026-06-04 ③→⓪ 승격: 수기 `URLSessionMochiAPIClient` 삭제 + `export_openapi.py` 3.1→3.0 nullable 변환으로 generator 호환)
 - ① 포매터 / ② 린터·타입체커·백엔드 경계테스트 / ③ 문서 + 서브에이전트 (iOS 레이어 규칙은 자동검출 없어 현재 ③)
 
 **슬래시커맨드:** `/daily` `/handoff` `/ship` `/sync-agents` `/codify` `/sprint-end` `/audit`

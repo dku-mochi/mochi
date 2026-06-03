@@ -207,14 +207,8 @@ extension APIProtocol {
     ///
     /// - Remark: HTTP `POST /api/v1/auth/logout`.
     /// - Remark: Generated from `#/paths//api/v1/auth/logout/post(logout_api_v1_auth_logout_post)`.
-    public func logout_api_v1_auth_logout_post(
-        headers: Operations.logout_api_v1_auth_logout_post.Input.Headers = .init(),
-        body: Operations.logout_api_v1_auth_logout_post.Input.Body
-    ) async throws -> Operations.logout_api_v1_auth_logout_post.Output {
-        try await logout_api_v1_auth_logout_post(Operations.logout_api_v1_auth_logout_post.Input(
-            headers: headers,
-            body: body
-        ))
+    public func logout_api_v1_auth_logout_post(body: Operations.logout_api_v1_auth_logout_post.Input.Body) async throws -> Operations.logout_api_v1_auth_logout_post.Output {
+        try await logout_api_v1_auth_logout_post(Operations.logout_api_v1_auth_logout_post.Input(body: body))
     }
     /// Get Me
     ///
@@ -402,15 +396,35 @@ public enum Components {
         public struct AppleSignInRequest: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/AppleSignInRequest/identityToken`.
             public var identityToken: Swift.String
+            /// - Remark: Generated from `#/components/schemas/AppleSignInRequest/rawNonce`.
+            public var rawNonce: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/AppleSignInRequest/fullName`.
+            public var fullName: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/AppleSignInRequest/deviceLabel`.
+            public var deviceLabel: Swift.String?
             /// Creates a new `AppleSignInRequest`.
             ///
             /// - Parameters:
             ///   - identityToken:
-            public init(identityToken: Swift.String) {
+            ///   - rawNonce:
+            ///   - fullName:
+            ///   - deviceLabel:
+            public init(
+                identityToken: Swift.String,
+                rawNonce: Swift.String? = nil,
+                fullName: Swift.String? = nil,
+                deviceLabel: Swift.String? = nil
+            ) {
                 self.identityToken = identityToken
+                self.rawNonce = rawNonce
+                self.fullName = fullName
+                self.deviceLabel = deviceLabel
             }
             public enum CodingKeys: String, CodingKey {
                 case identityToken
+                case rawNonce
+                case fullName
+                case deviceLabel
             }
         }
         /// 백탭 ingestion 요청 — 클라이언트가 Signed URL 로 GCS 에 업로드한 뒤 objectKey 를 보낸다.
@@ -425,6 +439,8 @@ public enum Components {
             public var mimeType: Swift.String
             /// - Remark: Generated from `#/components/schemas/BackTapMochiItemRequest/byteSize`.
             public var byteSize: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/BackTapMochiItemRequest/userMemo`.
+            public var userMemo: Swift.String?
             /// Creates a new `BackTapMochiItemRequest`.
             ///
             /// - Parameters:
@@ -432,22 +448,26 @@ public enum Components {
             ///   - sha256:
             ///   - mimeType:
             ///   - byteSize:
+            ///   - userMemo:
             public init(
                 objectKey: Swift.String,
                 sha256: Swift.String,
                 mimeType: Swift.String,
-                byteSize: Swift.Int
+                byteSize: Swift.Int,
+                userMemo: Swift.String? = nil
             ) {
                 self.objectKey = objectKey
                 self.sha256 = sha256
                 self.mimeType = mimeType
                 self.byteSize = byteSize
+                self.userMemo = userMemo
             }
             public enum CodingKeys: String, CodingKey {
                 case objectKey
                 case sha256
                 case mimeType
                 case byteSize
+                case userMemo
             }
         }
         /// 월간 캘린더의 하루 셀 — KST 날짜·개수·대표 Intent·대표 썸네일 object_key.
@@ -458,21 +478,33 @@ public enum Components {
             public var date: Swift.String
             /// - Remark: Generated from `#/components/schemas/CalendarDayResponse/count`.
             public var count: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/CalendarDayResponse/representativeIntent`.
+            public var representativeIntent: Components.Schemas.Intent?
+            /// - Remark: Generated from `#/components/schemas/CalendarDayResponse/thumbnailObjectKey`.
+            public var thumbnailObjectKey: Swift.String?
             /// Creates a new `CalendarDayResponse`.
             ///
             /// - Parameters:
             ///   - date:
             ///   - count:
+            ///   - representativeIntent:
+            ///   - thumbnailObjectKey:
             public init(
                 date: Swift.String,
-                count: Swift.Int
+                count: Swift.Int,
+                representativeIntent: Components.Schemas.Intent? = nil,
+                thumbnailObjectKey: Swift.String? = nil
             ) {
                 self.date = date
                 self.count = count
+                self.representativeIntent = representativeIntent
+                self.thumbnailObjectKey = thumbnailObjectKey
             }
             public enum CodingKeys: String, CodingKey {
                 case date
                 case count
+                case representativeIntent
+                case thumbnailObjectKey
             }
         }
         /// - Remark: Generated from `#/components/schemas/CitationDTO`.
@@ -510,30 +542,52 @@ public enum Components {
         public struct DevSignInRequest: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/DevSignInRequest/subject`.
             public var subject: Swift.String
+            /// - Remark: Generated from `#/components/schemas/DevSignInRequest/displayName`.
+            public var displayName: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/DevSignInRequest/deviceLabel`.
+            public var deviceLabel: Swift.String?
             /// Creates a new `DevSignInRequest`.
             ///
             /// - Parameters:
             ///   - subject:
-            public init(subject: Swift.String) {
+            ///   - displayName:
+            ///   - deviceLabel:
+            public init(
+                subject: Swift.String,
+                displayName: Swift.String? = nil,
+                deviceLabel: Swift.String? = nil
+            ) {
                 self.subject = subject
+                self.displayName = displayName
+                self.deviceLabel = deviceLabel
             }
             public enum CodingKeys: String, CodingKey {
                 case subject
+                case displayName
+                case deviceLabel
             }
         }
         /// - Remark: Generated from `#/components/schemas/GoogleSignInRequest`.
         public struct GoogleSignInRequest: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/GoogleSignInRequest/idToken`.
             public var idToken: Swift.String
+            /// - Remark: Generated from `#/components/schemas/GoogleSignInRequest/deviceLabel`.
+            public var deviceLabel: Swift.String?
             /// Creates a new `GoogleSignInRequest`.
             ///
             /// - Parameters:
             ///   - idToken:
-            public init(idToken: Swift.String) {
+            ///   - deviceLabel:
+            public init(
+                idToken: Swift.String,
+                deviceLabel: Swift.String? = nil
+            ) {
                 self.idToken = idToken
+                self.deviceLabel = deviceLabel
             }
             public enum CodingKeys: String, CodingKey {
                 case idToken
+                case deviceLabel
             }
         }
         /// - Remark: Generated from `#/components/schemas/HTTPValidationError`.
@@ -557,6 +611,8 @@ public enum Components {
         ///
         /// - Remark: Generated from `#/components/schemas/ImageRefDTO`.
         public struct ImageRefDTO: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/ImageRefDTO/objectKey`.
+            public var objectKey: Swift.String?
             /// - Remark: Generated from `#/components/schemas/ImageRefDTO/mimeType`.
             public var mimeType: Swift.String
             /// - Remark: Generated from `#/components/schemas/ImageRefDTO/byteSize`.
@@ -566,19 +622,23 @@ public enum Components {
             /// Creates a new `ImageRefDTO`.
             ///
             /// - Parameters:
+            ///   - objectKey:
             ///   - mimeType:
             ///   - byteSize:
             ///   - sha256:
             public init(
+                objectKey: Swift.String? = nil,
                 mimeType: Swift.String,
                 byteSize: Swift.Int,
                 sha256: Swift.String
             ) {
+                self.objectKey = objectKey
                 self.mimeType = mimeType
                 self.byteSize = byteSize
                 self.sha256 = sha256
             }
             public enum CodingKeys: String, CodingKey {
+                case objectKey
                 case mimeType
                 case byteSize
                 case sha256
@@ -588,6 +648,8 @@ public enum Components {
         ///
         /// - Remark: Generated from `#/components/schemas/ImageRefResponse`.
         public struct ImageRefResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/ImageRefResponse/objectKey`.
+            public var objectKey: Swift.String?
             /// - Remark: Generated from `#/components/schemas/ImageRefResponse/mimeType`.
             public var mimeType: Swift.String
             /// - Remark: Generated from `#/components/schemas/ImageRefResponse/byteSize`.
@@ -597,19 +659,23 @@ public enum Components {
             /// Creates a new `ImageRefResponse`.
             ///
             /// - Parameters:
+            ///   - objectKey:
             ///   - mimeType:
             ///   - byteSize:
             ///   - sha256:
             public init(
+                objectKey: Swift.String? = nil,
                 mimeType: Swift.String,
                 byteSize: Swift.Int,
                 sha256: Swift.String
             ) {
+                self.objectKey = objectKey
                 self.mimeType = mimeType
                 self.byteSize = byteSize
                 self.sha256 = sha256
             }
             public enum CodingKeys: String, CodingKey {
+                case objectKey
                 case mimeType
                 case byteSize
                 case sha256
@@ -713,22 +779,40 @@ public enum Components {
         public struct MochiItemCreateRequest: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/MochiItemCreateRequest/channel`.
             public var channel: Components.Schemas.IngestChannel
+            /// - Remark: Generated from `#/components/schemas/MochiItemCreateRequest/url`.
+            public var url: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/MochiItemCreateRequest/text`.
+            public var text: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/MochiItemCreateRequest/userMemo`.
+            public var userMemo: Swift.String?
             /// - Remark: Generated from `#/components/schemas/MochiItemCreateRequest/imageRefs`.
             public var imageRefs: [Components.Schemas.ImageRefDTO]?
             /// Creates a new `MochiItemCreateRequest`.
             ///
             /// - Parameters:
             ///   - channel:
+            ///   - url:
+            ///   - text:
+            ///   - userMemo:
             ///   - imageRefs:
             public init(
                 channel: Components.Schemas.IngestChannel,
+                url: Swift.String? = nil,
+                text: Swift.String? = nil,
+                userMemo: Swift.String? = nil,
                 imageRefs: [Components.Schemas.ImageRefDTO]? = nil
             ) {
                 self.channel = channel
+                self.url = url
+                self.text = text
+                self.userMemo = userMemo
                 self.imageRefs = imageRefs
             }
             public enum CodingKeys: String, CodingKey {
                 case channel
+                case url
+                case text
+                case userMemo
                 case imageRefs
             }
         }
@@ -755,6 +839,12 @@ public enum Components {
             public var id: Swift.String
             /// - Remark: Generated from `#/components/schemas/MochiItemResponse/channel`.
             public var channel: Components.Schemas.IngestChannel
+            /// - Remark: Generated from `#/components/schemas/MochiItemResponse/url`.
+            public var url: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/MochiItemResponse/text`.
+            public var text: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/MochiItemResponse/userMemo`.
+            public var userMemo: Swift.String?
             /// - Remark: Generated from `#/components/schemas/MochiItemResponse/intent`.
             public var intent: Components.Schemas.Intent
             /// - Remark: Generated from `#/components/schemas/MochiItemResponse/secondaryIntents`.
@@ -779,6 +869,8 @@ public enum Components {
             }
             /// - Remark: Generated from `#/components/schemas/MochiItemResponse/intentApplicability`.
             public var intentApplicability: Components.Schemas.MochiItemResponse.intentApplicabilityPayload?
+            /// - Remark: Generated from `#/components/schemas/MochiItemResponse/summary`.
+            public var summary: Swift.String?
             /// - Remark: Generated from `#/components/schemas/MochiItemResponse/importance`.
             public var importance: Swift.Int
             /// - Remark: Generated from `#/components/schemas/MochiItemResponse/confidence`.
@@ -800,9 +892,13 @@ public enum Components {
             /// - Parameters:
             ///   - id:
             ///   - channel:
+            ///   - url:
+            ///   - text:
+            ///   - userMemo:
             ///   - intent:
             ///   - secondaryIntents:
             ///   - intentApplicability:
+            ///   - summary:
             ///   - importance:
             ///   - confidence:
             ///   - candidates:
@@ -814,9 +910,13 @@ public enum Components {
             public init(
                 id: Swift.String,
                 channel: Components.Schemas.IngestChannel,
+                url: Swift.String? = nil,
+                text: Swift.String? = nil,
+                userMemo: Swift.String? = nil,
                 intent: Components.Schemas.Intent,
                 secondaryIntents: [Components.Schemas.Intent]? = nil,
                 intentApplicability: Components.Schemas.MochiItemResponse.intentApplicabilityPayload? = nil,
+                summary: Swift.String? = nil,
                 importance: Swift.Int,
                 confidence: Swift.Double,
                 candidates: [Components.Schemas.IntentCandidateResponse]? = nil,
@@ -828,9 +928,13 @@ public enum Components {
             ) {
                 self.id = id
                 self.channel = channel
+                self.url = url
+                self.text = text
+                self.userMemo = userMemo
                 self.intent = intent
                 self.secondaryIntents = secondaryIntents
                 self.intentApplicability = intentApplicability
+                self.summary = summary
                 self.importance = importance
                 self.confidence = confidence
                 self.candidates = candidates
@@ -843,9 +947,13 @@ public enum Components {
             public enum CodingKeys: String, CodingKey {
                 case id
                 case channel
+                case url
+                case text
+                case userMemo
                 case intent
                 case secondaryIntents
                 case intentApplicability
+                case summary
                 case importance
                 case confidence
                 case candidates
@@ -947,15 +1055,23 @@ public enum Components {
         public struct RefreshRequest: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/RefreshRequest/refreshToken`.
             public var refreshToken: Swift.String
+            /// - Remark: Generated from `#/components/schemas/RefreshRequest/deviceLabel`.
+            public var deviceLabel: Swift.String?
             /// Creates a new `RefreshRequest`.
             ///
             /// - Parameters:
             ///   - refreshToken:
-            public init(refreshToken: Swift.String) {
+            ///   - deviceLabel:
+            public init(
+                refreshToken: Swift.String,
+                deviceLabel: Swift.String? = nil
+            ) {
                 self.refreshToken = refreshToken
+                self.deviceLabel = deviceLabel
             }
             public enum CodingKeys: String, CodingKey {
                 case refreshToken
+                case deviceLabel
             }
         }
         /// - Remark: Generated from `#/components/schemas/SearchRequest`.
@@ -989,25 +1105,31 @@ public enum Components {
             public var citations: [Components.Schemas.CitationDTO]
             /// - Remark: Generated from `#/components/schemas/SearchResponse/totalTokens`.
             public var totalTokens: Swift.Int?
+            /// - Remark: Generated from `#/components/schemas/SearchResponse/agentRunId`.
+            public var agentRunId: Swift.String?
             /// Creates a new `SearchResponse`.
             ///
             /// - Parameters:
             ///   - answer:
             ///   - citations:
             ///   - totalTokens:
+            ///   - agentRunId:
             public init(
                 answer: Swift.String,
                 citations: [Components.Schemas.CitationDTO],
-                totalTokens: Swift.Int? = nil
+                totalTokens: Swift.Int? = nil,
+                agentRunId: Swift.String? = nil
             ) {
                 self.answer = answer
                 self.citations = citations
                 self.totalTokens = totalTokens
+                self.agentRunId = agentRunId
             }
             public enum CodingKeys: String, CodingKey {
                 case answer
                 case citations
                 case totalTokens
+                case agentRunId
             }
         }
         /// - Remark: Generated from `#/components/schemas/SearchScope`.
@@ -1112,15 +1234,29 @@ public enum Components {
         public struct UpcomingTodoResponse: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/UpcomingTodoResponse/item`.
             public var item: Components.Schemas.MochiItemResponse
+            /// - Remark: Generated from `#/components/schemas/UpcomingTodoResponse/dueAt`.
+            public var dueAt: Foundation.Date?
+            /// - Remark: Generated from `#/components/schemas/UpcomingTodoResponse/dueLabel`.
+            public var dueLabel: Swift.String?
             /// Creates a new `UpcomingTodoResponse`.
             ///
             /// - Parameters:
             ///   - item:
-            public init(item: Components.Schemas.MochiItemResponse) {
+            ///   - dueAt:
+            ///   - dueLabel:
+            public init(
+                item: Components.Schemas.MochiItemResponse,
+                dueAt: Foundation.Date? = nil,
+                dueLabel: Swift.String? = nil
+            ) {
                 self.item = item
+                self.dueAt = dueAt
+                self.dueLabel = dueLabel
             }
             public enum CodingKeys: String, CodingKey {
                 case item
+                case dueAt
+                case dueLabel
             }
         }
         /// - Remark: Generated from `#/components/schemas/UserResponse`.
@@ -1133,6 +1269,8 @@ public enum Components {
             public var displayName: Swift.String
             /// - Remark: Generated from `#/components/schemas/UserResponse/locale`.
             public var locale: Swift.String
+            /// - Remark: Generated from `#/components/schemas/UserResponse/onboardingCompletedAt`.
+            public var onboardingCompletedAt: Foundation.Date?
             /// Creates a new `UserResponse`.
             ///
             /// - Parameters:
@@ -1140,22 +1278,26 @@ public enum Components {
             ///   - email:
             ///   - displayName:
             ///   - locale:
+            ///   - onboardingCompletedAt:
             public init(
                 id: Swift.String,
                 email: Swift.String,
                 displayName: Swift.String,
-                locale: Swift.String
+                locale: Swift.String,
+                onboardingCompletedAt: Foundation.Date? = nil
             ) {
                 self.id = id
                 self.email = email
                 self.displayName = displayName
                 self.locale = locale
+                self.onboardingCompletedAt = onboardingCompletedAt
             }
             public enum CodingKeys: String, CodingKey {
                 case id
                 case email
                 case displayName
                 case locale
+                case onboardingCompletedAt
             }
         }
         /// - Remark: Generated from `#/components/schemas/ValidationError`.
@@ -1398,12 +1540,19 @@ public enum Operations {
         public struct Input: Sendable, Hashable {
             /// - Remark: Generated from `#/paths/api/v1/auth/apple/POST/header`.
             public struct Headers: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/auth/apple/POST/header/User-Agent`.
+                public var User_hyphen_Agent: Swift.String?
                 public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.sign_in_with_apple_api_v1_auth_apple_post.AcceptableContentType>]
                 /// Creates a new `Headers`.
                 ///
                 /// - Parameters:
+                ///   - User_hyphen_Agent:
                 ///   - accept:
-                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.sign_in_with_apple_api_v1_auth_apple_post.AcceptableContentType>] = .defaultValues()) {
+                public init(
+                    User_hyphen_Agent: Swift.String? = nil,
+                    accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.sign_in_with_apple_api_v1_auth_apple_post.AcceptableContentType>] = .defaultValues()
+                ) {
+                    self.User_hyphen_Agent = User_hyphen_Agent
                     self.accept = accept
                 }
             }
@@ -1479,57 +1628,6 @@ public enum Operations {
                     }
                 }
             }
-            public struct UnprocessableContent: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/api/v1/auth/apple/POST/responses/422/content`.
-                @frozen public enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/api/v1/auth/apple/POST/responses/422/content/application\/json`.
-                    case json(Components.Schemas.HTTPValidationError)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    public var json: Components.Schemas.HTTPValidationError {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                public var body: Operations.sign_in_with_apple_api_v1_auth_apple_post.Output.UnprocessableContent.Body
-                /// Creates a new `UnprocessableContent`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                public init(body: Operations.sign_in_with_apple_api_v1_auth_apple_post.Output.UnprocessableContent.Body) {
-                    self.body = body
-                }
-            }
-            /// Validation Error
-            ///
-            /// - Remark: Generated from `#/paths//api/v1/auth/apple/post(sign_in_with_apple_api_v1_auth_apple_post)/responses/422`.
-            ///
-            /// HTTP response code: `422 unprocessableContent`.
-            case unprocessableContent(Operations.sign_in_with_apple_api_v1_auth_apple_post.Output.UnprocessableContent)
-            /// The associated value of the enum case if `self` is `.unprocessableContent`.
-            ///
-            /// - Throws: An error if `self` is not `.unprocessableContent`.
-            /// - SeeAlso: `.unprocessableContent`.
-            public var unprocessableContent: Operations.sign_in_with_apple_api_v1_auth_apple_post.Output.UnprocessableContent {
-                get throws {
-                    switch self {
-                    case let .unprocessableContent(response):
-                        return response
-                    default:
-                        try throwUnexpectedResponseStatus(
-                            expectedStatus: "unprocessableContent",
-                            response: self
-                        )
-                    }
-                }
-            }
             /// Undocumented response.
             ///
             /// A response with a code that is not documented in the OpenAPI document.
@@ -1570,12 +1668,19 @@ public enum Operations {
         public struct Input: Sendable, Hashable {
             /// - Remark: Generated from `#/paths/api/v1/auth/google/POST/header`.
             public struct Headers: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/auth/google/POST/header/User-Agent`.
+                public var User_hyphen_Agent: Swift.String?
                 public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.sign_in_with_google_api_v1_auth_google_post.AcceptableContentType>]
                 /// Creates a new `Headers`.
                 ///
                 /// - Parameters:
+                ///   - User_hyphen_Agent:
                 ///   - accept:
-                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.sign_in_with_google_api_v1_auth_google_post.AcceptableContentType>] = .defaultValues()) {
+                public init(
+                    User_hyphen_Agent: Swift.String? = nil,
+                    accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.sign_in_with_google_api_v1_auth_google_post.AcceptableContentType>] = .defaultValues()
+                ) {
+                    self.User_hyphen_Agent = User_hyphen_Agent
                     self.accept = accept
                 }
             }
@@ -1651,57 +1756,6 @@ public enum Operations {
                     }
                 }
             }
-            public struct UnprocessableContent: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/api/v1/auth/google/POST/responses/422/content`.
-                @frozen public enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/api/v1/auth/google/POST/responses/422/content/application\/json`.
-                    case json(Components.Schemas.HTTPValidationError)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    public var json: Components.Schemas.HTTPValidationError {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                public var body: Operations.sign_in_with_google_api_v1_auth_google_post.Output.UnprocessableContent.Body
-                /// Creates a new `UnprocessableContent`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                public init(body: Operations.sign_in_with_google_api_v1_auth_google_post.Output.UnprocessableContent.Body) {
-                    self.body = body
-                }
-            }
-            /// Validation Error
-            ///
-            /// - Remark: Generated from `#/paths//api/v1/auth/google/post(sign_in_with_google_api_v1_auth_google_post)/responses/422`.
-            ///
-            /// HTTP response code: `422 unprocessableContent`.
-            case unprocessableContent(Operations.sign_in_with_google_api_v1_auth_google_post.Output.UnprocessableContent)
-            /// The associated value of the enum case if `self` is `.unprocessableContent`.
-            ///
-            /// - Throws: An error if `self` is not `.unprocessableContent`.
-            /// - SeeAlso: `.unprocessableContent`.
-            public var unprocessableContent: Operations.sign_in_with_google_api_v1_auth_google_post.Output.UnprocessableContent {
-                get throws {
-                    switch self {
-                    case let .unprocessableContent(response):
-                        return response
-                    default:
-                        try throwUnexpectedResponseStatus(
-                            expectedStatus: "unprocessableContent",
-                            response: self
-                        )
-                    }
-                }
-            }
             /// Undocumented response.
             ///
             /// A response with a code that is not documented in the OpenAPI document.
@@ -1747,12 +1801,19 @@ public enum Operations {
         public struct Input: Sendable, Hashable {
             /// - Remark: Generated from `#/paths/api/v1/auth/dev/POST/header`.
             public struct Headers: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/auth/dev/POST/header/User-Agent`.
+                public var User_hyphen_Agent: Swift.String?
                 public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.sign_in_dev_api_v1_auth_dev_post.AcceptableContentType>]
                 /// Creates a new `Headers`.
                 ///
                 /// - Parameters:
+                ///   - User_hyphen_Agent:
                 ///   - accept:
-                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.sign_in_dev_api_v1_auth_dev_post.AcceptableContentType>] = .defaultValues()) {
+                public init(
+                    User_hyphen_Agent: Swift.String? = nil,
+                    accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.sign_in_dev_api_v1_auth_dev_post.AcceptableContentType>] = .defaultValues()
+                ) {
+                    self.User_hyphen_Agent = User_hyphen_Agent
                     self.accept = accept
                 }
             }
@@ -1828,57 +1889,6 @@ public enum Operations {
                     }
                 }
             }
-            public struct UnprocessableContent: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/api/v1/auth/dev/POST/responses/422/content`.
-                @frozen public enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/api/v1/auth/dev/POST/responses/422/content/application\/json`.
-                    case json(Components.Schemas.HTTPValidationError)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    public var json: Components.Schemas.HTTPValidationError {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                public var body: Operations.sign_in_dev_api_v1_auth_dev_post.Output.UnprocessableContent.Body
-                /// Creates a new `UnprocessableContent`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                public init(body: Operations.sign_in_dev_api_v1_auth_dev_post.Output.UnprocessableContent.Body) {
-                    self.body = body
-                }
-            }
-            /// Validation Error
-            ///
-            /// - Remark: Generated from `#/paths//api/v1/auth/dev/post(sign_in_dev_api_v1_auth_dev_post)/responses/422`.
-            ///
-            /// HTTP response code: `422 unprocessableContent`.
-            case unprocessableContent(Operations.sign_in_dev_api_v1_auth_dev_post.Output.UnprocessableContent)
-            /// The associated value of the enum case if `self` is `.unprocessableContent`.
-            ///
-            /// - Throws: An error if `self` is not `.unprocessableContent`.
-            /// - SeeAlso: `.unprocessableContent`.
-            public var unprocessableContent: Operations.sign_in_dev_api_v1_auth_dev_post.Output.UnprocessableContent {
-                get throws {
-                    switch self {
-                    case let .unprocessableContent(response):
-                        return response
-                    default:
-                        try throwUnexpectedResponseStatus(
-                            expectedStatus: "unprocessableContent",
-                            response: self
-                        )
-                    }
-                }
-            }
             /// Undocumented response.
             ///
             /// A response with a code that is not documented in the OpenAPI document.
@@ -1919,12 +1929,19 @@ public enum Operations {
         public struct Input: Sendable, Hashable {
             /// - Remark: Generated from `#/paths/api/v1/auth/refresh/POST/header`.
             public struct Headers: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/auth/refresh/POST/header/User-Agent`.
+                public var User_hyphen_Agent: Swift.String?
                 public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.refresh_tokens_api_v1_auth_refresh_post.AcceptableContentType>]
                 /// Creates a new `Headers`.
                 ///
                 /// - Parameters:
+                ///   - User_hyphen_Agent:
                 ///   - accept:
-                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.refresh_tokens_api_v1_auth_refresh_post.AcceptableContentType>] = .defaultValues()) {
+                public init(
+                    User_hyphen_Agent: Swift.String? = nil,
+                    accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.refresh_tokens_api_v1_auth_refresh_post.AcceptableContentType>] = .defaultValues()
+                ) {
+                    self.User_hyphen_Agent = User_hyphen_Agent
                     self.accept = accept
                 }
             }
@@ -2000,57 +2017,6 @@ public enum Operations {
                     }
                 }
             }
-            public struct UnprocessableContent: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/api/v1/auth/refresh/POST/responses/422/content`.
-                @frozen public enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/api/v1/auth/refresh/POST/responses/422/content/application\/json`.
-                    case json(Components.Schemas.HTTPValidationError)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    public var json: Components.Schemas.HTTPValidationError {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                public var body: Operations.refresh_tokens_api_v1_auth_refresh_post.Output.UnprocessableContent.Body
-                /// Creates a new `UnprocessableContent`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                public init(body: Operations.refresh_tokens_api_v1_auth_refresh_post.Output.UnprocessableContent.Body) {
-                    self.body = body
-                }
-            }
-            /// Validation Error
-            ///
-            /// - Remark: Generated from `#/paths//api/v1/auth/refresh/post(refresh_tokens_api_v1_auth_refresh_post)/responses/422`.
-            ///
-            /// HTTP response code: `422 unprocessableContent`.
-            case unprocessableContent(Operations.refresh_tokens_api_v1_auth_refresh_post.Output.UnprocessableContent)
-            /// The associated value of the enum case if `self` is `.unprocessableContent`.
-            ///
-            /// - Throws: An error if `self` is not `.unprocessableContent`.
-            /// - SeeAlso: `.unprocessableContent`.
-            public var unprocessableContent: Operations.refresh_tokens_api_v1_auth_refresh_post.Output.UnprocessableContent {
-                get throws {
-                    switch self {
-                    case let .unprocessableContent(response):
-                        return response
-                    default:
-                        try throwUnexpectedResponseStatus(
-                            expectedStatus: "unprocessableContent",
-                            response: self
-                        )
-                    }
-                }
-            }
             /// Undocumented response.
             ///
             /// A response with a code that is not documented in the OpenAPI document.
@@ -2089,18 +2055,6 @@ public enum Operations {
     public enum logout_api_v1_auth_logout_post {
         public static let id: Swift.String = "logout_api_v1_auth_logout_post"
         public struct Input: Sendable, Hashable {
-            /// - Remark: Generated from `#/paths/api/v1/auth/logout/POST/header`.
-            public struct Headers: Sendable, Hashable {
-                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.logout_api_v1_auth_logout_post.AcceptableContentType>]
-                /// Creates a new `Headers`.
-                ///
-                /// - Parameters:
-                ///   - accept:
-                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.logout_api_v1_auth_logout_post.AcceptableContentType>] = .defaultValues()) {
-                    self.accept = accept
-                }
-            }
-            public var headers: Operations.logout_api_v1_auth_logout_post.Input.Headers
             /// - Remark: Generated from `#/paths/api/v1/auth/logout/POST/requestBody`.
             @frozen public enum Body: Sendable, Hashable {
                 /// - Remark: Generated from `#/paths/api/v1/auth/logout/POST/requestBody/content/application\/json`.
@@ -2110,13 +2064,8 @@ public enum Operations {
             /// Creates a new `Input`.
             ///
             /// - Parameters:
-            ///   - headers:
             ///   - body:
-            public init(
-                headers: Operations.logout_api_v1_auth_logout_post.Input.Headers = .init(),
-                body: Operations.logout_api_v1_auth_logout_post.Input.Body
-            ) {
-                self.headers = headers
+            public init(body: Operations.logout_api_v1_auth_logout_post.Input.Body) {
                 self.body = body
             }
         }
@@ -2156,86 +2105,10 @@ public enum Operations {
                     }
                 }
             }
-            public struct UnprocessableContent: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/api/v1/auth/logout/POST/responses/422/content`.
-                @frozen public enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/api/v1/auth/logout/POST/responses/422/content/application\/json`.
-                    case json(Components.Schemas.HTTPValidationError)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    public var json: Components.Schemas.HTTPValidationError {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                public var body: Operations.logout_api_v1_auth_logout_post.Output.UnprocessableContent.Body
-                /// Creates a new `UnprocessableContent`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                public init(body: Operations.logout_api_v1_auth_logout_post.Output.UnprocessableContent.Body) {
-                    self.body = body
-                }
-            }
-            /// Validation Error
-            ///
-            /// - Remark: Generated from `#/paths//api/v1/auth/logout/post(logout_api_v1_auth_logout_post)/responses/422`.
-            ///
-            /// HTTP response code: `422 unprocessableContent`.
-            case unprocessableContent(Operations.logout_api_v1_auth_logout_post.Output.UnprocessableContent)
-            /// The associated value of the enum case if `self` is `.unprocessableContent`.
-            ///
-            /// - Throws: An error if `self` is not `.unprocessableContent`.
-            /// - SeeAlso: `.unprocessableContent`.
-            public var unprocessableContent: Operations.logout_api_v1_auth_logout_post.Output.UnprocessableContent {
-                get throws {
-                    switch self {
-                    case let .unprocessableContent(response):
-                        return response
-                    default:
-                        try throwUnexpectedResponseStatus(
-                            expectedStatus: "unprocessableContent",
-                            response: self
-                        )
-                    }
-                }
-            }
             /// Undocumented response.
             ///
             /// A response with a code that is not documented in the OpenAPI document.
             case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
-        }
-        @frozen public enum AcceptableContentType: AcceptableProtocol {
-            case json
-            case other(Swift.String)
-            public init?(rawValue: Swift.String) {
-                switch rawValue.lowercased() {
-                case "application/json":
-                    self = .json
-                default:
-                    self = .other(rawValue)
-                }
-            }
-            public var rawValue: Swift.String {
-                switch self {
-                case let .other(string):
-                    return string
-                case .json:
-                    return "application/json"
-                }
-            }
-            public static var allCases: [Self] {
-                [
-                    .json
-                ]
-            }
         }
     }
     /// Get Me
@@ -2317,57 +2190,6 @@ public enum Operations {
                     }
                 }
             }
-            public struct UnprocessableContent: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/api/v1/users/me/GET/responses/422/content`.
-                @frozen public enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/api/v1/users/me/GET/responses/422/content/application\/json`.
-                    case json(Components.Schemas.HTTPValidationError)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    public var json: Components.Schemas.HTTPValidationError {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                public var body: Operations.get_me_api_v1_users_me_get.Output.UnprocessableContent.Body
-                /// Creates a new `UnprocessableContent`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                public init(body: Operations.get_me_api_v1_users_me_get.Output.UnprocessableContent.Body) {
-                    self.body = body
-                }
-            }
-            /// Validation Error
-            ///
-            /// - Remark: Generated from `#/paths//api/v1/users/me/get(get_me_api_v1_users_me_get)/responses/422`.
-            ///
-            /// HTTP response code: `422 unprocessableContent`.
-            case unprocessableContent(Operations.get_me_api_v1_users_me_get.Output.UnprocessableContent)
-            /// The associated value of the enum case if `self` is `.unprocessableContent`.
-            ///
-            /// - Throws: An error if `self` is not `.unprocessableContent`.
-            /// - SeeAlso: `.unprocessableContent`.
-            public var unprocessableContent: Operations.get_me_api_v1_users_me_get.Output.UnprocessableContent {
-                get throws {
-                    switch self {
-                    case let .unprocessableContent(response):
-                        return response
-                    default:
-                        try throwUnexpectedResponseStatus(
-                            expectedStatus: "unprocessableContent",
-                            response: self
-                        )
-                    }
-                }
-            }
             /// Undocumented response.
             ///
             /// A response with a code that is not documented in the OpenAPI document.
@@ -2412,13 +2234,30 @@ public enum Operations {
         public struct Input: Sendable, Hashable {
             /// - Remark: Generated from `#/paths/api/v1/mochi_items/GET/query`.
             public struct Query: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/mochi_items/GET/query/capturedFrom`.
+                public var capturedFrom: Foundation.Date?
+                /// - Remark: Generated from `#/paths/api/v1/mochi_items/GET/query/capturedTo`.
+                public var capturedTo: Foundation.Date?
+                /// - Remark: Generated from `#/paths/api/v1/mochi_items/GET/query/intent`.
+                public var intent: Components.Schemas.Intent?
                 /// - Remark: Generated from `#/paths/api/v1/mochi_items/GET/query/limit`.
                 public var limit: Swift.Int?
                 /// Creates a new `Query`.
                 ///
                 /// - Parameters:
+                ///   - capturedFrom:
+                ///   - capturedTo:
+                ///   - intent:
                 ///   - limit:
-                public init(limit: Swift.Int? = nil) {
+                public init(
+                    capturedFrom: Foundation.Date? = nil,
+                    capturedTo: Foundation.Date? = nil,
+                    intent: Components.Schemas.Intent? = nil,
+                    limit: Swift.Int? = nil
+                ) {
+                    self.capturedFrom = capturedFrom
+                    self.capturedTo = capturedTo
+                    self.intent = intent
                     self.limit = limit
                 }
             }
@@ -2500,57 +2339,6 @@ public enum Operations {
                     }
                 }
             }
-            public struct UnprocessableContent: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/api/v1/mochi_items/GET/responses/422/content`.
-                @frozen public enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/api/v1/mochi_items/GET/responses/422/content/application\/json`.
-                    case json(Components.Schemas.HTTPValidationError)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    public var json: Components.Schemas.HTTPValidationError {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                public var body: Operations.list_mochi_items_api_v1_mochi_items_get.Output.UnprocessableContent.Body
-                /// Creates a new `UnprocessableContent`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                public init(body: Operations.list_mochi_items_api_v1_mochi_items_get.Output.UnprocessableContent.Body) {
-                    self.body = body
-                }
-            }
-            /// Validation Error
-            ///
-            /// - Remark: Generated from `#/paths//api/v1/mochi_items/get(list_mochi_items_api_v1_mochi_items_get)/responses/422`.
-            ///
-            /// HTTP response code: `422 unprocessableContent`.
-            case unprocessableContent(Operations.list_mochi_items_api_v1_mochi_items_get.Output.UnprocessableContent)
-            /// The associated value of the enum case if `self` is `.unprocessableContent`.
-            ///
-            /// - Throws: An error if `self` is not `.unprocessableContent`.
-            /// - SeeAlso: `.unprocessableContent`.
-            public var unprocessableContent: Operations.list_mochi_items_api_v1_mochi_items_get.Output.UnprocessableContent {
-                get throws {
-                    switch self {
-                    case let .unprocessableContent(response):
-                        return response
-                    default:
-                        try throwUnexpectedResponseStatus(
-                            expectedStatus: "unprocessableContent",
-                            response: self
-                        )
-                    }
-                }
-            }
             /// Undocumented response.
             ///
             /// A response with a code that is not documented in the OpenAPI document.
@@ -2591,12 +2379,19 @@ public enum Operations {
         public struct Input: Sendable, Hashable {
             /// - Remark: Generated from `#/paths/api/v1/mochi_items/POST/header`.
             public struct Headers: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/mochi_items/POST/header/Idempotency-Key`.
+                public var Idempotency_hyphen_Key: Swift.String?
                 public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.create_mochi_item_api_v1_mochi_items_post.AcceptableContentType>]
                 /// Creates a new `Headers`.
                 ///
                 /// - Parameters:
+                ///   - Idempotency_hyphen_Key:
                 ///   - accept:
-                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.create_mochi_item_api_v1_mochi_items_post.AcceptableContentType>] = .defaultValues()) {
+                public init(
+                    Idempotency_hyphen_Key: Swift.String? = nil,
+                    accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.create_mochi_item_api_v1_mochi_items_post.AcceptableContentType>] = .defaultValues()
+                ) {
+                    self.Idempotency_hyphen_Key = Idempotency_hyphen_Key
                     self.accept = accept
                 }
             }
@@ -2672,57 +2467,6 @@ public enum Operations {
                     }
                 }
             }
-            public struct UnprocessableContent: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/api/v1/mochi_items/POST/responses/422/content`.
-                @frozen public enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/api/v1/mochi_items/POST/responses/422/content/application\/json`.
-                    case json(Components.Schemas.HTTPValidationError)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    public var json: Components.Schemas.HTTPValidationError {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                public var body: Operations.create_mochi_item_api_v1_mochi_items_post.Output.UnprocessableContent.Body
-                /// Creates a new `UnprocessableContent`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                public init(body: Operations.create_mochi_item_api_v1_mochi_items_post.Output.UnprocessableContent.Body) {
-                    self.body = body
-                }
-            }
-            /// Validation Error
-            ///
-            /// - Remark: Generated from `#/paths//api/v1/mochi_items/post(create_mochi_item_api_v1_mochi_items_post)/responses/422`.
-            ///
-            /// HTTP response code: `422 unprocessableContent`.
-            case unprocessableContent(Operations.create_mochi_item_api_v1_mochi_items_post.Output.UnprocessableContent)
-            /// The associated value of the enum case if `self` is `.unprocessableContent`.
-            ///
-            /// - Throws: An error if `self` is not `.unprocessableContent`.
-            /// - SeeAlso: `.unprocessableContent`.
-            public var unprocessableContent: Operations.create_mochi_item_api_v1_mochi_items_post.Output.UnprocessableContent {
-                get throws {
-                    switch self {
-                    case let .unprocessableContent(response):
-                        return response
-                    default:
-                        try throwUnexpectedResponseStatus(
-                            expectedStatus: "unprocessableContent",
-                            response: self
-                        )
-                    }
-                }
-            }
             /// Undocumented response.
             ///
             /// A response with a code that is not documented in the OpenAPI document.
@@ -2769,12 +2513,19 @@ public enum Operations {
         public struct Input: Sendable, Hashable {
             /// - Remark: Generated from `#/paths/api/v1/mochi_items/back-tap/POST/header`.
             public struct Headers: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/mochi_items/back-tap/POST/header/Idempotency-Key`.
+                public var Idempotency_hyphen_Key: Swift.String?
                 public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post.AcceptableContentType>]
                 /// Creates a new `Headers`.
                 ///
                 /// - Parameters:
+                ///   - Idempotency_hyphen_Key:
                 ///   - accept:
-                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post.AcceptableContentType>] = .defaultValues()) {
+                public init(
+                    Idempotency_hyphen_Key: Swift.String? = nil,
+                    accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post.AcceptableContentType>] = .defaultValues()
+                ) {
+                    self.Idempotency_hyphen_Key = Idempotency_hyphen_Key
                     self.accept = accept
                 }
             }
@@ -2845,57 +2596,6 @@ public enum Operations {
                     default:
                         try throwUnexpectedResponseStatus(
                             expectedStatus: "created",
-                            response: self
-                        )
-                    }
-                }
-            }
-            public struct UnprocessableContent: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/api/v1/mochi_items/back-tap/POST/responses/422/content`.
-                @frozen public enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/api/v1/mochi_items/back-tap/POST/responses/422/content/application\/json`.
-                    case json(Components.Schemas.HTTPValidationError)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    public var json: Components.Schemas.HTTPValidationError {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                public var body: Operations.create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post.Output.UnprocessableContent.Body
-                /// Creates a new `UnprocessableContent`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                public init(body: Operations.create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post.Output.UnprocessableContent.Body) {
-                    self.body = body
-                }
-            }
-            /// Validation Error
-            ///
-            /// - Remark: Generated from `#/paths//api/v1/mochi_items/back-tap/post(create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post)/responses/422`.
-            ///
-            /// HTTP response code: `422 unprocessableContent`.
-            case unprocessableContent(Operations.create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post.Output.UnprocessableContent)
-            /// The associated value of the enum case if `self` is `.unprocessableContent`.
-            ///
-            /// - Throws: An error if `self` is not `.unprocessableContent`.
-            /// - SeeAlso: `.unprocessableContent`.
-            public var unprocessableContent: Operations.create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post.Output.UnprocessableContent {
-                get throws {
-                    switch self {
-                    case let .unprocessableContent(response):
-                        return response
-                    default:
-                        try throwUnexpectedResponseStatus(
-                            expectedStatus: "unprocessableContent",
                             response: self
                         )
                     }
@@ -3023,57 +2723,6 @@ public enum Operations {
                     default:
                         try throwUnexpectedResponseStatus(
                             expectedStatus: "ok",
-                            response: self
-                        )
-                    }
-                }
-            }
-            public struct UnprocessableContent: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/api/v1/mochi_items/presign/POST/responses/422/content`.
-                @frozen public enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/api/v1/mochi_items/presign/POST/responses/422/content/application\/json`.
-                    case json(Components.Schemas.HTTPValidationError)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    public var json: Components.Schemas.HTTPValidationError {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                public var body: Operations.presign_capture_upload_api_v1_mochi_items_presign_post.Output.UnprocessableContent.Body
-                /// Creates a new `UnprocessableContent`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                public init(body: Operations.presign_capture_upload_api_v1_mochi_items_presign_post.Output.UnprocessableContent.Body) {
-                    self.body = body
-                }
-            }
-            /// Validation Error
-            ///
-            /// - Remark: Generated from `#/paths//api/v1/mochi_items/presign/post(presign_capture_upload_api_v1_mochi_items_presign_post)/responses/422`.
-            ///
-            /// HTTP response code: `422 unprocessableContent`.
-            case unprocessableContent(Operations.presign_capture_upload_api_v1_mochi_items_presign_post.Output.UnprocessableContent)
-            /// The associated value of the enum case if `self` is `.unprocessableContent`.
-            ///
-            /// - Throws: An error if `self` is not `.unprocessableContent`.
-            /// - SeeAlso: `.unprocessableContent`.
-            public var unprocessableContent: Operations.presign_capture_upload_api_v1_mochi_items_presign_post.Output.UnprocessableContent {
-                get throws {
-                    switch self {
-                    case let .unprocessableContent(response):
-                        return response
-                    default:
-                        try throwUnexpectedResponseStatus(
-                            expectedStatus: "unprocessableContent",
                             response: self
                         )
                     }
@@ -3216,57 +2865,6 @@ public enum Operations {
                     }
                 }
             }
-            public struct UnprocessableContent: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/intent/PATCH/responses/422/content`.
-                @frozen public enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/intent/PATCH/responses/422/content/application\/json`.
-                    case json(Components.Schemas.HTTPValidationError)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    public var json: Components.Schemas.HTTPValidationError {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                public var body: Operations.override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch.Output.UnprocessableContent.Body
-                /// Creates a new `UnprocessableContent`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                public init(body: Operations.override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch.Output.UnprocessableContent.Body) {
-                    self.body = body
-                }
-            }
-            /// Validation Error
-            ///
-            /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/intent/patch(override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch)/responses/422`.
-            ///
-            /// HTTP response code: `422 unprocessableContent`.
-            case unprocessableContent(Operations.override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch.Output.UnprocessableContent)
-            /// The associated value of the enum case if `self` is `.unprocessableContent`.
-            ///
-            /// - Throws: An error if `self` is not `.unprocessableContent`.
-            /// - SeeAlso: `.unprocessableContent`.
-            public var unprocessableContent: Operations.override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch.Output.UnprocessableContent {
-                get throws {
-                    switch self {
-                    case let .unprocessableContent(response):
-                        return response
-                    default:
-                        try throwUnexpectedResponseStatus(
-                            expectedStatus: "unprocessableContent",
-                            response: self
-                        )
-                    }
-                }
-            }
             /// Undocumented response.
             ///
             /// A response with a code that is not documented in the OpenAPI document.
@@ -3399,57 +2997,6 @@ public enum Operations {
                     default:
                         try throwUnexpectedResponseStatus(
                             expectedStatus: "ok",
-                            response: self
-                        )
-                    }
-                }
-            }
-            public struct UnprocessableContent: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/api/v1/mochi_items/calendar/GET/responses/422/content`.
-                @frozen public enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/api/v1/mochi_items/calendar/GET/responses/422/content/application\/json`.
-                    case json(Components.Schemas.HTTPValidationError)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    public var json: Components.Schemas.HTTPValidationError {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                public var body: Operations.get_monthly_calendar_api_v1_mochi_items_calendar_get.Output.UnprocessableContent.Body
-                /// Creates a new `UnprocessableContent`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                public init(body: Operations.get_monthly_calendar_api_v1_mochi_items_calendar_get.Output.UnprocessableContent.Body) {
-                    self.body = body
-                }
-            }
-            /// Validation Error
-            ///
-            /// - Remark: Generated from `#/paths//api/v1/mochi_items/calendar/get(get_monthly_calendar_api_v1_mochi_items_calendar_get)/responses/422`.
-            ///
-            /// HTTP response code: `422 unprocessableContent`.
-            case unprocessableContent(Operations.get_monthly_calendar_api_v1_mochi_items_calendar_get.Output.UnprocessableContent)
-            /// The associated value of the enum case if `self` is `.unprocessableContent`.
-            ///
-            /// - Throws: An error if `self` is not `.unprocessableContent`.
-            /// - SeeAlso: `.unprocessableContent`.
-            public var unprocessableContent: Operations.get_monthly_calendar_api_v1_mochi_items_calendar_get.Output.UnprocessableContent {
-                get throws {
-                    switch self {
-                    case let .unprocessableContent(response):
-                        return response
-                    default:
-                        try throwUnexpectedResponseStatus(
-                            expectedStatus: "unprocessableContent",
                             response: self
                         )
                     }
@@ -3588,57 +3135,6 @@ public enum Operations {
                     }
                 }
             }
-            public struct UnprocessableContent: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/api/v1/mochi_items/todos/upcoming/GET/responses/422/content`.
-                @frozen public enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/api/v1/mochi_items/todos/upcoming/GET/responses/422/content/application\/json`.
-                    case json(Components.Schemas.HTTPValidationError)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    public var json: Components.Schemas.HTTPValidationError {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                public var body: Operations.get_upcoming_todos_api_v1_mochi_items_todos_upcoming_get.Output.UnprocessableContent.Body
-                /// Creates a new `UnprocessableContent`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                public init(body: Operations.get_upcoming_todos_api_v1_mochi_items_todos_upcoming_get.Output.UnprocessableContent.Body) {
-                    self.body = body
-                }
-            }
-            /// Validation Error
-            ///
-            /// - Remark: Generated from `#/paths//api/v1/mochi_items/todos/upcoming/get(get_upcoming_todos_api_v1_mochi_items_todos_upcoming_get)/responses/422`.
-            ///
-            /// HTTP response code: `422 unprocessableContent`.
-            case unprocessableContent(Operations.get_upcoming_todos_api_v1_mochi_items_todos_upcoming_get.Output.UnprocessableContent)
-            /// The associated value of the enum case if `self` is `.unprocessableContent`.
-            ///
-            /// - Throws: An error if `self` is not `.unprocessableContent`.
-            /// - SeeAlso: `.unprocessableContent`.
-            public var unprocessableContent: Operations.get_upcoming_todos_api_v1_mochi_items_todos_upcoming_get.Output.UnprocessableContent {
-                get throws {
-                    switch self {
-                    case let .unprocessableContent(response):
-                        return response
-                    default:
-                        try throwUnexpectedResponseStatus(
-                            expectedStatus: "unprocessableContent",
-                            response: self
-                        )
-                    }
-                }
-            }
             /// Undocumented response.
             ///
             /// A response with a code that is not documented in the OpenAPI document.
@@ -3762,57 +3258,6 @@ public enum Operations {
                     default:
                         try throwUnexpectedResponseStatus(
                             expectedStatus: "ok",
-                            response: self
-                        )
-                    }
-                }
-            }
-            public struct UnprocessableContent: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/GET/responses/422/content`.
-                @frozen public enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/GET/responses/422/content/application\/json`.
-                    case json(Components.Schemas.HTTPValidationError)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    public var json: Components.Schemas.HTTPValidationError {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                public var body: Operations.get_mochi_item_api_v1_mochi_items__mochi_item_id__get.Output.UnprocessableContent.Body
-                /// Creates a new `UnprocessableContent`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                public init(body: Operations.get_mochi_item_api_v1_mochi_items__mochi_item_id__get.Output.UnprocessableContent.Body) {
-                    self.body = body
-                }
-            }
-            /// Validation Error
-            ///
-            /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/get(get_mochi_item_api_v1_mochi_items__mochi_item_id__get)/responses/422`.
-            ///
-            /// HTTP response code: `422 unprocessableContent`.
-            case unprocessableContent(Operations.get_mochi_item_api_v1_mochi_items__mochi_item_id__get.Output.UnprocessableContent)
-            /// The associated value of the enum case if `self` is `.unprocessableContent`.
-            ///
-            /// - Throws: An error if `self` is not `.unprocessableContent`.
-            /// - SeeAlso: `.unprocessableContent`.
-            public var unprocessableContent: Operations.get_mochi_item_api_v1_mochi_items__mochi_item_id__get.Output.UnprocessableContent {
-                get throws {
-                    switch self {
-                    case let .unprocessableContent(response):
-                        return response
-                    default:
-                        try throwUnexpectedResponseStatus(
-                            expectedStatus: "unprocessableContent",
                             response: self
                         )
                     }
@@ -3957,57 +3402,6 @@ public enum Operations {
                     }
                 }
             }
-            public struct UnprocessableContent: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/stream/GET/responses/422/content`.
-                @frozen public enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/stream/GET/responses/422/content/application\/json`.
-                    case json(Components.Schemas.HTTPValidationError)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    public var json: Components.Schemas.HTTPValidationError {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                public var body: Operations.stream_agent_run_api_v1_mochi_items__mochi_item_id__stream_get.Output.UnprocessableContent.Body
-                /// Creates a new `UnprocessableContent`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                public init(body: Operations.stream_agent_run_api_v1_mochi_items__mochi_item_id__stream_get.Output.UnprocessableContent.Body) {
-                    self.body = body
-                }
-            }
-            /// Validation Error
-            ///
-            /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/stream/get(stream_agent_run_api_v1_mochi_items__mochi_item_id__stream_get)/responses/422`.
-            ///
-            /// HTTP response code: `422 unprocessableContent`.
-            case unprocessableContent(Operations.stream_agent_run_api_v1_mochi_items__mochi_item_id__stream_get.Output.UnprocessableContent)
-            /// The associated value of the enum case if `self` is `.unprocessableContent`.
-            ///
-            /// - Throws: An error if `self` is not `.unprocessableContent`.
-            /// - SeeAlso: `.unprocessableContent`.
-            public var unprocessableContent: Operations.stream_agent_run_api_v1_mochi_items__mochi_item_id__stream_get.Output.UnprocessableContent {
-                get throws {
-                    switch self {
-                    case let .unprocessableContent(response):
-                        return response
-                    default:
-                        try throwUnexpectedResponseStatus(
-                            expectedStatus: "unprocessableContent",
-                            response: self
-                        )
-                    }
-                }
-            }
             /// Undocumented response.
             ///
             /// A response with a code that is not documented in the OpenAPI document.
@@ -4124,57 +3518,6 @@ public enum Operations {
                     default:
                         try throwUnexpectedResponseStatus(
                             expectedStatus: "ok",
-                            response: self
-                        )
-                    }
-                }
-            }
-            public struct UnprocessableContent: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/api/v1/search/POST/responses/422/content`.
-                @frozen public enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/api/v1/search/POST/responses/422/content/application\/json`.
-                    case json(Components.Schemas.HTTPValidationError)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    public var json: Components.Schemas.HTTPValidationError {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                public var body: Operations.search_api_v1_search_post.Output.UnprocessableContent.Body
-                /// Creates a new `UnprocessableContent`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                public init(body: Operations.search_api_v1_search_post.Output.UnprocessableContent.Body) {
-                    self.body = body
-                }
-            }
-            /// Validation Error
-            ///
-            /// - Remark: Generated from `#/paths//api/v1/search/post(search_api_v1_search_post)/responses/422`.
-            ///
-            /// HTTP response code: `422 unprocessableContent`.
-            case unprocessableContent(Operations.search_api_v1_search_post.Output.UnprocessableContent)
-            /// The associated value of the enum case if `self` is `.unprocessableContent`.
-            ///
-            /// - Throws: An error if `self` is not `.unprocessableContent`.
-            /// - SeeAlso: `.unprocessableContent`.
-            public var unprocessableContent: Operations.search_api_v1_search_post.Output.UnprocessableContent {
-                get throws {
-                    switch self {
-                    case let .unprocessableContent(response):
-                        return response
-                    default:
-                        try throwUnexpectedResponseStatus(
-                            expectedStatus: "unprocessableContent",
                             response: self
                         )
                     }

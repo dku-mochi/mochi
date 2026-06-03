@@ -45,7 +45,7 @@ Codex 는 모찌의 **검증자**다. Claude 의 `code-reviewer` / `qa-validator
 **리뷰 기준 (CLAUDE.md 원칙 + `docs/WORKFLOW.md` 티어 정합성):**
 - **Surgical** — 요청과 무관한 변경/리팩터/포맷 변경이 섞였는가
 - **Simplicity** — 과설계·불필요한 추상화·일어날 수 없는 에러 핸들링
-- **티어 정합성** — 네이밍 사전(어휘)·레이어 위치(구조)·`openapi.json` 동기화(계약)
+- **티어 정합성** — 네이밍 사전(어휘)·레이어 위치(구조)·**API 계약(⓪: `mochi-backend/openapi.json` 단일원천. iOS 는 거기서 생성. 생성물 `Generated/*.swift` 가 openapi.json 과 stale 하지 않은지 = `ship-precheck §5`)**
 - **문서 소유 경계** — `docs` 에 스키마/DDL 복제 누수(참조 아닌 복제), 정본 외 문서가 컬럼 재정의 (`docs/WORKFLOW.md` §2.1 참조-비복제)
 
 **P1(must-fix) 으로 잡을 도메인 불변식:**

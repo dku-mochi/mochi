@@ -2,7 +2,7 @@
 level: 2
 mode: committed
 status: active
-last_verified: 2026-06-03
+last_verified: 2026-06-04
 confidence: 0.7
 owners: [송준서, 이용찬, 박세현]
 description: 시스템 토폴로지·iOS↔Backend 데이터흐름·API 계약의 committed 정본. 다음 중 하나라도 손대기 전 반드시 읽어라 — 두 프로젝트 모두 영향, presentation 스키마, openapi.json, Idempotency-Key, WebFetch SSRF 가드, 모노레포 빌드/배포. 일부 "목표 상태" 서술은 docs/l2/aspirational/ 로 분리 예정. 변경 시 양 README·openapi.json·plan(L3) 정합성 폭포 필수.
@@ -323,15 +323,17 @@ SearchResponse
 | 에러 envelope | `{code, message, requestId, retryAfter}` 통일 포맷, iOS `APIErrorEnvelope` 와 1:1 |
 | SSRF | WebFetchTool/PlatformContextTool: 호스트 블록리스트 + 모든 A/AAAA 답변 IP 검증 (DNS rebinding 방어) + 매 redirect 재검증 + 스트리밍 byte limit + MIME 화이트리스트 |
 
-### 3.6 OpenAPI 계약
+### 3.6 OpenAPI 계약 (⓪-tier 단일 원천)
 
-- `make openapi` (또는 `PYTHONPATH=. uv run python scripts/export_openapi.py`) → `openapi.json` 정적 추출
-- iOS `swift-openapi-generator` 가 빌드 타임에 이 파일을 소스로 사용
-- CI 가 backend test 후 openapi 를 재생성·diff 하여 drift 차단
+- `make openapi` (= `scripts/export_openapi.py`) → `openapi.json` 정적 추출 + iOS `CoreNetworking/openapi.json` 동기화. FastAPI 3.1 의 `anyOf:[X, {type:null}]` 은 `export_openapi.py` 가 3.0 `nullable:true` 로 낮춘다 (swift-openapi-generator 가 `type:null` 을 skip 하는 문제 회피).
+- iOS `CodeGen/generate.sh`(swift-openapi-generator)가 `openapi.json` → `CoreNetworking/Sources/Generated/{Client,Types}.swift` 생성. `OpenAPIMochiClient` 어댑터가 `MochiAPIClient` 라이브 구현(날짜 transcoder + auth 미들웨어 + 6 op 위임, `putCaptureImage` 만 GCS 직접 PUT).
+- 동기화 게이트: `ship-precheck §5a`(백엔드 code↔openapi.json no-diff) + `§5b`(openapi.json↔생성물 no-diff). CI(`ship-precheck.yml`)는 §5a 재실행.
 
 ---
 
 ## 4. iOS ↔ Backend 계약
+
+> **API 계약의 단일 원천은 [`mochi-backend/openapi.json`](../mochi-backend/openapi.json)** — 백엔드 `presentation/` 에서 `make openapi` 로 생성된다. **엔드포인트 목록·요청/응답 스키마·필드 타입은 이 문서에 복제하지 않는다**(로컬 구동 시 `GET /docs` Swagger UI). 어느 라우트가 실재하고 iOS 가 배선됐는지의 단일 원천은 [`DOMAIN_DESIGN.md`](DOMAIN_DESIGN.md) §6 이다. 이 절은 그 위에 얹히는 *런타임 규약*(헤더)·*매핑*만 다룬다.
 
 ### 4.1 Request headers
 
@@ -343,18 +345,7 @@ SearchResponse
 
 ### 4.2 Endpoints
 
-| Method | Path | 응답 | 비고 |
-|---|---|---|---|
-| GET | `/api/v1/health` | `{status: "ok"}` | 인증 불요 |
-| POST | `/api/v1/mochi_items` | `MochiItemResponse` (201) | `MochiItemCreateRequest` body, `attachments` 포함 |
-| POST | `/api/v1/mochi_items/presign` | `{objectKey, uploadURL, expiresAt}` | 클라이언트 직접 GCS PUT 업로드 |
-| POST | `/api/v1/mochi_items/back-tap` | `MochiItemResponse` (201) | 백탭 캡처 JSON ingest |
-| GET | `/api/v1/mochi_items/{id}` | `MochiItemResponse` | owner-scoped |
-| PATCH | `/api/v1/mochi_items/{id}/intent` | `MochiItemResponse` | 분류 override · iOS 미배선 |
-| GET | `/api/v1/mochi_items/{id}/stream` | SSE `text/event-stream` | Agent state graph · iOS 미구독 |
-| ~~PATCH/DELETE `/{id}`~~ · ~~GET list~~ · ~~`/sync`~~ · ~~`/search`~~ · ~~`/conversations`~~ | — | **계획·라우트 미존재** |
-
-> ⚠️ 구현 상태 단일 원천은 [`DOMAIN_DESIGN.md`](DOMAIN_DESIGN.md) §6 이다. 위 취소선 항목(list/delete/sync/search/conversations)은 라우트가 아직 없다(계획). 필드명은 `lifecycle_kind`(코드 정본).
+엔드포인트 목록·요청/응답 스키마는 **`openapi.json`** 단일 원천(위 §4 노트). 각 라우트의 도메인 의미·실재/배선 상태(✅실재배선 / ◑서버만 / ○미존재)는 [`DOMAIN_DESIGN.md`](DOMAIN_DESIGN.md) §6 표를 본다.
 
 ### 4.3 DTO 매핑
 

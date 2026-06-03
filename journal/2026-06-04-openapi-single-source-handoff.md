@@ -1,7 +1,7 @@
 ---
 level: 3
 mode: log
-status: active
+status: done
 last_verified: 2026-06-04
 confidence: 0.9
 owners: [송준서]
@@ -10,6 +10,8 @@ description: API 명세 분산 → openapi.json 단일 계약(code-first 생성)
 ---
 
 # OpenAPI 단일 계약(A) — Phase 1 핸드오프
+
+> **✅ 2026-06-04 Phase 2~4 전부 완료 (status: done).** 단 **아래 §3-1 "계약이 더 작다 → nil 동작보존" 은 오진**이었다 — 실제 원인은 FastAPI 가 OpenAPI 3.1 `anyOf:[X,{type:null}]` 로 내보내고 generator 1.12.2 가 `type:null` 을 skip 한 것(§3-4 의 nullable 문제가 핵심이었다). `export_openapi.py` 3.1→3.0 `nullable:true` 변환으로 `url`/`text`/`summary`/`agentRunId`/`objectKey`/`Idempotency-Key` 전부 복원 → `OpenAPIMochiClient` 어댑터 swap · 수기 클라 삭제 · 게이트 ③→⓪ 완료. **이하 본문은 Phase 1 시점 기록(history)이며, §3 진단은 위 교정으로 대체된다.** 상세: `docs/CHANGELOG.md` 2026-06-04.
 
 ## 0. TL;DR
 - **목표:** API 명세가 4곳(백엔드 code·openapi.json·iOS 수기 클라/DTO·docs 산문)에 분산 → **openapi.json 단일 계약**으로. 백엔드 code=source(code-first), openapi.json=생성물, iOS=거기서 *생성*, docs=참조. (WORKFLOW ⓪-tier 목표, iOS 쪽이 비어 있던 것.)

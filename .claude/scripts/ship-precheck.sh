@@ -129,30 +129,54 @@ if [[ "$SCOPE" == "ios" ]] || [[ "$SCOPE" == "all" ]]; then
   echo
 fi
 
-# 5) OpenAPI ↔ iOS 클라이언트 drift — generator 미배선의 fallback ② 게이트
-if [[ "$SCOPE" == "ios" ]] || [[ "$SCOPE" == "backend" ]] || [[ "$SCOPE" == "all" ]]; then
-  echo "### 5) OpenAPI ↔ iOS 클라이언트 drift (openapi-check.sh)"
-  api_out=$(bash "$REPO/.claude/scripts/openapi-check.sh" 2>&1)
-  api_rc=$?
-  case "$api_rc" in
-    0)
-      mark_pass "OpenAPI ↔ iOS 클라이언트 정합 (drift 0)."
-      ;;
-    1)
-      # drift 발견. 등재 known-drift 면 warn, 신규면 fail.
-      if grep -q "openapi-drift" "$REPO/docs/CHANGELOG.md" 2>/dev/null; then
-        mark_warn "OpenAPI drift 발견 — CHANGELOG 등재 known-drift (openapi-drift). 추적 중."
+# 5) OpenAPI 단일 계약 동기화 (⓪-tier) — 백엔드 code → openapi.json → iOS 생성 클라이언트.
+#    iOS 가 openapi.json 에서 *생성*(swift-openapi-generator)되므로 endpoint drift 는 구조적으로
+#    불가능. 대신 두 생성 경계가 stale 하지 않은지 검사한다 (이전 수기-클라 drift 검사 대체):
+#      (5a) 백엔드 code ↔ openapi.json  — make openapi 가 추가 변화를 만들면 export 누락(stale).
+#      (5b) openapi.json ↔ 생성물       — generate.sh 가 추가 변화를 만들면 재생성 누락(stale).
+if [[ "$SCOPE" == "backend" ]] || [[ "$SCOPE" == "all" ]]; then
+  echo "### 5a) 백엔드 code ↔ openapi.json (make openapi no-diff)"
+  if [[ -f "$REPO/mochi-backend/Makefile" ]] && grep -qE '^openapi:' "$REPO/mochi-backend/Makefile"; then
+    before=$(git -C "$REPO" hash-object mochi-backend/openapi.json 2>/dev/null || echo none)
+    mk_out=$(cd "$REPO/mochi-backend" && make openapi 2>&1); mk_rc=$?
+    after=$(git -C "$REPO" hash-object mochi-backend/openapi.json 2>/dev/null || echo none)
+    if [[ "$mk_rc" -ne 0 ]]; then
+      if echo "$mk_out" | grep -qE "command not found|No module|not found|Permission denied|uv cache|virtualenv|pyproject"; then
+        mark_warn "make openapi 환경 이슈 — \`cd mochi-backend && make install\` 후 재실행 권장."
       else
-        mark_fail "OpenAPI drift 발견 — CHANGELOG 미등재. 결정 후 머지 (openapi-check.sh 출력 확인)."
-        echo "$api_out" | grep -E "^- /api" | sed 's|^|    |'
+        mark_fail "make openapi 실패 — 출력 확인."
+        echo "$mk_out" | tail -5 | sed 's|^|    |'
       fi
-      ;;
-    *)
-      # exit 3/4/5 = extract 실패 / 입력 손상 / 환경 오류 — 절대 통과 표시 X
-      mark_fail "openapi-check.sh 가 exit $api_rc — 게이트 신뢰 불가. 출력 확인."
-      echo "$api_out" | sed 's|^|    |'
-      ;;
-  esac
+    elif [[ "$before" != "$after" ]]; then
+      mark_fail "openapi.json 이 백엔드 코드보다 stale — make openapi 가 갱신함. 커밋 + CodeGen/generate.sh 재실행 필요."
+    else
+      mark_pass "openapi.json 이 백엔드 코드와 동기화됨 (make openapi no-op)."
+    fi
+  else
+    mark_warn "mochi-backend/Makefile 의 openapi 타겟 부재 — 동기화 검사 건너뜀."
+  fi
+  echo
+fi
+
+if [[ "$SCOPE" == "ios" ]] || [[ "$SCOPE" == "all" ]]; then
+  echo "### 5b) openapi.json ↔ 생성 클라이언트 (generate.sh no-diff)"
+  gen_sh="$REPO/mochi-ios/CodeGen/generate.sh"
+  gen_dir="$REPO/mochi-ios/Targets/Cores/CoreNetworking/Sources/Generated"
+  if [[ -f "$gen_sh" ]] && command -v swift >/dev/null 2>&1; then
+    before=$(git -C "$REPO" hash-object "$gen_dir/Client.swift" "$gen_dir/Types.swift" 2>/dev/null)
+    gen_out=$(bash "$gen_sh" 2>&1); gen_rc=$?
+    after=$(git -C "$REPO" hash-object "$gen_dir/Client.swift" "$gen_dir/Types.swift" 2>/dev/null)
+    if [[ "$gen_rc" -ne 0 ]]; then
+      mark_fail "generate.sh 실패 — 출력 확인."
+      echo "$gen_out" | tail -5 | sed 's|^|    |'
+    elif [[ "$before" != "$after" ]]; then
+      mark_fail "생성 클라이언트가 openapi.json 보다 stale — generate.sh 가 갱신함. 재생성물 커밋 필요."
+    else
+      mark_pass "생성 클라이언트가 openapi.json 과 동기화됨 (generate.sh no-diff)."
+    fi
+  else
+    mark_warn "swift 또는 generate.sh 부재 — 생성물 동기화 검사 건너뜀 (swift 있는 로컬 머신에서 ship 권장)."
+  fi
   echo
 fi
 
