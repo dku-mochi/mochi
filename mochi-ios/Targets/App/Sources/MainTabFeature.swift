@@ -7,7 +7,7 @@ import FeatureSettings
 
 /// 메인 탭 reducer.
 ///
-/// 시안에 따라 4개 탭(홈/채팅/일정/검색) 구조. 채팅·일정은 현 단계 placeholder.
+/// 시안에 따라 4개 탭(홈/채팅/모찌들/검색) 구조. 채팅은 현 단계 placeholder, 모찌들은 캘린더 탭.
 /// 기존 InboxFeature 는 설정 화면의 디버그 항목에서만 접근 가능하도록 보존.
 @Reducer
 struct MainTabFeature: Sendable {
@@ -16,6 +16,7 @@ struct MainTabFeature: Sendable {
         var selectedTab: Tab = .home
         var home = HomeFeature.State()
         var inbox = InboxFeature.State()    // dev debug 접근용 (설정 → 디버그)
+        var mochiCalendar = MochiCalendarFeature.State()
         var search = SearchFeature.State()
         var settings = SettingsFeature.State()
 
@@ -29,14 +30,14 @@ struct MainTabFeature: Sendable {
     }
 
     enum Tab: String, CaseIterable, Sendable {
-        case home, chat, schedule, search
+        case home, chat, mochis, search
 
         var title: String {
             switch self {
-            case .home:     return "홈"
-            case .chat:     return "채팅"
-            case .schedule: return "일정"
-            case .search:   return "검색"
+            case .home:   return "홈"
+            case .chat:   return "채팅"
+            case .mochis: return "모찌들"
+            case .search: return "검색"
             }
         }
     }
@@ -45,6 +46,7 @@ struct MainTabFeature: Sendable {
         case tabSelected(Tab)
         case home(HomeFeature.Action)
         case inbox(InboxFeature.Action)
+        case mochiCalendar(MochiCalendarFeature.Action)
         case search(SearchFeature.Action)
         case settings(SettingsFeature.Action)
         case detail(PresentationAction<DetailFeature.Action>)
@@ -56,6 +58,7 @@ struct MainTabFeature: Sendable {
     var body: some ReducerOf<Self> {
         Scope(state: \.home,     action: \.home)     { HomeFeature() }
         Scope(state: \.inbox,    action: \.inbox)    { InboxFeature() }
+        Scope(state: \.mochiCalendar, action: \.mochiCalendar) { MochiCalendarFeature() }
         Scope(state: \.search,   action: \.search)   { SearchFeature() }
         Scope(state: \.settings, action: \.settings) { SettingsFeature() }
 
@@ -87,6 +90,10 @@ struct MainTabFeature: Sendable {
                 state.detail = DetailFeature.State(mochiItemID: mochiItemID)
                 return .none
 
+            case let .mochiCalendar(.mochiItemTapped(mochiItemID)):
+                state.detail = DetailFeature.State(mochiItemID: mochiItemID)
+                return .none
+
             case let .settingsSheetChanged(isOn):
                 state.isSettingsPresented = isOn
                 if !isOn { state.isDebugInboxPresented = false }
@@ -96,7 +103,7 @@ struct MainTabFeature: Sendable {
                 state.isDebugInboxPresented = isOn
                 return .none
 
-            case .home, .inbox, .search, .settings, .detail, .mochiItem:
+            case .home, .inbox, .mochiCalendar, .search, .settings, .detail, .mochiItem:
                 return .none
             }
         }

@@ -1,7 +1,8 @@
+from datetime import datetime
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Header, status
+from fastapi import APIRouter, Header, Query, status
 
 from app.core.config import get_settings
 from app.core.deps import CaptureImageStorageDep, DBSession
@@ -16,20 +17,31 @@ from app.modules.mochi_items.application.override_intent import (
     OverrideIntent,
     OverrideIntentCommand,
 )
+from app.modules.mochi_items.application.queries import (
+    GetMonthlyCalendar,
+    ListMochiItemsInRange,
+    ListUpcomingTodos,
+)
 from app.modules.mochi_items.domain.entities import ImageRef, MochiItem
 from app.modules.mochi_items.domain.ports import CaptureImageStorage, ObjectStat
 from app.modules.mochi_items.infrastructure.outbox import OutboxNotifier
 from app.modules.mochi_items.infrastructure.repository import PostgresMochiItemRepository
 from app.modules.mochi_items.presentation.schemas import (
     BackTapMochiItemRequest,
+    CalendarDayResponse,
     ImageRefResponse,
     IntentCandidateResponse,
     IntentOverrideRequest,
     MochiItemCreateRequest,
+    MochiItemListResponse,
     MochiItemResponse,
+    MonthlyCalendarResponse,
     PresignRequest,
     PresignResponse,
+    UpcomingTodoListResponse,
+    UpcomingTodoResponse,
 )
+from app.shared.intent import Intent
 
 router = APIRouter(prefix="/mochi_items", tags=["mochi_items"])
 
@@ -261,6 +273,89 @@ async def override_mochi_item_intent(
     )
     await db.commit()
     return _to_response(item)
+
+
+# ── 모찌들(캘린더) 탭 조회 라우트 ──
+# 정적 세그먼트(/calendar, /todos/upcoming) 와 list("") 는 동적 "/{mochi_item_id}" 보다
+# 먼저 선언해야 'calendar' 등을 UUID 로 파싱해 422 나는 라우트 충돌을 피한다.
+
+
+@router.get("", response_model=MochiItemListResponse)
+async def list_mochi_items(
+    db: DBSession,
+    user: CurrentUser,
+    captured_from: Annotated[datetime | None, Query(alias="capturedFrom")] = None,
+    captured_to: Annotated[datetime | None, Query(alias="capturedTo")] = None,
+    intent: Intent | None = None,
+    limit: int = 100,
+) -> MochiItemListResponse:
+    """모찌들 탭 — captured_at 구간 내 owner 모찌 목록(특정 날짜 선택 시 그날 sheet).
+
+    ``capturedFrom``/``capturedTo`` 는 ISO8601(UTC 권장). ``intent`` 로 4-Intent 필터.
+    """
+    use_case = ListMochiItemsInRange(repository=PostgresMochiItemRepository(db))
+    items = await use_case.execute(
+        owner_id=user,
+        captured_from=captured_from,
+        captured_to=captured_to,
+        intent=intent,
+        limit=max(1, min(limit, 200)),
+    )
+    return MochiItemListResponse(items=[_to_response(item) for item in items])
+
+
+@router.get("/calendar", response_model=MonthlyCalendarResponse)
+async def get_monthly_calendar(
+    db: DBSession,
+    user: CurrentUser,
+    year: int,
+    month: int,
+) -> MonthlyCalendarResponse:
+    """모찌들 탭 — KST 월간 캘린더(날짜별 개수·대표 Intent·대표 썸네일 object_key)."""
+    if not 1 <= month <= 12:
+        raise DomainError("month must be between 1 and 12", code="mochi_item.invalid_month")
+    if not 2000 <= year <= 2200:
+        raise DomainError("year is out of supported range", code="mochi_item.invalid_year")
+    use_case = GetMonthlyCalendar(repository=PostgresMochiItemRepository(db))
+    days = await use_case.execute(owner_id=user, year=year, month=month)
+    return MonthlyCalendarResponse(
+        year=year,
+        month=month,
+        days=[
+            CalendarDayResponse(
+                date=day.date,
+                count=day.count,
+                representative_intent=day.representative_intent,
+                thumbnail_object_key=day.thumbnail_object_key,
+            )
+            for day in days
+        ],
+    )
+
+
+@router.get("/todos/upcoming", response_model=UpcomingTodoListResponse)
+async def get_upcoming_todos(
+    db: DBSession,
+    user: CurrentUser,
+    limit: int = 20,
+) -> UpcomingTodoListResponse:
+    """모찌들 탭 하단 — 마감 임박·미완료(lifecycle active) todo 리스트.
+
+    마감일은 ``entities(kind='deadline')`` free-text 를 서버가 파싱해 임박순 정렬하며,
+    파싱 불가/마감 미상 todo 는 목록 뒤로 둔다(``dueAt`` null).
+    """
+    use_case = ListUpcomingTodos(repository=PostgresMochiItemRepository(db))
+    todos = await use_case.execute(owner_id=user, limit=max(1, min(limit, 100)))
+    return UpcomingTodoListResponse(
+        todos=[
+            UpcomingTodoResponse(
+                item=_to_response(todo.item),
+                due_at=todo.due_at,
+                due_label=todo.due_label,
+            )
+            for todo in todos
+        ]
+    )
 
 
 @router.get("/{mochi_item_id}", response_model=MochiItemResponse)
