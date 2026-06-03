@@ -2,10 +2,10 @@
 level: 2
 mode: committed
 status: active
-last_verified: 2026-06-03
+last_verified: 2026-06-04
 confidence: 0.8
 owners: [송준서, 이용찬, 박세현]
-description: 도메인 모델·DB 스키마·4-Intent lifecycle 의 committed 정본. 다음 중 하나라도 손대기 전 반드시 읽어라 — DB 마이그레이션, ORM, Intent 분류·전이 로직, lifecycle_policy 양쪽(BE↔iOS) 정합. **본문 §3·§4·§12 는 as-built(alembic 0001~0008) 단일 테이블 모델이 정본**이며, §4.4 Intent 모델은 **flat `intents` 타겟**(코드가 따라올 doc-leads 지점, migration 0009 예정)이다. 정규화 3테이블·typed 파생·conversations 등 design-ahead 는 §13 향후 계획으로 격리. 변경 시 백엔드·iOS·양 README·openapi.json 정합성 폭포 필수.
+description: 도메인 모델·DB 스키마·4-Intent lifecycle 의 committed 정본. 다음 중 하나라도 손대기 전 반드시 읽어라 — DB 마이그레이션, ORM, Intent 분류·전이 로직, lifecycle_policy 양쪽(BE↔iOS) 정합. **본문 §3·§4·§12 는 as-built(alembic 0001~0008) 단일 테이블 모델이 정본**이며, §4.4 Intent 모델은 **`intent_instances` + boolean 타겟**(코드가 따라올 doc-leads 지점, migration 0009 예정 — v2 2026-06-03 채팅 합의 반영, threshold 모델은 폐기)이다. 정규화 3테이블·typed 파생·conversations 등 design-ahead 는 §13 향후 계획으로 격리. 변경 시 백엔드·iOS·양 README·openapi.json 정합성 폭포 필수.
 ---
 
 # 모찌(MOCHI) — 도메인 & 데이터베이스 설계
@@ -15,7 +15,7 @@ description: 도메인 모델·DB 스키마·4-Intent lifecycle 의 committed �
 > ⓘ **이 문서의 정본 규칙 (2026-06-03 전면 재작성)**
 >
 > 1. **본문(§3 ERD · §4 DDL · §11 인덱스 · §12 카탈로그)은 as-built 가 정본**이다 — alembic `0001`~`0008` + ORM 이 실제로 만든 **단일 `mochi_items` 테이블 모델**. 이전 문서는 정규화 3테이블(`mochi_items`/`mochi_sources`/`mochi_analyses`)·typed 파생·conversations 일가를 본문 DDL 로 실어 코드와 갈라졌다(drift 의 근원). 그 design-ahead 비전은 버리지 않고 **§13 향후 계획(미구현·게이트)**로 옮겼다.
-> 2. **예외 — §4.4 Intent 모델은 "코드가 문서를 따라오는" 유일한 절**이다. intent 저장을 4컬럼 파생 중복(`intent`/`secondary_intents`/`intent_applicability`/`intent_candidates`)에서 **flat `intents` 리스트 1개**로 바꾸는 타겟을 정의한다. 코드는 현재 4컬럼 상태이고, migration `0009` 로 이 절을 향해 이행한다. 근거·토론은 [`INTENT_REDESIGN.md`](INTENT_REDESIGN.md).
+> 2. **예외 — §4.4 Intent 모델은 "코드가 문서를 따라오는" 유일한 절**이다. intent 저장을 4컬럼 파생 중복(`intent`/`secondary_intents`/`intent_applicability`/`intent_candidates`)에서 **`intent_instances` 리스트 1개 + `needs_review` boolean**(per-instance `applicable: bool` + `payload`)로 바꾸는 타겟을 정의한다. 코드는 현재 4컬럼 상태이고, migration `0009` 로 이 절을 향해 이행한다. 근거·토론은 [`INTENT_REDESIGN.md`](INTENT_REDESIGN.md).
 > 3. **명명 정본**: 코드가 `mochi_item`(2026-05-29 rename 완료). `capture` 는 이제 *이미지 캡처 행위* 만 의미(AppGroup `captures/`, 백탭 `CaptureScreenshotIntent`).
 
 ---
@@ -28,7 +28,7 @@ description: 도메인 모델·DB 스키마·4-Intent lifecycle 의 committed �
 | 2 | Owner scoping | 모든 user-data 행에 `owner_id` + 모든 read/write 에 owner 필터 (repository layer 강제, 테스트 검증) |
 | 3 | Explicit lifecycle | boolean `is_active` 금지. 상태는 enum(`lifecycle_kind`) + application `LifecyclePolicy` 전이 검증 |
 | 4 | Time is UTC `timestamptz` | 모든 시각 컬럼 `_at` suffix |
-| 5 | Intent = flat 원천 1개 | 대표·집계·confidence 는 **저장하지 말고 계산**(§4.4). 파생 중복 금지 |
+| 5 | Intent = `intent_instances` 원천 1개 (boolean) | per-instance `applicable: bool` + top-level `needs_review: bool`. 대표·집계 는 **저장하지 말고 계산**(§4.4). 파생 중복 금지, 임계값 없음 |
 | 6 | Transactional Outbox | 비동기 AI 처리의 reliability foundation (`mochi_item_outbox`) |
 | 7 | Hybrid Search | BM25 tsvector(GIN) + 벡터 HNSW |
 
@@ -41,7 +41,7 @@ Table        mochi_items                       (snake_case, 복수형)
 Column       lifecycle_kind, owner_id          (snake_case)
 FK column    mochi_item_id, agent_run_id       ({referenced_singular}_id)
 Timestamp    created_at, captured_at           (_at suffix)
-JSONB        intents, intent_applicability      (단수/내용 기술)
+JSONB        intent_instances, payload          (단수/내용 기술)
 Enum 값      schedule / todo / knowledge / memo (Intent), scheduleEnded (ArchiveReason, camelCase)
 ```
 
@@ -57,10 +57,10 @@ iOS · 백엔드 · 프롬프트 모두 동일 용어를 쓴다.
 |---|---|
 | **MochiItem** | 사용자가 저장한 단일 기록. aggregate root. **입력 1건 = MochiItem 1개** (쪼개지 않는다) |
 | **Intent** | MochiItem 의 의미 분류. enum `schedule`/`todo`/`knowledge`/`memo` (표시: 일정/할일/지식/기록) |
-| **intents** | 한 MochiItem 의 **복수 의도 원천**. flat 리스트 `[{intent, applicability, label?, reasoning?}]`. **1:N** — 위계 없음 (§4.4) |
-| **applicability** | 한 의도의 적용 강도 0~1. **confidence = max(applicability)** (별개 축 아님) |
-| **active intents** | `applicability ≥ τ` 인 의도 집합. 비면 `memo` fallback |
-| **needs_review** | "헷갈려요". `confidence < τ_review`. 저장·active 와 **직교**한 derive 플래그 |
+| **intent_instances** | 한 MochiItem 의 **복수 의도 instance 원천**. 리스트 `[{intent_type, applicable: bool, payload, label?, reasoning?}]`. **1:N** — 위계 없음, 같은 `intent_type` 의 multi instance 가능 (§4.4) |
+| **applicable** | 한 instance 의 *저장할지* boolean. **LLM 자기판단** (per-instance) |
+| **active instances** | `applicable = true` 인 instance 집합. 비면 `memo` fallback |
+| **needs_review** | "헷갈려요". top-level boolean, **LLM 출력** (*사용자에게 되물을지*). 저장·active 와 **직교** |
 | **Lifecycle Kind** | MochiItem 처리·생명 상태. 7값 enum (§7). intent 와 **독립**(레코드 단위) |
 | **Channel** | 입력 채널 (`screenshot`/`appDirectInput`/`appShareSheet`/`appIntent`/…). `mochi_items.channel` 인라인 |
 | **Entity** | AI 추출 의미 단위 (`entities.kind`/`value`) |
@@ -109,7 +109,7 @@ erDiagram
     }
 ```
 
-> ERD 는 mochi_items **주요 컬럼만** 보인다 (전체는 §4.3). intent 저장은 **현재 as-built 4컬럼+confidence**(`intent`/`secondary_intents`/`intent_applicability`/`intent_candidates`/`confidence`)이고, **§4.4 의 flat `intents` 는 0009 타겟(현재 미존재)**이다. `owner_id` 는 DB FK 가 아니라 **application-level** 격리(인덱스만). `idempotency_keys.mochi_item_id` 도 FK 없음. typed 파생·conversations·tags·search_index·mochi_analyses 는 **미존재** → §13.
+> ERD 는 mochi_items **주요 컬럼만** 보인다 (전체는 §4.3). intent 저장은 **현재 as-built 4컬럼+confidence**(`intent`/`secondary_intents`/`intent_applicability`/`intent_candidates`/`confidence`)이고, **§4.4 의 `intent_instances`(jsonb) + `needs_review`(bool) 는 0009 타겟(현재 미존재)**이다. `owner_id` 는 DB FK 가 아니라 **application-level** 격리(인덱스만). `idempotency_keys.mochi_item_id` 도 FK 없음. typed 파생·conversations·tags·search_index·mochi_analyses 는 **미존재** → §13.
 
 ---
 
@@ -198,13 +198,13 @@ CREATE TABLE mochi_items (
     created_at               timestamptz NOT NULL DEFAULT now(),
     updated_at               timestamptz NOT NULL DEFAULT now(),
 
-    -- ▼▼▼ Intent 저장 — 현재 as-built (4컬럼 파생 중복). §4.4 에서 flat `intents` 로 이행(0009). ▼▼▼
+    -- ▼▼▼ Intent 저장 — 현재 as-built (4컬럼 파생 중복). §4.4 에서 `intent_instances` + `needs_review` 로 이행(0009). ▼▼▼
     intent               varchar(32)   NOT NULL DEFAULT 'memo',  -- 대표 = argmax(candidates), idx
     secondary_intents    varchar(32)[] NOT NULL DEFAULT '{}',    -- 대표 제외 distinct
     intent_applicability jsonb         NOT NULL DEFAULT '{}',    -- {intent: max applicability}
     intent_candidates    jsonb         NOT NULL DEFAULT '[]',    -- LLM 원천 [{label,intent,applicability,reasoning}]
     confidence           float         NOT NULL DEFAULT 0        -- = max(applicability)
-    -- ▲▲▲ 0009 이후: 위 5컬럼 DROP, `intents jsonb` 1개로 대체 (§4.4). ▲▲▲
+    -- ▲▲▲ 0009 이후: 위 5컬럼 DROP, `intent_instances jsonb` + `needs_review bool` 로 대체 (§4.4). ▲▲▲
 );
 -- ⚠️ 컬럼 인덱스는 `captures` 시절 SQLAlchemy 기본명(ix_<table>_<col>)이고 0006 이 rename 하지 않아
 --    실제 이름은 ix_captures_* 로 잔존(테이블만 mochi_items 로 rename). FTS 만 0006 이 rename 함.
@@ -245,66 +245,73 @@ CREATE INDEX ix_embeddings_vector_hnsw ON embeddings
     USING hnsw (embedding vector_cosine_ops) WITH (m=16, ef_construction=64);
 ```
 
-### 4.4 Intent 모델 — flat `intents` (타겟 정본, 1:N)
+### 4.4 Intent 모델 — `intent_instances` (타겟 정본, 1:N)
 
 > **이 절만 doc-leads-code.** 코드는 현재 §4.3 의 4컬럼+confidence. migration `0009` 로 아래로 이행한다.
-> 동기: 4컬럼 중 3개가 `intent_candidates` 에서 파생되는 **중복**이라 이미 동기화 버그 2건 발생. 원천을 1개로 통일하면 구조적으로 사라진다. (전체 근거: [`INTENT_REDESIGN.md`](INTENT_REDESIGN.md))
+> **v2 (2026-06-03 채팅 합의 — 송준서 ↔ 박세현):** float `applicability` + `τ`/`τ_review` threshold 모델은 폐기. boolean `applicable` per-instance + boolean `needs_review` top-level, **LLM 출력 = single truth source**. 동기·결정 근거: [`INTENT_REDESIGN.md`](INTENT_REDESIGN.md) §4.
 
-#### 저장 — 원천 1개
+#### 저장 — 원천 1개 + 직교 플래그
 
 ```sql
 -- mochi_items 에 추가 (0009), 위 5컬럼은 DROP (0011):
-intents jsonb NOT NULL DEFAULT '[]'
--- 형태: [{ "intent": "<schedule|todo|knowledge|memo>",
---          "applicability": 0.0~1.0,
---          "label": "<한국어 시나리오 라벨, 예: '구매 고민'>",   -- UI/디버깅 부속
---          "reasoning": "<근거>" }, ... ]
--- 위계 없음 — primary/secondary 폐기. LLM 이 동등하게 본 의도를 그대로 보존(argmax 줄세우기 금지).
+intent_instances jsonb   NOT NULL DEFAULT '[]',
+needs_review     boolean NOT NULL DEFAULT false
+-- intent_instances 형태: [
+--   { "intent_type":  "<schedule|todo|knowledge|memo>",
+--     "applicable":   <bool>,                       -- 이 instance 를 저장할지 (LLM 결정)
+--     "payload":      { <intent_type 별 typed 필드> },  -- todo: {title}, schedule: {title,date,time}, ...
+--     "label":        "<UI/디버깅 부속, optional>",
+--     "reasoning":    "<근거, optional>" },
+--   ... 같은 intent_type 의 multi instance 허용 (회의록 → todo 두 개 + schedule 한 개 등)
+-- ]
+-- 위계 없음 — primary/secondary 폐기. payload 가 실행 단위(todos / calendar_events 직접 매핑).
 ```
 
 ```sql
 -- 1:N intent 필터용 (대표 단일컬럼으로는 1:N 표현 불가 → containment):
-CREATE INDEX idx_mochi__intents ON mochi_items USING gin (intents jsonb_path_ops);
--- "할일 전부": WHERE owner_id = :o AND intents @> '[{"intent":"todo"}]'
+CREATE INDEX idx_mochi__intent_instances ON mochi_items USING gin (intent_instances jsonb_path_ops);
+-- "할일 전부": WHERE owner_id = :o AND intent_instances @> '[{"intent_type":"todo","applicable":true}]'
 ```
 
-- **`label`/`reasoning` 유지 확정**(슬림화 안 함). iOS "헷갈려요" 카드 버튼이 `label`(`?? intent.displayName`)에 의존. 단 **결정 입력은 `{intent, applicability}` 뿐**이고 `label`/`reasoning` 은 UI·디버깅 부속이다.
+- **`needs_review`** = top-level boolean. LLM 의 *사용자에게 되물을지* 자기판단. 직교 플래그 — 저장과 분리.
+- **`applicable`** = per-instance boolean. LLM 의 *이 의도를 저장할지* 자기판단. (의미 확정: 박세현·송준서 6/3 채팅)
+- **`label`/`reasoning` 유지 옵션** — `payload` 가 typed 라 reasoning 따로 둘 가치 재검토. iOS "헷갈려요" 카드 라벨은 `intent_type.displayName` fallback 가능.
 
-#### 결정 정책 — 규칙 3개 + 직교 플래그 (저장과 분리)
+#### 결정 정책 — boolean 규칙 3개 (single truth source)
 
 ```
-τ        = active 임계값   (실험 결정 — 박세현 eval, 6/18. 잠정 0.6)
-τ_review = review 임계값   (실험 결정 — 미확정)
-
-1) active(item)   = { i ∈ intents : i.applicability ≥ τ }       # 복수 가능
-2) if active == ∅ : active = { memo }                            # 분류 실패 → 기록으로 안전 보존
-3) needs_review   = max(intents.applicability) < τ_review        # 저장·active 와 직교한 boolean
+1) active_instances(item) = intent_instances.filter(applicable = true)     # boolean filter
+2) if active_instances == ∅                                                # 분류 실패 → 안전 보존
+     : active_instances = [{intent_type: memo, applicable: true, payload: {...}}]
+3) if needs_review (LLM 출력 boolean) : iOS "헷갈려요" 카드 표시              # 사용자 직교
 ```
 
-- **`memo` fallback** 은 우연이 아니다 — 미션("놓치기 쉬운 순간은 쉽게 남기고, 필요한 기억은 쉽게 떠오른다")과 정합. 분류를 못 해도 안 잃는다.
-- **"3개 의도 예상했는데 전부 낮음"** → active 비어 `memo` 보존 + `needs_review=true` "헷갈려요". 복수 intent 여도 fallback 은 **집합 규칙 하나**라 복잡해지지 않는다.
-- **τ/τ_review 는 감으로 박지 않는다**(회의 확정). 코드에선 **config 상수로 주입**, 실험 후 확정. 0009 스키마/이행은 τ 와 무관(0009 는 τ 를 쓰지 않는다).
+- **임계값 없음.** v1 의 `τ`·`τ_review` 폐기. **컨트롤 surface = LLM boolean 정확도 하나**(프롬프트 + eval 로 관리).
+- **`memo` fallback** 그대로 — 미션(*"놓치기 쉬운 순간은 쉽게 남기고, 필요한 기억은 쉽게 떠오른다"*) 정합. 분류 못 해도 안 잃는다.
+- **`needs_review` = LLM 출력 직접 사용** (derived/override 없음). single truth source 원칙(송준서: *"트루소스를 하나로 맞추는게 나을듯"*). [`INTENT_REDESIGN.md`](INTENT_REDESIGN.md) §3.3 의 LLM self-confidence 한계는 known risk 로 수용 — 프롬프트 + eval 로 관리.
 
 #### 파생 — 저장 안 함, read 시 계산 (projection)
 
 | 파생값 | 정의 | 용도 |
 |---|---|---|
-| `representative` (대표 intent) | `argmax(intents, applicability)` (active 비면 `memo`) | lifecycle archive_reason 호환, UI 대표 칩 |
-| `confidence` | `max(intents.applicability)` (없으면 0) | "헷갈려요" 3상태 판정(부록 C) |
-| API `candidates` | `intents` 그대로 | **wire 호환** (iOS 가 읽는 이름) |
+| `representative` (대표 intent_type) | `first(active_instances).intent_type` (active 비면 `memo`) | lifecycle archive_reason 호환, UI 대표 칩 |
+| `active_count` | `len(active_instances)` | UI 다중 의도 표현(대표 + 작은 chip N개) |
+| API `instances` | `intent_instances` 그대로 | wire — 클라이언트가 typed payload 까지 받음 |
+| API `needs_review` | `needs_review` 그대로 | iOS "헷갈려요" 직접 사용 (client-derive 폐기) |
 
-#### API projection — iOS 무중단의 핵심
+#### API projection — iOS 이행
 
-0009/0011 로 DB·agent 를 갈아도 **API 응답은 새 원천 위의 stable projection** 으로 둔다 → iOS wire 불변:
+0009/0011 로 DB·agent 를 갈 때 **API 응답은 새 원천 위의 stable projection**:
 
-- 응답 `intent` = `representative`(계산), `confidence` = `max(applicability)`(계산), `candidates` = `intents`. → **iOS 0줄 변경.**
-- 응답에서 `secondaryIntents`/`intentApplicability` **제거** — iOS dead-read(`decodeIfPresent ?? []`)라 무중단.
+- 응답 `intent` = `representative`(계산), `instances` = `intent_instances`, `needs_review` = LLM 출력 직접.
+- 응답에서 `secondaryIntents`/`intentApplicability`/`confidence` **제거** — iOS dead-read 였거나 client-derive 였으므로 무중단.
+- iOS "헷갈려요" 가 v1 의 `confidence < 0.6` client-derive 에서 → `needs_review` server boolean 직접 사용으로 재배선 필요(부록 C 참조).
 
 #### lifecycle 결합 (1:N 조정)
 
 - 레코드 lifecycle(`lifecycle_kind`)는 intent 와 **독립**(record 단위) — 변경 없음.
-- `archive_reason × intent` 호환(§7.3)은 **대표 intent(`representative`)** 기준.
-- knowledge decay 자동전이(§7.4)는 **`knowledge ∈ active(intents)`** 기준으로 읽는다(옛 `intent='knowledge'` 단일 비교의 1:N 일반화).
+- `archive_reason × intent_type` 호환(§7.3)은 **대표 instance 의 `intent_type`**(`representative`) 기준.
+- knowledge decay 자동전이(§7.4)는 **`knowledge ∈ active_instances.intent_type`** 기준으로 읽는다(옛 `intent='knowledge'` 단일 비교의 1:N 일반화).
 
 ### 4.5 Operations (alembic 0001 + 0002 + 0006 + 0007)
 
@@ -542,18 +549,22 @@ RefreshUserProfile.run(owner)         # best-effort 개인화 디바운스
 ### 계획 (§4.4 이행 — doc-leads)
 
 ```
-0009 intents_flat_source   ADD intents jsonb + GIN(jsonb_path_ops). 분기 backfill:
-       · intent_candidates ≠ '[]'  → intents := intent_candidates
-       · candidates='[]' 이나 applicability 채워짐(pre-0008 구형 row, 실서버 존재) → applicability/intent 로 합성
+0009 intent_instances_source  ADD intent_instances jsonb + needs_review boolean + GIN(jsonb_path_ops on intent_instances). 분기 backfill:
+       · intent_candidates ≠ '[]'  → intent_instances := candidates 매핑
+           (intent_type := candidate.intent, applicable := true, payload := {}, label/reasoning 보존)
+       · candidates='[]' 이나 applicability 채워짐(pre-0008 구형 row, 실서버 존재)
+           → 각 intent 별 {intent_type, applicable=true, payload={}} instance 합성
        · 분석 전 → '[]'
-     동반 코드: apply_analysis 가 intents 원천 write, 대표/confidence/candidates 는 projection.
-     iOS·openapi 0줄 (projection). ※ needs_review DB 컬럼 안 만듦 — τ_review 미확정, iOS client-derive 유지.
+       · needs_review default false (backfill 안 함 — 신규 분석부터 LLM 출력 사용)
+     동반 코드: apply_analysis 가 intent_instances + needs_review 원천 write, 대표/active 는 projection.
+     ※ v1 과 차이: needs_review DB 컬럼 추가됨(v1 에서는 미생성). iOS client-derive(`confidence < 0.6`) → server boolean 컷오버 동반 필요.
 0011 drop_legacy_intent_columns  DROP intent / secondary_intents / intent_applicability / intent_candidates / confidence.
-     ix_captures_intent → idx_mochi__intents(GIN) 로 교체. 프롬프트 V7(flat 출력) + openapi 재덤프.
-     ※ DROP 전제 = "intents 원천 검증 + iOS 컷오버" (τ 확정과 분리).
+     ix_captures_intent → idx_mochi__intent_instances(GIN) 로 교체.
+     프롬프트 V7 (top-level needs_review + per-instance {intent_type, applicable, payload}) + openapi 재덤프.
+     ※ DROP 전제 = "intent_instances 원천 검증 + iOS needs_review 직접 사용 컷오버".
 ```
 
-> zero-downtime: 0009(additive)와 0011(파괴) 사이 `intents` + 4컬럼이 공존하는 dual-write 중간 상태가 존재한다. **영구 설계 아님** — 종료 조건은 0011. 중간 상태에서 `OverrideIntent` 는 `intents` 원천도 갱신해야 단일화가 유지된다.
+> zero-downtime: 0009(additive)와 0011(파괴) 사이 `intent_instances`/`needs_review` + 4컬럼이 공존하는 dual-write 중간 상태가 존재한다. **영구 설계 아님** — 종료 조건은 0011. 중간 상태에서 `OverrideIntent` 는 `intent_instances` 원천도 갱신해야 단일화가 유지된다.
 
 ---
 
@@ -602,7 +613,7 @@ RefreshUserProfile.run(owner)         # best-effort 개인화 디바운스
 `todos` · `calendar_events` · `knowledge_summaries` · `memos` · `mochi_action_candidates`.
 
 - **위치**: MochiItem 아래 파생. 입력 1건 = MochiItem 1개를 **쪼개지 않고**, 실행 단위만 분리(회의 2026-06-01 확정).
-- **게이트**: "`active(intents)` 집합이 τ 로 안정 **+** 실제 materialize 소비 코드가 필요로 판명" 될 때 생성. τ 는 박세현 eval(6/18) 후 확정. 무한 연기 방지를 위해 이 정량 조건을 게이트로 명시.
+- **게이트**: "`active_instances` 가 안정 **+** 실제 materialize 소비 코드가 필요로 판명" 될 때 생성. v2 이후 임계값 없음 — 안정성은 LLM `applicable` 정확도 eval(박세현) 로 측정. 무한 연기 방지를 위해 이 정량 조건을 게이트로 명시.
 - **시점**: 6/19~ 통합 sprint 후보(`0012+`).
 
 ### 13.2 검색·분석 부가
@@ -642,20 +653,27 @@ RefreshUserProfile.run(owner)         # best-effort 개인화 디바운스
 |---|---|
 | 모든 read/write 에 `owner_id` 필터 | repository + 테스트 |
 | `LifecyclePolicy.validate(from, to, intent)` 전이 | unit test |
-| **`intents` 비면 active=`{memo}`** (§4.4) | 정책 코드 + test (0009 후) |
+| **`intent_instances` 의 `applicable=true` 가 없으면 active=`{memo}`** (§4.4) | 정책 코드 + test (0009 후) |
 
 > `entities.kind` 는 **미강제** — `ExtractedEntity.kind: str`(free), repository 가 `kind[:16]` 절단만. 위 예시 값(date/person/…)은 프롬프트 가이드일 뿐 DB/앱 제약 아님.
 
-### C. confidence 와 "헷갈려요" 3상태 (코드 정합)
+### C. "헷갈려요" UX — as-built (pre-0009) vs 타겟 v2 (post-0009)
 
-`confidence := max(intents.applicability)` (현재 코드는 `intent_candidates` 에서 derive, 0009 후 `intents`). 이 단일 값으로 3상태:
+**as-built (현재 코드, pre-0009)** — `confidence := max(intent_candidates.applicability)`. iOS 가 client-derive:
 
 - **헷갈림** (`confidence < 0.6` = `isUncertain`): 최상위 의도조차 약함 → "헷갈려요" 카드.
 - **단일 확신** (top1 ≥ 0.6, top2 < 0.6): 대표 단일 의도로 active.
 - **복수 의도** (top1·top2 둘 다 ≥ 0.6 = `isMultiIntent`): 박빙이어도 헷갈림 아님 — 둘 다 적용. UI 엔 대표만, 보조는 추천·알림·채팅 활용.
 
-> 박빙(top-2 gap) 헷갈림 판정은 **폐기**됨 — 복수 의도를 오분류했기 때문. 진짜 신호는 "최상위가 약함"이다.
-> `τ_review` 확정 전까지 "헷갈려요"는 iOS 가 `confidence < 0.6` 으로 **client-derive**(서버 `needs_review` 컬럼 없음).
+> 박빙(top-2 gap) 헷갈림 판정은 **폐기**됨 — 복수 의도를 오분류했기 때문. as-built 의 진짜 신호는 "최상위가 약함"이다.
+> 현재는 서버에 `needs_review` 컬럼 없으므로 iOS 가 `confidence < 0.6` 으로 **client-derive**.
+
+**타겟 v2 (0009 이후, §4.4)** — `needs_review` 가 **LLM 출력 server boolean**. iOS 직접 사용:
+
+- **헷갈림** (`needs_review = true`): LLM 의 holistic 자기판단 — *사용자에게 되물을지* 를 LLM 이 직접 결정 → passive "헷갈려요" 카드.
+- **단일 / 복수 의도**: `active_instances = intent_instances.filter(applicable = true)` 의 size 로 결정(1 vs N). 복수여도 사용자에게 multi-select 강요 안 함 — UI 는 대표 1개 + 작은 chip 들(자세한 사례: [`../journal/2026-06-03-intent-fallback-clarification.md`](../journal/2026-06-03-intent-fallback-clarification.md)).
+- **컷오버**: 0009 시점에 iOS 가 `confidence < 0.6` derive 에서 → `needs_review` 직접 사용으로 재배선. v1 의 `isUncertain`/`isMultiIntent` 컴퓨팅은 폐기 또는 server 값 mirror 로 변경.
+- v1 의 임계값(`0.6`/`τ_review`) 폐기. v2 컨트롤 surface = LLM boolean 정확도 (프롬프트 + eval — 박세현).
 
 ### D. iOS 헷갈려요 카드 · 폴링 · Daily Importance
 

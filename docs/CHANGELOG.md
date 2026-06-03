@@ -15,6 +15,14 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 >
 > **동시 세션 / 공유 파일 주의**: CHANGELOG 는 여러 세션·작업자가 함께 쓰는 append-only 공유 파일이다. 동시 작업 중에는 다른 세션이 자기 항목을 먼저 커밋할 수 있고, 한 워킹트리에 여러 세션의 미커밋 항목이 섞여 보일 수 있다. 이때 **항목을 분리하려 애쓰지 말고** 자기 변경과 함께 그대로 staging·커밋한다 — 섞인 다른 항목은 해당 세션이 자기 코드와 함께 정리한다. diff 에 모르는 CHANGELOG 항목이 보여도 멈추지 않는다 (단, CHANGELOG 외의 *코드* 파일은 절대 임의로 섞어 커밋하지 않는다).
 
+## 2026-06-04 — docs
+- **Intent 모델 v2 — boolean + LLM single truth source 합의 반영** (`docs/intent-boolean-model` 브랜치 / PR). 2026-06-03 송준서·박세현 채팅 합의로 v1 의 float `applicability` + `τ`/`τ_review` threshold 모델을 폐기하고 **`intent_instances`**(per-instance `applicable: bool` + `payload`) + top-level **`needs_review`** boolean (LLM 출력 = single truth source) 으로 전환. 동기: 컨트롤 surface 를 두 개(LLM 분포 정확도 + 임계값 튜닝)에서 하나(LLM boolean 정확도, 프롬프트로 관리)로 축소 → dev velocity + instance 단위 모델의 typed 테이블 직접 매핑. **코드/openapi/migration 미변경 — 문서 전용.** 머지는 회의 후 결정(이용찬).
+  - `INTENT_REDESIGN.md` §4 v2 rewrite — §4.1 저장(`intent_instances`), §4.2 결정 정책(boolean 규칙 3개), §4.3 사례별 작동 A/B/C. §0 TL;DR · §5 · §6 영향범위 · §7 미해결(τ 항목 폐기 → 프롬프트+eval 정밀도로 대체) cascade. front-matter `last_verified=2026-06-04`, confidence 0.8→0.9.
+  - `DOMAIN_DESIGN.md` **§4.4 전면 교체** — `intent_instances jsonb` + `needs_review boolean` 타겟, boolean filter 결정 정책, projection(`representative`/`active_count`/`instances`/`needs_review`), API 컷오버 명시. §0 정본 규칙·§1 원칙(#5)·§2 용어 사전·§3 ERD warning·§4.3 DDL inline comment·§10 마이그레이션 0009/0011 spec·§13 invariant·§13.1 typed materialize 게이트·부록 C "헷갈려요" UX(as-built vs v2 분리) cascade.
+  - `ARCHITECTURE.md` Gemini 클라이언트 노트 갱신 — primary/secondary + applicability/confidence 모델이 0009 에서 `intent_instances + needs_review` 로 폐기됨 명시. `INDEX.md` DOMAIN/INTENT 한 줄 정정.
+  - **`INTENT_REDESIGN.md §3.3` LLM self-confidence 우려는 known risk 로 수용** — Claude 가 제안했던 derived override 안전망 폐기, single truth source 원칙(송준서: *"트루소스를 하나로 맞추는게 나을듯"*). 정확도는 프롬프트 엔지니어링 + 박세현 eval(`applicable`/`needs_review` 정확도 두 축) 로 관리. threshold sweep 폐기.
+  - 사례별 풀이는 `journal/2026-06-03-intent-fallback-clarification.md` v2.
+
 ## 2026-06-03 — docs
 - **`DOMAIN_DESIGN.md` 전면 재작성 (스키마 정본 확정).** 본문(§3 ERD·§4 DDL·§11 인덱스·§12 카탈로그)을 **as-built 12테이블 단일 `mochi_items` 모델**로 갈아엎어 코드와 정합 — 정규화 3테이블(`mochi_sources`/`mochi_analyses`)·typed 파생(`todos`/`calendar_events`/…)·conversations 일가 등 design-ahead 를 **§13 향후 계획(미구현·게이트)**로 격리. 1:N known-drift 해소.
   - **§4.4 Intent 모델만 doc-leads-code**: intent 4컬럼 파생 중복(`intent`/`secondary_intents`/`intent_applicability`/`intent_candidates`+`confidence`) → flat `intents` jsonb 1개 타겟 명시. 결정 정책(active≥τ / 비면 memo fallback / needs_review=conf<τ_review 직교) + API projection(iOS 무중단) + migration 0009/0011 계획. **코드 미변경** — 문서가 코드 이행의 기준(사용자: 문서 최우선).
