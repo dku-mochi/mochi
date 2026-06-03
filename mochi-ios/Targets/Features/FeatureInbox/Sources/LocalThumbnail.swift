@@ -21,22 +21,49 @@ struct LocalThumbnail<Placeholder: View>: View {
     @State private var image: UIImage?
 
     var body: some View {
-        Group {
-            if let image {
-                Image(uiImage: image)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: alignment)
-            } else {
-                placeholder()
-            }
+        GeometryReader { geo in
+            content(geo.size)
         }
-        // `.fill` 오버플로를 프레임 경계에서 잘라 호출부 레이아웃(예: 헤드라인)을 침범하지 않게 한다.
-        .clipped()
         .task(id: relativePath) {
             // @3x 까지 커버하도록 셀 변 길이의 3배를 상한 픽셀로 둔다.
             let maxPixel = Int(max(targetSize.width, targetSize.height) * 3)
             image = await loadDownsampledContainerImage(relativePath: relativePath, maxPixel: maxPixel)?.image
+        }
+    }
+
+    /// 이미지 orientation 에 따라 렌더 방식을 자동 분기한다 (표시 크기는 호출부 프레임 = 2:1 세로 고정).
+    /// 각 이미지에 명시 `frame(size)` + `clipped()` 를 걸어 `.scaledToFill` 오버플로가 박스 밖으로
+    /// 새지 않게 한다 (호출부 레이아웃 침범 방지).
+    /// - 세로(portrait, h>=w): `.scaledToFill` + `alignment` 크롭 — 위아래가 조금 잘려도 화면(세로 캡처)을 크게.
+    /// - 가로(landscape, w>h): `.scaledToFit` + 같은 이미지 블러 확대본 배경 — 잘림 없이 전체를 보여주고 레터박스를 채운다.
+    @ViewBuilder
+    private func content(_ size: CGSize) -> some View {
+        if let image {
+            if image.size.width > image.size.height {
+                ZStack {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: size.width, height: size.height)
+                        .blur(radius: 12)
+                        .clipped()
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: size.width, height: size.height)
+                }
+                .frame(width: size.width, height: size.height)
+                .clipped()
+            } else {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: size.width, height: size.height, alignment: alignment)
+                    .clipped()
+            }
+        } else {
+            placeholder()
+                .frame(width: size.width, height: size.height)
         }
     }
 }

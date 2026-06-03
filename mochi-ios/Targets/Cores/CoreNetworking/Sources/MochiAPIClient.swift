@@ -133,6 +133,44 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
         case createdAt = "createdAt"
     }
 
+    public init(
+        id: UUID,
+        channel: IngestChannel,
+        url: URL?,
+        text: String?,
+        userMemo: String?,
+        intent: Intent?,
+        secondaryIntents: [Intent],
+        intentApplicability: [String: Double],
+        summary: String?,
+        importance: Int,
+        confidence: Double,
+        candidates: [IntentCandidateDTO],
+        lifecycleKind: String,
+        syncKind: String,
+        imageRefs: [ImageRefDTO],
+        capturedAt: Date,
+        createdAt: Date
+    ) {
+        self.id = id
+        self.channel = channel
+        self.url = url
+        self.text = text
+        self.userMemo = userMemo
+        self.intent = intent
+        self.secondaryIntents = secondaryIntents
+        self.intentApplicability = intentApplicability
+        self.summary = summary
+        self.importance = importance
+        self.confidence = confidence
+        self.candidates = candidates
+        self.lifecycleKind = lifecycleKind
+        self.syncKind = syncKind
+        self.imageRefs = imageRefs
+        self.capturedAt = capturedAt
+        self.createdAt = createdAt
+    }
+
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = try c.decode(UUID.self, forKey: .id)

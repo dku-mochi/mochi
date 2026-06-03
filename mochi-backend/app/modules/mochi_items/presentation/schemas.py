@@ -80,6 +80,49 @@ class MochiItemResponse(BaseModel):
     model_config = {"populate_by_name": True}
 
 
+class MochiItemListResponse(BaseModel):
+    """날짜 구간 모찌 목록 — 모찌들(캘린더) 탭에서 특정 날짜 선택 시 그날 목록."""
+
+    items: list[MochiItemResponse] = Field(default_factory=list)
+
+
+class CalendarDayResponse(BaseModel):
+    """월간 캘린더의 하루 셀 — KST 날짜·개수·대표 Intent·대표 썸네일 object_key."""
+
+    date: str
+    count: int
+    representative_intent: Intent | None = Field(default=None, alias="representativeIntent")
+    thumbnail_object_key: str | None = Field(default=None, alias="thumbnailObjectKey")
+
+    model_config = {"populate_by_name": True}
+
+
+class MonthlyCalendarResponse(BaseModel):
+    """월간 캘린더 집계 응답 — 모찌들 탭 상단 달력."""
+
+    year: int
+    month: int
+    days: list[CalendarDayResponse] = Field(default_factory=list)
+
+
+class UpcomingTodoResponse(BaseModel):
+    """마감 임박 미완료 todo 1건 — 모찌들 탭 하단 할 일 리스트.
+
+    ``due_at`` 은 entities(kind='deadline') free-text 를 서버가 파싱한 값(미상이면 null),
+    ``due_label`` 은 파싱 전 원문(클라 표시·디버깅용).
+    """
+
+    item: MochiItemResponse
+    due_at: datetime | None = Field(default=None, alias="dueAt")
+    due_label: str | None = Field(default=None, alias="dueLabel")
+
+    model_config = {"populate_by_name": True}
+
+
+class UpcomingTodoListResponse(BaseModel):
+    todos: list[UpcomingTodoResponse] = Field(default_factory=list)
+
+
 class IntentOverrideRequest(BaseModel):
     """알림에서 사용자가 다른 primary intent 를 선택했을 때의 PATCH 본문."""
 

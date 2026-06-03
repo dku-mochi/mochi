@@ -32,6 +32,32 @@ class MochiItemRepository(Protocol):
     ) -> None: ...
     async def list_recent(self, *, owner_id: UUID, limit: int) -> list[MochiItem]: ...
     async def list_by_intent(self, *, owner_id: UUID, intent: Intent, limit: int) -> list[MochiItem]: ...
+    async def list_in_range(
+        self,
+        *,
+        owner_id: UUID,
+        captured_from: datetime | None,
+        captured_to: datetime | None,
+        intent: Intent | None,
+        limit: int,
+    ) -> list[MochiItem]:
+        """captured_at 구간(``[from, to)``) 내 owner 항목을 captured_at 내림차순으로 조회.
+
+        모찌들(캘린더) 탭의 월간 집계·날짜별 목록의 단일 데이터 소스. ``intent`` 가
+        주어지면 그 intent 로 필터(0009 flat intents 이행 후엔 containment 로 바뀌는 단일 지점).
+        """
+        ...
+
+    async def list_active_todos_with_entities(
+        self, *, owner_id: UUID, limit: int
+    ) -> list[tuple[MochiItem, tuple[tuple[str, str], ...]]]:
+        """미완료(lifecycle=active) todo 와 그 추출 entities ``(kind, value)`` 를 함께 조회.
+
+        마감일은 typed 컬럼이 없고 ``entities(kind='deadline')`` free-text 에만 있어,
+        파싱·정렬은 application(`ListUpcomingTodos`)이 담당한다. captured_at 내림차순.
+        """
+        ...
+
     async def count(self, *, owner_id: UUID) -> int: ...
     async def apply_analysis(
         self,

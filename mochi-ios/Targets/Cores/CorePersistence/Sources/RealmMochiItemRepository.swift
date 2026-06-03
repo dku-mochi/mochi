@@ -150,6 +150,30 @@ public actor RealmMochiItemRepository: MochiItemRepository {
         }
     }
 
+    public func listCaptured(in interval: DateInterval, limit: Int) async throws -> [MochiItem] {
+        try await read { realm in
+            realm.objects(RealmMochiItem.self)
+                .filter("capturedAt >= %@ AND capturedAt < %@", interval.start, interval.end)
+                .sorted(byKeyPath: "capturedAt", ascending: false)
+                .prefix(limit)
+                .map(RealmMochiItemMapper.toDomain(_:))
+        }
+    }
+
+    public func listActiveTodos(limit: Int) async throws -> [MochiItem] {
+        // 미완료 todo = todo intent + lifecycle 'active'(완료는 'archived:todoCompleted').
+        try await read { realm in
+            realm.objects(RealmMochiItem.self)
+                .filter(
+                    "intentRawValue == %@ AND lifecycleStateRawValue == 'active'",
+                    Intent.todo.rawValue
+                )
+                .sorted(byKeyPath: "capturedAt", ascending: false)
+                .prefix(limit)
+                .map(RealmMochiItemMapper.toDomain(_:))
+        }
+    }
+
     public func setIntent(mochiItemID: UUID, intent: Intent) async throws {
         try await write { realm in
             guard let row = realm.object(ofType: RealmMochiItem.self, forPrimaryKey: mochiItemID.uuidString) else {
