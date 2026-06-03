@@ -2,7 +2,7 @@
 level: 2
 mode: committed
 status: active
-last_verified: 2026-06-03
+last_verified: 2026-06-04
 confidence: 0.8
 owners: [송준서, 이용찬, 박세현]
 description: 도메인 모델·DB 스키마·4-Intent lifecycle 의 committed 정본. 다음 중 하나라도 손대기 전 반드시 읽어라 — DB 마이그레이션, ORM, Intent 분류·전이 로직, lifecycle_policy 양쪽(BE↔iOS) 정합. **본문 §3·§4·§12 는 as-built(alembic 0001~0008) 단일 테이블 모델이 정본**이며, §4.4 Intent 모델은 **flat `intents` 타겟**(코드가 따라올 doc-leads 지점, migration 0009 예정)이다. 정규화 3테이블·typed 파생·conversations 등 design-ahead 는 §13 향후 계획으로 격리. 변경 시 백엔드·iOS·양 README·openapi.json 정합성 폭포 필수.
@@ -396,6 +396,8 @@ intent 관련 검증된 필드(정확한 전체 스키마는 `CorePersistence/Re
 
 ## 6. API Endpoints
 
+> **요청/응답 스키마·필드 타입의 단일 원천은 [`mochi-backend/openapi.json`](../mochi-backend/openapi.json)** (`make openapi` 생성물, 로컬 `GET /docs`) 이다. 아래 표는 스키마를 *복제*하지 않고, 각 라우트의 **도메인 의미·배선 상태(✅실재배선 / ◑서버만·iOS 미배선 / ○라우트 미존재)** 만 소유한다.
+
 | Method | Path | 상태 | 비고 |
 |---|---|---|---|
 | `POST` | `/api/v1/auth/apple` · `/auth/google` · `/dev` · `/refresh` · `/logout` | ✅ | OAuth → JWT(RS256) + refresh rotation |
@@ -404,11 +406,15 @@ intent 관련 검증된 필드(정확한 전체 스키마는 `CorePersistence/Re
 | `POST` | `/api/v1/mochi_items/back-tap` | ✅ | 스크린샷 ingest (`application/json {objectKey,…}`). ※ UX surface 이름 — §13 에서 `POST /mochi_items` 흡수 후보 |
 | `POST` | `/api/v1/mochi_items/presign` | ✅ | GCS V4 Signed PUT URL |
 | `GET` | `/api/v1/mochi_items/{id}` | ✅ | owner 만. 응답에 `intent`/`confidence`/`candidates` projection (§4.4) |
+| `GET` | `/api/v1/mochi_items` | ✅ | 모찌들 탭 list — `capturedAt` 구간. query `capturedFrom`/`capturedTo`/`intent`/`limit`. owner-scoped, projection |
+| `GET` | `/api/v1/mochi_items/calendar` | ✅ | 모찌들 탭 — KST 월간 집계(`year`/`month` → 날짜별 count·대표 intent·대표 썸네일 objectKey) |
+| `GET` | `/api/v1/mochi_items/todos/upcoming` | ✅ | 모찌들 탭 — 미완료(active) todo 마감 임박순. 마감일 = `entities(kind='deadline')` 서버 파싱 |
 | `PATCH` | `/api/v1/mochi_items/{id}/intent` | ◑ | 서버 존재 · iOS 미배선 |
 | `GET` | `/api/v1/mochi_items/{id}/stream` | ◑ | SSE agent state · iOS 미구독 |
-| `*` | list `GET /mochi_items` · `DELETE /{id}` · `POST /search` · `/conversations` · `/sync` | ○ | **라우트 미존재** → §13 |
+| `POST` | `/api/v1/search` | ◑ | Hybrid Search 라우트 실재 · iOS 미배선 (이전 문서 '미존재' 는 오기) |
+| `*` | `DELETE /{id}` · `/conversations` · `/sync` | ○ | **라우트 미존재** → §13 |
 
-> ⚠️ 현재 라우터 실재 경로는 위 ✅/◑ 9개뿐(`mochi_items/presentation/router.py`, `auth/presentation`). list·delete·search·conversations·sync 는 라우트 자체가 없다(홈/모찌들 탭은 현재 iOS 로컬 Realm 으로 구동, 서버 list API 후속).
+> ⚠️ 모찌들 탭 list/calendar/todos 라우트는 2026-06-04 신설(`mochi_items/presentation/router.py`). **정적 경로(`/calendar`·`/todos/upcoming`)는 동적 `/{id}` 보다 먼저 선언**해 path-param 충돌을 피한다. iOS 모찌들 탭은 즉시성·오프라인·실시간(`observeChanges`)을 위해 **로컬 Realm 구동**이고, 이 서버 API 는 멀티기기/웹 대비 계약(현재 iOS 클라 미배선). `POST /search` 도 실재(이전 '미존재' 는 문서 오기 — `search_router` 가 `api.py` 에 등록). delete·conversations·sync 만 여전히 라우트 없음.
 
 | Header | 필수 | 의미 |
 |---|---|---|

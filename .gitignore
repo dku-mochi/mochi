@@ -39,3 +39,6 @@ __pycache__/
 # 인증/세션 등 운영 외부 자산
 *.p8
 *.mobileprovision
+
+# AI 하네스 로컬 캐시 (codex 세션 id 등 — 머신 로컬, 공유 불필요)
+.context/

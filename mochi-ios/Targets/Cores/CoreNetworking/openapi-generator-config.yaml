@@ -1,0 +1,7 @@
+# swift-openapi-generator 설정. openapi.json(백엔드 생성물) → 타입 + 클라이언트.
+# `make openapi` 가 백엔드에서 openapi.json 을 이 디렉토리로 동기화하고,
+# CodeGen 사이드카가 이 config 로 Sources/Generated 를 재생성한다.
+generate:
+  - types
+  - client
+accessModifier: public

@@ -2,7 +2,7 @@ import hashlib
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import delete, func, select
+from sqlalchemy import ColumnElement, delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -191,13 +191,70 @@ class PostgresMochiItemRepository(MochiItemRepository):
     async def list_by_intent(self, *, owner_id: UUID, intent: Intent, limit: int) -> list[MochiItem]:
         stmt = (
             select(MochiItemRow)
-            .where(MochiItemRow.owner_id == owner_id, MochiItemRow.intent == intent.value)
+            .where(MochiItemRow.owner_id == owner_id, self._intent_match(intent))
             .options(selectinload(MochiItemRow.image_refs))
             .order_by(MochiItemRow.created_at.desc())
             .limit(limit)
         )
         rows = (await self._session.scalars(stmt)).all()
         return [_row_to_entity(r) for r in rows]
+
+    @staticmethod
+    def _intent_match(intent: Intent) -> "ColumnElement[bool]":
+        """intent 필터 조건의 단일 캡슐화 지점.
+
+        현재는 as-built 대표 컬럼(`intent`) 동등 비교. DOMAIN_DESIGN §4.4 flat `intents`
+        이행(migration 0009) 후엔 이 한 곳만 ``MochiItemRow.intents.op('@>')([{'intent': intent.value}])``
+        (GIN containment)으로 교체하면 모든 호출부가 1:N 의미로 바뀐다.
+        """
+        return MochiItemRow.intent == intent.value
+
+    async def list_in_range(
+        self,
+        *,
+        owner_id: UUID,
+        captured_from: datetime | None,
+        captured_to: datetime | None,
+        intent: Intent | None,
+        limit: int,
+    ) -> list[MochiItem]:
+        stmt = (
+            select(MochiItemRow)
+            .where(MochiItemRow.owner_id == owner_id)
+            .options(selectinload(MochiItemRow.image_refs))
+        )
+        if captured_from is not None:
+            stmt = stmt.where(MochiItemRow.captured_at >= captured_from)
+        if captured_to is not None:
+            stmt = stmt.where(MochiItemRow.captured_at < captured_to)
+        if intent is not None:
+            stmt = stmt.where(self._intent_match(intent))
+        stmt = stmt.order_by(MochiItemRow.captured_at.desc()).limit(limit)
+        rows = (await self._session.scalars(stmt)).all()
+        return [_row_to_entity(r) for r in rows]
+
+    async def list_active_todos_with_entities(
+        self, *, owner_id: UUID, limit: int
+    ) -> list[tuple[MochiItem, tuple[tuple[str, str], ...]]]:
+        stmt = (
+            select(MochiItemRow)
+            .where(
+                MochiItemRow.owner_id == owner_id,
+                self._intent_match(Intent.TODO),
+                MochiItemRow.lifecycle_kind == LifecycleStateKind.ACTIVE.value,
+            )
+            .options(
+                selectinload(MochiItemRow.image_refs),
+                selectinload(MochiItemRow.entities),
+            )
+            .order_by(MochiItemRow.captured_at.desc())
+            .limit(limit)
+        )
+        rows = (await self._session.scalars(stmt)).all()
+        return [
+            (_row_to_entity(r), tuple((e.kind, e.value) for e in r.entities))
+            for r in rows
+        ]
 
     async def count(self, *, owner_id: UUID) -> int:
         stmt = select(func.count()).select_from(MochiItemRow).where(MochiItemRow.owner_id == owner_id)

@@ -1,5 +1,5 @@
 {
-  "openapi": "3.1.0",
+  "openapi": "3.0.3",
   "info": {
     "title": "mochi-backend",
     "version": "0.1.0"
@@ -43,15 +43,9 @@
             "in": "header",
             "required": false,
             "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "User-Agent"
+              "title": "User-Agent",
+              "type": "string",
+              "nullable": true
             }
           }
         ],
@@ -75,16 +69,6 @@
                 }
               }
             }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
           }
         }
       }
@@ -102,15 +86,9 @@
             "in": "header",
             "required": false,
             "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "User-Agent"
+              "title": "User-Agent",
+              "type": "string",
+              "nullable": true
             }
           }
         ],
@@ -134,16 +112,6 @@
                 }
               }
             }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
           }
         }
       }
@@ -162,15 +130,9 @@
             "in": "header",
             "required": false,
             "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "User-Agent"
+              "title": "User-Agent",
+              "type": "string",
+              "nullable": true
             }
           }
         ],
@@ -194,16 +156,6 @@
                 }
               }
             }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
           }
         }
       }
@@ -221,15 +173,9 @@
             "in": "header",
             "required": false,
             "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "User-Agent"
+              "title": "User-Agent",
+              "type": "string",
+              "nullable": true
             }
           }
         ],
@@ -250,16 +196,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/TokensResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -287,16 +223,6 @@
         "responses": {
           "204": {
             "description": "Successful Response"
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
           }
         }
       }
@@ -314,15 +240,9 @@
             "in": "header",
             "required": false,
             "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
+              "title": "Authorization",
+              "type": "string",
+              "nullable": true
             }
           }
         ],
@@ -333,16 +253,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/UserResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -363,15 +273,9 @@
             "in": "header",
             "required": false,
             "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Idempotency-Key"
+              "title": "Idempotency-Key",
+              "type": "string",
+              "nullable": true
             }
           },
           {
@@ -379,15 +283,9 @@
             "in": "header",
             "required": false,
             "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
+              "title": "Authorization",
+              "type": "string",
+              "nullable": true
             }
           }
         ],
@@ -411,13 +309,77 @@
                 }
               }
             }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "mochi_items"
+        ],
+        "summary": "List Mochi Items",
+        "description": "모찌들 탭 — captured_at 구간 내 owner 모찌 목록(특정 날짜 선택 시 그날 sheet).\n\n``capturedFrom``/``capturedTo`` 는 ISO8601(UTC 권장). ``intent`` 로 4-Intent 필터.",
+        "operationId": "list_mochi_items_api_v1_mochi_items_get",
+        "parameters": [
+          {
+            "name": "capturedFrom",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "title": "Capturedfrom",
+              "type": "string",
+              "format": "date-time",
+              "nullable": true
+            }
           },
-          "422": {
-            "description": "Validation Error",
+          {
+            "name": "capturedTo",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "title": "Capturedto",
+              "type": "string",
+              "format": "date-time",
+              "nullable": true
+            }
+          },
+          {
+            "name": "intent",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "title": "Intent",
+              "$ref": "#/components/schemas/Intent",
+              "nullable": true
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 100,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "Authorization",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/MochiItemListResponse"
                 }
               }
             }
@@ -439,15 +401,9 @@
             "in": "header",
             "required": false,
             "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Idempotency-Key"
+              "title": "Idempotency-Key",
+              "type": "string",
+              "nullable": true
             }
           },
           {
@@ -455,15 +411,9 @@
             "in": "header",
             "required": false,
             "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
+              "title": "Authorization",
+              "type": "string",
+              "nullable": true
             }
           }
         ],
@@ -487,16 +437,6 @@
                 }
               }
             }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
           }
         }
       }
@@ -515,15 +455,9 @@
             "in": "header",
             "required": false,
             "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
+              "title": "Authorization",
+              "type": "string",
+              "nullable": true
             }
           }
         ],
@@ -544,16 +478,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PresignResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -584,15 +508,9 @@
             "in": "header",
             "required": false,
             "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
+              "title": "Authorization",
+              "type": "string",
+              "nullable": true
             }
           }
         ],
@@ -616,13 +534,99 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/mochi_items/calendar": {
+      "get": {
+        "tags": [
+          "mochi_items"
+        ],
+        "summary": "Get Monthly Calendar",
+        "description": "모찌들 탭 — KST 월간 캘린더(날짜별 개수·대표 Intent·대표 썸네일 object_key).",
+        "operationId": "get_monthly_calendar_api_v1_mochi_items_calendar_get",
+        "parameters": [
+          {
+            "name": "year",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Year"
+            }
           },
-          "422": {
-            "description": "Validation Error",
+          {
+            "name": "month",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Month"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "Authorization",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/MonthlyCalendarResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/mochi_items/todos/upcoming": {
+      "get": {
+        "tags": [
+          "mochi_items"
+        ],
+        "summary": "Get Upcoming Todos",
+        "description": "모찌들 탭 하단 — 마감 임박·미완료(lifecycle active) todo 리스트.\n\n마감일은 ``entities(kind='deadline')`` free-text 를 서버가 파싱해 임박순 정렬하며,\n파싱 불가/마감 미상 todo 는 목록 뒤로 둔다(``dueAt`` null).",
+        "operationId": "get_upcoming_todos_api_v1_mochi_items_todos_upcoming_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "Authorization",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpcomingTodoListResponse"
                 }
               }
             }
@@ -653,15 +657,9 @@
             "in": "header",
             "required": false,
             "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
+              "title": "Authorization",
+              "type": "string",
+              "nullable": true
             }
           }
         ],
@@ -672,16 +670,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/MochiItemResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -713,15 +701,9 @@
             "in": "header",
             "required": false,
             "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
+              "title": "Authorization",
+              "type": "string",
+              "nullable": true
             }
           }
         ],
@@ -731,16 +713,6 @@
             "content": {
               "application/json": {
                 "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
               }
             }
           }
@@ -760,15 +732,9 @@
             "in": "header",
             "required": false,
             "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Authorization"
+              "title": "Authorization",
+              "type": "string",
+              "nullable": true
             }
           }
         ],
@@ -792,16 +758,6 @@
                 }
               }
             }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
           }
         }
       }
@@ -817,39 +773,21 @@
             "title": "Identitytoken"
           },
           "rawNonce": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Rawnonce"
+            "title": "Rawnonce",
+            "type": "string",
+            "nullable": true
           },
           "fullName": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 128
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Fullname"
+            "title": "Fullname",
+            "type": "string",
+            "maxLength": 128,
+            "nullable": true
           },
           "deviceLabel": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 128
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Devicelabel"
+            "title": "Devicelabel",
+            "type": "string",
+            "maxLength": 128,
+            "nullable": true
           }
         },
         "type": "object",
@@ -881,15 +819,9 @@
             "title": "Bytesize"
           },
           "userMemo": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Usermemo"
+            "title": "Usermemo",
+            "type": "string",
+            "nullable": true
           }
         },
         "type": "object",
@@ -901,6 +833,34 @@
         ],
         "title": "BackTapMochiItemRequest",
         "description": "백탭 ingestion 요청 — 클라이언트가 Signed URL 로 GCS 에 업로드한 뒤 objectKey 를 보낸다."
+      },
+      "CalendarDayResponse": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "title": "Date"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "representativeIntent": {
+            "$ref": "#/components/schemas/Intent",
+            "nullable": true
+          },
+          "thumbnailObjectKey": {
+            "title": "Thumbnailobjectkey",
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "date",
+          "count"
+        ],
+        "title": "CalendarDayResponse",
+        "description": "월간 캘린더의 하루 셀 — KST 날짜·개수·대표 Intent·대표 썸네일 object_key."
       },
       "CitationDTO": {
         "properties": {
@@ -936,28 +896,16 @@
             "title": "Subject"
           },
           "displayName": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 128
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Displayname"
+            "title": "Displayname",
+            "type": "string",
+            "maxLength": 128,
+            "nullable": true
           },
           "deviceLabel": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 128
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Devicelabel"
+            "title": "Devicelabel",
+            "type": "string",
+            "maxLength": 128,
+            "nullable": true
           }
         },
         "type": "object",
@@ -975,16 +923,10 @@
             "title": "Idtoken"
           },
           "deviceLabel": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 128
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Devicelabel"
+            "title": "Devicelabel",
+            "type": "string",
+            "maxLength": 128,
+            "nullable": true
           }
         },
         "type": "object",
@@ -1009,15 +951,9 @@
       "ImageRefDTO": {
         "properties": {
           "objectKey": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Objectkey"
+            "title": "Objectkey",
+            "type": "string",
+            "nullable": true
           },
           "mimeType": {
             "type": "string",
@@ -1048,15 +984,9 @@
       "ImageRefResponse": {
         "properties": {
           "objectKey": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Objectkey"
+            "title": "Objectkey",
+            "type": "string",
+            "nullable": true
           },
           "mimeType": {
             "type": "string",
@@ -1167,37 +1097,19 @@
             "$ref": "#/components/schemas/IngestChannel"
           },
           "url": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Url"
+            "title": "Url",
+            "type": "string",
+            "nullable": true
           },
           "text": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Text"
+            "title": "Text",
+            "type": "string",
+            "nullable": true
           },
           "userMemo": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Usermemo"
+            "title": "Usermemo",
+            "type": "string",
+            "nullable": true
           },
           "imageRefs": {
             "items": {
@@ -1214,6 +1126,20 @@
         "title": "MochiItemCreateRequest",
         "description": "클라이언트(iOS)가 보내는 MochiItem ingestion payload.\n\niOS는 본 스키마와 동일한 모양의 ``MochiItemIngestRequest`` 를 송신한다 — 양쪽이 OpenAPI 로 검증된다."
       },
+      "MochiItemListResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/MochiItemResponse"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "title": "MochiItemListResponse",
+        "description": "날짜 구간 모찌 목록 — 모찌들(캘린더) 탭에서 특정 날짜 선택 시 그날 목록."
+      },
       "MochiItemResponse": {
         "properties": {
           "id": {
@@ -1225,37 +1151,19 @@
             "$ref": "#/components/schemas/IngestChannel"
           },
           "url": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Url"
+            "title": "Url",
+            "type": "string",
+            "nullable": true
           },
           "text": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Text"
+            "title": "Text",
+            "type": "string",
+            "nullable": true
           },
           "userMemo": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Usermemo"
+            "title": "Usermemo",
+            "type": "string",
+            "nullable": true
           },
           "intent": {
             "$ref": "#/components/schemas/Intent"
@@ -1275,15 +1183,9 @@
             "title": "Intentapplicability"
           },
           "summary": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Summary"
+            "title": "Summary",
+            "type": "string",
+            "nullable": true
           },
           "importance": {
             "type": "integer",
@@ -1343,6 +1245,32 @@
         ],
         "title": "MochiItemResponse"
       },
+      "MonthlyCalendarResponse": {
+        "properties": {
+          "year": {
+            "type": "integer",
+            "title": "Year"
+          },
+          "month": {
+            "type": "integer",
+            "title": "Month"
+          },
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/CalendarDayResponse"
+            },
+            "type": "array",
+            "title": "Days"
+          }
+        },
+        "type": "object",
+        "required": [
+          "year",
+          "month"
+        ],
+        "title": "MonthlyCalendarResponse",
+        "description": "월간 캘린더 집계 응답 — 모찌들 탭 상단 달력."
+      },
       "PresignRequest": {
         "properties": {
           "sha256": {
@@ -1397,16 +1325,10 @@
             "title": "Refreshtoken"
           },
           "deviceLabel": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 128
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Devicelabel"
+            "title": "Devicelabel",
+            "type": "string",
+            "maxLength": 128,
+            "nullable": true
           }
         },
         "type": "object",
@@ -1453,16 +1375,10 @@
             "default": 0
           },
           "agentRunId": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Agentrunid"
+            "title": "Agentrunid",
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
           }
         },
         "type": "object",
@@ -1539,6 +1455,43 @@
         ],
         "title": "TokensResponse"
       },
+      "UpcomingTodoListResponse": {
+        "properties": {
+          "todos": {
+            "items": {
+              "$ref": "#/components/schemas/UpcomingTodoResponse"
+            },
+            "type": "array",
+            "title": "Todos"
+          }
+        },
+        "type": "object",
+        "title": "UpcomingTodoListResponse"
+      },
+      "UpcomingTodoResponse": {
+        "properties": {
+          "item": {
+            "$ref": "#/components/schemas/MochiItemResponse"
+          },
+          "dueAt": {
+            "title": "Dueat",
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "dueLabel": {
+            "title": "Duelabel",
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "item"
+        ],
+        "title": "UpcomingTodoResponse",
+        "description": "마감 임박 미완료 todo 1건 — 모찌들 탭 하단 할 일 리스트.\n\n``due_at`` 은 entities(kind='deadline') free-text 를 서버가 파싱한 값(미상이면 null),\n``due_label`` 은 파싱 전 원문(클라 표시·디버깅용)."
+      },
       "UserResponse": {
         "properties": {
           "id": {
@@ -1559,16 +1512,10 @@
             "title": "Locale"
           },
           "onboardingCompletedAt": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Onboardingcompletedat"
+            "title": "Onboardingcompletedat",
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
           }
         },
         "type": "object",

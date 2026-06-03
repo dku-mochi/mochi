@@ -15,6 +15,39 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 >
 > **동시 세션 / 공유 파일 주의**: CHANGELOG 는 여러 세션·작업자가 함께 쓰는 append-only 공유 파일이다. 동시 작업 중에는 다른 세션이 자기 항목을 먼저 커밋할 수 있고, 한 워킹트리에 여러 세션의 미커밋 항목이 섞여 보일 수 있다. 이때 **항목을 분리하려 애쓰지 말고** 자기 변경과 함께 그대로 staging·커밋한다 — 섞인 다른 항목은 해당 세션이 자기 코드와 함께 정리한다. diff 에 모르는 CHANGELOG 항목이 보여도 멈추지 않는다 (단, CHANGELOG 외의 *코드* 파일은 절대 임의로 섞어 커밋하지 않는다).
 
+## 2026-06-04 — ios, backend, docs, infra
+- **OpenAPI 단일 계약(A) Phase 2~3 완료 — API 계약 ③→⓪ 승격.** iOS 가 수기 클라가 아니라 `openapi.json` 생성 클라이언트로 동작 → endpoint/스키마 drift 구조적 불가.
+  - **★ 근본 원인 교정**: 핸드오프 §3-1 "계약이 더 작다(nil 동작보존)" 는 오진. 진짜 원인은 **FastAPI 가 OpenAPI 3.1 `anyOf:[X,{type:null}]` 로 내보내고 swift-openapi-generator 1.12.2 가 `type:null` 을 skip** → `url`/`text`/`summary`/`agentRunId`/`objectKey`/**`Idempotency-Key` 헤더**가 생성물에서 통째 누락. (이대로 swap 했으면 url/text ingest·멱등성·이미지 첨부 모두 퇴행.)
+  - **backend**: `scripts/export_openapi.py` 에 3.1→3.0 `nullable:true` 변환(`_downgrade_nullable_to_30`) + `openapi:"3.0.3"`. `make openapi` 로 `openapi.json` 재생성(본체+iOS 사본 sync) → 누락 필드 전부 복원(계약 *의미* 불변).
+  - **ios**: `OpenAPIMochiClient`(생성 `Client` 위임 + `MochiDateTranscoder`(microsecond/naive 날짜 이식) + `AuthMiddleware`(Bearer + `X-Mochi-Request-ID`) + `Idempotency-Key` op 헤더 + `String→UUID/URL` 매핑) 신설. `MochiItemDTO` memberwise init 추가, `AuthTokenProvider` 분리. `AppDependencies` swap, **수기 `URLSessionMochiAPIClient.swift` 삭제**, `Generated/{Client,Types}.swift` 재생성. 검증: `tuist build Mochi` green + `tuist test` 통과(8 호출부 무수정 컴파일).
+  - **infra(게이트)**: `openapi-check.sh`+`lib/extract_paths.py` 삭제(수기 클라 drift 검사 불필요). `ship-precheck §5` → §5a(백엔드 code↔openapi.json no-diff: make openapi 해시비교) + §5b(openapi.json↔생성물 no-diff: generate.sh). CI `ship-precheck.yml` 스텝 교체. **이번 사고(openapi 변경 후 generate.sh 재실행 누락=stale)를 §5b 가 ②로 잡는다.**
+  - **docs**: WORKFLOW §1 ⓪-tier 표 + CLAUDE §7 + ARCHITECTURE §3.6 + qa-validator.md 승격 반영. 핸드오프 `journal/2026-06-04-openapi-single-source-handoff.md` Phase 2~4 완료.
+  - **code-review(codex) P1 2건 반영**: ① **422 envelope 유실 회귀 수정** — `export_openapi.py` 가 FastAPI 자동 `422→HTTPValidationError` 문서를 제거(`_drop_422_responses`). 백엔드는 422 도 `common.validation_failed` envelope 로 보내므로 generated 가 `.undocumented` 로 흘려 어댑터가 envelope(+requestId) 를 보존(다른 에러와 동일 경로, 수기 클라 동작 복원). 어댑터 `.unprocessableContent` 분기·미사용 상수 제거. ② **CI ⓪ 무결성 완성** — `ship-precheck.yml` 에 `swift-actions/setup-swift` 추가 → §5b(생성물 stale) 가 CI 에서도 강제(이전엔 ubuntu swift 부재로 미보장). + 잔여 `type:null` fail-fast assert(`_assert_no_residual_null`), optional 파싱 nil 강등 의도 주석, `AuthCoordinator` 주석 갱신.
+
+## 2026-06-04 — docs
+- **API 명세 중복 제거 — `openapi.json` 단일 원천 수렴 (WORKFLOW §2.1 "참조하되 복제하지 마라").** 같은 엔드포인트 명세가 `ARCHITECTURE §4.2`·`DOMAIN_DESIGN §6`·`backend README` 에 복제돼 drift(backend README 전수 표에 2026-06-04 신설 list/calendar/todos 누락) → 역할 분리: **요청/응답 스키마 = `openapi.json` 단일원천**, **배선 상태 = `DOMAIN_DESIGN §6` 단일원천**. 계약 *내용* 변경 0 — 중복 *서술*만 참조로 수렴. (핸드오프 `journal/2026-06-04-openapi-single-source-handoff.md` Phase 4)
+  - `ARCHITECTURE §4`: §4.2 응답모델 엔드포인트 표 제거 → openapi.json/DOMAIN §6 위임 노트. headers(§4.1)·DTO매핑(§4.3)은 cross-cutting/참조라 보존.
+  - `DOMAIN_DESIGN §6`: 배선상태 표 유지(도메인 의미 소유) + 스키마 단일원천 위임 노트 1줄.
+  - `mochi-backend/README.md`: drift 난 전수 표 제거 → openapi.json/`GET /docs` 참조 + 카테고리 요약.
+
+## 2026-06-04 — ios, backend
+- **OpenAPI 단일 계약(code-first) 통합 — Phase 1 완료.** API 명세 분산(백엔드 code·openapi.json·iOS 수기 클라·docs) → `openapi.json` 단일 계약으로. iOS 쪽 비어 있던 ⓪-tier(swift-openapi-generator 미배선)를 채움.
+  - `mochi-ios/CodeGen/`(사이드카 SPM, generator 1.12.2) + `generate.sh` → `CoreNetworking/Sources/Generated/{Client,Types}.swift` 생성. **`tuist build CoreNetworking` green**(runtime 1.6.0 그대로).
+  - `make openapi` 가 백엔드 export + iOS `CoreNetworking/openapi.json` 동기화(idempotent 검증). config: `openapi-generator-config.yaml`.
+  - **생성 클라이언트는 현재 additive(미사용)** — 라이브는 수기 `URLSessionMochiAPIClient` 유지. Phase 2(adapter `OpenAPIMochiClient`+DI swap+수기 삭제)·3(게이트)·4(docs)는 미완. 핸드오프: `journal/2026-06-04-openapi-single-source-handoff.md`(생성 surface 매핑·DTO drift·날짜 transcoder 주의 포함).
+
+## 2026-06-04 — backend · ios · docs
+- 모찌들(캘린더) 탭 구현. **backend**: `GET /mochi_items`(captured_at 구간 list) · `/mochi_items/calendar`(KST 월간 집계) · `/mochi_items/todos/upcoming`(미완료 todo 마감 임박순) 라우트 + use case(`GetMonthlyCalendar`/`ListUpcomingTodos`/`ListMochiItemsInRange`) + repository(`list_in_range`/`list_active_todos_with_entities`) 신설. intent 필터는 `_intent_match` 1곳 캡슐화(0009 flat intents-ready). 마감일은 typed 컬럼 없이 `entities(kind='deadline')` free-text 서버 파싱 — **마이그레이션 0건**(intent 0009·due_at typed 둘 다 모찌들 탭의 전제조건 아님).
+- **ios**: `MainTabFeature` `schedule`(placeholder) 탭 → `mochis`(모찌들) 재정의(정본 IA 4탭 일치). `FeatureInbox` 에 `MochiCalendarFeature`/`MochiCalendarView`(월간 캘린더 + 날짜별 sheet + 마감 임박 할 일) 추가 — 새 Tuist 모듈 없이 HomeDesign·MochiViewIntent·LocalThumbnail 재사용. 로컬 Realm 구동(`listCaptured(in:)`/`listActiveTodos`) + `observeChanges` 실시간 반영.
+- **docs**: DOMAIN_DESIGN §6 / ARCHITECTURE §4.2 API 표에 신규 라우트 반영 + `POST /search` drift 정정(실재 라우트인데 '미존재' 로 오기록). openapi.json 재생성.
+- 검증: backend lint+typecheck+test(101 passed, 신규 use case 단위 8개) · iOS `tuist build Mochi` 성공.
+
+## 2026-06-04 — docs
+- **문서 정합성 재설계 제안을 `docs/` → `journal/2026-06-04-doc-consistency-redesign.md` 로 이관** (L3 ephemeral 제안은 canonical 트리에 두지 않는다 — §4 문서 수명 규칙). `docs/DOC_CONSISTENCY_REDESIGN.md` 삭제.
+- **`lab/doc-graph/` 의존성 그래프 프로토타입 추가**: `graph.json`(canonical 문서+코드표면 의존, JSON Graph Format 계열) + `validate_graph.py`(구조적 드리프트 검출 — 죽은 path/dangling/self-loop) + 음성테스트 fixture. 검증 통과(실 그래프 PASS / 깨진 fixture FAIL).
+- **실측 검토 후 graph.json은 보류(HELD) 결정** — WORKFLOW §3과 이중 원천(라우팅 누락)·validator 미배선·P1은 테스트(②)가 더 확실. 선결조건 3개 충족 전 repo 승격 금지(`lab/doc-graph/README.md`). 대신 *확실한* 조각(충돌-제안 프로토콜·소유경계·문서 수명 규칙·memory 라우팅)을 **L1 반영안으로 패키지화**(`journal/2026-06-04-doc-consistency-redesign.md` §8, 팀 승인 대기). memory 라우팅 규칙은 즉시 기록.
+- **L1 반영(owner 승인, 2026-06-04):** 충돌-제안 프로토콜·견적 분리 → `CLAUDE.md §1`; 참조-비복제 소유경계·문서 수명 규칙·project지식 repo 라우팅 → `docs/WORKFLOW.md §2.1~2.3`. `AGENTS.md` 미러 `/sync-agents` 재생성(소유경계 리뷰기준 추가). 재설계 제안 §8 블록 A·B harvest.
+
 ## 2026-06-03 — docs
 - **`DOMAIN_DESIGN.md` 전면 재작성 (스키마 정본 확정).** 본문(§3 ERD·§4 DDL·§11 인덱스·§12 카탈로그)을 **as-built 12테이블 단일 `mochi_items` 모델**로 갈아엎어 코드와 정합 — 정규화 3테이블(`mochi_sources`/`mochi_analyses`)·typed 파생(`todos`/`calendar_events`/…)·conversations 일가 등 design-ahead 를 **§13 향후 계획(미구현·게이트)**로 격리. 1:N known-drift 해소.
   - **§4.4 Intent 모델만 doc-leads-code**: intent 4컬럼 파생 중복(`intent`/`secondary_intents`/`intent_applicability`/`intent_candidates`+`confidence`) → flat `intents` jsonb 1개 타겟 명시. 결정 정책(active≥τ / 비면 memo fallback / needs_review=conf<τ_review 직교) + API projection(iOS 무중단) + migration 0009/0011 계획. **코드 미변경** — 문서가 코드 이행의 기준(사용자: 문서 최우선).

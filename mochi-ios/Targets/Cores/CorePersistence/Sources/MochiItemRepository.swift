@@ -29,6 +29,12 @@ public protocol MochiItemRepository: Sendable {
     /// `analysis.importance` 가 높은 순으로 active 항목 정렬.
     /// 홈 "중요해 보여요" 섹션의 원본. 일일 캐시는 호출자가 결정.
     func listByImportance(limit: Int) async throws -> [MochiItem]
+    /// 특정 기간(`interval`) 안에 `capturedAt` 된 항목 — 모찌들(캘린더) 탭의 월간 집계·날짜별 목록 원본.
+    /// `capturedAt` 내림차순.
+    func listCaptured(in interval: DateInterval, limit: Int) async throws -> [MochiItem]
+    /// 미완료(`lifecycleState == .active`) todo — 모찌들 탭 하단 "마감 임박 할 일" 리스트 원본.
+    /// 마감일 파싱·정렬은 호출자(reducer)가 `analysis.actionCandidates` 에서 도출한다. `capturedAt` 내림차순.
+    func listActiveTodos(limit: Int) async throws -> [MochiItem]
     /// 사용자가 needs-review 카드에서 분류 버튼을 누른 경우 호출.
     /// `analysis` 가 없으면 manual entry 로 생성, 있으면 intent 만 덮어쓴다.
     func setIntent(mochiItemID: UUID, intent: Intent) async throws
@@ -206,6 +212,24 @@ public actor InMemoryMochiItemRepository: MochiItemRepository {
                     if li != ri { return li > ri }
                     return lhs.createdAt > rhs.createdAt
                 }
+                .prefix(limit)
+        )
+    }
+
+    public func listCaptured(in interval: DateInterval, limit: Int) async throws -> [MochiItem] {
+        Array(
+            storage.values
+                .filter { interval.start <= $0.source.capturedAt && $0.source.capturedAt < interval.end }
+                .sorted { $0.source.capturedAt > $1.source.capturedAt }
+                .prefix(limit)
+        )
+    }
+
+    public func listActiveTodos(limit: Int) async throws -> [MochiItem] {
+        Array(
+            storage.values
+                .filter { $0.intent == .todo && $0.lifecycleState == .active }
+                .sorted { $0.source.capturedAt > $1.source.capturedAt }
                 .prefix(limit)
         )
     }

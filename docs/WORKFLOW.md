@@ -2,7 +2,7 @@
 level: 1
 mode: committed
 status: active
-last_verified: 2026-05-29
+last_verified: 2026-06-04
 confidence: 0.9
 owners: [송준서, 이용찬, 박세현]
 title: 팀 워크플로우 · 정합성 통제
@@ -34,7 +34,7 @@ description: 3인 + AI 협업의 운영 매뉴얼. 갈라질 수 있는 모든 �
 
 | 티어 | 원리 | 갈라질 확률 | 모찌에서의 구현 |
 |---|---|---|---|
-| **⓪ 불가능하게** | 단일 원천에서 생성 | 0% | 디자인 토큰 = `DesignSystem` 모듈. **API 계약은 목표 상태** — `mochi-backend/openapi.json` 을 단일원천으로 iOS 생성하려 하나, 현재 iOS 는 `swift-openapi-runtime` 의존성만 있고 generator 미설정 + 수기 `URLSessionMochiAPIClient` 라 실제론 ③(drift 위험). generator 배선 시 ⓪ 승격. |
+| **⓪ 불가능하게** | 단일 원천에서 생성 | 0% | 디자인 토큰 = `DesignSystem` 모듈. **API 계약 = `mochi-backend/openapi.json` 단일원천** (백엔드 code-first). iOS 는 `swift-openapi-generator`(`CodeGen/generate.sh`)가 `openapi.json`→`CoreNetworking/Sources/Generated/{Client,Types}.swift` 생성, `OpenAPIMochiClient` 어댑터가 라이브 구현 → endpoint/스키마 drift 구조적 불가. **(2026-06-04 ③→⓪ 승격: generator 배선 + 수기 `URLSessionMochiAPIClient` 삭제. FastAPI 3.1 `anyOf:[X,null]` 은 `export_openapi.py` 가 3.0 `nullable:true` 로 낮춰 generator 호환.)** |
 | **① 자동 결정** | 포매터 | ~0% | `ruff format` (py) · SwiftLint autocorrect/swiftformat (swift) |
 | **② 자동 검출** | 린터·타입체커·경계테스트·훅 | ~0% | `ruff check`(E,F,I,B,UP,**N**,SIM,ASYNC) · `mypy --strict` · `tests/unit/test_module_boundaries.py` · `.swiftlint.yml` · `.claude/hooks/`(pre-bash, **pre-edit-scope**=lab 경계) |
 | **③ AI 판단** | 문서 + 서브에이전트 | ~80% | 이 문서의 네이밍 사전(§7)·파일위치 맵(§8) + `code-reviewer`/`doc-guardian` + `pre-commit-reminder.sh`(커밋 직전 review/qa 환기 넛지 — 필요 여부가 판단이라 ②강제 불가) |
@@ -58,6 +58,24 @@ description: 3인 + AI 협업의 운영 매뉴얼. 갈라질 수 있는 모든 �
 - 해결할 문제 변경(L1 `PRODUCT`) → 도메인 모델(L2) → 서버·iOS·plan(L3) 연쇄
 
 작업 시작 전 `doc-guardian` 서브에이전트가 이 폭포를 스캔해 모순/모호성을 먼저 잡는다 (§4).
+
+### 2.1 참조하되 복제하지 마라 (정보 소유 경계)
+각 사실은 정확히 한 문서가 소유한다. 다른 문서는 이름으로 *참조*할 뿐 내용을 *복제*하지 않는다.
+- PRODUCT(L1): 사용자 문제·미션·컨셉 — 스키마/필드 금지
+- DOMAIN_DESIGN(L2): 엔티티·스키마·상태머신·DDL (스키마 정본)
+- ARCHITECTURE(L2): 토폴로지·데이터흐름·계약 — DB 컬럼 나열 대신 "DOMAIN §N대로" 참조
+- PRIVACY(L2): 민감캡처 정책 — 스키마 컬럼 금지
+
+엔티티 *이름* 참조는 허용. *컬럼/DDL 복제*만 위반. (실측상 현재 위반은 경미 — 예방 규칙.)
+
+### 2.2 문서 수명 — canonical vs ephemeral
+- canonical(`docs/` 안정 문서): 영속. 갱신하되 삭제 안 함.
+- process 기록(`journal/` daily·handoff): 보존(무슨 일이 있었나=history). `/sprint-end`가 archive.
+- decision scaffolding(`journal/` redesign·refactor 제안): **결정을 canonical(WORKFLOW/CLAUDE/DOMAIN/CHANGELOG)로 harvest 한 뒤 삭제.** "삭제"는 항상 "harvest 후".
+- redesign/refactor 제안은 `docs/`(canonical)에 두지 않고 `journal/`(L3)에 둔다.
+
+### 2.3 project 지식은 repo, AI memory엔 개인 작업방식만
+공유돼야 할 것(결정·도메인 사실·상태)은 docs/journal에 쓴다. AI 로컬 memory는 머신 로컬이라 팀에 안 보이므로 user/feedback("이 사람과 어떻게 일하나")만 둔다.
 
 ---
 
@@ -135,7 +153,7 @@ Flow B — 완료
 
 ### 5.2 검증 스크립트 자율 호출
 
-`.claude/scripts/` 의 게이트(`ship-precheck.sh`, `audit.sh`, `openapi-check.sh`, `ios-boundaries.sh`)는 `/ship`·`/audit` 커맨드(사람 트리거)에만 묶이지 않는다. **부모 Claude 는 Flow A/B 중간 어디서든** `bash .claude/scripts/ship-precheck.sh <scope>` 등을 자율 호출해 정합성을 빠르게 확인할 수 있다 — 커맨드는 사람용 진입점, 스크립트는 부모용 재사용 엔진이다.
+`.claude/scripts/` 의 게이트(`ship-precheck.sh`, `audit.sh`, `ios-boundaries.sh`)는 `/ship`·`/audit` 커맨드(사람 트리거)에만 묶이지 않는다. **부모 Claude 는 Flow A/B 중간 어디서든** `bash .claude/scripts/ship-precheck.sh <scope>` 등을 자율 호출해 정합성을 빠르게 확인할 수 있다 — 커맨드는 사람용 진입점, 스크립트는 부모용 재사용 엔진이다.
 
 ---
 
