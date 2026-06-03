@@ -199,4 +199,4 @@ description: 문서 정합성 시스템 재설계 제안(L3 ephemeral). 충돌 �
 - **(b) validator 미배선.** `/ship` precheck나 CI에 안 걸면 아무도 안 돌려 죽은 파일.
 - **(c) P1은 graph(③ reminder)보다 테스트(② 확장)가 더 확실.** 살아있는 P1(intent 5컬럼↔flat)에서 graph 기여 0 — `openapi-check.sh`·`test_module_boundaries.py` 류 확장이 더 확실. 비교 선행.
 
-프로토타입은 `lab/doc-graph/`에 보존(README HELD 명시). **결정 전 repo 승격 금지.**
+프로토타입은 평가 후 **제거됨**(미채택). 설계·validator 접근·검증결과는 본 문서 §2 에 보존되고, 코드는 git `5e25f7a`(`lab/doc-graph/`)에서 복구 가능. 선결조건 충족해 재검토 시 §2 로 재구현. **결정 전 repo 승격 금지.**
