@@ -39,7 +39,7 @@ description: 시스템 토폴로지·iOS↔Backend 데이터흐름·API 계약�
 │                                                    + Siri·Spotlight    │
 │           │                      │                      │             │
 │           ▼                      ▼                      │             │
-│         App Group  (group.com.IndexFinger.mochi)        │             │
+│         App Group  (group.app.mochi)                    │             │
 │         ├─ Realm DB (mochi.realm)         ←─────────────┘             │
 │         ├─ Inbound Queue (*.json)              ← ShareExtension only  │
 │         ├─ Pending Back-Tap (*.png + *.memo)   ← snippet stash/marker │

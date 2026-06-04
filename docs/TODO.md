@@ -20,7 +20,7 @@ description: 외부 설정·비밀값 체크리스트 + 활성 작업·다음 sp
 ### 1.1 App ID — Sign In with Apple capability
 - [ ] developer.apple.com → Identifiers → 모찌 App ID 선택
 - [ ] **Sign In with Apple** capability 체크 → Save
-- [ ] Bundle ID: `com.IndexFinger.mochi` (Project.swift `bundleIdPrefix`)
+- [ ] Bundle ID: `app.mochi` (Project.swift `bundleIdPrefix`)
 - 결과: Xcode 빌드 시 `App.entitlements` 의 `com.apple.developer.applesignin` 권한이 매칭되어 빌드 가능
 
 ### 1.2 Provisioning Profile 재발급
@@ -41,8 +41,8 @@ description: 외부 설정·비밀값 체크리스트 + 활성 작업·다음 sp
 ### 2.1 OAuth Client ID (iOS)
 - [ ] console.cloud.google.com → APIs & Services → Credentials → **Create Credentials → OAuth client ID**
 - [ ] Application type: **iOS**
-- [ ] Bundle ID: `com.IndexFinger.mochi`
-- [ ] Team ID: `H857U5DNT9` (Project.swift `developmentTeam`)
+- [ ] Bundle ID: `app.mochi`
+- [ ] Team ID: `U9SLX327XS` (Project.swift `developmentTeam`)
 - [ ] 생성된 **iOS client ID** 메모: `XXXXXXXXX-YYYYYYYY.apps.googleusercontent.com`
 - [ ] Reversed client ID 메모: `com.googleusercontent.apps.XXXXXXXXX-YYYYYYYY`
 
@@ -140,7 +140,7 @@ AUTH_JWT_ISSUER=mochi.app
 AUTH_JWT_AUDIENCE=mochi.app
 
 # === Apple ID Token verification ===
-AUTH_APPLE_AUDIENCE=com.IndexFinger.mochi        # bundle id
+AUTH_APPLE_AUDIENCE=app.mochi        # bundle id
 AUTH_APPLE_JWKS_URL=https://appleid.apple.com/auth/keys
 
 # === Google ID Token verification ===

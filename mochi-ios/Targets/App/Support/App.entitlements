@@ -10,7 +10,7 @@
 	<true/>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.com.IndexFinger.mochi</string>
+		<string>group.app.mochi</string>
 	</array>
 </dict>
 </plist>

@@ -2,13 +2,13 @@ import ProjectDescription
 
 // MARK: - Constants
 
-private let bundleIdPrefix = "com.IndexFinger.mochi"
+private let bundleIdPrefix = "app.mochi"
 private let deploymentTarget = "17.0"
 private let swiftVersion = "5.0"
-private let developmentTeam = "H857U5DNT9"
+private let developmentTeam = "U9SLX327XS"
 private let marketingVersion = "0.1.0"
 private let currentProjectVersion = "1"
-private let appGroup = "group.com.IndexFinger.mochi"
+private let appGroup = "group.app.mochi"
 
 private let baseSettings: SettingsDictionary = [
     "SWIFT_VERSION": .string(swiftVersion),
@@ -67,7 +67,7 @@ private func unitTests(
 
 let project = Project(
     name: "Mochi",
-    organizationName: "IndexFinger",
+    organizationName: "Mochi",
     options: .options(
         defaultKnownRegions: ["en", "ko"],
         developmentRegion: "ko"
