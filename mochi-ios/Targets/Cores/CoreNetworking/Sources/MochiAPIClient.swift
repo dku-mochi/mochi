@@ -23,19 +23,6 @@ public protocol MochiAPIClient: Sendable {
     /// GCS Signed URL 로 업로드용 이미지 bytes 를 직접 PUT.
     func putCaptureImage(uploadURL: URL, data: Data, mimeType: String) async throws
 
-    /// `POST /api/v1/mochi_items/back-tap` — 백탭 ingestion. 클라이언트가 GCS 에 올린 objectKey 를 보내면
-    /// 백엔드가 `.screenshot` mochiItem 을 `ingested` 로 적재한다 (분석 전). 4-Intent 후보·confidence 는
-    /// worker 가 비동기로 채우고, iOS 는 폴링(`getMochiItem`)으로 반영한다.
-    /// Idempotency-Key 는 mochiItem id 그대로 사용 — 멱등 재요청 시 같은 item 반환.
-    func ingestBackTapMochiItem(
-        objectKey: String,
-        sha256: String,
-        mimeType: String,
-        byteSize: Int,
-        userMemo: String?,
-        idempotencyKey: String
-    ) async throws -> MochiItemDTO
-
     /// `GET /api/v1/mochi_items/{id}` — owner-scoped mochiItem 조회.
     func getMochiItem(id: UUID) async throws -> MochiItemDTO
 
@@ -105,16 +92,15 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
     public let url: URL?
     public let text: String?
     public let userMemo: String?
-    public let intent: Intent?
-    /// primary 를 제외한 보조 의도 (applicability 내림차순). metadata-only 분석 결과의 후보 재구성에 사용.
-    public let secondaryIntents: [Intent]
-    /// Intent → 적용 강도 (0.0–1.0). 후보에 등장하지 않은 intent 는 키에 없다.
-    public let intentApplicability: [String: Double]
     public let summary: String?
     public let importance: Int
-    public let confidence: Double
-    /// LLM use case 후보 (홈 "헷갈려요" 카드·Live Activity 버튼의 원천). 분석 전엔 빈 배열.
-    public let candidates: [IntentCandidateDTO]
+    /// 저장된 의도 instance (저장된 것은 곧 active, 위계 없음). 분석 전엔 빈 배열.
+    public let intentInstances: [IntentInstanceDTO]
+    /// 모찌가 분류를 확신 못 함 — "헷갈려요" 버킷.
+    public let needsReview: Bool
+    /// `needsReview` 시 제시할 미확정 후보 (점수 없음, projection). 현재 빈 배열일 수 있다.
+    public let reviewOptions: [ReviewOptionDTO]
+    /// item 처리상태 (`ingested|analyzing|analyzed|failed`).
     public let lifecycleKind: String
     public let syncKind: String
     public let imageRefs: [ImageRefDTO]
@@ -122,15 +108,50 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
     public let createdAt: Date
 
     private enum CodingKeys: String, CodingKey {
-        case id, channel, url, text, intent, summary, importance, confidence, candidates
-        case secondaryIntents = "secondaryIntents"
-        case intentApplicability = "intentApplicability"
+        case id, channel, url, text, summary, importance
         case userMemo = "userMemo"
+        case intentInstances = "intentInstances"
+        case needsReview = "needsReview"
+        case reviewOptions = "reviewOptions"
         case lifecycleKind = "lifecycleKind"
         case syncKind = "syncKind"
         case imageRefs = "imageRefs"
         case capturedAt = "capturedAt"
         case createdAt = "createdAt"
+    }
+
+    public init(
+        id: UUID,
+        channel: IngestChannel,
+        url: URL?,
+        text: String?,
+        userMemo: String?,
+        summary: String?,
+        importance: Int,
+        intentInstances: [IntentInstanceDTO],
+        needsReview: Bool,
+        reviewOptions: [ReviewOptionDTO],
+        lifecycleKind: String,
+        syncKind: String,
+        imageRefs: [ImageRefDTO],
+        capturedAt: Date,
+        createdAt: Date
+    ) {
+        self.id = id
+        self.channel = channel
+        self.url = url
+        self.text = text
+        self.userMemo = userMemo
+        self.summary = summary
+        self.importance = importance
+        self.intentInstances = intentInstances
+        self.needsReview = needsReview
+        self.reviewOptions = reviewOptions
+        self.lifecycleKind = lifecycleKind
+        self.syncKind = syncKind
+        self.imageRefs = imageRefs
+        self.capturedAt = capturedAt
+        self.createdAt = createdAt
     }
 
     public init(from decoder: Decoder) throws {
@@ -140,13 +161,11 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
         url = try c.decodeIfPresent(URL.self, forKey: .url)
         text = try c.decodeIfPresent(String.self, forKey: .text)
         userMemo = try c.decodeIfPresent(String.self, forKey: .userMemo)
-        intent = try c.decodeIfPresent(Intent.self, forKey: .intent)
-        secondaryIntents = try c.decodeIfPresent([Intent].self, forKey: .secondaryIntents) ?? []
-        intentApplicability = try c.decodeIfPresent([String: Double].self, forKey: .intentApplicability) ?? [:]
         summary = try c.decodeIfPresent(String.self, forKey: .summary)
         importance = try c.decode(Int.self, forKey: .importance)
-        confidence = try c.decode(Double.self, forKey: .confidence)
-        candidates = try c.decodeIfPresent([IntentCandidateDTO].self, forKey: .candidates) ?? []
+        intentInstances = try c.decodeIfPresent([IntentInstanceDTO].self, forKey: .intentInstances) ?? []
+        needsReview = try c.decodeIfPresent(Bool.self, forKey: .needsReview) ?? false
+        reviewOptions = try c.decodeIfPresent([ReviewOptionDTO].self, forKey: .reviewOptions) ?? []
         lifecycleKind = try c.decode(String.self, forKey: .lifecycleKind)
         syncKind = try c.decode(String.self, forKey: .syncKind)
         imageRefs = try c.decodeIfPresent([ImageRefDTO].self, forKey: .imageRefs) ?? []
@@ -155,11 +174,64 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
     }
 }
 
-public struct IntentCandidateDTO: Sendable, Hashable, Codable {
-    public let label: String
-    public let intent: Intent
-    public let applicability: Double
-    public let reasoning: String
+public struct IntentInstanceDTO: Sendable, Hashable, Codable {
+    public let intentType: Intent
+    public let payload: IntentPayloadDTO?
+    public let label: String?
+    public let reasoning: String?
+    /// instance 의미상태 (`active|decaying|reviewRequested|archived`).
+    public let lifecycleKind: String
+
+    public init(intentType: Intent, payload: IntentPayloadDTO?, label: String?, reasoning: String?, lifecycleKind: String) {
+        self.intentType = intentType
+        self.payload = payload
+        self.label = label
+        self.reasoning = reasoning
+        self.lifecycleKind = lifecycleKind
+    }
+}
+
+public struct IntentPayloadDTO: Sendable, Hashable, Codable {
+    public let title: String?
+    public let date: String?
+    public let time: String?
+    public let deadline: String?
+    public let person: String?
+    public let topic: String?
+    public let url: String?
+    public let note: String?
+
+    public init(
+        title: String? = nil,
+        date: String? = nil,
+        time: String? = nil,
+        deadline: String? = nil,
+        person: String? = nil,
+        topic: String? = nil,
+        url: String? = nil,
+        note: String? = nil
+    ) {
+        self.title = title
+        self.date = date
+        self.time = time
+        self.deadline = deadline
+        self.person = person
+        self.topic = topic
+        self.url = url
+        self.note = note
+    }
+}
+
+public struct ReviewOptionDTO: Sendable, Hashable, Codable {
+    public let intentType: Intent
+    public let label: String?
+    public let reasoning: String?
+
+    public init(intentType: Intent, label: String?, reasoning: String?) {
+        self.intentType = intentType
+        self.label = label
+        self.reasoning = reasoning
+    }
 }
 
 public enum SearchScope: String, Codable, Sendable, CaseIterable {

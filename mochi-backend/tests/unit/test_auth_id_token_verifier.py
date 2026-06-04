@@ -75,7 +75,7 @@ def _settings(**overrides) -> Settings:
     base = dict(
         environment="local",
         auth_access_secret="x" * 64,
-        auth_apple_audience="com.IndexFinger.mochi",
+        auth_apple_audience="app.mochi",
         auth_apple_jwks_url="https://appleid.apple.com/auth/keys",
         auth_apple_issuer="https://appleid.apple.com",
         auth_google_client_ids="ios-client.apps.googleusercontent.com",
@@ -102,7 +102,7 @@ async def test_apple_id_token_happy_path() -> None:
     hashed_nonce = hashlib.sha256(nonce_raw.encode()).hexdigest()
     claims = {
         "iss": "https://appleid.apple.com",
-        "aud": "com.IndexFinger.mochi",
+        "aud": "app.mochi",
         "sub": "apple-user-001",
         "email": "u@example.com",
         "email_verified": "true",
@@ -128,7 +128,7 @@ async def test_apple_id_token_rejects_wrong_nonce() -> None:
     now = datetime.now(UTC)
     claims = {
         "iss": "https://appleid.apple.com",
-        "aud": "com.IndexFinger.mochi",
+        "aud": "app.mochi",
         "sub": "u",
         "iat": int(now.timestamp()),
         "exp": int((now + timedelta(minutes=10)).timestamp()),
@@ -149,7 +149,7 @@ async def test_apple_id_token_rejects_wrong_issuer() -> None:
     now = datetime.now(UTC)
     claims = {
         "iss": "https://evil.example.com",
-        "aud": "com.IndexFinger.mochi",
+        "aud": "app.mochi",
         "sub": "u",
         "iat": int(now.timestamp()),
         "exp": int((now + timedelta(minutes=10)).timestamp()),
@@ -189,7 +189,7 @@ async def test_apple_id_token_rejects_expired() -> None:
     past = datetime.now(UTC) - timedelta(hours=2)
     claims = {
         "iss": "https://appleid.apple.com",
-        "aud": "com.IndexFinger.mochi",
+        "aud": "app.mochi",
         "sub": "u",
         "iat": int(past.timestamp()),
         "exp": int((past + timedelta(minutes=10)).timestamp()),
@@ -207,7 +207,7 @@ async def test_apple_id_token_rejects_alg_none() -> None:
     now = datetime.now(UTC)
     claims = {
         "iss": "https://appleid.apple.com",
-        "aud": "com.IndexFinger.mochi",
+        "aud": "app.mochi",
         "sub": "u",
         "iat": int(now.timestamp()),
         "exp": int((now + timedelta(minutes=10)).timestamp()),

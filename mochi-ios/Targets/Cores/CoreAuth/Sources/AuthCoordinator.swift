@@ -7,7 +7,7 @@ import CoreNetworking
 /// - Apple/Google 시트 → 백엔드 sign-in → ``AuthSessionStore`` 업데이트
 /// - 토큰 만료 시 refresh → 회전된 새 토큰 저장
 /// - 로그아웃 → 백엔드 revoke 알림 + 로컬 토큰 삭제
-/// - ``URLSessionMochiAPIClient`` 가 의존하는 ``AuthTokenProvider`` 도 함께 구현 — 모든 보호 호출이 자동으로 인증 헤더를 받는다.
+/// - ``OpenAPIMochiClient`` 의 ``AuthMiddleware`` 가 의존하는 ``AuthTokenProvider`` 도 함께 구현 — 모든 보호 호출이 자동으로 인증 헤더를 받는다.
 public final class AuthCoordinator: AuthTokenProvider, @unchecked Sendable {
     private let store: AuthSessionStore
     private let api: any AuthAPIClient

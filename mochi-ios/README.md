@@ -71,7 +71,7 @@ Features는 서로 직접 의존하지 않는다 (RootFeature가 조합만 담�
 
 ## App Group 공유
 
-App, ShareExtension 두 타겟이 동일 App Group `group.com.IndexFinger.mochi` 에 속한다. AppIntents 는 App 타겟 내부이므로 App 의 entitlement 를 그대로 쓴다.
+App, ShareExtension 두 타겟이 동일 App Group `group.app.mochi` 에 속한다. AppIntents 는 App 타겟 내부이므로 App 의 entitlement 를 그대로 쓴다.
 - 공유 Realm: `<container>/mochi.realm`
 - Inbound 큐(ShareExtension·`QuickCaptureIntent` 진입 → 메인 앱): `<container>/inbound-queue/*.json`
 - Pending Back-Tap (snippet 흐름 단명 stash): `<container>/pending-backtap/<captureID>.png` (단축어가 stash, snippet 분기 commit 시 폐기) + `<container>/pending-backtap/<captureID>.memo` (메모 분기 marker, 모달 종료 시 폐기)
@@ -130,7 +130,7 @@ tuist test
 - `Idempotency-Key` 로 중복 등록 방지
 - 에러 응답은 `APIErrorEnvelope` 통일 포맷
 
-이미지 첨부는 서버가 bytes 를 받지 않는다. iOS 가 업로드용 파생본(긴 변 1920px 이하, JPEG q60)을 만들고, 그 bytes 기준 `sha256/mimeType/byteSize` 로 `/mochi_items/presign` 을 호출한 뒤 GCS Signed URL 에 직접 PUT 한다. 이후 `objectKey` 를 `/mochi_items/back-tap` 또는 일반 ingest `imageRefs` 로 전달한다.
+이미지 첨부는 서버가 bytes 를 받지 않는다. iOS 가 업로드용 파생본(긴 변 1920px 이하, JPEG q60)을 만들고, 그 bytes 기준 `sha256/mimeType/byteSize` 로 `/mochi_items/presign` 을 호출한 뒤 GCS Signed URL 에 직접 PUT 한다. 이후 `objectKey` 를 `POST /mochi_items` 의 `imageRefs` 로 전달한다 (2026-06-04 단일 ingest — back-tap 경로 폐기).
 
 ## 참고
 

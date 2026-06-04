@@ -37,7 +37,8 @@ enum AppDependencies {
         liveAuthCoordinator = coordinator
 
         // 2) Mochi API — coordinator 가 AuthTokenProvider 도 겸한다 (자동 access token 주입).
-        let liveAPI = URLSessionMochiAPIClient(baseURL: baseURL, tokenProvider: coordinator)
+        //    openapi.json 단일 계약에서 생성한 클라이언트(`OpenAPIMochiClient`) 가 라이브 구현.
+        let liveAPI = OpenAPIMochiClient(baseURL: baseURL, tokenProvider: coordinator)
 
         prepareDependencies {
             $0.mochiItemRepository = RealmMochiItemRepository()

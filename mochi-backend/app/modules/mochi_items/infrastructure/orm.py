@@ -3,15 +3,14 @@ from typing import Any
 from uuid import UUID, uuid4
 
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import JSON, BigInteger, DateTime, Float, ForeignKey, Index, Integer, String
-from sqlalchemy.dialects.postgresql import ARRAY, JSONB
+from sqlalchemy import JSON, BigInteger, Boolean, DateTime, ForeignKey, Index, Integer, String
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import (
     UUID as PgUUIDColumn,  # noqa: N811 (Postgres UUID column constructor)
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.db import Base
-from app.shared.intent import Intent
 
 
 class MochiItemRow(Base):
@@ -24,25 +23,14 @@ class MochiItemRow(Base):
     text: Mapped[str | None] = mapped_column(String, default=None)
     user_memo: Mapped[str | None] = mapped_column(String, default=None)
 
-    intent: Mapped[str] = mapped_column(String(32), default=Intent.MEMO.value, index=True)
-    secondary_intents: Mapped[list[str]] = mapped_column(
-        ARRAY(String(32)), default_factory=list
-    )
-    intent_applicability: Mapped[dict[str, float]] = mapped_column(
-        JSONB, default_factory=dict
-    )
-    # LLM 이 펼친 use case 후보 (홈 "헷갈려요" 카드·Live Activity 버튼의 원천).
-    # [{label, intent, applicability, reasoning}] — applicability 가 confidence/multi-intent 의 단일 원천.
-    intent_candidates: Mapped[list[dict[str, Any]]] = mapped_column(
-        JSONB, default_factory=list
-    )
+    # 모찌가 분류를 확신 못 해 사용자에게 물을지 (LLM holistic boolean). 점수/threshold 폐기(2026-06-04).
+    needs_review: Mapped[bool] = mapped_column(Boolean, default=False)
     summary: Mapped[str | None] = mapped_column(String, default=None)
     importance: Mapped[int] = mapped_column(Integer, default=3)
-    confidence: Mapped[float] = mapped_column(Float, default=0.0)
     model_version: Mapped[str | None] = mapped_column(String(64), default=None)
 
+    # 처리상태(ingested/analyzing/analyzed/failed) — 의미 lifecycle(archive_reason)은 intent_instances 로 이동.
     lifecycle_kind: Mapped[str] = mapped_column(String(32), default="ingested", index=True)
-    lifecycle_archive_reason: Mapped[str | None] = mapped_column(String(32), default=None)
     lifecycle_failure_reason: Mapped[str | None] = mapped_column(String, default=None)
 
     sync_kind: Mapped[str] = mapped_column(String(32), default="pending")
@@ -52,6 +40,7 @@ class MochiItemRow(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default_factory=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default_factory=datetime.utcnow)
 
+    intent_instances: Mapped[list["IntentInstanceRow"]] = relationship(back_populates="mochi_item", cascade="all, delete-orphan", default_factory=list)
     entities: Mapped[list["EntityRow"]] = relationship(back_populates="mochi_item", cascade="all, delete-orphan", default_factory=list)
     embeddings: Mapped[list["EmbeddingRow"]] = relationship(back_populates="mochi_item", cascade="all, delete-orphan", default_factory=list)
     image_refs: Mapped[list["MochiItemImageRefRow"]] = relationship(back_populates="mochi_item", cascade="all, delete-orphan", default_factory=list)
@@ -67,6 +56,34 @@ class MochiItemImageRefRow(Base):
     byte_size: Mapped[int] = mapped_column(BigInteger)
     object_key: Mapped[str | None] = mapped_column(String(512), default=None)
     mochi_item: Mapped["MochiItemRow"] = relationship(back_populates="image_refs", default=None)
+
+
+class IntentInstanceRow(Base):
+    """LLM 이 한 캡쳐에서 펼친 의도 1개 — 1급 행. 저장돼 있으면 곧 active.
+
+    위계 없음(같은 ``intent_type`` 다중 허용). ``lifecycle_kind`` 는 instance 단위 의미상태
+    (active/decaying/reviewRequested/archived) — item 처리상태(``mochi_items.lifecycle_kind``)와 직교.
+    """
+
+    __tablename__ = "intent_instances"
+
+    id: Mapped[UUID] = mapped_column(PgUUIDColumn(as_uuid=True), primary_key=True, insert_default=uuid4, init=False)
+    mochi_item_id: Mapped[UUID] = mapped_column(PgUUIDColumn(as_uuid=True), ForeignKey("mochi_items.id", ondelete="CASCADE"), index=True, init=False)
+    owner_id: Mapped[UUID] = mapped_column(PgUUIDColumn(as_uuid=True))
+    intent_type: Mapped[str] = mapped_column(String(16))
+    payload: Mapped[dict[str, Any]] = mapped_column(JSONB, default_factory=dict)
+    label: Mapped[str | None] = mapped_column(String(255), default=None)
+    reasoning: Mapped[str | None] = mapped_column(String, default=None)
+    lifecycle_kind: Mapped[str] = mapped_column(String(32), default="active")
+    lifecycle_archive_reason: Mapped[str | None] = mapped_column(String(32), default=None)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default_factory=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default_factory=datetime.utcnow)
+    mochi_item: Mapped["MochiItemRow"] = relationship(back_populates="intent_instances", default=None)
+
+    __table_args__ = (
+        # "owner 의 미완 todo 만" 같은 instance 필터 — intent_type + lifecycle 복합 (owner_id leftmost).
+        Index("ix_intent_instances_owner_type_lc", "owner_id", "intent_type", "lifecycle_kind"),
+    )
 
 
 class EntityRow(Base):

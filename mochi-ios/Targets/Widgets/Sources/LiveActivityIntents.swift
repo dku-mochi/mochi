@@ -49,7 +49,7 @@ public struct SelectCandidateIntent: LiveActivityIntent {
 
     /// App Group container 의 `live-activity-selection.json` 에 선택 결과 stash.
     private static func writeSelectionMarker(label: String) {
-        let appGroupID = "group.com.IndexFinger.mochi"
+        let appGroupID = "group.app.mochi"
         guard let url = FileManager.default
             .containerURL(forSecurityApplicationGroupIdentifier: appGroupID)?
             .appendingPathComponent("live-activity-selection.json")

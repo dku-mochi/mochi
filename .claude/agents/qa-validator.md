@@ -25,7 +25,7 @@ model: inherit
 ## 점진 검증 + 경계면 교차 비교 (핵심)
 - QA 는 전체 완성 후 1회가 아니라 **각 모듈 완성 직후 점진적으로** 실행한다 (incremental QA). 늦게 한 번에 보면 경계면 버그가 누적된 뒤 드러난다.
 - 핵심은 "파일/함수 존재 확인"이 아니라 **경계면 교차 비교** — 한쪽이 내보내는 shape 과 다른 쪽이 소비하는 shape 을 *동시에 읽어* 일치하는지 본다.
-  - 모찌의 주 경계: `mochi-backend/openapi.json` ↔ iOS `URLSessionMochiAPIClient`(+ 디코딩 모델). path 수준 drift 는 `.claude/scripts/openapi-check.sh` 가 ② 자동 검출하지만, **필드명·옵셔널·타입 shape 일치는 QA 가 양쪽을 교차 비교**한다 (generator 미배선이라 ③).
+  - 모찌의 주 경계: `mochi-backend/openapi.json` 단일 계약. iOS 는 `swift-openapi-generator` 로 생성(`OpenAPIMochiClient`)되어 endpoint/스키마 drift 는 구조적 불가(⓪). QA 는 (a) **생성물이 최신인지**(`ship-precheck §5` no-diff — openapi 바꾸고 `generate.sh` 재실행 누락이 과거 사고였음), (b) **어댑터 매핑의 런타임 정확성**(`String→UUID`·날짜 transcoder·optional 매핑)을 검증한다.
   - 부 경계: 4-Intent lifecycle 정책이 `lifecycle_policy.py` ↔ `CoreDomain.LifecyclePolicy` 양쪽에서 동일 불변식인지.
 
 ## 도메인 필수 점검 (모찌 고유)

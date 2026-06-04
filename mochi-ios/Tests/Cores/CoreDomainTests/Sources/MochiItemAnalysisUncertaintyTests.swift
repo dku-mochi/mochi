@@ -1,109 +1,89 @@
 import XCTest
 @testable import CoreDomain
 
-/// 홈 "모찌가 헷갈려요" 판정(`isUncertain`) · 복수 의도(`isMultiIntent`/`activeSecondaryIntents`)
-/// · 의견 도출(`reviewOpinions`) 검증.
+/// 빅뱅(2026-06-04) 후 `MochiItemAnalysis` 파생 검증.
 ///
-/// 핵심 모델: confidence(= 최상위 후보 applicability) 단일 기준으로 3상태가 갈린다 —
-/// 헷갈림(top1<0.6) / 단일 확신(top1≥0.6, top2<0.6) / 복수 의도(top1·top2 둘 다 ≥0.6).
-/// 박빙(gap) 조건은 폐기됐다.
+/// 단수 intent·confidence·점수 후보(`candidates`)·박빙 판정을 폐기하고 복수 `instances`
+/// (저장된 것은 곧 active) + `needsReview` boolean + `reviewOptions`(projection) 로 갔다.
+/// 대표 intent 는 점수 argmax 가 아니라 고정 우선순위 `schedule > todo > knowledge > memo` 다.
 final class MochiItemAnalysisUncertaintyTests: XCTestCase {
 
-    private func candidate(_ intent: Intent, _ applicability: Double, label: String? = nil) -> IntentCandidate {
-        IntentCandidate(label: label, intent: intent, applicability: applicability)
+    private func instance(_ intent: Intent, label: String? = nil, lifecycle: InstanceLifecycle = .active) -> IntentInstance {
+        IntentInstance(intentType: intent, label: label, lifecycle: lifecycle)
     }
 
-    private func analysis(confidence: Double, _ candidates: [IntentCandidate]) -> MochiItemAnalysis {
+    private func analysis(
+        instances: [IntentInstance],
+        needsReview: Bool = false,
+        reviewOptions: [ReviewOption] = []
+    ) -> MochiItemAnalysis {
         MochiItemAnalysis(
             summary: "s",
-            intent: candidates.first?.intent ?? .memo,
+            instances: instances,
+            needsReview: needsReview,
+            reviewOptions: reviewOptions,
             entities: [],
             actionCandidates: [],
             tags: [],
             importance: .medium,
-            confidence: confidence,
             modelVersion: "test",
-            analyzedAt: .init(),
-            candidates: candidates
+            analyzedAt: .init()
         )
     }
 
-    // MARK: - isUncertain (confidence 단일 기준)
+    // MARK: - representativeIntent (고정 우선순위)
 
-    func test_low_confidence_is_uncertain() {
-        // 최상위 후보(0.59) < 0.6 → 헷갈림.
-        let a = analysis(confidence: 0.59, [candidate(.memo, 0.59), candidate(.todo, 0.1)])
-        XCTAssertTrue(a.isUncertain)
+    func test_representative_picks_highest_priority_present() {
+        // schedule 없음 → todo 가 최상위.
+        let a = analysis(instances: [instance(.memo), instance(.todo), instance(.knowledge)])
+        XCTAssertEqual(a.representativeIntent, .todo)
     }
 
-    func test_confidence_at_threshold_is_certain() {
-        // 0.60 (not < 0.6) → 확신.
-        let a = analysis(confidence: 0.60, [candidate(.memo, 0.60), candidate(.todo, 0.1)])
-        XCTAssertFalse(a.isUncertain)
+    func test_representative_schedule_wins_over_others() {
+        let a = analysis(instances: [instance(.memo), instance(.schedule), instance(.todo)])
+        XCTAssertEqual(a.representativeIntent, .schedule)
     }
 
-    func test_weak_top_two_is_uncertain_regardless_of_gap() {
-        // 둘 다 낮고 박빙 — 최상위(0.5) < 0.6 이라 헷갈림 (gap 과 무관).
-        let a = analysis(confidence: 0.5, [candidate(.memo, 0.5), candidate(.todo, 0.45)])
-        XCTAssertTrue(a.isUncertain)
-        XCTAssertFalse(a.isMultiIntent)
+    func test_representative_nil_when_no_instances() {
+        XCTAssertNil(analysis(instances: []).representativeIntent)
     }
 
-    func test_single_confident_candidate_is_certain() {
-        let a = analysis(confidence: 0.9, [candidate(.memo, 0.9)])
-        XCTAssertFalse(a.isUncertain)
-        XCTAssertFalse(a.isMultiIntent)
+    // MARK: - intentTypes (distinct, 출현 순서 보존)
+
+    func test_intentTypes_distinct_preserving_order() {
+        let a = analysis(instances: [instance(.todo), instance(.memo), instance(.todo)])
+        XCTAssertEqual(a.intentTypes, [.todo, .memo])
     }
 
-    // MARK: - isMultiIntent (둘 다 강함 = 복수 의도, 헷갈림 아님)
+    // MARK: - needsReview / reviewOptions
 
-    func test_two_strong_candidates_is_multi_intent_not_uncertain() {
-        // top1=0.9, top2=0.8 — 둘 다 ≥0.6 → 복수 의도. "헷갈려요" 아님.
-        let a = analysis(confidence: 0.9, [candidate(.todo, 0.9), candidate(.knowledge, 0.8)])
-        XCTAssertFalse(a.isUncertain)
-        XCTAssertTrue(a.isMultiIntent)
-        XCTAssertEqual(a.activeSecondaryIntents, [.knowledge])
+    func test_needsReview_is_direct_boolean() {
+        XCTAssertTrue(analysis(instances: [instance(.memo)], needsReview: true).needsReview)
+        XCTAssertFalse(analysis(instances: [instance(.memo)]).needsReview)
     }
 
-    func test_strong_primary_weak_secondary_is_single_intent() {
-        // top1=0.9, top2=0.3 — secondary < 0.6 → 단일 확신.
-        let a = analysis(confidence: 0.9, [candidate(.todo, 0.9), candidate(.knowledge, 0.3)])
-        XCTAssertFalse(a.isUncertain)
-        XCTAssertFalse(a.isMultiIntent)
-        XCTAssertEqual(a.activeSecondaryIntents, [])
+    func test_reviewOptions_preserve_intent_and_label() {
+        let opt = ReviewOption(intentType: .todo, label: "회신", reasoning: nil)
+        let a = analysis(instances: [instance(.memo)], needsReview: true, reviewOptions: [opt])
+        XCTAssertEqual(a.reviewOptions.first?.intentType, .todo)
+        XCTAssertEqual(a.reviewOptions.first?.label, "회신")
     }
 
-    func test_uncertain_item_has_no_active_secondary() {
-        // 헷갈리면 복수 의도 판정을 하지 않는다.
-        let a = analysis(confidence: 0.4, [candidate(.todo, 0.4), candidate(.knowledge, 0.35)])
-        XCTAssertTrue(a.isUncertain)
-        XCTAssertEqual(a.activeSecondaryIntents, [])
+    // MARK: - replacingInstances (instance lifecycle 전이용 — 다른 필드 보존)
+
+    func test_replacingInstances_swaps_only_instances() {
+        let a = analysis(instances: [instance(.todo)], needsReview: true)
+        let archived = instance(.todo, lifecycle: .archived(reason: .todoCompleted))
+        let b = a.replacingInstances([archived])
+        XCTAssertEqual(b.instances.first?.lifecycle, .archived(reason: .todoCompleted))
+        XCTAssertTrue(b.needsReview)   // 보존
+        XCTAssertEqual(b.summary, "s") // 보존
     }
 
-    func test_active_secondary_takes_max_per_distinct_intent() {
-        // 같은 intent 중복 → 최댓값. todo 0.9 / todo 0.7(무시) / knowledge 0.65 → secondary [knowledge].
-        let a = analysis(confidence: 0.9, [candidate(.todo, 0.9), candidate(.todo, 0.7), candidate(.knowledge, 0.65)])
-        XCTAssertEqual(a.activeSecondaryIntents, [.knowledge])
-    }
+    // MARK: - displayLabel
 
-    // MARK: - reviewOpinions
-
-    func test_reviewOpinions_returns_top_two_distinct_descending() {
-        let a = analysis(confidence: 0.4, [candidate(.memo, 0.4), candidate(.todo, 0.9), candidate(.knowledge, 0.7)])
-        let ops = a.reviewOpinions
-        XCTAssertEqual(ops.count, 2)
-        XCTAssertEqual(ops[0].intent, .todo)
-        XCTAssertEqual(ops[1].intent, .knowledge)
-    }
-
-    func test_reviewOpinions_dedupes_intent() {
-        let a = analysis(confidence: 0.4, [candidate(.todo, 0.9), candidate(.todo, 0.5), candidate(.memo, 0.6)])
-        let ops = a.reviewOpinions
-        XCTAssertEqual(ops.map(\.intent), [.todo, .memo])
-    }
-
-    func test_reviewOpinions_preserves_label() {
-        let a = analysis(confidence: 0.4, [candidate(.todo, 0.9, label: "회신"), candidate(.memo, 0.6)])
-        XCTAssertEqual(a.reviewOpinions.first?.label, "회신")
+    func test_instance_displayLabel_falls_back_to_intent_name() {
+        XCTAssertEqual(instance(.schedule).displayLabel, Intent.schedule.displayName)
+        XCTAssertEqual(instance(.todo, label: "회신").displayLabel, "회신")
     }
 }

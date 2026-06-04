@@ -39,3 +39,9 @@ __pycache__/
 # 인증/세션 등 운영 외부 자산
 *.p8
 *.mobileprovision
+
+# AI 하네스 로컬 캐시 (codex 세션 id 등 — 머신 로컬, 공유 불필요)
+.context/
+
+# 숏컷 작업 공간 (로컬 전용 — 단축어 후보 .shortcut·빌드 스크립트, 본인 관리)
+shortcuts/

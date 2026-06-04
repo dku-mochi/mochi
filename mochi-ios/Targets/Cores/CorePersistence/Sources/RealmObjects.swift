@@ -10,20 +10,23 @@ public final class RealmMochiItem: Object, Identifiable {
     @Persisted public var urlString: String?
     @Persisted public var text: String?
     @Persisted public var userMemo: String?
+    /// 처리상태 (`ingested|analyzing|analyzed|failed`). intent instance 의미상태와 직교.
     @Persisted public var lifecycleStateRawValue: String
     @Persisted public var syncStateRawValue: String
-    @Persisted public var intentRawValue: String?
     @Persisted public var summary: String?
     @Persisted public var importance: Int = 3
-    @Persisted public var confidence: Double = 0
+    /// 모찌가 분류를 확신 못 함 — "헷갈려요" 버킷 (서버 boolean 미러).
+    @Persisted public var needsReview: Bool = false
     @Persisted public var modelVersion: String?
     @Persisted public var capturedAt: Date
     @Persisted public var analyzedAt: Date?
     @Persisted public var createdAt: Date
     @Persisted public var updatedAt: Date
 
-    /// LLM 의도 후보 (헷갈려요 카드 버튼·복수 의도 derive 의 원천). 미분석/단일확신 시 비어 있을 수 있다.
-    @Persisted public var intentCandidates: List<RealmIntentCandidate>
+    /// 저장된 의도 instance (저장된 것은 곧 active, 위계 없음). 미분석 시 비어 있다.
+    @Persisted public var intentInstances: List<RealmIntentInstance>
+    /// `needsReview` 시 제시할 미확정 후보 (점수 없음). 현재 빈 배열일 수 있다.
+    @Persisted public var reviewOptions: List<RealmReviewOption>
 
     @Persisted public var imageRefs: List<RealmImageRef>
     @Persisted public var entities: List<RealmExtractedEntity>
@@ -33,10 +36,30 @@ public final class RealmMochiItem: Object, Identifiable {
     public override class func primaryKey() -> String? { "id" }
 }
 
-public final class RealmIntentCandidate: EmbeddedObject {
-    @Persisted public var label: String?
+public final class RealmIntentInstance: EmbeddedObject {
+    @Persisted public var instanceID: String
     @Persisted public var intentRawValue: String
-    @Persisted public var applicability: Double
+    @Persisted public var label: String?
+    @Persisted public var reasoning: String?
+    /// 의미상태 kind (`active|decaying|reviewRequested|archived`).
+    @Persisted public var lifecycleKindRawValue: String
+    /// archived 일 때 reason (`scheduleEnded|todoCompleted|knowledgeStale|userManual`), 아니면 nil.
+    @Persisted public var archiveReasonRawValue: String?
+    // payload (typed, 전부 optional)
+    @Persisted public var payloadTitle: String?
+    @Persisted public var payloadDate: String?
+    @Persisted public var payloadTime: String?
+    @Persisted public var payloadDeadline: String?
+    @Persisted public var payloadPerson: String?
+    @Persisted public var payloadTopic: String?
+    @Persisted public var payloadURL: String?
+    @Persisted public var payloadNote: String?
+}
+
+public final class RealmReviewOption: EmbeddedObject {
+    @Persisted public var intentRawValue: String
+    @Persisted public var label: String?
+    @Persisted public var reasoning: String?
 }
 
 public final class RealmImageRef: EmbeddedObject {

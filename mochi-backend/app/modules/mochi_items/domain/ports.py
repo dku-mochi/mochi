@@ -3,7 +3,8 @@ from datetime import datetime
 from typing import Protocol
 from uuid import UUID
 
-from app.modules.mochi_items.domain.entities import LifecycleState, MochiItem
+from app.modules.mochi_items.domain.entities import MochiItem
+from app.modules.mochi_items.domain.value_objects import IntentInstance
 from app.shared.intent import Intent
 
 
@@ -15,41 +16,53 @@ class MochiItemRepository(Protocol):
 
     async def add(self, *, owner_id: UUID, item: MochiItem) -> None: ...
     async def find_by_id(self, *, owner_id: UUID, mochi_item_id: UUID) -> MochiItem | None: ...
-    async def update_lifecycle(
-        self,
-        *,
-        owner_id: UUID,
-        mochi_item_id: UUID,
-        new_state: LifecycleState,
-    ) -> None: ...
-    async def update_primary_intent(
-        self,
-        *,
-        owner_id: UUID,
-        mochi_item_id: UUID,
-        new_primary: Intent,
-        new_secondary: tuple[Intent, ...],
-    ) -> None: ...
     async def list_recent(self, *, owner_id: UUID, limit: int) -> list[MochiItem]: ...
     async def list_by_intent(self, *, owner_id: UUID, intent: Intent, limit: int) -> list[MochiItem]: ...
+    async def list_in_range(
+        self,
+        *,
+        owner_id: UUID,
+        captured_from: datetime | None,
+        captured_to: datetime | None,
+        intent: Intent | None,
+        limit: int,
+    ) -> list[MochiItem]:
+        """captured_at 구간(``[from, to)``) 내 owner 항목을 captured_at 내림차순으로 조회.
+
+        모찌들(캘린더) 탭의 월간 집계·날짜별 목록의 단일 데이터 소스. ``intent`` 가
+        주어지면 그 intent 로 필터(0009 flat intents 이행 후엔 containment 로 바뀌는 단일 지점).
+        """
+        ...
+
+    async def list_active_todos_with_entities(
+        self, *, owner_id: UUID, limit: int
+    ) -> list[tuple[MochiItem, tuple[tuple[str, str], ...]]]:
+        """미완료(lifecycle=active) todo 와 그 추출 entities ``(kind, value)`` 를 함께 조회.
+
+        마감일은 typed 컬럼이 없고 ``entities(kind='deadline')`` free-text 에만 있어,
+        파싱·정렬은 application(`ListUpcomingTodos`)이 담당한다. captured_at 내림차순.
+        """
+        ...
+
     async def count(self, *, owner_id: UUID) -> int: ...
     async def apply_analysis(
         self,
         *,
         owner_id: UUID,
         mochi_item_id: UUID,
-        intent: Intent,
-        secondary_intents: tuple[Intent, ...],
-        intent_applicability: dict[Intent, float],
+        intent_instances: tuple[IntentInstance, ...],
+        needs_review: bool,
         summary: str,
         importance: int,
-        confidence: float,
         model_version: str,
         entities: tuple[tuple[str, str], ...],
-        intent_candidates: tuple[dict[str, object], ...],
     ) -> None:
-        """Agent 분석 결과를 write-back 한다 — 분석 필드 갱신 + entities 재적재 +
-        intent_candidates 영속 + lifecycle 를 분석 완료 상태(ACTIVE)로 확립."""
+        """Agent 분석 결과를 write-back 한다 — 기존 intent_instances·entities 를 delete-reinsert,
+        needs_review 갱신, 처리 lifecycle 을 분석 완료(ANALYZED)로 확립.
+
+        review_options 는 받지 않는다 — 현재 DB 미영속(transient, 가드레일 2). 응답엔 빈 배열로
+        projection 하며 '미확정 후보를 나중에 다시 보는 UX' 가 필요해지면 컬럼 승격한다.
+        """
         ...
     async def already_ingested(self, *, owner_id: UUID, idempotency_key: str) -> MochiItem | None: ...
     async def remember_idempotency(

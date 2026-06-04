@@ -39,7 +39,11 @@ clean:
 	rm -rf .pytest_cache .ruff_cache .mypy_cache
 	find . -type d -name __pycache__ -prune -exec rm -rf {} + 2>/dev/null || true
 
-# iOS의 swift-openapi-generator가 빌드 타임에 읽을 수 있도록 OpenAPI 스펙을 정적 JSON으로 추출.
+# OpenAPI 스펙을 정적 JSON으로 추출하고 iOS CoreNetworking 으로 동기화.
+# openapi.json = 단일 계약. 백엔드 코드가 source, 이 JSON 이 생성물.
+# 동기화 후 iOS 클라이언트 재생성: mochi-ios/CodeGen/generate.sh
 openapi:
 	PYTHONPATH=. $(UV) run python scripts/export_openapi.py > openapi.json
 	@echo "openapi.json updated ($(shell wc -c < openapi.json) bytes)"
+	cp openapi.json ../mochi-ios/Targets/Cores/CoreNetworking/openapi.json
+	@echo "→ synced to iOS CoreNetworking/openapi.json (재생성: mochi-ios/CodeGen/generate.sh)"

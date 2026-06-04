@@ -23,18 +23,20 @@ public actor RealmMochiItemRepository: MochiItemRepository {
         }
     }
 
-    public func updateLifecycle(mochiItemID: UUID, to newState: LifecycleState) async throws {
+    public func updateInstanceLifecycle(mochiItemID: UUID, instanceID: UUID, to newState: InstanceLifecycle) async throws {
         try await write { realm in
             guard let row = realm.object(ofType: RealmMochiItem.self, forPrimaryKey: mochiItemID.uuidString) else {
                 throw DomainError.notFound(entity: "MochiItem", id: mochiItemID.uuidString)
             }
-            if let intentRaw = row.intentRawValue, let intent = Intent(rawValue: intentRaw) {
-                let currentState = RealmMochiItemMapper.lifecycleState(from: row)
-                if case .failure(let error) = LifecyclePolicy.validate(from: currentState, to: newState, intent: intent) {
-                    throw DomainError.lifecycleTransition(error)
-                }
+            guard let instRow = row.intentInstances.first(where: { $0.instanceID == instanceID.uuidString }),
+                  let intent = Intent(rawValue: instRow.intentRawValue),
+                  let currentState = RealmMochiItemMapper.instanceLifecycle(from: instRow) else {
+                throw DomainError.notFound(entity: "IntentInstance", id: instanceID.uuidString)
             }
-            RealmMochiItemMapper.apply(lifecycleState: newState, to: row)
+            if case .failure(let error) = LifecyclePolicy.validate(from: currentState, to: newState, intent: intent) {
+                throw DomainError.lifecycleTransition(error)
+            }
+            RealmMochiItemMapper.apply(instanceLifecycle: newState, to: instRow)
             row.updatedAt = .init()
         }
     }
@@ -89,7 +91,7 @@ public actor RealmMochiItemRepository: MochiItemRepository {
     public func listByIntent(_ intent: Intent, limit: Int) async throws -> [MochiItem] {
         try await read { realm in
             realm.objects(RealmMochiItem.self)
-                .filter("intentRawValue == %@", intent.rawValue)
+                .filter("SUBQUERY(intentInstances, $i, $i.intentRawValue == %@).@count > 0", intent.rawValue)
                 .sorted(byKeyPath: "createdAt", ascending: false)
                 .prefix(limit)
                 .map(RealmMochiItemMapper.toDomain(_:))
@@ -97,13 +99,12 @@ public actor RealmMochiItemRepository: MochiItemRepository {
     }
 
     public func listAnalyzing(limit: Int) async throws -> [MochiItem] {
-        // "모찌가 분석 중이에요" — intentRawValue == nil (분석 응답 미수신).
-        // archived/failed 는 제외 (listByImportance 와 동일 lifecycle 정책).
+        // "모찌가 분석 중이에요" — 분석 응답 미수신(analyzedAt == nil). failed 는 제외.
+        // (처리상태엔 archived 가 없다 — 의미상태로 이동.)
         try await read { realm in
             realm.objects(RealmMochiItem.self)
                 .filter(
-                    "intentRawValue == nil AND " +
-                    "NOT (lifecycleStateRawValue BEGINSWITH 'archived') AND " +
+                    "analyzedAt == nil AND " +
                     "NOT (lifecycleStateRawValue BEGINSWITH 'failed')"
                 )
                 .sorted(byKeyPath: "createdAt", ascending: false)
@@ -112,17 +113,12 @@ public actor RealmMochiItemRepository: MochiItemRepository {
         }
     }
 
-    public func listAmbiguous(limit: Int) async throws -> [MochiItem] {
-        // "모찌가 헷갈려요" — 분석은 끝났으나(intent != nil) 최상위 후보조차 확신 임계 미만.
-        // (박빙 gap 조건은 폐기 — top1·top2 둘 다 높은 건 복수 의도지 헷갈림이 아니다.)
-        // archived/failed 제외. 임계값은 도메인 단일원천 상수라 문자열 보간(locale 독립 "0.6").
-        let conf = MochiItemAnalysis.uncertainConfidenceThreshold
-        return try await read { realm in
+    public func listNeedsReview(limit: Int) async throws -> [MochiItem] {
+        // "모찌가 헷갈려요" — 분석은 끝났으나 모찌가 확신 못 함 (needsReview boolean 직접). failed 제외.
+        try await read { realm in
             realm.objects(RealmMochiItem.self)
                 .filter(
-                    "intentRawValue != nil AND " +
-                    "confidence < \(conf) AND " +
-                    "NOT (lifecycleStateRawValue BEGINSWITH 'archived') AND " +
+                    "needsReview == true AND " +
                     "NOT (lifecycleStateRawValue BEGINSWITH 'failed')"
                 )
                 .sorted(byKeyPath: "createdAt", ascending: false)
@@ -132,13 +128,12 @@ public actor RealmMochiItemRepository: MochiItemRepository {
     }
 
     public func listByImportance(limit: Int) async throws -> [MochiItem] {
-        // lifecycleStateRawValue 는 'archived:<reason>' / 'failed:<reason>' 형태 (RealmMochiItemMapper).
-        // 그래서 BEGINSWITH 로 prefix 매칭해 둘 모두 제외.
+        // 분석 완료(analyzedAt != nil) + importance 높은 항목. failed 제외
+        // (처리상태 'failed:<reason>' 형태라 BEGINSWITH prefix 매칭).
         try await read { realm in
             realm.objects(RealmMochiItem.self)
                 .filter(
-                    "intentRawValue != nil AND importance >= 3 AND " +
-                    "NOT (lifecycleStateRawValue BEGINSWITH 'archived') AND " +
+                    "analyzedAt != nil AND importance >= 3 AND " +
                     "NOT (lifecycleStateRawValue BEGINSWITH 'failed')"
                 )
                 .sorted(by: [
@@ -150,17 +145,46 @@ public actor RealmMochiItemRepository: MochiItemRepository {
         }
     }
 
+    public func listCaptured(in interval: DateInterval, limit: Int) async throws -> [MochiItem] {
+        try await read { realm in
+            realm.objects(RealmMochiItem.self)
+                .filter("capturedAt >= %@ AND capturedAt < %@", interval.start, interval.end)
+                .sorted(byKeyPath: "capturedAt", ascending: false)
+                .prefix(limit)
+                .map(RealmMochiItemMapper.toDomain(_:))
+        }
+    }
+
+    public func listActiveTodos(limit: Int) async throws -> [MochiItem] {
+        // 미완료 todo = todo instance 가 active 인 item (완료는 instance archived:todoCompleted).
+        try await read { realm in
+            realm.objects(RealmMochiItem.self)
+                .filter(
+                    "SUBQUERY(intentInstances, $i, $i.intentRawValue == %@ AND $i.lifecycleKindRawValue == 'active').@count > 0",
+                    Intent.todo.rawValue
+                )
+                .sorted(byKeyPath: "capturedAt", ascending: false)
+                .prefix(limit)
+                .map(RealmMochiItemMapper.toDomain(_:))
+        }
+    }
+
     public func setIntent(mochiItemID: UUID, intent: Intent) async throws {
         try await write { realm in
             guard let row = realm.object(ofType: RealmMochiItem.self, forPrimaryKey: mochiItemID.uuidString) else {
                 throw DomainError.notFound(entity: "MochiItem", id: mochiItemID.uuidString)
             }
-            row.intentRawValue = intent.rawValue
-            // 사용자 수동 분류는 confidence 최대 + 모델 버전 'manual' 로 마킹.
-            row.confidence = 1.0
+            // 고른 intent 의 instance 하나로 확정 + needsReview 끄기 → "헷갈려요" 에서 빠진다.
+            row.intentInstances.removeAll()
+            let instRow = RealmIntentInstance()
+            instRow.instanceID = UUID().uuidString
+            instRow.intentRawValue = intent.rawValue
+            instRow.reasoning = "manual"
+            instRow.lifecycleKindRawValue = "active"
+            row.intentInstances.append(instRow)
+            row.reviewOptions.removeAll()
+            row.needsReview = false
             row.modelVersion = "manual"
-            // 확정됐으니 헷갈림 신호 제거 — confidence 1.0 + 후보 제거로 "헷갈려요" 에서 빠진다.
-            row.intentCandidates.removeAll()
             if row.analyzedAt == nil { row.analyzedAt = Date() }
             row.updatedAt = .init()
         }
@@ -175,12 +199,12 @@ public actor RealmMochiItemRepository: MochiItemRepository {
                 throw DomainError.notFound(entity: "MochiItem", id: mochiItemID.uuidString)
             }
             // analysis 제거 → listAnalyzing 대상으로 복귀.
-            row.intentRawValue = nil
             row.summary = nil
-            row.confidence = 0
+            row.needsReview = false
             row.modelVersion = nil
             row.analyzedAt = nil
-            row.intentCandidates.removeAll()
+            row.intentInstances.removeAll()
+            row.reviewOptions.removeAll()
             row.lifecycleStateRawValue = RealmMochiItemMapper.lifecycleStateRaw(.ingested)
             // 폴링 deadline 재시작 — serverID 유지하고 uploaded 타임스탬프만 now 로.
             row.syncStateRawValue = RealmMochiItemMapper.syncStateRaw(.uploaded(serverID: serverID, at: Date()))

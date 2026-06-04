@@ -33,23 +33,47 @@ logger = structlog.get_logger(__name__)
 _FINALIZE = "finalizeAnalysis"
 _INTENT_ENUM = ["schedule", "todo", "knowledge", "memo"]
 
+_PAYLOAD_PROPS: dict[str, Any] = {
+    "title": {"type": "string"},
+    "date": {"type": "string"},
+    "time": {"type": "string"},
+    "deadline": {"type": "string"},
+    "person": {"type": "string"},
+    "topic": {"type": "string"},
+    "url": {"type": "string"},
+    "note": {"type": "string"},
+}
+
 _FINALIZE_PARAMS: dict[str, Any] = {
     "type": "object",
     "properties": {
         "summary": {"type": "string"},
-        "candidates": {
+        "needs_review": {"type": "boolean"},
+        "intent_instances": {
+            # 저장할 것만(곧 active). 같은 type 다중 허용 — 개수 가변(점수/대표/위계 폐기).
             "type": "array",
-            "minItems": 3,
-            "maxItems": 3,
             "items": {
                 "type": "object",
                 "properties": {
+                    "intent_type": {"type": "string", "enum": _INTENT_ENUM},
+                    "payload": {"type": "object", "properties": _PAYLOAD_PROPS},
                     "label": {"type": "string"},
-                    "intent": {"type": "string", "enum": _INTENT_ENUM},
-                    "applicability": {"type": "number"},
                     "reasoning": {"type": "string"},
                 },
-                "required": ["label", "intent", "applicability", "reasoning"],
+                "required": ["intent_type", "label", "reasoning"],
+            },
+        },
+        "review_options": {
+            # needs_review=true 일 때 제시할 미확정 후보 (instance 아님 — 저장 안 함).
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "intent_type": {"type": "string", "enum": _INTENT_ENUM},
+                    "label": {"type": "string"},
+                    "reasoning": {"type": "string"},
+                },
+                "required": ["intent_type", "label", "reasoning"],
             },
         },
         "entities": {
@@ -65,7 +89,7 @@ _FINALIZE_PARAMS: dict[str, Any] = {
         },
         "importance": {"type": "integer"},
     },
-    "required": ["summary", "candidates"],
+    "required": ["summary", "intent_instances", "needs_review"],
 }
 
 _WEBFETCH_PARAMS: dict[str, Any] = {

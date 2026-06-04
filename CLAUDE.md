@@ -2,7 +2,7 @@
 level: 1
 mode: reference
 status: active
-last_verified: 2026-06-02
+last_verified: 2026-06-04
 confidence: 0.9
 owners: [송준서, 이용찬, 박세현]
 description: 모든 Claude 세션의 진입점이자 작업 원칙(Think Before Coding / Simplicity First / Surgical Changes / Goal-Driven)·저장소 구성·문서 포인터·변경기록 규칙·하네스 구성의 단일 원천. 모든 작업 시작 전 반드시 읽어라. AGENTS.md 는 이 파일의 미러다.
@@ -50,6 +50,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **모찌의 미션은 모든 제품·기능 결정의 기준이다 — "놓치기 쉬운 순간은 쉽게 남기고, 필요한 기억은 쉽게 떠오른다."** "떠올린다"(사용자가 직접)가 아니라 "떠오른다"(모찌가 알아서) — 회수의 능동 주체는 사용자가 아니라 모찌다. 사용자가 직접 찾고 정리하게 만드는 설계는 미션 위반이다. (상세·근거: `docs/PRODUCT.md` §1.5)
 
 특히 모찌는 **4-Intent 생명주기**와 **민감 캡처 처리**가 도메인의 본질이다. 이 두 축을 건드리는 변경은 반드시 `docs/DOMAIN_DESIGN.md` / `docs/PRIVACY_SENSITIVE_CAPTURE.md` 를 먼저 읽고 정합성을 확인한다.
+
+**문서와 충돌하면 거부하지 말고 제안한다.** 요청이 committed 문서와 어긋날 때: (1) 어느 문서 어느 부분과 충돌하는지 짚고, (2) 문서를 고치는 길(+폭포 영향)과 (3) 요청을 조정하는 길을 함께 제시한 뒤, (4) 사람의 결정을 받아 의존 항목을 함께 수정한다. 문서는 법이 아니라 함께 고치는 산출물이다. 단 *substantive* 한 충돌에만 — 사소한 것까지 매번 묻지 않는다.
+
+**변경 견적은 "AI 편집 시간"과 "사람 합의·검토 리드타임"을 분리해 말한다.** "편집 자체는 10분, 다만 공유표면이라 팀 합의가 선행" 처럼. 자기 처리량을 과소평가하지 않는다.
 
 ## 2. Simplicity First
 
@@ -177,9 +181,8 @@ iOS 쪽은 `tuist test`, 백엔드는 `make test` / `make lint` / `make typechec
 
 **자동 채점 스크립트 (`.claude/scripts/`):** — `.sh` 모두 git mode 100755 executable, `lib/*.py` 는 정적 import 모듈이라 100644.
 - `audit.sh <l1|l2|l3|all>` — 시간 강등 + 코드 식별자 grep 강등 + STOP 후보. 모노레포·macOS/Linux 이식.
-- `ship-precheck.sh <ios|backend|docs|all>` — `/ship` 자동 사전 체크 **7단계** (audit / CHANGELOG / 미러 mtime / iOS 경계 / OpenAPI drift / **백엔드 lint+typecheck** / git status). 게이트 무결성 보장(exit code 명시).
+- `ship-precheck.sh <ios|backend|docs|all>` — `/ship` 자동 사전 체크 **7단계** (audit / CHANGELOG / 미러 mtime / iOS 경계 / OpenAPI 단일계약 동기화(§5a make openapi · §5b generate.sh no-diff) / **백엔드 lint+typecheck** / git status). 게이트 무결성 보장(exit code 명시).
 - `ios-boundaries.sh` — TCA 레이어 위반 자동 검출 (Features 간 import / Cores 역방향 / @main 위치).
-- `openapi-check.sh` (+ `lib/extract_paths.py`) — OpenAPI ↔ iOS 클라이언트 drift 자동 검사 (path-parameter 정규화 양방향). 정식 swift-openapi-generator 배선까지의 fallback ② 게이트.
 
 **표준 작업 루프:**
 ```
@@ -190,7 +193,7 @@ iOS 쪽은 `tuist test`, 백엔드는 `make test` / `make lint` / `make typechec
 ```
 
 **정합성 통제 티어** (⓪ > ① > ② > ③): 갈라질 수 있는 결정은 가장 싼 통제에 둔다. 기계로 막을 수 있는 것을 ③(문서)에 두지 않는다.
-- ⓪ 불가능: API 계약 = `mochi-backend/openapi.json` 단일원천 (**목표 상태** — iOS 는 `swift-openapi-runtime` 의존성만 있고 generator 미설정, 현재는 수기 `URLSessionMochiAPIClient` 라 drift 위험. ⓪ 로 끌어올리려면 generator 배선 필요)
+- ⓪ 불가능: API 계약 = `mochi-backend/openapi.json` 단일원천 (백엔드 code-first → iOS `swift-openapi-generator`(`CodeGen/generate.sh`)가 `Generated/{Client,Types}.swift` 생성, `OpenAPIMochiClient` 어댑터가 라이브. 2026-06-04 ③→⓪ 승격: 수기 `URLSessionMochiAPIClient` 삭제 + `export_openapi.py` 3.1→3.0 nullable 변환으로 generator 호환)
 - ① 포매터 / ② 린터·타입체커·백엔드 경계테스트 / ③ 문서 + 서브에이전트 (iOS 레이어 규칙은 자동검출 없어 현재 ③)
 
 **슬래시커맨드:** `/daily` `/handoff` `/ship` `/sync-agents` `/codify` `/sprint-end` `/audit`

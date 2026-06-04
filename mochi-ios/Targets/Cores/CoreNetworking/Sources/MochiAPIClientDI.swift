@@ -20,16 +20,6 @@ public struct NotConfiguredAPIClient: MochiAPIClient {
     public func ingestMochiItem(_ request: MochiItemIngestRequest, idempotencyKey: String) async throws -> MochiItemDTO {
         throw Self.error
     }
-    public func ingestBackTapMochiItem(
-        objectKey: String,
-        sha256: String,
-        mimeType: String,
-        byteSize: Int,
-        userMemo: String?,
-        idempotencyKey: String
-    ) async throws -> MochiItemDTO {
-        throw Self.error
-    }
     public func presignCaptureUpload(sha256: String, mimeType: String) async throws -> PresignUploadDTO {
         throw Self.error
     }

@@ -17,7 +17,7 @@ on:
 jobs:
   precheck:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 15  # swift 설치 + CodeGen SPM 빌드(생성물 동기화 §5b) 포함
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -33,6 +33,12 @@ jobs:
         uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
+
+      - name: Set up Swift
+        # ⓪-tier 무결성: 생성 클라이언트(Generated/*.swift)가 openapi.json 과 stale 하지 않은지
+        # ship-precheck §5b(generate.sh no-diff)가 검사하려면 swift 가 필요하다.
+        # (없으면 §5b 는 graceful skip → 'openapi 갱신 후 generate.sh 누락' 사고를 CI 가 못 막는다.)
+        uses: swift-actions/setup-swift@v2
 
       - name: 백엔드 의존성 설치 (lint/typecheck 도구)
         run: uv sync --frozen
@@ -52,24 +58,20 @@ jobs:
       - name: iOS 경계 (TCA 레이어)
         run: bash .claude/scripts/ios-boundaries.sh
 
-      - name: OpenAPI ↔ iOS drift
+      - name: OpenAPI 단일 계약 동기화 (백엔드 code ↔ openapi.json no-diff)
         run: |
-          set +e
-          bash .claude/scripts/openapi-check.sh
-          rc=$?
-          # exit 1 = drift 발견. 등재 known-drift 면 OK, 신규면 fail.
-          if [[ "$rc" -eq 1 ]]; then
-            if grep -q "openapi-drift" docs/CHANGELOG.md; then
-              echo "⚠️  drift 발견 — 등재 known-drift 라 통과."
-              exit 0
-            else
-              echo "❌ drift 발견 — 등재 안 됨."
-              exit 1
-            fi
-          elif [[ "$rc" -gt 1 ]]; then
-            echo "❌ openapi-check 환경/입력 오류 — 절대 통과 안 함."
+          set -e
+          # iOS 클라이언트는 openapi.json 에서 생성(swift-openapi-generator)되므로 endpoint/스키마
+          # drift 는 구조적으로 불가능(⓪-tier). 여기선 백엔드 코드와 openapi.json 이 어긋나지
+          # 않았는지(make openapi 누락 = stale) no-diff 로 검사한다.
+          # 생성물(Generated/*.swift) ↔ openapi.json 동기화는 swift 환경이 필요해 로컬
+          # ship-precheck §5b(generate.sh no-diff)가 담당한다.
+          make -C mochi-backend openapi
+          if ! git diff --exit-code -- mochi-backend/openapi.json mochi-ios/Targets/Cores/CoreNetworking/openapi.json; then
+            echo "❌ openapi.json 이 백엔드 코드와 stale — make openapi 후 커밋 + CodeGen/generate.sh 재생성 필요."
             exit 1
           fi
+          echo "✅ openapi.json 이 백엔드 코드와 동기화됨 (make openapi no-diff)"
 
       - name: ship-precheck 종합
         run: bash .claude/scripts/ship-precheck.sh all

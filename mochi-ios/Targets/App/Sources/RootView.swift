@@ -56,7 +56,7 @@ struct RootView: View {
     }
 }
 
-/// 메인 탭 UI — iOS 기본 `TabView` 4탭 (홈/채팅/일정/검색).
+/// 메인 탭 UI — iOS 기본 `TabView` 4탭 (홈/채팅/모찌들/검색).
 struct MainTabView: View {
     @Bindable var store: StoreOf<MainTabFeature>
 
@@ -79,13 +79,11 @@ struct MainTabView: View {
             .tabItem { Label("채팅", systemImage: "message") }
             .tag(MainTabFeature.Tab.chat)
 
-            ComingSoonPlaceholder(
-                icon: "calendar",
-                title: "곧 만나요, 일정",
-                subtitle: "캘린더에 동기화된 일정을 한눈에 볼 수 있게 준비 중이에요."
-            )
-            .tabItem { Label("일정", systemImage: "calendar") }
-            .tag(MainTabFeature.Tab.schedule)
+            NavigationStack {
+                MochiCalendarView(store: store.scope(state: \.mochiCalendar, action: \.mochiCalendar))
+            }
+            .tabItem { Label("모찌들", systemImage: "calendar") }
+            .tag(MainTabFeature.Tab.mochis)
 
             NavigationStack {
                 SearchView(store: store.scope(state: \.search, action: \.search))

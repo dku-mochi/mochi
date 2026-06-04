@@ -20,7 +20,7 @@ public struct KeychainTokenStore: TokenStore {
     private let account: String
 
     public init(
-        service: String = "com.IndexFinger.mochi.auth",
+        service: String = "app.mochi.auth",
         account: String = "session"
     ) {
         self.service = service

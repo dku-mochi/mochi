@@ -57,8 +57,7 @@ def _win(n: int) -> list[ProfileWindowItem]:
     return [
         ProfileWindowItem(
             summary=f"s{i}",
-            intent=Intent.TODO,
-            secondary_intents=(),
+            intent_types=(Intent.TODO,),
             user_memo=None,
         )
         for i in range(n)

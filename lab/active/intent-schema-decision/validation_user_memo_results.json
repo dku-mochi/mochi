@@ -1,0 +1,392 @@
+{
+  "model": "gemini-3.1-flash-lite",
+  "rows": [
+    {
+      "index": 1,
+      "source": "/Users/jun/Downloads/친구 공연 위치랑 장소 캡쳐.jpeg",
+      "file": "validation_01_친구 공연 위치랑 장소 캡쳐.jpg",
+      "memo": "친구 공연 위치랑 장소 캡쳐",
+      "prediction": {
+        "summary": "친구 공연 일정 및 장소 정보 저장",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "schedule",
+            "label": "너와나 겨울 정기공연",
+            "payload": {
+              "title": "너와나 겨울 정기공연",
+              "date": "2024-12-01",
+              "time": "18:00",
+              "note": "장소: 홍대 스윙홀 (서울 마포구 동교로 162-5 지하 1층), 입장시작 17:45"
+            },
+            "reasoning": "친구 공연의 일시와 장소 정보가 명확하여 일정으로 저장합니다."
+          }
+        ],
+        "review_options": []
+      },
+      "latency_ms": 4105.1
+    },
+    {
+      "index": 2,
+      "source": "/Users/jun/Downloads/수강 모집 9:8까지니까 캡쳐해두고 나중에신청해야지.jpeg",
+      "file": "validation_02_수강 모집 9:8까지니까 캡쳐해두고 나중에신청해야지.jpg",
+      "memo": "수강 모집 9:8까지니까 캡쳐해두고 나중에신청해야지",
+      "prediction": {
+        "summary": "고려대학교 Sustainable Development Goals Academy 수강 신청을 위한 정보 저장",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "todo",
+            "label": "SDG Academy 수강 신청",
+            "payload": {
+              "title": "Sustainable Development Goals Academy 수강 신청",
+              "deadline": "2024-09-08 23:59",
+              "note": "해양환경 시민 과학자 양성 과정, 구글 폼 제출 필요"
+            },
+            "reasoning": "사용자가 9월 8일까지 신청해야 한다고 명시했으므로, 마감 기한이 있는 할 일로 등록합니다."
+          },
+          {
+            "intent_type": "schedule",
+            "label": "SDG Academy 교육 일정",
+            "payload": {
+              "title": "Sustainable Development Goals Academy 교육",
+              "date": "2024-09-12 ~ 2024-11-15",
+              "note": "매주 목요일 17:00-20:00 이론 교육 및 11월 현장 실습 포함"
+            },
+            "reasoning": "교육 프로그램의 전체 일정이 명시되어 있어 향후 참고를 위해 일정으로 저장합니다."
+          }
+        ],
+        "review_options": []
+      },
+      "latency_ms": 3770.8
+    },
+    {
+      "index": 3,
+      "source": "/Users/jun/Downloads/공차 할인 이벤트하니까 캡쳐해두고 나중에 가봐야지.jpeg",
+      "file": "validation_03_공차 할인 이벤트하니까 캡쳐해두고 나중에 가봐야지.jpg",
+      "memo": "공차 할인 이벤트하니까 캡쳐해두고 나중에 가봐야지",
+      "prediction": {
+        "summary": "공차 900호점 기념 해피아워 이벤트 정보 저장",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "schedule",
+            "label": "공차 900호점 기념 해피아워 이벤트",
+            "payload": {
+              "title": "공차 900호점 기념 해피아워",
+              "date": "2023.08.22",
+              "time": "14:00 ~ 17:00",
+              "note": "밀크티 BEST 3종 50% 할인"
+            },
+            "reasoning": "이벤트 날짜와 시간이 명시되어 있어 일정으로 등록합니다."
+          },
+          {
+            "intent_type": "todo",
+            "label": "공차 방문하여 할인 이벤트 참여하기",
+            "payload": {
+              "title": "공차 방문",
+              "note": "2023년 8월 22일 오후 2시~5시 사이 방문하여 밀크티 할인받기"
+            },
+            "reasoning": "사용자가 나중에 가보겠다고 메모를 남겼으므로 방문을 위한 할 일로 등록합니다."
+          }
+        ],
+        "review_options": []
+      },
+      "latency_ms": 3378.0
+    },
+    {
+      "index": 4,
+      "source": "/Users/jun/Downloads/제출 기간 체크.jpeg",
+      "file": "validation_04_제출 기간 체크.jpg",
+      "memo": "제출 기간 체크",
+      "prediction": {
+        "summary": "PT 발표 자료 제출 기한 확인",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "schedule",
+            "label": "PT 발표 자료 제출",
+            "payload": {
+              "title": "PT 발표 자료 제출",
+              "deadline": "11월 17일 월요일 10시",
+              "note": "이메일 제출: rowoon.lee@qcells.com"
+            },
+            "reasoning": "PT 발표 자료 제출 기한이 명시되어 있어 일정을 등록합니다."
+          },
+          {
+            "intent_type": "todo",
+            "label": "PT 발표 자료 제출 준비",
+            "payload": {
+              "title": "PT 발표 자료 제출",
+              "note": "11월 17일 10시까지 rowoon.lee@qcells.com으로 이메일 제출"
+            },
+            "reasoning": "제출 기한을 체크하고 자료를 준비해야 하므로 할 일로 등록합니다."
+          }
+        ],
+        "review_options": []
+      },
+      "latency_ms": 4501.7
+    },
+    {
+      "index": 5,
+      "source": "/Users/jun/Downloads/기프티콘 나중에 꼭 써야지.jpeg",
+      "file": "validation_05_기프티콘 나중에 꼭 써야지.jpg",
+      "memo": "기프티콘 나중에 꼭 써야지",
+      "prediction": {
+        "summary": "메가MGC커피 5천원권 기프티콘 사용을 위한 할 일 등록",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "todo",
+            "label": "메가MGC커피 기프티콘 사용하기",
+            "payload": {
+              "title": "메가MGC커피 모바일 금액권 5천원권 사용",
+              "deadline": "2025-10-28",
+              "note": "바코드 번호: 8591-6422-4012-7716"
+            },
+            "reasoning": "사용자가 기프티콘을 나중에 꼭 써야 한다고 메모했으므로, 유효기간 내에 사용할 수 있도록 할 일로 등록합니다."
+          }
+        ],
+        "review_options": []
+      },
+      "latency_ms": 3019.5
+    },
+    {
+      "index": 6,
+      "source": "/Users/jun/Downloads/상하이 정보.jpeg",
+      "file": "validation_06_상하이 정보.jpg",
+      "memo": "상하이 정보",
+      "prediction": {
+        "summary": "상하이 푸동공항에서 시내로 이동하는 마그레브 열차 이용 정보",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "knowledge",
+            "label": "상하이 여행 정보",
+            "payload": {
+              "title": "푸동공항에서 상하이 시내 가는 법",
+              "topic": "상하이 여행",
+              "note": "푸동공항에서 마그레브 열차를 타고 롱양루역을 거쳐 시내까지 약 30~40분 소요"
+            },
+            "reasoning": "상하이 여행 시 유용한 교통 정보가 포함되어 있어 지식으로 저장합니다."
+          }
+        ],
+        "review_options": []
+      },
+      "latency_ms": 5050.1
+    },
+    {
+      "index": 7,
+      "source": "/Users/jun/Downloads/상하이 여행정보.jpeg",
+      "file": "validation_07_상하이 여행정보.jpg",
+      "memo": "상하이 여행정보",
+      "prediction": {
+        "summary": "상하이 여행 정보가 담긴 영상 캡처입니다.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "knowledge",
+            "label": "상하이 여행 정보",
+            "payload": {
+              "topic": "상하이 여행",
+              "note": "영상에 언급된 장소: 우캉루, 디즈니랜드, 동방명주, 와이탄, 예원, 난징루"
+            },
+            "reasoning": "사용자가 '상하이 여행 정보'라고 메모를 남겼으며, 영상 내에 상하이의 주요 관광지들이 나열되어 있어 여행 관련 지식 정보로 저장합니다."
+          }
+        ],
+        "review_options": []
+      },
+      "latency_ms": 4434.7
+    },
+    {
+      "index": 8,
+      "source": "/Users/jun/Downloads/중국 여행 정보.jpeg",
+      "file": "validation_08_중국 여행 정보.jpg",
+      "memo": "중국 여행 정보",
+      "prediction": {
+        "summary": "중국 여행 시 필요한 필수 앱 목록 정보",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "knowledge",
+            "label": "중국 여행 필수 앱 정보",
+            "payload": {
+              "title": "중국 여행 필수 앱",
+              "topic": "여행 정보",
+              "note": "샤오홍슈(SNS), 메이투안(배달), 알리페이(택시, 결제), 위챗(결제, 주문), 바이두지도(지도)"
+            },
+            "reasoning": "중국 여행을 위해 설치해야 할 필수 앱 목록을 정리한 정보성 콘텐츠입니다."
+          }
+        ],
+        "review_options": []
+      },
+      "latency_ms": 3153.8
+    },
+    {
+      "index": 9,
+      "source": "/Users/jun/Downloads/비행기 스케줄.jpeg",
+      "file": "validation_09_비행기 스케줄.jpg",
+      "memo": "비행기 스케줄",
+      "prediction": {
+        "summary": "서울-상하이 왕복 항공권 예약 정보입니다.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "schedule",
+            "label": "서울-상하이 항공편 예약",
+            "payload": {
+              "title": "서울-상하이 왕복 항공편",
+              "date": "1월 4일 - 1월 7일",
+              "time": "12:15",
+              "note": "중국남방항공 CZ314, 예약번호 1681744543"
+            },
+            "reasoning": "사용자가 비행기 스케줄을 저장하고자 하므로, 항공편 예약 정보를 일정으로 등록합니다."
+          }
+        ],
+        "review_options": []
+      },
+      "latency_ms": 4260.1
+    },
+    {
+      "index": 10,
+      "source": "/Users/jun/Downloads/스케줄.png",
+      "file": "validation_10_스케줄.jpg",
+      "memo": "스케줄",
+      "prediction": {
+        "summary": "삼성디스플레이 기숙사 비데 정기점검 일정",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "schedule",
+            "label": "기숙사 비데 정기점검",
+            "payload": {
+              "title": "아름타운 비데 정기점검",
+              "date": "2026년 3월 6일",
+              "time": "12:00~17:00",
+              "note": "1~7층 대상, 외부인 욕실 출입 예정으로 옷차림 및 개인물품 보관 유의"
+            },
+            "reasoning": "사용자가 스케줄로 저장 요청을 하였으며, 기숙사 비데 정기점검 일시와 주의사항이 명시되어 있어 일정으로 등록합니다."
+          }
+        ],
+        "review_options": []
+      },
+      "latency_ms": 3210.9
+    },
+    {
+      "index": 11,
+      "source": "/Users/jun/Downloads/부동산 정보.png",
+      "file": "validation_11_부동산 정보.jpg",
+      "memo": "부동산 정보",
+      "prediction": {
+        "summary": "부동산 매물 정보 저장",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "knowledge",
+            "label": "부동산 매물 정보",
+            "payload": {
+              "title": "신림동 다올626 매물 정보",
+              "topic": "부동산",
+              "note": "위치: 신림동 법원단지 부근 다올626, 임대 협의 / 분양가 3억 3500만원, 신축 2룸"
+            },
+            "reasoning": "사용자가 부동산 정보를 저장하고자 하므로 해당 매물의 상세 정보를 지식으로 저장합니다."
+          }
+        ],
+        "review_options": []
+      },
+      "latency_ms": 2958.2
+    },
+    {
+      "index": 12,
+      "source": "/Users/jun/Downloads/재밌어 보이는 넷플.png",
+      "file": "validation_12_재밌어 보이는 넷플.jpg",
+      "memo": "재밌어 보이는 넷플",
+      "prediction": {
+        "summary": "스레드에서 추천받은 넷플릭스 다큐멘터리 '서바이빙 데스'에 대한 메모입니다.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "memo",
+            "label": "넷플릭스 다큐멘터리 '서바이빙 데스' 시청하기",
+            "payload": {
+              "title": "서바이빙 데스",
+              "note": "전생을 기억하는 아이들에 대한 내용을 다룬 넷플릭스 다큐멘터리"
+            },
+            "reasoning": "사용자가 재미있어 보인다고 언급한 넷플릭스 콘텐츠 정보를 기록으로 남깁니다."
+          }
+        ],
+        "review_options": []
+      },
+      "latency_ms": 3326.8
+    },
+    {
+      "index": 13,
+      "source": "/Users/jun/Downloads/나중에 살 화장품.png",
+      "file": "validation_13_나중에 살 화장품.jpg",
+      "memo": "나중에 살 화장품",
+      "prediction": {
+        "summary": "나중에 살 화장품으로 Bath and Body Works의 바닐라 향 제품 추천 정보를 저장합니다.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "todo",
+            "label": "나중에 살 화장품 확인",
+            "payload": {
+              "title": "Bath and Body Works 바닐라 향 제품",
+              "note": "댓글에서 추천받은 Warm Vanilla Sugar 라인 (바디로션, 바디워시, 바디미스트)"
+            },
+            "reasoning": "사용자가 '나중에 살 화장품'이라고 메모를 남겼으므로, 댓글에서 추천된 제품 정보를 구매를 위한 할 일로 저장합니다."
+          }
+        ],
+        "review_options": []
+      },
+      "latency_ms": 3755.3
+    },
+    {
+      "index": 14,
+      "source": "/Users/jun/Downloads/나중에 살 신발.png",
+      "file": "validation_14_나중에 살 신발.jpg",
+      "memo": "나중에 살 신발",
+      "prediction": {
+        "summary": "사용자가 나중에 구매하기 위해 저장한 신발 정보입니다.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "todo",
+            "label": "신발 구매하기",
+            "payload": {
+              "title": "세릭 스틸레토 스트랩 슬링백힐 (5cm/4colors)",
+              "note": "로제니크 브랜드의 슬링백힐, 현재 가격 29,830원"
+            },
+            "reasoning": "사용자가 '나중에 살 신발'이라고 메모를 남겼으므로 구매를 위한 todo로 분류합니다."
+          }
+        ],
+        "review_options": []
+      },
+      "latency_ms": 3985.1
+    },
+    {
+      "index": 15,
+      "source": "/Users/jun/Downloads/화장품 나중에 살것.png",
+      "file": "validation_15_화장품 나중에 살것.jpg",
+      "memo": "화장품 나중에 살것",
+      "prediction": {
+        "summary": "디어달리아 립 제품 구매를 위한 저장",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "todo",
+            "label": "디어달리아 립 제품 구매하기",
+            "payload": {
+              "title": "디어달리아 립 제품",
+              "note": "인스타그램 영상에서 확인한 오렌지 컬러 립 제품"
+            },
+            "reasoning": "사용자가 '나중에 살 것'이라고 메모를 남겼으므로 구매를 위한 todo로 분류합니다."
+          }
+        ],
+        "review_options": []
+      },
+      "latency_ms": 3069.5
+    }
+  ]
+}

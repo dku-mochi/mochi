@@ -11,7 +11,7 @@ public struct MochiItem: Equatable, Sendable, Identifiable, Hashable {
     public var id: UUID { source.id }
     public let source: IngestSource
     public var analysis: MochiItemAnalysis?
-    public var lifecycleState: LifecycleState
+    public var lifecycleState: ProcessingState
     public var syncState: SyncState
     public let createdAt: Date
     public var updatedAt: Date
@@ -19,7 +19,7 @@ public struct MochiItem: Equatable, Sendable, Identifiable, Hashable {
     public init(
         source: IngestSource,
         analysis: MochiItemAnalysis? = nil,
-        lifecycleState: LifecycleState = .ingested,
+        lifecycleState: ProcessingState = .ingested,
         syncState: SyncState = .pendingUpload,
         createdAt: Date = .init(),
         updatedAt: Date = .init()
@@ -32,7 +32,14 @@ public struct MochiItem: Equatable, Sendable, Identifiable, Hashable {
         self.updatedAt = updatedAt
     }
 
-    public var intent: Intent? { analysis?.intent }
+    /// 추출된 의도 instance 들 (분석 전이면 빈 배열).
+    public var instances: [IntentInstance] { analysis?.instances ?? [] }
+    /// distinct intent type (출현 순서). 1:N 필터·요약 칩.
+    public var intentTypes: [Intent] { analysis?.intentTypes ?? [] }
+    /// 대표 intent — 고정 우선순위 schedule>todo>knowledge>memo (캘린더 대표색·칩).
+    public var representativeIntent: Intent? { analysis?.representativeIntent }
+    /// 모찌가 분류를 확신 못 함 — "헷갈려요" 버킷.
+    public var needsReview: Bool { analysis?.needsReview ?? false }
 }
 
 /// 백엔드 / 시스템 캘린더와의 동기화 상태.

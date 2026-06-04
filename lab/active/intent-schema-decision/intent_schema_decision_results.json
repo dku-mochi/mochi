@@ -1,0 +1,4966 @@
+{
+  "model": "gemini-3.1-flash-lite",
+  "location": "global",
+  "n_cases": 18,
+  "schemas": {
+    "score_flat": {
+      "thresholds": {
+        "0.5": {
+          "mean_intent_f1": 0.8093,
+          "instance_count_accuracy": 0.6667,
+          "review_accuracy": 0.8333
+        },
+        "0.6": {
+          "mean_intent_f1": 0.8093,
+          "instance_count_accuracy": 0.6667,
+          "review_accuracy": 0.8333
+        },
+        "0.7": {
+          "mean_intent_f1": 0.8,
+          "instance_count_accuracy": 0.6111,
+          "review_accuracy": 0.8333
+        }
+      },
+      "payload_quality": null,
+      "mean_latency_ms": 3261.2,
+      "errors": 0
+    },
+    "boolean_instances": {
+      "thresholds": {
+        "0.6": {
+          "mean_intent_f1": 0.8333,
+          "instance_count_accuracy": 0.8333,
+          "review_accuracy": 1
+        }
+      },
+      "payload_quality": 1.0,
+      "mean_latency_ms": 2979.9,
+      "errors": 0
+    },
+    "boolean_instances_debug": {
+      "thresholds": {
+        "0.6": {
+          "mean_intent_f1": 0.8333,
+          "instance_count_accuracy": 0.8333,
+          "review_accuracy": 1
+        }
+      },
+      "payload_quality": 1.0,
+      "mean_latency_ms": 3452.6,
+      "errors": 0
+    },
+    "boolean_instances_refined": {
+      "thresholds": {
+        "0.6": {
+          "mean_intent_f1": 0.9352,
+          "instance_count_accuracy": 0.8889,
+          "review_accuracy": 0.9444
+        }
+      },
+      "payload_quality": 1.0,
+      "mean_latency_ms": 5122.0,
+      "errors": 0
+    },
+    "instances_review_options": {
+      "thresholds": {
+        "0.6": {
+          "mean_intent_f1": 0.9074,
+          "instance_count_accuracy": 0.8333,
+          "review_accuracy": 0.9444
+        }
+      },
+      "payload_quality": 1.0,
+      "mean_latency_ms": 3879.0,
+      "errors": 0
+    }
+  },
+  "rows": [
+    {
+      "schema": "score_flat",
+      "case_id": "single_schedule",
+      "input": "오늘 저녁 7시 성수에서 민지랑 약속",
+      "gold_active": [
+        "schedule"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "명확한 일정",
+      "latency_ms": 2983.6,
+      "error": null,
+      "parsed": {
+        "summary": "오늘 저녁 7시 성수에서 민지와의 약속",
+        "intents": [
+          {
+            "intent": "schedule",
+            "applicability": 1.0,
+            "label": "저녁 약속 일정",
+            "reasoning": "오늘 저녁 7시라는 구체적인 시간과 장소가 명시된 약속입니다."
+          },
+          {
+            "intent": "todo",
+            "applicability": 0.7,
+            "label": "약속 준비",
+            "reasoning": "약속 시간에 맞춰 성수로 이동하고 준비해야 하는 행동이 필요합니다."
+          },
+          {
+            "intent": "memo",
+            "applicability": 0.3,
+            "label": "일상 기록",
+            "reasoning": "지인과의 만남을 기록하는 일상적인 메모의 성격도 포함합니다."
+          }
+        ]
+      },
+      "metrics": {
+        "0.5": {
+          "active": [
+            "schedule",
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 0,
+          "intent_f1": 0.6667,
+          "instance_count_exact": false,
+          "review_correct": true
+        },
+        "0.6": {
+          "active": [
+            "schedule",
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 0,
+          "intent_f1": 0.6667,
+          "instance_count_exact": false,
+          "review_correct": true
+        },
+        "0.7": {
+          "active": [
+            "schedule",
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 0,
+          "intent_f1": 0.6667,
+          "instance_count_exact": false,
+          "review_correct": true
+        }
+      },
+      "payload_quality": null
+    },
+    {
+      "schema": "score_flat",
+      "case_id": "single_todo",
+      "input": "지원이 답장해야 함. 오늘 안에",
+      "gold_active": [
+        "todo"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "명확한 행동",
+      "latency_ms": 3130.4,
+      "error": null,
+      "parsed": {
+        "summary": "지원이에게 오늘 중으로 답장을 보내야 하는 상황",
+        "intents": [
+          {
+            "intent": "todo",
+            "applicability": 1.0,
+            "label": "지원이에게 답장 보내기",
+            "reasoning": "사용자가 오늘 안에 수행해야 할 명확한 작업이 존재함"
+          },
+          {
+            "intent": "schedule",
+            "applicability": 0.8,
+            "label": "오늘 내 답장 완료",
+            "reasoning": "오늘이라는 시간적 마감 기한이 설정되어 있음"
+          }
+        ]
+      },
+      "metrics": {
+        "0.5": {
+          "active": [
+            "todo",
+            "schedule"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 0,
+          "intent_f1": 0.6667,
+          "instance_count_exact": false,
+          "review_correct": true
+        },
+        "0.6": {
+          "active": [
+            "todo",
+            "schedule"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 0,
+          "intent_f1": 0.6667,
+          "instance_count_exact": false,
+          "review_correct": true
+        },
+        "0.7": {
+          "active": [
+            "todo",
+            "schedule"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 0,
+          "intent_f1": 0.6667,
+          "instance_count_exact": false,
+          "review_correct": true
+        }
+      },
+      "payload_quality": null
+    },
+    {
+      "schema": "score_flat",
+      "case_id": "single_knowledge",
+      "input": "ReAct 에이전트 구조 나중에 공부",
+      "gold_active": [
+        "knowledge"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "학습/참조",
+      "latency_ms": 1887.2,
+      "error": null,
+      "parsed": {
+        "summary": "ReAct 에이전트 구조 학습 계획",
+        "intents": [
+          {
+            "intent": "todo",
+            "applicability": 0.95,
+            "label": "ReAct 에이전트 공부하기",
+            "reasoning": "사용자가 나중에 공부하겠다는 의지를 명확히 표현했으므로 학습을 위한 할 일 목록으로 적합합니다."
+          },
+          {
+            "intent": "knowledge",
+            "applicability": 0.8,
+            "label": "ReAct 에이전트 구조 학습",
+            "reasoning": "ReAct 에이전트 구조는 기술적인 지식 습득 대상이므로 학습 자료로 분류됩니다."
+          }
+        ]
+      },
+      "metrics": {
+        "0.5": {
+          "active": [
+            "todo",
+            "knowledge"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 0,
+          "intent_f1": 0.6667,
+          "instance_count_exact": false,
+          "review_correct": true
+        },
+        "0.6": {
+          "active": [
+            "todo",
+            "knowledge"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 0,
+          "intent_f1": 0.6667,
+          "instance_count_exact": false,
+          "review_correct": true
+        },
+        "0.7": {
+          "active": [
+            "todo",
+            "knowledge"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 0,
+          "intent_f1": 0.6667,
+          "instance_count_exact": false,
+          "review_correct": true
+        }
+      },
+      "payload_quality": null
+    },
+    {
+      "schema": "score_flat",
+      "case_id": "single_memo",
+      "input": "노을 너무 예뻤다. 그냥 기록",
+      "gold_active": [
+        "memo"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "정서 기록",
+      "latency_ms": 1512.2,
+      "error": null,
+      "parsed": {
+        "summary": "User recorded a memory about a beautiful sunset.",
+        "intents": [
+          {
+            "intent": "memo",
+            "applicability": 1.0,
+            "label": "Emotional memory",
+            "reasoning": "The user explicitly stated they are recording the moment because it was beautiful, which is a classic emotional memory entry."
+          },
+          {
+            "intent": "knowledge",
+            "applicability": 0.1,
+            "label": "Atmospheric observation",
+            "reasoning": "While it captures a moment, it lacks durable information or learning value beyond the personal experience."
+          }
+        ]
+      },
+      "metrics": {
+        "0.5": {
+          "active": [
+            "memo"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 0,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        },
+        "0.6": {
+          "active": [
+            "memo"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 0,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        },
+        "0.7": {
+          "active": [
+            "memo"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 0,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": null
+    },
+    {
+      "schema": "score_flat",
+      "case_id": "schedule_todo",
+      "input": "금요일 3시 디자인 리뷰. 그 전까지 시안 2개 준비",
+      "gold_active": [
+        "schedule",
+        "todo"
+      ],
+      "gold_instance_count": 2,
+      "gold_needs_review": false,
+      "note": "일정 + 준비 할 일",
+      "latency_ms": 1423.2,
+      "error": null,
+      "parsed": {
+        "summary": "금요일 3시 디자인 리뷰를 위한 시안 2개 준비",
+        "intents": [
+          {
+            "intent": "schedule",
+            "applicability": 1.0,
+            "label": "디자인 리뷰 일정",
+            "reasoning": "금요일 3시라는 구체적인 시간과 이벤트가 명시되어 있습니다."
+          },
+          {
+            "intent": "todo",
+            "applicability": 0.95,
+            "label": "시안 2개 제작",
+            "reasoning": "리뷰 전까지 완료해야 할 구체적인 작업 과제가 포함되어 있습니다."
+          }
+        ]
+      },
+      "metrics": {
+        "0.5": {
+          "active": [
+            "schedule",
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 0,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        },
+        "0.6": {
+          "active": [
+            "schedule",
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 0,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        },
+        "0.7": {
+          "active": [
+            "schedule",
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 0,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": null
+    },
+    {
+      "schema": "score_flat",
+      "case_id": "todo_knowledge",
+      "input": "마우스 살까 말까 고민. 로지텍 MX Master 3S랑 Keychron M6 비교해보기",
+      "gold_active": [
+        "todo",
+        "knowledge"
+      ],
+      "gold_instance_count": 2,
+      "gold_needs_review": false,
+      "note": "구매 행동 + 비교 정보",
+      "latency_ms": 1799.3,
+      "error": null,
+      "parsed": {
+        "summary": "마우스 구매를 고민하며 로지텍 MX Master 3S와 키크론 M6 모델을 비교하려는 의도",
+        "intents": [
+          {
+            "intent": "todo",
+            "applicability": 0.95,
+            "label": "마우스 모델 비교 및 구매 결정",
+            "reasoning": "두 제품의 사양과 특징을 비교하여 최종적으로 구매할지 결정해야 하는 실행 가능한 작업입니다."
+          },
+          {
+            "intent": "knowledge",
+            "applicability": 0.7,
+            "label": "마우스 제품 정보 수집",
+            "reasoning": "로지텍 MX Master 3S와 키크론 M6의 성능, 가격, 기능적 차이를 학습하고 정보를 정리할 필요가 있습니다."
+          },
+          {
+            "intent": "memo",
+            "applicability": 0.4,
+            "label": "구매 고민 기록",
+            "reasoning": "현재 마우스 구매를 고민하고 있는 사용자의 상태를 기록해두는 메모적 성격이 있습니다."
+          }
+        ]
+      },
+      "metrics": {
+        "0.5": {
+          "active": [
+            "todo",
+            "knowledge"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 0,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        },
+        "0.6": {
+          "active": [
+            "todo",
+            "knowledge"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 0,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        },
+        "0.7": {
+          "active": [
+            "todo",
+            "knowledge"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 0,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": null
+    },
+    {
+      "schema": "score_flat",
+      "case_id": "same_type_multi_todo",
+      "input": "회의록: 1) 찬서에게 API 명세 공유 2) 세현이는 eval dataset 만들기 3) 금요일 2시 중간 점검",
+      "gold_active": [
+        "todo",
+        "todo",
+        "schedule"
+      ],
+      "gold_instance_count": 3,
+      "gold_needs_review": false,
+      "note": "같은 todo type 다중 instance + 일정",
+      "latency_ms": 4408.1,
+      "error": null,
+      "parsed": {
+        "summary": "회의록 내용으로 API 명세 공유, 데이터셋 제작, 금요일 중간 점검 일정이 포함됨",
+        "intents": [
+          {
+            "intent": "todo",
+            "applicability": 0.95,
+            "label": "찬서에게 API 명세 공유",
+            "reasoning": "회의에서 결정된 명확한 실행 과제입니다."
+          },
+          {
+            "intent": "todo",
+            "applicability": 0.95,
+            "label": "세현이의 eval dataset 제작",
+            "reasoning": "세현이가 수행해야 할 구체적인 업무 할당입니다."
+          },
+          {
+            "intent": "schedule",
+            "applicability": 0.9,
+            "label": "금요일 2시 중간 점검",
+            "reasoning": "시간과 목적이 명시된 정기/비정기 회의 일정입니다."
+          }
+        ]
+      },
+      "metrics": {
+        "0.5": {
+          "active": [
+            "todo",
+            "todo",
+            "schedule"
+          ],
+          "needs_review": false,
+          "instance_count": 3,
+          "payload_count": 0,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        },
+        "0.6": {
+          "active": [
+            "todo",
+            "todo",
+            "schedule"
+          ],
+          "needs_review": false,
+          "instance_count": 3,
+          "payload_count": 0,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        },
+        "0.7": {
+          "active": [
+            "todo",
+            "todo",
+            "schedule"
+          ],
+          "needs_review": false,
+          "instance_count": 3,
+          "payload_count": 0,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": null
+    },
+    {
+      "schema": "score_flat",
+      "case_id": "same_type_multi_schedule",
+      "input": "다음 주 일정: 월 9시 발표, 수 3시 디자인 리뷰, 금 6시 회식",
+      "gold_active": [
+        "schedule",
+        "schedule",
+        "schedule"
+      ],
+      "gold_instance_count": 3,
+      "gold_needs_review": false,
+      "note": "같은 schedule type 다중 instance",
+      "latency_ms": 4234.8,
+      "error": null,
+      "parsed": {
+        "summary": "다음 주 주요 일정 정리",
+        "intents": [
+          {
+            "intent": "schedule",
+            "applicability": 1.0,
+            "label": "다음 주 일정 관리",
+            "reasoning": "월요일 발표, 수요일 디자인 리뷰, 금요일 회식 등 구체적인 시간과 이벤트가 명시되어 있음"
+          },
+          {
+            "intent": "todo",
+            "applicability": 0.7,
+            "label": "일정 준비",
+            "reasoning": "발표와 디자인 리뷰를 위해 사전에 준비해야 할 업무가 발생함"
+          }
+        ]
+      },
+      "metrics": {
+        "0.5": {
+          "active": [
+            "schedule",
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 0,
+          "intent_f1": 0.4,
+          "instance_count_exact": false,
+          "review_correct": true
+        },
+        "0.6": {
+          "active": [
+            "schedule",
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 0,
+          "intent_f1": 0.4,
+          "instance_count_exact": false,
+          "review_correct": true
+        },
+        "0.7": {
+          "active": [
+            "schedule",
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 0,
+          "intent_f1": 0.4,
+          "instance_count_exact": false,
+          "review_correct": true
+        }
+      },
+      "payload_quality": null
+    },
+    {
+      "schema": "score_flat",
+      "case_id": "ambiguous_product",
+      "input": "이 가방 예쁘긴 한데 살지 말지 모르겠다",
+      "gold_active": [
+        "todo",
+        "memo"
+      ],
+      "gold_instance_count": 2,
+      "gold_needs_review": true,
+      "note": "구매 고민과 감상 사이, 물어보는 게 유리",
+      "latency_ms": 2299.4,
+      "error": null,
+      "parsed": {
+        "summary": "사용자가 가방 구매를 고민하고 있음",
+        "intents": [
+          {
+            "intent": "todo",
+            "applicability": 0.8,
+            "label": "가방 구매 결정하기",
+            "reasoning": "구매 여부를 고민 중이므로 최종 결정을 내리는 행동이 필요함"
+          },
+          {
+            "intent": "memo",
+            "applicability": 0.6,
+            "label": "가방에 대한 개인적 감상 기록",
+            "reasoning": "가방이 예쁘다는 개인적인 느낌을 기록해두는 용도"
+          }
+        ]
+      },
+      "metrics": {
+        "0.5": {
+          "active": [
+            "todo",
+            "memo"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 0,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": false
+        },
+        "0.6": {
+          "active": [
+            "todo",
+            "memo"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 0,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": false
+        },
+        "0.7": {
+          "active": [
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 0,
+          "intent_f1": 0.6667,
+          "instance_count_exact": false,
+          "review_correct": false
+        }
+      },
+      "payload_quality": null
+    },
+    {
+      "schema": "score_flat",
+      "case_id": "ambiguous_low_signal",
+      "input": "이거 나중에",
+      "gold_active": [
+        "memo"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": true,
+      "note": "정보 부족, 보존 + 확인",
+      "latency_ms": 4507.4,
+      "error": null,
+      "parsed": {
+        "summary": "User saved a note indicating they want to revisit this item later.",
+        "intents": [
+          {
+            "intent": "todo",
+            "applicability": 0.95,
+            "label": "Review later",
+            "reasoning": "The phrase '이거 나중에' (this later) explicitly indicates an intention to perform an action or review the content at a future time."
+          },
+          {
+            "intent": "memo",
+            "applicability": 0.4,
+            "label": "Placeholder note",
+            "reasoning": "It serves as a quick, informal reminder or bookmark for the user's current context."
+          }
+        ]
+      },
+      "metrics": {
+        "0.5": {
+          "active": [
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 0,
+          "intent_f1": 0.0,
+          "instance_count_exact": true,
+          "review_correct": false
+        },
+        "0.6": {
+          "active": [
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 0,
+          "intent_f1": 0.0,
+          "instance_count_exact": true,
+          "review_correct": false
+        },
+        "0.7": {
+          "active": [
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 0,
+          "intent_f1": 0.0,
+          "instance_count_exact": true,
+          "review_correct": false
+        }
+      },
+      "payload_quality": null
+    },
+    {
+      "schema": "score_flat",
+      "case_id": "date_not_schedule",
+      "input": "2026년 연말정산 공제 항목 정리 글",
+      "gold_active": [
+        "knowledge"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "날짜가 있어도 사건 일정 아님",
+      "latency_ms": 5995.0,
+      "error": null,
+      "parsed": {
+        "summary": "2026년 연말정산 공제 항목 정리 글",
+        "intents": [
+          {
+            "intent": "knowledge",
+            "applicability": 0.95,
+            "label": "연말정산 정보 습득",
+            "reasoning": "연말정산 공제 항목에 대한 정보를 정리한 문서이므로 지식 습득 및 참조용으로 활용도가 높습니다."
+          },
+          {
+            "intent": "todo",
+            "applicability": 0.8,
+            "label": "연말정산 준비",
+            "reasoning": "공제 항목을 확인하고 서류를 준비해야 하는 실질적인 행동 지침으로 활용될 수 있습니다."
+          },
+          {
+            "intent": "schedule",
+            "applicability": 0.6,
+            "label": "연말정산 기간 확인",
+            "reasoning": "연말정산은 특정 기간에 수행해야 하는 업무이므로 관련 일정 관리와 연관됩니다."
+          }
+        ]
+      },
+      "metrics": {
+        "0.5": {
+          "active": [
+            "knowledge",
+            "todo",
+            "schedule"
+          ],
+          "needs_review": false,
+          "instance_count": 3,
+          "payload_count": 0,
+          "intent_f1": 0.5,
+          "instance_count_exact": false,
+          "review_correct": true
+        },
+        "0.6": {
+          "active": [
+            "knowledge",
+            "todo",
+            "schedule"
+          ],
+          "needs_review": false,
+          "instance_count": 3,
+          "payload_count": 0,
+          "intent_f1": 0.5,
+          "instance_count_exact": false,
+          "review_correct": true
+        },
+        "0.7": {
+          "active": [
+            "knowledge",
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 0,
+          "intent_f1": 0.6667,
+          "instance_count_exact": false,
+          "review_correct": true
+        }
+      },
+      "payload_quality": null
+    },
+    {
+      "schema": "score_flat",
+      "case_id": "deadline_todo",
+      "input": "장학금 신청 6월 20일 18시 마감. 서류 업로드해야 함",
+      "gold_active": [
+        "todo",
+        "schedule"
+      ],
+      "gold_instance_count": 2,
+      "gold_needs_review": false,
+      "note": "마감 있는 todo는 일정성도 있음",
+      "latency_ms": 6707.7,
+      "error": null,
+      "parsed": {
+        "summary": "장학금 신청 마감일 및 서류 제출 안내",
+        "intents": [
+          {
+            "intent": "schedule",
+            "applicability": 1.0,
+            "label": "장학금 신청 마감",
+            "reasoning": "6월 20일 18시라는 구체적인 마감 시한이 명시되어 있음"
+          },
+          {
+            "intent": "todo",
+            "applicability": 0.9,
+            "label": "장학금 서류 업로드",
+            "reasoning": "신청을 완료하기 위해 서류를 업로드해야 하는 구체적인 행동이 필요함"
+          }
+        ]
+      },
+      "metrics": {
+        "0.5": {
+          "active": [
+            "schedule",
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 0,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        },
+        "0.6": {
+          "active": [
+            "schedule",
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 0,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        },
+        "0.7": {
+          "active": [
+            "schedule",
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 0,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": null
+    },
+    {
+      "schema": "score_flat",
+      "case_id": "link_knowledge_todo",
+      "input": "https://example.com/fastapi-clean-architecture 나중에 읽고 프로젝트에 적용해보기",
+      "gold_active": [
+        "knowledge",
+        "todo"
+      ],
+      "gold_instance_count": 2,
+      "gold_needs_review": false,
+      "note": "읽을 자료 + 적용 행동",
+      "latency_ms": 4559.9,
+      "error": null,
+      "parsed": {
+        "summary": "Save a FastAPI clean architecture guide for future reading and project implementation.",
+        "intents": [
+          {
+            "intent": "todo",
+            "applicability": 0.95,
+            "label": "Read and implement architecture",
+            "reasoning": "The user explicitly stated the intent to read the article and apply the concepts to their project."
+          },
+          {
+            "intent": "knowledge",
+            "applicability": 0.85,
+            "label": "FastAPI clean architecture reference",
+            "reasoning": "The link serves as a technical resource for learning and implementing software design patterns."
+          }
+        ]
+      },
+      "metrics": {
+        "0.5": {
+          "active": [
+            "todo",
+            "knowledge"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 0,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        },
+        "0.6": {
+          "active": [
+            "todo",
+            "knowledge"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 0,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        },
+        "0.7": {
+          "active": [
+            "todo",
+            "knowledge"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 0,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": null
+    },
+    {
+      "schema": "score_flat",
+      "case_id": "memo_and_todo",
+      "input": "카페 분위기 좋았다. 다음에 지수 데려가기",
+      "gold_active": [
+        "memo",
+        "todo"
+      ],
+      "gold_instance_count": 2,
+      "gold_needs_review": false,
+      "note": "감상 기록 + 다음 행동",
+      "latency_ms": 1680.1,
+      "error": null,
+      "parsed": {
+        "summary": "카페 방문 후기 및 지수와 재방문 계획",
+        "intents": [
+          {
+            "intent": "todo",
+            "applicability": 0.9,
+            "label": "지수와 카페 방문하기",
+            "reasoning": "다음에 지수를 데려가겠다는 구체적인 행동 계획이 포함되어 있습니다."
+          },
+          {
+            "intent": "memo",
+            "applicability": 0.8,
+            "label": "카페 방문 기록",
+            "reasoning": "카페 분위기가 좋았다는 개인적인 감상과 방문 경험을 기록하고 있습니다."
+          }
+        ]
+      },
+      "metrics": {
+        "0.5": {
+          "active": [
+            "todo",
+            "memo"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 0,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        },
+        "0.6": {
+          "active": [
+            "todo",
+            "memo"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 0,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        },
+        "0.7": {
+          "active": [
+            "todo",
+            "memo"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 0,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": null
+    },
+    {
+      "schema": "score_flat",
+      "case_id": "uncertain_two_options",
+      "input": "이 사람 연락처 저장? 아니면 그냥 대화 기록용?",
+      "gold_active": [
+        "todo",
+        "memo"
+      ],
+      "gold_instance_count": 2,
+      "gold_needs_review": true,
+      "note": "사용자가 직접 모호성을 표현",
+      "latency_ms": 1491.8,
+      "error": null,
+      "parsed": {
+        "summary": "사용자가 특정 인물과의 대화 기록을 저장할지, 연락처를 저장할지 고민하는 상황",
+        "intents": [
+          {
+            "intent": "todo",
+            "applicability": 0.9,
+            "label": "연락처 저장 여부 결정",
+            "reasoning": "사용자가 상대방의 연락처를 저장할지 말지 결정해야 하는 실행 가능한 작업입니다."
+          },
+          {
+            "intent": "memo",
+            "applicability": 0.7,
+            "label": "대화 기록 보관",
+            "reasoning": "연락처 저장 대신 대화 기록을 남겨두려는 의도가 포함되어 있어 메모 성격이 강합니다."
+          }
+        ]
+      },
+      "metrics": {
+        "0.5": {
+          "active": [
+            "todo",
+            "memo"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 0,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": false
+        },
+        "0.6": {
+          "active": [
+            "todo",
+            "memo"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 0,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": false
+        },
+        "0.7": {
+          "active": [
+            "todo",
+            "memo"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 0,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": false
+        }
+      },
+      "payload_quality": null
+    },
+    {
+      "schema": "score_flat",
+      "case_id": "knowledge_no_action",
+      "input": "Postgres GIN index는 jsonb containment 쿼리에 유용",
+      "gold_active": [
+        "knowledge"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "순수 지식",
+      "latency_ms": 4375.9,
+      "error": null,
+      "parsed": {
+        "summary": "Postgres GIN index usage for jsonb containment queries",
+        "intents": [
+          {
+            "intent": "knowledge",
+            "applicability": 0.95,
+            "label": "Database Optimization Knowledge",
+            "reasoning": "This is a technical fact regarding database indexing strategies that serves as a reference for future development."
+          },
+          {
+            "intent": "todo",
+            "applicability": 0.4,
+            "label": "Apply GIN index to project",
+            "reasoning": "The user might be planning to implement this optimization in their current database schema."
+          }
+        ]
+      },
+      "metrics": {
+        "0.5": {
+          "active": [
+            "knowledge"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 0,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        },
+        "0.6": {
+          "active": [
+            "knowledge"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 0,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        },
+        "0.7": {
+          "active": [
+            "knowledge"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 0,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": null
+    },
+    {
+      "schema": "score_flat",
+      "case_id": "todo_goal",
+      "input": "올해 안에 토익 900 만들기",
+      "gold_active": [
+        "todo"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "장기 목표도 todo",
+      "latency_ms": 4111.8,
+      "error": null,
+      "parsed": {
+        "summary": "올해 안에 토익 900점 달성 목표",
+        "intents": [
+          {
+            "intent": "todo",
+            "applicability": 0.95,
+            "label": "토익 공부 시작하기",
+            "reasoning": "목표 달성을 위해 구체적인 학습 계획과 실행이 필요한 작업입니다."
+          },
+          {
+            "intent": "schedule",
+            "applicability": 0.85,
+            "label": "올해 말까지 토익 목표 달성",
+            "reasoning": "올해 안이라는 명확한 기한이 설정된 시간 기반의 목표입니다."
+          },
+          {
+            "intent": "knowledge",
+            "applicability": 0.4,
+            "label": "토익 학습 전략 수립",
+            "reasoning": "900점 달성을 위한 학습법이나 정보 습득이 필요합니다."
+          }
+        ]
+      },
+      "metrics": {
+        "0.5": {
+          "active": [
+            "todo",
+            "schedule"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 0,
+          "intent_f1": 0.6667,
+          "instance_count_exact": false,
+          "review_correct": true
+        },
+        "0.6": {
+          "active": [
+            "todo",
+            "schedule"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 0,
+          "intent_f1": 0.6667,
+          "instance_count_exact": false,
+          "review_correct": true
+        },
+        "0.7": {
+          "active": [
+            "todo",
+            "schedule"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 0,
+          "intent_f1": 0.6667,
+          "instance_count_exact": false,
+          "review_correct": true
+        }
+      },
+      "payload_quality": null
+    },
+    {
+      "schema": "score_flat",
+      "case_id": "memo_low_review_false",
+      "input": "오늘 점심 진짜 맛있었다",
+      "gold_active": [
+        "memo"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "명확한 memo는 review 불필요",
+      "latency_ms": 1593.2,
+      "error": null,
+      "parsed": {
+        "summary": "The user is expressing satisfaction with their lunch today.",
+        "intents": [
+          {
+            "intent": "memo",
+            "applicability": 0.95,
+            "label": "Record a positive memory",
+            "reasoning": "The statement is a subjective reflection on a pleasant experience, serving as a personal note or diary entry."
+          },
+          {
+            "intent": "knowledge",
+            "applicability": 0.2,
+            "label": "Restaurant recommendation",
+            "reasoning": "The user might be implicitly noting a place they enjoyed, which could be useful for future reference if they identify the location."
+          }
+        ]
+      },
+      "metrics": {
+        "0.5": {
+          "active": [
+            "memo"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 0,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        },
+        "0.6": {
+          "active": [
+            "memo"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 0,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        },
+        "0.7": {
+          "active": [
+            "memo"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 0,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": null
+    },
+    {
+      "schema": "boolean_instances",
+      "case_id": "single_schedule",
+      "input": "오늘 저녁 7시 성수에서 민지랑 약속",
+      "gold_active": [
+        "schedule"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "명확한 일정",
+      "latency_ms": 2060.5,
+      "error": null,
+      "parsed": {
+        "summary": "User has a dinner appointment with Minji in Seongsu at 7 PM today.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "schedule",
+            "applicable": true,
+            "label": "Dinner appointment",
+            "payload": {
+              "title": "Dinner with Minji",
+              "time": "19:00",
+              "person": "Minji",
+              "note": "Location: Seongsu"
+            },
+            "reasoning": "The user explicitly stated a time and place for a meeting with a specific person."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "schedule"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances",
+      "case_id": "single_todo",
+      "input": "지원이 답장해야 함. 오늘 안에",
+      "gold_active": [
+        "todo"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "명확한 행동",
+      "latency_ms": 1702.6,
+      "error": null,
+      "parsed": {
+        "summary": "User needs to reply to Jiwon by the end of the day.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "todo",
+            "applicable": true,
+            "label": "Reply to Jiwon",
+            "payload": {
+              "title": "Reply to Jiwon",
+              "person": "Jiwon",
+              "note": "Must reply by the end of the day."
+            },
+            "reasoning": "The user explicitly stated an action (reply) that needs to be completed within a specific timeframe (today)."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances",
+      "case_id": "single_knowledge",
+      "input": "ReAct 에이전트 구조 나중에 공부",
+      "gold_active": [
+        "knowledge"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "학습/참조",
+      "latency_ms": 3630.5,
+      "error": null,
+      "parsed": {
+        "summary": "User wants to study ReAct agent architecture later.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "todo",
+            "applicable": true,
+            "label": "Study ReAct agent architecture",
+            "payload": {
+              "title": "ReAct 에이전트 구조 공부",
+              "topic": "ReAct agent architecture"
+            },
+            "reasoning": "The user explicitly stated an intention to study a specific technical topic later."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 0.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances",
+      "case_id": "single_memo",
+      "input": "노을 너무 예뻤다. 그냥 기록",
+      "gold_active": [
+        "memo"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "정서 기록",
+      "latency_ms": 4697.2,
+      "error": null,
+      "parsed": {
+        "summary": "User recorded a memory about a beautiful sunset.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "memo",
+            "applicable": true,
+            "label": "sunset_memory",
+            "payload": {
+              "title": "Beautiful sunset",
+              "note": "노을 너무 예뻤다."
+            },
+            "reasoning": "The user explicitly stated this is a record of a moment they found beautiful."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "memo"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances",
+      "case_id": "schedule_todo",
+      "input": "금요일 3시 디자인 리뷰. 그 전까지 시안 2개 준비",
+      "gold_active": [
+        "schedule",
+        "todo"
+      ],
+      "gold_instance_count": 2,
+      "gold_needs_review": false,
+      "note": "일정 + 준비 할 일",
+      "latency_ms": 2706.4,
+      "error": null,
+      "parsed": {
+        "summary": "금요일 3시 디자인 리뷰 일정과 그 전까지 시안 2개를 준비해야 하는 업무가 포함되어 있습니다.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "schedule",
+            "applicable": true,
+            "label": "디자인 리뷰 일정",
+            "payload": {
+              "title": "디자인 리뷰",
+              "date": "금요일",
+              "time": "15:00"
+            },
+            "reasoning": "금요일 3시에 디자인 리뷰가 예정되어 있습니다."
+          },
+          {
+            "intent_type": "todo",
+            "applicable": true,
+            "label": "시안 준비",
+            "payload": {
+              "title": "시안 2개 준비",
+              "deadline": "금요일 15:00"
+            },
+            "reasoning": "리뷰 전까지 시안 2개를 준비해야 하는 명확한 작업 항목입니다."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "schedule",
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 2,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances",
+      "case_id": "todo_knowledge",
+      "input": "마우스 살까 말까 고민. 로지텍 MX Master 3S랑 Keychron M6 비교해보기",
+      "gold_active": [
+        "todo",
+        "knowledge"
+      ],
+      "gold_instance_count": 2,
+      "gold_needs_review": false,
+      "note": "구매 행동 + 비교 정보",
+      "latency_ms": 4343.5,
+      "error": null,
+      "parsed": {
+        "summary": "User is considering purchasing a mouse and wants to compare Logitech MX Master 3S and Keychron M6.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "todo",
+            "applicable": true,
+            "label": "Compare mouse models",
+            "payload": {
+              "title": "Compare Logitech MX Master 3S and Keychron M6",
+              "note": "Research and compare features to decide which mouse to purchase."
+            },
+            "reasoning": "The user explicitly stated a need to compare two specific products before making a purchase decision."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 0.6667,
+          "instance_count_exact": false,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances",
+      "case_id": "same_type_multi_todo",
+      "input": "회의록: 1) 찬서에게 API 명세 공유 2) 세현이는 eval dataset 만들기 3) 금요일 2시 중간 점검",
+      "gold_active": [
+        "todo",
+        "todo",
+        "schedule"
+      ],
+      "gold_instance_count": 3,
+      "gold_needs_review": false,
+      "note": "같은 todo type 다중 instance + 일정",
+      "latency_ms": 2206.6,
+      "error": null,
+      "parsed": {
+        "summary": "회의록 내용으로 찬서에게 API 명세 공유, 세현이의 eval dataset 제작, 금요일 2시 중간 점검 일정이 포함되어 있습니다.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "todo",
+            "applicable": true,
+            "label": "찬서에게 API 명세 공유",
+            "payload": {
+              "title": "API 명세 공유",
+              "person": "찬서"
+            },
+            "reasoning": "찬서에게 API 명세를 전달해야 하는 명확한 작업입니다."
+          },
+          {
+            "intent_type": "todo",
+            "applicable": true,
+            "label": "세현이의 eval dataset 제작",
+            "payload": {
+              "title": "eval dataset 만들기",
+              "person": "세현"
+            },
+            "reasoning": "세현이가 수행해야 할 작업 항목입니다."
+          },
+          {
+            "intent_type": "schedule",
+            "applicable": true,
+            "label": "금요일 2시 중간 점검",
+            "payload": {
+              "title": "중간 점검",
+              "date": "금요일",
+              "time": "14:00"
+            },
+            "reasoning": "특정 시간과 날짜가 지정된 회의 일정입니다."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "todo",
+            "todo",
+            "schedule"
+          ],
+          "needs_review": false,
+          "instance_count": 3,
+          "payload_count": 3,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances",
+      "case_id": "same_type_multi_schedule",
+      "input": "다음 주 일정: 월 9시 발표, 수 3시 디자인 리뷰, 금 6시 회식",
+      "gold_active": [
+        "schedule",
+        "schedule",
+        "schedule"
+      ],
+      "gold_instance_count": 3,
+      "gold_needs_review": false,
+      "note": "같은 schedule type 다중 instance",
+      "latency_ms": 5753.2,
+      "error": null,
+      "parsed": {
+        "summary": "User provided a schedule for next week including a presentation, a design review, and a team dinner.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "schedule",
+            "applicable": true,
+            "label": "Presentation",
+            "payload": {
+              "title": "발표",
+              "time": "09:00",
+              "note": "다음 주 월요일"
+            },
+            "reasoning": "Scheduled event for next Monday at 9 AM."
+          },
+          {
+            "intent_type": "schedule",
+            "applicable": true,
+            "label": "Design Review",
+            "payload": {
+              "title": "디자인 리뷰",
+              "time": "15:00",
+              "note": "다음 주 수요일"
+            },
+            "reasoning": "Scheduled event for next Wednesday at 3 PM."
+          },
+          {
+            "intent_type": "schedule",
+            "applicable": true,
+            "label": "Team Dinner",
+            "payload": {
+              "title": "회식",
+              "time": "18:00",
+              "note": "다음 주 금요일"
+            },
+            "reasoning": "Scheduled event for next Friday at 6 PM."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "schedule",
+            "schedule",
+            "schedule"
+          ],
+          "needs_review": false,
+          "instance_count": 3,
+          "payload_count": 3,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances",
+      "case_id": "ambiguous_product",
+      "input": "이 가방 예쁘긴 한데 살지 말지 모르겠다",
+      "gold_active": [
+        "todo",
+        "memo"
+      ],
+      "gold_instance_count": 2,
+      "gold_needs_review": true,
+      "note": "구매 고민과 감상 사이, 물어보는 게 유리",
+      "latency_ms": 1439.6,
+      "error": null,
+      "parsed": {
+        "summary": "User is contemplating whether to purchase a bag they find attractive.",
+        "needs_review": true,
+        "intent_instances": [
+          {
+            "intent_type": "memo",
+            "applicable": true,
+            "label": "Shopping contemplation",
+            "payload": {
+              "note": "User is considering buying a bag but is undecided."
+            },
+            "reasoning": "The user is expressing a personal thought about a potential purchase without a clear action or deadline."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "memo"
+          ],
+          "needs_review": true,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 0.6667,
+          "instance_count_exact": false,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances",
+      "case_id": "ambiguous_low_signal",
+      "input": "이거 나중에",
+      "gold_active": [
+        "memo"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": true,
+      "note": "정보 부족, 보존 + 확인",
+      "latency_ms": 2107.9,
+      "error": null,
+      "parsed": {
+        "summary": "User saved a vague note '이거 나중에' (this later).",
+        "needs_review": true,
+        "intent_instances": [
+          {
+            "intent_type": "todo",
+            "applicable": true,
+            "label": "Pending task",
+            "payload": {
+              "title": "이거 나중에",
+              "note": "User indicated this needs to be addressed later but did not specify what 'this' refers to."
+            },
+            "reasoning": "The phrase implies a future action or review, making it a todo item, though it lacks specific context."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "todo"
+          ],
+          "needs_review": true,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 0.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances",
+      "case_id": "date_not_schedule",
+      "input": "2026년 연말정산 공제 항목 정리 글",
+      "gold_active": [
+        "knowledge"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "날짜가 있어도 사건 일정 아님",
+      "latency_ms": 4225.3,
+      "error": null,
+      "parsed": {
+        "summary": "User saved a reference article regarding year-end tax settlement deduction items for 2026.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "knowledge",
+            "applicable": true,
+            "label": "2026년 연말정산 공제 항목 정리",
+            "payload": {
+              "title": "2026년 연말정산 공제 항목 정리",
+              "topic": "연말정산"
+            },
+            "reasoning": "The record is a reference document containing information about tax deductions, which is durable knowledge."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "knowledge"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances",
+      "case_id": "deadline_todo",
+      "input": "장학금 신청 6월 20일 18시 마감. 서류 업로드해야 함",
+      "gold_active": [
+        "todo",
+        "schedule"
+      ],
+      "gold_instance_count": 2,
+      "gold_needs_review": false,
+      "note": "마감 있는 todo는 일정성도 있음",
+      "latency_ms": 4300.6,
+      "error": null,
+      "parsed": {
+        "summary": "장학금 신청 마감일과 필요 작업에 대한 알림입니다.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "schedule",
+            "applicable": true,
+            "label": "장학금 신청 마감",
+            "payload": {
+              "title": "장학금 신청 마감",
+              "date": "06-20",
+              "time": "18:00",
+              "deadline": "06-20 18:00"
+            },
+            "reasoning": "장학금 신청 마감 일시가 명확하게 명시되어 있습니다."
+          },
+          {
+            "intent_type": "todo",
+            "applicable": true,
+            "label": "장학금 서류 업로드",
+            "payload": {
+              "title": "장학금 서류 업로드",
+              "note": "마감 전까지 서류를 업로드해야 합니다."
+            },
+            "reasoning": "신청을 위해 수행해야 할 구체적인 작업이 언급되었습니다."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "schedule",
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 2,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances",
+      "case_id": "link_knowledge_todo",
+      "input": "https://example.com/fastapi-clean-architecture 나중에 읽고 프로젝트에 적용해보기",
+      "gold_active": [
+        "knowledge",
+        "todo"
+      ],
+      "gold_instance_count": 2,
+      "gold_needs_review": false,
+      "note": "읽을 자료 + 적용 행동",
+      "latency_ms": 1770.8,
+      "error": null,
+      "parsed": {
+        "summary": "User saved a FastAPI clean architecture article to read later and apply to a project.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "todo",
+            "applicable": true,
+            "label": "Read and apply FastAPI clean architecture",
+            "payload": {
+              "title": "Read FastAPI clean architecture article",
+              "url": "https://example.com/fastapi-clean-architecture",
+              "note": "Apply concepts to current project"
+            },
+            "reasoning": "The user explicitly stated an intention to read the article and apply it to their project."
+          },
+          {
+            "intent_type": "knowledge",
+            "applicable": true,
+            "label": "FastAPI Clean Architecture Reference",
+            "payload": {
+              "title": "FastAPI Clean Architecture",
+              "url": "https://example.com/fastapi-clean-architecture"
+            },
+            "reasoning": "The link serves as a durable reference for architectural patterns in FastAPI."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "todo",
+            "knowledge"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 2,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances",
+      "case_id": "memo_and_todo",
+      "input": "카페 분위기 좋았다. 다음에 지수 데려가기",
+      "gold_active": [
+        "memo",
+        "todo"
+      ],
+      "gold_instance_count": 2,
+      "gold_needs_review": false,
+      "note": "감상 기록 + 다음 행동",
+      "latency_ms": 1640.0,
+      "error": null,
+      "parsed": {
+        "summary": "User enjoyed a cafe and wants to visit again with Jisu.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "todo",
+            "applicable": true,
+            "label": "Visit cafe with Jisu",
+            "payload": {
+              "title": "Visit cafe with Jisu",
+              "person": "Jisu",
+              "note": "The cafe had a good atmosphere."
+            },
+            "reasoning": "The user explicitly stated an intention to take Jisu to the cafe in the future."
+          },
+          {
+            "intent_type": "memo",
+            "applicable": true,
+            "label": "Cafe experience",
+            "payload": {
+              "note": "Enjoyed the atmosphere at the cafe."
+            },
+            "reasoning": "Captures the positive sentiment regarding the cafe visit."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "todo",
+            "memo"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 2,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances",
+      "case_id": "uncertain_two_options",
+      "input": "이 사람 연락처 저장? 아니면 그냥 대화 기록용?",
+      "gold_active": [
+        "todo",
+        "memo"
+      ],
+      "gold_instance_count": 2,
+      "gold_needs_review": true,
+      "note": "사용자가 직접 모호성을 표현",
+      "latency_ms": 3928.4,
+      "error": null,
+      "parsed": {
+        "summary": "User is asking whether to save a contact or keep the record as a conversation log.",
+        "needs_review": true,
+        "intent_instances": [
+          {
+            "intent_type": "memo",
+            "applicable": true,
+            "label": "conversation_log",
+            "payload": {
+              "note": "User is deciding whether to save this person as a contact or just keep the conversation history."
+            },
+            "reasoning": "The user is explicitly questioning the purpose of the record, making it a memo of the current state of decision-making."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "memo"
+          ],
+          "needs_review": true,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 0.6667,
+          "instance_count_exact": false,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances",
+      "case_id": "knowledge_no_action",
+      "input": "Postgres GIN index는 jsonb containment 쿼리에 유용",
+      "gold_active": [
+        "knowledge"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "순수 지식",
+      "latency_ms": 1601.5,
+      "error": null,
+      "parsed": {
+        "summary": "User saved a technical note regarding the utility of Postgres GIN indexes for jsonb containment queries.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "knowledge",
+            "applicable": true,
+            "label": "Postgres GIN index optimization",
+            "payload": {
+              "title": "Postgres GIN index for jsonb",
+              "topic": "Database optimization",
+              "note": "GIN indexes are useful for jsonb containment queries in PostgreSQL."
+            },
+            "reasoning": "This is a technical fact about database indexing that serves as durable reference material."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "knowledge"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances",
+      "case_id": "todo_goal",
+      "input": "올해 안에 토익 900 만들기",
+      "gold_active": [
+        "todo"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "장기 목표도 todo",
+      "latency_ms": 1601.5,
+      "error": null,
+      "parsed": {
+        "summary": "User goal to achieve a TOEIC score of 900 within the current year.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "todo",
+            "applicable": true,
+            "label": "TOEIC Goal",
+            "payload": {
+              "title": "Achieve TOEIC 900",
+              "deadline": "2024-12-31",
+              "note": "Goal to reach 900 points within this year."
+            },
+            "reasoning": "The user has set a clear actionable goal with a deadline implied by 'within this year'."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances",
+      "case_id": "memo_low_review_false",
+      "input": "오늘 점심 진짜 맛있었다",
+      "gold_active": [
+        "memo"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "명확한 memo는 review 불필요",
+      "latency_ms": 3922.4,
+      "error": null,
+      "parsed": {
+        "summary": "User expressed satisfaction with their lunch.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "memo",
+            "applicable": true,
+            "label": "Lunch memory",
+            "payload": {
+              "note": "오늘 점심 진짜 맛있었다"
+            },
+            "reasoning": "The user is recording a positive personal experience regarding their lunch."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "memo"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances_debug",
+      "case_id": "single_schedule",
+      "input": "오늘 저녁 7시 성수에서 민지랑 약속",
+      "gold_active": [
+        "schedule"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "명확한 일정",
+      "latency_ms": 1453.2,
+      "error": null,
+      "parsed": {
+        "summary": "User has a dinner appointment with Minji in Seongsu at 7 PM today.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "schedule",
+            "applicable": true,
+            "evidence_score": 1.0,
+            "label": "Dinner appointment",
+            "payload": {
+              "title": "Dinner with Minji",
+              "date": "today",
+              "time": "19:00",
+              "person": "Minji",
+              "note": "Location: Seongsu"
+            },
+            "reasoning": "The input explicitly states a time and location for a meeting with a specific person."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "schedule"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances_debug",
+      "case_id": "single_todo",
+      "input": "지원이 답장해야 함. 오늘 안에",
+      "gold_active": [
+        "todo"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "명확한 행동",
+      "latency_ms": 1438.2,
+      "error": null,
+      "parsed": {
+        "summary": "User needs to reply to Jiwon by the end of the day.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "todo",
+            "applicable": true,
+            "evidence_score": 1.0,
+            "label": "Reply to Jiwon",
+            "payload": {
+              "title": "Reply to Jiwon",
+              "person": "Jiwon",
+              "note": "Needs to be done by the end of the day."
+            },
+            "reasoning": "The user explicitly stated an action (reply) directed at a specific person (Jiwon) with a clear deadline (today)."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances_debug",
+      "case_id": "single_knowledge",
+      "input": "ReAct 에이전트 구조 나중에 공부",
+      "gold_active": [
+        "knowledge"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "학습/참조",
+      "latency_ms": 4217.0,
+      "error": null,
+      "parsed": {
+        "summary": "User wants to study ReAct agent architecture later.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "todo",
+            "applicable": true,
+            "evidence_score": 0.95,
+            "label": "Study ReAct agent architecture",
+            "payload": {
+              "title": "ReAct 에이전트 구조 공부",
+              "note": "나중에 공부할 주제로 저장됨"
+            },
+            "reasoning": "The user explicitly stated an intention to study a specific technical topic later."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 0.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances_debug",
+      "case_id": "single_memo",
+      "input": "노을 너무 예뻤다. 그냥 기록",
+      "gold_active": [
+        "memo"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "정서 기록",
+      "latency_ms": 3333.8,
+      "error": null,
+      "parsed": {
+        "summary": "User recorded a memory about a beautiful sunset.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "memo",
+            "applicable": true,
+            "evidence_score": 1.0,
+            "label": "sunset_memory",
+            "payload": {
+              "title": "노을",
+              "note": "노을 너무 예뻤다."
+            },
+            "reasoning": "The user explicitly stated they are recording a memory about a beautiful sunset."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "memo"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances_debug",
+      "case_id": "schedule_todo",
+      "input": "금요일 3시 디자인 리뷰. 그 전까지 시안 2개 준비",
+      "gold_active": [
+        "schedule",
+        "todo"
+      ],
+      "gold_instance_count": 2,
+      "gold_needs_review": false,
+      "note": "일정 + 준비 할 일",
+      "latency_ms": 4550.6,
+      "error": null,
+      "parsed": {
+        "summary": "User has a design review meeting on Friday at 3 PM and needs to prepare two drafts before then.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "schedule",
+            "applicable": true,
+            "evidence_score": 1.0,
+            "label": "Design Review Meeting",
+            "payload": {
+              "title": "디자인 리뷰",
+              "date": "금요일",
+              "time": "15:00"
+            },
+            "reasoning": "The user explicitly stated a meeting time and event."
+          },
+          {
+            "intent_type": "todo",
+            "applicable": true,
+            "evidence_score": 0.95,
+            "label": "Prepare Drafts",
+            "payload": {
+              "title": "시안 2개 준비",
+              "deadline": "금요일 15:00"
+            },
+            "reasoning": "The user has a clear task to complete before the scheduled meeting."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "schedule",
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 2,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances_debug",
+      "case_id": "todo_knowledge",
+      "input": "마우스 살까 말까 고민. 로지텍 MX Master 3S랑 Keychron M6 비교해보기",
+      "gold_active": [
+        "todo",
+        "knowledge"
+      ],
+      "gold_instance_count": 2,
+      "gold_needs_review": false,
+      "note": "구매 행동 + 비교 정보",
+      "latency_ms": 4117.7,
+      "error": null,
+      "parsed": {
+        "summary": "User is considering purchasing a mouse and wants to compare the Logitech MX Master 3S and Keychron M6.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "todo",
+            "applicable": true,
+            "evidence_score": 0.95,
+            "label": "Compare mice models",
+            "payload": {
+              "title": "Compare Logitech MX Master 3S and Keychron M6",
+              "note": "Research and compare features to decide on mouse purchase."
+            },
+            "reasoning": "The user explicitly stated a need to compare two specific products to make a purchasing decision."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 0.6667,
+          "instance_count_exact": false,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances_debug",
+      "case_id": "same_type_multi_todo",
+      "input": "회의록: 1) 찬서에게 API 명세 공유 2) 세현이는 eval dataset 만들기 3) 금요일 2시 중간 점검",
+      "gold_active": [
+        "todo",
+        "todo",
+        "schedule"
+      ],
+      "gold_instance_count": 3,
+      "gold_needs_review": false,
+      "note": "같은 todo type 다중 instance + 일정",
+      "latency_ms": 4682.2,
+      "error": null,
+      "parsed": {
+        "summary": "회의록 내용으로 찬서에게 API 명세 공유, 세현이의 eval dataset 제작, 금요일 2시 중간 점검 일정이 포함되어 있습니다.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "todo",
+            "applicable": true,
+            "evidence_score": 1.0,
+            "label": "찬서에게 API 명세 공유",
+            "payload": {
+              "title": "찬서에게 API 명세 공유",
+              "person": "찬서"
+            },
+            "reasoning": "회의록에 명시된 실행해야 할 작업입니다."
+          },
+          {
+            "intent_type": "todo",
+            "applicable": true,
+            "evidence_score": 1.0,
+            "label": "세현이의 eval dataset 제작",
+            "payload": {
+              "title": "eval dataset 만들기",
+              "person": "세현"
+            },
+            "reasoning": "회의록에 명시된 세현이의 담당 작업입니다."
+          },
+          {
+            "intent_type": "schedule",
+            "applicable": true,
+            "evidence_score": 1.0,
+            "label": "중간 점검 회의",
+            "payload": {
+              "title": "중간 점검",
+              "date": "금요일",
+              "time": "14:00"
+            },
+            "reasoning": "회의록에 명시된 정기 점검 일정입니다."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "todo",
+            "todo",
+            "schedule"
+          ],
+          "needs_review": false,
+          "instance_count": 3,
+          "payload_count": 3,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances_debug",
+      "case_id": "same_type_multi_schedule",
+      "input": "다음 주 일정: 월 9시 발표, 수 3시 디자인 리뷰, 금 6시 회식",
+      "gold_active": [
+        "schedule",
+        "schedule",
+        "schedule"
+      ],
+      "gold_instance_count": 3,
+      "gold_needs_review": false,
+      "note": "같은 schedule type 다중 instance",
+      "latency_ms": 4204.3,
+      "error": null,
+      "parsed": {
+        "summary": "User provided a schedule for next week including a presentation, design review, and team dinner.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "schedule",
+            "applicable": true,
+            "evidence_score": 1.0,
+            "label": "월요일 발표",
+            "payload": {
+              "title": "발표",
+              "date": "다음 주 월요일",
+              "time": "09:00"
+            },
+            "reasoning": "Explicitly scheduled event for Monday morning."
+          },
+          {
+            "intent_type": "schedule",
+            "applicable": true,
+            "evidence_score": 1.0,
+            "label": "수요일 디자인 리뷰",
+            "payload": {
+              "title": "디자인 리뷰",
+              "date": "다음 주 수요일",
+              "time": "15:00"
+            },
+            "reasoning": "Explicitly scheduled event for Wednesday afternoon."
+          },
+          {
+            "intent_type": "schedule",
+            "applicable": true,
+            "evidence_score": 1.0,
+            "label": "금요일 회식",
+            "payload": {
+              "title": "회식",
+              "date": "다음 주 금요일",
+              "time": "18:00"
+            },
+            "reasoning": "Explicitly scheduled event for Friday evening."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "schedule",
+            "schedule",
+            "schedule"
+          ],
+          "needs_review": false,
+          "instance_count": 3,
+          "payload_count": 3,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances_debug",
+      "case_id": "ambiguous_product",
+      "input": "이 가방 예쁘긴 한데 살지 말지 모르겠다",
+      "gold_active": [
+        "todo",
+        "memo"
+      ],
+      "gold_instance_count": 2,
+      "gold_needs_review": true,
+      "note": "구매 고민과 감상 사이, 물어보는 게 유리",
+      "latency_ms": 4294.4,
+      "error": null,
+      "parsed": {
+        "summary": "User is contemplating whether to purchase a bag they find attractive.",
+        "needs_review": true,
+        "intent_instances": [
+          {
+            "intent_type": "memo",
+            "applicable": true,
+            "evidence_score": 0.9,
+            "label": "Shopping contemplation",
+            "payload": {
+              "note": "User is considering buying a bag but is undecided."
+            },
+            "reasoning": "The user is expressing a personal sentiment about a potential purchase without a clear action or deadline."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "memo"
+          ],
+          "needs_review": true,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 0.6667,
+          "instance_count_exact": false,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances_debug",
+      "case_id": "ambiguous_low_signal",
+      "input": "이거 나중에",
+      "gold_active": [
+        "memo"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": true,
+      "note": "정보 부족, 보존 + 확인",
+      "latency_ms": 1590.5,
+      "error": null,
+      "parsed": {
+        "summary": "User saved a note with the text '이거 나중에' (This later), indicating a desire to defer an action or item.",
+        "needs_review": true,
+        "intent_instances": [
+          {
+            "intent_type": "todo",
+            "applicable": true,
+            "evidence_score": 0.8,
+            "label": "Defer task",
+            "payload": {
+              "title": "이거 나중에",
+              "note": "User marked this item to be addressed later."
+            },
+            "reasoning": "The phrase '이거 나중에' implies a pending action or item that the user wants to revisit."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "todo"
+          ],
+          "needs_review": true,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 0.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances_debug",
+      "case_id": "date_not_schedule",
+      "input": "2026년 연말정산 공제 항목 정리 글",
+      "gold_active": [
+        "knowledge"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "날짜가 있어도 사건 일정 아님",
+      "latency_ms": 1539.6,
+      "error": null,
+      "parsed": {
+        "summary": "User saved a reference article regarding year-end tax settlement deductions for 2026.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "knowledge",
+            "applicable": true,
+            "evidence_score": 1.0,
+            "label": "2026 Year-end Tax Settlement Guide",
+            "payload": {
+              "title": "2026년 연말정산 공제 항목 정리",
+              "topic": "Tax deduction"
+            },
+            "reasoning": "The record is a reference document for tax planning and preparation, which fits the knowledge intent."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "knowledge"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances_debug",
+      "case_id": "deadline_todo",
+      "input": "장학금 신청 6월 20일 18시 마감. 서류 업로드해야 함",
+      "gold_active": [
+        "todo",
+        "schedule"
+      ],
+      "gold_instance_count": 2,
+      "gold_needs_review": false,
+      "note": "마감 있는 todo는 일정성도 있음",
+      "latency_ms": 1856.8,
+      "error": null,
+      "parsed": {
+        "summary": "장학금 신청 마감일 및 필요 작업 안내",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "schedule",
+            "applicable": true,
+            "evidence_score": 1.0,
+            "label": "장학금 신청 마감",
+            "payload": {
+              "title": "장학금 신청 마감",
+              "date": "06-20",
+              "time": "18:00",
+              "deadline": "06-20 18:00"
+            },
+            "reasoning": "장학금 신청 마감 일시가 명확하게 명시되어 있습니다."
+          },
+          {
+            "intent_type": "todo",
+            "applicable": true,
+            "evidence_score": 1.0,
+            "label": "장학금 서류 업로드",
+            "payload": {
+              "title": "장학금 서류 업로드",
+              "note": "신청 마감 전까지 서류를 업로드해야 함"
+            },
+            "reasoning": "신청을 위해 서류 업로드가 필요하다는 구체적인 행동 지침이 포함되어 있습니다."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "schedule",
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 2,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances_debug",
+      "case_id": "link_knowledge_todo",
+      "input": "https://example.com/fastapi-clean-architecture 나중에 읽고 프로젝트에 적용해보기",
+      "gold_active": [
+        "knowledge",
+        "todo"
+      ],
+      "gold_instance_count": 2,
+      "gold_needs_review": false,
+      "note": "읽을 자료 + 적용 행동",
+      "latency_ms": 4901.1,
+      "error": null,
+      "parsed": {
+        "summary": "User saved a FastAPI clean architecture article to read later and apply to a project.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "todo",
+            "applicable": true,
+            "evidence_score": 0.95,
+            "label": "Read and apply FastAPI clean architecture",
+            "payload": {
+              "title": "FastAPI Clean Architecture",
+              "url": "https://example.com/fastapi-clean-architecture",
+              "note": "Read and apply to project"
+            },
+            "reasoning": "The user explicitly stated an intention to read the article and apply the concepts to a project."
+          },
+          {
+            "intent_type": "knowledge",
+            "applicable": true,
+            "evidence_score": 0.9,
+            "label": "FastAPI Clean Architecture Reference",
+            "payload": {
+              "title": "FastAPI Clean Architecture",
+              "url": "https://example.com/fastapi-clean-architecture",
+              "note": "Reference for clean architecture implementation"
+            },
+            "reasoning": "The link serves as a durable technical reference for the user's development work."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "todo",
+            "knowledge"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 2,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances_debug",
+      "case_id": "memo_and_todo",
+      "input": "카페 분위기 좋았다. 다음에 지수 데려가기",
+      "gold_active": [
+        "memo",
+        "todo"
+      ],
+      "gold_instance_count": 2,
+      "gold_needs_review": false,
+      "note": "감상 기록 + 다음 행동",
+      "latency_ms": 5723.0,
+      "error": null,
+      "parsed": {
+        "summary": "The user enjoyed a cafe and wants to visit it again with Jisu.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "todo",
+            "applicable": true,
+            "evidence_score": 0.9,
+            "label": "Visit cafe with Jisu",
+            "payload": {
+              "title": "Visit cafe with Jisu",
+              "person": "Jisu",
+              "note": "The user enjoyed the atmosphere of the cafe and wants to bring Jisu there."
+            },
+            "reasoning": "The user explicitly stated an intention to take Jisu to the cafe in the future."
+          },
+          {
+            "intent_type": "memo",
+            "applicable": true,
+            "evidence_score": 0.8,
+            "label": "Cafe experience",
+            "payload": {
+              "note": "The cafe had a good atmosphere."
+            },
+            "reasoning": "The record contains a subjective memory about the cafe's atmosphere."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "todo",
+            "memo"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 2,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances_debug",
+      "case_id": "uncertain_two_options",
+      "input": "이 사람 연락처 저장? 아니면 그냥 대화 기록용?",
+      "gold_active": [
+        "todo",
+        "memo"
+      ],
+      "gold_instance_count": 2,
+      "gold_needs_review": true,
+      "note": "사용자가 직접 모호성을 표현",
+      "latency_ms": 4984.7,
+      "error": null,
+      "parsed": {
+        "summary": "User is questioning whether to save a contact or just keep the conversation history.",
+        "needs_review": true,
+        "intent_instances": [
+          {
+            "intent_type": "todo",
+            "applicable": false,
+            "evidence_score": 0.3,
+            "label": "Save contact",
+            "payload": {
+              "title": "Save contact information",
+              "note": "User is undecided about saving this person's contact details."
+            },
+            "reasoning": "The user is asking for a decision rather than stating a clear intent to perform the action."
+          },
+          {
+            "intent_type": "memo",
+            "applicable": true,
+            "evidence_score": 0.9,
+            "label": "Conversation context",
+            "payload": {
+              "note": "User is considering whether to treat this interaction as a contact entry or just a conversation log."
+            },
+            "reasoning": "This is a meta-commentary on how to handle the current record."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "memo"
+          ],
+          "needs_review": true,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 0.6667,
+          "instance_count_exact": false,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances_debug",
+      "case_id": "knowledge_no_action",
+      "input": "Postgres GIN index는 jsonb containment 쿼리에 유용",
+      "gold_active": [
+        "knowledge"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "순수 지식",
+      "latency_ms": 1598.0,
+      "error": null,
+      "parsed": {
+        "summary": "User saved a technical note about Postgres GIN indexes and jsonb containment queries.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "knowledge",
+            "applicable": true,
+            "evidence_score": 1.0,
+            "label": "Postgres GIN index optimization",
+            "payload": {
+              "title": "Postgres GIN index for jsonb",
+              "topic": "Database indexing",
+              "note": "GIN index is useful for jsonb containment queries."
+            },
+            "reasoning": "The record provides a specific technical fact about database optimization that is durable and useful for future reference."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "knowledge"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances_debug",
+      "case_id": "todo_goal",
+      "input": "올해 안에 토익 900 만들기",
+      "gold_active": [
+        "todo"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "장기 목표도 todo",
+      "latency_ms": 1800.9,
+      "error": null,
+      "parsed": {
+        "summary": "The user has set a goal to achieve a TOEIC score of 900 by the end of the year.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "todo",
+            "applicable": true,
+            "evidence_score": 1.0,
+            "label": "TOEIC goal setting",
+            "payload": {
+              "title": "토익 900점 달성",
+              "deadline": "2024-12-31",
+              "note": "올해 안에 토익 900점 만들기 목표"
+            },
+            "reasoning": "The user explicitly stated a goal with a clear deadline (end of the year)."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances_debug",
+      "case_id": "memo_low_review_false",
+      "input": "오늘 점심 진짜 맛있었다",
+      "gold_active": [
+        "memo"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "명확한 memo는 review 불필요",
+      "latency_ms": 5860.5,
+      "error": null,
+      "parsed": {
+        "summary": "The user expressed satisfaction with their lunch.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "memo",
+            "applicable": true,
+            "evidence_score": 1.0,
+            "label": "Lunch memory",
+            "payload": {
+              "note": "오늘 점심 진짜 맛있었다"
+            },
+            "reasoning": "The input is a subjective, emotional reflection about a past event (lunch), which fits the memo category."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "memo"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances_refined",
+      "case_id": "single_schedule",
+      "input": "오늘 저녁 7시 성수에서 민지랑 약속",
+      "gold_active": [
+        "schedule"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "명확한 일정",
+      "latency_ms": 1735.6,
+      "error": null,
+      "parsed": {
+        "summary": "오늘 저녁 7시 성수에서 민지와의 약속",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "schedule",
+            "applicable": true,
+            "label": "민지와의 저녁 약속",
+            "payload": {
+              "title": "민지와의 저녁 약속",
+              "date": "오늘",
+              "time": "19:00",
+              "person": "민지",
+              "note": "성수에서 만남"
+            },
+            "reasoning": "오늘 저녁 7시라는 구체적인 시간과 장소, 만나는 사람이 명시된 약속입니다."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "schedule"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances_refined",
+      "case_id": "single_todo",
+      "input": "지원이 답장해야 함. 오늘 안에",
+      "gold_active": [
+        "todo"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "명확한 행동",
+      "latency_ms": 6450.3,
+      "error": null,
+      "parsed": {
+        "summary": "지원에게 오늘 중으로 답장을 보내야 하는 할 일",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "todo",
+            "applicable": true,
+            "label": "지원에게 답장하기",
+            "payload": {
+              "person": "지원",
+              "note": "오늘 안에 답장 완료하기"
+            },
+            "reasoning": "오늘이라는 명확한 기한이 있는 구체적인 행동 요청입니다."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances_refined",
+      "case_id": "single_knowledge",
+      "input": "ReAct 에이전트 구조 나중에 공부",
+      "gold_active": [
+        "knowledge"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "학습/참조",
+      "latency_ms": 1422.0,
+      "error": null,
+      "parsed": {
+        "summary": "ReAct 에이전트 구조에 대한 학습 의지 기록",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "knowledge",
+            "applicable": true,
+            "label": "ReAct 에이전트 구조 학습",
+            "payload": {
+              "title": "ReAct 에이전트 구조",
+              "topic": "인공지능 에이전트"
+            },
+            "reasoning": "ReAct 에이전트 구조라는 기술적 개념을 나중에 공부하겠다는 의도가 명확하므로 지식 습득 범주로 분류함."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "knowledge"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances_refined",
+      "case_id": "single_memo",
+      "input": "노을 너무 예뻤다. 그냥 기록",
+      "gold_active": [
+        "memo"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "정서 기록",
+      "latency_ms": 4987.2,
+      "error": null,
+      "parsed": {
+        "summary": "노을이 예뻤던 순간에 대한 기록입니다.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "memo",
+            "applicable": true,
+            "label": "노을 기록",
+            "payload": {
+              "note": "노을이 너무 예뻤음."
+            },
+            "reasoning": "사용자가 노을이 예뻤던 감상을 기록으로 남기고자 함."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "memo"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances_refined",
+      "case_id": "schedule_todo",
+      "input": "금요일 3시 디자인 리뷰. 그 전까지 시안 2개 준비",
+      "gold_active": [
+        "schedule",
+        "todo"
+      ],
+      "gold_instance_count": 2,
+      "gold_needs_review": false,
+      "note": "일정 + 준비 할 일",
+      "latency_ms": 5876.6,
+      "error": null,
+      "parsed": {
+        "summary": "금요일 3시 디자인 리뷰 일정 및 시안 준비 작업",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "schedule",
+            "applicable": true,
+            "label": "디자인 리뷰",
+            "payload": {
+              "title": "디자인 리뷰",
+              "date": "금요일",
+              "time": "15:00"
+            },
+            "reasoning": "금요일 3시에 예정된 디자인 리뷰 일정이 명확함"
+          },
+          {
+            "intent_type": "todo",
+            "applicable": true,
+            "label": "시안 준비",
+            "payload": {
+              "title": "디자인 시안 2개 준비",
+              "deadline": "금요일 15:00"
+            },
+            "reasoning": "리뷰 전까지 시안 2개를 준비해야 하는 구체적인 작업이 있음"
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "schedule",
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 2,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances_refined",
+      "case_id": "todo_knowledge",
+      "input": "마우스 살까 말까 고민. 로지텍 MX Master 3S랑 Keychron M6 비교해보기",
+      "gold_active": [
+        "todo",
+        "knowledge"
+      ],
+      "gold_instance_count": 2,
+      "gold_needs_review": false,
+      "note": "구매 행동 + 비교 정보",
+      "latency_ms": 2051.3,
+      "error": null,
+      "parsed": {
+        "summary": "로지텍 MX Master 3S와 Keychron M6 마우스 구매를 고민하며 비교 분석이 필요함.",
+        "needs_review": true,
+        "intent_instances": [
+          {
+            "intent_type": "todo",
+            "applicable": true,
+            "label": "마우스 비교 분석",
+            "payload": {
+              "title": "로지텍 MX Master 3S vs Keychron M6 비교",
+              "topic": "마우스 구매 비교"
+            },
+            "reasoning": "두 제품을 비교하여 구매를 결정하려는 구체적인 행동 의도가 포함되어 있습니다."
+          },
+          {
+            "intent_type": "memo",
+            "applicable": true,
+            "label": "마우스 구매 고민",
+            "payload": {
+              "note": "로지텍 MX Master 3S와 Keychron M6 중 무엇을 살지 고민 중임."
+            },
+            "reasoning": "구매 여부 자체에 대한 고민이 담겨 있으며, 선택지가 명확하지 않아 검토가 필요합니다."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "todo",
+            "memo"
+          ],
+          "needs_review": true,
+          "instance_count": 2,
+          "payload_count": 2,
+          "intent_f1": 0.5,
+          "instance_count_exact": true,
+          "review_correct": false
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances_refined",
+      "case_id": "same_type_multi_todo",
+      "input": "회의록: 1) 찬서에게 API 명세 공유 2) 세현이는 eval dataset 만들기 3) 금요일 2시 중간 점검",
+      "gold_active": [
+        "todo",
+        "todo",
+        "schedule"
+      ],
+      "gold_instance_count": 3,
+      "gold_needs_review": false,
+      "note": "같은 todo type 다중 instance + 일정",
+      "latency_ms": 7890.1,
+      "error": null,
+      "parsed": {
+        "summary": "회의록 내용으로 API 명세 공유, 데이터셋 제작, 중간 점검 일정이 포함되어 있습니다.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "todo",
+            "applicable": true,
+            "label": "찬서에게 API 명세 공유",
+            "payload": {
+              "person": "찬서",
+              "topic": "API 명세 공유"
+            },
+            "reasoning": "찬서에게 API 명세를 전달해야 하는 구체적인 업무입니다."
+          },
+          {
+            "intent_type": "todo",
+            "applicable": true,
+            "label": "세현이의 eval dataset 제작",
+            "payload": {
+              "person": "세현",
+              "topic": "eval dataset 제작"
+            },
+            "reasoning": "세현이가 수행해야 할 구체적인 작업입니다."
+          },
+          {
+            "intent_type": "schedule",
+            "applicable": true,
+            "label": "중간 점검 회의",
+            "payload": {
+              "date": "금요일",
+              "time": "14:00",
+              "topic": "중간 점검"
+            },
+            "reasoning": "금요일 2시에 예정된 구체적인 회의 일정입니다."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "todo",
+            "todo",
+            "schedule"
+          ],
+          "needs_review": false,
+          "instance_count": 3,
+          "payload_count": 3,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances_refined",
+      "case_id": "same_type_multi_schedule",
+      "input": "다음 주 일정: 월 9시 발표, 수 3시 디자인 리뷰, 금 6시 회식",
+      "gold_active": [
+        "schedule",
+        "schedule",
+        "schedule"
+      ],
+      "gold_instance_count": 3,
+      "gold_needs_review": false,
+      "note": "같은 schedule type 다중 instance",
+      "latency_ms": 7774.5,
+      "error": null,
+      "parsed": {
+        "summary": "다음 주 주요 일정 3건(발표, 디자인 리뷰, 회식)에 대한 기록입니다.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "schedule",
+            "applicable": true,
+            "label": "월요일 발표 일정",
+            "payload": {
+              "title": "발표",
+              "date": "다음 주 월요일",
+              "time": "09:00"
+            },
+            "reasoning": "월요일 오전 9시에 예정된 발표 일정을 스케줄로 분류했습니다."
+          },
+          {
+            "intent_type": "schedule",
+            "applicable": true,
+            "label": "수요일 디자인 리뷰",
+            "payload": {
+              "title": "디자인 리뷰",
+              "date": "다음 주 수요일",
+              "time": "15:00"
+            },
+            "reasoning": "수요일 오후 3시에 예정된 디자인 리뷰를 스케줄로 분류했습니다."
+          },
+          {
+            "intent_type": "schedule",
+            "applicable": true,
+            "label": "금요일 회식",
+            "payload": {
+              "title": "회식",
+              "date": "다음 주 금요일",
+              "time": "18:00"
+            },
+            "reasoning": "금요일 오후 6시에 예정된 회식 일정을 스케줄로 분류했습니다."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "schedule",
+            "schedule",
+            "schedule"
+          ],
+          "needs_review": false,
+          "instance_count": 3,
+          "payload_count": 3,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances_refined",
+      "case_id": "ambiguous_product",
+      "input": "이 가방 예쁘긴 한데 살지 말지 모르겠다",
+      "gold_active": [
+        "todo",
+        "memo"
+      ],
+      "gold_instance_count": 2,
+      "gold_needs_review": true,
+      "note": "구매 고민과 감상 사이, 물어보는 게 유리",
+      "latency_ms": 6144.8,
+      "error": null,
+      "parsed": {
+        "summary": "가방 구매 여부에 대한 고민",
+        "needs_review": true,
+        "intent_instances": [
+          {
+            "intent_type": "memo",
+            "applicable": true,
+            "label": "가방 구매 고민",
+            "payload": {
+              "note": "가방이 예쁘지만 구매할지 고민 중임"
+            },
+            "reasoning": "구매 여부가 불확실하고 구체적인 행동 계획이 없으므로 메모로 분류하고 사용자의 의사결정이 필요하여 needs_review를 true로 설정함"
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "memo"
+          ],
+          "needs_review": true,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 0.6667,
+          "instance_count_exact": false,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances_refined",
+      "case_id": "ambiguous_low_signal",
+      "input": "이거 나중에",
+      "gold_active": [
+        "memo"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": true,
+      "note": "정보 부족, 보존 + 확인",
+      "latency_ms": 8023.8,
+      "error": null,
+      "parsed": {
+        "summary": "사용자가 '이거 나중에'라고만 언급하여 구체적인 대상이나 의도가 불분명한 상태입니다.",
+        "needs_review": true,
+        "intent_instances": [
+          {
+            "intent_type": "memo",
+            "applicable": true,
+            "label": "나중에 확인할 항목",
+            "payload": {
+              "note": "사용자가 '이거 나중에'라고 저장했으나 구체적인 내용이 없습니다."
+            },
+            "reasoning": "입력된 내용이 매우 모호하여 구체적인 의도를 파악할 수 없으므로, 안전한 메모 형태로 저장하고 사용자에게 확인이 필요합니다."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "memo"
+          ],
+          "needs_review": true,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances_refined",
+      "case_id": "date_not_schedule",
+      "input": "2026년 연말정산 공제 항목 정리 글",
+      "gold_active": [
+        "knowledge"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "날짜가 있어도 사건 일정 아님",
+      "latency_ms": 6519.4,
+      "error": null,
+      "parsed": {
+        "summary": "2026년 연말정산 공제 항목에 대한 정리 정보를 저장함.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "knowledge",
+            "applicable": true,
+            "label": "2026년 연말정산 공제 항목 학습",
+            "payload": {
+              "title": "2026년 연말정산 공제 항목 정리",
+              "topic": "연말정산"
+            },
+            "reasoning": "연말정산 공제 항목에 대한 정보를 담고 있어 추후 참고할 수 있는 지식성 정보로 분류함."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "knowledge"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances_refined",
+      "case_id": "deadline_todo",
+      "input": "장학금 신청 6월 20일 18시 마감. 서류 업로드해야 함",
+      "gold_active": [
+        "todo",
+        "schedule"
+      ],
+      "gold_instance_count": 2,
+      "gold_needs_review": false,
+      "note": "마감 있는 todo는 일정성도 있음",
+      "latency_ms": 7471.4,
+      "error": null,
+      "parsed": {
+        "summary": "장학금 신청 마감일 및 서류 제출 안내",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "schedule",
+            "applicable": true,
+            "label": "장학금 신청 마감",
+            "payload": {
+              "title": "장학금 신청 마감",
+              "date": "6월 20일",
+              "time": "18:00",
+              "deadline": "6월 20일 18:00"
+            },
+            "reasoning": "장학금 신청 마감 일시가 명확하게 제시되어 있어 일정으로 분류함."
+          },
+          {
+            "intent_type": "todo",
+            "applicable": true,
+            "label": "장학금 신청 서류 업로드",
+            "payload": {
+              "title": "장학금 신청 서류 업로드",
+              "note": "마감 전까지 서류를 업로드해야 함"
+            },
+            "reasoning": "서류 업로드라는 구체적인 행동이 필요하므로 할 일로 분류함."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "schedule",
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 2,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances_refined",
+      "case_id": "link_knowledge_todo",
+      "input": "https://example.com/fastapi-clean-architecture 나중에 읽고 프로젝트에 적용해보기",
+      "gold_active": [
+        "knowledge",
+        "todo"
+      ],
+      "gold_instance_count": 2,
+      "gold_needs_review": false,
+      "note": "읽을 자료 + 적용 행동",
+      "latency_ms": 8025.1,
+      "error": null,
+      "parsed": {
+        "summary": "FastAPI 클린 아키텍처 관련 문서를 읽고 프로젝트에 적용하려는 계획",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "knowledge",
+            "applicable": true,
+            "label": "FastAPI 클린 아키텍처 문서 읽기",
+            "payload": {
+              "title": "FastAPI 클린 아키텍처",
+              "url": "https://example.com/fastapi-clean-architecture",
+              "note": "나중에 읽기"
+            },
+            "reasoning": "기술 문서 학습을 위한 지식 습득 목적입니다."
+          },
+          {
+            "intent_type": "todo",
+            "applicable": true,
+            "label": "프로젝트에 클린 아키텍처 적용",
+            "payload": {
+              "title": "FastAPI 클린 아키텍처 적용",
+              "note": "학습 후 프로젝트에 적용하기"
+            },
+            "reasoning": "학습한 내용을 바탕으로 실제 프로젝트에 적용하려는 구체적인 실행 계획입니다."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "knowledge",
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 2,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances_refined",
+      "case_id": "memo_and_todo",
+      "input": "카페 분위기 좋았다. 다음에 지수 데려가기",
+      "gold_active": [
+        "memo",
+        "todo"
+      ],
+      "gold_instance_count": 2,
+      "gold_needs_review": false,
+      "note": "감상 기록 + 다음 행동",
+      "latency_ms": 1698.6,
+      "error": null,
+      "parsed": {
+        "summary": "카페 방문 후기 및 지수와 재방문 계획",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "memo",
+            "applicable": true,
+            "label": "카페 방문 기록",
+            "payload": {
+              "note": "카페 분위기가 좋았음"
+            },
+            "reasoning": "카페에 대한 개인적인 감상과 기억을 기록함"
+          },
+          {
+            "intent_type": "todo",
+            "applicable": true,
+            "label": "지수와 카페 방문하기",
+            "payload": {
+              "person": "지수",
+              "note": "다음에 함께 방문할 예정"
+            },
+            "reasoning": "지수와 함께 카페에 가겠다는 구체적인 실행 계획이 포함됨"
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "memo",
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 2,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances_refined",
+      "case_id": "uncertain_two_options",
+      "input": "이 사람 연락처 저장? 아니면 그냥 대화 기록용?",
+      "gold_active": [
+        "todo",
+        "memo"
+      ],
+      "gold_instance_count": 2,
+      "gold_needs_review": true,
+      "note": "사용자가 직접 모호성을 표현",
+      "latency_ms": 1757.7,
+      "error": null,
+      "parsed": {
+        "summary": "연락처 저장 여부와 대화 기록 용도에 대한 고민",
+        "needs_review": true,
+        "intent_instances": [
+          {
+            "intent_type": "memo",
+            "applicable": true,
+            "label": "연락처 저장 및 대화 기록 관리 고민",
+            "payload": {
+              "note": "이 사람의 연락처를 저장할지, 단순히 대화 기록용으로 남겨둘지 결정이 필요함."
+            },
+            "reasoning": "사용자가 두 가지 선택지 사이에서 고민하고 있으며, 구체적인 행동이 확정되지 않아 메모로 분류하고 검토가 필요함."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "memo"
+          ],
+          "needs_review": true,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 0.6667,
+          "instance_count_exact": false,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances_refined",
+      "case_id": "knowledge_no_action",
+      "input": "Postgres GIN index는 jsonb containment 쿼리에 유용",
+      "gold_active": [
+        "knowledge"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "순수 지식",
+      "latency_ms": 6747.8,
+      "error": null,
+      "parsed": {
+        "summary": "Postgres GIN 인덱스와 jsonb containment 쿼리의 관계에 대한 기술적 정보입니다.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "knowledge",
+            "applicable": true,
+            "label": "Postgres GIN 인덱스 활용",
+            "payload": {
+              "title": "Postgres GIN 인덱스와 jsonb containment 쿼리",
+              "topic": "데이터베이스",
+              "note": "jsonb containment 쿼리 성능 향상을 위해 GIN 인덱스를 사용할 수 있음"
+            },
+            "reasoning": "Postgres 데이터베이스의 성능 최적화를 위한 기술적 지식으로, 학습 및 참조 가치가 있습니다."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "knowledge"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances_refined",
+      "case_id": "todo_goal",
+      "input": "올해 안에 토익 900 만들기",
+      "gold_active": [
+        "todo"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "장기 목표도 todo",
+      "latency_ms": 1703.8,
+      "error": null,
+      "parsed": {
+        "summary": "올해 안에 토익 900점 달성 목표",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "todo",
+            "applicable": true,
+            "label": "토익 900점 달성",
+            "payload": {
+              "title": "토익 900점 달성",
+              "deadline": "올해 말"
+            },
+            "reasoning": "올해라는 구체적인 기한 내에 토익 900점을 달성하겠다는 명확한 목표가 설정되어 있습니다."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "boolean_instances_refined",
+      "case_id": "memo_low_review_false",
+      "input": "오늘 점심 진짜 맛있었다",
+      "gold_active": [
+        "memo"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "명확한 memo는 review 불필요",
+      "latency_ms": 5915.2,
+      "error": null,
+      "parsed": {
+        "summary": "오늘 점심 식사에 대한 감상 기록",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "memo",
+            "applicable": true,
+            "label": "점심 식사 기록",
+            "payload": {
+              "note": "오늘 점심 진짜 맛있었다"
+            },
+            "reasoning": "오늘 먹은 점심이 맛있었다는 단순한 감상 기록이므로 메모로 분류함."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "memo"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "instances_review_options",
+      "case_id": "single_schedule",
+      "input": "오늘 저녁 7시 성수에서 민지랑 약속",
+      "gold_active": [
+        "schedule"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "명확한 일정",
+      "latency_ms": 6376.9,
+      "error": null,
+      "parsed": {
+        "summary": "오늘 저녁 7시 성수에서 민지와의 약속을 일정으로 저장합니다.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "schedule",
+            "label": "민지와의 저녁 약속",
+            "payload": {
+              "title": "민지와의 저녁 약속",
+              "time": "19:00",
+              "person": "민지",
+              "note": "성수에서 만남"
+            },
+            "reasoning": "오늘 저녁 7시라는 구체적인 시간과 장소, 대상이 명시된 약속입니다."
+          }
+        ],
+        "review_options": []
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "schedule"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "instances_review_options",
+      "case_id": "single_todo",
+      "input": "지원이 답장해야 함. 오늘 안에",
+      "gold_active": [
+        "todo"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "명확한 행동",
+      "latency_ms": 5229.8,
+      "error": null,
+      "parsed": {
+        "summary": "지원에게 오늘 중으로 답장해야 하는 할 일을 기록했습니다.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "todo",
+            "label": "지원에게 답장하기",
+            "payload": {
+              "person": "지원",
+              "note": "오늘 안으로 답장 완료하기"
+            },
+            "reasoning": "사용자가 오늘 안에 지원에게 답장을 해야 한다고 명시했으므로 todo로 분류합니다."
+          }
+        ],
+        "review_options": []
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "instances_review_options",
+      "case_id": "single_knowledge",
+      "input": "ReAct 에이전트 구조 나중에 공부",
+      "gold_active": [
+        "knowledge"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "학습/참조",
+      "latency_ms": 1359.9,
+      "error": null,
+      "parsed": {
+        "summary": "ReAct 에이전트 구조에 대한 학습 의사 확인",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "knowledge",
+            "label": "ReAct 에이전트 구조 공부",
+            "payload": {
+              "topic": "ReAct 에이전트 구조"
+            },
+            "reasoning": "사용자가 ReAct 에이전트 구조를 나중에 공부하겠다고 명시하였으므로 지식 습득을 위한 항목으로 저장합니다."
+          }
+        ],
+        "review_options": []
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "knowledge"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "instances_review_options",
+      "case_id": "single_memo",
+      "input": "노을 너무 예뻤다. 그냥 기록",
+      "gold_active": [
+        "memo"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "정서 기록",
+      "latency_ms": 1337.9,
+      "error": null,
+      "parsed": {
+        "summary": "노을이 예뻤던 순간에 대한 기록입니다.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "memo",
+            "label": "노을 기록",
+            "payload": {
+              "note": "노을 너무 예뻤다."
+            },
+            "reasoning": "사용자가 노을이 예뻤던 순간을 단순히 기록으로 남기고자 함."
+          }
+        ],
+        "review_options": []
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "memo"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "instances_review_options",
+      "case_id": "schedule_todo",
+      "input": "금요일 3시 디자인 리뷰. 그 전까지 시안 2개 준비",
+      "gold_active": [
+        "schedule",
+        "todo"
+      ],
+      "gold_instance_count": 2,
+      "gold_needs_review": false,
+      "note": "일정 + 준비 할 일",
+      "latency_ms": 6843.6,
+      "error": null,
+      "parsed": {
+        "summary": "금요일 3시 디자인 리뷰 일정과 그 전까지 시안 2개 준비 업무",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "schedule",
+            "label": "디자인 리뷰",
+            "payload": {
+              "title": "디자인 리뷰",
+              "date": "금요일",
+              "time": "15:00"
+            },
+            "reasoning": "금요일 3시에 예정된 디자인 리뷰 일정을 등록합니다."
+          },
+          {
+            "intent_type": "todo",
+            "label": "디자인 시안 2개 준비",
+            "payload": {
+              "title": "디자인 시안 2개 준비",
+              "deadline": "금요일 15:00"
+            },
+            "reasoning": "리뷰 전까지 완료해야 할 구체적인 업무입니다."
+          }
+        ],
+        "review_options": []
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "schedule",
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 2,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "instances_review_options",
+      "case_id": "todo_knowledge",
+      "input": "마우스 살까 말까 고민. 로지텍 MX Master 3S랑 Keychron M6 비교해보기",
+      "gold_active": [
+        "todo",
+        "knowledge"
+      ],
+      "gold_instance_count": 2,
+      "gold_needs_review": false,
+      "note": "구매 행동 + 비교 정보",
+      "latency_ms": 1787.8,
+      "error": null,
+      "parsed": {
+        "summary": "로지텍 MX Master 3S와 Keychron M6 마우스 구매를 고민하며 비교 분석을 계획함.",
+        "needs_review": true,
+        "intent_instances": [
+          {
+            "intent_type": "memo",
+            "label": "마우스 구매 고민 기록",
+            "payload": {
+              "title": "마우스 구매 고민",
+              "note": "로지텍 MX Master 3S와 Keychron M6 비교 필요"
+            },
+            "reasoning": "구매 여부를 결정하기 위해 두 제품을 비교하려는 의도를 메모로 저장합니다."
+          }
+        ],
+        "review_options": [
+          {
+            "intent_type": "todo",
+            "label": "마우스 비교 분석하기",
+            "reasoning": "두 제품의 사양과 후기를 비교하여 구매 결정을 내리는 구체적인 행동으로 전환할 수 있습니다."
+          },
+          {
+            "intent_type": "knowledge",
+            "label": "마우스 비교 자료 수집",
+            "reasoning": "구매 결정 전 두 모델의 상세 정보를 학습하는 용도로 활용할 수 있습니다."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "memo"
+          ],
+          "needs_review": true,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 0.0,
+          "instance_count_exact": false,
+          "review_correct": false
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "instances_review_options",
+      "case_id": "same_type_multi_todo",
+      "input": "회의록: 1) 찬서에게 API 명세 공유 2) 세현이는 eval dataset 만들기 3) 금요일 2시 중간 점검",
+      "gold_active": [
+        "todo",
+        "todo",
+        "schedule"
+      ],
+      "gold_instance_count": 3,
+      "gold_needs_review": false,
+      "note": "같은 todo type 다중 instance + 일정",
+      "latency_ms": 1902.0,
+      "error": null,
+      "parsed": {
+        "summary": "회의록 내용에 따른 업무 분담 및 중간 점검 일정 정리",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "todo",
+            "label": "찬서에게 API 명세 공유",
+            "payload": {
+              "person": "찬서",
+              "topic": "API 명세 공유"
+            },
+            "reasoning": "찬서에게 API 명세를 전달해야 하는 구체적인 업무입니다."
+          },
+          {
+            "intent_type": "todo",
+            "label": "세현이의 eval dataset 제작",
+            "payload": {
+              "person": "세현",
+              "topic": "eval dataset 제작"
+            },
+            "reasoning": "세현이가 수행해야 할 구체적인 업무입니다."
+          },
+          {
+            "intent_type": "schedule",
+            "label": "중간 점검 회의",
+            "payload": {
+              "date": "금요일",
+              "time": "14:00",
+              "topic": "중간 점검"
+            },
+            "reasoning": "금요일 2시에 예정된 중간 점검 회의 일정입니다."
+          }
+        ],
+        "review_options": []
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "todo",
+            "todo",
+            "schedule"
+          ],
+          "needs_review": false,
+          "instance_count": 3,
+          "payload_count": 3,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "instances_review_options",
+      "case_id": "same_type_multi_schedule",
+      "input": "다음 주 일정: 월 9시 발표, 수 3시 디자인 리뷰, 금 6시 회식",
+      "gold_active": [
+        "schedule",
+        "schedule",
+        "schedule"
+      ],
+      "gold_instance_count": 3,
+      "gold_needs_review": false,
+      "note": "같은 schedule type 다중 instance",
+      "latency_ms": 6615.4,
+      "error": null,
+      "parsed": {
+        "summary": "다음 주 주요 일정 3건(발표, 디자인 리뷰, 회식)을 등록합니다.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "schedule",
+            "label": "월요일 발표",
+            "payload": {
+              "title": "발표",
+              "date": "다음 주 월요일",
+              "time": "09:00"
+            },
+            "reasoning": "다음 주 월요일 오전 9시에 예정된 발표 일정을 등록합니다."
+          },
+          {
+            "intent_type": "schedule",
+            "label": "수요일 디자인 리뷰",
+            "payload": {
+              "title": "디자인 리뷰",
+              "date": "다음 주 수요일",
+              "time": "15:00"
+            },
+            "reasoning": "다음 주 수요일 오후 3시에 예정된 디자인 리뷰 일정을 등록합니다."
+          },
+          {
+            "intent_type": "schedule",
+            "label": "금요일 회식",
+            "payload": {
+              "title": "회식",
+              "date": "다음 주 금요일",
+              "time": "18:00"
+            },
+            "reasoning": "다음 주 금요일 오후 6시에 예정된 회식 일정을 등록합니다."
+          }
+        ],
+        "review_options": []
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "schedule",
+            "schedule",
+            "schedule"
+          ],
+          "needs_review": false,
+          "instance_count": 3,
+          "payload_count": 3,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "instances_review_options",
+      "case_id": "ambiguous_product",
+      "input": "이 가방 예쁘긴 한데 살지 말지 모르겠다",
+      "gold_active": [
+        "todo",
+        "memo"
+      ],
+      "gold_instance_count": 2,
+      "gold_needs_review": true,
+      "note": "구매 고민과 감상 사이, 물어보는 게 유리",
+      "latency_ms": 7877.4,
+      "error": null,
+      "parsed": {
+        "summary": "가방 구매 여부에 대한 고민",
+        "needs_review": true,
+        "intent_instances": [
+          {
+            "intent_type": "memo",
+            "label": "가방 구매 고민 기록",
+            "payload": {
+              "note": "이 가방 예쁘긴 한데 살지 말지 고민 중"
+            },
+            "reasoning": "사용자가 구매 여부를 결정하지 못한 상태이므로 현재의 고민을 메모로 저장합니다."
+          }
+        ],
+        "review_options": [
+          {
+            "intent_type": "todo",
+            "label": "가방 구매하기",
+            "reasoning": "구매를 결정할 경우 할 일로 전환할 수 있습니다."
+          },
+          {
+            "intent_type": "memo",
+            "label": "구매 포기하기",
+            "reasoning": "구매하지 않기로 결정할 경우 기록을 정리할 수 있습니다."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "memo"
+          ],
+          "needs_review": true,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 0.6667,
+          "instance_count_exact": false,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "instances_review_options",
+      "case_id": "ambiguous_low_signal",
+      "input": "이거 나중에",
+      "gold_active": [
+        "memo"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": true,
+      "note": "정보 부족, 보존 + 확인",
+      "latency_ms": 6441.6,
+      "error": null,
+      "parsed": {
+        "summary": "사용자가 '이거 나중에'라고 입력하여 구체적인 의도가 불분명한 상황입니다.",
+        "needs_review": true,
+        "intent_instances": [
+          {
+            "intent_type": "memo",
+            "label": "나중에 확인할 항목",
+            "payload": {
+              "note": "나중에 확인하기 위해 저장된 항목입니다."
+            },
+            "reasoning": "사용자의 의도가 불분명하여 우선 메모로 저장하고 추후 분류를 요청합니다."
+          }
+        ],
+        "review_options": [
+          {
+            "intent_type": "todo",
+            "label": "할 일로 등록",
+            "reasoning": "나중에 해야 할 구체적인 작업인 경우"
+          },
+          {
+            "intent_type": "knowledge",
+            "label": "지식/참고 자료로 저장",
+            "reasoning": "나중에 읽거나 공부할 자료인 경우"
+          },
+          {
+            "intent_type": "schedule",
+            "label": "일정으로 등록",
+            "reasoning": "특정 시간이나 날짜에 수행해야 할 약속인 경우"
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "memo"
+          ],
+          "needs_review": true,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "instances_review_options",
+      "case_id": "date_not_schedule",
+      "input": "2026년 연말정산 공제 항목 정리 글",
+      "gold_active": [
+        "knowledge"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "날짜가 있어도 사건 일정 아님",
+      "latency_ms": 1482.1,
+      "error": null,
+      "parsed": {
+        "summary": "2026년 연말정산 공제 항목에 대한 정보를 저장합니다.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "knowledge",
+            "label": "2026년 연말정산 공제 항목 학습",
+            "payload": {
+              "title": "2026년 연말정산 공제 항목 정리",
+              "topic": "연말정산"
+            },
+            "reasoning": "연말정산 공제 항목에 대한 정보성 자료로, 나중에 참고할 수 있도록 지식으로 분류합니다."
+          }
+        ],
+        "review_options": []
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "knowledge"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "instances_review_options",
+      "case_id": "deadline_todo",
+      "input": "장학금 신청 6월 20일 18시 마감. 서류 업로드해야 함",
+      "gold_active": [
+        "todo",
+        "schedule"
+      ],
+      "gold_instance_count": 2,
+      "gold_needs_review": false,
+      "note": "마감 있는 todo는 일정성도 있음",
+      "latency_ms": 1847.1,
+      "error": null,
+      "parsed": {
+        "summary": "6월 20일 18시 마감인 장학금 신청 및 서류 업로드 일정",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "schedule",
+            "label": "장학금 신청 마감",
+            "payload": {
+              "title": "장학금 신청 마감",
+              "date": "6월 20일",
+              "time": "18:00",
+              "deadline": "6월 20일 18:00"
+            },
+            "reasoning": "장학금 신청 마감 기한이 명확하게 명시되어 있어 일정으로 등록합니다."
+          },
+          {
+            "intent_type": "todo",
+            "label": "장학금 신청 서류 업로드",
+            "payload": {
+              "title": "장학금 신청 서류 업로드",
+              "deadline": "6월 20일 18:00"
+            },
+            "reasoning": "신청을 위해 서류를 업로드해야 하는 구체적인 행동이 필요합니다."
+          }
+        ],
+        "review_options": []
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "schedule",
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 2,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "instances_review_options",
+      "case_id": "link_knowledge_todo",
+      "input": "https://example.com/fastapi-clean-architecture 나중에 읽고 프로젝트에 적용해보기",
+      "gold_active": [
+        "knowledge",
+        "todo"
+      ],
+      "gold_instance_count": 2,
+      "gold_needs_review": false,
+      "note": "읽을 자료 + 적용 행동",
+      "latency_ms": 1551.2,
+      "error": null,
+      "parsed": {
+        "summary": "FastAPI 클린 아키텍처 관련 문서를 읽고 프로젝트에 적용하려는 계획입니다.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "knowledge",
+            "label": "FastAPI 클린 아키텍처 문서 읽기",
+            "payload": {
+              "title": "FastAPI 클린 아키텍처",
+              "url": "https://example.com/fastapi-clean-architecture",
+              "note": "나중에 읽기"
+            },
+            "reasoning": "기술 문서 학습을 위한 지식 저장입니다."
+          },
+          {
+            "intent_type": "todo",
+            "label": "FastAPI 클린 아키텍처 프로젝트 적용",
+            "payload": {
+              "title": "FastAPI 클린 아키텍처 프로젝트 적용",
+              "url": "https://example.com/fastapi-clean-architecture"
+            },
+            "reasoning": "학습한 내용을 바탕으로 실제 프로젝트에 적용하려는 구체적인 실행 계획입니다."
+          }
+        ],
+        "review_options": []
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "knowledge",
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 2,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "instances_review_options",
+      "case_id": "memo_and_todo",
+      "input": "카페 분위기 좋았다. 다음에 지수 데려가기",
+      "gold_active": [
+        "memo",
+        "todo"
+      ],
+      "gold_instance_count": 2,
+      "gold_needs_review": false,
+      "note": "감상 기록 + 다음 행동",
+      "latency_ms": 4690.2,
+      "error": null,
+      "parsed": {
+        "summary": "카페 방문 기록 및 지수와 함께 방문하기 위한 계획",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "memo",
+            "label": "카페 방문 기록",
+            "payload": {
+              "note": "카페 분위기가 좋았음"
+            },
+            "reasoning": "방문했던 카페에 대한 긍정적인 감상을 기록함"
+          },
+          {
+            "intent_type": "todo",
+            "label": "지수와 카페 방문하기",
+            "payload": {
+              "person": "지수",
+              "note": "분위기 좋은 카페에 데려가기"
+            },
+            "reasoning": "지수를 해당 카페에 데려가겠다는 구체적인 행동 계획"
+          }
+        ],
+        "review_options": []
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "memo",
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 2,
+          "payload_count": 2,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "instances_review_options",
+      "case_id": "uncertain_two_options",
+      "input": "이 사람 연락처 저장? 아니면 그냥 대화 기록용?",
+      "gold_active": [
+        "todo",
+        "memo"
+      ],
+      "gold_instance_count": 2,
+      "gold_needs_review": true,
+      "note": "사용자가 직접 모호성을 표현",
+      "latency_ms": 4305.8,
+      "error": null,
+      "parsed": {
+        "summary": "연락처 저장 여부와 대화 기록 용도에 대한 의사결정 요청",
+        "needs_review": true,
+        "intent_instances": [
+          {
+            "intent_type": "memo",
+            "label": "대화 상대방 정보 기록",
+            "payload": {
+              "note": "연락처 저장 또는 대화 기록용으로 분류할 대상"
+            },
+            "reasoning": "사용자가 연락처 저장과 대화 기록 중 선택을 고민하고 있으므로, 우선 메모로 기록하여 정보를 보존합니다."
+          }
+        ],
+        "review_options": [
+          {
+            "intent_type": "todo",
+            "label": "연락처 저장하기",
+            "reasoning": "상대방의 연락처를 주소록에 등록하는 구체적인 행동입니다."
+          },
+          {
+            "intent_type": "memo",
+            "label": "대화 기록으로 남기기",
+            "reasoning": "연락처 저장 없이 대화 내용만 보관하는 방식입니다."
+          }
+        ]
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "memo"
+          ],
+          "needs_review": true,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 0.6667,
+          "instance_count_exact": false,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "instances_review_options",
+      "case_id": "knowledge_no_action",
+      "input": "Postgres GIN index는 jsonb containment 쿼리에 유용",
+      "gold_active": [
+        "knowledge"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "순수 지식",
+      "latency_ms": 4095.5,
+      "error": null,
+      "parsed": {
+        "summary": "Postgres GIN 인덱스와 jsonb containment 쿼리의 관계에 대한 지식 정보입니다.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "knowledge",
+            "label": "Postgres GIN 인덱스 활용",
+            "payload": {
+              "title": "Postgres GIN 인덱스와 jsonb containment 쿼리",
+              "topic": "데이터베이스",
+              "note": "Postgres GIN 인덱스는 jsonb containment 쿼리 성능 향상에 유용함"
+            },
+            "reasoning": "Postgres 데이터베이스의 성능 최적화와 관련된 기술적 지식으로, 나중에 참고할 가치가 있습니다."
+          }
+        ],
+        "review_options": []
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "knowledge"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "instances_review_options",
+      "case_id": "todo_goal",
+      "input": "올해 안에 토익 900 만들기",
+      "gold_active": [
+        "todo"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "장기 목표도 todo",
+      "latency_ms": 4746.5,
+      "error": null,
+      "parsed": {
+        "summary": "올해 안에 토익 900점 달성 목표 설정",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "todo",
+            "label": "토익 900점 달성",
+            "payload": {
+              "title": "토익 900점 달성",
+              "deadline": "올해 말"
+            },
+            "reasoning": "올해라는 구체적인 기한 내에 토익 900점이라는 목표를 달성해야 하는 구체적인 할 일입니다."
+          }
+        ],
+        "review_options": []
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "todo"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    },
+    {
+      "schema": "instances_review_options",
+      "case_id": "memo_low_review_false",
+      "input": "오늘 점심 진짜 맛있었다",
+      "gold_active": [
+        "memo"
+      ],
+      "gold_instance_count": 1,
+      "gold_needs_review": false,
+      "note": "명확한 memo는 review 불필요",
+      "latency_ms": 1331.4,
+      "error": null,
+      "parsed": {
+        "summary": "오늘 점심 식사에 대한 감상 기록",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "memo",
+            "label": "오늘 점심 식사 기록",
+            "payload": {
+              "note": "오늘 점심 진짜 맛있었다"
+            },
+            "reasoning": "오늘 먹은 점심이 맛있었다는 개인적인 감상을 기록으로 남깁니다."
+          }
+        ],
+        "review_options": []
+      },
+      "metrics": {
+        "0.6": {
+          "active": [
+            "memo"
+          ],
+          "needs_review": false,
+          "instance_count": 1,
+          "payload_count": 1,
+          "intent_f1": 1.0,
+          "instance_count_exact": true,
+          "review_correct": true
+        }
+      },
+      "payload_quality": 1.0
+    }
+  ]
+}

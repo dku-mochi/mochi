@@ -1,13 +1,13 @@
 import Dependencies
 import Foundation
 
-/// 백탭 분류 흐름의 Live Activity 를 trigger 하는 추상화.
+/// 스크린샷 분류 흐름의 Live Activity 를 trigger 하는 추상화.
 ///
-/// `MochiItemSyncWorker` 가 multipart `POST /mochi_items/back-tap` 호출 시점에 `.analyzing` Activity 를
-/// 시작, 응답 도착 시 `.ready(candidates)` 로 update, 호출 실패 시 end. ActivityKit 의존성을
+/// `MochiItemSyncWorker` 가 스크린샷 ingest(`POST /mochi_items`) 시점에 `.analyzing` Activity 를
+/// 시작, 분석 완료 폴링 시 `.ready(candidates)` 로 update, 실패 시 end. ActivityKit 의존성을
 /// App 타겟에 격리하기 위한 port — CorePersistence (이 모듈) 는 ActivityKit 을 import 하지 않는다.
 public protocol LiveActivityCoordinator: Sendable {
-    /// multipart 호출 시작 직전 호출. Lock Screen / Dynamic Island 에 `.analyzing` 표시.
+    /// ingest 시작 직전 호출. Lock Screen / Dynamic Island 에 `.analyzing` 표시.
     /// `thumbnailRelativePath` 는 App Group container 기준 상대 경로 (예: `captures/<filename>.png`).
     /// nil 이면 좌측 column 의 썸네일 자리에 placeholder.
     func startAnalyzing(mochiItemID: UUID, caption: String, thumbnailRelativePath: String?) async

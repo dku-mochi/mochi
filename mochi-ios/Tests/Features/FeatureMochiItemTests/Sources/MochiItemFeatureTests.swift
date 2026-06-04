@@ -8,8 +8,9 @@ final class MochiItemFeatureTests: XCTestCase {
     func test_event_finalAnalysis_updates_state() async {
         let source = IngestSource(channel: .appDirectInput, text: "x")
         let analysis = MochiItemAnalysis(
-            summary: "ok", intent: .memo, entities: [], actionCandidates: [],
-            tags: [], importance: .medium, confidence: 0.85,
+            summary: "ok", instances: [IntentInstance(intentType: .memo)],
+            needsReview: false, reviewOptions: [],
+            entities: [], actionCandidates: [], tags: [], importance: .medium,
             modelVersion: "test", analyzedAt: .init()
         )
 

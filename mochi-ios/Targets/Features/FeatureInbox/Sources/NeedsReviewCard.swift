@@ -20,7 +20,7 @@ struct NeedsReviewCard: View {
                     }
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
-                .frame(height: 240)
+                .frame(height: 332)
 
                 pager
             }
@@ -81,8 +81,8 @@ private struct AmbiguousBody: View {
     let onRetry: (MochiItem.ID) -> Void
     @State private var showsIntentPicker = false
 
-    /// LLM 의견(최대 2개). 강등 항목은 비어 있다.
-    private var opinions: [IntentCandidate] { mochiItem.analysis?.reviewOpinions ?? [] }
+    /// 미확정 후보 (API projection). 강등 항목·미영속 시 비어 있어 "다른 의도"만 노출된다.
+    private var options: [ReviewOption] { mochiItem.analysis?.reviewOptions ?? [] }
     /// 분석 실패로 강등된 항목인가 — 명시 마커로 판별(멱등 replay 로 후보만 빈 정상 항목과 구분).
     private var isFailed: Bool { mochiItem.analysis?.isAnalysisFailed ?? false }
 
@@ -122,7 +122,7 @@ private struct AmbiguousBody: View {
                 // 크롭(상태바·제목이 보이도록)하고, 프레임 안에서 잘라 헤드라인과 겹치지 않게 한다.
                 LocalThumbnail(
                     relativePath: mochiItem.source.imageRefs.first?.relativePath,
-                    targetSize: CGSize(width: 96, height: 124),
+                    targetSize: CGSize(width: 96, height: 192),
                     alignment: .top
                 ) {
                     ZStack {
@@ -139,7 +139,7 @@ private struct AmbiguousBody: View {
                             .foregroundStyle(HomeDesign.Color.purple600.opacity(0.6))
                     }
                 }
-                .frame(width: 96, height: 124)
+                .frame(width: 96, height: 192)
                 .clipShape(RoundedRectangle(cornerRadius: HomeDesign.Radius.sm, style: .continuous))
 
             case .memo:
@@ -161,7 +161,7 @@ private struct AmbiguousBody: View {
             RoundedRectangle(cornerRadius: HomeDesign.Radius.sm)
                 .stroke(HomeDesign.Color.border, lineWidth: 1)
         )
-        .frame(width: 96, height: 124)
+        .frame(width: 96, height: 192)
     }
 
     private var meta: some View {
@@ -190,13 +190,13 @@ private struct AmbiguousBody: View {
     private var choices: some View {
         VStack(spacing: HomeDesign.Spacing.sm) {
             HStack(spacing: HomeDesign.Spacing.sm) {
-                ForEach(Array(opinions.enumerated()), id: \.offset) { idx, candidate in
+                ForEach(Array(options.prefix(2).enumerated()), id: \.offset) { idx, option in
                     ChoiceChip(
-                        text: candidate.label ?? candidate.intent.displayName,
-                        intent: candidate.intent,
+                        text: option.displayLabel,
+                        intent: option.intentType,
                         isPrimary: idx == 0
                     ) {
-                        onClassify(mochiItem.id, candidate.intent)
+                        onClassify(mochiItem.id, option.intentType)
                     }
                 }
                 ManualPickChip { showsIntentPicker = true }
@@ -303,94 +303,89 @@ private struct ManualPickChip: View {
 
 // MARK: - Analyzing card ("모찌가 분석 중이에요")
 
-/// 분석 응답 대기 중인 항목 — 사용자 행동 불필요, 진행 표시만. 최대 3개 노출 + 나머지 카운트.
+/// 분석 응답 대기 중인 항목 — 사용자 행동 불필요, 진행 표시만.
+/// 가로 캐러셀로 미리보기를 크게 보여준다 (이미지가 카드 폭을 꽉 채우는 2:1).
 struct AnalyzingCard: View {
     let mochiItems: [MochiItem]
 
-    private var visible: [MochiItem] { Array(mochiItems.prefix(3)) }
-    private var overflow: Int { max(0, mochiItems.count - 3) }
-
     var body: some View {
-        VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
-            ForEach(visible) { mochiItem in
-                AnalyzingRow(mochiItem: mochiItem)
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: HomeDesign.Spacing.md) {
+                ForEach(mochiItems) { mochiItem in
+                    AnalyzingCardCell(mochiItem: mochiItem)
+                }
             }
-            if overflow > 0 {
-                Text("외 \(overflow)개 분석 중")
-                    .font(.system(size: 11.5, weight: .medium))
-                    .foregroundStyle(HomeDesign.Color.textMuted)
-            }
+            .padding(.horizontal, HomeDesign.Spacing.xl)
         }
-        .padding(HomeDesign.Spacing.lg)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous)
-                .fill(HomeDesign.Color.surface)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous)
-                .stroke(HomeDesign.Color.border, lineWidth: 1)
-        )
-        .cardShadow()
+        .padding(.horizontal, -HomeDesign.Spacing.xl)
     }
 }
 
-private struct AnalyzingRow: View {
+private struct AnalyzingCardCell: View {
     let mochiItem: MochiItem
 
+    /// 이미지가 카드 폭을 꽉 채우고 2:1(세로) 로 표시된다.
+    private static let cardWidth: CGFloat = 150
+
     var body: some View {
-        HStack(spacing: HomeDesign.Spacing.md) {
-            thumbnail
-            VStack(alignment: .leading, spacing: 3) {
+        VStack(alignment: .leading, spacing: 0) {
+            preview
+                .frame(width: Self.cardWidth, height: Self.cardWidth * 2)
+
+            VStack(alignment: .leading, spacing: 4) {
                 Text(mochiItem.displayTitle)
-                    .font(.system(size: 13.5, weight: .semibold))
+                    .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(HomeDesign.Color.textPrimary)
                     .lineLimit(1)
                 HStack(spacing: 5) {
                     ProgressView()
                         .controlSize(.mini)
                     Text("모찌가 분석 중…")
-                        .font(.system(size: 11.5, weight: .regular))
+                        .font(.system(size: 11, weight: .regular))
                         .foregroundStyle(HomeDesign.Color.textMuted)
                 }
             }
-            Spacer(minLength: 0)
+            .padding(HomeDesign.Spacing.md)
+            .frame(width: Self.cardWidth, alignment: .leading)
         }
+        .background(
+            RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous)
+                .fill(HomeDesign.Color.surface)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous)
+                .stroke(HomeDesign.Color.border, lineWidth: 1)
+        )
+        .cardShadow()
     }
 
     @ViewBuilder
-    private var thumbnail: some View {
-        let kind = mochiItem.viewKind
-        ZStack {
-            switch kind {
-            case .screenshot:
-                LocalThumbnail(
-                    relativePath: mochiItem.source.imageRefs.first?.relativePath,
-                    targetSize: CGSize(width: 40, height: 52)
-                ) {
-                    RoundedRectangle(cornerRadius: HomeDesign.Radius.sm, style: .continuous)
-                        .fill(HomeDesign.Color.purple100)
-                }
-                .clipShape(RoundedRectangle(cornerRadius: HomeDesign.Radius.sm, style: .continuous))
-            case .memo:
-                RoundedRectangle(cornerRadius: HomeDesign.Radius.sm, style: .continuous)
-                    .fill(HomeDesign.Color.butter50)
+    private var preview: some View {
+        switch mochiItem.viewKind {
+        case .screenshot:
+            LocalThumbnail(
+                relativePath: mochiItem.source.imageRefs.first?.relativePath,
+                targetSize: CGSize(width: Self.cardWidth, height: Self.cardWidth * 2),
+                alignment: .top
+            ) {
+                Rectangle().fill(HomeDesign.Color.purple100)
+            }
+        case .memo:
+            ZStack {
+                Rectangle().fill(HomeDesign.Color.butter50)
                 Image(systemName: "doc.text")
-                    .font(.system(size: 16, weight: .light))
+                    .font(.system(size: 32, weight: .light))
                     .foregroundStyle(HomeDesign.Color.butter400.opacity(0.8))
-            case .url:
-                RoundedRectangle(cornerRadius: HomeDesign.Radius.sm, style: .continuous)
-                    .fill(HomeDesign.Color.purple50)
+            }
+        case .url:
+            ZStack {
+                Rectangle().fill(HomeDesign.Color.purple50)
                 Image(systemName: "link")
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(.system(size: 30, weight: .semibold))
                     .foregroundStyle(HomeDesign.Color.purple600.opacity(0.75))
             }
         }
-        .frame(width: 40, height: 52)
-        .overlay(
-            RoundedRectangle(cornerRadius: HomeDesign.Radius.sm)
-                .stroke(HomeDesign.Color.border, lineWidth: 1)
-        )
     }
 }
 

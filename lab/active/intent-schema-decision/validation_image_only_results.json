@@ -1,0 +1,515 @@
+{
+  "model": "gemini-3.1-flash-lite",
+  "location": "global",
+  "n": 15,
+  "input_policy": "image_only_no_filename_no_user_memo",
+  "mean_intent_f1": 0.9111,
+  "count_accuracy": 0.9333,
+  "review_accuracy": 1,
+  "review_options_shape_accuracy": 1,
+  "mean_latency_ms": 3151.3,
+  "rows": [
+    {
+      "index": 1,
+      "file": "validation_01_친구 공연 위치랑 장소 캡쳐.jpg",
+      "gold_intents": [
+        "schedule"
+      ],
+      "prediction": {
+        "summary": "너와나 2024년 겨울 정기공연 안내",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "schedule",
+            "label": "너와나 2024년 겨울 정기공연",
+            "payload": {
+              "title": "너와나 2024년 겨울 정기공연",
+              "date": "2024-12-01",
+              "time": "18:00",
+              "note": "장소: 홍대 스윙홀, 입장시작 17:45"
+            },
+            "reasoning": "공연 일시와 장소 정보가 포함된 정기공연 안내 게시물입니다."
+          }
+        ],
+        "review_options": []
+      },
+      "metrics": {
+        "intent_f1": 1.0,
+        "count_exact": true,
+        "review_correct": true,
+        "review_options_shape_ok": true
+      },
+      "latency_ms": 4122.3
+    },
+    {
+      "index": 2,
+      "file": "validation_02_수강 모집 9:8까지니까 캡쳐해두고 나중에신청해야지.jpg",
+      "gold_intents": [
+        "schedule",
+        "todo"
+      ],
+      "prediction": {
+        "summary": "고려대학교 지속가능원 주관 '해양환경 시민 과학자 양성 과정' 수강생 모집 안내",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "schedule",
+            "label": "해양환경 시민 과학자 양성 과정 신청 마감",
+            "payload": {
+              "title": "해양환경 시민 과학자 양성 과정 신청",
+              "deadline": "2024-09-08 23:59",
+              "note": "신청 기간: 8/23(금) ~ 9/8(일)"
+            },
+            "reasoning": "프로그램 신청 마감 기한이 명시되어 있어 일정 관리가 필요합니다."
+          },
+          {
+            "intent_type": "todo",
+            "label": "해양환경 시민 과학자 양성 과정 신청하기",
+            "payload": {
+              "title": "해양환경 시민 과학자 양성 과정 신청",
+              "note": "구글 폼 제출을 통한 신청 필요"
+            },
+            "reasoning": "참여를 위해 구글 폼을 통해 신청서를 제출해야 하는 구체적인 행동이 필요합니다."
+          }
+        ],
+        "review_options": []
+      },
+      "metrics": {
+        "intent_f1": 1.0,
+        "count_exact": true,
+        "review_correct": true,
+        "review_options_shape_ok": true
+      },
+      "latency_ms": 2716.3
+    },
+    {
+      "index": 3,
+      "file": "validation_03_공차 할인 이벤트하니까 캡쳐해두고 나중에 가봐야지.jpg",
+      "gold_intents": [
+        "schedule",
+        "todo"
+      ],
+      "prediction": {
+        "summary": "공차 900호점 기념 해피아워 이벤트 정보입니다.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "schedule",
+            "label": "공차 900호점 기념 해피아워 이벤트",
+            "payload": {
+              "title": "공차 900호점 기념 해피아워",
+              "date": "2023.08.22",
+              "time": "14:00 - 17:00",
+              "note": "밀크티 BEST 3종 50% 할인"
+            },
+            "reasoning": "공차 900호점 기념 이벤트의 날짜와 시간이 명시되어 있어 일정으로 저장합니다."
+          },
+          {
+            "intent_type": "todo",
+            "label": "공차 해피아워 이벤트 참여",
+            "payload": {
+              "title": "공차 해피아워 이벤트 참여",
+              "note": "블랙 밀크티, 타로 밀크티, 초콜릿 밀크티 L 사이즈 50% 할인"
+            },
+            "reasoning": "이벤트 기간 내에 매장을 방문하여 할인 혜택을 이용해야 하므로 할 일로 저장합니다."
+          }
+        ],
+        "review_options": []
+      },
+      "metrics": {
+        "intent_f1": 1.0,
+        "count_exact": true,
+        "review_correct": true,
+        "review_options_shape_ok": true
+      },
+      "latency_ms": 2866.2
+    },
+    {
+      "index": 4,
+      "file": "validation_04_제출 기간 체크.jpg",
+      "gold_intents": [
+        "schedule",
+        "todo"
+      ],
+      "prediction": {
+        "summary": "PT 발표 자료 제출 기한 안내",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "schedule",
+            "label": "PT 발표 자료 제출 기한",
+            "payload": {
+              "title": "PT 발표 자료 제출",
+              "deadline": "11월 17일 월요일 10시",
+              "note": "이메일 제출: rowoon.lee@qcells.com"
+            },
+            "reasoning": "PT 발표 자료 제출 기한이 명시되어 있어 일정 관리를 위해 schedule로 저장합니다."
+          },
+          {
+            "intent_type": "todo",
+            "label": "PT 발표 자료 이메일 제출",
+            "payload": {
+              "title": "PT 발표 자료 제출",
+              "note": "rowoon.lee@qcells.com으로 이메일 제출 필요"
+            },
+            "reasoning": "제출 기한 내에 이메일로 자료를 보내야 하는 구체적인 행동이 필요하므로 todo로 저장합니다."
+          }
+        ],
+        "review_options": []
+      },
+      "metrics": {
+        "intent_f1": 1.0,
+        "count_exact": true,
+        "review_correct": true,
+        "review_options_shape_ok": true
+      },
+      "latency_ms": 3170.5
+    },
+    {
+      "index": 5,
+      "file": "validation_05_기프티콘 나중에 꼭 써야지.jpg",
+      "gold_intents": [
+        "todo"
+      ],
+      "prediction": {
+        "summary": "메가MGC커피 5,000원 모바일 금액권 저장",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "todo",
+            "label": "메가MGC커피 모바일 금액권 사용",
+            "payload": {
+              "title": "메가MGC커피 모바일 금액권 5천원권",
+              "deadline": "2025-10-28",
+              "note": "바코드 번호: 8591-6422-4012-7716"
+            },
+            "reasoning": "사용 가능한 모바일 금액권 바코드와 유효기간이 명시되어 있어 사용을 위한 todo로 저장합니다."
+          }
+        ],
+        "review_options": []
+      },
+      "metrics": {
+        "intent_f1": 1.0,
+        "count_exact": true,
+        "review_correct": true,
+        "review_options_shape_ok": true
+      },
+      "latency_ms": 3575.8
+    },
+    {
+      "index": 6,
+      "file": "validation_06_상하이 정보.jpg",
+      "gold_intents": [
+        "knowledge"
+      ],
+      "prediction": {
+        "summary": "상하이 푸동공항에서 시내로 이동하는 마그레브 열차 이용 정보",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "knowledge",
+            "label": "상하이 푸동공항에서 시내 이동 정보",
+            "payload": {
+              "title": "푸동공항에서 상하이 시내 가는 법",
+              "topic": "상하이 여행 정보",
+              "note": "푸동공항에서 마그레브 열차를 타고 롱양루를 거쳐 시내까지 약 30~40분 소요됨."
+            },
+            "reasoning": "상하이 여행 시 유용한 교통 정보로, 나중에 참고할 수 있도록 지식 정보로 저장합니다."
+          }
+        ],
+        "review_options": []
+      },
+      "metrics": {
+        "intent_f1": 1.0,
+        "count_exact": true,
+        "review_correct": true,
+        "review_options_shape_ok": true
+      },
+      "latency_ms": 2744.1
+    },
+    {
+      "index": 7,
+      "file": "validation_07_상하이 여행정보.jpg",
+      "gold_intents": [
+        "knowledge"
+      ],
+      "prediction": {
+        "summary": "상하이 여행지 추천 정보가 담긴 숏폼 영상 캡처",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "knowledge",
+            "label": "상하이 여행지 정보",
+            "payload": {
+              "topic": "상하이 여행지",
+              "note": "우캉루, 디즈니랜드, 동방명주, 와이탄, 예원, 난징루 등 상하이 주요 여행지 목록"
+            },
+            "reasoning": "상하이 여행 시 방문할 만한 장소들을 나열한 정보성 콘텐츠이므로 지식으로 저장합니다."
+          }
+        ],
+        "review_options": []
+      },
+      "metrics": {
+        "intent_f1": 1.0,
+        "count_exact": true,
+        "review_correct": true,
+        "review_options_shape_ok": true
+      },
+      "latency_ms": 5146.2
+    },
+    {
+      "index": 8,
+      "file": "validation_08_중국 여행 정보.jpg",
+      "gold_intents": [
+        "knowledge"
+      ],
+      "prediction": {
+        "summary": "중국 여행 시 필요한 필수 앱 목록 정보",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "knowledge",
+            "label": "중국 여행 필수 앱 목록",
+            "payload": {
+              "title": "중국 여행 필수 앱",
+              "note": "샤오홍슈(서치용), 메이투안(배달), 알리페이(택시, 결제), 위챗(결제, 주문 등), 바이두지도(중국지도) 설치 필요"
+            },
+            "reasoning": "중국 여행 시 유용한 앱들을 정리한 정보성 콘텐츠로, 여행 준비를 위한 지식으로 저장합니다."
+          }
+        ],
+        "review_options": []
+      },
+      "metrics": {
+        "intent_f1": 1.0,
+        "count_exact": true,
+        "review_correct": true,
+        "review_options_shape_ok": true
+      },
+      "latency_ms": 2902.1
+    },
+    {
+      "index": 9,
+      "file": "validation_09_비행기 스케줄.jpg",
+      "gold_intents": [
+        "schedule"
+      ],
+      "prediction": {
+        "summary": "서울-상하이 왕복 항공권 예약 정보",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "schedule",
+            "label": "서울-상하이 항공편 예약",
+            "payload": {
+              "title": "서울-상하이 왕복 항공편",
+              "date": "1월 4일 - 1월 7일",
+              "time": "12:15",
+              "note": "중국남방항공 CZ314, 예약번호: 1681744543, 항공사 참조번호: NZBTFF"
+            },
+            "reasoning": "항공권 예약 정보를 일정으로 저장하여 여행 계획을 관리합니다."
+          }
+        ],
+        "review_options": []
+      },
+      "metrics": {
+        "intent_f1": 1.0,
+        "count_exact": true,
+        "review_correct": true,
+        "review_options_shape_ok": true
+      },
+      "latency_ms": 2931.9
+    },
+    {
+      "index": 10,
+      "file": "validation_10_스케줄.jpg",
+      "gold_intents": [
+        "schedule"
+      ],
+      "prediction": {
+        "summary": "삼성디스플레이 아름타운 기숙사 생활 안내 및 비데 정기점검 일정",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "schedule",
+            "label": "아름타운 기숙사 비데 정기점검",
+            "payload": {
+              "title": "아름타운 기숙사 비데 정기점검",
+              "date": "2026년 3월 6일",
+              "time": "12:00~17:00",
+              "note": "1~7층 대상, 외부인 욕실 출입 예정으로 옷차림 및 개인물품 보관 유의"
+            },
+            "reasoning": "기숙사 비데 정기점검 일정이 명시되어 있어 일정 관리가 필요합니다."
+          },
+          {
+            "intent_type": "knowledge",
+            "label": "아름타운 기숙사 생활 안내",
+            "payload": {
+              "title": "아름타운 기숙사 생활 안내",
+              "note": "휴게실(전자레인지, 건조기) 이용 안내 및 인터넷 신청 연락처(SK, KT) 정보"
+            },
+            "reasoning": "기숙사 생활에 필요한 시설 이용 및 인터넷 신청 관련 정보가 포함되어 있어 참고용으로 저장합니다."
+          }
+        ],
+        "review_options": []
+      },
+      "metrics": {
+        "intent_f1": 0.6667,
+        "count_exact": false,
+        "review_correct": true,
+        "review_options_shape_ok": true
+      },
+      "latency_ms": 2829.6
+    },
+    {
+      "index": 11,
+      "file": "validation_11_부동산 정보.jpg",
+      "gold_intents": [
+        "knowledge"
+      ],
+      "prediction": {
+        "summary": "인스타그램 DM을 통해 받은 신림동 다올626 매물 정보입니다.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "knowledge",
+            "label": "부동산 매물 정보 저장",
+            "payload": {
+              "title": "신림동 다올626 매물 정보",
+              "topic": "부동산 매물",
+              "note": "위치: 신림동 법원단지 부근 다올626, 임대 협의 / 분양가 3억 3500만원, 신축 2룸"
+            },
+            "reasoning": "부동산 매물에 대한 상세 정보가 포함되어 있어 나중에 참고할 수 있도록 지식으로 저장합니다."
+          }
+        ],
+        "review_options": []
+      },
+      "metrics": {
+        "intent_f1": 1.0,
+        "count_exact": true,
+        "review_correct": true,
+        "review_options_shape_ok": true
+      },
+      "latency_ms": 2529.2
+    },
+    {
+      "index": 12,
+      "file": "validation_12_재밌어 보이는 넷플.jpg",
+      "gold_intents": [
+        "memo"
+      ],
+      "prediction": {
+        "summary": "스레드에서 추천받은 넷플릭스 다큐멘터리 '서바잉 데스'와 이케가와 아키라 저서에 대한 기록입니다.",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "memo",
+            "label": "추천 콘텐츠 기록",
+            "payload": {
+              "title": "넷플릭스 다큐멘터리 '서바잉 데스' 및 이케가와 아키라 저서",
+              "note": "스레드에서 언급된 전생을 기억하는 아이들을 다룬 넷플릭스 다큐멘터리 '서바잉 데스' 6화와 이케가와 아키라 선생님의 책 추천 내용입니다."
+            },
+            "reasoning": "사용자가 스레드에서 본 흥미로운 콘텐츠 추천 정보를 나중에 확인하기 위해 메모로 저장합니다."
+          }
+        ],
+        "review_options": []
+      },
+      "metrics": {
+        "intent_f1": 1.0,
+        "count_exact": true,
+        "review_correct": true,
+        "review_options_shape_ok": true
+      },
+      "latency_ms": 3064.1
+    },
+    {
+      "index": 13,
+      "file": "validation_13_나중에 살 화장품.jpg",
+      "gold_intents": [
+        "todo"
+      ],
+      "prediction": {
+        "summary": "바닐라 향 제품 추천 및 관련 정보 저장",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "knowledge",
+            "label": "바닐라 향 제품 추천 정보",
+            "payload": {
+              "title": "Bath and Body Works 바닐라 향 제품",
+              "note": "Bath and Body Works의 warm vanilla sugar 라인(바디로션, 바디워시, 바디미스트)을 사용하면 바닐라 향을 유지하기 좋다는 추천 정보"
+            },
+            "reasoning": "사용자가 바닐라 향 제품에 대한 정보를 얻기 위해 댓글 내용을 저장한 것으로 판단하여 지식 정보로 분류함"
+          }
+        ],
+        "review_options": []
+      },
+      "metrics": {
+        "intent_f1": 0.0,
+        "count_exact": true,
+        "review_correct": true,
+        "review_options_shape_ok": true
+      },
+      "latency_ms": 3008.9
+    },
+    {
+      "index": 14,
+      "file": "validation_14_나중에 살 신발.jpg",
+      "gold_intents": [
+        "todo"
+      ],
+      "prediction": {
+        "summary": "로제니크 세릭 스틸레토 스트랩 슬링백힐 상품 정보 저장",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "todo",
+            "label": "상품 구매 고려",
+            "payload": {
+              "title": "세릭 스틸레토 스트랩 슬링백힐",
+              "note": "로제니크 브랜드, 29,830원, 5cm 굽, 4가지 색상"
+            },
+            "reasoning": "쇼핑몰 상품 정보가 포함된 스크린샷으로, 나중에 구매하거나 확인하기 위해 todo로 저장합니다."
+          }
+        ],
+        "review_options": []
+      },
+      "metrics": {
+        "intent_f1": 1.0,
+        "count_exact": true,
+        "review_correct": true,
+        "review_options_shape_ok": true
+      },
+      "latency_ms": 2307.6
+    },
+    {
+      "index": 15,
+      "file": "validation_15_화장품 나중에 살것.jpg",
+      "gold_intents": [
+        "todo"
+      ],
+      "prediction": {
+        "summary": "디어달리아 립 제품 정보 및 구매 고려",
+        "needs_review": false,
+        "intent_instances": [
+          {
+            "intent_type": "todo",
+            "label": "디어달리아 립 제품 구매 고려",
+            "payload": {
+              "title": "디어달리아 립 제품",
+              "note": "인스타그램 영상에서 소개된 오렌지 컬러 립 제품. 댓글에서 시코르에서 발색 확인 가능하다고 언급됨."
+            },
+            "reasoning": "사용자가 제품 정보를 확인하고 구매를 고려할 수 있는 쇼핑 관련 콘텐츠이므로 todo로 분류합니다."
+          }
+        ],
+        "review_options": []
+      },
+      "metrics": {
+        "intent_f1": 1.0,
+        "count_exact": true,
+        "review_correct": true,
+        "review_options_shape_ok": true
+      },
+      "latency_ms": 3355.0
+    }
+  ]
+}

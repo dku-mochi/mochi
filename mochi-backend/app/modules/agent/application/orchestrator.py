@@ -12,7 +12,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.logging import get_logger
-from app.modules.agent.domain.analysis import AnalysisCandidate, AnalysisResult, ExtractedEntity
+from app.modules.agent.domain.analysis import AnalysisResult, ExtractedEntity
 from app.modules.agent.domain.gateway import AnalysisInput, MochiItemGateway
 from app.modules.agent.domain.ports import LLMClient, ToolRegistry
 from app.modules.agent.domain.profile import UserProfileStore
@@ -21,7 +21,11 @@ from app.modules.agent.domain.states import HAPPY_PATH, AgentNode
 from app.modules.agent.domain.tools import ToolExecutionError, ToolName, ToolUsage
 from app.modules.agent.infrastructure.tools.multimodal_analyze import MultimodalAnalyzeOutput
 from app.modules.agent.prompts.system_prompts import ACTIVE_PROMPT
-from app.shared.intent import Intent
+from app.modules.mochi_items.domain.value_objects import (
+    IntentInstance,
+    IntentPayload,
+    ReviewOption,
+)
 
 log = get_logger("agent")
 
@@ -160,7 +164,11 @@ class AgentOrchestrator:
         analysis = _to_analysis_result(final_payload)
         yield StreamEvent(
             "partial",
-            {"summary": analysis.summary, "intent": analysis.intent.value, "run_id": str(agent_run.id)},
+            {
+                "summary": analysis.summary,
+                "needs_review": analysis.needs_review,
+                "run_id": str(agent_run.id),
+            },
         )
         yield analysis
 
@@ -368,40 +376,39 @@ def _digest(args: dict[str, Any]) -> str:
 
 
 def _to_analysis_result(payload: dict[str, Any]) -> AnalysisResult:
+    """LLM 출력(DTO)을 도메인 결과로 1:1 분해한다 — derive(argmax/confidence/secondary) 없음.
+
+    저장하는 instance 는 모두 곧 active. needs_review/review_options 는 LLM 이 직접 낸다.
+    """
     out = MultimodalAnalyzeOutput.model_validate(payload)
-    cands = out.candidates
-    # primary = 최상위 applicability 후보 (동률 시 입력 순서가 빠른 쪽 — max 는 안정적).
-    primary_candidate = max(cands, key=lambda c: c.applicability)
-    primary = primary_candidate.intent
-    # confidence := 최상위 후보 applicability (헷갈림/복수의도 판정의 단일 원천).
-    confidence = primary_candidate.applicability
-    # intent_applicability: 같은 intent 가 여러 후보에 나오면 최댓값 채택.
-    applicability_map: dict[Intent, float] = {}
-    for c in cands:
-        if c.intent not in applicability_map or c.applicability > applicability_map[c.intent]:
-            applicability_map[c.intent] = c.applicability
-    # secondary: primary 제외 distinct intent, applicability 내림차순.
-    secondary = tuple(
-        intent
-        for intent, _ in sorted(applicability_map.items(), key=lambda kv: kv[1], reverse=True)
-        if intent != primary
+    instances = tuple(
+        IntentInstance(
+            intent_type=i.intent_type,
+            payload=IntentPayload(
+                title=i.payload.title,
+                date=i.payload.date,
+                time=i.payload.time,
+                deadline=i.payload.deadline,
+                person=i.payload.person,
+                topic=i.payload.topic,
+                url=i.payload.url,
+                note=i.payload.note,
+            ),
+            label=i.label or None,
+            reasoning=i.reasoning,
+        )
+        for i in out.intent_instances
+    )
+    review_options = tuple(
+        ReviewOption(intent_type=r.intent_type, label=r.label or None, reasoning=r.reasoning)
+        for r in out.review_options
     )
     return AnalysisResult(
-        intent=primary,
         summary=out.summary,
-        confidence=confidence,
-        secondary_intents=secondary,
-        intent_applicability=applicability_map,
+        needs_review=out.needs_review,
+        intent_instances=instances,
+        review_options=review_options,
         importance=out.importance,
         model_version=out.model_version,
         entities=tuple(ExtractedEntity(kind=e.kind, value=e.value) for e in out.entities),
-        candidates=tuple(
-            AnalysisCandidate(
-                label=c.label,
-                intent=c.intent,
-                applicability=c.applicability,
-                reasoning=c.reasoning,
-            )
-            for c in cands
-        ),
     )
