@@ -15,6 +15,7 @@ struct ShareEntryView: View {
     let initialText: String?
     let imageRefs: [ImageRef]
     let channelGuess: IngestChannel
+    let sourceApp: String?
     let onSubmit: (InboundIngestPayload) -> Void
     let onCancel: () -> Void
 
@@ -55,6 +56,10 @@ struct ShareEntryView: View {
         VStack(spacing: 14) {
             compactHeader
 
+            if let sourceApp {
+                SourceAppChip(name: sourceApp)
+            }
+
             if let firstImage = imageRefs.first {
                 SharePreviewImage(imageRef: firstImage)
                     .frame(maxHeight: .infinity)
@@ -79,6 +84,9 @@ struct ShareEntryView: View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: 16) {
                 fullHeader
+                if let sourceApp {
+                    SourceAppChip(name: sourceApp)
+                }
                 previewCard
                 ShareMemoField(memo: $memo, compact: false)
                 SharePrimaryButton(title: "모찌에 저장", action: submit)
@@ -212,7 +220,7 @@ struct ShareEntryView: View {
     private func submit() {
         onSubmit(InboundIngestPayload(
             url: initialURL,
-            text: initialText,
+            text: CaptureContextSentinel.composeText(sourceApp: sourceApp, base: initialText),
             userMemo: memo.isEmpty ? nil : memo,
             channelGuess: channelGuess,
             imageRefs: imageRefs

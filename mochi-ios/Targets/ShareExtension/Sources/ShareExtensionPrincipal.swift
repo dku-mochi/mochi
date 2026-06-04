@@ -40,8 +40,9 @@ public final class ShareExtensionPrincipal: UIViewController {
             BackTapShareView(
                 imageRefs: extracted.imageRefs,
                 channelGuess: extracted.channelGuess,
-                onSubmit: { [weak self] payload in self?.persist(payload) },
-                onCancel: { [weak self] in self?.complete(success: false) }
+                sourceApp: extracted.sourceApp,
+                onSubmit: { [weak self] payload in self?.persist(payload, original: extracted.imageRefs) },
+                onCancel: { [weak self] in self?.cancel(cleaning: extracted.imageRefs) }
             )
         } else {
             ShareEntryView(
@@ -49,13 +50,20 @@ public final class ShareExtensionPrincipal: UIViewController {
                 initialText: extracted.text,
                 imageRefs: extracted.imageRefs,
                 channelGuess: extracted.channelGuess,
-                onSubmit: { [weak self] payload in self?.persist(payload) },
-                onCancel: { [weak self] in self?.complete(success: false) }
+                sourceApp: extracted.sourceApp,
+                onSubmit: { [weak self] payload in self?.persist(payload, original: extracted.imageRefs) },
+                onCancel: { [weak self] in self?.cancel(cleaning: extracted.imageRefs) }
             )
         }
     }
 
-    private func persist(_ payload: InboundIngestPayload) {
+    /// 큐에 떨굴 때, 일반 메모 모드로 사용자가 제거한 이미지(원본엔 있었으나 payload 엔 빠진)의
+    /// 고아 PNG 를 함께 청소한다 — `persistImage` 가 이미 디스크에 써 둔 상태라 안 지우면 누수.
+    private func persist(_ payload: InboundIngestPayload, original: [ImageRef]) {
+        let removed = original.filter { ref in
+            !payload.imageRefs.contains { $0.relativePath == ref.relativePath }
+        }
+        Self.deleteImagePNGs(removed)
         Task.detached {
             let fileURL = AppGroup.inboundQueueURL.appendingPathComponent("\(payload.id.uuidString).json")
             if let data = try? JSONEncoder().encode(payload) {
@@ -65,8 +73,22 @@ public final class ShareExtensionPrincipal: UIViewController {
         }
     }
 
+    /// 취소(시트 dismiss) 경로 — `persistImage` 가 써 둔 PNG 를 모두 청소한 뒤 닫는다.
+    /// (이전엔 청소 없이 닫아 capturedImages/ 에 고아 PNG 가 누수됐다.)
+    private func cancel(cleaning refs: [ImageRef]) {
+        Self.deleteImagePNGs(refs)
+        complete(success: false)
+    }
+
     private func complete(success: Bool) {
         extensionContext?.completeRequest(returningItems: nil)
+    }
+
+    private static func deleteImagePNGs(_ refs: [ImageRef]) {
+        for ref in refs {
+            let url = AppGroup.containerURL.appendingPathComponent(ref.relativePath)
+            try? FileManager.default.removeItem(at: url)
+        }
     }
 
     // MARK: - NSItemProvider 추출
@@ -74,6 +96,8 @@ public final class ShareExtensionPrincipal: UIViewController {
     private struct ExtractedShareInput {
         var url: URL?
         var text: String?
+        /// 단축어가 sentinel 로 보낸 출처앱(자동신호). `text`/`user_memo` 와 분리해 흐른다.
+        var sourceApp: String?
         var imageRefs: [ImageRef]
         var channelGuess: IngestChannel
     }
@@ -85,10 +109,11 @@ public final class ShareExtensionPrincipal: UIViewController {
     private static let maxImageBytes = 20 * 1024 * 1024     // 단일 이미지 20MB 상한
 
     private static func extractInboundPayload(from context: NSExtensionContext?) async -> ExtractedShareInput {
-        guard let context else { return ExtractedShareInput(url: nil, text: nil, imageRefs: [], channelGuess: .appShareSheet) }
+        guard let context else { return ExtractedShareInput(url: nil, text: nil, sourceApp: nil, imageRefs: [], channelGuess: .appShareSheet) }
 
         var url: URL?
         var text: String?
+        var sourceApp: String?
         var imageRefs: [ImageRef] = []
 
         for item in context.inputItems.compactMap({ $0 as? NSExtensionItem }) {
@@ -105,9 +130,15 @@ public final class ShareExtensionPrincipal: UIViewController {
                     if let loaded = try? await provider.loadItem(forTypeIdentifier: UTType.url.identifier, options: nil) as? URL {
                         url = loaded
                     }
-                } else if provider.hasItemConformingToTypeIdentifier(UTType.plainText.identifier), text == nil {
+                } else if provider.hasItemConformingToTypeIdentifier(UTType.plainText.identifier) {
                     if let loaded = try? await provider.loadItem(forTypeIdentifier: UTType.plainText.identifier, options: nil) as? String {
-                        text = loaded
+                        // sentinel(자동신호)과 일반 텍스트를 각자 첫 값만 받아 **각 채널로 분리** 흡수한다.
+                        // sentinel 은 메타라 text 콘텐츠로 합치지 않아 previewCard 에 raw JSON 이 노출되지 않는다.
+                        if let ctx = CaptureContextSentinel.decode(loaded) {
+                            if sourceApp == nil { sourceApp = ctx.sourceApp }
+                        } else if text == nil {
+                            text = loaded
+                        }
                     }
                 }
             }
@@ -116,6 +147,7 @@ public final class ShareExtensionPrincipal: UIViewController {
         return ExtractedShareInput(
             url: url,
             text: text,
+            sourceApp: sourceApp,
             imageRefs: imageRefs,
             channelGuess: Self.guessChannel(from: url, hasImage: !imageRefs.isEmpty)
         )
