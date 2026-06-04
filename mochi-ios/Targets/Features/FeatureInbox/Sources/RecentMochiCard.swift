@@ -107,7 +107,7 @@ struct RecentMochiCard: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             HStack(spacing: HomeDesign.Spacing.sm) {
-                if let intent = mochiItem.analysis?.intent {
+                if let intent = mochiItem.representativeIntent {
                     IntentChip(intent: MochiViewIntent(intent))
                 }
                 Text(mochiItem.displaySubtitle)

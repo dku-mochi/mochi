@@ -51,23 +51,12 @@ class MochiItemGatewayAdapter(MochiItemGateway):
         await self._repo.apply_analysis(
             owner_id=owner_id,
             mochi_item_id=mochi_item_id,
-            intent=result.intent,
-            secondary_intents=result.secondary_intents,
-            intent_applicability=result.intent_applicability,
+            intent_instances=result.intent_instances,
+            needs_review=result.needs_review,
             summary=result.summary,
             importance=result.importance,
-            confidence=result.confidence,
             model_version=result.model_version,
             entities=tuple((e.kind, e.value) for e in result.entities),
-            intent_candidates=tuple(
-                {
-                    "label": c.label,
-                    "intent": c.intent.value,
-                    "applicability": c.applicability,
-                    "reasoning": c.reasoning,
-                }
-                for c in result.candidates
-            ),
         )
 
     async def list_recent_window(
@@ -77,8 +66,7 @@ class MochiItemGatewayAdapter(MochiItemGateway):
         return [
             ProfileWindowItem(
                 summary=it.summary,
-                intent=it.intent,
-                secondary_intents=it.secondary_intents,
+                intent_types=it.intent_types,
                 user_memo=it.source.user_memo,
             )
             for it in items

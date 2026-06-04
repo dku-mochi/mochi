@@ -47,13 +47,39 @@ class MochiItemCreateRequest(BaseModel):
     model_config = {"populate_by_name": True}
 
 
-class IntentCandidateResponse(BaseModel):
-    """홈 "헷갈려요" 카드·Live Activity 버튼에 노출되는 LLM use case 후보 1건."""
+class IntentPayloadResponse(BaseModel):
+    """instance 의 구조화 속성 (전부 optional)."""
 
-    label: str
-    intent: Intent
-    applicability: float
+    title: str | None = None
+    date: str | None = None
+    time: str | None = None
+    deadline: str | None = None
+    person: str | None = None
+    topic: str | None = None
+    url: str | None = None
+    note: str | None = None
+
+
+class IntentInstanceResponse(BaseModel):
+    """저장된 의도 instance 1건 — 곧 active. 점수/위계 없음."""
+
+    intent_type: Intent = Field(alias="intentType")
+    payload: IntentPayloadResponse = Field(default_factory=IntentPayloadResponse)
+    label: str | None = None
     reasoning: str = ""
+    lifecycle_kind: str = Field(alias="lifecycleKind")
+
+    model_config = {"populate_by_name": True}
+
+
+class ReviewOptionResponse(BaseModel):
+    """needs_review=true 일 때의 미확정 후보. 현재 DB 미영속이라 빈 배열일 수 있다(가드레일 2)."""
+
+    intent_type: Intent = Field(alias="intentType")
+    label: str | None = None
+    reasoning: str = ""
+
+    model_config = {"populate_by_name": True}
 
 
 class MochiItemResponse(BaseModel):
@@ -62,15 +88,15 @@ class MochiItemResponse(BaseModel):
     url: str | None
     text: str | None
     user_memo: str | None = Field(default=None, alias="userMemo")
-    intent: Intent
-    secondary_intents: list[Intent] = Field(default_factory=list, alias="secondaryIntents")
-    intent_applicability: dict[str, float] = Field(
-        default_factory=dict, alias="intentApplicability"
+    intent_instances: list[IntentInstanceResponse] = Field(
+        default_factory=list, alias="intentInstances"
+    )
+    needs_review: bool = Field(default=False, alias="needsReview")
+    review_options: list[ReviewOptionResponse] = Field(
+        default_factory=list, alias="reviewOptions"
     )
     summary: str | None
     importance: int
-    confidence: float
-    candidates: list[IntentCandidateResponse] = Field(default_factory=list)
     lifecycle_kind: str = Field(alias="lifecycleKind")
     sync_kind: str = Field(alias="syncKind")
     image_refs: list[ImageRefResponse] = Field(default_factory=list, alias="imageRefs")
@@ -121,24 +147,6 @@ class UpcomingTodoResponse(BaseModel):
 
 class UpcomingTodoListResponse(BaseModel):
     todos: list[UpcomingTodoResponse] = Field(default_factory=list)
-
-
-class IntentOverrideRequest(BaseModel):
-    """알림에서 사용자가 다른 primary intent 를 선택했을 때의 PATCH 본문."""
-
-    intent: Intent
-
-
-class BackTapMochiItemRequest(BaseModel):
-    """백탭 ingestion 요청 — 클라이언트가 Signed URL 로 GCS 에 업로드한 뒤 objectKey 를 보낸다."""
-
-    object_key: str = Field(alias="objectKey")
-    sha256: str = Field(min_length=64, max_length=64)
-    mime_type: str = Field(alias="mimeType")
-    byte_size: int = Field(ge=0, le=50 * 1024 * 1024, alias="byteSize")
-    user_memo: str | None = Field(default=None, alias="userMemo")
-
-    model_config = {"populate_by_name": True}
 
 
 class PresignRequest(BaseModel):

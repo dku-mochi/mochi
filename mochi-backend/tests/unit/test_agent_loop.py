@@ -4,7 +4,7 @@
 - no-URL 단일 turn finalize → write-back
 - platformContext turn → 되먹임 → finalize
 - webFetch turn → 되먹임 → finalize
-- secondary intent dedup / applicability 매핑
+- 다중 instance 보존 (dedup/위계 없음)
 - max_steps 소진 → graceful fail (failed 이벤트 + raise, write-back 없음)
 """
 
@@ -110,13 +110,17 @@ class _FakeGateway:
         return 0
 
 
-def _finalize_chunk(intent="todo", summary="할 일 요약", *, candidates=None) -> LLMResponseChunk:
-    """기본은 단일 후보(confidence=max applicability=0.9). candidates 로 multi-후보 주입 가능."""
-    if candidates is None:
-        candidates = [{"label": "후보", "intent": intent, "applicability": 0.9, "reasoning": "-"}]
+def _finalize_chunk(
+    intent="todo", summary="할 일 요약", *, instances=None, needs_review=False, review_options=None
+) -> LLMResponseChunk:
+    """기본은 단일 instance(곧 active). instances 로 multi-instance 주입 가능."""
+    if instances is None:
+        instances = [{"intent_type": intent, "payload": {}, "label": "후보", "reasoning": "-"}]
     payload = {
         "summary": summary,
-        "candidates": candidates,
+        "needs_review": needs_review,
+        "intent_instances": instances,
+        "review_options": review_options or [],
         "model_version": "test",
     }
     return LLMResponseChunk(final_payload=payload)
@@ -164,7 +168,7 @@ async def test_no_url_single_turn_finalize_writes_back():
     )
     events = await _drain(orch, uuid4(), uuid4())
     assert gateway.applied is not None
-    assert gateway.applied.intent is Intent.TODO
+    assert gateway.applied.intent_instances[0].intent_type is Intent.TODO
     assert gateway.applied.summary == "할 일 요약"
     assert any(e.kind == "final" for e in events)
     assert "# 시간 컨텍스트" in llm.calls[0]["user_parts"][0]["text"]
@@ -187,7 +191,7 @@ async def test_platform_context_then_finalize():
     orch = AgentOrchestrator(llm=llm, tools=_Registry(), max_steps=8, gateway=gateway)
     events = await _drain(orch, uuid4(), uuid4())
     assert llm.turns == 2
-    assert gateway.applied.intent is Intent.KNOWLEDGE
+    assert gateway.applied.intent_instances[0].intent_type is Intent.KNOWLEDGE
     assert any(
         e.kind == "tool_started" and e.payload["name"] == "platformContext"
         for e in events
@@ -209,22 +213,22 @@ async def test_webfetch_then_finalize():
     orch = AgentOrchestrator(llm=llm, tools=_Registry(), max_steps=8, gateway=gateway)
     events = await _drain(orch, uuid4(), uuid4())
     assert llm.turns == 2
-    assert gateway.applied.intent is Intent.KNOWLEDGE
+    assert gateway.applied.intent_instances[0].intent_type is Intent.KNOWLEDGE
     assert any(e.kind == "tool_started" for e in events)
     assert any(e.kind == "tool_finished" for e in events)
 
 
 @pytest.mark.asyncio
-async def test_secondary_intent_dedup_and_applicability():
+async def test_multiple_instances_preserved_without_dedup():
     gateway = _FakeGateway(AnalysisInput(text="x", url=None, user_memo=None))
     orch = AgentOrchestrator(
         llm=_ScriptedLLM(
             [
                 _finalize_chunk(
-                    candidates=[
-                        {"label": "a", "intent": "todo", "applicability": 0.9, "reasoning": "-"},
-                        {"label": "b", "intent": "todo", "applicability": 0.5, "reasoning": "-"},
-                        {"label": "c", "intent": "knowledge", "applicability": 0.4, "reasoning": "-"},
+                    instances=[
+                        {"intent_type": "todo", "payload": {}, "label": "a", "reasoning": "-"},
+                        {"intent_type": "todo", "payload": {}, "label": "b", "reasoning": "-"},
+                        {"intent_type": "knowledge", "payload": {}, "label": "c", "reasoning": "-"},
                     ]
                 )
             ]
@@ -234,11 +238,11 @@ async def test_secondary_intent_dedup_and_applicability():
         gateway=gateway,
     )
     await _drain(orch, uuid4(), uuid4())
-    # primary(todo, 0.9) 가 secondary 에서 제거되고, 같은 intent 후보는 최댓값으로 dedup.
-    assert gateway.applied.intent is Intent.TODO
-    assert gateway.applied.confidence == 0.9
-    assert gateway.applied.secondary_intents == (Intent.KNOWLEDGE,)
-    assert gateway.applied.intent_applicability == {Intent.TODO: 0.9, Intent.KNOWLEDGE: 0.4}
+    # 같은 type 다중 instance 가 그대로 보존된다 — dedup/위계 폐기(2026-06-04).
+    types = [i.intent_type for i in gateway.applied.intent_instances]
+    assert types == [Intent.TODO, Intent.TODO, Intent.KNOWLEDGE]
+    assert gateway.applied.intent_instances[0].label == "a"
+    assert gateway.applied.needs_review is False
 
 
 @pytest.mark.asyncio

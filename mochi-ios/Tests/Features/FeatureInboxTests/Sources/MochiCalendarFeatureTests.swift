@@ -18,20 +18,24 @@ final class MochiCalendarFeatureTests: XCTestCase {
         let source = IngestSource(channel: .screenshot, imageRefs: refs, capturedAt: capturedAt)
         let analysis = intent.map { value in
             MochiItemAnalysis(
-                summary: "s", intent: value, entities: [], actionCandidates: [], tags: [],
-                importance: .medium, confidence: 0.9, modelVersion: "test", analyzedAt: capturedAt
+                summary: "s", instances: [IntentInstance(intentType: value)],
+                needsReview: false, reviewOptions: [],
+                entities: [], actionCandidates: [], tags: [],
+                importance: .medium, modelVersion: "test", analyzedAt: capturedAt
             )
         }
-        return MochiItem(source: source, analysis: analysis, lifecycleState: .active)
+        return MochiItem(source: source, analysis: analysis, lifecycleState: .analyzed)
     }
 
     private func todo(due: String?, capturedAt: Date) -> MochiItem {
         let actions: [MochiItemAnalysis.ActionCandidate] = due.map { [.createReminder(title: "t", dueISO8601: $0)] } ?? []
         let analysis = MochiItemAnalysis(
-            summary: "s", intent: .todo, entities: [], actionCandidates: actions, tags: [],
-            importance: .medium, confidence: 0.9, modelVersion: "test", analyzedAt: capturedAt
+            summary: "s", instances: [IntentInstance(intentType: .todo)],
+            needsReview: false, reviewOptions: [],
+            entities: [], actionCandidates: actions, tags: [],
+            importance: .medium, modelVersion: "test", analyzedAt: capturedAt
         )
-        return MochiItem(source: IngestSource(channel: .appDirectInput, capturedAt: capturedAt), analysis: analysis, lifecycleState: .active)
+        return MochiItem(source: IngestSource(channel: .appDirectInput, capturedAt: capturedAt), analysis: analysis, lifecycleState: .analyzed)
     }
 
     private var kstCalendar: Calendar {
@@ -42,8 +46,8 @@ final class MochiCalendarFeatureTests: XCTestCase {
 
     // MARK: - CalendarDaySummary.group
 
-    func test_group_buckets_by_kst_day_with_most_common_intent_and_thumbnail() {
-        // 2026-06-01 KST: todo 2 + schedule 1 → 대표 todo. 2026-06-02: knowledge 1.
+    func test_group_buckets_by_kst_day_with_priority_intent_and_thumbnail() {
+        // 2026-06-01 KST: schedule 1 + todo 2 → 고정 우선순위 schedule>todo 라 대표는 schedule(최빈 아님).
         let items = [
             item(intent: .schedule, capturedAt: iso("2026-06-01T03:00:00Z")),   // KST 6/1 12:00
             item(intent: .knowledge, capturedAt: iso("2026-06-02T05:00:00Z")),  // KST 6/2 14:00
@@ -57,7 +61,7 @@ final class MochiCalendarFeatureTests: XCTestCase {
         let byDay = Dictionary(uniqueKeysWithValues: days.map { (kstCalendar.dateComponents([.month, .day], from: $0.date).day ?? 0, $0) })
 
         XCTAssertEqual(byDay[1]?.count, 3)
-        XCTAssertEqual(byDay[1]?.representativeIntent, .todo)            // 최빈
+        XCTAssertEqual(byDay[1]?.representativeIntent, .schedule)            // 고정 우선순위 최상위
         XCTAssertEqual(byDay[1]?.thumbnailRelativePath, "captures/k1.heic")  // 유일한 relativePath
         XCTAssertEqual(byDay[2]?.count, 1)
         XCTAssertNil(byDay[2]?.thumbnailRelativePath)

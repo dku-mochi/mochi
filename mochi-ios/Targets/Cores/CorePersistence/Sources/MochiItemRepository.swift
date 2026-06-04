@@ -8,7 +8,8 @@ import CoreDomain
 public protocol MochiItemRepository: Sendable {
     func enqueueIngestedFromExtension(_ source: IngestSource) async throws
     func upsert(_ mochiItem: MochiItem) async throws
-    func updateLifecycle(mochiItemID: UUID, to newState: LifecycleState) async throws
+    /// 특정 intent instance 의 의미상태 전이 (예: archive). `LifecyclePolicy` 가 intent_type 별로 검증한다.
+    func updateInstanceLifecycle(mochiItemID: UUID, instanceID: UUID, to newState: InstanceLifecycle) async throws
     func updateSync(mochiItemID: UUID, to newState: SyncState) async throws
     func updateImageUploadMetadata(
         mochiItemID: UUID,
@@ -23,20 +24,20 @@ public protocol MochiItemRepository: Sendable {
     func listByIntent(_ intent: Intent, limit: Int) async throws -> [MochiItem]
     /// 분석 응답을 아직 못 받은 (analysis 미수신) 항목. 홈 "모찌가 분석 중이에요" 섹션의 원본.
     func listAnalyzing(limit: Int) async throws -> [MochiItem]
-    /// 분석은 끝났으나 모찌가 확신하지 못하는 (`MochiItemAnalysis.isUncertain`) 항목.
+    /// 분석은 끝났으나 모찌가 확신하지 못하는 (`needsReview == true`) 항목.
     /// 홈 "모찌가 헷갈려요" 카드의 원본.
-    func listAmbiguous(limit: Int) async throws -> [MochiItem]
+    func listNeedsReview(limit: Int) async throws -> [MochiItem]
     /// `analysis.importance` 가 높은 순으로 active 항목 정렬.
     /// 홈 "중요해 보여요" 섹션의 원본. 일일 캐시는 호출자가 결정.
     func listByImportance(limit: Int) async throws -> [MochiItem]
     /// 특정 기간(`interval`) 안에 `capturedAt` 된 항목 — 모찌들(캘린더) 탭의 월간 집계·날짜별 목록 원본.
     /// `capturedAt` 내림차순.
     func listCaptured(in interval: DateInterval, limit: Int) async throws -> [MochiItem]
-    /// 미완료(`lifecycleState == .active`) todo — 모찌들 탭 하단 "마감 임박 할 일" 리스트 원본.
+    /// 미완료 todo — `todo` intent instance 가 `active` 인 item. 모찌들 탭 하단 "마감 임박 할 일" 리스트 원본.
     /// 마감일 파싱·정렬은 호출자(reducer)가 `analysis.actionCandidates` 에서 도출한다. `capturedAt` 내림차순.
     func listActiveTodos(limit: Int) async throws -> [MochiItem]
-    /// 사용자가 needs-review 카드에서 분류 버튼을 누른 경우 호출.
-    /// `analysis` 가 없으면 manual entry 로 생성, 있으면 intent 만 덮어쓴다.
+    /// 사용자가 needs-review 카드에서 분류 버튼을 누른 경우 호출 — 고른 intent 의 instance 하나로 확정하고
+    /// `needsReview` 를 끈다. `analysis` 가 없으면 manual entry 로 생성한다.
     func setIntent(mochiItemID: UUID, intent: Intent) async throws
     /// "모찌에게 다시 맡기기" — 분석 실패/강등된 항목을 다시 "분석 중"으로 되돌린다.
     /// analysis 를 비우고(→ `listAnalyzing` 대상), 업로드 타임스탬프를 갱신해 폴링 deadline 을 재시작한다.
@@ -89,16 +90,19 @@ public actor InMemoryMochiItemRepository: MochiItemRepository {
         notifyChange()
     }
 
-    public func updateLifecycle(mochiItemID: UUID, to newState: LifecycleState) async throws {
-        guard var mochiItem = storage[mochiItemID] else {
-            throw DomainError.notFound(entity: "MochiItem", id: mochiItemID.uuidString)
+    public func updateInstanceLifecycle(mochiItemID: UUID, instanceID: UUID, to newState: InstanceLifecycle) async throws {
+        guard var mochiItem = storage[mochiItemID], let analysis = mochiItem.analysis,
+              let idx = analysis.instances.firstIndex(where: { $0.id == instanceID }) else {
+            throw DomainError.notFound(entity: "IntentInstance", id: instanceID.uuidString)
         }
-        if let intent = mochiItem.intent {
-            if case .failure(let err) = LifecyclePolicy.validate(from: mochiItem.lifecycleState, to: newState, intent: intent) {
-                throw DomainError.lifecycleTransition(err)
-            }
+        var instance = analysis.instances[idx]
+        if case .failure(let err) = LifecyclePolicy.validate(from: instance.lifecycle, to: newState, intent: instance.intentType) {
+            throw DomainError.lifecycleTransition(err)
         }
-        mochiItem.lifecycleState = newState
+        instance.lifecycle = newState
+        var instances = analysis.instances
+        instances[idx] = instance
+        mochiItem.analysis = analysis.replacingInstances(instances)
         mochiItem.updatedAt = .init()
         storage[mochiItemID] = mochiItem
         notifyChange()
@@ -166,7 +170,7 @@ public actor InMemoryMochiItemRepository: MochiItemRepository {
     }
 
     public func listByIntent(_ intent: Intent, limit: Int) async throws -> [MochiItem] {
-        Array(storage.values.filter { $0.intent == intent }.sorted { $0.createdAt > $1.createdAt }.prefix(limit))
+        Array(storage.values.filter { $0.intentTypes.contains(intent) }.sorted { $0.createdAt > $1.createdAt }.prefix(limit))
     }
 
     public func listAnalyzing(limit: Int) async throws -> [MochiItem] {
@@ -174,7 +178,6 @@ public actor InMemoryMochiItemRepository: MochiItemRepository {
             storage.values
                 .filter { mochiItem in
                     guard mochiItem.analysis == nil else { return false }
-                    if case .archived = mochiItem.lifecycleState { return false }
                     if case .failed = mochiItem.lifecycleState { return false }
                     return true
                 }
@@ -183,12 +186,11 @@ public actor InMemoryMochiItemRepository: MochiItemRepository {
         )
     }
 
-    public func listAmbiguous(limit: Int) async throws -> [MochiItem] {
+    public func listNeedsReview(limit: Int) async throws -> [MochiItem] {
         Array(
             storage.values
                 .filter { mochiItem in
-                    guard let analysis = mochiItem.analysis, analysis.isUncertain else { return false }
-                    if case .archived = mochiItem.lifecycleState { return false }
+                    guard let analysis = mochiItem.analysis, analysis.needsReview else { return false }
                     if case .failed = mochiItem.lifecycleState { return false }
                     return true
                 }
@@ -202,7 +204,6 @@ public actor InMemoryMochiItemRepository: MochiItemRepository {
             storage.values
                 .filter { mochiItem in
                     guard let analysis = mochiItem.analysis else { return false }
-                    if case .archived = mochiItem.lifecycleState { return false }
                     if case .failed = mochiItem.lifecycleState { return false }
                     return analysis.importance >= .medium
                 }
@@ -228,7 +229,9 @@ public actor InMemoryMochiItemRepository: MochiItemRepository {
     public func listActiveTodos(limit: Int) async throws -> [MochiItem] {
         Array(
             storage.values
-                .filter { $0.intent == .todo && $0.lifecycleState == .active }
+                .filter { item in
+                    item.instances.contains { $0.intentType == .todo && $0.lifecycle == .active }
+                }
                 .sorted { $0.source.capturedAt > $1.source.capturedAt }
                 .prefix(limit)
         )
@@ -239,29 +242,31 @@ public actor InMemoryMochiItemRepository: MochiItemRepository {
             throw DomainError.notFound(entity: "MochiItem", id: mochiItemID.uuidString)
         }
         let now = Date()
+        // 수동 확정 — 고른 intent 의 instance 하나로 확정하고 needsReview 를 끈다.
+        let instance = IntentInstance(intentType: intent, label: nil, reasoning: "manual")
         if let existing = mochiItem.analysis {
-            // 수동 확정 — Realm 경로와 동치: confidence 최대 + modelVersion "manual" + candidates 제거
-            // (candidates 생략 → 기본 []) → confidence 1.0 으로 "헷갈려요" 에서 빠진다.
             mochiItem.analysis = MochiItemAnalysis(
                 summary: existing.summary,
-                intent: intent,
+                instances: [instance],
+                needsReview: false,
+                reviewOptions: [],
                 entities: existing.entities,
                 actionCandidates: existing.actionCandidates,
                 tags: existing.tags,
                 importance: existing.importance,
-                confidence: 1.0,
                 modelVersion: "manual",
                 analyzedAt: existing.analyzedAt
             )
         } else {
             mochiItem.analysis = MochiItemAnalysis(
                 summary: mochiItem.source.text ?? "",
-                intent: intent,
+                instances: [instance],
+                needsReview: false,
+                reviewOptions: [],
                 entities: [],
                 actionCandidates: [],
                 tags: [],
                 importance: .medium,
-                confidence: 1.0,
                 modelVersion: "manual",
                 analyzedAt: now
             )

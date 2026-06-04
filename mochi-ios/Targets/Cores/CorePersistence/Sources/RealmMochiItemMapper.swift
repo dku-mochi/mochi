@@ -17,10 +17,9 @@ public enum RealmMochiItemMapper {
         row.urlString = mochiItem.source.url?.absoluteString
         row.text = mochiItem.source.text
         row.userMemo = mochiItem.source.userMemo
-        row.intentRawValue = mochiItem.analysis?.intent.rawValue
         row.summary = mochiItem.analysis?.summary
         row.importance = mochiItem.analysis?.importance.rawValue ?? 3
-        row.confidence = mochiItem.analysis?.confidence ?? 0
+        row.needsReview = mochiItem.analysis?.needsReview ?? false
         row.modelVersion = mochiItem.analysis?.modelVersion
         row.lifecycleStateRawValue = lifecycleStateRaw(mochiItem.lifecycleState)
         row.syncStateRawValue = syncStateRaw(mochiItem.syncState)
@@ -56,9 +55,14 @@ public enum RealmMochiItemMapper {
             row.tags.append(tag)
         }
 
-        row.intentCandidates.removeAll()
-        for candidate in mochiItem.analysis?.candidates ?? [] {
-            row.intentCandidates.append(encode(intentCandidate: candidate))
+        row.intentInstances.removeAll()
+        for instance in mochiItem.analysis?.instances ?? [] {
+            row.intentInstances.append(encode(intentInstance: instance))
+        }
+
+        row.reviewOptions.removeAll()
+        for option in mochiItem.analysis?.reviewOptions ?? [] {
+            row.reviewOptions.append(encode(reviewOption: option))
         }
         return row
     }
@@ -77,20 +81,18 @@ public enum RealmMochiItemMapper {
         )
 
         var analysis: MochiItemAnalysis?
-        if let intentRaw = row.intentRawValue,
-           let intent = Intent(rawValue: intentRaw),
-           let analyzedAt = row.analyzedAt {
+        if let analyzedAt = row.analyzedAt {
             analysis = MochiItemAnalysis(
                 summary: row.summary ?? "",
-                intent: intent,
+                instances: row.intentInstances.compactMap(decode(intentInstance:)),
+                needsReview: row.needsReview,
+                reviewOptions: row.reviewOptions.compactMap(decode(reviewOption:)),
                 entities: row.entities.compactMap(decode(entity:)),
                 actionCandidates: row.actionCandidates.compactMap(decode(actionCandidate:)),
                 tags: Array(row.tags),
                 importance: MochiItemAnalysis.Importance(rawValue: row.importance) ?? .medium,
-                confidence: row.confidence,
                 modelVersion: row.modelVersion ?? "unknown",
-                analyzedAt: analyzedAt,
-                candidates: row.intentCandidates.compactMap(decode(intentCandidate:))
+                analyzedAt: analyzedAt
             )
         }
 
@@ -104,12 +106,22 @@ public enum RealmMochiItemMapper {
         )
     }
 
-    public static func lifecycleState(from row: RealmMochiItem) -> LifecycleState {
+    public static func lifecycleState(from row: RealmMochiItem) -> ProcessingState {
         return decodeLifecycle(raw: row.lifecycleStateRawValue) ?? .ingested
     }
 
-    public static func apply(lifecycleState: LifecycleState, to row: RealmMochiItem) {
+    public static func apply(lifecycleState: ProcessingState, to row: RealmMochiItem) {
         row.lifecycleStateRawValue = lifecycleStateRaw(lifecycleState)
+    }
+
+    public static func instanceLifecycle(from row: RealmIntentInstance) -> InstanceLifecycle? {
+        decodeInstanceLifecycle(kind: row.lifecycleKindRawValue, reason: row.archiveReasonRawValue)
+    }
+
+    public static func apply(instanceLifecycle: InstanceLifecycle, to row: RealmIntentInstance) {
+        let encoded = encodeInstanceLifecycle(instanceLifecycle)
+        row.lifecycleKindRawValue = encoded.kind
+        row.archiveReasonRawValue = encoded.reason
     }
 
     // MARK: - Entity encoding
@@ -206,52 +218,108 @@ public enum RealmMochiItemMapper {
         }
     }
 
-    // MARK: - IntentCandidate encoding
+    // MARK: - IntentInstance / ReviewOption encoding
 
-    private static func encode(intentCandidate: IntentCandidate) -> RealmIntentCandidate {
-        let row = RealmIntentCandidate()
-        row.label = intentCandidate.label
-        row.intentRawValue = intentCandidate.intent.rawValue
-        row.applicability = intentCandidate.applicability
+    private static func encode(intentInstance instance: IntentInstance) -> RealmIntentInstance {
+        let row = RealmIntentInstance()
+        row.instanceID = instance.id.uuidString
+        row.intentRawValue = instance.intentType.rawValue
+        row.label = instance.label
+        row.reasoning = instance.reasoning
+        let encoded = encodeInstanceLifecycle(instance.lifecycle)
+        row.lifecycleKindRawValue = encoded.kind
+        row.archiveReasonRawValue = encoded.reason
+        row.payloadTitle = instance.payload.title
+        row.payloadDate = instance.payload.date
+        row.payloadTime = instance.payload.time
+        row.payloadDeadline = instance.payload.deadline
+        row.payloadPerson = instance.payload.person
+        row.payloadTopic = instance.payload.topic
+        row.payloadURL = instance.payload.url
+        row.payloadNote = instance.payload.note
         return row
     }
 
-    private static func decode(intentCandidate row: RealmIntentCandidate) -> IntentCandidate? {
+    private static func decode(intentInstance row: RealmIntentInstance) -> IntentInstance? {
+        guard let intent = Intent(rawValue: row.intentRawValue),
+              let lifecycle = decodeInstanceLifecycle(kind: row.lifecycleKindRawValue, reason: row.archiveReasonRawValue)
+        else { return nil }
+        let payload = IntentPayload(
+            title: row.payloadTitle,
+            date: row.payloadDate,
+            time: row.payloadTime,
+            deadline: row.payloadDeadline,
+            person: row.payloadPerson,
+            topic: row.payloadTopic,
+            url: row.payloadURL,
+            note: row.payloadNote
+        )
+        return IntentInstance(
+            id: UUID(uuidString: row.instanceID) ?? UUID(),
+            intentType: intent,
+            payload: payload,
+            label: row.label,
+            reasoning: row.reasoning,
+            lifecycle: lifecycle
+        )
+    }
+
+    private static func encode(reviewOption option: ReviewOption) -> RealmReviewOption {
+        let row = RealmReviewOption()
+        row.intentRawValue = option.intentType.rawValue
+        row.label = option.label
+        row.reasoning = option.reasoning
+        return row
+    }
+
+    private static func decode(reviewOption row: RealmReviewOption) -> ReviewOption? {
         guard let intent = Intent(rawValue: row.intentRawValue) else { return nil }
-        return IntentCandidate(label: row.label, intent: intent, applicability: row.applicability)
+        return ReviewOption(intentType: intent, label: row.label, reasoning: row.reasoning)
+    }
+
+    private static func encodeInstanceLifecycle(_ lifecycle: InstanceLifecycle) -> (kind: String, reason: String?) {
+        switch lifecycle {
+        case .active:               return ("active", nil)
+        case .decaying:             return ("decaying", nil)
+        case .reviewRequested:      return ("reviewRequested", nil)
+        case let .archived(reason): return ("archived", reason.rawValue)
+        }
+    }
+
+    private static func decodeInstanceLifecycle(kind: String, reason: String?) -> InstanceLifecycle? {
+        switch kind {
+        case "active":          return .active
+        case "decaying":        return .decaying
+        case "reviewRequested": return .reviewRequested
+        case "archived":
+            guard let reason, let r = InstanceLifecycle.ArchiveReason(rawValue: reason) else { return nil }
+            return .archived(reason: r)
+        default:
+            return nil
+        }
     }
 
     // MARK: - Lifecycle / Sync raw encoding
 
-    static func lifecycleStateRaw(_ state: LifecycleState) -> String {
+    static func lifecycleStateRaw(_ state: ProcessingState) -> String {
         switch state {
-        case .ingested:                       return "ingested"
-        case .analyzing:                      return "analyzing"
-        case .active:                         return "active"
-        case .decaying:                       return "decaying"
-        case .reviewRequested:                return "reviewRequested"
-        case let .archived(reason):           return "archived:\(reason.rawValue)"
-        case let .failed(reason):             return "failed:\(reason)"
+        case .ingested:           return "ingested"
+        case .analyzing:          return "analyzing"
+        case .analyzed:           return "analyzed"
+        case let .failed(reason): return "failed:\(reason)"
         }
     }
 
-    private static func decodeLifecycle(raw: String) -> LifecycleState? {
+    private static func decodeLifecycle(raw: String) -> ProcessingState? {
         switch raw {
-        case "ingested":        return .ingested
-        case "analyzing":       return .analyzing
-        case "active":          return .active
-        case "decaying":        return .decaying
-        case "reviewRequested": return .reviewRequested
+        case "ingested":  return .ingested
+        case "analyzing": return .analyzing
+        case "analyzed":  return .analyzed
         default:
-            if let archivedRange = raw.range(of: "archived:") {
-                let reasonRaw = String(raw[archivedRange.upperBound...])
-                if let reason = LifecycleState.ArchiveReason(rawValue: reasonRaw) {
-                    return .archived(reason: reason)
-                }
-            }
             if let failedRange = raw.range(of: "failed:") {
                 return .failed(reason: String(raw[failedRange.upperBound...]))
             }
+            // 구 의미상태(active/decaying/...)는 v5 재생성(deleteRealmIfMigrationNeeded)으로 폐기 — 만날 일 없음.
             return nil
         }
     }

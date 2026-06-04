@@ -79,7 +79,7 @@ public struct MochiItemFeature: Sendable {
                 let updated = MochiItem(
                     source: state.source,
                     analysis: analysis,
-                    lifecycleState: .active,
+                    lifecycleState: .analyzed,
                     syncState: .uploaded(serverID: state.source.id, at: Date())
                 )
                 return .run { _ in try await repository.upsert(updated) }

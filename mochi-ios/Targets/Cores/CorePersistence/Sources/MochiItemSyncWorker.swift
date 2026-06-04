@@ -10,7 +10,7 @@ import Dependencies
 ///    Realm `.pendingUpload` 만 박아둔 상태일 수 있음 — 무인증 ingest 는 401 받고 `.syncFailed` 로
 ///    영구 strand 됨). 로그인 후 다음 active tick 에 다시 시도된다.
 /// 2. ``MochiItemRepository.listRecent`` 에서 `syncState == .pendingUpload` 인 항목을 가져옴
-/// 3. 백탭 흐름 (`.screenshot` + 단일 이미지) 은 multipart `back-tap` 으로, 그 외는 metadata-only ingest
+/// 3. 모든 채널을 presign→GCS PUT→`POST /mochi_items` 단일 경로로 ingest (스크린샷은 Live Activity 점유)
 /// 4. 성공 시 `syncState=.uploaded(serverID, at)` 로 업데이트
 /// 5. 실패 시 transient 면 backoff, 영구 실패면 `syncFailed(reason, retryAfter)` 로 업데이트
 ///
@@ -23,7 +23,7 @@ public actor MochiItemSyncWorker {
     /// foreground 동안만 도는 metadata-only 분석 폴링 루프. background 진입 시 cancel.
     private var pollTask: Task<Void, Never>?
 
-    /// Live Activity trigger — 백탭 multipart 분기에서 `.analyzing` / `.ready` / `end` 호출.
+    /// Live Activity trigger — 스크린샷 ingest 시 `.analyzing` / `.ready` / `end` 호출.
     /// DI 미주입 시 `NotConfiguredLiveActivityCoordinator` 가 no-op.
     @Dependency(\.liveActivityCoordinator) private var liveActivity
 
@@ -69,15 +69,12 @@ public actor MochiItemSyncWorker {
         do {
             try? await repository.updateSync(mochiItemID: mochiItem.id, to: .uploading)
 
-            // 백탭 흐름 (`.screenshot` channel + 단일 이미지) 은 업로드용 JPEG 파생본을
-            // GCS Signed URL 로 직접 올린 뒤 objectKey 를 back-tap endpoint 로 보낸다.
-            // 그 외 (외부 공유시트, AppIntent 텍스트 등) 는 metadata-only ingest.
-            let serverID: UUID
+            // 스크린샷(백탭) 입력은 분석 중 Live Activity 를 점유한다 (입력 UX 유지) — Lock Screen /
+            // Dynamic Island 에 "분류 중" 표시. ingest 경로는 단일화됐다: 모든 채널이
+            // presign→PUT→`ingestMochiItem`(with imageRefs). 백엔드가 `.ingested` 로 적재하고
+            // worker 가 비동기 분석하므로 이 항목은 `pollAnalysisOnce` 대상이 된다.
             if mochiItem.source.channel == .screenshot,
-               let imageRef = mochiItem.source.imageRefs.first,
-               mochiItem.source.imageRefs.count == 1 {
-                // 분석 시작 시각 Live Activity 점유 — Lock Screen / Dynamic Island 에 "분류 중" 표시.
-                // worker 분석 완료를 foreground 폴링(`pollAnalysisOnce`)이 `.ready` 로 전환한다.
+               let imageRef = mochiItem.source.imageRefs.first {
                 let caption = liveActivityCaption(
                     mochiItemID: mochiItem.id,
                     body: mochiItem.source.userMemo?.prefix(40).description ?? "스크린샷 분석 중"
@@ -87,43 +84,20 @@ public actor MochiItemSyncWorker {
                     caption: caption,
                     thumbnailRelativePath: imageRef.relativePath
                 )
-
-                let uploaded = try await ensureUploadedImageRef(mochiItemID: mochiItem.id, imageRef: imageRef)
-                guard let objectKey = uploaded.objectKey else {
-                    throw APIErrorEnvelope(
-                        code: "client.image_upload_missing_object_key",
-                        message: "Uploaded image is missing objectKey",
-                        requestID: "n/a",
-                        retryAfter: nil
-                    )
-                }
-                // 동기 분류 없음 — 백엔드가 `.ingested` 로 적재하고 worker 가 비동기 분석한다.
-                // analysis 를 즉시 채우지 않으므로 이 항목은 `pollAnalysisOnce` 대상이 되고,
-                // 분석 완료 시 폴링이 결과 반영 + Live Activity `.ready` 전환을 함께 수행한다.
-                let dto = try await apiClient.ingestBackTapMochiItem(
-                    objectKey: objectKey,
-                    sha256: uploaded.sha256,
-                    mimeType: uploaded.mimeType,
-                    byteSize: uploaded.byteSize,
-                    userMemo: mochiItem.source.userMemo,
-                    idempotencyKey: mochiItem.id.uuidString
-                )
-                serverID = dto.id
-            } else {
-                let imageRefs = try await uploadedImageRefDTOs(for: mochiItem)
-                let request = MochiItemIngestRequest(
-                    channel: mochiItem.source.channel,
-                    url: mochiItem.source.url,
-                    text: mochiItem.source.text,
-                    userMemo: mochiItem.source.userMemo,
-                    imageRefs: imageRefs
-                )
-                let dto = try await apiClient.ingestMochiItem(request, idempotencyKey: mochiItem.id.uuidString)
-                serverID = dto.id
             }
+
+            let imageRefs = try await uploadedImageRefDTOs(for: mochiItem)
+            let request = MochiItemIngestRequest(
+                channel: mochiItem.source.channel,
+                url: mochiItem.source.url,
+                text: mochiItem.source.text,
+                userMemo: mochiItem.source.userMemo,
+                imageRefs: imageRefs
+            )
+            let dto = try await apiClient.ingestMochiItem(request, idempotencyKey: mochiItem.id.uuidString)
             try await repository.updateSync(
                 mochiItemID: mochiItem.id,
-                to: .uploaded(serverID: serverID, at: Date())
+                to: .uploaded(serverID: dto.id, at: Date())
             )
         } catch let envelope as APIErrorEnvelope {
             try? await repository.updateSync(
@@ -199,22 +173,19 @@ public actor MochiItemSyncWorker {
         return try Data(contentsOf: url)
     }
 
-    /// 분석 결과(intent / summary / importance / confidence / **후보**)를 Realm 의
+    /// 분석 결과(intent instances / needsReview / reviewOptions / summary / importance)를 Realm 의
     /// ``MochiItem.analysis`` 에 반영하는 공통 writer. 폴링(`pollAnalysisOnce`)이 호출한다.
     ///
-    /// `candidates` 는 홈 "모찌가 헷갈려요" 카드 버튼·복수 의도 derive 의 원천이며,
-    /// 불확실성 판정(`MochiItemAnalysis.isUncertain`)을 가능케 한다.
-    ///
-    /// `lifecycleState` 는 `.active` 로 직접 박는다. `repository.upsert` 는 `LifecyclePolicy.validate`
-    /// 를 거치지 않아 `.ingested → .active` 직접 전이가 가능 (분류 결과 즉시 반영을 위한 의식적 우회).
-    /// 버킷(분석중/헷갈려요/자동정리)은 lifecycle 이 아니라 analysis 의 intent/confidence/candidates 에서 derive 한다.
+    /// 처리상태 `lifecycleState` 를 `.analyzed` 로 직접 박는다 (분석 완료 — iOS 폴링 컷오버).
+    /// `repository.upsert` 는 처리상태 전이 검증 없이 그대로 쓴다. 버킷(분석중/헷갈려요/중요)은
+    /// 처리상태가 아니라 analysis 의 instances/needsReview 에서 derive 한다.
     private func applyAnalysis(
         to mochiItemID: UUID,
-        intent: Intent,
+        instances: [IntentInstance],
+        needsReview: Bool,
+        reviewOptions: [ReviewOption],
         summary: String,
         importance: Int,
-        confidence: Double,
-        candidates: [IntentCandidate],
         expectedUpdatedAt: Date? = nil
     ) async {
         guard var current = try? await repository.find(id: mochiItemID) else { return }
@@ -223,17 +194,17 @@ public actor MochiItemSyncWorker {
         if let expectedUpdatedAt, current.updatedAt != expectedUpdatedAt { return }
         current.analysis = MochiItemAnalysis(
             summary: summary,
-            intent: intent,
+            instances: instances,
+            needsReview: needsReview,
+            reviewOptions: reviewOptions,
             entities: [],
             actionCandidates: [],
             tags: [],
             importance: MochiItemAnalysis.Importance(rawValue: importance) ?? .medium,
-            confidence: confidence,
             modelVersion: "gemini-3.1-flash-lite",
-            analyzedAt: Date(),
-            candidates: candidates
+            analyzedAt: Date()
         )
-        current.lifecycleState = .active
+        current.lifecycleState = .analyzed
         try? await repository.upsert(current)
     }
 
@@ -257,7 +228,7 @@ public actor MochiItemSyncWorker {
     }
 
     /// 업로드됐으나(syncState == .uploaded) 아직 분석이 안 붙은(analysis == nil) 항목을
-    /// `GET /mochi_items/{id}` 로 재조회해, 백엔드 worker 분석이 끝났으면(lifecycle == active) 결과를 반영한다.
+    /// `GET /mochi_items/{id}` 로 재조회해, 백엔드 worker 분석이 끝났으면(처리상태 analyzed) 결과를 반영한다.
     /// 백탭 스크린샷도 동기 분류를 제거해 analysis == nil 로 적재되므로 이 폴링 대상에 포함된다 —
     /// 분석 완료 시 결과 반영 + Live Activity `.ready` 전환을 함께 수행한다.
     public func pollAnalysisOnce() async {
@@ -286,28 +257,28 @@ public actor MochiItemSyncWorker {
                 continue
             }
 
-            // 백엔드가 분석을 끝내면 lifecycle 이 active 로 전이한다. 그 전엔 intent 가 MEMO 기본값일
-            // 수 있으므로 lifecycle 로 "분석 완료"를 판정한다.
+            // 백엔드가 분석을 끝내면 처리상태가 `analyzed` 로 전이한다 (구 `active` — 빅뱅 개명).
+            // ⚠️ 이 case 문자열이 백엔드 처리상태와 어긋나면 폴링이 영영 안 끝난다.
             switch dto.lifecycleKind {
-            case "active":
-                guard let intent = dto.intent else { continue }
+            case "analyzed":
+                let instances = Self.instances(from: dto)
                 await applyAnalysis(
                     to: item.id,
-                    intent: intent,
+                    instances: instances,
+                    needsReview: dto.needsReview,
+                    reviewOptions: Self.reviewOptions(from: dto),
                     summary: dto.summary ?? "",
                     importance: dto.importance,
-                    confidence: dto.confidence,
-                    candidates: Self.candidates(from: dto),
                     expectedUpdatedAt: item.updatedAt
                 )
-                // 백탭(screenshot) 은 분석 완료 시 후보와 함께 Live Activity 를 `.ready` 로 전환한다.
-                // (foreground 한정 — background push 는 APNs 도입 후. 후보 없으면 LA 종료.)
+                // 백탭(screenshot) 은 분석 완료 시 instance 와 함께 Live Activity 를 `.ready` 로 전환한다.
+                // (foreground 한정 — background push 는 APNs 도입 후. instance 없으면 LA 종료.)
                 if item.source.channel == .screenshot {
-                    let liveCandidates = dto.candidates.map {
+                    let liveCandidates = instances.map {
                         LiveActivityCandidate(
-                            label: $0.label,
-                            intent: $0.intent.rawValue,
-                            applicability: $0.applicability
+                            label: $0.displayLabel,
+                            intent: $0.intentType.rawValue,
+                            applicability: 1.0
                         )
                     }
                     if liveCandidates.isEmpty {
@@ -329,8 +300,8 @@ public actor MochiItemSyncWorker {
     private static let analysisPollDeadline: TimeInterval = 90
 
     /// 분석 실패/지연 항목을 "분석 중"에서 빼 "헷갈려요"(의견 없음 → 직접 분류/다시 시도)로 강등한다.
-    /// `confidence = 0` + 빈 candidates → `isUncertain` 이면서 `reviewOpinions` 가 비어,
-    /// 홈 카드가 "모찌가 잘 모르겠어요" 분기로 렌더(직접 분류 + "다시 맡기기").
+    /// `needsReview = true` + 빈 reviewOptions + `failedModelVersion` 마커 → 홈 카드가
+    /// "모찌가 잘 모르겠어요" 분기로 렌더(직접 분류 + "다시 맡기기").
     private func demoteToManual(_ item: MochiItem) async {
         guard var current = try? await repository.find(id: item.id) else { return }
         // 세대 가드: 스냅샷 이후 (분석 도착·수동 분류·재시도로) 바뀐 항목은 강등하지 않는다.
@@ -341,17 +312,17 @@ public actor MochiItemSyncWorker {
             ?? "분석하지 못했어요"
         current.analysis = MochiItemAnalysis(
             summary: summary,
-            intent: fallbackIntent,
+            instances: [IntentInstance(intentType: fallbackIntent)],
+            needsReview: true,
+            reviewOptions: [],
             entities: [],
             actionCandidates: [],
             tags: [],
             importance: .low,            // "중요해 보여요"(importance>=3)로 누출되지 않게 최저로.
-            confidence: 0,
             modelVersion: MochiItemAnalysis.failedModelVersion,
-            analyzedAt: Date(),
-            candidates: []
+            analyzedAt: Date()
         )
-        current.lifecycleState = .active
+        current.lifecycleState = .analyzed
         try? await repository.upsert(current)
         // 백탭(screenshot) 강등 시 점유 중이던 Live Activity 를 실패로 종료.
         if item.source.channel == .screenshot {
@@ -359,11 +330,40 @@ public actor MochiItemSyncWorker {
         }
     }
 
-    /// 백엔드 분석 결과의 use case 후보(한국어 label 포함)를 그대로 보존해 재구성한다.
-    /// 분석 전이면 빈 배열 — 홈 카드/Live Activity 가 후보 없음으로 렌더.
-    private static func candidates(from dto: MochiItemDTO) -> [IntentCandidate] {
-        dto.candidates.map {
-            IntentCandidate(label: $0.label, intent: $0.intent, applicability: $0.applicability)
+    /// 백엔드 분석 결과의 intent instance(typed payload·한국어 label 포함)를 도메인으로 재구성한다.
+    /// 분석 전이면 빈 배열 — 홈 카드/Live Activity 가 instance 없음으로 렌더.
+    private static func instances(from dto: MochiItemDTO) -> [IntentInstance] {
+        dto.intentInstances.map { i in
+            IntentInstance(
+                intentType: i.intentType,
+                payload: payload(from: i.payload),
+                label: i.label,
+                reasoning: i.reasoning,
+                lifecycle: instanceLifecycle(from: i.lifecycleKind)
+            )
+        }
+    }
+
+    private static func reviewOptions(from dto: MochiItemDTO) -> [ReviewOption] {
+        dto.reviewOptions.map { ReviewOption(intentType: $0.intentType, label: $0.label, reasoning: $0.reasoning) }
+    }
+
+    private static func payload(from dto: IntentPayloadDTO?) -> IntentPayload {
+        guard let dto else { return IntentPayload() }
+        return IntentPayload(
+            title: dto.title, date: dto.date, time: dto.time, deadline: dto.deadline,
+            person: dto.person, topic: dto.topic, url: dto.url, note: dto.note
+        )
+    }
+
+    /// 응답 instance 의 의미상태 문자열을 도메인으로. 새로 적재된 instance 는 대개 `active`.
+    /// 응답엔 archive reason 이 없어 archived 는 `userManual` 로 기본 매핑(새 적재엔 거의 없음).
+    private static func instanceLifecycle(from raw: String) -> InstanceLifecycle {
+        switch raw {
+        case "decaying":        return .decaying
+        case "reviewRequested": return .reviewRequested
+        case "archived":        return .archived(reason: .userManual)
+        default:                return .active
         }
     }
 }

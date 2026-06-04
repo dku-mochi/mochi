@@ -339,7 +339,7 @@ private struct DayMochiRow: View {
                         .multilineTextAlignment(.leading)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     HStack(spacing: 6) {
-                        if let intent = item.analysis?.intent {
+                        if let intent = item.representativeIntent {
                             IntentChip(intent: MochiViewIntent(intent))
                         }
                         Text(item.source.channel.shortLabel)

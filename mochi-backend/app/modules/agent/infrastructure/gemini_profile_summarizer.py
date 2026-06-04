@@ -34,7 +34,7 @@ def _format_window(window: list[ProfileWindowItem], previous: str | None) -> str
         lines.append(f"# 이전 프로필\n{previous}\n")
     lines.append("# 최근 저장 항목 (최신순)")
     for i, it in enumerate(window, 1):
-        intents = "/".join([it.intent.value, *[s.value for s in it.secondary_intents]])
+        intents = "/".join(t.value for t in it.intent_types) or "-"
         # raw 캡처 본문은 보내지 않는다 — AI 추상(summary)만. (PRIVACY 최소전송)
         body = (it.summary or "(분석 전)").strip()
         memo = f" | 메모: {it.user_memo}" if it.user_memo else ""

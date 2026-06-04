@@ -16,14 +16,50 @@ from app.modules.mochi_items.domain.entities import (
     SyncState,
 )
 from app.modules.mochi_items.domain.ports import MochiItemRepository
-from app.modules.mochi_items.domain.value_objects import IntentClassification
+from app.modules.mochi_items.domain.value_objects import (
+    ArchiveReason,
+    InstanceLifecycleKind,
+    InstanceLifecycleState,
+    IntentInstance,
+    IntentPayload,
+)
 from app.modules.mochi_items.infrastructure.orm import (
     EntityRow,
     IdempotencyKeyRow,
+    IntentInstanceRow,
     MochiItemImageRefRow,
     MochiItemRow,
 )
 from app.shared.intent import Intent
+
+_PAYLOAD_FIELDS = ("title", "date", "time", "deadline", "person", "topic", "url", "note")
+
+
+def _payload_to_dict(payload: IntentPayload) -> dict[str, str]:
+    """채워진 필드만 jsonb 로 저장 (None 은 생략 — 빈 객체 방지)."""
+    return {f: value for f in _PAYLOAD_FIELDS if (value := getattr(payload, f)) is not None}
+
+
+def _dict_to_payload(raw: dict[str, object] | None) -> IntentPayload:
+    data = raw or {}
+    return IntentPayload(**{f: data.get(f) for f in _PAYLOAD_FIELDS})  # type: ignore[arg-type]
+
+
+def _row_to_instance(row: IntentInstanceRow) -> IntentInstance:
+    archive_reason = (
+        ArchiveReason(row.lifecycle_archive_reason) if row.lifecycle_archive_reason else None
+    )
+    return IntentInstance(
+        id=row.id,
+        intent_type=Intent(row.intent_type),
+        payload=_dict_to_payload(row.payload),
+        label=row.label,
+        reasoning=row.reasoning or "",
+        lifecycle=InstanceLifecycleState(
+            kind=InstanceLifecycleKind(row.lifecycle_kind),
+            archive_reason=archive_reason,
+        ),
+    )
 
 
 def _row_to_entity(row: MochiItemRow) -> MochiItem:
@@ -48,27 +84,39 @@ def _row_to_entity(row: MochiItemRow) -> MochiItem:
     return MochiItem(
         id=row.id,
         source=source,
-        intent=Intent(row.intent),
-        secondary_intents=tuple(Intent(s) for s in row.secondary_intents),
-        intent_applicability={Intent(k): v for k, v in row.intent_applicability.items()},
-        intent_candidates=tuple(
-            IntentClassification(
-                label=str(c["label"]),
-                intent=Intent(str(c["intent"])),
-                applicability=float(c["applicability"]),
-                reasoning=str(c.get("reasoning", "")),
-            )
-            for c in row.intent_candidates
-        ),
+        intent_instances=tuple(_row_to_instance(i) for i in row.intent_instances),
+        needs_review=row.needs_review,
         summary=row.summary,
         importance=row.importance,
-        confidence=row.confidence,
         model_version=row.model_version,
-        lifecycle=LifecycleState(kind=LifecycleStateKind(row.lifecycle_kind)),
+        lifecycle=LifecycleState(
+            kind=LifecycleStateKind(row.lifecycle_kind),
+            failure_reason=row.lifecycle_failure_reason,
+        ),
         sync=SyncState(kind=row.sync_kind, detail=row.sync_detail),  # type: ignore[arg-type]
         created_at=row.created_at,
         updated_at=row.updated_at,
     )
+
+
+def _instance_rows(
+    owner_id: UUID, item_row: MochiItemRow, instances: tuple[IntentInstance, ...]
+) -> list[IntentInstanceRow]:
+    return [
+        IntentInstanceRow(
+            owner_id=owner_id,
+            intent_type=inst.intent_type.value,
+            payload=_payload_to_dict(inst.payload),
+            label=inst.label,
+            reasoning=inst.reasoning or None,
+            lifecycle_kind=inst.lifecycle.kind.value,
+            lifecycle_archive_reason=(
+                inst.lifecycle.archive_reason.value if inst.lifecycle.archive_reason else None
+            ),
+            mochi_item=item_row,
+        )
+        for inst in instances
+    ]
 
 
 class PostgresMochiItemRepository(MochiItemRepository):
@@ -82,24 +130,11 @@ class PostgresMochiItemRepository(MochiItemRepository):
             url=item.source.url,
             text=item.source.text,
             user_memo=item.source.user_memo,
-            intent=item.intent.value,
-            secondary_intents=[s.value for s in item.secondary_intents],
-            intent_applicability={k.value: v for k, v in item.intent_applicability.items()},
-            intent_candidates=[
-                {
-                    "label": c.label,
-                    "intent": c.intent.value,
-                    "applicability": c.applicability,
-                    "reasoning": c.reasoning,
-                }
-                for c in item.intent_candidates
-            ],
+            needs_review=item.needs_review,
             summary=item.summary,
             importance=item.importance,
-            confidence=item.confidence,
             model_version=item.model_version,
             lifecycle_kind=item.lifecycle.kind.value,
-            lifecycle_archive_reason=item.lifecycle.archive_reason.value if item.lifecycle.archive_reason else None,
             lifecycle_failure_reason=item.lifecycle.failure_reason,
             sync_kind=item.sync.kind,
             sync_detail=item.sync.detail,
@@ -117,6 +152,8 @@ class PostgresMochiItemRepository(MochiItemRepository):
                     object_key=img.object_key,
                 )
             )
+        for inst_row in _instance_rows(owner_id, row, item.intent_instances):
+            row.intent_instances.append(inst_row)
         self._session.add(row)
         await self._session.flush()
 
@@ -124,64 +161,22 @@ class PostgresMochiItemRepository(MochiItemRepository):
         stmt = (
             select(MochiItemRow)
             .where(MochiItemRow.id == mochi_item_id, MochiItemRow.owner_id == owner_id)
-            .options(selectinload(MochiItemRow.image_refs))
+            .options(
+                selectinload(MochiItemRow.image_refs),
+                selectinload(MochiItemRow.intent_instances),
+            )
         )
         row = (await self._session.scalars(stmt)).one_or_none()
         return _row_to_entity(row) if row else None
-
-    async def update_lifecycle(
-        self,
-        *,
-        owner_id: UUID,
-        mochi_item_id: UUID,
-        new_state: LifecycleState,
-    ) -> None:
-        from app.core.error_envelope import DomainError
-        from app.modules.intents.domain.lifecycle_policy import is_allowed
-
-        stmt = select(MochiItemRow).where(MochiItemRow.id == mochi_item_id, MochiItemRow.owner_id == owner_id)
-        row = (await self._session.scalars(stmt)).one_or_none()
-        if row is None:
-            return
-
-        current = LifecycleState(kind=LifecycleStateKind(row.lifecycle_kind))
-        intent = Intent(row.intent)
-        if not is_allowed(intent, current, new_state):
-            raise DomainError(
-                f"Illegal lifecycle transition for {intent.value}: "
-                f"{current.kind.value} → {new_state.kind.value} (reason={new_state.archive_reason})",
-                code="mochi_item.illegal_lifecycle_transition",
-            )
-
-        row.lifecycle_kind = new_state.kind.value
-        row.lifecycle_archive_reason = new_state.archive_reason.value if new_state.archive_reason else None
-        row.lifecycle_failure_reason = new_state.failure_reason
-        await self._session.flush()
-
-    async def update_primary_intent(
-        self,
-        *,
-        owner_id: UUID,
-        mochi_item_id: UUID,
-        new_primary: Intent,
-        new_secondary: tuple[Intent, ...],
-    ) -> None:
-        stmt = select(MochiItemRow).where(
-            MochiItemRow.id == mochi_item_id, MochiItemRow.owner_id == owner_id
-        )
-        row = (await self._session.scalars(stmt)).one_or_none()
-        if row is None:
-            return
-        row.intent = new_primary.value
-        row.secondary_intents = [s.value for s in new_secondary]
-        row.updated_at = datetime.utcnow()
-        await self._session.flush()
 
     async def list_recent(self, *, owner_id: UUID, limit: int) -> list[MochiItem]:
         stmt = (
             select(MochiItemRow)
             .where(MochiItemRow.owner_id == owner_id)
-            .options(selectinload(MochiItemRow.image_refs))
+            .options(
+                selectinload(MochiItemRow.image_refs),
+                selectinload(MochiItemRow.intent_instances),
+            )
             .order_by(MochiItemRow.created_at.desc())
             .limit(limit)
         )
@@ -192,7 +187,10 @@ class PostgresMochiItemRepository(MochiItemRepository):
         stmt = (
             select(MochiItemRow)
             .where(MochiItemRow.owner_id == owner_id, self._intent_match(intent))
-            .options(selectinload(MochiItemRow.image_refs))
+            .options(
+                selectinload(MochiItemRow.image_refs),
+                selectinload(MochiItemRow.intent_instances),
+            )
             .order_by(MochiItemRow.created_at.desc())
             .limit(limit)
         )
@@ -201,13 +199,19 @@ class PostgresMochiItemRepository(MochiItemRepository):
 
     @staticmethod
     def _intent_match(intent: Intent) -> "ColumnElement[bool]":
-        """intent 필터 조건의 단일 캡슐화 지점.
+        """intent 필터의 단일 캡슐화 지점 (1:N — 별도 ``intent_instances`` 테이블 EXISTS).
 
-        현재는 as-built 대표 컬럼(`intent`) 동등 비교. DOMAIN_DESIGN §4.4 flat `intents`
-        이행(migration 0009) 후엔 이 한 곳만 ``MochiItemRow.intents.op('@>')([{'intent': intent.value}])``
-        (GIN containment)으로 교체하면 모든 호출부가 1:N 의미로 바뀐다.
+        해당 type 의 instance 가 하나라도 있으면 매칭. 모든 호출부(list/calendar)가 이 한 곳을
+        통해 1:N 의미를 공유한다. (구 대표 컬럼 동등비교에서 0009 빅뱅으로 교체.)
         """
-        return MochiItemRow.intent == intent.value
+        return (
+            select(IntentInstanceRow.id)
+            .where(
+                IntentInstanceRow.mochi_item_id == MochiItemRow.id,
+                IntentInstanceRow.intent_type == intent.value,
+            )
+            .exists()
+        )
 
     async def list_in_range(
         self,
@@ -221,7 +225,10 @@ class PostgresMochiItemRepository(MochiItemRepository):
         stmt = (
             select(MochiItemRow)
             .where(MochiItemRow.owner_id == owner_id)
-            .options(selectinload(MochiItemRow.image_refs))
+            .options(
+                selectinload(MochiItemRow.image_refs),
+                selectinload(MochiItemRow.intent_instances),
+            )
         )
         if captured_from is not None:
             stmt = stmt.where(MochiItemRow.captured_at >= captured_from)
@@ -236,15 +243,22 @@ class PostgresMochiItemRepository(MochiItemRepository):
     async def list_active_todos_with_entities(
         self, *, owner_id: UUID, limit: int
     ) -> list[tuple[MochiItem, tuple[tuple[str, str], ...]]]:
+        # 미완료 todo = todo instance 가 active 인 item (instance 단위 lifecycle).
+        todo_active = (
+            select(IntentInstanceRow.id)
+            .where(
+                IntentInstanceRow.mochi_item_id == MochiItemRow.id,
+                IntentInstanceRow.intent_type == Intent.TODO.value,
+                IntentInstanceRow.lifecycle_kind == InstanceLifecycleKind.ACTIVE.value,
+            )
+            .exists()
+        )
         stmt = (
             select(MochiItemRow)
-            .where(
-                MochiItemRow.owner_id == owner_id,
-                self._intent_match(Intent.TODO),
-                MochiItemRow.lifecycle_kind == LifecycleStateKind.ACTIVE.value,
-            )
+            .where(MochiItemRow.owner_id == owner_id, todo_active)
             .options(
                 selectinload(MochiItemRow.image_refs),
+                selectinload(MochiItemRow.intent_instances),
                 selectinload(MochiItemRow.entities),
             )
             .order_by(MochiItemRow.captured_at.desc())
@@ -265,15 +279,12 @@ class PostgresMochiItemRepository(MochiItemRepository):
         *,
         owner_id: UUID,
         mochi_item_id: UUID,
-        intent: Intent,
-        secondary_intents: tuple[Intent, ...],
-        intent_applicability: dict[Intent, float],
+        intent_instances: tuple[IntentInstance, ...],
+        needs_review: bool,
         summary: str,
         importance: int,
-        confidence: float,
         model_version: str,
         entities: tuple[tuple[str, str], ...],
-        intent_candidates: tuple[dict[str, object], ...],
     ) -> None:
         stmt = select(MochiItemRow).where(
             MochiItemRow.id == mochi_item_id, MochiItemRow.owner_id == owner_id
@@ -282,29 +293,23 @@ class PostgresMochiItemRepository(MochiItemRepository):
         if row is None:
             return
 
-        row.intent = intent.value
-        row.secondary_intents = [s.value for s in secondary_intents]
-        row.intent_applicability = {k.value: v for k, v in intent_applicability.items()}
-        row.intent_candidates = [dict(c) for c in intent_candidates]
         row.summary = summary
         row.importance = importance
-        row.confidence = confidence
+        row.needs_review = needs_review
         row.model_version = model_version
+        # 처리상태 → 분석 완료(analyzed). 처리상태는 단일 선형이라 정책 검증 없이 확립.
+        row.lifecycle_kind = LifecycleStateKind.ANALYZED.value
         row.updated_at = datetime.utcnow()
 
-        # 분석 완료 → lifecycle 확립. 정책(INGESTED→ANALYZING→ACTIVE)의 2단계를
-        # is_allowed 로 검증한다 (직접 INGESTED→ACTIVE 쌍은 정책상 불허이므로 우회 금지).
-        from app.modules.intents.domain.lifecycle_policy import is_allowed
+        # intent_instances 재적재 — 재분석 시 전량 delete-reinsert (멱등). 사용자 완료상태도
+        # 함께 폐기되나 prod 전까지 실데이터 없어 안전(handoff §4 — 보존은 후속 sprint).
+        await self._session.execute(
+            delete(IntentInstanceRow).where(IntentInstanceRow.mochi_item_id == mochi_item_id)
+        )
+        for inst_row in _instance_rows(owner_id, row, intent_instances):
+            self._session.add(inst_row)
 
-        current = LifecycleState(kind=LifecycleStateKind(row.lifecycle_kind))
-        analyzing = LifecycleState(kind=LifecycleStateKind.ANALYZING)
-        active = LifecycleState(kind=LifecycleStateKind.ACTIVE)
-        if current.kind is LifecycleStateKind.INGESTED and is_allowed(intent, current, analyzing):
-            current = analyzing
-        if current.kind is LifecycleStateKind.ANALYZING and is_allowed(intent, current, active):
-            row.lifecycle_kind = LifecycleStateKind.ACTIVE.value
-
-        # entities 재적재 — 재분석 시 멱등.
+        # entities 재적재 — 동일 멱등 패턴.
         await self._session.execute(
             delete(EntityRow).where(EntityRow.mochi_item_id == mochi_item_id)
         )

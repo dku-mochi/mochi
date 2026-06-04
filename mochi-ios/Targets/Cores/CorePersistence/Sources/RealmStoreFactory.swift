@@ -6,25 +6,23 @@ import RealmSwift
 /// - App Group 컨테이너에 파일을 두고
 /// - schemaVersion·migrationBlock을 중앙에서 한 곳에 정의해 모든 프로세스가 동일 스키마 가정으로 열도록 한다.
 public enum RealmStoreFactory {
-    public static let currentSchemaVersion: UInt64 = 4
+    public static let currentSchemaVersion: UInt64 = 5
 
     public static func makeConfiguration() -> Realm.Configuration {
-        var config = Realm.Configuration(
+        let config = Realm.Configuration(
             fileURL: AppGroup.realmFileURL,
             schemaVersion: currentSchemaVersion,
-            migrationBlock: { _, oldVersion in
-                // v1 → v2: RealmImageRef.sha256/objectKey 추가, RealmExtractedEntity.provenance* 추가.
-                // v2 → v3: RealmMochiItem.intentCandidates/intentTopGap + RealmIntentCandidate 추가.
-                // v3 → v4: intentTopGap 제거 (복수 의도 판정은 confidence + candidates 에서 derive).
-                // 누락/제거 필드는 Realm 이 자동 처리하므로 별도 변환은 불필요.
-                _ = oldVersion
-            },
+            // v4 → v5 (2026-06-04 intent 빅뱅): intentRawValue/confidence/intentCandidates 제거 →
+            // intentInstances(RealmIntentInstance) + needsReview + reviewOptions. lifecycle 2분할.
+            // prod 아님 — 실데이터 폐기 허용이라 점진 migration 대신 파일을 재생성한다.
+            deleteRealmIfMigrationNeeded: true,
             objectTypes: [
                 RealmMochiItem.self,
                 RealmImageRef.self,
                 RealmExtractedEntity.self,
                 RealmActionCandidate.self,
-                RealmIntentCandidate.self,
+                RealmIntentInstance.self,
+                RealmReviewOption.self,
             ]
         )
         // 모든 프로세스가 동일 fileURL/schemaVersion을 보도록 default로 박는다.
