@@ -81,8 +81,8 @@ private struct AmbiguousBody: View {
     let onRetry: (MochiItem.ID) -> Void
     @State private var showsIntentPicker = false
 
-    /// LLM 의견(최대 2개). 강등 항목은 비어 있다.
-    private var opinions: [IntentCandidate] { mochiItem.analysis?.reviewOpinions ?? [] }
+    /// 미확정 후보 (API projection). 강등 항목·미영속 시 비어 있어 "다른 의도"만 노출된다.
+    private var options: [ReviewOption] { mochiItem.analysis?.reviewOptions ?? [] }
     /// 분석 실패로 강등된 항목인가 — 명시 마커로 판별(멱등 replay 로 후보만 빈 정상 항목과 구분).
     private var isFailed: Bool { mochiItem.analysis?.isAnalysisFailed ?? false }
 
@@ -190,13 +190,13 @@ private struct AmbiguousBody: View {
     private var choices: some View {
         VStack(spacing: HomeDesign.Spacing.sm) {
             HStack(spacing: HomeDesign.Spacing.sm) {
-                ForEach(Array(opinions.enumerated()), id: \.offset) { idx, candidate in
+                ForEach(Array(options.prefix(2).enumerated()), id: \.offset) { idx, option in
                     ChoiceChip(
-                        text: candidate.label ?? candidate.intent.displayName,
-                        intent: candidate.intent,
+                        text: option.displayLabel,
+                        intent: option.intentType,
                         isPrimary: idx == 0
                     ) {
-                        onClassify(mochiItem.id, candidate.intent)
+                        onClassify(mochiItem.id, option.intentType)
                     }
                 }
                 ManualPickChip { showsIntentPicker = true }

@@ -54,9 +54,8 @@ description: 시스템 토폴로지·iOS↔Backend 데이터흐름·API 계약�
 │  FastAPI Modular Monolith + Hexagonal Architecture                    │
 │                                                                       │
 │  ┌────────────────────── /api/v1 ─────────────────────┐               │
-│  │  POST /mochi_items     POST /mochi_items/back-tap  │               │
+│  │  POST /mochi_items   (단일 ingest)                │               │
 │  │  POST /mochi_items/presign  GET /mochi_items/{id}  │               │
-│  │  PATCH /mochi_items/{id}/intent  (iOS unwired)     │               │
 │  │  GET  /mochi_items/{id}/stream (SSE)               │               │
 │  │  POST /auth/{apple,google,refresh,logout}          │               │
 │  │  GET  /users/me     GET /health                    │               │
@@ -82,7 +81,7 @@ description: 시스템 토폴로지·iOS↔Backend 데이터흐름·API 계약�
 │  Mochi Worker  ──►  LISTEN mochi_item_outbox / poll                   │
 │  (FOR UPDATE SKIP LOCKED, AgentRunPersistence, DLQ)                   │
 │                                                                       │
-│  Vertex AI │ Gemini Flash (multimodal function calling)               │
+│  Vertex AI │ gemini-3.1-flash-lite (multimodal function calling)      │
 │  Vertex AI │ text-embedding-005                                       │
 └───────────────────────────────────────────────────────────────────────┘
 ```
@@ -97,7 +96,7 @@ description: 시스템 토폴로지·iOS↔Backend 데이터흐름·API 계약�
 - **프로젝트 도구**: Tuist 4.x — `Project.swift` 단일 파일에 다중 framework target.
 - **언어/타겟**: Swift 5.x, iOS 17+, `SWIFT_STRICT_CONCURRENCY=targeted` (TCA/Dependencies 동적 framework 링크 호환; `complete` 복귀는 후속).
 - **로컬 DB**: Realm (App Group 공유 파일, `mochi.realm`).
-- **네트워킹**: `URLSessionMochiAPIClient`. 향후 `swift-openapi-generator` 로 생성된 클라이언트로 교체.
+- **네트워킹**: `openapi.json` → `swift-openapi-generator`(`CodeGen/generate.sh`) 생성 클라이언트(`Generated/{Client,Types}.swift`) + `OpenAPIMochiClient` 어댑터. 수기 `URLSessionMochiAPIClient` 삭제(⓪ 단일계약 승격).
 
 ### 2.2 모듈 그래프
 
@@ -146,20 +145,21 @@ App  ──► AppIntents/          (QuickCaptureIntent + CaptureScreenshotInten
 
 별도로 `RootFeature` 가 `.appLaunched` / `.appBecameActive` 시점에 `pending-backtap/` 을 검사 → (a) `.png` 잔재 (snippet 시스템 dismiss 후 남은 것) 는 모두 sweep, (b) `.memo` marker 가 있으면 가장 최근 한 장의 captureID 를 추출해 `BackTapModalFeature` 메모 phase 로 띄움 (인증된 상태에서만; 미인증이면 다음 active 시점까지 대기).
 
-### 2.4 4-Intent 라이프사이클
+### 2.4 4-Intent 라이프사이클 (2분할 — 처리상태 ⊥ 의미상태)
 
-`CoreDomain.LifecyclePolicy.validate(from:to:intent:)` 가 다음 두 가지를 모두 검증:
-1. `(current → next)` 페어가 Intent 별 허용 집합에 있는지
-2. `.archived(reason:)` 의 reason 이 Intent 별 허용 reason 집합에 있는지
+2026-06-04 빅뱅으로 lifecycle 은 **2분할**됐다(DOMAIN_DESIGN §7). **item 처리상태**와 **intent instance 의미상태**가 직교한다.
 
-| Intent | 자동 동작 | 합법 전이 |
+- **처리상태** (`mochi_items.lifecycle_kind`, item 단위): `ingested → analyzing → analyzed`(분석완료·instance 적재됨·iOS 폴링 컷오버 신호), 실패 시 `→ failed`. archive 없음.
+- **의미상태** (`intent_instances.lifecycle_kind`, instance 단위): instance 는 분석 성공 시 `active` 로 태어난다. `CoreDomain.LifecyclePolicy.validate(from:to:intent:)` 가 (1) `(current→next)` 페어가 intent_type 별 허용인지 (2) `.archived(reason:)` 의 reason 이 intent_type 별 허용인지 검증.
+
+| intent_type | 자동 동작 | 합법 전이(의미상태) |
 | --- | --- | --- |
-| `schedule` | EventKit/Google Calendar sync | `ingested → analyzing → active → archived(scheduleEnded\|userManual)` |
-| `todo` | Reminders sync | `ingested → analyzing → active → archived(todoCompleted\|userManual)` |
-| `knowledge` | RAG 인덱싱 | `active → decaying → reviewRequested → archived(knowledgeStale\|userManual)` 또는 → active 복귀 |
+| `schedule` | EventKit/Google Calendar sync | `active → archived(scheduleEnded\|userManual)` |
+| `todo` | Reminders sync | `active → archived(todoCompleted\|userManual)` |
+| `knowledge` | RAG 인덱싱 | `active ↔ decaying ↔ reviewRequested → archived(knowledgeStale\|userManual)` |
 | `memo` | 영구 보관 | `active → archived(userManual)` 만 |
 
-위반 시 `LifecycleTransitionError`. 백엔드 `app/modules/intents/domain/lifecycle_policy.py` 가 동일 invariant 를 보장.
+한 캡쳐의 TODO_A 완료가 같은 캡쳐의 TODO_B·Schedule_C 와 독립(행 단위). 위반 시 `LifecycleTransitionError`. 백엔드 `app/modules/intents/domain/lifecycle_policy.py` 가 동일 invariant 를 보장.
 
 ### 2.5 Realm Mapper Losslessness
 
@@ -180,7 +180,7 @@ App  ──► AppIntents/          (QuickCaptureIntent + CaptureScreenshotInten
 - **언어/Runtime**: Python 3.12, FastAPI, uv 패키지 관리
 - **아키텍처**: Modular Monolith + Hexagonal (per-module `domain / application / infrastructure / presentation`)
 - **DB**: Postgres 16 + pgvector (HNSW + cosine), async SQLAlchemy 2 + asyncpg, Alembic
-- **AI**: Vertex AI · Gemini Flash (multimodal function calling, streaming) · text-embedding-005
+- **AI**: Vertex AI · `gemini-3.1-flash-lite` (multimodal function calling, streaming) · text-embedding-005
 - **관측**: structlog (JSON, contextvars 로 request_id/idempotency_key/path 바인딩)
 - **인증**: PyJWT + PyJWKClient (RS256/ES256/EdDSA), JWKS TTL 캐시; dev mode 는 `Bearer dev:<subject>` (environment=local 한정)
 
@@ -201,11 +201,11 @@ app/
 │   ├── mochi_items/
 │   │   ├── domain/                MochiItem / LifecycleState (출처·intent 인라인, pure)
 │   │   ├── application/           IngestMochiItem, GetMochiItemForOwner, make_mochi_item_repository
-│   │   ├── infrastructure/        SQLAlchemy ORM (MochiItemRow, MochiItemImageRefRow,
-│   │   │                          EntityRow, EmbeddingRow,
+│   │   ├── infrastructure/        SQLAlchemy ORM (MochiItemRow, IntentInstanceRow,
+│   │   │                          MochiItemImageRefRow, EntityRow, EmbeddingRow,
 │   │   │                          IdempotencyKeyRow, MochiItemOutboxRow,
 │   │   │                          AgentRunRow, ToolCallRow), OutboxNotifier
-│   │   └── presentation/          POST/GET/PATCH /mochi_items + Pydantic API schemas
+│   │   └── presentation/          POST/GET /mochi_items + Pydantic API schemas
 │   ├── intents/
 │   │   └── domain/lifecycle_policy.py     4-Intent 상태 머신 (단일 진실 공급원)
 │   ├── agent/
@@ -252,7 +252,7 @@ infrastructure  ──────►   ports  ──────┘
   → POST /mochi_items/presign(업로드 bytes 기준 sha256/mimeType) → V4 Signed PUT URL
   → 클라가 GCS 직접 업로드 → objectKey 확보
   ↓
-POST /mochi_items 또는 POST /mochi_items/back-tap (with Idempotency-Key, Bearer)
+POST /mochi_items (단일 ingest 경로, with Idempotency-Key, Bearer)
   ↓
 RequestContextMiddleware (request_id 바인딩)
   ↓
@@ -380,7 +380,7 @@ iOS `CoreNetworking.MochiAPIClient` 의 DTO 가 backend `openapi.json` 의 스�
 
 ### 5.5 Agent loop & 개인화 (Arch2 — LLM = 분석가)
 
-- **`GeminiAgentClient(LLMClient)`** (`gemini-3.1-flash-lite`/global) — function-calling 루프. LLM 이 분석가: `finalizeAnalysis` 로 use case 후보 3개(`candidates`: label·intent·applicability·reasoning)와 summary·entities 를 저술하고, primary intent·`confidence`(= 최상위 후보 applicability)·secondary 는 서버가 candidates 의 applicability 분포에서 derive 한다. ⚠️ **이 primary/secondary 위계는 as-built 임시 모델** — `DOMAIN_DESIGN.md §4.4` 의 flat `intents`(0009)에서 폐기되고, 대표/confidence 는 *저장 없이* projection 으로 계산된다(`candidates` wire 는 stable 유지). `platformContext`/`webFetch` 로 URL 그라운딩. `AgentOrchestrator` 가 첫 user turn 에 `# 시간 컨텍스트`(Asia/Seoul 현재시각)를 주입한다. orchestrator 의 `ANALYZED` 노드가 루프를, `PERSISTED` 노드가 `MochiItemGateway.apply_analysis` write-back(+lifecycle `→active`)을 담당.
+- **`GeminiAgentClient(LLMClient)`** (`gemini-3.1-flash-lite`/global) — function-calling 루프. LLM 이 분석가: `finalizeAnalysis`(V7, boolean instances) 로 가변 개수 `intent_instances`(`intent_type`·`payload`(typed)·`label`·`reasoning`) + `needs_review` + `review_options` + summary·entities 를 직접 저술한다. **서버 derive 없음**(점수·대표·위계 폐기 — `_to_analysis_result` 가 DTO→instance 1:1 분해). `platformContext`/`webFetch` 로 URL 그라운딩. `AgentOrchestrator` 가 첫 user turn 에 `# 시간 컨텍스트`(Asia/Seoul 현재시각)를 주입한다. orchestrator 의 `ANALYZED` 노드가 루프를, `PERSISTED` 노드가 `MochiItemGateway.apply_analysis` write-back(intent_instances delete-reinsert + 처리상태 `→analyzed`)을 담당.
 - **개인화**: `user_profiles` 에 유저 특성 요약(관심사·평소 분류 성향)을 sliding-window 로 적립(`RefreshUserProfile`, 디바운스), 분석 시 system prompt 에 주입 → 쓸수록 정확. 상세 흐름은 `DOMAIN_DESIGN.md §8.2`.
 - text+URL = 실연결. 이미지 bytes 분석·임베딩 적재(INDEXED)는 design-ahead.
 
@@ -406,7 +406,7 @@ iOS `CoreNetworking.MochiAPIClient` 의 DTO 가 backend `openapi.json` 의 스�
 | iOS 진입 | `mochi-ios/Targets/App/Sources/MochiApp.swift` |
 | iOS 도메인 | `mochi-ios/Targets/Cores/CoreDomain/Sources/` |
 | iOS 저장소 | `mochi-ios/Targets/Cores/CorePersistence/Sources/RealmMochiItemRepository.swift` |
-| iOS 네트워킹 | `mochi-ios/Targets/Cores/CoreNetworking/Sources/URLSessionMochiAPIClient.swift` |
+| iOS 네트워킹 | `mochi-ios/Targets/Cores/CoreNetworking/Sources/OpenAPIMochiClient.swift` (+ `Generated/{Client,Types}.swift`) |
 | Share Extension | `mochi-ios/Targets/ShareExtension/Sources/ShareExtensionPrincipal.swift` |
 | App Intents | `mochi-ios/Targets/App/Sources/AppIntents/` — `QuickCaptureIntent`, `CaptureScreenshotIntent` (snippet trigger), `BackTapSnippetView`, `CommitBackTapCaptureIntent` (캡쳐 분기 background), `OpenBackTapMemoIntent` (메모 분기 foreground), `MochiShortcuts` (메인 App 타겟 내부) |
 | iOS 백탭 메모 모달 | `mochi-ios/Targets/Features/FeatureMochiItem/Sources/BackTapModalFeature.swift`, `BackTapModalView.swift` |

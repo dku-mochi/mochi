@@ -4,7 +4,6 @@
 infrastructure (`PostgresMochiItemRepository`) 직접 reach를 차단해 모듈 경계를 유지한다.
 """
 
-from collections import Counter
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from uuid import UUID
@@ -113,12 +112,20 @@ def _deadline_value(entities: tuple[tuple[str, str], ...]) -> str | None:
     return None
 
 
+# 캘린더 대표색 우선순위 — argmax(점수) 폐기(2026-06-04). 시간 민감한 일정이 대표.
+_INTENT_PRIORITY = (Intent.SCHEDULE, Intent.TODO, Intent.KNOWLEDGE, Intent.MEMO)
+
+
 def _representative_intent(group: list[MochiItem]) -> Intent | None:
-    """그날의 대표 Intent = 최빈값. 동률이면 더 최근(captured_at desc 입력) 우선."""
-    if not group:
-        return None
-    counts = Counter(item.intent for item in group)
-    return counts.most_common(1)[0][0]
+    """그날의 대표 Intent = 고정 우선순위(schedule>todo>knowledge>memo) 중 존재하는 최상위.
+
+    점수가 사라져 argmax 불가 — 의미 우선순위로 캘린더 칸 대표색을 정한다(대표 개념 자체는
+    저장 안 함, read 시 projection).
+    """
+    present: set[Intent] = set()
+    for item in group:
+        present.update(item.intent_types)
+    return next((i for i in _INTENT_PRIORITY if i in present), None)
 
 
 def _first_thumbnail(group: list[MochiItem]) -> str | None:

@@ -1,16 +1,11 @@
-"""MochiItem aggregate root 의 multi-intent invariant 와 swap_primary 검증.
+"""MochiItem aggregate root — instance 모델 검증 (2026-06-04 빅뱅).
 
-분류 결과는 worker(`apply_analysis`)가 채운다 — 도메인은 채워진 상태를 직접 표현한다
-(구 ``from_classification`` 생성자는 동기 분류 경로와 함께 제거됨).
+분류 결과는 worker(`apply_analysis`)가 ``intent_instances`` 로 채운다. 위계(primary/secondary)·
+applicability·swap_primary 는 폐기됐다 — 저장된 instance 는 곧 active, 같은 type 다중 허용.
 """
 
-import pytest
-
-from app.modules.mochi_items.domain.entities import (
-    IngestChannel,
-    IngestSource,
-    MochiItem,
-)
+from app.modules.mochi_items.domain.entities import IngestChannel, IngestSource, MochiItem
+from app.modules.mochi_items.domain.value_objects import IntentInstance, IntentPayload, ReviewOption
 from app.shared.intent import Intent
 
 
@@ -18,81 +13,58 @@ def _source(channel: IngestChannel = IngestChannel.SCREENSHOT) -> IngestSource:
     return IngestSource(channel=channel)
 
 
-def _classified_item() -> MochiItem:
-    """LLM 분류가 채워진 상태의 MochiItem (worker apply_analysis 결과와 동치)."""
+def test_default_is_empty_for_unclassified_ingestion() -> None:
+    """일반 ingestion(분석 전) 은 instance 가 비고 needs_review=False."""
+    item = MochiItem(id=_source().id, source=_source())
+    assert item.intent_instances == ()
+    assert item.needs_review is False
+    assert item.review_options == ()
+    assert item.intent_types == ()
+
+
+def test_intent_types_dedupes_preserving_order() -> None:
+    """같은 type 다중 instance 여도 intent_types 는 distinct(출현 순서 보존)."""
     source = _source()
-    return MochiItem(
+    item = MochiItem(
         id=source.id,
         source=source,
-        intent=Intent.TODO,
-        secondary_intents=(Intent.KNOWLEDGE, Intent.MEMO),
-        intent_applicability={Intent.TODO: 0.95, Intent.KNOWLEDGE: 0.75, Intent.MEMO: 0.40},
+        intent_instances=(
+            IntentInstance(intent_type=Intent.TODO, label="회신"),
+            IntentInstance(intent_type=Intent.TODO, label="구매"),  # 같은 type 둘
+            IntentInstance(intent_type=Intent.KNOWLEDGE, label="참고"),
+        ),
     )
+    assert item.intent_types == (Intent.TODO, Intent.KNOWLEDGE)
 
 
-def test_default_intent_is_memo_for_unclassified_ingestion() -> None:
-    """일반 ingestion (분류 전) 의 fallback default 는 MEMO 다."""
-    item = MochiItem(id=_source().id, source=_source())
-    assert item.intent is Intent.MEMO
-    assert item.secondary_intents == ()
-    assert item.intent_applicability == {}
-    assert item.intent_candidates == ()
+def test_same_type_multiple_instances_allowed() -> None:
+    """한 캡쳐가 todo instance 를 여러 개 가질 수 있다(위계 폐기)."""
+    source = _source()
+    item = MochiItem(
+        id=source.id,
+        source=source,
+        intent_instances=(
+            IntentInstance(intent_type=Intent.TODO, payload=IntentPayload(title="A")),
+            IntentInstance(intent_type=Intent.TODO, payload=IntentPayload(title="B")),
+        ),
+    )
+    assert len(item.intent_instances) == 2
+    assert all(i.intent_type is Intent.TODO for i in item.intent_instances)
 
 
-def test_post_init_rejects_primary_in_secondary() -> None:
-    with pytest.raises(ValueError, match="must not appear in secondary"):
-        MochiItem(
-            id=_source().id,
-            source=_source(),
-            intent=Intent.TODO,
-            secondary_intents=(Intent.TODO, Intent.MEMO),
-        )
-
-
-def test_post_init_rejects_duplicate_secondary() -> None:
-    with pytest.raises(ValueError, match="must not contain duplicates"):
-        MochiItem(
-            id=_source().id,
-            source=_source(),
-            intent=Intent.TODO,
-            secondary_intents=(Intent.MEMO, Intent.MEMO),
-        )
-
-
-def test_post_init_rejects_out_of_range_applicability() -> None:
-    with pytest.raises(ValueError, match="must be in"):
-        MochiItem(
-            id=_source().id,
-            source=_source(),
-            intent=Intent.TODO,
-            intent_applicability={Intent.TODO: 1.2},
-        )
-
-
-def test_swap_primary_moves_old_primary_to_front_of_secondary() -> None:
-    item = _classified_item()
-    item.swap_primary(Intent.KNOWLEDGE)
-
-    assert item.intent is Intent.KNOWLEDGE
-    # 이전 primary (TODO) 가 secondary 의 맨 앞으로 이동, KNOWLEDGE 는 secondary 에서 제거.
-    assert item.secondary_intents == (Intent.TODO, Intent.MEMO)
-    # applicability 는 보존 — calibration 자료로 유지.
-    assert item.intent_applicability[Intent.TODO] == 0.95
-
-
-def test_swap_primary_to_same_intent_is_noop() -> None:
-    item = _classified_item()
-    secondary_before = item.secondary_intents
-    item.swap_primary(Intent.TODO)
-
-    assert item.intent is Intent.TODO
-    assert item.secondary_intents == secondary_before
-
-
-def test_swap_primary_to_intent_not_in_secondary_still_demotes_old() -> None:
-    """알림 외 자유 입력으로 LLM 이 안 본 intent 를 골랐을 때도 swap 이 동작한다."""
-    item = _classified_item()
-    item.swap_primary(Intent.SCHEDULE)
-
-    assert item.intent is Intent.SCHEDULE
-    assert item.secondary_intents == (Intent.TODO, Intent.KNOWLEDGE, Intent.MEMO)
+def test_needs_review_carries_review_options() -> None:
+    """모호 케이스 — memo instance 1개 저장 + needs_review + review_options 후보."""
+    source = _source()
+    item = MochiItem(
+        id=source.id,
+        source=source,
+        intent_instances=(IntentInstance(intent_type=Intent.MEMO, label="나중에 확인"),),
+        needs_review=True,
+        review_options=(
+            ReviewOption(intent_type=Intent.TODO, label="할 일로 등록"),
+            ReviewOption(intent_type=Intent.KNOWLEDGE, label="참고 저장"),
+        ),
+    )
+    assert item.needs_review is True
+    assert item.intent_types == (Intent.MEMO,)
+    assert len(item.review_options) == 2

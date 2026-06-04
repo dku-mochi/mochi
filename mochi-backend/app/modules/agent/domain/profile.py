@@ -24,8 +24,7 @@ class ProfileWindowItem:
     """
 
     summary: str | None
-    intent: Intent
-    secondary_intents: tuple[Intent, ...]
+    intent_types: tuple[Intent, ...]
     user_memo: str | None
 
 

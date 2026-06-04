@@ -24,7 +24,7 @@ description: FastAPI 백엔드 진입점·빌드 가이드·모듈 구조. 백�
 | 비동기 ORM | SQLAlchemy 2 (asyncio, typed `MappedAsDataclass`) + asyncpg |
 | 마이그레이션 | Alembic (autogenerate + compare_type) |
 | DB | Postgres 16 + pgvector (HNSW + cosine) |
-| AI | Vertex AI · Gemini 3.5 Flash (multimodal function calling, streaming) · text-embedding-005 |
+| AI | Vertex AI · `gemini-3.1-flash-lite` (multimodal function calling, streaming) · text-embedding-005 |
 | 로깅 / 관측 | structlog (JSON, bound contextvars: request_id, idempotency_key) |
 
 ## 모듈 구조 — Modular Monolith + Hexagonal
@@ -191,4 +191,4 @@ ingested → normalized → analyzed → routed → persisted → indexed → sy
 
 전체 엔드포인트·요청/응답 스키마의 단일 원천은 **`openapi.json`** 이다 (`make openapi` 생성물, 서버 구동 시 `GET /docs` Swagger UI). 라우트별 도메인 의미·iOS 배선 상태는 [`docs/DOMAIN_DESIGN.md`](../docs/DOMAIN_DESIGN.md) §6 을 본다.
 
-대분류: `auth/*`(Apple·Google·dev·refresh·logout) · `users/me` · `mochi_items`(ingest · back-tap · presign · 조회 · list · calendar · todos/upcoming · intent override · SSE stream) · `search`(Hybrid RAG) · `health`. 모든 보호 라우트는 `Authorization: Bearer`, `POST /mochi_items*` 는 `Idempotency-Key` 필수.
+대분류: `auth/*`(Apple·Google·dev·refresh·logout) · `users/me` · `mochi_items`(ingest · presign · 조회 · list · calendar · todos/upcoming · SSE stream) · `search`(Hybrid RAG) · `health`. 모든 보호 라우트는 `Authorization: Bearer`, `POST /mochi_items` 는 `Idempotency-Key` 필수. (2026-06-04 단일 ingest — back-tap·intent override 라우트 폐기)

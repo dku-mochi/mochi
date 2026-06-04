@@ -41,7 +41,9 @@ class PostgresHybridIndex(RetrievalIndex):
             WHERE owner_id = :owner_id
               AND to_tsvector('simple', coalesce(summary,'') || ' ' || coalesce(text,''))
                   @@ plainto_tsquery('simple', :q)
-              AND (:scope = 'all' OR intent = :scope)
+              AND (:scope = 'all'
+                   OR EXISTS (SELECT 1 FROM intent_instances ii
+                              WHERE ii.mochi_item_id = mochi_items.id AND ii.intent_type = :scope))
             ORDER BY score DESC
             LIMIT :k
             """
@@ -66,7 +68,9 @@ class PostgresHybridIndex(RetrievalIndex):
             FROM embeddings e
             JOIN mochi_items c ON c.id = e.mochi_item_id
             WHERE c.owner_id = :owner_id
-              AND (:scope = 'all' OR c.intent = :scope)
+              AND (:scope = 'all'
+                   OR EXISTS (SELECT 1 FROM intent_instances ii
+                              WHERE ii.mochi_item_id = c.id AND ii.intent_type = :scope))
             ORDER BY e.embedding <=> CAST(:embedding AS vector)
             LIMIT :k
             """

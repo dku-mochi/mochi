@@ -55,43 +55,33 @@ public protocol APIProtocol: Sendable {
     ///
     /// 모찌들 탭 — captured_at 구간 내 owner 모찌 목록(특정 날짜 선택 시 그날 sheet).
     ///
-    /// ``capturedFrom``/``capturedTo`` 는 ISO8601(UTC 권장). ``intent`` 로 4-Intent 필터.
+    /// ``capturedFrom``/``capturedTo`` 는 ISO8601(UTC 권장). ``intent`` 로 4-Intent 필터
+    /// (해당 type 의 instance 가 있는 item).
     ///
     /// - Remark: HTTP `GET /api/v1/mochi_items`.
     /// - Remark: Generated from `#/paths//api/v1/mochi_items/get(list_mochi_items_api_v1_mochi_items_get)`.
     func list_mochi_items_api_v1_mochi_items_get(_ input: Operations.list_mochi_items_api_v1_mochi_items_get.Input) async throws -> Operations.list_mochi_items_api_v1_mochi_items_get.Output
     /// Create Mochi Item
     ///
+    /// 단일 ingest 진입점 — 모든 입력 채널(링크·텍스트·스크린샷/백탭).
+    ///
+    /// object_key 를 가진 imageRef 는 채널 무관하게 GCS 실측 검증을 거친다(owner-prefix + size +
+    /// content-type). 4-Intent instance·needs_review 는 outbox worker(``AgentOrchestrator``)가
+    /// 비동기로 채우고, iOS 는 폴링(`GET /mochi_items/{id}`)으로 반영한다.
+    ///
     /// - Remark: HTTP `POST /api/v1/mochi_items`.
     /// - Remark: Generated from `#/paths//api/v1/mochi_items/post(create_mochi_item_api_v1_mochi_items_post)`.
     func create_mochi_item_api_v1_mochi_items_post(_ input: Operations.create_mochi_item_api_v1_mochi_items_post.Input) async throws -> Operations.create_mochi_item_api_v1_mochi_items_post.Output
-    /// Create Back Tap Mochi Item
-    ///
-    /// 백탭 캡쳐 — Signed URL 로 GCS 에 올린 ``objectKey`` 를 받아 MochiItem(`.screenshot`) 적재.
-    ///
-    /// 4-Intent 후보·confidence 는 outbox worker(``AgentOrchestrator``)가 비동기로 채우고,
-    /// iOS 는 폴링(`GET /mochi_items/{id}`)으로 결과를 반영한다. 동기 분류는 제거됐다 —
-    /// Gemini 이중 호출 방지 + DB↔Realm 일관성.
-    ///
-    /// - Remark: HTTP `POST /api/v1/mochi_items/back-tap`.
-    /// - Remark: Generated from `#/paths//api/v1/mochi_items/back-tap/post(create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post)`.
-    func create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post(_ input: Operations.create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post.Input) async throws -> Operations.create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post.Output
     /// Presign Capture Upload
     ///
     /// 캡처 이미지 업로드용 V4 Signed PUT URL 발급.
     ///
-    /// 클라이언트는 이 URL 로 GCS 에 직접 PUT 한 뒤, 받은 ``objectKey`` 를
-    /// ``POST /mochi_items/back-tap`` (또는 ``POST /mochi_items``) 로 전달한다.
-    /// 서버는 이미지 bytes 를 만지지 않는다.
+    /// 클라이언트는 이 URL 로 GCS 에 직접 PUT 한 뒤, 받은 ``objectKey`` 를 ``POST /mochi_items``
+    /// 의 imageRef 로 전달한다. 서버는 이미지 bytes 를 만지지 않는다.
     ///
     /// - Remark: HTTP `POST /api/v1/mochi_items/presign`.
     /// - Remark: Generated from `#/paths//api/v1/mochi_items/presign/post(presign_capture_upload_api_v1_mochi_items_presign_post)`.
     func presign_capture_upload_api_v1_mochi_items_presign_post(_ input: Operations.presign_capture_upload_api_v1_mochi_items_presign_post.Input) async throws -> Operations.presign_capture_upload_api_v1_mochi_items_presign_post.Output
-    /// Override Mochi Item Intent
-    ///
-    /// - Remark: HTTP `PATCH /api/v1/mochi_items/{mochi_item_id}/intent`.
-    /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/intent/patch(override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch)`.
-    func override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch(_ input: Operations.override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch.Input) async throws -> Operations.override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch.Output
     /// Get Monthly Calendar
     ///
     /// 모찌들 탭 — KST 월간 캘린더(날짜별 개수·대표 Intent·대표 썸네일 object_key).
@@ -101,7 +91,7 @@ public protocol APIProtocol: Sendable {
     func get_monthly_calendar_api_v1_mochi_items_calendar_get(_ input: Operations.get_monthly_calendar_api_v1_mochi_items_calendar_get.Input) async throws -> Operations.get_monthly_calendar_api_v1_mochi_items_calendar_get.Output
     /// Get Upcoming Todos
     ///
-    /// 모찌들 탭 하단 — 마감 임박·미완료(lifecycle active) todo 리스트.
+    /// 모찌들 탭 하단 — 마감 임박·미완료(todo instance active) todo 리스트.
     ///
     /// 마감일은 ``entities(kind='deadline')`` free-text 를 서버가 파싱해 임박순 정렬하며,
     /// 파싱 불가/마감 미상 todo 는 목록 뒤로 둔다(``dueAt`` null).
@@ -221,7 +211,8 @@ extension APIProtocol {
     ///
     /// 모찌들 탭 — captured_at 구간 내 owner 모찌 목록(특정 날짜 선택 시 그날 sheet).
     ///
-    /// ``capturedFrom``/``capturedTo`` 는 ISO8601(UTC 권장). ``intent`` 로 4-Intent 필터.
+    /// ``capturedFrom``/``capturedTo`` 는 ISO8601(UTC 권장). ``intent`` 로 4-Intent 필터
+    /// (해당 type 의 instance 가 있는 item).
     ///
     /// - Remark: HTTP `GET /api/v1/mochi_items`.
     /// - Remark: Generated from `#/paths//api/v1/mochi_items/get(list_mochi_items_api_v1_mochi_items_get)`.
@@ -236,6 +227,12 @@ extension APIProtocol {
     }
     /// Create Mochi Item
     ///
+    /// 단일 ingest 진입점 — 모든 입력 채널(링크·텍스트·스크린샷/백탭).
+    ///
+    /// object_key 를 가진 imageRef 는 채널 무관하게 GCS 실측 검증을 거친다(owner-prefix + size +
+    /// content-type). 4-Intent instance·needs_review 는 outbox worker(``AgentOrchestrator``)가
+    /// 비동기로 채우고, iOS 는 폴링(`GET /mochi_items/{id}`)으로 반영한다.
+    ///
     /// - Remark: HTTP `POST /api/v1/mochi_items`.
     /// - Remark: Generated from `#/paths//api/v1/mochi_items/post(create_mochi_item_api_v1_mochi_items_post)`.
     public func create_mochi_item_api_v1_mochi_items_post(
@@ -247,32 +244,12 @@ extension APIProtocol {
             body: body
         ))
     }
-    /// Create Back Tap Mochi Item
-    ///
-    /// 백탭 캡쳐 — Signed URL 로 GCS 에 올린 ``objectKey`` 를 받아 MochiItem(`.screenshot`) 적재.
-    ///
-    /// 4-Intent 후보·confidence 는 outbox worker(``AgentOrchestrator``)가 비동기로 채우고,
-    /// iOS 는 폴링(`GET /mochi_items/{id}`)으로 결과를 반영한다. 동기 분류는 제거됐다 —
-    /// Gemini 이중 호출 방지 + DB↔Realm 일관성.
-    ///
-    /// - Remark: HTTP `POST /api/v1/mochi_items/back-tap`.
-    /// - Remark: Generated from `#/paths//api/v1/mochi_items/back-tap/post(create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post)`.
-    public func create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post(
-        headers: Operations.create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post.Input.Headers = .init(),
-        body: Operations.create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post.Input.Body
-    ) async throws -> Operations.create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post.Output {
-        try await create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post(Operations.create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post.Input(
-            headers: headers,
-            body: body
-        ))
-    }
     /// Presign Capture Upload
     ///
     /// 캡처 이미지 업로드용 V4 Signed PUT URL 발급.
     ///
-    /// 클라이언트는 이 URL 로 GCS 에 직접 PUT 한 뒤, 받은 ``objectKey`` 를
-    /// ``POST /mochi_items/back-tap`` (또는 ``POST /mochi_items``) 로 전달한다.
-    /// 서버는 이미지 bytes 를 만지지 않는다.
+    /// 클라이언트는 이 URL 로 GCS 에 직접 PUT 한 뒤, 받은 ``objectKey`` 를 ``POST /mochi_items``
+    /// 의 imageRef 로 전달한다. 서버는 이미지 bytes 를 만지지 않는다.
     ///
     /// - Remark: HTTP `POST /api/v1/mochi_items/presign`.
     /// - Remark: Generated from `#/paths//api/v1/mochi_items/presign/post(presign_capture_upload_api_v1_mochi_items_presign_post)`.
@@ -281,21 +258,6 @@ extension APIProtocol {
         body: Operations.presign_capture_upload_api_v1_mochi_items_presign_post.Input.Body
     ) async throws -> Operations.presign_capture_upload_api_v1_mochi_items_presign_post.Output {
         try await presign_capture_upload_api_v1_mochi_items_presign_post(Operations.presign_capture_upload_api_v1_mochi_items_presign_post.Input(
-            headers: headers,
-            body: body
-        ))
-    }
-    /// Override Mochi Item Intent
-    ///
-    /// - Remark: HTTP `PATCH /api/v1/mochi_items/{mochi_item_id}/intent`.
-    /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/intent/patch(override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch)`.
-    public func override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch(
-        path: Operations.override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch.Input.Path,
-        headers: Operations.override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch.Input.Headers = .init(),
-        body: Operations.override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch.Input.Body
-    ) async throws -> Operations.override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch.Output {
-        try await override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch(Operations.override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch.Input(
-            path: path,
             headers: headers,
             body: body
         ))
@@ -317,7 +279,7 @@ extension APIProtocol {
     }
     /// Get Upcoming Todos
     ///
-    /// 모찌들 탭 하단 — 마감 임박·미완료(lifecycle active) todo 리스트.
+    /// 모찌들 탭 하단 — 마감 임박·미완료(todo instance active) todo 리스트.
     ///
     /// 마감일은 ``entities(kind='deadline')`` free-text 를 서버가 파싱해 임박순 정렬하며,
     /// 파싱 불가/마감 미상 todo 는 목록 뒤로 둔다(``dueAt`` null).
@@ -425,49 +387,6 @@ public enum Components {
                 case rawNonce
                 case fullName
                 case deviceLabel
-            }
-        }
-        /// 백탭 ingestion 요청 — 클라이언트가 Signed URL 로 GCS 에 업로드한 뒤 objectKey 를 보낸다.
-        ///
-        /// - Remark: Generated from `#/components/schemas/BackTapMochiItemRequest`.
-        public struct BackTapMochiItemRequest: Codable, Hashable, Sendable {
-            /// - Remark: Generated from `#/components/schemas/BackTapMochiItemRequest/objectKey`.
-            public var objectKey: Swift.String
-            /// - Remark: Generated from `#/components/schemas/BackTapMochiItemRequest/sha256`.
-            public var sha256: Swift.String
-            /// - Remark: Generated from `#/components/schemas/BackTapMochiItemRequest/mimeType`.
-            public var mimeType: Swift.String
-            /// - Remark: Generated from `#/components/schemas/BackTapMochiItemRequest/byteSize`.
-            public var byteSize: Swift.Int
-            /// - Remark: Generated from `#/components/schemas/BackTapMochiItemRequest/userMemo`.
-            public var userMemo: Swift.String?
-            /// Creates a new `BackTapMochiItemRequest`.
-            ///
-            /// - Parameters:
-            ///   - objectKey:
-            ///   - sha256:
-            ///   - mimeType:
-            ///   - byteSize:
-            ///   - userMemo:
-            public init(
-                objectKey: Swift.String,
-                sha256: Swift.String,
-                mimeType: Swift.String,
-                byteSize: Swift.Int,
-                userMemo: Swift.String? = nil
-            ) {
-                self.objectKey = objectKey
-                self.sha256 = sha256
-                self.mimeType = mimeType
-                self.byteSize = byteSize
-                self.userMemo = userMemo
-            }
-            public enum CodingKeys: String, CodingKey {
-                case objectKey
-                case sha256
-                case mimeType
-                case byteSize
-                case userMemo
             }
         }
         /// 월간 캘린더의 하루 셀 — KST 날짜·개수·대표 Intent·대표 썸네일 object_key.
@@ -702,58 +621,108 @@ public enum Components {
             case knowledge = "knowledge"
             case memo = "memo"
         }
-        /// 홈 "헷갈려요" 카드·Live Activity 버튼에 노출되는 LLM use case 후보 1건.
+        /// 저장된 의도 instance 1건 — 곧 active. 점수/위계 없음.
         ///
-        /// - Remark: Generated from `#/components/schemas/IntentCandidateResponse`.
-        public struct IntentCandidateResponse: Codable, Hashable, Sendable {
-            /// - Remark: Generated from `#/components/schemas/IntentCandidateResponse/label`.
-            public var label: Swift.String
-            /// - Remark: Generated from `#/components/schemas/IntentCandidateResponse/intent`.
-            public var intent: Components.Schemas.Intent
-            /// - Remark: Generated from `#/components/schemas/IntentCandidateResponse/applicability`.
-            public var applicability: Swift.Double
-            /// - Remark: Generated from `#/components/schemas/IntentCandidateResponse/reasoning`.
+        /// - Remark: Generated from `#/components/schemas/IntentInstanceResponse`.
+        public struct IntentInstanceResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/IntentInstanceResponse/intentType`.
+            public var intentType: Components.Schemas.Intent
+            /// - Remark: Generated from `#/components/schemas/IntentInstanceResponse/payload`.
+            public var payload: Components.Schemas.IntentPayloadResponse?
+            /// - Remark: Generated from `#/components/schemas/IntentInstanceResponse/label`.
+            public var label: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/IntentInstanceResponse/reasoning`.
             public var reasoning: Swift.String?
-            /// Creates a new `IntentCandidateResponse`.
+            /// - Remark: Generated from `#/components/schemas/IntentInstanceResponse/lifecycleKind`.
+            public var lifecycleKind: Swift.String
+            /// Creates a new `IntentInstanceResponse`.
             ///
             /// - Parameters:
+            ///   - intentType:
+            ///   - payload:
             ///   - label:
-            ///   - intent:
-            ///   - applicability:
             ///   - reasoning:
+            ///   - lifecycleKind:
             public init(
-                label: Swift.String,
-                intent: Components.Schemas.Intent,
-                applicability: Swift.Double,
-                reasoning: Swift.String? = nil
+                intentType: Components.Schemas.Intent,
+                payload: Components.Schemas.IntentPayloadResponse? = nil,
+                label: Swift.String? = nil,
+                reasoning: Swift.String? = nil,
+                lifecycleKind: Swift.String
             ) {
+                self.intentType = intentType
+                self.payload = payload
                 self.label = label
-                self.intent = intent
-                self.applicability = applicability
                 self.reasoning = reasoning
+                self.lifecycleKind = lifecycleKind
             }
             public enum CodingKeys: String, CodingKey {
+                case intentType
+                case payload
                 case label
-                case intent
-                case applicability
                 case reasoning
+                case lifecycleKind
             }
         }
-        /// 알림에서 사용자가 다른 primary intent 를 선택했을 때의 PATCH 본문.
+        /// instance 의 구조화 속성 (전부 optional).
         ///
-        /// - Remark: Generated from `#/components/schemas/IntentOverrideRequest`.
-        public struct IntentOverrideRequest: Codable, Hashable, Sendable {
-            /// - Remark: Generated from `#/components/schemas/IntentOverrideRequest/intent`.
-            public var intent: Components.Schemas.Intent
-            /// Creates a new `IntentOverrideRequest`.
+        /// - Remark: Generated from `#/components/schemas/IntentPayloadResponse`.
+        public struct IntentPayloadResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/IntentPayloadResponse/title`.
+            public var title: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/IntentPayloadResponse/date`.
+            public var date: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/IntentPayloadResponse/time`.
+            public var time: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/IntentPayloadResponse/deadline`.
+            public var deadline: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/IntentPayloadResponse/person`.
+            public var person: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/IntentPayloadResponse/topic`.
+            public var topic: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/IntentPayloadResponse/url`.
+            public var url: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/IntentPayloadResponse/note`.
+            public var note: Swift.String?
+            /// Creates a new `IntentPayloadResponse`.
             ///
             /// - Parameters:
-            ///   - intent:
-            public init(intent: Components.Schemas.Intent) {
-                self.intent = intent
+            ///   - title:
+            ///   - date:
+            ///   - time:
+            ///   - deadline:
+            ///   - person:
+            ///   - topic:
+            ///   - url:
+            ///   - note:
+            public init(
+                title: Swift.String? = nil,
+                date: Swift.String? = nil,
+                time: Swift.String? = nil,
+                deadline: Swift.String? = nil,
+                person: Swift.String? = nil,
+                topic: Swift.String? = nil,
+                url: Swift.String? = nil,
+                note: Swift.String? = nil
+            ) {
+                self.title = title
+                self.date = date
+                self.time = time
+                self.deadline = deadline
+                self.person = person
+                self.topic = topic
+                self.url = url
+                self.note = note
             }
             public enum CodingKeys: String, CodingKey {
-                case intent
+                case title
+                case date
+                case time
+                case deadline
+                case person
+                case topic
+                case url
+                case note
             }
         }
         /// - Remark: Generated from `#/components/schemas/LogoutRequest`.
@@ -845,38 +814,16 @@ public enum Components {
             public var text: Swift.String?
             /// - Remark: Generated from `#/components/schemas/MochiItemResponse/userMemo`.
             public var userMemo: Swift.String?
-            /// - Remark: Generated from `#/components/schemas/MochiItemResponse/intent`.
-            public var intent: Components.Schemas.Intent
-            /// - Remark: Generated from `#/components/schemas/MochiItemResponse/secondaryIntents`.
-            public var secondaryIntents: [Components.Schemas.Intent]?
-            /// - Remark: Generated from `#/components/schemas/MochiItemResponse/intentApplicability`.
-            public struct intentApplicabilityPayload: Codable, Hashable, Sendable {
-                /// A container of undocumented properties.
-                public var additionalProperties: [String: Swift.Double]
-                /// Creates a new `intentApplicabilityPayload`.
-                ///
-                /// - Parameters:
-                ///   - additionalProperties: A container of undocumented properties.
-                public init(additionalProperties: [String: Swift.Double] = .init()) {
-                    self.additionalProperties = additionalProperties
-                }
-                public init(from decoder: any Swift.Decoder) throws {
-                    additionalProperties = try decoder.decodeAdditionalProperties(knownKeys: [])
-                }
-                public func encode(to encoder: any Swift.Encoder) throws {
-                    try encoder.encodeAdditionalProperties(additionalProperties)
-                }
-            }
-            /// - Remark: Generated from `#/components/schemas/MochiItemResponse/intentApplicability`.
-            public var intentApplicability: Components.Schemas.MochiItemResponse.intentApplicabilityPayload?
+            /// - Remark: Generated from `#/components/schemas/MochiItemResponse/intentInstances`.
+            public var intentInstances: [Components.Schemas.IntentInstanceResponse]?
+            /// - Remark: Generated from `#/components/schemas/MochiItemResponse/needsReview`.
+            public var needsReview: Swift.Bool?
+            /// - Remark: Generated from `#/components/schemas/MochiItemResponse/reviewOptions`.
+            public var reviewOptions: [Components.Schemas.ReviewOptionResponse]?
             /// - Remark: Generated from `#/components/schemas/MochiItemResponse/summary`.
             public var summary: Swift.String?
             /// - Remark: Generated from `#/components/schemas/MochiItemResponse/importance`.
             public var importance: Swift.Int
-            /// - Remark: Generated from `#/components/schemas/MochiItemResponse/confidence`.
-            public var confidence: Swift.Double
-            /// - Remark: Generated from `#/components/schemas/MochiItemResponse/candidates`.
-            public var candidates: [Components.Schemas.IntentCandidateResponse]?
             /// - Remark: Generated from `#/components/schemas/MochiItemResponse/lifecycleKind`.
             public var lifecycleKind: Swift.String
             /// - Remark: Generated from `#/components/schemas/MochiItemResponse/syncKind`.
@@ -895,13 +842,11 @@ public enum Components {
             ///   - url:
             ///   - text:
             ///   - userMemo:
-            ///   - intent:
-            ///   - secondaryIntents:
-            ///   - intentApplicability:
+            ///   - intentInstances:
+            ///   - needsReview:
+            ///   - reviewOptions:
             ///   - summary:
             ///   - importance:
-            ///   - confidence:
-            ///   - candidates:
             ///   - lifecycleKind:
             ///   - syncKind:
             ///   - imageRefs:
@@ -913,13 +858,11 @@ public enum Components {
                 url: Swift.String? = nil,
                 text: Swift.String? = nil,
                 userMemo: Swift.String? = nil,
-                intent: Components.Schemas.Intent,
-                secondaryIntents: [Components.Schemas.Intent]? = nil,
-                intentApplicability: Components.Schemas.MochiItemResponse.intentApplicabilityPayload? = nil,
+                intentInstances: [Components.Schemas.IntentInstanceResponse]? = nil,
+                needsReview: Swift.Bool? = nil,
+                reviewOptions: [Components.Schemas.ReviewOptionResponse]? = nil,
                 summary: Swift.String? = nil,
                 importance: Swift.Int,
-                confidence: Swift.Double,
-                candidates: [Components.Schemas.IntentCandidateResponse]? = nil,
                 lifecycleKind: Swift.String,
                 syncKind: Swift.String,
                 imageRefs: [Components.Schemas.ImageRefResponse]? = nil,
@@ -931,13 +874,11 @@ public enum Components {
                 self.url = url
                 self.text = text
                 self.userMemo = userMemo
-                self.intent = intent
-                self.secondaryIntents = secondaryIntents
-                self.intentApplicability = intentApplicability
+                self.intentInstances = intentInstances
+                self.needsReview = needsReview
+                self.reviewOptions = reviewOptions
                 self.summary = summary
                 self.importance = importance
-                self.confidence = confidence
-                self.candidates = candidates
                 self.lifecycleKind = lifecycleKind
                 self.syncKind = syncKind
                 self.imageRefs = imageRefs
@@ -950,13 +891,11 @@ public enum Components {
                 case url
                 case text
                 case userMemo
-                case intent
-                case secondaryIntents
-                case intentApplicability
+                case intentInstances
+                case needsReview
+                case reviewOptions
                 case summary
                 case importance
-                case confidence
-                case candidates
                 case lifecycleKind
                 case syncKind
                 case imageRefs
@@ -1072,6 +1011,37 @@ public enum Components {
             public enum CodingKeys: String, CodingKey {
                 case refreshToken
                 case deviceLabel
+            }
+        }
+        /// needs_review=true 일 때의 미확정 후보. 현재 DB 미영속이라 빈 배열일 수 있다(가드레일 2).
+        ///
+        /// - Remark: Generated from `#/components/schemas/ReviewOptionResponse`.
+        public struct ReviewOptionResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/ReviewOptionResponse/intentType`.
+            public var intentType: Components.Schemas.Intent
+            /// - Remark: Generated from `#/components/schemas/ReviewOptionResponse/label`.
+            public var label: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/ReviewOptionResponse/reasoning`.
+            public var reasoning: Swift.String?
+            /// Creates a new `ReviewOptionResponse`.
+            ///
+            /// - Parameters:
+            ///   - intentType:
+            ///   - label:
+            ///   - reasoning:
+            public init(
+                intentType: Components.Schemas.Intent,
+                label: Swift.String? = nil,
+                reasoning: Swift.String? = nil
+            ) {
+                self.intentType = intentType
+                self.label = label
+                self.reasoning = reasoning
+            }
+            public enum CodingKeys: String, CodingKey {
+                case intentType
+                case label
+                case reasoning
             }
         }
         /// - Remark: Generated from `#/components/schemas/SearchRequest`.
@@ -2225,7 +2195,8 @@ public enum Operations {
     ///
     /// 모찌들 탭 — captured_at 구간 내 owner 모찌 목록(특정 날짜 선택 시 그날 sheet).
     ///
-    /// ``capturedFrom``/``capturedTo`` 는 ISO8601(UTC 권장). ``intent`` 로 4-Intent 필터.
+    /// ``capturedFrom``/``capturedTo`` 는 ISO8601(UTC 권장). ``intent`` 로 4-Intent 필터
+    /// (해당 type 의 instance 가 있는 item).
     ///
     /// - Remark: HTTP `GET /api/v1/mochi_items`.
     /// - Remark: Generated from `#/paths//api/v1/mochi_items/get(list_mochi_items_api_v1_mochi_items_get)`.
@@ -2372,6 +2343,12 @@ public enum Operations {
     }
     /// Create Mochi Item
     ///
+    /// 단일 ingest 진입점 — 모든 입력 채널(링크·텍스트·스크린샷/백탭).
+    ///
+    /// object_key 를 가진 imageRef 는 채널 무관하게 GCS 실측 검증을 거친다(owner-prefix + size +
+    /// content-type). 4-Intent instance·needs_review 는 outbox worker(``AgentOrchestrator``)가
+    /// 비동기로 채우고, iOS 는 폴링(`GET /mochi_items/{id}`)으로 반영한다.
+    ///
     /// - Remark: HTTP `POST /api/v1/mochi_items`.
     /// - Remark: Generated from `#/paths//api/v1/mochi_items/post(create_mochi_item_api_v1_mochi_items_post)`.
     public enum create_mochi_item_api_v1_mochi_items_post {
@@ -2498,147 +2475,12 @@ public enum Operations {
             }
         }
     }
-    /// Create Back Tap Mochi Item
-    ///
-    /// 백탭 캡쳐 — Signed URL 로 GCS 에 올린 ``objectKey`` 를 받아 MochiItem(`.screenshot`) 적재.
-    ///
-    /// 4-Intent 후보·confidence 는 outbox worker(``AgentOrchestrator``)가 비동기로 채우고,
-    /// iOS 는 폴링(`GET /mochi_items/{id}`)으로 결과를 반영한다. 동기 분류는 제거됐다 —
-    /// Gemini 이중 호출 방지 + DB↔Realm 일관성.
-    ///
-    /// - Remark: HTTP `POST /api/v1/mochi_items/back-tap`.
-    /// - Remark: Generated from `#/paths//api/v1/mochi_items/back-tap/post(create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post)`.
-    public enum create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post {
-        public static let id: Swift.String = "create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post"
-        public struct Input: Sendable, Hashable {
-            /// - Remark: Generated from `#/paths/api/v1/mochi_items/back-tap/POST/header`.
-            public struct Headers: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/api/v1/mochi_items/back-tap/POST/header/Idempotency-Key`.
-                public var Idempotency_hyphen_Key: Swift.String?
-                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post.AcceptableContentType>]
-                /// Creates a new `Headers`.
-                ///
-                /// - Parameters:
-                ///   - Idempotency_hyphen_Key:
-                ///   - accept:
-                public init(
-                    Idempotency_hyphen_Key: Swift.String? = nil,
-                    accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post.AcceptableContentType>] = .defaultValues()
-                ) {
-                    self.Idempotency_hyphen_Key = Idempotency_hyphen_Key
-                    self.accept = accept
-                }
-            }
-            public var headers: Operations.create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post.Input.Headers
-            /// - Remark: Generated from `#/paths/api/v1/mochi_items/back-tap/POST/requestBody`.
-            @frozen public enum Body: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/api/v1/mochi_items/back-tap/POST/requestBody/content/application\/json`.
-                case json(Components.Schemas.BackTapMochiItemRequest)
-            }
-            public var body: Operations.create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post.Input.Body
-            /// Creates a new `Input`.
-            ///
-            /// - Parameters:
-            ///   - headers:
-            ///   - body:
-            public init(
-                headers: Operations.create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post.Input.Headers = .init(),
-                body: Operations.create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post.Input.Body
-            ) {
-                self.headers = headers
-                self.body = body
-            }
-        }
-        @frozen public enum Output: Sendable, Hashable {
-            public struct Created: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/api/v1/mochi_items/back-tap/POST/responses/201/content`.
-                @frozen public enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/api/v1/mochi_items/back-tap/POST/responses/201/content/application\/json`.
-                    case json(Components.Schemas.MochiItemResponse)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    public var json: Components.Schemas.MochiItemResponse {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                public var body: Operations.create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post.Output.Created.Body
-                /// Creates a new `Created`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                public init(body: Operations.create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post.Output.Created.Body) {
-                    self.body = body
-                }
-            }
-            /// Successful Response
-            ///
-            /// - Remark: Generated from `#/paths//api/v1/mochi_items/back-tap/post(create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post)/responses/201`.
-            ///
-            /// HTTP response code: `201 created`.
-            case created(Operations.create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post.Output.Created)
-            /// The associated value of the enum case if `self` is `.created`.
-            ///
-            /// - Throws: An error if `self` is not `.created`.
-            /// - SeeAlso: `.created`.
-            public var created: Operations.create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post.Output.Created {
-                get throws {
-                    switch self {
-                    case let .created(response):
-                        return response
-                    default:
-                        try throwUnexpectedResponseStatus(
-                            expectedStatus: "created",
-                            response: self
-                        )
-                    }
-                }
-            }
-            /// Undocumented response.
-            ///
-            /// A response with a code that is not documented in the OpenAPI document.
-            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
-        }
-        @frozen public enum AcceptableContentType: AcceptableProtocol {
-            case json
-            case other(Swift.String)
-            public init?(rawValue: Swift.String) {
-                switch rawValue.lowercased() {
-                case "application/json":
-                    self = .json
-                default:
-                    self = .other(rawValue)
-                }
-            }
-            public var rawValue: Swift.String {
-                switch self {
-                case let .other(string):
-                    return string
-                case .json:
-                    return "application/json"
-                }
-            }
-            public static var allCases: [Self] {
-                [
-                    .json
-                ]
-            }
-        }
-    }
     /// Presign Capture Upload
     ///
     /// 캡처 이미지 업로드용 V4 Signed PUT URL 발급.
     ///
-    /// 클라이언트는 이 URL 로 GCS 에 직접 PUT 한 뒤, 받은 ``objectKey`` 를
-    /// ``POST /mochi_items/back-tap`` (또는 ``POST /mochi_items``) 로 전달한다.
-    /// 서버는 이미지 bytes 를 만지지 않는다.
+    /// 클라이언트는 이 URL 로 GCS 에 직접 PUT 한 뒤, 받은 ``objectKey`` 를 ``POST /mochi_items``
+    /// 의 imageRef 로 전달한다. 서버는 이미지 bytes 를 만지지 않는다.
     ///
     /// - Remark: HTTP `POST /api/v1/mochi_items/presign`.
     /// - Remark: Generated from `#/paths//api/v1/mochi_items/presign/post(presign_capture_upload_api_v1_mochi_items_presign_post)`.
@@ -2716,143 +2558,6 @@ public enum Operations {
             /// - Throws: An error if `self` is not `.ok`.
             /// - SeeAlso: `.ok`.
             public var ok: Operations.presign_capture_upload_api_v1_mochi_items_presign_post.Output.Ok {
-                get throws {
-                    switch self {
-                    case let .ok(response):
-                        return response
-                    default:
-                        try throwUnexpectedResponseStatus(
-                            expectedStatus: "ok",
-                            response: self
-                        )
-                    }
-                }
-            }
-            /// Undocumented response.
-            ///
-            /// A response with a code that is not documented in the OpenAPI document.
-            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
-        }
-        @frozen public enum AcceptableContentType: AcceptableProtocol {
-            case json
-            case other(Swift.String)
-            public init?(rawValue: Swift.String) {
-                switch rawValue.lowercased() {
-                case "application/json":
-                    self = .json
-                default:
-                    self = .other(rawValue)
-                }
-            }
-            public var rawValue: Swift.String {
-                switch self {
-                case let .other(string):
-                    return string
-                case .json:
-                    return "application/json"
-                }
-            }
-            public static var allCases: [Self] {
-                [
-                    .json
-                ]
-            }
-        }
-    }
-    /// Override Mochi Item Intent
-    ///
-    /// - Remark: HTTP `PATCH /api/v1/mochi_items/{mochi_item_id}/intent`.
-    /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/intent/patch(override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch)`.
-    public enum override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch {
-        public static let id: Swift.String = "override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch"
-        public struct Input: Sendable, Hashable {
-            /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/intent/PATCH/path`.
-            public struct Path: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/intent/PATCH/path/mochi_item_id`.
-                public var mochi_item_id: Swift.String
-                /// Creates a new `Path`.
-                ///
-                /// - Parameters:
-                ///   - mochi_item_id:
-                public init(mochi_item_id: Swift.String) {
-                    self.mochi_item_id = mochi_item_id
-                }
-            }
-            public var path: Operations.override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch.Input.Path
-            /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/intent/PATCH/header`.
-            public struct Headers: Sendable, Hashable {
-                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch.AcceptableContentType>]
-                /// Creates a new `Headers`.
-                ///
-                /// - Parameters:
-                ///   - accept:
-                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch.AcceptableContentType>] = .defaultValues()) {
-                    self.accept = accept
-                }
-            }
-            public var headers: Operations.override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch.Input.Headers
-            /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/intent/PATCH/requestBody`.
-            @frozen public enum Body: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/intent/PATCH/requestBody/content/application\/json`.
-                case json(Components.Schemas.IntentOverrideRequest)
-            }
-            public var body: Operations.override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch.Input.Body
-            /// Creates a new `Input`.
-            ///
-            /// - Parameters:
-            ///   - path:
-            ///   - headers:
-            ///   - body:
-            public init(
-                path: Operations.override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch.Input.Path,
-                headers: Operations.override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch.Input.Headers = .init(),
-                body: Operations.override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch.Input.Body
-            ) {
-                self.path = path
-                self.headers = headers
-                self.body = body
-            }
-        }
-        @frozen public enum Output: Sendable, Hashable {
-            public struct Ok: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/intent/PATCH/responses/200/content`.
-                @frozen public enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/intent/PATCH/responses/200/content/application\/json`.
-                    case json(Components.Schemas.MochiItemResponse)
-                    /// The associated value of the enum case if `self` is `.json`.
-                    ///
-                    /// - Throws: An error if `self` is not `.json`.
-                    /// - SeeAlso: `.json`.
-                    public var json: Components.Schemas.MochiItemResponse {
-                        get throws {
-                            switch self {
-                            case let .json(body):
-                                return body
-                            }
-                        }
-                    }
-                }
-                /// Received HTTP response body
-                public var body: Operations.override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch.Output.Ok.Body
-                /// Creates a new `Ok`.
-                ///
-                /// - Parameters:
-                ///   - body: Received HTTP response body
-                public init(body: Operations.override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch.Output.Ok.Body) {
-                    self.body = body
-                }
-            }
-            /// Successful Response
-            ///
-            /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/intent/patch(override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch)/responses/200`.
-            ///
-            /// HTTP response code: `200 ok`.
-            case ok(Operations.override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch.Output.Ok)
-            /// The associated value of the enum case if `self` is `.ok`.
-            ///
-            /// - Throws: An error if `self` is not `.ok`.
-            /// - SeeAlso: `.ok`.
-            public var ok: Operations.override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch.Output.Ok {
                 get throws {
                     switch self {
                     case let .ok(response):
@@ -3035,7 +2740,7 @@ public enum Operations {
     }
     /// Get Upcoming Todos
     ///
-    /// 모찌들 탭 하단 — 마감 임박·미완료(lifecycle active) todo 리스트.
+    /// 모찌들 탭 하단 — 마감 임박·미완료(todo instance active) todo 리스트.
     ///
     /// 마감일은 ``entities(kind='deadline')`` free-text 를 서버가 파싱해 임박순 정렬하며,
     /// 파싱 불가/마감 미상 todo 는 목록 뒤로 둔다(``dueAt`` null).

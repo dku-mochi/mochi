@@ -266,6 +266,7 @@
           "mochi_items"
         ],
         "summary": "Create Mochi Item",
+        "description": "단일 ingest 진입점 — 모든 입력 채널(링크·텍스트·스크린샷/백탭).\n\nobject_key 를 가진 imageRef 는 채널 무관하게 GCS 실측 검증을 거친다(owner-prefix + size +\ncontent-type). 4-Intent instance·needs_review 는 outbox worker(``AgentOrchestrator``)가\n비동기로 채우고, iOS 는 폴링(`GET /mochi_items/{id}`)으로 반영한다.",
         "operationId": "create_mochi_item_api_v1_mochi_items_post",
         "parameters": [
           {
@@ -317,7 +318,7 @@
           "mochi_items"
         ],
         "summary": "List Mochi Items",
-        "description": "모찌들 탭 — captured_at 구간 내 owner 모찌 목록(특정 날짜 선택 시 그날 sheet).\n\n``capturedFrom``/``capturedTo`` 는 ISO8601(UTC 권장). ``intent`` 로 4-Intent 필터.",
+        "description": "모찌들 탭 — captured_at 구간 내 owner 모찌 목록(특정 날짜 선택 시 그날 sheet).\n\n``capturedFrom``/``capturedTo`` 는 ISO8601(UTC 권장). ``intent`` 로 4-Intent 필터\n(해당 type 의 instance 가 있는 item).",
         "operationId": "list_mochi_items_api_v1_mochi_items_get",
         "parameters": [
           {
@@ -387,67 +388,13 @@
         }
       }
     },
-    "/api/v1/mochi_items/back-tap": {
-      "post": {
-        "tags": [
-          "mochi_items"
-        ],
-        "summary": "Create Back Tap Mochi Item",
-        "description": "백탭 캡쳐 — Signed URL 로 GCS 에 올린 ``objectKey`` 를 받아 MochiItem(`.screenshot`) 적재.\n\n4-Intent 후보·confidence 는 outbox worker(``AgentOrchestrator``)가 비동기로 채우고,\niOS 는 폴링(`GET /mochi_items/{id}`)으로 결과를 반영한다. 동기 분류는 제거됐다 —\nGemini 이중 호출 방지 + DB↔Realm 일관성.",
-        "operationId": "create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post",
-        "parameters": [
-          {
-            "name": "Idempotency-Key",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "title": "Idempotency-Key",
-              "type": "string",
-              "nullable": true
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "title": "Authorization",
-              "type": "string",
-              "nullable": true
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/BackTapMochiItemRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MochiItemResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/mochi_items/presign": {
       "post": {
         "tags": [
           "mochi_items"
         ],
         "summary": "Presign Capture Upload",
-        "description": "캡처 이미지 업로드용 V4 Signed PUT URL 발급.\n\n클라이언트는 이 URL 로 GCS 에 직접 PUT 한 뒤, 받은 ``objectKey`` 를\n``POST /mochi_items/back-tap`` (또는 ``POST /mochi_items``) 로 전달한다.\n서버는 이미지 bytes 를 만지지 않는다.",
+        "description": "캡처 이미지 업로드용 V4 Signed PUT URL 발급.\n\n클라이언트는 이 URL 로 GCS 에 직접 PUT 한 뒤, 받은 ``objectKey`` 를 ``POST /mochi_items``\n의 imageRef 로 전달한다. 서버는 이미지 bytes 를 만지지 않는다.",
         "operationId": "presign_capture_upload_api_v1_mochi_items_presign_post",
         "parameters": [
           {
@@ -478,59 +425,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PresignResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/mochi_items/{mochi_item_id}/intent": {
-      "patch": {
-        "tags": [
-          "mochi_items"
-        ],
-        "summary": "Override Mochi Item Intent",
-        "operationId": "override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch",
-        "parameters": [
-          {
-            "name": "mochi_item_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Mochi Item Id"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "title": "Authorization",
-              "type": "string",
-              "nullable": true
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/IntentOverrideRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MochiItemResponse"
                 }
               }
             }
@@ -596,7 +490,7 @@
           "mochi_items"
         ],
         "summary": "Get Upcoming Todos",
-        "description": "모찌들 탭 하단 — 마감 임박·미완료(lifecycle active) todo 리스트.\n\n마감일은 ``entities(kind='deadline')`` free-text 를 서버가 파싱해 임박순 정렬하며,\n파싱 불가/마감 미상 todo 는 목록 뒤로 둔다(``dueAt`` null).",
+        "description": "모찌들 탭 하단 — 마감 임박·미완료(todo instance active) todo 리스트.\n\n마감일은 ``entities(kind='deadline')`` free-text 를 서버가 파싱해 임박순 정렬하며,\n파싱 불가/마감 미상 todo 는 목록 뒤로 둔다(``dueAt`` null).",
         "operationId": "get_upcoming_todos_api_v1_mochi_items_todos_upcoming_get",
         "parameters": [
           {
@@ -795,44 +689,6 @@
           "identityToken"
         ],
         "title": "AppleSignInRequest"
-      },
-      "BackTapMochiItemRequest": {
-        "properties": {
-          "objectKey": {
-            "type": "string",
-            "title": "Objectkey"
-          },
-          "sha256": {
-            "type": "string",
-            "maxLength": 64,
-            "minLength": 64,
-            "title": "Sha256"
-          },
-          "mimeType": {
-            "type": "string",
-            "title": "Mimetype"
-          },
-          "byteSize": {
-            "type": "integer",
-            "maximum": 52428800.0,
-            "minimum": 0.0,
-            "title": "Bytesize"
-          },
-          "userMemo": {
-            "title": "Usermemo",
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "type": "object",
-        "required": [
-          "objectKey",
-          "sha256",
-          "mimeType",
-          "byteSize"
-        ],
-        "title": "BackTapMochiItemRequest",
-        "description": "백탭 ingestion 요청 — 클라이언트가 Signed URL 로 GCS 에 업로드한 뒤 objectKey 를 보낸다."
       },
       "CalendarDayResponse": {
         "properties": {
@@ -1036,46 +892,83 @@
         "title": "Intent",
         "description": "모찌의 4-Intent 분류. iOS `CoreDomain.Intent` 와 완전히 동일한 문자열 값."
       },
-      "IntentCandidateResponse": {
+      "IntentInstanceResponse": {
         "properties": {
-          "label": {
-            "type": "string",
-            "title": "Label"
-          },
-          "intent": {
+          "intentType": {
             "$ref": "#/components/schemas/Intent"
           },
-          "applicability": {
-            "type": "number",
-            "title": "Applicability"
+          "payload": {
+            "$ref": "#/components/schemas/IntentPayloadResponse"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string",
+            "nullable": true
           },
           "reasoning": {
             "type": "string",
             "title": "Reasoning",
             "default": ""
+          },
+          "lifecycleKind": {
+            "type": "string",
+            "title": "Lifecyclekind"
           }
         },
         "type": "object",
         "required": [
-          "label",
-          "intent",
-          "applicability"
+          "intentType",
+          "lifecycleKind"
         ],
-        "title": "IntentCandidateResponse",
-        "description": "홈 \"헷갈려요\" 카드·Live Activity 버튼에 노출되는 LLM use case 후보 1건."
+        "title": "IntentInstanceResponse",
+        "description": "저장된 의도 instance 1건 — 곧 active. 점수/위계 없음."
       },
-      "IntentOverrideRequest": {
+      "IntentPayloadResponse": {
         "properties": {
-          "intent": {
-            "$ref": "#/components/schemas/Intent"
+          "title": {
+            "title": "Title",
+            "type": "string",
+            "nullable": true
+          },
+          "date": {
+            "title": "Date",
+            "type": "string",
+            "nullable": true
+          },
+          "time": {
+            "title": "Time",
+            "type": "string",
+            "nullable": true
+          },
+          "deadline": {
+            "title": "Deadline",
+            "type": "string",
+            "nullable": true
+          },
+          "person": {
+            "title": "Person",
+            "type": "string",
+            "nullable": true
+          },
+          "topic": {
+            "title": "Topic",
+            "type": "string",
+            "nullable": true
+          },
+          "url": {
+            "title": "Url",
+            "type": "string",
+            "nullable": true
+          },
+          "note": {
+            "title": "Note",
+            "type": "string",
+            "nullable": true
           }
         },
         "type": "object",
-        "required": [
-          "intent"
-        ],
-        "title": "IntentOverrideRequest",
-        "description": "알림에서 사용자가 다른 primary intent 를 선택했을 때의 PATCH 본문."
+        "title": "IntentPayloadResponse",
+        "description": "instance 의 구조화 속성 (전부 optional)."
       },
       "LogoutRequest": {
         "properties": {
@@ -1165,22 +1058,24 @@
             "type": "string",
             "nullable": true
           },
-          "intent": {
-            "$ref": "#/components/schemas/Intent"
-          },
-          "secondaryIntents": {
+          "intentInstances": {
             "items": {
-              "$ref": "#/components/schemas/Intent"
+              "$ref": "#/components/schemas/IntentInstanceResponse"
             },
             "type": "array",
-            "title": "Secondaryintents"
+            "title": "Intentinstances"
           },
-          "intentApplicability": {
-            "additionalProperties": {
-              "type": "number"
+          "needsReview": {
+            "type": "boolean",
+            "title": "Needsreview",
+            "default": false
+          },
+          "reviewOptions": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewOptionResponse"
             },
-            "type": "object",
-            "title": "Intentapplicability"
+            "type": "array",
+            "title": "Reviewoptions"
           },
           "summary": {
             "title": "Summary",
@@ -1190,17 +1085,6 @@
           "importance": {
             "type": "integer",
             "title": "Importance"
-          },
-          "confidence": {
-            "type": "number",
-            "title": "Confidence"
-          },
-          "candidates": {
-            "items": {
-              "$ref": "#/components/schemas/IntentCandidateResponse"
-            },
-            "type": "array",
-            "title": "Candidates"
           },
           "lifecycleKind": {
             "type": "string",
@@ -1234,10 +1118,8 @@
           "channel",
           "url",
           "text",
-          "intent",
           "summary",
           "importance",
-          "confidence",
           "lifecycleKind",
           "syncKind",
           "capturedAt",
@@ -1336,6 +1218,29 @@
           "refreshToken"
         ],
         "title": "RefreshRequest"
+      },
+      "ReviewOptionResponse": {
+        "properties": {
+          "intentType": {
+            "$ref": "#/components/schemas/Intent"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string",
+            "nullable": true
+          },
+          "reasoning": {
+            "type": "string",
+            "title": "Reasoning",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "intentType"
+        ],
+        "title": "ReviewOptionResponse",
+        "description": "needs_review=true 일 때의 미확정 후보. 현재 DB 미영속이라 빈 배열일 수 있다(가드레일 2)."
       },
       "SearchRequest": {
         "properties": {

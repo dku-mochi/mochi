@@ -84,29 +84,6 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
         }
     }
 
-    public func ingestBackTapMochiItem(
-        objectKey: String,
-        sha256: String,
-        mimeType: String,
-        byteSize: Int,
-        userMemo: String?,
-        idempotencyKey: String
-    ) async throws -> MochiItemDTO {
-        let body = Components.Schemas.BackTapMochiItemRequest(
-            objectKey: objectKey,
-            sha256: sha256,
-            mimeType: mimeType,
-            byteSize: byteSize,
-            userMemo: userMemo
-        )
-        let output = try await client.create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post(
-            .init(headers: .init(Idempotency_hyphen_Key: idempotencyKey), body: .json(body))
-        )
-        switch output {
-        case let .created(response): return try Self.mapMochiItem(try response.body.json)        case let .undocumented(status, payload): throw await Self.error(status: status, payload: payload)
-        }
-    }
-
     public func getMochiItem(id: UUID) async throws -> MochiItemDTO {
         let output = try await client.get_mochi_item_api_v1_mochi_items__mochi_item_id__get(
             .init(path: .init(mochi_item_id: id.uuidString))
@@ -146,13 +123,11 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
             url: r.url.flatMap { URL(string: $0) },
             text: r.text,
             userMemo: r.userMemo,
-            intent: Intent(rawValue: r.intent.rawValue),
-            secondaryIntents: (r.secondaryIntents ?? []).compactMap { Intent(rawValue: $0.rawValue) },
-            intentApplicability: r.intentApplicability?.additionalProperties ?? [:],
             summary: r.summary,
             importance: r.importance,
-            confidence: r.confidence,
-            candidates: (r.candidates ?? []).map(mapCandidate),
+            intentInstances: (r.intentInstances ?? []).map(mapIntentInstance),
+            needsReview: r.needsReview ?? false,
+            reviewOptions: (r.reviewOptions ?? []).map(mapReviewOption),
             lifecycleKind: r.lifecycleKind,
             syncKind: r.syncKind,
             imageRefs: (r.imageRefs ?? []).map(mapImageRefFromResponse),
@@ -161,12 +136,34 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
         )
     }
 
-    private static func mapCandidate(_ c: Components.Schemas.IntentCandidateResponse) -> IntentCandidateDTO {
-        IntentCandidateDTO(
-            label: c.label,
-            intent: Intent(rawValue: c.intent.rawValue) ?? .memo,
-            applicability: c.applicability,
-            reasoning: c.reasoning ?? ""
+    private static func mapIntentInstance(_ i: Components.Schemas.IntentInstanceResponse) -> IntentInstanceDTO {
+        IntentInstanceDTO(
+            intentType: Intent(rawValue: i.intentType.rawValue) ?? .memo,
+            payload: i.payload.map(mapPayload),
+            label: i.label,
+            reasoning: i.reasoning,
+            lifecycleKind: i.lifecycleKind
+        )
+    }
+
+    private static func mapPayload(_ p: Components.Schemas.IntentPayloadResponse) -> IntentPayloadDTO {
+        IntentPayloadDTO(
+            title: p.title,
+            date: p.date,
+            time: p.time,
+            deadline: p.deadline,
+            person: p.person,
+            topic: p.topic,
+            url: p.url,
+            note: p.note
+        )
+    }
+
+    private static func mapReviewOption(_ o: Components.Schemas.ReviewOptionResponse) -> ReviewOptionDTO {
+        ReviewOptionDTO(
+            intentType: Intent(rawValue: o.intentType.rawValue) ?? .memo,
+            label: o.label,
+            reasoning: o.reasoning
         )
     }
 

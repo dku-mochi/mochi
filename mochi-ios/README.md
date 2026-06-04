@@ -130,7 +130,7 @@ tuist test
 - `Idempotency-Key` 로 중복 등록 방지
 - 에러 응답은 `APIErrorEnvelope` 통일 포맷
 
-이미지 첨부는 서버가 bytes 를 받지 않는다. iOS 가 업로드용 파생본(긴 변 1920px 이하, JPEG q60)을 만들고, 그 bytes 기준 `sha256/mimeType/byteSize` 로 `/mochi_items/presign` 을 호출한 뒤 GCS Signed URL 에 직접 PUT 한다. 이후 `objectKey` 를 `/mochi_items/back-tap` 또는 일반 ingest `imageRefs` 로 전달한다.
+이미지 첨부는 서버가 bytes 를 받지 않는다. iOS 가 업로드용 파생본(긴 변 1920px 이하, JPEG q60)을 만들고, 그 bytes 기준 `sha256/mimeType/byteSize` 로 `/mochi_items/presign` 을 호출한 뒤 GCS Signed URL 에 직접 PUT 한다. 이후 `objectKey` 를 `POST /mochi_items` 의 `imageRefs` 로 전달한다 (2026-06-04 단일 ingest — back-tap 경로 폐기).
 
 ## 참고
 

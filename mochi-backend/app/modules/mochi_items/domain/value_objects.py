@@ -1,37 +1,95 @@
-"""MochiItem 분류에 관한 value objects.
+"""MochiItem intent 표현에 관한 value objects.
 
-LLM(Vertex AI Gemini)이 한 캡쳐에 대해 출력하는 사용자 의도 후보(``IntentClassification``).
-``applicability`` 는 실제 확률이 아니라 "이 의도가 이 기록에 얼마나 잘 들어맞는가" 의 독립
-강도다 (0.0-1.0). 후보 간 합이 1.0 일 필요 없다.
+LLM(Vertex AI Gemini)이 한 캡쳐에 대해 출력하는 의도 instance 들(``IntentInstance``).
+각 instance 는 저장되면 곧 active 인 1급 의도다 — 점수(applicability/confidence/threshold)·
+위계(primary/secondary)·대표(representative)는 폐기됐다(2026-06-04 빅뱅, lab FINDINGS).
+한 캡쳐가 같은 type 의 instance 를 여러 개 가질 수 있고(TODO 여러 개), 각 instance 는
+독립 lifecycle 을 갖는다.
 
-primary/secondary/confidence 도출은 worker(``AgentOrchestrator._to_analysis_result``)가
-candidates 의 applicability 분포에서 수행한다 — confidence := 최상위 후보 applicability.
+미확정 후보(``ReviewOption``)는 instance 가 아니다 — ``needs_review=true`` 일 때만 사용자에게
+제시되는 transient 후보이며 DB 에 영속하지 않는다(API projection).
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from enum import StrEnum
+from uuid import UUID, uuid4
 
 from app.shared.intent import Intent
 
 
-@dataclass(frozen=True, slots=True)
-class IntentClassification:
-    """LLM 이 출력한 단일 후보 (홈 "헷갈려요" 카드·Live Activity 버튼의 원천).
+class InstanceLifecycleKind(StrEnum):
+    """intent instance 의 의미 lifecycle (완료/만료/decay).
 
-    - ``label``: 사용자가 보게 될 한국어 라벨 (예: "구매 고민", "회신").
-    - ``intent``: 해당 라벨의 4-Intent 매핑.
-    - ``applicability``: 0.0-1.0. 적용 강도.
-    - ``reasoning``: 한 줄 — 왜 이 시나리오가 그럴듯한지.
+    item 의 처리 파이프라인 상태(``LifecycleStateKind``)와 **직교**한다. instance 는 분석
+    성공 시점에만 생성되므로 항상 ``active`` 로 태어난다.
     """
 
-    label: str
-    intent: Intent
-    applicability: float
-    reasoning: str = ""
+    ACTIVE = "active"
+    DECAYING = "decaying"
+    REVIEW_REQUESTED = "reviewRequested"
+    ARCHIVED = "archived"
 
-    def __post_init__(self) -> None:
-        if not self.label.strip():
-            raise ValueError("IntentClassification.label must be non-empty")
-        if not 0.0 <= self.applicability <= 1.0:
-            raise ValueError(
-                f"IntentClassification.applicability must be in [0, 1], got {self.applicability}"
-            )
+
+class ArchiveReason(StrEnum):
+    SCHEDULE_ENDED = "scheduleEnded"
+    TODO_COMPLETED = "todoCompleted"
+    KNOWLEDGE_STALE = "knowledgeStale"
+    USER_MANUAL = "userManual"
+
+
+@dataclass(frozen=True, slots=True)
+class InstanceLifecycleState:
+    kind: InstanceLifecycleKind = InstanceLifecycleKind.ACTIVE
+    archive_reason: ArchiveReason | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class IntentPayload:
+    """instance 의 구조화 속성 — 전부 optional typed field.
+
+    자유 object 가 아니라 공통 typed field 로 둔 이유: 열린 object 는 Gemini structured
+    output 이 빈 객체를 내기 쉬웠다(lab FINDINGS §19). title/deadline 등은 typed 컬럼이 아니라
+    이 payload 안에 보관하며, calendar/todo materialize 가 실제로 필요해질 때 파싱한다.
+    """
+
+    title: str | None = None
+    date: str | None = None
+    time: str | None = None
+    deadline: str | None = None
+    person: str | None = None
+    topic: str | None = None
+    url: str | None = None
+    note: str | None = None
+
+
+@dataclass(slots=True)
+class IntentInstance:
+    """LLM 이 한 캡쳐에서 펼친 의도 1개 — 1급(별도 ``intent_instances`` 테이블 행).
+
+    저장돼 있으면 곧 active. 점수 없음(저장 자체가 applicable 의 증거).
+
+    - ``intent_type``: 4-Intent 매핑. 위계 없음 — 같은 type 다중 허용.
+    - ``payload``: 구조화 속성(typed optional).
+    - ``label``: 사용자가 보게 될 한국어 라벨 (예: "구매 고민"). nil 이면 UI 가 intent.displayName 폴백.
+    - ``lifecycle``: 의미 상태(active 기본). intent_type 별 차등 전이(``lifecycle_policy``).
+    """
+
+    intent_type: Intent
+    payload: IntentPayload = field(default_factory=IntentPayload)
+    label: str | None = None
+    reasoning: str = ""
+    lifecycle: InstanceLifecycleState = field(default_factory=InstanceLifecycleState)
+    id: UUID = field(default_factory=uuid4)
+
+
+@dataclass(frozen=True, slots=True)
+class ReviewOption:
+    """needs_review=true 일 때 사용자에게 제시하는 미확정 후보.
+
+    instance 가 **아니다** — DB 에 저장하지 않는다(가드레일 2). 사용자가 고르면 그때
+    해당 type 의 ``IntentInstance`` 를 새로 생성한다.
+    """
+
+    intent_type: Intent
+    label: str | None = None
+    reasoning: str = ""

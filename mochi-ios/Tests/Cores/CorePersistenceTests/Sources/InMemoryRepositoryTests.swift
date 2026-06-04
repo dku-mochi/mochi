@@ -12,19 +12,21 @@ final class InMemoryRepositoryTests: XCTestCase {
         XCTAssertEqual(recent.first?.source.text, "hello")
     }
 
-    func test_updateLifecycle_rejects_illegal_transition_for_memo() async throws {
+    func test_updateInstanceLifecycle_rejects_illegal_transition_for_memo() async throws {
         let repo = InMemoryMochiItemRepository()
         let source = IngestSource(channel: .appDirectInput, text: "memo")
+        let memoInstance = IntentInstance(intentType: .memo)
         let analysis = MochiItemAnalysis(
-            summary: "s", intent: .memo, entities: [], actionCandidates: [],
-            tags: [], importance: .medium, confidence: 0.9,
+            summary: "s", instances: [memoInstance], needsReview: false, reviewOptions: [],
+            entities: [], actionCandidates: [], tags: [], importance: .medium,
             modelVersion: "test", analyzedAt: .init()
         )
-        let mochiItem = MochiItem(source: source, analysis: analysis, lifecycleState: .active)
+        let mochiItem = MochiItem(source: source, analysis: analysis, lifecycleState: .analyzed)
         try await repo.upsert(mochiItem)
 
         do {
-            try await repo.updateLifecycle(mochiItemID: mochiItem.id, to: .reviewRequested)
+            // memo 는 active → archived 만 허용 — reviewRequested 로 전이될 수 없다.
+            try await repo.updateInstanceLifecycle(mochiItemID: mochiItem.id, instanceID: memoInstance.id, to: .reviewRequested)
             XCTFail("memo는 reviewRequested로 전이될 수 없어야 함")
         } catch {
             XCTAssertTrue(error is DomainError)

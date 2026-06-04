@@ -1,7 +1,7 @@
 """모찌들(캘린더) 탭 조회 use case 단위 테스트.
 
 DB 통합 fixture(conftest)가 없어, repository 는 in-memory 스텁으로 대체하고
-application 레이어의 KST 날짜 그룹핑·대표 Intent·마감일 파싱/정렬 로직만 검증한다.
+application 레이어의 KST 날짜 그룹핑·대표 Intent(고정 우선순위)·마감일 파싱/정렬만 검증한다.
 owner_id 격리(SQL where)는 PostgresMochiItemRepository 코드 리뷰가 담당.
 """
 
@@ -21,6 +21,7 @@ from app.modules.mochi_items.domain.entities import (
     LifecycleStateKind,
     MochiItem,
 )
+from app.modules.mochi_items.domain.value_objects import IntentInstance
 from app.shared.intent import Intent
 
 _OWNER = uuid4()
@@ -43,8 +44,8 @@ def _item(
         source=IngestSource(
             channel=IngestChannel.SCREENSHOT, captured_at=captured_at, image_refs=refs
         ),
-        intent=intent,
-        lifecycle=LifecycleState(kind=LifecycleStateKind.ACTIVE),
+        intent_instances=(IntentInstance(intent_type=intent),),
+        lifecycle=LifecycleState(kind=LifecycleStateKind.ANALYZED),
     )
 
 
@@ -64,7 +65,7 @@ class _RangeRepo:
                 continue
             if captured_to is not None and ts >= captured_to:
                 continue
-            if intent is not None and item.intent != intent:
+            if intent is not None and intent not in item.intent_types:
                 continue
             out.append(item)
         out.sort(key=lambda i: i.source.captured_at, reverse=True)
@@ -93,9 +94,11 @@ async def test_monthly_calendar_groups_by_kst_date_and_representative_intent() -
 
     by_date = {d.date: d for d in days}
     assert by_date["2026-06-01"].count == 3
-    assert by_date["2026-06-01"].representative_intent == Intent.TODO  # 최빈
+    # 대표색 = 고정 우선순위(schedule>todo>knowledge>memo) — 그날 schedule 이 있으면 schedule.
+    assert by_date["2026-06-01"].representative_intent == Intent.SCHEDULE
     assert by_date["2026-06-01"].thumbnail_object_key == "k1"  # 유일한 object_key
     assert by_date["2026-06-02"].count == 1
+    assert by_date["2026-06-02"].representative_intent == Intent.KNOWLEDGE
     assert by_date["2026-06-02"].thumbnail_object_key is None
     assert [d.date for d in days] == sorted(d.date for d in days)  # 날짜 오름차순
 

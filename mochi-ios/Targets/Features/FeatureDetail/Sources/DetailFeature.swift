@@ -19,7 +19,7 @@ public struct DetailFeature: Sendable {
     public enum Action: Sendable {
         case onAppear
         case loaded(MochiItem?)
-        case archiveTapped(LifecycleState.ArchiveReason)
+        case archiveTapped(instanceID: UUID, reason: InstanceLifecycle.ArchiveReason)
         case syncToCalendarTapped
         case operationFailed(String)
     }
@@ -42,11 +42,11 @@ public struct DetailFeature: Sendable {
                 state.mochiItem = mochiItem
                 return .none
 
-            case let .archiveTapped(reason):
+            case let .archiveTapped(instanceID, reason):
                 guard let mochiItem = state.mochiItem else { return .none }
                 return .run { send in
                     do {
-                        try await repository.updateLifecycle(mochiItemID: mochiItem.id, to: .archived(reason: reason))
+                        try await repository.updateInstanceLifecycle(mochiItemID: mochiItem.id, instanceID: instanceID, to: .archived(reason: reason))
                     } catch {
                         await send(.operationFailed(String(describing: error)))
                     }

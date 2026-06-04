@@ -132,7 +132,8 @@ class MochiItemWorker:
                 await session.commit()
             except Exception as exc:  # noqa: BLE001
                 log.error("worker.failed", mochi_item_id=str(claimed.mochi_item_id), exception=str(exc))
-                status_value = "dead_letter" if claimed.attempts >= MAX_ATTEMPTS else "pending"
+                is_dead = claimed.attempts >= MAX_ATTEMPTS
+                status_value = "dead_letter" if is_dead else "pending"
                 await session.execute(
                     text("UPDATE mochi_item_outbox SET status=:s, last_error=:err WHERE id=:id").bindparams(
                         bindparam("s", status_value),
@@ -140,6 +141,14 @@ class MochiItemWorker:
                         bindparam("id", claimed.id),
                     )
                 )
+                if is_dead:
+                    # 영구 실패 → item 처리상태를 failed 로 확립 (iOS 폴링 컷오버 신호, §7.1).
+                    # 재시도 가능 실패는 ingested 유지 — 다음 attempt 가 analyzed 로 닫는다.
+                    await session.execute(
+                        text("UPDATE mochi_items SET lifecycle_kind='failed' WHERE id=:id").bindparams(
+                            bindparam("id", claimed.mochi_item_id),
+                        )
+                    )
                 await session.commit()
 
 

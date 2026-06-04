@@ -168,20 +168,13 @@ public struct CalendarDaySummary: Equatable, Sendable, Identifiable {
         }
     }
 
-    /// 그날 대표 Intent = 최빈값. 동률이면 더 최신(group 이 captured_at desc 라 먼저 등장)을
-    /// 안정적으로 택한다 — `Dictionary.max` 의 비결정성으로 점 색이 매 로드마다 바뀌는 것 방지.
+    /// 그날 대표 Intent = **고정 우선순위** `schedule > todo > knowledge > memo` 중 그날 instance 에
+    /// 존재하는 최상위. 최빈값/점수 argmax 폐기 — 의미 우선순위가 점 색의 단일 결정 기준이라
+    /// 매 로드마다 점 색이 안정적이다.
     private static func representative(_ group: [MochiItem]) -> Intent? {
-        var counts: [Intent: Int] = [:]
-        var firstIndex: [Intent: Int] = [:]
-        for (index, item) in group.enumerated() {
-            guard let intent = item.intent else { continue }
-            counts[intent, default: 0] += 1
-            if firstIndex[intent] == nil { firstIndex[intent] = index }
-        }
-        return counts.keys.max { lhs, rhs in
-            if counts[lhs] != counts[rhs] { return counts[lhs]! < counts[rhs]! }
-            return firstIndex[lhs]! > firstIndex[rhs]!   // 동률 → index 작은(최신) 쪽이 큼
-        }
+        let priority: [Intent] = [.schedule, .todo, .knowledge, .memo]
+        let present = Set(group.flatMap { $0.intentTypes })
+        return priority.first { present.contains($0) }
     }
 }
 

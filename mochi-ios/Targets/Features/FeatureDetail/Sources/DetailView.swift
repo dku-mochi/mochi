@@ -14,7 +14,13 @@ public struct DetailView: View {
                 Section("요약") {
                     if let analysis = mochiItem.analysis {
                         Text(analysis.summary).font(MochiTheme.Typography.body)
-                        IntentBadge(intent: analysis.intent)
+                        if !mochiItem.intentTypes.isEmpty {
+                            HStack(spacing: MochiTheme.Spacing.xs) {
+                                ForEach(mochiItem.intentTypes, id: \.self) { intent in
+                                    IntentBadge(intent: intent)
+                                }
+                            }
+                        }
                     } else {
                         Text("(분석 대기 중)")
                             .foregroundStyle(MochiTheme.Palette.textSecondary)
@@ -29,19 +35,12 @@ public struct DetailView: View {
                         .disabled(store.isSyncing)
                     }
                 }
-                Section("라이프사이클") {
-                    if mochiItem.intent == .schedule {
-                        Button("이벤트 종료로 아카이브", role: .destructive) {
-                            store.send(.archiveTapped(.scheduleEnded))
+                let activeInstances = mochiItem.instances.filter { $0.lifecycle == .active }
+                if !activeInstances.isEmpty {
+                    Section("라이프사이클") {
+                        ForEach(activeInstances) { instance in
+                            lifecycleRow(for: instance)
                         }
-                    }
-                    if mochiItem.intent == .todo {
-                        Button("완료로 아카이브", role: .destructive) {
-                            store.send(.archiveTapped(.todoCompleted))
-                        }
-                    }
-                    Button("직접 아카이브", role: .destructive) {
-                        store.send(.archiveTapped(.userManual))
                     }
                 }
                 if let error = store.lastError {
@@ -53,5 +52,29 @@ public struct DetailView: View {
         }
         .navigationTitle("기록 상세")
         .task { store.send(.onAppear) }
+    }
+
+    /// active intent instance 1건의 lifecycle 전이 버튼 (instance 단위 — 한 캡처의 여러 의도가 독립).
+    @ViewBuilder
+    private func lifecycleRow(for instance: IntentInstance) -> some View {
+        VStack(alignment: .leading, spacing: MochiTheme.Spacing.xs) {
+            Label(instance.displayLabel, systemImage: instance.intentType.systemImageName)
+                .font(MochiTheme.Typography.caption.weight(.semibold))
+            switch instance.intentType {
+            case .schedule:
+                Button("이벤트 종료로 아카이브", role: .destructive) {
+                    store.send(.archiveTapped(instanceID: instance.id, reason: .scheduleEnded))
+                }
+            case .todo:
+                Button("완료로 아카이브", role: .destructive) {
+                    store.send(.archiveTapped(instanceID: instance.id, reason: .todoCompleted))
+                }
+            case .knowledge, .memo:
+                EmptyView()
+            }
+            Button("직접 아카이브", role: .destructive) {
+                store.send(.archiveTapped(instanceID: instance.id, reason: .userManual))
+            }
+        }
     }
 }

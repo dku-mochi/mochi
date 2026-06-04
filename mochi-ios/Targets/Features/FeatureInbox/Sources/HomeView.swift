@@ -84,7 +84,7 @@ public struct HomeView: View {
             }
             Spacer()
             HStack(spacing: HomeDesign.Spacing.sm) {
-                CircleIconButton(systemName: "bell", showsBadge: !store.ambiguous.isEmpty) {
+                CircleIconButton(systemName: "bell", showsBadge: !store.needsReview.isEmpty) {
                     store.send(.openNotificationsTapped)
                 }
                 CircleIconButton(systemName: "gearshape", showsBadge: false) {
@@ -187,11 +187,11 @@ public struct HomeView: View {
 
     @ViewBuilder
     private var needsReviewSection: some View {
-        if !store.ambiguous.isEmpty {
+        if !store.needsReview.isEmpty {
             VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
                 SectionHeader(title: "모찌가 헷갈려요", trailing: "전체 보기", subtitle: "둘 중 하나를 골라주세요")
                 NeedsReviewCard(
-                    mochiItems: Array(store.ambiguous),
+                    mochiItems: Array(store.needsReview),
                     page: $store.needsReviewPage,
                     onClassify: { id, intent in store.send(.classifyTapped(mochiItemID: id, intent: intent)) },
                     onRetry: { id in store.send(.retryAnalysisTapped(id)) }

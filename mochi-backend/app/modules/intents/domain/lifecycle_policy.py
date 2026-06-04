@@ -1,56 +1,55 @@
-"""4-Intent 차등 생명주기 정책. iOS `CoreDomain.LifecyclePolicy` 와 1:1 매칭.
+"""4-Intent **instance** 차등 생명주기 정책 (2026-06-04 빅뱅 — instance 단위).
 
-`is_allowed` 는 (kind 전이) + (archive reason 의 Intent 적합성) 둘 다 검증한다.
+intent instance 의 의미 lifecycle(active/decaying/reviewRequested/archived) 전이와
+archive_reason 적합성을 검증한다. item 의 처리 파이프라인 상태(ingested/analyzing/analyzed/
+failed)와는 **직교**한다 — 그쪽은 단일 선형 전이라 정책이 필요 없다.
+
+instance 는 분석 성공 시점에만 생성되므로 항상 ``active`` 로 태어난다(ingested/analyzing/
+failed 진입 없음). iOS ``CoreDomain.LifecyclePolicy`` 와 1:1 매칭.
 """
 
-from app.modules.mochi_items.domain.entities import (
+from app.modules.mochi_items.domain.value_objects import (
     ArchiveReason,
-    LifecycleState,
-    LifecycleStateKind,
+    InstanceLifecycleKind,
+    InstanceLifecycleState,
 )
 from app.shared.intent import Intent
 
 
-class LifecycleTransitionError(Exception):
-    def __init__(self, intent: Intent, frm: LifecycleState, to: LifecycleState):
-        super().__init__(f"Illegal transition for {intent}: {frm.kind} → {to.kind}")
-        self.intent = intent
+class InstanceLifecycleTransitionError(Exception):
+    def __init__(
+        self,
+        intent_type: Intent,
+        frm: InstanceLifecycleState,
+        to: InstanceLifecycleState,
+    ):
+        super().__init__(f"Illegal instance transition for {intent_type}: {frm.kind} → {to.kind}")
+        self.intent_type = intent_type
         self.frm = frm
         self.to = to
 
 
-_ALLOWED_KIND_PAIRS: dict[Intent, set[tuple[LifecycleStateKind, LifecycleStateKind]]] = {
+# intent_type 별 허용 전이. instance 는 active 에서 출발한다.
+_ALLOWED_KIND_PAIRS: dict[Intent, set[tuple[InstanceLifecycleKind, InstanceLifecycleKind]]] = {
     Intent.SCHEDULE: {
-        (LifecycleStateKind.INGESTED, LifecycleStateKind.ANALYZING),
-        (LifecycleStateKind.ANALYZING, LifecycleStateKind.ACTIVE),
-        (LifecycleStateKind.ANALYZING, LifecycleStateKind.FAILED),
-        (LifecycleStateKind.ACTIVE, LifecycleStateKind.ARCHIVED),
+        (InstanceLifecycleKind.ACTIVE, InstanceLifecycleKind.ARCHIVED),
     },
     Intent.TODO: {
-        (LifecycleStateKind.INGESTED, LifecycleStateKind.ANALYZING),
-        (LifecycleStateKind.ANALYZING, LifecycleStateKind.ACTIVE),
-        (LifecycleStateKind.ANALYZING, LifecycleStateKind.FAILED),
-        (LifecycleStateKind.ACTIVE, LifecycleStateKind.ARCHIVED),
+        (InstanceLifecycleKind.ACTIVE, InstanceLifecycleKind.ARCHIVED),
     },
     Intent.KNOWLEDGE: {
-        (LifecycleStateKind.INGESTED, LifecycleStateKind.ANALYZING),
-        (LifecycleStateKind.ANALYZING, LifecycleStateKind.ACTIVE),
-        (LifecycleStateKind.ANALYZING, LifecycleStateKind.FAILED),
-        (LifecycleStateKind.ACTIVE, LifecycleStateKind.DECAYING),
-        (LifecycleStateKind.DECAYING, LifecycleStateKind.ACTIVE),
-        (LifecycleStateKind.DECAYING, LifecycleStateKind.REVIEW_REQUESTED),
-        (LifecycleStateKind.REVIEW_REQUESTED, LifecycleStateKind.ACTIVE),
-        (LifecycleStateKind.REVIEW_REQUESTED, LifecycleStateKind.ARCHIVED),
+        (InstanceLifecycleKind.ACTIVE, InstanceLifecycleKind.DECAYING),
+        (InstanceLifecycleKind.DECAYING, InstanceLifecycleKind.ACTIVE),
+        (InstanceLifecycleKind.DECAYING, InstanceLifecycleKind.REVIEW_REQUESTED),
+        (InstanceLifecycleKind.REVIEW_REQUESTED, InstanceLifecycleKind.ACTIVE),
+        (InstanceLifecycleKind.REVIEW_REQUESTED, InstanceLifecycleKind.ARCHIVED),
     },
     Intent.MEMO: {
-        (LifecycleStateKind.INGESTED, LifecycleStateKind.ANALYZING),
-        (LifecycleStateKind.ANALYZING, LifecycleStateKind.ACTIVE),
-        (LifecycleStateKind.ANALYZING, LifecycleStateKind.FAILED),
-        (LifecycleStateKind.ACTIVE, LifecycleStateKind.ARCHIVED),
+        (InstanceLifecycleKind.ACTIVE, InstanceLifecycleKind.ARCHIVED),
     },
 }
 
-# Intent별 합법적인 archive reason. `USER_MANUAL` 은 모든 Intent에서 허용된다.
+# intent_type 별 합법적인 archive reason. ``USER_MANUAL`` 은 모든 type 에서 허용된다.
 _INTENT_ARCHIVE_REASONS: dict[Intent, set[ArchiveReason]] = {
     Intent.SCHEDULE: {ArchiveReason.SCHEDULE_ENDED, ArchiveReason.USER_MANUAL},
     Intent.TODO: {ArchiveReason.TODO_COMPLETED, ArchiveReason.USER_MANUAL},
@@ -59,23 +58,28 @@ _INTENT_ARCHIVE_REASONS: dict[Intent, set[ArchiveReason]] = {
 }
 
 
-def is_allowed(intent: Intent, current: LifecycleState, next_state: LifecycleState) -> bool:
-    if (current.kind, next_state.kind) not in _ALLOWED_KIND_PAIRS[intent]:
+def is_allowed(
+    intent_type: Intent,
+    current: InstanceLifecycleState,
+    next_state: InstanceLifecycleState,
+) -> bool:
+    """instance lifecycle 전이가 합법인가 — (kind 전이) + (archive reason 의 type 적합성)."""
+    if (current.kind, next_state.kind) not in _ALLOWED_KIND_PAIRS[intent_type]:
         return False
-    if next_state.kind is LifecycleStateKind.ARCHIVED:
+    if next_state.kind is InstanceLifecycleKind.ARCHIVED:
         if next_state.archive_reason is None:
             return False
-        return next_state.archive_reason in _INTENT_ARCHIVE_REASONS[intent]
+        return next_state.archive_reason in _INTENT_ARCHIVE_REASONS[intent_type]
     return True
 
 
-def expected_archive_reason(intent: Intent) -> ArchiveReason:
+def expected_archive_reason(intent_type: Intent) -> ArchiveReason:
     return {
         Intent.SCHEDULE: ArchiveReason.SCHEDULE_ENDED,
         Intent.TODO: ArchiveReason.TODO_COMPLETED,
         Intent.KNOWLEDGE: ArchiveReason.KNOWLEDGE_STALE,
         Intent.MEMO: ArchiveReason.USER_MANUAL,
-    }[intent]
+    }[intent_type]
 
 
 KNOWLEDGE_ACTIVE_DAYS = 30

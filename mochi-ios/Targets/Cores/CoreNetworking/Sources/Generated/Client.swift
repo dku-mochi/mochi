@@ -507,7 +507,8 @@ public struct Client: APIProtocol {
     ///
     /// 모찌들 탭 — captured_at 구간 내 owner 모찌 목록(특정 날짜 선택 시 그날 sheet).
     ///
-    /// ``capturedFrom``/``capturedTo`` 는 ISO8601(UTC 권장). ``intent`` 로 4-Intent 필터.
+    /// ``capturedFrom``/``capturedTo`` 는 ISO8601(UTC 권장). ``intent`` 로 4-Intent 필터
+    /// (해당 type 의 instance 가 있는 item).
     ///
     /// - Remark: HTTP `GET /api/v1/mochi_items`.
     /// - Remark: Generated from `#/paths//api/v1/mochi_items/get(list_mochi_items_api_v1_mochi_items_get)`.
@@ -597,6 +598,12 @@ public struct Client: APIProtocol {
     }
     /// Create Mochi Item
     ///
+    /// 단일 ingest 진입점 — 모든 입력 채널(링크·텍스트·스크린샷/백탭).
+    ///
+    /// object_key 를 가진 imageRef 는 채널 무관하게 GCS 실측 검증을 거친다(owner-prefix + size +
+    /// content-type). 4-Intent instance·needs_review 는 outbox worker(``AgentOrchestrator``)가
+    /// 비동기로 채우고, iOS 는 폴링(`GET /mochi_items/{id}`)으로 반영한다.
+    ///
     /// - Remark: HTTP `POST /api/v1/mochi_items`.
     /// - Remark: Generated from `#/paths//api/v1/mochi_items/post(create_mochi_item_api_v1_mochi_items_post)`.
     public func create_mochi_item_api_v1_mochi_items_post(_ input: Operations.create_mochi_item_api_v1_mochi_items_post.Input) async throws -> Operations.create_mochi_item_api_v1_mochi_items_post.Output {
@@ -669,93 +676,12 @@ public struct Client: APIProtocol {
             }
         )
     }
-    /// Create Back Tap Mochi Item
-    ///
-    /// 백탭 캡쳐 — Signed URL 로 GCS 에 올린 ``objectKey`` 를 받아 MochiItem(`.screenshot`) 적재.
-    ///
-    /// 4-Intent 후보·confidence 는 outbox worker(``AgentOrchestrator``)가 비동기로 채우고,
-    /// iOS 는 폴링(`GET /mochi_items/{id}`)으로 결과를 반영한다. 동기 분류는 제거됐다 —
-    /// Gemini 이중 호출 방지 + DB↔Realm 일관성.
-    ///
-    /// - Remark: HTTP `POST /api/v1/mochi_items/back-tap`.
-    /// - Remark: Generated from `#/paths//api/v1/mochi_items/back-tap/post(create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post)`.
-    public func create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post(_ input: Operations.create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post.Input) async throws -> Operations.create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post.Output {
-        try await client.send(
-            input: input,
-            forOperation: Operations.create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post.id,
-            serializer: { input in
-                let path = try converter.renderedPath(
-                    template: "/api/v1/mochi_items/back-tap",
-                    parameters: []
-                )
-                var request: HTTPTypes.HTTPRequest = .init(
-                    soar_path: path,
-                    method: .post
-                )
-                suppressMutabilityWarning(&request)
-                try converter.setHeaderFieldAsURI(
-                    in: &request.headerFields,
-                    name: "Idempotency-Key",
-                    value: input.headers.Idempotency_hyphen_Key
-                )
-                converter.setAcceptHeader(
-                    in: &request.headerFields,
-                    contentTypes: input.headers.accept
-                )
-                let body: OpenAPIRuntime.HTTPBody?
-                switch input.body {
-                case let .json(value):
-                    body = try converter.setRequiredRequestBodyAsJSON(
-                        value,
-                        headerFields: &request.headerFields,
-                        contentType: "application/json; charset=utf-8"
-                    )
-                }
-                return (request, body)
-            },
-            deserializer: { response, responseBody in
-                switch response.status.code {
-                case 201:
-                    let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.create_back_tap_mochi_item_api_v1_mochi_items_back_tap_post.Output.Created.Body
-                    let chosenContentType = try converter.bestContentType(
-                        received: contentType,
-                        options: [
-                            "application/json"
-                        ]
-                    )
-                    switch chosenContentType {
-                    case "application/json":
-                        body = try await converter.getResponseBodyAsJSON(
-                            Components.Schemas.MochiItemResponse.self,
-                            from: responseBody,
-                            transforming: { value in
-                                .json(value)
-                            }
-                        )
-                    default:
-                        preconditionFailure("bestContentType chose an invalid content type.")
-                    }
-                    return .created(.init(body: body))
-                default:
-                    return .undocumented(
-                        statusCode: response.status.code,
-                        .init(
-                            headerFields: response.headerFields,
-                            body: responseBody
-                        )
-                    )
-                }
-            }
-        )
-    }
     /// Presign Capture Upload
     ///
     /// 캡처 이미지 업로드용 V4 Signed PUT URL 발급.
     ///
-    /// 클라이언트는 이 URL 로 GCS 에 직접 PUT 한 뒤, 받은 ``objectKey`` 를
-    /// ``POST /mochi_items/back-tap`` (또는 ``POST /mochi_items``) 로 전달한다.
-    /// 서버는 이미지 bytes 를 만지지 않는다.
+    /// 클라이언트는 이 URL 로 GCS 에 직접 PUT 한 뒤, 받은 ``objectKey`` 를 ``POST /mochi_items``
+    /// 의 imageRef 로 전달한다. 서버는 이미지 bytes 를 만지지 않는다.
     ///
     /// - Remark: HTTP `POST /api/v1/mochi_items/presign`.
     /// - Remark: Generated from `#/paths//api/v1/mochi_items/presign/post(presign_capture_upload_api_v1_mochi_items_presign_post)`.
@@ -803,77 +729,6 @@ public struct Client: APIProtocol {
                     case "application/json":
                         body = try await converter.getResponseBodyAsJSON(
                             Components.Schemas.PresignResponse.self,
-                            from: responseBody,
-                            transforming: { value in
-                                .json(value)
-                            }
-                        )
-                    default:
-                        preconditionFailure("bestContentType chose an invalid content type.")
-                    }
-                    return .ok(.init(body: body))
-                default:
-                    return .undocumented(
-                        statusCode: response.status.code,
-                        .init(
-                            headerFields: response.headerFields,
-                            body: responseBody
-                        )
-                    )
-                }
-            }
-        )
-    }
-    /// Override Mochi Item Intent
-    ///
-    /// - Remark: HTTP `PATCH /api/v1/mochi_items/{mochi_item_id}/intent`.
-    /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/intent/patch(override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch)`.
-    public func override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch(_ input: Operations.override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch.Input) async throws -> Operations.override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch.Output {
-        try await client.send(
-            input: input,
-            forOperation: Operations.override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch.id,
-            serializer: { input in
-                let path = try converter.renderedPath(
-                    template: "/api/v1/mochi_items/{}/intent",
-                    parameters: [
-                        input.path.mochi_item_id
-                    ]
-                )
-                var request: HTTPTypes.HTTPRequest = .init(
-                    soar_path: path,
-                    method: .patch
-                )
-                suppressMutabilityWarning(&request)
-                converter.setAcceptHeader(
-                    in: &request.headerFields,
-                    contentTypes: input.headers.accept
-                )
-                let body: OpenAPIRuntime.HTTPBody?
-                switch input.body {
-                case let .json(value):
-                    body = try converter.setRequiredRequestBodyAsJSON(
-                        value,
-                        headerFields: &request.headerFields,
-                        contentType: "application/json; charset=utf-8"
-                    )
-                }
-                return (request, body)
-            },
-            deserializer: { response, responseBody in
-                switch response.status.code {
-                case 200:
-                    let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.override_mochi_item_intent_api_v1_mochi_items__mochi_item_id__intent_patch.Output.Ok.Body
-                    let chosenContentType = try converter.bestContentType(
-                        received: contentType,
-                        options: [
-                            "application/json"
-                        ]
-                    )
-                    switch chosenContentType {
-                    case "application/json":
-                        body = try await converter.getResponseBodyAsJSON(
-                            Components.Schemas.MochiItemResponse.self,
                             from: responseBody,
                             transforming: { value in
                                 .json(value)
@@ -973,7 +828,7 @@ public struct Client: APIProtocol {
     }
     /// Get Upcoming Todos
     ///
-    /// 모찌들 탭 하단 — 마감 임박·미완료(lifecycle active) todo 리스트.
+    /// 모찌들 탭 하단 — 마감 임박·미완료(todo instance active) todo 리스트.
     ///
     /// 마감일은 ``entities(kind='deadline')`` free-text 를 서버가 파싱해 임박순 정렬하며,
     /// 파싱 불가/마감 미상 todo 는 목록 뒤로 둔다(``dueAt`` null).

@@ -40,7 +40,7 @@ public struct InboxView: View {
     private func row(_ mochiItem: MochiItem) -> some View {
         VStack(alignment: .leading, spacing: MochiTheme.Spacing.xs) {
             HStack {
-                if let intent = mochiItem.intent {
+                if let intent = mochiItem.representativeIntent {
                     IntentBadge(intent: intent)
                 }
                 Spacer()

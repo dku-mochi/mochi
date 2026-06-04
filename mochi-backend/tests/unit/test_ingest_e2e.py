@@ -15,7 +15,6 @@ from app.modules.mochi_items.application.ingest import (
 from app.modules.mochi_items.domain.entities import (
     ImageRef,
     IngestChannel,
-    LifecycleState,
     MochiItem,
 )
 
@@ -31,15 +30,11 @@ class _InMemoryRepository:
     async def find_by_id(self, *, owner_id, mochi_item_id):
         return self._items.get((owner_id, mochi_item_id))
 
-    async def update_lifecycle(self, *, owner_id, mochi_item_id, new_state: LifecycleState) -> None:
-        item = self._items[(owner_id, mochi_item_id)]
-        item.lifecycle = new_state
-
     async def list_recent(self, *, owner_id, limit):
         return list(self._items.values())[:limit]
 
     async def list_by_intent(self, *, owner_id, intent, limit):
-        return [c for c in self._items.values() if c.intent == intent][:limit]
+        return [c for c in self._items.values() if intent in c.intent_types][:limit]
 
     async def already_ingested(self, *, owner_id, idempotency_key):
         return self._items.get((owner_id, self._idem.get((owner_id, idempotency_key))))
