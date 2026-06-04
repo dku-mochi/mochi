@@ -56,7 +56,7 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>com.IndexFinger.mochi.google</string>
+			<string>app.mochi.google</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<!-- TODO(docs/TODO.md §3.1): Google OAuth iOS client 의 Reversed Client ID 로 교체. -->

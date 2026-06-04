@@ -273,7 +273,7 @@ private struct ThumbnailColumn: View {
     private func loadImage() -> UIImage? {
         guard let relativePath else { return nil }
         guard let container = FileManager.default.containerURL(
-            forSecurityApplicationGroupIdentifier: "group.com.IndexFinger.mochi"
+            forSecurityApplicationGroupIdentifier: "group.app.mochi"
         ) else { return nil }
         let url = container.appendingPathComponent(relativePath)
         return UIImage(contentsOfFile: url.path)

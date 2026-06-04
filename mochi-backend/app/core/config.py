@@ -93,7 +93,7 @@ class Settings(BaseSettings):
     auth_refresh_ttl_seconds: int = 60 * 60 * 24 * 30  # 30일
 
     # External IdP — Apple
-    auth_apple_audience: str = "com.IndexFinger.mochi"
+    auth_apple_audience: str = "app.mochi"
     auth_apple_jwks_url: str = "https://appleid.apple.com/auth/keys"
     auth_apple_issuer: str = "https://appleid.apple.com"
 

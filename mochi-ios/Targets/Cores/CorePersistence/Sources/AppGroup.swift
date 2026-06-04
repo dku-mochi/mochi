@@ -9,7 +9,7 @@ import Foundation
 /// - Targets/App/Support/App.entitlements
 /// - Targets/ShareExtension/Support/ShareExtension.entitlements
 public enum AppGroup {
-    public static let identifier = "group.com.IndexFinger.mochi"
+    public static let identifier = "group.app.mochi"
 
     public static var containerURL: URL {
         guard let url = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: identifier) else {
