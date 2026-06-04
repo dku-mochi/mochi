@@ -52,6 +52,32 @@ struct SharePrimaryButton: View {
     }
 }
 
+// MARK: - Source app chip
+
+/// "Safari에서 캡처" — 단축어가 sentinel 로 보낸 출처앱(자동신호)을 사용자 메모와
+/// 시각적으로 구분해 보여주는 칩. 백엔드 `text` 에는 정규화 1줄로 따로 합쳐진다.
+struct SourceAppChip: View {
+    let name: String
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "square.dashed.inset.filled")
+                .font(.system(size: 12, weight: .semibold))
+            Text("\(name)에서 캡처")
+                .font(.system(size: 13, weight: .semibold, design: .rounded))
+        }
+        .foregroundStyle(ShareDesign.primary)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 7)
+        .background(
+            Capsule()
+                .fill(Color.white.opacity(0.55))
+                .overlay(Capsule().stroke(ShareDesign.cardStroke, lineWidth: 1))
+        )
+        .accessibilityLabel(Text("\(name)에서 캡처됨"))
+    }
+}
+
 // MARK: - Close button
 
 /// 좌상단 X 닫기 — Material 배경.

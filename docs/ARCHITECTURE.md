@@ -138,6 +138,8 @@ App  ──► AppIntents/          (QuickCaptureIntent + CaptureScreenshotInten
 > - **음성/검색** = 텍스트 메모. 다른 두 surface 와 입력 종류 자체가 다름.
 >
 > **inbound queue 와 pending-backtap 디렉터리는 의도가 다르다**: 큐는 "이미 사용자가 저장 결정을 내린 캡처의 4-Intent 분석 대기열" (ShareExtension·`QuickCaptureIntent` 가 떨굼). pending-backtap 은 snippet 흐름의 단명 stash — `.png` 는 캡쳐 분기 commit 직후 또는 메모 분기 진입 직후에 폐기, `.memo` marker 는 모달 종료 시 폐기. snippet 시스템 dismiss 잔재는 `RootFeature` 가 launch / active 시점에 sweep.
+>
+> **출처앱 컨텍스트 (자동신호) — sentinel JSON**: 단축어가 출처앱을 평문 대신 sentinel JSON(`{"__mochi_ctx__":{"sourceApp":X}}`)으로 `text` 채널에 실어 보내면 `ShareExtensionPrincipal` 이 `CaptureContextSentinel`(CorePersistence)로 분해한다 — UI 엔 `SourceAppChip`("X에서 캡처"), 백엔드 `text` 엔 정규화 1줄(`[출처앱: X]`)로 합치고, 사용자 입력은 `user_memo` 로 끝까지 격리한다(자동신호 `text` ↔ 사용자의도 `user_memo` 2채널). sentinel 이 아니면 평문을 그대로 `text` 로 흡수(단축어 미재생성 하위호환). **일반 메모 모드**: 백탭 ShareExt 시트에서 스크린샷을 (×) 로 버리면 `imageRefs=[]` + channel `.appDirectInput` 으로 적재되고, 취소·제거 경로의 고아 PNG(`captures/`)는 `ShareExtensionPrincipal` 이 청소한다. sentinel·메모모드 모두 **백엔드/계약/DB 무변경**(출처앱 jsonb 1급화는 보류).
 
 `MochiApp.tick()` 이 앱 launch 와 `scenePhase == .active` 시점에:
 1. `InboundQueueConsumer.drain()` → 큐를 비우고 Realm 에 ingest
