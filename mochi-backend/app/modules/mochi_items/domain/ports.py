@@ -4,7 +4,7 @@ from typing import Protocol
 from uuid import UUID
 
 from app.modules.mochi_items.domain.entities import MochiItem
-from app.modules.mochi_items.domain.value_objects import IntentInstance
+from app.modules.mochi_items.domain.value_objects import IntentInstance, ReviewOption
 from app.shared.intent import Intent
 
 
@@ -52,6 +52,7 @@ class MochiItemRepository(Protocol):
         mochi_item_id: UUID,
         intent_instances: tuple[IntentInstance, ...],
         needs_review: bool,
+        review_options: tuple[ReviewOption, ...],
         summary: str,
         importance: int,
         model_version: str,
@@ -60,8 +61,8 @@ class MochiItemRepository(Protocol):
         """Agent 분석 결과를 write-back 한다 — 기존 intent_instances·entities 를 delete-reinsert,
         needs_review 갱신, 처리 lifecycle 을 분석 완료(ANALYZED)로 확립.
 
-        review_options 는 받지 않는다 — 현재 DB 미영속(transient, 가드레일 2). 응답엔 빈 배열로
-        projection 하며 '미확정 후보를 나중에 다시 보는 UX' 가 필요해지면 컬럼 승격한다.
+        review_options 는 mochi_items.review_options JSONB 컬럼에 영속한다 (PR-B 컬럼 승격 —
+        헷갈려요 후보를 push payload·GET projection·앱 내 needsReview 버킷 fallback 이 모두 읽는다).
         """
         ...
     async def already_ingested(self, *, owner_id: UUID, idempotency_key: str) -> MochiItem | None: ...

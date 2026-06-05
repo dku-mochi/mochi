@@ -93,7 +93,7 @@ class MochiItem:
       같은 type 다중 허용. 점수(applicability/confidence)·대표(primary)·threshold 폐기.
       worker 가 비동기로 채운다(별도 ``intent_instances`` 테이블).
     - ``needs_review``: LLM holistic 판단 — 모찌가 분류를 확신 못 해 사용자에게 물을지.
-    - ``review_options``: needs_review 일 때 제시할 미확정 후보 (transient — DB 미영속, API projection).
+    - ``review_options``: needs_review 일 때 제시할 미확정 후보 (mochi_items JSONB 영속 — PR-B).
     - ``lifecycle``: **처리상태**(ingested/analyzing/analyzed/failed). 의미 lifecycle 은 각
       ``IntentInstance.lifecycle`` 에 있다(가드레일 1 — lifecycle 의미 2분할).
     """

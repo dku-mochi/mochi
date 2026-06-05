@@ -1,3 +1,4 @@
+import base64
 from functools import lru_cache
 from typing import Annotated
 
@@ -12,6 +13,8 @@ from app.modules.agent.infrastructure.gemini_agent_client import GeminiAgentClie
 from app.modules.agent.infrastructure.gemini_profile_summarizer import GeminiProfileSummarizer
 from app.modules.mochi_items.domain.ports import CaptureImageStorage
 from app.modules.mochi_items.infrastructure.gcs_storage import GCSSignedUrlIssuer
+from app.modules.notifications.domain.ports import APNsClient
+from app.modules.notifications.infrastructure.apns_client import HttpxAPNsClient
 
 DBSession = Annotated[AsyncSession, Depends(get_session)]
 
@@ -55,3 +58,21 @@ def _profile_summarizer_singleton() -> UserProfileSummarizer:
 def get_profile_summarizer() -> UserProfileSummarizer:
     """개인화 프로필 요약기 (프로세스당 1개)."""
     return _profile_summarizer_singleton()
+
+
+@lru_cache(maxsize=1)
+def _apns_client_singleton() -> APNsClient | None:
+    settings = get_settings()
+    if not settings.apns_auth_key_p8_base64:
+        return None
+    p8_pem = base64.b64decode(settings.apns_auth_key_p8_base64).decode()
+    return HttpxAPNsClient(
+        team_id=settings.apns_team_id,
+        key_id=settings.apns_key_id,
+        p8_pem=p8_pem,
+    )
+
+
+def get_apns_client() -> APNsClient | None:
+    """APNs HTTP/2 클라이언트 (프로세스당 1개). p8 미설정 시 ``None`` → push no-op."""
+    return _apns_client_singleton()

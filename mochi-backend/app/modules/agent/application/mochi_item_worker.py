@@ -19,13 +19,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
 from app.core.db import get_session_factory
-from app.core.deps import get_agent_llm, get_profile_summarizer
+from app.core.deps import get_agent_llm, get_apns_client, get_profile_summarizer
 from app.core.logging import get_logger
 from app.modules.agent.application.orchestrator import AgentOrchestrator, AgentRunPersistence
 from app.modules.agent.application.refresh_user_profile import RefreshUserProfile
 from app.modules.agent.infrastructure.mochi_item_gateway import MochiItemGatewayAdapter
 from app.modules.agent.infrastructure.profile_store import PostgresUserProfileStore
 from app.modules.agent.infrastructure.registry import StaticToolRegistry
+from app.modules.mochi_items.application.queries import GetMochiItemForOwner, make_mochi_item_repository
+from app.modules.notifications.application.repositories import make_push_token_repository
+from app.modules.notifications.application.send_notification import (
+    AnalysisNotification,
+    SendAnalysisNotification,
+)
 
 log = get_logger("agent.worker")
 
@@ -150,6 +156,43 @@ class MochiItemWorker:
                         )
                     )
                 await session.commit()
+                return  # 분석 실패 — push 없음 (정상 done 경로만 아래 push 로 진행).
+
+        # done 으로 닫힌 경우만 도달 — 분석완료 push (best-effort, 독립 세션, 분석 try 밖).
+        # push 실패가 분석을 롤백/되돌리지 않는다(이미 done 커밋). 누락은 iOS reconcile 이 메운다. 재시도 없음.
+        await self._notify_analysis_complete(claimed.owner_id, claimed.mochi_item_id)
+
+    async def _notify_analysis_complete(self, owner_id: UUID, mochi_item_id: UUID) -> None:
+        # get_apns_client() 도 try 안 — p8 misconfig(base64/PEM/non-EC) 예외가 worker 루프를
+        # 죽이지 않게(격리 계약). best-effort, 재시도 없음.
+        try:
+            apns = get_apns_client()
+            if apns is None:
+                return  # APNs 미설정(local dev) — push no-op.
+            async with get_session_factory()() as push_session:
+                item = await GetMochiItemForOwner(
+                    repository=make_mochi_item_repository(push_session)
+                ).execute(owner_id=owner_id, mochi_item_id=mochi_item_id)
+                if item is None:
+                    return
+                await SendAnalysisNotification(
+                    tokens=make_push_token_repository(push_session),
+                    apns=apns,
+                ).run(
+                    owner_id=owner_id,
+                    mochi_item_id=mochi_item_id,
+                    notification=AnalysisNotification(
+                        needs_review=item.needs_review,
+                        summary=item.summary,
+                        review_options=item.review_options,
+                    ),
+                )
+        except Exception as exc:  # noqa: BLE001
+            log.warning(
+                "push.send_failed",
+                mochi_item_id=str(mochi_item_id),
+                exception=str(exc),
+            )
 
 
 class ClaimedOutbox:

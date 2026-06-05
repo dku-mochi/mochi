@@ -25,6 +25,9 @@ class MochiItemRow(Base):
 
     # 모찌가 분류를 확신 못 해 사용자에게 물을지 (LLM holistic boolean). 점수/threshold 폐기(2026-06-04).
     needs_review: Mapped[bool] = mapped_column(Boolean, default=False)
+    # needs_review=true 일 때 제시할 미확정 후보. PR-B: transient→JSONB 컬럼 승격(헷갈려요 후보를
+    # push payload·GET projection·앱 내 버킷 fallback 이 모두 읽는다). [{intent_type,label,reasoning}].
+    review_options: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, default_factory=list)
     summary: Mapped[str | None] = mapped_column(String, default=None)
     importance: Mapped[int] = mapped_column(Integer, default=3)
     model_version: Mapped[str | None] = mapped_column(String(64), default=None)

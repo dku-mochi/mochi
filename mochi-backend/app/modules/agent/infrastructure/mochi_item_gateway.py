@@ -53,6 +53,7 @@ class MochiItemGatewayAdapter(MochiItemGateway):
             mochi_item_id=mochi_item_id,
             intent_instances=result.intent_instances,
             needs_review=result.needs_review,
+            review_options=result.review_options,
             summary=result.summary,
             importance=result.importance,
             model_version=result.model_version,
