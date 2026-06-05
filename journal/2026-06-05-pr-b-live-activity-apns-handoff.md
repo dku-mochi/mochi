@@ -25,7 +25,7 @@ description: ingest 재설계 PR-B(Live Activity/APNs) 구현 인수인계. 다�
 | Step 0 git 정리 | ✅ 리브랜딩 chore → develop PR #7 머지. develop = clean base |
 | PR-C (출처앱 sentinel·메모모드·고아청소) | ✅ PR #8 **머지 완료** (develop 포함) |
 | PR-A (ShareExt 직접전송·큐 진실원천) | 🟡 PR #9 **생성·머지 대기** — 실기(Keychain group·provisioning) 검증 후 사용자 머지 |
-| **PR-B (본 문서)** | ⏸️ **착수 전.** develop(또는 PR-A 머지 후)에서 `feat/be-live-activity-apns` 분기 권장 |
+| **PR-B (본 문서)** | 🟡 진행 중 — 백엔드 B0~B-SSE ✅(`8aa0b31`) + iOS B5 ✅(`a77ac62`). **iOS B6~B7 잔여** → `2026-06-05-pr-b-ios-remaining-handoff.md` (content-state 통일·LA 재배선·SSE·알림) |
 
 **브랜치 분기 기준**: PR-A 가 develop 에 머지된 뒤 그 위에서 분기하면 충돌 0. (PR-B 는 백엔드+iOS Widgets/App 중심이라 PR-A 의 ShareExt 와 거의 안 겹침 — PR-A 머지 전 분기해도 무방.)
 
