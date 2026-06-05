@@ -106,15 +106,22 @@ public protocol APIProtocol: Sendable {
     func get_mochi_item_api_v1_mochi_items__mochi_item_id__get(_ input: Operations.get_mochi_item_api_v1_mochi_items__mochi_item_id__get.Input) async throws -> Operations.get_mochi_item_api_v1_mochi_items__mochi_item_id__get.Output
     /// Stream Agent Run
     ///
-    /// SSE 스트림. MochiItem owner 가 아닌 경우 404로 응답한다 (자원 존재 노출 방지).
+    /// SSE 스트림 — worker 의 실제 분석 진행(``mochi_items.lifecycle_kind``)을 관찰해 흘린다.
+    ///
+    /// foreground 클라가 폴링 대신 이 스트림을 구독한다. 백엔드는 처리상태 전이(``node``)와
+    /// 완료/실패 신호만 흘리고, **분석 결과 자체는 보내지 않는다** — 클라가 ``final`` 수신 시
+    /// ``GET /mochi_items/{id}`` 로 재조회한다(이중 직렬화 회피, PR-B 결정).
+    ///
+    /// 실제 분석은 outbox 워커가 단일 소유한다(이중 실행 방지). 이 엔드포인트는 read-only 관찰자다.
+    /// owner 가 아니면 404 (자원 존재 노출 방지).
     ///
     /// 스트림 포맷:
     /// ```
     /// event: node
-    /// data: {"node":"normalized","run_id":"..."}
+    /// data: {"mochi_item_id":"...","lifecycle_kind":"analyzing"}
     ///
     /// event: final
-    /// data: {"run_id":"...","tokens":1234}
+    /// data: {"mochi_item_id":"...","lifecycle_kind":"analyzed"}
     /// ```
     ///
     /// - Remark: HTTP `GET /api/v1/mochi_items/{mochi_item_id}/stream`.
@@ -125,6 +132,15 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `POST /api/v1/search`.
     /// - Remark: Generated from `#/paths//api/v1/search/post(search_api_v1_search_post)`.
     func search_api_v1_search_post(_ input: Operations.search_api_v1_search_post.Input) async throws -> Operations.search_api_v1_search_post.Output
+    /// Register Push Token
+    ///
+    /// 단말/Live Activity push 토큰 등록 (owner-scoped upsert).
+    ///
+    /// iOS AppDelegate(apns_device) + LiveActivityCoordinator(live_activity)가 호출한다.
+    ///
+    /// - Remark: HTTP `POST /api/v1/devices/push-token`.
+    /// - Remark: Generated from `#/paths//api/v1/devices/push-token/post(register_push_token_api_v1_devices_push_token_post)`.
+    func register_push_token_api_v1_devices_push_token_post(_ input: Operations.register_push_token_api_v1_devices_push_token_post.Input) async throws -> Operations.register_push_token_api_v1_devices_push_token_post.Output
 }
 
 /// Convenience overloads for operation inputs.
@@ -310,15 +326,22 @@ extension APIProtocol {
     }
     /// Stream Agent Run
     ///
-    /// SSE 스트림. MochiItem owner 가 아닌 경우 404로 응답한다 (자원 존재 노출 방지).
+    /// SSE 스트림 — worker 의 실제 분석 진행(``mochi_items.lifecycle_kind``)을 관찰해 흘린다.
+    ///
+    /// foreground 클라가 폴링 대신 이 스트림을 구독한다. 백엔드는 처리상태 전이(``node``)와
+    /// 완료/실패 신호만 흘리고, **분석 결과 자체는 보내지 않는다** — 클라가 ``final`` 수신 시
+    /// ``GET /mochi_items/{id}`` 로 재조회한다(이중 직렬화 회피, PR-B 결정).
+    ///
+    /// 실제 분석은 outbox 워커가 단일 소유한다(이중 실행 방지). 이 엔드포인트는 read-only 관찰자다.
+    /// owner 가 아니면 404 (자원 존재 노출 방지).
     ///
     /// 스트림 포맷:
     /// ```
     /// event: node
-    /// data: {"node":"normalized","run_id":"..."}
+    /// data: {"mochi_item_id":"...","lifecycle_kind":"analyzing"}
     ///
     /// event: final
-    /// data: {"run_id":"...","tokens":1234}
+    /// data: {"mochi_item_id":"...","lifecycle_kind":"analyzed"}
     /// ```
     ///
     /// - Remark: HTTP `GET /api/v1/mochi_items/{mochi_item_id}/stream`.
@@ -345,6 +368,17 @@ extension APIProtocol {
             body: body
         ))
     }
+    /// Register Push Token
+    ///
+    /// 단말/Live Activity push 토큰 등록 (owner-scoped upsert).
+    ///
+    /// iOS AppDelegate(apns_device) + LiveActivityCoordinator(live_activity)가 호출한다.
+    ///
+    /// - Remark: HTTP `POST /api/v1/devices/push-token`.
+    /// - Remark: Generated from `#/paths//api/v1/devices/push-token/post(register_push_token_api_v1_devices_push_token_post)`.
+    public func register_push_token_api_v1_devices_push_token_post(body: Operations.register_push_token_api_v1_devices_push_token_post.Input.Body) async throws -> Operations.register_push_token_api_v1_devices_push_token_post.Output {
+        try await register_push_token_api_v1_devices_push_token_post(Operations.register_push_token_api_v1_devices_push_token_post.Input(body: body))
+    }
 }
 
 /// Server URLs defined in the OpenAPI document.
@@ -354,6 +388,15 @@ public enum Servers {}
 public enum Components {
     /// Types generated from the `#/components/schemas` section of the OpenAPI document.
     public enum Schemas {
+        /// device token 이 묶인 APNs 환경. 잘못 매칭 시 BadDeviceToken.
+        ///
+        /// TestFlight/App Store = production, Xcode 직접 빌드 = sandbox.
+        ///
+        /// - Remark: Generated from `#/components/schemas/APNsEnvironment`.
+        @frozen public enum APNsEnvironment: String, Codable, Hashable, Sendable, CaseIterable {
+            case sandbox = "sandbox"
+            case production = "production"
+        }
         /// - Remark: Generated from `#/components/schemas/AppleSignInRequest`.
         public struct AppleSignInRequest: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/AppleSignInRequest/identityToken`.
@@ -990,6 +1033,16 @@ public enum Components {
                 case expiresAt
             }
         }
+        /// 등록되는 푸시 토큰의 종류.
+        ///
+        /// - ``apns_device``: 단말 remote notification 토큰 (owner 1:N 단말). 분석완료 alert 대상.
+        /// - ``live_activity``: ActivityKit Live Activity push 토큰 (mochi_item 1:1). .ready 전환 대상.
+        ///
+        /// - Remark: Generated from `#/components/schemas/PushTokenType`.
+        @frozen public enum PushTokenType: String, Codable, Hashable, Sendable, CaseIterable {
+            case apns_device = "apns_device"
+            case live_activity = "live_activity"
+        }
         /// - Remark: Generated from `#/components/schemas/RefreshRequest`.
         public struct RefreshRequest: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/RefreshRequest/refreshToken`.
@@ -1013,7 +1066,44 @@ public enum Components {
                 case deviceLabel
             }
         }
-        /// needs_review=true 일 때의 미확정 후보. 현재 DB 미영속이라 빈 배열일 수 있다(가드레일 2).
+        /// 단말(apns_device) 또는 Live Activity(live_activity) push 토큰 등록 요청.
+        ///
+        /// - Remark: Generated from `#/components/schemas/RegisterPushTokenRequest`.
+        public struct RegisterPushTokenRequest: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/RegisterPushTokenRequest/token`.
+            public var token: Swift.String
+            /// - Remark: Generated from `#/components/schemas/RegisterPushTokenRequest/tokenType`.
+            public var tokenType: Components.Schemas.PushTokenType
+            /// - Remark: Generated from `#/components/schemas/RegisterPushTokenRequest/environment`.
+            public var environment: Components.Schemas.APNsEnvironment
+            /// - Remark: Generated from `#/components/schemas/RegisterPushTokenRequest/mochiItemID`.
+            public var mochiItemID: Swift.String?
+            /// Creates a new `RegisterPushTokenRequest`.
+            ///
+            /// - Parameters:
+            ///   - token:
+            ///   - tokenType:
+            ///   - environment:
+            ///   - mochiItemID:
+            public init(
+                token: Swift.String,
+                tokenType: Components.Schemas.PushTokenType,
+                environment: Components.Schemas.APNsEnvironment,
+                mochiItemID: Swift.String? = nil
+            ) {
+                self.token = token
+                self.tokenType = tokenType
+                self.environment = environment
+                self.mochiItemID = mochiItemID
+            }
+            public enum CodingKeys: String, CodingKey {
+                case token
+                case tokenType
+                case environment
+                case mochiItemID
+            }
+        }
+        /// needs_review=true 일 때의 미확정 후보 (mochi_items JSONB 영속 — PR-B).
         ///
         /// - Remark: Generated from `#/components/schemas/ReviewOptionResponse`.
         public struct ReviewOptionResponse: Codable, Hashable, Sendable {
@@ -3001,15 +3091,22 @@ public enum Operations {
     }
     /// Stream Agent Run
     ///
-    /// SSE 스트림. MochiItem owner 가 아닌 경우 404로 응답한다 (자원 존재 노출 방지).
+    /// SSE 스트림 — worker 의 실제 분석 진행(``mochi_items.lifecycle_kind``)을 관찰해 흘린다.
+    ///
+    /// foreground 클라가 폴링 대신 이 스트림을 구독한다. 백엔드는 처리상태 전이(``node``)와
+    /// 완료/실패 신호만 흘리고, **분석 결과 자체는 보내지 않는다** — 클라가 ``final`` 수신 시
+    /// ``GET /mochi_items/{id}`` 로 재조회한다(이중 직렬화 회피, PR-B 결정).
+    ///
+    /// 실제 분석은 outbox 워커가 단일 소유한다(이중 실행 방지). 이 엔드포인트는 read-only 관찰자다.
+    /// owner 가 아니면 404 (자원 존재 노출 방지).
     ///
     /// 스트림 포맷:
     /// ```
     /// event: node
-    /// data: {"node":"normalized","run_id":"..."}
+    /// data: {"mochi_item_id":"...","lifecycle_kind":"analyzing"}
     ///
     /// event: final
-    /// data: {"run_id":"...","tokens":1234}
+    /// data: {"mochi_item_id":"...","lifecycle_kind":"analyzed"}
     /// ```
     ///
     /// - Remark: HTTP `GET /api/v1/mochi_items/{mochi_item_id}/stream`.
@@ -3257,6 +3354,73 @@ public enum Operations {
                     .json
                 ]
             }
+        }
+    }
+    /// Register Push Token
+    ///
+    /// 단말/Live Activity push 토큰 등록 (owner-scoped upsert).
+    ///
+    /// iOS AppDelegate(apns_device) + LiveActivityCoordinator(live_activity)가 호출한다.
+    ///
+    /// - Remark: HTTP `POST /api/v1/devices/push-token`.
+    /// - Remark: Generated from `#/paths//api/v1/devices/push-token/post(register_push_token_api_v1_devices_push_token_post)`.
+    public enum register_push_token_api_v1_devices_push_token_post {
+        public static let id: Swift.String = "register_push_token_api_v1_devices_push_token_post"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/api/v1/devices/push-token/POST/requestBody`.
+            @frozen public enum Body: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/devices/push-token/POST/requestBody/content/application\/json`.
+                case json(Components.Schemas.RegisterPushTokenRequest)
+            }
+            public var body: Operations.register_push_token_api_v1_devices_push_token_post.Input.Body
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - body:
+            public init(body: Operations.register_push_token_api_v1_devices_push_token_post.Input.Body) {
+                self.body = body
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct NoContent: Sendable, Hashable {
+                /// Creates a new `NoContent`.
+                public init() {}
+            }
+            /// Successful Response
+            ///
+            /// - Remark: Generated from `#/paths//api/v1/devices/push-token/post(register_push_token_api_v1_devices_push_token_post)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            case noContent(Operations.register_push_token_api_v1_devices_push_token_post.Output.NoContent)
+            /// Successful Response
+            ///
+            /// - Remark: Generated from `#/paths//api/v1/devices/push-token/post(register_push_token_api_v1_devices_push_token_post)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            public static var noContent: Self {
+                .noContent(.init())
+            }
+            /// The associated value of the enum case if `self` is `.noContent`.
+            ///
+            /// - Throws: An error if `self` is not `.noContent`.
+            /// - SeeAlso: `.noContent`.
+            public var noContent: Operations.register_push_token_api_v1_devices_push_token_post.Output.NoContent {
+                get throws {
+                    switch self {
+                    case let .noContent(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "noContent",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
         }
     }
 }

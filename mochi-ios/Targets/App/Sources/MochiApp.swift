@@ -9,6 +9,7 @@ import FeatureOnboarding
 @main
 struct MochiApp: App {
     @Environment(\.scenePhase) private var scenePhase
+    @UIApplicationDelegateAdaptor(MochiAppDelegate.self) private var appDelegate
 
     static let rootStore: StoreOf<RootFeature> =
         Store(initialState: RootFeature.State()) { RootFeature() }
@@ -54,6 +55,7 @@ struct MochiApp: App {
                 .task {
                     await tick()
                     await syncWorker.startForegroundPolling()
+                    appDelegate.requestAuthorizationIfNeeded()
                 }
                 .onChange(of: scenePhase) { _, newPhase in
                     if newPhase == .active {
@@ -61,6 +63,7 @@ struct MochiApp: App {
                             await tick()
                             await syncWorker.startForegroundPolling()
                         }
+                        appDelegate.requestAuthorizationIfNeeded()
                     } else {
                         // background/inactive 진입 시 metadata-only 폴링 중단 (foreground 한정).
                         Task { await syncWorker.stopForegroundPolling() }

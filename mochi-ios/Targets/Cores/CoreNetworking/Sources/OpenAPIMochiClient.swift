@@ -108,6 +108,25 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
         }
     }
 
+    public func registerPushToken(
+        token: String,
+        kind: PushTokenKind,
+        environment: PushEnvironment,
+        mochiItemID: UUID?
+    ) async throws {
+        let body = Components.Schemas.RegisterPushTokenRequest(
+            token: token,
+            tokenType: Components.Schemas.PushTokenType(rawValue: kind.rawValue) ?? .apns_device,
+            environment: Components.Schemas.APNsEnvironment(rawValue: environment.rawValue) ?? .sandbox,
+            mochiItemID: mochiItemID?.uuidString
+        )
+        let output = try await client.register_push_token_api_v1_devices_push_token_post(.init(body: .json(body)))
+        switch output {
+        case .noContent: return
+        case let .undocumented(status, payload): throw await Self.error(status: status, payload: payload)
+        }
+    }
+
     // MARK: - 스키마 → DTO 매핑
 
     /// 생성 `MochiItemResponse` → ``MochiItemDTO``. 필수 `id` 는 파싱 실패 시 throw 하지만,
