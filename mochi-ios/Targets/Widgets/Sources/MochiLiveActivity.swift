@@ -1,5 +1,6 @@
 import ActivityKit
 import AppIntents
+import ImageIO
 import SwiftUI
 import WidgetKit
 
@@ -312,6 +313,19 @@ private struct ThumbnailColumn: View {
             forSecurityApplicationGroupIdentifier: "group.app.mochi"
         ) else { return nil }
         let url = container.appendingPathComponent(relativePath)
-        return UIImage(contentsOfFile: url.path)
+        // 위젯/Live Activity 익스텐션은 메모리 예산이 매우 작다. 원본 스크린샷(≈1170×2532)을
+        // 통째 디코드하면(≈12MB) 예산을 넘겨 iOS 가 렌더를 포기하고 placeholder 로 폴백한다.
+        // 표시 크기(@3x)에 맞춰 ImageIO 로 다운샘플 디코드해 메모리를 표시 해상도 수준으로 묶는다.
+        let maxPixel = Int(max(width, height) * 3)
+        let options: [CFString: Any] = [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceShouldCacheImmediately: true,
+            kCGImageSourceThumbnailMaxPixelSize: maxPixel,
+        ]
+        guard let source = CGImageSourceCreateWithURL(url as CFURL, nil),
+              let cgImage = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary)
+        else { return nil }
+        return UIImage(cgImage: cgImage)
     }
 }
