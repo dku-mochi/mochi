@@ -156,7 +156,7 @@ description: ingest 재설계 PR-B(Live Activity/APNs) 구현 인수인계. 다�
 
 ## 5. 막힌 것 / 사람 결정 필요
 
-1. **⚠️ p8 key ↔ Team ID 정합 (최우선)** — 외부설정의 p8 는 `AuthKey_CA6C3JCHW3.p8`(Key ID `CA6C3JCHW3`). 그런데 정본 Team 은 **리브랜딩으로 `U9SLX327XS`**(plan args 원본은 `H857U5DNT9`). APNs JWT `iss`=Team, topic=Bundle 이 **p8 발급 팀과 정확히 일치**해야 푸시 동작. → **p8 가 `U9SLX327XS` 팀 발급인지 확인**, 아니면 그 팀에서 새 APNs key 발급. (송준서 확인 필요.)
+1. **✅ p8 key ↔ Team ID 정합 — 해소(2026-06-05 확인, 송준서)** — p8 `AuthKey_CA6C3JCHW3.p8`(Key ID `CA6C3JCHW3`)는 정본 Team `U9SLX327XS`에서 **2026-06-05 발급 확정**. APNs JWT `iss`=`U9SLX327XS` · topic=`app.mochi` · `kid`=`CA6C3JCHW3` 정합. 추가 발급 불필요 — 그대로 env 주입(§7).
 2. **review_options projection 미계산** — 백엔드가 현재 `review_options=[]`(빈배열). interactive notification 후보를 주려면 분석결과→review_options 계산을 `apply_analysis`/orchestrator `_to_analysis_result` 에서 채워야. (없으면 LA `.ready` 후보·notification 후보가 비어 헷갈려요 UX 불가.)
 3. **알림 권한 요청 타이밍** — 온보딩 vs **첫 캡처 시**(권장). 거부 시 앱 내 needsReview 버킷이 always-on 진실원천(푸시는 보조).
 4. **notification 액션 네트워크** — action tap → 백그라운드 즉시 POST(`setIntent`) vs 앱 깨우기. "다른 의도"는 foreground 필요. 구현 시.
@@ -177,7 +177,7 @@ description: ingest 재설계 PR-B(Live Activity/APNs) 구현 인수인계. 다�
 
 ## 7. 외부 설정 (사용자 — Apple)
 
-- **APNs Auth Key(.p8)**: `developer.apple.com → Keys → APNs key`. p8 `/Users/jun/keys/AuthKey_CA6C3JCHW3.p8`(Key ID `CA6C3JCHW3`). **Team `U9SLX327XS` 발급 확인**(§5-1). → env `APNS_P8_KEY`(base64)/`APNS_KEY_ID`/`APNS_TEAM_ID`/`APNS_BUNDLE_ID=app.mochi`/`APNS_ENVIRONMENT`. `docs/TODO.md` 체크리스트 등록.
+- **APNs Auth Key(.p8)**: p8 `/Users/jun/keys/AuthKey_CA6C3JCHW3.p8`(Key ID `CA6C3JCHW3`) — **Team `U9SLX327XS` 발급 확정(2026-06-05)**. → env `APNS_P8_KEY`(base64)/`APNS_KEY_ID=CA6C3JCHW3`/`APNS_TEAM_ID=U9SLX327XS`/`APNS_BUNDLE_ID=app.mochi`/`APNS_ENVIRONMENT`. `docs/TODO.md` 체크리스트 등록.
 - **Push Notifications capability**: App ID `app.mochi` + entitlement `aps-environment`(App.entitlements 에 추가 필요 — 현재 없음). provisioning 재발급(PR-A 의 Keychain Sharing 과 함께).
 - **Live Activity**: Info.plist `NSSupportsLiveActivities=true`(이미 있는지 확인), `NSSupportsLiveActivitiesFrequentUpdates` 옵션.
 
