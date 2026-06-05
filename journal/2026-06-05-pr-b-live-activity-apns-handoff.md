@@ -35,7 +35,7 @@ description: ingest 재설계 PR-B(Live Activity/APNs) 구현 인수인계. 다�
 
 ## 1. 확정 결정 로그 (흔들지 말 것 — 저널 §B + architect)
 
-- **실시간 분담**: foreground = 기존 폴링 유지(`MochiItemSyncWorker.startForegroundPolling`, 3초). background/종료 = **APNs 만 신규**. **SSE 는 MVP 제외**(background 소켓 suspend). scenePhase active 복귀 시 **reconcile**(폴링 1회).
+- **실시간 분담 (2026-06-05 수정 — SSE 채택, PR-B 포함)**: foreground = **SSE 즉시 반영**(`AgentStreamClient` live 구현으로 3초 폴링 대체 — 지연·다건 부하 제거). background/종료 = **APNs**(SSE 는 long-lived 소켓이라 background 진입 시 suspend 되어 끊김 — 이게 background 에 APNs 가 *필수*인 이유). scenePhase active 복귀 시 **reconcile**(SSE 재연결 + 1회 동기화로 background 중 놓친 상태 메움). 폴링(`startForegroundPolling`)은 **SSE 연결 실패 시 fallback** 으로만 강등(제거 금지). → 이전 "SSE MVP 제외" 결정 뒤집음: 백엔드 SSE 는 이미 존재(`AgentEvent.finalAnalysis` 흘림), iOS 클라만 미구현이라 비용 낮고 foreground UX(즉시성) 이득이 크다.
 - **알림 정책**: 분석 완료 시 **항상** 알림(무음 분기 없음 — 빈도는 OS 알림설정으로 사용자 조절). `needs_review=false` → "이렇게 저장했어요 — <요약>" **완료 알림**(informative, 탭→앱). `needs_review=true` → "어떤 의도로 남겼나요?" **interactive notification**(후보 선택). 본문은 iOS truncate 되니 **요약 1줄**(intent별 템플릿).
 - **헷갈려요 인터랙션 표면**: **interactive notification 이 1급**(`UNNotificationCategory` actions + NotificationContent). Live Activity 는 처리상태(analyzing→ready) **ambient 표시 전담**(선택 액션 최소). 앱 내 needsReview 버킷이 푸시 미수신 시 **always-on fallback**.
 - **Live Activity 범위**: **백탭 스크린샷만 점유**(`item.source.channel == .screenshot`). 공유시트 링크/텍스트는 LA 없이 완료 알림만.
@@ -88,6 +88,7 @@ description: ingest 재설계 PR-B(Live Activity/APNs) 구현 인수인계. 다�
 | 상태 모델 | `Cores/CoreDomain/Sources/MochiItemAnalysis.swift` | `instances`/`needsReview`/`reviewOptions`/`importance`. `MochiItem.id==IngestSource.id`, `SyncState.uploaded(serverID:)`. |
 | **APNs 토큰 등록 (부재)** | `App/Sources/MochiApp.swift` | **AppDelegate 없음, UNUserNotificationCenter delegate 없음, registerForRemoteNotifications 없음.** → AppDelegate(`UIApplicationDelegateAdaptor`) 추가 + 권한 요청 + token 콜백 + 백엔드 등록 신규. |
 | openapi 클라 | `Cores/CoreNetworking/Sources/{MochiAPIClient,OpenAPIMochiClient}.swift` | push-token 등록 op 추가 → `generate.sh`. |
+| **SSE 클라 (foreground 폴링 대체)** | `Cores/CoreAgentClient/Sources/{AgentStreamClient,AgentStreamClientDI}.swift` | protocol `stream(mochiItemID:)→AsyncThrowingStream<AgentEvent>`. `AgentEvent`: nodeEntered/toolStarted/toolFinished/partialSummary/**finalAnalysis(MochiItemAnalysis)**/failed. **현재 `NotConfiguredAgentStreamClient` no-op — live 구현 0**(`AgentStreamClientDI.swift:6`). 백엔드 SSE 는 이미 존재(`GET /api/v1/mochi_items/{id}/stream`, agent 모듈 `presentation/router.py`, `finalAnalysis` emit) → iOS live 구현만 하면 폴링 대체 성립. |
 
 ---
 
@@ -131,6 +132,12 @@ description: ingest 재설계 PR-B(Live Activity/APNs) 구현 인수인계. 다�
 - `MockUseCaseNotificationPrototype.swift` **삭제** + grep 잔여 0.
 - → 검증: `tuist test` + `ios-boundaries.sh`.
 
+### B6½. iOS — SSE 구독으로 foreground 폴링 대체 (실시간 반영 업그레이드)
+- `CoreAgentClient`: `AgentStreamClient` **live 구현**(`LiveAgentStreamClient`) — 백엔드 `GET /api/v1/mochi_items/{id}/stream` SSE 구독(`URLSession.bytes` line 파싱 또는 EventSource → `AgentEvent`). 인증 Bearer(`AuthTokenProvider`/`AuthMiddleware` 재사용). `AgentStreamClientDI.liveValue` NotConfigured→Live.
+- `MochiItemSyncWorker`: foreground 시 `startForegroundPolling`(3초) 대신 **분석중 항목별 `stream(mochiItemID:)` 구독** → `.partialSummary`(진행 표시) / **`.finalAnalysis`** 수신 시 `applyAnalysis` + LA `.ready`(기존 `pollAnalysisOnce:274-288` 로직 재사용) / `.failed`→강등(`demoteToManual`). **SSE 연결 실패·끊김 시 폴링 fallback**(폴링 제거 금지 — 안전망).
+- scenePhase `.active` 복귀 → SSE 재연결 + 1회 동기화(reconcile, B7 과 공유).
+- → 검증: `tuist test`. 실기: 분석 완료 시 3초 폴링 대기 없이 **즉시** 반영.
+
 ### B7. iOS — 알림 핸들러 + reconcile + interactive notification
 - `NotificationContent`: Info.plist category → production. `NotificationViewController` userInfo → APNs payload candidates 배선.
 - `MochiApp`/AppDelegate `UNUserNotificationCenterDelegate`: `didReceive(response:)` → notification action(후보 선택) → `setIntent` API 호출(백그라운드 POST). 완료 알림 탭 → 앱 진입.
@@ -149,8 +156,9 @@ description: ingest 재설계 PR-B(Live Activity/APNs) 구현 인수인계. 다�
 | outbox→push 배선 | 백엔드 application | ~2h | 낮음 |
 | 실 LA attributes + 위젯 + 토큰 등록 | iOS Widgets/App | ~3h | 낮음 |
 | 기획 정본(L1/L2) | **PRODUCT·DOMAIN/ARCHITECTURE** | ~1.5h | 중 |
+| iOS SSE 클라(foreground 폴링 대체) | iOS CoreAgentClient (백엔드 SSE 이미 존재) | ~2h | 낮음 |
 
-> **편집(~13h)보다 Apple APNs key·provisioning·실기 push 검증 리드타임이 지배적.** contract-first 킥오프 별건.
+> **편집(~15h)보다 Apple APNs key·provisioning·실기 push 검증 리드타임이 지배적.** contract-first 킥오프 별건. SSE 는 백엔드 0(이미 존재)·iOS 인증 재사용이라 추가 비용 낮음.
 
 ---
 
@@ -172,6 +180,7 @@ description: ingest 재설계 PR-B(Live Activity/APNs) 구현 인수인계. 다�
 - **payload 4KB** — LA content-state top-3 truncate. 썸네일은 payload 미포함(디스크 read).
 - **bootstrap 부재 LA 시작** — LA 는 **백탭(메인앱 `CommitBackTapCaptureIntent` 경로)** 전용이라 ShareExt(bootstrap 부재)와 무관. ShareExt 직접전송(PR-A)은 LA 안 띄움 — 정합.
 - **알림 권한 거부** — 앱 내 needsReview 버킷이 always-on fallback(푸시 미수신해도 헷갈려요 처리 가능).
+- **SSE 연결 lifecycle** — foreground SSE 는 토큰 만료·네트워크 끊김·scenePhase 전환에 재연결 필요. 끊기면 **폴링 fallback** 으로 강등(제거 금지). background 진입 시 소켓 suspend → APNs 가 인계(분담 경계).
 
 ---
 
