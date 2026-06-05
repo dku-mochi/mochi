@@ -35,10 +35,12 @@ description: ingest 재설계 PR-B(Live Activity/APNs) 구현 인수인계. 다�
 
 ## 1. 확정 결정 로그 (흔들지 말 것 — 저널 §B + architect)
 
+> ⚠️ **2026-06-05 일부 결정 override됨** (구현 세션, 사용자 결정 — `2026-06-05-pr-b-ios-remaining-handoff.md` §6 단일원천). 아래 ~~취소선~~ 항목은 **폐기**, 옆 화살표가 현행 결정. committed L2(`DOMAIN_DESIGN`·`ARCHITECTURE`)·L1(`PRODUCT.md` §8.11)도 현행 결정으로 정렬됨.
+
 - **실시간 분담 (2026-06-05 수정 — SSE 채택, PR-B 포함)**: foreground = **SSE 즉시 반영**(`AgentStreamClient` live 구현으로 3초 폴링 대체 — 지연·다건 부하 제거). background/종료 = **APNs**(SSE 는 long-lived 소켓이라 background 진입 시 suspend 되어 끊김 — 이게 background 에 APNs 가 *필수*인 이유). scenePhase active 복귀 시 **reconcile**(SSE 재연결 + 1회 동기화로 background 중 놓친 상태 메움). 폴링(`startForegroundPolling`)은 **SSE 연결 실패 시 fallback** 으로만 강등(제거 금지). → 이전 "SSE MVP 제외" 결정 뒤집음: 백엔드 SSE 는 이미 존재(`AgentEvent.finalAnalysis` 흘림), iOS 클라만 미구현이라 비용 낮고 foreground UX(즉시성) 이득이 크다.
-- **알림 정책**: 분석 완료 시 **항상** 알림(무음 분기 없음 — 빈도는 OS 알림설정으로 사용자 조절). `needs_review=false` → "이렇게 저장했어요 — <요약>" **완료 알림**(informative, 탭→앱). `needs_review=true` → "어떤 의도로 남겼나요?" **interactive notification**(후보 선택). 본문은 iOS truncate 되니 **요약 1줄**(intent별 템플릿).
-- **헷갈려요 인터랙션 표면**: **interactive notification 이 1급**(`UNNotificationCategory` actions + NotificationContent). Live Activity 는 처리상태(analyzing→ready) **ambient 표시 전담**(선택 액션 최소). 앱 내 needsReview 버킷이 푸시 미수신 시 **always-on fallback**.
-- **Live Activity 범위**: **백탭 스크린샷만 점유**(`item.source.channel == .screenshot`). 공유시트 링크/텍스트는 LA 없이 완료 알림만.
+- **알림 정책**: 분석 완료 시 **항상** 알림(무음 분기 없음 — 빈도는 OS 알림설정으로 사용자 조절). `needs_review=false` → "이렇게 저장했어요 — <요약>" **완료 알림**(informative, 탭→앱). `needs_review=true` → "어떤 의도로 남겼나요?" → **override: ~~interactive notification(후보 선택)~~ → 일반 alert(탭→앱·홈 needsReview 버킷)**. 본문은 iOS truncate 되니 **요약 1줄**.
+- **헷갈려요 인터랙션 표면 (override)**: ~~**interactive notification 이 1급**(`UNNotificationCategory` actions + NotificationContent)~~ → **Live Activity 후보 선택이 1급**(Lock Screen 한 탭). notification 은 일반 alert(탭→앱). NotificationContent extension 폐기·삭제. 앱 내 needsReview 버킷이 always-on fallback(유지).
+- **Live Activity 범위 (override)**: ~~**백탭 스크린샷만 점유**(`channel == .screenshot`)~~ → **전 채널 점유**(스크린샷·링크·텍스트 모두). 비-스크린샷은 썸네일 placeholder.
 - **APNs 클라**: **`httpx`(http2=True) + 직접 JWT ES256**(`cryptography` 또는 `PyJWT[crypto]`, JWT ≤1h 캐시). **aioapns 미채택**(추가 의존·추상화 회피, APNs 는 단일 POST `/3/device/{token}`).
 - **모듈 위치**: **신규 `app/modules/notifications/`**(mochi_items/agent 와 분리 — push 는 별도 bounded context).
 - **push 훅 격리**: outbox worker `status='done'` 커밋 **이후** best-effort. push 실패가 분석 롤백 금지. **재시도 없음**(누락은 iOS reconcile 이 메움).
@@ -138,9 +140,10 @@ description: ingest 재설계 PR-B(Live Activity/APNs) 구현 인수인계. 다�
 - scenePhase `.active` 복귀 → SSE 재연결 + 1회 동기화(reconcile, B7 과 공유).
 - → 검증: `tuist test`. 실기: 분석 완료 시 3초 폴링 대기 없이 **즉시** 반영.
 
-### B7. iOS — 알림 핸들러 + reconcile + interactive notification
-- `NotificationContent`: Info.plist category → production. `NotificationViewController` userInfo → APNs payload candidates 배선.
-- `MochiApp`/AppDelegate `UNUserNotificationCenterDelegate`: `didReceive(response:)` → notification action(후보 선택) → `setIntent` API 호출(백그라운드 POST). 완료 알림 탭 → 앱 진입.
+### B7. iOS — 알림 핸들러 + reconcile ~~+ interactive notification~~
+> ⚠️ override(§1): interactive notification 폐기 → 일반 alert. NotificationContent 절은 무효. 구현 정본은 `2026-06-05-pr-b-ios-remaining-handoff.md` §4.
+- ~~`NotificationContent`: Info.plist category → production. `NotificationViewController` userInfo → candidates 배선.~~ (폐기·삭제)
+- `MochiApp`/AppDelegate `UNUserNotificationCenterDelegate`: `didReceive(response:)` → ~~notification action(후보 선택) → `setIntent`~~ → 알림 탭 → 앱 진입 + 홈 버킷 라우팅(후보 선택 action 없음). 완료 알림 탭 → 앱 진입.
 - **reconcile**: scenePhase `.active` 복귀 시(또는 remote notification 수신 후) `pollAnalysisOnce()` 1회 — background 중 놓친 push 메움(`MochiItemSyncWorker`).
 - → 검증: `tuist test`. **실기: background 분석완료 → alert 도착 + LA `.ready` 갱신 + 후보 선택**(사용자).
 

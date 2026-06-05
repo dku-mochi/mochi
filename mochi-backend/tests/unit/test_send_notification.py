@@ -104,6 +104,23 @@ async def test_live_activity_push_carries_ready_phase_and_candidates():
     assert cs["candidates"][0]["intentType"] == Intent.TODO.value
 
 
+async def test_live_activity_candidate_label_is_never_null():
+    # ReviewOption.label 은 str|None 이지만 LA push 의 candidate label 은 non-null 이어야 한다 —
+    # iOS Candidate.label 이 비옵셔널이라 null 이면 content-state decode 가 throw(background LA 무음 드롭).
+    owner, item = uuid4(), uuid4()
+    apns = _FakeAPNs()
+    repo = _FakeRepo(live_activity=[_la_token(owner, item)])
+    options = (ReviewOption(intent_type=Intent.SCHEDULE, label=None, reasoning=""),)
+    await SendAnalysisNotification(tokens=repo, apns=apns).run(
+        owner_id=owner,
+        mochi_item_id=item,
+        notification=AnalysisNotification(needs_review=True, summary="s", review_options=options),
+    )
+    cs = apns.sent[0]["payload"]["aps"]["content-state"]
+    assert cs["candidates"][0]["label"] == Intent.SCHEDULE.value  # null → intent_type fallback
+    assert cs["candidates"][0]["label"] is not None
+
+
 async def test_live_activity_payload_within_4kb():
     owner, item = uuid4(), uuid4()
     apns = _FakeAPNs()

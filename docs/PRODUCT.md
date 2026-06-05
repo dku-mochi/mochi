@@ -395,6 +395,28 @@ Share Extension 은 별도 프로세스로 실행되며, App Group + shared cont
 
 UI: 모찌 아이콘 + "모찌가 정리할게요" + 제목 미리보기 + 힌트 입력 + 저장.
 
+### 8.11 분석 진행·완료 피드백 — Live Activity + 알림
+
+캡처 후 모찌가 분석하는 동안과 끝난 뒤를, 앱을 열지 않아도 알게 한다. **회수의 능동 주체는 모찌** (미션 §1.5) — 사용자가 결과를 찾으러 들어오지 않아도 모찌가 떠올려 준다.
+
+**Live Activity (ambient 처리상태 표시) — 전 채널**:
+- 캡처 직후 Lock Screen / Dynamic Island 에 "분석 중" 표시. 백탭 스크린샷뿐 아니라 **공유시트 링크·텍스트 등 모든 채널**이 점유한다.
+- 분석 완료 시 `.ready` 로 전환:
+  - 확정(needs_review=false): "이렇게 저장했어요 — <요약>" 한 줄.
+  - 헷갈려요(needs_review=true): 후보 2~3개를 버튼으로 노출 → **한 탭 선택이 1급 인터랙션**(앱을 열지 않고 Lock Screen 에서 의도 확정) + "다른 의도"(앱 진입).
+- 썸네일은 스크린샷만 표시, 그 외 채널은 placeholder.
+
+**알림 (분석 완료 시 항상)** — 빈도 조절은 OS 알림 설정에 맡기고 모찌가 가르지 않는다. 본문은 iOS 가 truncate 하므로 **요약 1줄**:
+- 확정: "이렇게 저장했어요 — <요약>" (탭 → 앱).
+- 헷갈려요: "어떤 의도로 남겼나요?" (탭 → 앱, 홈 needsReview 버킷으로). **일반 alert 다 — 알림에서 직접 후보를 고르는 interactive notification 은 채택하지 않는다**(의도 선택은 Live Activity / 앱 내 버킷이 담당).
+
+**실시간 분담**:
+- foreground = **SSE 즉시 반영** (분석 끝나는 순간 홈·캘린더·LA 갱신).
+- background/종료 = **APNs** (LA push 갱신 + 완료 알림). SSE 는 background 에서 소켓이 끊기므로 이 구멍을 APNs 가 메운다.
+- 앱 복귀 시 reconcile — background 중 놓친 상태를 1회 동기화.
+
+**always-on fallback**: 알림 권한을 거부하거나 푸시를 놓쳐도, 홈의 **needsReview("헷갈려요") 버킷**(§8.4)이 진실원천이라 헷갈려요 처리는 언제든 앱 안에서 가능하다.
+
 ---
 
 ## 9. 디자인 톤

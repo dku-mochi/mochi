@@ -60,6 +60,8 @@ struct RootFeature: Sendable {
         case appBecameActive
         case sessionResolved(AuthSession?)
         case pendingMemoDiscovered(UUID)
+        /// 분석완료 알림 탭 — 홈 버킷으로 라우팅(상세 딥링크는 server→local id 매핑 필요, 후속).
+        case notificationTapped(UUID)
         case login(LoginFeature.Action)
         case main(MainTabFeature.Action)
         case requestSignOut
@@ -106,6 +108,11 @@ struct RootFeature: Sendable {
                 // 활성 모달이 다른 captureID 라면 새 marker 는 다음 dismiss 후 다시 검사.
                 guard state.backTapModal == nil else { return .none }
                 state.backTapModal = .init(captureID: captureID)
+                return .none
+
+            case .notificationTapped:
+                // 알림 탭 → 홈 탭으로. 항목 최신화는 scenePhase active reconcile(폴링/SSE 재구독)이 맡는다.
+                state.main.selectedTab = .home
                 return .none
 
             case .backTapModal(.presented(.delegate(.dismiss))):
