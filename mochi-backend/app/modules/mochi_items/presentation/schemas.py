@@ -73,7 +73,7 @@ class IntentInstanceResponse(BaseModel):
 
 
 class ReviewOptionResponse(BaseModel):
-    """needs_review=true 일 때의 미확정 후보. 현재 DB 미영속이라 빈 배열일 수 있다(가드레일 2)."""
+    """needs_review=true 일 때의 미확정 후보 (mochi_items JSONB 영속 — PR-B)."""
 
     intent_type: Intent = Field(alias="intentType")
     label: str | None = None

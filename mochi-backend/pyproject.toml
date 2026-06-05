@@ -17,8 +17,8 @@ dependencies = [
     "pydantic>=2.9.0",
     "pydantic-settings>=2.6.0",
 
-    # HTTP client (WebFetch tool)
-    "httpx>=0.27.0",
+    # HTTP client (WebFetch tool, APNs http2)
+    "httpx[http2]>=0.27.0",
 
     # AI — Vertex AI / Gemini
     "google-cloud-aiplatform>=1.71.0",

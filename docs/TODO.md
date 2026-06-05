@@ -2,7 +2,7 @@
 level: 3
 mode: log
 status: active
-last_verified: 2026-05-29
+last_verified: 2026-06-05
 confidence: 0.9
 owners: [송준서, 이용찬, 박세현]
 description: 외부 설정·비밀값 체크리스트 + 활성 작업·다음 sprint 목표. 다음 중 하나라도 손대기 전 읽어라 — 인증·외부 통합, sprint 작업 분배, /sprint-end 직후. 자주 바뀜 · `/sprint-end` 가 done 항목을 docs/archive/ 로 이관.
@@ -33,6 +33,14 @@ description: 외부 설정·비밀값 체크리스트 + 활성 작업·다음 sp
 - [ ] `.p8` 파일 다운로드 (1회만 가능) — **절대 git에 커밋 금지**
 - [ ] Key ID, Team ID 메모
 - 본 마일스톤에선 자체 DB 의 refresh token 만 revoke 하면 충분. Apple 측 revoke 는 후속.
+
+### 1.4 APNs — Apple Push (PR-B, Live Activity·background 알림)
+- [x] APNs Auth Key(.p8) 발급 — `AuthKey_CA6C3JCHW3.p8`(Key ID `CA6C3JCHW3`), Team `U9SLX327XS` (2026-06-05). **절대 git 커밋 금지.**
+- [ ] App ID `app.mochi` 에 **Push Notifications capability** 활성
+- [ ] `Targets/App/Support/App.entitlements` 에 `aps-environment` 추가 (현재 없음 — development/production)
+- [ ] provisioning profile 재발급 (§1.2 와 함께 — Push capability 포함)
+- [ ] Info.plist `NSSupportsLiveActivities=true` 확인(이미 있음) / 필요 시 `NSSupportsLiveActivitiesFrequentUpdates`
+- 환경 주의: device token 은 환경에 묶임 — **TestFlight/App Store=production, Xcode 직접빌드=sandbox**. iOS 가 등록 시 environment 를 명시(`POST /devices/push-token`), 잘못 매칭 시 `BadDeviceToken`.
 
 ---
 
@@ -152,6 +160,14 @@ AUTH_GOOGLE_JWKS_URL=https://www.googleapis.com/oauth2/v3/certs
 # Instagram 공식 oEmbed 사용 시만 설정. 비우면 OG fallback 으로 동작.
 INSTAGRAM_OEMBED_ACCESS_TOKEN=
 INSTAGRAM_OEMBED_API_VERSION=v20.0
+
+# === APNs — Apple Push (PR-B) ===
+# team_id/key_id/bundle_id 는 공개 식별자. p8 내용만 비밀(절대 커밋 금지).
+# p8 → base64: `base64 -i AuthKey_CA6C3JCHW3.p8 | tr -d '\n'`. 비우면 push no-op(local dev).
+APNS_TEAM_ID=U9SLX327XS
+APNS_KEY_ID=CA6C3JCHW3
+APNS_BUNDLE_ID=app.mochi
+APNS_AUTH_KEY_P8_BASE64=<base64 of AuthKey_CA6C3JCHW3.p8>
 ```
 
 ### 4.1 비밀값 생성

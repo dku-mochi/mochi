@@ -108,6 +108,15 @@ class Settings(BaseSettings):
     # (레거시 / 외부 IdP) JWKS — 미사용. 호환을 위해 옵션 유지.
     auth_jwks_url: str | None = None
 
+    # APNs — Apple Push (PR-B). team_id/key_id/bundle_id 는 공개 식별자, p8 내용만 비밀.
+    # p8 는 multiline PEM 이라 base64 로 주입(.env 에서 \n literal 미해석 회피) — get_apns_client 가 decode.
+    # apns_auth_key_p8_base64 미설정 시 push no-op(local dev). sandbox/production 환경은 토큰별로
+    # device_push_tokens.environment 에 기록(클라가 등록 시 지정) — 서버 단일 환경 설정 없음.
+    apns_team_id: str = "U9SLX327XS"
+    apns_key_id: str = "CA6C3JCHW3"
+    apns_bundle_id: str = "app.mochi"
+    apns_auth_key_p8_base64: str | None = None
+
     @property
     def auth_google_client_id_list(self) -> tuple[str, ...]:
         return tuple(s.strip() for s in self.auth_google_client_ids.split(",") if s.strip())
