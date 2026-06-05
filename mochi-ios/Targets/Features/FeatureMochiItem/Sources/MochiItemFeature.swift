@@ -40,6 +40,11 @@ public struct MochiItemFeature: Sendable {
         Reduce { state, action in
             switch action {
             case .startAnalysis:
+                // ⚠️ 현재 미배선(dead) — `MainTabFeature.mochiItem` 를 세팅하는 경로가 없다. 활성화 시 2가지 선결:
+                //  (1) stream 인자는 **serverID** 여야 한다(`LiveAgentStreamClient` 규약 — 로컬 id 는 404).
+                //      State 에 serverID 를 실어 전달하라(아래 `source.id` 는 로컬 id).
+                //  (2) 완료 적용(`streamFinished` 의 upsert)은 `MochiItemSyncWorker` 단일 소유(handoff §3.3).
+                //      이 Feature 는 진행표시(node/partial)만 맡고 완료 write 는 빼야 이중 적용을 피한다.
                 let mochiItemID = state.source.id
                 return .run { send in
                     do {
