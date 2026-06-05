@@ -22,7 +22,7 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
-	<!-- Live Activity 활성화 (DEBUG prototype: MockUseCaseLiveActivity).
+	<!-- Live Activity 활성화 (MochiLiveActivity).
 	     `Activity<...>.request()` 가 거부되지 않으려면 필수. iOS 16.1+. -->
 	<key>NSSupportsLiveActivities</key>
 	<true/>

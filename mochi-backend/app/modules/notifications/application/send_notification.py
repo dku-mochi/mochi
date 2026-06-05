@@ -99,8 +99,15 @@ class SendAnalysisNotification:
 
     @staticmethod
     def _build_live_activity(n: AnalysisNotification) -> dict[str, object]:
+        # label 은 non-null 보장 — iOS `MochiLiveActivityAttributes.Candidate.label` 이 비옵셔널이라
+        # null 이면 시스템 content-state 자동 decode 가 throw → background LA 갱신이 무음 드롭된다.
+        # (ReviewOption.label 은 str|None. reasoning 은 항상 str 이라 그대로.)
         candidates = [
-            {"intentType": r.intent_type.value, "label": r.label, "reasoning": r.reasoning}
+            {
+                "intentType": r.intent_type.value,
+                "label": r.label or r.intent_type.value,
+                "reasoning": r.reasoning,
+            }
             for r in n.review_options[:3]
         ]
         content_state: dict[str, object] = {

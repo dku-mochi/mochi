@@ -40,12 +40,18 @@ enum AppDependencies {
         //    openapi.json 단일 계약에서 생성한 클라이언트(`OpenAPIMochiClient`) 가 라이브 구현.
         let liveAPI = OpenAPIMochiClient(baseURL: baseURL, tokenProvider: coordinator)
 
+        // 3) SSE 라이브 스트림 — foreground 분석 완료를 즉시 받는다(폴링 대체, 끊김 시 폴링 fallback).
+        //    인증은 coordinator(AuthTokenProvider) Bearer 재사용, `final` 시 liveAPI 로 GET 재조회.
+        let liveStream = LiveAgentStreamClient(
+            baseURL: baseURL, tokenProvider: coordinator, apiClient: liveAPI
+        )
+
         prepareDependencies {
             $0.mochiItemRepository = RealmMochiItemRepository()
             $0.calendarSyncer    = LiveCalendarSyncer()
             $0.mochiAPIClient    = liveAPI
             $0.authCoordinator   = coordinator
-            // TODO: AgentStreamClient SSE 구현이 추가되면 여기에서 주입한다.
+            $0.agentStreamClient = liveStream
         }
     }
 

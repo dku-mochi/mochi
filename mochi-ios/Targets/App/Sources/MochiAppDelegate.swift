@@ -59,4 +59,30 @@ public final class MochiAppDelegate: NSObject, UIApplicationDelegate, UNUserNoti
     ) {
         // 폴링 fallback 이 있으므로 fatal 아님 — 등록 실패는 무시(다음 진입에서 재시도 가능).
     }
+
+    // MARK: - 알림 핸들러
+
+    /// foreground 수신 — 분석 완료 alert 를 배너로 노출(앱이 켜져 있어도 보이게).
+    public func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+        completionHandler([.banner, .sound, .badge])
+    }
+
+    /// 알림 탭 → 앱 진입 + 홈 버킷으로 라우팅. 후보 선택 action 은 없다(선택은 LA / 앱 내 버킷).
+    /// `userInfo["mochiItemID"]` 는 server PK — 복귀 시 scenePhase active reconcile 이 해당 항목을
+    /// 최신화해 홈 버킷에 띄운다. (상세 딥링크는 server→local id 매핑이 필요해 후속.)
+    public func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void
+    ) {
+        let userInfo = response.notification.request.content.userInfo
+        if let raw = userInfo["mochiItemID"] as? String, let id = UUID(uuidString: raw) {
+            Task { @MainActor in MochiApp.rootStore.send(.notificationTapped(id)) }
+        }
+        completionHandler()
+    }
 }

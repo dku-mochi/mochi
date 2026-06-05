@@ -1,6 +1,7 @@
 import Foundation
 import CoreDomain
 import CoreNetworking
+import CoreAgentClient
 import Dependencies
 
 /// 로컬에 ingest 된 mochiItem 를 백엔드 `/api/v1/mochi_items` 에 업로드하는 워커.
@@ -22,10 +23,16 @@ public actor MochiItemSyncWorker {
     private var isRunning = false
     /// foreground 동안만 도는 metadata-only 분석 폴링 루프. background 진입 시 cancel.
     private var pollTask: Task<Void, Never>?
+    /// 진행 중 SSE 구독 — serverID 별 1건. 중복 구독 방지 + background 진입 시 일괄 취소.
+    private var streamTasks: [UUID: Task<Void, Never>] = [:]
 
-    /// Live Activity trigger — 스크린샷 ingest 시 `.analyzing` / `.ready` / `end` 호출.
+    /// Live Activity trigger — 전 채널 ingest 시 `.analyzing` / push 토큰 등록 / `.ready` / `end` 호출.
     /// DI 미주입 시 `NotConfiguredLiveActivityCoordinator` 가 no-op.
     @Dependency(\.liveActivityCoordinator) private var liveActivity
+
+    /// SSE 라이브 스트림 — foreground in-flight 항목의 분석 완료를 3초 폴링보다 빨리 받는다(폴링은 fallback).
+    /// DI 미주입 시 `NotConfiguredAgentStreamClient` 가 즉시 throw → 폴링이 단독으로 메운다.
+    @Dependency(\.agentStreamClient) private var agentStream
 
     public init(
         repository: any MochiItemRepository,
@@ -69,22 +76,16 @@ public actor MochiItemSyncWorker {
         do {
             try? await repository.updateSync(mochiItemID: mochiItem.id, to: .uploading)
 
-            // 스크린샷(백탭) 입력은 분석 중 Live Activity 를 점유한다 (입력 UX 유지) — Lock Screen /
-            // Dynamic Island 에 "분류 중" 표시. ingest 경로는 단일화됐다: 모든 채널이
-            // presign→PUT→`ingestMochiItem`(with imageRefs). 백엔드가 `.ingested` 로 적재하고
-            // worker 가 비동기 분석하므로 이 항목은 `pollAnalysisOnce` 대상이 된다.
-            if mochiItem.source.channel == .screenshot,
-               let imageRef = mochiItem.source.imageRefs.first {
-                let caption = liveActivityCaption(
-                    mochiItemID: mochiItem.id,
-                    body: mochiItem.source.userMemo?.prefix(40).description ?? "스크린샷 분석 중"
-                )
-                await liveActivity.startAnalyzing(
-                    mochiItemID: mochiItem.id,
-                    caption: caption,
-                    thumbnailRelativePath: imageRef.relativePath
-                )
-            }
+            // 전 채널 입력이 분석 중 Live Activity 를 점유한다 — Lock Screen / Dynamic Island 에 "분석 중"
+            // 표시. 썸네일은 스크린샷만 존재(그 외 nil → placeholder). ingest 경로는 단일화됐다: 모든
+            // 채널이 presign→PUT→`ingestMochiItem`. 백엔드가 `.ingested` 로 적재하고 worker 가 비동기
+            // 분석하므로 이 항목은 SSE 구독 + `pollAnalysisOnce`(fallback) 대상이 된다.
+            let caption = mochiItem.source.userMemo?.prefix(40).description ?? "분석 중"
+            await liveActivity.startAnalyzing(
+                mochiItemID: mochiItem.id,
+                caption: caption,
+                thumbnailRelativePath: mochiItem.source.imageRefs.first?.relativePath
+            )
 
             let imageRefs = try await uploadedImageRefDTOs(for: mochiItem)
             let request = MochiItemIngestRequest(
@@ -99,6 +100,8 @@ public actor MochiItemSyncWorker {
                 mochiItemID: mochiItem.id,
                 to: .uploaded(serverID: dto.id, at: Date())
             )
+            // serverID 확정 → LA push 토큰(로컬 관찰)을 server PK 로 등록(백엔드 background LA 갱신용).
+            await liveActivity.registerPushToken(mochiItemID: mochiItem.id, serverID: dto.id)
         } catch let envelope as APIErrorEnvelope {
             try? await repository.updateSync(
                 mochiItemID: mochiItem.id,
@@ -173,39 +176,83 @@ public actor MochiItemSyncWorker {
         return try Data(contentsOf: url)
     }
 
-    /// 분석 결과(intent instances / needsReview / reviewOptions / summary / importance)를 Realm 의
-    /// ``MochiItem.analysis`` 에 반영하는 공통 writer. 폴링(`pollAnalysisOnce`)이 호출한다.
+    /// 분석 결과를 Realm 의 ``MochiItem.analysis`` 에 반영하는 공통 writer (폴링·SSE 공용).
     ///
-    /// 처리상태 `lifecycleState` 를 `.analyzed` 로 직접 박는다 (분석 완료 — iOS 폴링 컷오버).
+    /// 처리상태 `lifecycleState` 를 `.analyzed` 로 직접 박는다 (분석 완료 — iOS 컷오버).
     /// `repository.upsert` 는 처리상태 전이 검증 없이 그대로 쓴다. 버킷(분석중/헷갈려요/중요)은
     /// 처리상태가 아니라 analysis 의 instances/needsReview 에서 derive 한다.
+    ///
+    /// **중복 적용 차단(apply-once)**: SSE 와 폴링이 거의 동시에 같은 `analysis == nil` 스냅샷을 잡아
+    /// 둘 다 도달할 수 있다. `upsert` 는 `updatedAt` 을 bump 하지 않아(RealmMochiItemMapper) 세대
+    /// 가드만으론 못 막으므로, 이미 분석이 붙었으면(`analysis != nil`) 두 번째 적용을 건너뛴다.
+    /// 추가로 세대 가드: GET/스트림을 await 하는 사이 수동 분류(setIntent)·재시도가 끼어들어 스냅샷
+    /// 이후 항목이 바뀌었으면 stale 결과로 덮지 않는다. 적용 여부를 반환 — 호출부가 LA 갱신 분기에 쓴다.
+    @discardableResult
     private func applyAnalysis(
         to mochiItemID: UUID,
-        instances: [IntentInstance],
-        needsReview: Bool,
-        reviewOptions: [ReviewOption],
-        summary: String,
-        importance: Int,
+        analysis: MochiItemAnalysis,
         expectedUpdatedAt: Date? = nil
-    ) async {
-        guard var current = try? await repository.find(id: mochiItemID) else { return }
-        // 세대 가드(폴링 경로): GET 을 await 하는 사이 수동 분류(setIntent)·재시도(requeue)가
-        // 끼어들 수 있다. 스냅샷 이후 항목이 바뀌었으면 stale 결과로 덮지 않는다.
-        if let expectedUpdatedAt, current.updatedAt != expectedUpdatedAt { return }
-        current.analysis = MochiItemAnalysis(
-            summary: summary,
-            instances: instances,
-            needsReview: needsReview,
-            reviewOptions: reviewOptions,
-            entities: [],
-            actionCandidates: [],
-            tags: [],
-            importance: MochiItemAnalysis.Importance(rawValue: importance) ?? .medium,
-            modelVersion: "gemini-3.1-flash-lite",
-            analyzedAt: Date()
-        )
+    ) async -> Bool {
+        guard var current = try? await repository.find(id: mochiItemID) else { return false }
+        guard current.analysis == nil else { return false }  // 이미 적용됨(SSE/폴링 경합) — 한 번만.
+        if let expectedUpdatedAt, current.updatedAt != expectedUpdatedAt { return false }
+        current.analysis = analysis
         current.lifecycleState = .analyzed
         try? await repository.upsert(current)
+        return true
+    }
+
+    /// 분석 적용 + Live Activity `.ready` 전환(전 채널). 적용이 세대 가드로 막히면 LA 도 건너뛴다.
+    /// 후보는 `reviewOptions`(헷갈려요 후보)에서 — needsReview=false 면 빈 후보 + summary 로 확정 표시.
+    private func applyAnalysisAndUpdateLA(
+        localID: UUID,
+        analysis: MochiItemAnalysis,
+        expectedUpdatedAt: Date?
+    ) async {
+        let applied = await applyAnalysis(to: localID, analysis: analysis, expectedUpdatedAt: expectedUpdatedAt)
+        guard applied else { return }
+        let candidates = analysis.reviewOptions.map {
+            LiveActivityCandidate(
+                intentType: $0.intentType.rawValue,
+                label: $0.displayLabel,
+                reasoning: $0.reasoning ?? ""
+            )
+        }
+        await liveActivity.transitionToReady(
+            mochiItemID: localID,
+            needsReview: analysis.needsReview,
+            summary: analysis.summary,
+            candidates: candidates
+        )
+    }
+
+    /// in-flight(uploaded + analysis==nil) 항목의 SSE 스트림을 보장(중복 구독은 무시).
+    /// `final`(GET 재조회 결과)→분석 적용+LA. node/partial 은 진행표시용이라 worker 는 무시.
+    ///
+    /// **`failed` 는 강등하지 않는다**: 백엔드는 genuine 실패뿐 아니라 SSE deadline(분석은 계속 중)도
+    /// `failed`로 흘린다. 둘을 구분 못 하므로, 강등 판단은 deadline·lifecycleKind 를 보는 폴링에 맡긴다.
+    /// SSE 와 폴링은 생명주기가 같아(둘 다 foreground, background 진입 시 함께 취소) 폴링이 항상 메운다.
+    private func ensureStream(for item: MochiItem, serverID: UUID) {
+        guard streamTasks[serverID] == nil else { return }
+        streamTasks[serverID] = Task { [weak self, agentStream] in
+            do {
+                for try await event in agentStream.stream(mochiItemID: serverID) {
+                    if case let .finalAnalysis(analysis) = event {
+                        await self?.applyAnalysisAndUpdateLA(
+                            localID: item.id, analysis: analysis, expectedUpdatedAt: item.updatedAt
+                        )
+                    }
+                    // node/tool/partial/failed — 폴링 fallback 이 진행·강등을 맡는다.
+                }
+            } catch {
+                // SSE 실패/끊김 — 폴링 fallback 이 메운다.
+            }
+            await self?.clearStream(serverID)
+        }
+    }
+
+    private func clearStream(_ serverID: UUID) {
+        streamTasks[serverID] = nil
     }
 
     // MARK: - 분석 폴링 (foreground 한정) — 백탭·metadata-only 공통
@@ -225,6 +272,10 @@ public actor MochiItemSyncWorker {
     public func stopForegroundPolling() {
         pollTask?.cancel()
         pollTask = nil
+        // background 진입 시 SSE 소켓은 어차피 suspend 된다 — 명시적으로 취소해 dangling task 제거.
+        // (background 분석 완료는 APNs 가 인계, 복귀 시 reconcile 이 메운다.)
+        for task in streamTasks.values { task.cancel() }
+        streamTasks.removeAll()
     }
 
     /// 업로드됐으나(syncState == .uploaded) 아직 분석이 안 붙은(analysis == nil) 항목을
@@ -250,6 +301,8 @@ public actor MochiItemSyncWorker {
             // (로컬 id 로 GET 하면 404 → 무한 폴링.)
             guard case let .uploaded(serverID, uploadedAt) = item.syncState else { continue }
             let expired = Date().timeIntervalSince(uploadedAt) > Self.analysisPollDeadline
+            // SSE 구독 보장 — foreground 즉시 반영(폴링은 fallback). 중복 구독은 무시.
+            ensureStream(for: item, serverID: serverID)
 
             guard let dto = try? await apiClient.getMochiItem(id: serverID) else {
                 // GET 실패(네트워크/404 등): deadline 초과면 give-up, 아니면 다음 tick 재시도.
@@ -261,32 +314,12 @@ public actor MochiItemSyncWorker {
             // ⚠️ 이 case 문자열이 백엔드 처리상태와 어긋나면 폴링이 영영 안 끝난다.
             switch dto.lifecycleKind {
             case "analyzed":
-                let instances = Self.instances(from: dto)
-                await applyAnalysis(
-                    to: item.id,
-                    instances: instances,
-                    needsReview: dto.needsReview,
-                    reviewOptions: Self.reviewOptions(from: dto),
-                    summary: dto.summary ?? "",
-                    importance: dto.importance,
+                // 전 채널 분석 완료 — 분석 적용 + Live Activity `.ready` 전환(공통 헬퍼).
+                await applyAnalysisAndUpdateLA(
+                    localID: item.id,
+                    analysis: dto.toMochiItemAnalysis(),
                     expectedUpdatedAt: item.updatedAt
                 )
-                // 백탭(screenshot) 은 분석 완료 시 instance 와 함께 Live Activity 를 `.ready` 로 전환한다.
-                // (foreground 한정 — background push 는 APNs 도입 후. instance 없으면 LA 종료.)
-                if item.source.channel == .screenshot {
-                    let liveCandidates = instances.map {
-                        LiveActivityCandidate(
-                            label: $0.displayLabel,
-                            intent: $0.intentType.rawValue,
-                            applicability: 1.0
-                        )
-                    }
-                    if liveCandidates.isEmpty {
-                        await liveActivity.endIfActive(mochiItemID: item.id, failed: false)
-                    } else {
-                        await liveActivity.transitionToReady(mochiItemID: item.id, candidates: liveCandidates)
-                    }
-                }
             case "failed":
                 await demoteToManual(item) // 명시적 분석 실패 — 즉시 강등.
             default:
@@ -324,46 +357,7 @@ public actor MochiItemSyncWorker {
         )
         current.lifecycleState = .analyzed
         try? await repository.upsert(current)
-        // 백탭(screenshot) 강등 시 점유 중이던 Live Activity 를 실패로 종료.
-        if item.source.channel == .screenshot {
-            await liveActivity.endIfActive(mochiItemID: item.id, failed: true)
-        }
-    }
-
-    /// 백엔드 분석 결과의 intent instance(typed payload·한국어 label 포함)를 도메인으로 재구성한다.
-    /// 분석 전이면 빈 배열 — 홈 카드/Live Activity 가 instance 없음으로 렌더.
-    private static func instances(from dto: MochiItemDTO) -> [IntentInstance] {
-        dto.intentInstances.map { i in
-            IntentInstance(
-                intentType: i.intentType,
-                payload: payload(from: i.payload),
-                label: i.label,
-                reasoning: i.reasoning,
-                lifecycle: instanceLifecycle(from: i.lifecycleKind)
-            )
-        }
-    }
-
-    private static func reviewOptions(from dto: MochiItemDTO) -> [ReviewOption] {
-        dto.reviewOptions.map { ReviewOption(intentType: $0.intentType, label: $0.label, reasoning: $0.reasoning) }
-    }
-
-    private static func payload(from dto: IntentPayloadDTO?) -> IntentPayload {
-        guard let dto else { return IntentPayload() }
-        return IntentPayload(
-            title: dto.title, date: dto.date, time: dto.time, deadline: dto.deadline,
-            person: dto.person, topic: dto.topic, url: dto.url, note: dto.note
-        )
-    }
-
-    /// 응답 instance 의 의미상태 문자열을 도메인으로. 새로 적재된 instance 는 대개 `active`.
-    /// 응답엔 archive reason 이 없어 archived 는 `userManual` 로 기본 매핑(새 적재엔 거의 없음).
-    private static func instanceLifecycle(from raw: String) -> InstanceLifecycle {
-        switch raw {
-        case "decaying":        return .decaying
-        case "reviewRequested": return .reviewRequested
-        case "archived":        return .archived(reason: .userManual)
-        default:                return .active
-        }
+        // 강등 시 점유 중이던 Live Activity 를 실패로 종료(전 채널).
+        await liveActivity.endIfActive(mochiItemID: item.id, failed: true)
     }
 }
