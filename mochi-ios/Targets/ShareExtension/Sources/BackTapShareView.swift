@@ -25,6 +25,7 @@ struct BackTapShareView: View {
     @State private var memo: String = ""
     @State private var imageRemoved = false
     @State private var showUndo = false
+    @State private var isSubmitting = false
     @FocusState private var memoFocused: Bool
 
     var body: some View {
@@ -133,6 +134,8 @@ struct BackTapShareView: View {
     }
 
     private func submit() {
+        guard !isSubmitting else { return }   // 중복 탭 방지 — 매 submit 마다 payload.id 가 새로 생겨 중복 적재 위험
+        isSubmitting = true
         let text = CaptureContextSentinel.composeText(sourceApp: sourceApp, base: nil)
         onSubmit(InboundIngestPayload(
             url: nil,

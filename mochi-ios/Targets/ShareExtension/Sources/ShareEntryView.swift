@@ -20,6 +20,7 @@ struct ShareEntryView: View {
     let onCancel: () -> Void
 
     @State private var memo: String = ""
+    @State private var isSubmitting = false
 
     /// 이미지만 들어왔고 URL/텍스트가 없다면, BackTap 과 같은 "스크린샷 우세" 레이아웃.
     private var isImageDominant: Bool {
@@ -218,6 +219,8 @@ struct ShareEntryView: View {
     }
 
     private func submit() {
+        guard !isSubmitting else { return }   // 중복 탭 방지
+        isSubmitting = true
         onSubmit(InboundIngestPayload(
             url: initialURL,
             text: CaptureContextSentinel.composeText(sourceApp: sourceApp, base: initialText),
