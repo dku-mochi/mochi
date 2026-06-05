@@ -69,4 +69,22 @@ public enum AppGroup {
     public static func pendingBackTapMemoFilename(captureID: String) -> String {
         "\(captureID).memo"
     }
+
+    // MARK: - 공유 백엔드 baseURL (ShareExtension 직접 전송용)
+
+    private static let apiBaseURLKey = "mochi.apiBaseURL"
+
+    /// 메인 앱이 부팅 시 결정한 백엔드 baseURL. ShareExtension 은 `AppDependencies.bootstrap()`
+    /// 이 돌지 않아 baseURL 을 모르므로, 직접 전송 시 이 값을 읽는다. 없으면(앱 미실행) 직접
+    /// 전송을 포기하고 inbound 큐로 폴백한다.
+    public static var sharedAPIBaseURL: URL? {
+        UserDefaults(suiteName: identifier)?
+            .string(forKey: apiBaseURLKey)
+            .flatMap(URL.init(string:))
+    }
+
+    /// 메인 앱 부팅 시 호출 — 결정한 baseURL 을 App Group 으로 공유한다.
+    public static func setSharedAPIBaseURL(_ url: URL) {
+        UserDefaults(suiteName: identifier)?.set(url.absoluteString, forKey: apiBaseURLKey)
+    }
 }
