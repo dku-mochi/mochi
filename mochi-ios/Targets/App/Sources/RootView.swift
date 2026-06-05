@@ -68,27 +68,27 @@ struct MainTabView: View {
     var body: some View {
         TabView(selection: $store.selectedTab.sending(\.tabSelected)) {
             HomeView(store: store.scope(state: \.home, action: \.home))
-                .tabItem { Label("홈", systemImage: "house.fill") }
+                .tabItem { Label("홈", image: "tab_home") }
                 .tag(MainTabFeature.Tab.home)
+
+            NavigationStack {
+                MochiCalendarView(store: store.scope(state: \.mochiCalendar, action: \.mochiCalendar))
+            }
+            .tabItem { Label("모찌들", image: "tab_mochis") }
+            .tag(MainTabFeature.Tab.mochis)
 
             ComingSoonPlaceholder(
                 icon: "message",
                 title: "곧 만나요, 채팅",
                 subtitle: "모찌랑 대화로 정리하는 기능을 준비 중이에요."
             )
-            .tabItem { Label("채팅", systemImage: "message") }
+            .tabItem { Label("채팅", image: "tab_chat") }
             .tag(MainTabFeature.Tab.chat)
-
-            NavigationStack {
-                MochiCalendarView(store: store.scope(state: \.mochiCalendar, action: \.mochiCalendar))
-            }
-            .tabItem { Label("모찌들", systemImage: "calendar") }
-            .tag(MainTabFeature.Tab.mochis)
 
             NavigationStack {
                 SearchView(store: store.scope(state: \.search, action: \.search))
             }
-            .tabItem { Label("검색", systemImage: "magnifyingglass") }
+            .tabItem { Label("검색", image: "tab_search") }
             .tag(MainTabFeature.Tab.search)
         }
         // 선택 탭 = 모찌 퍼플(MochiTheme.primary). 비선택·배경·레이블 폰트는 configureTabBarAppearance 담당.
@@ -150,11 +150,17 @@ struct MainTabView: View {
         let normal = UIColor(MochiTheme.Palette.textSecondary)
         let labelFont = roundedSystemFont(ofSize: 10, weight: .semibold)
 
+        // 시안 = 아이콘 전용 탭바. 레이블 텍스트는 화면 밖으로 밀어 시각적으로 숨기되,
+        // Label 의 title 은 VoiceOver 접근성 이름으로 보존하고 아이콘은 세로 중앙 정렬된다.
+        let hideTitle = UIOffset(horizontal: 0, vertical: .greatestFiniteMagnitude)
+
         let item = UITabBarItemAppearance()
         item.selected.iconColor = selected
         item.selected.titleTextAttributes = [.foregroundColor: selected, .font: labelFont]
+        item.selected.titlePositionAdjustment = hideTitle
         item.normal.iconColor = normal
         item.normal.titleTextAttributes = [.foregroundColor: normal, .font: labelFont]
+        item.normal.titlePositionAdjustment = hideTitle
 
         appearance.stackedLayoutAppearance = item
         appearance.inlineLayoutAppearance = item

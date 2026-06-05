@@ -10,9 +10,8 @@ import CoreLiveActivity
 /// Dynamic Island 의 후보 버튼을 누르면 본 intent 가 background 에서 실행되고, Activity 의
 /// ContentState 를 `.confirmed` 로 갱신한다.
 ///
-/// **prototype 한정**: 백엔드 commit / Realm upsert 는 없고, App Group 의 작은 marker 파일에
-/// 사용자 선택을 기록한다. 모찌 앱이 다음 launch 시 그 marker 를 읽어 콘솔에 출력
-/// (실제 commit 흐름은 별도 작업).
+/// 사용자 선택은 App Group 의 marker(`live-activity-selection.json`)에 기록되고, 모찌 앱이
+/// 다음 active tick 에 그 marker 를 흡수해 실제 commit 흐름으로 잇는다.
 public struct SelectCandidateIntent: LiveActivityIntent {
     public static let title: LocalizedStringResource = "모찌 후보 선택"
     public static let description = IntentDescription("Live Activity 에서 use case 후보를 한 탭으로 선택")
@@ -27,10 +26,13 @@ public struct SelectCandidateIntent: LiveActivityIntent {
 
     public func perform() async throws -> some IntentResult {
         // 현재 활성 Activity 를 찾아 confirmed 로 update.
-        for activity in Activity<MockUseCaseActivityAttributes>.activities {
-            let newState = MockUseCaseActivityAttributes.ContentState(
+        for activity in Activity<MochiLiveActivityAttributes>.activities {
+            let prev = activity.content.state
+            let newState = MochiLiveActivityAttributes.ContentState(
                 phase: .confirmed,
-                candidates: activity.content.state.candidates,
+                needsReview: prev.needsReview,
+                summary: prev.summary,
+                candidates: prev.candidates,
                 selectedLabel: label
             )
             await activity.update(

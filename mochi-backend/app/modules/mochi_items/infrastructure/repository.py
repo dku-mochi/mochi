@@ -22,6 +22,7 @@ from app.modules.mochi_items.domain.value_objects import (
     InstanceLifecycleState,
     IntentInstance,
     IntentPayload,
+    ReviewOption,
 )
 from app.modules.mochi_items.infrastructure.orm import (
     EntityRow,
@@ -86,6 +87,14 @@ def _row_to_entity(row: MochiItemRow) -> MochiItem:
         source=source,
         intent_instances=tuple(_row_to_instance(i) for i in row.intent_instances),
         needs_review=row.needs_review,
+        review_options=tuple(
+            ReviewOption(
+                intent_type=Intent(r["intent_type"]),
+                label=r.get("label"),
+                reasoning=r.get("reasoning") or "",
+            )
+            for r in row.review_options
+        ),
         summary=row.summary,
         importance=row.importance,
         model_version=row.model_version,
@@ -281,6 +290,7 @@ class PostgresMochiItemRepository(MochiItemRepository):
         mochi_item_id: UUID,
         intent_instances: tuple[IntentInstance, ...],
         needs_review: bool,
+        review_options: tuple[ReviewOption, ...],
         summary: str,
         importance: int,
         model_version: str,
@@ -296,6 +306,11 @@ class PostgresMochiItemRepository(MochiItemRepository):
         row.summary = summary
         row.importance = importance
         row.needs_review = needs_review
+        # 미확정 후보 영속 — JSONB 컬럼 in-place 덮어쓰기 (재분석 멱등, delete-reinsert 불필요).
+        row.review_options = [
+            {"intent_type": r.intent_type.value, "label": r.label, "reasoning": r.reasoning}
+            for r in review_options
+        ]
         row.model_version = model_version
         # 처리상태 → 분석 완료(analyzed). 처리상태는 단일 선형이라 정책 검증 없이 확립.
         row.lifecycle_kind = LifecycleStateKind.ANALYZED.value

@@ -962,15 +962,22 @@ public struct Client: APIProtocol {
     }
     /// Stream Agent Run
     ///
-    /// SSE 스트림. MochiItem owner 가 아닌 경우 404로 응답한다 (자원 존재 노출 방지).
+    /// SSE 스트림 — worker 의 실제 분석 진행(``mochi_items.lifecycle_kind``)을 관찰해 흘린다.
+    ///
+    /// foreground 클라가 폴링 대신 이 스트림을 구독한다. 백엔드는 처리상태 전이(``node``)와
+    /// 완료/실패 신호만 흘리고, **분석 결과 자체는 보내지 않는다** — 클라가 ``final`` 수신 시
+    /// ``GET /mochi_items/{id}`` 로 재조회한다(이중 직렬화 회피, PR-B 결정).
+    ///
+    /// 실제 분석은 outbox 워커가 단일 소유한다(이중 실행 방지). 이 엔드포인트는 read-only 관찰자다.
+    /// owner 가 아니면 404 (자원 존재 노출 방지).
     ///
     /// 스트림 포맷:
     /// ```
     /// event: node
-    /// data: {"node":"normalized","run_id":"..."}
+    /// data: {"mochi_item_id":"...","lifecycle_kind":"analyzing"}
     ///
     /// event: final
-    /// data: {"run_id":"...","tokens":1234}
+    /// data: {"mochi_item_id":"...","lifecycle_kind":"analyzed"}
     /// ```
     ///
     /// - Remark: HTTP `GET /api/v1/mochi_items/{mochi_item_id}/stream`.
@@ -1090,6 +1097,55 @@ public struct Client: APIProtocol {
                         preconditionFailure("bestContentType chose an invalid content type.")
                     }
                     return .ok(.init(body: body))
+                default:
+                    return .undocumented(
+                        statusCode: response.status.code,
+                        .init(
+                            headerFields: response.headerFields,
+                            body: responseBody
+                        )
+                    )
+                }
+            }
+        )
+    }
+    /// Register Push Token
+    ///
+    /// 단말/Live Activity push 토큰 등록 (owner-scoped upsert).
+    ///
+    /// iOS AppDelegate(apns_device) + LiveActivityCoordinator(live_activity)가 호출한다.
+    ///
+    /// - Remark: HTTP `POST /api/v1/devices/push-token`.
+    /// - Remark: Generated from `#/paths//api/v1/devices/push-token/post(register_push_token_api_v1_devices_push_token_post)`.
+    public func register_push_token_api_v1_devices_push_token_post(_ input: Operations.register_push_token_api_v1_devices_push_token_post.Input) async throws -> Operations.register_push_token_api_v1_devices_push_token_post.Output {
+        try await client.send(
+            input: input,
+            forOperation: Operations.register_push_token_api_v1_devices_push_token_post.id,
+            serializer: { input in
+                let path = try converter.renderedPath(
+                    template: "/api/v1/devices/push-token",
+                    parameters: []
+                )
+                var request: HTTPTypes.HTTPRequest = .init(
+                    soar_path: path,
+                    method: .post
+                )
+                suppressMutabilityWarning(&request)
+                let body: OpenAPIRuntime.HTTPBody?
+                switch input.body {
+                case let .json(value):
+                    body = try converter.setRequiredRequestBodyAsJSON(
+                        value,
+                        headerFields: &request.headerFields,
+                        contentType: "application/json; charset=utf-8"
+                    )
+                }
+                return (request, body)
+            },
+            deserializer: { response, responseBody in
+                switch response.status.code {
+                case 204:
+                    return .noContent(.init())
                 default:
                     return .undocumented(
                         statusCode: response.status.code,
