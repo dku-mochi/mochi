@@ -9,6 +9,7 @@ import FeatureOnboarding
 @main
 struct MochiApp: App {
     @Environment(\.scenePhase) private var scenePhase
+    @UIApplicationDelegateAdaptor(MochiAppDelegate.self) private var appDelegate
 
     static let rootStore: StoreOf<RootFeature> =
         Store(initialState: RootFeature.State()) { RootFeature() }
@@ -35,17 +36,21 @@ struct MochiApp: App {
         )
 
         // Feature 레이어 (InboxFeature·HomeFeature) 가 pull-to-refresh / quick memo 저장 시 즉시 sync 를
-        // 트리거할 수 있게 노출. 또한 MochiItemSyncWorker 가 multipart 분류 흐름에서 Live Activity 를
-        // trigger 하도록 coordinator 주입.
+        // 트리거할 수 있게 노출. 또한 MochiItemSyncWorker 가 분류 흐름에서 Live Activity 를 trigger 하도록
+        // coordinator 주입 — apiClient/환경은 LA push 토큰을 백엔드에 등록하는 데 쓴다.
+        #if DEBUG
+        let pushEnvironment: PushEnvironment = .sandbox
+        #else
+        let pushEnvironment: PushEnvironment = .production
+        #endif
         prepareDependencies {
             $0.syncTrigger = self.syncWorker
-            $0.liveActivityCoordinator = LiveActivityCoordinatorLive()
+            $0.liveActivityCoordinator = LiveActivityCoordinatorLive(apiClient: api, environment: pushEnvironment)
         }
 
-        // 2026-05-27: mock prototype 폐기. 실 분류 흐름이 `MochiItemSyncWorker.uploadOne` 안에서
-        // `LiveActivityCoordinator` 를 통해 직접 trigger 한다 — 백탭 → ShareExt → 저장 → 모찌 active →
-        // multipart 호출 시작 시 `.analyzing` Activity, 응답 도착 시 `.ready(candidates)` update.
-        // (이전 호출: `MockUseCaseNotificationPrototype.scheduleAfterLaunch()` — `#if DEBUG` 가드로.)
+        // 실 분류 흐름이 `MochiItemSyncWorker.uploadOne` 안에서 `LiveActivityCoordinator` 를 통해 직접
+        // trigger 한다 — 저장 → 모찌 active → ingest 시작 시 `.analyzing` Activity, 분석 완료(SSE/폴링) 시
+        // `.ready` update. background 갱신은 ingest 후 등록한 LA push 토큰으로 백엔드가 직접 push.
     }
 
     var body: some Scene {
@@ -54,6 +59,7 @@ struct MochiApp: App {
                 .task {
                     await tick()
                     await syncWorker.startForegroundPolling()
+                    appDelegate.requestAuthorizationIfNeeded()
                 }
                 .onChange(of: scenePhase) { _, newPhase in
                     if newPhase == .active {
@@ -61,6 +67,7 @@ struct MochiApp: App {
                             await tick()
                             await syncWorker.startForegroundPolling()
                         }
+                        appDelegate.requestAuthorizationIfNeeded()
                     } else {
                         // background/inactive 진입 시 metadata-only 폴링 중단 (foreground 한정).
                         Task { await syncWorker.stopForegroundPolling() }

@@ -25,7 +25,7 @@ class AnalysisResult:
 
     - ``intent_instances``: 저장할 것만(곧 active). 같은 type 다중 허용.
     - ``needs_review``: LLM holistic boolean.
-    - ``review_options``: needs_review 일 때의 미확정 후보(DB 미영속 — 응답 projection).
+    - ``review_options``: needs_review 일 때의 미확정 후보(mochi_items JSONB 영속 — PR-B).
     """
 
     summary: str

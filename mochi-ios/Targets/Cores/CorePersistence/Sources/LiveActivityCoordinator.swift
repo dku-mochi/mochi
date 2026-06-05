@@ -1,38 +1,45 @@
 import Dependencies
 import Foundation
 
-/// 스크린샷 분류 흐름의 Live Activity 를 trigger 하는 추상화.
+/// 캡처 분석 흐름의 Live Activity 를 trigger 하는 추상화.
 ///
-/// `MochiItemSyncWorker` 가 스크린샷 ingest(`POST /mochi_items`) 시점에 `.analyzing` Activity 를
-/// 시작, 분석 완료 폴링 시 `.ready(candidates)` 로 update, 실패 시 end. ActivityKit 의존성을
-/// App 타겟에 격리하기 위한 port — CorePersistence (이 모듈) 는 ActivityKit 을 import 하지 않는다.
+/// `MochiItemSyncWorker` 가 ingest(`POST /mochi_items`) 시작 시 `.analyzing` Activity 를 시작하고,
+/// ingest 응답으로 serverID 를 받으면 LA push 토큰을 백엔드에 등록(`registerPushToken`)한다. 분석
+/// 완료(SSE `final` / 폴링) 시 `.ready` 로 update, 실패 시 end. ActivityKit 의존성을 App 타겟에
+/// 격리하기 위한 port — CorePersistence (이 모듈) 는 ActivityKit 을 import 하지 않는다.
 public protocol LiveActivityCoordinator: Sendable {
-    /// ingest 시작 직전 호출. Lock Screen / Dynamic Island 에 `.analyzing` 표시.
-    /// `thumbnailRelativePath` 는 App Group container 기준 상대 경로 (예: `captures/<filename>.png`).
-    /// nil 이면 좌측 column 의 썸네일 자리에 placeholder.
+    /// ingest 시작 직전 호출. Lock Screen / Dynamic Island 에 `.analyzing` 표시. 전 채널 점유.
+    /// `thumbnailRelativePath` 는 App Group container 기준 상대 경로(스크린샷만 존재, 그 외 nil → placeholder).
     func startAnalyzing(mochiItemID: UUID, caption: String, thumbnailRelativePath: String?) async
 
-    /// 분류 응답 도착 시 `.ready` 로 transition. 사용자가 후보 선택할 수 있는 상태.
+    /// ingest 응답으로 serverID 를 받은 직후 호출. LA push 토큰(로컬 관찰)을 **serverID** 로 백엔드에
+    /// 등록한다 — 백엔드 `list_live_activity_for_item` 이 server PK 로 LA 토큰을 조회하기 때문.
+    /// (`startAnalyzing` 시점엔 serverID 가 없어 토큰을 들고만 있다가 여기서 짝지어 등록.)
+    func registerPushToken(mochiItemID: UUID, serverID: UUID) async
+
+    /// 분석 완료 시 `.ready` 로 transition. `needsReview` 면 후보 선택 대기, 아니면 확정 표시(summary).
     func transitionToReady(
         mochiItemID: UUID,
+        needsReview: Bool,
+        summary: String,
         candidates: [LiveActivityCandidate]
     ) async
 
-    /// 호출 실패 / 인증 만료 등 dangling 가능 시점에 호출. 활성 Activity 가 있으면 end.
+    /// 호출 실패 / 인증 만료 / 분석 실패 등 dangling 시점에 호출. 활성 Activity 가 있으면 end.
     func endIfActive(mochiItemID: UUID, failed: Bool) async
 }
 
-/// 후보 한 건. ActivityKit attributes 의 `Candidate` 와 1:1 매핑되지만 CorePersistence 가
-/// `CoreLiveActivity` 에 의존하지 않도록 별도 struct 로 둔다.
+/// 후보 한 건. ActivityKit attributes 의 `Candidate`(`intentType`/`label`/`reasoning`)와 1:1 매핑되지만
+/// CorePersistence 가 `CoreLiveActivity` 에 의존하지 않도록 별도 struct 로 둔다.
 public struct LiveActivityCandidate: Sendable, Hashable {
+    public let intentType: String       // schedule / todo / knowledge / memo
     public let label: String
-    public let intent: String           // schedule / todo / knowledge / memo
-    public let applicability: Double
+    public let reasoning: String
 
-    public init(label: String, intent: String, applicability: Double) {
+    public init(intentType: String, label: String, reasoning: String) {
+        self.intentType = intentType
         self.label = label
-        self.intent = intent
-        self.applicability = applicability
+        self.reasoning = reasoning
     }
 }
 
@@ -52,12 +59,12 @@ public extension DependencyValues {
 public struct NotConfiguredLiveActivityCoordinator: LiveActivityCoordinator {
     public init() {}
     public func startAnalyzing(mochiItemID: UUID, caption: String, thumbnailRelativePath: String?) async {}
-    public func transitionToReady(mochiItemID: UUID, candidates: [LiveActivityCandidate]) async {}
+    public func registerPushToken(mochiItemID: UUID, serverID: UUID) async {}
+    public func transitionToReady(
+        mochiItemID: UUID,
+        needsReview: Bool,
+        summary: String,
+        candidates: [LiveActivityCandidate]
+    ) async {}
     public func endIfActive(mochiItemID: UUID, failed: Bool) async {}
-}
-
-/// mochiItemID prefix 를 caption 에 박는 헬퍼 — Live coordinator 의 `findActivity(for:)` 매칭에 사용.
-/// CorePersistence + App 타겟 양쪽에서 import 가능하도록 본 모듈에 둠.
-public func liveActivityCaption(mochiItemID: UUID, body: String) -> String {
-    "[\(mochiItemID.uuidString.prefix(8))] \(body)"
 }

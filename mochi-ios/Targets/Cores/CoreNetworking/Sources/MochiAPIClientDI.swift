@@ -32,6 +32,9 @@ public struct NotConfiguredAPIClient: MochiAPIClient {
     public func search(query: String, scope: SearchScope) async throws -> SearchResponse {
         throw Self.error
     }
+    public func registerPushToken(token: String, kind: PushTokenKind, environment: PushEnvironment, mochiItemID: UUID?) async throws {
+        throw Self.error
+    }
     private static let error = APIErrorEnvelope(
         code: "client.not_configured",
         message: "MochiAPIClient not wired",

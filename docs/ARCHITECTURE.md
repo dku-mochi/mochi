@@ -2,7 +2,7 @@
 level: 2
 mode: committed
 status: active
-last_verified: 2026-06-04
+last_verified: 2026-06-05
 confidence: 0.7
 owners: [송준서, 이용찬, 박세현]
 description: 시스템 토폴로지·iOS↔Backend 데이터흐름·API 계약의 committed 정본. 다음 중 하나라도 손대기 전 반드시 읽어라 — 두 프로젝트 모두 영향, presentation 스키마, openapi.json, Idempotency-Key, WebFetch SSRF 가드, 모노레포 빌드/배포. 일부 "목표 상태" 서술은 docs/l2/aspirational/ 로 분리 예정. 변경 시 양 README·openapi.json·plan(L3) 정합성 폭포 필수.
@@ -57,6 +57,7 @@ description: 시스템 토폴로지·iOS↔Backend 데이터흐름·API 계약�
 │  │  POST /mochi_items   (단일 ingest)                │               │
 │  │  POST /mochi_items/presign  GET /mochi_items/{id}  │               │
 │  │  GET  /mochi_items/{id}/stream (SSE)               │               │
+│  │  POST /devices/push-token (APNs, PR-B)             │               │
 │  │  POST /auth/{apple,google,refresh,logout}          │               │
 │  │  GET  /users/me     GET /health                    │               │
 │  │  planned(no route): list /sync /search /conv.      │               │
@@ -153,7 +154,7 @@ App  ──► AppIntents/          (QuickCaptureIntent + CaptureScreenshotInten
 
 2026-06-04 빅뱅으로 lifecycle 은 **2분할**됐다(DOMAIN_DESIGN §7). **item 처리상태**와 **intent instance 의미상태**가 직교한다.
 
-- **처리상태** (`mochi_items.lifecycle_kind`, item 단위): `ingested → analyzing → analyzed`(분석완료·instance 적재됨·iOS 폴링 컷오버 신호), 실패 시 `→ failed`. archive 없음.
+- **처리상태** (`mochi_items.lifecycle_kind`, item 단위): `ingested → analyzing → analyzed`(분석완료·instance 적재됨·iOS SSE `final`/폴링 컷오버 신호), 실패 시 `→ failed`. archive 없음.
 - **의미상태** (`intent_instances.lifecycle_kind`, instance 단위): instance 는 분석 성공 시 `active` 로 태어난다. `CoreDomain.LifecyclePolicy.validate(from:to:intent:)` 가 (1) `(current→next)` 페어가 intent_type 별 허용인지 (2) `.archived(reason:)` 의 reason 이 intent_type 별 허용인지 검증.
 
 | intent_type | 자동 동작 | 합법 전이(의미상태) |
@@ -225,6 +226,11 @@ app/
 │   │   ├── application/           HybridSearch use case
 │   │   ├── infrastructure/        PostgresHybridIndex (owner-scoped BM25 + 벡터) + rrf
 │   │   └── presentation/router.py      POST /search
+│   ├── notifications/                   PR-B — APNs background push
+│   │   ├── domain/                APNsClient/PushTokenRepository port, DevicePushToken
+│   │   ├── application/           RegisterPushToken, SendAnalysisNotification, make_push_token_repository
+│   │   ├── infrastructure/        HttpxAPNsClient(http2+ES256 JWT), PostgresPushTokenRepository, DevicePushTokenRow
+│   │   └── presentation/router.py      POST /devices/push-token
 │   └── conversations/
 │       ├── domain/                Conversation / Message / Citation
 │       ├── application/           SendMessage, GetConversation
@@ -295,9 +301,18 @@ AgentOrchestrator(persistence=AgentRunPersistence(session)).run(mochi_item_id)
   └─ (도중 실패하면 예외 re-raise → worker 가 outbox 재시도/DLQ 분기 결정)
   ↓
 성공: mochi_item_outbox status='done'
+  └─ (done 커밋 직후, 분석 try 밖, best-effort) SendAnalysisNotification → APNs alert(전 단말) + LA .ready(해당 item). push 실패는 격리(done 유지) — 누락은 iOS reconcile 이 메움
 실패 + attempt<max: status='pending' (재시도)
 실패 + attempt=max: status='dead_letter' + mochi_items.lifecycle_kind='failed'
 ```
+
+#### 실시간 반영 (iOS, PR-B)
+
+처리완료를 iOS 가 받는 경로는 **프로세스 상태**로 3분담된다(캡처 채널 무관):
+
+- **foreground = SSE**: iOS `AgentStreamClient` 가 `GET /mochi_items/{id}/stream` 구독. 서버는 worker 의 `mochi_items.lifecycle_kind` 를 read-only 폴링(1s)해 `node`/`final`/`failed` emit — 실제 분석은 worker 단독(이중 실행 방지). iOS 는 `final` 수신 시 `GET /mochi_items/{serverID}` 재조회로 분석결과 fetch.
+- **background/종료 = APNs**: SSE 소켓이 suspend 되므로 worker push 훅이 인계(완료 alert + LA `.ready`).
+- **fallback = 폴링**: SSE 실패/끊김 시 3초 폴링(`GET /mochi_items/{serverID}`, 제거 금지). scenePhase active 복귀 시 reconcile(SSE 재연결 + 1회 폴링).
 
 #### 자연어 검색
 

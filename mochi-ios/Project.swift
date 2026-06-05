@@ -104,6 +104,9 @@ let project = Project(
             dependencies: [
                 .target(name: "CoreDomain"),
                 .target(name: "CoreNetworking"),
+                // MochiItemSyncWorker 가 foreground 분석 완료를 SSE 로 받는다(`@Dependency(\.agentStreamClient)`).
+                // CoreAgentClient → CoreNetworking/CoreDomain 만 의존하므로 사이클 없음.
+                .target(name: "CoreAgentClient"),
                 .package(product: "RealmSwift"),
                 .package(product: "Dependencies"),
             ]
@@ -383,11 +386,13 @@ let project = Project(
                 .target(name: "CoreAuth"),
                 .target(name: "CorePersistence"),
                 .target(name: "CoreNetworking"),
+                // AppDependencies 가 `LiveAgentStreamClient`(SSE) 를 직접 생성·주입한다 →
+                // import CoreAgentClient 는 직접 의존을 요구(전이 의존만으론 모듈 미해결).
+                .target(name: "CoreAgentClient"),
                 .target(name: "CoreIntegrations"),
                 .target(name: "DesignSystem"),
                 .target(name: "CoreLiveActivity"),
                 .target(name: "ShareExtension"),
-                .target(name: "MochiNotificationContent"),
                 .target(name: "MochiWidgets"),
                 .package(product: "ComposableArchitecture"),
                 // RealmStoreFactory.makeConfiguration() 의 반환 타입(Realm.Configuration) 의
@@ -444,25 +449,7 @@ let project = Project(
             settings: .settings(base: baseSettings)
         ),
 
-        // MARK: Notification Content Extension (DEBUG prototype — Tier 2)
-        // 알림 펼침 시 custom SwiftUI view 노출. Info.plist 의
-        // UNNotificationExtensionCategory = "MOCK_USECASE_V0" 가 알림의 categoryIdentifier 와 매칭.
-        .target(
-            name: "MochiNotificationContent",
-            destinations: .iOS,
-            product: .appExtension,
-            bundleId: "\(bundleIdPrefix).MochiNotificationContent",
-            deploymentTargets: .iOS(deploymentTarget),
-            infoPlist: .file(path: "Targets/NotificationContent/Support/Info.plist"),
-            sources: ["Targets/NotificationContent/Sources/**"],
-            entitlements: .file(path: "Targets/NotificationContent/Support/NotificationContent.entitlements"),
-            dependencies: [
-                .target(name: "CoreLiveActivity"),
-            ],
-            settings: .settings(base: baseSettings)
-        ),
-
-        // MARK: Widget Extension (Live Activity prototype — Tier 3)
+        // MARK: Widget Extension (Live Activity)
         // Lock Screen + Dynamic Island. ActivityKit + WidgetKit + App Intents (iOS 17+) 로
         // interactive button. ActivityAttributes 의 type identity 는 CoreLiveActivity 공유.
         .target(

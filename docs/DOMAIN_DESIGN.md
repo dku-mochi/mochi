@@ -2,7 +2,7 @@
 level: 2
 mode: committed
 status: active
-last_verified: 2026-06-04
+last_verified: 2026-06-05
 confidence: 0.8
 owners: [송준서, 이용찬, 박세현]
 description: 도메인 모델·DB 스키마·4-Intent lifecycle 의 committed 정본. 다음 중 하나라도 손대기 전 반드시 읽어라 — DB 마이그레이션, ORM, Intent 분류·전이 로직, lifecycle_policy 양쪽(BE↔iOS) 정합. **본문 §3·§4·§12 는 as-built(alembic 0001~0009) 모델이 정본**이며, §4.4 Intent 모델은 **별도 `intent_instances` 테이블**(2026-06-04 빅뱅 — instance 단위 lifecycle, 점수·대표·위계 폐기)이다. 정규화 3테이블·typed 파생·conversations 등 design-ahead 는 §13 향후 계획으로 격리. 변경 시 백엔드·iOS·양 README·openapi.json 정합성 폭포 필수.
@@ -296,7 +296,7 @@ CREATE INDEX ix_intent_instances_owner_type_lc ON intent_instances(owner_id, int
 
 - **저장된 instance = active.** "넣을까 말까" 싶은 후보는 instance 로 넣지 않는다(애매하면 `review_options`).
 - **`needs_review`**: 모찌가 분류를 확신 못 해 사용자에게 물을지의 boolean. τ/τ_review threshold 가 아니라 LLM 이 holistic 하게 판단(실험에서 score calibration 보다 정확 — review acc 0.833→0.944).
-- **`review_options`**: needs_review=true 일 때 제시할 미확정 후보 `[{intent_type, label, reasoning}]`. **instance 아님**(저장 안 함 — 가드레일 2). 사용자가 고르면 그때 instance 생성. 현재 **DB 미영속, API projection 으로 시작**(미확정 후보를 나중에 다시 보는 UX 가 필요해지면 컬럼 승격).
+- **`review_options`**: needs_review=true 일 때 제시할 미확정 후보 `[{intent_type, label, reasoning}]`. **instance 아님**. 사용자가 고르면 그때 instance 생성. **`mochi_items.review_options` JSONB 컬럼 영속**(PR-B 컬럼 승격 — 헷갈려요 후보를 push payload·GET projection·앱 내 needsReview 버킷 fallback 이 모두 읽는다).
 - **`memo` fallback**: 대상/행동 불분명 시 memo instance 하나로 안전 보관 + needs_review=true. 미션("놓치기 쉬운 순간은 쉽게 남긴다")과 정합 — 분류를 못 해도 안 잃는다.
 
 #### 파생 — 저장 안 함, read 시 계산 (projection)
@@ -376,6 +376,24 @@ CREATE TABLE user_profiles (
 );
 ```
 
+### 4.6 Notifications — `device_push_tokens` (alembic 0011, PR-B)
+
+> APNs background push 토큰. `apns_device`(단말 1:N, 완료 alert) + `live_activity`(item 1:1, `.ready` 전환). `environment` 로 sandbox/production 라우팅(BadDeviceToken 회피). **`token` 자체가 globally unique** — apns_device 는 폰 단위라 계정 전환 시 owner 를 갱신해 cross-account push 유출을 막는다.
+
+```sql
+CREATE TABLE device_push_tokens (
+    id            uuid PRIMARY KEY,
+    owner_id      uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,  -- idx
+    token         text NOT NULL,           -- globally unique (계정 전환 시 owner 갱신)
+    token_type    varchar(16) NOT NULL,    -- apns_device | live_activity
+    mochi_item_id uuid REFERENCES mochi_items(id) ON DELETE SET NULL,  -- LA 만(item 1:1), device 는 NULL
+    environment   varchar(16) NOT NULL DEFAULT 'sandbox',  -- sandbox | production
+    created_at    timestamptz NOT NULL DEFAULT now(),
+    updated_at    timestamptz NOT NULL DEFAULT now()
+);
+CREATE UNIQUE INDEX ux_device_push_tokens_token ON device_push_tokens(token);
+```
+
 ---
 
 ## 5. iOS Realm Schema (mirror)
@@ -399,7 +417,7 @@ intent 관련 검증된 필드(정확한 전체 스키마는 `CorePersistence/Re
 ### 동기화 (as-built)
 
 - **iOS → Backend**: `syncState=pendingUpload` 인 item 을 `MochiItemSyncWorker` 가 업로드. 이미지는 원본 PNG → 업로드용 JPEG(긴 변 ≤1920px, q60) 파생 → `sha256/mimeType/byteSize` 로 `POST /mochi_items/presign` → Signed URL 로 GCS 직접 PUT → `objectKey` 만 전달. 성공 → `syncState=uploaded(serverID:)`(**서버 자체 PK 보관**).
-- **Backend → iOS**: ingest(`POST /mochi_items`) 후 **비동기 worker 분석** → **foreground 3초 폴링**(`GET /mochi_items/{serverID}`)으로 처리상태 `analyzed`(구 `active`) 시 반영. 동기 Gemini 분류는 제거됨(2026-05-30). SSE `/mochi_items/{id}/stream` 은 서버에 존재하나 iOS 미구독. APNs 도입 후 즉시 갱신.
+- **Backend → iOS** (PR-B 3분담): **foreground = SSE** `/mochi_items/{id}/stream` 구독(`AgentStreamClient` live — worker `lifecycle_kind` 관찰, `final` 수신 시 `GET /mochi_items/{serverID}` 재조회). **background/종료 = APNs** push(완료 alert + LA `.ready`). **SSE 실패/끊김 = 3초 폴링 fallback**(`GET /mochi_items/{serverID}`, 제거 금지). scenePhase active 복귀 시 reconcile(SSE 재연결 + 1회 폴링). 동기 Gemini 분류는 제거됨(2026-05-30).
 - **분류 확정**: iOS `setIntent` 는 로컬 전용(instance 조작). 서버 override 라우트는 폐기됨(대표·위계 소멸).
 - **충돌/Catch-up**: backend master 원칙. 양방향 충돌 해소·cold-start catch-up(`/sync`)은 미구현.
 
@@ -419,8 +437,9 @@ intent 관련 검증된 필드(정확한 전체 스키마는 `CorePersistence/Re
 | `GET` | `/api/v1/mochi_items` | ✅ | 모찌들 탭 list — `capturedAt` 구간. query `capturedFrom`/`capturedTo`/`intent`(intent_instances EXISTS)/`limit`. owner-scoped |
 | `GET` | `/api/v1/mochi_items/calendar` | ✅ | 모찌들 탭 — KST 월간 집계(`year`/`month` → 날짜별 count·대표 intent·대표 썸네일 objectKey) |
 | `GET` | `/api/v1/mochi_items/todos/upcoming` | ✅ | 모찌들 탭 — 미완료(active) todo 마감 임박순. 마감일 = `entities(kind='deadline')` 서버 파싱 |
-| `GET` | `/api/v1/mochi_items/{id}/stream` | ◑ | SSE agent state · iOS 미구독 |
+| `GET` | `/api/v1/mochi_items/{id}/stream` | ✅ | SSE — worker `lifecycle_kind` 관찰, `node`/`final`/`failed`. iOS foreground 구독(PR-B), `final`→GET 재조회 |
 | `POST` | `/api/v1/search` | ◑ | Hybrid Search 라우트 실재 · iOS 미배선 (이전 문서 '미존재' 는 오기) |
+| `POST` | `/api/v1/devices/push-token` | ✅ | APNs 토큰 등록(`apns_device` 단말 / `live_activity` item). PR-B |
 | `*` | `DELETE /{id}` · `/conversations` · `/sync` | ○ | **라우트 미존재** → §13 |
 
 > ⚠️ 모찌들 탭 list/calendar/todos 라우트는 2026-06-04 신설(`mochi_items/presentation/router.py`). **정적 경로(`/calendar`·`/todos/upcoming`)는 동적 `/{id}` 보다 먼저 선언**해 path-param 충돌을 피한다. iOS 모찌들 탭은 즉시성·오프라인·실시간(`observeChanges`)을 위해 **로컬 Realm 구동**이고, 이 서버 API 는 멀티기기/웹 대비 계약(현재 iOS 클라 미배선). `POST /search` 도 실재(이전 '미존재' 는 문서 오기 — `search_router` 가 `api.py` 에 등록). delete·conversations·sync 만 여전히 라우트 없음.
@@ -446,7 +465,9 @@ ingested → analyzing → analyzed
                   ↘ failed
 ```
 
-> 저장값(`LifecycleStateKind`): `ingested`/`analyzing`/`analyzed`(구 `active` — 분석 완료·instance 적재됨, **iOS 폴링 컷오버 신호**)/`failed`.
+> 저장값(`LifecycleStateKind`): `ingested`/`analyzing`/`analyzed`(구 `active` — 분석 완료·instance 적재됨, **iOS SSE `final`·폴링 컷오버 신호**)/`failed`.
+>
+> **처리상태 ↔ Live Activity phase 매핑** (PR-B, iOS `MochiLiveActivityAttributes`): `analyzing`→`.analyzing` / `analyzed`+`needs_review=false`→`.ready`(확정) / `analyzed`+`needs_review=true`→`.ready`(후보대기, `review_options` 표시·선택) / `failed`→LA 종료. LA 는 **전 채널**(스크린샷·링크·텍스트), 메인앱 foreground worker(`MochiItemSyncWorker`)가 시작한다.
 
 ### 7.2 의미상태 — `intent_instances.lifecycle_kind` (instance 단위, 4값)
 
@@ -581,7 +602,7 @@ RefreshUserProfile.run(owner)         # best-effort 개인화 디바운스
 
 ---
 
-## 12. 테이블 카탈로그 (as-built, 13개)
+## 12. 테이블 카탈로그 (as-built, 14개)
 
 | Group | Table | 책임 |
 |---|---|---|
@@ -598,6 +619,7 @@ RefreshUserProfile.run(owner)         # best-effort 개인화 디바운스
 | Operations | `mochi_item_outbox` | 처리 대기 큐(1 item ⇔ 1 outbox) |
 | Operations | `idempotency_keys` | 멱등성 키 |
 | Operations | `user_profiles` | 개인화 프로필(owner 1행, raw SQL) |
+| Notifications | `device_push_tokens` | APNs 단말/LA push 토큰(`token` globally unique, PR-B) |
 
 ---
 
@@ -639,7 +661,7 @@ RefreshUserProfile.run(owner)         # best-effort 개인화 디바운스
 | `routed` | intent 별 후속 처리 결정 |
 | `persisted` | write-back 완료 |
 | `indexed` | 임베딩·tsvector 갱신 — ⚠️ 현재 임베딩 적재는 **no-op**(gateway 미주입 시 skip) |
-| `synced` | iOS 반영(현재 폴링) |
+| `synced` | iOS 반영(SSE foreground / 폴링 fallback / APNs background) |
 | `failed` | 실패 → outbox 재시도/DLQ |
 
 > 8값 전부 코드 `AgentNode` enum 의 live 멤버이고 `HAPPY_PATH` 가 `ingested`→…→`synced` 7노드를 실제 advance 한다(ARCHITECTURE §5.3·backend README 와 일치). `indexed` 의 임베딩 적재만 현재 no-op.
@@ -657,6 +679,6 @@ RefreshUserProfile.run(owner)         # best-effort 개인화 디바운스
 ### C. iOS 헷갈려요 카드 · 폴링 · Daily Importance
 
 - **헷갈려요 버튼**: 고정 라벨 아님. needs_review=true 일 때 API `reviewOptions`(`[{intentType, label, reasoning}]` — 점수·정렬 없음)를 `label ?? intent.displayName` 로 노출 + "다른 의도"(4-Intent 직접 지정).
-- **폴링**: `GET /mochi_items/{serverID}` (서버 PK) 3초 폴링. 로컬 id GET 은 404(서버가 자체 uuid4 PK 부여 — 알려진 drift).
+- **실시간 반영(PR-B)**: foreground = SSE `/mochi_items/{id}/stream` 구독(`final`→`GET /mochi_items/{serverID}` 재조회) 1차. **SSE 실패/끊김 시 3초 폴링 fallback**(`GET /mochi_items/{serverID}`, 서버 PK). background = APNs. 로컬 id GET 은 404(서버 자체 uuid4 PK — 알려진 drift).
 - **실패/지연 fallback**: lifecycle `failed` 또는 90s 초과 시 `demoteToManual` → "헷갈려요(의견 없음)" + 직접 분류 + "다시 맡기기"(`requeueForAnalysis`). webFetch 실패의 무한 폴링 차단.
 - **Daily Importance** (`CorePersistence/DailyImportanceAnalyzer`): 앱 진입 시 lazy(24h 캐시). 현재는 로컬 `analysis.importance`(medium↑) 정렬, 신규 Gemini 호출 없음. App Group `daily-importance/YYYY-MM-DD.json` 캐시. Gemini 1일 *상대* importance 재산출은 후속.

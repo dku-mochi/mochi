@@ -28,6 +28,27 @@ public protocol MochiAPIClient: Sendable {
 
     /// `POST /api/v1/search` — 자연어 질의 → Hybrid Search RAG.
     func search(query: String, scope: SearchScope) async throws -> SearchResponse
+
+    /// `POST /api/v1/devices/push-token` — APNs 단말/Live Activity push 토큰 등록 (owner-scoped upsert).
+    /// `kind=.liveActivity` 면 `mochiItemID` 필수(백엔드가 item id 로 LA 토큰 조회).
+    func registerPushToken(
+        token: String,
+        kind: PushTokenKind,
+        environment: PushEnvironment,
+        mochiItemID: UUID?
+    ) async throws
+}
+
+/// push 토큰 종류. rawValue 는 백엔드 `device_push_tokens.token_type` 과 1:1.
+public enum PushTokenKind: String, Sendable, Codable {
+    case apnsDevice = "apns_device"
+    case liveActivity = "live_activity"
+}
+
+/// APNs 환경. 토큰은 환경에 묶여 잘못 매칭 시 BadDeviceToken — 클라가 빌드 환경을 명시한다.
+public enum PushEnvironment: String, Sendable, Codable {
+    case sandbox
+    case production
 }
 
 // MARK: - Request / Response DTOs

@@ -2,7 +2,6 @@ import Foundation
 import ComposableArchitecture
 import CoreDomain
 import CorePersistence
-import CoreNetworking
 
 /// 백탭 snippet 의 **메모** 분기에서 떠오르는 풀스크린 모달의 reducer.
 ///
@@ -16,9 +15,10 @@ import CoreNetworking
 /// ``RootFeature`` 가 marker 발견 시 captureID 를 추출해 본 reducer 를 띄운다.
 ///
 /// **두 분기**:
-/// - `memoSaveTapped` — 사용자 입력 텍스트로 `MochiItem(channel: .appDirectInput, text:)` upsert +
-///   `POST /api/v1/mochi_items` 시도. 실패해도 `.pendingUpload` 가 Realm 에 남아 ``MochiItemSyncWorker``
-///   가 재시도.
+/// - `memoSaveTapped` — 사용자 입력 텍스트로 `MochiItem(channel: .appDirectInput, text:)` upsert 후
+///   ``SyncTrigger/runOnce()`` 로 ``MochiItemSyncWorker`` 가 ingest·Live Activity·push 토큰을 일괄 처리
+///   (HomeFeature quick memo 와 동일 경로 — 전 채널 LA 일관). 미인증 시 `.pendingUpload`, 업로드 실패 시
+///   `.syncFailed` 로 남아 다음 tick 재시도.
 /// - `dismissTapped` — 사용자 취소. memo marker 폐기 후 모달 닫기.
 ///
 /// **invariant**: 모든 분기에서 `<captureID>.memo` marker 가 폐기됨. delegate `.dismiss` 발사 직전
@@ -60,7 +60,7 @@ public struct BackTapModalFeature: Sendable {
     public enum CancelID: Hashable, Sendable { case work }
 
     @Dependency(\.mochiItemRepository) var repository
-    @Dependency(\.mochiAPIClient)    var api
+    @Dependency(\.syncTrigger)        var syncTrigger
 
     public init() {}
 
@@ -77,17 +77,12 @@ public struct BackTapModalFeature: Sendable {
                 guard !trimmed.isEmpty else { return .none }
                 state.phase = .savingMemo
                 let id = state.captureID
-                return .run { [repository, api] send in
-                    do {
-                        try await commitMemo(
-                            text: trimmed,
-                            captureID: id,
-                            repository: repository,
-                            api: api
-                        )
-                    } catch {
-                        // 무시. fallback 은 MochiItemSyncWorker 가 담당.
-                    }
+                return .run { [repository, syncTrigger] send in
+                    // HomeFeature quick memo 와 동일 경로: upsert(.pendingUpload) → worker 가 ingest +
+                    // startAnalyzing(LA) + push 토큰 등록을 일괄(직접 ingest 우회 제거 — 전 채널 LA 일관).
+                    let source = IngestSource(id: id, channel: .appDirectInput, text: trimmed)
+                    try? await repository.upsert(MochiItem(source: source))
+                    await syncTrigger.runOnce()
                     // 어떤 분기든 marker 폐기 — invariant.
                     discardMemoMarker(captureID: id)
                     await send(.memoSaveFinished)
@@ -118,31 +113,4 @@ private func discardMemoMarker(captureID: UUID) {
     let url = AppGroup.pendingBackTapDirectoryURL
         .appendingPathComponent(AppGroup.pendingBackTapMemoFilename(captureID: captureID.uuidString))
     try? FileManager.default.removeItem(at: url)
-}
-
-/// 사용자가 모달의 textarea 에서 입력한 메모를 MochiItem 로 저장 + 백엔드 ingest.
-private func commitMemo(
-    text: String,
-    captureID: UUID,
-    repository: any MochiItemRepository,
-    api: any MochiAPIClient
-) async throws {
-    let source = IngestSource(
-        id: captureID,
-        channel: .appDirectInput,
-        text: text
-    )
-    try await repository.upsert(MochiItem(source: source))
-
-    let dto = try await api.ingestMochiItem(
-        MochiItemIngestRequest(
-            channel: .appDirectInput,
-            text: text
-        ),
-        idempotencyKey: captureID.uuidString
-    )
-    try await repository.updateSync(
-        mochiItemID: captureID,
-        to: .uploaded(serverID: dto.id, at: Date())
-    )
 }

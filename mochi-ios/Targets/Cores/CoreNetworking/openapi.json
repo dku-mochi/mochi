@@ -577,7 +577,7 @@
           "agent"
         ],
         "summary": "Stream Agent Run",
-        "description": "SSE 스트림. MochiItem owner 가 아닌 경우 404로 응답한다 (자원 존재 노출 방지).\n\n스트림 포맷:\n```\nevent: node\ndata: {\"node\":\"normalized\",\"run_id\":\"...\"}\n\nevent: final\ndata: {\"run_id\":\"...\",\"tokens\":1234}\n```",
+        "description": "SSE 스트림 — worker 의 실제 분석 진행(``mochi_items.lifecycle_kind``)을 관찰해 흘린다.\n\nforeground 클라가 폴링 대신 이 스트림을 구독한다. 백엔드는 처리상태 전이(``node``)와\n완료/실패 신호만 흘리고, **분석 결과 자체는 보내지 않는다** — 클라가 ``final`` 수신 시\n``GET /mochi_items/{id}`` 로 재조회한다(이중 직렬화 회피, PR-B 결정).\n\n실제 분석은 outbox 워커가 단일 소유한다(이중 실행 방지). 이 엔드포인트는 read-only 관찰자다.\nowner 가 아니면 404 (자원 존재 노출 방지).\n\n스트림 포맷:\n```\nevent: node\ndata: {\"mochi_item_id\":\"...\",\"lifecycle_kind\":\"analyzing\"}\n\nevent: final\ndata: {\"mochi_item_id\":\"...\",\"lifecycle_kind\":\"analyzed\"}\n```",
         "operationId": "stream_agent_run_api_v1_mochi_items__mochi_item_id__stream_get",
         "parameters": [
           {
@@ -655,10 +655,56 @@
           }
         }
       }
+    },
+    "/api/v1/devices/push-token": {
+      "post": {
+        "tags": [
+          "notifications"
+        ],
+        "summary": "Register Push Token",
+        "description": "단말/Live Activity push 토큰 등록 (owner-scoped upsert).\n\niOS AppDelegate(apns_device) + LiveActivityCoordinator(live_activity)가 호출한다.",
+        "operationId": "register_push_token_api_v1_devices_push_token_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "Authorization",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterPushTokenRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "APNsEnvironment": {
+        "type": "string",
+        "enum": [
+          "sandbox",
+          "production"
+        ],
+        "title": "APNsEnvironment",
+        "description": "device token 이 묶인 APNs 환경. 잘못 매칭 시 BadDeviceToken.\n\nTestFlight/App Store = production, Xcode 직접 빌드 = sandbox."
+      },
       "AppleSignInRequest": {
         "properties": {
           "identityToken": {
@@ -1199,6 +1245,15 @@
         "title": "PresignResponse",
         "description": "발급된 V4 Signed PUT URL + 서버가 부여한 object_key."
       },
+      "PushTokenType": {
+        "type": "string",
+        "enum": [
+          "apns_device",
+          "live_activity"
+        ],
+        "title": "PushTokenType",
+        "description": "등록되는 푸시 토큰의 종류.\n\n- ``apns_device``: 단말 remote notification 토큰 (owner 1:N 단말). 분석완료 alert 대상.\n- ``live_activity``: ActivityKit Live Activity push 토큰 (mochi_item 1:1). .ready 전환 대상."
+      },
       "RefreshRequest": {
         "properties": {
           "refreshToken": {
@@ -1218,6 +1273,36 @@
           "refreshToken"
         ],
         "title": "RefreshRequest"
+      },
+      "RegisterPushTokenRequest": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "maxLength": 512,
+            "minLength": 1,
+            "title": "Token"
+          },
+          "tokenType": {
+            "$ref": "#/components/schemas/PushTokenType"
+          },
+          "environment": {
+            "$ref": "#/components/schemas/APNsEnvironment"
+          },
+          "mochiItemID": {
+            "title": "Mochiitemid",
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "token",
+          "tokenType",
+          "environment"
+        ],
+        "title": "RegisterPushTokenRequest",
+        "description": "단말(apns_device) 또는 Live Activity(live_activity) push 토큰 등록 요청."
       },
       "ReviewOptionResponse": {
         "properties": {
@@ -1240,7 +1325,7 @@
           "intentType"
         ],
         "title": "ReviewOptionResponse",
-        "description": "needs_review=true 일 때의 미확정 후보. 현재 DB 미영속이라 빈 배열일 수 있다(가드레일 2)."
+        "description": "needs_review=true 일 때의 미확정 후보 (mochi_items JSONB 영속 — PR-B)."
       },
       "SearchRequest": {
         "properties": {

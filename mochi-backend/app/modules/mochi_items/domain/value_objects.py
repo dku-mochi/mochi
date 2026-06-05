@@ -6,8 +6,8 @@ LLM(Vertex AI Gemini)이 한 캡쳐에 대해 출력하는 의도 instance 들(`
 한 캡쳐가 같은 type 의 instance 를 여러 개 가질 수 있고(TODO 여러 개), 각 instance 는
 독립 lifecycle 을 갖는다.
 
-미확정 후보(``ReviewOption``)는 instance 가 아니다 — ``needs_review=true`` 일 때만 사용자에게
-제시되는 transient 후보이며 DB 에 영속하지 않는다(API projection).
+미확정 후보(``ReviewOption``)는 instance 가 아니다 — ``needs_review=true`` 일 때 사용자에게
+제시되는 후보로, mochi_items.review_options JSONB 컬럼에 영속한다(PR-B 컬럼 승격).
 """
 
 from dataclasses import dataclass, field
@@ -86,8 +86,8 @@ class IntentInstance:
 class ReviewOption:
     """needs_review=true 일 때 사용자에게 제시하는 미확정 후보.
 
-    instance 가 **아니다** — DB 에 저장하지 않는다(가드레일 2). 사용자가 고르면 그때
-    해당 type 의 ``IntentInstance`` 를 새로 생성한다.
+    instance 가 **아니다** — mochi_items.review_options JSONB 에 영속(PR-B 컬럼 승격). 사용자가
+    고르면 그때 해당 type 의 ``IntentInstance`` 를 새로 생성한다.
     """
 
     intent_type: Intent
