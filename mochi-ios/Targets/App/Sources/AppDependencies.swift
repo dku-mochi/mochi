@@ -21,6 +21,8 @@ enum AppDependencies {
 
     static func bootstrap() {
         let baseURL = resolveBaseURL()
+        // ShareExtension 이 직접 전송 시 baseURL 을 알 수 있도록 App Group 으로 공유한다.
+        AppGroup.setSharedAPIBaseURL(baseURL)
 
         // 1) Auth 인프라
         let tokenStore = KeychainTokenStore()

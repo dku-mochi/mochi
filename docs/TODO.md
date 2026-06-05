@@ -23,8 +23,13 @@ description: 외부 설정·비밀값 체크리스트 + 활성 작업·다음 sp
 - [ ] Bundle ID: `app.mochi` (Project.swift `bundleIdPrefix`)
 - 결과: Xcode 빌드 시 `App.entitlements` 의 `com.apple.developer.applesignin` 권한이 매칭되어 빌드 가능
 
+### 1.1b Keychain Sharing capability (ShareExt 직접 전송 — PR-A)
+- [ ] developer.apple.com → Identifiers → `app.mochi` + `app.mochi.ShareExtension` 둘 다 **Keychain Sharing** capability 체크 → Save
+- [ ] keychain access group `$(AppIdentifierPrefix)app.mochi` (App·ShareExtension entitlements 에 박힘 — 코드는 kSecAttrAccessGroup 생략, entitlement 첫 그룹 자동 공유)
+- 결과: ShareExtension 이 메인 앱 Keychain 의 access token 을 읽어 무이미지(URL/텍스트) 캡처를 서버에 best-effort 선반영(큐는 항상 적재 — 로컬·동기화·유실방지의 진실원천). **dev 재로그인 1회 필요**(entitlement 변경으로 기존 keychain 그룹 전환 — 자동 마이그레이션 안 함). 시뮬레이터는 자동 서명이라 무관, 실기기 빌드는 §1.2 재발급 선행.
+
 ### 1.2 Provisioning Profile 재발급
-- [ ] App ID 변경 후 development / distribution provisioning profile 재발급
+- [ ] App ID 변경(Sign In with Apple·**Keychain Sharing**) 후 development / distribution provisioning profile 재발급
 - [ ] Xcode → Signing & Capabilities → 새 profile 자동 선택 확인
 
 ### 1.3 (옵션) 백엔드 → Apple revocation 연동

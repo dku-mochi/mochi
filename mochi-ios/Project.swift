@@ -435,6 +435,10 @@ let project = Project(
             dependencies: [
                 .target(name: "CoreDomain"),
                 .target(name: "CorePersistence"),
+                // ShareExt 직접 전송(무이미지 best-effort): CoreNetworking(OpenAPIMochiClient),
+                // CoreAuth(KeychainTokenStore — GoogleSignIn 은 App 타겟 전용이라 안전). 실패 시 큐 폴백.
+                .target(name: "CoreNetworking"),
+                .target(name: "CoreAuth"),
                 .target(name: "DesignSystem"),
             ],
             settings: .settings(base: baseSettings)
