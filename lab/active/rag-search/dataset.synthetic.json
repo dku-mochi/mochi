@@ -1,0 +1,454 @@
+{
+  "description": "RAG 검색 실험용 synthetic 데이터셋. MochiItemResponse + EntityRow 실제 타입 기준.",
+  "schema_note": {
+    "intent_instances": "IntentInstanceResponse — intent_type/label/payload/lifecycle_kind",
+    "entities": "EntityRow — kind/value (API 응답엔 없지만 백엔드 임베딩 계산 시 접근 가능)",
+    "payload": "IntentPayload — title/date/time/deadline/person/topic/url/note"
+  },
+  "items": [
+    {
+      "id": "item_01",
+      "summary": "올리브영 인스타그램 숏츠. 요즘 화제인 바디워시 신제품 향기 리뷰 영상.",
+      "needs_review": false,
+      "review_options": [],
+      "importance": 3,
+      "lifecycle_kind": "analyzed",
+      "intent_instances": [
+        {
+          "intent_type": "memo",
+          "label": "올리브영 바디워시 리뷰 영상",
+          "payload": { "topic": "올리브영 바디워시", "note": null },
+          "lifecycle_kind": "active"
+        }
+      ],
+      "entities": [
+        { "kind": "platform", "value": "올리브영" },
+        { "kind": "product", "value": "바디워시" }
+      ]
+    },
+    {
+      "id": "item_02",
+      "summary": "유튜브 스킨케어 루틴 영상. 화장품 사용 순서와 추천 제품 정리.",
+      "needs_review": false,
+      "review_options": [],
+      "importance": 3,
+      "lifecycle_kind": "analyzed",
+      "intent_instances": [
+        {
+          "intent_type": "knowledge",
+          "label": "스킨케어 루틴 참고",
+          "payload": { "topic": "스킨케어 화장품" },
+          "lifecycle_kind": "active"
+        }
+      ],
+      "entities": [
+        { "kind": "topic", "value": "스킨케어" },
+        { "kind": "topic", "value": "화장품" }
+      ]
+    },
+    {
+      "id": "item_03",
+      "summary": "올리브영 앱 푸시 알림. 자외선차단제 시즌 특가 최대 30% 할인 이벤트.",
+      "needs_review": false,
+      "review_options": [],
+      "importance": 4,
+      "lifecycle_kind": "analyzed",
+      "intent_instances": [
+        {
+          "intent_type": "todo",
+          "label": "올리브영 선크림 할인 구매",
+          "payload": { "topic": "선크림 할인", "note": "30% 특가" },
+          "lifecycle_kind": "active"
+        }
+      ],
+      "entities": [
+        { "kind": "platform", "value": "올리브영" },
+        { "kind": "product", "value": "선크림" }
+      ]
+    },
+    {
+      "id": "item_04",
+      "summary": "인스타그램 뷰티 하울 영상. 봄 메이크업 트렌드와 신상 립스틱, 파운데이션 리뷰.",
+      "needs_review": false,
+      "review_options": [],
+      "importance": 3,
+      "lifecycle_kind": "analyzed",
+      "intent_instances": [
+        {
+          "intent_type": "memo",
+          "label": "봄 메이크업 화장품 하울",
+          "payload": { "topic": "메이크업 화장품 하울" },
+          "lifecycle_kind": "active"
+        }
+      ],
+      "entities": [
+        { "kind": "topic", "value": "메이크업" },
+        { "kind": "product", "value": "립스틱" },
+        { "kind": "product", "value": "파운데이션" }
+      ]
+    },
+    {
+      "id": "item_05",
+      "summary": "나이키 에어맥스 신발 상품 페이지. 타임딜 종료 전 구매 고려 중.",
+      "needs_review": false,
+      "review_options": [],
+      "importance": 3,
+      "lifecycle_kind": "analyzed",
+      "intent_instances": [
+        {
+          "intent_type": "todo",
+          "label": "나이키 에어맥스 구매",
+          "payload": { "topic": "나이키 에어맥스", "note": "타임딜 종료 전" },
+          "lifecycle_kind": "active"
+        }
+      ],
+      "entities": [
+        { "kind": "brand", "value": "나이키" },
+        { "kind": "product", "value": "에어맥스" }
+      ]
+    },
+    {
+      "id": "item_06",
+      "summary": "상하이 여행 정보 정리. 와이탄 야경, 예원, 현지 음식 추천 포함.",
+      "needs_review": false,
+      "review_options": [],
+      "importance": 3,
+      "lifecycle_kind": "analyzed",
+      "intent_instances": [
+        {
+          "intent_type": "knowledge",
+          "label": "상하이 여행 정보",
+          "payload": { "topic": "상하이 여행" },
+          "lifecycle_kind": "active"
+        }
+      ],
+      "entities": [
+        { "kind": "location", "value": "상하이" },
+        { "kind": "topic", "value": "여행" }
+      ]
+    },
+    {
+      "id": "item_07",
+      "summary": "다음 주 금요일 23:59까지 운영체제 스케줄러 구현 과제 제출 기한.",
+      "needs_review": false,
+      "review_options": [],
+      "importance": 5,
+      "lifecycle_kind": "analyzed",
+      "intent_instances": [
+        {
+          "intent_type": "schedule",
+          "label": "운영체제 과제 제출 마감",
+          "payload": { "deadline": "2026-06-12 23:59", "task": "운영체제 과제 스케줄러 구현" },
+          "lifecycle_kind": "active"
+        }
+      ],
+      "entities": [
+        { "kind": "deadline", "value": "2026-06-12 23:59" },
+        { "kind": "task", "value": "운영체제 과제" }
+      ]
+    },
+    {
+      "id": "item_08",
+      "summary": "공차 여름 시즌 할인 이벤트. 기간 한정 음료 20% 할인.",
+      "needs_review": false,
+      "review_options": [],
+      "importance": 2,
+      "lifecycle_kind": "analyzed",
+      "intent_instances": [
+        {
+          "intent_type": "todo",
+          "label": "공차 여름 할인 이용",
+          "payload": { "topic": "공차 음료 할인" },
+          "lifecycle_kind": "active"
+        }
+      ],
+      "entities": [
+        { "kind": "brand", "value": "공차" },
+        { "kind": "topic", "value": "음료 할인" }
+      ]
+    },
+    {
+      "id": "item_09",
+      "summary": "친구 밴드 공연. 6월 15일 홍대 클럽에서 열림. 입장료 1만원.",
+      "needs_review": false,
+      "review_options": [],
+      "importance": 4,
+      "lifecycle_kind": "analyzed",
+      "intent_instances": [
+        {
+          "intent_type": "schedule",
+          "label": "친구 공연 일정",
+          "payload": { "date": "2026-06-15", "location": "홍대 클럽" },
+          "lifecycle_kind": "active"
+        }
+      ],
+      "entities": [
+        { "kind": "date", "value": "2026-06-15" },
+        { "kind": "location", "value": "홍대 클럽" }
+      ]
+    },
+    {
+      "id": "item_10",
+      "summary": "LangChain ReAct 에이전트 구조 설명. Thought/Action/Observation 루프로 도구를 선택하는 방식.",
+      "needs_review": false,
+      "review_options": [],
+      "importance": 3,
+      "lifecycle_kind": "analyzed",
+      "intent_instances": [
+        {
+          "intent_type": "knowledge",
+          "label": "LangChain ReAct 에이전트 참고",
+          "payload": { "topic": "LangChain ReAct 에이전트" },
+          "lifecycle_kind": "active"
+        }
+      ],
+      "entities": [
+        { "kind": "topic", "value": "LangChain" },
+        { "kind": "topic", "value": "ReAct 에이전트" }
+      ]
+    },
+    {
+      "id": "item_11",
+      "summary": "카카오톡 기프티콘 유효기간 임박. 스타벅스 아메리카노 1잔 사용 필요.",
+      "needs_review": false,
+      "review_options": [],
+      "importance": 4,
+      "lifecycle_kind": "analyzed",
+      "intent_instances": [
+        {
+          "intent_type": "todo",
+          "label": "스타벅스 기프티콘 사용",
+          "payload": { "deadline": "유효기간 임박", "topic": "기프티콘" },
+          "lifecycle_kind": "active"
+        }
+      ],
+      "entities": [
+        { "kind": "brand", "value": "스타벅스" },
+        { "kind": "topic", "value": "기프티콘" }
+      ]
+    },
+    {
+      "id": "item_12",
+      "summary": "인스타그램 갈비 음식점 광고 게시물. 지금 예약하기 버튼 있음.",
+      "needs_review": false,
+      "review_options": [],
+      "importance": 3,
+      "lifecycle_kind": "analyzed",
+      "intent_instances": [
+        {
+          "intent_type": "memo",
+          "label": "갈비 맛집 후보",
+          "payload": { "topic": "갈비 맛집" },
+          "lifecycle_kind": "active"
+        }
+      ],
+      "entities": [
+        { "kind": "topic", "value": "맛집" },
+        { "kind": "food", "value": "갈비" }
+      ]
+    },
+    {
+      "id": "item_13",
+      "summary": "서울도시가스 안전점검 방문 예정. 6월 10일 오전 10시~12시 사이.",
+      "needs_review": false,
+      "review_options": [],
+      "importance": 4,
+      "lifecycle_kind": "analyzed",
+      "intent_instances": [
+        {
+          "intent_type": "schedule",
+          "label": "도시가스 안전점검 방문",
+          "payload": { "date": "2026-06-10", "time": "오전 10시~12시" },
+          "lifecycle_kind": "active"
+        }
+      ],
+      "entities": [
+        { "kind": "date", "value": "2026-06-10" },
+        { "kind": "time", "value": "오전 10시~12시" }
+      ]
+    },
+    {
+      "id": "item_14",
+      "summary": "로지텍 MX Master 3S 무선 마우스 상품 페이지. 타임딜 남은 시간과 할인가 표시.",
+      "needs_review": false,
+      "review_options": [],
+      "importance": 3,
+      "lifecycle_kind": "analyzed",
+      "intent_instances": [
+        {
+          "intent_type": "todo",
+          "label": "로지텍 마우스 구매",
+          "payload": { "topic": "로지텍 MX Master 3S", "note": "타임딜" },
+          "lifecycle_kind": "active"
+        }
+      ],
+      "entities": [
+        { "kind": "brand", "value": "로지텍" },
+        { "kind": "product", "value": "MX Master 3S" }
+      ]
+    },
+    {
+      "id": "item_15",
+      "summary": "AI·XR 서비스 개발자 경진대회 포스터. 참가 신청 기간 5.13~6.26, 시상금 7800만원.",
+      "needs_review": false,
+      "review_options": [],
+      "importance": 5,
+      "lifecycle_kind": "analyzed",
+      "intent_instances": [
+        {
+          "intent_type": "schedule",
+          "label": "AI 경진대회 참가 신청",
+          "payload": { "deadline": "2026-06-26", "topic": "AI XR 경진대회" },
+          "lifecycle_kind": "active"
+        },
+        {
+          "intent_type": "todo",
+          "label": "경진대회 참가 검토",
+          "payload": { "topic": "AI XR 경진대회 참가 여부" },
+          "lifecycle_kind": "active"
+        }
+      ],
+      "entities": [
+        { "kind": "deadline", "value": "2026-06-26" },
+        { "kind": "topic", "value": "AI 경진대회" }
+      ]
+    },
+    {
+      "id": "item_16",
+      "summary": "프로그래밍 기초 교육 수강 모집. 신청 기간 9월 8일까지.",
+      "needs_review": false,
+      "review_options": [],
+      "importance": 3,
+      "lifecycle_kind": "analyzed",
+      "intent_instances": [
+        {
+          "intent_type": "todo",
+          "label": "수강 신청 기간 체크",
+          "payload": { "deadline": "9월 8일", "topic": "프로그래밍 수강" },
+          "lifecycle_kind": "active"
+        }
+      ],
+      "entities": [
+        { "kind": "deadline", "value": "9월 8일" },
+        { "kind": "topic", "value": "프로그래밍 수강" }
+      ]
+    },
+    {
+      "id": "item_17",
+      "summary": "인스타그램 식집사 릴스. 초화 관리 방법과 물 주기 팁.",
+      "needs_review": false,
+      "review_options": [],
+      "importance": 2,
+      "lifecycle_kind": "analyzed",
+      "intent_instances": [
+        {
+          "intent_type": "knowledge",
+          "label": "식물 관리 참고",
+          "payload": { "topic": "식물 관리 식집사" },
+          "lifecycle_kind": "active"
+        }
+      ],
+      "entities": [
+        { "kind": "topic", "value": "식물 관리" },
+        { "kind": "topic", "value": "식집사" }
+      ]
+    },
+    {
+      "id": "item_18",
+      "summary": "틱톡 코미디 숏츠. 태국 여행 후 차원이 달라졌다는 내용. 나중에 다시 볼 영상.",
+      "needs_review": false,
+      "review_options": [],
+      "importance": 2,
+      "lifecycle_kind": "analyzed",
+      "intent_instances": [
+        {
+          "intent_type": "memo",
+          "label": "코미디 숏츠 다시 보기",
+          "payload": { "topic": "코미디 숏츠" },
+          "lifecycle_kind": "active"
+        }
+      ],
+      "entities": [
+        { "kind": "topic", "value": "코미디" },
+        { "kind": "platform", "value": "틱톡" }
+      ]
+    },
+    {
+      "id": "item_19",
+      "summary": "카카오톡 선물하기 화면. 오늘 생일인 친구에게 선물 보내기.",
+      "needs_review": false,
+      "review_options": [],
+      "importance": 4,
+      "lifecycle_kind": "analyzed",
+      "intent_instances": [
+        {
+          "intent_type": "todo",
+          "label": "생일 선물 챙기기",
+          "payload": { "topic": "생일 선물", "person": "친구" },
+          "lifecycle_kind": "active"
+        }
+      ],
+      "entities": [
+        { "kind": "topic", "value": "생일 선물" },
+        { "kind": "platform", "value": "카카오톡" }
+      ]
+    },
+    {
+      "id": "item_20",
+      "summary": "레이밴 메타 헤드라이너 스마트글래스 소개. 카메라·스피커 내장, 일상형 AI 웨어러블.",
+      "needs_review": false,
+      "review_options": [],
+      "importance": 3,
+      "lifecycle_kind": "analyzed",
+      "intent_instances": [
+        {
+          "intent_type": "knowledge",
+          "label": "레이밴 메타 스마트글래스 정보",
+          "payload": { "topic": "스마트글래스 AI 웨어러블" },
+          "lifecycle_kind": "active"
+        }
+      ],
+      "entities": [
+        { "kind": "product", "value": "레이밴 메타 헤드라이너" },
+        { "kind": "topic", "value": "스마트글래스" }
+      ]
+    }
+  ],
+  "queries": [
+    {
+      "query": "화장품",
+      "expected_ids": ["item_01", "item_02", "item_03", "item_04"],
+      "note": "뷰티/화장품 관련 — 핵심 검증 케이스"
+    },
+    {
+      "query": "올리브영",
+      "expected_ids": ["item_01", "item_03"],
+      "note": "브랜드명 직접 검색"
+    },
+    {
+      "query": "여행 정보",
+      "expected_ids": ["item_06"],
+      "note": "상하이 여행 정보"
+    },
+    {
+      "query": "과제 마감",
+      "expected_ids": ["item_07"],
+      "note": "운영체제 과제 일정"
+    },
+    {
+      "query": "신발 구매",
+      "expected_ids": ["item_05"],
+      "note": "나이키 에어맥스"
+    },
+    {
+      "query": "맛집",
+      "expected_ids": ["item_12"],
+      "note": "갈비 맛집"
+    },
+    {
+      "query": "일정 확인",
+      "expected_ids": ["item_07", "item_09", "item_13", "item_15"],
+      "note": "schedule intent 아이템들"
+    }
+  ]
+}
