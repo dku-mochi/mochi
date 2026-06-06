@@ -253,16 +253,16 @@ Global
 |---|---|---|
 | 홈 | house | 요약, 추천, 최근 모찌 |
 | 질문 | bubble / sparkle bubble | AI 질의응답 |
-| 모찌들 | calendar | 캘린더 기반 기록 탐색 |
+| 캘린더 | calendar | 캘린더 기반 기록 탐색 |
 | 검색 | magnifying glass | 전체 검색 |
 
-탭바에는 텍스트를 노출하지 않는다.  
-단, 접근성 label은 반드시 제공한다.
+탭바에는 아이콘과 텍스트 레이블을 함께 노출한다.  
+접근성 label은 반드시 제공한다.
 
 ```swift
 .accessibilityLabel("홈")
 .accessibilityLabel("질문")
-.accessibilityLabel("모찌들")
+.accessibilityLabel("캘린더")
 .accessibilityLabel("검색")
 ```
 
@@ -1232,7 +1232,7 @@ AI가 확신하지 못한 항목.
 |---|---|
 | 홈 | `house.fill` |
 | 질문 | `bubble.left.and.sparkles` 또는 `message.fill` |
-| 모찌들 | `calendar` |
+| 캘린더 | `calendar` |
 | 검색 | `magnifyingglass` |
 | 알림 | `bell` |
 | 설정 | `gearshape` |
@@ -1486,7 +1486,7 @@ DesignSystem/
 
 ---
 
-## 14.4 모찌들
+## 14.4 캘린더
 
 - [ ] 월간 캘린더에서 날짜별 기록 여부가 보이는가?
 - [ ] 날짜 선택 시 해당 날짜 요약이 보이는가?

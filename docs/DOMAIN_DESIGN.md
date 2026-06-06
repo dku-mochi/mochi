@@ -435,15 +435,15 @@ intent 관련 검증된 필드(정확한 전체 스키마는 `CorePersistence/Re
 | `POST` | `/api/v1/mochi_items` | ✅ | **단일 ingest 경로**(스크린샷·메타데이터 통합). object_key 보유 imageRef 는 GCS 실측 검증. `Idempotency-Key` 필수 |
 | `POST` | `/api/v1/mochi_items/presign` | ✅ | GCS V4 Signed PUT URL |
 | `GET` | `/api/v1/mochi_items/{id}` | ✅ | owner 만. 응답에 `intentInstances`/`needsReview`/`reviewOptions` (§4.4) |
-| `GET` | `/api/v1/mochi_items` | ✅ | 모찌들 탭 list — `capturedAt` 구간. query `capturedFrom`/`capturedTo`/`intent`(intent_instances EXISTS)/`limit`. owner-scoped |
-| `GET` | `/api/v1/mochi_items/calendar` | ✅ | 모찌들 탭 — KST 월간 집계(`year`/`month` → 날짜별 count·대표 intent·대표 썸네일 objectKey) |
-| `GET` | `/api/v1/mochi_items/todos/upcoming` | ✅ | 모찌들 탭 — 미완료(active) todo 마감 임박순. 마감일 = `entities(kind='deadline')` 서버 파싱 |
+| `GET` | `/api/v1/mochi_items` | ✅ | 캘린더 탭 list — `capturedAt` 구간. query `capturedFrom`/`capturedTo`/`intent`(intent_instances EXISTS)/`limit`. owner-scoped |
+| `GET` | `/api/v1/mochi_items/calendar` | ✅ | 캘린더 탭 — KST 월간 집계(`year`/`month` → 날짜별 count·대표 intent·대표 썸네일 objectKey) |
+| `GET` | `/api/v1/mochi_items/todos/upcoming` | ✅ | 캘린더 탭 — 미완료(active) todo 마감 임박순. 마감일 = `entities(kind='deadline')` 서버 파싱 |
 | `GET` | `/api/v1/mochi_items/{id}/stream` | ✅ | SSE — worker `lifecycle_kind` 관찰, `node`/`final`/`failed`. iOS foreground 구독(PR-B), `final`→GET 재조회 |
 | `POST` | `/api/v1/search` | ◑ | Hybrid Search 라우트 실재 · iOS 미배선 (이전 문서 '미존재' 는 오기) |
 | `POST` | `/api/v1/devices/push-token` | ✅ | APNs 토큰 등록(`apns_device` 단말 / `live_activity` item). PR-B |
 | `*` | `DELETE /{id}` · `/conversations` · `/sync` | ○ | **라우트 미존재** → §13 |
 
-> ⚠️ 모찌들 탭 list/calendar/todos 라우트는 2026-06-04 신설(`mochi_items/presentation/router.py`). **정적 경로(`/calendar`·`/todos/upcoming`)는 동적 `/{id}` 보다 먼저 선언**해 path-param 충돌을 피한다. iOS 모찌들 탭은 즉시성·오프라인·실시간(`observeChanges`)을 위해 **로컬 Realm 구동**이고, 이 서버 API 는 멀티기기/웹 대비 계약(현재 iOS 클라 미배선). `POST /search` 도 실재(이전 '미존재' 는 문서 오기 — `search_router` 가 `api.py` 에 등록). delete·conversations·sync 만 여전히 라우트 없음.
+> ⚠️ 캘린더 탭 list/calendar/todos 라우트는 2026-06-04 신설(`mochi_items/presentation/router.py`). **정적 경로(`/calendar`·`/todos/upcoming`)는 동적 `/{id}` 보다 먼저 선언**해 path-param 충돌을 피한다. iOS 캘린더 탭은 즉시성·오프라인·실시간(`observeChanges`)을 위해 **로컬 Realm 구동**이고, 이 서버 API 는 멀티기기/웹 대비 계약(현재 iOS 클라 미배선). `POST /search` 도 실재(이전 '미존재' 는 문서 오기 — `search_router` 가 `api.py` 에 등록). delete·conversations·sync 만 여전히 라우트 없음.
 
 | Header | 필수 | 의미 |
 |---|---|---|

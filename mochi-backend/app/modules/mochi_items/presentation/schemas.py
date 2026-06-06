@@ -107,7 +107,7 @@ class MochiItemResponse(BaseModel):
 
 
 class MochiItemListResponse(BaseModel):
-    """날짜 구간 모찌 목록 — 모찌들(캘린더) 탭에서 특정 날짜 선택 시 그날 목록."""
+    """날짜 구간 모찌 목록 — 캘린더 탭에서 특정 날짜 선택 시 그날 목록."""
 
     items: list[MochiItemResponse] = Field(default_factory=list)
 
@@ -124,7 +124,7 @@ class CalendarDayResponse(BaseModel):
 
 
 class MonthlyCalendarResponse(BaseModel):
-    """월간 캘린더 집계 응답 — 모찌들 탭 상단 달력."""
+    """월간 캘린더 집계 응답 — 캘린더 탭 상단 달력."""
 
     year: int
     month: int
@@ -132,7 +132,7 @@ class MonthlyCalendarResponse(BaseModel):
 
 
 class UpcomingTodoResponse(BaseModel):
-    """마감 임박 미완료 todo 1건 — 모찌들 탭 하단 할 일 리스트.
+    """마감 임박 미완료 todo 1건 — 캘린더 탭 하단 할 일 리스트.
 
     ``due_at`` 은 entities(kind='deadline') free-text 를 서버가 파싱한 값(미상이면 null),
     ``due_label`` 은 파싱 전 원문(클라 표시·디버깅용).

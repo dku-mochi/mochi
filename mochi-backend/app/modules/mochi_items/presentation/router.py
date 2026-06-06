@@ -235,7 +235,7 @@ async def presign_capture_upload(
     )
 
 
-# ── 모찌들(캘린더) 탭 조회 라우트 ──
+# ── 캘린더 탭 조회 라우트 ──
 # 정적 세그먼트(/calendar, /todos/upcoming) 와 list("") 는 동적 "/{mochi_item_id}" 보다
 # 먼저 선언해야 'calendar' 등을 UUID 로 파싱해 422 나는 라우트 충돌을 피한다.
 
@@ -249,7 +249,7 @@ async def list_mochi_items(
     intent: Intent | None = None,
     limit: int = 100,
 ) -> MochiItemListResponse:
-    """모찌들 탭 — captured_at 구간 내 owner 모찌 목록(특정 날짜 선택 시 그날 sheet).
+    """캘린더 탭 — captured_at 구간 내 owner 모찌 목록(특정 날짜 선택 시 그날 sheet).
 
     ``capturedFrom``/``capturedTo`` 는 ISO8601(UTC 권장). ``intent`` 로 4-Intent 필터
     (해당 type 의 instance 가 있는 item).
@@ -272,7 +272,7 @@ async def get_monthly_calendar(
     year: int,
     month: int,
 ) -> MonthlyCalendarResponse:
-    """모찌들 탭 — KST 월간 캘린더(날짜별 개수·대표 Intent·대표 썸네일 object_key)."""
+    """캘린더 탭 — KST 월간 캘린더(날짜별 개수·대표 Intent·대표 썸네일 object_key)."""
     if not 1 <= month <= 12:
         raise DomainError("month must be between 1 and 12", code="mochi_item.invalid_month")
     if not 2000 <= year <= 2200:
@@ -300,7 +300,7 @@ async def get_upcoming_todos(
     user: CurrentUser,
     limit: int = 20,
 ) -> UpcomingTodoListResponse:
-    """모찌들 탭 하단 — 마감 임박·미완료(todo instance active) todo 리스트.
+    """캘린더 탭 하단 — 마감 임박·미완료(todo instance active) todo 리스트.
 
     마감일은 ``entities(kind='deadline')`` free-text 를 서버가 파싱해 임박순 정렬하며,
     파싱 불가/마감 미상 todo 는 목록 뒤로 둔다(``dueAt`` null).

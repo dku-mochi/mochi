@@ -56,7 +56,7 @@ struct RootView: View {
     }
 }
 
-/// 메인 탭 UI — iOS 기본 `TabView` 4탭 (홈/채팅/모찌들/검색).
+/// 메인 탭 UI — iOS 기본 `TabView` 4탭 (홈/채팅/캘린더/검색).
 struct MainTabView: View {
     @Bindable var store: StoreOf<MainTabFeature>
 
@@ -80,7 +80,7 @@ struct MainTabView: View {
             } destination: { detailStore in
                 DetailView(store: detailStore)
             }
-            .tabItem { Label("모찌들", image: "tab_mochis") }
+            .tabItem { Label("캘린더", image: "tab_mochis") }
             .tag(MainTabFeature.Tab.mochis)
 
             ComingSoonPlaceholder(
@@ -145,17 +145,12 @@ struct MainTabView: View {
         let normal = UIColor(MochiTheme.Palette.textSecondary)
         let labelFont = roundedSystemFont(ofSize: 10, weight: .semibold)
 
-        // 시안 = 아이콘 전용 탭바. 레이블 텍스트는 화면 밖으로 밀어 시각적으로 숨기되,
-        // Label 의 title 은 VoiceOver 접근성 이름으로 보존하고 아이콘은 세로 중앙 정렬된다.
-        let hideTitle = UIOffset(horizontal: 0, vertical: .greatestFiniteMagnitude)
-
+        // 아이콘 + 레이블 탭바. 레이블 폰트는 rounded·semibold 로 디자인 시스템에 맞춘다.
         let item = UITabBarItemAppearance()
         item.selected.iconColor = selected
         item.selected.titleTextAttributes = [.foregroundColor: selected, .font: labelFont]
-        item.selected.titlePositionAdjustment = hideTitle
         item.normal.iconColor = normal
         item.normal.titleTextAttributes = [.foregroundColor: normal, .font: labelFont]
-        item.normal.titlePositionAdjustment = hideTitle
 
         appearance.stackedLayoutAppearance = item
         appearance.inlineLayoutAppearance = item

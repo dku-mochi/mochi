@@ -3,12 +3,12 @@ import ComposableArchitecture
 import CoreDomain
 import CorePersistence
 
-/// 모찌들(캘린더) 탭 reducer.
+/// 캘린더 탭 reducer.
 ///
 /// 로컬 Realm(`mochiItemRepository`)을 단일 소스로 ① 월간 캘린더(날짜별 개수·대표 Intent·대표 썸네일),
 /// ② 날짜 선택 시 그날 모찌 목록, ③ 하단 "마감 임박 할 일"(미완료 todo) 을 구성한다.
 /// 서버 list/calendar API 는 존재하지만(openapi.json), 이 탭은 즉시성·오프라인·실시간 반영
-/// (`observeChanges`)을 위해 로컬 구동한다 — `DOMAIN_DESIGN.md §6`("모찌들 탭은 iOS 로컬 Realm 구동")과 정합.
+/// (`observeChanges`)을 위해 로컬 구동한다 — `DOMAIN_DESIGN.md §6`("캘린더 탭은 iOS 로컬 Realm 구동")과 정합.
 @Reducer
 public struct MochiCalendarFeature: Sendable {
 
@@ -225,7 +225,7 @@ enum UpcomingTodoSorter {
 }
 
 extension Calendar {
-    /// 모찌들 탭의 모든 날짜 계산(월 경계·일 그룹·오늘·D-day)은 백엔드 KST 월간 집계와
+    /// 캘린더 탭의 모든 날짜 계산(월 경계·일 그룹·오늘·D-day)은 백엔드 KST 월간 집계와
     /// 일치시키기 위해 Asia/Seoul 로 고정한다. `Calendar.current`(기기 TZ)에 의존하면 월말
     /// UTC 캡처가 다른 날짜로 그룹돼 서버와 어긋난다.
     static let mochiSeoul: Calendar = {
@@ -236,7 +236,7 @@ extension Calendar {
 }
 
 extension DateFormatter {
-    /// 모찌들 탭 표시용 한국어·KST 고정 포매터.
+    /// 캘린더 탭 표시용 한국어·KST 고정 포매터.
     static func mochiSeoul(_ format: String) -> DateFormatter {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "ko_KR")
