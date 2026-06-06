@@ -48,7 +48,7 @@ class GetMochiItemForOwner:
         return await self.repository.find_by_id(owner_id=owner_id, mochi_item_id=mochi_item_id)
 
 
-# ---------- 모찌들(캘린더) 탭 read models ----------
+# ---------- 캘린더 탭 read models ----------
 
 
 @dataclass(slots=True, frozen=True)
@@ -146,7 +146,7 @@ def _todo_sort_key(todo: UpcomingTodo) -> tuple[int, datetime]:
 
 @dataclass(slots=True)
 class ListMochiItemsInRange:
-    """날짜 구간 내 모찌 목록 — 모찌들 캘린더에서 특정 날짜 선택 시 그날 목록."""
+    """날짜 구간 내 모찌 목록 — 캘린더에서 특정 날짜 선택 시 그날 목록."""
 
     repository: MochiItemRepository
 

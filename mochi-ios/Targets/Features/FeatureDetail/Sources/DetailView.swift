@@ -222,7 +222,7 @@ private struct IntentActionsSection: View {
             Image(systemName: "calendar")
                 .font(.system(size: 13))
                 .foregroundStyle(HomeDesign.Color.purple600)
-            Text("일정으로 분류했어요 — 모찌들 탭에 담아뒀어요")
+            Text("일정으로 분류했어요 — 캘린더 탭에 담아뒀어요")
                 .font(.system(size: 13, weight: .medium))
                 .foregroundStyle(HomeDesign.Color.ink700)
                 .fixedSize(horizontal: false, vertical: true)

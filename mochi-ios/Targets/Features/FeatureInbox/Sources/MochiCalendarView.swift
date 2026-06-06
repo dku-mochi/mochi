@@ -3,7 +3,7 @@ import ComposableArchitecture
 import CoreDomain
 import DesignSystem
 
-/// 모찌들(캘린더) 탭 화면 — 월간 캘린더 + 날짜별 모찌 sheet + 마감 임박 할 일.
+/// 캘린더 탭 화면 — 월간 캘린더 + 날짜별 모찌 sheet + 마감 임박 할 일.
 public struct MochiCalendarView: View {
     @Bindable var store: StoreOf<MochiCalendarFeature>
 
@@ -22,7 +22,7 @@ public struct MochiCalendarView: View {
             .padding(.vertical, HomeDesign.Spacing.lg)
         }
         .background(HomeDesign.Color.bg.ignoresSafeArea())
-        .navigationTitle("모찌들")
+        .navigationTitle("캘린더")
         .navigationBarTitleDisplayMode(.inline)
         .task { store.send(.onAppear) }
         .sheet(item: dayBinding) { day in

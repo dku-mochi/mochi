@@ -1,4 +1,4 @@
-"""모찌들(캘린더) 탭 조회 use case 단위 테스트.
+"""캘린더 탭 조회 use case 단위 테스트.
 
 DB 통합 fixture(conftest)가 없어, repository 는 in-memory 스텁으로 대체하고
 application 레이어의 KST 날짜 그룹핑·대표 Intent(고정 우선순위)·마감일 파싱/정렬만 검증한다.

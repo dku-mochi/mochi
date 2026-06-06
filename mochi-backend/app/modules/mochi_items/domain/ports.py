@@ -29,7 +29,7 @@ class MochiItemRepository(Protocol):
     ) -> list[MochiItem]:
         """captured_at 구간(``[from, to)``) 내 owner 항목을 captured_at 내림차순으로 조회.
 
-        모찌들(캘린더) 탭의 월간 집계·날짜별 목록의 단일 데이터 소스. ``intent`` 가
+        캘린더 탭의 월간 집계·날짜별 목록의 단일 데이터 소스. ``intent`` 가
         주어지면 그 intent 로 필터(0009 flat intents 이행 후엔 containment 로 바뀌는 단일 지점).
         """
         ...
