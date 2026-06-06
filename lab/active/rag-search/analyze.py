@@ -240,7 +240,7 @@ async def main() -> None:
         ]
         return any(t in c.lower() for c in candidates if c)
 
-    # analysis_quality: expected vs actual 비교 요약
+    # retrieval_diagnostic: expected vs actual 비교 요약
     quality_rows = []
     for item in results.values():
         a = item["analysis"]
@@ -286,19 +286,17 @@ async def main() -> None:
         "model": model,
         "prompt_name": ACTIVE_PROMPT.name,
         "item_count": len(results),
-        "analysis_quality": {
+        # 검색 실패 원인 추적용 진단 데이터 — 분석 품질 평가는 agent-loop-image-eval 담당
+        "retrieval_diagnostic": {
             "avg_intent_recall": avg_intent_recall,
             "avg_topic_recall": avg_topic_recall,
-            "pass_rate": round(
-                sum(1 for r in evaluated if r["intent_ok"]) / len(evaluated), 3
-            ) if evaluated else None,
             "items": quality_rows,
         },
         "items": list(results.values()),
     }
     out_path.write_text(json.dumps(artifact, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    print(f"\n📊 Analysis quality — intent_recall={avg_intent_recall}  topic_recall={avg_topic_recall}")
+    print(f"\n[diagnostic] intent_recall={avg_intent_recall}  topic_recall={avg_topic_recall}  (검색 실패 원인 추적용)")
     print(f"✅ {out_path}  ({len(results)}개)")
 
 

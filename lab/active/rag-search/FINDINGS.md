@@ -6,6 +6,26 @@ started: 2026-06-06
 
 # rag-search — FINDINGS
 
+## 실험 범위 경계
+
+| 실험 | 현재 담당 |
+|------|-----------|
+| `agent-loop-image-eval` | 이미지 단독 입력의 Gemini intent·summary·tool 품질 |
+| **`rag-search` (이 실험)** | 임베딩·검색 품질 + retrieval 실패 진단용 topic/entity 존재 여부 |
+
+> **장기 계획**: `agent-loop-image-eval`을 `agent-loop-input-eval`로 확장해 image+memo / text / URL 등
+> 입력 유형별 topic·entity recall도 담당하게 되면, `rag-search`의 `retrieval_diagnostic`은
+> 그 결과를 참조하는 구조로 전환한다.
+
+`analyze.py`가 출력하는 `retrieval_diagnostic.avg_intent_recall` 등은 **검색 실패 원인 추적용 진단 메타데이터**다.
+분석 품질 결론을 내리거나 leaderboard 지표로 사용하지 않는다.
+
+```
+검색 실패
+├─ diagnostic에 기대 topic 없음 → upstream 분석 문제 (agent-loop 영역)
+└─ diagnostic에 topic 있음      → embedding/retrieval 문제 (이 실험 영역)
+```
+
 ## 실험 목적
 
 "화장품" 쿼리 → "화장품 스크린샷 아이템"이 top-3 안에 들어오는가.

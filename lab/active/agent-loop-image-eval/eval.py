@@ -32,13 +32,13 @@ from uuid import uuid4
 sys.path.insert(0, str(Path(__file__).parent))
 from lab_gemini_client import LabGeminiClient
 
+from app.core.config import get_settings
 from app.modules.agent.application.orchestrator import AgentOrchestrator
 from app.modules.agent.domain.analysis import AnalysisResult
 from app.modules.agent.domain.gateway import AnalysisInput
 from app.modules.agent.domain.profile import ProfileWindowItem
 from app.modules.agent.infrastructure.gemini_agent_client import _shared_client
 from app.modules.agent.infrastructure.registry import StaticToolRegistry
-from app.core.config import get_settings
 
 LAB_ROOT = Path(__file__).parent
 DATA_DIR = Path(__file__).parent.parent.parent / "data" / "screenshot"
