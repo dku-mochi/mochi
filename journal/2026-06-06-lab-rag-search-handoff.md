@@ -133,3 +133,131 @@ PYTHONPATH="C:/Users/dhapr/OneDrive/바탕 화면/git/mochi/mochi-backend" \
 PYTHONIOENCODING=utf-8 \
 uv run python "C:/Users/dhapr/OneDrive/바탕 화면/git/mochi/lab/active/agent-loop-live/agent_loop_live_test.py"
 ```
+
+---
+
+# RAG 검색 파이프라인 구현 + 실험 범위 정리 — Handoff (2026-06-06, 세션 2)
+
+## 0. TL;DR (한 화면)
+
+- `lab/active/rag-search/` 파이프라인 완성 — analyze → embed → eval 3단계, 캐시 정합성 완비
+- 실험 범위 명확히 분리: `rag-search` = retrieval 품질만, `agent-loop-image-eval` = 분석 품질
+- `cases.json`에서 `expected_*` 필드 전부 제거, `retrieval_diagnostic` 코드 삭제
+- Windows 한글 출력 오류 수정 (`sys.stdout.reconfigure`), `PYTHONIOENCODING` 불필요
+- 커밋 3개 푸시 완료 (`lab/local-image-eval` 브랜치, `ea3c2d5`)
+- **아직 파이프라인을 실제로 실행하지 않았다** — `analyze.py` 한 번도 안 돌림
+
+---
+
+## 1. 대화 흐름
+
+1. **`eval_retrieval.py` 해시 검증 완성** — 이전 세션에서 미완이던 P1/P2 적용:
+   - P1: embedding hash를 embedding끼리만 비교 → **현재 analysis artifact hash와 직접 비교**로 교체
+   - P2: 예상 25개 조합 누락 시 기본 중단, `--allow-partial`로만 계속 허용
+2. **자동 선택 로직 수정** — embedding 디렉터리 mtime 기준 → **analysis artifact mtime 기준**으로 변경. 대응 embedding 없으면 즉시 중단.
+3. **Windows UnicodeEncodeError 수정** — `—`, `←`, `✗` 출력 시 cp949 크래시. 3개 스크립트 모두 `sys.stdout.reconfigure(encoding="utf-8")` 추가, docstring에서 `PYTHONIOENCODING=utf-8` 제거.
+4. **1차 커밋·푸시** (`28af8f5`)
+5. **실험 범위 분리 논의** — `rag-search`에 `expected_intents/topics/entities`와 `retrieval_diagnostic`이 있어 `agent-loop-image-eval`과 책임이 겹침을 확인.
+6. **`cases.json` 정리** — 3개 expected 필드 전부 제거, 순수 입력 정의만 유지.
+7. **`analyze.py` 정리** — `_topic_in_output`, `retrieval_diagnostic` 계산 블록, `pass_rate` 전부 삭제 (~50줄).
+8. **`FINDINGS.md` scope 섹션** — 현재 구현 기준으로 경계 표 수정 (과거엔 agent-loop-image-eval이 topic/entity도 담당한다고 과장했었음).
+9. **2차, 3차 커밋·푸시** (`dc35ce3`, `ea3c2d5`)
+10. **이미지 라벨링 컨벤션 설명** — `설명_intent1_intent2.PNG`, intent 4종 (`todo/schedule/knowledge/memo`)
+
+---
+
+## 2. 현재 코드 상태
+
+**브랜치: `lab/local-image-eval` (`ea3c2d5`, origin 동기)**
+
+### 이번 세션 변경 파일
+
+```
+lab/active/rag-search/                       ← 신규 (전체)
+  _lab_utils.py                              ← MODELS, STRATEGY_NAMES, analysis_hash, expected_embed_names 단일 원천
+  analyze.py                                 ← 이미지→Gemini→artifact. expected_* / diagnostic 없음
+  embed.py                                   ← 25개 조합 임베딩 생성·캐시
+  eval_retrieval.py                          ← BM25/Vector/RRF 평가. analysis hash 비교, --allow-partial
+  data/cases.json                            ← 18케이스, 입력 정의만
+  gold/queries.json                          ← 14쿼리, 검색 정답
+  dataset.synthetic.json                     ← 스모크 테스트용 합성 데이터 (보관)
+  FINDINGS.md                                ← 실험 설계·범위 경계·결론 템플릿
+lab/active/agent-loop-image-eval/eval.py     ← import 정렬 수정 (ruff I001)
+mochi-backend/pyproject.toml                 ← lab 그룹: rank-bm25, numpy 추가
+mochi-backend/uv.lock                        ← 갱신
+.gitignore                                   ← artifacts/, results/ gitignore 추가
+```
+
+**작동 가능 여부:** 코드 완성, ruff 전체 통과. 실제 이미지 분석은 아직 미실행.
+
+---
+
+## 3. codex 검증 결과
+
+이 세션 code-reviewer / qa-validator 호출 없음.
+
+---
+
+## 4. 결정 / trade-off
+
+| 결정 | 이유 |
+|------|------|
+| `cases.json`에서 expected_* 제거 | `rag-search`는 retrieval 품질만 담당. 분석 정답은 `agent-loop-image-eval` 영역 |
+| `retrieval_diagnostic` 전체 삭제 | 현재 규모(18케이스)에서 자동 실패원인 분류는 복잡도만 추가. 사람이 artifact 직접 확인으로 충분 |
+| 누락 조합 기본 중단 (`--allow-partial` 옵션) | 25개 미만이면 leaderboard가 불완전 — 실험 결론을 왜곡할 수 있어 기본 fail-fast |
+| 자동 선택을 analysis artifact mtime 기준으로 | embedding mtime은 과거 실험을 새 분석인 것처럼 오해하게 만들 수 있음 |
+| `sys.stdout.reconfigure` (환경변수 아님) | 실행 명령마다 `PYTHONIOENCODING=utf-8` 붙이는 것보다 코드 내 처리가 더 안정적 |
+
+---
+
+## 5. 미완 결정
+
+없음 — 파이프라인 구현은 완료. **실험 실행이 아직 안 됐을 뿐.**
+
+---
+
+## 6. 다음 단계 + 검증 기준
+
+### 즉시 할 것
+
+1. **`analyze.py` 실행** — 18개 이미지 Gemini 분석 → `artifacts/analysis/{fp}.json` 생성
+2. **`embed.py` 실행** — 25개 조합 임베딩 생성 (Vertex AI 호출, 시간 소요 예상)
+3. **`eval_retrieval.py` 실행** — BM25/Vector/RRF 평가 → `results/retrieval/*.json`
+4. **`FINDINGS.md` 결론 섹션 채우기** — 최적 모델·차원·전략 결정
+
+### 실행 명령 (mochi-backend 디렉토리에서)
+
+```bash
+# Step 1 — 분석
+GOOGLE_CLOUD_PROJECT=axial-device-460408-i9 \
+GOOGLE_APPLICATION_CREDENTIALS="C:/Users/dhapr/Downloads/mochi/mochi-gemini-team.json" \
+PYTHONPATH="C:/Users/dhapr/OneDrive/바탕 화면/git/mochi/mochi-backend" \
+uv run python "../lab/active/rag-search/analyze.py"
+
+# Step 2 — 임베딩
+GOOGLE_CLOUD_PROJECT=axial-device-460408-i9 \
+GOOGLE_APPLICATION_CREDENTIALS="C:/Users/dhapr/Downloads/mochi/mochi-gemini-team.json" \
+uv run python "../lab/active/rag-search/embed.py"
+
+# Step 3 — 평가
+GOOGLE_CLOUD_PROJECT=axial-device-460408-i9 \
+GOOGLE_APPLICATION_CREDENTIALS="C:/Users/dhapr/Downloads/mochi/mochi-gemini-team.json" \
+uv run --group lab python "../lab/active/rag-search/eval_retrieval.py"
+```
+
+### 검증 기준
+
+- `"화장품"` 쿼리 → `cosmetics-buy-1`, `cosmetics-buy-2` 두 아이템이 top-3 안에 포함
+- 25개 조합 전부 평가 완료 (누락 없음)
+- nDCG@5 기준 최적 조합 선택 → `FINDINGS.md` 결론 섹션 채우기
+
+---
+
+## 7. 컨텍스트 부채 (다음 세션이 먼저 봐야 할 것)
+
+| 파일 | 왜 봐야 하는가 |
+|------|---------------|
+| `lab/active/rag-search/FINDINGS.md` | 실험 범위·설계·결론 템플릿 — 실행 전 한 번 확인 |
+| `lab/active/rag-search/data/cases.json` | 18케이스 이미지 파일명 — `lab/data/legacy/`의 실제 파일과 매칭되는지 확인 필요 |
+| `lab/active/rag-search/gold/queries.json` | 14쿼리 정답 셋 — 실험 결과 해석 기준 |
+| `mochi-backend/app/modules/agent/infrastructure/tools/embedding.py` | 프로덕션 EmbedTool — 실험 결과 반영 시 수정 포인트 |
