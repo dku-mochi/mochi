@@ -268,6 +268,13 @@ class GeminiAgentClient(LLMClient):
             yield LLMResponseChunk(text_delta=text or "")
             return
         name, args, signature = fc
+        logger.info(
+            "agent.llm.function_call",
+            model=self._model,
+            function_name=name,
+            arg_keys=sorted(args.keys()),
+            has_thought_signature=signature is not None,
+        )
         if name == _FINALIZE:
             args["model_version"] = self._model
             yield LLMResponseChunk(final_payload=args)

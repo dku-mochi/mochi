@@ -75,4 +75,27 @@ class HttpxAPNsClient(APNsClient):
             f"https://{host}/3/device/{token}", json=payload, headers=headers
         )
         if resp.status_code != 200:
+            log.warning(
+                "apns.failed",
+                token=_mask_token(token),
+                environment=environment.value,
+                push_type=push_type.value,
+                topic=topic,
+                status_code=resp.status_code,
+                body=resp.text[:256],
+            )
             raise APNsError(f"APNs {resp.status_code} for {push_type.value}: {resp.text[:256]}")
+        log.info(
+            "apns.sent",
+            token=_mask_token(token),
+            environment=environment.value,
+            push_type=push_type.value,
+            topic=topic,
+            apns_id=resp.headers.get("apns-id"),
+        )
+
+
+def _mask_token(token: str) -> str:
+    if len(token) <= 14:
+        return f"{token[:4]}...{token[-4:]}"
+    return f"{token[:8]}...{token[-6:]}"
