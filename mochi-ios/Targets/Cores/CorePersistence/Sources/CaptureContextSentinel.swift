@@ -7,19 +7,31 @@ import Foundation
 /// 정규화 1줄로 합쳐 보낸다. 사용자가 직접 입력한 메모는 이 채널과 분리된 `user_memo` 로
 /// 끝까지 격리된다 (자동신호 ↔ 사용자의도 2채널 경계, `IngestSource.hasUserIntentSignal`).
 ///
-/// **포맷**: `{"__mochi_ctx__":{"sourceApp":"<앱>"}}`
-/// 키 추가만으로 확장 가능(focus·시간 등). 단 `sourceApp` 1급화·jsonb 승격은 보류 —
-/// 현재는 `text` 정규화 1줄로 흡수한다(백엔드/DB/openapi 무변경).
+/// **포맷**: `{"__mochi_ctx__":{"sourceApp":"<앱>","url":"<원본 URL>"}}`
+/// `sourceApp` 은 백엔드 `text` 정규화 1줄로 흡수하고, `url`(Safari 등 화면상 URL)은
+/// `IngestSource.url`(기존 필드)로 흘러 기록상세 "원본에서 보기"·agent 그라운딩에 쓰인다 —
+/// 둘 다 백엔드/DB/openapi 무변경. 키 추가만으로 확장 가능(focus·시간 등).
 ///
 /// ⚠️ sentinel 은 단축어가 만드는 것이라 **신뢰 경계가 아니다** — 컨텍스트 보너스일 뿐이다.
 public enum CaptureContextSentinel {
     /// sentinel 최상위 래퍼 키. 일반 텍스트와 충돌하지 않도록 고유하게 둔다.
     public static let marker = "__mochi_ctx__"
 
-    /// 분해된 캡처 컨텍스트. 현재는 출처앱만 — 키 추가로 확장한다.
+    /// 분해된 캡처 컨텍스트. 출처앱(text 로 흡수) + 화면상 URL(IngestSource.url 로). 키 추가로 확장.
     public struct Context: Equatable, Sendable {
         public let sourceApp: String?
-        public init(sourceApp: String?) { self.sourceApp = sourceApp }
+        public let url: String?
+        public init(sourceApp: String?, url: String? = nil) {
+            self.sourceApp = sourceApp
+            self.url = url
+        }
+    }
+
+    /// raw 가 sentinel 형태(marker 포함 JSON)인지. decode 가 실패(깨진 JSON)해도 일반 text 로
+    /// 흘려보내면 raw JSON 이 노출되므로, ShareExt 가 이 판별로 "흡수 시도했으나 버림"을 정한다.
+    public static func looksLikeSentinel(_ raw: String) -> Bool {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.hasPrefix("{") && trimmed.contains(marker)
     }
 
     /// `raw` 가 sentinel JSON 이면 컨텍스트로 분해, 아니면 nil(= 일반 텍스트로 취급).
@@ -30,7 +42,10 @@ public enum CaptureContextSentinel {
               let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
               let ctx = root[marker] as? [String: Any]
         else { return nil }
-        return Context(sourceApp: normalizedValue(ctx["sourceApp"] as? String))
+        return Context(
+            sourceApp: normalizedValue(ctx["sourceApp"] as? String),
+            url: normalizedValue(ctx["url"] as? String)
+        )
     }
 
     /// sentinel 은 신뢰 경계가 아니므로(단축어가 임의 조작 가능) 값을 방어적으로 정규화한다 —
