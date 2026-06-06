@@ -67,12 +67,18 @@ struct MainTabView: View {
 
     var body: some View {
         TabView(selection: $store.selectedTab.sending(\.tabSelected)) {
-            HomeView(store: store.scope(state: \.home, action: \.home))
-                .tabItem { Label("홈", image: "tab_home") }
-                .tag(MainTabFeature.Tab.home)
+            NavigationStack(path: $store.scope(state: \.homePath, action: \.homePath)) {
+                HomeView(store: store.scope(state: \.home, action: \.home))
+            } destination: { detailStore in
+                DetailView(store: detailStore)
+            }
+            .tabItem { Label("홈", image: "tab_home") }
+            .tag(MainTabFeature.Tab.home)
 
-            NavigationStack {
+            NavigationStack(path: $store.scope(state: \.calendarPath, action: \.calendarPath)) {
                 MochiCalendarView(store: store.scope(state: \.mochiCalendar, action: \.mochiCalendar))
+            } destination: { detailStore in
+                DetailView(store: detailStore)
             }
             .tabItem { Label("모찌들", image: "tab_mochis") }
             .tag(MainTabFeature.Tab.mochis)
@@ -93,17 +99,6 @@ struct MainTabView: View {
         }
         // 선택 탭 = 모찌 퍼플(MochiTheme.primary). 비선택·배경·레이블 폰트는 configureTabBarAppearance 담당.
         .tint(MochiTheme.Palette.primary)
-        // 홈·받은기록 카드 탭 → 상세. MainTabFeature 가 .detail 을 세팅하면 sheet 로 표시.
-        .sheet(item: $store.scope(state: \.detail, action: \.detail)) { detailStore in
-            NavigationStack {
-                DetailView(store: detailStore)
-                    .toolbar {
-                        ToolbarItem(placement: .topBarTrailing) {
-                            Button("닫기") { store.send(.detail(.dismiss)) }
-                        }
-                    }
-            }
-        }
         .sheet(isPresented: $store.isSettingsPresented.sending(\.settingsSheetChanged)) {
             NavigationStack {
                 SettingsView(store: store.scope(state: \.settings, action: \.settings))

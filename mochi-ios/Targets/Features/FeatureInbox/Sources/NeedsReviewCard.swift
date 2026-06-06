@@ -1,5 +1,6 @@
 import SwiftUI
 import CoreDomain
+import DesignSystem
 
 /// "모찌가 헷갈려요" 카드 — 미분류 항목을 페이지로 넘기며 3개 분류 후보를 제시.
 struct NeedsReviewCard: View {
@@ -389,27 +390,4 @@ private struct AnalyzingCardCell: View {
     }
 }
 
-// MARK: - MochiItem kind tag
-
-struct MochiItemKindTag: View {
-    let kind: MochiItemKind
-
-    var body: some View {
-        HStack(spacing: 4) {
-            Image(systemName: kind.icon)
-                .font(.system(size: 10, weight: .semibold))
-            Text(kind.label)
-                .font(.system(size: 10.5, weight: .semibold))
-                .tracking(0.05)
-        }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 5)
-        .foregroundStyle(kind.tint)
-        .background(
-            Capsule().fill(kind.background)
-        )
-        .overlay(
-            Capsule().stroke(HomeDesign.Color.border, lineWidth: 1)
-        )
-    }
-}
+// MochiItemKindTag 는 DesignSystem 으로 승격됨 (HomeViewMapping.swift).

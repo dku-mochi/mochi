@@ -50,9 +50,17 @@ class SendAnalysisNotification:
         # 1) alert push — owner 의 모든 단말. needs_review 분기 문구.
         # 토큰별 격리 — stale token 1개 실패가 나머지 단말·LA 전송을 막지 않게(best-effort 단위 축소).
         alert_payload = self._build_alert(mochi_item_id, notification)
-        for tok in await self._tokens.list_for_owner(
+        device_tokens = await self._tokens.list_for_owner(
             owner_id=owner_id, token_type=PushTokenType.APNS_DEVICE
-        ):
+        )
+        log.info(
+            "push.alert_targets",
+            owner_id=str(owner_id),
+            mochi_item_id=str(mochi_item_id),
+            count=len(device_tokens),
+            needs_review=notification.needs_review,
+        )
+        for tok in device_tokens:
             try:
                 await self._apns.send(
                     token=tok.token,
@@ -62,14 +70,37 @@ class SendAnalysisNotification:
                     payload=alert_payload,
                     collapse_id=str(mochi_item_id),
                 )
+                log.info(
+                    "push.alert_sent",
+                    owner_id=str(owner_id),
+                    mochi_item_id=str(mochi_item_id),
+                    token=_mask_token(tok.token),
+                    environment=tok.environment.value,
+                )
             except Exception as exc:  # noqa: BLE001
-                log.warning("push.alert_failed", token=tok.token[:8], exception=str(exc))
+                log.warning(
+                    "push.alert_failed",
+                    owner_id=str(owner_id),
+                    mochi_item_id=str(mochi_item_id),
+                    token=_mask_token(tok.token),
+                    environment=tok.environment.value,
+                    exception=str(exc),
+                    exc_info=True,
+                )
 
         # 2) Live Activity push — 이 item 의 LA 토큰. analyzing→ready 전환(전 채널).
         la_payload = self._build_live_activity(notification)
-        for tok in await self._tokens.list_live_activity_for_item(
+        live_activity_tokens = await self._tokens.list_live_activity_for_item(
             owner_id=owner_id, mochi_item_id=mochi_item_id
-        ):
+        )
+        log.info(
+            "push.la_targets",
+            owner_id=str(owner_id),
+            mochi_item_id=str(mochi_item_id),
+            count=len(live_activity_tokens),
+            needs_review=notification.needs_review,
+        )
+        for tok in live_activity_tokens:
             try:
                 await self._apns.send(
                     token=tok.token,
@@ -78,8 +109,23 @@ class SendAnalysisNotification:
                     topic=f"{bundle_id}.push-type.liveactivity",
                     payload=la_payload,
                 )
+                log.info(
+                    "push.la_sent",
+                    owner_id=str(owner_id),
+                    mochi_item_id=str(mochi_item_id),
+                    token=_mask_token(tok.token),
+                    environment=tok.environment.value,
+                )
             except Exception as exc:  # noqa: BLE001
-                log.warning("push.la_failed", token=tok.token[:8], exception=str(exc))
+                log.warning(
+                    "push.la_failed",
+                    owner_id=str(owner_id),
+                    mochi_item_id=str(mochi_item_id),
+                    token=_mask_token(tok.token),
+                    environment=tok.environment.value,
+                    exception=str(exc),
+                    exc_info=True,
+                )
 
     @staticmethod
     def _build_alert(mochi_item_id: UUID, n: AnalysisNotification) -> dict[str, object]:
@@ -132,3 +178,9 @@ class SendAnalysisNotification:
                 candidates.pop()
             content_state["candidates"] = candidates
         return payload
+
+
+def _mask_token(token: str) -> str:
+    if len(token) <= 14:
+        return f"{token[:4]}...{token[-4:]}"
+    return f"{token[:8]}...{token[-6:]}"

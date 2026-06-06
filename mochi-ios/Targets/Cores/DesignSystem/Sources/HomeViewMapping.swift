@@ -7,15 +7,15 @@ import CoreDomain
 // 도메인의 4-Intent (schedule / todo / knowledge / memo) 를 시안의 색에 매핑.
 // 라벨은 도메인 `Intent.displayName`(일정/할일/지식/기록)과 일치시킨다 — 이전의 todo→"알림" 리라벨은 폐기.
 
-enum MochiViewIntent: String, CaseIterable, Identifiable {
+public enum MochiViewIntent: String, CaseIterable, Identifiable {
     case record   // = memo
     case alert    // = todo
     case schedule // = schedule
     case knowledge // = knowledge
 
-    var id: String { rawValue }
+    public var id: String { rawValue }
 
-    init(_ intent: Intent) {
+    public init(_ intent: Intent) {
         switch intent {
         case .memo:      self = .record
         case .todo:      self = .alert
@@ -24,7 +24,7 @@ enum MochiViewIntent: String, CaseIterable, Identifiable {
         }
     }
 
-    var domain: Intent {
+    public var domain: Intent {
         switch self {
         case .record:    return .memo
         case .alert:     return .todo
@@ -33,9 +33,9 @@ enum MochiViewIntent: String, CaseIterable, Identifiable {
         }
     }
 
-    var label: String { domain.displayName }
+    public var label: String { domain.displayName }
 
-    var dotColor: Color {
+    public var dotColor: Color {
         switch self {
         case .record:    return HomeDesign.Color.blush400
         case .alert:     return HomeDesign.Color.butter400
@@ -44,7 +44,7 @@ enum MochiViewIntent: String, CaseIterable, Identifiable {
         }
     }
 
-    var chipBackground: Color {
+    public var chipBackground: Color {
         switch self {
         case .record:    return HomeDesign.Color.blush100
         case .alert:     return HomeDesign.Color.butter100
@@ -56,12 +56,12 @@ enum MochiViewIntent: String, CaseIterable, Identifiable {
 
 // MARK: - MochiItem kind (view-side)
 
-enum MochiItemKind {
+public enum MochiItemKind {
     case screenshot
     case memo
     case url
 
-    init(_ source: IngestSource) {
+    public init(_ source: IngestSource) {
         if !source.imageRefs.isEmpty {
             self = .screenshot
         } else if source.url != nil {
@@ -71,7 +71,7 @@ enum MochiItemKind {
         }
     }
 
-    var label: String {
+    public var label: String {
         switch self {
         case .screenshot: return "스크린샷"
         case .memo:       return "메모"
@@ -79,7 +79,7 @@ enum MochiItemKind {
         }
     }
 
-    var icon: String {
+    public var icon: String {
         switch self {
         case .screenshot: return "camera"
         case .memo:       return "doc.text"
@@ -87,7 +87,7 @@ enum MochiItemKind {
         }
     }
 
-    var tint: Color {
+    public var tint: Color {
         switch self {
         case .screenshot: return HomeDesign.Color.ink700
         case .memo:       return HomeDesign.Color.butter400
@@ -95,7 +95,7 @@ enum MochiItemKind {
         }
     }
 
-    var background: Color {
+    public var background: Color {
         switch self {
         case .screenshot: return HomeDesign.Color.cream100
         case .memo:       return HomeDesign.Color.butter50
@@ -107,14 +107,14 @@ enum MochiItemKind {
 // MARK: - MochiItem → display helpers
 
 extension MochiItem {
-    var displayTitle: String {
+    public var displayTitle: String {
         if let summary = analysis?.summary, !summary.isEmpty { return summary }
         if let text = source.text, !text.isEmpty { return text }
         if let url = source.url { return url.host ?? url.absoluteString }
         return "(분석 대기 중)"
     }
 
-    var displaySubtitle: String {
+    public var displaySubtitle: String {
         let kind = MochiItemKind(source)
         switch kind {
         case .screenshot:
@@ -127,7 +127,7 @@ extension MochiItem {
         }
     }
 
-    var viewKind: MochiItemKind { MochiItemKind(source) }
+    public var viewKind: MochiItemKind { MochiItemKind(source) }
 
     private var relativeTime: String {
         let interval = Date().timeIntervalSince(createdAt)
@@ -143,7 +143,7 @@ extension MochiItem {
 }
 
 extension IngestChannel {
-    var shortLabel: String {
+    public var shortLabel: String {
         switch self {
         case .kakaoTalk:        return "카카오톡"
         case .instagram:        return "Instagram"
@@ -158,3 +158,55 @@ extension IngestChannel {
     }
 }
 
+// MARK: - Intent chip (compact 색칩)
+//
+// intent 별 파스텔 색칩. 승격 시 RecentMochiCard 에서 이동.
+// (DesignSystem 의 `IntentBadge` 와 공존 — IntentBadge 는 단색 Label+아이콘, 입력은 도메인 `Intent`.
+//  기록 상세 리뉴얼에서 어느 쪽을 정칙으로 둘지 결정 예정.)
+
+public struct IntentChip: View {
+    let intent: MochiViewIntent
+
+    public init(intent: MochiViewIntent) { self.intent = intent }
+
+    public var body: some View {
+        Text(intent.label)
+            .font(.system(size: 10, weight: .bold))
+            .tracking(0.05)
+            .padding(.horizontal, 7)
+            .padding(.vertical, 3)
+            .background(
+                Capsule().fill(intent.chipBackground)
+            )
+            .foregroundStyle(intent.dotColor)
+    }
+}
+
+// MARK: - MochiItem kind tag
+//
+// 출처(스크린샷/메모/URL) 태그. 승격 시 NeedsReviewCard 에서 이동.
+
+public struct MochiItemKindTag: View {
+    let kind: MochiItemKind
+
+    public init(kind: MochiItemKind) { self.kind = kind }
+
+    public var body: some View {
+        HStack(spacing: 4) {
+            Image(systemName: kind.icon)
+                .font(.system(size: 10, weight: .semibold))
+            Text(kind.label)
+                .font(.system(size: 10.5, weight: .semibold))
+                .tracking(0.05)
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 5)
+        .foregroundStyle(kind.tint)
+        .background(
+            Capsule().fill(kind.background)
+        )
+        .overlay(
+            Capsule().stroke(HomeDesign.Color.border, lineWidth: 1)
+        )
+    }
+}
