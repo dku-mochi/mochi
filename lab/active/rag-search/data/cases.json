@@ -1,0 +1,128 @@
+[
+  {
+    "id": "cosmetics-buy-1",
+    "image": "나중에 살 화장품.png",
+    "url": null,
+    "text": null,
+    "user_memo": null
+  },
+  {
+    "id": "cosmetics-buy-2",
+    "image": "화장품 나중에 살것.png",
+    "url": null,
+    "text": null,
+    "user_memo": null
+  },
+  {
+    "id": "shoes-buy",
+    "image": "나중에 살 신발.png",
+    "url": null,
+    "text": null,
+    "user_memo": null
+  },
+  {
+    "id": "want-to-buy",
+    "image": "사고 싶다.PNG",
+    "url": null,
+    "text": null,
+    "user_memo": null
+  },
+  {
+    "id": "gongcha-sale",
+    "image": "공차 할인 이벤트하니까 캡쳐해두고 나중에 가봐야지.jpeg",
+    "url": null,
+    "text": null,
+    "user_memo": null
+  },
+  {
+    "id": "gifticon-use",
+    "image": "기프티콘 나중에 꼭 써야지.jpeg",
+    "url": null,
+    "text": null,
+    "user_memo": null
+  },
+  {
+    "id": "try-later",
+    "image": "나중에 써봐야지.PNG",
+    "url": null,
+    "text": null,
+    "user_memo": null
+  },
+  {
+    "id": "real-estate-info",
+    "image": "부동산 정보.png",
+    "url": null,
+    "text": null,
+    "user_memo": null
+  },
+  {
+    "id": "flight-schedule",
+    "image": "비행기 스케줄.jpeg",
+    "url": null,
+    "text": null,
+    "user_memo": null
+  },
+  {
+    "id": "shanghai-travel-1",
+    "image": "상하이 여행정보.jpeg",
+    "url": null,
+    "text": null,
+    "user_memo": null
+  },
+  {
+    "id": "shanghai-info-2",
+    "image": "상하이 정보.jpeg",
+    "url": null,
+    "text": null,
+    "user_memo": null
+  },
+  {
+    "id": "course-enroll",
+    "image": "수강 모집 9_8까지니까 캡쳐해두고 나중에신청해야지.jpeg",
+    "url": null,
+    "text": null,
+    "user_memo": null
+  },
+  {
+    "id": "schedule-general",
+    "image": "스케줄.png",
+    "url": null,
+    "text": null,
+    "user_memo": null
+  },
+  {
+    "id": "post-read-later",
+    "image": "이 게시글 나중에 보고 써봐야지.PNG",
+    "url": null,
+    "text": null,
+    "user_memo": null
+  },
+  {
+    "id": "netflix-watch-later",
+    "image": "재밌어 보이는 넷플.png",
+    "url": null,
+    "text": null,
+    "user_memo": null
+  },
+  {
+    "id": "submission-deadline",
+    "image": "제출 기간 체크.jpeg",
+    "url": null,
+    "text": null,
+    "user_memo": null
+  },
+  {
+    "id": "china-travel-info",
+    "image": "중국 여행 정보.jpeg",
+    "url": null,
+    "text": null,
+    "user_memo": null
+  },
+  {
+    "id": "friend-concert",
+    "image": "친구 공연 위치랑 장소 캡쳐.jpeg",
+    "url": null,
+    "text": null,
+    "user_memo": null
+  }
+]

@@ -1,0 +1,86 @@
+[
+  {
+    "query": "화장품",
+    "type": "exact_keyword",
+    "expected_ids": ["cosmetics-buy-1", "cosmetics-buy-2"],
+    "note": "핵심 검증 케이스 — 단어 그대로 포함 여부"
+  },
+  {
+    "query": "공차",
+    "type": "exact_keyword",
+    "expected_ids": ["gongcha-sale"],
+    "note": "브랜드명 직접 검색"
+  },
+  {
+    "query": "넷플릭스",
+    "type": "exact_keyword",
+    "expected_ids": ["netflix-watch-later"],
+    "note": "브랜드명 직접 검색"
+  },
+  {
+    "query": "부동산",
+    "type": "exact_keyword",
+    "expected_ids": ["real-estate-info"],
+    "note": "단일 키워드 — 정확히 맞아야 함"
+  },
+  {
+    "query": "내가 사려고 했던 뷰티 제품",
+    "type": "semantic_paraphrase",
+    "expected_ids": ["cosmetics-buy-1", "cosmetics-buy-2"],
+    "note": "화장품을 뷰티로 바꿔 표현 — semantic 능력 평가"
+  },
+  {
+    "query": "나중에 써보고 싶었던 제품",
+    "type": "semantic_paraphrase",
+    "expected_ids": ["cosmetics-buy-1", "cosmetics-buy-2", "shoes-buy", "want-to-buy", "try-later"],
+    "note": "todo intent 아이템 전반 — 느슨한 paraphrase"
+  },
+  {
+    "query": "여행 계획",
+    "type": "intent_based",
+    "expected_ids": ["flight-schedule", "shanghai-travel-1", "shanghai-info-2", "china-travel-info"],
+    "note": "schedule/knowledge intent 중 여행 관련"
+  },
+  {
+    "query": "마감 일정",
+    "type": "intent_based",
+    "expected_ids": ["course-enroll", "submission-deadline", "schedule-general"],
+    "note": "deadline 포함 schedule intent"
+  },
+  {
+    "query": "상하이 여행",
+    "type": "entity_based",
+    "expected_ids": ["shanghai-travel-1", "shanghai-info-2", "china-travel-info"],
+    "note": "엔티티 '상하이' 기반 — 중국 여행도 포함"
+  },
+  {
+    "query": "사고싶었던거",
+    "type": "colloquial",
+    "expected_ids": ["cosmetics-buy-1", "cosmetics-buy-2", "shoes-buy", "want-to-buy"],
+    "note": "구어체·오타 스타일 — 띄어쓰기 없음"
+  },
+  {
+    "query": "할인 이벤트 챙겨야 할 것",
+    "type": "colloquial",
+    "expected_ids": ["gongcha-sale"],
+    "note": "구어체 표현"
+  },
+  {
+    "query": "신발 사야하는데",
+    "type": "colloquial",
+    "expected_ids": ["shoes-buy", "want-to-buy"],
+    "note": "구어체 + 명시적 아이템"
+  },
+  {
+    "query": "중요한 기프티콘",
+    "type": "semantic_paraphrase",
+    "expected_ids": ["gifticon-use"],
+    "note": "기프티콘 + 중요도 힌트"
+  },
+  {
+    "query": "친구 만날 약속",
+    "type": "intent_based",
+    "expected_ids": ["friend-concert"],
+    "note": "공연 일정을 약속으로 paraphrase"
+  }
+]
