@@ -261,3 +261,86 @@ uv run --group lab python "../lab/active/rag-search/eval_retrieval.py"
 | `lab/active/rag-search/data/cases.json` | 18케이스 이미지 파일명 — `lab/data/legacy/`의 실제 파일과 매칭되는지 확인 필요 |
 | `lab/active/rag-search/gold/queries.json` | 14쿼리 정답 셋 — 실험 결과 해석 기준 |
 | `mochi-backend/app/modules/agent/infrastructure/tools/embedding.py` | 프로덕션 EmbedTool — 실험 결과 반영 시 수정 포인트 |
+
+---
+
+# RAG 실험 환경 최종 점검 + TEAM_LEAD_BRIEF 작성 — Handoff (2026-06-06, 세션 3)
+
+## 0. TL;DR (한 화면)
+
+- 세션 시작 직후 handoff 점검 요청 → 세션 자체 작업 없음
+- **미커밋 파일 1개 발견**: `lab/active/rag-search/TEAM_LEAD_BRIEF.md` (untracked)
+  - 팀 리드용 실험 환경 요약 — 목적·흐름·디렉터리·실행법·결과 활용 설명
+- 실험 파이프라인 실행은 **아직 0번도 실행하지 않음** (세션 2 이월)
+
+---
+
+## 1. 대화 흐름
+
+1. `handoff` 슬래시커맨드 실행 → 현재 브랜치 상태·미커밋 파일·git diff 자동 수집
+2. 세션 2 handoff가 이미 완전히 작성되어 있음 확인
+3. 미커밋 `TEAM_LEAD_BRIEF.md` 발견 → 이번 세션 유일한 신규 아티팩트
+
+---
+
+## 2. 현재 코드 상태
+
+**브랜치: `lab/local-image-eval` (`d41e5a9`, origin 동기)**
+
+### 미커밋 파일 (git status: untracked)
+
+```
+lab/active/rag-search/TEAM_LEAD_BRIEF.md   ← 팀 리드용 실험 요약 문서
+```
+
+**작동 가능 여부:** 파이프라인 코드 완성 상태. 이미지 분석·임베딩·평가 모두 미실행.
+
+---
+
+## 3. codex 검증 결과
+
+이 세션 code-reviewer / qa-validator 호출 없음.
+
+---
+
+## 4. 결정 / trade-off
+
+없음 — 이번 세션은 handoff 점검만 수행.
+
+---
+
+## 5. 미완 결정
+
+세션 2에서 이월된 항목 그대로:
+1. **파이프라인 실행** — `analyze.py` → `embed.py` → `eval_retrieval.py` 한 번도 안 돌림
+2. **`TEAM_LEAD_BRIEF.md` 커밋 여부** — untracked 상태, 커밋할지 결정 필요
+
+---
+
+## 6. 다음 단계 + 검증 기준
+
+세션 2 §6과 동일. 즉시 할 것:
+
+1. **`TEAM_LEAD_BRIEF.md` 커밋** (선택)
+2. **`analyze.py` 실행** — 18개 이미지 Gemini 분석
+3. **`embed.py` 실행** — 25개 조합 임베딩
+4. **`eval_retrieval.py` 실행** — BM25/Vector/RRF 평가
+5. **`FINDINGS.md` 결론 채우기**
+
+실행 명령은 세션 2 §6 참고.
+
+### 검증 기준
+
+- `"화장품"` 쿼리 → `cosmetics-buy-1`, `cosmetics-buy-2` top-3 안에 포함
+- 25개 조합 전부 평가 완료
+- nDCG@5 기준 최적 조합 → `FINDINGS.md` 결론 채우기
+
+---
+
+## 7. 컨텍스트 부채
+
+세션 2 §7과 동일. 추가 항목:
+
+| 파일 | 왜 봐야 하는가 |
+|------|---------------|
+| `lab/active/rag-search/TEAM_LEAD_BRIEF.md` | 팀 리드용 실험 개요 — 커밋 전 내용 확인 |
