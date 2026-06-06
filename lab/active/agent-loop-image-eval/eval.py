@@ -334,6 +334,74 @@ async def main() -> None:
     out_path.write_text(json.dumps(output, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"\n결과 저장: {out_path}  ({len(results)}건)")
 
+    _append_findings(ts, summary, results, skipped)
+
+
+def _append_findings(
+    ts: str,
+    summary: dict[str, Any],
+    cases: list[dict[str, Any]],
+    skipped: list[dict[str, str]],
+) -> None:
+    """실행 결과 요약을 FINDINGS.md 결과 섹션에 추가."""
+    findings_path = LAB_ROOT / "FINDINGS.md"
+
+    low_recall = [
+        r for r in cases
+        if "error" not in r and r["intent_eval"]["recall"] < 0.5
+    ]
+    low_judge = [
+        r for r in cases
+        if "error" not in r and (r["intention_judge"].get("alignment_score") or 5) <= 2
+    ]
+    errors = [r for r in cases if "error" in r]
+
+    lines = [
+        f"\n## 실험 결과 — {ts[:8]} {ts[9:11]}:{ts[11:13]}",
+        "",
+        "| 지표 | 값 |",
+        "|------|----|",
+        f"| 총 케이스 | {summary['total']}건 (오류 {len(errors)}건, skip {summary['skipped']}건) |",
+        f"| Intent Recall | {summary.get('avg_intent_recall', '-')} |",
+        f"| Intent Precision | {summary.get('avg_intent_precision', '-')} |",
+        f"| Exact match | {summary.get('exact_set_match_rate', '-')} |",
+        f"| Alignment Score | {summary.get('avg_alignment_score', '-')} / 5 |",
+        f"| Contradiction | {summary.get('contradiction_rate', '-')} |",
+    ]
+
+    if low_recall:
+        lines += ["", "### Intent Recall < 0.5 케이스"]
+        for r in low_recall:
+            ei = r["intent_eval"]
+            lines.append(
+                f"- `{r['file']}` gold={r['expected_intents']} → predicted={r['predicted_intents']}"
+                f" (recall={ei['recall']:.2f})"
+            )
+
+    if low_judge:
+        lines += ["", "### Alignment Score ≤ 2 케이스"]
+        for r in low_judge:
+            score = r["intention_judge"].get("alignment_score")
+            reasoning = r["intention_judge"].get("reasoning", "")[:60]
+            lines.append(f"- `{r['file']}` score={score} — {reasoning}")
+
+    if errors:
+        lines += ["", "### 오류 케이스"]
+        for r in errors:
+            lines.append(f"- `{r['file']}`: {r['error']}")
+
+    if skipped:
+        lines += ["", "### Skip 케이스"]
+        for s in skipped:
+            lines.append(f"- `{s['file']}`: {s['reason']}")
+
+    lines.append("")
+
+    with findings_path.open("a", encoding="utf-8") as f:
+        f.write("\n".join(lines))
+
+    print(f"FINDINGS.md 업데이트: {findings_path}")
+
 
 if __name__ == "__main__":
     asyncio.run(main())
