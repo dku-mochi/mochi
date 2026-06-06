@@ -4,6 +4,7 @@ import json
 import re
 import socket
 import time
+import zlib
 from typing import Literal, cast
 from urllib.parse import parse_qs, urlencode, urlparse
 
@@ -11,9 +12,11 @@ import httpx
 from pydantic import BaseModel, HttpUrl
 
 from app.core.config import get_settings
+from app.core.logging import get_logger
 from app.modules.agent.domain.tools import Tool, ToolExecutionError, ToolName, ToolUsage
 
 PlatformName = Literal["auto", "youtube", "x", "instagram"]
+log = get_logger("agent.tool.platform_context")
 
 
 class PlatformContextInput(BaseModel):
@@ -229,8 +232,22 @@ class PlatformContextTool(Tool[PlatformContextInput, PlatformContextOutput]):
     async def _guarded_get_json(self, url: str) -> httpx.Response:
         response = await self._guarded_get(url)
         mime = response.headers.get("content-type", "").split(";", 1)[0].lower()
-        if "json" not in mime and not response.text.lstrip().startswith("{"):
+        if "json" not in mime and not response.text.lstrip().startswith(("{", "[")):
             raise ToolExecutionError(self.name, f"Expected JSON, got {mime}")
+        try:
+            response.json()
+        except json.JSONDecodeError as exc:
+            log.warning(
+                "tool.platform_context.json_decode_failed",
+                url=url,
+                status_code=response.status_code,
+                content_type=response.headers.get("content-type"),
+                body_length=len(response.content),
+                exception=str(exc),
+            )
+            raise ToolExecutionError(
+                self.name, f"Invalid JSON response: {exc}", transient=True
+            ) from exc
         return response
 
     async def _guarded_get_text(self, url: str) -> httpx.Response:
@@ -271,17 +288,46 @@ class PlatformContextTool(Tool[PlatformContextInput, PlatformContextOutput]):
 
             buffer = bytearray()
             limit = settings.web_fetch_max_bytes
-            async for chunk in response.aiter_bytes():
-                buffer.extend(chunk)
-                if len(buffer) > limit:
-                    raise ToolExecutionError(self.name, f"Response too large (> {limit} bytes)")
-            return httpx.Response(
-                status_code=response.status_code,
-                headers=response.headers,
-                content=bytes(buffer),
-                request=response.request,
-                extensions=response.extensions,
-            )
+            try:
+                async for chunk in response.aiter_bytes():
+                    buffer.extend(chunk)
+                    if len(buffer) > limit:
+                        raise ToolExecutionError(
+                            self.name, f"Response too large (> {limit} bytes)"
+                        )
+            except (httpx.HTTPError, zlib.error) as exc:
+                log.warning(
+                    "tool.platform_context.decode_failed",
+                    url=current_url,
+                    status_code=response.status_code,
+                    content_type=response.headers.get("content-type"),
+                    exception=str(exc),
+                )
+                raise ToolExecutionError(
+                    self.name, f"HTTP decode error: {exc}", transient=True
+                ) from exc
+            headers = httpx.Headers(response.headers)
+            headers.pop("content-encoding", None)
+            headers.pop("content-length", None)
+            try:
+                return httpx.Response(
+                    status_code=response.status_code,
+                    headers=headers,
+                    content=bytes(buffer),
+                    request=response.request,
+                    extensions=response.extensions,
+                )
+            except httpx.HTTPError as exc:
+                log.warning(
+                    "tool.platform_context.response_build_failed",
+                    url=current_url,
+                    status_code=response.status_code,
+                    content_type=response.headers.get("content-type"),
+                    exception=str(exc),
+                )
+                raise ToolExecutionError(
+                    self.name, f"HTTP decode error: {exc}", transient=True
+                ) from exc
 
     def _enforce_host_policy(self, url: str, blocked: tuple[str, ...]) -> None:
         host = urlparse(url).hostname

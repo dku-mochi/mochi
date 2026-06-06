@@ -78,6 +78,13 @@ class AgentOrchestrator:
             analysis: AnalysisResult | None = None
             for node in HAPPY_PATH:
                 agent_run.advance(node)
+                log.info(
+                    "agent.node",
+                    run_id=str(agent_run.id),
+                    mochi_item_id=str(mochi_item_id),
+                    owner_id=str(owner_id),
+                    node=node.value,
+                )
                 yield StreamEvent("node", {"node": node.value, "run_id": str(agent_run.id)})
                 if self._persistence is not None:
                     await self._persistence.update_node(agent_run.id, node)
@@ -120,10 +127,29 @@ class AgentOrchestrator:
         if source is None:
             raise RuntimeError(f"mochi item {mochi_item_id} not found for analysis")
 
+        log.info(
+            "agent.analysis_input",
+            run_id=str(agent_run.id),
+            mochi_item_id=str(mochi_item_id),
+            owner_id=str(owner_id),
+            has_text=bool(source.text),
+            has_url=bool(source.url),
+            has_user_memo=bool(source.user_memo),
+            image_count=len(source.images),
+        )
+
         profile_summary: str | None = None
         if self._profile_store is not None:
             profile = await self._profile_store.get(owner_id=owner_id)
             profile_summary = profile.summary if profile else None
+        log.info(
+            "agent.profile_context",
+            run_id=str(agent_run.id),
+            mochi_item_id=str(mochi_item_id),
+            owner_id=str(owner_id),
+            has_profile=bool(profile_summary),
+            profile_length=len(profile_summary or ""),
+        )
         system_prompt = ACTIVE_PROMPT.body + _profile_preamble(profile_summary)
 
         first_user: dict[str, Any] = {"role": "user", "text": _initial_user_text(source)}
@@ -132,7 +158,15 @@ class AgentOrchestrator:
         parts: list[dict[str, Any]] = [first_user]
         final_payload: dict[str, Any] | None = None
 
-        for _ in range(self._max_steps):
+        for step in range(1, self._max_steps + 1):
+            log.info(
+                "agent.llm_turn_started",
+                run_id=str(agent_run.id),
+                mochi_item_id=str(mochi_item_id),
+                owner_id=str(owner_id),
+                step=step,
+                part_count=len(parts),
+            )
             chunk = None
             async for c in self._llm.stream(
                 system_prompt=system_prompt,
@@ -142,11 +176,39 @@ class AgentOrchestrator:
             ):
                 chunk = c
             if chunk is None:
+                log.warning(
+                    "agent.llm_empty",
+                    run_id=str(agent_run.id),
+                    mochi_item_id=str(mochi_item_id),
+                    owner_id=str(owner_id),
+                    step=step,
+                )
                 break
             if chunk.final_payload is not None:
+                log.info(
+                    "agent.final_payload",
+                    run_id=str(agent_run.id),
+                    mochi_item_id=str(mochi_item_id),
+                    owner_id=str(owner_id),
+                    step=step,
+                    keys=sorted(chunk.final_payload.keys()),
+                    intent_count=len(chunk.final_payload.get("intent_instances") or []),
+                    review_option_count=len(chunk.final_payload.get("review_options") or []),
+                    needs_review=chunk.final_payload.get("needs_review"),
+                )
                 final_payload = chunk.final_payload
                 break
             if chunk.tool_to_call is not None:
+                log.info(
+                    "agent.tool_requested",
+                    run_id=str(agent_run.id),
+                    mochi_item_id=str(mochi_item_id),
+                    owner_id=str(owner_id),
+                    step=step,
+                    tool=chunk.tool_to_call.value,
+                    args_digest=_digest(chunk.tool_arguments or {}),
+                    arg_keys=sorted((chunk.tool_arguments or {}).keys()),
+                )
                 async for ev in self._run_tool(
                     agent_run,
                     chunk.tool_to_call,
@@ -156,6 +218,14 @@ class AgentOrchestrator:
                 ):
                     yield ev
                 continue
+            log.warning(
+                "agent.llm_no_action",
+                run_id=str(agent_run.id),
+                mochi_item_id=str(mochi_item_id),
+                owner_id=str(owner_id),
+                step=step,
+                has_text=bool(chunk.text_delta),
+            )
             break
 
         if final_payload is None:
@@ -183,6 +253,14 @@ class AgentOrchestrator:
         yield StreamEvent("tool_started", {"name": tool_name.value, "run_id": str(agent_run.id)})
         tool = self._tools.get(tool_name)
         started = perf_counter()
+        input_digest = _digest(args)
+        log.info(
+            "agent.tool_started",
+            run_id=str(agent_run.id),
+            tool=tool_name.value,
+            input_digest=input_digest,
+            arg_keys=sorted(args.keys()),
+        )
         # 직전 functionCall part 에 thought_signature 를 실어 다음 turn 에 echo (Gemini 3 필수).
         parts.append(
             {
@@ -197,17 +275,34 @@ class AgentOrchestrator:
             if isinstance(response.get("text"), str):
                 response["text"] = response["text"][:4000]   # 토큰 bound
             succeeded = True
+            log.info(
+                "agent.tool_succeeded",
+                run_id=str(agent_run.id),
+                tool=tool_name.value,
+                input_digest=input_digest,
+                latency_ms=int((perf_counter() - started) * 1000),
+                response_keys=sorted(response.keys()),
+            )
         except ToolExecutionError as exc:
             usage = ToolUsage()
             response = {"error": str(exc)}        # 에러를 모델에 되먹여 recover/finalize 유도
             succeeded = False
+            log.warning(
+                "agent.tool_failed",
+                run_id=str(agent_run.id),
+                tool=tool_name.value,
+                input_digest=input_digest,
+                latency_ms=int((perf_counter() - started) * 1000),
+                transient=exc.transient,
+                error=str(exc),
+            )
         parts.append(
             {"role": "user", "function_response": {"name": tool_name.value, "response": response}}
         )
 
         call = ToolCall(
             name=tool_name,
-            input_digest=_digest(args),
+            input_digest=input_digest,
             output_digest=None,
             tokens_in=usage.tokens_in,
             tokens_out=usage.tokens_out,

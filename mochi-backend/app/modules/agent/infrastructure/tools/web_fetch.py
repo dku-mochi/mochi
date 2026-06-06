@@ -1,13 +1,17 @@
 import ipaddress
 import socket
 import time
+import zlib
 from urllib.parse import urlparse
 
 import httpx
 from pydantic import BaseModel, HttpUrl
 
 from app.core.config import get_settings
+from app.core.logging import get_logger
 from app.modules.agent.domain.tools import Tool, ToolExecutionError, ToolName, ToolUsage
+
+log = get_logger("agent.tool.web_fetch")
 
 
 class WebFetchInput(BaseModel):
@@ -80,10 +84,24 @@ class WebFetchTool(Tool[WebFetchInput, WebFetchOutput]):
             # 사이즈 상한을 만족하는 만큼만 스트리밍으로 읽어 메모리/대역 보호.
             buffer = bytearray()
             limit = settings.web_fetch_max_bytes
-            async for chunk in response.aiter_bytes():
-                buffer.extend(chunk)
-                if len(buffer) > limit:
-                    raise ToolExecutionError(self.name, f"Response too large (> {limit} bytes)")
+            try:
+                async for chunk in response.aiter_bytes():
+                    buffer.extend(chunk)
+                    if len(buffer) > limit:
+                        raise ToolExecutionError(
+                            self.name, f"Response too large (> {limit} bytes)"
+                        )
+            except (httpx.HTTPError, zlib.error) as exc:
+                log.warning(
+                    "tool.web_fetch.decode_failed",
+                    url=current_url,
+                    status_code=response.status_code,
+                    content_type=response.headers.get("content-type"),
+                    exception=str(exc),
+                )
+                raise ToolExecutionError(
+                    self.name, f"HTTP decode error: {exc}", transient=True
+                ) from exc
 
         text = buffer.decode("utf-8", errors="replace")
         usage = ToolUsage(
