@@ -2,6 +2,7 @@ import SwiftUI
 import ComposableArchitecture
 import CoreDomain
 import CorePersistence
+import DesignSystem
 
 /// 모찌 홈 화면 — `_workspace/home-mockup/index.html` 시안의 SwiftUI 구현.
 ///

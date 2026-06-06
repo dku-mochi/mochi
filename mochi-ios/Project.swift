@@ -145,6 +145,10 @@ let project = Project(
             layer: .core,
             dependencies: [
                 .target(name: "CoreDomain"),
+                // LocalThumbnail 이 App Group 컨테이너(`AppGroup.containerURL`)에서 캡처 이미지를
+                // 다운샘플 로드한다. AppGroup 은 CorePersistence 소유. acyclic(Cores 어디에도
+                // import DesignSystem 없음) 확인됨 — FeatureInbox→DesignSystem 승격 시 추가.
+                .target(name: "CorePersistence"),
                 .package(product: "Kingfisher"),
             ]
         ),
@@ -440,7 +444,7 @@ let project = Project(
             dependencies: [
                 .target(name: "CoreDomain"),
                 .target(name: "CorePersistence"),
-                // ShareExt 직접 전송(무이미지 best-effort): CoreNetworking(OpenAPIMochiClient),
+                // ShareExt 직접 전송(best-effort): CoreNetworking(OpenAPIMochiClient),
                 // CoreAuth(KeychainTokenStore — GoogleSignIn 은 App 타겟 전용이라 안전). 실패 시 큐 폴백.
                 .target(name: "CoreNetworking"),
                 .target(name: "CoreAuth"),

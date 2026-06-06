@@ -64,18 +64,19 @@ public final class ShareExtensionPrincipal: UIViewController {
             !payload.imageRefs.contains { $0.relativePath == ref.relativePath }
         }
         Self.deleteImagePNGs(removed)
-        Task.detached { [weak self] in
+        Task { [weak self] in
             // 1) 큐 적재가 **항상 진실원천** — 로컬 Realm ingest·동기화·유실 방지(다음 active tick 의
             //    drain → upsert → SyncWorker 업로드). 직접전송보다 먼저 써 유실을 0으로 만든다.
             let fileURL = AppGroup.inboundQueueURL.appendingPathComponent("\(payload.id.uuidString).json")
             if let data = try? JSONEncoder().encode(payload) {
                 try? data.write(to: fileURL, options: [.atomic])
             }
-            // 2) best-effort 선반영 — 무이미지면 서버 분석을 앱 부팅 전 조기 트리거(짧은 timeout).
+            // 2) best-effort 선반영 — 서버 분석을 앱 부팅 전 조기 트리거(짧은 timeout).
             //    성공해도 큐는 그대로 — 멱등키(payload.id)가 drain·SyncWorker 재전송과 같은 행을
-            //    반환해 이중 적재가 없다. completeRequest 전에 시도해 extension 이 살아있는 동안 끝낸다.
-            await ShareExtDirectUpload.attempt(payload)
-            await MainActor.run { self?.complete(success: true) }
+            //    반환해 이중 적재가 없다. 이미지 업로드 성공 시 큐 JSON 도 objectKey 로 보강한다.
+            //    completeRequest 전에 시도해 extension 이 살아있는 동안 끝낸다.
+            await ShareExtDirectUpload.attempt(payload, queueFileURL: fileURL)
+            self?.complete(success: true)
         }
     }
 

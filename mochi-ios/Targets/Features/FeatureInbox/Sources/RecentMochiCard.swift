@@ -1,5 +1,6 @@
 import SwiftUI
 import CoreDomain
+import DesignSystem
 
 /// "최근 추가한 모찌" / "중요해 보여요" 가로 스크롤의 카드.
 ///
@@ -183,20 +184,4 @@ private struct URLPreviewMini: View {
     }
 }
 
-// MARK: - Intent chip (compact)
-
-struct IntentChip: View {
-    let intent: MochiViewIntent
-
-    var body: some View {
-        Text(intent.label)
-            .font(.system(size: 10, weight: .bold))
-            .tracking(0.05)
-            .padding(.horizontal, 7)
-            .padding(.vertical, 3)
-            .background(
-                Capsule().fill(intent.chipBackground)
-            )
-            .foregroundStyle(intent.dotColor)
-    }
-}
+// IntentChip 은 DesignSystem 으로 승격됨 (HomeViewMapping.swift).
