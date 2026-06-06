@@ -25,7 +25,12 @@ struct MainTabFeature: Sendable {
         /// 디버그용 InboxView 모달 — 설정 시트 안에서 push 되지만 reducer 차원에선 flag 만.
         var isDebugInboxPresented: Bool = false
 
-        @Presents var detail: DetailFeature.State?
+        /// 홈 탭 네비게이션 스택 — 카드 탭 시 상세를 push.
+        /// detail 을 App 레이어 StackState 로 둬, Feature 간 직접 의존(아키텍처 위반) 없이
+        /// 탭별 독립 스택을 얻는다(같은 detail 을 여러 탭이 공유하면 비선택 탭에 따라붙는 버그 회피).
+        var homePath = StackState<DetailFeature.State>()
+        /// 모찌들 탭 네비게이션 스택.
+        var calendarPath = StackState<DetailFeature.State>()
         @Presents var mochiItem: MochiItemFeature.State?
     }
 
@@ -49,7 +54,8 @@ struct MainTabFeature: Sendable {
         case mochiCalendar(MochiCalendarFeature.Action)
         case search(SearchFeature.Action)
         case settings(SettingsFeature.Action)
-        case detail(PresentationAction<DetailFeature.Action>)
+        case homePath(StackActionOf<DetailFeature>)
+        case calendarPath(StackActionOf<DetailFeature>)
         case mochiItem(PresentationAction<MochiItemFeature.Action>)
         case settingsSheetChanged(Bool)
         case debugInboxChanged(Bool)
@@ -69,7 +75,7 @@ struct MainTabFeature: Sendable {
                 return .none
 
             case let .home(.mochiItemTapped(mochiItemID)):
-                state.detail = DetailFeature.State(mochiItemID: mochiItemID)
+                state.homePath.append(DetailFeature.State(mochiItemID: mochiItemID))
                 return .none
 
             case .home(.openSettingsTapped):
@@ -86,12 +92,15 @@ struct MainTabFeature: Sendable {
                 // 추후 capture sheet 또는 system picker 연결. 현 단계는 no-op.
                 return .none
 
-            case let .inbox(.mochiItemTapped(mochiItemID)):
-                state.detail = DetailFeature.State(mochiItemID: mochiItemID)
+            case .inbox(.mochiItemTapped):
+                // dev 디버그 인박스 — push 전환 범위에서 제외(상세 진입 비활성).
                 return .none
 
             case let .mochiCalendar(.mochiItemTapped(mochiItemID)):
-                state.detail = DetailFeature.State(mochiItemID: mochiItemID)
+                // 그날 목록 sheet(DaySheet)를 닫고 캘린더 탭 스택에 상세를 push (중첩 sheet 제거).
+                state.mochiCalendar.selectedDay = nil
+                state.mochiCalendar.selectedDayItems = []
+                state.calendarPath.append(DetailFeature.State(mochiItemID: mochiItemID))
                 return .none
 
             case let .settingsSheetChanged(isOn):
@@ -103,11 +112,12 @@ struct MainTabFeature: Sendable {
                 state.isDebugInboxPresented = isOn
                 return .none
 
-            case .home, .inbox, .mochiCalendar, .search, .settings, .detail, .mochiItem:
+            case .home, .inbox, .mochiCalendar, .search, .settings, .homePath, .calendarPath, .mochiItem:
                 return .none
             }
         }
-        .ifLet(\.$detail,  action: \.detail)  { DetailFeature() }
+        .forEach(\.homePath, action: \.homePath) { DetailFeature() }
+        .forEach(\.calendarPath, action: \.calendarPath) { DetailFeature() }
         .ifLet(\.$mochiItem, action: \.mochiItem) { MochiItemFeature() }
     }
 }

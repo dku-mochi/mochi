@@ -46,6 +46,50 @@ final class CaptureContextSentinelTests: XCTestCase {
         XCTAssertNil(CaptureContextSentinel.decode(#"{"__mochi_ctx__":{"sourceApp":"#))
     }
 
+    // MARK: decode — url (화면상 URL → IngestSource.url)
+
+    func test_decode_extracts_url() {
+        let ctx = CaptureContextSentinel.decode(
+            #"{"__mochi_ctx__":{"sourceApp":"Safari","url":"https://example.com/path"}}"#
+        )
+        XCTAssertEqual(ctx?.sourceApp, "Safari")
+        XCTAssertEqual(ctx?.url, "https://example.com/path")
+    }
+
+    func test_decode_url_with_query_string_is_preserved() {
+        // 쿼리스트링의 & = 는 JSON 문자열 안에서 안전 — 파싱이 유지되는지.
+        let ctx = CaptureContextSentinel.decode(
+            #"{"__mochi_ctx__":{"sourceApp":"Safari","url":"https://www.youtube.com/watch?v=abc&t=10s"}}"#
+        )
+        XCTAssertEqual(ctx?.url, "https://www.youtube.com/watch?v=abc&t=10s")
+    }
+
+    func test_decode_absent_url_is_nil() {
+        let ctx = CaptureContextSentinel.decode(#"{"__mochi_ctx__":{"sourceApp":"Safari"}}"#)
+        XCTAssertNotNil(ctx)
+        XCTAssertNil(ctx?.url)
+    }
+
+    func test_decode_empty_url_is_normalized_to_nil() {
+        XCTAssertNil(CaptureContextSentinel.decode(#"{"__mochi_ctx__":{"sourceApp":"Safari","url":""}}"#)?.url)
+    }
+
+    // MARK: looksLikeSentinel — 깨진 sentinel 을 일반 text 로 흘리지 않기 위한 판별
+
+    func test_looksLikeSentinel_true_for_marker_json() {
+        XCTAssertTrue(CaptureContextSentinel.looksLikeSentinel(#"{"__mochi_ctx__":{"sourceApp":"Safari"}}"#))
+    }
+
+    func test_looksLikeSentinel_true_for_broken_marker_json() {
+        // decode 가 실패(깨진 JSON)해도 sentinel 시도임을 식별 → ShareExt 가 text 오염을 막는다.
+        XCTAssertTrue(CaptureContextSentinel.looksLikeSentinel(#"{"__mochi_ctx__":{"url":"#))
+    }
+
+    func test_looksLikeSentinel_false_for_plain_text() {
+        XCTAssertFalse(CaptureContextSentinel.looksLikeSentinel("그냥 메모"))
+        XCTAssertFalse(CaptureContextSentinel.looksLikeSentinel("[출처앱: Safari]"))
+    }
+
     // MARK: compose
 
     func test_sourceAppMarker_format() {

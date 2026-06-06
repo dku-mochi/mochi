@@ -25,6 +25,7 @@ public enum RealmMochiItemMapper {
         row.syncStateRawValue = syncStateRaw(mochiItem.syncState)
         row.capturedAt = mochiItem.source.capturedAt
         row.analyzedAt = mochiItem.analysis?.analyzedAt
+        row.userTitle = mochiItem.userTitle
         row.createdAt = mochiItem.createdAt
         row.updatedAt = mochiItem.updatedAt
 
@@ -101,6 +102,7 @@ public enum RealmMochiItemMapper {
             analysis: analysis,
             lifecycleState: lifecycleState(from: row),
             syncState: syncStateFromRaw(row.syncStateRawValue),
+            userTitle: row.userTitle,
             createdAt: row.createdAt,
             updatedAt: row.updatedAt
         )

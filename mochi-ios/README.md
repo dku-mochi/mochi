@@ -49,7 +49,7 @@ mochi-ios/
     │   ├── CoreNetworking/    MochiAPIClient, APIErrorEnvelope (OpenAPI 어댑터)
     │   ├── CoreAgentClient/   AgentStreamClient (SSE/WebSocket)
     │   ├── CoreIntegrations/  CalendarSyncing (EventKit/Reminders)
-    │   └── DesignSystem/      MochiTheme, IntentBadge, ...
+    │   └── DesignSystem/      MochiTheme, IntentBadge, HomeDesign(토큰), LocalThumbnail, IntentChip, MochiItemKindTag ...
     ├── Features/
     │   ├── FeatureInbox/      받은 기록 목록 (필터 + 라우팅)
     │   ├── FeatureMochiItem/    Agent loop stream UI

@@ -502,4 +502,45 @@ CLASSIFY_AND_ACT_V7 = PromptVersion(
 )
 
 
-ACTIVE_PROMPT: PromptVersion = CLASSIFY_AND_ACT_V7
+CLASSIFY_AND_ACT_V8 = PromptVersion(
+    name="classify_and_act@v8",
+    body=CLASSIFY_AND_ACT_V7.body.replace(
+        (
+            "# payload — instance 의 구조화 속성\n"
+            "각 instance 에 화면 증거가 뒷받침하는 값만 채운다(전부 optional): title, date, time, "
+            "deadline, person, topic, url, note. 없는 값은 비운다 — 채우려고 지어내지 마라.\n\n"
+        ),
+        (
+            "# payload — instance 의 구조화 속성\n"
+            "각 instance 에 화면 증거가 뒷받침하는 값만 채운다(전부 optional): title, date, time, "
+            "deadline, person, topic, url, note. title 외 값은 없으면 비운다 — 채우려고 지어내지 "
+            "마라.\n\n"
+            "# payload.title — 이 기록의 \"정체성 이름\" (회수의 핵심 단서)\n"
+            "title 은 사용자가 목록에서 한눈에 다시 알아볼 짧은 이름이다 — \"이거 뭐였지?\" 에 답하는 "
+            "콘텐츠의 정체(무엇에 관한 것인지)지, 화면에서 가장 크거나 눈에 띄는 텍스트가 아니다.\n"
+            "- 클릭베이트 헤드라인·썸네일 카피·UI 라벨(좋아요 수, \"재생 중\", 버튼명)이 아니라 이 "
+            "콘텐츠를 식별하는 이름을 쓴다.\n"
+            "- 클립·짧은 영상·한 장면 캡처면 원작/출처를 식별해 함께 담는다(예: 예능 한 장면이면 "
+            "\"<프로그램명> 클립\", 강의 일부면 \"<강의명>\").\n"
+            "- YouTube·X·Instagram 은 platformContext 의 공식 제목·작성자·설명을 1차 근거로, "
+            "스크린샷 표면 텍스트는 보조. 기사=헤드라인, 상품=상품명, 문서=문서 제목.\n"
+            "- title 은 summary 와 다른 일을 한다: title=이게 무엇인지(정체), summary=왜 "
+            "남겼는지(맥락). 둘이 같은 문장이 되지 않게 한다.\n"
+            "회수의 핵심 단서이니 화면 근거로 식별되면 적극 채운다. 단 무엇인지 전혀 식별되지 "
+            "않으면 비운다(억지 추론 금지).\n\n"
+        ),
+    ),
+    model_target="gemini-3.1-flash-lite",
+    eval_dataset_version="intent-schema-decision@2026-06-04",
+    revised_on=date(2026, 6, 6),
+    rationale=(
+        "payload.title 을 '정체성 제목'(콘텐츠의 지시 대상)으로 뽑게 하는 가이드 추가 — 표면 "
+        "최대 텍스트·클릭베이트가 아니라 무엇에 관한 것인지, 클립이면 원작 출처를 식별. iOS "
+        "기록상세가 representativeTitle(=대표 의도 payload.title)을 헤더 제목으로 쓰는데(2026-06-06 "
+        "검수→회수 재설계, summary 폴백 제거) V7 은 title 가이드가 없어 누락·표면텍스트 위험이 "
+        "있었다. 분류 규칙(V7 5규칙)·스키마 불변 — title 품질만 보강이라 eval_dataset_version 유지."
+    ),
+)
+
+
+ACTIVE_PROMPT: PromptVersion = CLASSIFY_AND_ACT_V8

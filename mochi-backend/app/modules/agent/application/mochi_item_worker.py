@@ -91,9 +91,24 @@ class MochiItemWorker:
         await session.commit()
         if row is None:
             return None
+        log.info(
+            "worker.claimed",
+            outbox_id=row.id,
+            mochi_item_id=str(row.mochi_item_id),
+            owner_id=str(row.owner_id),
+            attempts=row.attempts,
+            locked_until=lock_until.isoformat(),
+        )
         return ClaimedOutbox(id=row.id, mochi_item_id=row.mochi_item_id, owner_id=row.owner_id, attempts=row.attempts)
 
     async def _handle(self, claimed: "ClaimedOutbox") -> None:
+        log.info(
+            "worker.handle_started",
+            outbox_id=claimed.id,
+            mochi_item_id=str(claimed.mochi_item_id),
+            owner_id=str(claimed.owner_id),
+            attempts=claimed.attempts,
+        )
         session_factory = get_session_factory()
         settings = get_settings()
         async with session_factory() as session:
@@ -136,10 +151,26 @@ class MochiItemWorker:
                     text("UPDATE mochi_item_outbox SET status='done' WHERE id=:id").bindparams(id=claimed.id)
                 )
                 await session.commit()
+                log.info(
+                    "worker.done",
+                    outbox_id=claimed.id,
+                    mochi_item_id=str(claimed.mochi_item_id),
+                    owner_id=str(claimed.owner_id),
+                    attempts=claimed.attempts,
+                )
             except Exception as exc:  # noqa: BLE001
-                log.error("worker.failed", mochi_item_id=str(claimed.mochi_item_id), exception=str(exc))
                 is_dead = claimed.attempts >= MAX_ATTEMPTS
                 status_value = "dead_letter" if is_dead else "pending"
+                log.error(
+                    "worker.failed",
+                    outbox_id=claimed.id,
+                    mochi_item_id=str(claimed.mochi_item_id),
+                    owner_id=str(claimed.owner_id),
+                    attempts=claimed.attempts,
+                    next_status=status_value,
+                    exception=str(exc),
+                    exc_info=True,
+                )
                 await session.execute(
                     text("UPDATE mochi_item_outbox SET status=:s, last_error=:err WHERE id=:id").bindparams(
                         bindparam("s", status_value),
@@ -165,15 +196,32 @@ class MochiItemWorker:
     async def _notify_analysis_complete(self, owner_id: UUID, mochi_item_id: UUID) -> None:
         # get_apns_client() 도 try 안 — p8 misconfig(base64/PEM/non-EC) 예외가 worker 루프를
         # 죽이지 않게(격리 계약). best-effort, 재시도 없음.
+        log.info(
+            "push.notify_started",
+            owner_id=str(owner_id),
+            mochi_item_id=str(mochi_item_id),
+        )
         try:
             apns = get_apns_client()
             if apns is None:
+                log.info(
+                    "push.notify_skipped",
+                    owner_id=str(owner_id),
+                    mochi_item_id=str(mochi_item_id),
+                    reason="apns_not_configured",
+                )
                 return  # APNs 미설정(local dev) — push no-op.
             async with get_session_factory()() as push_session:
                 item = await GetMochiItemForOwner(
                     repository=make_mochi_item_repository(push_session)
                 ).execute(owner_id=owner_id, mochi_item_id=mochi_item_id)
                 if item is None:
+                    log.warning(
+                        "push.notify_skipped",
+                        owner_id=str(owner_id),
+                        mochi_item_id=str(mochi_item_id),
+                        reason="item_not_found",
+                    )
                     return
                 await SendAnalysisNotification(
                     tokens=make_push_token_repository(push_session),
@@ -187,11 +235,18 @@ class MochiItemWorker:
                         review_options=item.review_options,
                     ),
                 )
+                log.info(
+                    "push.notify_finished",
+                    owner_id=str(owner_id),
+                    mochi_item_id=str(mochi_item_id),
+                    needs_review=item.needs_review,
+                )
         except Exception as exc:  # noqa: BLE001
             log.warning(
                 "push.send_failed",
                 mochi_item_id=str(mochi_item_id),
                 exception=str(exc),
+                exc_info=True,
             )
 
 

@@ -398,7 +398,7 @@ CREATE UNIQUE INDEX ux_device_push_tokens_token ON device_push_tokens(token);
 
 ## 5. iOS Realm Schema (mirror)
 
-> Realm `schemaVersion = 5` (`RealmStoreFactory.currentSchemaVersion`). **로컬 id ≠ 서버 PK** — 서버 id 는 `SyncState.uploaded(serverID:)` 에 보관(부록 C). 0009 빅뱅이 응답 구조를 바꿔(intent 1:N instance) **v4→v5 재배선**: `RealmIntentInstance` 신설, 점수/대표/candidate 폐기. prod 아님이라 `deleteRealmIfMigrationNeeded:true`(실데이터 폐기 허용).
+> Realm `schemaVersion = 6` (`RealmStoreFactory.currentSchemaVersion`). **로컬 id ≠ 서버 PK** — 서버 id 는 `SyncState.uploaded(serverID:)` 에 보관(부록 C). 0009 빅뱅이 응답 구조를 바꿔(intent 1:N instance) **v4→v5 재배선**: `RealmIntentInstance` 신설, 점수/대표/candidate 폐기. **v5→v6**: `RealmMochiItem.userTitle` 추가(기록상세 제목 인라인 교정 로컬 오버라이드). prod 아님이라 `deleteRealmIfMigrationNeeded:true`(실데이터 폐기 허용).
 
 intent 관련 검증된 필드(정확한 전체 스키마는 `CorePersistence/RealmObjects.swift` 가 정본):
 
@@ -406,6 +406,7 @@ intent 관련 검증된 필드(정확한 전체 스키마는 `CorePersistence/Re
 |---|---|---|
 | `RealmMochiItem.intentInstances` | `List<RealmIntentInstance>` | intent 1:N. `RealmIntentInstance = {intentType, payload, label?, reasoning?, lifecycleRawValue}`. 빈 List = "분석 중" 버킷(`listAnalyzing`) |
 | `RealmMochiItem.needsReview` | `Bool` | "헷갈려요" 버킷(`listNeedsReview`). 서버 boolean 직접 미러(client-derive threshold 폐기) |
+| `RealmMochiItem.userTitle` | `String?` | 사용자가 기록상세에서 교정한 제목(로컬 오버라이드). nil 이면 AI 추출 제목(대표 `payload.title`). **서버 미동기화 — 로컬 전용**(재동기화로 instances 가 delete-reinsert 돼도 보존) |
 
 | Backend | Realm |
 |---|---|
