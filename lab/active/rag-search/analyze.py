@@ -123,9 +123,6 @@ def _serialize(case: dict, result: AnalysisResult, source_hash: str) -> dict:
         "url": case.get("url"),
         "text": case.get("text"),
         "user_memo": case.get("user_memo"),
-        "expected_topics": case.get("expected_topics", []),
-        "expected_intents": case.get("expected_intents", []),
-        "expected_entities": case.get("expected_entities", []),
         "analysis": {
             "model_version": result.model_version,
             "summary": result.summary,
@@ -195,9 +192,6 @@ async def main() -> None:
 
         if cid in results:
             if results[cid].get("source_hash") == curr_hash:
-                # source 불변 — expected 라벨만 최신 cases.json 값으로 동기화
-                for field in ("expected_intents", "expected_topics", "expected_entities"):
-                    results[cid][field] = case.get(field, [])
                 print(f"[skip ] {cid}")
                 continue
             print(f"[stale] {cid}  source changed, re-analyzing")
@@ -224,61 +218,8 @@ async def main() -> None:
 
         r = gateway.applied
         intents = [str(i.intent_type) for i in r.intent_instances]
-        intent_ok = all(i in intents for i in case.get("expected_intents", []))
-        print(f"  → intent={intents}  intent_ok={intent_ok}  summary={r.summary[:50]}")
+        print(f"  → intent={intents}  summary={r.summary[:50]}")
         results[cid] = _serialize(case, r, curr_hash)
-
-    def _topic_in_output(topic: str, item: dict) -> bool:
-        """expected_topic이 Gemini 출력 어딘가에 포함되는지 — 소문자 부분 문자열 비교."""
-        a = item["analysis"]
-        t = topic.lower()
-        candidates = [
-            a.get("summary", ""),
-            *(inst.get("label") or "" for inst in a["intent_instances"]),
-            *(inst.get("payload", {}).get("topic") or "" for inst in a["intent_instances"]),
-            *(e["value"] for e in a.get("entities", [])),
-        ]
-        return any(t in c.lower() for c in candidates if c)
-
-    # retrieval_diagnostic: expected vs actual 비교 요약
-    quality_rows = []
-    for item in results.values():
-        a = item["analysis"]
-        actual_intents = {inst["intent_type"] for inst in a["intent_instances"]}
-        actual_entities = {e["value"] for e in a["entities"]}
-        expected_intents = set(item.get("expected_intents", []))
-        expected_entities = set(item.get("expected_entities", []))
-        expected_topics = item.get("expected_topics", [])
-
-        intent_recall = (
-            len(actual_intents & expected_intents) / len(expected_intents)
-            if expected_intents else None
-        )
-        entity_recall = (
-            len(actual_entities & expected_entities) / len(expected_entities)
-            if expected_entities else None
-        )
-        topic_hits = sum(1 for t in expected_topics if _topic_in_output(t, item))
-        topic_recall = topic_hits / len(expected_topics) if expected_topics else None
-
-        quality_rows.append({
-            "id": item["id"],
-            "intent_recall": round(intent_recall, 2) if intent_recall is not None else None,
-            "entity_recall": round(entity_recall, 2) if entity_recall is not None else None,
-            "topic_recall": round(topic_recall, 2) if topic_recall is not None else None,
-            "intent_ok": intent_recall == 1.0 if intent_recall is not None else None,
-        })
-
-    evaluated = [r for r in quality_rows if r["intent_recall"] is not None]
-    avg_intent_recall = (
-        round(sum(r["intent_recall"] for r in evaluated) / len(evaluated), 3)
-        if evaluated else None
-    )
-    topic_evaluated = [r for r in quality_rows if r["topic_recall"] is not None]
-    avg_topic_recall = (
-        round(sum(r["topic_recall"] for r in topic_evaluated) / len(topic_evaluated), 3)
-        if topic_evaluated else None
-    )
 
     artifact = {
         "fingerprint": fp,
@@ -286,18 +227,11 @@ async def main() -> None:
         "model": model,
         "prompt_name": ACTIVE_PROMPT.name,
         "item_count": len(results),
-        # 검색 실패 원인 추적용 진단 데이터 — 분석 품질 평가는 agent-loop-image-eval 담당
-        "retrieval_diagnostic": {
-            "avg_intent_recall": avg_intent_recall,
-            "avg_topic_recall": avg_topic_recall,
-            "items": quality_rows,
-        },
         "items": list(results.values()),
     }
     out_path.write_text(json.dumps(artifact, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    print(f"\n[diagnostic] intent_recall={avg_intent_recall}  topic_recall={avg_topic_recall}  (검색 실패 원인 추적용)")
-    print(f"✅ {out_path}  ({len(results)}개)")
+    print(f"\n✅ {out_path}  ({len(results)}개)")
 
 
 if __name__ == "__main__":
