@@ -2,7 +2,6 @@ import Foundation
 import ComposableArchitecture
 import CoreDomain
 import CorePersistence
-import CoreIntegrations
 
 @Reducer
 public struct DetailFeature: Sendable {
@@ -10,7 +9,9 @@ public struct DetailFeature: Sendable {
     public struct State: Equatable, Sendable {
         public var mochiItemID: UUID
         public var mochiItem: MochiItem?
-        public var isSyncing: Bool = false
+        /// 제목 인라인 교정 중 여부 — RecallHeader 가 Text ↔ TextField 전환.
+        public var isEditingTitle: Bool = false
+        public var titleDraft: String = ""
         public var lastError: String?
 
         public init(mochiItemID: UUID) { self.mochiItemID = mochiItemID }
@@ -20,12 +21,15 @@ public struct DetailFeature: Sendable {
         case onAppear
         case loaded(MochiItem?)
         case archiveTapped(instanceID: UUID, reason: InstanceLifecycle.ArchiveReason)
-        case syncToCalendarTapped
+        // 제목 인라인 교정 — 로컬 userTitle 오버라이드 (백엔드 재추론 아님).
+        case titleTapped
+        case titleDraftChanged(String)
+        case titleCommitted
+        case titleEditCancelled
         case operationFailed(String)
     }
 
     @Dependency(\.mochiItemRepository) var repository
-    @Dependency(\.calendarSyncer)    var calendar
 
     public init() {}
 
@@ -52,36 +56,40 @@ public struct DetailFeature: Sendable {
                     }
                 }
 
-            case .syncToCalendarTapped:
-                guard let mochiItem = state.mochiItem,
-                      let analysis = mochiItem.analysis,
-                      let candidate = analysis.actionCandidates.first(where: { if case .createCalendarEvent = $0 { return true } else { return false } })
-                else { return .none }
-                state.isSyncing = true
+            case .titleTapped:
+                state.titleDraft = state.mochiItem?.displayHeadline ?? ""
+                state.isEditingTitle = true
+                return .none
+
+            case let .titleDraftChanged(text):
+                state.titleDraft = text
+                return .none
+
+            case .titleCommitted:
+                guard let id = state.mochiItem?.id else { return .none }
+                let trimmed = state.titleDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+                let newTitle = trimmed.isEmpty ? nil : trimmed
+                state.isEditingTitle = false
+                state.mochiItem?.userTitle = newTitle   // 낙관적 로컬 반영 (상세는 observe 미구독)
                 return .run { send in
                     do {
-                        try await calendar.requestEventAccess()
-                        if case let .createCalendarEvent(title, startISO, endISO) = candidate {
-                            let formatter = ISO8601DateFormatter()
-                            guard let start = formatter.date(from: startISO) else {
-                                await send(.operationFailed("invalid startISO"))
-                                return
-                            }
-                            let end = endISO.flatMap(formatter.date(from:))
-                            _ = try await calendar.createEvent(title: title, start: start, end: end)
-                        }
+                        try await repository.setUserTitle(mochiItemID: id, title: newTitle)
                     } catch {
+                        // 저장 실패 시 낙관 반영을 DB 진실로 되돌린다 (상세는 observe 미구독이라 자동 복구 안 됨).
+                        await send(.loaded(try? await repository.find(id: id)))
                         await send(.operationFailed(String(describing: error)))
                     }
                 }
 
+            case .titleEditCancelled:
+                state.isEditingTitle = false
+                state.titleDraft = ""
+                return .none
+
             case let .operationFailed(message):
-                state.isSyncing = false
                 state.lastError = message
                 return .none
             }
         }
     }
 }
-
-// Dependency key는 CoreIntegrations/Sources/CalendarSyncerDI.swift에서 정의.

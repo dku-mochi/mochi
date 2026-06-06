@@ -50,7 +50,6 @@ enum AppDependencies {
 
         prepareDependencies {
             $0.mochiItemRepository = RealmMochiItemRepository()
-            $0.calendarSyncer    = LiveCalendarSyncer()
             $0.mochiAPIClient    = liveAPI
             $0.authCoordinator   = coordinator
             $0.agentStreamClient = liveStream

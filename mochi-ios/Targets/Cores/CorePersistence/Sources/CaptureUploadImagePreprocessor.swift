@@ -2,17 +2,17 @@ import CryptoKit
 import Foundation
 import UIKit
 
-struct CaptureUploadImage: Sendable, Equatable {
-    let data: Data
-    let mimeType: String
-    let byteSize: Int
-    let sha256: String
+public struct CaptureUploadImage: Sendable, Equatable {
+    public let data: Data
+    public let mimeType: String
+    public let byteSize: Int
+    public let sha256: String
 }
 
-enum CaptureUploadImagePreprocessor {
-    static let mimeType = "image/jpeg"
+public enum CaptureUploadImagePreprocessor {
+    public static let mimeType = "image/jpeg"
 
-    static func makeUploadVariant(
+    public static func makeUploadVariant(
         from sourceData: Data,
         maxLongEdge: CGFloat = 1920,
         jpegQuality: CGFloat = 0.60
@@ -52,7 +52,7 @@ enum CaptureUploadImagePreprocessor {
     }
 }
 
-enum CaptureUploadImagePreprocessorError: Error, Sendable, Equatable {
+public enum CaptureUploadImagePreprocessorError: Error, Sendable, Equatable {
     case decodeFailed
     case encodeFailed
 }

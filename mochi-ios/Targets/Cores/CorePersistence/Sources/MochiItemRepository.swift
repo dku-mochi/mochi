@@ -39,6 +39,9 @@ public protocol MochiItemRepository: Sendable {
     /// 사용자가 needs-review 카드에서 분류 버튼을 누른 경우 호출 — 고른 intent 의 instance 하나로 확정하고
     /// `needsReview` 를 끈다. `analysis` 가 없으면 manual entry 로 생성한다.
     func setIntent(mochiItemID: UUID, intent: Intent) async throws
+    /// 사용자가 기록상세에서 제목을 직접 교정 — 로컬 오버라이드(`MochiItem.userTitle`)를 저장한다.
+    /// `title == nil`이면 오버라이드 해제 → AI 추출 제목으로 복귀. (빈 문자열→nil 변환은 호출자 책임.)
+    func setUserTitle(mochiItemID: UUID, title: String?) async throws
     /// "모찌에게 다시 맡기기" — 분석 실패/강등된 항목을 다시 "분석 중"으로 되돌린다.
     /// analysis 를 비우고(→ `listAnalyzing` 대상), 업로드 타임스탬프를 갱신해 폴링 deadline 을 재시작한다.
     /// 이미 업로드된(`.uploaded`) 항목만 대상 — serverID 가 있어야 재폴링이 가능하기 때문.
@@ -155,6 +158,7 @@ public actor InMemoryMochiItemRepository: MochiItemRepository {
             analysis: mochiItem.analysis,
             lifecycleState: mochiItem.lifecycleState,
             syncState: mochiItem.syncState,
+            userTitle: mochiItem.userTitle,
             createdAt: mochiItem.createdAt,
             updatedAt: Date()
         )
@@ -272,6 +276,16 @@ public actor InMemoryMochiItemRepository: MochiItemRepository {
             )
         }
         mochiItem.updatedAt = now
+        storage[mochiItemID] = mochiItem
+        notifyChange()
+    }
+
+    public func setUserTitle(mochiItemID: UUID, title: String?) async throws {
+        guard var mochiItem = storage[mochiItemID] else {
+            throw DomainError.notFound(entity: "MochiItem", id: mochiItemID.uuidString)
+        }
+        mochiItem.userTitle = title
+        mochiItem.updatedAt = .init()
         storage[mochiItemID] = mochiItem
         notifyChange()
     }
