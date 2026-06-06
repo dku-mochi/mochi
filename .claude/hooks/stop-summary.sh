@@ -23,8 +23,8 @@ if [[ -n "$recent_docs" ]]; then
 fi
 
 # 2) AGENTS.md 가 CLAUDE.md 와 어긋났는지 빠른 sanity (둘 다 mtime 비교)
-claude_ts=$(stat -f "%m" "$REPO/CLAUDE.md" 2>/dev/null || echo 0)
-agents_ts=$(stat -f "%m" "$REPO/AGENTS.md" 2>/dev/null || echo 0)
+claude_ts=$(stat -c "%Y" "$REPO/CLAUDE.md" 2>/dev/null || stat -f "%m" "$REPO/CLAUDE.md" 2>/dev/null || echo 0)
+agents_ts=$(stat -c "%Y" "$REPO/AGENTS.md" 2>/dev/null || stat -f "%m" "$REPO/AGENTS.md" 2>/dev/null || echo 0)
 if [[ "$claude_ts" -gt "$agents_ts" ]]; then
   diff_secs=$(( claude_ts - agents_ts ))
   if [[ "$diff_secs" -gt 300 ]]; then  # 5분 이상 차이
