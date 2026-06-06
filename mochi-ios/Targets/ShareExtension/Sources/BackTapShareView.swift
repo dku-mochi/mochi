@@ -19,6 +19,8 @@ struct BackTapShareView: View {
     let imageRefs: [ImageRef]
     let channelGuess: IngestChannel
     let sourceApp: String?
+    /// sentinel 로 받은 화면상 URL(Safari 등) — 기록상세 "원본에서 보기"용. 없으면 nil.
+    let url: URL?
     let onSubmit: (InboundIngestPayload) -> Void
     let onCancel: () -> Void
 
@@ -138,7 +140,7 @@ struct BackTapShareView: View {
         isSubmitting = true
         let text = CaptureContextSentinel.composeText(sourceApp: sourceApp, base: nil)
         onSubmit(InboundIngestPayload(
-            url: nil,
+            url: imageRemoved ? nil : url,
             text: text,
             userMemo: memo.isEmpty ? nil : memo,
             channelGuess: imageRemoved ? .appDirectInput : channelGuess,

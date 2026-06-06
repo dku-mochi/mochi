@@ -30,17 +30,22 @@ public final class ShareExtensionPrincipal: UIViewController {
         }
     }
 
-    /// 백탭 단축어 진입(이미지 1장 단독, URL/text 없음) → 1-step UI ``BackTapShareView``,
-    /// 외부 공유시트 진입(URL/text 또는 다중 이미지) → 기존 ``ShareEntryView``.
+    /// 백탭 단축어 진입(이미지 1장 + 출처앱 sentinel; Safari URL 선택) → 1-step UI ``BackTapShareView``,
+    /// 외부 공유시트 진입(sentinel 없는 URL/text 또는 다중 이미지) → 기존 ``ShareEntryView``.
+    ///
+    /// 백탭은 우리 단축어 경유라 항상 sentinel(`sourceApp`)을 보낸다 → URL 이 채워져도(Safari)
+    /// `sourceApp != nil` 로 백탭임을 식별해 1-step UI 를 유지한다. sentinel 없는 단일 이미지+URL
+    /// (외부 앱의 기본 공유)은 `ShareEntryView` 로 빠진다.
     @ViewBuilder
     private func contentView(for extracted: ExtractedShareInput) -> some View {
         if extracted.imageRefs.count == 1
-            && extracted.url == nil
-            && (extracted.text?.isEmpty ?? true) {
+            && (extracted.text?.isEmpty ?? true)
+            && (extracted.url == nil || extracted.sourceApp != nil) {
             BackTapShareView(
                 imageRefs: extracted.imageRefs,
                 channelGuess: extracted.channelGuess,
                 sourceApp: extracted.sourceApp,
+                url: extracted.url,
                 onSubmit: { [weak self] payload in self?.persist(payload, original: extracted.imageRefs) },
                 onCancel: { [weak self] in self?.cancel(cleaning: extracted.imageRefs) }
             )
@@ -143,7 +148,19 @@ public final class ShareExtensionPrincipal: UIViewController {
                         // sentinel 은 메타라 text 콘텐츠로 합치지 않아 previewCard 에 raw JSON 이 노출되지 않는다.
                         if let ctx = CaptureContextSentinel.decode(loaded) {
                             if sourceApp == nil { sourceApp = ctx.sourceApp }
-                        } else if text == nil {
+                            // sentinel 의 화면상 URL(Safari 등) → url. getOnScreenContent 출력을
+                            // public.url 로 못 받던 누락을 메운다. sentinel 은 신뢰경계가 아니므로
+                            // http/https + host 가드(끝단 openURL 로 신뢰 못 할 scheme 유입 차단).
+                            // 이미 채워졌으면 유지 — 우리 단축어는 raw url 항목을 안 보내 충돌이 없고,
+                            // 외부 공유의 public.url 과 겹쳐도 먼저 채운 쪽을 지킨다.
+                            if url == nil, let raw = ctx.url, let parsed = URL(string: raw),
+                               let scheme = parsed.scheme?.lowercased(),
+                               scheme == "http" || scheme == "https", parsed.host != nil {
+                                url = parsed
+                            }
+                        } else if !CaptureContextSentinel.looksLikeSentinel(loaded), text == nil {
+                            // marker 가 있는데 decode 실패한 깨진 sentinel 은 text 로 흘리지 않는다
+                            // (raw JSON 이 user 콘텐츠로 오염되는 것 방지).
                             text = loaded
                         }
                     }
