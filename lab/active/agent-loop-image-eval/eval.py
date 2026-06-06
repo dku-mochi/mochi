@@ -5,13 +5,12 @@
     python lab/active/agent-loop-image-eval/eval.py
 
 데이터 배치:
-  lab/data/screenshot/intent_N/<gold_intents>__<actual_intention>.PNG
-  - 폴더명: 기대 intent 개수 (intent_1 ~ intent_4)
-  - gold_intents: `_` 로 구분된 intent 목록 (todo/schedule/knowledge/memo)
-  - actual_intention: 사람이 적은 실제 저장 의도 (자유 텍스트)
-  예) todo__이 신발을 구매 후보로 저장.PNG
-      schedule_todo__공연 일정을 기억하고 예매하려고 저장.PNG
-      memo__재미있어서 나중에 다시 보려고 저장.PNG
+  lab/data/screenshot/<gold_intents>_<actual_intention>.PNG
+  - gold_intents: 파일명 앞쪽의 연속된 valid intent 토큰 (todo/schedule/knowledge/memo)
+  - actual_intention: 첫 번째 non-intent 토큰부터 끝까지 (자유 텍스트)
+  예) todo_이신발을구매후보로저장.PNG        → intents=[todo]
+      schedule_todo_비행기스케줄.PNG        → intents=[schedule, todo]
+      memo_knowledge_식단짤때참고하려고.PNG → intents=[memo, knowledge]
 
 결과:
   lab/active/agent-loop-image-eval/results/YYYYMMDD_HHMMSS.json
@@ -62,26 +61,31 @@ VALID_INTENTS = {"schedule", "todo", "knowledge", "memo"}
 MIME_MAP = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg"}
 
 
-def parse_gold(stem: str, expected_count: int | None = None) -> tuple[list[str], str]:
+def parse_gold(stem: str) -> tuple[list[str], str]:
     """파일명 stem에서 Gold Intent 목록과 실제 저장 의도를 파싱.
 
-    형식: <gold_intents>__<actual_intention>
-    예) todo__이 신발을 구매 후보로 저장
-        schedule_todo__공연 일정을 기억하고 예매하려고 저장
+    앞쪽의 연속된 VALID_INTENTS 토큰을 intent로, 이후를 actual_intention으로 처리.
+    예) memo_나중에살화장품        → ([memo], 나중에살화장품)
+        schedule_todo_비행기스케줄 → ([schedule, todo], 비행기스케줄)
     """
-    intent_part, actual_intention = stem.split("__", maxsplit=1)
-    intents = intent_part.lower().split("_")
+    parts = stem.split("_")
+    intents: list[str] = []
+    split_at = 0
+    for i, part in enumerate(parts):
+        if part.lower() in VALID_INTENTS:
+            intents.append(part.lower())
+            split_at = i + 1
+        else:
+            break
 
-    if not intents or any(intent not in VALID_INTENTS for intent in intents):
-        raise ValueError(f"잘못된 intent label: {intent_part}")
+    actual_intention = "_".join(parts[split_at:])
+
+    if not intents:
+        raise ValueError(f"intent 없음: {stem}")
     if len(intents) != len(set(intents)):
-        raise ValueError(f"중복 intent: {intent_part}")
+        raise ValueError(f"중복 intent: {stem}")
     if not actual_intention.strip():
         raise ValueError("실제 저장 의도가 비어 있음")
-    if expected_count is not None and len(intents) != expected_count:
-        raise ValueError(
-            f"intent_count={expected_count} 폴더에 gold intent {len(intents)}개 불일치"
-        )
 
     return intents, actual_intention
 
@@ -248,44 +252,43 @@ async def main() -> None:
     results: list[dict[str, Any]] = []
     skipped: list[dict[str, str]] = []
 
-    for intent_count in range(1, 5):
-        folder = DATA_DIR / f"intent_{intent_count}"
-        if not folder.exists():
-            print(f"[skip] {folder} 없음")
+    if not DATA_DIR.exists():
+        print(f"[오류] 데이터 디렉터리 없음: {DATA_DIR}")
+        return
+
+    images = sorted(f for f in DATA_DIR.iterdir() if f.suffix.lower() in MIME_MAP)
+    if not images:
+        print(f"[skip] {DATA_DIR} 이미지 없음")
+        return
+
+    for image_path in images:
+        try:
+            expected_intents, actual_intention = parse_gold(image_path.stem)
+        except ValueError as e:
+            reason = str(e)
+            print(f"[skip] {image_path.name}: {reason}")
+            skipped.append({"file": image_path.name, "reason": reason})
             continue
-        images = sorted(f for f in folder.iterdir() if f.suffix.lower() in MIME_MAP)
-        if not images:
-            print(f"[skip] {folder} 이미지 없음")
+
+        print(f"\n{image_path.name}", flush=True)
+        print(f"  gold={expected_intents}  의도={actual_intention}")
+
+        result = await run_case(image_path, expected_intents, actual_intention)
+        result["intent_count"] = len(expected_intents)
+        results.append(result)
+
+        if "error" in result:
+            print(f"  -> ERROR: {result['error']}")
             continue
 
-        for image_path in images:
-            try:
-                expected_intents, actual_intention = parse_gold(image_path.stem, intent_count)
-            except ValueError as e:
-                reason = str(e)
-                print(f"[skip] {image_path.name}: {reason}")
-                skipped.append({"file": image_path.name, "reason": reason})
-                continue
-
-            print(f"\n[intent_{intent_count}] {image_path.name}", flush=True)
-            print(f"  gold={expected_intents}  의도={actual_intention}")
-
-            result = await run_case(image_path, expected_intents, actual_intention)
-            result["intent_count"] = intent_count
-            results.append(result)
-
-            if "error" in result:
-                print(f"  -> ERROR: {result['error']}")
-                continue
-
-            ei = result["intent_eval"]
-            j = result["intention_judge"]
-            print(
-                f"  -> predicted={result['predicted_intents']}"
-                f"  recall={ei['recall']:.2f}  precision={ei['precision']:.2f}"
-                f"  exact={ei['exact_match']}"
-            )
-            print(f"  -> judge: {j.get('alignment_score')}/5  {j.get('reasoning', '')[:60]}")
+        ei = result["intent_eval"]
+        j = result["intention_judge"]
+        print(
+            f"  -> predicted={result['predicted_intents']}"
+            f"  recall={ei['recall']:.2f}  precision={ei['precision']:.2f}"
+            f"  exact={ei['exact_match']}"
+        )
+        print(f"  -> judge: {j.get('alignment_score')}/5  {j.get('reasoning', '')[:60]}")
 
     valid = [r for r in results if "error" not in r]
     if valid:
