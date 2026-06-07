@@ -134,6 +134,8 @@ enum ShareExtDirectUpload {
     }
 
     /// 작업을 짧은 timeout 으로 감싼다 — 초과 시 작업을 취소하고 throw 한다.
+    /// (URLSession 등 **cancellation 협조** 작업 전용 — 콜백 API[NSItemProvider]엔 무효라
+    /// `ShareExtensionPrincipal` 은 once-gate continuation 방식을 따로 쓴다.)
     private static func withTimeout<T: Sendable>(
         seconds: TimeInterval,
         _ operation: @escaping @Sendable () async throws -> T
