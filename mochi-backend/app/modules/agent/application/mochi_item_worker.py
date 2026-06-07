@@ -76,11 +76,17 @@ class MochiItemWorker:
                        OR (status='in_flight' AND locked_until IS NOT NULL AND locked_until < :now)
                       )
                   AND attempts < :max_attempts
+                  -- 같은 mochi_item 이 이미 처리 중(lock 유효)이면 그 item 의 다른 행은 잡지 않는다 —
+                  -- 재분석 중복 emit 시 worker 병렬 실행 → apply_analysis delete-reinsert race 방지(item-level 직렬).
+                  AND mochi_item_id NOT IN (
+                      SELECT mochi_item_id FROM mochi_item_outbox
+                      WHERE status='in_flight' AND locked_until IS NOT NULL AND locked_until >= :now
+                  )
                 ORDER BY created_at
                 FOR UPDATE SKIP LOCKED
                 LIMIT 1
             )
-            RETURNING id, mochi_item_id, owner_id, attempts
+            RETURNING id, mochi_item_id, owner_id, attempts, reanalysis_hint
             """
         ).bindparams(
             bindparam("lock_until", lock_until),
@@ -99,7 +105,13 @@ class MochiItemWorker:
             attempts=row.attempts,
             locked_until=lock_until.isoformat(),
         )
-        return ClaimedOutbox(id=row.id, mochi_item_id=row.mochi_item_id, owner_id=row.owner_id, attempts=row.attempts)
+        return ClaimedOutbox(
+            id=row.id,
+            mochi_item_id=row.mochi_item_id,
+            owner_id=row.owner_id,
+            attempts=row.attempts,
+            reanalysis_hint=row.reanalysis_hint,
+        )
 
     async def _handle(self, claimed: "ClaimedOutbox") -> None:
         log.info(
@@ -125,7 +137,7 @@ class MochiItemWorker:
             try:
                 # 전체 실행 상한 — lock(LOCK_DURATION_SECONDS)보다 짧게 강제해 mid-run reclaim 방지.
                 await asyncio.wait_for(
-                    _drain(orchestrator, claimed.mochi_item_id, claimed.owner_id),
+                    _drain(orchestrator, claimed.mochi_item_id, claimed.owner_id, claimed.reanalysis_hint),
                     timeout=settings.agent_total_timeout_seconds,
                 )
                 # 개인화 프로필 디바운스 갱신 — best-effort (실패해도 분석은 이미 완료·커밋됨).
@@ -148,7 +160,8 @@ class MochiItemWorker:
                         exception=str(exc),
                     )
                 await session.execute(
-                    text("UPDATE mochi_item_outbox SET status='done' WHERE id=:id").bindparams(id=claimed.id)
+                    # 성공 종료 시 재분석 힌트를 비운다 — 분석에 쓰인 후 행과 함께 소멸(transient invariant).
+                    text("UPDATE mochi_item_outbox SET status='done', reanalysis_hint=NULL WHERE id=:id").bindparams(id=claimed.id)
                 )
                 await session.commit()
                 log.info(
@@ -251,16 +264,30 @@ class MochiItemWorker:
 
 
 class ClaimedOutbox:
-    __slots__ = ("id", "mochi_item_id", "owner_id", "attempts")
+    __slots__ = ("id", "mochi_item_id", "owner_id", "attempts", "reanalysis_hint")
 
-    def __init__(self, *, id: int, mochi_item_id: UUID, owner_id: UUID, attempts: int):
+    def __init__(
+        self,
+        *,
+        id: int,
+        mochi_item_id: UUID,
+        owner_id: UUID,
+        attempts: int,
+        reanalysis_hint: str | None = None,
+    ):
         self.id = id
         self.mochi_item_id = mochi_item_id
         self.owner_id = owner_id
         self.attempts = attempts
+        self.reanalysis_hint = reanalysis_hint
 
 
-async def _drain(orchestrator: AgentOrchestrator, mochi_item_id: UUID, owner_id: UUID) -> None:
+async def _drain(
+    orchestrator: AgentOrchestrator,
+    mochi_item_id: UUID,
+    owner_id: UUID,
+    reanalysis_hint: str | None = None,
+) -> None:
     """orchestrator.run 의 StreamEvent 를 소비한다 (워커는 SSE 를 흘리지 않음)."""
-    async for _event in orchestrator.run(mochi_item_id, owner_id):
+    async for _event in orchestrator.run(mochi_item_id, owner_id, reanalysis_hint=reanalysis_hint):
         pass

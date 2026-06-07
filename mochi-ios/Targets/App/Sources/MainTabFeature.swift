@@ -82,10 +82,9 @@ struct MainTabFeature: Sendable {
                 state.isSettingsPresented = true
                 return .none
 
-            case .home(.openNotificationsTapped):
-                // 현 단계 알림 inbox 화면이 없으므로 인박스 디버그 화면을 임시 진입점으로.
-                state.selectedTab = .home
-                state.isDebugInboxPresented = true
+            case .home(.askMochiTapped):
+                // ③ 질문 진입 — 자연어 회수 탈출구를 채팅(질문) 탭으로 라우팅.
+                state.selectedTab = .chat
                 return .none
 
             case .home(.urlChipTapped), .home(.screenshotChipTapped):

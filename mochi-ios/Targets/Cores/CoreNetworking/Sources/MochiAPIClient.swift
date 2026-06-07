@@ -37,6 +37,10 @@ public protocol MochiAPIClient: Sendable {
         environment: PushEnvironment,
         mochiItemID: UUID?
     ) async throws
+
+    /// `POST /api/v1/mochi_items/{id}/reanalyze` — needs_review 항목 재분석.
+    /// "다른 의도"에서 사용자가 적은 의도 힌트를 분석 context 에 합류시켜 백엔드 outbox→worker 를 다시 트리거한다.
+    func reanalyzeMochiItem(id: UUID, userHint: String) async throws
 }
 
 /// push 토큰 종류. rawValue 는 백엔드 `device_push_tokens.token_type` 과 1:1.

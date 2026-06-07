@@ -127,6 +127,17 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
         }
     }
 
+    public func reanalyzeMochiItem(id: UUID, userHint: String) async throws {
+        let body = Components.Schemas.ReanalyzeRequest(userHint: userHint)
+        let output = try await client.reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post(
+            .init(path: .init(mochi_item_id: id.uuidString), body: .json(body))
+        )
+        switch output {
+        case .accepted: return
+        case let .undocumented(status, payload): throw await Self.error(status: status, payload: payload)
+        }
+    }
+
     // MARK: - 스키마 → DTO 매핑
 
     /// 생성 `MochiItemResponse` → ``MochiItemDTO``. 필수 `id` 는 파싱 실패 시 throw 하지만,
