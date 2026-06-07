@@ -32,7 +32,8 @@ private enum Layer: String {
 private func module(
     _ name: String,
     layer: Layer,
-    dependencies: [TargetDependency] = []
+    dependencies: [TargetDependency] = [],
+    resources: ResourceFileElements? = nil
 ) -> Target {
     .target(
         name: name,
@@ -41,6 +42,7 @@ private func module(
         bundleId: "\(bundleIdPrefix).\(name)",
         deploymentTargets: .iOS(deploymentTarget),
         sources: ["Targets/\(layer.rawValue)/\(name)/Sources/**"],
+        resources: resources,
         dependencies: dependencies,
         settings: .settings(base: baseSettings)
     )
@@ -293,7 +295,8 @@ let project = Project(
                 .package(product: "Perception"),
                 .package(product: "PerceptionCore"),
                 .package(product: "SwiftNavigation"),
-            ]
+            ],
+            resources: ["Targets/Features/FeatureOnboarding/Resources/**"]
         ),
 
         // MARK: App Shell

@@ -1,325 +1,547 @@
+import ComposableArchitecture
 import SwiftUI
 
-/// 2페이지 — 백탭 안내.
+/// 2페이지 — 백탭 설정 3-스텝 체크리스트.
 ///
-/// 합성 (z 순):
-/// 1. 아이폰 뒷면 (`iphone_back`) — 3/4 측면뷰. 자산 자체가 3D 회전을 포함하므로
-///    rotation3DEffect 불필요. Apple 로고가 캔버스 살짝 좌측 중앙에 위치.
-/// 2. 동심원 펄스 — 탭 시점에 Apple 로고 위치에서 발생 (2회).
-/// 3. "1x"/"2x" 카운터 캡슐 — 손가락 좌상단, 탭 진행에 따라 단계 증가.
-/// 4. 손가락 (`hand_tap`) — idle 에선 우하단 fade, approach 부터 Apple 로고 조준.
-/// 5. 단축어 등록 카드 — 우측에서 spring 등장, 두 번째 탭 완료 후.
-/// 6. Sparkle 입자 6개 — 카드 등장과 동시에 폰 주위 방사형 폭발.
-///
-/// **애니메이션 루프**: idle → approach → tap1↓↑ → tap2↓↑ → reveal → hold → reset.
+/// 백탭은 단축어 *추가* 와 뒷면 탭 *연결* 이라는 분리된 두 행동이 모두 끝나야 살아난다.
+/// 어느 하나만 해도 "두 번 탭해도 반응 없는" 상태가 되므로, 두 단계를 명시적 체크리스트로
+/// 드러내고 마지막에 **실제 백탭이 모찌에 도달하는지 검증**한다 (`OnboardingFeature` ③).
+/// 단순 안내 애니메이션이 "완료!" 라고 거짓말하던 이전 버전을 대체한다.
 struct BackTapPage: View {
-    var body: some View {
-        OnboardingPageScaffold(
-            title: OnboardingPage.backTap.title,
-            subtitle: OnboardingPage.backTap.subtitle
-        ) {
-            BackTapHero()
-        }
-    }
-}
+    @Bindable var store: StoreOf<OnboardingFeature>
+    @Environment(\.openURL) private var openURL
 
-// MARK: - Phase
-
-private enum TapPhase {
-    case idle
-    case approach
-    case tap1Down
-    case tap1Up
-    case tap2Down
-    case tap2Up
-    case reveal
-    case hold
-
-    /// 손가락이 폰에 다가왔는지 (idle 에선 우하단 멀리, 그 외엔 Apple 로고 조준 위치).
-    var fingerApproached: Bool {
-        if case .idle = self { return false }
-        return true
-    }
-
-    /// 손가락 Y 변위 (normalized, side 기준). 음수 = 폰 쪽으로 위.
-    var fingerLift: CGFloat {
-        switch self {
-        case .tap1Down, .tap2Down: return -1
-        default: return 0
-        }
-    }
-
-    /// 손가락 활성도 (idle 에선 살짝 흐릿).
-    var fingerOpacity: Double {
-        switch self {
-        case .idle: return 0.55
-        default: return 1.0
-        }
-    }
-
-    /// 탭 카운터 표시값 (0 이면 hidden).
-    var tapCount: Int {
-        switch self {
-        case .idle, .approach: return 0
-        case .tap1Down, .tap1Up: return 1
-        case .tap2Down, .tap2Up, .reveal, .hold: return 2
-        }
-    }
-
-    /// 카드/sparkle 등장 여부.
-    var cardRevealed: Bool {
-        switch self {
-        case .reveal, .hold: return true
-        default: return false
-        }
-    }
-}
-
-// MARK: - Hero
-
-private struct BackTapHero: View {
-    @State private var phase: TapPhase = .idle
-    /// 펄스를 매 탭마다 새로 시작시키는 트리거. PulseRipple 가 onChange 감지.
-    @State private var pulseTrigger: Int = 0
+    /// iCloud Shortcuts 갤러리의 모찌 단축어 (`Take Screenshot → 모찌 화면 캡쳐`).
+    private static let shortcutURL = URL(string: "https://www.icloud.com/shortcuts/ff449fd3fe924e81bb0e7e931360701b")
 
     var body: some View {
-        GeometryReader { proxy in
-            let side = min(proxy.size.width, proxy.size.height)
-
-            ZStack {
-                phoneLayer(side: side)
-                PulseRipple(trigger: pulseTrigger, baseSize: side * 0.18)
-                    .offset(appleLogoOffset(side: side))
-                tapCounterLayer(side: side)
-                handLayer(side: side)
-                cardLayer(side: side)
-                sparkleLayer(side: side)
-            }
-            .frame(width: proxy.size.width, height: proxy.size.height)
-            .task { await runLoop() }
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(Text("아이폰 뒷면을 두 번 탭하면 단축어가 등록되는 모습"))
+        VStack(spacing: 0) {
+            Spacer(minLength: 8)
+            heading
+            Spacer(minLength: 24)
+            checklist
+            Spacer(minLength: 8)
         }
-        .aspectRatio(1, contentMode: .fit)
+        .padding(.horizontal, 24)
+        .sheet(isPresented: settingsGuideBinding) {
+            BackTapSettingsGuideSheet(
+                onOpenSettings: openSettingsBestEffort,
+                onBound: { store.send(.bindingAcknowledged) },
+                onClose: { store.send(.settingsGuideDismissed) }
+            )
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
+        }
     }
 
-    /// 자산은 그림자 없는 transparent RGBA. 회전 -30° 로 Apple 로고가 폰 중심 좌측에 보임.
-    /// 자산이 `side * 1.0` 너비로 fit 되었을 때 Apple 로고의 hero-좌표 (캔버스 center 기준).
-    /// 자산 캔버스 1024 기준 Apple 로고 ≈ (-89, +43) → normalized × 1.0 frame.
-    private func appleLogoOffset(side: CGFloat) -> CGSize {
-        CGSize(width: -side * 0.087, height: side * 0.042)
+    private var settingsGuideBinding: Binding<Bool> {
+        Binding(
+            get: { store.showSettingsGuide },
+            set: { if !$0 { store.send(.settingsGuideDismissed) } }
+        )
     }
 
-    // MARK: Layers
+    // MARK: - Heading
 
-    /// 폰 자산 + 코드로 합성한 ground shadow (자산 자체엔 그림자 없음).
-    /// `.shadow` 는 alpha mask 기반이라 transparent 폰 윤곽을 그대로 따라감.
-    /// 추가로 폰 발 밑에 더 진한 ellipse blur 를 깔아 "지면 접촉" 느낌을 강화.
-    private func phoneLayer(side: CGFloat) -> some View {
-        ZStack {
-            Ellipse()
-                .fill(Color.black.opacity(0.16))
-                .frame(width: side * 0.55, height: side * 0.06)
-                .blur(radius: 16)
-                .offset(y: side * 0.42)
-
-            Image("iphone_back")
+    private var heading: some View {
+        VStack(spacing: 12) {
+            Image("mochi-hello")
                 .resizable()
                 .scaledToFit()
-                .frame(width: side * 1.0)
-                .shadow(color: Color.black.opacity(0.13), radius: 22, x: 0, y: 12)
-        }
-    }
+                .frame(width: 72, height: 72)
 
-    /// "1x" / "2x" 카운터 캡슐 — Apple 로고 우상단에 floating.
-    private func tapCounterLayer(side: CGFloat) -> some View {
-        Text("\(phase.tapCount)x")
-            .font(.system(size: 15, weight: .heavy, design: .rounded))
-            .foregroundStyle(.white)
-            .padding(.horizontal, 11)
-            .padding(.vertical, 5)
-            .background(
-                Capsule()
-                    .fill(OnboardingTheme.primary)
-                    .shadow(color: OnboardingTheme.primaryShadow, radius: 6, x: 0, y: 3)
-            )
-            .scaleEffect(phase.tapCount == 2 ? 1.18 : 1.0)
-            .opacity(phase.tapCount == 0 ? 0 : 1)
-            .offset(x: side * 0.10, y: -side * 0.12)
-            .animation(.spring(response: 0.35, dampingFraction: 0.6), value: phase.tapCount)
-    }
+            Text(OnboardingPage.backTap.title)
+                .font(.system(size: 24, weight: .heavy))
+                .foregroundStyle(OnboardingTheme.titleColor)
+                .multilineTextAlignment(.center)
+                .lineSpacing(3)
+                .fixedSize(horizontal: false, vertical: true)
 
-    /// 손가락 — 검지 끝이 Apple 로고를 조준. idle 에선 우하단 멀리 fade, approach 부터 진입.
-    /// hand_tap 자산의 손가락 끝이 frame 상단 중앙 근처라, hand frame center 는
-    /// Apple 로고에서 +Y `frame*0.4` 정도 (frame 절반 + 손목) 아래에 위치해야 닿음.
-    private func handLayer(side: CGFloat) -> some View {
-        let logo = appleLogoOffset(side: side)
-        return Image("hand_tap")
-            .resizable()
-            .scaledToFit()
-            .frame(width: side * 0.42)
-            .rotationEffect(.degrees(-10))
-            .opacity(phase.fingerOpacity)
-            .offset(
-                x: phase.fingerApproached ? logo.width + side * 0.034 : side * 0.32,
-                y: (phase.fingerApproached ? logo.height + side * 0.16 : side * 0.36)
-                    + side * 0.05 * phase.fingerLift
-            )
-            .animation(.spring(response: 0.5, dampingFraction: 0.75), value: phase.fingerApproached)
-            .animation(.easeInOut(duration: 0.16), value: phase.fingerLift)
-    }
-
-    /// 단축어 등록 완료 카드 — 폰 우상단에 살짝 겹쳐서 spring 등장. backtap.png 시안과 같이
-    /// 카드 좌측이 폰 카메라 모듈 위에 살짝 올라타며 우측 가장자리는 hero 영역 안에 머무름.
-    private func cardLayer(side: CGFloat) -> some View {
-        ShortcutRegisteredCard()
-            .scaleEffect(phase.cardRevealed ? 1.0 : 0.55)
-            .opacity(phase.cardRevealed ? 1.0 : 0)
-            .offset(x: side * 0.18, y: -side * 0.38)
-            .animation(.spring(response: 0.55, dampingFraction: 0.7), value: phase.cardRevealed)
-    }
-
-    /// 폰 주위 sparkle 4개 — 임의 각도/거리/크기/지연으로 "규칙성" 회피.
-    /// 6각 균등 배치 → 4개 비대칭 배치 + 각각 다른 size/opacity/delay.
-    private func sparkleLayer(side: CGFloat) -> some View {
-        let specs: [(angleDeg: Double, radius: CGFloat, size: CGFloat, opacity: Double, delay: Double)] = [
-            (angleDeg:  38, radius: 0.42, size: 13, opacity: 0.80, delay: 0.00),
-            (angleDeg: 142, radius: 0.30, size:  9, opacity: 0.60, delay: 0.12),
-            (angleDeg: 226, radius: 0.36, size: 11, opacity: 0.70, delay: 0.06),
-            (angleDeg: 328, radius: 0.26, size:  8, opacity: 0.55, delay: 0.18),
-        ]
-        return ZStack {
-            ForEach(specs.indices, id: \.self) { i in
-                let s = specs[i]
-                let rad = s.angleDeg * .pi / 180
-                let dx = cos(rad) * side * s.radius
-                let dy = sin(rad) * side * s.radius * 0.85
-                Image(systemName: "sparkle")
-                    .font(.system(size: s.size, weight: .semibold))
-                    .foregroundStyle(OnboardingTheme.primary)
-                    .scaleEffect(phase.cardRevealed ? 1.0 : 0.2)
-                    .opacity(phase.cardRevealed ? s.opacity : 0)
-                    .offset(x: phase.cardRevealed ? dx : 0, y: phase.cardRevealed ? dy : 0)
-                    .animation(
-                        .spring(response: 0.7, dampingFraction: 0.65).delay(s.delay),
-                        value: phase.cardRevealed
-                    )
-            }
-        }
-    }
-
-    // MARK: Loop
-
-    /// idle (700ms) → approach (450ms) → tap1↓↑ (200+220) → tap2↓↑ (200+280)
-    /// → reveal (700ms) → hold (1500ms) → reset (700ms). 총 ≈ 4.85s/cycle.
-    private func runLoop() async {
-        withAnimation(.easeInOut(duration: 0.4)) { phase = .idle }
-        try? await Task.sleep(for: .milliseconds(700))
-
-        while !Task.isCancelled {
-            withAnimation { phase = .approach }
-            try? await Task.sleep(for: .milliseconds(450))
-
-            // Tap 1
-            withAnimation(.easeInOut(duration: 0.16)) { phase = .tap1Down }
-            pulseTrigger &+= 1
-            try? await Task.sleep(for: .milliseconds(200))
-
-            withAnimation(.easeInOut(duration: 0.18)) { phase = .tap1Up }
-            try? await Task.sleep(for: .milliseconds(220))
-
-            // Tap 2
-            withAnimation(.easeInOut(duration: 0.16)) { phase = .tap2Down }
-            pulseTrigger &+= 1
-            try? await Task.sleep(for: .milliseconds(200))
-
-            withAnimation(.easeInOut(duration: 0.18)) { phase = .tap2Up }
-            try? await Task.sleep(for: .milliseconds(280))
-
-            // Card + sparkle 등장
-            withAnimation { phase = .reveal }
-            try? await Task.sleep(for: .milliseconds(700))
-
-            // Hold
-            withAnimation { phase = .hold }
-            try? await Task.sleep(for: .milliseconds(1500))
-
-            // Reset
-            withAnimation(.easeInOut(duration: 0.5)) { phase = .idle }
-            try? await Task.sleep(for: .milliseconds(700))
-        }
-    }
-}
-
-// MARK: - PulseRipple
-
-/// 한 번의 탭마다 동심원이 0.3 → 1.8 로 퍼지며 fade out. `trigger` 정수가 바뀔 때마다 재시작.
-private struct PulseRipple: View {
-    let trigger: Int
-    let baseSize: CGFloat
-
-    @State private var scale: CGFloat = 0.3
-    @State private var opacity: Double = 0
-
-    var body: some View {
-        ZStack {
-            Circle()
-                .stroke(OnboardingTheme.primary.opacity(0.7), lineWidth: 2.5)
-                .frame(width: baseSize, height: baseSize)
-                .scaleEffect(scale)
-                .opacity(opacity)
-        }
-        .onChange(of: trigger) { _, _ in
-            scale = 0.35
-            opacity = 0.85
-            withAnimation(.easeOut(duration: 0.6)) {
-                scale = 1.9
-                opacity = 0
-            }
-        }
-    }
-}
-
-// MARK: - ShortcutRegisteredCard
-
-/// 단축어 등록 완료를 알리는 카드. iOS 단축어 앱 공식 아이콘 + 체크 + 2줄 텍스트.
-private struct ShortcutRegisteredCard: View {
-    var body: some View {
-        HStack(spacing: 12) {
-            Image("shortcuts_icon")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 46, height: 46)
-
-            VStack(alignment: .leading, spacing: 3) {
-                HStack(spacing: 5) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 15, weight: .bold))
-                        .foregroundStyle(.green)
-                    Text("단축어 등록 완료!")
-                        .font(.system(size: 15, weight: .bold, design: .rounded))
-                        .foregroundStyle(OnboardingTheme.titleColor)
-                }
-                Text("두 번 탭으로\n빠르게 실행해요")
-                    .font(.system(size: 12, weight: .medium, design: .rounded))
+            if let subtitle = OnboardingPage.backTap.subtitle {
+                Text(subtitle)
+                    .font(.system(size: 15, weight: .medium, design: .rounded))
                     .foregroundStyle(OnboardingTheme.subtitleColor)
-                    .lineSpacing(1)
+            }
+        }
+    }
+
+    // MARK: - Checklist
+
+    private var checklist: some View {
+        VStack(spacing: 14) {
+            stepOne
+            stepTwo
+            stepThree
+        }
+    }
+
+    /// ① 단축어 추가 — iCloud 링크를 갔다오면 ack (import 성공은 ③ 검증이 증명).
+    private var stepOne: some View {
+        BackTapStepCard(
+            index: 1,
+            status: store.shortcutAdded ? .done : .active,
+            title: "단축어 추가하기",
+            detail: store.shortcutAdded ? "추가했어요" : "모찌 단축어를 가져와요"
+        ) {
+            if !store.shortcutAdded {
+                BackTapStepButton(title: "추가하기") {
+                    guard let url = Self.shortcutURL else {
+                        store.send(.shortcutAddAcknowledged)
+                        return
+                    }
+                    openURL(url) { _ in store.send(.shortcutAddAcknowledged) }
+                }
+            }
+        }
+    }
+
+    /// ② 뒷면 탭 연결 — 가이드 시트로 설정 경로를 안내한다 (① 완료 후 활성).
+    private var stepTwo: some View {
+        let status: BackTapStepStatus =
+            store.backTapBound ? .done : (store.shortcutAdded ? .active : .locked)
+        return BackTapStepCard(
+            index: 2,
+            status: status,
+            title: "뒷면 탭에 연결하기",
+            detail: stepTwoDetail(status)
+        ) {
+            if status == .active {
+                BackTapStepButton(title: "설정 열기") {
+                    store.send(.openSettingsTapped)
+                }
+            }
+        }
+    }
+
+    private func stepTwoDetail(_ status: BackTapStepStatus) -> String {
+        switch status {
+        case .locked: return "먼저 단축어를 추가해주세요"
+        case .active: return "설정에서 두 번 탭에 모찌를 연결해요"
+        case .done:   return "연결했어요"
+        }
+    }
+
+    /// ③ 검증 — 실제 백탭이 모찌 intent 에 도달하는지 확인한다 (② 완료 후 활성).
+    private var stepThree: some View {
+        let status: BackTapStepStatus = {
+            if store.verifyPhase == .detected { return .done }
+            return store.backTapBound ? .active : .locked
+        }()
+        return BackTapStepCard(
+            index: 3,
+            status: status,
+            title: stepThreeTitle,
+            detail: stepThreeDetail
+        ) {
+            stepThreeAccessory(status)
+        }
+    }
+
+    private var stepThreeTitle: String {
+        switch store.verifyPhase {
+        case .detected: return "백탭이 작동해요!"
+        case .waiting:  return "뒷면을 두 번 탭해보세요"
+        case .timedOut: return "아직 반응이 없어요"
+        case .idle, .skipped: return "백탭 테스트"
+        }
+    }
+
+    private var stepThreeDetail: String {
+        if !store.backTapBound { return "연결한 뒤 시험해봐요" }
+        switch store.verifyPhase {
+        case .idle:     return "잘 되는지 한번 해볼까요?"
+        case .waiting:  return "기다리고 있어요…"
+        case .detected: return "준비 끝!"
+        case .timedOut: return "단축어와 연결을 다시 확인해보세요"
+        case .skipped:  return "나중에 다시 해도 돼요"
+        }
+    }
+
+    @ViewBuilder
+    private func stepThreeAccessory(_ status: BackTapStepStatus) -> some View {
+        switch store.verifyPhase {
+        case .idle where status == .active:
+            BackTapStepButton(title: "지금 해보세요") {
+                store.send(.startVerificationTapped)
+            }
+        case .waiting:
+            BackTapPulseIndicator()
+        case .timedOut:
+            BackTapStepButton(title: "다시 시도") {
+                store.send(.startVerificationTapped)
+            }
+        default:
+            EmptyView()
+        }
+    }
+
+    // MARK: - Deep link (best-effort)
+
+    /// `App-Prefs:` 딥링크는 iOS 17/18 에서 동작하지 않고 심사 리스크가 있다(확정 결정으로
+    /// 유지 — 미래 iOS 복구 대비 방어 코드). 가이드 시트가 *이미* 떠 있는 위에서 best-effort
+    /// 로 시도하므로, 열리지 않아도 화면은 그대로다. `canOpenURL` 선체크는 Info.plist 에
+    /// query scheme 이 없어 무조건 false 라 의미가 없어 쓰지 않는다 (codex P2).
+    private func openSettingsBestEffort() {
+        guard let url = URL(string: "App-Prefs:root=ACCESSIBILITY") else { return }
+        openURL(url) { _ in }
+    }
+}
+
+// MARK: - Step Card
+
+/// 체크리스트 단계 상태 — locked(이전 단계 미완) / active(현재) / done(완료).
+/// 제네릭 ``BackTapStepCard`` 의 nested 타입이면 `BackTapStepStatus` 참조가 제네릭
+/// 인자를 요구하므로 top-level 로 둔다.
+enum BackTapStepStatus { case locked, active, done }
+
+/// 체크리스트 한 줄 — 좌측 배지(번호/체크), 제목·설명, 우측 액션 슬롯.
+struct BackTapStepCard<Accessory: View>: View {
+    let index: Int
+    let status: BackTapStepStatus
+    let title: String
+    let detail: String
+    @ViewBuilder let accessory: () -> Accessory
+
+    var body: some View {
+        HStack(spacing: 14) {
+            badge
+                .accessibilityHidden(true)   // 번호/체크는 장식 — 상태는 텍스트 라벨이 전달
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title)
+                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                    .foregroundStyle(status == .locked ? OnboardingTheme.mutedTextColor : OnboardingTheme.titleColor)
+                Text(detail)
+                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .foregroundStyle(OnboardingTheme.mutedTextColor)
                     .fixedSize(horizontal: false, vertical: true)
             }
+            // [P2] 정보(제목·설명)만 한 요소로 합치고, 우측 accessory 버튼은 별도 요소로
+            // 남겨 VoiceOver 가 "추가하기/설정 열기/다시 시도" 를 따로 탭할 수 있게 한다.
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(Text("\(index)단계 \(title), \(accessibilityStatus)"))
+            .accessibilityHint(Text(detail))
+
+            Spacer(minLength: 8)
+            accessory()
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
+        .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .fill(.white)
-                .shadow(color: Color.black.opacity(0.09), radius: 16, x: 0, y: 9)
+                .shadow(
+                    color: Color.black.opacity(status == .locked ? 0.03 : 0.07),
+                    radius: status == .active ? 14 : 8,
+                    x: 0, y: status == .active ? 8 : 4
+                )
         )
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .stroke(OnboardingTheme.primary.opacity(status == .active ? 0.35 : 0), lineWidth: 1.5)
+        )
+        .opacity(status == .locked ? 0.6 : 1)
+        .animation(.easeInOut(duration: 0.25), value: status)
+    }
+
+    private var accessibilityStatus: String {
+        switch status {
+        case .locked: return "잠김"
+        case .active: return "진행 중"
+        case .done:   return "완료"
+        }
+    }
+
+    private var badge: some View {
+        ZStack {
+            Circle()
+                .fill(status == .locked ? OnboardingTheme.indicatorOff : OnboardingTheme.primary)
+                .frame(width: 30, height: 30)
+            if status == .done {
+                Image(systemName: "checkmark")
+                    .font(.system(size: 14, weight: .heavy))
+                    .foregroundStyle(.white)
+            } else {
+                Text("\(index)")
+                    .font(.system(size: 15, weight: .heavy, design: .rounded))
+                    .foregroundStyle(status == .locked ? OnboardingTheme.mutedTextColor : .white)
+            }
+        }
+        .shadow(
+            color: status == .locked ? .clear : OnboardingTheme.primaryShadow,
+            radius: 5, x: 0, y: 3
+        )
+    }
+}
+
+// MARK: - Step Button
+
+/// 카드 우측의 작은 채움 액션 버튼.
+struct BackTapStepButton: View {
+    let title: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 14, weight: .bold, design: .rounded))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 9)
+                .background(
+                    Capsule().fill(OnboardingTheme.primary)
+                        .shadow(color: OnboardingTheme.primaryShadow, radius: 6, x: 0, y: 3)
+                )
+        }
+        .buttonStyle(PressableScale())
+        .accessibilityLabel(Text(title))
+    }
+}
+
+/// 누름 시 살짝 축소 — 순수 시각 피드백.
+struct PressableScale: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.94 : 1.0)
+            .opacity(configuration.isPressed ? 0.9 : 1.0)
+            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+    }
+}
+
+// MARK: - Pulse Indicator (검증 대기 중)
+
+/// "뒷면을 두 번 탭" 을 기다리는 동안 도는 펄스 점 3개 (typing-indicator 스타일).
+struct BackTapPulseIndicator: View {
+    @State private var phase = 0
+
+    var body: some View {
+        HStack(spacing: 6) {
+            ForEach(0..<3, id: \.self) { i in
+                Circle()
+                    .fill(OnboardingTheme.primary)
+                    .frame(width: 8, height: 8)
+                    .scaleEffect(phase == i ? 1.0 : 0.55)
+                    .opacity(phase == i ? 1.0 : 0.4)
+            }
+        }
+        .task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(300))
+                withAnimation(.easeInOut(duration: 0.3)) { phase = (phase + 1) % 3 }
+            }
+        }
+        .accessibilityLabel(Text("백탭을 기다리는 중"))
+    }
+}
+
+// MARK: - Settings Guide Sheet
+
+/// ② "설정 열기" 가 띄우는 가이드 — 뒷면 탭 설정 경로를 큰 글씨로 안내한다.
+///
+/// 공식 딥링크가 없어(`§2`) 마지막 구간은 사용자가 직접 이동해야 하므로, 경로를 단계로
+/// 분명히 보여주고 "설정 열기" 는 best-effort 로만 시도한다. 진짜 완료는 ③ 검증이 증명.
+struct BackTapSettingsGuideSheet: View {
+    let onOpenSettings: () -> Void
+    let onBound: () -> Void
+    let onClose: () -> Void
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Spacer(minLength: 8)
+
+            Text("백탭에 연결하기")
+                .font(.system(size: 21, weight: .heavy))
+                .foregroundStyle(OnboardingTheme.titleColor)
+
+            Text("옆으로 넘기며 순서대로 따라 해보세요")
+                .font(.system(size: 14, weight: .medium, design: .rounded))
+                .foregroundStyle(OnboardingTheme.subtitleColor)
+                .padding(.top, 6)
+
+            BackTapGuideCarousel()
+                .frame(maxHeight: .infinity)
+                .padding(.top, 16)
+
+            VStack(spacing: 12) {
+                // 설정 열기 = 먼저 할 액션이지만 외부(설정)로 나가는 길이라 outlined,
+                // 연결했어요 = 돌아와 누르는 완료 액션이라 solid. 두 단계를 시각으로 구분.
+                Button(action: onOpenSettings) {
+                    Label("설정 열기", systemImage: "gearshape.fill")
+                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .foregroundStyle(OnboardingTheme.primary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 15)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .stroke(OnboardingTheme.primary, lineWidth: 1.5)
+                        )
+                }
+                .buttonStyle(PressableScale())
+
+                Button(action: onBound) {
+                    Text("연결했어요")
+                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .fill(OnboardingTheme.primary)
+                                .shadow(color: OnboardingTheme.primaryShadow, radius: 12, x: 0, y: 6)
+                        )
+                }
+                .buttonStyle(PressableScale())
+
+                Button("나중에 할게요", action: onClose)
+                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .foregroundStyle(OnboardingTheme.mutedTextColor)
+                    .padding(.top, 6)
+            }
+        }
+        .padding(.horizontal, 24)
+        .padding(.bottom, 24)
+        .presentationBackground(OnboardingTheme.backgroundGradient)
+    }
+
+}
+
+// MARK: - Settings Guide Carousel
+
+/// ② "설정 열기" 가이드의 핵심 — 실제 설정 화면 스크린샷 5컷을 세로로 크게 넘기며,
+/// 탭할 항목만 스포트라이트(주변 dim + 펄스 테두리)로 띄워 "여기" 를 즉시 보여준다.
+///
+/// 스크린샷은 강조 없는 깨끗본(에셋, 세로 0.82 portrait 비율)이고 강조는 런타임 오버레이다.
+/// 강조 항목 위치는 컷별 `ringY`(대부분 중앙, 화면 상단 항목 '두 번 탭'만 위쪽).
+/// 텍스트 칩·말풍선을 모두 대체 — 글 경로는 따라가기 어려웠고 말풍선은 어색했다
+/// (gemini/codex 디자인 리뷰로 9.4·9.0 확정한 안).
+private struct BackTapGuideCarousel: View {
+    @State private var page = 0
+
+    private struct Step {
+        let image: String
+        let caption: String
+        let ringY: CGFloat   // 강조 항목의 세로 위치 (0~1, 재크롭 기준)
+    }
+
+    private let steps: [Step] = [
+        .init(image: "backtap-guide-1", caption: "‘손쉬운 사용’을 탭", ringY: 0.5),
+        .init(image: "backtap-guide-2", caption: "‘터치’를 탭", ringY: 0.5),
+        .init(image: "backtap-guide-3", caption: "‘뒷면 탭’을 탭", ringY: 0.522),
+        .init(image: "backtap-guide-4", caption: "‘두 번 탭’을 탭", ringY: 0.301),
+        .init(image: "backtap-guide-5", caption: "‘모찌 단축어’를 선택하면 끝!", ringY: 0.5),
+    ]
+
+    /// 재크롭한 스크린샷 비율 (1170 × 1427, portrait 0.82).
+    private let aspect: CGFloat = 1170.0 / 1427.0
+
+    var body: some View {
+        GeometryReader { geo in
+            // 카드는 가용 세로공간을 채우되 폭 비율을 상한으로 — 캡션·점 몫(96)을 빼고 cap.
+            // 큰 Dynamic Type 으로 공간이 줄면 카드가 비례 축소(찌그러짐 방지).
+            let cardH = max(220, min(geo.size.width / aspect, geo.size.height - 96))
+            let cardW = cardH * aspect
+            VStack(spacing: 0) {
+                Text(steps[page].caption)
+                    .font(.system(size: 17, weight: .bold, design: .rounded))
+                    .foregroundStyle(OnboardingTheme.titleColor)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.bottom, 12)
+                    .animation(.easeInOut(duration: 0.2), value: page)
+                TabView(selection: $page) {
+                    ForEach(Array(steps.enumerated()), id: \.element.image) { idx, step in
+                        card(step, width: cardW, height: cardH, index: idx).tag(idx)
+                    }
+                }
+                .tabViewStyle(.page(indexDisplayMode: .never))
+                .frame(height: cardH)
+                dots.padding(.top, 14)
+            }
+            .frame(width: geo.size.width, height: geo.size.height, alignment: .top)
+        }
+    }
+
+    private func card(_ step: Step, width: CGFloat, height: CGFloat, index: Int) -> some View {
+        ZStack {
+            Image(step.image, bundle: .module)
+                .resizable()
+                .scaledToFit()
+                .frame(width: width, height: height)
+            BackTapSpotlight(width: width, height: height, centerY: step.ringY)
+        }
+        .frame(width: width, height: height)
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .shadow(color: .black.opacity(0.12), radius: 12, x: 0, y: 6)
+        .frame(maxWidth: .infinity)
+        // 캐러셀 한 컷을 단일 VoiceOver 요소로 — "3/5단계, ‘뒷면 탭’을 탭".
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("\(index + 1)/\(steps.count)단계, \(step.caption)"))
+    }
+
+    private var dots: some View {
+        HStack(spacing: 7) {
+            ForEach(steps.indices, id: \.self) { i in
+                Capsule()
+                    .fill(i == page ? OnboardingTheme.indicatorOn : OnboardingTheme.indicatorOff)
+                    .frame(width: i == page ? 18 : 6, height: 6)
+                    .animation(.easeInOut(duration: 0.25), value: page)
+            }
+        }
+        .accessibilityHidden(true)
+    }
+}
+
+/// 강조 항목만 스포트라이트 — 카드를 살짝(≈22%) 어둡게 덮되 강조 행만 뚫어 밝게 두고,
+/// 그 위에 펄스 테두리 + 글로우를 얹는다. 주변 행과의 경쟁을 없애 "여기" 가 즉시 보인다.
+/// dim 을 약하게 둬 설정 화면 컨텍스트는 살아있게 유지한다(codex 리뷰 반영).
+private struct BackTapSpotlight: View {
+    let width: CGFloat
+    let height: CGFloat
+    let centerY: CGFloat
+    @State private var pulse = false
+
+    var body: some View {
+        let ringW = width * 0.92
+        let ringH = height * 0.115
+        let cx = width / 2
+        let cy = height * centerY
+        ZStack {
+            // 주변 dim — 강조 행만 뚫어(destinationOut) 밝게 유지.
+            Rectangle()
+                .fill(Color.black.opacity(0.22))
+                .mask {
+                    ZStack {
+                        Rectangle().fill(.white)
+                        RoundedRectangle(cornerRadius: 11, style: .continuous)
+                            .frame(width: ringW, height: ringH)
+                            .position(x: cx, y: cy)
+                            .blendMode(.destinationOut)
+                    }
+                    .compositingGroup()
+                }
+            // 펄스 테두리 + 글로우.
+            RoundedRectangle(cornerRadius: 11, style: .continuous)
+                .stroke(OnboardingTheme.primary, lineWidth: 3)
+                .frame(width: ringW, height: ringH)
+                .position(x: cx, y: cy)
+                .shadow(color: OnboardingTheme.primary.opacity(0.7), radius: pulse ? 9 : 4)
+                .opacity(pulse ? 1.0 : 0.7)
+        }
+        .allowsHitTesting(false)
+        .onAppear {
+            withAnimation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true)) {
+                pulse = true
+            }
+        }
+        .accessibilityHidden(true)
     }
 }
 
 #if DEBUG
 #Preview {
-    BackTapPage()
-        .background(OnboardingTheme.backgroundGradient.ignoresSafeArea())
+    BackTapPage(
+        store: Store(initialState: OnboardingFeature.State(currentPage: 1)) {
+            OnboardingFeature()
+        }
+    )
+    .background(OnboardingTheme.backgroundGradient.ignoresSafeArea())
 }
 #endif
