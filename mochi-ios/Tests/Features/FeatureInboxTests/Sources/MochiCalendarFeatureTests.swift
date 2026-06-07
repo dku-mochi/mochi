@@ -28,11 +28,23 @@ final class MochiCalendarFeatureTests: XCTestCase {
     }
 
     private func todo(due: String?, capturedAt: Date) -> MochiItem {
-        let actions: [MochiItemAnalysis.ActionCandidate] = due.map { [.createReminder(title: "t", dueISO8601: $0)] } ?? []
+        // 마감일은 active todo instance 의 payload.deadline 에 싣는다 (actionCandidate 는 iOS 응답에서 항상 빔).
         let analysis = MochiItemAnalysis(
-            summary: "s", instances: [IntentInstance(intentType: .todo)],
+            summary: "s",
+            instances: [IntentInstance(intentType: .todo, payload: IntentPayload(deadline: due))],
             needsReview: false, reviewOptions: [],
-            entities: [], actionCandidates: actions, tags: [],
+            entities: [], actionCandidates: [], tags: [],
+            importance: .medium, modelVersion: "test", analyzedAt: capturedAt
+        )
+        return MochiItem(source: IngestSource(channel: .appDirectInput, capturedAt: capturedAt), analysis: analysis, lifecycleState: .analyzed)
+    }
+
+    /// 여러 instance(intent·payload·lifecycle 지정)를 가진 item — 마감/일정 추출 테스트용.
+    private func dueItem(_ instances: [IntentInstance], capturedAt: Date = Date()) -> MochiItem {
+        let analysis = MochiItemAnalysis(
+            summary: "s", instances: instances,
+            needsReview: false, reviewOptions: [],
+            entities: [], actionCandidates: [], tags: [],
             importance: .medium, modelVersion: "test", analyzedAt: capturedAt
         )
         return MochiItem(source: IngestSource(channel: .appDirectInput, capturedAt: capturedAt), analysis: analysis, lifecycleState: .analyzed)
@@ -57,7 +69,7 @@ final class MochiCalendarFeatureTests: XCTestCase {
         // repository 는 capturedAt desc 로 준다.
         let sorted = items.sorted { $0.source.capturedAt > $1.source.capturedAt }
 
-        let days = CalendarDaySummary.group(sorted, calendar: kstCalendar)
+        let days = CalendarDaySummary.group(captured: sorted, due: [], calendar: kstCalendar)
         let byDay = Dictionary(uniqueKeysWithValues: days.map { (kstCalendar.dateComponents([.month, .day], from: $0.date).day ?? 0, $0) })
 
         XCTAssertEqual(byDay[1]?.count, 3)
@@ -70,7 +82,7 @@ final class MochiCalendarFeatureTests: XCTestCase {
     func test_group_kst_boundary_pushes_late_utc_into_next_day() {
         // 2026-05-31 15:30 UTC == 2026-06-01 00:30 KST → 6월 1일로 묶여야 한다.
         let items = [item(intent: .memo, capturedAt: iso("2026-05-31T15:30:00Z"))]
-        let days = CalendarDaySummary.group(items, calendar: kstCalendar)
+        let days = CalendarDaySummary.group(captured: items, due: [], calendar: kstCalendar)
 
         XCTAssertEqual(days.count, 1)
         let comps = kstCalendar.dateComponents([.year, .month, .day], from: days[0].date)
@@ -94,5 +106,30 @@ final class MochiCalendarFeatureTests: XCTestCase {
     func test_deadline_parses_iso8601_and_returns_nil_when_absent() {
         XCTAssertNotNil(UpcomingTodoSorter.deadline(of: todo(due: "2026-06-10T23:59:00Z", capturedAt: Date())))
         XCTAssertNil(UpcomingTodoSorter.deadline(of: todo(due: nil, capturedAt: Date())))
+    }
+
+    // MARK: - CalendarDueDate (마감/일정 추출·파싱)
+
+    func test_dueDates_extracts_active_todo_and_schedule_and_excludes_archived() {
+        let item = dueItem([
+            IntentInstance(intentType: .todo, payload: IntentPayload(deadline: "2026-06-10")),
+            IntentInstance(intentType: .schedule, payload: IntentPayload(date: "2026-06-15")),
+            IntentInstance(intentType: .schedule, payload: IntentPayload(date: "2026-06-20"),
+                           lifecycle: .archived(reason: .scheduleEnded)),
+            IntentInstance(intentType: .memo, payload: IntentPayload(date: "2026-06-25")),
+        ])
+        let dues = CalendarDueDate.dueDates(of: item)
+        // active todo(마감) + active schedule(일정) 둘만 — archived schedule·memo 는 제외.
+        XCTAssertEqual(dues.count, 2)
+        XCTAssertEqual(dues.filter { $0.intent == .todo }.count, 1)
+        XCTAssertEqual(dues.filter { $0.intent == .schedule }.count, 1)
+    }
+
+    func test_parse_handles_iso_with_seconds_and_rejects_natural_language() {
+        // payload 날짜 포맷 계약이 느슨해 TZ 없는 초 단위 ISO·날짜-only 도 KST 로 파싱, 자연어/nil 은 거른다.
+        XCTAssertNotNil(CalendarDueDate.parse("2026-06-15T09:00:00"))
+        XCTAssertNotNil(CalendarDueDate.parse("2026-06-15"))
+        XCTAssertNil(CalendarDueDate.parse("회의 후"))
+        XCTAssertNil(CalendarDueDate.parse(nil))
     }
 }

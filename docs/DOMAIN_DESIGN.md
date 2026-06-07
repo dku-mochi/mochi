@@ -444,6 +444,8 @@ intent 관련 검증된 필드(정확한 전체 스키마는 `CorePersistence/Re
 | `*` | `DELETE /{id}` · `/conversations` · `/sync` | ○ | **라우트 미존재** → §13 |
 
 > ⚠️ 캘린더 탭 list/calendar/todos 라우트는 2026-06-04 신설(`mochi_items/presentation/router.py`). **정적 경로(`/calendar`·`/todos/upcoming`)는 동적 `/{id}` 보다 먼저 선언**해 path-param 충돌을 피한다. iOS 캘린더 탭은 즉시성·오프라인·실시간(`observeChanges`)을 위해 **로컬 Realm 구동**이고, 이 서버 API 는 멀티기기/웹 대비 계약(현재 iOS 클라 미배선). `POST /search` 도 실재(이전 '미존재' 는 문서 오기 — `search_router` 가 `api.py` 에 등록). delete·conversations·sync 만 여전히 라우트 없음.
+>
+> iOS 로컬 캘린더는 칸을 **두 축**으로 칠한다 — ① 저장 점(`capturedAt`, 대표 intent 색) ② 마감/일정 마커(active todo 의 `payload.deadline ?? payload.date`, active schedule 의 `payload.date` 를 KST 파싱, 날짜 숫자 강조). 마감/일정 날짜 칸을 탭하면 그날 캡처 + 그날 마감/일정 항목을 함께 보인다. 서버 `todos/upcoming` 은 마감일을 `entities(kind='deadline')` 로 파싱하지만, iOS 분석 응답엔 `entities`·`actionCandidate` 가 비어(`MochiItemDTO+Analysis` 가 `payload` 만 매핑) 클라는 `payload` 를 단일 소스로 쓴다 — 서버 API 배선 시 이 차이 정합 필요.
 
 | Header | 필수 | 의미 |
 |---|---|---|
