@@ -345,7 +345,9 @@ struct BackTapSettingsGuideSheet: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer(minLength: 8)
+            // 드래그 인디케이터에 제목이 붙지 않도록 상단 여백 확보 (카루셀이 maxHeight 라
+            // 이 Spacer 는 minLength 만큼만 차지한다).
+            Spacer(minLength: 28)
 
             Text("백탭에 연결하기")
                 .font(.system(size: 21, weight: .heavy))

@@ -27,9 +27,13 @@ struct SharePage: View {
             Image("mochi-share-base")
                 .resizable()
                 .scaledToFit()
-                .frame(maxWidth: 204, maxHeight: 204)
+                // 캐릭터 몸통이 캔버스의 ~0.78 폭(팔까지 0.92)이라, intro(`mochi-hello`, 몸통 0.61)
+                // 와 *몸통* 크기를 맞추려면 프레임을 줄여야 한다. 235 → 몸통 ~183pt (intro 300 과 동일).
+                .frame(maxWidth: 235, maxHeight: 235)
         }
-        .offset(y: -34)
+        // 카드+chevron 이 몸통 위에 쌓여 몸통이 hero 중앙보다 아래로 내려가므로 위로 올려
+        // 몸통 세로 중심을 intro 캐릭터와 맞춘다.
+        .offset(y: -44)
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text("어떤 앱에서든 공유 버튼을 누르면 모찌에 저장됩니다"))
