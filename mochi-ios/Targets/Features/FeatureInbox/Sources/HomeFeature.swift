@@ -2,27 +2,30 @@ import Foundation
 import ComposableArchitecture
 import CoreDomain
 import CorePersistence
+import CoreNetworking
 
-/// 홈 화면(시안의 메인 진입) reducer.
+/// 홈 화면 reducer.
 ///
-/// - 최근 캡처 / 분석중 / 헷갈려요 / 중요해 보여요 네 섹션을 동시에 로드한다.
-///   분석중(`listAnalyzing`)=분석 응답 대기, 헷갈려요(`listNeedsReview`)=분석됐으나 모찌가 확신 못 함.
-/// - Quick memo 는 `appDirectInput` 채널로 즉시 Repository 에 upsert + 이어서 sync trigger.
-/// - Needs review 의 분류 버튼은 `repository.setIntent` 호출 → 카드 진행 페이지를 다음으로.
-/// - 진입 시 `dailyImportanceAnalyzer.todaysImportant` 를 호출해 1일 1회 lazy 분석.
+/// 홈은 요약 피드가 아니라 "모찌 자동성의 예외 처리" 화면이다 (docs/PRODUCT.md §8.4).
+/// - 빠른 입력(한 줄): `appDirectInput` 채널로 즉시 upsert + sync trigger.
+/// - ① 지금 확인해 주세요(`listNeedsReview`): 모찌가 확신 못 한 것만. 분류 버튼 = `setIntent`.
+/// - ② 모찌가 정리하고 있어요(`listAnalyzing`): 분석 응답 대기. 사용자 행동 불필요, 기본 접힘.
+/// - ④ 최근에 보낸 것들(`listRecent`): 정리 대상이 아닌 안전망(원본 확인·되돌리기).
+/// - ③ 질문 진입(`askMochiTapped`): 상위(MainTabFeature)가 채팅 탭으로 라우팅.
 @Reducer
 public struct HomeFeature: Sendable {
 
     @ObservableState
     public struct State: Equatable, Sendable {
         public var recent: IdentifiedArrayOf<MochiItem> = []
-        /// 분석 응답 대기 중 ("모찌가 분석 중이에요").
+        /// 분석 응답 대기 중 ("모찌가 정리하고 있어요").
         public var analyzing: IdentifiedArrayOf<MochiItem> = []
-        /// 분석은 끝났으나 모찌가 확신 못 함 ("모찌가 헷갈려요", `needsReview == true`).
+        /// 분석은 끝났으나 모찌가 확신 못 함 ("지금 확인해 주세요", `needsReview == true`).
         public var needsReview: IdentifiedArrayOf<MochiItem> = []
-        public var important: IdentifiedArrayOf<MochiItem> = []
         public var quickMemoText: String = ""
         public var needsReviewPage: Int = 0
+        /// ② "모찌가 정리하고 있어요" 접힘 상태 (기본 접힘 — 평소엔 방해하지 않음).
+        public var isProcessingExpanded: Bool = false
         public var isLoading: Bool = false
         public var isSaving: Bool = false
         public var lastError: String?
@@ -34,23 +37,25 @@ public struct HomeFeature: Sendable {
         case binding(BindingAction<State>)
         case onAppear
         case refresh
-        case sectionsLoaded(recent: [MochiItem], analyzing: [MochiItem], needsReview: [MochiItem], important: [MochiItem])
+        case sectionsLoaded(recent: [MochiItem], analyzing: [MochiItem], needsReview: [MochiItem])
         case loadFailed(String)
         case quickMemoSubmitted
         case quickMemoSaved
         case classifyTapped(mochiItemID: MochiItem.ID, intent: Intent)
         case classifyFinished
         case retryAnalysisTapped(MochiItem.ID)
+        case reanalyzeTapped(mochiItemID: MochiItem.ID, hint: String)
+        case toggleProcessing
+        case askMochiTapped
         case mochiItemTapped(MochiItem.ID)
         case openSettingsTapped
-        case openNotificationsTapped
         case urlChipTapped
         case screenshotChipTapped
     }
 
     @Dependency(\.mochiItemRepository) var repository
+    @Dependency(\.mochiAPIClient) var apiClient
     @Dependency(\.syncTrigger) var syncTrigger
-    @Dependency(\.dailyImportanceAnalyzer) var dailyAnalyzer
     @Dependency(\.uuid) var uuid
     @Dependency(\.date) var date
 
@@ -85,12 +90,11 @@ public struct HomeFeature: Sendable {
                     await loadAll(send: send)
                 }
 
-            case let .sectionsLoaded(recent, analyzing, needsReview, important):
+            case let .sectionsLoaded(recent, analyzing, needsReview):
                 state.isLoading = false
                 state.recent = IdentifiedArray(uniqueElements: recent)
                 state.analyzing = IdentifiedArray(uniqueElements: analyzing)
                 state.needsReview = IdentifiedArray(uniqueElements: needsReview)
-                state.important = IdentifiedArray(uniqueElements: important)
                 if state.needsReviewPage >= needsReview.count {
                     state.needsReviewPage = max(0, needsReview.count - 1)
                 }
@@ -141,8 +145,7 @@ public struct HomeFeature: Sendable {
                 }
 
             case .classifyFinished:
-                // 분류된 항목은 ambiguous 리스트에서 빠지므로 page 는 0 으로 되돌려도 안전.
-                // 사용자 경험: "확정했으니 다음 항목을 본다" → reload 후 page 0 = 다음 미분류.
+                // 분류된 항목은 needsReview 리스트에서 빠지므로 page 0 = 다음 미확정 항목.
                 state.needsReviewPage = 0
                 return .none
 
@@ -157,9 +160,30 @@ public struct HomeFeature: Sendable {
                     }
                 }
 
-            case .mochiItemTapped, .openSettingsTapped, .openNotificationsTapped,
+            case let .reanalyzeTapped(mochiItemID, hint):
+                // "다른 의도" — 사용자가 적은 의도 힌트로 서버 재분석을 요청한다.
+                // 서버 PK 는 로컬 id 와 달라 uploaded 의 serverID 로 요청한다(로컬 id 로 보내면 404).
+                // 서버 emit 성공 후 로컬을 analyzing 으로 되돌린다 — emit 실패 시 영영 analyzing 에
+                // 멈추는 것을 막기 위해 순서를 지킨다. hint 는 서버 outbox 에만 일시 적재된다.
+                return .run { send in
+                    do {
+                        guard let item = try await repository.find(id: mochiItemID),
+                              case let .uploaded(serverID, _) = item.syncState else { return }
+                        try await apiClient.reanalyzeMochiItem(id: serverID, userHint: hint)
+                        try await repository.requeueForAnalysis(mochiItemID: mochiItemID)
+                        await loadAll(send: send)
+                    } catch {
+                        await send(.loadFailed(String(describing: error)))
+                    }
+                }
+
+            case .toggleProcessing:
+                state.isProcessingExpanded.toggle()
+                return .none
+
+            case .askMochiTapped, .mochiItemTapped, .openSettingsTapped,
                  .urlChipTapped, .screenshotChipTapped:
-                // 상위 Feature 가 처리 (모달·navigation·system picker).
+                // 상위 Feature 가 처리 (탭 이동·모달·navigation·system picker).
                 return .none
             }
         }
@@ -167,30 +191,14 @@ public struct HomeFeature: Sendable {
 
     // MARK: - Helpers
 
-    /// 4개를 병렬로 가져온다: recent / ambiguous / dailyImportant ID → importance MochiItem.
-    /// dailyAnalyzer 의 결과(ID 리스트)와 repository.listByImportance 의 결과를 결합해
-    /// "오늘의 캐시된 ID 순서" 를 유지하면서 도메인 객체를 채운다.
+    /// 3개 섹션을 병렬로 가져온다: recent / analyzing / needsReview.
     private func loadAll(send: Send<Action>) async {
         async let recentTask: [MochiItem] = (try? await repository.listRecent(limit: 12)) ?? []
         async let analyzingTask: [MochiItem] = (try? await repository.listAnalyzing(limit: 10)) ?? []
         async let needsReviewTask: [MochiItem] = (try? await repository.listNeedsReview(limit: 10)) ?? []
-        async let dailyIDs: [UUID] = dailyAnalyzer.todaysImportant(limit: 8)
 
-        let (recent, analyzing, needsReview, ids) = await (recentTask, analyzingTask, needsReviewTask, dailyIDs)
+        let (recent, analyzing, needsReview) = await (recentTask, analyzingTask, needsReviewTask)
 
-        var important: [MochiItem] = []
-        if !ids.isEmpty {
-            // 각 ID 를 repository 에서 가져온다 — 미존재(분석 후 삭제) 는 skip.
-            for id in ids {
-                if let mochiItem = try? await repository.find(id: id) {
-                    important.append(mochiItem)
-                }
-            }
-        } else {
-            // fallback: 1일 캐시가 비었으면 (앱 첫 진입 등) 즉시 importance 정렬을 직접 가져온다.
-            important = (try? await repository.listByImportance(limit: 8)) ?? []
-        }
-
-        await send(.sectionsLoaded(recent: recent, analyzing: analyzing, needsReview: needsReview, important: important))
+        await send(.sectionsLoaded(recent: recent, analyzing: analyzing, needsReview: needsReview))
     }
 }
