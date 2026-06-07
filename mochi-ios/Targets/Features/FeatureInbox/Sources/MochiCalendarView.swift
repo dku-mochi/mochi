@@ -195,19 +195,34 @@ private struct DayCell: View {
     let isToday: Bool
     let onTap: () -> Void
 
+    private var hasCaptured: Bool { summary?.hasCaptured ?? false }
+    private var hasDue: Bool { summary?.hasDue ?? false }
+    /// 마감/일정 마커 색 — dueIntent(schedule>todo) 기반, 없으면 todo 기본.
+    private var dueColor: Color { MochiViewIntent(summary?.dueIntent ?? .todo).dotColor }
+    private var dueTint: Color { MochiViewIntent(summary?.dueIntent ?? .todo).chipBackground }
+
     var body: some View {
         Button(action: onTap) {
             VStack(spacing: 3) {
+                // 날짜 숫자 — 마감/일정 있는 날은 옅은 due색 원 배경 + 굵게로 강조(저장 점과 별개 채널).
                 Text("\(Calendar.mochiSeoul.component(.day, from: date))")
-                    .font(.system(size: 12.5, weight: isToday ? .bold : .medium))
+                    .font(.system(size: 12.5, weight: (isToday || hasDue) ? .bold : .medium))
                     .foregroundStyle(isToday ? HomeDesign.Color.purple600 : HomeDesign.Color.textPrimary)
-                if let summary {
+                    .frame(width: 21, height: 21)
+                    .background(dateBackground)
+                if hasCaptured {
                     Circle()
-                        .fill(MochiViewIntent(summary.representativeIntent ?? .memo).dotColor)
+                        .fill(MochiViewIntent(summary?.representativeIntent ?? .memo).dotColor)
                         .frame(width: 6, height: 6)
-                    Text("\(summary.count)")
+                    Text("\(summary?.count ?? 0)")
                         .font(.system(size: 9, weight: .semibold))
                         .foregroundStyle(HomeDesign.Color.textMuted)
+                } else if hasDue {
+                    // 저장은 없고 마감/일정만 — 작은 막대 마커로 탭 유도.
+                    Capsule()
+                        .fill(dueColor)
+                        .frame(width: 10, height: 3)
+                    Spacer().frame(height: 8)
                 } else {
                     Spacer().frame(height: 15)
                 }
@@ -221,6 +236,17 @@ private struct DayCell: View {
         }
         .buttonStyle(PressableStyle())
         .disabled(summary == nil)
+    }
+
+    @ViewBuilder
+    private var dateBackground: some View {
+        // 마감/일정 강조는 오늘 셀에서도 유지 — 오늘+저장+마감이 겹쳐도 due 신호(원 배경)가 살아남는다.
+        // (오늘 강조는 글자색 purple + 셀 배경 purple50 이 별 채널로 담당.)
+        if hasDue {
+            Circle().fill(dueTint)
+        } else {
+            Color.clear
+        }
     }
 }
 
@@ -283,7 +309,10 @@ private struct UpcomingTodoRow: View {
 
     private var deadlineColor: Color {
         guard let deadline else { return HomeDesign.Color.textMuted }
-        return deadline < Date() ? HomeDesign.Color.blush400 : HomeDesign.Color.butter400
+        // deadlineLabel 과 동일하게 startOfDay(KST) 기준 — "오늘 마감"은 지남(blush) 아닌 임박(butter).
+        let calendar = Calendar.mochiSeoul
+        let isPast = calendar.startOfDay(for: deadline) < calendar.startOfDay(for: Date())
+        return isPast ? HomeDesign.Color.blush400 : HomeDesign.Color.butter400
     }
 }
 
