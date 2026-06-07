@@ -2,6 +2,7 @@ import UIKit
 import SwiftUI
 import CryptoKit
 import UniformTypeIdentifiers
+import os
 import CoreDomain
 import CorePersistence
 
@@ -15,19 +16,36 @@ public final class ShareExtensionPrincipal: UIViewController {
         view.backgroundColor = .systemBackground
 
         Task { @MainActor in
+            // 온보딩 백탭 검증 모드: 백탭이 ShareExtension 까지 도달했음을 기록하고, 진짜 저장 없이
+            // "작동해요" 만 보여준 뒤 닫는다 (검증용 스크린샷이 쓰레기로 남지 않게). 백탭의 실제
+            // 진입점은 snippet(CaptureScreenshotIntent)이 아니라 이 ShareExtension 이다.
+            // **추출 이전에** 분기한다 — 검증 모드는 payload 가 필요 없고, 추출 단계 hang 에 검증 UI 가
+            // 막혀선 안 되며, 불필요한 PNG persist(→고아 청소)도 피한다.
+            if AppGroup.isBackTapVerificationActive {
+                AppGroup.markBackTapVerificationHit()
+                embed(UIHostingController(rootView: BackTapVerifyShareView(
+                    onDone: { [weak self] in self?.complete(success: false) }
+                )))
+                return
+            }
+
             let extracted = await Self.extractInboundPayload(from: extensionContext)
-            let host = UIHostingController(rootView: contentView(for: extracted))
-            addChild(host)
-            host.view.translatesAutoresizingMaskIntoConstraints = false
-            view.addSubview(host.view)
-            NSLayoutConstraint.activate([
-                host.view.topAnchor.constraint(equalTo: view.topAnchor),
-                host.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-                host.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-                host.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            ])
-            host.didMove(toParent: self)
+            embed(UIHostingController(rootView: contentView(for: extracted)))
         }
+    }
+
+    /// 자식 UIHostingController 를 전체 화면으로 임베드한다.
+    private func embed(_ host: UIViewController) {
+        addChild(host)
+        host.view.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(host.view)
+        NSLayoutConstraint.activate([
+            host.view.topAnchor.constraint(equalTo: view.topAnchor),
+            host.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            host.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            host.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+        ])
+        host.didMove(toParent: self)
     }
 
     /// 백탭 단축어 진입(이미지 1장 + 출처앱 sentinel; Safari URL 선택) → 1-step UI ``BackTapShareView``,
@@ -120,6 +138,12 @@ public final class ShareExtensionPrincipal: UIViewController {
 
     private static let maxImageBytes = 20 * 1024 * 1024     // 단일 이미지 20MB 상한
 
+    /// 단일 `NSItemProvider` 로드 상한. 단축어가 cross-process 로 넘긴 lazy provider 가 completion 을
+    /// 호출하지 않으면 콜백이 영원히 안 와 무한 대기가 된다(이미지+sentinel 을 한 List 로 함께 보낼 때
+    /// 관측). ``loadWithItemTimeout`` 의 once-gate 타이머가 이 시간에 끊는다. 정상 로드는 1초 내.
+    /// 추출이 attachment 순차라 최악의 경우 provider 수 × 이 값이 누적되므로 과하지 않게 둔다.
+    private static let itemLoadTimeout: TimeInterval = 5
+
     private static func extractInboundPayload(from context: NSExtensionContext?) async -> ExtractedShareInput {
         guard let context else { return ExtractedShareInput(url: nil, text: nil, sourceApp: nil, imageRefs: [], channelGuess: .appShareSheet) }
 
@@ -139,11 +163,11 @@ public final class ShareExtensionPrincipal: UIViewController {
                         imageRefs.append(ref)
                     }
                 } else if provider.hasItemConformingToTypeIdentifier(UTType.url.identifier), url == nil {
-                    if let loaded = try? await provider.loadItem(forTypeIdentifier: UTType.url.identifier, options: nil) as? URL {
+                    if let loaded = await loadItem(from: provider, typeIdentifier: UTType.url.identifier, as: URL.self) {
                         url = loaded
                     }
                 } else if provider.hasItemConformingToTypeIdentifier(UTType.plainText.identifier) {
-                    if let loaded = try? await provider.loadItem(forTypeIdentifier: UTType.plainText.identifier, options: nil) as? String {
+                    if let loaded = await loadItem(from: provider, typeIdentifier: UTType.plainText.identifier, as: String.self) {
                         // sentinel(자동신호)과 일반 텍스트를 각자 첫 값만 받아 **각 채널로 분리** 흡수한다.
                         // sentinel 은 메타라 text 콘텐츠로 합치지 않아 previewCard 에 raw JSON 이 노출되지 않는다.
                         if let ctx = CaptureContextSentinel.decode(loaded) {
@@ -177,12 +201,17 @@ public final class ShareExtensionPrincipal: UIViewController {
         )
     }
 
+    /// 단축어가 cross-process 로 넘기는 in-memory 이미지는 file URL 로 오지 않으므로
+    /// `loadItem(...) as? URL` 의존을 버리고 **data representation 을 직접**(+timeout) 받는다.
+    /// 이미지+sentinel 을 한 List 로 함께 보낼 때의 무한 대기를 끊고, file·in-memory 양쪽을 받는다.
     private static func persistImage(from provider: NSItemProvider) async -> ImageRef? {
-        guard let imageURL = try? await provider.loadItem(forTypeIdentifier: UTType.image.identifier, options: nil) as? URL,
-              let data = try? Data(contentsOf: imageURL),
-              data.count <= maxImageBytes else { return nil }
-        let mimeType = UTType(filenameExtension: imageURL.pathExtension)?.preferredMIMEType ?? "application/octet-stream"
-        let filename = "\(UUID().uuidString).\(imageURL.pathExtension.isEmpty ? "img" : imageURL.pathExtension)"
+        guard let loaded = await loadImageData(from: provider),
+              loaded.data.count <= maxImageBytes else { return nil }
+
+        let data = loaded.data
+        let mimeType = loaded.type.preferredMIMEType ?? "application/octet-stream"
+        let ext = loaded.type.preferredFilenameExtension ?? "img"
+        let filename = "\(UUID().uuidString).\(ext)"
         let relativePath = "\(payloadIDPrefix)/\(filename)"
         let destination = AppGroup.capturedImagesDirectoryURL.appendingPathComponent(filename)
         do {
@@ -198,6 +227,62 @@ public final class ShareExtensionPrincipal: UIViewController {
             sha256: digest,
             objectKey: nil
         )
+    }
+
+    /// provider 에서 image 바이트를 직접 읽는다 — registered 타입 중 image 에 conform 하는 첫 타입의
+    /// 표현으로 로드해 mime/확장자도 함께 돌려준다. file URL 캐스팅·cross-process coercion 의존을
+    /// 없애 단축어 in-memory 이미지도 받는다. timeout 은 ``loadWithItemTimeout`` 이 책임진다.
+    private static func loadImageData(from provider: NSItemProvider) async -> (data: Data, type: UTType)? {
+        let imageType = provider.registeredTypeIdentifiers
+            .compactMap { UTType($0) }
+            .first { $0.conforms(to: .image) } ?? .image
+        guard let data = await loadWithItemTimeout({ (done: @escaping @Sendable (Data?) -> Void) -> Progress? in
+            provider.loadDataRepresentation(forTypeIdentifier: imageType.identifier) { data, _ in done(data) }
+        }) else { return nil }
+        return (data, imageType)
+    }
+
+    /// `loadItem` 을 timeout 으로 감싸 cross-process provider hang 을 끊는다. timeout·실패·타입
+    /// 불일치는 모두 nil — 한 attachment 가 막혀도 나머지(이미지+sentinel)는 계속 흐른다.
+    private static func loadItem<T: Sendable>(
+        from provider: NSItemProvider,
+        typeIdentifier: String,
+        as _: T.Type
+    ) async -> T? {
+        await loadWithItemTimeout { (done: @escaping @Sendable (T?) -> Void) -> Progress? in
+            provider.loadItem(forTypeIdentifier: typeIdentifier, options: nil) { item, _ in
+                done(item as? T)
+            }
+            return nil   // loadItem(completion:) 은 Void 반환 — 취소할 Progress 가 없다(timeout 이 직접 끊음)
+        }
+    }
+
+    /// `NSItemProvider` 의 콜백 로드를 timeout 과 경합시켜, 콜백이 영원히 안 와도 유한 시간에 nil 로 끊는다.
+    ///
+    /// **왜 structured timeout(`withThrowingTaskGroup` race)이 아닌가**: 콜백 API 는 cancellation 을
+    /// 협조 관찰하지 않아, timeout child 가 먼저 끝나도 TaskGroup 이 scope-exit 전에 hang 한 로드 child 를
+    /// 암묵적으로 await(SE-0304)해 무한 대기가 그대로 남는다. 그래서 콜백과 타이머를 **단일 continuation**
+    /// 에서 once-gate(`OSAllocatedUnfairLock`)로 경합시켜 먼저 도착한 쪽이 정확히 한 번 resume 한다.
+    /// timeout 시엔 진행 중 로드의 `Progress.cancel()` 도 시도한다.
+    private static func loadWithItemTimeout<T: Sendable>(
+        _ start: (@escaping @Sendable (T?) -> Void) -> Progress?
+    ) async -> T? {
+        await withCheckedContinuation { continuation in
+            let resumed = OSAllocatedUnfairLock(initialState: false)
+            @Sendable func finish(_ value: T?) {
+                let isFirst = resumed.withLock { done -> Bool in
+                    if done { return false }
+                    done = true
+                    return true
+                }
+                if isFirst { continuation.resume(returning: value) }
+            }
+            nonisolated(unsafe) let progress = start { finish($0) }
+            DispatchQueue.global().asyncAfter(deadline: .now() + itemLoadTimeout) {
+                progress?.cancel()
+                finish(nil)
+            }
+        }
     }
 
     private static func guessChannel(from url: URL?, hasImage: Bool) -> IngestChannel {

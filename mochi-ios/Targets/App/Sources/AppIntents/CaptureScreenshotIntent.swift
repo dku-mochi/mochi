@@ -40,6 +40,16 @@ public struct CaptureScreenshotIntent: AppIntent {
     public init() {}
 
     public func perform() async throws -> some IntentResult & ShowsSnippetView {
+        // 온보딩 백탭 검증 모드: 백탭이 여기까지 도달했다는 사실만 기록하고, 진짜 캡처는
+        // 만들지 않는다. 검증용 백탭이 쓰레기 스크린샷 `MochiItem` 을 저장하면 사용자에게
+        // 잘못된 행동을 가르치고 메모리를 오염시킨다 (codex P1). 두 분기는 반환 view 타입이
+        // 같아야 opaque 반환이 성립하므로 `BackTapResultSnippet` wrapper 로 통일한다 —
+        // `AnyView` 로 감싸면 시스템이 snippet 으로 렌더링하지 못한다.
+        if AppGroup.isBackTapVerificationActive {
+            AppGroup.markBackTapVerificationHit()
+            return .result(view: BackTapResultSnippet(kind: .verified))
+        }
+
         let data = image.data
         guard data.count <= Self.maxImageBytes else {
             throw CaptureScreenshotIntentError.imageTooLarge(data.count)
@@ -53,7 +63,7 @@ public struct CaptureScreenshotIntent: AppIntent {
         let destination = AppGroup.pendingBackTapDirectoryURL.appendingPathComponent(filename)
         try data.write(to: destination, options: [.atomic])
 
-        return .result(view: BackTapSnippetView(captureID: captureID))
+        return .result(view: BackTapResultSnippet(kind: .capture(captureID: captureID)))
     }
 
     private static let maxImageBytes = 20 * 1024 * 1024

@@ -45,7 +45,9 @@ struct BackTapShareView: View {
                 if !imageRemoved, let firstImage = imageRefs.first {
                     SharePreviewImage(imageRef: firstImage)
                         .frame(maxHeight: .infinity)
-                        .overlay(alignment: .topTrailing) { removeImageButton }
+                        .overlay(alignment: .topTrailing) {
+                            RemoveImageButton(action: removeImage)
+                        }
                         .transition(.opacity.combined(with: .scale(scale: 0.96)))
                 }
 
@@ -59,13 +61,13 @@ struct BackTapShareView: View {
                 SharePrimaryButton(title: "모찌에 저장", action: submit)
             }
             .padding(.horizontal, 16)
-            .padding(.top, 52)
+            .padding(.top, 50)
             .padding(.bottom, 16)
         }
         .overlay(alignment: .topLeading) {
             ShareCloseButton(action: onCancel)
-                .padding(.top, 10)
-                .padding(.leading, 14)
+                .padding(.top, 14)
+                .padding(.leading, 22)
         }
         .overlay(alignment: .bottom) {
             if showUndo {
@@ -76,29 +78,16 @@ struct BackTapShareView: View {
     }
 
     private var header: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 8) {
             Image("mochi-hello")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 40, height: 40)
+                .frame(width: 42, height: 42)
 
             Text(imageRemoved ? "메모를 남겨요" : "모찌에 남길까요?")
-                .font(.system(.title3, design: .rounded).weight(.bold))
+                .font(.system(size: 24, weight: .bold, design: .rounded))
                 .foregroundStyle(ShareDesign.title)
         }
-    }
-
-    /// 스크린샷 우상단 (×) — 일반 메모 모드로 전환(스크린샷 버림).
-    private var removeImageButton: some View {
-        Button(action: removeImage) {
-            Image(systemName: "xmark")
-                .font(.system(size: 13, weight: .bold))
-                .foregroundStyle(ShareDesign.subtitle)
-                .padding(8)
-                .background(.ultraThinMaterial, in: Circle())
-        }
-        .padding(10)
-        .accessibilityLabel(Text("스크린샷 없이 메모만 남기기"))
     }
 
     private var undoSnackbar: some View {

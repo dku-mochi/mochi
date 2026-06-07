@@ -107,8 +107,17 @@ private struct AppRootContainer: View {
     #if DEBUG
     /// DEBUG 에서 온보딩 노출 → 완료 시 true 로 전환되면 RootView 로 자연스럽게 양보.
     @State private var isOnboardingComplete = false
-    private let onboardingStore: StoreOf<OnboardingFeature> =
-        Store(initialState: OnboardingFeature.State()) { OnboardingFeature() }
+    /// **`@State` 필수** — `let` 이면 scenePhase 전환(`body` 의 `onChange(of: scenePhase)`)으로
+    /// `AppRootContainer` 가 재평가·재생성될 때 Store 가 새로 만들어져 온보딩이 1페이지로
+    /// 리셋된다. 백탭 검증은 단축어 실행에 따른 foreground 왕복이 일어나므로 이 보존이 필수다.
+    @State private var onboardingStore: StoreOf<OnboardingFeature> =
+        Store(initialState: OnboardingFeature.State()) {
+            OnboardingFeature()
+        } withDependencies: {
+            // 온보딩 모듈은 CorePersistence 를 의존하지 않으므로 App Group 검증 핸드셰이크
+            // 구현을 App 타겟이 주입한다 (`BackTapVerificationClient+Live.swift`).
+            $0.backTapVerification = .live
+        }
     #else
     private let isOnboardingComplete = true
     #endif
