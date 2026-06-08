@@ -43,6 +43,10 @@ class MochiItemRow(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default_factory=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default_factory=datetime.utcnow)
 
+    # soft delete — 사용자 삭제 시 행을 지우지 않고 마킹(되돌릴 수 있게, users 와 동일 패턴).
+    # 모든 조회는 deleted_at IS NULL 로 가린다.
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+
     intent_instances: Mapped[list["IntentInstanceRow"]] = relationship(back_populates="mochi_item", cascade="all, delete-orphan", default_factory=list)
     entities: Mapped[list["EntityRow"]] = relationship(back_populates="mochi_item", cascade="all, delete-orphan", default_factory=list)
     embeddings: Mapped[list["EmbeddingRow"]] = relationship(back_populates="mochi_item", cascade="all, delete-orphan", default_factory=list)

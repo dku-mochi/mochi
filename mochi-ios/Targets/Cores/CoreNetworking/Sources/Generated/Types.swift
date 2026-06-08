@@ -104,6 +104,16 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `GET /api/v1/mochi_items/{mochi_item_id}`.
     /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/get(get_mochi_item_api_v1_mochi_items__mochi_item_id__get)`.
     func get_mochi_item_api_v1_mochi_items__mochi_item_id__get(_ input: Operations.get_mochi_item_api_v1_mochi_items__mochi_item_id__get.Input) async throws -> Operations.get_mochi_item_api_v1_mochi_items__mochi_item_id__get.Output
+    /// Delete Mochi Item
+    ///
+    /// 기록 soft delete — 행을 지우지 않고 ``deleted_at`` 마킹(되돌릴 수 있게, users 동일 패턴).
+    ///
+    /// owner-scoped. 없는/이미 삭제된/다른 owner 항목은 404(`mochi_item.not_found`). 이후 모든 조회
+    /// (find/list/calendar/todos)가 ``deleted_at IS NULL`` 로 가려 목록·캘린더에서 사라진다.
+    ///
+    /// - Remark: HTTP `DELETE /api/v1/mochi_items/{mochi_item_id}`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/delete(delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete)`.
+    func delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete(_ input: Operations.delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete.Input) async throws -> Operations.delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete.Output
     /// Reanalyze Mochi Item
     ///
     /// needs_review 항목 재분석 — "다른 의도"에서 사용자가 적은 의도 힌트로 다시 분석한다.
@@ -346,6 +356,18 @@ extension APIProtocol {
             path: path,
             headers: headers
         ))
+    }
+    /// Delete Mochi Item
+    ///
+    /// 기록 soft delete — 행을 지우지 않고 ``deleted_at`` 마킹(되돌릴 수 있게, users 동일 패턴).
+    ///
+    /// owner-scoped. 없는/이미 삭제된/다른 owner 항목은 404(`mochi_item.not_found`). 이후 모든 조회
+    /// (find/list/calendar/todos)가 ``deleted_at IS NULL`` 로 가려 목록·캘린더에서 사라진다.
+    ///
+    /// - Remark: HTTP `DELETE /api/v1/mochi_items/{mochi_item_id}`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/delete(delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete)`.
+    public func delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete(path: Operations.delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete.Input.Path) async throws -> Operations.delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete.Output {
+        try await delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete(Operations.delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete.Input(path: path))
     }
     /// Reanalyze Mochi Item
     ///
@@ -3236,6 +3258,81 @@ public enum Operations {
                     .json
                 ]
             }
+        }
+    }
+    /// Delete Mochi Item
+    ///
+    /// 기록 soft delete — 행을 지우지 않고 ``deleted_at`` 마킹(되돌릴 수 있게, users 동일 패턴).
+    ///
+    /// owner-scoped. 없는/이미 삭제된/다른 owner 항목은 404(`mochi_item.not_found`). 이후 모든 조회
+    /// (find/list/calendar/todos)가 ``deleted_at IS NULL`` 로 가려 목록·캘린더에서 사라진다.
+    ///
+    /// - Remark: HTTP `DELETE /api/v1/mochi_items/{mochi_item_id}`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/delete(delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete)`.
+    public enum delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete {
+        public static let id: Swift.String = "delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/DELETE/path`.
+            public struct Path: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/DELETE/path/mochi_item_id`.
+                public var mochi_item_id: Swift.String
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - mochi_item_id:
+                public init(mochi_item_id: Swift.String) {
+                    self.mochi_item_id = mochi_item_id
+                }
+            }
+            public var path: Operations.delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete.Input.Path
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            public init(path: Operations.delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete.Input.Path) {
+                self.path = path
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct NoContent: Sendable, Hashable {
+                /// Creates a new `NoContent`.
+                public init() {}
+            }
+            /// Successful Response
+            ///
+            /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/delete(delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            case noContent(Operations.delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete.Output.NoContent)
+            /// Successful Response
+            ///
+            /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/delete(delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            public static var noContent: Self {
+                .noContent(.init())
+            }
+            /// The associated value of the enum case if `self` is `.noContent`.
+            ///
+            /// - Throws: An error if `self` is not `.noContent`.
+            /// - SeeAlso: `.noContent`.
+            public var noContent: Operations.delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete.Output.NoContent {
+                get throws {
+                    switch self {
+                    case let .noContent(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "noContent",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
         }
     }
     /// Reanalyze Mochi Item

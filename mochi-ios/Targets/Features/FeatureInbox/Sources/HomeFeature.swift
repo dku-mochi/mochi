@@ -55,6 +55,12 @@ public struct HomeFeature: Sendable {
         case toggleProcessing
         case mochiItemTapped(MochiItem.ID)
         case openSettingsTapped
+        case replayOnboardingTapped
+        case delegate(Delegate)
+
+        public enum Delegate: Equatable, Sendable {
+            case onboardingRequested
+        }
     }
 
     @Dependency(\.mochiItemRepository) var repository
@@ -227,6 +233,12 @@ public struct HomeFeature: Sendable {
 
             case .mochiItemTapped, .openSettingsTapped:
                 // 상위 Feature 가 처리 (탭 이동·모달·navigation).
+                return .none
+
+            case .replayOnboardingTapped:
+                return .send(.delegate(.onboardingRequested))
+
+            case .delegate:
                 return .none
             }
         }

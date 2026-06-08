@@ -228,6 +228,15 @@ public actor RealmMochiItemRepository: MochiItemRepository {
         }
     }
 
+    public func delete(id: UUID) async throws {
+        try await write { realm in
+            guard let row = realm.object(ofType: RealmMochiItem.self, forPrimaryKey: id.uuidString) else {
+                return  // 이미 없으면 no-op (서버 삭제 후 로컬 정리 재시도 안전)
+            }
+            realm.delete(row)
+        }
+    }
+
     // MARK: - Change observation
 
     /// Realm collection 알림으로 변경을 감지해 스트림으로 방출한다.

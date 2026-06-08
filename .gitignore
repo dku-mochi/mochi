@@ -47,5 +47,8 @@ __pycache__/
 # AI 하네스 로컬 캐시 (codex 세션 id 등 — 머신 로컬, 공유 불필요)
 .context/
 
+# AI 서브에이전트 격리 worktree (도구가 생성, 머신 로컬 — 커밋 금지)
+.claude/worktrees/
+
 # 숏컷 작업 공간 (로컬 전용 — 단축어 후보 .shortcut·빌드 스크립트, 본인 관리)
 shortcuts/

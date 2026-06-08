@@ -76,7 +76,7 @@ public struct HomeView: View {
             .padding(.trailing, HomeDesign.Spacing.xl)
             .padding(.bottom, HomeDesign.Spacing.lg)
         }
-        .background(Color.white.ignoresSafeArea())
+        .background(HomeDesign.Color.bg.ignoresSafeArea())
         // 홈 토큰(HomeDesign)이 light 하드코딩이라 다크모드에선 배경만 흰색이고
         // 시스템 placeholder/텍스트색이 어긋나 안 보인다 → 홈은 light 로 고정한다.
         .preferredColorScheme(.light)
@@ -336,11 +336,11 @@ public struct HomeView: View {
         imageMemoText = ""
     }
 
-    // MARK: - Background (흰 기조 + 상단 옅은 라벤더 글로우)
+    // MARK: - Background (F2F4F7 기조 + 상단 옅은 라벤더 글로우)
 
     private var backgroundLayer: some View {
         ZStack {
-            Color.white
+            HomeDesign.Color.bg
 
             LinearGradient(
                 colors: [
@@ -500,6 +500,23 @@ public struct HomeView: View {
                     .font(.system(size: 12, weight: .regular))
                     .foregroundStyle(HomeDesign.Color.textMuted)
             }
+            if hasNoMochiItems {
+                Button {
+                    store.send(.replayOnboardingTapped)
+                } label: {
+                    Label("튜토리얼 다시 보기", systemImage: "play.circle.fill")
+                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        .foregroundStyle(HomeDesign.Color.purple500)
+                        .padding(.horizontal, HomeDesign.Spacing.md)
+                        .padding(.vertical, HomeDesign.Spacing.sm)
+                        .background(
+                            Capsule(style: .continuous)
+                                .fill(HomeDesign.Color.purple50)
+                        )
+                }
+                .buttonStyle(PressableStyle())
+                .padding(.top, HomeDesign.Spacing.xs)
+            }
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, HomeDesign.Spacing.xl)
@@ -507,6 +524,10 @@ public struct HomeView: View {
             RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous)
                 .fill(HomeDesign.Color.surface.opacity(0.7))
         )
+    }
+
+    private var hasNoMochiItems: Bool {
+        store.recent.isEmpty && store.analyzing.isEmpty && store.needsReview.isEmpty
     }
 
     private func horizontalCardRow(mochiItems: [MochiItem]) -> some View {
