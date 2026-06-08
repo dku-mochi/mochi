@@ -10,8 +10,8 @@ import CoreNetworking
 /// - 빠른 입력(한 줄): `appDirectInput` 채널로 즉시 upsert + sync trigger.
 /// - ① 지금 확인해 주세요(`listNeedsReview`): 모찌가 확신 못 한 것만. 분류 버튼 = `setIntent`.
 /// - ② 모찌가 정리하고 있어요(`listAnalyzing`): 분석 응답 대기. 사용자 행동 불필요, 기본 접힘.
-/// - ④ 최근에 보낸 것들(`listRecent`): 정리 대상이 아닌 안전망(원본 확인·되돌리기).
-/// - ③ 질문 진입(`askMochiTapped`): 상위(MainTabFeature)가 채팅 탭으로 라우팅.
+/// - ③ 최근에 보낸 것들(`listRecent`): 정리 대상이 아닌 안전망(원본 확인·되돌리기).
+/// 자연어 회수(질문)는 홈에 진입점을 두지 않고 채팅·검색 탭이 담당한다.
 @Reducer
 public struct HomeFeature: Sendable {
 
@@ -46,7 +46,6 @@ public struct HomeFeature: Sendable {
         case retryAnalysisTapped(MochiItem.ID)
         case reanalyzeTapped(mochiItemID: MochiItem.ID, hint: String)
         case toggleProcessing
-        case askMochiTapped
         case mochiItemTapped(MochiItem.ID)
         case openSettingsTapped
         case urlChipTapped
@@ -181,7 +180,7 @@ public struct HomeFeature: Sendable {
                 state.isProcessingExpanded.toggle()
                 return .none
 
-            case .askMochiTapped, .mochiItemTapped, .openSettingsTapped,
+            case .mochiItemTapped, .openSettingsTapped,
                  .urlChipTapped, .screenshotChipTapped:
                 // 상위 Feature 가 처리 (탭 이동·모달·navigation·system picker).
                 return .none

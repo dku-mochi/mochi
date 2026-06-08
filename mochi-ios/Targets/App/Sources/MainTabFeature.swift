@@ -82,11 +82,6 @@ struct MainTabFeature: Sendable {
                 state.isSettingsPresented = true
                 return .none
 
-            case .home(.askMochiTapped):
-                // ③ 질문 진입 — 자연어 회수 탈출구를 채팅(질문) 탭으로 라우팅.
-                state.selectedTab = .chat
-                return .none
-
             case .home(.urlChipTapped), .home(.screenshotChipTapped):
                 // 추후 capture sheet 또는 system picker 연결. 현 단계는 no-op.
                 return .none
