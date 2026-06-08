@@ -324,11 +324,18 @@ let project = Project(
                 .post(
                     script: #"""
                     set -e
-                    SRC="${BUILT_PRODUCTS_DIR}/PackageFrameworks/RealmSwift.framework"
                     DST_DIR="${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}"
                     DST="${DST_DIR}/RealmSwift.framework"
+                    # Xcode SPM 은 빌드 종류에 따라 dynamic framework 산출 위치가 다르다.
+                    # 일반 빌드(build/run): BUILT_PRODUCTS_DIR/PackageFrameworks/ 하위.
+                    # archive 빌드: PackageFrameworks/ 는 비고, BUILT_PRODUCTS_DIR 루트 직하.
+                    # 두 경로를 모두 확인해야 archive 시 "framework not found" 로 죽지 않는다.
+                    SRC="${BUILT_PRODUCTS_DIR}/PackageFrameworks/RealmSwift.framework"
                     if [ ! -d "$SRC" ]; then
-                        echo "error: RealmSwift.framework not found at $SRC" >&2
+                        SRC="${BUILT_PRODUCTS_DIR}/RealmSwift.framework"
+                    fi
+                    if [ ! -d "$SRC" ]; then
+                        echo "error: RealmSwift.framework not found in PackageFrameworks/ nor BUILT_PRODUCTS_DIR root" >&2
                         exit 1
                     fi
                     mkdir -p "$DST_DIR"

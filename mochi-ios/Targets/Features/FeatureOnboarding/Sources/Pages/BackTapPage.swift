@@ -12,7 +12,7 @@ struct BackTapPage: View {
     @Environment(\.openURL) private var openURL
 
     /// iCloud Shortcuts 갤러리의 모찌 단축어 (`Take Screenshot → 모찌 화면 캡쳐`).
-    private static let shortcutURL = URL(string: "https://www.icloud.com/shortcuts/ff449fd3fe924e81bb0e7e931360701b")
+    private static let shortcutURL = URL(string: "https://www.icloud.com/shortcuts/e24ac8bf17ef45a088e4b3cdc76aa44b")
 
     var body: some View {
         VStack(spacing: 0) {
