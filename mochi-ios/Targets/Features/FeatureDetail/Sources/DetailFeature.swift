@@ -2,6 +2,7 @@ import Foundation
 import ComposableArchitecture
 import CoreDomain
 import CorePersistence
+import CoreNetworking
 
 @Reducer
 public struct DetailFeature: Sendable {
@@ -13,6 +14,8 @@ public struct DetailFeature: Sendable {
         public var isEditingTitle: Bool = false
         public var titleDraft: String = ""
         public var lastError: String?
+        /// 삭제 확인 alert — confirm 시 서버 soft delete + 로컬 hard delete 후 화면 pop.
+        @Presents public var deleteAlert: AlertState<Action.Alert>?
 
         public init(mochiItemID: UUID) { self.mochiItemID = mochiItemID }
     }
@@ -27,9 +30,21 @@ public struct DetailFeature: Sendable {
         case titleCommitted
         case titleEditCancelled
         case operationFailed(String)
+        // 삭제 — 더보기 메뉴 → 확인 alert → 서버 soft delete + 로컬 hard delete → 화면 pop.
+        case deleteButtonTapped
+        case deleteAlert(PresentationAction<Alert>)
+        case delegate(Delegate)
+
+        public enum Alert: Equatable, Sendable {
+            case confirmDelete
+        }
+        public enum Delegate: Equatable, Sendable {
+            case deleted
+        }
     }
 
     @Dependency(\.mochiItemRepository) var repository
+    @Dependency(\.mochiAPIClient) var apiClient
 
     public init() {}
 
@@ -89,7 +104,45 @@ public struct DetailFeature: Sendable {
             case let .operationFailed(message):
                 state.lastError = message
                 return .none
+
+            case .deleteButtonTapped:
+                state.deleteAlert = AlertState {
+                    TextState("기록을 삭제할까요?")
+                } actions: {
+                    ButtonState(role: .destructive, action: .confirmDelete) { TextState("삭제") }
+                    ButtonState(role: .cancel) { TextState("취소") }
+                } message: {
+                    TextState("삭제한 기록은 되돌릴 수 없어요.")
+                }
+                return .none
+
+            case .deleteAlert(.presented(.confirmDelete)):
+                guard let item = state.mochiItem else { return .none }
+                let localID = item.id
+                // 업로드된(서버에 존재하는) 항목만 서버 soft delete. 미업로드면 로컬만 지운다.
+                let serverID: UUID? = {
+                    if case let .uploaded(sid, _) = item.syncState { return sid }
+                    return nil
+                }()
+                return .run { send in
+                    do {
+                        if let serverID {
+                            try await apiClient.deleteMochiItem(mochiServerID: serverID)
+                        }
+                        try await repository.delete(id: localID)
+                        await send(.delegate(.deleted))
+                    } catch {
+                        await send(.operationFailed(String(describing: error)))
+                    }
+                }
+
+            case .deleteAlert:
+                return .none
+
+            case .delegate:
+                return .none
             }
         }
+        .ifLet(\.$deleteAlert, action: \.deleteAlert)
     }
 }

@@ -4,6 +4,7 @@ import FeatureAuth
 import FeatureDetail
 import FeatureMochiItem
 import FeatureInbox
+import FeatureOnboarding
 import FeatureSearch
 import FeatureSettings
 import SwiftUI
@@ -45,6 +46,11 @@ struct RootView: View {
                 // memo marker 폐기 invariant 을 깨는 system-driven dismiss 차단.
                 // 사용자 의도 종료는 모달 내부의 "취소" 또는 memoSaveFinished delegate.
                 .interactiveDismissDisabled(true)
+        }
+        .fullScreenCover(
+            item: $store.scope(state: \.onboarding, action: \.onboarding)
+        ) { onboardingStore in
+            OnboardingView(store: onboardingStore)
         }
     }
 

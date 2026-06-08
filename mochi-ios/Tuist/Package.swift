@@ -45,6 +45,9 @@ let package = Package(
         // 이미지 캐싱 (캡처 썸네일/원본 미리보기)
         .package(url: "https://github.com/onevcat/Kingfisher.git", exact: "8.1.3"),
 
+        // 사진 뷰어 — 기록상세 스크린샷 확대(zoom transition / pinch / drag dismiss)
+        .package(url: "https://github.com/JiongXing/PhotoBrowser", from: "4.0.3"),
+
         // Sign In with Google — Apple AuthenticationServices 와 함께 본 앱의 두 진입점.
         .package(url: "https://github.com/google/GoogleSignIn-iOS.git", exact: "8.0.0"),
 

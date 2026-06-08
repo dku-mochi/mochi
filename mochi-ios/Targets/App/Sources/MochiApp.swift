@@ -4,7 +4,6 @@ import Dependencies
 import CoreAuth
 import CoreNetworking
 import CorePersistence
-import FeatureOnboarding
 
 @main
 struct MochiApp: App {
@@ -95,32 +94,11 @@ struct MochiApp: App {
 /// `UILaunchScreen` 이 비어 있어 시스템은 흰 화면만 잠깐 보여주므로,
 /// 브랜딩은 여기서 일관되게 처리한다.
 ///
-/// **DEBUG 빌드 임시 경로**: 서버 미배포 상태에서 로그인 흐름을 우회하고 온보딩만
-/// 작업할 수 있도록 ``OnboardingView`` 를 먼저 노출한다. 온보딩 완료
-/// (`OnboardingFeature.Action.Delegate.finished`) 시 정상 ``RootView`` 로 페이드.
 /// Release 빌드는 기존 흐름 그대로 (스플래시 → RootView).
 private struct AppRootContainer: View {
     let rootStore: StoreOf<RootFeature>
 
     @State private var isSplashVisible = true
-
-    #if DEBUG
-    /// DEBUG 에서 온보딩 노출 → 완료 시 true 로 전환되면 RootView 로 자연스럽게 양보.
-    @State private var isOnboardingComplete = false
-    /// **`@State` 필수** — `let` 이면 scenePhase 전환(`body` 의 `onChange(of: scenePhase)`)으로
-    /// `AppRootContainer` 가 재평가·재생성될 때 Store 가 새로 만들어져 온보딩이 1페이지로
-    /// 리셋된다. 백탭 검증은 단축어 실행에 따른 foreground 왕복이 일어나므로 이 보존이 필수다.
-    @State private var onboardingStore: StoreOf<OnboardingFeature> =
-        Store(initialState: OnboardingFeature.State()) {
-            OnboardingFeature()
-        } withDependencies: {
-            // 온보딩 모듈은 CorePersistence 를 의존하지 않으므로 App Group 검증 핸드셰이크
-            // 구현을 App 타겟이 주입한다 (`BackTapVerificationClient+Live.swift`).
-            $0.backTapVerification = .live
-        }
-    #else
-    private let isOnboardingComplete = true
-    #endif
 
     private static let splashDuration: Duration = .milliseconds(1600)
 
@@ -145,22 +123,6 @@ private struct AppRootContainer: View {
 
     @ViewBuilder
     private var mainContent: some View {
-        #if DEBUG
-        if isOnboardingComplete {
-            RootView(store: rootStore)
-                .transition(.opacity)
-        } else {
-            OnboardingView(store: onboardingStore)
-                .transition(.opacity)
-                .onChange(of: onboardingStore.isFinished) { _, finished in
-                    guard finished else { return }
-                    withAnimation(.easeInOut(duration: 0.35)) {
-                        isOnboardingComplete = true
-                    }
-                }
-        }
-        #else
         RootView(store: rootStore)
-        #endif
     }
 }

@@ -86,6 +86,7 @@ let project = Project(
         .remote(url: "https://github.com/apple/swift-openapi-urlsession.git", requirement: .exact("1.0.2")),
         .remote(url: "https://github.com/realm/realm-swift.git", requirement: .exact("10.54.6")),
         .remote(url: "https://github.com/onevcat/Kingfisher.git", requirement: .exact("8.1.3")),
+        .remote(url: "https://github.com/JiongXing/PhotoBrowser", requirement: .upToNextMajor(from: "4.0.3")),
         // Sign In with Google + transitive (AppAuth / GTM*) — packageSettings 에서 framework 화.
         .remote(url: "https://github.com/google/GoogleSignIn-iOS.git", requirement: .exact("8.0.0")),
         .remote(url: "https://github.com/openid/AppAuth-iOS.git", requirement: .upToNextMajor(from: "1.7.5")),
@@ -242,12 +243,14 @@ let project = Project(
             dependencies: [
                 .target(name: "CoreDomain"),
                 .target(name: "CorePersistence"),
+                .target(name: "CoreNetworking"),
                 .target(name: "CoreIntegrations"),
                 .target(name: "DesignSystem"),
                 .package(product: "ComposableArchitecture"),
                 .package(product: "Dependencies"),
                 .package(product: "CasePaths"),
                 .package(product: "IdentifiedCollections"),
+                .package(product: "JXPhotoBrowser"),
                 .package(product: "Perception"),
                 .package(product: "PerceptionCore"),
                 .package(product: "SwiftNavigation"),
