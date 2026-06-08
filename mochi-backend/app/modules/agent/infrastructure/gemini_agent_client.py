@@ -56,11 +56,11 @@ _FINALIZE_PARAMS: dict[str, Any] = {
                 "type": "object",
                 "properties": {
                     "intent_type": {"type": "string", "enum": _INTENT_ENUM},
-                    "payload": {"type": "object", "properties": _PAYLOAD_PROPS},
+                    "payload": {"type": "object", "properties": _PAYLOAD_PROPS, "required": ["title"]},
                     "label": {"type": "string"},
                     "reasoning": {"type": "string"},
                 },
-                "required": ["intent_type", "label", "reasoning"],
+                "required": ["intent_type", "payload", "label", "reasoning"],
             },
         },
         "review_options": {
