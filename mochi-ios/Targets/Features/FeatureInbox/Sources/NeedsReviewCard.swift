@@ -321,8 +321,11 @@ struct AnalyzingCard: View {
                 }
             }
             .padding(.horizontal, HomeDesign.Spacing.xl)
+            // 카드 그림자가 스크롤 영역 상·하단에서 잘리지 않게 세로 여백 확보.
+            .padding(.vertical, HomeDesign.Spacing.sm)
         }
         .padding(.horizontal, -HomeDesign.Spacing.xl)
+        .padding(.vertical, -HomeDesign.Spacing.sm)
     }
 }
 

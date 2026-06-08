@@ -10,9 +10,9 @@ import DesignSystem
 ///  - 빠른 입력(한 줄)          "놓치기 쉬운 순간은 쉽게 남기고"
 ///  - ① 지금 확인해 주세요        모찌가 혼자 정하기 애매한 것(needsReview)
 ///  - ② 모찌가 정리하고 있어요     분석 응답 대기(analyzing), 기본 접힘
-///  - ③ 질문 진입                회수 탈출구 → 채팅 탭
-///  - ④ 최근에 보낸 것들          정리 대상 아닌 안전망(recent)
+///  - ③ 최근에 보낸 것들          정리 대상 아닌 안전망(recent)
 /// 4-Intent 라벨은 노출하지 않고 행동으로만 드러난다.
+/// 자연어 회수(질문)는 홈에 진입점을 두지 않고 채팅·검색 탭이 담당한다.
 public struct HomeView: View {
 
     @Bindable public var store: StoreOf<HomeFeature>
@@ -33,7 +33,6 @@ public struct HomeView: View {
                     quickInputBar
                     confirmSection
                     processingSection
-                    askMochiRow
                     recentSection
                 }
                 .padding(.horizontal, HomeDesign.Spacing.xl)
@@ -44,6 +43,9 @@ public struct HomeView: View {
             }
         }
         .background(Color.white.ignoresSafeArea())
+        // 홈 토큰(HomeDesign)이 light 하드코딩이라 다크모드에선 배경만 흰색이고
+        // 시스템 placeholder/텍스트색이 어긋나 안 보인다 → 홈은 light 로 고정한다.
+        .preferredColorScheme(.light)
         .task { store.send(.onAppear) }
     }
 
@@ -67,10 +69,14 @@ public struct HomeView: View {
         }
     }
 
-    // MARK: - Top bar (우측 설정만)
+    // MARK: - Top bar (좌측 워드마크 + 우측 설정)
 
     private var topBar: some View {
-        HStack {
+        HStack(spacing: 2) {
+            Text("mochi")
+                .font(.system(size: 22, weight: .heavy))
+                .tracking(-0.8)
+                .foregroundStyle(HomeDesign.Color.purple500)
             Spacer()
             CircleIconButton(systemName: "gearshape") {
                 store.send(.openSettingsTapped)
@@ -82,8 +88,6 @@ public struct HomeView: View {
 
     private var quickInputBar: some View {
         HStack(spacing: HomeDesign.Spacing.md) {
-            mochiDot(size: 28, glow: 18)
-
             TextField("까먹기 전에, 빠르게 남겨보세요", text: $store.quickMemoText, axis: .vertical)
                 .font(.system(size: 14.5, weight: .regular))
                 .foregroundStyle(HomeDesign.Color.textPrimary)
@@ -118,15 +122,17 @@ public struct HomeView: View {
             }
         }
         .padding(.horizontal, HomeDesign.Spacing.md)
-        .padding(.vertical, HomeDesign.Spacing.sm + 2)
+        .padding(.vertical, HomeDesign.Spacing.sm + 3)
         .background(
             RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
-                .fill(HomeDesign.Color.purple50.opacity(0.5))
+                .fill(HomeDesign.Color.surface)
         )
         .overlay(
             RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
                 .stroke(HomeDesign.Color.border, lineWidth: 1)
         )
+        // 상단 라벤더 글로우에 묻히지 않게 흰 작업바를 살짝 띄운다.
+        .shadow(color: HomeDesign.Color.ink900.opacity(0.05), radius: 10, x: 0, y: 3)
     }
 
     private var canSubmit: Bool {
@@ -156,30 +162,37 @@ public struct HomeView: View {
         }
     }
 
-    /// ① 빈 상태 — "비는 게 정상". 축하·보상 없이 차분하게.
+    /// ① 빈 상태 — "비는 게 정상". 축하·보상 없이 차분한 상태 패널.
+    /// 홈의 기본 화면이므로 비어 있어도 가장 큰 비중을 갖되, 행동을 요구하지 않는다.
     private var calmEmpty: some View {
-        HStack(spacing: HomeDesign.Spacing.md) {
+        VStack(spacing: HomeDesign.Spacing.md) {
             ZStack {
-                Circle().fill(HomeDesign.Color.mint100).frame(width: 38, height: 38)
+                Circle().fill(HomeDesign.Color.mint100).frame(width: 50, height: 50)
                 Image(systemName: "checkmark")
-                    .font(.system(size: 15, weight: .bold))
+                    .font(.system(size: 20, weight: .bold))
                     .foregroundStyle(HomeDesign.Color.mint400)
             }
-            Text("지금은 확인할 게 없어요. 모찌가 알아서 정리하고 있어요.")
-                .font(.system(size: 13, weight: .medium))
-                .foregroundStyle(HomeDesign.Color.textMuted)
-                .fixedSize(horizontal: false, vertical: true)
-            Spacer(minLength: 0)
+            VStack(spacing: 5) {
+                Text("지금은 확인할 게 없어요")
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(HomeDesign.Color.textPrimary)
+                Text("모찌가 새로 보낸 기억을 조용히 정리하고 있어요")
+                    .font(.system(size: 12.5, weight: .regular))
+                    .foregroundStyle(HomeDesign.Color.textMuted)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(HomeDesign.Spacing.md)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, HomeDesign.Spacing.xxl + 6)
+        .padding(.horizontal, HomeDesign.Spacing.lg)
         .background(
-            RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
+            RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous)
                 .fill(HomeDesign.Color.surface)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
-                .stroke(HomeDesign.Color.border, style: StrokeStyle(lineWidth: 1, dash: [4, 3]))
+            RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous)
+                .stroke(HomeDesign.Color.border, style: StrokeStyle(lineWidth: 1.5, dash: [5, 4]))
         )
     }
 
@@ -216,41 +229,7 @@ public struct HomeView: View {
         }
     }
 
-    // MARK: - ③ 질문 진입 (회수 탈출구)
-
-    private var askMochiRow: some View {
-        Button {
-            store.send(.askMochiTapped)
-        } label: {
-            HStack(spacing: HomeDesign.Spacing.md) {
-                mochiDot(size: 34, glow: 22)
-                VStack(alignment: .leading, spacing: 1) {
-                    Text("찾는 게 안 떠오르나요?")
-                        .font(.system(size: 13.5, weight: .bold))
-                        .foregroundStyle(HomeDesign.Color.textPrimary)
-                    Text("모찌에게 말로 물어보세요")
-                        .font(.system(size: 11.5, weight: .regular))
-                        .foregroundStyle(HomeDesign.Color.textMuted)
-                }
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(HomeDesign.Color.textFaint)
-            }
-            .padding(HomeDesign.Spacing.md)
-            .background(
-                RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
-                    .fill(HomeDesign.Color.surface)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
-                    .stroke(HomeDesign.Color.border, lineWidth: 1)
-            )
-        }
-        .buttonStyle(PressableStyle())
-    }
-
-    // MARK: - ④ 최근에 보낸 것들
+    // MARK: - ③ 최근에 보낸 것들
 
     private var recentSection: some View {
         VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
@@ -304,24 +283,11 @@ public struct HomeView: View {
                 }
             }
             .padding(.horizontal, HomeDesign.Spacing.xl)
+            // 카드 그림자가 스크롤 영역 상·하단에서 잘리지 않게 세로 여백 확보.
+            .padding(.vertical, HomeDesign.Spacing.sm)
         }
         .padding(.horizontal, -HomeDesign.Spacing.xl)
-    }
-
-    // MARK: - 모찌 dot (작은 캐릭터 placeholder)
-
-    private func mochiDot(size: CGFloat, glow: CGFloat) -> some View {
-        Circle()
-            .fill(
-                RadialGradient(
-                    colors: [HomeDesign.Color.purple200, HomeDesign.Color.purple500],
-                    center: .init(x: 0.35, y: 0.3),
-                    startRadius: 1,
-                    endRadius: glow
-                )
-            )
-            .frame(width: size, height: size)
-            .shadow(color: HomeDesign.Color.purple500.opacity(0.3), radius: 4, x: 0, y: 2)
+        .padding(.vertical, -HomeDesign.Spacing.sm)
     }
 }
 
