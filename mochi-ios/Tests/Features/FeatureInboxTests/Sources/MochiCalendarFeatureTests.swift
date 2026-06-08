@@ -90,22 +90,34 @@ final class MochiCalendarFeatureTests: XCTestCase {
         XCTAssertEqual(comps.day, 1)
     }
 
-    // MARK: - UpcomingTodoSorter
+    // MARK: - CalendarTodoSorter (todo instance 단위 펼침·정렬)
 
-    func test_sort_orders_by_deadline_then_undated_last() {
+    func test_rows_expands_multiple_todos_in_one_item_into_separate_rows() {
+        // 한 아이템에 todo 2개 → 2행(instance 단위). MochiItem 단위로 접혀 1개만 보이던 회귀 방지.
+        let twoTodos = dueItem([
+            IntentInstance(intentType: .todo, payload: IntentPayload(deadline: "2026-06-10")),
+            IntentInstance(intentType: .todo, payload: IntentPayload(deadline: "2026-06-20")),
+        ], capturedAt: iso("2026-06-01T00:00:00Z"))
+
+        let rows = CalendarTodoSorter.rows([twoTodos])
+
+        XCTAssertEqual(rows.count, 2)
+    }
+
+    func test_rows_orders_incomplete_by_deadline_then_completed_last() {
         let base = iso("2026-06-01T00:00:00Z")
         let near = todo(due: "2026-06-10T00:00:00Z", capturedAt: base)
         let far = todo(due: "2026-12-31T00:00:00Z", capturedAt: base)
-        let undated = todo(due: nil, capturedAt: base)
+        let done = dueItem([IntentInstance(
+            intentType: .todo, payload: IntentPayload(deadline: "2026-06-05"),
+            lifecycle: .archived(reason: .todoCompleted)
+        )], capturedAt: base)
 
-        let sorted = UpcomingTodoSorter.sort([far, undated, near])
+        let rows = CalendarTodoSorter.rows([far, done, near])
 
-        XCTAssertEqual(sorted.map(\.id), [near.id, far.id, undated.id])
-    }
-
-    func test_deadline_parses_iso8601_and_returns_nil_when_absent() {
-        XCTAssertNotNil(UpcomingTodoSorter.deadline(of: todo(due: "2026-06-10T23:59:00Z", capturedAt: Date())))
-        XCTAssertNil(UpcomingTodoSorter.deadline(of: todo(due: nil, capturedAt: Date())))
+        XCTAssertEqual(rows.map(\.isCompleted), [false, false, true])  // 완료는 맨 밑
+        XCTAssertEqual(rows[0].item.id, near.id)                       // 미완료 마감임박순
+        XCTAssertEqual(rows[1].item.id, far.id)
     }
 
     // MARK: - CalendarDueDate (마감/일정 추출·파싱)
