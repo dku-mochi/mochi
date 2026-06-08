@@ -419,7 +419,7 @@ intent 관련 검증된 필드(정확한 전체 스키마는 `CorePersistence/Re
 
 - **iOS → Backend**: `syncState=pendingUpload` 인 item 을 `MochiItemSyncWorker` 가 업로드. 이미지는 원본 PNG → 업로드용 JPEG(긴 변 ≤1920px, q60) 파생 → `sha256/mimeType/byteSize` 로 `POST /mochi_items/presign` → Signed URL 로 GCS 직접 PUT → `objectKey` 만 전달. 성공 → `syncState=uploaded(serverID:)`(**서버 자체 PK 보관**).
 - **Backend → iOS** (PR-B 3분담): **foreground = SSE** `/mochi_items/{id}/stream` 구독(`AgentStreamClient` live — worker `lifecycle_kind` 관찰, `final` 수신 시 `GET /mochi_items/{serverID}` 재조회). **background/종료 = APNs** push(완료 alert + LA `.ready`). **SSE 실패/끊김 = 3초 폴링 fallback**(`GET /mochi_items/{serverID}`, 제거 금지). scenePhase active 복귀 시 reconcile(SSE 재연결 + 1회 폴링). 동기 Gemini 분류는 제거됨(2026-05-30).
-- **분류 확정**: iOS `setIntent` 는 로컬 전용(instance 조작). 서버 override 라우트는 폐기됨(대표·위계 소멸).
+- **분류 확정 / 재분석**: iOS `setIntent` 는 로컬 수동 확정(`reviewOptions` 후보 칩 즉시확정 — instance 조작, 서버 미동기화). **"다른 의도" 자연어 재분석**은 `POST /mochi_items/{id}/reanalyze` 가 사용자 의도 힌트를 받아 기존 outbox→`AgentOrchestrator` 파이프라인을 **재실행**한다(같은 item 재분석 — 중복 캡처 없음). 힌트는 분석 프롬프트 context 에만 합류하고 **outbox 행에만 일시 적재**된다 — `mochi_items`/`user_memo` 에 저장하지 않는다(사용자가 직접 쓴 메모로 오해하는 것 방지). (구 "서버 override 라우트 폐기"는 대표·위계 소멸 맥락의 결정이었으나 — override≠재분석 — 재분석 라우트로 대체됨.)
 - **충돌/Catch-up**: backend master 원칙. 양방향 충돌 해소·cold-start catch-up(`/sync`)은 미구현.
 
 ---
@@ -439,6 +439,7 @@ intent 관련 검증된 필드(정확한 전체 스키마는 `CorePersistence/Re
 | `GET` | `/api/v1/mochi_items/calendar` | ✅ | 캘린더 탭 — KST 월간 집계(`year`/`month` → 날짜별 count·대표 intent·대표 썸네일 objectKey) |
 | `GET` | `/api/v1/mochi_items/todos/upcoming` | ✅ | 캘린더 탭 — 미완료(active) todo 마감 임박순. 마감일 = `entities(kind='deadline')` 서버 파싱 |
 | `GET` | `/api/v1/mochi_items/{id}/stream` | ✅ | SSE — worker `lifecycle_kind` 관찰, `node`/`final`/`failed`. iOS foreground 구독(PR-B), `final`→GET 재조회 |
+| `POST` | `/api/v1/mochi_items/{id}/reanalyze` | ✅ | "다른 의도" 재분석 — `userHint` 를 outbox 행에 실어 `AgentOrchestrator` 재실행. 힌트는 분석 프롬프트에만 합류, `mochi_items` 미저장. 응답 202 |
 | `POST` | `/api/v1/search` | ◑ | Hybrid Search 라우트 실재 · iOS 미배선 (이전 문서 '미존재' 는 오기) |
 | `POST` | `/api/v1/devices/push-token` | ✅ | APNs 토큰 등록(`apns_device` 단말 / `live_activity` item). PR-B |
 | `*` | `DELETE /{id}` · `/conversations` · `/sync` | ○ | **라우트 미존재** → §13 |

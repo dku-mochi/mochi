@@ -7,6 +7,7 @@ struct NeedsReviewCard: View {
     let mochiItems: [MochiItem]
     @Binding var page: Int
     let onClassify: (MochiItem.ID, Intent) -> Void
+    let onReanalyze: (MochiItem.ID, String) -> Void
     let onRetry: (MochiItem.ID) -> Void
 
     var body: some View {
@@ -16,7 +17,7 @@ struct NeedsReviewCard: View {
             } else {
                 TabView(selection: $page) {
                     ForEach(Array(mochiItems.enumerated()), id: \.element.id) { idx, mochiItem in
-                        AmbiguousBody(mochiItem: mochiItem, onClassify: onClassify, onRetry: onRetry)
+                        AmbiguousBody(mochiItem: mochiItem, onClassify: onClassify, onReanalyze: onReanalyze, onRetry: onRetry)
                             .tag(idx)
                     }
                 }
@@ -79,8 +80,10 @@ struct NeedsReviewCard: View {
 private struct AmbiguousBody: View {
     let mochiItem: MochiItem
     let onClassify: (MochiItem.ID, Intent) -> Void
+    let onReanalyze: (MochiItem.ID, String) -> Void
     let onRetry: (MochiItem.ID) -> Void
-    @State private var showsIntentPicker = false
+    @State private var showsHintInput = false
+    @State private var hintText = ""
 
     /// 미확정 후보 (API projection). 강등 항목·미영속 시 비어 있어 "다른 의도"만 노출된다.
     private var options: [ReviewOption] { mochiItem.analysis?.reviewOptions ?? [] }
@@ -101,15 +104,16 @@ private struct AmbiguousBody: View {
 
             choices
         }
-        .confirmationDialog(
-            "어떤 의도로 정리할까요?",
-            isPresented: $showsIntentPicker,
-            titleVisibility: .visible
-        ) {
-            ForEach(Intent.allCases, id: \.self) { intent in
-                Button(intent.displayName) { onClassify(mochiItem.id, intent) }
+        .alert("어떤 의도였는지 알려주세요", isPresented: $showsHintInput) {
+            TextField("예: 나중에 다시 보려고 저장했어요", text: $hintText)
+            Button("다시 분석") {
+                let trimmed = hintText.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !trimmed.isEmpty { onReanalyze(mochiItem.id, trimmed) }
+                hintText = ""
             }
-            Button("취소", role: .cancel) {}
+            Button("취소", role: .cancel) { hintText = "" }
+        } message: {
+            Text("모찌가 헷갈려해요. 어떤 의도였는지 한 줄로 적어주시면 모찌가 다시 분석할게요.")
         }
     }
 
@@ -200,7 +204,7 @@ private struct AmbiguousBody: View {
                         onClassify(mochiItem.id, option.intentType)
                     }
                 }
-                ManualPickChip { showsIntentPicker = true }
+                ManualPickChip { showsHintInput = true }
             }
             if isFailed {
                 RetryChip { onRetry(mochiItem.id) }
@@ -273,7 +277,7 @@ private struct RetryChip: View {
     }
 }
 
-/// "다른 의도" — 4-Intent 전체에서 사용자가 직접 고르는 진입점 (confirmationDialog 호출).
+/// "다른 의도" — 사용자가 의도를 자연어로 적어 모찌에게 재분석을 요청하는 진입점 (alert TextField → onReanalyze).
 private struct ManualPickChip: View {
     let action: () -> Void
 
@@ -317,8 +321,11 @@ struct AnalyzingCard: View {
                 }
             }
             .padding(.horizontal, HomeDesign.Spacing.xl)
+            // 카드 그림자가 스크롤 영역 상·하단에서 잘리지 않게 세로 여백 확보.
+            .padding(.vertical, HomeDesign.Spacing.sm)
         }
         .padding(.horizontal, -HomeDesign.Spacing.xl)
+        .padding(.vertical, -HomeDesign.Spacing.sm)
     }
 }
 

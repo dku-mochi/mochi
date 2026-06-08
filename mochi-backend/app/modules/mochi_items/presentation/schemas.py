@@ -47,6 +47,18 @@ class MochiItemCreateRequest(BaseModel):
     model_config = {"populate_by_name": True}
 
 
+class ReanalyzeRequest(BaseModel):
+    """needs_review 항목 재분석 요청 — 사용자가 "다른 의도"를 고르며 자연어로 적은 의도 힌트.
+
+    힌트는 분석 프롬프트 context 에만 합류하고 **outbox 행에만 일시 적재**된다.
+    `mochi_items`·`user_memo` 에는 저장하지 않는다(사용자가 직접 쓴 메모로 오해하는 것을 막는다).
+    """
+
+    user_hint: str = Field(min_length=1, max_length=500, alias="userHint")
+
+    model_config = {"populate_by_name": True}
+
+
 class IntentPayloadResponse(BaseModel):
     """instance 의 구조화 속성 (전부 optional)."""
 

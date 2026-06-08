@@ -82,12 +82,6 @@ struct MainTabFeature: Sendable {
                 state.isSettingsPresented = true
                 return .none
 
-            case .home(.openNotificationsTapped):
-                // 현 단계 알림 inbox 화면이 없으므로 인박스 디버그 화면을 임시 진입점으로.
-                state.selectedTab = .home
-                state.isDebugInboxPresented = true
-                return .none
-
             case .home(.urlChipTapped), .home(.screenshotChipTapped):
                 // 추후 capture sheet 또는 system picker 연결. 현 단계는 no-op.
                 return .none
