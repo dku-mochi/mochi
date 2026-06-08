@@ -82,10 +82,6 @@ struct MainTabFeature: Sendable {
                 state.isSettingsPresented = true
                 return .none
 
-            case .home(.urlChipTapped), .home(.screenshotChipTapped):
-                // 추후 capture sheet 또는 system picker 연결. 현 단계는 no-op.
-                return .none
-
             case .inbox(.mochiItemTapped):
                 // dev 디버그 인박스 — push 전환 범위에서 제외(상세 진입 비활성).
                 return .none
