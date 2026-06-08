@@ -1,4 +1,5 @@
 import Foundation
+import CryptoKit
 import ComposableArchitecture
 import CoreDomain
 import CorePersistence
@@ -7,10 +8,12 @@ import CoreNetworking
 /// 홈 화면 reducer.
 ///
 /// 홈은 요약 피드가 아니라 "모찌 자동성의 예외 처리" 화면이다 (docs/PRODUCT.md §8.4).
-/// - 빠른 입력(한 줄): `appDirectInput` 채널로 즉시 upsert + sync trigger.
+/// - 빠른 입력(우하단 플로팅 버튼): 텍스트(메모/URL 자동 판별)·사진(`screenshot`)을 한 버튼에
+///   모은다. 텍스트는 한 입력창에서 받아 URL 이면 `url` 채널로, 아니면 `appDirectInput` 으로
+///   흘려보낸다 — 사용자는 링크·메모를 구분해 적을 필요가 없다. 어느 경로든 upsert + sync trigger.
 /// - ① 지금 확인해 주세요(`listNeedsReview`): 모찌가 확신 못 한 것만. 분류 버튼 = `setIntent`.
-/// - ② 모찌가 정리하고 있어요(`listAnalyzing`): 분석 응답 대기. 사용자 행동 불필요, 기본 접힘.
 /// - ③ 최근에 보낸 것들(`listRecent`): 정리 대상이 아닌 안전망(원본 확인·되돌리기).
+/// - ② 모찌가 정리하고 있어요(`listAnalyzing`): 분석 응답 대기. 사용자 행동 불필요, 화면 맨 하단·기본 접힘.
 /// 자연어 회수(질문)는 홈에 진입점을 두지 않고 채팅·검색 탭이 담당한다.
 @Reducer
 public struct HomeFeature: Sendable {
@@ -23,6 +26,8 @@ public struct HomeFeature: Sendable {
         /// 분석은 끝났으나 모찌가 확신 못 함 ("지금 확인해 주세요", `needsReview == true`).
         public var needsReview: IdentifiedArrayOf<MochiItem> = []
         public var quickMemoText: String = ""
+        /// 플로팅 버튼 → 입력 시트 표시 여부 (메모·링크 통합 창구).
+        public var isComposingMemo: Bool = false
         public var needsReviewPage: Int = 0
         /// ② "모찌가 정리하고 있어요" 접힘 상태 (기본 접힘 — 평소엔 방해하지 않음).
         public var isProcessingExpanded: Bool = false
@@ -41,6 +46,8 @@ public struct HomeFeature: Sendable {
         case loadFailed(String)
         case quickMemoSubmitted
         case quickMemoSaved
+        /// 사진(라이브러리/카메라) 선택 결과 — JPEG 데이터 + 사용자 메모(선택)를 캡처로 ingest.
+        case imagePicked(data: Data, memo: String)
         case classifyTapped(mochiItemID: MochiItem.ID, intent: Intent)
         case classifyFinished
         case retryAnalysisTapped(MochiItem.ID)
@@ -48,8 +55,6 @@ public struct HomeFeature: Sendable {
         case toggleProcessing
         case mochiItemTapped(MochiItem.ID)
         case openSettingsTapped
-        case urlChipTapped
-        case screenshotChipTapped
     }
 
     @Dependency(\.mochiItemRepository) var repository
@@ -101,6 +106,9 @@ public struct HomeFeature: Sendable {
 
             case let .loadFailed(message):
                 state.isLoading = false
+                // 저장 실패도 이 경로로 들어오므로 isSaving 을 함께 복구한다 —
+                // 안 풀면 메모 저장 버튼(.disabled(store.isSaving))이 영구 비활성으로 잠긴다.
+                state.isSaving = false
                 state.lastError = message
                 return .none
 
@@ -110,12 +118,13 @@ public struct HomeFeature: Sendable {
                 state.isSaving = true
                 let id = uuid()
                 let now = date.now
-                let source = IngestSource(
-                    id: id,
-                    channel: .appDirectInput,
-                    text: text,
-                    capturedAt: now
-                )
+                // 한 입력창에 링크든 메모든 적는다 — 내용이 URL 한 건이면 url 채널로, 아니면 메모로.
+                let source: IngestSource
+                if let url = Self.normalizedURL(text) {
+                    source = IngestSource(id: id, channel: Self.channel(for: url), url: url, capturedAt: now)
+                } else {
+                    source = IngestSource(id: id, channel: .appDirectInput, text: text, capturedAt: now)
+                }
                 return .run { send in
                     do {
                         try await repository.upsert(MochiItem(source: source, createdAt: now, updatedAt: now))
@@ -130,7 +139,43 @@ public struct HomeFeature: Sendable {
             case .quickMemoSaved:
                 state.isSaving = false
                 state.quickMemoText = ""
+                state.isComposingMemo = false
                 return .none
+
+            case let .imagePicked(data, memo):
+                // 백탭 캡처(CommitBackTapCaptureIntent)와 동일 경로: App Group captures/ 로 atomic write +
+                // .pendingUpload 로 upsert → MochiItemSyncWorker 가 다음 tick 에 ingest.
+                // 사용자가 남긴 메모는 ShareExt 와 동일하게 userMemo(분석 confidence 신호)로 격리한다.
+                let id = uuid()
+                let now = date.now
+                let trimmedMemo = memo.trimmingCharacters(in: .whitespacesAndNewlines)
+                return .run { send in
+                    do {
+                        let digest = SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
+                        let filename = "\(id.uuidString).jpg"
+                        let permanent = AppGroup.capturedImagesDirectoryURL.appendingPathComponent(filename)
+                        try data.write(to: permanent, options: [.atomic])
+                        let ref = ImageRef(
+                            relativePath: "captures/\(filename)",
+                            mimeType: "image/jpeg",
+                            byteSize: data.count,
+                            sha256: digest,
+                            objectKey: nil
+                        )
+                        let source = IngestSource(
+                            id: id,
+                            channel: .screenshot,
+                            imageRefs: [ref],
+                            userMemo: trimmedMemo.isEmpty ? nil : trimmedMemo,
+                            capturedAt: now
+                        )
+                        try await repository.upsert(MochiItem(source: source, createdAt: now, updatedAt: now))
+                        await syncTrigger.runOnce()
+                        await loadAll(send: send)
+                    } catch {
+                        await send(.loadFailed(String(describing: error)))
+                    }
+                }
 
             case let .classifyTapped(mochiItemID, intent):
                 return .run { send in
@@ -180,9 +225,8 @@ public struct HomeFeature: Sendable {
                 state.isProcessingExpanded.toggle()
                 return .none
 
-            case .mochiItemTapped, .openSettingsTapped,
-                 .urlChipTapped, .screenshotChipTapped:
-                // 상위 Feature 가 처리 (탭 이동·모달·navigation·system picker).
+            case .mochiItemTapped, .openSettingsTapped:
+                // 상위 Feature 가 처리 (탭 이동·모달·navigation).
                 return .none
             }
         }
@@ -199,5 +243,27 @@ public struct HomeFeature: Sendable {
         let (recent, analyzing, needsReview) = await (recentTask, analyzingTask, needsReviewTask)
 
         await send(.sectionsLoaded(recent: recent, analyzing: analyzing, needsReview: needsReview))
+    }
+
+    /// 사용자가 적은 raw 문자열을 http(s) URL 로 정규화. scheme 누락 시 https 를 붙이고,
+    /// http/https 가 아니거나(예: ftp://) host 가 없으면(빈 문자열·평문 메모) nil → ingest 하지 않는다.
+    static func normalizedURL(_ raw: String) -> URL? {
+        guard !raw.isEmpty else { return nil }
+        let candidate = raw.contains("://") ? raw : "https://\(raw)"
+        guard let url = URL(string: candidate),
+              let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https",
+              let host = url.host, !host.isEmpty else { return nil }
+        return url
+    }
+
+    /// host 기반 채널 추론 — `ShareExtensionPrincipal.guessChannel` 과 동일 규칙(앱 내 URL 입력도
+    /// 같은 enrich 채널로 흘려보내 분석 일관성 유지).
+    static func channel(for url: URL) -> IngestChannel {
+        guard let host = url.host?.lowercased() else { return .appShareSheet }
+        if host.contains("youtube.com") || host.contains("youtu.be") { return .youtube }
+        if host.contains("instagram.com") { return .instagram }
+        if host.contains("kakao") { return .kakaoTalk }
+        if host.contains("apple.com") || host.contains("safari") { return .safari }
+        return .appShareSheet
     }
 }

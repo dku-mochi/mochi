@@ -322,10 +322,12 @@ struct AnalyzingCard: View {
             }
             .padding(.horizontal, HomeDesign.Spacing.xl)
             // 카드 그림자가 스크롤 영역 상·하단에서 잘리지 않게 세로 여백 확보.
-            .padding(.vertical, HomeDesign.Spacing.sm)
+            // AnalyzingCardCell 은 cardShadow(radius 18, y 6 → 아래 ~24pt)라 sm(8)으론 크게 잘려 xxl(24)로 키운다.
+            // 안쪽 +xxl / 바깥 -xxl 이라 그림자 여백만 늘고 섹션 간격(레이아웃)은 중립.
+            .padding(.vertical, HomeDesign.Spacing.xxl)
         }
         .padding(.horizontal, -HomeDesign.Spacing.xl)
-        .padding(.vertical, -HomeDesign.Spacing.sm)
+        .padding(.vertical, -HomeDesign.Spacing.xxl)
     }
 }
 

@@ -1,4 +1,6 @@
 import SwiftUI
+import PhotosUI
+import UIKit
 import ComposableArchitecture
 import CoreDomain
 import CorePersistence
@@ -7,46 +9,331 @@ import DesignSystem
 /// 모찌 홈 화면 — "자동성의 예외 처리" 인박스 (docs/PRODUCT.md §8.4).
 ///
 /// 위 → 아래:
-///  - 빠른 입력(한 줄)          "놓치기 쉬운 순간은 쉽게 남기고"
 ///  - ① 지금 확인해 주세요        모찌가 혼자 정하기 애매한 것(needsReview)
-///  - ② 모찌가 정리하고 있어요     분석 응답 대기(analyzing), 기본 접힘
 ///  - ③ 최근에 보낸 것들          정리 대상 아닌 안전망(recent)
+///  - ② 모찌가 정리하고 있어요     분석 응답 대기(analyzing), 맨 하단·기본 접힘
+/// 우하단 플로팅 버튼(+)이 빠른 입력 — 메모·URL·사진(이미지/카메라)을 한 버튼에 모은다.
 /// 4-Intent 라벨은 노출하지 않고 행동으로만 드러난다.
 /// 자연어 회수(질문)는 홈에 진입점을 두지 않고 채팅·검색 탭이 담당한다.
 public struct HomeView: View {
 
     @Bindable public var store: StoreOf<HomeFeature>
     @FocusState private var quickMemoFocused: Bool
+    /// 사진 라이브러리 picker 선택 항목 (선택 후 JPEG 로 변환해 store 로 보낸 뒤 nil 로 리셋).
+    @State private var selectedPhotoItem: PhotosPickerItem?
+    @State private var isPhotoLibraryPresented = false
+    @State private var isCameraPresented = false
+    /// 플로팅 버튼(+)을 탭하면 뜨는 커스텀 입력 모달 표시 여부 (순수 UI 상태).
+    @State private var isComposeMenuPresented = false
+    /// 선택된 이미지 — 메모 입력 시트로 넘긴다(ShareExt 처럼 사진+간단 메모). nil 이면 시트 미표시.
+    @State private var pendingImage: PendingImage?
+    @State private var imageMemoText = ""
+    /// 카메라 촬영 결과 임시 보관 — fullScreenCover 가 완전히 닫힌 뒤 메모 시트를 띄우기 위함.
+    @State private var capturedCameraData: Data?
 
     public init(store: StoreOf<HomeFeature>) {
         self.store = store
     }
 
     public var body: some View {
-        ZStack {
+        ZStack(alignment: .bottomTrailing) {
             backgroundLayer.ignoresSafeArea()
 
             ScrollView(showsIndicators: false) {
                 VStack(spacing: HomeDesign.Spacing.xl) {
                     topBar
                         .padding(.top, HomeDesign.Spacing.sm)
-                    quickInputBar
                     confirmSection
-                    processingSection
                     recentSection
+                    processingSection
                 }
                 .padding(.horizontal, HomeDesign.Spacing.xl)
                 .padding(.top, HomeDesign.Spacing.md)
+                // 우하단 플로팅 버튼에 마지막 섹션이 가리지 않도록 하단 여백 확보.
+                .padding(.bottom, 88)
             }
             .refreshable {
                 await store.send(.refresh).finish()
             }
+
+            // 모달 바깥(dim)을 탭하면 닫힌다.
+            if isComposeMenuPresented {
+                HomeDesign.Color.ink900.opacity(0.22)
+                    .ignoresSafeArea()
+                    .transition(.opacity)
+                    .onTapGesture { closeComposeMenu() }
+            }
+
+            VStack(alignment: .trailing, spacing: HomeDesign.Spacing.md) {
+                if isComposeMenuPresented {
+                    composeMenuCard
+                        .transition(
+                            .scale(scale: 0.85, anchor: .bottomTrailing).combined(with: .opacity)
+                        )
+                }
+                floatingActionButton
+            }
+            .padding(.trailing, HomeDesign.Spacing.xl)
+            .padding(.bottom, HomeDesign.Spacing.lg)
         }
         .background(Color.white.ignoresSafeArea())
         // 홈 토큰(HomeDesign)이 light 하드코딩이라 다크모드에선 배경만 흰색이고
         // 시스템 placeholder/텍스트색이 어긋나 안 보인다 → 홈은 light 로 고정한다.
         .preferredColorScheme(.light)
         .task { store.send(.onAppear) }
+        .sheet(isPresented: $store.isComposingMemo) { memoComposeSheet }
+        .sheet(item: $pendingImage) { pending in imageMemoSheet(pending) }
+        .photosPicker(isPresented: $isPhotoLibraryPresented, selection: $selectedPhotoItem, matching: .images)
+        .onChange(of: selectedPhotoItem) { _, newItem in
+            guard let newItem else { return }
+            Task {
+                if let data = try? await newItem.loadTransferable(type: Data.self),
+                   let image = UIImage(data: data),
+                   let jpeg = image.jpegData(compressionQuality: 0.9) {
+                    // 바로 ingest 하지 않고 메모 입력 시트로 — 사용자가 사진에 메모를 덧붙일 수 있게.
+                    pendingImage = PendingImage(data: jpeg)
+                }
+                selectedPhotoItem = nil
+            }
+        }
+        // 카메라가 닫히는 전환과 메모 시트가 겹치지 않도록, 촬영 데이터를 임시 보관했다가
+        // fullScreenCover 의 onDismiss 에서 메모 시트를 띄운다.
+        .fullScreenCover(isPresented: $isCameraPresented, onDismiss: {
+            if let data = capturedCameraData {
+                capturedCameraData = nil
+                pendingImage = PendingImage(data: data)
+            }
+        }) {
+            CameraPicker { data in capturedCameraData = data }
+                .ignoresSafeArea()
+        }
+    }
+
+    // MARK: - 플로팅 입력 버튼 + 커스텀 입력 모달 (메모 · URL · 이미지 · 카메라)
+
+    private var floatingActionButton: some View {
+        Button {
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.82)) {
+                isComposeMenuPresented.toggle()
+            }
+        } label: {
+            Image(systemName: "plus")
+                .font(.system(size: 21, weight: .bold))
+                .foregroundStyle(.white)
+                .frame(width: 48, height: 48)
+                .background(
+                    Circle()
+                        // 브랜드 그라데이션으로 입체감 (DESIGN.md: CTA 는 그라데이션 허용).
+                        .fill(
+                            LinearGradient(
+                                colors: [HomeDesign.Color.purple400, HomeDesign.Color.purple600],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        // DESIGN.md shadow.softPurple — 떠 있는 브랜드 CTA(그림자가 원형을 따라가게 배경에 붙임).
+                        .shadow(color: HomeDesign.Color.purple500.opacity(0.40), radius: 14, x: 0, y: 8)
+                )
+                // 모달이 열리면 + 를 45° 돌려 × 처럼 보이게 한다(닫기 어포던스).
+                .rotationEffect(.degrees(isComposeMenuPresented ? 45 : 0))
+        }
+        .buttonStyle(PressableStyle())
+        .accessibilityLabel(isComposeMenuPresented ? "입력 메뉴 닫기" : "기록 남기기")
+    }
+
+    /// + 버튼 위에 뜨는 입력 모달. 입력 수단을 파스텔 색으로 구분하고(메모=purple·이미지=mint·
+    /// 카메라=sky), 탭하면 모달을 닫고 각 입력 경로로 연결한다.
+    private var composeMenuCard: some View {
+        VStack(spacing: 0) {
+            composeMenuRow(
+                icon: "square.and.pencil",
+                tint: HomeDesign.Color.purple500, tintSoft: HomeDesign.Color.purple50,
+                title: "메모·링크 남기기", subtitle: "생각나는 걸 빠르게"
+            ) { closeComposeMenu(); store.isComposingMemo = true }
+
+            rowDivider
+            composeMenuRow(
+                icon: "photo",
+                tint: HomeDesign.Color.mint400, tintSoft: HomeDesign.Color.mint100,
+                title: "이미지에서 선택", subtitle: "갤러리에서 가져오기"
+            ) { closeComposeMenu(); isPhotoLibraryPresented = true }
+
+            // 카메라가 없는 환경(시뮬레이터)에선 항목을 숨겨 빈 화면·크래시를 막는다.
+            if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                rowDivider
+                composeMenuRow(
+                    icon: "camera",
+                    tint: HomeDesign.Color.sky400, tintSoft: HomeDesign.Color.sky100,
+                    title: "카메라로 촬영", subtitle: "지금 바로 찍기"
+                ) { closeComposeMenu(); isCameraPresented = true }
+            }
+        }
+        .padding(.vertical, HomeDesign.Spacing.sm)
+        .frame(width: 264)
+        .background(
+            RoundedRectangle(cornerRadius: HomeDesign.Radius.xl, style: .continuous)
+                .fill(HomeDesign.Color.surface)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: HomeDesign.Radius.xl, style: .continuous)
+                .stroke(HomeDesign.Color.border, lineWidth: 1)
+        )
+        // DESIGN.md shadow.elevated — 떠 있는 모달/팝오버.
+        .shadow(color: HomeDesign.Color.ink900.opacity(0.12), radius: 28, x: 0, y: 12)
+    }
+
+    /// 아이콘 원(38) 끝선에 맞춰 divider 를 들여써 텍스트 라인과 정렬한다.
+    private var rowDivider: some View {
+        Rectangle()
+            .fill(HomeDesign.Color.border)
+            .frame(height: 1)
+            .padding(.leading, HomeDesign.Spacing.lg + 38 + HomeDesign.Spacing.md)
+    }
+
+    private func composeMenuRow(
+        icon: String,
+        tint: SwiftUI.Color,
+        tintSoft: SwiftUI.Color,
+        title: String,
+        subtitle: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            HStack(spacing: HomeDesign.Spacing.md) {
+                ZStack {
+                    Circle().fill(tintSoft)
+                    Image(systemName: icon)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(tint)
+                }
+                .frame(width: 38, height: 38)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(title)
+                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .foregroundStyle(HomeDesign.Color.textPrimary)
+                    Text(subtitle)
+                        .font(.system(size: 12, weight: .regular, design: .rounded))
+                        .foregroundStyle(HomeDesign.Color.textMuted)
+                }
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(HomeDesign.Color.textFaint)
+            }
+            .padding(.horizontal, HomeDesign.Spacing.lg)
+            // 터치 영역 44pt 이상 보장 (DESIGN.md §10.1).
+            .frame(minHeight: 60)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func closeComposeMenu() {
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.82)) {
+            isComposeMenuPresented = false
+        }
+    }
+
+    // MARK: - 메모 작성 시트
+
+    private var memoComposeSheet: some View {
+        NavigationStack {
+            VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
+                // 제목을 콘텐츠 안으로 내려 입력 영역과 한 덩어리로 보이게 한다.
+                Text("빠르게 남기기")
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .foregroundStyle(HomeDesign.Color.textPrimary)
+
+                // 입력 카드가 남은 공간을 채워 키보드 바로 위까지 닿게 한다(빈 공간 제거).
+                TextField("링크든 메모든 자유롭게 남겨보세요", text: $store.quickMemoText, axis: .vertical)
+                    .font(.system(size: 16, weight: .regular, design: .rounded))
+                    .foregroundStyle(HomeDesign.Color.textPrimary)
+                    .tint(HomeDesign.Color.purple500)
+                    .focused($quickMemoFocused)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    .modifier(InputFieldCard())
+
+                HStack(spacing: HomeDesign.Spacing.xs) {
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(HomeDesign.Color.purple400)
+                    Text("링크를 붙여넣으면 내용을 정리하고, 그냥 적으면 메모로 남겨요.")
+                        .font(.system(size: 12.5, weight: .regular, design: .rounded))
+                        .foregroundStyle(HomeDesign.Color.textMuted)
+                }
+            }
+            .padding(HomeDesign.Spacing.xl)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("취소") { store.isComposingMemo = false }
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("저장") {
+                        quickMemoFocused = false
+                        store.send(.quickMemoSubmitted)
+                    }
+                    .fontWeight(.semibold)
+                    .disabled(!canSubmit || store.isSaving)
+                }
+            }
+            .task { quickMemoFocused = true }
+        }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
+    }
+
+    // MARK: - 사진 + 메모 시트 (ShareExt 의 사진+메모 흐름과 동일)
+
+    /// 선택한 이미지를 보여주고 간단한 메모(선택)를 받는다. 저장 시 `imagePicked` 로 ingest.
+    private func imageMemoSheet(_ pending: PendingImage) -> some View {
+        NavigationStack {
+            VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
+                Text("사진 남기기")
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .foregroundStyle(HomeDesign.Color.textPrimary)
+
+                if let uiImage = UIImage(data: pending.data) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxWidth: .infinity)
+                        .frame(maxHeight: 220)
+                        .clipShape(RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous)
+                                .stroke(HomeDesign.Color.border, lineWidth: 1)
+                        )
+                }
+                TextField("간단한 메모를 남겨보세요 (선택)", text: $imageMemoText, axis: .vertical)
+                    .font(.system(size: 15, weight: .regular, design: .rounded))
+                    .foregroundStyle(HomeDesign.Color.textPrimary)
+                    .lineLimit(2...5)
+                    .tint(HomeDesign.Color.purple500)
+                    .frame(maxWidth: .infinity, alignment: .topLeading)
+                    .modifier(InputFieldCard())
+                Spacer(minLength: 0)
+            }
+            .padding(HomeDesign.Spacing.xl)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("취소") { dismissImageMemo() }
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("저장") {
+                        store.send(.imagePicked(data: pending.data, memo: imageMemoText))
+                        dismissImageMemo()
+                    }
+                    .fontWeight(.semibold)
+                }
+            }
+        }
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
+    }
+
+    private func dismissImageMemo() {
+        pendingImage = nil
+        imageMemoText = ""
     }
 
     // MARK: - Background (흰 기조 + 상단 옅은 라벤더 글로우)
@@ -82,57 +369,6 @@ public struct HomeView: View {
                 store.send(.openSettingsTapped)
             }
         }
-    }
-
-    // MARK: - 빠른 입력 (한 줄, 탭하면 확장)
-
-    private var quickInputBar: some View {
-        HStack(spacing: HomeDesign.Spacing.md) {
-            TextField("까먹기 전에, 빠르게 남겨보세요", text: $store.quickMemoText, axis: .vertical)
-                .font(.system(size: 14.5, weight: .regular))
-                .foregroundStyle(HomeDesign.Color.textPrimary)
-                .lineLimit(1...4)
-                .tint(HomeDesign.Color.purple500)
-                .focused($quickMemoFocused)
-
-            if canSubmit {
-                Button {
-                    quickMemoFocused = false
-                    store.send(.quickMemoSubmitted)
-                } label: {
-                    Group {
-                        if store.isSaving {
-                            ProgressView().controlSize(.mini).tint(.white)
-                        } else {
-                            Image(systemName: "arrow.up")
-                                .font(.system(size: 14, weight: .bold))
-                                .foregroundStyle(.white)
-                        }
-                    }
-                    .frame(width: 32, height: 32)
-                    .background(Circle().fill(HomeDesign.Color.purple500))
-                }
-                .buttonStyle(PressableStyle())
-                .disabled(store.isSaving)
-            } else {
-                HStack(spacing: 4) {
-                    InputToolButton(systemName: "link") { store.send(.urlChipTapped) }
-                    InputToolButton(systemName: "camera.viewfinder") { store.send(.screenshotChipTapped) }
-                }
-            }
-        }
-        .padding(.horizontal, HomeDesign.Spacing.md)
-        .padding(.vertical, HomeDesign.Spacing.sm + 3)
-        .background(
-            RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
-                .fill(HomeDesign.Color.surface)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
-                .stroke(HomeDesign.Color.border, lineWidth: 1)
-        )
-        // 상단 라벤더 글로우에 묻히지 않게 흰 작업바를 살짝 띄운다.
-        .shadow(color: HomeDesign.Color.ink900.opacity(0.05), radius: 10, x: 0, y: 3)
     }
 
     private var canSubmit: Bool {
@@ -284,10 +520,12 @@ public struct HomeView: View {
             }
             .padding(.horizontal, HomeDesign.Spacing.xl)
             // 카드 그림자가 스크롤 영역 상·하단에서 잘리지 않게 세로 여백 확보.
-            .padding(.vertical, HomeDesign.Spacing.sm)
+            // RecentMochiCard 그림자(radius 8, y 2)엔 sm(8)이 모자라 잘려서 xl(20)로 키운다.
+            // 안쪽 +xl / 바깥 -xl 이라 그림자 여백만 늘고 섹션 간격(레이아웃)은 중립.
+            .padding(.vertical, HomeDesign.Spacing.xl)
         }
         .padding(.horizontal, -HomeDesign.Spacing.xl)
-        .padding(.vertical, -HomeDesign.Spacing.sm)
+        .padding(.vertical, -HomeDesign.Spacing.xl)
     }
 }
 
@@ -352,24 +590,69 @@ private struct CircleIconButton: View {
     }
 }
 
-// MARK: - Input tool button (빠른 입력 바의 링크·스크린샷 진입)
+// MARK: - Input field card (시트 텍스트 입력 영역 공통 스타일)
 
-private struct InputToolButton: View {
-    let systemName: String
-    let action: () -> Void
+/// 메모·사진 시트의 텍스트 입력을 연한 라벤더 카드로 감싸 입력 영역을 또렷하게 한다.
+private struct InputFieldCard: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .padding(HomeDesign.Spacing.md)
+            .background(
+                RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
+                    .fill(HomeDesign.Color.purple50)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
+                    .stroke(HomeDesign.Color.border, lineWidth: 1)
+            )
+    }
+}
 
-    var body: some View {
-        Button(action: action) {
-            Image(systemName: systemName)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(HomeDesign.Color.textMuted)
-                .frame(width: 32, height: 32)
-                .background(
-                    Circle().fill(HomeDesign.Color.surface)
-                )
-                .overlay(Circle().stroke(HomeDesign.Color.border, lineWidth: 1))
+// MARK: - Pending image (메모 입력 시트로 넘길 선택 이미지)
+
+/// `.sheet(item:)` 으로 메모 시트를 띄우기 위한 JPEG 래퍼.
+private struct PendingImage: Identifiable {
+    let id = UUID()
+    let data: Data
+}
+
+// MARK: - Camera picker (카메라 촬영 → JPEG)
+
+/// `UIImagePickerController(.camera)` 래퍼. 촬영 결과를 JPEG 데이터로 콜백한다.
+/// 라이브러리 선택은 SwiftUI `PhotosPicker` 를 직접 쓰고, 카메라만 UIKit 래핑이 필요하다.
+private struct CameraPicker: UIViewControllerRepresentable {
+    let onCapture: (Data) -> Void
+    @Environment(\.dismiss) private var dismiss
+
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.sourceType = .camera
+        picker.delegate = context.coordinator
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+
+    final class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let parent: CameraPicker
+        init(_ parent: CameraPicker) { self.parent = parent }
+
+        func imagePickerController(
+            _ picker: UIImagePickerController,
+            didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]
+        ) {
+            if let image = info[.originalImage] as? UIImage,
+               let jpeg = image.jpegData(compressionQuality: 0.9) {
+                parent.onCapture(jpeg)
+            }
+            parent.dismiss()
         }
-        .buttonStyle(PressableStyle())
+
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            parent.dismiss()
+        }
     }
 }
 
