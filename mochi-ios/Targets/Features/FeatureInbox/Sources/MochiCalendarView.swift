@@ -161,12 +161,11 @@ public struct MochiCalendarView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.vertical, HomeDesign.Spacing.lg)
             } else {
-                ForEach(store.upcomingTodos) { todo in
+                ForEach(store.upcomingTodos) { row in
                     UpcomingTodoRow(
-                        item: todo,
-                        isCompleted: CalendarTodoSorter.isCompleted(todo),
-                        onToggle: { store.send(.todoCompletionToggled(todo)) },
-                        onTap: { store.send(.mochiItemTapped(todo.id)) }
+                        row: row,
+                        onToggle: { store.send(.todoCompletionToggled(row)) },
+                        onTap: { store.send(.mochiItemTapped(row.item.id)) }
                     )
                 }
             }
@@ -285,10 +284,12 @@ private struct DayCell: View {
 // MARK: - Upcoming todo row
 
 private struct UpcomingTodoRow: View {
-    let item: MochiItem
-    let isCompleted: Bool
+    let row: TodoRowItem
     let onToggle: () -> Void
     let onTap: () -> Void
+
+    private var item: MochiItem { row.item }
+    private var isCompleted: Bool { row.isCompleted }
 
     var body: some View {
         HStack(spacing: HomeDesign.Spacing.md) {
@@ -311,9 +312,10 @@ private struct UpcomingTodoRow: View {
                             .strikethrough(isCompleted, color: HomeDesign.Color.textFaint)
                             .lineLimit(1)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                        Text(deadlineLabel)
+                        Text(row.instance.label.map { "\($0) · \(deadlineLabel)" } ?? deadlineLabel)
                             .font(.system(size: 11, weight: .medium))
                             .foregroundStyle(isCompleted ? HomeDesign.Color.textFaint : deadlineColor)
+                            .lineLimit(1)
                     }
                     Image(systemName: "chevron.right")
                         .font(.system(size: 11, weight: .semibold))
@@ -336,7 +338,7 @@ private struct UpcomingTodoRow: View {
         .animation(.spring(response: 0.3, dampingFraction: 0.75), value: isCompleted)
     }
 
-    private var deadline: Date? { UpcomingTodoSorter.deadline(of: item) }
+    private var deadline: Date? { row.deadline }
 
     private var deadlineLabel: String {
         if isCompleted { return "완료함" }
