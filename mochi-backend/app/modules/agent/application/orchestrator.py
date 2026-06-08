@@ -68,7 +68,9 @@ class AgentOrchestrator:
         self._gateway = gateway
         self._profile_store = profile_store
 
-    async def run(self, mochi_item_id: UUID, owner_id: UUID) -> AsyncIterator[StreamEvent]:
+    async def run(
+        self, mochi_item_id: UUID, owner_id: UUID, reanalysis_hint: str | None = None
+    ) -> AsyncIterator[StreamEvent]:
         agent_run = AgentRun(mochi_item_id=mochi_item_id)
 
         if self._persistence is not None:
@@ -92,7 +94,7 @@ class AgentOrchestrator:
                 if node is AgentNode.ANALYZED and self._gateway is not None:
                     # gateway 가 없으면(예: /stream progress shell) 분석/ write-back 을 건너뛴다 —
                     # 실제 분석은 outbox 워커(gateway 주입)가 단일 소유한다 (이중 실행 방지).
-                    async for event in self._analyze(agent_run, owner_id, mochi_item_id):
+                    async for event in self._analyze(agent_run, owner_id, mochi_item_id, reanalysis_hint):
                         if isinstance(event, AnalysisResult):
                             analysis = event
                         else:
@@ -118,7 +120,11 @@ class AgentOrchestrator:
             raise
 
     async def _analyze(
-        self, agent_run: AgentRun, owner_id: UUID, mochi_item_id: UUID
+        self,
+        agent_run: AgentRun,
+        owner_id: UUID,
+        mochi_item_id: UUID,
+        reanalysis_hint: str | None = None,
     ) -> "AsyncIterator[StreamEvent | AnalysisResult]":
         """agentic 루프. 진행 StreamEvent 들을 yield 하고, 마지막에 ``AnalysisResult`` 를 yield."""
         if self._gateway is None:
@@ -152,7 +158,7 @@ class AgentOrchestrator:
         )
         system_prompt = ACTIVE_PROMPT.body + _profile_preamble(profile_summary)
 
-        first_user: dict[str, Any] = {"role": "user", "text": _initial_user_text(source)}
+        first_user: dict[str, Any] = {"role": "user", "text": _initial_user_text(source, reanalysis_hint)}
         if source.images:
             first_user["images"] = list(source.images)
         parts: list[dict[str, Any]] = [first_user]
@@ -441,7 +447,7 @@ def _profile_preamble(summary: str | None) -> str:
 KOREA_TZ = ZoneInfo("Asia/Seoul")
 
 
-def _initial_user_text(source: AnalysisInput) -> str:
+def _initial_user_text(source: AnalysisInput, reanalysis_hint: str | None = None) -> str:
     blocks: list[str] = []
     blocks.append(_korea_time_context())
     if source.text:
@@ -452,6 +458,13 @@ def _initial_user_text(source: AnalysisInput) -> str:
         blocks.append(f"사용자 메모: {source.user_memo}")
     if source.images:
         blocks.append("첨부된 스크린샷/이미지를 함께 분석하세요.")
+    if reanalysis_hint:
+        # "다른 의도" 재분석 — 사용자가 직접 적은 의도. user_memo 와 구분해서 우선 반영.
+        blocks.append(
+            "# 재분석 요청\n"
+            "이전 분석이 헷갈려 사용자가 '다른 의도'로 다시 분석해 달라고 했습니다. "
+            f"아래 사용자 의도를 우선 반영해 다시 분류하세요: {reanalysis_hint}"
+        )
     text = "\n\n".join(blocks)
     return text if text else "(빈 항목)"
 

@@ -3,6 +3,7 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Header, Query, status
+from sqlalchemy import text
 
 from app.core.config import get_settings
 from app.core.deps import CaptureImageStorageDep, DBSession
@@ -29,6 +30,7 @@ from app.modules.mochi_items.presentation.schemas import (
     MonthlyCalendarResponse,
     PresignRequest,
     PresignResponse,
+    ReanalyzeRequest,
     ReviewOptionResponse,
     UpcomingTodoListResponse,
     UpcomingTodoResponse,
@@ -326,3 +328,32 @@ async def get_mochi_item(mochi_item_id: UUID, db: DBSession, user: CurrentUser) 
     if not item:
         raise NotFoundError("Mochi item not found", code="mochi_item.not_found")
     return _to_response(item)
+
+
+@router.post("/{mochi_item_id}/reanalyze", status_code=status.HTTP_202_ACCEPTED)
+async def reanalyze_mochi_item(
+    mochi_item_id: UUID,
+    payload: ReanalyzeRequest,
+    db: DBSession,
+    user: CurrentUser,
+) -> None:
+    """needs_review 항목 재분석 — "다른 의도"에서 사용자가 적은 의도 힌트로 다시 분석한다.
+
+    기존 outbox→``AgentOrchestrator`` 파이프라인을 그대로 재실행하되, 힌트를 분석 프롬프트에만
+    합류시킨다(outbox 행에 일시 적재, ``mochi_items`` 미저장 — 사용자 메모 오염 방지).
+    같은 item 을 재분석하므로 중복 캡처가 생기지 않는다.
+    """
+    repo = PostgresMochiItemRepository(db)
+    item = await repo.find_by_id(owner_id=user, mochi_item_id=mochi_item_id)
+    if not item:
+        raise NotFoundError("Mochi item not found", code="mochi_item.not_found")
+    # 폴링이 직전 분석의 stale `analyzed` 를 재적용하지 않도록 처리상태를 분석 대기로 되돌린다 —
+    # worker 가 재분석을 끝내면 다시 `analyzed` 로 전이한다(UPDATE 패턴은 worker 와 동일).
+    await db.execute(
+        text("UPDATE mochi_items SET lifecycle_kind='ingested' WHERE id=:id AND owner_id=:owner"),
+        {"id": str(mochi_item_id), "owner": str(user)},
+    )
+    await OutboxNotifier(db).emit(
+        owner_id=user, mochi_item_id=mochi_item_id, reanalysis_hint=payload.user_hint
+    )
+    await db.commit()
