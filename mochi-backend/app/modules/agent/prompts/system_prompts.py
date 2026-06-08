@@ -1023,4 +1023,59 @@ CLASSIFY_AND_ACT_V12 = PromptVersion(
 )
 
 
-ACTIVE_PROMPT: PromptVersion = CLASSIFY_AND_ACT_V12
+CLASSIFY_AND_ACT_V13 = PromptVersion(
+    name="classify_and_act@v13",
+    body=CLASSIFY_AND_ACT_V12.body.replace(
+        (
+            "Fill only fields the capture supports (all optional): title, date, time, deadline, "
+            "person, topic, url, note. Besides title, leave unknown fields empty — don't invent."
+        ),
+        (
+            "Every stored instance MUST carry a title; the rest (date, time, deadline, person, "
+            "topic, url, note) are optional — fill only what the capture supports and leave the "
+            "rest empty, don't invent."
+        ),
+    ).replace(
+        (
+            "Fill it actively when the content is identifiable from on-screen evidence, since it's "
+            "the main recall cue; if you truly can't tell what it is, leave it empty (no forced "
+            "guessing).\n"
+        ),
+        (
+            "title is required on every stored instance — a capture you can identify well enough to "
+            "classify can almost always be named, so fill it actively. Don't pad it with surface UI "
+            "text just to fill the field. The rare capture you genuinely cannot even name is handled "
+            "by the ambiguity ladder (step 4), not by shipping a meaningless title.\n"
+        ),
+    ).replace(
+        (
+            "4. Still unclear → store exactly one memo. needs_review=false (unless step 2 also "
+            "applied).\n"
+        ),
+        (
+            "4. Still unclear → store exactly one memo. needs_review=false (unless step 2 also "
+            "applied) — except when the capture is so illegible you cannot even name what it is "
+            "(no title possible): that unreadability means the classification itself is "
+            "unreliable, so set needs_review=true.\n"
+        ),
+    ),
+    model_target="gemini-3.1-flash-lite",
+    eval_dataset_version="intent-schema-decision@2026-06-04",
+    revised_on=date(2026, 6, 8),
+    rationale=(
+        "V12 → V13: payload.title 을 optional→required 로 승격(function schema 도 payload.required="
+        "['title'] 동시 반영). 동기: iOS 카드·캘린더·기록상세가 제목으로 payload.title 을 쓰는데(요약문 "
+        "폴백 제거) 누락 시 긴 summary 가 작은 cell 을 채워 한눈에 안 들어옴. 근거(사용자 합의): 정체를 "
+        "못 짚을 정도로 모호하면 그 자체가 분류 불신뢰 신호라 ladder step4 에서 needs_review 로 빠지므로, "
+        "instance 로 저장되는 캡처는 거의 항상 title 을 만들 수 있다. 3블록 교체: payload 'all optional'"
+        "→'title 필수', title 마무리 '못 만들면 비워라'→'required·surface UI 텍스트 padding 금지', "
+        "ladder step4 에 '정체불명(title 불가)→needs_review=true' 예외 추가('유일한 모호성 규칙' 원칙 "
+        "유지 위해 ladder 안에 통합). DTO(IntentPayloadDTO.title) 는 graceful degradation 위해 optional "
+        "유지 — schema+프롬프트가 강제하고, LLM 일탈 시에도 분석 전체가 ValidationError 로 죽지 않게"
+        "(iOS 가 빈 title→summary 폴백). 분류 규칙(4 intent·ladder 분기)·도구·eval_dataset_version "
+        "불변 — title 채움 정책만 강화."
+    ),
+)
+
+
+ACTIVE_PROMPT: PromptVersion = CLASSIFY_AND_ACT_V13

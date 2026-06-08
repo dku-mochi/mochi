@@ -298,6 +298,7 @@ CREATE INDEX ix_intent_instances_owner_type_lc ON intent_instances(owner_id, int
 - **`needs_review`**: 모찌가 분류를 확신 못 해 사용자에게 물을지의 boolean. τ/τ_review threshold 가 아니라 LLM 이 holistic 하게 판단(실험에서 score calibration 보다 정확 — review acc 0.833→0.944).
 - **`review_options`**: needs_review=true 일 때 제시할 미확정 후보 `[{intent_type, label, reasoning}]`. **instance 아님**. 사용자가 고르면 그때 instance 생성. **`mochi_items.review_options` JSONB 컬럼 영속**(PR-B 컬럼 승격 — 헷갈려요 후보를 push payload·GET projection·앱 내 needsReview 버킷 fallback 이 모두 읽는다).
 - **`memo` fallback**: 대상/행동 불분명 시 memo instance 하나로 안전 보관 + needs_review=true. 미션("놓치기 쉬운 순간은 쉽게 남긴다")과 정합 — 분류를 못 해도 안 잃는다.
+- **`payload.title` 필수**(프롬프트 V13~, 2026-06-08): 저장되는 모든 instance 는 title 을 가진다. **LLM 출력 계약 레벨** — function schema `intent_instances.items.payload.required=['title']` + 프롬프트가 강제. iOS 카드·캘린더·기록상세가 제목으로 `payload.title`(대표=`representativeTitle`)을 쓰는데 요약문 폴백을 제거해, 누락 시 긴 summary 가 작은 cell 을 채우던 문제 해소. 정체조차 못 짚어 title 을 못 만들 정도면 그 자체가 분류 불신뢰 신호라 ambiguity ladder step4 에서 `needs_review=true` 로 빠진다(= instance 로 저장되는 캡처는 거의 항상 title 이 있다). 단 **DB 는 JSONB `DEFAULT '{}'` 유지**(필수는 계약 레벨이지 DB 제약 아님), **DTO `IntentPayloadDTO.title` 은 optional 유지**(graceful degradation — LLM 일탈 시에도 분석 전체가 ValidationError 로 죽지 않게, iOS 가 빈 title→summary 폴백).
 
 #### 파생 — 저장 안 함, read 시 계산 (projection)
 

@@ -108,6 +108,7 @@ public enum MochiItemKind {
 
 extension MochiItem {
     public var displayTitle: String {
+        if let headline = displayHeadline, !headline.isEmpty { return headline }
         if let summary = analysis?.summary, !summary.isEmpty { return summary }
         if let text = source.text, !text.isEmpty { return text }
         if let url = source.url { return url.host ?? url.absoluteString }
