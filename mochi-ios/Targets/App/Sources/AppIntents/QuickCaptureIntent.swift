@@ -5,8 +5,8 @@ import CorePersistence
 
 /// Siri / Spotlight / 사용자 단축어에서 호출 가능한 텍스트·URL 메모 진입점.
 ///
-/// 백탭 화면 캡처는 별도 ``CaptureScreenshotIntent`` 가 담당한다 (사용자 단축어가
-/// `Take Screenshot → 앱과 공유 → 모찌 → 모찌 화면 캡처` 로 직행).
+/// 백탭 화면 캡처는 ``ShareExtension``(`Take Screenshot → Share → 모찌`) **단일 경로**로 처리한다
+/// (2026-06-02 확정). ``CaptureScreenshotIntent`` 로 직행하던 옛 경로는 더 이상 쓰지 않는다.
 /// 이 Intent 는 음성/검색에서 빠른 메모(`memo`) 와 URL(`urlString`) 만 받는다.
 /// 자세한 surface 분리 근거는 `docs/ARCHITECTURE.md` §2.3 참고.
 ///
@@ -74,7 +74,7 @@ enum QuickCaptureIntentError: Error, CustomLocalizedStringResourceConvertible {
 ///
 /// 두 Intent 가 의도가 다른 surface 로 노출된다:
 /// - ``QuickCaptureIntent`` — 텍스트/URL 메모 (Siri/Spotlight 검색 진입)
-/// - ``CaptureScreenshotIntent`` — 이미지 (백탭 단축어가 "앱과 공유" 로 직행)
+/// - ``CaptureScreenshotIntent`` — 이미지 (레거시; 백탭은 ShareExtension 으로 이관, 이 Intent 직행은 안 씀)
 @available(iOS 17.0, *)
 public struct MochiShortcuts: AppShortcutsProvider {
     public static var appShortcuts: [AppShortcut] {

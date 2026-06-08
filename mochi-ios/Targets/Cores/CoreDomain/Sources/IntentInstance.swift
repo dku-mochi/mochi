@@ -3,8 +3,9 @@ import Foundation
 /// 한 캡처에서 추출된 의도 1건.
 ///
 /// 저장되면 곧 active — 점수·위계 없다(2026-06-04 빅뱅). 같은 `intentType` 이 여러 instance 로
-/// 중복될 수 있다(한 캡처에 todo 둘). `id` 는 로컬 식별자(Realm row·UI list)이며, 서버는 instance id 를
-/// 응답에 싣지 않으므로 동기화 시마다 새로 부여된다(서버는 전량 delete-reinsert).
+/// 중복될 수 있다(한 캡처에 todo 둘). `id` 는 **서버 instance id 를 그대로 보존한다**(2026-06-08 —
+/// 완료/완료취소 lifecycle 전이 API 의 대상 식별자). 단 재분석 시 서버가 intent_instances 를
+/// delete-reinsert 하면 id 가 갈린다(known-drift).
 public struct IntentInstance: Equatable, Sendable, Hashable, Codable, Identifiable {
     public let id: UUID
     public let intentType: Intent

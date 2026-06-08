@@ -12,11 +12,12 @@ public extension MochiItemDTO {
             summary: summary ?? "",
             instances: intentInstances.map { i in
                 IntentInstance(
+                    id: i.id,
                     intentType: i.intentType,
                     payload: Self.payload(from: i.payload),
                     label: i.label,
                     reasoning: i.reasoning,
-                    lifecycle: Self.instanceLifecycle(from: i.lifecycleKind)
+                    lifecycle: Self.instanceLifecycle(kind: i.lifecycleKind, reason: i.lifecycleArchiveReason)
                 )
             },
             needsReview: needsReview,
@@ -40,13 +41,16 @@ public extension MochiItemDTO {
         )
     }
 
-    /// 응답 instance 의 의미상태 문자열을 도메인으로. 새로 적재된 instance 는 대개 `active`.
-    /// 응답엔 archive reason 이 없어 archived 는 `userManual` 로 기본 매핑(새 적재엔 거의 없음).
-    private static func instanceLifecycle(from raw: String) -> InstanceLifecycle {
-        switch raw {
+    /// 응답 instance 의 의미상태(kind+reason)를 도메인으로. 새로 적재된 instance 는 대개 `active`.
+    /// archived 면 서버가 실은 reason(`todoCompleted` 등)을 함께 보내므로 그대로 복원한다 —
+    /// 완료 todo 가 `userManual` 로 둔갑하던 round-trip 손실을 막는다(reason 누락 시에만 userManual 폴백).
+    private static func instanceLifecycle(kind: String, reason: String?) -> InstanceLifecycle {
+        switch kind {
         case "decaying":        return .decaying
         case "reviewRequested": return .reviewRequested
-        case "archived":        return .archived(reason: .userManual)
+        case "archived":
+            let archiveReason = reason.flatMap(InstanceLifecycle.ArchiveReason.init(rawValue:)) ?? .userManual
+            return .archived(reason: archiveReason)
         default:                return .active
         }
     }

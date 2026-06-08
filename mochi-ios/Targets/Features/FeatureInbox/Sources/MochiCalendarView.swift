@@ -16,12 +16,13 @@ public struct MochiCalendarView: View {
             VStack(spacing: HomeDesign.Spacing.xl) {
                 monthHeader
                 calendarCard
+                upcomingSchedulesSection
                 upcomingTodosSection
             }
             .padding(.horizontal, HomeDesign.Spacing.lg)
             .padding(.vertical, HomeDesign.Spacing.lg)
         }
-        .background(HomeDesign.Color.bg.ignoresSafeArea())
+        .background(HomeDesign.Color.surface.ignoresSafeArea())
         .navigationTitle("캘린더")
         .navigationBarTitleDisplayMode(.inline)
         .task { store.send(.onAppear) }
@@ -115,6 +116,32 @@ public struct MochiCalendarView: View {
         }
     }
 
+    // MARK: Upcoming schedules
+
+    private var upcomingSchedulesSection: some View {
+        VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
+            HStack(spacing: 6) {
+                Image(systemName: "calendar")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(HomeDesign.Color.sky400)
+                Text("다가오는 일정")
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(HomeDesign.Color.textPrimary)
+            }
+            if store.upcomingSchedules.isEmpty {
+                Text("예정된 일정이 없어요. 모찌가 날짜 있는 일정을 발견하면 여기 모아둘게요.")
+                    .font(.system(size: 12.5))
+                    .foregroundStyle(HomeDesign.Color.textMuted)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, HomeDesign.Spacing.lg)
+            } else {
+                ForEach(store.upcomingSchedules) { schedule in
+                    UpcomingScheduleRow(item: schedule) { store.send(.mochiItemTapped(schedule.id)) }
+                }
+            }
+        }
+    }
+
     // MARK: Upcoming todos
 
     private var upcomingTodosSection: some View {
@@ -135,7 +162,12 @@ public struct MochiCalendarView: View {
                     .padding(.vertical, HomeDesign.Spacing.lg)
             } else {
                 ForEach(store.upcomingTodos) { todo in
-                    UpcomingTodoRow(item: todo) { store.send(.mochiItemTapped(todo.id)) }
+                    UpcomingTodoRow(
+                        item: todo,
+                        isCompleted: CalendarTodoSorter.isCompleted(todo),
+                        onToggle: { store.send(.todoCompletionToggled(todo)) },
+                        onTap: { store.send(.mochiItemTapped(todo.id)) }
+                    )
                 }
             }
         }
@@ -254,46 +286,60 @@ private struct DayCell: View {
 
 private struct UpcomingTodoRow: View {
     let item: MochiItem
+    let isCompleted: Bool
+    let onToggle: () -> Void
     let onTap: () -> Void
 
     var body: some View {
-        Button(action: onTap) {
-            HStack(spacing: HomeDesign.Spacing.md) {
-                Image(systemName: "checklist")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(HomeDesign.Color.butter400)
-                    .frame(width: 32, height: 32)
-                    .background(Circle().fill(HomeDesign.Color.butter50))
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(item.displayTitle)
-                        .font(.system(size: 13.5, weight: .semibold))
-                        .foregroundStyle(HomeDesign.Color.textPrimary)
-                        .lineLimit(1)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    Text(deadlineLabel)
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(deadlineColor)
-                }
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(HomeDesign.Color.textFaint)
+        HStack(spacing: HomeDesign.Spacing.md) {
+            // 완료 체크박스 — 본문과 분리된 탭 타겟. 미완료↔완료를 즉시 토글(잘못 눌러도 다시 해제 가능).
+            Button(action: onToggle) {
+                Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 22, weight: .regular))
+                    .foregroundStyle(isCompleted ? HomeDesign.Color.butter400 : HomeDesign.Color.textFaint)
+                    .contentShape(Rectangle())
             }
-            .padding(HomeDesign.Spacing.md)
-            .background(
-                RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
-                    .fill(HomeDesign.Color.surface)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
-                    .stroke(HomeDesign.Color.border, lineWidth: 1)
-            )
+            .buttonStyle(PressableStyle())
+
+            // 본문 — 탭하면 상세로.
+            Button(action: onTap) {
+                HStack(spacing: HomeDesign.Spacing.md) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(item.displayTitle)
+                            .font(.system(size: 13.5, weight: .semibold))
+                            .foregroundStyle(isCompleted ? HomeDesign.Color.textMuted : HomeDesign.Color.textPrimary)
+                            .strikethrough(isCompleted, color: HomeDesign.Color.textFaint)
+                            .lineLimit(1)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        Text(deadlineLabel)
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(isCompleted ? HomeDesign.Color.textFaint : deadlineColor)
+                    }
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(HomeDesign.Color.textFaint)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(PressableStyle())
         }
-        .buttonStyle(PressableStyle())
+        .padding(HomeDesign.Spacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
+                .fill(HomeDesign.Color.surface)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
+                .stroke(HomeDesign.Color.border, lineWidth: 1)
+        )
+        .opacity(isCompleted ? 0.65 : 1.0)
+        .animation(.spring(response: 0.3, dampingFraction: 0.75), value: isCompleted)
     }
 
     private var deadline: Date? { UpcomingTodoSorter.deadline(of: item) }
 
     private var deadlineLabel: String {
+        if isCompleted { return "완료함" }
         guard let deadline else { return "마감일 미정" }
         let calendar = Calendar.mochiSeoul
         let days = calendar.dateComponents(
@@ -313,6 +359,67 @@ private struct UpcomingTodoRow: View {
         let calendar = Calendar.mochiSeoul
         let isPast = calendar.startOfDay(for: deadline) < calendar.startOfDay(for: Date())
         return isPast ? HomeDesign.Color.blush400 : HomeDesign.Color.butter400
+    }
+}
+
+// MARK: - Upcoming schedule row
+
+private struct UpcomingScheduleRow: View {
+    let item: MochiItem
+    let onTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
+            HStack(spacing: HomeDesign.Spacing.md) {
+                Image(systemName: "calendar")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(HomeDesign.Color.sky400)
+                    .frame(width: 32, height: 32)
+                    .background(Circle().fill(HomeDesign.Color.sky100))
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(item.displayTitle)
+                        .font(.system(size: 13.5, weight: .semibold))
+                        .foregroundStyle(HomeDesign.Color.textPrimary)
+                        .lineLimit(1)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Text(scheduleLabel)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(HomeDesign.Color.sky400)
+                }
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(HomeDesign.Color.textFaint)
+            }
+            .padding(HomeDesign.Spacing.md)
+            .background(
+                RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
+                    .fill(HomeDesign.Color.surface)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
+                    .stroke(HomeDesign.Color.border, lineWidth: 1)
+            )
+        }
+        .buttonStyle(PressableStyle())
+    }
+
+    /// 일정 시각 라벨 — 오늘/내일/날짜 + (자정이 아니면) 시각. KST 고정.
+    private var scheduleLabel: String {
+        let calendar = Calendar.mochiSeoul
+        guard let date = UpcomingScheduleSorter.scheduleDate(of: item, onOrAfter: calendar.startOfDay(for: Date()))
+        else { return "날짜 미정" }
+        let days = calendar.dateComponents(
+            [.day],
+            from: calendar.startOfDay(for: Date()),
+            to: calendar.startOfDay(for: date)
+        ).day ?? 0
+        let hasTime = calendar.component(.hour, from: date) != 0 || calendar.component(.minute, from: date) != 0
+        let time = hasTime ? " " + DateFormatter.mochiSeoul("a h:mm").string(from: date) : ""
+        let day: String
+        if days == 0 { day = "오늘" }
+        else if days == 1 { day = "내일" }
+        else { day = DateFormatter.mochiSeoul("M월 d일 (E)").string(from: date) }
+        return day + time
     }
 }
 
@@ -340,7 +447,7 @@ private struct DaySheet: View {
                 }
                 .padding(HomeDesign.Spacing.lg)
             }
-            .background(HomeDesign.Color.bg.ignoresSafeArea())
+            .background(HomeDesign.Color.surface.ignoresSafeArea())
             .navigationTitle(Self.title(date))
             .navigationBarTitleDisplayMode(.inline)
         }

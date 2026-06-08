@@ -15,6 +15,11 @@ public struct SettingsView: View {
                 Toggle("캘린더 동기화", isOn: $store.calendarSyncEnabled)
                 Toggle("미리알림 동기화", isOn: $store.reminderSyncEnabled)
             }
+            Section {
+                Button("로그아웃", role: .destructive) {
+                    store.send(.logoutButtonTapped)
+                }
+            }
         }
         .navigationTitle("설정")
     }

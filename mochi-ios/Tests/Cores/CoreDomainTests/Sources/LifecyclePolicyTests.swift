@@ -35,6 +35,17 @@ final class LifecyclePolicyTests: XCTestCase {
         if case .failure = result {} else { XCTFail("memo must not enter reviewRequested") }
     }
 
+    func test_todo_can_uncomplete_archived_to_active() {
+        // 완료 취소 — 사용자가 todo 체크를 해제해 미완료로 되돌림(역전이). 잘못 누른 완료를 영구화하지 않는다.
+        assertValid(LifecyclePolicy.validate(from: .archived(reason: .todoCompleted), to: .active, intent: .todo))
+    }
+
+    func test_non_todo_cannot_uncomplete_archived_to_active() {
+        // 역전이는 todo 한정 — schedule 의 완료(archive)는 되돌릴 수 없다.
+        let result = LifecyclePolicy.validate(from: .archived(reason: .scheduleEnded), to: .active, intent: .schedule)
+        if case .failure = result {} else { XCTFail("schedule must not allow archived→active") }
+    }
+
     // MARK: - Helper
 
     /// `LifecyclePolicy.validate` 는 `Result<Void, LifecycleTransitionError>` 를 반환하는데

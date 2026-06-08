@@ -43,6 +43,13 @@ class NotFoundError(DomainError):
     status_code = status.HTTP_404_NOT_FOUND
 
 
+class ConflictError(DomainError):
+    """상태 충돌 — 현재 상태에서 허용되지 않는 전이/연산 (예: 불법 lifecycle 전이)."""
+
+    code = "common.conflict"
+    status_code = status.HTTP_409_CONFLICT
+
+
 class UnauthorizedError(DomainError):
     code = "common.unauthorized"
     status_code = status.HTTP_401_UNAUTHORIZED

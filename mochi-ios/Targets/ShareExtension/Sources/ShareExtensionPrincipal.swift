@@ -10,9 +10,12 @@ import CorePersistence
 /// 스토리보드 의존을 제거해 빌드 안정성·SwiftUI 사용 자유도를 확보한다.
 @objc(ShareExtensionPrincipal)
 public final class ShareExtensionPrincipal: UIViewController {
+    private static let logger = Logger(subsystem: "app.mochi.ShareExtension", category: "lifecycle")
 
     public override func viewDidLoad() {
         super.viewDidLoad()
+        Self.logger.notice("ShareExtension viewDidLoad")
+        Self.logInputProviders(extensionContext)
         view.backgroundColor = .systemBackground
 
         Task { @MainActor in
@@ -55,6 +58,18 @@ public final class ShareExtensionPrincipal: UIViewController {
             host.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
         ])
         host.didMove(toParent: self)
+    }
+
+    private static func logInputProviders(_ context: NSExtensionContext?) {
+        guard let context else {
+            logger.notice("ShareExtension context is nil")
+            return
+        }
+        for (itemIndex, item) in context.inputItems.compactMap({ $0 as? NSExtensionItem }).enumerated() {
+            for (providerIndex, provider) in (item.attachments ?? []).enumerated() {
+                logger.notice("provider[\(itemIndex),\(providerIndex)] types: \(provider.registeredTypeIdentifiers.joined(separator: ","), privacy: .public)")
+            }
+        }
     }
 
     /// 백탭 단축어 진입(이미지 1장 + 출처앱 sentinel; Safari URL 선택) → 1-step UI ``BackTapShareView``,
@@ -183,7 +198,7 @@ public final class ShareExtensionPrincipal: UIViewController {
                 // 형태로도 전달되어 `UTType.url.identifier` (public.url) 에 conform 한다.
                 // url 분기를 먼저 잡으면 이미지가 url 로 오인되어 백탭 진입 감지 (이미지 1장 + URL 없음)
                 // 가 fail 하고 `ShareEntryView` fallback 으로 떠오른다.
-                if provider.hasItemConformingToTypeIdentifier(UTType.image.identifier) {
+                if provider.hasImageLikeItem {
                     if let ref = await persistImage(from: provider) {
                         imageRefs.append(ref)
                     }
@@ -255,16 +270,30 @@ public final class ShareExtensionPrincipal: UIViewController {
     }
 
     /// provider 에서 image 바이트를 직접 읽는다 — registered 타입 중 image 에 conform 하는 첫 타입의
-    /// 표현으로 로드해 mime/확장자도 함께 돌려준다. file URL 캐스팅·cross-process coercion 의존을
-    /// 없애 단축어 in-memory 이미지도 받는다. timeout 은 ``loadWithItemTimeout`` 이 책임진다.
+    /// 표현을 우선하고, Shortcuts 가 `앱과 공유`에서 PNG 를 file provider 로 감쌀 때는 file URL 로
+    /// fallback 한다. timeout 은 ``loadWithItemTimeout`` 이 책임진다.
     private static func loadImageData(from provider: NSItemProvider) async -> (data: Data, type: UTType)? {
-        let imageType = provider.registeredTypeIdentifiers
+        let registeredImageType = provider.registeredTypeIdentifiers
             .compactMap { UTType($0) }
-            .first { $0.conforms(to: .image) } ?? .image
-        guard let data = await loadWithItemTimeout({ (done: @escaping @Sendable (Data?) -> Void) -> Progress? in
-            provider.loadDataRepresentation(forTypeIdentifier: imageType.identifier) { data, _ in done(data) }
-        }) else { return nil }
-        return (data, imageType)
+            .first(where: { $0.conforms(to: .image) })
+        if let imageType = registeredImageType {
+            guard let data = await loadWithItemTimeout({ (done: @escaping @Sendable (Data?) -> Void) -> Progress? in
+                provider.loadDataRepresentation(forTypeIdentifier: imageType.identifier) { data, _ in done(data) }
+            }) else { return nil }
+            return (data, imageType)
+        }
+
+        guard provider.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier),
+              let fileURL = await loadItem(from: provider, typeIdentifier: UTType.fileURL.identifier, as: URL.self),
+              let type = imageType(for: fileURL),
+              let data = try? Data(contentsOf: fileURL) else { return nil }
+        return (data, type)
+    }
+
+    private static func imageType(for fileURL: URL) -> UTType? {
+        guard let type = UTType(filenameExtension: fileURL.pathExtension),
+              type.conforms(to: .image) else { return nil }
+        return type
     }
 
     /// `loadItem` 을 timeout 으로 감싸 cross-process provider hang 을 끊는다. timeout·실패·타입
@@ -318,5 +347,12 @@ public final class ShareExtensionPrincipal: UIViewController {
         if host.contains("kakao") { return .kakaoTalk }
         if host.contains("apple.com") || host.contains("safari") { return .safari }
         return .appShareSheet
+    }
+}
+
+private extension NSItemProvider {
+    var hasImageLikeItem: Bool {
+        hasItemConformingToTypeIdentifier(UTType.image.identifier)
+            || hasItemConformingToTypeIdentifier(UTType.fileURL.identifier)
     }
 }

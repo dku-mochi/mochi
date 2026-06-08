@@ -115,6 +115,18 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `POST /api/v1/mochi_items/{mochi_item_id}/reanalyze`.
     /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/reanalyze/post(reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post)`.
     func reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post(_ input: Operations.reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post.Input) async throws -> Operations.reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post.Output
+    /// Update Instance Lifecycle
+    ///
+    /// intent instance 의 의미 lifecycle 전이 — 캘린더 todo 완료/완료취소.
+    ///
+    /// 완료: ``lifecycleKind=archived`` + ``archiveReason=todoCompleted``.
+    /// 완료취소: ``lifecycleKind=active``(reason 생략). 합법성은 instance 의 intent_type 으로
+    /// 검증한다 — 불법 전이는 409(`intent_instance.illegal_transition`), 없는 instance 는 404.
+    /// todo 는 양방향(완료↔미완료)이 합법이라 잘못 누른 완료를 되돌릴 수 있다.
+    ///
+    /// - Remark: HTTP `POST /api/v1/mochi_items/{mochi_item_id}/instances/{instance_id}/lifecycle`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/instances/{instance_id}/lifecycle/post(update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post)`.
+    func update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post(_ input: Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Input) async throws -> Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Output
     /// Stream Agent Run
     ///
     /// SSE 스트림 — worker 의 실제 분석 진행(``mochi_items.lifecycle_kind``)을 관찰해 흘린다.
@@ -356,6 +368,28 @@ extension APIProtocol {
             body: body
         ))
     }
+    /// Update Instance Lifecycle
+    ///
+    /// intent instance 의 의미 lifecycle 전이 — 캘린더 todo 완료/완료취소.
+    ///
+    /// 완료: ``lifecycleKind=archived`` + ``archiveReason=todoCompleted``.
+    /// 완료취소: ``lifecycleKind=active``(reason 생략). 합법성은 instance 의 intent_type 으로
+    /// 검증한다 — 불법 전이는 409(`intent_instance.illegal_transition`), 없는 instance 는 404.
+    /// todo 는 양방향(완료↔미완료)이 합법이라 잘못 누른 완료를 되돌릴 수 있다.
+    ///
+    /// - Remark: HTTP `POST /api/v1/mochi_items/{mochi_item_id}/instances/{instance_id}/lifecycle`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/instances/{instance_id}/lifecycle/post(update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post)`.
+    public func update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post(
+        path: Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Input.Path,
+        headers: Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Input.Headers = .init(),
+        body: Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Input.Body
+    ) async throws -> Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Output {
+        try await update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post(Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Input(
+            path: path,
+            headers: headers,
+            body: body
+        ))
+    }
     /// Stream Agent Run
     ///
     /// SSE 스트림 — worker 의 실제 분석 진행(``mochi_items.lifecycle_kind``)을 관찰해 흘린다.
@@ -463,6 +497,13 @@ public enum Components {
                 case fullName
                 case deviceLabel
             }
+        }
+        /// - Remark: Generated from `#/components/schemas/ArchiveReason`.
+        @frozen public enum ArchiveReason: String, Codable, Hashable, Sendable, CaseIterable {
+            case scheduleEnded = "scheduleEnded"
+            case todoCompleted = "todoCompleted"
+            case knowledgeStale = "knowledgeStale"
+            case userManual = "userManual"
         }
         /// 월간 캘린더의 하루 셀 — KST 날짜·개수·대표 Intent·대표 썸네일 object_key.
         ///
@@ -687,6 +728,47 @@ public enum Components {
             case appDirectInput = "appDirectInput"
             case unknown = "unknown"
         }
+        /// intent instance 의 의미 lifecycle (완료/만료/decay).
+        ///
+        /// item 의 처리 파이프라인 상태(``LifecycleStateKind``)와 **직교**한다. instance 는 분석
+        /// 성공 시점에만 생성되므로 항상 ``active`` 로 태어난다.
+        ///
+        /// - Remark: Generated from `#/components/schemas/InstanceLifecycleKind`.
+        @frozen public enum InstanceLifecycleKind: String, Codable, Hashable, Sendable, CaseIterable {
+            case active = "active"
+            case decaying = "decaying"
+            case reviewRequested = "reviewRequested"
+            case archived = "archived"
+        }
+        /// intent instance 의 의미 lifecycle 전이 요청 — 캘린더 todo 완료/완료취소.
+        ///
+        /// 완료: ``lifecycleKind=archived`` + ``archiveReason=todoCompleted``.
+        /// 완료취소: ``lifecycleKind=active`` (reason 생략). 전이 합법성은 instance 의 intent_type 으로
+        /// ``lifecycle_policy`` 가 검증한다(불법이면 409).
+        ///
+        /// - Remark: Generated from `#/components/schemas/InstanceLifecycleUpdateRequest`.
+        public struct InstanceLifecycleUpdateRequest: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/InstanceLifecycleUpdateRequest/lifecycleKind`.
+            public var lifecycleKind: Components.Schemas.InstanceLifecycleKind
+            /// - Remark: Generated from `#/components/schemas/InstanceLifecycleUpdateRequest/archiveReason`.
+            public var archiveReason: Components.Schemas.ArchiveReason?
+            /// Creates a new `InstanceLifecycleUpdateRequest`.
+            ///
+            /// - Parameters:
+            ///   - lifecycleKind:
+            ///   - archiveReason:
+            public init(
+                lifecycleKind: Components.Schemas.InstanceLifecycleKind,
+                archiveReason: Components.Schemas.ArchiveReason? = nil
+            ) {
+                self.lifecycleKind = lifecycleKind
+                self.archiveReason = archiveReason
+            }
+            public enum CodingKeys: String, CodingKey {
+                case lifecycleKind
+                case archiveReason
+            }
+        }
         /// 모찌의 4-Intent 분류. iOS `CoreDomain.Intent` 와 완전히 동일한 문자열 값.
         ///
         /// - Remark: Generated from `#/components/schemas/Intent`.
@@ -698,8 +780,13 @@ public enum Components {
         }
         /// 저장된 의도 instance 1건 — 곧 active. 점수/위계 없음.
         ///
+        /// ``id`` 는 서버 instance 식별자 — iOS 가 보존해 완료/완료취소(lifecycle 전이) API 의 대상으로 쓴다.
+        /// (재분석 시 delete-reinsert 로 id 가 갈리는 한계는 known-drift — CHANGELOG 참고.)
+        ///
         /// - Remark: Generated from `#/components/schemas/IntentInstanceResponse`.
         public struct IntentInstanceResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/IntentInstanceResponse/instanceId`.
+            public var instanceId: Swift.String
             /// - Remark: Generated from `#/components/schemas/IntentInstanceResponse/intentType`.
             public var intentType: Components.Schemas.Intent
             /// - Remark: Generated from `#/components/schemas/IntentInstanceResponse/payload`.
@@ -710,33 +797,43 @@ public enum Components {
             public var reasoning: Swift.String?
             /// - Remark: Generated from `#/components/schemas/IntentInstanceResponse/lifecycleKind`.
             public var lifecycleKind: Swift.String
+            /// - Remark: Generated from `#/components/schemas/IntentInstanceResponse/lifecycleArchiveReason`.
+            public var lifecycleArchiveReason: Swift.String?
             /// Creates a new `IntentInstanceResponse`.
             ///
             /// - Parameters:
+            ///   - instanceId:
             ///   - intentType:
             ///   - payload:
             ///   - label:
             ///   - reasoning:
             ///   - lifecycleKind:
+            ///   - lifecycleArchiveReason:
             public init(
+                instanceId: Swift.String,
                 intentType: Components.Schemas.Intent,
                 payload: Components.Schemas.IntentPayloadResponse? = nil,
                 label: Swift.String? = nil,
                 reasoning: Swift.String? = nil,
-                lifecycleKind: Swift.String
+                lifecycleKind: Swift.String,
+                lifecycleArchiveReason: Swift.String? = nil
             ) {
+                self.instanceId = instanceId
                 self.intentType = intentType
                 self.payload = payload
                 self.label = label
                 self.reasoning = reasoning
                 self.lifecycleKind = lifecycleKind
+                self.lifecycleArchiveReason = lifecycleArchiveReason
             }
             public enum CodingKeys: String, CodingKey {
+                case instanceId
                 case intentType
                 case payload
                 case label
                 case reasoning
                 case lifecycleKind
+                case lifecycleArchiveReason
             }
         }
         /// instance 의 구조화 속성 (전부 optional).
@@ -3248,6 +3345,157 @@ public enum Operations {
                     default:
                         try throwUnexpectedResponseStatus(
                             expectedStatus: "accepted",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Update Instance Lifecycle
+    ///
+    /// intent instance 의 의미 lifecycle 전이 — 캘린더 todo 완료/완료취소.
+    ///
+    /// 완료: ``lifecycleKind=archived`` + ``archiveReason=todoCompleted``.
+    /// 완료취소: ``lifecycleKind=active``(reason 생략). 합법성은 instance 의 intent_type 으로
+    /// 검증한다 — 불법 전이는 409(`intent_instance.illegal_transition`), 없는 instance 는 404.
+    /// todo 는 양방향(완료↔미완료)이 합법이라 잘못 누른 완료를 되돌릴 수 있다.
+    ///
+    /// - Remark: HTTP `POST /api/v1/mochi_items/{mochi_item_id}/instances/{instance_id}/lifecycle`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/instances/{instance_id}/lifecycle/post(update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post)`.
+    public enum update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post {
+        public static let id: Swift.String = "update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/instances/{instance_id}/lifecycle/POST/path`.
+            public struct Path: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/instances/{instance_id}/lifecycle/POST/path/mochi_item_id`.
+                public var mochi_item_id: Swift.String
+                /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/instances/{instance_id}/lifecycle/POST/path/instance_id`.
+                public var instance_id: Swift.String
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - mochi_item_id:
+                ///   - instance_id:
+                public init(
+                    mochi_item_id: Swift.String,
+                    instance_id: Swift.String
+                ) {
+                    self.mochi_item_id = mochi_item_id
+                    self.instance_id = instance_id
+                }
+            }
+            public var path: Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Input.Path
+            /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/instances/{instance_id}/lifecycle/POST/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Input.Headers
+            /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/instances/{instance_id}/lifecycle/POST/requestBody`.
+            @frozen public enum Body: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/instances/{instance_id}/lifecycle/POST/requestBody/content/application\/json`.
+                case json(Components.Schemas.InstanceLifecycleUpdateRequest)
+            }
+            public var body: Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Input.Body
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            ///   - headers:
+            ///   - body:
+            public init(
+                path: Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Input.Path,
+                headers: Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Input.Headers = .init(),
+                body: Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Input.Body
+            ) {
+                self.path = path
+                self.headers = headers
+                self.body = body
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/instances/{instance_id}/lifecycle/POST/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/instances/{instance_id}/lifecycle/POST/responses/200/content/application\/json`.
+                    case json(Components.Schemas.MochiItemResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.MochiItemResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Successful Response
+            ///
+            /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/instances/{instance_id}/lifecycle/post(update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
                             response: self
                         )
                     }

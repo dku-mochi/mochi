@@ -36,6 +36,9 @@ _ALLOWED_KIND_PAIRS: dict[Intent, set[tuple[InstanceLifecycleKind, InstanceLifec
     },
     Intent.TODO: {
         (InstanceLifecycleKind.ACTIVE, InstanceLifecycleKind.ARCHIVED),
+        # 완료 취소 — 사용자가 todo 체크를 해제해 미완료로 되돌림(수동 역전이). 잘못 누른 완료를
+        # 영구화하지 않기 위한 합법 전이. archived→active 라 archive_reason 검증은 건너뛴다.
+        (InstanceLifecycleKind.ARCHIVED, InstanceLifecycleKind.ACTIVE),
     },
     Intent.KNOWLEDGE: {
         (InstanceLifecycleKind.ACTIVE, InstanceLifecycleKind.DECAYING),

@@ -623,6 +623,70 @@
         }
       }
     },
+    "/api/v1/mochi_items/{mochi_item_id}/instances/{instance_id}/lifecycle": {
+      "post": {
+        "tags": [
+          "mochi_items"
+        ],
+        "summary": "Update Instance Lifecycle",
+        "description": "intent instance 의 의미 lifecycle 전이 — 캘린더 todo 완료/완료취소.\n\n완료: ``lifecycleKind=archived`` + ``archiveReason=todoCompleted``.\n완료취소: ``lifecycleKind=active``(reason 생략). 합법성은 instance 의 intent_type 으로\n검증한다 — 불법 전이는 409(`intent_instance.illegal_transition`), 없는 instance 는 404.\ntodo 는 양방향(완료↔미완료)이 합법이라 잘못 누른 완료를 되돌릴 수 있다.",
+        "operationId": "update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post",
+        "parameters": [
+          {
+            "name": "mochi_item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Mochi Item Id"
+            }
+          },
+          {
+            "name": "instance_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Instance Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "Authorization",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InstanceLifecycleUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MochiItemResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/mochi_items/{mochi_item_id}/stream": {
       "get": {
         "tags": [
@@ -787,6 +851,16 @@
           "identityToken"
         ],
         "title": "AppleSignInRequest"
+      },
+      "ArchiveReason": {
+        "type": "string",
+        "enum": [
+          "scheduleEnded",
+          "todoCompleted",
+          "knowledgeStale",
+          "userManual"
+        ],
+        "title": "ArchiveReason"
       },
       "CalendarDayResponse": {
         "properties": {
@@ -979,6 +1053,34 @@
         ],
         "title": "IngestChannel"
       },
+      "InstanceLifecycleKind": {
+        "type": "string",
+        "enum": [
+          "active",
+          "decaying",
+          "reviewRequested",
+          "archived"
+        ],
+        "title": "InstanceLifecycleKind",
+        "description": "intent instance 의 의미 lifecycle (완료/만료/decay).\n\nitem 의 처리 파이프라인 상태(``LifecycleStateKind``)와 **직교**한다. instance 는 분석\n성공 시점에만 생성되므로 항상 ``active`` 로 태어난다."
+      },
+      "InstanceLifecycleUpdateRequest": {
+        "properties": {
+          "lifecycleKind": {
+            "$ref": "#/components/schemas/InstanceLifecycleKind"
+          },
+          "archiveReason": {
+            "$ref": "#/components/schemas/ArchiveReason",
+            "nullable": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "lifecycleKind"
+        ],
+        "title": "InstanceLifecycleUpdateRequest",
+        "description": "intent instance 의 의미 lifecycle 전이 요청 — 캘린더 todo 완료/완료취소.\n\n완료: ``lifecycleKind=archived`` + ``archiveReason=todoCompleted``.\n완료취소: ``lifecycleKind=active`` (reason 생략). 전이 합법성은 instance 의 intent_type 으로\n``lifecycle_policy`` 가 검증한다(불법이면 409)."
+      },
       "Intent": {
         "type": "string",
         "enum": [
@@ -992,6 +1094,11 @@
       },
       "IntentInstanceResponse": {
         "properties": {
+          "instanceId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Instanceid"
+          },
           "intentType": {
             "$ref": "#/components/schemas/Intent"
           },
@@ -1011,15 +1118,21 @@
           "lifecycleKind": {
             "type": "string",
             "title": "Lifecyclekind"
+          },
+          "lifecycleArchiveReason": {
+            "title": "Lifecyclearchivereason",
+            "type": "string",
+            "nullable": true
           }
         },
         "type": "object",
         "required": [
+          "instanceId",
           "intentType",
           "lifecycleKind"
         ],
         "title": "IntentInstanceResponse",
-        "description": "저장된 의도 instance 1건 — 곧 active. 점수/위계 없음."
+        "description": "저장된 의도 instance 1건 — 곧 active. 점수/위계 없음.\n\n``id`` 는 서버 instance 식별자 — iOS 가 보존해 완료/완료취소(lifecycle 전이) API 의 대상으로 쓴다.\n(재분석 시 delete-reinsert 로 id 가 갈리는 한계는 known-drift — CHANGELOG 참고.)"
       },
       "IntentPayloadResponse": {
         "properties": {
