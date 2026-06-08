@@ -23,9 +23,18 @@ public final class ShareExtensionPrincipal: UIViewController {
             // 막혀선 안 되며, 불필요한 PNG persist(→고아 청소)도 피한다.
             if AppGroup.isBackTapVerificationActive {
                 AppGroup.markBackTapVerificationHit()
+                // **먹통 수정 (탭 종료)**: 자동(타이머) `completeRequest` 는 ShareExtension scene 을
+                // teardown 못 시켜 카드 fade 후에도 익스텐션 윈도우가 살아남아 홈제스처까지 막고
+                // 잠금/해제 전엔 안 꺼졌다. 정상 캡처(`BackTapShareView`)는 사용자 탭으로
+                // `completeRequest` 를 부른다 — 검증만 타이머라 생긴 차이. 그래서 검증도 캡처와
+                // 똑같이 "완료" 탭(onDone→complete)으로 종료한다.
                 embed(UIHostingController(rootView: BackTapVerifyShareView(
                     onDone: { [weak self] in self?.complete(success: false) }
                 )))
+                // capture 경로처럼 입력 item provider 도 로드해 소비한다(미소비 provider 가
+                // teardown 을 막을 가능성 차단). persist 는 안 해 고아 PNG 0.
+                let context = extensionContext
+                Task { @MainActor in await Self.drainInputProviders(context) }
                 return
             }
 
@@ -143,6 +152,22 @@ public final class ShareExtensionPrincipal: UIViewController {
     /// 관측). ``loadWithItemTimeout`` 의 once-gate 타이머가 이 시간에 끊는다. 정상 로드는 1초 내.
     /// 추출이 attachment 순차라 최악의 경우 provider 수 × 이 값이 누적되므로 과하지 않게 둔다.
     private static let itemLoadTimeout: TimeInterval = 5
+
+    /// 검증 모드 전용 — 입력 item provider 를 로드 후 폐기해 **소비만** 한다.
+    /// 미소비 provider 가 매달려 ShareExtension 종료(→host dismiss)를 막는 먹통을 푼다.
+    /// 각 provider 는 첫 등록 타입으로 데이터를 읽고 즉시 버린다(persist X). `loadWithItemTimeout`
+    /// 이 cross-process hang 을 끊으므로 검증 UI 가 막히지 않는다.
+    private static func drainInputProviders(_ context: NSExtensionContext?) async {
+        guard let context else { return }
+        for item in context.inputItems.compactMap({ $0 as? NSExtensionItem }) {
+            for provider in item.attachments ?? [] {
+                guard let typeID = provider.registeredTypeIdentifiers.first else { continue }
+                _ = await loadWithItemTimeout { (done: @escaping @Sendable (Data?) -> Void) -> Progress? in
+                    provider.loadDataRepresentation(forTypeIdentifier: typeID) { data, _ in done(data) }
+                }
+            }
+        }
+    }
 
     private static func extractInboundPayload(from context: NSExtensionContext?) async -> ExtractedShareInput {
         guard let context else { return ExtractedShareInput(url: nil, text: nil, sourceApp: nil, imageRefs: [], channelGuess: .appShareSheet) }

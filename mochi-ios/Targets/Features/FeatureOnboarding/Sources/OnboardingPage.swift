@@ -10,11 +10,6 @@ public enum OnboardingPage: Int, CaseIterable, Sendable {
     case share
     case autoSort
 
-    /// 페이지 인디케이터에 표시할 "현재 / 총합" 의 분모.
-    /// 시안에서 "5" 로 표기되어 있어 PRODUCT.md §8.3 의 5단계 (마지막 단계는 홈 진입)
-    /// 와 정합. 실제 페이지는 4개, 5번째는 finished 전이로 표현.
-    public static let totalSteps = 5
-
     public var title: String {
         switch self {
         case .intro:
@@ -50,7 +45,4 @@ public enum OnboardingPage: Int, CaseIterable, Sendable {
         case .backTap: return "다음"
         }
     }
-
-    /// 인디케이터 좌측 라벨에 표시할 1-based 번호.
-    public var indicatorNumber: Int { rawValue + 1 }
 }
