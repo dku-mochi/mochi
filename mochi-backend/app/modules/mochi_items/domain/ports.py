@@ -85,6 +85,13 @@ class MochiItemRepository(Protocol):
         """
         ...
 
+    async def soft_delete(self, *, owner_id: UUID, mochi_item_id: UUID) -> None:
+        """mochi_item 을 soft delete (deleted_at 마킹, 행 보존). owner-scoped — 다른 owner 면 no-op.
+
+        존재/소유 검증은 application(`DeleteMochiItem`)이 find_by_id 로 선행한다(없으면 404).
+        """
+        ...
+
     async def already_ingested(self, *, owner_id: UUID, idempotency_key: str) -> MochiItem | None: ...
     async def remember_idempotency(
         self,

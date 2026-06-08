@@ -10,6 +10,7 @@ import FeatureInbox
 import FeatureMochiItem
 import FeatureSearch
 import FeatureDetail
+import FeatureOnboarding
 
 /// 앱 셸이 모든 모듈의 `DependencyKey` 를 한 곳에서 라이브 구현으로 묶는다.
 ///
@@ -53,10 +54,12 @@ enum AppDependencies {
             $0.mochiAPIClient    = liveAPI
             $0.authCoordinator   = coordinator
             $0.agentStreamClient = liveStream
+            $0.backTapVerification = .live
         }
     }
 
     private static func resolveBaseURL() -> URL {
+//        return URL(string: "https://34-64-104-136.nip.io")!
         // 1) 명시적 override — Xcode scheme 환경변수. 시뮬레이터만 적용됨(실기기는 호스트 env 미전달).
         if let env = ProcessInfo.processInfo.environment["MOCHI_API_BASE_URL"],
            let url = URL(string: env) {

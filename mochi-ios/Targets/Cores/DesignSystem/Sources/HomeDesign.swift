@@ -40,7 +40,7 @@ public enum HomeDesign {
         public static let ink100 = SwiftUI.Color(red: 0.925, green: 0.925, blue: 0.957)
 
         public static let surface     = SwiftUI.Color.white
-        public static let bg          = cream100
+        public static let bg          = SwiftUI.Color(red: 0.949, green: 0.957, blue: 0.969) // F2F4F7 메인 배경
         public static let textPrimary = ink900
         public static let textMuted   = ink500
         public static let textFaint   = ink300

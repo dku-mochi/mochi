@@ -158,6 +158,16 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
         }
     }
 
+    public func deleteMochiItem(mochiServerID: UUID) async throws {
+        let output = try await client.delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete(
+            path: .init(mochi_item_id: mochiServerID.uuidString)
+        )
+        switch output {
+        case .noContent: return
+        case let .undocumented(status, payload): throw await Self.error(status: status, payload: payload)
+        }
+    }
+
     /// 도메인 ``InstanceLifecycle`` → 생성 요청의 (kind, reason).
     /// active/decaying/reviewRequested 는 reason 없음, archived 만 사유를 싣는다.
     private static func lifecycleParts(

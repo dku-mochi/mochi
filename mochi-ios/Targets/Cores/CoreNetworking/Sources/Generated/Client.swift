@@ -960,6 +960,49 @@ public struct Client: APIProtocol {
             }
         )
     }
+    /// Delete Mochi Item
+    ///
+    /// 기록 soft delete — 행을 지우지 않고 ``deleted_at`` 마킹(되돌릴 수 있게, users 동일 패턴).
+    ///
+    /// owner-scoped. 없는/이미 삭제된/다른 owner 항목은 404(`mochi_item.not_found`). 이후 모든 조회
+    /// (find/list/calendar/todos)가 ``deleted_at IS NULL`` 로 가려 목록·캘린더에서 사라진다.
+    ///
+    /// - Remark: HTTP `DELETE /api/v1/mochi_items/{mochi_item_id}`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/delete(delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete)`.
+    public func delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete(_ input: Operations.delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete.Input) async throws -> Operations.delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete.Output {
+        try await client.send(
+            input: input,
+            forOperation: Operations.delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete.id,
+            serializer: { input in
+                let path = try converter.renderedPath(
+                    template: "/api/v1/mochi_items/{}",
+                    parameters: [
+                        input.path.mochi_item_id
+                    ]
+                )
+                var request: HTTPTypes.HTTPRequest = .init(
+                    soar_path: path,
+                    method: .delete
+                )
+                suppressMutabilityWarning(&request)
+                return (request, nil)
+            },
+            deserializer: { response, responseBody in
+                switch response.status.code {
+                case 204:
+                    return .noContent(.init())
+                default:
+                    return .undocumented(
+                        statusCode: response.status.code,
+                        .init(
+                            headerFields: response.headerFields,
+                            body: responseBody
+                        )
+                    )
+                }
+            }
+        )
+    }
     /// Reanalyze Mochi Item
     ///
     /// needs_review 항목 재분석 — "다른 의도"에서 사용자가 적은 의도 힌트로 다시 분석한다.

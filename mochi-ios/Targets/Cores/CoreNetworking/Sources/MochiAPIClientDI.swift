@@ -45,6 +45,9 @@ public struct NotConfiguredAPIClient: MochiAPIClient {
     ) async throws -> MochiItemDTO {
         throw Self.error
     }
+    public func deleteMochiItem(mochiServerID: UUID) async throws {
+        throw Self.error
+    }
     private static let error = APIErrorEnvelope(
         code: "client.not_configured",
         message: "MochiAPIClient not wired",
