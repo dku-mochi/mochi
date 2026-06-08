@@ -18,18 +18,16 @@ struct MainTabFeature: Sendable {
         var inbox = InboxFeature.State()    // dev debug 접근용 (설정 → 디버그)
         var mochiCalendar = MochiCalendarFeature.State()
         var search = SearchFeature.State()
-        var settings = SettingsFeature.State()
 
-        /// 설정 모달 (홈 톱니바퀴 버튼 → 시트).
-        var isSettingsPresented: Bool = false
-        /// 디버그용 InboxView 모달 — 설정 시트 안에서 push 되지만 reducer 차원에선 flag 만.
+        /// 디버그용 InboxView 모달 — 설정 화면 안에서 sheet 로 띄우지만 reducer 차원에선 flag 만.
         var isDebugInboxPresented: Bool = false
 
-        /// 상세(DetailFeature) 네비게이션 스택 — 카드 탭 시 push.
-        /// detail 을 App 레이어 StackState 로 둬 Feature 간 직접 의존(아키텍처 위반) 없이 보유한다.
-        /// TabView 가 바깥 단일 NavigationStack 안에 있어, detail push 시 탭바를 포함한 전체가
-        /// 함께 슬라이드되므로 탭과 무관한 단일 스택으로 충분하다(비선택 탭 독립스택에 detail 이 누적되던 버그는 제거).
-        var path = StackState<DetailFeature.State>()
+        /// 상세·설정 네비게이션 스택 — 카드 탭 시 detail, 톱니바퀴 탭 시 settings 를 push.
+        /// App 레이어 StackState 로 둬 Feature 간 직접 의존(아키텍처 위반) 없이 보유한다.
+        /// TabView 가 바깥 단일 NavigationStack 안에 있어, push 시 탭바를 포함한 전체가
+        /// 함께 슬라이드되므로 탭과 무관한 단일 스택으로 충분하다.
+        /// 설정을 sheet 가 아닌 push 로 둬, 설정 위에 온보딩 fullScreenCover 를 띄울 때 "single sheet" 충돌을 피한다.
+        var path = StackState<Path.State>()
         @Presents var mochiItem: MochiItemFeature.State?
     }
 
@@ -52,10 +50,8 @@ struct MainTabFeature: Sendable {
         case inbox(InboxFeature.Action)
         case mochiCalendar(MochiCalendarFeature.Action)
         case search(SearchFeature.Action)
-        case settings(SettingsFeature.Action)
-        case path(StackActionOf<DetailFeature>)
+        case path(StackActionOf<Path>)
         case mochiItem(PresentationAction<MochiItemFeature.Action>)
-        case settingsSheetChanged(Bool)
         case debugInboxChanged(Bool)
         case delegate(Delegate)
 
@@ -70,7 +66,6 @@ struct MainTabFeature: Sendable {
         Scope(state: \.inbox,    action: \.inbox)    { InboxFeature() }
         Scope(state: \.mochiCalendar, action: \.mochiCalendar) { MochiCalendarFeature() }
         Scope(state: \.search,   action: \.search)   { SearchFeature() }
-        Scope(state: \.settings, action: \.settings) { SettingsFeature() }
 
         Reduce { state, action in
             switch action {
@@ -79,11 +74,11 @@ struct MainTabFeature: Sendable {
                 return .none
 
             case let .home(.mochiItemTapped(mochiItemID)):
-                state.path.append(DetailFeature.State(mochiItemID: mochiItemID))
+                state.path.append(.detail(DetailFeature.State(mochiItemID: mochiItemID)))
                 return .none
 
             case .home(.openSettingsTapped):
-                state.isSettingsPresented = true
+                state.path.append(.settings(SettingsFeature.State()))
                 return .none
 
             case .inbox(.mochiItemTapped):
@@ -94,37 +89,47 @@ struct MainTabFeature: Sendable {
                 // 그날 목록 sheet(DaySheet)를 닫고 상세를 push (중첩 sheet 제거).
                 state.mochiCalendar.selectedDay = nil
                 state.mochiCalendar.selectedDayItems = []
-                state.path.append(DetailFeature.State(mochiItemID: mochiItemID))
-                return .none
-
-            case let .settingsSheetChanged(isOn):
-                state.isSettingsPresented = isOn
-                if !isOn { state.isDebugInboxPresented = false }
+                state.path.append(.detail(DetailFeature.State(mochiItemID: mochiItemID)))
                 return .none
 
             case let .debugInboxChanged(isOn):
                 state.isDebugInboxPresented = isOn
                 return .none
 
-            case .settings(.delegate(.logoutRequested)):
-                // 설정 시트를 닫고 로그아웃을 상위(RootFeature.requestSignOut)로 위임.
-                state.isSettingsPresented = false
+            case .path(.element(id: _, action: .settings(.delegate(.logoutRequested)))):
+                // 설정 화면을 닫고 로그아웃을 상위(RootFeature.requestSignOut)로 위임.
+                state.path.removeAll()
                 return .send(.delegate(.logoutRequested))
 
             case .home(.delegate(.onboardingRequested)),
-                 .settings(.delegate(.onboardingRequested)):
+                 .path(.element(id: _, action: .settings(.delegate(.onboardingRequested)))):
                 return .send(.delegate(.onboardingRequested))
 
-            case let .path(.element(id: id, action: .delegate(.deleted))):
+            case let .path(.element(id: id, action: .detail(.delegate(.deleted)))):
                 // 상세에서 삭제 완료 → 해당 상세 화면을 스택에서 pop.
                 state.path.pop(from: id)
                 return .none
 
-            case .home, .inbox, .mochiCalendar, .search, .settings, .path, .mochiItem, .delegate:
+            case .home, .inbox, .mochiCalendar, .search, .path, .mochiItem, .delegate:
                 return .none
             }
         }
-        .forEach(\.path, action: \.path) { DetailFeature() }
+        .forEach(\.path, action: \.path)
         .ifLet(\.$mochiItem, action: \.mochiItem) { MochiItemFeature() }
     }
 }
+
+extension MainTabFeature {
+    /// 상세·설정을 한 스택에 담는 네비게이션 destination.
+    /// 설정을 sheet 가 아닌 push 로 둬, 설정 위에 온보딩 fullScreenCover 를 띄울 때
+    /// "single sheet" 충돌을 피한다.
+    @Reducer
+    enum Path {
+        case detail(DetailFeature)
+        case settings(SettingsFeature)
+    }
+}
+
+// @Reducer enum 이 합성하는 Path.State 는 Equatable 을 자동 부여하지 않으므로 명시한다.
+// (associated value 인 DetailFeature.State·SettingsFeature.State 가 모두 Equatable 이라 합성 가능)
+extension MainTabFeature.Path.State: Equatable {}
