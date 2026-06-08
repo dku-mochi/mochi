@@ -30,7 +30,7 @@ public struct DetailView: View {
             }
             .padding(HomeDesign.Spacing.lg)
         }
-        .background(HomeDesign.Color.bg.ignoresSafeArea())
+        .background(Color.white.ignoresSafeArea())
         .navigationTitle("기록 상세")
         .navigationBarTitleDisplayMode(.inline)
         .task { store.send(.onAppear) }

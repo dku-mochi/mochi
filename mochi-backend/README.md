@@ -84,6 +84,12 @@ infrastructure  ──────►   ports  ──────┘
 - 다른 모듈의 `domain/`/`application/` 만 import 가능. `infrastructure/`/`presentation/` 은 모듈 외부에 노출하지 않는다.
 - 단, `shared/` 는 모든 모듈이 자유롭게 사용 가능 (Intent, ID newtype 등 공통 어휘).
 
+### Infrastructure 어댑터 규칙 — async-first
+
+- 외부 I/O(LLM·HTTP·DB)는 **native async** 로 호출한다 — `httpx.AsyncClient`, SQLAlchemy async 엔진, google-genai `client.aio.*`. sync SDK 를 `asyncio.to_thread` 로 감싸 "스레드로 동시성 흉내" 내지 않는다 (이 서비스는 I/O-bound 라 코루틴 동시성이 본질).
+- native async 가 **없는 sync-only SDK 만** 예외로 `to_thread` 허용(예: `google-cloud-storage` blob 서명 — `gcs_storage.py`). 단 `to_thread` 는 `wait_for` 타임아웃으로 **실제 취소되지 않으므로**(좀비 스레드), 타임아웃을 거는 경로엔 그 한계를 주석으로 남긴다.
+- ruff `ASYNC`(flake8-async) 룰셋이 코루틴 내 일부 blocking 호출을 ②티어로 검출한다 — 규약은 린터가 못 잡는 "native async 우선" 판단만 담는다.
+
 ## 시작하기
 
 ### 사전 준비
@@ -155,6 +161,11 @@ ingested → normalized → analyzed → routed → persisted → indexed → sy
 - `AgentOrchestrator.run(mochi_item_id)` 가 노드를 진전시키며 모든 `tool_calls` 의 input/output digest, tokens, latency 를 `agent_runs` / `tool_calls` 테이블에 기록
 - iOS는 `/mochi_items/{id}/stream` SSE 로 노드 전환을 실시간 수신
 
+### 워커 동시성 / DB 풀
+- outbox 워커는 `WORKER_CONCURRENCY`(기본 2)개의 코루틴 → 동시 in-flight 분석 = N. Gemini 호출은 native async(`.aio`)라 스레드 없이 코루틴 동시성이며, `wait_for(step_timeout)` 가 타임아웃 시 Vertex 요청을 **실제 취소**한다 (to_thread 좀비 스레드 없음)
+- `FOR UPDATE SKIP LOCKED` + item-level lock 으로 N 코루틴·N 인스턴스 모두 동시 안전 → prod 수평확장은 인스턴스 복제
+- DB 풀은 `DB_POOL_SIZE`(기본 5) / `DB_MAX_OVERFLOW`(기본 10). 워커를 올리면 풀도 함께 상향 — `인스턴스수 × (pool_size + max_overflow) < Postgres max_connections`(기본 100), 초과 시 PgBouncer
+
 ### Hybrid Search RAG
 - `bm25_k=80`, `vector_k=80` 두 후보를 만들어 RRF (`k=60`) 융합
 - recall@50 가 90% 이상 측정될 때만 cross-encoder reranker 활성화 (settings.toggleable)
@@ -191,4 +202,4 @@ ingested → normalized → analyzed → routed → persisted → indexed → sy
 
 전체 엔드포인트·요청/응답 스키마의 단일 원천은 **`openapi.json`** 이다 (`make openapi` 생성물, 서버 구동 시 `GET /docs` Swagger UI). 라우트별 도메인 의미·iOS 배선 상태는 [`docs/DOMAIN_DESIGN.md`](../docs/DOMAIN_DESIGN.md) §6 을 본다.
 
-대분류: `auth/*`(Apple·Google·dev·refresh·logout) · `users/me` · `mochi_items`(ingest · presign · 조회 · list · calendar · todos/upcoming · SSE stream) · `search`(Hybrid RAG) · `health`. 모든 보호 라우트는 `Authorization: Bearer`, `POST /mochi_items` 는 `Idempotency-Key` 필수. (2026-06-04 단일 ingest — back-tap·intent override 라우트 폐기)
+대분류: `auth/*`(Apple·Google·dev·refresh·logout) · `users/me` · `mochi_items`(ingest · presign · 조회 · list · calendar · todos/upcoming · instance lifecycle 완료/완료취소 · reanalyze · SSE stream) · `search`(Hybrid RAG) · `health`. 모든 보호 라우트는 `Authorization: Bearer`, `POST /mochi_items` 는 `Idempotency-Key` 필수. (2026-06-04 단일 ingest — back-tap·intent override 라우트 폐기)

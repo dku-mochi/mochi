@@ -15,13 +15,19 @@ from app.modules.mochi_items.application.queries import (
     ListMochiItemsInRange,
     ListUpcomingTodos,
 )
+from app.modules.mochi_items.application.update_instance_lifecycle import (
+    UpdateInstanceLifecycle,
+    UpdateInstanceLifecycleCommand,
+)
 from app.modules.mochi_items.domain.entities import ImageRef, MochiItem
 from app.modules.mochi_items.domain.ports import CaptureImageStorage, ObjectStat
+from app.modules.mochi_items.domain.value_objects import InstanceLifecycleState
 from app.modules.mochi_items.infrastructure.outbox import OutboxNotifier
 from app.modules.mochi_items.infrastructure.repository import PostgresMochiItemRepository
 from app.modules.mochi_items.presentation.schemas import (
     CalendarDayResponse,
     ImageRefResponse,
+    InstanceLifecycleUpdateRequest,
     IntentInstanceResponse,
     IntentPayloadResponse,
     MochiItemCreateRequest,
@@ -101,6 +107,7 @@ def _to_response(item: MochiItem) -> MochiItemResponse:
         user_memo=item.source.user_memo,
         intent_instances=[
             IntentInstanceResponse(
+                id=inst.id,
                 intent_type=inst.intent_type,
                 payload=IntentPayloadResponse(
                     title=inst.payload.title,
@@ -115,6 +122,9 @@ def _to_response(item: MochiItem) -> MochiItemResponse:
                 label=inst.label,
                 reasoning=inst.reasoning,
                 lifecycle_kind=inst.lifecycle.kind.value,
+                lifecycle_archive_reason=(
+                    inst.lifecycle.archive_reason.value if inst.lifecycle.archive_reason else None
+                ),
             )
             for inst in item.intent_instances
         ],
@@ -357,3 +367,37 @@ async def reanalyze_mochi_item(
         owner_id=user, mochi_item_id=mochi_item_id, reanalysis_hint=payload.user_hint
     )
     await db.commit()
+
+
+@router.post(
+    "/{mochi_item_id}/instances/{instance_id}/lifecycle",
+    response_model=MochiItemResponse,
+)
+async def update_instance_lifecycle(
+    mochi_item_id: UUID,
+    instance_id: UUID,
+    payload: InstanceLifecycleUpdateRequest,
+    db: DBSession,
+    user: CurrentUser,
+) -> MochiItemResponse:
+    """intent instance 의 의미 lifecycle 전이 — 캘린더 todo 완료/완료취소.
+
+    완료: ``lifecycleKind=archived`` + ``archiveReason=todoCompleted``.
+    완료취소: ``lifecycleKind=active``(reason 생략). 합법성은 instance 의 intent_type 으로
+    검증한다 — 불법 전이는 409(`intent_instance.illegal_transition`), 없는 instance 는 404.
+    todo 는 양방향(완료↔미완료)이 합법이라 잘못 누른 완료를 되돌릴 수 있다.
+    """
+    use_case = UpdateInstanceLifecycle(repository=PostgresMochiItemRepository(db))
+    item = await use_case.execute(
+        UpdateInstanceLifecycleCommand(
+            owner_id=user,
+            mochi_item_id=mochi_item_id,
+            instance_id=instance_id,
+            target=InstanceLifecycleState(
+                kind=payload.lifecycle_kind,
+                archive_reason=payload.archive_reason,
+            ),
+        )
+    )
+    await db.commit()
+    return _to_response(item)

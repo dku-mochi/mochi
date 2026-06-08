@@ -14,7 +14,7 @@ import FeatureDetail
 /// 앱 셸이 모든 모듈의 `DependencyKey` 를 한 곳에서 라이브 구현으로 묶는다.
 ///
 /// 환경변수 또는 컴파일 시 설정으로 `MOCHI_API_BASE_URL` 을 지정한다.
-/// 기본값은 dev: `http://localhost:8000`.
+/// Debug 기본값 `http://localhost:8000`(시뮬)·LAN host(실기기), Release 기본값은 배포 백엔드(nip.io TLS).
 enum AppDependencies {
     /// 부팅 후 라이브 코디네이터 보관소 — Google URL 콜백 처리에 필요.
     nonisolated(unsafe) static var liveAuthCoordinator: AuthCoordinator?
@@ -71,10 +71,12 @@ enum AppDependencies {
            let url = URL(string: "http://\(host):8000") {
             return url
         }
-        #endif
-
-        // 3) Fallback — 시뮬레이터/Mac 위의 동일 머신용.
+        // 3) Debug fallback — 시뮬레이터/Mac 위의 동일 머신용.
         return URL(string: "http://localhost:8000")!
+        #else
+        // 4) Release(운영) — GCP mochi-svc 배포 백엔드 (nip.io 자동 TLS).
+        return URL(string: "https://34-64-104-136.nip.io")!
+        #endif
     }
 }
  

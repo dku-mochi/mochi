@@ -41,6 +41,16 @@ public protocol MochiAPIClient: Sendable {
     /// `POST /api/v1/mochi_items/{id}/reanalyze` — needs_review 항목 재분석.
     /// "다른 의도"에서 사용자가 적은 의도 힌트를 분석 context 에 합류시켜 백엔드 outbox→worker 를 다시 트리거한다.
     func reanalyzeMochiItem(id: UUID, userHint: String) async throws
+
+    /// `POST /api/v1/mochi_items/{id}/instances/{instanceID}/lifecycle` — intent instance 의미상태 전이.
+    /// 캘린더 todo 완료(`to=.archived(reason:.todoCompleted)`)/완료취소(`to=.active`). 갱신된 item 을 반환한다.
+    /// 합법성은 서버 `lifecycle_policy` 가 instance 의 intent_type 으로 검증한다(불법이면 409 throw).
+    /// `mochiServerID` 는 로컬 id 가 아니라 업로드된 서버 id(`syncState.uploaded`)여야 한다.
+    func updateInstanceLifecycle(
+        mochiServerID: UUID,
+        instanceID: UUID,
+        to newState: InstanceLifecycle
+    ) async throws -> MochiItemDTO
 }
 
 /// push 토큰 종류. rawValue 는 백엔드 `device_push_tokens.token_type` 과 1:1.
@@ -200,19 +210,38 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
 }
 
 public struct IntentInstanceDTO: Sendable, Hashable, Codable {
+    /// 서버 instance 식별자 — 완료/완료취소(lifecycle 전이) API 의 대상으로 보존한다.
+    public let id: UUID
     public let intentType: Intent
     public let payload: IntentPayloadDTO?
     public let label: String?
     public let reasoning: String?
     /// instance 의미상태 (`active|decaying|reviewRequested|archived`).
     public let lifecycleKind: String
+    /// archived 일 때의 사유 (`scheduleEnded|todoCompleted|knowledgeStale|userManual`). 그 외 nil.
+    public let lifecycleArchiveReason: String?
 
-    public init(intentType: Intent, payload: IntentPayloadDTO?, label: String?, reasoning: String?, lifecycleKind: String) {
+    public init(
+        id: UUID,
+        intentType: Intent,
+        payload: IntentPayloadDTO?,
+        label: String?,
+        reasoning: String?,
+        lifecycleKind: String,
+        lifecycleArchiveReason: String?
+    ) {
+        self.id = id
         self.intentType = intentType
         self.payload = payload
         self.label = label
         self.reasoning = reasoning
         self.lifecycleKind = lifecycleKind
+        self.lifecycleArchiveReason = lifecycleArchiveReason
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id = "instanceId"
+        case intentType, payload, label, reasoning, lifecycleKind, lifecycleArchiveReason
     }
 }
 

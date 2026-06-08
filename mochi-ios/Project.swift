@@ -454,7 +454,17 @@ let project = Project(
                 .target(name: "CoreAuth"),
                 .target(name: "DesignSystem"),
             ],
-            settings: .settings(base: baseSettings)
+            settings: .settings(base: baseSettings.merging([
+                // Xcode 16 의 Debug Dylib 분리(`ENABLE_DEBUG_DYLIB`, Debug 기본 YES)는 타겟 코드를
+                // `ShareExtension.debug.dylib` 로 떼어내고 실행파일은 그걸 로드하는 stub 만 남긴다.
+                // 메인 앱은 정상 launch 경로라 무관하지만, **app extension** 은 시스템이
+                // `runextension`/`WFExtensionEnumerator` 로 NSExtension 을 인스턴스화할 때 stub 에서
+                // principal class(`ShareExtensionPrincipal`)를 못 찾아
+                // "Failed to create NSExtension ... (null)" 로 로드에 실패한다 — 백탭 단축어가
+                // ShareExtension 을 띄우지 못하고 무한 대기하던 근본 원인. NO 로 코드를 실행파일에
+                // 통합해 모든 로드 경로(공유시트·단축어)에서 principal class 발견을 보장한다.
+                "ENABLE_DEBUG_DYLIB": "NO",
+            ]))
         ),
 
         // MARK: Widget Extension (Live Activity)

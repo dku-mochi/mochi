@@ -63,69 +63,66 @@ struct MainTabView: View {
     init(store: StoreOf<MainTabFeature>) {
         self._store = Bindable(wrappedValue: store)
         Self.configureTabBarAppearance()
+        Self.configureNavigationBarAppearance()
     }
 
     var body: some View {
-        TabView(selection: $store.selectedTab.sending(\.tabSelected)) {
-            NavigationStack(path: $store.scope(state: \.homePath, action: \.homePath)) {
+        // 탭바를 바깥 단일 NavigationStack 안의 TabView 로 둬, 상세 push 시 탭바를 포함한
+        // 전체가 함께 슬라이드(아웃)되게 한다(UIKit hidesBottomBarWhenPushed 와 동일한 자연스러운 전환).
+        NavigationStack(path: $store.scope(state: \.path, action: \.path)) {
+            TabView(selection: $store.selectedTab.sending(\.tabSelected)) {
                 HomeView(store: store.scope(state: \.home, action: \.home))
-            } destination: { detailStore in
-                DetailView(store: detailStore)
-            }
-            .tabItem { Label("홈", image: "tab_home") }
-            .tag(MainTabFeature.Tab.home)
+                    .tabItem { Label("홈", image: "tab_home") }
+                    .tag(MainTabFeature.Tab.home)
 
-            NavigationStack(path: $store.scope(state: \.calendarPath, action: \.calendarPath)) {
                 MochiCalendarView(store: store.scope(state: \.mochiCalendar, action: \.mochiCalendar))
-            } destination: { detailStore in
-                DetailView(store: detailStore)
-            }
-            .tabItem { Label("캘린더", image: "tab_mochis") }
-            .tag(MainTabFeature.Tab.mochis)
+                    .tabItem { Label("캘린더", image: "tab_mochis") }
+                    .tag(MainTabFeature.Tab.mochis)
 
-            ComingSoonPlaceholder(
-                icon: "message",
-                title: "곧 만나요, 채팅",
-                subtitle: "모찌랑 대화로 정리하는 기능을 준비 중이에요."
-            )
-            .tabItem { Label("채팅", image: "tab_chat") }
-            .tag(MainTabFeature.Tab.chat)
+                ComingSoonPlaceholder(
+                    icon: "message",
+                    title: "곧 만나요, 채팅",
+                    subtitle: "모찌랑 대화로 정리하는 기능을 준비 중이에요."
+                )
+                .tabItem { Label("채팅", image: "tab_chat") }
+                .tag(MainTabFeature.Tab.chat)
 
-            NavigationStack {
                 SearchView(store: store.scope(state: \.search, action: \.search))
+                    .tabItem { Label("검색", image: "tab_search") }
+                    .tag(MainTabFeature.Tab.search)
             }
-            .tabItem { Label("검색", image: "tab_search") }
-            .tag(MainTabFeature.Tab.search)
-        }
-        // 선택 탭 = 모찌 퍼플(MochiTheme.primary). 비선택·배경·레이블 폰트는 configureTabBarAppearance 담당.
-        .tint(MochiTheme.Palette.primary)
-        .sheet(isPresented: $store.isSettingsPresented.sending(\.settingsSheetChanged)) {
-            NavigationStack {
-                SettingsView(store: store.scope(state: \.settings, action: \.settings))
-                    .toolbar {
-                        ToolbarItem(placement: .topBarTrailing) {
-                            Button("닫기") { store.send(.settingsSheetChanged(false)) }
-                        }
-                        ToolbarItem(placement: .topBarLeading) {
-                            // dev-only: 받은 기록 디버그 진입점.
-                            Button {
-                                store.send(.debugInboxChanged(true))
-                            } label: {
-                                Label("받은 기록", systemImage: "tray.full")
-                            }
-                        }
-                    }
-            }
-            .sheet(isPresented: $store.isDebugInboxPresented.sending(\.debugInboxChanged)) {
+            // 선택 탭 = 모찌 퍼플(MochiTheme.primary). 비선택·배경·레이블 폰트는 configureTabBarAppearance 담당.
+            .tint(MochiTheme.Palette.primary)
+            .sheet(isPresented: $store.isSettingsPresented.sending(\.settingsSheetChanged)) {
                 NavigationStack {
-                    InboxView(store: store.scope(state: \.inbox, action: \.inbox))
+                    SettingsView(store: store.scope(state: \.settings, action: \.settings))
                         .toolbar {
                             ToolbarItem(placement: .topBarTrailing) {
-                                Button("닫기") { store.send(.debugInboxChanged(false)) }
+                                Button("닫기") { store.send(.settingsSheetChanged(false)) }
+                            }
+                            ToolbarItem(placement: .topBarLeading) {
+                                // dev-only: 받은 기록 디버그 진입점.
+                                Button {
+                                    store.send(.debugInboxChanged(true))
+                                } label: {
+                                    Label("받은 기록", systemImage: "tray.full")
+                                }
                             }
                         }
                 }
+                .sheet(isPresented: $store.isDebugInboxPresented.sending(\.debugInboxChanged)) {
+                    NavigationStack {
+                        InboxView(store: store.scope(state: \.inbox, action: \.inbox))
+                            .toolbar {
+                                ToolbarItem(placement: .topBarTrailing) {
+                                    Button("닫기") { store.send(.debugInboxChanged(false)) }
+                                }
+                            }
+                    }
+                }
             }
+        } destination: { detailStore in
+            DetailView(store: detailStore)
         }
     }
 
@@ -165,6 +162,25 @@ struct MainTabView: View {
         let base = UIFont.systemFont(ofSize: size, weight: weight)
         guard let descriptor = base.fontDescriptor.withDesign(.rounded) else { return base }
         return UIFont(descriptor: descriptor, size: size)
+    }
+
+    /// 시스템 `NavigationStack` 의 navigation bar 를 디자인 시스템에 맞춘다.
+    /// 불투명 흰색(스크롤 내려도 material 블러 없음·라이트 고정) + 하단 hairline/shadow 제거 +
+    /// tint(back·바 버튼) = 모찌 퍼플. 상세 화면 흰 배경과 seamless 하게 이어진다.
+    private static func configureNavigationBarAppearance() {
+        let appearance = UINavigationBarAppearance()
+        // 글래스모피즘(translucent material) 제거 — 스크롤 위치와 무관하게 불투명 흰색 유지(블러 없음).
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = .white
+        // 하단 1px hairline/shadow 제거.
+        appearance.shadowColor = .clear
+
+        // standard·scrollEdge·compact 를 모두 같은 외형으로 — 스크롤 내려도 블러로 전환되지 않는다.
+        UINavigationBar.appearance().standardAppearance = appearance
+        UINavigationBar.appearance().scrollEdgeAppearance = appearance
+        UINavigationBar.appearance().compactAppearance = appearance
+        // back 버튼·바 버튼 색 = 모찌 서비스 색(MochiTheme.primary).
+        UINavigationBar.appearance().tintColor = UIColor(MochiTheme.Palette.primary)
     }
 }
 

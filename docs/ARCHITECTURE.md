@@ -160,7 +160,7 @@ App  ──► AppIntents/          (QuickCaptureIntent + CaptureScreenshotInten
 | intent_type | 자동 동작 | 합법 전이(의미상태) |
 | --- | --- | --- |
 | `schedule` | EventKit/Google Calendar sync | `active → archived(scheduleEnded\|userManual)` |
-| `todo` | Reminders sync | `active → archived(todoCompleted\|userManual)` |
+| `todo` | Reminders sync | `active ↔ archived(todoCompleted)`(완료/완료취소), `active → archived(userManual)` |
 | `knowledge` | RAG 인덱싱 | `active ↔ decaying ↔ reviewRequested → archived(knowledgeStale\|userManual)` |
 | `memo` | 영구 보관 | `active → archived(userManual)` 만 |
 
@@ -282,7 +282,7 @@ DB COMMIT (atomic)
 
 #### Agent worker
 
-> 기동: `app/main.py` lifespan 에서 API 와 같은 프로세스의 백그라운드 태스크로 실행 (`asyncio.create_task(worker.run_forever())`, shutdown 시 graceful stop). 별도 워커 프로세스 아님 — 단일 인스턴스 dev/제출 전제.
+> 기동: `app/main.py` lifespan 에서 API 와 같은 프로세스의 백그라운드 태스크로 `WORKER_CONCURRENCY`(기본 2)개의 `run_forever()` 코루틴을 실행 (shutdown 시 N개 graceful stop). 동시 in-flight 분석 = N. 여전히 단일 프로세스이며, prod 수평확장은 인스턴스 복제로 한다 — `FOR UPDATE SKIP LOCKED` + item-level lock 이 N 코루틴·N 인스턴스 모두 동시 안전을 보장한다.
 
 ```
 MochiWorker.run_forever

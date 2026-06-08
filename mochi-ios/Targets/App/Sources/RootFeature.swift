@@ -146,6 +146,9 @@ struct RootFeature: Sendable {
                     await send(.sessionResolved(nil))
                 }
 
+            case .main(.delegate(.logoutRequested)):
+                return .send(.requestSignOut)
+
             case .backTapModal, .login, .main:
                 return .none
             }

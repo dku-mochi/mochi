@@ -341,6 +341,30 @@ class PostgresMochiItemRepository(MochiItemRepository):
             )
         await self._session.flush()
 
+    async def update_instance_lifecycle(
+        self,
+        *,
+        owner_id: UUID,
+        mochi_item_id: UUID,
+        instance_id: UUID,
+        lifecycle: InstanceLifecycleState,
+    ) -> bool:
+        # owner+item+instance 3중 scoped — cross-tenant/IDOR 차단(다른 owner 의 instance 면 None→False).
+        stmt = select(IntentInstanceRow).where(
+            IntentInstanceRow.id == instance_id,
+            IntentInstanceRow.mochi_item_id == mochi_item_id,
+            IntentInstanceRow.owner_id == owner_id,
+        )
+        row = (await self._session.scalars(stmt)).one_or_none()
+        if row is None:
+            return False
+        row.lifecycle_kind = lifecycle.kind.value
+        row.lifecycle_archive_reason = (
+            lifecycle.archive_reason.value if lifecycle.archive_reason else None
+        )
+        await self._session.flush()
+        return True
+
     async def already_ingested(self, *, owner_id: UUID, idempotency_key: str) -> MochiItem | None:
         scoped_key = self._scope_idempotency_key(owner_id=owner_id, raw_key=idempotency_key)
         row = await self._session.get(IdempotencyKeyRow, scoped_key)

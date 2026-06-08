@@ -38,6 +38,13 @@ public struct NotConfiguredAPIClient: MochiAPIClient {
     public func reanalyzeMochiItem(id: UUID, userHint: String) async throws {
         throw Self.error
     }
+    public func updateInstanceLifecycle(
+        mochiServerID: UUID,
+        instanceID: UUID,
+        to newState: InstanceLifecycle
+    ) async throws -> MochiItemDTO {
+        throw Self.error
+    }
     private static let error = APIErrorEnvelope(
         code: "client.not_configured",
         message: "MochiAPIClient not wired",
