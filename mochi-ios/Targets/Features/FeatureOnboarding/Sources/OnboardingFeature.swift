@@ -132,12 +132,9 @@ public struct OnboardingFeature: Sendable {
             case let .pageChanged(index):
                 let clamped = max(0, min(index, OnboardingPage.allCases.count - 1))
                 let backTapIndex = OnboardingPage.backTap.rawValue
-                // [P1] 백탭 미해결 상태로 그 다음 페이지로 넘어가는 forward 스와이프를 막는다 —
-                // 단축어/연결/검증을 건너뛰려면 명시적 "나중에 할게요"(skip)를 거쳐야 한다.
-                // 뒤로(intro) 가는 건 허용한다.
-                if state.currentPage == backTapIndex, clamped > backTapIndex, !state.backTapStepResolved {
-                    return .none
-                }
+                // [P1] 백탭 미해결 시 전진 차단은 NavigationStack 에 forward push surface 가
+                // 없다는 것 + `nextTapped`/`backTapStepCompleted` reducer 가드가 담당한다.
+                // `pageChanged` 는 이제 NavigationStack 의 뒤로(pop) 만 반영한다.
                 // 검증 진행 중 백탭 페이지를 떠나면 폴링/창을 정리한다.
                 let leavingMidVerify = state.currentPage == backTapIndex
                     && clamped != backTapIndex
