@@ -205,13 +205,15 @@ CREATE TABLE mochi_items (
     sync_detail              text,
     captured_at              timestamptz NOT NULL,   -- idx
     created_at               timestamptz NOT NULL DEFAULT now(),
-    updated_at               timestamptz NOT NULL DEFAULT now()
+    updated_at               timestamptz NOT NULL DEFAULT now(),
+    deleted_at               timestamptz             -- soft delete (0013) — NULL=active. 모든 조회가 deleted_at IS NULL 로 가림
     -- 0009 빅뱅: intent 5컬럼(intent/secondary_intents/intent_applicability/intent_candidates/confidence) +
     -- lifecycle_archive_reason DROP. intent 는 별도 intent_instances 테이블로(아래), 의미 lifecycle 도 거기로.
 );
 CREATE INDEX ix_captures_owner_id      ON mochi_items(owner_id);
 CREATE INDEX ix_captures_lifecycle_kind ON mochi_items(lifecycle_kind);
 CREATE INDEX ix_captures_captured_at   ON mochi_items(captured_at);
+CREATE INDEX ix_mochi_items_active ON mochi_items(owner_id) WHERE deleted_at IS NULL;  -- 0013 soft delete: active 행만
 CREATE INDEX ix_mochi_items_fts ON mochi_items   -- 0006 이 ix_captures_fts → 로 rename (언더스코어 1개)
     USING gin (to_tsvector('simple', coalesce(summary,'') || ' ' || coalesce(text,'')));
 
@@ -444,9 +446,10 @@ intent 관련 검증된 필드(정확한 전체 스키마는 `CorePersistence/Re
 | `POST` | `/api/v1/mochi_items/{id}/instances/{instanceId}/lifecycle` | ✅ | intent instance 완료/완료취소 — `lifecycleKind`(+`archiveReason`) 전이. todo `active↔archived(todoCompleted)`. owner+instance 3중 scoped, 불법 전이 409. iOS 캘린더 완료 체크박스가 호출(낙관적 로컬 + 서버 push) |
 | `POST` | `/api/v1/search` | ◑ | Hybrid Search 라우트 실재 · iOS 미배선 (이전 문서 '미존재' 는 오기) |
 | `POST` | `/api/v1/devices/push-token` | ✅ | APNs 토큰 등록(`apns_device` 단말 / `live_activity` item). PR-B |
-| `*` | `DELETE /{id}` · `/conversations` · `/sync` | ○ | **라우트 미존재** → §13 |
+| `DELETE` | `/api/v1/mochi_items/{id}` | ✅ | 기록 soft delete — `deleted_at` 마킹(행 보존, 되돌릴 수 있게). owner-scoped, 없는/이미 삭제된 항목 404. 응답 204. iOS 기록상세 더보기 메뉴가 호출(서버 soft delete + 로컬 Realm hard delete + 화면 pop). 0013 |
+| `*` | `/conversations` · `/sync` | ○ | **라우트 미존재** → §13 |
 
-> ⚠️ 캘린더 탭 list/calendar/todos 라우트는 2026-06-04 신설(`mochi_items/presentation/router.py`). **정적 경로(`/calendar`·`/todos/upcoming`)는 동적 `/{id}` 보다 먼저 선언**해 path-param 충돌을 피한다. iOS 캘린더 탭은 즉시성·오프라인·실시간(`observeChanges`)을 위해 **로컬 Realm 구동**이고, 이 서버 API 는 멀티기기/웹 대비 계약(현재 iOS 클라 미배선). `POST /search` 도 실재(이전 '미존재' 는 문서 오기 — `search_router` 가 `api.py` 에 등록). delete·conversations·sync 만 여전히 라우트 없음.
+> ⚠️ 캘린더 탭 list/calendar/todos 라우트는 2026-06-04 신설(`mochi_items/presentation/router.py`). **정적 경로(`/calendar`·`/todos/upcoming`)는 동적 `/{id}` 보다 먼저 선언**해 path-param 충돌을 피한다. iOS 캘린더 탭은 즉시성·오프라인·실시간(`observeChanges`)을 위해 **로컬 Realm 구동**이고, 이 서버 API 는 멀티기기/웹 대비 계약(현재 iOS 클라 미배선). `POST /search` 도 실재(이전 '미존재' 는 문서 오기 — `search_router` 가 `api.py` 에 등록). `DELETE /{id}` 는 2026-06-08 신설(soft delete, 0013) — `conversations`·`sync` 만 여전히 라우트 없음.
 >
 > iOS 로컬 캘린더는 칸을 **두 축**으로 칠한다 — ① 저장 점(`capturedAt`, 대표 intent 색) ② 마감/일정 마커(active todo 의 `payload.deadline ?? payload.date`, active schedule 의 `payload.date` 를 KST 파싱, 날짜 숫자 강조). 마감/일정 날짜 칸을 탭하면 그날 캡처 + 그날 마감/일정 항목을 함께 보인다. 서버 `todos/upcoming` 은 마감일을 `entities(kind='deadline')` 로 파싱하지만, iOS 분석 응답엔 `entities`·`actionCandidate` 가 비어(`MochiItemDTO+Analysis` 가 `payload` 만 매핑) 클라는 `payload` 를 단일 소스로 쓴다 — 서버 API 배선 시 이 차이 정합 필요. 하단 리스트는 ① **다가오는 일정**(active schedule, 오늘 이후 빠른 시간순) ② **할 일**(미완료 마감임박순 + 완료 맨 밑)로 분리하고, 할 일 체크박스가 `active↔archived(todoCompleted)` 를 토글해 서버 `POST .../lifecycle` 로 영속한다(완료 todo 도 맨 밑에 남아 재토글 가능).
 

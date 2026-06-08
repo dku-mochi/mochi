@@ -22,7 +22,7 @@ public struct MochiCalendarView: View {
             .padding(.horizontal, HomeDesign.Spacing.lg)
             .padding(.vertical, HomeDesign.Spacing.lg)
         }
-        .background(HomeDesign.Color.surface.ignoresSafeArea())
+        .background(HomeDesign.Color.bg.ignoresSafeArea())
         .navigationTitle("캘린더")
         .navigationBarTitleDisplayMode(.inline)
         .task { store.send(.onAppear) }

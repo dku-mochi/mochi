@@ -9,6 +9,10 @@ from app.core.config import get_settings
 from app.core.deps import CaptureImageStorageDep, DBSession
 from app.core.error_envelope import DomainError, FeatureUnavailableError, NotFoundError
 from app.core.security import CurrentUser
+from app.modules.mochi_items.application.delete_mochi_item import (
+    DeleteMochiItem,
+    DeleteMochiItemCommand,
+)
 from app.modules.mochi_items.application.ingest import Ingest, IngestCommand
 from app.modules.mochi_items.application.queries import (
     GetMonthlyCalendar,
@@ -401,3 +405,21 @@ async def update_instance_lifecycle(
     )
     await db.commit()
     return _to_response(item)
+
+
+@router.delete("/{mochi_item_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_mochi_item(
+    mochi_item_id: UUID,
+    db: DBSession,
+    user: CurrentUser,
+) -> None:
+    """기록 soft delete — 행을 지우지 않고 ``deleted_at`` 마킹(되돌릴 수 있게, users 동일 패턴).
+
+    owner-scoped. 없는/이미 삭제된/다른 owner 항목은 404(`mochi_item.not_found`). 이후 모든 조회
+    (find/list/calendar/todos)가 ``deleted_at IS NULL`` 로 가려 목록·캘린더에서 사라진다.
+    """
+    use_case = DeleteMochiItem(repository=PostgresMochiItemRepository(db))
+    await use_case.execute(
+        DeleteMochiItemCommand(owner_id=user, mochi_item_id=mochi_item_id)
+    )
+    await db.commit()

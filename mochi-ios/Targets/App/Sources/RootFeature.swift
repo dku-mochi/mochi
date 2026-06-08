@@ -8,6 +8,7 @@ import FeatureDetail
 import FeatureInbox
 import FeatureSearch
 import FeatureSettings
+import FeatureOnboarding
 
 /// 앱 최상위 reducer — 인증 단계 ↔ 메인 탭 전환 + 백탭 메모 모달 presentation 을 담당.
 ///
@@ -34,17 +35,20 @@ struct RootFeature: Sendable {
         var login: LoginFeature.State
         var main: MainTabFeature.State
         @Presents var backTapModal: BackTapModalFeature.State?
+        @Presents var onboarding: OnboardingFeature.State?
 
         init(
             phase: Phase = .resolving,
             login: LoginFeature.State = .init(),
             main: MainTabFeature.State = .init(),
-            backTapModal: BackTapModalFeature.State? = nil
+            backTapModal: BackTapModalFeature.State? = nil,
+            onboarding: OnboardingFeature.State? = nil
         ) {
             self.phase = phase
             self.login = login
             self.main = main
             self.backTapModal = backTapModal
+            self.onboarding = onboarding
         }
     }
 
@@ -66,6 +70,7 @@ struct RootFeature: Sendable {
         case main(MainTabFeature.Action)
         case requestSignOut
         case backTapModal(PresentationAction<BackTapModalFeature.Action>)
+        case onboarding(PresentationAction<OnboardingFeature.Action>)
     }
 
     @Dependency(\.authCoordinator) var authCoordinator
@@ -77,6 +82,9 @@ struct RootFeature: Sendable {
         Reduce { state, action in
             switch action {
             case .appLaunched:
+                if !Self.hasCompletedOnboarding {
+                    state.onboarding = OnboardingFeature.State()
+                }
                 return .merge(
                     .run { [authCoordinator] send in
                         let session = await authCoordinator.currentSession()
@@ -87,14 +95,14 @@ struct RootFeature: Sendable {
 
             case .appBecameActive:
                 let sweep = Self.sweepStalePNGs()
-                if case .authenticated = state.phase, state.backTapModal == nil {
+                if case .authenticated = state.phase, state.backTapModal == nil, state.onboarding == nil {
                     return .merge(sweep, Self.checkPendingMemo())
                 }
                 return sweep
 
             case let .sessionResolved(session):
                 state.phase = session.map(Phase.authenticated) ?? .unauthenticated
-                if session != nil, state.backTapModal == nil {
+                if session != nil, state.backTapModal == nil, state.onboarding == nil {
                     return Self.checkPendingMemo()
                 }
                 return .none
@@ -149,11 +157,33 @@ struct RootFeature: Sendable {
             case .main(.delegate(.logoutRequested)):
                 return .send(.requestSignOut)
 
-            case .backTapModal, .login, .main:
+            case .main(.delegate(.onboardingRequested)):
+                state.onboarding = OnboardingFeature.State()
+                return .none
+
+            case .onboarding(.presented(.delegate(.finished))):
+                Self.hasCompletedOnboarding = true
+                state.onboarding = nil
+                if case .authenticated = state.phase, state.backTapModal == nil {
+                    return Self.checkPendingMemo()
+                }
+                return .none
+
+            case .onboarding(.dismiss):
+                state.onboarding = nil
+                return .none
+
+            case .backTapModal, .onboarding, .login, .main:
                 return .none
             }
         }
         .ifLet(\.$backTapModal, action: \.backTapModal) { BackTapModalFeature() }
+        .ifLet(\.$onboarding, action: \.onboarding) { OnboardingFeature() }
+    }
+
+    private static var hasCompletedOnboarding: Bool {
+        get { UserDefaults.standard.bool(forKey: onboardingCompletedKey) }
+        set { UserDefaults.standard.set(newValue, forKey: onboardingCompletedKey) }
     }
 
     /// pending-backtap 디렉터리에서 `.memo` marker 가장 최근 한 장을 탐지해 captureID 발사.
@@ -222,4 +252,5 @@ struct RootFeature: Sendable {
 
     /// `sweepStalePNGs` 의 TTL. 이보다 새 PNG 는 활성 snippet 의 stash 일 가능성이 있어 보호.
     private static let pendingPNGTTLSeconds: TimeInterval = 600
+    private static let onboardingCompletedKey = "app.mochi.onboardingCompleted"
 }

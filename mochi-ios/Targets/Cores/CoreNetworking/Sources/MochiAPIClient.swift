@@ -51,6 +51,11 @@ public protocol MochiAPIClient: Sendable {
         instanceID: UUID,
         to newState: InstanceLifecycle
     ) async throws -> MochiItemDTO
+
+    /// `DELETE /api/v1/mochi_items/{id}` — 기록 soft delete(서버는 행을 지우지 않고 `deleted_at` 마킹).
+    /// `mochiServerID` 는 로컬 id 가 아니라 업로드된 서버 id(`syncState.uploaded`)여야 한다.
+    /// 없는/이미 삭제된 항목은 404 throw.
+    func deleteMochiItem(mochiServerID: UUID) async throws
 }
 
 /// push 토큰 종류. rawValue 는 백엔드 `device_push_tokens.token_type` 과 1:1.

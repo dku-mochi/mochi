@@ -61,6 +61,7 @@ struct MainTabFeature: Sendable {
 
         enum Delegate: Sendable {
             case logoutRequested
+            case onboardingRequested
         }
     }
 
@@ -109,6 +110,15 @@ struct MainTabFeature: Sendable {
                 // 설정 시트를 닫고 로그아웃을 상위(RootFeature.requestSignOut)로 위임.
                 state.isSettingsPresented = false
                 return .send(.delegate(.logoutRequested))
+
+            case .home(.delegate(.onboardingRequested)),
+                 .settings(.delegate(.onboardingRequested)):
+                return .send(.delegate(.onboardingRequested))
+
+            case let .path(.element(id: id, action: .delegate(.deleted))):
+                // 상세에서 삭제 완료 → 해당 상세 화면을 스택에서 pop.
+                state.path.pop(from: id)
+                return .none
 
             case .home, .inbox, .mochiCalendar, .search, .settings, .path, .mochiItem, .delegate:
                 return .none
