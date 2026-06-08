@@ -82,7 +82,7 @@ description: 외부 설정·비밀값 체크리스트 + 활성 작업·다음 sp
 
 ### 3.0 iCloud 단축어 제작 & 온보딩 연결 (백탭 → 모찌 snippet 흐름)
 
-백탭 캡처는 **사용자가 단축어 앱에 설치하는 iCloud 단축어**가 `Take Screenshot → 이미지 변환(PNG) → 모찌 화면 캡쳐` 로 동작한다. `CaptureScreenshotIntent` (`openAppWhenRun = false`) 가 PNG 를 `pending-backtap/<captureID>.png` 에 stash 한 뒤 `ShowsSnippetView` 로 `BackTapSnippetView` 를 외부 앱 위에 카드로 띄운다 — **모찌 앱은 깨우지 않는다** (사용자 컨텍스트 보존). 카드의 두 버튼 (`CommitBackTapCaptureIntent` / `OpenBackTapMemoIntent`) 이 분기를 결정. 단축어 자체는 코드가 아니므로 1회 수동 제작 + iCloud 공유 URL 발급이 필요하다 (다만 빌더 스크립트가 `/tmp/build_mochi_shortcut.py` 에 존재 — handoff 문서 §11 참고).
+백탭 캡처는 **사용자가 단축어 앱에 설치하는 iCloud 단축어**가 `Take Screenshot → 이미지 변환(PNG) → 모찌 화면 캡쳐` 로 동작한다. `CaptureScreenshotIntent` (`openAppWhenRun = false`) 가 PNG 를 `pending-backtap/<captureID>.png` 에 stash 한 뒤 `ShowsSnippetView` 로 `BackTapResultSnippet`(캡처 분기 = `BackTapSnippetView`)을 외부 앱 위에 카드로 띄운다 — **모찌 앱은 깨우지 않는다** (사용자 컨텍스트 보존). 카드의 두 버튼 (`CommitBackTapCaptureIntent` / `OpenBackTapMemoIntent`) 이 분기를 결정. 단축어 자체는 코드가 아니므로 1회 수동 제작 + iCloud 공유 URL 발급이 필요하다 (다만 빌더 스크립트가 `/tmp/build_mochi_shortcut.py` 에 존재 — handoff 문서 §11 참고).
 
 - [ ] 개발 디바이스의 **단축어** 앱에서 새 단축어 생성. 이름: `모찌 백탭 캡쳐`.
 - [ ] **액션 구성** (3단계)

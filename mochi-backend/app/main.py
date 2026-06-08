@@ -30,17 +30,23 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     configure_logging()
     log.info("app.startup")
     settings = get_settings()
-    worker = MochiItemWorker(max_steps=settings.agent_max_steps)
-    worker_task = asyncio.create_task(worker.run_forever())
-    log.info("worker.started")
+    workers = [
+        MochiItemWorker(max_steps=settings.agent_max_steps)
+        for _ in range(settings.worker_concurrency)
+    ]
+    worker_tasks = [asyncio.create_task(w.run_forever()) for w in workers]
+    log.info("worker.started", count=settings.worker_concurrency)
     try:
         yield
     finally:
-        await worker.stop()
-        worker_task.cancel()
-        with suppress(asyncio.CancelledError):
-            await worker_task
-        log.info("worker.stopped")
+        for w in workers:
+            await w.stop()
+        for task in worker_tasks:
+            task.cancel()
+        for task in worker_tasks:
+            with suppress(asyncio.CancelledError):
+                await task
+        log.info("worker.stopped", count=len(worker_tasks))
 
 
 def create_app() -> FastAPI:

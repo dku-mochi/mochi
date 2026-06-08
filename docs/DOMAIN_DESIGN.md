@@ -205,13 +205,15 @@ CREATE TABLE mochi_items (
     sync_detail              text,
     captured_at              timestamptz NOT NULL,   -- idx
     created_at               timestamptz NOT NULL DEFAULT now(),
-    updated_at               timestamptz NOT NULL DEFAULT now()
+    updated_at               timestamptz NOT NULL DEFAULT now(),
+    deleted_at               timestamptz             -- soft delete (0013) — NULL=active. 모든 조회가 deleted_at IS NULL 로 가림
     -- 0009 빅뱅: intent 5컬럼(intent/secondary_intents/intent_applicability/intent_candidates/confidence) +
     -- lifecycle_archive_reason DROP. intent 는 별도 intent_instances 테이블로(아래), 의미 lifecycle 도 거기로.
 );
 CREATE INDEX ix_captures_owner_id      ON mochi_items(owner_id);
 CREATE INDEX ix_captures_lifecycle_kind ON mochi_items(lifecycle_kind);
 CREATE INDEX ix_captures_captured_at   ON mochi_items(captured_at);
+CREATE INDEX ix_mochi_items_active ON mochi_items(owner_id) WHERE deleted_at IS NULL;  -- 0013 soft delete: active 행만
 CREATE INDEX ix_mochi_items_fts ON mochi_items   -- 0006 이 ix_captures_fts → 로 rename (언더스코어 1개)
     USING gin (to_tsvector('simple', coalesce(summary,'') || ' ' || coalesce(text,'')));
 
@@ -298,6 +300,7 @@ CREATE INDEX ix_intent_instances_owner_type_lc ON intent_instances(owner_id, int
 - **`needs_review`**: 모찌가 분류를 확신 못 해 사용자에게 물을지의 boolean. τ/τ_review threshold 가 아니라 LLM 이 holistic 하게 판단(실험에서 score calibration 보다 정확 — review acc 0.833→0.944).
 - **`review_options`**: needs_review=true 일 때 제시할 미확정 후보 `[{intent_type, label, reasoning}]`. **instance 아님**. 사용자가 고르면 그때 instance 생성. **`mochi_items.review_options` JSONB 컬럼 영속**(PR-B 컬럼 승격 — 헷갈려요 후보를 push payload·GET projection·앱 내 needsReview 버킷 fallback 이 모두 읽는다).
 - **`memo` fallback**: 대상/행동 불분명 시 memo instance 하나로 안전 보관 + needs_review=true. 미션("놓치기 쉬운 순간은 쉽게 남긴다")과 정합 — 분류를 못 해도 안 잃는다.
+- **`payload.title` 필수**(프롬프트 V13~, 2026-06-08): 저장되는 모든 instance 는 title 을 가진다. **LLM 출력 계약 레벨** — function schema `intent_instances.items.payload.required=['title']` + 프롬프트가 강제. iOS 카드·캘린더·기록상세가 제목으로 `payload.title`(대표=`representativeTitle`)을 쓰는데 요약문 폴백을 제거해, 누락 시 긴 summary 가 작은 cell 을 채우던 문제 해소. 정체조차 못 짚어 title 을 못 만들 정도면 그 자체가 분류 불신뢰 신호라 ambiguity ladder step4 에서 `needs_review=true` 로 빠진다(= instance 로 저장되는 캡처는 거의 항상 title 이 있다). 단 **DB 는 JSONB `DEFAULT '{}'` 유지**(필수는 계약 레벨이지 DB 제약 아님), **DTO `IntentPayloadDTO.title` 은 optional 유지**(graceful degradation — LLM 일탈 시에도 분석 전체가 ValidationError 로 죽지 않게, iOS 가 빈 title→summary 폴백).
 
 #### 파생 — 저장 안 함, read 시 계산 (projection)
 
@@ -419,7 +422,7 @@ intent 관련 검증된 필드(정확한 전체 스키마는 `CorePersistence/Re
 
 - **iOS → Backend**: `syncState=pendingUpload` 인 item 을 `MochiItemSyncWorker` 가 업로드. 이미지는 원본 PNG → 업로드용 JPEG(긴 변 ≤1920px, q60) 파생 → `sha256/mimeType/byteSize` 로 `POST /mochi_items/presign` → Signed URL 로 GCS 직접 PUT → `objectKey` 만 전달. 성공 → `syncState=uploaded(serverID:)`(**서버 자체 PK 보관**).
 - **Backend → iOS** (PR-B 3분담): **foreground = SSE** `/mochi_items/{id}/stream` 구독(`AgentStreamClient` live — worker `lifecycle_kind` 관찰, `final` 수신 시 `GET /mochi_items/{serverID}` 재조회). **background/종료 = APNs** push(완료 alert + LA `.ready`). **SSE 실패/끊김 = 3초 폴링 fallback**(`GET /mochi_items/{serverID}`, 제거 금지). scenePhase active 복귀 시 reconcile(SSE 재연결 + 1회 폴링). 동기 Gemini 분류는 제거됨(2026-05-30).
-- **분류 확정**: iOS `setIntent` 는 로컬 전용(instance 조작). 서버 override 라우트는 폐기됨(대표·위계 소멸).
+- **분류 확정 / 재분석**: iOS `setIntent` 는 로컬 수동 확정(`reviewOptions` 후보 칩 즉시확정 — instance 조작, 서버 미동기화). **단 instance lifecycle 완료/완료취소는 `POST /mochi_items/{id}/instances/{instanceId}/lifecycle` 로 서버 동기화한다**(캘린더 완료 체크박스 — 낙관적 로컬 전이 + 서버 push, 실패 시 롤백). 서버가 instance id 를 응답에 실어(`instanceId`) iOS 가 그 id 로 대상을 지목한다. **"다른 의도" 자연어 재분석**은 `POST /mochi_items/{id}/reanalyze` 가 사용자 의도 힌트를 받아 기존 outbox→`AgentOrchestrator` 파이프라인을 **재실행**한다(같은 item 재분석 — 중복 캡처 없음). 힌트는 분석 프롬프트 context 에만 합류하고 **outbox 행에만 일시 적재**된다 — `mochi_items`/`user_memo` 에 저장하지 않는다(사용자가 직접 쓴 메모로 오해하는 것 방지). (구 "서버 override 라우트 폐기"는 대표·위계 소멸 맥락의 결정이었으나 — override≠재분석 — 재분석 라우트로 대체됨.)
 - **충돌/Catch-up**: backend master 원칙. 양방향 충돌 해소·cold-start catch-up(`/sync`)은 미구현.
 
 ---
@@ -439,11 +442,16 @@ intent 관련 검증된 필드(정확한 전체 스키마는 `CorePersistence/Re
 | `GET` | `/api/v1/mochi_items/calendar` | ✅ | 캘린더 탭 — KST 월간 집계(`year`/`month` → 날짜별 count·대표 intent·대표 썸네일 objectKey) |
 | `GET` | `/api/v1/mochi_items/todos/upcoming` | ✅ | 캘린더 탭 — 미완료(active) todo 마감 임박순. 마감일 = `entities(kind='deadline')` 서버 파싱 |
 | `GET` | `/api/v1/mochi_items/{id}/stream` | ✅ | SSE — worker `lifecycle_kind` 관찰, `node`/`final`/`failed`. iOS foreground 구독(PR-B), `final`→GET 재조회 |
+| `POST` | `/api/v1/mochi_items/{id}/reanalyze` | ✅ | "다른 의도" 재분석 — `userHint` 를 outbox 행에 실어 `AgentOrchestrator` 재실행. 힌트는 분석 프롬프트에만 합류, `mochi_items` 미저장. 응답 202 |
+| `POST` | `/api/v1/mochi_items/{id}/instances/{instanceId}/lifecycle` | ✅ | intent instance 완료/완료취소 — `lifecycleKind`(+`archiveReason`) 전이. todo `active↔archived(todoCompleted)`. owner+instance 3중 scoped, 불법 전이 409. iOS 캘린더 완료 체크박스가 호출(낙관적 로컬 + 서버 push) |
 | `POST` | `/api/v1/search` | ◑ | Hybrid Search 라우트 실재 · iOS 미배선 (이전 문서 '미존재' 는 오기) |
 | `POST` | `/api/v1/devices/push-token` | ✅ | APNs 토큰 등록(`apns_device` 단말 / `live_activity` item). PR-B |
-| `*` | `DELETE /{id}` · `/conversations` · `/sync` | ○ | **라우트 미존재** → §13 |
+| `DELETE` | `/api/v1/mochi_items/{id}` | ✅ | 기록 soft delete — `deleted_at` 마킹(행 보존, 되돌릴 수 있게). owner-scoped, 없는/이미 삭제된 항목 404. 응답 204. iOS 기록상세 더보기 메뉴가 호출(서버 soft delete + 로컬 Realm hard delete + 화면 pop). 0013 |
+| `*` | `/conversations` · `/sync` | ○ | **라우트 미존재** → §13 |
 
-> ⚠️ 캘린더 탭 list/calendar/todos 라우트는 2026-06-04 신설(`mochi_items/presentation/router.py`). **정적 경로(`/calendar`·`/todos/upcoming`)는 동적 `/{id}` 보다 먼저 선언**해 path-param 충돌을 피한다. iOS 캘린더 탭은 즉시성·오프라인·실시간(`observeChanges`)을 위해 **로컬 Realm 구동**이고, 이 서버 API 는 멀티기기/웹 대비 계약(현재 iOS 클라 미배선). `POST /search` 도 실재(이전 '미존재' 는 문서 오기 — `search_router` 가 `api.py` 에 등록). delete·conversations·sync 만 여전히 라우트 없음.
+> ⚠️ 캘린더 탭 list/calendar/todos 라우트는 2026-06-04 신설(`mochi_items/presentation/router.py`). **정적 경로(`/calendar`·`/todos/upcoming`)는 동적 `/{id}` 보다 먼저 선언**해 path-param 충돌을 피한다. iOS 캘린더 탭은 즉시성·오프라인·실시간(`observeChanges`)을 위해 **로컬 Realm 구동**이고, 이 서버 API 는 멀티기기/웹 대비 계약(현재 iOS 클라 미배선). `POST /search` 도 실재(이전 '미존재' 는 문서 오기 — `search_router` 가 `api.py` 에 등록). `DELETE /{id}` 는 2026-06-08 신설(soft delete, 0013) — `conversations`·`sync` 만 여전히 라우트 없음.
+>
+> iOS 로컬 캘린더는 칸을 **두 축**으로 칠한다 — ① 저장 점(`capturedAt`, 대표 intent 색) ② 마감/일정 마커(active todo 의 `payload.deadline ?? payload.date`, active schedule 의 `payload.date` 를 KST 파싱, 날짜 숫자 강조). 마감/일정 날짜 칸을 탭하면 그날 캡처 + 그날 마감/일정 항목을 함께 보인다. 서버 `todos/upcoming` 은 마감일을 `entities(kind='deadline')` 로 파싱하지만, iOS 분석 응답엔 `entities`·`actionCandidate` 가 비어(`MochiItemDTO+Analysis` 가 `payload` 만 매핑) 클라는 `payload` 를 단일 소스로 쓴다 — 서버 API 배선 시 이 차이 정합 필요. 하단 리스트는 ① **다가오는 일정**(active schedule, 오늘 이후 빠른 시간순) ② **할 일**(미완료 마감임박순 + 완료 맨 밑)로 분리하고, 할 일 체크박스가 `active↔archived(todoCompleted)` 를 토글해 서버 `POST .../lifecycle` 로 영속한다(완료 todo 도 맨 밑에 남아 재토글 가능).
 
 | Header | 필수 | 의미 |
 |---|---|---|
@@ -479,7 +487,7 @@ ingested → analyzing → analyzed
 | intent_type | 허용 전이 |
 |---|---|
 | `schedule` | `active → archived` |
-| `todo` | `active → archived` |
+| `todo` | `active → archived`, `archived → active`(완료 취소 — 잘못 누른 완료 되돌리기, todo 한정) |
 | `knowledge` | `active ↔ decaying`, `decaying ↔ reviewRequested`, `reviewRequested → archived` |
 | `memo` | `active → archived` |
 

@@ -34,7 +34,8 @@ public protocol MochiItemRepository: Sendable {
     /// `capturedAt` 내림차순.
     func listCaptured(in interval: DateInterval, limit: Int) async throws -> [MochiItem]
     /// 미완료 todo — `todo` intent instance 가 `active` 인 item. 캘린더 탭 하단 "마감 임박 할 일" 리스트 원본.
-    /// 마감일 파싱·정렬은 호출자(reducer)가 `analysis.actionCandidates` 에서 도출한다. `capturedAt` 내림차순.
+    /// 마감일 파싱·정렬은 호출자(reducer)가 active todo instance 의 `payload.deadline ?? payload.date` 에서
+    /// 도출한다(entities·actionCandidate 는 iOS 분석 응답에서 항상 빔). `capturedAt` 내림차순.
     func listActiveTodos(limit: Int) async throws -> [MochiItem]
     /// 사용자가 needs-review 카드에서 분류 버튼을 누른 경우 호출 — 고른 intent 의 instance 하나로 확정하고
     /// `needsReview` 를 끈다. `analysis` 가 없으면 manual entry 로 생성한다.
@@ -47,6 +48,9 @@ public protocol MochiItemRepository: Sendable {
     /// 이미 업로드된(`.uploaded`) 항목만 대상 — serverID 가 있어야 재폴링이 가능하기 때문.
     func requeueForAnalysis(mochiItemID: UUID) async throws
     func deleteAll() async throws
+    /// 단건 삭제 — 기록 상세에서 사용자가 삭제. 로컬 Realm 은 서버 캐시이므로 hard delete
+    /// (서버는 soft delete `deleted_at`). 이미 없으면 no-op.
+    func delete(id: UUID) async throws
     /// 저장소에 쓰기가 발생할 때마다 `Void` 를 방출하는 스트림.
     /// Realm 구현은 같은 프로세스뿐 아니라 ShareExtension 등 **다른 프로세스의 쓰기까지** 감지한다
     /// (Realm 파일 단위 cross-process 알림). 화면이 polling 없이 즉시 최신 데이터를 다시 읽도록 하는 신호.
@@ -305,6 +309,11 @@ public actor InMemoryMochiItemRepository: MochiItemRepository {
 
     public func deleteAll() async throws {
         storage.removeAll()
+        notifyChange()
+    }
+
+    public func delete(id: UUID) async throws {
+        storage.removeValue(forKey: id)
         notifyChange()
     }
 }

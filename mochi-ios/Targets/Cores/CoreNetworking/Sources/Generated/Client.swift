@@ -505,7 +505,7 @@ public struct Client: APIProtocol {
     }
     /// List Mochi Items
     ///
-    /// 모찌들 탭 — captured_at 구간 내 owner 모찌 목록(특정 날짜 선택 시 그날 sheet).
+    /// 캘린더 탭 — captured_at 구간 내 owner 모찌 목록(특정 날짜 선택 시 그날 sheet).
     ///
     /// ``capturedFrom``/``capturedTo`` 는 ISO8601(UTC 권장). ``intent`` 로 4-Intent 필터
     /// (해당 type 의 instance 가 있는 item).
@@ -752,7 +752,7 @@ public struct Client: APIProtocol {
     }
     /// Get Monthly Calendar
     ///
-    /// 모찌들 탭 — KST 월간 캘린더(날짜별 개수·대표 Intent·대표 썸네일 object_key).
+    /// 캘린더 탭 — KST 월간 캘린더(날짜별 개수·대표 Intent·대표 썸네일 object_key).
     ///
     /// - Remark: HTTP `GET /api/v1/mochi_items/calendar`.
     /// - Remark: Generated from `#/paths//api/v1/mochi_items/calendar/get(get_monthly_calendar_api_v1_mochi_items_calendar_get)`.
@@ -828,7 +828,7 @@ public struct Client: APIProtocol {
     }
     /// Get Upcoming Todos
     ///
-    /// 모찌들 탭 하단 — 마감 임박·미완료(todo instance active) todo 리스트.
+    /// 캘린더 탭 하단 — 마감 임박·미완료(todo instance active) todo 리스트.
     ///
     /// 마감일은 ``entities(kind='deadline')`` free-text 를 서버가 파싱해 임박순 정렬하며,
     /// 파싱 불가/마감 미상 todo 는 목록 뒤로 둔다(``dueAt`` null).
@@ -929,6 +929,205 @@ public struct Client: APIProtocol {
                 case 200:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
                     let body: Operations.get_mochi_item_api_v1_mochi_items__mochi_item_id__get.Output.Ok.Body
+                    let chosenContentType = try converter.bestContentType(
+                        received: contentType,
+                        options: [
+                            "application/json"
+                        ]
+                    )
+                    switch chosenContentType {
+                    case "application/json":
+                        body = try await converter.getResponseBodyAsJSON(
+                            Components.Schemas.MochiItemResponse.self,
+                            from: responseBody,
+                            transforming: { value in
+                                .json(value)
+                            }
+                        )
+                    default:
+                        preconditionFailure("bestContentType chose an invalid content type.")
+                    }
+                    return .ok(.init(body: body))
+                default:
+                    return .undocumented(
+                        statusCode: response.status.code,
+                        .init(
+                            headerFields: response.headerFields,
+                            body: responseBody
+                        )
+                    )
+                }
+            }
+        )
+    }
+    /// Delete Mochi Item
+    ///
+    /// 기록 soft delete — 행을 지우지 않고 ``deleted_at`` 마킹(되돌릴 수 있게, users 동일 패턴).
+    ///
+    /// owner-scoped. 없는/이미 삭제된/다른 owner 항목은 404(`mochi_item.not_found`). 이후 모든 조회
+    /// (find/list/calendar/todos)가 ``deleted_at IS NULL`` 로 가려 목록·캘린더에서 사라진다.
+    ///
+    /// - Remark: HTTP `DELETE /api/v1/mochi_items/{mochi_item_id}`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/delete(delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete)`.
+    public func delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete(_ input: Operations.delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete.Input) async throws -> Operations.delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete.Output {
+        try await client.send(
+            input: input,
+            forOperation: Operations.delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete.id,
+            serializer: { input in
+                let path = try converter.renderedPath(
+                    template: "/api/v1/mochi_items/{}",
+                    parameters: [
+                        input.path.mochi_item_id
+                    ]
+                )
+                var request: HTTPTypes.HTTPRequest = .init(
+                    soar_path: path,
+                    method: .delete
+                )
+                suppressMutabilityWarning(&request)
+                return (request, nil)
+            },
+            deserializer: { response, responseBody in
+                switch response.status.code {
+                case 204:
+                    return .noContent(.init())
+                default:
+                    return .undocumented(
+                        statusCode: response.status.code,
+                        .init(
+                            headerFields: response.headerFields,
+                            body: responseBody
+                        )
+                    )
+                }
+            }
+        )
+    }
+    /// Reanalyze Mochi Item
+    ///
+    /// needs_review 항목 재분석 — "다른 의도"에서 사용자가 적은 의도 힌트로 다시 분석한다.
+    ///
+    /// 기존 outbox→``AgentOrchestrator`` 파이프라인을 그대로 재실행하되, 힌트를 분석 프롬프트에만
+    /// 합류시킨다(outbox 행에 일시 적재, ``mochi_items`` 미저장 — 사용자 메모 오염 방지).
+    /// 같은 item 을 재분석하므로 중복 캡처가 생기지 않는다.
+    ///
+    /// - Remark: HTTP `POST /api/v1/mochi_items/{mochi_item_id}/reanalyze`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/reanalyze/post(reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post)`.
+    public func reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post(_ input: Operations.reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post.Input) async throws -> Operations.reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post.Output {
+        try await client.send(
+            input: input,
+            forOperation: Operations.reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post.id,
+            serializer: { input in
+                let path = try converter.renderedPath(
+                    template: "/api/v1/mochi_items/{}/reanalyze",
+                    parameters: [
+                        input.path.mochi_item_id
+                    ]
+                )
+                var request: HTTPTypes.HTTPRequest = .init(
+                    soar_path: path,
+                    method: .post
+                )
+                suppressMutabilityWarning(&request)
+                converter.setAcceptHeader(
+                    in: &request.headerFields,
+                    contentTypes: input.headers.accept
+                )
+                let body: OpenAPIRuntime.HTTPBody?
+                switch input.body {
+                case let .json(value):
+                    body = try converter.setRequiredRequestBodyAsJSON(
+                        value,
+                        headerFields: &request.headerFields,
+                        contentType: "application/json; charset=utf-8"
+                    )
+                }
+                return (request, body)
+            },
+            deserializer: { response, responseBody in
+                switch response.status.code {
+                case 202:
+                    let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
+                    let body: Operations.reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post.Output.Accepted.Body
+                    let chosenContentType = try converter.bestContentType(
+                        received: contentType,
+                        options: [
+                            "application/json"
+                        ]
+                    )
+                    switch chosenContentType {
+                    case "application/json":
+                        body = try await converter.getResponseBodyAsJSON(
+                            OpenAPIRuntime.OpenAPIValueContainer.self,
+                            from: responseBody,
+                            transforming: { value in
+                                .json(value)
+                            }
+                        )
+                    default:
+                        preconditionFailure("bestContentType chose an invalid content type.")
+                    }
+                    return .accepted(.init(body: body))
+                default:
+                    return .undocumented(
+                        statusCode: response.status.code,
+                        .init(
+                            headerFields: response.headerFields,
+                            body: responseBody
+                        )
+                    )
+                }
+            }
+        )
+    }
+    /// Update Instance Lifecycle
+    ///
+    /// intent instance 의 의미 lifecycle 전이 — 캘린더 todo 완료/완료취소.
+    ///
+    /// 완료: ``lifecycleKind=archived`` + ``archiveReason=todoCompleted``.
+    /// 완료취소: ``lifecycleKind=active``(reason 생략). 합법성은 instance 의 intent_type 으로
+    /// 검증한다 — 불법 전이는 409(`intent_instance.illegal_transition`), 없는 instance 는 404.
+    /// todo 는 양방향(완료↔미완료)이 합법이라 잘못 누른 완료를 되돌릴 수 있다.
+    ///
+    /// - Remark: HTTP `POST /api/v1/mochi_items/{mochi_item_id}/instances/{instance_id}/lifecycle`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/instances/{instance_id}/lifecycle/post(update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post)`.
+    public func update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post(_ input: Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Input) async throws -> Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Output {
+        try await client.send(
+            input: input,
+            forOperation: Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.id,
+            serializer: { input in
+                let path = try converter.renderedPath(
+                    template: "/api/v1/mochi_items/{}/instances/{}/lifecycle",
+                    parameters: [
+                        input.path.mochi_item_id,
+                        input.path.instance_id
+                    ]
+                )
+                var request: HTTPTypes.HTTPRequest = .init(
+                    soar_path: path,
+                    method: .post
+                )
+                suppressMutabilityWarning(&request)
+                converter.setAcceptHeader(
+                    in: &request.headerFields,
+                    contentTypes: input.headers.accept
+                )
+                let body: OpenAPIRuntime.HTTPBody?
+                switch input.body {
+                case let .json(value):
+                    body = try converter.setRequiredRequestBodyAsJSON(
+                        value,
+                        headerFields: &request.headerFields,
+                        contentType: "application/json; charset=utf-8"
+                    )
+                }
+                return (request, body)
+            },
+            deserializer: { response, responseBody in
+                switch response.status.code {
+                case 200:
+                    let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
+                    let body: Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Output.Ok.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [

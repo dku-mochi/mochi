@@ -1,8 +1,8 @@
 """Vertex AI Gemini 기반 agentic ``LLMClient`` 어댑터 (Arch2).
 
-`mochi_items/infrastructure/gemini_classifier.py` 의 검증된 호출 패턴 재사용:
+호출 패턴:
 - 공유 ``genai.Client(vertexai=True)`` (lru_cache, 프로세스당 1개)
-- SDK 동기 호출 → ``asyncio.to_thread`` + ``asyncio.wait_for(step_timeout)``
+- SDK native async (``.aio.models.generate_content``) + ``asyncio.wait_for(step_timeout)`` — 타임아웃 시 실제 취소
 - 비용 최우선: flash-lite + ``thinking_budget=0`` (thought-signature 불필요 → 단순)
 
 함수 호출 루프 매핑:
@@ -56,11 +56,11 @@ _FINALIZE_PARAMS: dict[str, Any] = {
                 "type": "object",
                 "properties": {
                     "intent_type": {"type": "string", "enum": _INTENT_ENUM},
-                    "payload": {"type": "object", "properties": _PAYLOAD_PROPS},
+                    "payload": {"type": "object", "properties": _PAYLOAD_PROPS, "required": ["title"]},
                     "label": {"type": "string"},
                     "reasoning": {"type": "string"},
                 },
-                "required": ["intent_type", "label", "reasoning"],
+                "required": ["intent_type", "payload", "label", "reasoning"],
             },
         },
         "review_options": {
@@ -198,7 +198,7 @@ def _to_contents(user_parts: list[dict[str, Any]]) -> list[types.Content]:
     return contents
 
 
-def _call_sync(
+async def _call(
     *,
     system_prompt: str,
     contents: list[types.Content],
@@ -215,7 +215,7 @@ def _call_sync(
             function_calling_config=types.FunctionCallingConfig(mode="ANY")
         ),
     )
-    return _shared_client().models.generate_content(
+    return await _shared_client().aio.models.generate_content(
         model=model, contents=contents, config=cfg
     )
 
@@ -252,8 +252,7 @@ class GeminiAgentClient(LLMClient):
         decls = _function_declarations(tools)
         contents = _to_contents(user_parts)
         resp = await asyncio.wait_for(
-            asyncio.to_thread(
-                _call_sync,
+            _call(
                 system_prompt=system_prompt,
                 contents=contents,
                 decls=decls,

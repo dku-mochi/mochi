@@ -53,7 +53,7 @@ public protocol APIProtocol: Sendable {
     func get_me_api_v1_users_me_get(_ input: Operations.get_me_api_v1_users_me_get.Input) async throws -> Operations.get_me_api_v1_users_me_get.Output
     /// List Mochi Items
     ///
-    /// 모찌들 탭 — captured_at 구간 내 owner 모찌 목록(특정 날짜 선택 시 그날 sheet).
+    /// 캘린더 탭 — captured_at 구간 내 owner 모찌 목록(특정 날짜 선택 시 그날 sheet).
     ///
     /// ``capturedFrom``/``capturedTo`` 는 ISO8601(UTC 권장). ``intent`` 로 4-Intent 필터
     /// (해당 type 의 instance 가 있는 item).
@@ -84,14 +84,14 @@ public protocol APIProtocol: Sendable {
     func presign_capture_upload_api_v1_mochi_items_presign_post(_ input: Operations.presign_capture_upload_api_v1_mochi_items_presign_post.Input) async throws -> Operations.presign_capture_upload_api_v1_mochi_items_presign_post.Output
     /// Get Monthly Calendar
     ///
-    /// 모찌들 탭 — KST 월간 캘린더(날짜별 개수·대표 Intent·대표 썸네일 object_key).
+    /// 캘린더 탭 — KST 월간 캘린더(날짜별 개수·대표 Intent·대표 썸네일 object_key).
     ///
     /// - Remark: HTTP `GET /api/v1/mochi_items/calendar`.
     /// - Remark: Generated from `#/paths//api/v1/mochi_items/calendar/get(get_monthly_calendar_api_v1_mochi_items_calendar_get)`.
     func get_monthly_calendar_api_v1_mochi_items_calendar_get(_ input: Operations.get_monthly_calendar_api_v1_mochi_items_calendar_get.Input) async throws -> Operations.get_monthly_calendar_api_v1_mochi_items_calendar_get.Output
     /// Get Upcoming Todos
     ///
-    /// 모찌들 탭 하단 — 마감 임박·미완료(todo instance active) todo 리스트.
+    /// 캘린더 탭 하단 — 마감 임박·미완료(todo instance active) todo 리스트.
     ///
     /// 마감일은 ``entities(kind='deadline')`` free-text 를 서버가 파싱해 임박순 정렬하며,
     /// 파싱 불가/마감 미상 todo 는 목록 뒤로 둔다(``dueAt`` null).
@@ -104,6 +104,39 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `GET /api/v1/mochi_items/{mochi_item_id}`.
     /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/get(get_mochi_item_api_v1_mochi_items__mochi_item_id__get)`.
     func get_mochi_item_api_v1_mochi_items__mochi_item_id__get(_ input: Operations.get_mochi_item_api_v1_mochi_items__mochi_item_id__get.Input) async throws -> Operations.get_mochi_item_api_v1_mochi_items__mochi_item_id__get.Output
+    /// Delete Mochi Item
+    ///
+    /// 기록 soft delete — 행을 지우지 않고 ``deleted_at`` 마킹(되돌릴 수 있게, users 동일 패턴).
+    ///
+    /// owner-scoped. 없는/이미 삭제된/다른 owner 항목은 404(`mochi_item.not_found`). 이후 모든 조회
+    /// (find/list/calendar/todos)가 ``deleted_at IS NULL`` 로 가려 목록·캘린더에서 사라진다.
+    ///
+    /// - Remark: HTTP `DELETE /api/v1/mochi_items/{mochi_item_id}`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/delete(delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete)`.
+    func delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete(_ input: Operations.delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete.Input) async throws -> Operations.delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete.Output
+    /// Reanalyze Mochi Item
+    ///
+    /// needs_review 항목 재분석 — "다른 의도"에서 사용자가 적은 의도 힌트로 다시 분석한다.
+    ///
+    /// 기존 outbox→``AgentOrchestrator`` 파이프라인을 그대로 재실행하되, 힌트를 분석 프롬프트에만
+    /// 합류시킨다(outbox 행에 일시 적재, ``mochi_items`` 미저장 — 사용자 메모 오염 방지).
+    /// 같은 item 을 재분석하므로 중복 캡처가 생기지 않는다.
+    ///
+    /// - Remark: HTTP `POST /api/v1/mochi_items/{mochi_item_id}/reanalyze`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/reanalyze/post(reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post)`.
+    func reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post(_ input: Operations.reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post.Input) async throws -> Operations.reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post.Output
+    /// Update Instance Lifecycle
+    ///
+    /// intent instance 의 의미 lifecycle 전이 — 캘린더 todo 완료/완료취소.
+    ///
+    /// 완료: ``lifecycleKind=archived`` + ``archiveReason=todoCompleted``.
+    /// 완료취소: ``lifecycleKind=active``(reason 생략). 합법성은 instance 의 intent_type 으로
+    /// 검증한다 — 불법 전이는 409(`intent_instance.illegal_transition`), 없는 instance 는 404.
+    /// todo 는 양방향(완료↔미완료)이 합법이라 잘못 누른 완료를 되돌릴 수 있다.
+    ///
+    /// - Remark: HTTP `POST /api/v1/mochi_items/{mochi_item_id}/instances/{instance_id}/lifecycle`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/instances/{instance_id}/lifecycle/post(update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post)`.
+    func update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post(_ input: Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Input) async throws -> Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Output
     /// Stream Agent Run
     ///
     /// SSE 스트림 — worker 의 실제 분석 진행(``mochi_items.lifecycle_kind``)을 관찰해 흘린다.
@@ -225,7 +258,7 @@ extension APIProtocol {
     }
     /// List Mochi Items
     ///
-    /// 모찌들 탭 — captured_at 구간 내 owner 모찌 목록(특정 날짜 선택 시 그날 sheet).
+    /// 캘린더 탭 — captured_at 구간 내 owner 모찌 목록(특정 날짜 선택 시 그날 sheet).
     ///
     /// ``capturedFrom``/``capturedTo`` 는 ISO8601(UTC 권장). ``intent`` 로 4-Intent 필터
     /// (해당 type 의 instance 가 있는 item).
@@ -280,7 +313,7 @@ extension APIProtocol {
     }
     /// Get Monthly Calendar
     ///
-    /// 모찌들 탭 — KST 월간 캘린더(날짜별 개수·대표 Intent·대표 썸네일 object_key).
+    /// 캘린더 탭 — KST 월간 캘린더(날짜별 개수·대표 Intent·대표 썸네일 object_key).
     ///
     /// - Remark: HTTP `GET /api/v1/mochi_items/calendar`.
     /// - Remark: Generated from `#/paths//api/v1/mochi_items/calendar/get(get_monthly_calendar_api_v1_mochi_items_calendar_get)`.
@@ -295,7 +328,7 @@ extension APIProtocol {
     }
     /// Get Upcoming Todos
     ///
-    /// 모찌들 탭 하단 — 마감 임박·미완료(todo instance active) todo 리스트.
+    /// 캘린더 탭 하단 — 마감 임박·미완료(todo instance active) todo 리스트.
     ///
     /// 마감일은 ``entities(kind='deadline')`` free-text 를 서버가 파싱해 임박순 정렬하며,
     /// 파싱 불가/마감 미상 todo 는 목록 뒤로 둔다(``dueAt`` null).
@@ -322,6 +355,61 @@ extension APIProtocol {
         try await get_mochi_item_api_v1_mochi_items__mochi_item_id__get(Operations.get_mochi_item_api_v1_mochi_items__mochi_item_id__get.Input(
             path: path,
             headers: headers
+        ))
+    }
+    /// Delete Mochi Item
+    ///
+    /// 기록 soft delete — 행을 지우지 않고 ``deleted_at`` 마킹(되돌릴 수 있게, users 동일 패턴).
+    ///
+    /// owner-scoped. 없는/이미 삭제된/다른 owner 항목은 404(`mochi_item.not_found`). 이후 모든 조회
+    /// (find/list/calendar/todos)가 ``deleted_at IS NULL`` 로 가려 목록·캘린더에서 사라진다.
+    ///
+    /// - Remark: HTTP `DELETE /api/v1/mochi_items/{mochi_item_id}`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/delete(delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete)`.
+    public func delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete(path: Operations.delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete.Input.Path) async throws -> Operations.delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete.Output {
+        try await delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete(Operations.delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete.Input(path: path))
+    }
+    /// Reanalyze Mochi Item
+    ///
+    /// needs_review 항목 재분석 — "다른 의도"에서 사용자가 적은 의도 힌트로 다시 분석한다.
+    ///
+    /// 기존 outbox→``AgentOrchestrator`` 파이프라인을 그대로 재실행하되, 힌트를 분석 프롬프트에만
+    /// 합류시킨다(outbox 행에 일시 적재, ``mochi_items`` 미저장 — 사용자 메모 오염 방지).
+    /// 같은 item 을 재분석하므로 중복 캡처가 생기지 않는다.
+    ///
+    /// - Remark: HTTP `POST /api/v1/mochi_items/{mochi_item_id}/reanalyze`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/reanalyze/post(reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post)`.
+    public func reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post(
+        path: Operations.reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post.Input.Path,
+        headers: Operations.reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post.Input.Headers = .init(),
+        body: Operations.reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post.Input.Body
+    ) async throws -> Operations.reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post.Output {
+        try await reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post(Operations.reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post.Input(
+            path: path,
+            headers: headers,
+            body: body
+        ))
+    }
+    /// Update Instance Lifecycle
+    ///
+    /// intent instance 의 의미 lifecycle 전이 — 캘린더 todo 완료/완료취소.
+    ///
+    /// 완료: ``lifecycleKind=archived`` + ``archiveReason=todoCompleted``.
+    /// 완료취소: ``lifecycleKind=active``(reason 생략). 합법성은 instance 의 intent_type 으로
+    /// 검증한다 — 불법 전이는 409(`intent_instance.illegal_transition`), 없는 instance 는 404.
+    /// todo 는 양방향(완료↔미완료)이 합법이라 잘못 누른 완료를 되돌릴 수 있다.
+    ///
+    /// - Remark: HTTP `POST /api/v1/mochi_items/{mochi_item_id}/instances/{instance_id}/lifecycle`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/instances/{instance_id}/lifecycle/post(update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post)`.
+    public func update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post(
+        path: Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Input.Path,
+        headers: Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Input.Headers = .init(),
+        body: Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Input.Body
+    ) async throws -> Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Output {
+        try await update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post(Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Input(
+            path: path,
+            headers: headers,
+            body: body
         ))
     }
     /// Stream Agent Run
@@ -431,6 +519,13 @@ public enum Components {
                 case fullName
                 case deviceLabel
             }
+        }
+        /// - Remark: Generated from `#/components/schemas/ArchiveReason`.
+        @frozen public enum ArchiveReason: String, Codable, Hashable, Sendable, CaseIterable {
+            case scheduleEnded = "scheduleEnded"
+            case todoCompleted = "todoCompleted"
+            case knowledgeStale = "knowledgeStale"
+            case userManual = "userManual"
         }
         /// 월간 캘린더의 하루 셀 — KST 날짜·개수·대표 Intent·대표 썸네일 object_key.
         ///
@@ -655,6 +750,47 @@ public enum Components {
             case appDirectInput = "appDirectInput"
             case unknown = "unknown"
         }
+        /// intent instance 의 의미 lifecycle (완료/만료/decay).
+        ///
+        /// item 의 처리 파이프라인 상태(``LifecycleStateKind``)와 **직교**한다. instance 는 분석
+        /// 성공 시점에만 생성되므로 항상 ``active`` 로 태어난다.
+        ///
+        /// - Remark: Generated from `#/components/schemas/InstanceLifecycleKind`.
+        @frozen public enum InstanceLifecycleKind: String, Codable, Hashable, Sendable, CaseIterable {
+            case active = "active"
+            case decaying = "decaying"
+            case reviewRequested = "reviewRequested"
+            case archived = "archived"
+        }
+        /// intent instance 의 의미 lifecycle 전이 요청 — 캘린더 todo 완료/완료취소.
+        ///
+        /// 완료: ``lifecycleKind=archived`` + ``archiveReason=todoCompleted``.
+        /// 완료취소: ``lifecycleKind=active`` (reason 생략). 전이 합법성은 instance 의 intent_type 으로
+        /// ``lifecycle_policy`` 가 검증한다(불법이면 409).
+        ///
+        /// - Remark: Generated from `#/components/schemas/InstanceLifecycleUpdateRequest`.
+        public struct InstanceLifecycleUpdateRequest: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/InstanceLifecycleUpdateRequest/lifecycleKind`.
+            public var lifecycleKind: Components.Schemas.InstanceLifecycleKind
+            /// - Remark: Generated from `#/components/schemas/InstanceLifecycleUpdateRequest/archiveReason`.
+            public var archiveReason: Components.Schemas.ArchiveReason?
+            /// Creates a new `InstanceLifecycleUpdateRequest`.
+            ///
+            /// - Parameters:
+            ///   - lifecycleKind:
+            ///   - archiveReason:
+            public init(
+                lifecycleKind: Components.Schemas.InstanceLifecycleKind,
+                archiveReason: Components.Schemas.ArchiveReason? = nil
+            ) {
+                self.lifecycleKind = lifecycleKind
+                self.archiveReason = archiveReason
+            }
+            public enum CodingKeys: String, CodingKey {
+                case lifecycleKind
+                case archiveReason
+            }
+        }
         /// 모찌의 4-Intent 분류. iOS `CoreDomain.Intent` 와 완전히 동일한 문자열 값.
         ///
         /// - Remark: Generated from `#/components/schemas/Intent`.
@@ -666,8 +802,13 @@ public enum Components {
         }
         /// 저장된 의도 instance 1건 — 곧 active. 점수/위계 없음.
         ///
+        /// ``id`` 는 서버 instance 식별자 — iOS 가 보존해 완료/완료취소(lifecycle 전이) API 의 대상으로 쓴다.
+        /// (재분석 시 delete-reinsert 로 id 가 갈리는 한계는 known-drift — CHANGELOG 참고.)
+        ///
         /// - Remark: Generated from `#/components/schemas/IntentInstanceResponse`.
         public struct IntentInstanceResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/IntentInstanceResponse/instanceId`.
+            public var instanceId: Swift.String
             /// - Remark: Generated from `#/components/schemas/IntentInstanceResponse/intentType`.
             public var intentType: Components.Schemas.Intent
             /// - Remark: Generated from `#/components/schemas/IntentInstanceResponse/payload`.
@@ -678,33 +819,43 @@ public enum Components {
             public var reasoning: Swift.String?
             /// - Remark: Generated from `#/components/schemas/IntentInstanceResponse/lifecycleKind`.
             public var lifecycleKind: Swift.String
+            /// - Remark: Generated from `#/components/schemas/IntentInstanceResponse/lifecycleArchiveReason`.
+            public var lifecycleArchiveReason: Swift.String?
             /// Creates a new `IntentInstanceResponse`.
             ///
             /// - Parameters:
+            ///   - instanceId:
             ///   - intentType:
             ///   - payload:
             ///   - label:
             ///   - reasoning:
             ///   - lifecycleKind:
+            ///   - lifecycleArchiveReason:
             public init(
+                instanceId: Swift.String,
                 intentType: Components.Schemas.Intent,
                 payload: Components.Schemas.IntentPayloadResponse? = nil,
                 label: Swift.String? = nil,
                 reasoning: Swift.String? = nil,
-                lifecycleKind: Swift.String
+                lifecycleKind: Swift.String,
+                lifecycleArchiveReason: Swift.String? = nil
             ) {
+                self.instanceId = instanceId
                 self.intentType = intentType
                 self.payload = payload
                 self.label = label
                 self.reasoning = reasoning
                 self.lifecycleKind = lifecycleKind
+                self.lifecycleArchiveReason = lifecycleArchiveReason
             }
             public enum CodingKeys: String, CodingKey {
+                case instanceId
                 case intentType
                 case payload
                 case label
                 case reasoning
                 case lifecycleKind
+                case lifecycleArchiveReason
             }
         }
         /// instance 의 구조화 속성 (전부 optional).
@@ -828,7 +979,7 @@ public enum Components {
                 case imageRefs
             }
         }
-        /// 날짜 구간 모찌 목록 — 모찌들(캘린더) 탭에서 특정 날짜 선택 시 그날 목록.
+        /// 날짜 구간 모찌 목록 — 캘린더 탭에서 특정 날짜 선택 시 그날 목록.
         ///
         /// - Remark: Generated from `#/components/schemas/MochiItemListResponse`.
         public struct MochiItemListResponse: Codable, Hashable, Sendable {
@@ -946,7 +1097,7 @@ public enum Components {
                 case createdAt
             }
         }
-        /// 월간 캘린더 집계 응답 — 모찌들 탭 상단 달력.
+        /// 월간 캘린더 집계 응답 — 캘린더 탭 상단 달력.
         ///
         /// - Remark: Generated from `#/components/schemas/MonthlyCalendarResponse`.
         public struct MonthlyCalendarResponse: Codable, Hashable, Sendable {
@@ -1042,6 +1193,26 @@ public enum Components {
         @frozen public enum PushTokenType: String, Codable, Hashable, Sendable, CaseIterable {
             case apns_device = "apns_device"
             case live_activity = "live_activity"
+        }
+        /// needs_review 항목 재분석 요청 — 사용자가 "다른 의도"를 고르며 자연어로 적은 의도 힌트.
+        ///
+        /// 힌트는 분석 프롬프트 context 에만 합류하고 **outbox 행에만 일시 적재**된다.
+        /// `mochi_items`·`user_memo` 에는 저장하지 않는다(사용자가 직접 쓴 메모로 오해하는 것을 막는다).
+        ///
+        /// - Remark: Generated from `#/components/schemas/ReanalyzeRequest`.
+        public struct ReanalyzeRequest: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/ReanalyzeRequest/userHint`.
+            public var userHint: Swift.String
+            /// Creates a new `ReanalyzeRequest`.
+            ///
+            /// - Parameters:
+            ///   - userHint:
+            public init(userHint: Swift.String) {
+                self.userHint = userHint
+            }
+            public enum CodingKeys: String, CodingKey {
+                case userHint
+            }
         }
         /// - Remark: Generated from `#/components/schemas/RefreshRequest`.
         public struct RefreshRequest: Codable, Hashable, Sendable {
@@ -1285,7 +1456,7 @@ public enum Components {
                 case todos
             }
         }
-        /// 마감 임박 미완료 todo 1건 — 모찌들 탭 하단 할 일 리스트.
+        /// 마감 임박 미완료 todo 1건 — 캘린더 탭 하단 할 일 리스트.
         ///
         /// ``due_at`` 은 entities(kind='deadline') free-text 를 서버가 파싱한 값(미상이면 null),
         /// ``due_label`` 은 파싱 전 원문(클라 표시·디버깅용).
@@ -2283,7 +2454,7 @@ public enum Operations {
     }
     /// List Mochi Items
     ///
-    /// 모찌들 탭 — captured_at 구간 내 owner 모찌 목록(특정 날짜 선택 시 그날 sheet).
+    /// 캘린더 탭 — captured_at 구간 내 owner 모찌 목록(특정 날짜 선택 시 그날 sheet).
     ///
     /// ``capturedFrom``/``capturedTo`` 는 ISO8601(UTC 권장). ``intent`` 로 4-Intent 필터
     /// (해당 type 의 instance 가 있는 item).
@@ -2693,7 +2864,7 @@ public enum Operations {
     }
     /// Get Monthly Calendar
     ///
-    /// 모찌들 탭 — KST 월간 캘린더(날짜별 개수·대표 Intent·대표 썸네일 object_key).
+    /// 캘린더 탭 — KST 월간 캘린더(날짜별 개수·대표 Intent·대표 썸네일 object_key).
     ///
     /// - Remark: HTTP `GET /api/v1/mochi_items/calendar`.
     /// - Remark: Generated from `#/paths//api/v1/mochi_items/calendar/get(get_monthly_calendar_api_v1_mochi_items_calendar_get)`.
@@ -2830,7 +3001,7 @@ public enum Operations {
     }
     /// Get Upcoming Todos
     ///
-    /// 모찌들 탭 하단 — 마감 임박·미완료(todo instance active) todo 리스트.
+    /// 캘린더 탭 하단 — 마감 임박·미완료(todo instance active) todo 리스트.
     ///
     /// 마감일은 ``entities(kind='deadline')`` free-text 를 서버가 파싱해 임박순 정렬하며,
     /// 파싱 불가/마감 미상 todo 는 목록 뒤로 둔다(``dueAt`` null).
@@ -3046,6 +3217,375 @@ public enum Operations {
             /// - Throws: An error if `self` is not `.ok`.
             /// - SeeAlso: `.ok`.
             public var ok: Operations.get_mochi_item_api_v1_mochi_items__mochi_item_id__get.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Delete Mochi Item
+    ///
+    /// 기록 soft delete — 행을 지우지 않고 ``deleted_at`` 마킹(되돌릴 수 있게, users 동일 패턴).
+    ///
+    /// owner-scoped. 없는/이미 삭제된/다른 owner 항목은 404(`mochi_item.not_found`). 이후 모든 조회
+    /// (find/list/calendar/todos)가 ``deleted_at IS NULL`` 로 가려 목록·캘린더에서 사라진다.
+    ///
+    /// - Remark: HTTP `DELETE /api/v1/mochi_items/{mochi_item_id}`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/delete(delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete)`.
+    public enum delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete {
+        public static let id: Swift.String = "delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/DELETE/path`.
+            public struct Path: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/DELETE/path/mochi_item_id`.
+                public var mochi_item_id: Swift.String
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - mochi_item_id:
+                public init(mochi_item_id: Swift.String) {
+                    self.mochi_item_id = mochi_item_id
+                }
+            }
+            public var path: Operations.delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete.Input.Path
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            public init(path: Operations.delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete.Input.Path) {
+                self.path = path
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct NoContent: Sendable, Hashable {
+                /// Creates a new `NoContent`.
+                public init() {}
+            }
+            /// Successful Response
+            ///
+            /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/delete(delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            case noContent(Operations.delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete.Output.NoContent)
+            /// Successful Response
+            ///
+            /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/delete(delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            public static var noContent: Self {
+                .noContent(.init())
+            }
+            /// The associated value of the enum case if `self` is `.noContent`.
+            ///
+            /// - Throws: An error if `self` is not `.noContent`.
+            /// - SeeAlso: `.noContent`.
+            public var noContent: Operations.delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete.Output.NoContent {
+                get throws {
+                    switch self {
+                    case let .noContent(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "noContent",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+    }
+    /// Reanalyze Mochi Item
+    ///
+    /// needs_review 항목 재분석 — "다른 의도"에서 사용자가 적은 의도 힌트로 다시 분석한다.
+    ///
+    /// 기존 outbox→``AgentOrchestrator`` 파이프라인을 그대로 재실행하되, 힌트를 분석 프롬프트에만
+    /// 합류시킨다(outbox 행에 일시 적재, ``mochi_items`` 미저장 — 사용자 메모 오염 방지).
+    /// 같은 item 을 재분석하므로 중복 캡처가 생기지 않는다.
+    ///
+    /// - Remark: HTTP `POST /api/v1/mochi_items/{mochi_item_id}/reanalyze`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/reanalyze/post(reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post)`.
+    public enum reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post {
+        public static let id: Swift.String = "reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/reanalyze/POST/path`.
+            public struct Path: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/reanalyze/POST/path/mochi_item_id`.
+                public var mochi_item_id: Swift.String
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - mochi_item_id:
+                public init(mochi_item_id: Swift.String) {
+                    self.mochi_item_id = mochi_item_id
+                }
+            }
+            public var path: Operations.reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post.Input.Path
+            /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/reanalyze/POST/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post.Input.Headers
+            /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/reanalyze/POST/requestBody`.
+            @frozen public enum Body: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/reanalyze/POST/requestBody/content/application\/json`.
+                case json(Components.Schemas.ReanalyzeRequest)
+            }
+            public var body: Operations.reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post.Input.Body
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            ///   - headers:
+            ///   - body:
+            public init(
+                path: Operations.reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post.Input.Path,
+                headers: Operations.reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post.Input.Headers = .init(),
+                body: Operations.reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post.Input.Body
+            ) {
+                self.path = path
+                self.headers = headers
+                self.body = body
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Accepted: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/reanalyze/POST/responses/202/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/reanalyze/POST/responses/202/content/application\/json`.
+                    case json(OpenAPIRuntime.OpenAPIValueContainer)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: OpenAPIRuntime.OpenAPIValueContainer {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post.Output.Accepted.Body
+                /// Creates a new `Accepted`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post.Output.Accepted.Body) {
+                    self.body = body
+                }
+            }
+            /// Successful Response
+            ///
+            /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/reanalyze/post(reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post)/responses/202`.
+            ///
+            /// HTTP response code: `202 accepted`.
+            case accepted(Operations.reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post.Output.Accepted)
+            /// The associated value of the enum case if `self` is `.accepted`.
+            ///
+            /// - Throws: An error if `self` is not `.accepted`.
+            /// - SeeAlso: `.accepted`.
+            public var accepted: Operations.reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post.Output.Accepted {
+                get throws {
+                    switch self {
+                    case let .accepted(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "accepted",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Update Instance Lifecycle
+    ///
+    /// intent instance 의 의미 lifecycle 전이 — 캘린더 todo 완료/완료취소.
+    ///
+    /// 완료: ``lifecycleKind=archived`` + ``archiveReason=todoCompleted``.
+    /// 완료취소: ``lifecycleKind=active``(reason 생략). 합법성은 instance 의 intent_type 으로
+    /// 검증한다 — 불법 전이는 409(`intent_instance.illegal_transition`), 없는 instance 는 404.
+    /// todo 는 양방향(완료↔미완료)이 합법이라 잘못 누른 완료를 되돌릴 수 있다.
+    ///
+    /// - Remark: HTTP `POST /api/v1/mochi_items/{mochi_item_id}/instances/{instance_id}/lifecycle`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/instances/{instance_id}/lifecycle/post(update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post)`.
+    public enum update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post {
+        public static let id: Swift.String = "update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/instances/{instance_id}/lifecycle/POST/path`.
+            public struct Path: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/instances/{instance_id}/lifecycle/POST/path/mochi_item_id`.
+                public var mochi_item_id: Swift.String
+                /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/instances/{instance_id}/lifecycle/POST/path/instance_id`.
+                public var instance_id: Swift.String
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - mochi_item_id:
+                ///   - instance_id:
+                public init(
+                    mochi_item_id: Swift.String,
+                    instance_id: Swift.String
+                ) {
+                    self.mochi_item_id = mochi_item_id
+                    self.instance_id = instance_id
+                }
+            }
+            public var path: Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Input.Path
+            /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/instances/{instance_id}/lifecycle/POST/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Input.Headers
+            /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/instances/{instance_id}/lifecycle/POST/requestBody`.
+            @frozen public enum Body: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/instances/{instance_id}/lifecycle/POST/requestBody/content/application\/json`.
+                case json(Components.Schemas.InstanceLifecycleUpdateRequest)
+            }
+            public var body: Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Input.Body
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            ///   - headers:
+            ///   - body:
+            public init(
+                path: Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Input.Path,
+                headers: Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Input.Headers = .init(),
+                body: Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Input.Body
+            ) {
+                self.path = path
+                self.headers = headers
+                self.body = body
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/instances/{instance_id}/lifecycle/POST/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/instances/{instance_id}/lifecycle/POST/responses/200/content/application\/json`.
+                    case json(Components.Schemas.MochiItemResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.MochiItemResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Successful Response
+            ///
+            /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/instances/{instance_id}/lifecycle/post(update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Output.Ok {
                 get throws {
                     switch self {
                     case let .ok(response):

@@ -10,17 +10,12 @@ public enum OnboardingPage: Int, CaseIterable, Sendable {
     case share
     case autoSort
 
-    /// 페이지 인디케이터에 표시할 "현재 / 총합" 의 분모.
-    /// 시안에서 "5" 로 표기되어 있어 PRODUCT.md §8.3 의 5단계 (마지막 단계는 홈 진입)
-    /// 와 정합. 실제 페이지는 4개, 5번째는 finished 전이로 표현.
-    public static let totalSteps = 5
-
     public var title: String {
         switch self {
         case .intro:
             return "안녕하세요!\n만나서 반가워요."
         case .backTap:
-            return "앞으로 아이폰 뒷면을\n빠르게 두 번 탭 하면\n제가 나타날게요!"
+            return "뒷면을 두 번 탭하면\n제가 나타날게요"
         case .share:
             return "공유 버튼으로도\n저장할 수 있어요!"
         case .autoSort:
@@ -28,13 +23,13 @@ public enum OnboardingPage: Int, CaseIterable, Sendable {
         }
     }
 
-    /// 부제 (선택). 1·4 페이지에서 보조 카피로 사용.
+    /// 부제 (선택). intro·backTap·autoSort 페이지에서 보조 카피로 사용.
     public var subtitle: String? {
         switch self {
         case .intro:
             return "제 이름은 모찌예요 😊"
         case .backTap:
-            return "아래 버튼을 누르면\n단축어가 등록 돼요."
+            return "단축어를 추가하고 연결하면 끝나요"
         case .share:
             return nil
         case .autoSort:
@@ -42,13 +37,12 @@ public enum OnboardingPage: Int, CaseIterable, Sendable {
         }
     }
 
+    /// 일반 페이지의 footer CTA. 백탭 페이지는 검증 상태에 따라 View 가 동적으로 라벨을
+    /// 결정하므로 (`OnboardingView.footer`) 이 값은 fallback 으로만 쓰인다.
     public var primaryCTA: String {
         switch self {
         case .intro, .share, .autoSort: return "다음"
-        case .backTap: return "단축어 등록하기"
+        case .backTap: return "다음"
         }
     }
-
-    /// 인디케이터 좌측 라벨에 표시할 1-based 번호.
-    public var indicatorNumber: Int { rawValue + 1 }
 }

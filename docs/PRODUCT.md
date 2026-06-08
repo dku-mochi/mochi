@@ -2,7 +2,7 @@
 level: 1
 mode: committed
 status: active
-last_verified: 2026-06-02
+last_verified: 2026-06-07
 confidence: 0.9
 owners: [송준서, 이용찬, 박세현]
 description: 모찌 제품 정의·사용자 문제·컨셉의 committed 정본. 다음 중 하나라도 손대기 전 읽어라 — UX·핵심 기능 결정이 흔들릴 때, 데모 시연 기능 우선순위 결정, scope-cut 판단. 해결할 문제가 바뀌면 도메인(L2)→구현·plan(L3) 폭포 전파.
@@ -126,10 +126,9 @@ Share Extension 은 별도 프로세스로 실행되며, App Group + shared cont
 
 ### 4.2 백탭(Back Tap) 기반 입력
 
-아이폰 뒷면을 두 번 또는 세 번 탭해 단축어 실행. 모찌는 시스템 레벨에서 직접 제어하지 않고 **사용자가 Shortcuts 를 등록하도록 안내** 한다.
+아이폰 뒷면을 두 번 또는 세 번 탭해 단축어 실행. 모찌는 시스템 레벨에서 직접 제어하지 않고 **사용자가 Shortcuts 를 등록하고 뒷면 탭에 연결하도록 안내** 한다 — 단축어 *추가* 와 뒷면 탭 *연결* 은 분리된 두 행동이라, 온보딩이 체크리스트로 끝까지 끌고 간 뒤 **실제 백탭이 모찌에 도달하는지 검증**한다 (§8.3).
 
-> 앞으로 아이폰 뒷면을 빠르게 두 번 탭하면 모찌를 불러올 수 있어요.
-> 아래 버튼을 누르면 단축어 등록을 도와드릴게요.
+뒷면 탭 설정 화면으로 가는 공식 딥링크는 없다 — 비공식 `App-Prefs:` 는 iOS 17/18 에서 동작하지 않고 심사 리스크가 있어, 경로를 시각 가이드로 안내하고 딥링크는 best-effort(미래 iOS 대비 방어 코드)로만 시도한다.
 
 ### 4.3 OAuth 로그인
 
@@ -287,12 +286,19 @@ Share Extension 은 별도 프로세스로 실행되며, App Group + shared cont
 | 단계 | 내용 | CTA |
 |---|---|---|
 | 1 | 모찌 소개 | 다음 |
-| 2 | 백탭 소개 | 단축어 등록하기 |
+| 2 | 백탭 설정 (3-스텝 체크리스트: 추가 → 연결 → 검증) | 단계별 진행 / 나중에 할게요 |
 | 3 | 공유 저장 소개 | 다음 |
 | 4 | 캡처 자동 정리 소개 | 시작하기 |
 | 5 | 홈 이동 | 모찌 시작하기 |
 
-전환: Fade In/Out. 모찌 캐릭터 중심, 텍스트는 한 번에 1~2 문장.
+전환: NavigationStack push(좌우 슬라이드) — 스와이프 pager 는 백탭 게이트를 건너뛰게 하고(거부 시 인디케이터 desync) 전환도 끊겨, push 네비게이션으로 바꿨다(전진은 CTA 버튼으로만, 건너뛸 surface 없음). 하단 점 인디케이터 제거, 네비게이션 바는 **배경만 투명**(그라데이션 위에 시스템 뒤로 버튼 노출, 디자인 유지)으로 뒤로가기 제공. 모찌 캐릭터 중심, 텍스트는 한 번에 1~2 문장.
+
+**백탭 설정(단계 2)은 단순 안내가 아니라 끝까지 끌고 가는 체크리스트다** — 백탭(1순위 입력)은 단축어 *추가* 와 뒷면 탭 *연결* 이라는 분리된 두 행동이 모두 끝나야 살아나므로:
+1. **단축어 추가** — iCloud Shortcuts 링크로 모찌 단축어(`Take Screenshot → 모찌 화면 캡쳐`) 가져오기
+2. **뒷면 탭 연결** — 설정 가이드 시트가 `손쉬운 사용 > 터치 > 뒷면 탭 > 두 번 탭 > 모찌` 경로를 **실제 설정 화면 스크린샷 세로 캐러셀**(탭할 항목만 스포트라이트로 강조)로 안내
+3. **실동작 검증** — 사용자가 실제 뒷면을 두 번 탭하면 App Group 핸드셰이크로 백탭이 모찌 intent 에 도달했음을 확인하고 "백탭이 작동해요"를 모찌가 먼저 알린다. 검증 중에는 `CaptureScreenshotIntent` 가 진짜 캡처 대신 hit 만 기록해 쓰레기 저장을 막는다 (§8.9).
+
+검증 성공 또는 "나중에 할게요"(skip) 전에는 다음 페이지로 넘어가지 않는다(미설정 채 홈 도착 방지). 온보딩은 첫 실행 때 한 번만 자동 노출하고, 이후에는 홈의 완전 빈 상태(`emptyRecent`)와 설정의 "온보딩 다시 보기"에서 재진입할 수 있다. 재진입 온보딩이 끝나면 기존 홈/설정 위치로 돌아간다.
 
 ### 8.4 홈
 
@@ -358,11 +364,11 @@ Share Extension 은 별도 프로세스로 실행되며, App Group + shared cont
 
 분류(4-Intent)는 사용자에게 검수용 라벨로 노출하지 않는다 — 검색·캘린더·알림의 *배관*으로 쓰고, 화면에는 행동(체크/통지/열기)으로만 드러낸다. 미확신(needs_review) 시에만 "헷갈려요"로 확인을 청한다. 관련 모찌·시스템 캘린더 연동은 추후.
 
-### 8.9 백탭 Snippet 카드 + 메모 모달
+### 8.9 백탭 Snippet 카드 + 메모 모달 + 온보딩 검증
 
-**snippet 카드** (`BackTapSnippetView`, 외부 앱 위 표시).
+**snippet 카드** (`BackTapResultSnippet` wrapper, 외부 앱 위 표시 — 일반 캡처 분기는 `.capture` → `BackTapSnippetView`, 온보딩 검증 분기는 `.verified` → `BackTapVerifiedSnippetView`. 검증 분기 상세는 아래 "온보딩 검증 모드").
 
-`CaptureScreenshotIntent` 가 `Take Screenshot → 이미지 변환(PNG)` 출력을 받아 PNG 한 장을 `pending-backtap/<captureID>.png` 에 stash 한 직후 `.result(view: BackTapSnippetView(...))` 로 반환. 시스템이 `ShowsSnippetView` 메커니즘으로 카드를 외부 앱 위에 띄움 — **모찌 앱을 깨우지 않는다** (Papago 패턴). 카드 구성:
+`CaptureScreenshotIntent` 가 `Take Screenshot → 이미지 변환(PNG)` 출력을 받아 PNG 한 장을 `pending-backtap/<captureID>.png` 에 stash 한 직후 `.result(view: BackTapResultSnippet(kind: .capture(captureID:)))` 로 반환. 시스템이 `ShowsSnippetView` 메커니즘으로 카드를 외부 앱 위에 띄움 — **모찌 앱을 깨우지 않는다** (Papago 패턴). 카드 구성:
 
 - 한 줄 안내 "이 화면을 어떻게 저장할까요?" + 작은 모찌 아이콘
 - 두 버튼: **캡쳐** (`Button(intent: CommitBackTapCaptureIntent)`) / **메모** (`Button(intent: OpenBackTapMemoIntent)`)
@@ -383,6 +389,15 @@ Share Extension 은 별도 프로세스로 실행되며, App Group + shared cont
 - `.png` 는 두 commit intent 중 하나가 실행되면 폐기 (캡쳐 분기는 commit 직후, 메모 분기는 marker stash 직전).
 - `.memo` marker 는 모달의 어느 정상 분기 (저장/취소) 든 폐기.
 - snippet 시스템 dismiss (사용자 외부 탭 / timeout) 후 잔재 (`.png`) 는 `RootFeature` 가 launch / scenePhase active 시점에 sweep.
+
+**온보딩 검증 모드** (일반 캡처 흐름과 분리된 1회성 셋업 절차 — §8.3 단계 2의 3번째 스텝 "실동작 검증"):
+
+온보딩이 "지금 백탭 해보세요" 단계에 들어가면 `BackTapVerificationClient.begin()` → `AppGroup.beginBackTapVerification()` 이 App Group 파일 마커 `pending-backtap/verify.active` (TTL 120s) 를 연다. 이 창이 열린 동안:
+- **진짜 저장을 하지 않는다.** 백탭이 도달하면 진입점이 `AppGroup.markBackTapVerificationHit()` 만 호출 (`verify.hit` 기록 + `verify.active` 즉시 소비) 하고 스크린샷 PNG·`MochiItem` 을 만들지 않는다 — 검증용 백탭이 쓰레기 캡처로 메모리를 오염시키고 잘못된 동작을 학습시키는 것을 막는다.
+- **진입점은 두 경로 모두 hit 을 찍는다.** snippet 경로 `CaptureScreenshotIntent` (→ `BackTapResultSnippet(kind: .verified)` = "백탭이 작동해요!" 카드) 와 ShareExtension 경로 `ShareExtensionPrincipal` (→ `BackTapVerifyShareView`). 사용자 단축어가 어느 경로로 흐르든 검증된다.
+- **모찌가 폴링해 먼저 알린다.** 온보딩이 `BackTapVerificationClient.didHit()` → `AppGroup.backTapVerificationDidHit` (= `verify.hit` 존재) 를 폴링, 도달을 감지하면 체크리스트를 완료 처리한다 (미션 §1.5 "떠오른다" — 사용자가 확인 버튼을 누르는 게 아니라 모찌가 먼저 안다). 감지·타임아웃·단계 이탈 시 `end()` 가 마커를 비운다.
+
+검증은 1회성이라 hit 직후의 일반 백탭은 다시 정상 저장 흐름으로 돌아간다. App 타겟이 `.live` 를 주입하지 않거나 사용자가 단축어를 연결하지 않으면 검증은 감지되지 않고 "나중에 할게요"(skip)로 진행한다 — 의도된 안전 기본값.
 
 ### 8.10 Share Extension
 

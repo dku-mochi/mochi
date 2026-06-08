@@ -11,7 +11,9 @@ struct IntroPage: View {
             Image("mochi-hello")
                 .resizable()
                 .scaledToFit()
-                .frame(maxWidth: 280, maxHeight: 280)
+                // 캐릭터 몸통이 캔버스의 ~0.61 폭(나머지는 하트 말풍선·여백)이라, share 와 몸통
+                // 크기를 맞추려면 프레임을 키워야 한다. 300 → 몸통 ~183pt (share 235 와 동일).
+                .frame(maxWidth: 300, maxHeight: 300)
                 .accessibilityHidden(true)
         }
     }

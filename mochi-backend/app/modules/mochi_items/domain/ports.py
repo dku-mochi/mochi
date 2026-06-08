@@ -4,7 +4,11 @@ from typing import Protocol
 from uuid import UUID
 
 from app.modules.mochi_items.domain.entities import MochiItem
-from app.modules.mochi_items.domain.value_objects import IntentInstance, ReviewOption
+from app.modules.mochi_items.domain.value_objects import (
+    InstanceLifecycleState,
+    IntentInstance,
+    ReviewOption,
+)
 from app.shared.intent import Intent
 
 
@@ -65,6 +69,29 @@ class MochiItemRepository(Protocol):
         헷갈려요 후보를 push payload·GET projection·앱 내 needsReview 버킷 fallback 이 모두 읽는다).
         """
         ...
+    async def update_instance_lifecycle(
+        self,
+        *,
+        owner_id: UUID,
+        mochi_item_id: UUID,
+        instance_id: UUID,
+        lifecycle: InstanceLifecycleState,
+    ) -> bool:
+        """한 intent instance 의 의미 lifecycle 을 전이(완료/완료취소 등).
+
+        owner+mochi_item+instance 3중 scoped UPDATE. instance 가 없거나 다른 owner 면
+        ``False`` 반환(→ 404). 전이 합법성(``lifecycle_policy``) 검증은
+        application(`UpdateInstanceLifecycle`) 책임 — 포트는 검증된 상태를 그대로 기록한다.
+        """
+        ...
+
+    async def soft_delete(self, *, owner_id: UUID, mochi_item_id: UUID) -> None:
+        """mochi_item 을 soft delete (deleted_at 마킹, 행 보존). owner-scoped — 다른 owner 면 no-op.
+
+        존재/소유 검증은 application(`DeleteMochiItem`)이 find_by_id 로 선행한다(없으면 404).
+        """
+        ...
+
     async def already_ingested(self, *, owner_id: UUID, idempotency_key: str) -> MochiItem | None: ...
     async def remember_idempotency(
         self,

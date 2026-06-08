@@ -127,6 +127,61 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
         }
     }
 
+    public func reanalyzeMochiItem(id: UUID, userHint: String) async throws {
+        let body = Components.Schemas.ReanalyzeRequest(userHint: userHint)
+        let output = try await client.reanalyze_mochi_item_api_v1_mochi_items__mochi_item_id__reanalyze_post(
+            .init(path: .init(mochi_item_id: id.uuidString), body: .json(body))
+        )
+        switch output {
+        case .accepted: return
+        case let .undocumented(status, payload): throw await Self.error(status: status, payload: payload)
+        }
+    }
+
+    public func updateInstanceLifecycle(
+        mochiServerID: UUID,
+        instanceID: UUID,
+        to newState: InstanceLifecycle
+    ) async throws -> MochiItemDTO {
+        let (kind, reason) = Self.lifecycleParts(newState)
+        let body = Components.Schemas.InstanceLifecycleUpdateRequest(lifecycleKind: kind, archiveReason: reason)
+        let output = try await client
+            .update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post(
+                .init(
+                    path: .init(mochi_item_id: mochiServerID.uuidString, instance_id: instanceID.uuidString),
+                    body: .json(body)
+                )
+            )
+        switch output {
+        case let .ok(response): return try Self.mapMochiItem(try response.body.json)
+        case let .undocumented(status, payload): throw await Self.error(status: status, payload: payload)
+        }
+    }
+
+    public func deleteMochiItem(mochiServerID: UUID) async throws {
+        let output = try await client.delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete(
+            path: .init(mochi_item_id: mochiServerID.uuidString)
+        )
+        switch output {
+        case .noContent: return
+        case let .undocumented(status, payload): throw await Self.error(status: status, payload: payload)
+        }
+    }
+
+    /// 도메인 ``InstanceLifecycle`` → 생성 요청의 (kind, reason).
+    /// active/decaying/reviewRequested 는 reason 없음, archived 만 사유를 싣는다.
+    private static func lifecycleParts(
+        _ state: InstanceLifecycle
+    ) -> (Components.Schemas.InstanceLifecycleKind, Components.Schemas.ArchiveReason?) {
+        switch state {
+        case .active:          return (.active, nil)
+        case .decaying:        return (.decaying, nil)
+        case .reviewRequested: return (.reviewRequested, nil)
+        case let .archived(reason):
+            return (.archived, Components.Schemas.ArchiveReason(rawValue: reason.rawValue))
+        }
+    }
+
     // MARK: - 스키마 → DTO 매핑
 
     /// 생성 `MochiItemResponse` → ``MochiItemDTO``. 필수 `id` 는 파싱 실패 시 throw 하지만,
@@ -157,11 +212,13 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
 
     private static func mapIntentInstance(_ i: Components.Schemas.IntentInstanceResponse) -> IntentInstanceDTO {
         IntentInstanceDTO(
+            id: UUID(uuidString: i.instanceId) ?? UUID(),
             intentType: Intent(rawValue: i.intentType.rawValue) ?? .memo,
             payload: i.payload.map(mapPayload),
             label: i.label,
             reasoning: i.reasoning,
-            lifecycleKind: i.lifecycleKind
+            lifecycleKind: i.lifecycleKind,
+            lifecycleArchiveReason: i.lifecycleArchiveReason
         )
     }
 

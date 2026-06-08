@@ -32,7 +32,8 @@ private enum Layer: String {
 private func module(
     _ name: String,
     layer: Layer,
-    dependencies: [TargetDependency] = []
+    dependencies: [TargetDependency] = [],
+    resources: ResourceFileElements? = nil
 ) -> Target {
     .target(
         name: name,
@@ -41,6 +42,7 @@ private func module(
         bundleId: "\(bundleIdPrefix).\(name)",
         deploymentTargets: .iOS(deploymentTarget),
         sources: ["Targets/\(layer.rawValue)/\(name)/Sources/**"],
+        resources: resources,
         dependencies: dependencies,
         settings: .settings(base: baseSettings)
     )
@@ -84,6 +86,7 @@ let project = Project(
         .remote(url: "https://github.com/apple/swift-openapi-urlsession.git", requirement: .exact("1.0.2")),
         .remote(url: "https://github.com/realm/realm-swift.git", requirement: .exact("10.54.6")),
         .remote(url: "https://github.com/onevcat/Kingfisher.git", requirement: .exact("8.1.3")),
+        .remote(url: "https://github.com/JiongXing/PhotoBrowser", requirement: .upToNextMajor(from: "4.0.3")),
         // Sign In with Google + transitive (AppAuth / GTM*) — packageSettings 에서 framework 화.
         .remote(url: "https://github.com/google/GoogleSignIn-iOS.git", requirement: .exact("8.0.0")),
         .remote(url: "https://github.com/openid/AppAuth-iOS.git", requirement: .upToNextMajor(from: "1.7.5")),
@@ -206,6 +209,7 @@ let project = Project(
             dependencies: [
                 .target(name: "CoreDomain"),
                 .target(name: "CorePersistence"),
+                .target(name: "CoreNetworking"),
                 .target(name: "CoreIntegrations"),
                 .target(name: "DesignSystem"),
                 .package(product: "ComposableArchitecture"),
@@ -239,12 +243,14 @@ let project = Project(
             dependencies: [
                 .target(name: "CoreDomain"),
                 .target(name: "CorePersistence"),
+                .target(name: "CoreNetworking"),
                 .target(name: "CoreIntegrations"),
                 .target(name: "DesignSystem"),
                 .package(product: "ComposableArchitecture"),
                 .package(product: "Dependencies"),
                 .package(product: "CasePaths"),
                 .package(product: "IdentifiedCollections"),
+                .package(product: "JXPhotoBrowser"),
                 .package(product: "Perception"),
                 .package(product: "PerceptionCore"),
                 .package(product: "SwiftNavigation"),
@@ -293,7 +299,8 @@ let project = Project(
                 .package(product: "Perception"),
                 .package(product: "PerceptionCore"),
                 .package(product: "SwiftNavigation"),
-            ]
+            ],
+            resources: ["Targets/Features/FeatureOnboarding/Resources/**"]
         ),
 
         // MARK: App Shell
@@ -450,7 +457,17 @@ let project = Project(
                 .target(name: "CoreAuth"),
                 .target(name: "DesignSystem"),
             ],
-            settings: .settings(base: baseSettings)
+            settings: .settings(base: baseSettings.merging([
+                // Xcode 16 의 Debug Dylib 분리(`ENABLE_DEBUG_DYLIB`, Debug 기본 YES)는 타겟 코드를
+                // `ShareExtension.debug.dylib` 로 떼어내고 실행파일은 그걸 로드하는 stub 만 남긴다.
+                // 메인 앱은 정상 launch 경로라 무관하지만, **app extension** 은 시스템이
+                // `runextension`/`WFExtensionEnumerator` 로 NSExtension 을 인스턴스화할 때 stub 에서
+                // principal class(`ShareExtensionPrincipal`)를 못 찾아
+                // "Failed to create NSExtension ... (null)" 로 로드에 실패한다 — 백탭 단축어가
+                // ShareExtension 을 띄우지 못하고 무한 대기하던 근본 원인. NO 로 코드를 실행파일에
+                // 통합해 모든 로드 경로(공유시트·단축어)에서 principal class 발견을 보장한다.
+                "ENABLE_DEBUG_DYLIB": "NO",
+            ]))
         ),
 
         // MARK: Widget Extension (Live Activity)

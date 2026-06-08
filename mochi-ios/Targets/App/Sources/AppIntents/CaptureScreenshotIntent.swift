@@ -3,7 +3,12 @@ import Foundation
 import SwiftUI
 import CorePersistence
 
-/// 백탭 단축어가 `Take Screenshot → 이미지 변환(PNG) → 모찌 화면 캡쳐` 로 호출하는 App Intent.
+/// ⚠️ **레거시 — 백탭 단축어는 더 이상 이 App Intent 를 쓰지 않는다.** 현재 백탭은
+/// `Take Screenshot → Share → 모찌 ShareExtension`(``ShareExtensionPrincipal``) **단일 경로**로
+/// 흐른다 (2026-06-02 ShareExtension 단일 경로 확정, `docs/CHANGELOG.md` 참고). 아래 설명은
+/// snippet 카드를 쓰던 옛 흐름이라 현행과 다르다 — 이 Intent·snippet·검증 분기는 백탭에서 죽었다.
+///
+/// (옛 흐름) 백탭 단축어가 `Take Screenshot → 이미지 변환(PNG) → 모찌 화면 캡쳐` 로 호출하던 App Intent.
 ///
 /// **흐름 (2026-05-24 snippet 회귀)**: Papago 가 쓰는 `ShowsSnippetView` 패턴을 차용해
 /// **외부 앱 컨텍스트를 보존한 채** 모찌 snippet 카드를 그 위에 띄운다. 이전의 모달 흐름은
@@ -40,6 +45,16 @@ public struct CaptureScreenshotIntent: AppIntent {
     public init() {}
 
     public func perform() async throws -> some IntentResult & ShowsSnippetView {
+        // 온보딩 백탭 검증 모드: 백탭이 여기까지 도달했다는 사실만 기록하고, 진짜 캡처는
+        // 만들지 않는다. 검증용 백탭이 쓰레기 스크린샷 `MochiItem` 을 저장하면 사용자에게
+        // 잘못된 행동을 가르치고 메모리를 오염시킨다 (codex P1). 두 분기는 반환 view 타입이
+        // 같아야 opaque 반환이 성립하므로 `BackTapResultSnippet` wrapper 로 통일한다 —
+        // `AnyView` 로 감싸면 시스템이 snippet 으로 렌더링하지 못한다.
+        if AppGroup.isBackTapVerificationActive {
+            AppGroup.markBackTapVerificationHit()
+            return .result(view: BackTapResultSnippet(kind: .verified))
+        }
+
         let data = image.data
         guard data.count <= Self.maxImageBytes else {
             throw CaptureScreenshotIntentError.imageTooLarge(data.count)
@@ -53,7 +68,7 @@ public struct CaptureScreenshotIntent: AppIntent {
         let destination = AppGroup.pendingBackTapDirectoryURL.appendingPathComponent(filename)
         try data.write(to: destination, options: [.atomic])
 
-        return .result(view: BackTapSnippetView(captureID: captureID))
+        return .result(view: BackTapResultSnippet(kind: .capture(captureID: captureID)))
     }
 
     private static let maxImageBytes = 20 * 1024 * 1024

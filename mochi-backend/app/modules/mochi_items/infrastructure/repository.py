@@ -2,7 +2,7 @@ import hashlib
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import ColumnElement, delete, func, select
+from sqlalchemy import ColumnElement, delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -169,7 +169,11 @@ class PostgresMochiItemRepository(MochiItemRepository):
     async def find_by_id(self, *, owner_id: UUID, mochi_item_id: UUID) -> MochiItem | None:
         stmt = (
             select(MochiItemRow)
-            .where(MochiItemRow.id == mochi_item_id, MochiItemRow.owner_id == owner_id)
+            .where(
+                MochiItemRow.id == mochi_item_id,
+                MochiItemRow.owner_id == owner_id,
+                MochiItemRow.deleted_at.is_(None),
+            )
             .options(
                 selectinload(MochiItemRow.image_refs),
                 selectinload(MochiItemRow.intent_instances),
@@ -181,7 +185,7 @@ class PostgresMochiItemRepository(MochiItemRepository):
     async def list_recent(self, *, owner_id: UUID, limit: int) -> list[MochiItem]:
         stmt = (
             select(MochiItemRow)
-            .where(MochiItemRow.owner_id == owner_id)
+            .where(MochiItemRow.owner_id == owner_id, MochiItemRow.deleted_at.is_(None))
             .options(
                 selectinload(MochiItemRow.image_refs),
                 selectinload(MochiItemRow.intent_instances),
@@ -195,7 +199,11 @@ class PostgresMochiItemRepository(MochiItemRepository):
     async def list_by_intent(self, *, owner_id: UUID, intent: Intent, limit: int) -> list[MochiItem]:
         stmt = (
             select(MochiItemRow)
-            .where(MochiItemRow.owner_id == owner_id, self._intent_match(intent))
+            .where(
+                MochiItemRow.owner_id == owner_id,
+                self._intent_match(intent),
+                MochiItemRow.deleted_at.is_(None),
+            )
             .options(
                 selectinload(MochiItemRow.image_refs),
                 selectinload(MochiItemRow.intent_instances),
@@ -233,7 +241,7 @@ class PostgresMochiItemRepository(MochiItemRepository):
     ) -> list[MochiItem]:
         stmt = (
             select(MochiItemRow)
-            .where(MochiItemRow.owner_id == owner_id)
+            .where(MochiItemRow.owner_id == owner_id, MochiItemRow.deleted_at.is_(None))
             .options(
                 selectinload(MochiItemRow.image_refs),
                 selectinload(MochiItemRow.intent_instances),
@@ -264,7 +272,7 @@ class PostgresMochiItemRepository(MochiItemRepository):
         )
         stmt = (
             select(MochiItemRow)
-            .where(MochiItemRow.owner_id == owner_id, todo_active)
+            .where(MochiItemRow.owner_id == owner_id, todo_active, MochiItemRow.deleted_at.is_(None))
             .options(
                 selectinload(MochiItemRow.image_refs),
                 selectinload(MochiItemRow.intent_instances),
@@ -280,7 +288,9 @@ class PostgresMochiItemRepository(MochiItemRepository):
         ]
 
     async def count(self, *, owner_id: UUID) -> int:
-        stmt = select(func.count()).select_from(MochiItemRow).where(MochiItemRow.owner_id == owner_id)
+        stmt = select(func.count()).select_from(MochiItemRow).where(
+            MochiItemRow.owner_id == owner_id, MochiItemRow.deleted_at.is_(None)
+        )
         return int((await self._session.execute(stmt)).scalar_one())
 
     async def apply_analysis(
@@ -339,6 +349,43 @@ class PostgresMochiItemRepository(MochiItemRepository):
                     mochi_item=row,
                 )
             )
+        await self._session.flush()
+
+    async def update_instance_lifecycle(
+        self,
+        *,
+        owner_id: UUID,
+        mochi_item_id: UUID,
+        instance_id: UUID,
+        lifecycle: InstanceLifecycleState,
+    ) -> bool:
+        # owner+item+instance 3중 scoped — cross-tenant/IDOR 차단(다른 owner 의 instance 면 None→False).
+        stmt = select(IntentInstanceRow).where(
+            IntentInstanceRow.id == instance_id,
+            IntentInstanceRow.mochi_item_id == mochi_item_id,
+            IntentInstanceRow.owner_id == owner_id,
+        )
+        row = (await self._session.scalars(stmt)).one_or_none()
+        if row is None:
+            return False
+        row.lifecycle_kind = lifecycle.kind.value
+        row.lifecycle_archive_reason = (
+            lifecycle.archive_reason.value if lifecycle.archive_reason else None
+        )
+        await self._session.flush()
+        return True
+
+    async def soft_delete(self, *, owner_id: UUID, mochi_item_id: UUID) -> None:
+        """행을 지우지 않고 deleted_at 마킹(soft delete). 모든 조회가 deleted_at IS NULL 로 가린다.
+
+        owner-scoped — 다른 owner 의 항목은 UPDATE 대상에서 빠진다(no-op). 존재/소유 검증은
+        application(`DeleteMochiItem`)이 find_by_id 로 선행해 없는 항목은 404 로 끊는다.
+        """
+        await self._session.execute(
+            update(MochiItemRow)
+            .where(MochiItemRow.id == mochi_item_id, MochiItemRow.owner_id == owner_id)
+            .values(deleted_at=func.now())
+        )
         await self._session.flush()
 
     async def already_ingested(self, *, owner_id: UUID, idempotency_key: str) -> MochiItem | None:

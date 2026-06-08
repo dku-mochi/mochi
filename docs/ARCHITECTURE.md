@@ -110,7 +110,7 @@ App  ──► Features ──► Cores ─┬─ CoreDomain        (pure model,
                              └─ DesignSystem      (MochiTheme, IntentBadge)
 
 App  ──► ShareExtension       (NSItemProvider → InboundIngestPayload)
-App  ──► AppIntents/          (QuickCaptureIntent + CaptureScreenshotIntent + BackTapSnippetView
+App  ──► AppIntents/          (QuickCaptureIntent + CaptureScreenshotIntent + BackTapResultSnippet
                                + CommitBackTapCaptureIntent + OpenBackTapMemoIntent + MochiShortcuts)
                               ※ 별도 extension 타겟이 아니라 App 타겟 내부 (Targets/App/Sources/AppIntents/).
                               Apple 제약: AppShortcutsProvider 와 그것이 참조하는 AppIntent 는
@@ -127,7 +127,7 @@ App  ──► AppIntents/          (QuickCaptureIntent + CaptureScreenshotInten
 | 채널 | 진입점 | 출력 |
 |---|---|---|
 | 외부 앱 공유 시트 (의식적 캡처) | `ShareExtensionPrincipal` (`NSExtensionPrincipalClass`) → `ShareEntryView` 메모/확인 모달 → 사용자가 저장 탭 | `InboundIngestPayload` JSON → App Group inbound 큐 (channel = `.screenshot` / `.safari` / `.appShareSheet` 등, host·hasImage 기반 `guessChannel` 결정) |
-| iOS 백탭 (snippet 카드) | 사용자가 설치한 단축어 → `Take Screenshot` (Show Preview OFF) → **이미지 변환(PNG)** → **모찌 화면 캡쳐 액션** (`CaptureScreenshotIntent`, **메인 App 타겟 내부**, `openAppWhenRun = false`) → PNG 가 `pending-backtap/<captureID>.png` 에 stash, `ShowsSnippetView` 로 `BackTapSnippetView` 가 외부 앱 위에 카드로 표시 (모찌 앱은 깨우지 않음). 사용자가 카드의 "캡쳐" / "메모" 선택. | **캡쳐** → `CommitBackTapCaptureIntent` (`openAppWhenRun = false`) 가 background commit — pending → `captures/` 이동 + Realm `MochiItem(channel: .screenshot, syncState: .pendingUpload)` upsert + pending PNG 폐기. 백엔드 ingest 는 다음 모찌 active 시점의 `MochiItemSyncWorker` 가 시도 (snippet background process 는 인증·네트워크 인프라 부재 가능). **메모** → `OpenBackTapMemoIntent` (`openAppWhenRun = true`) 가 pending PNG 폐기 + `.memo` marker stash + 모찌 foreground 진입 → `RootFeature` 가 marker 발견 → `BackTapModalFeature` 풀스크린 모달 (textarea). |
+| iOS 백탭 (snippet 카드) | 사용자가 설치한 단축어 → `Take Screenshot` (Show Preview OFF) → **이미지 변환(PNG)** → **모찌 화면 캡쳐 액션** (`CaptureScreenshotIntent`, **메인 App 타겟 내부**, `openAppWhenRun = false`) → PNG 가 `pending-backtap/<captureID>.png` 에 stash, `ShowsSnippetView` 로 `BackTapResultSnippet`(캡처 분기 = `BackTapSnippetView`)이 외부 앱 위에 카드로 표시 (모찌 앱은 깨우지 않음). 사용자가 카드의 "캡쳐" / "메모" 선택. | **캡쳐** → `CommitBackTapCaptureIntent` (`openAppWhenRun = false`) 가 background commit — pending → `captures/` 이동 + Realm `MochiItem(channel: .screenshot, syncState: .pendingUpload)` upsert + pending PNG 폐기. 백엔드 ingest 는 다음 모찌 active 시점의 `MochiItemSyncWorker` 가 시도 (snippet background process 는 인증·네트워크 인프라 부재 가능). **메모** → `OpenBackTapMemoIntent` (`openAppWhenRun = true`) 가 pending PNG 폐기 + `.memo` marker stash + 모찌 foreground 진입 → `RootFeature` 가 marker 발견 → `BackTapModalFeature` 풀스크린 모달 (textarea). |
 | Siri / Spotlight (텍스트 메모) | `QuickCaptureIntent` + `MochiShortcuts` (**메인 App 타겟 내부**, `Targets/App/Sources/AppIntents/`) — App Group inbound 큐에 직접 적재 (모찌 UI 우회). 시스템 수준 result dialog 표시 가능. | 동일 JSON (channel = `.appIntent`, `userMemo` 또는 `url`) |
 | 앱 내 직접 입력 | `MochiItemFeature` (TCA) | Realm 직접 upsert |
 
@@ -135,7 +135,7 @@ App  ──► AppIntents/          (QuickCaptureIntent + CaptureScreenshotInten
 >
 > **세 surface 가 의도적으로 분리되어 있다** — 의도가 다르므로 코드도 분리되는 게 더 정직하다:
 > - **공유시트** = 사용자가 *의식적*으로 "이걸 모찌에 저장하고 싶다" 를 결정하는 순간. 메모를 받을 기회를 주는 게 자연스럽다 → `ShareEntryView` 모달.
-> - **백탭** = "지금 이 화면" 을 즉시 stash + 사용자가 캡쳐/메모 중 선택. `CaptureScreenshotIntent` 가 PNG 한 장을 `pending-backtap/<captureID>.png` 에 떨구고 `ShowsSnippetView` 로 `BackTapSnippetView` 를 외부 앱 위에 카드로 표시 — **모찌 앱을 깨우지 않는다** (이전 모달 흐름은 YouTube 같은 외부 앱이 사라져 사용자 컨텍스트가 손실되는 UX 문제가 있었음. Papago 가 쓰는 패턴을 차용). **캡쳐** 선택 시 `CommitBackTapCaptureIntent` 가 background 에서 pending → `captures/` 이동 + Realm `MochiItem(.pendingUpload)` upsert + pending PNG 폐기. 외부 앱은 계속 보이고 snippet 만 사라진다 — iOS 17 의 `ShowsSnippetView` + `Button(intent:)` 조합에는 자동 dismiss API 가 없어 `CommitBackTapCaptureIntent` 의 반환 타입에 `ProvidesDialog` 를 conform 하여 시스템 결과 dialog ("모찌에 저장됐어요") 가 snippet 카드를 갈음하도록 한다 (iOS 18+ `SnippetIntent` / `dismissesIntent` 가 정식 해법이지만 deployment target 17.0). 백엔드 ingest 는 다음 모찌 active 시점의 `MochiItemSyncWorker` 가 시도 — snippet `openAppWhenRun = false` 흐름은 background process 에서 실행될 수 있어 `AppDependencies.bootstrap()` 이 호출되지 않은 상태일 수 있고, 그 시점에 `mochiAPIClient` · `AuthCoordinator` 등 인증/네트워크 인프라가 부재한다. Realm 에 박아둔 `.pendingUpload` 가 안전한 fallback 이며, 모달 흐름의 "백엔드 + 로컬 fallback" 과 정합. `.syncFailed` 로 marking 된 뒤 자동 재시도는 없음 (사용자 명시적 retry UI 가 필요, `docs/TODO.md`). **메모** 선택 시 `OpenBackTapMemoIntent` 가 pending PNG 즉시 폐기 + `<captureID>.memo` marker stash + 모찌 foreground 진입 → `RootFeature` 가 marker 발견 → `BackTapModalFeature` 풀스크린 모달 (textarea). 메모 분기는 키보드 입력이 필요해 모찌 앱을 깨우는 게 정당. `.memo` marker 는 모달의 어느 *정상 분기* (저장/취소) 든 폐기됨이 invariant — snippet 시스템 dismiss (사용자 외부 탭 / timeout) 시 commit intent 가 둘 다 실행되지 않을 수 있어 `.png` 잔재 가능. `RootFeature` 가 launch / scenePhase active 시점에 `.png` 를 모두 stale 폐기 + `.memo` 는 가장 최근 한 장만 promote 한다.
+> - **백탭** = "지금 이 화면" 을 즉시 stash + 사용자가 캡쳐/메모 중 선택. `CaptureScreenshotIntent` 가 PNG 한 장을 `pending-backtap/<captureID>.png` 에 떨구고 `ShowsSnippetView` 로 `BackTapResultSnippet`(캡처 분기 = `BackTapSnippetView`)을 외부 앱 위에 카드로 표시 — **모찌 앱을 깨우지 않는다** (이전 모달 흐름은 YouTube 같은 외부 앱이 사라져 사용자 컨텍스트가 손실되는 UX 문제가 있었음. Papago 가 쓰는 패턴을 차용). **캡쳐** 선택 시 `CommitBackTapCaptureIntent` 가 background 에서 pending → `captures/` 이동 + Realm `MochiItem(.pendingUpload)` upsert + pending PNG 폐기. 외부 앱은 계속 보이고 snippet 만 사라진다 — iOS 17 의 `ShowsSnippetView` + `Button(intent:)` 조합에는 자동 dismiss API 가 없어 `CommitBackTapCaptureIntent` 의 반환 타입에 `ProvidesDialog` 를 conform 하여 시스템 결과 dialog ("모찌에 저장됐어요") 가 snippet 카드를 갈음하도록 한다 (iOS 18+ `SnippetIntent` / `dismissesIntent` 가 정식 해법이지만 deployment target 17.0). 백엔드 ingest 는 다음 모찌 active 시점의 `MochiItemSyncWorker` 가 시도 — snippet `openAppWhenRun = false` 흐름은 background process 에서 실행될 수 있어 `AppDependencies.bootstrap()` 이 호출되지 않은 상태일 수 있고, 그 시점에 `mochiAPIClient` · `AuthCoordinator` 등 인증/네트워크 인프라가 부재한다. Realm 에 박아둔 `.pendingUpload` 가 안전한 fallback 이며, 모달 흐름의 "백엔드 + 로컬 fallback" 과 정합. `.syncFailed` 로 marking 된 뒤 자동 재시도는 없음 (사용자 명시적 retry UI 가 필요, `docs/TODO.md`). **메모** 선택 시 `OpenBackTapMemoIntent` 가 pending PNG 즉시 폐기 + `<captureID>.memo` marker stash + 모찌 foreground 진입 → `RootFeature` 가 marker 발견 → `BackTapModalFeature` 풀스크린 모달 (textarea). 메모 분기는 키보드 입력이 필요해 모찌 앱을 깨우는 게 정당. `.memo` marker 는 모달의 어느 *정상 분기* (저장/취소) 든 폐기됨이 invariant — snippet 시스템 dismiss (사용자 외부 탭 / timeout) 시 commit intent 가 둘 다 실행되지 않을 수 있어 `.png` 잔재 가능. `RootFeature` 가 launch / scenePhase active 시점에 `.png` 를 모두 stale 폐기 + `.memo` 는 가장 최근 한 장만 promote 한다.
 > - **음성/검색** = 텍스트 메모. 다른 두 surface 와 입력 종류 자체가 다름.
 >
 > **inbound queue 와 pending-backtap 디렉터리는 의도가 다르다**: 큐는 "이미 사용자가 저장 결정을 내린 캡처의 4-Intent 분석 대기열" (ShareExtension·`QuickCaptureIntent` 가 떨굼). pending-backtap 은 snippet 흐름의 단명 stash — `.png` 는 캡쳐 분기 commit 직후 또는 메모 분기 진입 직후에 폐기, `.memo` marker 는 모달 종료 시 폐기. snippet 시스템 dismiss 잔재는 `RootFeature` 가 launch / active 시점에 sweep.
@@ -160,7 +160,7 @@ App  ──► AppIntents/          (QuickCaptureIntent + CaptureScreenshotInten
 | intent_type | 자동 동작 | 합법 전이(의미상태) |
 | --- | --- | --- |
 | `schedule` | EventKit/Google Calendar sync | `active → archived(scheduleEnded\|userManual)` |
-| `todo` | Reminders sync | `active → archived(todoCompleted\|userManual)` |
+| `todo` | Reminders sync | `active ↔ archived(todoCompleted)`(완료/완료취소), `active → archived(userManual)` |
 | `knowledge` | RAG 인덱싱 | `active ↔ decaying ↔ reviewRequested → archived(knowledgeStale\|userManual)` |
 | `memo` | 영구 보관 | `active → archived(userManual)` 만 |
 
@@ -282,7 +282,7 @@ DB COMMIT (atomic)
 
 #### Agent worker
 
-> 기동: `app/main.py` lifespan 에서 API 와 같은 프로세스의 백그라운드 태스크로 실행 (`asyncio.create_task(worker.run_forever())`, shutdown 시 graceful stop). 별도 워커 프로세스 아님 — 단일 인스턴스 dev/제출 전제.
+> 기동: `app/main.py` lifespan 에서 API 와 같은 프로세스의 백그라운드 태스크로 `WORKER_CONCURRENCY`(기본 2)개의 `run_forever()` 코루틴을 실행 (shutdown 시 N개 graceful stop). 동시 in-flight 분석 = N. 여전히 단일 프로세스이며, prod 수평확장은 인스턴스 복제로 한다 — `FOR UPDATE SKIP LOCKED` + item-level lock 이 N 코루틴·N 인스턴스 모두 동시 안전을 보장한다.
 
 ```
 MochiWorker.run_forever
@@ -427,7 +427,7 @@ iOS `CoreNetworking.MochiAPIClient` 의 DTO 가 backend `openapi.json` 의 스�
 | iOS 저장소 | `mochi-ios/Targets/Cores/CorePersistence/Sources/RealmMochiItemRepository.swift` |
 | iOS 네트워킹 | `mochi-ios/Targets/Cores/CoreNetworking/Sources/OpenAPIMochiClient.swift` (+ `Generated/{Client,Types}.swift`) |
 | Share Extension | `mochi-ios/Targets/ShareExtension/Sources/ShareExtensionPrincipal.swift` |
-| App Intents | `mochi-ios/Targets/App/Sources/AppIntents/` — `QuickCaptureIntent`, `CaptureScreenshotIntent` (snippet trigger), `BackTapSnippetView`, `CommitBackTapCaptureIntent` (캡쳐 분기 background), `OpenBackTapMemoIntent` (메모 분기 foreground), `MochiShortcuts` (메인 App 타겟 내부) |
+| App Intents | `mochi-ios/Targets/App/Sources/AppIntents/` — `QuickCaptureIntent`, `CaptureScreenshotIntent` (snippet trigger), `BackTapResultSnippet` (캡처 `BackTapSnippetView` / 온보딩 검증 `BackTapVerifiedSnippetView`), `CommitBackTapCaptureIntent` (캡쳐 분기 background), `OpenBackTapMemoIntent` (메모 분기 foreground), `MochiShortcuts` (메인 App 타겟 내부) |
 | iOS 백탭 메모 모달 | `mochi-ios/Targets/Features/FeatureMochiItem/Sources/BackTapModalFeature.swift`, `BackTapModalView.swift` |
 | Backend FastAPI 진입 | `mochi-backend/app/main.py`, `mochi-backend/app/api.py` |
 | Backend 도메인 | `mochi-backend/app/modules/*/domain/` |

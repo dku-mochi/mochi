@@ -16,6 +16,7 @@ public struct MochiCalendarView: View {
             VStack(spacing: HomeDesign.Spacing.xl) {
                 monthHeader
                 calendarCard
+                upcomingSchedulesSection
                 upcomingTodosSection
             }
             .padding(.horizontal, HomeDesign.Spacing.lg)
@@ -115,6 +116,32 @@ public struct MochiCalendarView: View {
         }
     }
 
+    // MARK: Upcoming schedules
+
+    private var upcomingSchedulesSection: some View {
+        VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
+            HStack(spacing: 6) {
+                Image(systemName: "calendar")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(HomeDesign.Color.sky400)
+                Text("다가오는 일정")
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(HomeDesign.Color.textPrimary)
+            }
+            if store.upcomingSchedules.isEmpty {
+                Text("예정된 일정이 없어요. 모찌가 날짜 있는 일정을 발견하면 여기 모아둘게요.")
+                    .font(.system(size: 12.5))
+                    .foregroundStyle(HomeDesign.Color.textMuted)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, HomeDesign.Spacing.lg)
+            } else {
+                ForEach(store.upcomingSchedules) { schedule in
+                    UpcomingScheduleRow(item: schedule) { store.send(.mochiItemTapped(schedule.id)) }
+                }
+            }
+        }
+    }
+
     // MARK: Upcoming todos
 
     private var upcomingTodosSection: some View {
@@ -134,8 +161,12 @@ public struct MochiCalendarView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.vertical, HomeDesign.Spacing.lg)
             } else {
-                ForEach(store.upcomingTodos) { todo in
-                    UpcomingTodoRow(item: todo) { store.send(.mochiItemTapped(todo.id)) }
+                ForEach(store.upcomingTodos) { row in
+                    UpcomingTodoRow(
+                        row: row,
+                        onToggle: { store.send(.todoCompletionToggled(row)) },
+                        onTap: { store.send(.mochiItemTapped(row.item.id)) }
+                    )
                 }
             }
         }
@@ -195,19 +226,34 @@ private struct DayCell: View {
     let isToday: Bool
     let onTap: () -> Void
 
+    private var hasCaptured: Bool { summary?.hasCaptured ?? false }
+    private var hasDue: Bool { summary?.hasDue ?? false }
+    /// 마감/일정 마커 색 — dueIntent(schedule>todo) 기반, 없으면 todo 기본.
+    private var dueColor: Color { MochiViewIntent(summary?.dueIntent ?? .todo).dotColor }
+    private var dueTint: Color { MochiViewIntent(summary?.dueIntent ?? .todo).chipBackground }
+
     var body: some View {
         Button(action: onTap) {
             VStack(spacing: 3) {
+                // 날짜 숫자 — 마감/일정 있는 날은 옅은 due색 원 배경 + 굵게로 강조(저장 점과 별개 채널).
                 Text("\(Calendar.mochiSeoul.component(.day, from: date))")
-                    .font(.system(size: 12.5, weight: isToday ? .bold : .medium))
+                    .font(.system(size: 12.5, weight: (isToday || hasDue) ? .bold : .medium))
                     .foregroundStyle(isToday ? HomeDesign.Color.purple600 : HomeDesign.Color.textPrimary)
-                if let summary {
+                    .frame(width: 21, height: 21)
+                    .background(dateBackground)
+                if hasCaptured {
                     Circle()
-                        .fill(MochiViewIntent(summary.representativeIntent ?? .memo).dotColor)
+                        .fill(MochiViewIntent(summary?.representativeIntent ?? .memo).dotColor)
                         .frame(width: 6, height: 6)
-                    Text("\(summary.count)")
+                    Text("\(summary?.count ?? 0)")
                         .font(.system(size: 9, weight: .semibold))
                         .foregroundStyle(HomeDesign.Color.textMuted)
+                } else if hasDue {
+                    // 저장은 없고 마감/일정만 — 작은 막대 마커로 탭 유도.
+                    Capsule()
+                        .fill(dueColor)
+                        .frame(width: 10, height: 3)
+                    Spacer().frame(height: 8)
                 } else {
                     Spacer().frame(height: 15)
                 }
@@ -222,31 +268,125 @@ private struct DayCell: View {
         .buttonStyle(PressableStyle())
         .disabled(summary == nil)
     }
+
+    @ViewBuilder
+    private var dateBackground: some View {
+        // 마감/일정 강조는 오늘 셀에서도 유지 — 오늘+저장+마감이 겹쳐도 due 신호(원 배경)가 살아남는다.
+        // (오늘 강조는 글자색 purple + 셀 배경 purple50 이 별 채널로 담당.)
+        if hasDue {
+            Circle().fill(dueTint)
+        } else {
+            Color.clear
+        }
+    }
 }
 
 // MARK: - Upcoming todo row
 
 private struct UpcomingTodoRow: View {
+    let row: TodoRowItem
+    let onToggle: () -> Void
+    let onTap: () -> Void
+
+    private var item: MochiItem { row.item }
+    private var isCompleted: Bool { row.isCompleted }
+
+    var body: some View {
+        HStack(spacing: HomeDesign.Spacing.md) {
+            // 완료 체크박스 — 본문과 분리된 탭 타겟. 미완료↔완료를 즉시 토글(잘못 눌러도 다시 해제 가능).
+            Button(action: onToggle) {
+                Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 22, weight: .regular))
+                    .foregroundStyle(isCompleted ? HomeDesign.Color.butter400 : HomeDesign.Color.textFaint)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(PressableStyle())
+
+            // 본문 — 탭하면 상세로.
+            Button(action: onTap) {
+                HStack(spacing: HomeDesign.Spacing.md) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(item.displayTitle)
+                            .font(.system(size: 13.5, weight: .semibold))
+                            .foregroundStyle(isCompleted ? HomeDesign.Color.textMuted : HomeDesign.Color.textPrimary)
+                            .strikethrough(isCompleted, color: HomeDesign.Color.textFaint)
+                            .lineLimit(1)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        Text(row.instance.label.map { "\($0) · \(deadlineLabel)" } ?? deadlineLabel)
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(isCompleted ? HomeDesign.Color.textFaint : deadlineColor)
+                            .lineLimit(1)
+                    }
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(HomeDesign.Color.textFaint)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(PressableStyle())
+        }
+        .padding(HomeDesign.Spacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
+                .fill(HomeDesign.Color.surface)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
+                .stroke(HomeDesign.Color.border, lineWidth: 1)
+        )
+        .opacity(isCompleted ? 0.65 : 1.0)
+        .animation(.spring(response: 0.3, dampingFraction: 0.75), value: isCompleted)
+    }
+
+    private var deadline: Date? { row.deadline }
+
+    private var deadlineLabel: String {
+        if isCompleted { return "완료함" }
+        guard let deadline else { return "마감일 미정" }
+        let calendar = Calendar.mochiSeoul
+        let days = calendar.dateComponents(
+            [.day],
+            from: calendar.startOfDay(for: Date()),
+            to: calendar.startOfDay(for: deadline)
+        ).day ?? 0
+        if days < 0 { return "\(-days)일 지남" }
+        if days == 0 { return "오늘 마감" }
+        if days == 1 { return "내일 마감" }
+        return "D-\(days)"
+    }
+
+    private var deadlineColor: Color {
+        guard let deadline else { return HomeDesign.Color.textMuted }
+        // deadlineLabel 과 동일하게 startOfDay(KST) 기준 — "오늘 마감"은 지남(blush) 아닌 임박(butter).
+        let calendar = Calendar.mochiSeoul
+        let isPast = calendar.startOfDay(for: deadline) < calendar.startOfDay(for: Date())
+        return isPast ? HomeDesign.Color.blush400 : HomeDesign.Color.butter400
+    }
+}
+
+// MARK: - Upcoming schedule row
+
+private struct UpcomingScheduleRow: View {
     let item: MochiItem
     let onTap: () -> Void
 
     var body: some View {
         Button(action: onTap) {
             HStack(spacing: HomeDesign.Spacing.md) {
-                Image(systemName: "checklist")
+                Image(systemName: "calendar")
                     .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(HomeDesign.Color.butter400)
+                    .foregroundStyle(HomeDesign.Color.sky400)
                     .frame(width: 32, height: 32)
-                    .background(Circle().fill(HomeDesign.Color.butter50))
+                    .background(Circle().fill(HomeDesign.Color.sky100))
                 VStack(alignment: .leading, spacing: 3) {
                     Text(item.displayTitle)
                         .font(.system(size: 13.5, weight: .semibold))
                         .foregroundStyle(HomeDesign.Color.textPrimary)
                         .lineLimit(1)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                    Text(deadlineLabel)
+                    Text(scheduleLabel)
                         .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(deadlineColor)
+                        .foregroundStyle(HomeDesign.Color.sky400)
                 }
                 Image(systemName: "chevron.right")
                     .font(.system(size: 11, weight: .semibold))
@@ -265,25 +405,23 @@ private struct UpcomingTodoRow: View {
         .buttonStyle(PressableStyle())
     }
 
-    private var deadline: Date? { UpcomingTodoSorter.deadline(of: item) }
-
-    private var deadlineLabel: String {
-        guard let deadline else { return "마감일 미정" }
+    /// 일정 시각 라벨 — 오늘/내일/날짜 + (자정이 아니면) 시각. KST 고정.
+    private var scheduleLabel: String {
         let calendar = Calendar.mochiSeoul
+        guard let date = UpcomingScheduleSorter.scheduleDate(of: item, onOrAfter: calendar.startOfDay(for: Date()))
+        else { return "날짜 미정" }
         let days = calendar.dateComponents(
             [.day],
             from: calendar.startOfDay(for: Date()),
-            to: calendar.startOfDay(for: deadline)
+            to: calendar.startOfDay(for: date)
         ).day ?? 0
-        if days < 0 { return "\(-days)일 지남" }
-        if days == 0 { return "오늘 마감" }
-        if days == 1 { return "내일 마감" }
-        return "D-\(days)"
-    }
-
-    private var deadlineColor: Color {
-        guard let deadline else { return HomeDesign.Color.textMuted }
-        return deadline < Date() ? HomeDesign.Color.blush400 : HomeDesign.Color.butter400
+        let hasTime = calendar.component(.hour, from: date) != 0 || calendar.component(.minute, from: date) != 0
+        let time = hasTime ? " " + DateFormatter.mochiSeoul("a h:mm").string(from: date) : ""
+        let day: String
+        if days == 0 { day = "오늘" }
+        else if days == 1 { day = "내일" }
+        else { day = DateFormatter.mochiSeoul("M월 d일 (E)").string(from: date) }
+        return day + time
     }
 }
 
@@ -311,7 +449,7 @@ private struct DaySheet: View {
                 }
                 .padding(HomeDesign.Spacing.lg)
             }
-            .background(HomeDesign.Color.bg.ignoresSafeArea())
+            .background(HomeDesign.Color.surface.ignoresSafeArea())
             .navigationTitle(Self.title(date))
             .navigationBarTitleDisplayMode(.inline)
         }

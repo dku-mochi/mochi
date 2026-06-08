@@ -1,7 +1,7 @@
 """`UserProfileSummarizer` 구현 — 최근 window 를 받아 사용자 특성 요약 생성.
 
 비용 최우선: agent loop 와 동일 flash-lite + ``thinking_budget=0``. 짧은 출력(≤512 tok).
-`gemini_classifier.py` 의 sync→to_thread→wait_for 패턴 재사용.
+SDK native async (``.aio``) + ``asyncio.wait_for`` 패턴 (agent client 와 동일).
 """
 
 import asyncio
@@ -42,14 +42,14 @@ def _format_window(window: list[ProfileWindowItem], previous: str | None) -> str
     return "\n".join(lines)
 
 
-def _call_sync(*, prompt: str, model: str) -> str:
+async def _call(*, prompt: str, model: str) -> str:
     cfg = types.GenerateContentConfig(
         system_instruction=PROFILE_SUMMARY_SYSTEM,
         temperature=0.4,
         max_output_tokens=512,
         thinking_config=types.ThinkingConfig(thinking_budget=0),
     )
-    resp = _shared_client().models.generate_content(
+    resp = await _shared_client().aio.models.generate_content(
         model=model, contents=[prompt], config=cfg
     )
     return resp.text or ""
@@ -68,7 +68,7 @@ class GeminiProfileSummarizer(UserProfileSummarizer):
             return previous or ""
         prompt = _format_window(window, previous)
         raw = await asyncio.wait_for(
-            asyncio.to_thread(_call_sync, prompt=prompt, model=self._model),
+            _call(prompt=prompt, model=self._model),
             timeout=self._timeout,
         )
         return raw.strip()

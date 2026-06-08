@@ -2,6 +2,7 @@ import Foundation
 import ComposableArchitecture
 import CoreDomain
 import CorePersistence
+import CoreNetworking
 
 /// 캘린더 탭 reducer.
 ///
@@ -17,7 +18,12 @@ public struct MochiCalendarFeature: Sendable {
         /// 표시 중인 월의 기준 날짜(해당 월의 임의 날).
         public var monthAnchor: Date
         public var days: [CalendarDaySummary] = []
-        public var upcomingTodos: IdentifiedArrayOf<MochiItem> = []
+        /// 하단 "할 일" — **todo instance 단위** 행(한 아이템에 todo 여럿이면 각각 행). 미완료(마감임박순) + 완료(맨 밑).
+        public var upcomingTodos: IdentifiedArrayOf<TodoRowItem> = []
+        /// 하단 "다가오는 일정" — 오늘 이후 일정 빠른순(시간축).
+        public var upcomingSchedules: IdentifiedArrayOf<MochiItem> = []
+        /// 마감(todo)·일정(schedule) 마커 + 날짜 sheet 의 원천 (payload 날짜 기준).
+        public var dueItems: [MochiItem] = []
         /// 탭한 날짜(있으면 그날 목록 sheet).
         public var selectedDay: SelectedDay?
         public var selectedDayItems: IdentifiedArrayOf<MochiItem> = []
@@ -32,13 +38,17 @@ public struct MochiCalendarFeature: Sendable {
         case onAppear
         case repositoryChanged
         case monthStepped(Int)
-        case loaded(days: [CalendarDaySummary], todos: [MochiItem])
+        case loaded(days: [CalendarDaySummary], todos: [TodoRowItem], schedules: [MochiItem], dueItems: [MochiItem])
         case daySelected(Date?)
         case dayItemsLoaded([MochiItem])
         case mochiItemTapped(MochiItem.ID)
+        /// 할 일 체크박스 탭 — 그 todo instance 를 완료↔미완료 토글(로컬 낙관적 + 서버 push, 실패 시 롤백).
+        case todoCompletionToggled(TodoRowItem)
+        case operationFailed(String)
     }
 
     @Dependency(\.mochiItemRepository) var repository
+    @Dependency(\.mochiAPIClient) var apiClient
 
     private enum CancelID { case observe }
 
@@ -78,10 +88,12 @@ public struct MochiCalendarFeature: Sendable {
                 let anchor = state.monthAnchor
                 return .run { send in await loadMonth(anchor, send: send) }
 
-            case let .loaded(days, todos):
+            case let .loaded(days, todos, schedules, dueItems):
                 state.isLoading = false
                 state.days = days
                 state.upcomingTodos = IdentifiedArray(uniqueElements: todos)
+                state.upcomingSchedules = IdentifiedArray(uniqueElements: schedules)
+                state.dueItems = dueItems
                 return .none
 
             case let .daySelected(date):
@@ -94,11 +106,17 @@ public struct MochiCalendarFeature: Sendable {
                 let calendar = Calendar.mochiSeoul
                 let start = calendar.startOfDay(for: date)
                 guard let end = calendar.date(byAdding: .day, value: 1, to: start) else { return .none }
+                // 그날 마감(todo)·일정(schedule)인 항목 — 다른 날 캡처됐어도 이 날짜에 함께 보여준다.
+                let dueOnDay = state.dueItems.filter { item in
+                    CalendarDueDate.dueDates(of: item).contains { calendar.isDate($0.date, inSameDayAs: date) }
+                }
                 return .run { send in
-                    let items = (try? await repository.listCaptured(
+                    let captured = (try? await repository.listCaptured(
                         in: DateInterval(start: start, end: end), limit: 200
                     )) ?? []
-                    await send(.dayItemsLoaded(items))
+                    let capturedIDs = Set(captured.map(\.id))
+                    let merged = captured + dueOnDay.filter { !capturedIDs.contains($0.id) }
+                    await send(.dayItemsLoaded(merged))
                 }
 
             case let .dayItemsLoaded(items):
@@ -107,6 +125,45 @@ public struct MochiCalendarFeature: Sendable {
 
             case .mochiItemTapped:
                 // 상위 Feature(MainTabFeature)가 상세로 라우팅.
+                return .none
+
+            case let .todoCompletionToggled(row):
+                let todo = row.instance
+                let item = row.item
+                let isCompleted = todo.lifecycle.kind == .archived
+                let target: InstanceLifecycle = isCompleted ? .active : .archived(reason: .todoCompleted)
+                let rollback = todo.lifecycle
+                let serverID: UUID? = {
+                    if case let .uploaded(sid, _) = item.syncState { return sid } else { return nil }
+                }()
+                return .run { send in
+                    // 낙관적 로컬 전이 — observeChanges 가 즉시 리스트를 다시 그린다.
+                    try? await repository.updateInstanceLifecycle(mochiItemID: item.id, instanceID: todo.id, to: target)
+                    // 서버 영속(prod) — 업로드된 item 만(serverID 없으면 아직 서버에 없어 로컬만 유지).
+                    guard let serverID else { return }
+                    do {
+                        _ = try await apiClient.updateInstanceLifecycle(
+                            mochiServerID: serverID, instanceID: todo.id, to: target
+                        )
+                    } catch let error as APIErrorEnvelope where error.code == "intent_instance.not_found" {
+                        // 기존 데이터 치유 — 변경 전 분석된 todo 는 로컬 instance id 가 서버 id 와 불일치.
+                        // 서버 최신에서 같은 label 의 todo instance 를 찾아 재시도하고, 응답으로 로컬을 교정한다.
+                        await healLegacyTodoInstance(
+                            repository: repository, apiClient: apiClient,
+                            itemID: item.id, serverID: serverID, staleInstanceID: todo.id,
+                            staleLabel: todo.label, target: target, rollback: rollback, send: send
+                        )
+                    } catch {
+                        // 그 외 서버 실패 → 로컬 롤백(낙관적 업데이트 취소).
+                        try? await repository.updateInstanceLifecycle(
+                            mochiItemID: item.id, instanceID: todo.id, to: rollback
+                        )
+                        await send(.operationFailed(String(describing: error)))
+                    }
+                }
+
+            case .operationFailed:
+                // 롤백은 이미 수행됨 — 현재는 silent(추후 토스트). observeChanges 가 최신 상태로 복구.
                 return .none
             }
         }
@@ -117,17 +174,26 @@ public struct MochiCalendarFeature: Sendable {
     private func loadMonth(_ anchor: Date, send: Send<Action>) async {
         let calendar = Calendar.mochiSeoul
         guard let monthInterval = calendar.dateInterval(of: .month, for: anchor) else {
-            await send(.loaded(days: [], todos: []))
+            await send(.loaded(days: [], todos: [], schedules: [], dueItems: []))
             return
         }
         // active todo 는 (사실상)전량 스캔 후 마감순 정렬 → 상위 N. captured 순으로 먼저 자르면
         // '오래 전 캡처 + 임박 마감' 을 놓친다(백엔드 ListUpcomingTodos 와 동일 정책).
+        // 캘린더 마커는 두 축 — ① 저장 점(capturedAt, 이 달 캡처) ② 마감/일정 마커(todo 마감일·
+        // schedule 일정 날짜). ②는 다른 달 캡처라도 날짜가 이 달이면 떠야 해 capturedAt 구간이 아니라
+        // active todo·schedule 을 (상위 500 한정) 스캔한다 — 현 데이터 규모엔 충분, 초과분은 누락 가능.
         async let itemsTask: [MochiItem] = (try? await repository.listCaptured(in: monthInterval, limit: 2000)) ?? []
-        async let todosTask: [MochiItem] = (try? await repository.listActiveTodos(limit: 500)) ?? []
-        let (items, todos) = await (itemsTask, todosTask)
+        // active + 완료(archived) todo 를 함께 — 완료한 것도 리스트 맨 밑에 남기려면 active-only 로는 부족.
+        async let todosTask: [MochiItem] = (try? await repository.listByIntent(.todo, limit: 500)) ?? []
+        async let schedulesTask: [MochiItem] = (try? await repository.listByIntent(.schedule, limit: 500)) ?? []
+        let (items, todos, schedules) = await (itemsTask, todosTask, schedulesTask)
+        // 마커·sheet 원천은 active todo·active schedule 만 기여(CalendarDueDate.dueDates 가 거른다).
+        let dueItems = CalendarDueDate.merge(todos: todos, schedules: schedules)
         await send(.loaded(
-            days: CalendarDaySummary.group(items, calendar: calendar),
-            todos: Array(UpcomingTodoSorter.sort(todos).prefix(Self.upcomingTodoDisplayLimit))
+            days: CalendarDaySummary.group(captured: items, due: dueItems, calendar: calendar),
+            todos: Array(CalendarTodoSorter.rows(todos).prefix(Self.upcomingTodoDisplayLimit)),
+            schedules: Array(UpcomingScheduleSorter.sort(schedules).prefix(Self.upcomingTodoDisplayLimit)),
+            dueItems: dueItems
         ))
     }
 }
@@ -140,30 +206,61 @@ public struct SelectedDay: Identifiable, Equatable, Sendable {
     public var id: Date { date }
 }
 
-/// 캘린더 한 칸(하루)의 집계.
+/// "마감 임박 할 일" 리스트의 한 행 — **todo instance 단위**. 한 아이템에 todo 가 여럿이면 각각 행이 된다.
+/// (이전엔 MochiItem 단위라 한 아이템의 여러 todo 가 1행으로 접혀, 2개 중 1개만 보였다.)
+public struct TodoRowItem: Identifiable, Equatable, Sendable {
+    public let item: MochiItem
+    public let instance: IntentInstance
+    public var id: UUID { instance.id }
+    public var isCompleted: Bool { instance.lifecycle.kind == .archived }
+    /// 그 instance 의 마감일 — `payload.deadline ?? payload.date` 파싱(자연어/미상은 nil).
+    public var deadline: Date? { CalendarDueDate.parse(instance.payload.deadline ?? instance.payload.date) }
+}
+
+/// 캘린더 한 칸(하루)의 집계 — 두 축을 독립 인코딩한다.
+/// ① 저장(capturedAt): 가운데 점(대표 intent 색) + 개수. ② 마감/일정(payload 날짜): 날짜 숫자 강조.
 public struct CalendarDaySummary: Equatable, Sendable, Identifiable {
-    public let date: Date              // startOfDay(로컬)
+    public let date: Date              // startOfDay(KST)
+    /// 그날 **저장(capturedAt)** 개수.
     public let count: Int
+    /// 저장 점 색 — 그날 캡처된 것들의 대표 intent (저장 없으면 nil).
     public let representativeIntent: Intent?
     public let thumbnailRelativePath: String?
+    /// 그날 **마감(todo)·일정(schedule)** 개수.
+    public let dueCount: Int
+    /// 마감/일정 강조 색 — `schedule > todo` 우선 (없으면 nil).
+    public let dueIntent: Intent?
     public var id: Date { date }
 
-    /// capturedAt desc 입력을 startOfDay 로 그룹핑 — 각 그룹 첫 항목이 그날 최신(대표 썸네일).
-    static func group(_ items: [MochiItem], calendar: Calendar) -> [CalendarDaySummary] {
-        var buckets: [Date: [MochiItem]] = [:]
-        var order: [Date] = []
-        for item in items {
+    public var hasCaptured: Bool { count > 0 }
+    public var hasDue: Bool { dueCount > 0 }
+
+    /// 두 축으로 집계 — ① captured(capturedAt) ② due(todo 마감일·schedule 일정 날짜, `CalendarDueDate`).
+    /// captured 는 capturedAt desc 입력이라 각 그룹 첫 항목이 그날 최신(대표 썸네일).
+    static func group(captured: [MochiItem], due: [MochiItem], calendar: Calendar) -> [CalendarDaySummary] {
+        var capturedByDay: [Date: [MochiItem]] = [:]
+        for item in captured {
             let day = calendar.startOfDay(for: item.source.capturedAt)
-            if buckets[day] == nil { order.append(day) }
-            buckets[day, default: []].append(item)
+            capturedByDay[day, default: []].append(item)
         }
-        return order.map { day in
-            let group = buckets[day] ?? []
+        var dueByDay: [Date: [Intent]] = [:]
+        for item in due {
+            for entry in CalendarDueDate.dueDates(of: item) {
+                let day = calendar.startOfDay(for: entry.date)
+                dueByDay[day, default: []].append(entry.intent)
+            }
+        }
+        let allDays = Set(capturedByDay.keys).union(dueByDay.keys)
+        return allDays.sorted().map { day in
+            let group = capturedByDay[day] ?? []
+            let dueIntents = dueByDay[day] ?? []
             return CalendarDaySummary(
                 date: day,
                 count: group.count,
                 representativeIntent: Self.representative(group),
-                thumbnailRelativePath: group.lazy.compactMap { $0.source.imageRefs.first?.relativePath }.first
+                thumbnailRelativePath: group.lazy.compactMap { $0.source.imageRefs.first?.relativePath }.first,
+                dueCount: dueIntents.count,
+                dueIntent: Self.dueRepresentative(dueIntents)
             )
         }
     }
@@ -176,47 +273,158 @@ public struct CalendarDaySummary: Equatable, Sendable, Identifiable {
         let present = Set(group.flatMap { $0.intentTypes })
         return priority.first { present.contains($0) }
     }
+
+    /// 마감/일정 마커 색 — `schedule`(파랑) > `todo`(노랑) 우선.
+    private static func dueRepresentative(_ intents: [Intent]) -> Intent? {
+        let priority: [Intent] = [.schedule, .todo]
+        let present = Set(intents)
+        return priority.first { present.contains($0) }
+    }
 }
 
-/// 미완료 todo 를 마감 임박순으로 정렬. 마감일은 `actionCandidate`(reminder due / calendar start)에서 도출.
-enum UpcomingTodoSorter {
-    static func sort(_ todos: [MochiItem]) -> [MochiItem] {
-        todos.sorted { lhs, rhs in
-            switch (deadline(of: lhs), deadline(of: rhs)) {
-            case let (l?, r?): return l < r                                   // 둘 다 마감 → 임박순
-            case (_?, nil):    return true                                    // 마감 있는 것 먼저
-            case (nil, _?):    return false
-            case (nil, nil):   return lhs.source.capturedAt > rhs.source.capturedAt  // 둘 다 미상 → 최신순
+/// 캘린더 하단 "할 일" 정렬 — todo instance 단위로 펼쳐 미완료(마감임박순)를 위에, 완료(archived)를 맨 밑에.
+/// 사용자가 잘못 누른 완료도 맨 밑에 남아 다시 체크 해제(역전이)할 수 있다.
+enum CalendarTodoSorter {
+    /// todo instance 단위로 펼쳐(한 아이템 여러 todo → 각 행) 미완료(마감임박순)를 위에, 완료(archived)를 맨 밑(최근순)에.
+    static func rows(_ todos: [MochiItem]) -> [TodoRowItem] {
+        let rows = todos.flatMap { item in
+            item.instances
+                .filter { $0.intentType == .todo }
+                .map { TodoRowItem(item: item, instance: $0) }
+        }
+        return rows.sorted { lhs, rhs in
+            if lhs.isCompleted != rhs.isCompleted { return !lhs.isCompleted }  // 미완료가 항상 위
+            if !lhs.isCompleted {                                              // 둘 다 미완료 → 마감 임박순(미상은 뒤)
+                switch (lhs.deadline, rhs.deadline) {
+                case let (l?, r?): return l != r ? l < r : lhs.item.source.capturedAt > rhs.item.source.capturedAt
+                case (_?, nil):    return true
+                case (nil, _?):    return false
+                case (nil, nil):   return lhs.item.source.capturedAt > rhs.item.source.capturedAt
+                }
+            }
+            // 둘 다 완료 → 최근 완료 먼저(동률은 instance id 로 안정 정렬해 리로드 flicker 방지).
+            return lhs.item.updatedAt != rhs.item.updatedAt
+                ? lhs.item.updatedAt > rhs.item.updatedAt
+                : lhs.id.uuidString < rhs.id.uuidString
+        }
+    }
+}
+
+/// 캘린더 하단 "다가오는 일정" 정렬 — 오늘 0시(KST) 이후 일정만, 가장 빠른 일정이 맨 위.
+/// 일정은 시각 고정·완료 개념 없음이라 todo(긴급도축)와 다른 시간축으로 떠오른다(지난 일정은 제외).
+enum UpcomingScheduleSorter {
+    static func sort(_ schedules: [MochiItem]) -> [MochiItem] {
+        let todayStart = Calendar.mochiSeoul.startOfDay(for: Date())
+        return schedules
+            .compactMap { item -> (item: MochiItem, date: Date)? in
+                guard let date = scheduleDate(of: item, onOrAfter: todayStart) else { return nil }
+                return (item, date)
+            }
+            .sorted { $0.date != $1.date ? $0.date < $1.date : $0.item.id.uuidString < $1.item.id.uuidString }
+            .map(\.item)
+    }
+
+    /// 일정일 — active schedule instance 의 `payload.date` 중 `onOrAfter` 이상인 가장 이른 것.
+    static func scheduleDate(of item: MochiItem, onOrAfter: Date) -> Date? {
+        item.instances
+            .filter { $0.intentType == .schedule && $0.lifecycle == .active }
+            .compactMap { CalendarDueDate.parse($0.payload.date) }
+            .filter { $0 >= onOrAfter }
+            .min()
+    }
+}
+
+/// 기존 데이터(변경 전 분석분) 완료 토글의 404 치유 — 로컬 instance id 가 서버 id 와 불일치할 때.
+/// 서버 최신(`getMochiItem`)에서 진짜 todo instance id 를 얻어 재시도하고, 응답으로 로컬 analysis 를
+/// 교체해 instance id 를 서버값으로 영구 일치시킨다(다음 토글부터 정상). 실패 시 낙관적 로컬을 롤백.
+private func healLegacyTodoInstance(
+    repository: any MochiItemRepository,
+    apiClient: any MochiAPIClient,
+    itemID: UUID,
+    serverID: UUID,
+    staleInstanceID: UUID,
+    staleLabel: String?,
+    target: InstanceLifecycle,
+    rollback: InstanceLifecycle,
+    send: Send<MochiCalendarFeature.Action>
+) async {
+    let todos = (try? await apiClient.getMochiItem(id: serverID))?
+        .intentInstances.filter { $0.intentType == .todo } ?? []
+    // 여러 todo 중 같은 label 우선(정확한 대상 지목), 없으면 첫 todo.
+    guard let freshTodo = todos.first(where: { $0.label == staleLabel }) ?? todos.first else {
+        try? await repository.updateInstanceLifecycle(
+            mochiItemID: itemID, instanceID: staleInstanceID, to: rollback
+        )
+        await send(.operationFailed("intent_instance.not_found; heal failed"))
+        return
+    }
+    do {
+        let updated = try await apiClient.updateInstanceLifecycle(
+            mochiServerID: serverID, instanceID: freshTodo.id, to: target
+        )
+        // 서버 응답(서버 instance id + 갱신된 상태)으로 로컬 교정 — 다음 토글부터 id 일치.
+        if var domain = try? await repository.find(id: itemID) {
+            domain.analysis = updated.toMochiItemAnalysis()
+            try? await repository.upsert(domain)
+        }
+    } catch {
+        try? await repository.updateInstanceLifecycle(
+            mochiItemID: itemID, instanceID: staleInstanceID, to: rollback
+        )
+        await send(.operationFailed(String(describing: error)))
+    }
+}
+
+/// 캘린더 마커용 마감/일정 날짜 추출 — todo 마감일(active) + schedule 일정 날짜.
+/// payload 의 날짜 문자열을 KST 기준 `Date` 로 파싱한다(자연어는 nil).
+enum CalendarDueDate {
+    /// item 의 마감/일정 날짜들. todo=active instance 의 `deadline ?? date`, schedule=instance 의 `date`.
+    /// 한 캡처에 여러 instance(todo 둘, todo+schedule)면 각각 기여한다.
+    static func dueDates(of item: MochiItem) -> [(date: Date, intent: Intent)] {
+        item.instances.compactMap { inst in
+            switch inst.intentType {
+            case .todo:
+                guard inst.lifecycle == .active,
+                      let date = parse(inst.payload.deadline ?? inst.payload.date) else { return nil }
+                return (date, .todo)
+            case .schedule:
+                // active 일정만 — 끝났거나(scheduleEnded) 사용자가 치운(userManual) 일정은 캘린더에서 제외
+                // (todo 의 active 가드와 대칭, DOMAIN_DESIGN schedule lifecycle 정합).
+                guard inst.lifecycle == .active,
+                      let date = parse(inst.payload.date) else { return nil }
+                return (date, .schedule)
+            case .knowledge, .memo:
+                return nil
             }
         }
     }
 
-    /// todo 의 마감일 — reminder due 또는 calendar start. 파싱 실패 시 nil(마감 미상).
-    static func deadline(of item: MochiItem) -> Date? {
-        guard let candidates = item.analysis?.actionCandidates else { return nil }
-        for candidate in candidates {
-            switch candidate {
-            case let .createReminder(_, due):
-                if let due, let date = parseISO(due) { return date }
-            case let .createCalendarEvent(_, start, _):
-                if let date = parseISO(start) { return date }
-            default:
-                continue
-            }
+    /// 마커·sheet 원천 — todo(마감) + schedule(일정) item 을 id 중복 없이 합친다
+    /// (한 캡처가 todo·schedule 둘 다일 수 있다).
+    static func merge(todos: [MochiItem], schedules: [MochiItem]) -> [MochiItem] {
+        var seen = Set<MochiItem.ID>()
+        var result: [MochiItem] = []
+        for item in todos + schedules where seen.insert(item.id).inserted {
+            result.append(item)
         }
-        return nil
+        return result
     }
 
-    private static func parseISO(_ raw: String) -> Date? {
+    /// payload 날짜 문자열 → Date. ISO8601 / "yyyy-MM-dd'T'HH:mm" / "yyyy-MM-dd HH:mm" / "yyyy-MM-dd" 를
+    /// 지원하고, TZ 미명시(날짜만 등)는 KST 로 해석한다. 파싱 불가(자연어)면 nil.
+    static func parse(_ raw: String?) -> Date? {
+        guard let raw, !raw.isEmpty else { return nil }
         let withFractional = ISO8601DateFormatter()
         withFractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         if let date = withFractional.date(from: raw) { return date }
         let plain = ISO8601DateFormatter()
         plain.formatOptions = [.withInternetDateTime]
         if let date = plain.date(from: raw) { return date }
-        for format in ["yyyy-MM-dd'T'HH:mm", "yyyy-MM-dd HH:mm", "yyyy-MM-dd"] {
+        for format in ["yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd HH:mm:ss",
+                       "yyyy-MM-dd'T'HH:mm", "yyyy-MM-dd HH:mm", "yyyy-MM-dd"] {
             let formatter = DateFormatter()
             formatter.locale = Locale(identifier: "en_US_POSIX")
+            formatter.timeZone = TimeZone(identifier: "Asia/Seoul")
             formatter.dateFormat = format
             if let date = formatter.date(from: raw) { return date }
         }

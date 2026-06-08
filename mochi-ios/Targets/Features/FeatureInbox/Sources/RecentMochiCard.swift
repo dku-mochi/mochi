@@ -25,7 +25,8 @@ struct RecentMochiCard: View {
                     .stroke(HomeDesign.Color.border, lineWidth: 1)
             )
             .clipShape(RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous))
-            .cardShadow()
+            // 최근 항목은 홈의 보조 영역 — 그림자를 낮춰 확인/입력 영역보다 뒤로 물러나게 한다.
+            .shadow(color: HomeDesign.Color.ink900.opacity(0.05), radius: 8, x: 0, y: 2)
         }
         .buttonStyle(PressableStyle())
     }

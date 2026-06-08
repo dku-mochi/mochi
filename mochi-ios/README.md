@@ -40,7 +40,7 @@ mochi-ios/
     ├── App/                   메인 앱 셸 + @main
     │   ├── Sources/
     │   │   ├── MochiApp.swift, RootFeature.swift, RootView.swift, AppDependencies.swift, ...
-    │   │   └── AppIntents/    QuickCaptureIntent (텍스트/URL · Siri/Spotlight) + CaptureScreenshotIntent (이미지 · 백탭 단축어가 PNG stash + snippet 카드 표시, `openAppWhenRun = false`) + BackTapSnippetView (외부 앱 위 시스템 카드 SwiftUI view) + CommitBackTapCaptureIntent (snippet 캡쳐 분기 background commit) + OpenBackTapMemoIntent (snippet 메모 분기 → 모찌 foreground 진입) + MochiShortcuts (AppShortcutsProvider)
+    │   │   └── AppIntents/    QuickCaptureIntent (텍스트/URL · Siri/Spotlight) + CaptureScreenshotIntent (이미지 · 백탭 단축어가 PNG stash + snippet 카드 표시, `openAppWhenRun = false`) + BackTapResultSnippet (외부 앱 위 시스템 카드 wrapper: 캡처 BackTapSnippetView / 온보딩 검증 BackTapVerifiedSnippetView) + CommitBackTapCaptureIntent (snippet 캡쳐 분기 background commit) + OpenBackTapMemoIntent (snippet 메모 분기 → 모찌 foreground 진입) + MochiShortcuts (AppShortcutsProvider)
     │   ├── Resources/Assets.xcassets
     │   └── Support/Info.plist, App.entitlements
     ├── Cores/
@@ -75,6 +75,7 @@ App, ShareExtension 두 타겟이 동일 App Group `group.app.mochi` 에 속한�
 - 공유 Realm: `<container>/mochi.realm`
 - Inbound 큐(ShareExtension·`QuickCaptureIntent` 진입 → 메인 앱): `<container>/inbound-queue/*.json`
 - Pending Back-Tap (snippet 흐름 단명 stash): `<container>/pending-backtap/<captureID>.png` (단축어가 stash, snippet 분기 commit 시 폐기) + `<container>/pending-backtap/<captureID>.memo` (메모 분기 marker, 모달 종료 시 폐기)
+- 백탭 온보딩 검증 핸드셰이크 (1회성): `<container>/pending-backtap/verify.active` (검증 창, TTL 120s) + `<container>/pending-backtap/verify.hit` (백탭 도달 마커) — 온보딩이 폴링, 상세는 [`docs/PRODUCT.md`](../docs/PRODUCT.md) §8.9
 - 캡처 이미지: `<container>/captures/...`
 
 ## 시작하기
@@ -114,7 +115,7 @@ tuist test
 | 채널 | 진입점 | 모듈 / 위치 |
 | --- | --- | --- |
 | 외부 공유 시트 (의식적 캡처) | `ShareExtensionPrincipal` → `ShareEntryView` 메모/확인 모달 → inbound 큐 적재 | `ShareExtension` 타겟 |
-| 백탭 (snippet 카드) | 사용자 단축어 → `Take Screenshot` → 이미지 변환(PNG) → `CaptureScreenshotIntent` (`openAppWhenRun = false`) → `pending-backtap/<captureID>.png` stash + `BackTapSnippetView` 가 외부 앱 위에 카드 표시. "캡쳐" 선택 시 `CommitBackTapCaptureIntent` 가 background commit (모찌 앱 안 깸). "메모" 선택 시 `OpenBackTapMemoIntent` 가 `.memo` marker stash + 모찌 foreground → `BackTapModalFeature` 풀스크린 모달 (textarea) | App 타겟 `App/Sources/AppIntents/` + `FeatureMochiItem/BackTapModalFeature` |
+| 백탭 (snippet 카드) | 사용자 단축어 → `Take Screenshot` → 이미지 변환(PNG) → `CaptureScreenshotIntent` (`openAppWhenRun = false`) → `pending-backtap/<captureID>.png` stash + `BackTapResultSnippet`(캡처 분기 = `BackTapSnippetView`)이 외부 앱 위에 카드 표시. "캡쳐" 선택 시 `CommitBackTapCaptureIntent` 가 background commit (모찌 앱 안 깸). "메모" 선택 시 `OpenBackTapMemoIntent` 가 `.memo` marker stash + 모찌 foreground → `BackTapModalFeature` 풀스크린 모달 (textarea) | App 타겟 `App/Sources/AppIntents/` + `FeatureMochiItem/BackTapModalFeature` |
 | Siri / Spotlight (텍스트 메모) | `QuickCaptureIntent` + `MochiShortcuts` (모찌 UI 우회, inbound 큐 직접 적재) | App 타겟 `App/Sources/AppIntents/` |
 | 앱 내 직접 입력 | `MochiItemFeature` (TCA) | `FeatureMochiItem` |
 

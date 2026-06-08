@@ -3,24 +3,35 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Header, Query, status
+from sqlalchemy import text
 
 from app.core.config import get_settings
 from app.core.deps import CaptureImageStorageDep, DBSession
 from app.core.error_envelope import DomainError, FeatureUnavailableError, NotFoundError
 from app.core.security import CurrentUser
+from app.modules.mochi_items.application.delete_mochi_item import (
+    DeleteMochiItem,
+    DeleteMochiItemCommand,
+)
 from app.modules.mochi_items.application.ingest import Ingest, IngestCommand
 from app.modules.mochi_items.application.queries import (
     GetMonthlyCalendar,
     ListMochiItemsInRange,
     ListUpcomingTodos,
 )
+from app.modules.mochi_items.application.update_instance_lifecycle import (
+    UpdateInstanceLifecycle,
+    UpdateInstanceLifecycleCommand,
+)
 from app.modules.mochi_items.domain.entities import ImageRef, MochiItem
 from app.modules.mochi_items.domain.ports import CaptureImageStorage, ObjectStat
+from app.modules.mochi_items.domain.value_objects import InstanceLifecycleState
 from app.modules.mochi_items.infrastructure.outbox import OutboxNotifier
 from app.modules.mochi_items.infrastructure.repository import PostgresMochiItemRepository
 from app.modules.mochi_items.presentation.schemas import (
     CalendarDayResponse,
     ImageRefResponse,
+    InstanceLifecycleUpdateRequest,
     IntentInstanceResponse,
     IntentPayloadResponse,
     MochiItemCreateRequest,
@@ -29,6 +40,7 @@ from app.modules.mochi_items.presentation.schemas import (
     MonthlyCalendarResponse,
     PresignRequest,
     PresignResponse,
+    ReanalyzeRequest,
     ReviewOptionResponse,
     UpcomingTodoListResponse,
     UpcomingTodoResponse,
@@ -99,6 +111,7 @@ def _to_response(item: MochiItem) -> MochiItemResponse:
         user_memo=item.source.user_memo,
         intent_instances=[
             IntentInstanceResponse(
+                id=inst.id,
                 intent_type=inst.intent_type,
                 payload=IntentPayloadResponse(
                     title=inst.payload.title,
@@ -113,6 +126,9 @@ def _to_response(item: MochiItem) -> MochiItemResponse:
                 label=inst.label,
                 reasoning=inst.reasoning,
                 lifecycle_kind=inst.lifecycle.kind.value,
+                lifecycle_archive_reason=(
+                    inst.lifecycle.archive_reason.value if inst.lifecycle.archive_reason else None
+                ),
             )
             for inst in item.intent_instances
         ],
@@ -326,3 +342,84 @@ async def get_mochi_item(mochi_item_id: UUID, db: DBSession, user: CurrentUser) 
     if not item:
         raise NotFoundError("Mochi item not found", code="mochi_item.not_found")
     return _to_response(item)
+
+
+@router.post("/{mochi_item_id}/reanalyze", status_code=status.HTTP_202_ACCEPTED)
+async def reanalyze_mochi_item(
+    mochi_item_id: UUID,
+    payload: ReanalyzeRequest,
+    db: DBSession,
+    user: CurrentUser,
+) -> None:
+    """needs_review 항목 재분석 — "다른 의도"에서 사용자가 적은 의도 힌트로 다시 분석한다.
+
+    기존 outbox→``AgentOrchestrator`` 파이프라인을 그대로 재실행하되, 힌트를 분석 프롬프트에만
+    합류시킨다(outbox 행에 일시 적재, ``mochi_items`` 미저장 — 사용자 메모 오염 방지).
+    같은 item 을 재분석하므로 중복 캡처가 생기지 않는다.
+    """
+    repo = PostgresMochiItemRepository(db)
+    item = await repo.find_by_id(owner_id=user, mochi_item_id=mochi_item_id)
+    if not item:
+        raise NotFoundError("Mochi item not found", code="mochi_item.not_found")
+    # 폴링이 직전 분석의 stale `analyzed` 를 재적용하지 않도록 처리상태를 분석 대기로 되돌린다 —
+    # worker 가 재분석을 끝내면 다시 `analyzed` 로 전이한다(UPDATE 패턴은 worker 와 동일).
+    await db.execute(
+        text("UPDATE mochi_items SET lifecycle_kind='ingested' WHERE id=:id AND owner_id=:owner"),
+        {"id": str(mochi_item_id), "owner": str(user)},
+    )
+    await OutboxNotifier(db).emit(
+        owner_id=user, mochi_item_id=mochi_item_id, reanalysis_hint=payload.user_hint
+    )
+    await db.commit()
+
+
+@router.post(
+    "/{mochi_item_id}/instances/{instance_id}/lifecycle",
+    response_model=MochiItemResponse,
+)
+async def update_instance_lifecycle(
+    mochi_item_id: UUID,
+    instance_id: UUID,
+    payload: InstanceLifecycleUpdateRequest,
+    db: DBSession,
+    user: CurrentUser,
+) -> MochiItemResponse:
+    """intent instance 의 의미 lifecycle 전이 — 캘린더 todo 완료/완료취소.
+
+    완료: ``lifecycleKind=archived`` + ``archiveReason=todoCompleted``.
+    완료취소: ``lifecycleKind=active``(reason 생략). 합법성은 instance 의 intent_type 으로
+    검증한다 — 불법 전이는 409(`intent_instance.illegal_transition`), 없는 instance 는 404.
+    todo 는 양방향(완료↔미완료)이 합법이라 잘못 누른 완료를 되돌릴 수 있다.
+    """
+    use_case = UpdateInstanceLifecycle(repository=PostgresMochiItemRepository(db))
+    item = await use_case.execute(
+        UpdateInstanceLifecycleCommand(
+            owner_id=user,
+            mochi_item_id=mochi_item_id,
+            instance_id=instance_id,
+            target=InstanceLifecycleState(
+                kind=payload.lifecycle_kind,
+                archive_reason=payload.archive_reason,
+            ),
+        )
+    )
+    await db.commit()
+    return _to_response(item)
+
+
+@router.delete("/{mochi_item_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_mochi_item(
+    mochi_item_id: UUID,
+    db: DBSession,
+    user: CurrentUser,
+) -> None:
+    """기록 soft delete — 행을 지우지 않고 ``deleted_at`` 마킹(되돌릴 수 있게, users 동일 패턴).
+
+    owner-scoped. 없는/이미 삭제된/다른 owner 항목은 404(`mochi_item.not_found`). 이후 모든 조회
+    (find/list/calendar/todos)가 ``deleted_at IS NULL`` 로 가려 목록·캘린더에서 사라진다.
+    """
+    use_case = DeleteMochiItem(repository=PostgresMochiItemRepository(db))
+    await use_case.execute(
+        DeleteMochiItemCommand(owner_id=user, mochi_item_id=mochi_item_id)
+    )
+    await db.commit()

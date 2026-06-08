@@ -38,6 +38,25 @@ def test_todo_archive_requires_todo_or_user_reason() -> None:
     assert not is_allowed(Intent.TODO, _state(InstanceLifecycleKind.ACTIVE), _archived(ArchiveReason.KNOWLEDGE_STALE))
 
 
+def test_todo_can_uncomplete_archived_to_active() -> None:
+    """완료 취소 — 사용자가 todo 체크를 해제해 미완료로 되돌림(역전이). 잘못 누른 완료를 영구화하지 않는다."""
+    assert is_allowed(
+        Intent.TODO,
+        _archived(ArchiveReason.TODO_COMPLETED),
+        _state(InstanceLifecycleKind.ACTIVE),
+    )
+
+
+def test_non_todo_cannot_uncomplete_archived_to_active() -> None:
+    """역전이는 todo 한정 — schedule/memo 의 완료(archive)는 되돌릴 수 없다."""
+    assert not is_allowed(
+        Intent.SCHEDULE, _archived(ArchiveReason.SCHEDULE_ENDED), _state(InstanceLifecycleKind.ACTIVE)
+    )
+    assert not is_allowed(
+        Intent.MEMO, _archived(ArchiveReason.USER_MANUAL), _state(InstanceLifecycleKind.ACTIVE)
+    )
+
+
 def test_archive_without_reason_rejected() -> None:
     assert not is_allowed(
         Intent.MEMO,

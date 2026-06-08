@@ -24,6 +24,10 @@ class Settings(BaseSettings):
     database_url: str = Field(
         default="postgresql+asyncpg://mochi:mochi@localhost:5432/mochi"
     )
+    # 커넥션 풀 — SQLAlchemy 기본(5+10)과 동일값. worker_concurrency 를 올리면
+    # 같이 상향한다(인스턴스수 × (pool_size+max_overflow) < Postgres max_connections).
+    db_pool_size: int = 5
+    db_max_overflow: int = 10
 
     # Vertex AI / Gemini
     google_cloud_project: str | None = None
@@ -50,6 +54,9 @@ class Settings(BaseSettings):
     agent_max_steps: int = 8
     agent_step_timeout_seconds: float = 30.0
     agent_total_timeout_seconds: float = 120.0
+    # outbox 워커 코루틴 수 = 동시 in-flight 분석 건수. FOR UPDATE SKIP LOCKED 로
+    # N 코루틴(또는 N 인스턴스) 동시 안전. 올릴수록 Vertex 동시 요청도 늘어 쿼터에 유의.
+    worker_concurrency: int = 2
 
     # Agent loop LLM (function-calling 분석) — 비용 최우선: 백탭 분류와 동일 flash-lite/global.
     # 함수호출 신뢰도가 부족하면 .env 로 gemini-3.1-flash 등으로 상향 가능.
