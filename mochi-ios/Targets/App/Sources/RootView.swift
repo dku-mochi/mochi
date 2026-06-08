@@ -99,37 +99,39 @@ struct MainTabView: View {
             }
             // 선택 탭 = 모찌 퍼플(MochiTheme.primary). 비선택·배경·레이블 폰트는 configureTabBarAppearance 담당.
             .tint(MochiTheme.Palette.primary)
-            .sheet(isPresented: $store.isSettingsPresented.sending(\.settingsSheetChanged)) {
-                NavigationStack {
-                    SettingsView(store: store.scope(state: \.settings, action: \.settings))
-                        .toolbar {
-                            ToolbarItem(placement: .topBarTrailing) {
-                                Button("닫기") { store.send(.settingsSheetChanged(false)) }
-                            }
-                            ToolbarItem(placement: .topBarLeading) {
-                                // dev-only: 받은 기록 디버그 진입점.
-                                Button {
-                                    store.send(.debugInboxChanged(true))
-                                } label: {
-                                    Label("받은 기록", systemImage: "tray.full")
-                                }
+        } destination: { pathStore in
+            switch pathStore.case {
+            case let .detail(detailStore):
+                DetailView(store: detailStore)
+            case let .settings(settingsStore):
+                // 설정은 push — back 버튼이 닫기를 대체한다. 받은 기록(디버그)은 설정 화면 위 sheet 로 띄운다.
+                SettingsView(store: settingsStore)
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            // dev-only: 받은 기록 디버그 진입점.
+                            Button {
+                                store.send(.debugInboxChanged(true))
+                            } label: {
+                                Label("받은 기록", systemImage: "tray.full")
                             }
                         }
-                }
-                .sheet(isPresented: $store.isDebugInboxPresented.sending(\.debugInboxChanged)) {
-                    NavigationStack {
-                        InboxView(store: store.scope(state: \.inbox, action: \.inbox))
-                            .toolbar {
-                                ToolbarItem(placement: .topBarTrailing) {
-                                    Button("닫기") { store.send(.debugInboxChanged(false)) }
-                                }
-                            }
                     }
-                }
+                    .sheet(isPresented: $store.isDebugInboxPresented.sending(\.debugInboxChanged)) {
+                        NavigationStack {
+                            InboxView(store: store.scope(state: \.inbox, action: \.inbox))
+                                .toolbar {
+                                    ToolbarItem(placement: .topBarTrailing) {
+                                        Button("닫기") { store.send(.debugInboxChanged(false)) }
+                                    }
+                                }
+                        }
+                    }
             }
-        } destination: { detailStore in
-            DetailView(store: detailStore)
         }
+        // push 화면(설정·상세)의 바 버튼·back tint = 모찌 퍼플.
+        // TabView 의 .tint 는 TabView 하위(탭바)에만 닿아 destination 까지 상속되지 않으므로
+        // NavigationStack 전체에 한 번 더 걸어 push 화면의 toolbar/back 색을 브랜드 색으로 맞춘다.
+        .tint(MochiTheme.Palette.primary)
     }
 
     // MARK: - Tab bar appearance
