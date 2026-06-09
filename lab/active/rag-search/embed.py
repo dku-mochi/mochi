@@ -18,6 +18,7 @@ import sys
 import time
 from pathlib import Path
 
+import httpx
 from google import genai
 from google.genai import types
 
@@ -30,6 +31,7 @@ from _lab_utils import MODELS, STRATEGY_NAMES, analysis_hash as _analysis_hash  
 LAB_ROOT = Path(__file__).parent
 ANALYSIS_DIR = LAB_ROOT / "artifacts" / "analysis"
 EMBED_DIR = LAB_ROOT / "artifacts" / "embeddings"
+VOYAGE_EMBEDDINGS_URL = "https://api.voyageai.com/v1/embeddings"
 
 
 def _labels(item: dict) -> str:
@@ -86,6 +88,50 @@ def _get_client() -> genai.Client:
     return genai.Client(vertexai=True, project=project, location="us-central1")
 
 
+def _is_voyage_model(model: str) -> bool:
+    return model.startswith("voyage-")
+
+
+def _embed_voyage_batch(
+    model: str,
+    texts: list[str],
+    input_type: str,
+    dim: int | None,
+) -> tuple[list[list[float]], float]:
+    api_key = os.environ.get("VOYAGE_API_KEY")
+    if not api_key:
+        raise RuntimeError("VOYAGE_API_KEY 환경변수가 필요합니다.")
+
+    payload: dict[str, object] = {
+        "input": texts,
+        "model": model,
+        "input_type": input_type,
+    }
+    if dim is not None:
+        payload["output_dimension"] = dim
+
+    t0 = time.perf_counter()
+    with httpx.Client(timeout=60.0) as client:
+        for attempt in range(5):
+            resp = client.post(
+                VOYAGE_EMBEDDINGS_URL,
+                headers={"Authorization": f"Bearer {api_key}"},
+                json=payload,
+            )
+            if resp.status_code != 429:
+                resp.raise_for_status()
+                break
+            retry_after = resp.headers.get("Retry-After")
+            sleep_seconds = float(retry_after) if retry_after else 20.0 * (attempt + 1)
+            print(f"  [rate ] Voyage 429, retry in {sleep_seconds:.0f}s")
+            time.sleep(sleep_seconds)
+        else:
+            resp.raise_for_status()
+    latency_ms = (time.perf_counter() - t0) * 1000
+    data = resp.json()["data"]
+    return [list(row["embedding"]) for row in data], latency_ms
+
+
 def _embed_batch(
     client: genai.Client,
     model: str,
@@ -93,6 +139,10 @@ def _embed_batch(
     task_type: str,
     dim: int | None,
 ) -> tuple[list[list[float]], float]:
+    if _is_voyage_model(model):
+        input_type = "document" if task_type == "RETRIEVAL_DOCUMENT" else "query"
+        return _embed_voyage_batch(model, texts, input_type, dim)
+
     cfg = (
         types.EmbedContentConfig(task_type=task_type, output_dimensionality=dim)
         if dim is not None

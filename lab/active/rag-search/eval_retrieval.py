@@ -28,6 +28,7 @@ from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 
+import httpx
 import numpy as np
 from google import genai
 from google.genai import types
@@ -51,6 +52,7 @@ ANALYSIS_DIR = LAB_ROOT / "artifacts" / "analysis"
 EMBED_DIR = LAB_ROOT / "artifacts" / "embeddings"
 GOLD_PATH = LAB_ROOT / "gold" / "queries.json"
 RESULTS_DIR = LAB_ROOT / "results" / "retrieval"
+VOYAGE_EMBEDDINGS_URL = "https://api.voyageai.com/v1/embeddings"
 
 RRF_K = 60
 
@@ -125,16 +127,60 @@ def _get_client() -> genai.Client:
     return genai.Client(vertexai=True, project=project, location="us-central1")
 
 
-def _embed_query(
-    client: genai.Client, model: str, query: str, dim: int | None
-) -> tuple[list[float], float]:
+def _is_voyage_model(model: str) -> bool:
+    return model.startswith("voyage-")
+
+
+def _embed_voyage_queries(
+    model: str, queries: list[str], dim: int | None
+) -> tuple[list[list[float]], float]:
+    api_key = os.environ.get("VOYAGE_API_KEY")
+    if not api_key:
+        raise RuntimeError("VOYAGE_API_KEY 환경변수가 필요합니다.")
+
+    payload: dict[str, object] = {
+        "input": queries,
+        "model": model,
+        "input_type": "query",
+    }
+    if dim is not None:
+        payload["output_dimension"] = dim
+
+    t0 = time.perf_counter()
+    with httpx.Client(timeout=60.0) as client:
+        for attempt in range(5):
+            resp = client.post(
+                VOYAGE_EMBEDDINGS_URL,
+                headers={"Authorization": f"Bearer {api_key}"},
+                json=payload,
+            )
+            if resp.status_code != 429:
+                resp.raise_for_status()
+                break
+            retry_after = resp.headers.get("Retry-After")
+            sleep_seconds = float(retry_after) if retry_after else 20.0 * (attempt + 1)
+            print(f"  [rate ] Voyage 429, retry in {sleep_seconds:.0f}s")
+            time.sleep(sleep_seconds)
+        else:
+            resp.raise_for_status()
+    latency_ms = (time.perf_counter() - t0) * 1000
+    data = resp.json()["data"]
+    return [list(row["embedding"]) for row in data], latency_ms
+
+
+def _embed_queries(
+    client: genai.Client, model: str, queries: list[str], dim: int | None
+) -> tuple[list[list[float]], float]:
+    if _is_voyage_model(model):
+        return _embed_voyage_queries(model, queries, dim)
+
     cfg = types.EmbedContentConfig(task_type="RETRIEVAL_QUERY")
     if dim is not None:
         cfg = types.EmbedContentConfig(task_type="RETRIEVAL_QUERY", output_dimensionality=dim)
     t0 = time.perf_counter()
-    resp = client.models.embed_content(model=model, contents=[query], config=cfg)
+    resp = client.models.embed_content(model=model, contents=queries, config=cfg)
     latency_ms = (time.perf_counter() - t0) * 1000
-    return list(resp.embeddings[0].values), latency_ms
+    return [list(e.values) for e in resp.embeddings], latency_ms
 
 
 def _cosine(a: list[float], b: list[float]) -> float:
@@ -211,18 +257,18 @@ async def evaluate_combo(
         })
 
     # ── Vector 단독 ──
-    # query embedding은 (model, dim, query) 캐시 — 전략이 달라도 재사용
-    async def _get_query_vec(query: str) -> list[float]:
-        key = (model, dim, query)
-        if key not in query_vec_cache:
-            vec, _ = await asyncio.to_thread(_embed_query, client, model, query, dim)
-            query_vec_cache[key] = vec
-        return query_vec_cache[key]
+    # query embedding은 모델·차원별 batch 생성 후 전략이 달라도 재사용한다.
+    query_texts = [q["query"] for q in queries]
+    missing_queries = [q for q in query_texts if (model, dim, q) not in query_vec_cache]
+    if missing_queries:
+        vecs, _ = await asyncio.to_thread(_embed_queries, client, model, missing_queries, dim)
+        for query, vec in zip(missing_queries, vecs, strict=True):
+            query_vec_cache[(model, dim, query)] = vec
 
     vec_full_ranked: dict[str, list[str]] = {}  # 전체 랭킹 — RRF에 사용
     vec_qr = []
     for q in queries:
-        q_vec = await _get_query_vec(q["query"])
+        q_vec = query_vec_cache[(model, dim, q["query"])]
         scores = sorted(
             [(item_ids[i], _cosine(q_vec, doc_vecs[i])) for i in range(len(items))],
             key=lambda x: x[1], reverse=True,
@@ -392,7 +438,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--allow-partial",
         action="store_true",
-        help="25개 미만 embedding 조합이 있어도 평가 계속 (기본: 중단)",
+        help="일부 embedding 조합이 누락되어도 평가 계속 (기본: 중단)",
     )
     args = parser.parse_args()
     asyncio.run(main(args.analysis_fp, allow_partial=args.allow_partial))

@@ -34,7 +34,7 @@ from app.modules.agent.infrastructure.registry import StaticToolRegistry  # noqa
 from app.modules.agent.prompts.system_prompts import ACTIVE_PROMPT  # noqa: E402
 
 LAB_ROOT = Path(__file__).parent
-IMAGES_DIR = LAB_ROOT.parent.parent / "data" / "legacy"
+IMAGES_DIR = LAB_ROOT.parent.parent / "data" / "screenshot"
 CASES_PATH = LAB_ROOT / "data" / "cases.json"
 ANALYSIS_DIR = LAB_ROOT / "artifacts" / "analysis"
 MIME_MAP = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg"}

@@ -27,7 +27,7 @@ started: 2026-06-06
 ## 파이프라인
 
 ```
-data/cases.json (18개 스크린샷, stable ID)
+data/cases.json (lab/data/screenshot 기준 46개 스크린샷, stable ID)
   → analyze.py        artifacts/analysis/{fp}.json
   → embed.py          artifacts/embeddings/{fp}/{model}@{dim}_{strategy}.json
   → eval_retrieval.py results/retrieval/{ts}.json
@@ -43,6 +43,7 @@ PYTHONPATH="...mochi-backend" \
 uv run python "../lab/active/rag-search/analyze.py"
 
 # Step 2
+# Voyage 비교군까지 생성하려면 VOYAGE_API_KEY 도 필요하다.
 uv run python "../lab/active/rag-search/embed.py"
 
 # Step 3
@@ -86,3 +87,39 @@ uv run --group lab python "../lab/active/rag-search/eval_retrieval.py"
 ## Phase 2 여부
 
 nDCG@5 < 0.7 이면 쿼리 LLM rewrite(확장) 실험 추가.
+
+## 2026-06-09 Voyage 포함 최종 결과
+
+실행 결과:
+
+- analysis fingerprint: `044ec363`
+- retrieval result: `results/retrieval/20260609_030922.json`
+- 입력 데이터: `lab/data/screenshot` 기준 46개
+- Gold query: 30개
+- 평가 조합: 45개
+
+### 결론
+
+- **선택 모델×차원:** `voyage-4-large@1024`
+- **선택 문서 전략:** `summary+labels`
+- **선택 검색 방식:** Vector 단독
+- **avg nDCG@5:** `0.925`
+- **근거:** 기존 1위였던 `text-multilingual-embedding-002@256 × structured_fields`의 `nDCG@5=0.899`보다 높고, `HitRate@3=1.000`, `MRR=0.944`로 상위 랭킹 품질도 가장 좋았다.
+
+### 상위 결과
+
+| Rank | Label | HitRate@3 | Recall@5 | MRR | nDCG@5 |
+|------|-------|-----------|----------|-----|--------|
+| 1 | `vec:voyage-4-large@1024 × summary+labels` | 1.000 | 0.943 | 0.944 | 0.925 |
+| 2 | `vec:voyage-4-large@1024 × summary+labels+payload+entities` | 0.967 | 0.930 | 0.919 | 0.903 |
+| 3 | `vec:voyage-4@1024 × summary+labels+payload` | 0.967 | 0.939 | 0.914 | 0.903 |
+| 4 | `vec:voyage-4-large@1024 × structured_fields` | 0.967 | 0.930 | 0.925 | 0.902 |
+| 5 | `vec:voyage-4-large@1024 × summary+labels+payload` | 0.967 | 0.930 | 0.919 | 0.902 |
+| 6 | `vec:text-multilingual-embedding-002@256 × structured_fields` | 0.967 | 0.938 | 0.919 | 0.899 |
+
+### 해석
+
+- 현재 데이터셋에서는 Voyage 계열, 특히 `voyage-4-large@1024`가 가장 좋다.
+- 문서 전략은 정보를 많이 넣는 `payload/entities`보다 `summary+labels`가 더 좋았다. 검색 문서는 과도하게 길게 만들기보다 핵심 요약과 intent label 정도로 압축하는 쪽이 유리해 보인다.
+- BM25와 RRF는 이번 데이터셋에서 Vector 단독보다 낮았다. 현재는 Vector 단독을 우선 적용하고, 이후 실제 사용자 쿼리가 늘어난 뒤 hybrid/RRF 재평가가 맞다.
+- 평가 중 일부 `voyage-4@1024` 조합은 Voyage API 429로 실패했지만, 최상위 결론은 `voyage-4-large@1024` 조합에서 나왔기 때문에 현재 추천에는 큰 영향이 없다.

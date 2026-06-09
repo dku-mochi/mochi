@@ -18,7 +18,7 @@ from app.modules.agent.domain.ports import LLMClient, LLMResponseChunk
 from app.modules.agent.domain.tools import Tool, ToolName
 from app.modules.agent.infrastructure.gemini_agent_client import (
     _FINALIZE,
-    _call_sync,
+    _call,
     _extract_function_call,
     _function_declarations,
 )
@@ -85,8 +85,7 @@ class LabGeminiClient(LLMClient):
         decls = _function_declarations(tools)
         contents = _to_contents_local(user_parts)
         resp = await asyncio.wait_for(
-            asyncio.to_thread(
-                _call_sync,
+            _call(
                 system_prompt=system_prompt,
                 contents=contents,
                 decls=decls,

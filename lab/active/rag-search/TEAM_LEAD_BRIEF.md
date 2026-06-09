@@ -39,12 +39,12 @@ lab/active/rag-search/
 
 ## 1. 실험 입력
 
-`data/cases.json`에는 입력만 정의한다. 현재는 실제 스크린샷 18개를 사용하며, 이후 스크린샷+메모, text, URL 입력도 추가할 수 있다.
+`data/cases.json`에는 입력만 정의한다. 현재는 `lab/data/screenshot`의 실제 스크린샷 46개를 사용하며, 이후 스크린샷+메모, text, URL 입력도 추가할 수 있다.
 
 ```json
 {
-  "id": "cosmetics-buy-1",
-  "image": "나중에 살 화장품.png",
+  "id": "memo_나중에살화장품",
+  "image": "memo_나중에살화장품.png",
   "text": null,
   "url": null,
   "user_memo": null
@@ -72,6 +72,8 @@ cases.json
 ```text
 text-multilingual-embedding-002: 256 / 768
 gemini-embedding-001: 256 / 768 / 1536
+voyage-4: 256 / 1024
+voyage-4-large: 256 / 1024
 ```
 
 ### 문서 전략
@@ -84,7 +86,7 @@ summary + labels + payload + entities
 structured fields
 ```
 
-총 `5 모델·차원 × 5 문서 전략 = 25개` 조합을 생성한다.
+총 `9 모델·차원 × 5 문서 전략 = 45개` 조합을 생성한다.
 
 ## 4. 검색 정답
 
@@ -92,9 +94,9 @@ structured fields
 
 ```json
 {
-  "query": "내가 사려고 했던 뷰티 제품",
+  "query": "나중에 사려고 저장한 물건",
   "type": "semantic_paraphrase",
-  "expected_ids": ["cosmetics-buy-1", "cosmetics-buy-2"]
+  "expected_ids": ["memo_나중에살신발", "memo_나중에살화장품", "memo_화장품나중에살거"]
 }
 ```
 
@@ -135,4 +137,3 @@ uv run --group lab python ..\lab\active\rag-search\eval_retrieval.py
 - 임베딩 문서에 포함할 분석 필드
 - Vector 단독 또는 BM25+Vector RRF 사용 여부
 - 후속 reranker 또는 LLM query rewrite 실험 필요 여부
-
