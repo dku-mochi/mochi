@@ -103,6 +103,17 @@ struct MainTabFeature: Sendable {
                 state.path.append(.weeklyDigest(WeeklyDigestFeature.State()))
                 return .none
 
+            case let .home(.delegate(.recallRequested(query))):
+                // 홈 질문 입력바 → 검색 탭으로 전환해 즉시 회수 실행.
+                state.selectedTab = .search
+                state.search.query = query
+                return .send(.search(.submit))
+
+            case .home(.delegate(.seeAllRecentRequested)):
+                // "전체 보기" — 전체 기록을 날짜로 훑을 수 있는 캘린더 탭으로.
+                state.selectedTab = .mochis
+                return .none
+
             case let .path(.element(id: _, action: .weeklyDigest(.delegate(.mochiItemTapped(mochiItemID, hero))))):
                 // 정리 화면의 항목 탭 → 상세 present (캘린더처럼 hero 없으면 중앙 scale 폴백).
                 guard state.detail == nil else { return .none }

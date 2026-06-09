@@ -79,6 +79,29 @@ public extension View {
     func cardShadow() -> some View { modifier(CardShadow()) }
 }
 
+/// 섹션이 아래에서 떠오르며 순차 등장하는 entrance 연출 (홈·주간 정리 공용).
+/// index 순으로 살짝 시차를 둔다 — 트리거는 화면별 @State 한 번만.
+public struct RiseInEffect: ViewModifier {
+    let isVisible: Bool
+    let index: Int
+
+    public func body(content: Content) -> some View {
+        content
+            .opacity(isVisible ? 1 : 0)
+            .offset(y: isVisible ? 0 : 16)
+            .animation(
+                .spring(response: 0.5, dampingFraction: 0.86).delay(Double(index) * 0.06),
+                value: isVisible
+            )
+    }
+}
+
+public extension View {
+    func riseIn(_ isVisible: Bool, index: Int) -> some View {
+        modifier(RiseInEffect(isVisible: isVisible, index: index))
+    }
+}
+
 public struct PressableStyle: ButtonStyle {
     public init() {}
 

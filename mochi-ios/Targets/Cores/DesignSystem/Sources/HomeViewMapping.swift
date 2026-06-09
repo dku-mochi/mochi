@@ -104,6 +104,34 @@ public enum MochiItemKind {
     }
 }
 
+// MARK: - Category icon (자유형 카테고리 이름 → SF Symbol)
+
+/// LLM 이 만드는 자유형 카테고리 이름을 키워드로 아이콘에 매핑한다 (홈 주간 카드·주간 정리 공용).
+/// 매칭 실패 시 순번별 중립 아이콘 — 이름과 무관한 아이콘(예: "투자 관리"에 압정)을 막는다.
+public enum MochiCategoryIcon {
+    public static func icon(for name: String, fallbackIndex: Int) -> String {
+        let n = name.lowercased()
+        let keywordIcons: [([String], String)] = [
+            (["투자", "주식", "금융", "재테크", "코인"], "chart.line.uptrend.xyaxis"),
+            (["일정", "약속", "캘린더"], "calendar"),
+            (["할 일", "할일", "업무"], "checklist"),
+            (["학습", "공부", "교육", "강의"], "graduationcap.fill"),
+            (["it", "테크", "트렌드", "개발", "ai"], "cpu"),
+            (["앱", "사용"], "iphone"),
+            (["여행", "장소", "맛집", "카페", "데이트"], "mappin.and.ellipse"),
+            (["쇼핑", "구매", "위시"], "bag.fill"),
+            (["운동", "건강", "헬스"], "heart.fill"),
+            (["요리", "음식", "레시피"], "fork.knife"),
+            (["음악"], "music.note"),
+            (["영상", "영화", "유튜브"], "play.rectangle.fill"),
+        ]
+        for (keywords, icon) in keywordIcons where keywords.contains(where: { n.contains($0) }) {
+            return icon
+        }
+        return ["bookmark.fill", "tag.fill", "square.grid.2x2.fill"][fallbackIndex % 3]
+    }
+}
+
 // MARK: - MochiItem → display helpers
 
 extension MochiItem {
