@@ -52,6 +52,17 @@ public actor RealmMochiItemRepository: MochiItemRepository {
         }
     }
 
+    public func updateCategories(_ categories: [UUID: String]) async throws {
+        guard !categories.isEmpty else { return }
+        try await write { realm in
+            for (id, category) in categories {
+                guard let row = realm.object(ofType: RealmMochiItem.self, forPrimaryKey: id.uuidString) else { continue }
+                row.category = category
+                row.updatedAt = .init()
+            }
+        }
+    }
+
     public func updateImageUploadMetadata(
         mochiItemID: UUID,
         imageRefID: UUID,

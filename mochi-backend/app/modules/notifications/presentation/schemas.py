@@ -8,7 +8,7 @@ from app.modules.notifications.domain.entities import APNsEnvironment, PushToken
 
 
 class RegisterPushTokenRequest(BaseModel):
-    """단말(apns_device) 또는 Live Activity(live_activity) push 토큰 등록 요청."""
+    """단말(apns_device) 또는 Live Activity push-to-start(la_start) push 토큰 등록 요청."""
 
     token: str = Field(min_length=1, max_length=512)
     token_type: PushTokenType = Field(alias="tokenType")

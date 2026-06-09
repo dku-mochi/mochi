@@ -316,6 +316,14 @@ CREATE INDEX ix_intent_instances_owner_type_lc ON intent_instances(owner_id, int
 - 응답 `intentInstances` = `intent_instances` (intentType/payload/label/reasoning/lifecycleKind), `needsReview` = boolean, `reviewOptions` = projection(현재 빈 배열 가능).
 - 옛 `intent`/`secondaryIntents`/`intentApplicability`/`confidence`/`candidates` **제거**.
 
+#### 카테고리 정규화 — read projection 아닌 **write** (주간 정리)
+
+`mochi_items.category` 는 캡처마다 LLM 이 개별로 뽑아 파편화되기 쉽다("여행"/"여행 준비"/"여행 계획"). **주간 정리(`POST /mochi_items/weekly_digest`)** 가 그 주(KST 월~일) 항목의 category 를 LLM 1회(flash-lite structured output)로 더 큰 묶음(coarse)으로 **정규화해 DB 에 write** 한다 — `representative` 같은 read projection 과 달리 실제 컬럼을 재작성한다. 같은 호출이 "모찌의 한마디"(greeting) 도 생성한다.
+
+- **연쇄 톤앤매너**: 정규화한 item 은 `category_normalized_at` 마커를 찍는다. 다음 주 digest 는 **정규화된 라벨만**(`category_normalized_at IS NOT NULL`) "기존 카테고리" 컨텍스트로 LLM 에 넘겨 재사용을 유도한다 — raw fine 은 제외해 주별 흔들림을 줄인다.
+- **iOS 반영**: 응답 그룹의 `itemIds`(서버 id)를 클라가 `syncState.uploaded` 로 로컬 id 역매핑해 Realm `category` 를 갱신 → 홈 weeklyCategoryStats 카드가 정규화 라벨로 자동 반영.
+- LLM 은 item id 를 다루지 않는다(fine→coarse 매핑만 반환, 서버가 적용). 매핑 누락 fine 은 원본 유지(결정론·유실 0). 그 주 항목 3건 미만이면 LLM 미호출 + 정적 greeting(`generated=false`).
+
 #### lifecycle 결합 (2분할 — §7)
 
 - **item 처리상태**(`mochi_items.lifecycle_kind`: ingested/analyzing/analyzed/failed)와 **instance 의미상태**(`intent_instances.lifecycle_kind`: active/decaying/reviewRequested/archived)는 **직교**.
@@ -381,15 +389,15 @@ CREATE TABLE user_profiles (
 
 ### 4.6 Notifications — `device_push_tokens` (alembic 0011, PR-B)
 
-> APNs background push 토큰. `apns_device`(단말 1:N, 완료 alert) + `live_activity`(item 1:1, `.ready` 전환). `environment` 로 sandbox/production 라우팅(BadDeviceToken 회피). **`token` 자체가 globally unique** — apns_device 는 폰 단위라 계정 전환 시 owner 를 갱신해 cross-account push 유출을 막는다.
+> APNs background push 토큰. `apns_device`(단말 1:N, 완료 alert) + `la_start`(단말 1:N, Live Activity **push-to-start** — needs_review=true 분석완료 시 background 에서 LA 시작, iOS 17.2+). 둘 다 owner 단위(item 무관). `environment` 로 sandbox/production 라우팅(BadDeviceToken 회피). **`token` 자체가 globally unique** — 폰 단위라 계정 전환 시 owner 를 갱신해 cross-account push 유출을 막는다. (구 per-item `live_activity` content-state update 토큰은 폐기 — 진행중/완료 LA 제거, 팀 결정 2026-06-09.)
 
 ```sql
 CREATE TABLE device_push_tokens (
     id            uuid PRIMARY KEY,
     owner_id      uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,  -- idx
     token         text NOT NULL,           -- globally unique (계정 전환 시 owner 갱신)
-    token_type    varchar(16) NOT NULL,    -- apns_device | live_activity
-    mochi_item_id uuid REFERENCES mochi_items(id) ON DELETE SET NULL,  -- LA 만(item 1:1), device 는 NULL
+    token_type    varchar(16) NOT NULL,    -- apns_device | la_start
+    mochi_item_id uuid REFERENCES mochi_items(id) ON DELETE SET NULL,  -- 현 등록 경로 모두 owner 단위라 NULL(구 per-item LA 호환 컬럼)
     environment   varchar(16) NOT NULL DEFAULT 'sandbox',  -- sandbox | production
     created_at    timestamptz NOT NULL DEFAULT now(),
     updated_at    timestamptz NOT NULL DEFAULT now()
@@ -421,6 +429,7 @@ intent 관련 검증된 필드(정확한 전체 스키마는 `CorePersistence/Re
 ### 동기화 (as-built)
 
 - **iOS → Backend**: `syncState=pendingUpload` 인 item 을 `MochiItemSyncWorker` 가 업로드. 이미지는 원본 PNG → 업로드용 JPEG(긴 변 ≤1920px, q60) 파생 → `sha256/mimeType/byteSize` 로 `POST /mochi_items/presign` → Signed URL 로 GCS 직접 PUT → `objectKey` 만 전달. 성공 → `syncState=uploaded(serverID:)`(**서버 자체 PK 보관**).
+- **Backend → iOS (복구 pull)**: 앱 재설치/기기 변경 시 Keychain 토큰·로컬 Realm·`captures/` 이미지가 모두 사라진다. 같은 Apple 계정으로 재로그인하면 `MochiItemSyncWorker.pullRemote()` 가 `GET /mochi_items`(limit 200) 로 서버 항목을 받아 `MochiItemDTO.toMochiItem()` 으로 역매핑해 Realm 에 upsert 한다. **복구 한정 머지 규약: 서버 id 를 로컬 Realm primary key 로 채택**(`MochiItem.id = serverID`, `syncState=.uploaded(serverID:)`) — 위 "로컬 id ≠ 서버 PK" 규약은 *새 캡처* 에 대한 것이고, 복구 항목은 로컬에 매칭 키가 없어 서버 id 를 정체성으로 삼아야 재pull 이 같은 행을 `add(update:.modified)` 해 멱등이다. 미업로드 로컬 항목(`.pendingUpload`/`.uploading`/`.syncFailed`)은 덮지 않는다. 이미지는 `objectKey` 만 있고 로컬 파일이 없으면 `POST /mochi_items/images/download-url`(GCS Signed GET URL)로 받아 `captures/<sha256>.<ext>` 복원(content-addressed 멱등). 트리거: 세션 복원·새 로그인(`RootFeature`), 홈 빈 상태(`HomeFeature`), 설정 "전체 동기화"(`SettingsFeature`).
 - **Backend → iOS** (PR-B 3분담): **foreground = SSE** `/mochi_items/{id}/stream` 구독(`AgentStreamClient` live — worker `lifecycle_kind` 관찰, `final` 수신 시 `GET /mochi_items/{serverID}` 재조회). **background/종료 = APNs** push(완료 alert + LA `.ready`). **SSE 실패/끊김 = 3초 폴링 fallback**(`GET /mochi_items/{serverID}`, 제거 금지). scenePhase active 복귀 시 reconcile(SSE 재연결 + 1회 폴링). 동기 Gemini 분류는 제거됨(2026-05-30).
 - **분류 확정 / 재분석**: iOS `setIntent` 는 로컬 수동 확정(`reviewOptions` 후보 칩 즉시확정 — instance 조작, 서버 미동기화). **단 instance lifecycle 완료/완료취소는 `POST /mochi_items/{id}/instances/{instanceId}/lifecycle` 로 서버 동기화한다**(캘린더 완료 체크박스 — 낙관적 로컬 전이 + 서버 push, 실패 시 롤백). 서버가 instance id 를 응답에 실어(`instanceId`) iOS 가 그 id 로 대상을 지목한다. **"다른 의도" 자연어 재분석**은 `POST /mochi_items/{id}/reanalyze` 가 사용자 의도 힌트를 받아 기존 outbox→`AgentOrchestrator` 파이프라인을 **재실행**한다(같은 item 재분석 — 중복 캡처 없음). 힌트는 분석 프롬프트 context 에만 합류하고 **outbox 행에만 일시 적재**된다 — `mochi_items`/`user_memo` 에 저장하지 않는다(사용자가 직접 쓴 메모로 오해하는 것 방지). (구 "서버 override 라우트 폐기"는 대표·위계 소멸 맥락의 결정이었으나 — override≠재분석 — 재분석 라우트로 대체됨.)
 - **충돌/Catch-up**: backend master 원칙. 양방향 충돌 해소·cold-start catch-up(`/sync`)은 미구현.
@@ -476,7 +485,7 @@ ingested → analyzing → analyzed
 
 > 저장값(`LifecycleStateKind`): `ingested`/`analyzing`/`analyzed`(구 `active` — 분석 완료·instance 적재됨, **iOS SSE `final`·폴링 컷오버 신호**)/`failed`.
 >
-> **처리상태 ↔ Live Activity phase 매핑** (PR-B, iOS `MochiLiveActivityAttributes`): `analyzing`→`.analyzing` / `analyzed`+`needs_review=false`→`.ready`(확정) / `analyzed`+`needs_review=true`→`.ready`(후보대기, `review_options` 표시·선택) / `failed`→LA 종료. LA 는 **전 채널**(스크린샷·링크·텍스트), 메인앱 foreground worker(`MochiItemSyncWorker`)가 시작한다.
+> **Live Activity 는 needs_review=true 분석완료에서만 띄운다** (팀 결정 2026-06-09 — 진행중/완료 LA 폐기). iOS 가 LA 를 직접 시작하지 않고, **백엔드가 push-to-start 로 background(잠금)에서 시작**하는 단일 경로다(`la_start` 토큰, §4.6). content-state phase: `.ready`(후보대기, `review_options` 표시) → 사용자가 후보를 고르면 위젯이 기존 `reanalyze`(hint=후보) 를 직접 호출하고 로컬에서 `.confirmed` 로 전이. needs_review 가 아닌 분석완료·실패는 LA 없이 alert push 로 통지한다. LA 는 **전 채널**(스크린샷·링크·텍스트).
 
 ### 7.2 의미상태 — `intent_instances.lifecycle_kind` (instance 단위, 4값)
 

@@ -60,7 +60,8 @@ description: 시스템 토폴로지·iOS↔Backend 데이터흐름·API 계약�
 │  │  POST /devices/push-token (APNs, PR-B)             │               │
 │  │  POST /auth/{apple,google,refresh,logout}          │               │
 │  │  GET  /users/me     GET /health                    │               │
-│  │  planned(no route): list /sync /search /conv.      │               │
+│  │  GET  /mochi_items(list)  …/images/download-url    │               │
+│  │  planned(no route): sync /search /conv.            │               │
 │  └────────┬────────────────────┬────────────────────┬─┘               │
 │           │                    │                    │                 │
 │           ▼                    ▼                    ▼                 │
@@ -147,6 +148,8 @@ App  ──► AppIntents/          (QuickCaptureIntent + CaptureScreenshotInten
 `MochiApp.tick()` 이 앱 launch 와 `scenePhase == .active` 시점에:
 1. `InboundQueueConsumer.drain()` → 큐를 비우고 Realm 에 ingest
 2. `MochiSyncWorker.runOnce()` → `syncState == .pendingUpload` 인 MochiItem 를 backend 에 업로드 → `.uploaded` 또는 `.syncFailed`
+
+> **서버→로컬 복구 (pull) — 재설치/기기 변경 후 데이터 복구**: 앱을 지웠다 깔면 Keychain 토큰이 사라져 재로그인해야 하고, 로컬 Realm·`captures/` 이미지도 비어 "넣어둔 게 다 사라진" 것처럼 보인다. 하지만 서버엔 owner 항목이 그대로 있다(같은 Apple 계정 = 같은 `user_id`, mochi_item 은 `owner_id` 스코핑). `MochiItemSyncWorker.pullRemote()` 가 `GET /mochi_items`(limit 200) 로 받은 항목을 `MochiItemDTO.toMochiItem()` 으로 역매핑해 Realm 에 upsert 한다. **머지 규약: 복구 항목은 서버 id 를 로컬 Realm primary key 로 채택**(`syncState=.uploaded(serverID:)`) — 재설치 직후 로컬엔 매칭 키가 없으므로 서버 id 를 정체성으로 삼아야 재pull 이 같은 행을 덮어 멱등이다(새 캡처의 "서버 id ≠ 로컬 id" 규약과 별개 — 복구 항목은 서버가 정본). 아직 업로드 안 끝난 로컬 항목(`.pendingUpload`/`.uploading`/`.syncFailed`)은 보존한다. 이미지는 `objectKey` 만 있고 로컬 파일이 없으면 `POST /mochi_items/images/download-url`(GCS Signed GET URL)로 원본을 받아 `captures/<sha256>.<ext>` 에 복원한다(content-addressed 멱등 → 기존 `LocalThumbnail` 무변경). 트리거: 세션 복원·새 로그인 직후(`RootFeature.sessionResolved`/`signedIn`), 홈 빈 상태 폴백(`HomeFeature.onAppear`), 설정 "전체 동기화" 버튼(`SettingsFeature`).
 
 별도로 `RootFeature` 가 `.appLaunched` / `.appBecameActive` 시점에 `pending-backtap/` 을 검사 → (a) `.png` 잔재 (snippet 시스템 dismiss 후 남은 것) 는 모두 sweep, (b) `.memo` marker 가 있으면 가장 최근 한 장의 captureID 를 추출해 `BackTapModalFeature` 메모 phase 로 띄움 (인증된 상태에서만; 미인증이면 다음 active 시점까지 대기).
 
@@ -301,7 +304,7 @@ AgentOrchestrator(persistence=AgentRunPersistence(session)).run(mochi_item_id)
   └─ (도중 실패하면 예외 re-raise → worker 가 outbox 재시도/DLQ 분기 결정)
   ↓
 성공: mochi_item_outbox status='done'
-  └─ (done 커밋 직후, 분석 try 밖, best-effort) SendAnalysisNotification → APNs alert(전 단말) + LA .ready(해당 item). push 실패는 격리(done 유지) — 누락은 iOS reconcile 이 메움
+  └─ (done 커밋 직후, 분석 try 밖, best-effort) SendAnalysisNotification → APNs alert(전 단말, 완료/needs_review 분기 문구) + needs_review=true 면 LA **push-to-start**(`la_start` 토큰으로 background LA 시작). push 실패는 격리(done 유지) — 누락은 iOS reconcile 이 메움
 실패 + attempt<max: status='pending' (재시도)
 실패 + attempt=max: status='dead_letter' + mochi_items.lifecycle_kind='failed'
 ```
@@ -311,7 +314,7 @@ AgentOrchestrator(persistence=AgentRunPersistence(session)).run(mochi_item_id)
 처리완료를 iOS 가 받는 경로는 **프로세스 상태**로 3분담된다(캡처 채널 무관):
 
 - **foreground = SSE**: iOS `AgentStreamClient` 가 `GET /mochi_items/{id}/stream` 구독. 서버는 worker 의 `mochi_items.lifecycle_kind` 를 read-only 폴링(1s)해 `node`/`final`/`failed` emit — 실제 분석은 worker 단독(이중 실행 방지). iOS 는 `final` 수신 시 `GET /mochi_items/{serverID}` 재조회로 분석결과 fetch.
-- **background/종료 = APNs**: SSE 소켓이 suspend 되므로 worker push 훅이 인계(완료 alert + LA `.ready`).
+- **background/종료 = APNs**: SSE 소켓이 suspend 되므로 worker push 훅이 인계 — 완료 alert(전 단말) + needs_review=true 면 LA **push-to-start**(잠금화면에서 후보 선택, 탭하면 위젯이 reanalyze 직접 호출).
 - **fallback = 폴링**: SSE 실패/끊김 시 3초 폴링(`GET /mochi_items/{serverID}`, 제거 금지). scenePhase active 복귀 시 reconcile(SSE 재연결 + 1회 폴링).
 
 #### 자연어 검색

@@ -41,12 +41,12 @@ public struct MochiLiveActivityAttributes: ActivityAttributes {
         }
     }
 
-    /// 분석 흐름의 phase. UI 가 phase 별로 다르게 표현한다.
-    /// 백엔드 push 는 `ready` 만 보낸다 (`analyzing` 은 로컬 시작 시, `confirmed` 는 로컬 선택 후).
+    /// LA phase. 모찌는 needs_review=true 분석완료에서만 LA 를 띄운다(팀 결정 2026-06-09) —
+    /// 백엔드 push-to-start 가 `ready` 로 시작하고, 사용자가 후보를 고르면 로컬에서 `confirmed` 로 전이.
+    /// (구 `analyzing`/완료 표시 phase 는 폐기 — 진행중/완료 LA 제거.)
     public enum Phase: String, Codable, Hashable {
-        case analyzing  // 분석 중 (spinner)
-        case ready      // 결과 도착 — 확정 표시 또는 후보 선택 대기(needsReview)
-        case confirmed  // 사용자가 선택 완료 — 잠시 후 dismiss
+        case ready      // 백엔드 push-to-start 로 시작 — needsReview 후보 선택 대기
+        case confirmed  // 사용자가 후보 선택 완료(로컬) — 잠시 후 dismiss
     }
 
     /// 헷갈려요 후보 한 건. 백엔드 `review_options` 직렬화와 키 일치(`intentType`/`label`/`reasoning`).

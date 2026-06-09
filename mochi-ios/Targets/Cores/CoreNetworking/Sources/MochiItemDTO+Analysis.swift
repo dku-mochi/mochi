@@ -34,6 +34,57 @@ public extension MochiItemDTO {
         )
     }
 
+    /// 서버 `MochiItemDTO` → 도메인 `MochiItem` 역매핑 — 앱 재설치 후 서버→로컬 복구(pull) 전용.
+    ///
+    /// **서버 PK = 로컬 PK 규약(복구 한정)**: 재설치 후 로컬엔 매칭 키가 없으므로 서버 id 를 그대로
+    /// `MochiItem.id`(=Realm primary key)로 채택한다. 그래야 재pull 이 같은 행을 upsert 해 멱등이다
+    /// (`MochiItem.swift` 의 "서버 id 는 로컬 id 와 다르다" 규약은 *새 캡처* 에 대한 것이고, 복구
+    /// 항목은 이미 서버가 정본이라 서버 id 를 정체성으로 삼는다). `syncState` 는 항상
+    /// `.uploaded(serverID:)` — 이미 서버에 있는 항목이다.
+    ///
+    /// 이미지 `relativePath` 는 빈 문자열로 둔다(로컬 파일 없음) — 호출자(`pullRemote`)가 `objectKey`
+    /// 로 원본을 내려받아 `captures/` 에 저장하고 경로를 채운다.
+    func toMochiItem() -> MochiItem {
+        let refs = imageRefs.map { ref in
+            ImageRef(
+                relativePath: "",
+                mimeType: ref.mimeType,
+                byteSize: ref.byteSize,
+                sha256: ref.sha256,
+                objectKey: ref.objectKey
+            )
+        }
+        let source = IngestSource(
+            id: id,
+            channel: channel,
+            url: url,
+            text: text,
+            imageRefs: refs,
+            userMemo: userMemo,
+            capturedAt: capturedAt
+        )
+        // analyzed 인 항목만 분석을 복원한다(그 외는 analysis==nil → 폴링이 GET 으로 마저 확인).
+        let analysis = (lifecycleKind == "analyzed") ? toMochiItemAnalysis() : nil
+        return MochiItem(
+            source: source,
+            analysis: analysis,
+            lifecycleState: Self.processingState(from: lifecycleKind),
+            syncState: .uploaded(serverID: id, at: createdAt),
+            userTitle: nil,           // userTitle 은 로컬 오버라이드 — 서버 미보관, 대표 제목으로 폴백.
+            createdAt: createdAt,
+            updatedAt: createdAt
+        )
+    }
+
+    private static func processingState(from kind: String) -> ProcessingState {
+        switch kind {
+        case "analyzing": return .analyzing
+        case "analyzed":  return .analyzed
+        case "failed":    return .failed(reason: "server")
+        default:          return .ingested
+        }
+    }
+
     private static func payload(from dto: IntentPayloadDTO?) -> IntentPayload {
         guard let dto else { return IntentPayload() }
         return IntentPayload(

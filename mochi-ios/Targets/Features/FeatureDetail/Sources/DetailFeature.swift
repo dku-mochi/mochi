@@ -16,8 +16,14 @@ public struct DetailFeature: Sendable {
         public var lastError: String?
         /// 삭제 확인 alert — confirm 시 서버 soft delete + 로컬 hard delete 후 화면 pop.
         @Presents public var deleteAlert: AlertState<Action.Alert>?
+        /// hero 전환 중 상세 hero 이미지를 숨긴다 — 비행 중인 스냅샷과 이중으로 겹쳐 보이지 않게.
+        /// 비행이 있는 진입은 true 로 시작 → 비행 스냅샷이 사라질 때 App 이 false 로 켠다.
+        public var heroImageHidden: Bool = false
 
-        public init(mochiItemID: UUID) { self.mochiItemID = mochiItemID }
+        public init(mochiItemID: UUID, heroImageHidden: Bool = false) {
+            self.mochiItemID = mochiItemID
+            self.heroImageHidden = heroImageHidden
+        }
     }
 
     public enum Action: Sendable {
@@ -30,9 +36,13 @@ public struct DetailFeature: Sendable {
         case titleCommitted
         case titleEditCancelled
         case operationFailed(String)
-        // 삭제 — 더보기 메뉴 → 확인 alert → 서버 soft delete + 로컬 hard delete → 화면 pop.
+        // 삭제 — 더보기 메뉴 → 확인 alert → 서버 soft delete + 로컬 hard delete → 화면 닫힘.
         case deleteButtonTapped
         case deleteAlert(PresentationAction<Alert>)
+        // 닫기(X) 버튼 — custom present 를 닫도록 상위에 위임.
+        case closeButtonTapped
+        // hero 전환 중 상세 이미지 표시/숨김 — App(ZoomDetailPresentation)이 비행 타이밍에 맞춰 토글.
+        case setHeroImageHidden(Bool)
         case delegate(Delegate)
 
         public enum Alert: Equatable, Sendable {
@@ -40,6 +50,7 @@ public struct DetailFeature: Sendable {
         }
         public enum Delegate: Equatable, Sendable {
             case deleted
+            case closeRequested
         }
     }
 
@@ -137,6 +148,13 @@ public struct DetailFeature: Sendable {
                 }
 
             case .deleteAlert:
+                return .none
+
+            case .closeButtonTapped:
+                return .send(.delegate(.closeRequested))
+
+            case let .setHeroImageHidden(hidden):
+                state.heroImageHidden = hidden
                 return .none
 
             case .delegate:

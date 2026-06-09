@@ -750,6 +750,81 @@ public struct Client: APIProtocol {
             }
         )
     }
+    /// Presign Capture Download
+    ///
+    /// 업로드된 캡처 이미지를 직접 GET 할 V4 Signed URL 발급 — 앱 재설치 후 이미지 복구.
+    ///
+    /// 재설치하면 로컬 Realm·이미지 파일이 사라지므로, 같은 Apple 계정으로 재로그인한 클라가
+    /// ``GET /mochi_items`` 로 받은 imageRef 의 ``objectKey`` 로 본 엔드포인트를 호출해 원본을
+    /// 내려받아 로컬에 복원한다. owner-prefix 검증(IDOR 방지)은 업로드 검증과 동일 규약.
+    ///
+    /// - Remark: HTTP `POST /api/v1/mochi_items/images/download-url`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/images/download-url/post(presign_capture_download_api_v1_mochi_items_images_download_url_post)`.
+    public func presign_capture_download_api_v1_mochi_items_images_download_url_post(_ input: Operations.presign_capture_download_api_v1_mochi_items_images_download_url_post.Input) async throws -> Operations.presign_capture_download_api_v1_mochi_items_images_download_url_post.Output {
+        try await client.send(
+            input: input,
+            forOperation: Operations.presign_capture_download_api_v1_mochi_items_images_download_url_post.id,
+            serializer: { input in
+                let path = try converter.renderedPath(
+                    template: "/api/v1/mochi_items/images/download-url",
+                    parameters: []
+                )
+                var request: HTTPTypes.HTTPRequest = .init(
+                    soar_path: path,
+                    method: .post
+                )
+                suppressMutabilityWarning(&request)
+                converter.setAcceptHeader(
+                    in: &request.headerFields,
+                    contentTypes: input.headers.accept
+                )
+                let body: OpenAPIRuntime.HTTPBody?
+                switch input.body {
+                case let .json(value):
+                    body = try converter.setRequiredRequestBodyAsJSON(
+                        value,
+                        headerFields: &request.headerFields,
+                        contentType: "application/json; charset=utf-8"
+                    )
+                }
+                return (request, body)
+            },
+            deserializer: { response, responseBody in
+                switch response.status.code {
+                case 200:
+                    let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
+                    let body: Operations.presign_capture_download_api_v1_mochi_items_images_download_url_post.Output.Ok.Body
+                    let chosenContentType = try converter.bestContentType(
+                        received: contentType,
+                        options: [
+                            "application/json"
+                        ]
+                    )
+                    switch chosenContentType {
+                    case "application/json":
+                        body = try await converter.getResponseBodyAsJSON(
+                            Components.Schemas.DownloadUrlResponse.self,
+                            from: responseBody,
+                            transforming: { value in
+                                .json(value)
+                            }
+                        )
+                    default:
+                        preconditionFailure("bestContentType chose an invalid content type.")
+                    }
+                    return .ok(.init(body: body))
+                default:
+                    return .undocumented(
+                        statusCode: response.status.code,
+                        .init(
+                            headerFields: response.headerFields,
+                            body: responseBody
+                        )
+                    )
+                }
+            }
+        )
+    }
     /// Get Monthly Calendar
     ///
     /// 캘린더 탭 — KST 월간 캘린더(날짜별 개수·대표 Intent·대표 썸네일 object_key).
@@ -877,6 +952,151 @@ public struct Client: APIProtocol {
                     case "application/json":
                         body = try await converter.getResponseBodyAsJSON(
                             Components.Schemas.UpcomingTodoListResponse.self,
+                            from: responseBody,
+                            transforming: { value in
+                                .json(value)
+                            }
+                        )
+                    default:
+                        preconditionFailure("bestContentType chose an invalid content type.")
+                    }
+                    return .ok(.init(body: body))
+                default:
+                    return .undocumented(
+                        statusCode: response.status.code,
+                        .init(
+                            headerFields: response.headerFields,
+                            body: responseBody
+                        )
+                    )
+                }
+            }
+        )
+    }
+    /// Get Upcoming Actionables
+    ///
+    /// 이번주 정리 "아직 안 끝났어요" — 미해결 todo + 다가올 schedule(임박순).
+    ///
+    /// 캘린더 탭의 ``/todos/upcoming``(todo 전용)과 별개. 일시는 instance payload(deadline/date)→
+    /// entities(kind='deadline') 순으로 파싱하며, 파싱 불가/미상은 목록 뒤로 둔다(``dueAt`` null).
+    ///
+    /// - Remark: HTTP `GET /api/v1/mochi_items/upcoming`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/upcoming/get(get_upcoming_actionables_api_v1_mochi_items_upcoming_get)`.
+    public func get_upcoming_actionables_api_v1_mochi_items_upcoming_get(_ input: Operations.get_upcoming_actionables_api_v1_mochi_items_upcoming_get.Input) async throws -> Operations.get_upcoming_actionables_api_v1_mochi_items_upcoming_get.Output {
+        try await client.send(
+            input: input,
+            forOperation: Operations.get_upcoming_actionables_api_v1_mochi_items_upcoming_get.id,
+            serializer: { input in
+                let path = try converter.renderedPath(
+                    template: "/api/v1/mochi_items/upcoming",
+                    parameters: []
+                )
+                var request: HTTPTypes.HTTPRequest = .init(
+                    soar_path: path,
+                    method: .get
+                )
+                suppressMutabilityWarning(&request)
+                try converter.setQueryItemAsURI(
+                    in: &request,
+                    style: .form,
+                    explode: true,
+                    name: "limit",
+                    value: input.query.limit
+                )
+                converter.setAcceptHeader(
+                    in: &request.headerFields,
+                    contentTypes: input.headers.accept
+                )
+                return (request, nil)
+            },
+            deserializer: { response, responseBody in
+                switch response.status.code {
+                case 200:
+                    let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
+                    let body: Operations.get_upcoming_actionables_api_v1_mochi_items_upcoming_get.Output.Ok.Body
+                    let chosenContentType = try converter.bestContentType(
+                        received: contentType,
+                        options: [
+                            "application/json"
+                        ]
+                    )
+                    switch chosenContentType {
+                    case "application/json":
+                        body = try await converter.getResponseBodyAsJSON(
+                            Components.Schemas.UpcomingActionableListResponse.self,
+                            from: responseBody,
+                            transforming: { value in
+                                .json(value)
+                            }
+                        )
+                    default:
+                        preconditionFailure("bestContentType chose an invalid content type.")
+                    }
+                    return .ok(.init(body: body))
+                default:
+                    return .undocumented(
+                        statusCode: response.status.code,
+                        .init(
+                            headerFields: response.headerFields,
+                            body: responseBody
+                        )
+                    )
+                }
+            }
+        )
+    }
+    /// Generate Weekly Digest
+    ///
+    /// 이번주 정리 — 그 주(KST 월~일) item 의 카테고리 정규화(write) + 모찌 한마디(LLM 1회).
+    ///
+    /// 같은 의미인데 항목마다 제각각 생긴 category 를 LLM 이 통합 라벨로 정규화해 ``item.category`` 를
+    /// 갱신한다(파편화 수렴). 그 주 항목이 3개 미만이면 LLM 을 돌리지 않고 정적 인사로 폴백한다
+    /// (``generated=false``). ``weekStart`` 가 어긋나도 서버가 KST 월요일 00:00 으로 재정규화한다.
+    ///
+    /// - Remark: HTTP `POST /api/v1/mochi_items/weekly_digest`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/weekly_digest/post(generate_weekly_digest_api_v1_mochi_items_weekly_digest_post)`.
+    public func generate_weekly_digest_api_v1_mochi_items_weekly_digest_post(_ input: Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.Input) async throws -> Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.Output {
+        try await client.send(
+            input: input,
+            forOperation: Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.id,
+            serializer: { input in
+                let path = try converter.renderedPath(
+                    template: "/api/v1/mochi_items/weekly_digest",
+                    parameters: []
+                )
+                var request: HTTPTypes.HTTPRequest = .init(
+                    soar_path: path,
+                    method: .post
+                )
+                suppressMutabilityWarning(&request)
+                try converter.setQueryItemAsURI(
+                    in: &request,
+                    style: .form,
+                    explode: true,
+                    name: "weekStart",
+                    value: input.query.weekStart
+                )
+                converter.setAcceptHeader(
+                    in: &request.headerFields,
+                    contentTypes: input.headers.accept
+                )
+                return (request, nil)
+            },
+            deserializer: { response, responseBody in
+                switch response.status.code {
+                case 200:
+                    let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
+                    let body: Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.Output.Ok.Body
+                    let chosenContentType = try converter.bestContentType(
+                        received: contentType,
+                        options: [
+                            "application/json"
+                        ]
+                    )
+                    switch chosenContentType {
+                    case "application/json":
+                        body = try await converter.getResponseBodyAsJSON(
+                            Components.Schemas.WeeklyDigestResponse.self,
                             from: responseBody,
                             transforming: { value in
                                 .json(value)
@@ -1312,7 +1532,8 @@ public struct Client: APIProtocol {
     ///
     /// 단말/Live Activity push 토큰 등록 (owner-scoped upsert).
     ///
-    /// iOS AppDelegate(apns_device) + LiveActivityCoordinator(live_activity)가 호출한다.
+    /// iOS AppDelegate(apns_device) + push-to-start observe(la_start)가 호출한다. 둘 다 owner 단위라
+    /// mochiItemID 없이 등록한다.
     ///
     /// - Remark: HTTP `POST /api/v1/devices/push-token`.
     /// - Remark: Generated from `#/paths//api/v1/devices/push-token/post(register_push_token_api_v1_devices_push_token_post)`.

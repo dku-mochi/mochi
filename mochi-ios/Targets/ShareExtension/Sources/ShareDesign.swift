@@ -28,6 +28,8 @@ enum ShareDesign {
     static let cardStroke     = Color(red: 0.55, green: 0.46, blue: 0.93).opacity(0.15)
     /// 출처칩 텍스트 — 라벤더 배경 위 WCAG AA 대비 확보용 진보라 (#4C3EAD).
     static let chipText       = Color(red: 0.30, green: 0.24, blue: 0.68)
+    /// 프리뷰 하단 "아래로 이어짐" 페이드 색 — 배경 그라데이션 상단 라벤더와 맞춰 이질감 최소화.
+    static let fadeHint       = Color(red: 0.86, green: 0.85, blue: 0.96)
 }
 
 // MARK: - Primary CTA
@@ -177,43 +179,53 @@ struct ShareMemoField: View {
 
 // MARK: - Preview image
 
-/// App Group container 의 captures/ PNG 를 로드해 카드에 top-align crop 으로 표시.
+/// App Group container 의 captures/ PNG 를 카드에 **전체폭 fit + 세로 스크롤**로 표시한다.
 ///
-/// 백탭 캡처는 항상 풀스크린(≈9:19.5) 이라 그대로 보여주면 세로로 과하게 길고, 캡처 안 상태바가
-/// 실기기 상태바와 중복돼 지저분하다. 시트의 목적은 "이거 맞아?" *인식*이므로, 캡처 상단 상태바
-/// (~6%)를 잘라낸 뒤 ``scaledToFill`` + 상단정렬해 **중복 상태바를 없애고 상단 콘텐츠(제목·맥락)를
-/// 보존**한다. (center-crop 은 상·하단을 동시에 잘라 맥락을 잃어 인식률이 떨어졌다.)
+/// 백탭 캡처는 풀스크린(≈9:19.5)이라 가용 높이보다 훨씬 길다. 이전엔 ``scaledToFill`` 상단정렬로
+/// 아래를 하드컷했는데, 사용자가 "왜 이 영역만 전송되지?" 로 오해했다. 그래서 이미지를 카드 폭에
+/// 맞춰(``scaledToFit``) 세로로 길게 펼치고 **세로 스크롤**로 끝까지 확인하게 한다 — 잘린 게 아니라
+/// 화면이 짧아 일부만 보일 뿐임을 스크롤 인디케이터 + 하단 페이드("아래로 이어짐")로 전달한다.
+/// 헤더·CTA 는 이 뷰 바깥(부모 VStack)에 고정돼 스크롤과 무관하게 항상 함께 보인다.
 ///
-/// **레이아웃 정석**: 크기는 ``Color/clear`` 가 결정(부모가 준 가용공간 흡수)하고, 실제 이미지는
-/// `overlay` 로 얹어 ``scaledToFill`` + `clip` 한다. `scaledToFill` 이미지를 `frame` 에 직접 두면
-/// 이미지의 intrinsic 크기(원본 해상도)가 레이아웃을 밀어내 카드가 폭발한다(헤더·버튼이 사라짐).
-/// `Color.clear` 가 레이아웃 크기를 잡아주면 이미지 intrinsic 이 레이아웃에 영향을 못 준다.
+/// 캡처 상단 상태바(~6%)는 실기기 상태바와 중복돼 잘라낸다(콘텐츠가 아니라 인식에 무해).
 struct SharePreviewImage: View {
     let imageRef: ImageRef
 
     var body: some View {
-        Color.clear
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .overlay(alignment: .top) {
-                if let uiImage = loadImage() {
-                    Image(uiImage: uiImage)
-                        .resizable()
-                        .scaledToFill()
-                } else {
-                    ZStack {
-                        ShareDesign.cardSolid
-                        Image(systemName: "photo")
-                            .font(.system(size: 28))
-                            .foregroundStyle(ShareDesign.subtitle)
-                    }
+        ScrollView(.vertical, showsIndicators: true) {
+            if let uiImage = loadImage() {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxWidth: .infinity)
+            } else {
+                ZStack {
+                    ShareDesign.cardSolid
+                    Image(systemName: "photo")
+                        .font(.system(size: 28))
+                        .foregroundStyle(ShareDesign.subtitle)
                 }
+                .frame(maxWidth: .infinity)
+                .frame(height: 240)
             }
-            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .stroke(ShareDesign.cardStroke, lineWidth: 1)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .overlay(alignment: .bottom) {
+            // "아래로 이어짐" 단서 — 콘텐츠가 하드컷이 아니라 계속됨을 암시(스크롤 인디케이터와 함께).
+            LinearGradient(
+                colors: [ShareDesign.fadeHint.opacity(0), ShareDesign.fadeHint],
+                startPoint: .top,
+                endPoint: .bottom
             )
-            .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 3)
+            .frame(height: 28)
+            .allowsHitTesting(false)
+        }
+        .overlay(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .stroke(ShareDesign.cardStroke, lineWidth: 1)
+        )
+        .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 3)
     }
 
     private func loadImage() -> UIImage? {

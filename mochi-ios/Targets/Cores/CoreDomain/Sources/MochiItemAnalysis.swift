@@ -74,6 +74,23 @@ public struct MochiItemAnalysis: Equatable, Sendable, Hashable, Codable {
         return priority.first { present.contains($0) }
     }
 
+    /// `category` 만 교체한 복사본 (주간 정리 정규화 결과를 로컬에 반영할 때 사용).
+    public func withCategory(_ newCategory: String?) -> MochiItemAnalysis {
+        MochiItemAnalysis(
+            summary: summary,
+            category: newCategory,
+            instances: instances,
+            needsReview: needsReview,
+            reviewOptions: reviewOptions,
+            entities: entities,
+            actionCandidates: actionCandidates,
+            tags: tags,
+            importance: importance,
+            modelVersion: modelVersion,
+            analyzedAt: analyzedAt
+        )
+    }
+
     /// `instances` 만 교체한 복사본 (instance lifecycle 전이 등에 사용).
     public func replacingInstances(_ newInstances: [IntentInstance]) -> MochiItemAnalysis {
         MochiItemAnalysis(

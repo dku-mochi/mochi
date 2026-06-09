@@ -4,7 +4,7 @@ from fastapi import APIRouter, status
 from fastapi.responses import Response
 
 from app.core.deps import DBSession
-from app.core.error_envelope import DomainError, NotFoundError
+from app.core.error_envelope import NotFoundError
 from app.core.security import CurrentUser
 from app.modules.mochi_items.application.queries import (
     GetMochiItemForOwner,
@@ -14,7 +14,6 @@ from app.modules.notifications.application.register_push_token import (
     RegisterPushToken,
     RegisterPushTokenCommand,
 )
-from app.modules.notifications.domain.entities import PushTokenType
 from app.modules.notifications.infrastructure.repository import PostgresPushTokenRepository
 from app.modules.notifications.presentation.schemas import RegisterPushTokenRequest
 
@@ -27,15 +26,11 @@ async def register_push_token(
 ) -> Response:
     """단말/Live Activity push 토큰 등록 (owner-scoped upsert).
 
-    iOS AppDelegate(apns_device) + LiveActivityCoordinator(live_activity)가 호출한다.
+    iOS AppDelegate(apns_device) + push-to-start observe(la_start)가 호출한다. 둘 다 owner 단위라
+    mochiItemID 없이 등록한다.
     """
-    # LA 토큰은 mochi_item 1:1 — mochiItemID 필수(없으면 _notify 가 item id 로 조회 못 해 영영 미사용).
-    if payload.token_type == PushTokenType.LIVE_ACTIVITY and payload.mochi_item_id is None:
-        raise DomainError(
-            "live_activity token requires mochiItemID",
-            code="push_token.missing_mochi_item_id",
-        )
-    # mochi_item_id 가 있으면 소유권을 강제한다(타 owner item UUID 로 등록·존재 탐지 차단).
+    # mochi_item_id 가 있으면 소유권을 강제한다(타 owner item UUID 로 등록·존재 탐지 차단). 현 등록
+    # 경로(apns_device·la_start)는 owner 단위라 None 이라 미진입 — 구 per-item LA 토큰 호환 방어.
     if payload.mochi_item_id is not None:
         owned = await GetMochiItemForOwner(repository=make_mochi_item_repository(db)).execute(
             owner_id=user, mochi_item_id=payload.mochi_item_id

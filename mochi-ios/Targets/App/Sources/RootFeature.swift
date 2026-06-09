@@ -74,6 +74,7 @@ struct RootFeature: Sendable {
     }
 
     @Dependency(\.authCoordinator) var authCoordinator
+    @Dependency(\.syncTrigger) var syncTrigger
 
     var body: some ReducerOf<Self> {
         Scope(state: \.login, action: \.login) { LoginFeature() }
@@ -102,10 +103,13 @@ struct RootFeature: Sendable {
 
             case let .sessionResolved(session):
                 state.phase = session.map(Phase.authenticated) ?? .unauthenticated
-                if session != nil, state.backTapModal == nil, state.onboarding == nil {
-                    return Self.checkPendingMemo()
+                guard session != nil else { return .none }
+                // 세션 복원(자동 로그인) 직후 서버→로컬 복구 — 재설치 후 사라진 기록을 끌어온다.
+                let pull = Effect<Action>.run { [syncTrigger] _ in await syncTrigger.pullRemote() }
+                if state.backTapModal == nil, state.onboarding == nil {
+                    return .merge(pull, Self.checkPendingMemo())
                 }
-                return .none
+                return pull
 
             case let .pendingMemoDiscovered(captureID):
                 // 활성 모달이 같은 captureID 면 (concurrent discovery — sessionResolved +
@@ -143,10 +147,12 @@ struct RootFeature: Sendable {
             case let .login(.delegate(.signedIn(session))):
                 state.phase = .authenticated(session)
                 state.login = .init()
+                // 새 로그인 직후 서버→로컬 복구 — 재설치 후 같은 계정의 기록을 끌어온다.
+                let pull = Effect<Action>.run { [syncTrigger] _ in await syncTrigger.pullRemote() }
                 if state.backTapModal == nil {
-                    return Self.checkPendingMemo()
+                    return .merge(pull, Self.checkPendingMemo())
                 }
-                return .none
+                return pull
 
             case .requestSignOut:
                 return .run { [authCoordinator] send in
