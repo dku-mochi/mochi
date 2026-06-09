@@ -12,6 +12,13 @@ import CorePersistence
 public final class ShareExtensionPrincipal: UIViewController {
     private static let logger = Logger(subsystem: "app.mochi.ShareExtension", category: "lifecycle")
 
+    /// `completeRequest` 멱등 가드 — 정상 종료(저장/취소)와 끌어내림 안전망의 이중호출을 막는다.
+    private var didComplete = false
+    /// 끌어내림으로 닫혔을 때 청소할 고아 PNG 후보 — 추출 직후 채워진다.
+    private var capturedRefs: [ImageRef] = []
+    /// 저장 진행 중 표식 — 끌어내림 안전망이 큐에 적재된 이미지를 잘못 청소하지 않게 한다.
+    private var isPersisting = false
+
     public override func viewDidLoad() {
         super.viewDidLoad()
         Self.logger.notice("ShareExtension viewDidLoad")
@@ -42,8 +49,21 @@ public final class ShareExtensionPrincipal: UIViewController {
             }
 
             let extracted = await Self.extractInboundPayload(from: extensionContext)
+            capturedRefs = extracted.imageRefs
             embed(UIHostingController(rootView: contentView(for: extracted)))
         }
+    }
+
+    /// **먹통 수정 (끌어내림 종료)**: 사용자가 시트를 손으로 끌어내려 닫으면 저장/취소 콜백을 거치지
+    /// 않아 ``complete`` 가 호출되지 않는다 → 호출자(단축어)가 익스텐션 종료를 무한 대기한다.
+    /// 마지막 안전망으로 여기서 `completeRequest` 를 보장한다. 저장 중이 아니면(미저장 닫힘) 디스크에
+    /// 써 둔 고아 PNG 도 함께 청소한다. 정상 종료는 ``complete`` 의 멱등 가드로 이중호출되지 않는다.
+    public override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        guard !didComplete else { return }
+        Self.logger.notice("ShareExtension dismissed interactively — completing request")
+        if !isPersisting { Self.deleteImagePNGs(capturedRefs) }
+        complete(success: false)
     }
 
     /// 자식 UIHostingController 를 전체 화면으로 임베드한다.
@@ -107,6 +127,7 @@ public final class ShareExtensionPrincipal: UIViewController {
     /// 큐에 떨굴 때, 일반 메모 모드로 사용자가 제거한 이미지(원본엔 있었으나 payload 엔 빠진)의
     /// 고아 PNG 를 함께 청소한다 — `persistImage` 가 이미 디스크에 써 둔 상태라 안 지우면 누수.
     private func persist(_ payload: InboundIngestPayload, original: [ImageRef]) {
+        isPersisting = true   // 끌어내림 안전망이 큐 적재 이미지를 청소하지 않도록 표식
         let removed = original.filter { ref in
             !payload.imageRefs.contains { $0.relativePath == ref.relativePath }
         }
@@ -135,6 +156,8 @@ public final class ShareExtensionPrincipal: UIViewController {
     }
 
     private func complete(success: Bool) {
+        guard !didComplete else { return }
+        didComplete = true
         extensionContext?.completeRequest(returningItems: nil)
     }
 

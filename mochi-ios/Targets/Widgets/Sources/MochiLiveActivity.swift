@@ -18,10 +18,8 @@ import CoreLiveActivity
 /// - 썸네일은 attributes 의 `thumbnailRelativePath` 를 App Group container 에서 디스크 read
 ///   (4KB payload 한도 우회). 비-스크린샷 채널은 nil → photo placeholder.
 ///
-/// **3-phase UI**:
-/// - `.analyzing`: spinner + "사용자 의도 분석 중…" 한 줄.
-/// - `.ready` + `needsReview`: 후보 2개 가로 row + "다른 의도".
-/// - `.ready` + 확정: "이렇게 저장했어요 — <요약>".
+/// **2-phase UI** (needs_review 전용 — 진행중/완료 LA 폐기, 팀 결정 2026-06-09):
+/// - `.ready`: "어떤 의도?" + 후보 2개 가로 row + "다른 의도". 후보 탭 = 백엔드 reanalyze(hint).
 /// - `.confirmed`: 사용자가 선택한 라벨 + 체크. 잠시 후 모찌 앱이 Activity 를 dismiss.
 struct MochiLiveActivity: Widget {
     var body: some WidgetConfiguration {
@@ -43,7 +41,7 @@ struct MochiLiveActivity: Widget {
                     phaseTagView(context.state)
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    expandedBottom(state: context.state)
+                    expandedBottom(state: context.state, attributes: context.attributes)
                 }
             } compactLeading: {
                 Image("AppIconImage")
@@ -66,20 +64,10 @@ struct MochiLiveActivity: Widget {
     @ViewBuilder
     private func phaseTagView(_ state: MochiLiveActivityAttributes.ContentState) -> some View {
         switch state.phase {
-        case .analyzing:
-            Label("분석 중", systemImage: "sparkles")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
         case .ready:
-            if state.needsReview {
-                Label("선택 대기", systemImage: "hand.tap")
-                    .font(.caption2)
-                    .foregroundStyle(brandPrimary)
-            } else {
-                Label("저장됨", systemImage: "checkmark.circle.fill")
-                    .font(.caption2)
-                    .foregroundStyle(.green)
-            }
+            Label("선택 대기", systemImage: "hand.tap")
+                .font(.caption2)
+                .foregroundStyle(brandPrimary)
         case .confirmed:
             Label("저장됨", systemImage: "checkmark.circle.fill")
                 .font(.caption2)
@@ -90,14 +78,12 @@ struct MochiLiveActivity: Widget {
     @ViewBuilder
     private func compactTrailingView(state: MochiLiveActivityAttributes.ContentState) -> some View {
         switch state.phase {
-        case .analyzing:
-            ProgressView().controlSize(.mini).tint(.white)
         case .ready:
-            if state.needsReview, let first = state.candidates.first {
+            if let first = state.candidates.first {
                 Text(first.label)
                     .font(.system(size: 11, weight: .semibold, design: .rounded))
             } else {
-                Image(systemName: "checkmark")
+                Image(systemName: "hand.tap")
             }
         case .confirmed:
             Image(systemName: "checkmark")
@@ -105,22 +91,19 @@ struct MochiLiveActivity: Widget {
     }
 
     @ViewBuilder
-    private func expandedBottom(state: MochiLiveActivityAttributes.ContentState) -> some View {
+    private func expandedBottom(
+        state: MochiLiveActivityAttributes.ContentState,
+        attributes: MochiLiveActivityAttributes
+    ) -> some View {
         switch state.phase {
-        case .analyzing:
-            HStack(spacing: 8) {
-                ProgressView().controlSize(.small)
-                Text("사용자 의도 분석 중…")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
-            .padding(.top, 4)
         case .ready:
-            if state.needsReview, !state.candidates.isEmpty {
-                VStack(spacing: 6) {
+            VStack(spacing: 6) {
+                if !state.candidates.isEmpty {
                     HStack(spacing: 6) {
                         ForEach(state.candidates.prefix(2)) { c in
-                            Button(intent: SelectCandidateIntent(label: c.label)) {
+                            Button(intent: SelectCandidateIntent(
+                                mochiItemID: attributes.mochiItemID.uuidString, label: c.label
+                            )) {
                                 Text(c.label)
                                     .font(.footnote.weight(.semibold))
                                     .lineLimit(1)
@@ -132,19 +115,16 @@ struct MochiLiveActivity: Widget {
                             .buttonStyle(.borderedProminent)
                         }
                     }
-                    Button(intent: OpenMochiOtherIntentIntent()) {
-                        Text("다른 의도")
-                            .font(.footnote)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 6)
-                    }
-                    .buttonStyle(.bordered)
                 }
-                .padding(.top, 4)
-            } else {
-                savedSummary(state.summary)
-                    .padding(.top, 4)
+                Button(intent: OpenMochiOtherIntentIntent()) {
+                    Text("다른 의도")
+                        .font(.footnote)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 6)
+                }
+                .buttonStyle(.bordered)
             }
+            .padding(.top, 4)
         case .confirmed:
             HStack(spacing: 6) {
                 Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
@@ -152,17 +132,6 @@ struct MochiLiveActivity: Widget {
                     .font(.footnote)
             }
             .padding(.top, 4)
-        }
-    }
-
-    @ViewBuilder
-    private func savedSummary(_ summary: String) -> some View {
-        HStack(spacing: 6) {
-            Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
-            Text(summary.isEmpty ? "이렇게 저장했어요" : summary)
-                .font(.footnote)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
         }
     }
 
@@ -206,28 +175,22 @@ private struct MochiLockScreenView: View {
     @ViewBuilder
     private var phaseBody: some View {
         switch state.phase {
-        case .analyzing:
-            HStack(spacing: 8) {
-                appIcon
-                ProgressView().controlSize(.small).tint(.white)
-                Text("사용자 의도 분석 중…")
-                    .font(.footnote)
-                    .foregroundStyle(.white.opacity(0.7))
-            }
         case .ready:
-            if state.needsReview, !state.candidates.isEmpty {
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack(spacing: 8) {
-                        appIcon
-                        Text(state.summary.isEmpty ? "어떤 의도로 남겼나요?" : state.summary)
-                            .font(.system(.subheadline, design: .rounded).weight(.semibold))
-                            .foregroundStyle(.white)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.8)
-                    }
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 8) {
+                    appIcon
+                    Text(state.summary.isEmpty ? "어떤 의도로 남겼나요?" : state.summary)
+                        .font(.system(.subheadline, design: .rounded).weight(.semibold))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                }
+                if !state.candidates.isEmpty {
                     HStack(spacing: 6) {
                         ForEach(state.candidates.prefix(2)) { c in
-                            Button(intent: SelectCandidateIntent(label: c.label)) {
+                            Button(intent: SelectCandidateIntent(
+                                mochiItemID: attributes.mochiItemID.uuidString, label: c.label
+                            )) {
                                 Text(c.label)
                                     .font(.footnote.weight(.semibold))
                                     .lineLimit(1)
@@ -239,25 +202,15 @@ private struct MochiLockScreenView: View {
                             .buttonStyle(.borderedProminent)
                         }
                     }
-                    Button(intent: OpenMochiOtherIntentIntent()) {
-                        Text("다른 의도")
-                            .font(.footnote)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 6)
-                    }
-                    .buttonStyle(.bordered)
-                    .tint(.white)
                 }
-            } else {
-                HStack(spacing: 8) {
-                    appIcon
-                    Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
-                    Text(state.summary.isEmpty ? "이렇게 저장했어요" : state.summary)
+                Button(intent: OpenMochiOtherIntentIntent()) {
+                    Text("다른 의도")
                         .font(.footnote)
-                        .foregroundStyle(.white)
-                        .lineLimit(2)
-                        .minimumScaleFactor(0.8)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 6)
                 }
+                .buttonStyle(.bordered)
+                .tint(.white)
             }
         case .confirmed:
             HStack(spacing: 6) {

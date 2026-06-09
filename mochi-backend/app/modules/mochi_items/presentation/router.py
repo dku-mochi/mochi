@@ -17,19 +17,24 @@ from app.modules.mochi_items.application.ingest import Ingest, IngestCommand
 from app.modules.mochi_items.application.queries import (
     GetMonthlyCalendar,
     ListMochiItemsInRange,
+    ListUpcomingActionables,
     ListUpcomingTodos,
 )
 from app.modules.mochi_items.application.update_instance_lifecycle import (
     UpdateInstanceLifecycle,
     UpdateInstanceLifecycleCommand,
 )
+from app.modules.mochi_items.application.weekly_digest import GenerateWeeklyDigest
 from app.modules.mochi_items.domain.entities import ImageRef, MochiItem
 from app.modules.mochi_items.domain.ports import CaptureImageStorage, ObjectStat
 from app.modules.mochi_items.domain.value_objects import InstanceLifecycleState
+from app.modules.mochi_items.infrastructure.gemini_weekly_digest import GeminiWeeklyDigest
 from app.modules.mochi_items.infrastructure.outbox import OutboxNotifier
 from app.modules.mochi_items.infrastructure.repository import PostgresMochiItemRepository
 from app.modules.mochi_items.presentation.schemas import (
     CalendarDayResponse,
+    DownloadUrlRequest,
+    DownloadUrlResponse,
     ImageRefResponse,
     InstanceLifecycleUpdateRequest,
     IntentInstanceResponse,
@@ -42,8 +47,12 @@ from app.modules.mochi_items.presentation.schemas import (
     PresignResponse,
     ReanalyzeRequest,
     ReviewOptionResponse,
+    UpcomingActionableListResponse,
+    UpcomingActionableResponse,
     UpcomingTodoListResponse,
     UpcomingTodoResponse,
+    WeeklyDigestGroupResponse,
+    WeeklyDigestResponse,
 )
 from app.shared.intent import Intent
 
@@ -142,6 +151,7 @@ def _to_response(item: MochiItem) -> MochiItemResponse:
             for opt in item.review_options
         ],
         summary=item.summary,
+        category=item.category,
         importance=item.importance,
         lifecycle_kind=item.lifecycle.kind.value,
         sync_kind=item.sync.kind,
@@ -241,12 +251,35 @@ async def presign_capture_upload(
             "Capture image storage is not configured",
             code="mochi_item.storage_unconfigured",
         )
-    signed = await storage.issue_upload_url(
-        owner_id=user, sha256=payload.sha256, mime_type=payload.mime_type
-    )
+    signed = await storage.issue_upload_url(owner_id=user, sha256=payload.sha256, mime_type=payload.mime_type)
     return PresignResponse(
         object_key=signed.object_key,
         upload_url=signed.upload_url,
+        expires_at=signed.expires_at,
+    )
+
+
+@router.post("/images/download-url", response_model=DownloadUrlResponse)
+async def presign_capture_download(
+    payload: DownloadUrlRequest,
+    user: CurrentUser,
+    storage: CaptureImageStorageDep,
+) -> DownloadUrlResponse:
+    """업로드된 캡처 이미지를 직접 GET 할 V4 Signed URL 발급 — 앱 재설치 후 이미지 복구.
+
+    재설치하면 로컬 Realm·이미지 파일이 사라지므로, 같은 Apple 계정으로 재로그인한 클라가
+    ``GET /mochi_items`` 로 받은 imageRef 의 ``objectKey`` 로 본 엔드포인트를 호출해 원본을
+    내려받아 로컬에 복원한다. owner-prefix 검증(IDOR 방지)은 업로드 검증과 동일 규약.
+    """
+    _require_owned_object_key(payload.object_key, owner_id=user)
+    if storage is None:
+        raise FeatureUnavailableError(
+            "Capture image storage is not configured",
+            code="mochi_item.storage_unconfigured",
+        )
+    signed = await storage.issue_download_url(object_key=payload.object_key)
+    return DownloadUrlResponse(
+        download_url=signed.download_url,
         expires_at=signed.expires_at,
     )
 
@@ -335,6 +368,61 @@ async def get_upcoming_todos(
     )
 
 
+@router.get("/upcoming", response_model=UpcomingActionableListResponse)
+async def get_upcoming_actionables(
+    db: DBSession,
+    user: CurrentUser,
+    limit: int = 20,
+) -> UpcomingActionableListResponse:
+    """이번주 정리 "아직 안 끝났어요" — 미해결 todo + 다가올 schedule(임박순).
+
+    캘린더 탭의 ``/todos/upcoming``(todo 전용)과 별개. 일시는 instance payload(deadline/date)→
+    entities(kind='deadline') 순으로 파싱하며, 파싱 불가/미상은 목록 뒤로 둔다(``dueAt`` null).
+    """
+    use_case = ListUpcomingActionables(repository=PostgresMochiItemRepository(db))
+    actionables = await use_case.execute(owner_id=user, limit=max(1, min(limit, 100)))
+    return UpcomingActionableListResponse(
+        actionables=[
+            UpcomingActionableResponse(
+                item=_to_response(actionable.item),
+                due_at=actionable.due_at,
+                due_label=actionable.due_label,
+                is_schedule=actionable.is_schedule,
+                instance_id=actionable.instance_id,
+            )
+            for actionable in actionables
+        ]
+    )
+
+
+@router.post("/weekly_digest", response_model=WeeklyDigestResponse)
+async def generate_weekly_digest(
+    db: DBSession,
+    user: CurrentUser,
+    week_start: Annotated[datetime, Query(alias="weekStart")],
+) -> WeeklyDigestResponse:
+    """이번주 정리 — 그 주(KST 월~일) item 의 카테고리 정규화(write) + 모찌 한마디(LLM 1회).
+
+    같은 의미인데 항목마다 제각각 생긴 category 를 LLM 이 통합 라벨로 정규화해 ``item.category`` 를
+    갱신한다(파편화 수렴). 그 주 항목이 3개 미만이면 LLM 을 돌리지 않고 정적 인사로 폴백한다
+    (``generated=false``). ``weekStart`` 가 어긋나도 서버가 KST 월요일 00:00 으로 재정규화한다.
+    """
+    use_case = GenerateWeeklyDigest(
+        repository=PostgresMochiItemRepository(db),
+        llm=GeminiWeeklyDigest(),
+    )
+    result = await use_case.execute(owner_id=user, week_start=week_start)
+    await db.commit()
+    return WeeklyDigestResponse(
+        greeting=result.greeting,
+        groups=[
+            WeeklyDigestGroupResponse(coarse=group.coarse, item_ids=list(group.item_ids))
+            for group in result.groups
+        ],
+        generated=result.generated,
+    )
+
+
 @router.get("/{mochi_item_id}", response_model=MochiItemResponse)
 async def get_mochi_item(mochi_item_id: UUID, db: DBSession, user: CurrentUser) -> MochiItemResponse:
     repo = PostgresMochiItemRepository(db)
@@ -419,7 +507,5 @@ async def delete_mochi_item(
     (find/list/calendar/todos)가 ``deleted_at IS NULL`` 로 가려 목록·캘린더에서 사라진다.
     """
     use_case = DeleteMochiItem(repository=PostgresMochiItemRepository(db))
-    await use_case.execute(
-        DeleteMochiItemCommand(owner_id=user, mochi_item_id=mochi_item_id)
-    )
+    await use_case.execute(DeleteMochiItemCommand(owner_id=user, mochi_item_id=mochi_item_id))
     await db.commit()

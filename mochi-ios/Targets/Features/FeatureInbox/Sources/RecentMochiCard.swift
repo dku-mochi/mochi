@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import CoreDomain
 import DesignSystem
 
@@ -7,12 +8,37 @@ import DesignSystem
 /// 도메인 `MochiItem` 를 받아 시안의 3가지 카드 변형(screenshot/memo/url)으로 렌더.
 struct RecentMochiCard: View {
     let mochiItem: MochiItem
-    let onTap: () -> Void
+    /// 탭 시 카드 전체의 글로벌 frame 을 넘긴다 — hero 확대(카드 통째 → 상세 헤더)의 시작점.
+    let onTap: (HeroSourceFrames) -> Void
+    /// 롱프레스 메뉴의 삭제 — soft delete 를 상위(HomeFeature)로 위임.
+    let onDelete: () -> Void
+    @State private var cardFrame: CGRect = .zero
+    /// 카드 미디어(썸네일) 영역의 글로벌 frame — 스크린샷 hero 가 상세 이미지로 자라는 시작점.
+    @State private var mediaFrame: CGRect = .zero
 
     var body: some View {
-        Button(action: onTap) {
+        Button {
+            // 스크린샷 카드는 미디어(이미지) 영역을 상세 이미지로 키운다(주체: 이미지).
+            // 단 가로 스크롤에서 카드가 화면 가장자리에 잘려 있으면, 보이는 부분만 비트맵 스냅샷돼
+            // 잘린 채로 날아가 어색하다 — 충분히 보일 때만 이미지 hero 를 쓰고 아니면 fade 폴백.
+            // 이미지가 없는 memo/url 카드도 cardImage=nil 로 fade 폴백.
+            onTap(HeroSourceFrames(
+                card: cardFrame,
+                cardImage: (mochiItem.viewKind == .screenshot && isMediaFullyVisible) ? mediaFrame : nil,
+                imageRelativePath: mochiItem.source.imageRefs.first?.relativePath
+            ))
+        } label: {
             VStack(alignment: .leading, spacing: 0) {
                 media
+                    .background(
+                        GeometryReader { geo in
+                            Color.clear
+                                .onAppear { mediaFrame = geo.frame(in: .global) }
+                                .onChange(of: geo.frame(in: .global)) { _, newFrame in
+                                    mediaFrame = newFrame
+                                }
+                        }
+                    )
                 textContent
             }
             .frame(width: 178)
@@ -29,6 +55,24 @@ struct RecentMochiCard: View {
             .shadow(color: HomeDesign.Color.ink900.opacity(0.05), radius: 8, x: 0, y: 2)
         }
         .buttonStyle(PressableStyle())
+        // 카드의 글로벌 frame 을 추적해 탭 시점에 넘긴다 (가로 스크롤 위치 반영).
+        .background(
+            GeometryReader { geo in
+                Color.clear
+                    .onAppear { cardFrame = geo.frame(in: .global) }
+                    .onChange(of: geo.frame(in: .global)) { _, newFrame in
+                        cardFrame = newFrame
+                    }
+            }
+        )
+        .contextMenu {
+            // 편집은 아직 미구현 — placeholder 로 노출하되 비활성.
+            Button { } label: { Label("편집", systemImage: "pencil") }
+                .disabled(true)
+            Button(role: .destructive, action: onDelete) {
+                Label("삭제", systemImage: "trash")
+            }
+        }
     }
 
     // MARK: Media
@@ -40,7 +84,7 @@ struct RecentMochiCard: View {
             ZStack(alignment: .topLeading) {
                 LocalThumbnail(
                     relativePath: mochiItem.source.imageRefs.first?.relativePath,
-                    targetSize: CGSize(width: 178, height: 116)
+                    targetSize: CGSize(width: 178, height: 134)
                 ) {
                     ZStack {
                         LinearGradient(
@@ -55,7 +99,7 @@ struct RecentMochiCard: View {
                 }
                 tag(MochiItemKind.screenshot)
             }
-            .frame(height: 116)
+            .frame(height: 134)
             .clipped()
 
         case .memo:
@@ -72,7 +116,7 @@ struct RecentMochiCard: View {
                     .padding(.top, 34)
                 tag(MochiItemKind.memo)
             }
-            .frame(height: 116)
+            .frame(height: 134)
 
         case .url:
             ZStack(alignment: .topLeading) {
@@ -86,7 +130,7 @@ struct RecentMochiCard: View {
                 .padding(.top, 34)
                 tag(MochiItemKind.url)
             }
-            .frame(height: 116)
+            .frame(height: 134)
         }
     }
 
@@ -124,6 +168,18 @@ struct RecentMochiCard: View {
     }
 
     // MARK: Variant helpers
+
+    /// 카드 미디어가 화면 안에 충분히(>=92%) 보이는지 — 가로 스크롤에서 가장자리에 잘린 카드는
+    /// 비트맵 스냅샷이 잘린 채 날아가므로, 미달이면 이미지 hero 대신 fade 폴백으로 보낸다.
+    private var isMediaFullyVisible: Bool {
+        guard mediaFrame.width > 0,
+              let screenWidth = UIApplication.shared.connectedScenes
+                .compactMap({ $0 as? UIWindowScene })
+                .first?.screen.bounds.width else { return false }
+        let visibleLeft = max(mediaFrame.minX, 0)
+        let visibleRight = min(mediaFrame.maxX, screenWidth)
+        return (visibleRight - visibleLeft) / mediaFrame.width >= 0.92
+    }
 
     private var memoPreviewText: String {
         let raw = mochiItem.source.text ?? mochiItem.analysis?.summary ?? ""

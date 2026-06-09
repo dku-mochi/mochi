@@ -16,9 +16,9 @@ import CorePersistence
 ///
 /// **두 분기**:
 /// - `memoSaveTapped` — 사용자 입력 텍스트로 `MochiItem(channel: .appDirectInput, text:)` upsert 후
-///   ``SyncTrigger/runOnce()`` 로 ``MochiItemSyncWorker`` 가 ingest·Live Activity·push 토큰을 일괄 처리
-///   (HomeFeature quick memo 와 동일 경로 — 전 채널 LA 일관). 미인증 시 `.pendingUpload`, 업로드 실패 시
-///   `.syncFailed` 로 남아 다음 tick 재시도.
+///   ``SyncTrigger/runOnce()`` 로 ``MochiItemSyncWorker`` 가 ingest 를 처리(HomeFeature quick memo 와
+///   동일 경로). 분석완료 후 needs_review 면 백엔드 push-to-start 가 LA 를 띄운다. 미인증 시
+///   `.pendingUpload`, 업로드 실패 시 `.syncFailed` 로 남아 다음 tick 재시도.
 /// - `dismissTapped` — 사용자 취소. memo marker 폐기 후 모달 닫기.
 ///
 /// **invariant**: 모든 분기에서 `<captureID>.memo` marker 가 폐기됨. delegate `.dismiss` 발사 직전
@@ -78,8 +78,8 @@ public struct BackTapModalFeature: Sendable {
                 state.phase = .savingMemo
                 let id = state.captureID
                 return .run { [repository, syncTrigger] send in
-                    // HomeFeature quick memo 와 동일 경로: upsert(.pendingUpload) → worker 가 ingest +
-                    // startAnalyzing(LA) + push 토큰 등록을 일괄(직접 ingest 우회 제거 — 전 채널 LA 일관).
+                    // HomeFeature quick memo 와 동일 경로: upsert(.pendingUpload) → worker 가 ingest 처리.
+                    // 분석완료 후 needs_review 면 백엔드 push-to-start 가 LA 를 띄운다.
                     let source = IngestSource(id: id, channel: .appDirectInput, text: trimmed)
                     try? await repository.upsert(MochiItem(source: source))
                     await syncTrigger.runOnce()

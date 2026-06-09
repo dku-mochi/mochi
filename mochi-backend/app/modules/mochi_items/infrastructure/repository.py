@@ -47,9 +47,7 @@ def _dict_to_payload(raw: dict[str, object] | None) -> IntentPayload:
 
 
 def _row_to_instance(row: IntentInstanceRow) -> IntentInstance:
-    archive_reason = (
-        ArchiveReason(row.lifecycle_archive_reason) if row.lifecycle_archive_reason else None
-    )
+    archive_reason = ArchiveReason(row.lifecycle_archive_reason) if row.lifecycle_archive_reason else None
     return IntentInstance(
         id=row.id,
         intent_type=Intent(row.intent_type),
@@ -96,6 +94,7 @@ def _row_to_entity(row: MochiItemRow) -> MochiItem:
             for r in row.review_options
         ),
         summary=row.summary,
+        category=row.category,
         importance=row.importance,
         model_version=row.model_version,
         lifecycle=LifecycleState(
@@ -141,6 +140,7 @@ class PostgresMochiItemRepository(MochiItemRepository):
             user_memo=item.source.user_memo,
             needs_review=item.needs_review,
             summary=item.summary,
+            category=item.category,
             importance=item.importance,
             model_version=item.model_version,
             lifecycle_kind=item.lifecycle.kind.value,
@@ -282,16 +282,77 @@ class PostgresMochiItemRepository(MochiItemRepository):
             .limit(limit)
         )
         rows = (await self._session.scalars(stmt)).all()
-        return [
-            (_row_to_entity(r), tuple((e.kind, e.value) for e in r.entities))
-            for r in rows
-        ]
+        return [(_row_to_entity(r), tuple((e.kind, e.value) for e in r.entities)) for r in rows]
+
+    async def list_active_actionables_with_entities(
+        self, *, owner_id: UUID, limit: int
+    ) -> list[tuple[MochiItem, tuple[tuple[str, str], ...]]]:
+        # 미해결 행동거리 = active 인 todo 또는 schedule instance 가 있는 item.
+        # 마감/일시 파싱·정렬은 application(`ListUpcomingActionables`)이 담당(저장은 free-text).
+        actionable = (
+            select(IntentInstanceRow.id)
+            .where(
+                IntentInstanceRow.mochi_item_id == MochiItemRow.id,
+                IntentInstanceRow.intent_type.in_([Intent.TODO.value, Intent.SCHEDULE.value]),
+                IntentInstanceRow.lifecycle_kind == InstanceLifecycleKind.ACTIVE.value,
+            )
+            .exists()
+        )
+        stmt = (
+            select(MochiItemRow)
+            .where(MochiItemRow.owner_id == owner_id, actionable, MochiItemRow.deleted_at.is_(None))
+            .options(
+                selectinload(MochiItemRow.image_refs),
+                selectinload(MochiItemRow.intent_instances),
+                selectinload(MochiItemRow.entities),
+            )
+            .order_by(MochiItemRow.captured_at.desc())
+            .limit(limit)
+        )
+        rows = (await self._session.scalars(stmt)).all()
+        return [(_row_to_entity(r), tuple((e.kind, e.value) for e in r.entities)) for r in rows]
 
     async def count(self, *, owner_id: UUID) -> int:
-        stmt = select(func.count()).select_from(MochiItemRow).where(
-            MochiItemRow.owner_id == owner_id, MochiItemRow.deleted_at.is_(None)
+        stmt = (
+            select(func.count())
+            .select_from(MochiItemRow)
+            .where(MochiItemRow.owner_id == owner_id, MochiItemRow.deleted_at.is_(None))
         )
         return int((await self._session.execute(stmt)).scalar_one())
+
+    async def list_normalized_categories(self, *, owner_id: UUID, limit: int) -> list[str]:
+        # 이미 digest 정규화(refetch)를 거친 라벨만 — 아직 raw fine(category_normalized_at NULL)은
+        # 제외해, 연쇄 톤앤매너 컨텍스트가 정규화된 라벨로만 이어지게 한다. 최근 정규화순.
+        stmt = (
+            select(MochiItemRow.category)
+            .where(
+                MochiItemRow.owner_id == owner_id,
+                MochiItemRow.deleted_at.is_(None),
+                MochiItemRow.category.is_not(None),
+                MochiItemRow.category_normalized_at.is_not(None),
+            )
+            .order_by(MochiItemRow.category_normalized_at.desc())
+            .limit(limit)
+        )
+        rows = (await self._session.scalars(stmt)).all()
+        # 최신순 유지하며 distinct (set 은 순서가 흩어져 LLM 재사용 우선순위가 약해진다).
+        seen: set[str] = set()
+        result: list[str] = []
+        for category in rows:
+            if category and category not in seen:
+                seen.add(category)
+                result.append(category)
+        return result
+
+    async def bulk_update_category(self, *, owner_id: UUID, categories: dict[UUID, str]) -> None:
+        now = datetime.utcnow()
+        for item_id, category in categories.items():
+            await self._session.execute(
+                update(MochiItemRow)
+                .where(MochiItemRow.id == item_id, MochiItemRow.owner_id == owner_id)
+                .values(category=category, category_normalized_at=now, updated_at=now)
+            )
+        await self._session.flush()
 
     async def apply_analysis(
         self,
@@ -302,18 +363,18 @@ class PostgresMochiItemRepository(MochiItemRepository):
         needs_review: bool,
         review_options: tuple[ReviewOption, ...],
         summary: str,
+        category: str | None,
         importance: int,
         model_version: str,
         entities: tuple[tuple[str, str], ...],
     ) -> None:
-        stmt = select(MochiItemRow).where(
-            MochiItemRow.id == mochi_item_id, MochiItemRow.owner_id == owner_id
-        )
+        stmt = select(MochiItemRow).where(MochiItemRow.id == mochi_item_id, MochiItemRow.owner_id == owner_id)
         row = (await self._session.scalars(stmt)).one_or_none()
         if row is None:
             return
 
         row.summary = summary
+        row.category = category
         row.importance = importance
         row.needs_review = needs_review
         # 미확정 후보 영속 — JSONB 컬럼 in-place 덮어쓰기 (재분석 멱등, delete-reinsert 불필요).
@@ -335,9 +396,7 @@ class PostgresMochiItemRepository(MochiItemRepository):
             self._session.add(inst_row)
 
         # entities 재적재 — 동일 멱등 패턴.
-        await self._session.execute(
-            delete(EntityRow).where(EntityRow.mochi_item_id == mochi_item_id)
-        )
+        await self._session.execute(delete(EntityRow).where(EntityRow.mochi_item_id == mochi_item_id))
         for kind, value in entities:
             # mochi_item=row 를 함께 줘야 한다 — MappedAsDataclass + relationship(default=None) 조합에서
             # FK 만 주면 relationship 의 None 이 flush 시 mochi_item_id 를 NULL 로 덮어쓴다(NotNullViolation).
@@ -369,9 +428,7 @@ class PostgresMochiItemRepository(MochiItemRepository):
         if row is None:
             return False
         row.lifecycle_kind = lifecycle.kind.value
-        row.lifecycle_archive_reason = (
-            lifecycle.archive_reason.value if lifecycle.archive_reason else None
-        )
+        row.lifecycle_archive_reason = lifecycle.archive_reason.value if lifecycle.archive_reason else None
         await self._session.flush()
         return True
 

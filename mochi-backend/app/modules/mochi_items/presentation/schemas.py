@@ -121,14 +121,11 @@ class MochiItemResponse(BaseModel):
     url: str | None
     text: str | None
     user_memo: str | None = Field(default=None, alias="userMemo")
-    intent_instances: list[IntentInstanceResponse] = Field(
-        default_factory=list, alias="intentInstances"
-    )
+    intent_instances: list[IntentInstanceResponse] = Field(default_factory=list, alias="intentInstances")
     needs_review: bool = Field(default=False, alias="needsReview")
-    review_options: list[ReviewOptionResponse] = Field(
-        default_factory=list, alias="reviewOptions"
-    )
+    review_options: list[ReviewOptionResponse] = Field(default_factory=list, alias="reviewOptions")
     summary: str | None
+    category: str | None = None
     importance: int
     lifecycle_kind: str = Field(alias="lifecycleKind")
     sync_kind: str = Field(alias="syncKind")
@@ -182,6 +179,48 @@ class UpcomingTodoListResponse(BaseModel):
     todos: list[UpcomingTodoResponse] = Field(default_factory=list)
 
 
+class UpcomingActionableResponse(BaseModel):
+    """ "이번주 정리"의 "아직 안 끝났어요" 1건 — 미해결 todo 또는 다가올 schedule.
+
+    ``is_schedule`` false(=todo)면 클라가 카드에서 1-tap 완료(``instance_id`` 가 lifecycle 전이 대상).
+    ``due_at`` 은 instance/entities free-text 를 서버가 파싱한 값(미상이면 null), ``due_label`` 은 원문.
+    """
+
+    item: MochiItemResponse
+    due_at: datetime | None = Field(default=None, alias="dueAt")
+    due_label: str | None = Field(default=None, alias="dueLabel")
+    is_schedule: bool = Field(alias="isSchedule")
+    instance_id: UUID = Field(alias="instanceId")
+
+    model_config = {"populate_by_name": True}
+
+
+class UpcomingActionableListResponse(BaseModel):
+    actionables: list[UpcomingActionableResponse] = Field(default_factory=list)
+
+
+class WeeklyDigestGroupResponse(BaseModel):
+    """정규화된 coarse 카테고리 1묶음 — 그 그룹에 속한 item id 목록(captured_at desc)."""
+
+    coarse: str
+    item_ids: list[UUID] = Field(default_factory=list, alias="itemIds")
+
+    model_config = {"populate_by_name": True}
+
+
+class WeeklyDigestResponse(BaseModel):
+    """이번주 정리 — 모찌 한마디 + 정규화된 카테고리 그룹.
+
+    ``generated`` 가 false 면 그 주 항목이 적어 LLM 을 돌리지 않은 정적 폴백이다(클라가 캐시 정책에 활용).
+    카테고리 정규화는 서버가 item.category 를 write 한 결과이므로, 클라는 응답의 itemIds 로 로컬 캐시를
+    함께 갱신한다.
+    """
+
+    greeting: str
+    groups: list[WeeklyDigestGroupResponse] = Field(default_factory=list)
+    generated: bool = True
+
+
 class PresignRequest(BaseModel):
     """캡처 이미지 업로드용 Signed PUT URL 발급 요청."""
 
@@ -196,6 +235,23 @@ class PresignResponse(BaseModel):
 
     object_key: str = Field(alias="objectKey")
     upload_url: str = Field(alias="uploadURL")
+    expires_at: datetime = Field(alias="expiresAt")
+
+    model_config = {"populate_by_name": True}
+
+
+class DownloadUrlRequest(BaseModel):
+    """업로드된 캡처 이미지를 직접 GET 할 Signed URL 발급 요청 — 앱 재설치 후 이미지 복구."""
+
+    object_key: str = Field(alias="objectKey")
+
+    model_config = {"populate_by_name": True}
+
+
+class DownloadUrlResponse(BaseModel):
+    """발급된 V4 Signed GET URL."""
+
+    download_url: str = Field(alias="downloadURL")
     expires_at: datetime = Field(alias="expiresAt")
 
     model_config = {"populate_by_name": True}

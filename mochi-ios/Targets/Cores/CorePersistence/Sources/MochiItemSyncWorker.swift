@@ -11,7 +11,7 @@ import Dependencies
 ///    Realm `.pendingUpload` 만 박아둔 상태일 수 있음 — 무인증 ingest 는 401 받고 `.syncFailed` 로
 ///    영구 strand 됨). 로그인 후 다음 active tick 에 다시 시도된다.
 /// 2. ``MochiItemRepository.listRecent`` 에서 `syncState == .pendingUpload` 인 항목을 가져옴
-/// 3. 모든 채널을 presign→GCS PUT→`POST /mochi_items` 단일 경로로 ingest (스크린샷은 Live Activity 점유)
+/// 3. 모든 채널을 presign→GCS PUT→`POST /mochi_items` 단일 경로로 ingest
 /// 4. 성공 시 `syncState=.uploaded(serverID, at)` 로 업데이트
 /// 5. 실패 시 transient 면 backoff, 영구 실패면 `syncFailed(reason, retryAfter)` 로 업데이트
 ///
@@ -25,10 +25,6 @@ public actor MochiItemSyncWorker {
     private var pollTask: Task<Void, Never>?
     /// 진행 중 SSE 구독 — serverID 별 1건. 중복 구독 방지 + background 진입 시 일괄 취소.
     private var streamTasks: [UUID: Task<Void, Never>] = [:]
-
-    /// Live Activity trigger — 전 채널 ingest 시 `.analyzing` / push 토큰 등록 / `.ready` / `end` 호출.
-    /// DI 미주입 시 `NotConfiguredLiveActivityCoordinator` 가 no-op.
-    @Dependency(\.liveActivityCoordinator) private var liveActivity
 
     /// SSE 라이브 스트림 — foreground in-flight 항목의 분석 완료를 3초 폴링보다 빨리 받는다(폴링은 fallback).
     /// DI 미주입 시 `NotConfiguredAgentStreamClient` 가 즉시 throw → 폴링이 단독으로 메운다.
@@ -72,21 +68,117 @@ public actor MochiItemSyncWorker {
         }
     }
 
+    // MARK: - 서버→로컬 복구 (pull)
+
+    /// 서버의 owner 항목 전체를 로컬 Realm 으로 끌어와 복구한다 — 앱 재설치 후 같은 Apple 계정으로
+    /// 재로그인하면 사라진 기록이 다시 보이게 한다. 트리거: 로그인 직후·홈 빈 상태 폴백·설정 "전체 동기화".
+    ///
+    /// **멱등**: 서버 id 를 로컬 Realm primary key 로 채택(`MochiItemDTO.toMochiItem`)하므로 재pull 은
+    /// 같은 행을 `upsert`(add update:.modified) 해 중복이 생기지 않는다.
+    /// **로컬 우선**: 아직 업로드가 안 끝난 로컬 항목(`.pendingUpload`/`.uploading`/`.syncFailed`)은
+    /// 덮지 않는다 — 서버엔 아직 없어 충돌도 없다(재설치 직후 빈 Realm 시나리오에선 전량 insert).
+    /// **이미지**: `objectKey` 만 있고 로컬 파일이 없는 ref 는 GCS 원본을 받아 `captures/` 에 복원한다.
+    public func pullRemote() async {
+        guard await tokenProvider.bearerToken() != nil else { return }
+        let remote: [MochiItem]
+        do {
+            remote = try await apiClient.listMochiItems(limit: 200).map { $0.toMochiItem() }
+        } catch {
+            return
+        }
+        for item in remote {
+            // 로컬에 아직 미업로드 동일 id 항목이 있으면(희귀) 서버본으로 덮지 않는다.
+            if let existing = try? await repository.find(id: item.id) {
+                switch existing.syncState {
+                case .pendingUpload, .uploading, .syncFailed: continue
+                default: break
+                }
+            }
+            let recovered = await withRecoveredImages(item)
+            try? await repository.upsert(recovered)
+        }
+    }
+
+    /// item 의 이미지 ref 중 `objectKey` 만 있고 로컬 파일이 없는 것들을 GCS 에서 받아 채운 새 item 을 돌려준다.
+    private func withRecoveredImages(_ item: MochiItem) async -> MochiItem {
+        guard item.source.imageRefs.contains(where: {
+            ($0.objectKey?.isEmpty == false) && $0.relativePath.isEmpty
+        }) else { return item }
+
+        var refs: [ImageRef] = []
+        for ref in item.source.imageRefs {
+            refs.append(await ensureLocalImage(for: ref))
+        }
+        let source = IngestSource(
+            id: item.source.id,
+            channel: item.source.channel,
+            url: item.source.url,
+            text: item.source.text,
+            imageRefs: refs,
+            userMemo: item.source.userMemo,
+            capturedAt: item.source.capturedAt
+        )
+        return MochiItem(
+            source: source,
+            analysis: item.analysis,
+            lifecycleState: item.lifecycleState,
+            syncState: item.syncState,
+            userTitle: item.userTitle,
+            createdAt: item.createdAt,
+            updatedAt: item.updatedAt
+        )
+    }
+
+    /// 복구 항목의 GCS 원본 이미지를 받아 App Group `captures/<sha256>.<ext>` 에 저장하고 `relativePath`
+    /// 를 채운 ref 를 돌려준다. content-addressed(sha256 파일명)라 멱등 — 이미 있으면 다운로드를 건너뛴다.
+    /// 실패하면 relativePath 빈 채로 남겨 카드가 placeholder 를 보이고, 다음 pull 에서 재시도한다.
+    private func ensureLocalImage(for ref: ImageRef) async -> ImageRef {
+        guard let objectKey = ref.objectKey, !objectKey.isEmpty, ref.relativePath.isEmpty else {
+            return ref
+        }
+        let filename = "\(ref.sha256).\(Self.imageExtension(for: ref.mimeType))"
+        let relativePath = "captures/\(filename)"
+        let fileURL = AppGroup.capturedImagesDirectoryURL.appendingPathComponent(filename)
+        if FileManager.default.fileExists(atPath: fileURL.path) {
+            return Self.ref(ref, withRelativePath: relativePath)
+        }
+        do {
+            let url = try await apiClient.presignCaptureDownload(objectKey: objectKey)
+            let (data, _) = try await URLSession.shared.data(from: url)
+            try data.write(to: fileURL, options: .atomic)
+            return Self.ref(ref, withRelativePath: relativePath)
+        } catch {
+            return ref
+        }
+    }
+
+    private static func ref(_ ref: ImageRef, withRelativePath relativePath: String) -> ImageRef {
+        ImageRef(
+            id: ref.id,
+            relativePath: relativePath,
+            mimeType: ref.mimeType,
+            byteSize: ref.byteSize,
+            sha256: ref.sha256,
+            objectKey: ref.objectKey
+        )
+    }
+
+    private static func imageExtension(for mimeType: String) -> String {
+        switch mimeType {
+        case "image/png":  return "png"
+        case "image/jpeg": return "jpg"
+        default:           return "bin"
+        }
+    }
+
     private func uploadOne(_ mochiItem: MochiItem) async {
         do {
             try? await repository.updateSync(mochiItemID: mochiItem.id, to: .uploading)
 
-            // 전 채널 입력이 분석 중 Live Activity 를 점유한다 — Lock Screen / Dynamic Island 에 "분석 중"
-            // 표시. 썸네일은 스크린샷만 존재(그 외 nil → placeholder). ingest 경로는 단일화됐다: 모든
-            // 채널이 presign→PUT→`ingestMochiItem`. 백엔드가 `.ingested` 로 적재하고 worker 가 비동기
-            // 분석하므로 이 항목은 SSE 구독 + `pollAnalysisOnce`(fallback) 대상이 된다.
-            let caption = mochiItem.source.userMemo?.prefix(40).description ?? "분석 중"
-            await liveActivity.startAnalyzing(
-                mochiItemID: mochiItem.id,
-                caption: caption,
-                thumbnailRelativePath: mochiItem.source.imageRefs.first?.relativePath
-            )
-
+            // ingest 경로는 단일화됐다: 모든 채널이 presign→PUT→`ingestMochiItem`. 백엔드가 `.ingested`
+            // 로 적재하고 worker 가 비동기 분석하므로 이 항목은 SSE 구독 + `pollAnalysisOnce`(fallback)
+            // 대상이 된다. Live Activity 는 needs_review=true 분석완료에서만 백엔드 push-to-start 로 뜬다
+            // — iOS 는 LA 를 직접 시작하지 않는다(팀 결정 2026-06-09).
             let imageRefs = try await uploadedImageRefDTOs(for: mochiItem)
             let request = MochiItemIngestRequest(
                 channel: mochiItem.source.channel,
@@ -100,20 +192,16 @@ public actor MochiItemSyncWorker {
                 mochiItemID: mochiItem.id,
                 to: .uploaded(serverID: dto.id, at: Date())
             )
-            // serverID 확정 → LA push 토큰(로컬 관찰)을 server PK 로 등록(백엔드 background LA 갱신용).
-            await liveActivity.registerPushToken(mochiItemID: mochiItem.id, serverID: dto.id)
         } catch let envelope as APIErrorEnvelope {
             try? await repository.updateSync(
                 mochiItemID: mochiItem.id,
                 to: .syncFailed(reason: "[\(envelope.code)] \(envelope.message)", retryAfter: nil)
             )
-            await liveActivity.endIfActive(mochiItemID: mochiItem.id, failed: true)
         } catch {
             try? await repository.updateSync(
                 mochiItemID: mochiItem.id,
                 to: .syncFailed(reason: String(describing: error), retryAfter: nil)
             )
-            await liveActivity.endIfActive(mochiItemID: mochiItem.id, failed: true)
         }
     }
 
@@ -186,7 +274,7 @@ public actor MochiItemSyncWorker {
     /// 둘 다 도달할 수 있다. `upsert` 는 `updatedAt` 을 bump 하지 않아(RealmMochiItemMapper) 세대
     /// 가드만으론 못 막으므로, 이미 분석이 붙었으면(`analysis != nil`) 두 번째 적용을 건너뛴다.
     /// 추가로 세대 가드: GET/스트림을 await 하는 사이 수동 분류(setIntent)·재시도가 끼어들어 스냅샷
-    /// 이후 항목이 바뀌었으면 stale 결과로 덮지 않는다. 적용 여부를 반환 — 호출부가 LA 갱신 분기에 쓴다.
+    /// 이후 항목이 바뀌었으면 stale 결과로 덮지 않는다.
     @discardableResult
     private func applyAnalysis(
         to mochiItemID: UUID,
@@ -202,30 +290,6 @@ public actor MochiItemSyncWorker {
         return true
     }
 
-    /// 분석 적용 + Live Activity `.ready` 전환(전 채널). 적용이 세대 가드로 막히면 LA 도 건너뛴다.
-    /// 후보는 `reviewOptions`(헷갈려요 후보)에서 — needsReview=false 면 빈 후보 + summary 로 확정 표시.
-    private func applyAnalysisAndUpdateLA(
-        localID: UUID,
-        analysis: MochiItemAnalysis,
-        expectedUpdatedAt: Date?
-    ) async {
-        let applied = await applyAnalysis(to: localID, analysis: analysis, expectedUpdatedAt: expectedUpdatedAt)
-        guard applied else { return }
-        let candidates = analysis.reviewOptions.map {
-            LiveActivityCandidate(
-                intentType: $0.intentType.rawValue,
-                label: $0.displayLabel,
-                reasoning: $0.reasoning ?? ""
-            )
-        }
-        await liveActivity.transitionToReady(
-            mochiItemID: localID,
-            needsReview: analysis.needsReview,
-            summary: analysis.summary,
-            candidates: candidates
-        )
-    }
-
     /// in-flight(uploaded + analysis==nil) 항목의 SSE 스트림을 보장(중복 구독은 무시).
     /// `final`(GET 재조회 결과)→분석 적용+LA. node/partial 은 진행표시용이라 worker 는 무시.
     ///
@@ -238,8 +302,8 @@ public actor MochiItemSyncWorker {
             do {
                 for try await event in agentStream.stream(mochiItemID: serverID) {
                     if case let .finalAnalysis(analysis) = event {
-                        await self?.applyAnalysisAndUpdateLA(
-                            localID: item.id, analysis: analysis, expectedUpdatedAt: item.updatedAt
+                        await self?.applyAnalysis(
+                            to: item.id, analysis: analysis, expectedUpdatedAt: item.updatedAt
                         )
                     }
                     // node/tool/partial/failed — 폴링 fallback 이 진행·강등을 맡는다.
@@ -314,9 +378,9 @@ public actor MochiItemSyncWorker {
             // ⚠️ 이 case 문자열이 백엔드 처리상태와 어긋나면 폴링이 영영 안 끝난다.
             switch dto.lifecycleKind {
             case "analyzed":
-                // 전 채널 분석 완료 — 분석 적용 + Live Activity `.ready` 전환(공통 헬퍼).
-                await applyAnalysisAndUpdateLA(
-                    localID: item.id,
+                // 분석 완료 — Realm 반영(홈 버킷은 analysis 에서 derive). LA 는 백엔드 push-to-start 담당.
+                await applyAnalysis(
+                    to: item.id,
                     analysis: dto.toMochiItemAnalysis(),
                     expectedUpdatedAt: item.updatedAt
                 )
@@ -357,7 +421,5 @@ public actor MochiItemSyncWorker {
         )
         current.lifecycleState = .analyzed
         try? await repository.upsert(current)
-        // 강등 시 점유 중이던 Live Activity 를 실패로 종료(전 채널).
-        await liveActivity.endIfActive(mochiItemID: item.id, failed: true)
     }
 }

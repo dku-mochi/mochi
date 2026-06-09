@@ -432,6 +432,50 @@
         }
       }
     },
+    "/api/v1/mochi_items/images/download-url": {
+      "post": {
+        "tags": [
+          "mochi_items"
+        ],
+        "summary": "Presign Capture Download",
+        "description": "업로드된 캡처 이미지를 직접 GET 할 V4 Signed URL 발급 — 앱 재설치 후 이미지 복구.\n\n재설치하면 로컬 Realm·이미지 파일이 사라지므로, 같은 Apple 계정으로 재로그인한 클라가\n``GET /mochi_items`` 로 받은 imageRef 의 ``objectKey`` 로 본 엔드포인트를 호출해 원본을\n내려받아 로컬에 복원한다. owner-prefix 검증(IDOR 방지)은 업로드 검증과 동일 규약.",
+        "operationId": "presign_capture_download_api_v1_mochi_items_images_download_url_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "Authorization",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DownloadUrlRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DownloadUrlResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/mochi_items/calendar": {
       "get": {
         "tags": [
@@ -521,6 +565,94 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/UpcomingTodoListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/mochi_items/upcoming": {
+      "get": {
+        "tags": [
+          "mochi_items"
+        ],
+        "summary": "Get Upcoming Actionables",
+        "description": "이번주 정리 \"아직 안 끝났어요\" — 미해결 todo + 다가올 schedule(임박순).\n\n캘린더 탭의 ``/todos/upcoming``(todo 전용)과 별개. 일시는 instance payload(deadline/date)→\nentities(kind='deadline') 순으로 파싱하며, 파싱 불가/미상은 목록 뒤로 둔다(``dueAt`` null).",
+        "operationId": "get_upcoming_actionables_api_v1_mochi_items_upcoming_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "Authorization",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpcomingActionableListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/mochi_items/weekly_digest": {
+      "post": {
+        "tags": [
+          "mochi_items"
+        ],
+        "summary": "Generate Weekly Digest",
+        "description": "이번주 정리 — 그 주(KST 월~일) item 의 카테고리 정규화(write) + 모찌 한마디(LLM 1회).\n\n같은 의미인데 항목마다 제각각 생긴 category 를 LLM 이 통합 라벨로 정규화해 ``item.category`` 를\n갱신한다(파편화 수렴). 그 주 항목이 3개 미만이면 LLM 을 돌리지 않고 정적 인사로 폴백한다\n(``generated=false``). ``weekStart`` 가 어긋나도 서버가 KST 월요일 00:00 으로 재정규화한다.",
+        "operationId": "generate_weekly_digest_api_v1_mochi_items_weekly_digest_post",
+        "parameters": [
+          {
+            "name": "weekStart",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "title": "Weekstart"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "Authorization",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeeklyDigestResponse"
                 }
               }
             }
@@ -813,7 +945,7 @@
           "notifications"
         ],
         "summary": "Register Push Token",
-        "description": "단말/Live Activity push 토큰 등록 (owner-scoped upsert).\n\niOS AppDelegate(apns_device) + LiveActivityCoordinator(live_activity)가 호출한다.",
+        "description": "단말/Live Activity push 토큰 등록 (owner-scoped upsert).\n\niOS AppDelegate(apns_device) + push-to-start observe(la_start)가 호출한다. 둘 다 owner 단위라\nmochiItemID 없이 등록한다.",
         "operationId": "register_push_token_api_v1_devices_push_token_post",
         "parameters": [
           {
@@ -977,6 +1109,40 @@
         ],
         "title": "DevSignInRequest",
         "description": "Local-only 임시 로그인 요청. ``subject`` 가 user 식별자 역할."
+      },
+      "DownloadUrlRequest": {
+        "properties": {
+          "objectKey": {
+            "type": "string",
+            "title": "Objectkey"
+          }
+        },
+        "type": "object",
+        "required": [
+          "objectKey"
+        ],
+        "title": "DownloadUrlRequest",
+        "description": "업로드된 캡처 이미지를 직접 GET 할 Signed URL 발급 요청 — 앱 재설치 후 이미지 복구."
+      },
+      "DownloadUrlResponse": {
+        "properties": {
+          "downloadURL": {
+            "type": "string",
+            "title": "Downloadurl"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expiresat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "downloadURL",
+          "expiresAt"
+        ],
+        "title": "DownloadUrlResponse",
+        "description": "발급된 V4 Signed GET URL."
       },
       "GoogleSignInRequest": {
         "properties": {
@@ -1328,6 +1494,11 @@
             "type": "string",
             "nullable": true
           },
+          "category": {
+            "title": "Category",
+            "type": "string",
+            "nullable": true
+          },
           "importance": {
             "type": "integer",
             "title": "Importance"
@@ -1449,10 +1620,10 @@
         "type": "string",
         "enum": [
           "apns_device",
-          "live_activity"
+          "la_start"
         ],
         "title": "PushTokenType",
-        "description": "등록되는 푸시 토큰의 종류.\n\n- ``apns_device``: 단말 remote notification 토큰 (owner 1:N 단말). 분석완료 alert 대상.\n- ``live_activity``: ActivityKit Live Activity push 토큰 (mochi_item 1:1). .ready 전환 대상."
+        "description": "등록되는 푸시 토큰의 종류.\n\n- ``apns_device``: 단말 remote notification 토큰 (owner 1:N 단말). 분석완료 alert 대상.\n- ``la_start``: Live Activity push-to-start 토큰 (owner 1:N 단말, item 무관). needs_review=true\n  분석완료 시 백엔드가 이 토큰으로 LA 를 background(잠금)에서 시작한다(start push). iOS 17.2+.\n  진행중/완료 LA 는 띄우지 않는다(팀 결정 2026-06-09) — 구 per-item ``live_activity`` 토큰 폐기."
       },
       "ReanalyzeRequest": {
         "properties": {
@@ -1518,7 +1689,7 @@
           "environment"
         ],
         "title": "RegisterPushTokenRequest",
-        "description": "단말(apns_device) 또는 Live Activity(live_activity) push 토큰 등록 요청."
+        "description": "단말(apns_device) 또는 Live Activity push-to-start(la_start) push 토큰 등록 요청."
       },
       "ReviewOptionResponse": {
         "properties": {
@@ -1661,6 +1832,54 @@
         ],
         "title": "TokensResponse"
       },
+      "UpcomingActionableListResponse": {
+        "properties": {
+          "actionables": {
+            "items": {
+              "$ref": "#/components/schemas/UpcomingActionableResponse"
+            },
+            "type": "array",
+            "title": "Actionables"
+          }
+        },
+        "type": "object",
+        "title": "UpcomingActionableListResponse"
+      },
+      "UpcomingActionableResponse": {
+        "properties": {
+          "item": {
+            "$ref": "#/components/schemas/MochiItemResponse"
+          },
+          "dueAt": {
+            "title": "Dueat",
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "dueLabel": {
+            "title": "Duelabel",
+            "type": "string",
+            "nullable": true
+          },
+          "isSchedule": {
+            "type": "boolean",
+            "title": "Isschedule"
+          },
+          "instanceId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Instanceid"
+          }
+        },
+        "type": "object",
+        "required": [
+          "item",
+          "isSchedule",
+          "instanceId"
+        ],
+        "title": "UpcomingActionableResponse",
+        "description": "\"이번주 정리\"의 \"아직 안 끝났어요\" 1건 — 미해결 todo 또는 다가올 schedule.\n\n``is_schedule`` false(=todo)면 클라가 카드에서 1-tap 완료(``instance_id`` 가 lifecycle 전이 대상).\n``due_at`` 은 instance/entities free-text 를 서버가 파싱한 값(미상이면 null), ``due_label`` 은 원문."
+      },
       "UpcomingTodoListResponse": {
         "properties": {
           "todos": {
@@ -1772,6 +1991,54 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "WeeklyDigestGroupResponse": {
+        "properties": {
+          "coarse": {
+            "type": "string",
+            "title": "Coarse"
+          },
+          "itemIds": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Itemids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "coarse"
+        ],
+        "title": "WeeklyDigestGroupResponse",
+        "description": "정규화된 coarse 카테고리 1묶음 — 그 그룹에 속한 item id 목록(captured_at desc)."
+      },
+      "WeeklyDigestResponse": {
+        "properties": {
+          "greeting": {
+            "type": "string",
+            "title": "Greeting"
+          },
+          "groups": {
+            "items": {
+              "$ref": "#/components/schemas/WeeklyDigestGroupResponse"
+            },
+            "type": "array",
+            "title": "Groups"
+          },
+          "generated": {
+            "type": "boolean",
+            "title": "Generated",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "greeting"
+        ],
+        "title": "WeeklyDigestResponse",
+        "description": "이번주 정리 — 모찌 한마디 + 정규화된 카테고리 그룹.\n\n``generated`` 가 false 면 그 주 항목이 적어 LLM 을 돌리지 않은 정적 폴백이다(클라가 캐시 정책에 활용).\n카테고리 정규화는 서버가 item.category 를 write 한 결과이므로, 클라는 응답의 itemIds 로 로컬 캐시를\n함께 갱신한다."
       }
     }
   }

@@ -261,6 +261,7 @@ let project = Project(
             layer: .feature,
             dependencies: [
                 .target(name: "CoreDomain"),
+                .target(name: "CorePersistence"),
                 .target(name: "DesignSystem"),
                 .package(product: "ComposableArchitecture"),
                 .package(product: "Dependencies"),
@@ -306,7 +307,10 @@ let project = Project(
         // MARK: App Shell
         .target(
             name: "Mochi",
-            destinations: .iOS,
+            // iPhone 전용 (TARGETED_DEVICE_FAMILY=1). iPad 를 포함하면 App Store 가
+            // multitasking 용 4방향 orientation 을 강제하는데, 본 앱은 portrait 전용 디자인이라
+            // iPad 를 빼서 Portrait 단독으로 통과시킨다. 내장 확장도 동일 family 로 맞춘다.
+            destinations: [.iPhone],
             product: .app,
             bundleId: bundleIdPrefix,
             deploymentTargets: .iOS(deploymentTarget),
@@ -324,11 +328,18 @@ let project = Project(
                 .post(
                     script: #"""
                     set -e
-                    SRC="${BUILT_PRODUCTS_DIR}/PackageFrameworks/RealmSwift.framework"
                     DST_DIR="${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}"
                     DST="${DST_DIR}/RealmSwift.framework"
+                    # Xcode SPM 은 빌드 종류에 따라 dynamic framework 산출 위치가 다르다.
+                    # 일반 빌드(build/run): BUILT_PRODUCTS_DIR/PackageFrameworks/ 하위.
+                    # archive 빌드: PackageFrameworks/ 는 비고, BUILT_PRODUCTS_DIR 루트 직하.
+                    # 두 경로를 모두 확인해야 archive 시 "framework not found" 로 죽지 않는다.
+                    SRC="${BUILT_PRODUCTS_DIR}/PackageFrameworks/RealmSwift.framework"
                     if [ ! -d "$SRC" ]; then
-                        echo "error: RealmSwift.framework not found at $SRC" >&2
+                        SRC="${BUILT_PRODUCTS_DIR}/RealmSwift.framework"
+                    fi
+                    if [ ! -d "$SRC" ]; then
+                        echo "error: RealmSwift.framework not found in PackageFrameworks/ nor BUILT_PRODUCTS_DIR root" >&2
                         exit 1
                     fi
                     mkdir -p "$DST_DIR"
@@ -440,7 +451,7 @@ let project = Project(
         // MARK: Share Extension
         .target(
             name: "ShareExtension",
-            destinations: .iOS,
+            destinations: [.iPhone],
             product: .appExtension,
             bundleId: "\(bundleIdPrefix).ShareExtension",
             deploymentTargets: .iOS(deploymentTarget),
@@ -475,7 +486,7 @@ let project = Project(
         // interactive button. ActivityAttributes 의 type identity 는 CoreLiveActivity 공유.
         .target(
             name: "MochiWidgets",
-            destinations: .iOS,
+            destinations: [.iPhone],
             product: .appExtension,
             bundleId: "\(bundleIdPrefix).MochiWidgets",
             deploymentTargets: .iOS(deploymentTarget),
@@ -485,6 +496,11 @@ let project = Project(
             entitlements: .file(path: "Targets/Widgets/Support/Widgets.entitlements"),
             dependencies: [
                 .target(name: "CoreLiveActivity"),
+                // LA 후보 버튼(SelectCandidateIntent)이 위젯 프로세스에서 reanalyze 를 직접 호출한다 —
+                // ShareExtension 직접전송과 동일 패턴(App Group baseURL + Keychain 토큰 + OpenAPIMochiClient).
+                .target(name: "CoreNetworking"),
+                .target(name: "CoreAuth"),
+                .target(name: "CorePersistence"),
             ],
             settings: .settings(base: baseSettings)
         ),

@@ -29,6 +29,12 @@ public struct NotConfiguredAPIClient: MochiAPIClient {
     public func getMochiItem(id: UUID) async throws -> MochiItemDTO {
         throw Self.error
     }
+    public func listMochiItems(limit: Int) async throws -> [MochiItemDTO] {
+        throw Self.error
+    }
+    public func presignCaptureDownload(objectKey: String) async throws -> URL {
+        throw Self.error
+    }
     public func search(query: String, scope: SearchScope) async throws -> SearchResponse {
         throw Self.error
     }
@@ -46,6 +52,12 @@ public struct NotConfiguredAPIClient: MochiAPIClient {
         throw Self.error
     }
     public func deleteMochiItem(mochiServerID: UUID) async throws {
+        throw Self.error
+    }
+    public func upcomingActionables() async throws -> [UpcomingActionableDTO] {
+        throw Self.error
+    }
+    public func weeklyDigest(weekStart: Date) async throws -> WeeklyDigestDTO {
         throw Self.error
     }
     private static let error = APIErrorEnvelope(

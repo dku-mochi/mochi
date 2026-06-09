@@ -41,11 +41,4 @@ class PushTokenRepository(ABC):
         """``(owner_id, token_type, token)`` 유니크로 upsert (환경·item 갱신)."""
 
     @abstractmethod
-    async def list_for_owner(
-        self, *, owner_id: UUID, token_type: PushTokenType
-    ) -> list[DevicePushToken]: ...
-
-    @abstractmethod
-    async def list_live_activity_for_item(
-        self, *, owner_id: UUID, mochi_item_id: UUID
-    ) -> list[DevicePushToken]: ...
+    async def list_for_owner(self, *, owner_id: UUID, token_type: PushTokenType) -> list[DevicePushToken]: ...

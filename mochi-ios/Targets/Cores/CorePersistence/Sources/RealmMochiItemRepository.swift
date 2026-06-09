@@ -52,6 +52,17 @@ public actor RealmMochiItemRepository: MochiItemRepository {
         }
     }
 
+    public func updateCategories(_ categories: [UUID: String]) async throws {
+        guard !categories.isEmpty else { return }
+        try await write { realm in
+            for (id, category) in categories {
+                guard let row = realm.object(ofType: RealmMochiItem.self, forPrimaryKey: id.uuidString) else { continue }
+                row.category = category
+                row.updatedAt = .init()
+            }
+        }
+    }
+
     public func updateImageUploadMetadata(
         mochiItemID: UUID,
         imageRefID: UUID,
@@ -210,6 +221,7 @@ public actor RealmMochiItemRepository: MochiItemRepository {
             }
             // analysis 제거 → listAnalyzing 대상으로 복귀.
             row.summary = nil
+            row.category = nil
             row.needsReview = false
             row.modelVersion = nil
             row.analyzedAt = nil

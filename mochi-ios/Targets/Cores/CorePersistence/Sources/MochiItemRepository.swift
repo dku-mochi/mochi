@@ -11,6 +11,10 @@ public protocol MochiItemRepository: Sendable {
     /// 특정 intent instance 의 의미상태 전이 (예: archive). `LifecyclePolicy` 가 intent_type 별로 검증한다.
     func updateInstanceLifecycle(mochiItemID: UUID, instanceID: UUID, to newState: InstanceLifecycle) async throws
     func updateSync(mochiItemID: UUID, to newState: SyncState) async throws
+    /// 주간 정리(digest)가 서버에서 정규화한 카테고리를 로컬에 일괄 반영한다.
+    /// 키는 **로컬 id** — 호출자가 digest 응답의 서버 id 를 `syncState.uploaded` 로 역매핑해 넘긴다.
+    /// `analysis` 가 없는 item 은 건너뛴다. 반영 후 `observeChanges` 가 홈 카드를 자동 갱신한다.
+    func updateCategories(_ categories: [UUID: String]) async throws
     func updateImageUploadMetadata(
         mochiItemID: UUID,
         imageRefID: UUID,
@@ -122,6 +126,17 @@ public actor InMemoryMochiItemRepository: MochiItemRepository {
         mochiItem.syncState = newState
         mochiItem.updatedAt = .init()
         storage[mochiItemID] = mochiItem
+        notifyChange()
+    }
+
+    public func updateCategories(_ categories: [UUID: String]) async throws {
+        guard !categories.isEmpty else { return }
+        for (id, category) in categories {
+            guard var mochiItem = storage[id], let analysis = mochiItem.analysis else { continue }
+            mochiItem.analysis = analysis.withCategory(category)
+            mochiItem.updatedAt = .init()
+            storage[id] = mochiItem
+        }
         notifyChange()
     }
 
@@ -255,6 +270,7 @@ public actor InMemoryMochiItemRepository: MochiItemRepository {
         if let existing = mochiItem.analysis {
             mochiItem.analysis = MochiItemAnalysis(
                 summary: existing.summary,
+                category: existing.category,
                 instances: [instance],
                 needsReview: false,
                 reviewOptions: [],
@@ -268,6 +284,7 @@ public actor InMemoryMochiItemRepository: MochiItemRepository {
         } else {
             mochiItem.analysis = MochiItemAnalysis(
                 summary: mochiItem.source.text ?? "",
+                category: nil,
                 instances: [instance],
                 needsReview: false,
                 reviewOptions: [],

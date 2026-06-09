@@ -15,6 +15,7 @@ struct MochiApp: App {
 
     private let inboundConsumer: InboundQueueConsumer
     private let syncWorker: MochiItemSyncWorker
+    private let liveActivity: LiveActivityCoordinatorLive
 
     init() {
         // **순서 중요**: bootstrap 을 먼저 호출해 라이브 DI 값들을 prepareDependencies 로 등록한 뒤
@@ -34,22 +35,23 @@ struct MochiApp: App {
             tokenProvider: tokenProvider
         )
 
-        // Feature 레이어 (InboxFeature·HomeFeature) 가 pull-to-refresh / quick memo 저장 시 즉시 sync 를
-        // 트리거할 수 있게 노출. 또한 MochiItemSyncWorker 가 분류 흐름에서 Live Activity 를 trigger 하도록
-        // coordinator 주입 — apiClient/환경은 LA push 토큰을 백엔드에 등록하는 데 쓴다.
+        // Live Activity 는 needs_review=true 분석완료에서만 백엔드 push-to-start 로 background(잠금)에서
+        // 뜬다(팀 결정 2026-06-09). iOS 는 LA 를 직접 시작하지 않고, 앱 시작 시 push-to-start 토큰만
+        // 백엔드에 등록한다(owner-scoped, iOS 17.2+). 진행중/완료 LA 는 폐기 — 분석완료 alert push 로 충분.
+        // (prepareDependencies 클로저가 self 를 캡처하므로 그 앞에서 모든 stored property 를 초기화한다.)
         #if DEBUG
         let pushEnvironment: PushEnvironment = .sandbox
         #else
         let pushEnvironment: PushEnvironment = .production
         #endif
+        self.liveActivity = LiveActivityCoordinatorLive(apiClient: api, environment: pushEnvironment)
+
+        // Feature 레이어 (InboxFeature·HomeFeature) 가 pull-to-refresh / quick memo 저장 시 즉시 sync 를
+        // 트리거할 수 있게 노출.
         prepareDependencies {
             $0.syncTrigger = self.syncWorker
-            $0.liveActivityCoordinator = LiveActivityCoordinatorLive(apiClient: api, environment: pushEnvironment)
         }
-
-        // 실 분류 흐름이 `MochiItemSyncWorker.uploadOne` 안에서 `LiveActivityCoordinator` 를 통해 직접
-        // trigger 한다 — 저장 → 모찌 active → ingest 시작 시 `.analyzing` Activity, 분석 완료(SSE/폴링) 시
-        // `.ready` update. background 갱신은 ingest 후 등록한 LA push 토큰으로 백엔드가 직접 push.
+        self.liveActivity.observePushToStartToken()
     }
 
     var body: some Scene {

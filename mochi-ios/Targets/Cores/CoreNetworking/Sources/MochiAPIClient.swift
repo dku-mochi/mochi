@@ -26,11 +26,19 @@ public protocol MochiAPIClient: Sendable {
     /// `GET /api/v1/mochi_items/{id}` — owner-scoped mochiItem 조회.
     func getMochiItem(id: UUID) async throws -> MochiItemDTO
 
+    /// `GET /api/v1/mochi_items` — owner-scoped 전체 목록. 앱 재설치 후 서버→로컬 복구(pull)에 사용한다.
+    /// 날짜 필터 없이 호출하면 owner 의 모든 항목을 capturedAt 내림차순으로 돌려준다(서버 상한 200).
+    func listMochiItems(limit: Int) async throws -> [MochiItemDTO]
+
+    /// `POST /api/v1/mochi_items/images/download-url` — `objectKey` → GCS Signed GET URL.
+    /// 재설치 후 로컬 이미지 파일이 사라진 복구 항목의 원본을 내려받기 위해 발급한다(owner-scoped).
+    func presignCaptureDownload(objectKey: String) async throws -> URL
+
     /// `POST /api/v1/search` — 자연어 질의 → Hybrid Search RAG.
     func search(query: String, scope: SearchScope) async throws -> SearchResponse
 
-    /// `POST /api/v1/devices/push-token` — APNs 단말/Live Activity push 토큰 등록 (owner-scoped upsert).
-    /// `kind=.liveActivity` 면 `mochiItemID` 필수(백엔드가 item id 로 LA 토큰 조회).
+    /// `POST /api/v1/devices/push-token` — APNs 단말/Live Activity push-to-start 토큰 등록 (owner-scoped upsert).
+    /// `apnsDevice`·`laStart` 모두 owner 단위라 `mochiItemID` 없이 등록한다.
     func registerPushToken(
         token: String,
         kind: PushTokenKind,
@@ -56,12 +64,22 @@ public protocol MochiAPIClient: Sendable {
     /// `mochiServerID` 는 로컬 id 가 아니라 업로드된 서버 id(`syncState.uploaded`)여야 한다.
     /// 없는/이미 삭제된 항목은 404 throw.
     func deleteMochiItem(mochiServerID: UUID) async throws
+
+    /// `GET /api/v1/mochi_items/upcoming` — "이번주 정리"의 "아직 안 끝났어요".
+    /// 미해결 todo + 다가올 schedule 을 서버가 마감일 파싱·임박순 정렬해 돌려준다(캘린더 탭과 별개).
+    func upcomingActionables() async throws -> [UpcomingActionableDTO]
+
+    /// `POST /api/v1/mochi_items/weekly_digest` — 이번주 정리. 그 주(KST 월~일) 항목의 카테고리를
+    /// 서버가 정규화(write)하고 "모찌의 한마디"를 생성한다. `weekStart` 가 어긋나도 서버가 재정규화한다.
+    func weeklyDigest(weekStart: Date) async throws -> WeeklyDigestDTO
 }
 
 /// push 토큰 종류. rawValue 는 백엔드 `device_push_tokens.token_type` 과 1:1.
 public enum PushTokenKind: String, Sendable, Codable {
     case apnsDevice = "apns_device"
-    case liveActivity = "live_activity"
+    /// Live Activity push-to-start 토큰 (owner 단위, item 무관). iOS 17.2+. needs_review=true 분석완료
+    /// 시 백엔드가 이 토큰으로 LA 를 background(잠금)에서 시작한다. 구 per-item `live_activity` 폐기.
+    case laStart = "la_start"
 }
 
 /// APNs 환경. 토큰은 환경에 묶여 잘못 매칭 시 BadDeviceToken — 클라가 빌드 환경을 명시한다.
@@ -133,6 +151,7 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
     public let text: String?
     public let userMemo: String?
     public let summary: String?
+    public let category: String?
     public let importance: Int
     /// 저장된 의도 instance (저장된 것은 곧 active, 위계 없음). 분석 전엔 빈 배열.
     public let intentInstances: [IntentInstanceDTO]
@@ -148,7 +167,7 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
     public let createdAt: Date
 
     private enum CodingKeys: String, CodingKey {
-        case id, channel, url, text, summary, importance
+        case id, channel, url, text, summary, category, importance
         case userMemo = "userMemo"
         case intentInstances = "intentInstances"
         case needsReview = "needsReview"
@@ -167,6 +186,7 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
         text: String?,
         userMemo: String?,
         summary: String?,
+        category: String?,
         importance: Int,
         intentInstances: [IntentInstanceDTO],
         needsReview: Bool,
@@ -183,6 +203,7 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
         self.text = text
         self.userMemo = userMemo
         self.summary = summary
+        self.category = category
         self.importance = importance
         self.intentInstances = intentInstances
         self.needsReview = needsReview
@@ -202,6 +223,7 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
         text = try c.decodeIfPresent(String.self, forKey: .text)
         userMemo = try c.decodeIfPresent(String.self, forKey: .userMemo)
         summary = try c.decodeIfPresent(String.self, forKey: .summary)
+        category = try c.decodeIfPresent(String.self, forKey: .category)
         importance = try c.decode(Int.self, forKey: .importance)
         intentInstances = try c.decodeIfPresent([IntentInstanceDTO].self, forKey: .intentInstances) ?? []
         needsReview = try c.decodeIfPresent(Bool.self, forKey: .needsReview) ?? false
@@ -322,6 +344,52 @@ public struct SearchResponse: Equatable, Sendable, Hashable, Codable {
         case answer, citations
         case totalTokens = "totalTokens"
         case agentRunID = "agentRunId"
+    }
+}
+
+// MARK: - 이번주 정리 DTOs
+
+/// "아직 안 끝났어요" 1건 — 미해결 todo 또는 다가올 schedule.
+public struct UpcomingActionableDTO: Sendable, Hashable, Codable {
+    public let item: MochiItemDTO
+    /// 서버가 마감/일시 free-text 를 파싱한 값(미상이면 nil).
+    public let dueAt: Date?
+    /// 파싱 전 원문(클라 표시·디버깅용).
+    public let dueLabel: String?
+    /// false=todo(카드에서 1-tap 완료, ``instanceID`` 가 전이 대상), true=schedule(표시·상세만).
+    public let isSchedule: Bool
+    public let instanceID: UUID
+
+    public init(item: MochiItemDTO, dueAt: Date?, dueLabel: String?, isSchedule: Bool, instanceID: UUID) {
+        self.item = item
+        self.dueAt = dueAt
+        self.dueLabel = dueLabel
+        self.isSchedule = isSchedule
+        self.instanceID = instanceID
+    }
+}
+
+/// 이번주 정리 — 모찌 한마디 + 정규화된 카테고리 묶음.
+public struct WeeklyDigestDTO: Sendable, Hashable, Codable {
+    public let greeting: String
+    public let groups: [Group]
+    /// false 면 그 주 항목이 적어 LLM 미호출한 정적 폴백(클라가 캐시 정책에 활용).
+    public let generated: Bool
+
+    public struct Group: Sendable, Hashable, Codable {
+        public let coarse: String
+        public let itemIDs: [UUID]
+
+        public init(coarse: String, itemIDs: [UUID]) {
+            self.coarse = coarse
+            self.itemIDs = itemIDs
+        }
+    }
+
+    public init(greeting: String, groups: [Group], generated: Bool) {
+        self.greeting = greeting
+        self.groups = groups
+        self.generated = generated
     }
 }
 

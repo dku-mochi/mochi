@@ -16,7 +16,9 @@ from app.core.db import Base
 class MochiItemRow(Base):
     __tablename__ = "mochi_items"
 
-    id: Mapped[UUID] = mapped_column(PgUUIDColumn(as_uuid=True), primary_key=True, insert_default=uuid4, init=False)
+    id: Mapped[UUID] = mapped_column(
+        PgUUIDColumn(as_uuid=True), primary_key=True, insert_default=uuid4, init=False
+    )
     owner_id: Mapped[UUID] = mapped_column(PgUUIDColumn(as_uuid=True), index=True)
     channel: Mapped[str] = mapped_column(String(32))
     url: Mapped[str | None] = mapped_column(String(2048), default=None)
@@ -29,6 +31,10 @@ class MochiItemRow(Base):
     # push payload·GET projection·앱 내 버킷 fallback 이 모두 읽는다). [{intent_type,label,reasoning}].
     review_options: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, default_factory=list)
     summary: Mapped[str | None] = mapped_column(String, default=None)
+    category: Mapped[str | None] = mapped_column(String(64), default=None)
+    # 주간 정리(digest)가 category 를 정규화(refetch)한 시각. NULL 이면 아직 raw fine —
+    # digest 의 known_categories(연쇄 톤앤매너) 컨텍스트에서 제외해, 정규화된 라벨만 다음 주로 잇는다.
+    category_normalized_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
     importance: Mapped[int] = mapped_column(Integer, default=3)
     model_version: Mapped[str | None] = mapped_column(String(64), default=None)
 
@@ -39,7 +45,9 @@ class MochiItemRow(Base):
     sync_kind: Mapped[str] = mapped_column(String(32), default="pending")
     sync_detail: Mapped[str | None] = mapped_column(String, default=None)
 
-    captured_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default_factory=datetime.utcnow, index=True)
+    captured_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default_factory=datetime.utcnow, index=True
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default_factory=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default_factory=datetime.utcnow)
 
@@ -47,17 +55,27 @@ class MochiItemRow(Base):
     # 모든 조회는 deleted_at IS NULL 로 가린다.
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
 
-    intent_instances: Mapped[list["IntentInstanceRow"]] = relationship(back_populates="mochi_item", cascade="all, delete-orphan", default_factory=list)
-    entities: Mapped[list["EntityRow"]] = relationship(back_populates="mochi_item", cascade="all, delete-orphan", default_factory=list)
-    embeddings: Mapped[list["EmbeddingRow"]] = relationship(back_populates="mochi_item", cascade="all, delete-orphan", default_factory=list)
-    image_refs: Mapped[list["MochiItemImageRefRow"]] = relationship(back_populates="mochi_item", cascade="all, delete-orphan", default_factory=list)
+    intent_instances: Mapped[list["IntentInstanceRow"]] = relationship(
+        back_populates="mochi_item", cascade="all, delete-orphan", default_factory=list
+    )
+    entities: Mapped[list["EntityRow"]] = relationship(
+        back_populates="mochi_item", cascade="all, delete-orphan", default_factory=list
+    )
+    embeddings: Mapped[list["EmbeddingRow"]] = relationship(
+        back_populates="mochi_item", cascade="all, delete-orphan", default_factory=list
+    )
+    image_refs: Mapped[list["MochiItemImageRefRow"]] = relationship(
+        back_populates="mochi_item", cascade="all, delete-orphan", default_factory=list
+    )
 
 
 class MochiItemImageRefRow(Base):
     __tablename__ = "mochi_item_image_refs"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True, init=False)
-    mochi_item_id: Mapped[UUID] = mapped_column(PgUUIDColumn(as_uuid=True), ForeignKey("mochi_items.id", ondelete="CASCADE"), index=True, init=False)
+    mochi_item_id: Mapped[UUID] = mapped_column(
+        PgUUIDColumn(as_uuid=True), ForeignKey("mochi_items.id", ondelete="CASCADE"), index=True, init=False
+    )
     sha256: Mapped[str] = mapped_column(String(64), index=True)
     mime_type: Mapped[str] = mapped_column(String(64))
     byte_size: Mapped[int] = mapped_column(BigInteger)
@@ -74,8 +92,12 @@ class IntentInstanceRow(Base):
 
     __tablename__ = "intent_instances"
 
-    id: Mapped[UUID] = mapped_column(PgUUIDColumn(as_uuid=True), primary_key=True, insert_default=uuid4, init=False)
-    mochi_item_id: Mapped[UUID] = mapped_column(PgUUIDColumn(as_uuid=True), ForeignKey("mochi_items.id", ondelete="CASCADE"), index=True, init=False)
+    id: Mapped[UUID] = mapped_column(
+        PgUUIDColumn(as_uuid=True), primary_key=True, insert_default=uuid4, init=False
+    )
+    mochi_item_id: Mapped[UUID] = mapped_column(
+        PgUUIDColumn(as_uuid=True), ForeignKey("mochi_items.id", ondelete="CASCADE"), index=True, init=False
+    )
     owner_id: Mapped[UUID] = mapped_column(PgUUIDColumn(as_uuid=True))
     intent_type: Mapped[str] = mapped_column(String(16))
     payload: Mapped[dict[str, Any]] = mapped_column(JSONB, default_factory=dict)
@@ -97,7 +119,9 @@ class EntityRow(Base):
     __tablename__ = "entities"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True, init=False)
-    mochi_item_id: Mapped[UUID] = mapped_column(PgUUIDColumn(as_uuid=True), ForeignKey("mochi_items.id", ondelete="CASCADE"), index=True)
+    mochi_item_id: Mapped[UUID] = mapped_column(
+        PgUUIDColumn(as_uuid=True), ForeignKey("mochi_items.id", ondelete="CASCADE"), index=True
+    )
     kind: Mapped[str] = mapped_column(String(16))
     value: Mapped[str] = mapped_column(String(512))
     mochi_item: Mapped["MochiItemRow"] = relationship(back_populates="entities", default=None)
@@ -107,7 +131,9 @@ class EmbeddingRow(Base):
     __tablename__ = "embeddings"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True, init=False)
-    mochi_item_id: Mapped[UUID] = mapped_column(PgUUIDColumn(as_uuid=True), ForeignKey("mochi_items.id", ondelete="CASCADE"), index=True)
+    mochi_item_id: Mapped[UUID] = mapped_column(
+        PgUUIDColumn(as_uuid=True), ForeignKey("mochi_items.id", ondelete="CASCADE"), index=True
+    )
     chunk_text: Mapped[str] = mapped_column(String)
     embedding: Mapped[list[float]] = mapped_column(Vector(768))
     model_version: Mapped[str] = mapped_column(String(64))
@@ -135,8 +161,12 @@ class IdempotencyKeyRow(Base):
 class AgentRunRow(Base):
     __tablename__ = "agent_runs"
 
-    id: Mapped[UUID] = mapped_column(PgUUIDColumn(as_uuid=True), primary_key=True, insert_default=uuid4, init=False)
-    mochi_item_id: Mapped[UUID] = mapped_column(PgUUIDColumn(as_uuid=True), ForeignKey("mochi_items.id", ondelete="CASCADE"), index=True)
+    id: Mapped[UUID] = mapped_column(
+        PgUUIDColumn(as_uuid=True), primary_key=True, insert_default=uuid4, init=False
+    )
+    mochi_item_id: Mapped[UUID] = mapped_column(
+        PgUUIDColumn(as_uuid=True), ForeignKey("mochi_items.id", ondelete="CASCADE"), index=True
+    )
     current_node: Mapped[str] = mapped_column(String(32), default="ingested")
     total_tokens: Mapped[int] = mapped_column(Integer, default=0)
     total_latency_ms: Mapped[int] = mapped_column(Integer, default=0)
@@ -149,7 +179,9 @@ class ToolCallRow(Base):
     __tablename__ = "tool_calls"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True, init=False)
-    agent_run_id: Mapped[UUID] = mapped_column(PgUUIDColumn(as_uuid=True), ForeignKey("agent_runs.id", ondelete="CASCADE"), index=True)
+    agent_run_id: Mapped[UUID] = mapped_column(
+        PgUUIDColumn(as_uuid=True), ForeignKey("agent_runs.id", ondelete="CASCADE"), index=True
+    )
     name: Mapped[str] = mapped_column(String(64))
     input_digest: Mapped[str] = mapped_column(String(128))
     output_digest: Mapped[str | None] = mapped_column(String(128), default=None)

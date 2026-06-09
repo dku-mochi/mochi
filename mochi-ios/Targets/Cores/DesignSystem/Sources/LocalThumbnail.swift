@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import ImageIO
 import CorePersistence
 
@@ -105,6 +106,24 @@ public struct LocalThumbnail<Placeholder: View>: View {
                 .frame(width: size.width, height: size.height)
         }
     }
+}
+
+/// App Group 컨테이너의 캡처를 **동기**로 다운샘플 로드한다 (배지·테두리 없는 순수 스크린샷).
+/// hero 전환처럼 탭 직후 한 장만 즉시 필요한 경우용 — 여러 셀 동시 로드는 `LocalThumbnail`(비동기) 사용.
+public func loadContainerThumbnailSync(relativePath: String?, maxPixel: Int) -> UIImage? {
+    guard let relativePath else { return nil }
+    let url = AppGroup.containerURL.appendingPathComponent(relativePath)
+    guard let source = CGImageSourceCreateWithURL(url as CFURL, nil) else { return nil }
+    let options: [CFString: Any] = [
+        kCGImageSourceCreateThumbnailFromImageAlways: true,
+        kCGImageSourceCreateThumbnailWithTransform: true,
+        kCGImageSourceShouldCacheImmediately: true,
+        kCGImageSourceThumbnailMaxPixelSize: maxPixel,
+    ]
+    guard let cgImage = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary) else {
+        return nil
+    }
+    return UIImage(cgImage: cgImage)
 }
 
 /// 갓 만든 immutable UIImage 를 actor 경계 너머로 넘기기 위한 박스 (UIImage 는 Sendable 아님).

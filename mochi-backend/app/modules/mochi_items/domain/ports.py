@@ -48,7 +48,30 @@ class MochiItemRepository(Protocol):
         """
         ...
 
+    async def list_active_actionables_with_entities(
+        self, *, owner_id: UUID, limit: int
+    ) -> list[tuple[MochiItem, tuple[tuple[str, str], ...]]]:
+        """미해결(lifecycle=active) **todo 또는 schedule** instance 가 있는 item + 추출 entities.
+
+        ``list_active_todos_with_entities`` 의 일반화 — "이번주 정리"의 "아직 안 끝났어요" 섹션용.
+        마감/일시는 typed 컬럼이 없어 instance payload·entities free-text 를 application 이 파싱한다.
+        """
+        ...
+
     async def count(self, *, owner_id: UUID) -> int: ...
+
+    async def list_normalized_categories(self, *, owner_id: UUID, limit: int) -> list[str]:
+        """이미 digest 정규화를 거친 distinct category 라벨(최근 정규화순, raw fine 제외).
+
+        주간 정리가 LLM 에 "기존에 자주 쓴 카테고리"로 넘겨, 정규화된 라벨을 다음 주로 이어
+        톤앤매너를 연쇄시킨다(아직 정규화 안 된 raw 는 제외).
+        """
+        ...
+
+    async def bulk_update_category(self, *, owner_id: UUID, categories: dict[UUID, str]) -> None:
+        """여러 item 의 ``category`` 를 일괄 갱신(주간 정리 정규화 write). owner-scoped."""
+        ...
+
     async def apply_analysis(
         self,
         *,
@@ -58,6 +81,7 @@ class MochiItemRepository(Protocol):
         needs_review: bool,
         review_options: tuple[ReviewOption, ...],
         summary: str,
+        category: str | None,
         importance: int,
         model_version: str,
         entities: tuple[tuple[str, str], ...],
@@ -69,6 +93,7 @@ class MochiItemRepository(Protocol):
         헷갈려요 후보를 push payload·GET projection·앱 내 needsReview 버킷 fallback 이 모두 읽는다).
         """
         ...
+
     async def update_instance_lifecycle(
         self,
         *,
@@ -118,6 +143,14 @@ class SignedUpload:
 
 
 @dataclass(frozen=True, slots=True)
+class SignedDownload:
+    """클라이언트가 GCS 에서 직접 GET 할 V4 Signed URL — 앱 재설치 후 이미지 복구용."""
+
+    download_url: str
+    expires_at: datetime
+
+
+@dataclass(frozen=True, slots=True)
 class ObjectStat:
     """업로드된 객체의 실제 metadata (서버 검증용 — 클라 self-report 가 아님)."""
 
@@ -133,9 +166,14 @@ class CaptureImageStorage(Protocol):
     ``gs://{bucket}/{object_key}`` 로 Gemini 에 직접 넘긴다.
     """
 
-    async def issue_upload_url(
-        self, *, owner_id: UUID, sha256: str, mime_type: str
-    ) -> SignedUpload: ...
+    async def issue_upload_url(self, *, owner_id: UUID, sha256: str, mime_type: str) -> SignedUpload: ...
+
+    async def issue_download_url(self, *, object_key: str) -> SignedDownload:
+        """업로드된 객체를 직접 GET 할 V4 Signed URL 발급 (앱 재설치 후 이미지 복구).
+
+        owner-prefix 검증은 호출자(router)가 선행한다 — 포트는 검증된 key 를 그대로 서명한다.
+        """
+        ...
 
     async def stat(self, *, object_key: str) -> ObjectStat | None:
         """업로드된 객체의 실제 size/content-type 을 HEAD 로 조회. 객체 없으면 None.

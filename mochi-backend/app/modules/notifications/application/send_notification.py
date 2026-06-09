@@ -39,9 +39,7 @@ class SendAnalysisNotification:
         self._tokens = tokens
         self._apns = apns
 
-    async def run(
-        self, *, owner_id: UUID, mochi_item_id: UUID, notification: AnalysisNotification
-    ) -> None:
+    async def run(self, *, owner_id: UUID, mochi_item_id: UUID, notification: AnalysisNotification) -> None:
         if self._apns is None:
             return  # APNs 미설정(local dev) — no-op.
 
@@ -88,44 +86,47 @@ class SendAnalysisNotification:
                     exc_info=True,
                 )
 
-        # 2) Live Activity push — 이 item 의 LA 토큰. analyzing→ready 전환(전 채널).
-        la_payload = self._build_live_activity(notification)
-        live_activity_tokens = await self._tokens.list_live_activity_for_item(
-            owner_id=owner_id, mochi_item_id=mochi_item_id
-        )
-        log.info(
-            "push.la_targets",
-            owner_id=str(owner_id),
-            mochi_item_id=str(mochi_item_id),
-            count=len(live_activity_tokens),
-            needs_review=notification.needs_review,
-        )
-        for tok in live_activity_tokens:
-            try:
-                await self._apns.send(
-                    token=tok.token,
-                    environment=tok.environment,
-                    push_type=APNsPushType.LIVEACTIVITY,
-                    topic=f"{bundle_id}.push-type.liveactivity",
-                    payload=la_payload,
-                )
-                log.info(
-                    "push.la_sent",
-                    owner_id=str(owner_id),
-                    mochi_item_id=str(mochi_item_id),
-                    token=_mask_token(tok.token),
-                    environment=tok.environment.value,
-                )
-            except Exception as exc:  # noqa: BLE001
-                log.warning(
-                    "push.la_failed",
-                    owner_id=str(owner_id),
-                    mochi_item_id=str(mochi_item_id),
-                    token=_mask_token(tok.token),
-                    environment=tok.environment.value,
-                    exception=str(exc),
-                    exc_info=True,
-                )
+        # 2) Live Activity push-to-start — needs_review=true 일 때만. owner 의 push-to-start 토큰으로
+        # LA 를 background(잠금)에서 시작(start push). 진행중/완료 LA 는 더 이상 띄우지 않는다(팀 결정
+        # 2026-06-09): needs_review 가 아닌 분석완료는 위 alert push 로 충분하다. iOS 17.2+ 단말만 토큰
+        # 을 등록하므로 미등록·17.2 미만·LA 비활성 단말은 alert push 가 fallback 으로 메운다.
+        if notification.needs_review:
+            la_payload = self._build_la_start(mochi_item_id, notification)
+            la_start_tokens = await self._tokens.list_for_owner(
+                owner_id=owner_id, token_type=PushTokenType.LA_START
+            )
+            log.info(
+                "push.la_start_targets",
+                owner_id=str(owner_id),
+                mochi_item_id=str(mochi_item_id),
+                count=len(la_start_tokens),
+            )
+            for tok in la_start_tokens:
+                try:
+                    await self._apns.send(
+                        token=tok.token,
+                        environment=tok.environment,
+                        push_type=APNsPushType.LIVEACTIVITY,
+                        topic=f"{bundle_id}.push-type.liveactivity",
+                        payload=la_payload,
+                    )
+                    log.info(
+                        "push.la_start_sent",
+                        owner_id=str(owner_id),
+                        mochi_item_id=str(mochi_item_id),
+                        token=_mask_token(tok.token),
+                        environment=tok.environment.value,
+                    )
+                except Exception as exc:  # noqa: BLE001
+                    log.warning(
+                        "push.la_start_failed",
+                        owner_id=str(owner_id),
+                        mochi_item_id=str(mochi_item_id),
+                        token=_mask_token(tok.token),
+                        environment=tok.environment.value,
+                        exception=str(exc),
+                        exc_info=True,
+                    )
 
     @staticmethod
     def _build_alert(mochi_item_id: UUID, n: AnalysisNotification) -> dict[str, object]:
@@ -144,10 +145,15 @@ class SendAnalysisNotification:
         }
 
     @staticmethod
-    def _build_live_activity(n: AnalysisNotification) -> dict[str, object]:
-        # label 은 non-null 보장 — iOS `MochiLiveActivityAttributes.Candidate.label` 이 비옵셔널이라
-        # null 이면 시스템 content-state 자동 decode 가 throw → background LA 갱신이 무음 드롭된다.
-        # (ReviewOption.label 은 str|None. reasoning 은 항상 str 이라 그대로.)
+    def _build_la_start(mochi_item_id: UUID, n: AnalysisNotification) -> dict[str, object]:
+        # push-to-start: 백엔드가 LA 를 background(잠금)에서 **시작**한다(`event: start`). 이미 떠 있는
+        # LA 를 갱신하는 update 와 달리 `attributes-type` + `attributes`(불변 초기값)를 함께 싣는다.
+        # `attributes` 키는 iOS `MochiLiveActivityAttributes` 저장 프로퍼티와 **정확 일치**해야 한다
+        # (mochiItemID/captureCaption/thumbnailRelativePath). 썸네일 로컬경로(App Group 상대경로)는
+        # 백엔드가 모르므로 null — Widget 이 placeholder 로 렌더한다.
+        #
+        # label 은 non-null 보장 — iOS `Candidate.label` 이 비옵셔널이라 null 이면 시스템 자동 decode 가
+        # throw → start 가 무음 드롭된다. (ReviewOption.label 은 str|None. reasoning 은 항상 str.)
         candidates = [
             {
                 "intentType": r.intent_type.value,
@@ -158,18 +164,26 @@ class SendAnalysisNotification:
         ]
         content_state: dict[str, object] = {
             "phase": "ready",
-            "needsReview": n.needs_review,
+            "needsReview": True,
             "summary": (n.summary or "")[:120],
             "candidates": candidates,
+        }
+        attributes: dict[str, object] = {
+            "mochiItemID": str(mochi_item_id),
+            "captureCaption": (n.summary or "새 기록")[:40],
+            "thumbnailRelativePath": None,
         }
         payload: dict[str, object] = {
             "aps": {
                 "timestamp": int(time.time()),
-                "event": "update",
+                "event": "start",
+                "attributes-type": "MochiLiveActivityAttributes",
+                "attributes": attributes,
                 "content-state": content_state,
             }
         }
-        # 4KB 가드 — 초과 시 후보를 줄여 맞춘다(reasoning 비움 → 후보 수 축소). best-effort, assert 금지.
+        # 4KB 가드 — start payload 는 attributes 까지 포함해 update 보다 크다. 초과 시 reasoning 비움 →
+        # 후보 수 축소. best-effort, assert 금지.
         while len(json.dumps(payload, ensure_ascii=False).encode()) > _LA_PAYLOAD_MAX_BYTES and candidates:
             if any(c["reasoning"] for c in candidates):
                 for c in candidates:

@@ -29,6 +29,7 @@ class AnalysisResult:
     """
 
     summary: str
+    category: str | None = None
     needs_review: bool = False
     intent_instances: tuple[IntentInstance, ...] = ()
     review_options: tuple[ReviewOption, ...] = ()
