@@ -16,6 +16,7 @@ public final class RealmMochiItem: Object, Identifiable {
     /// 사용자가 직접 교정한 제목 (로컬 오버라이드). nil 이면 AI 추출 제목 사용.
     @Persisted public var userTitle: String?
     @Persisted public var summary: String?
+    @Persisted public var category: String?
     @Persisted public var importance: Int = 3
     /// 모찌가 분류를 확신 못 함 — "헷갈려요" 버킷 (서버 boolean 미러).
     @Persisted public var needsReview: Bool = false

@@ -142,6 +142,7 @@ def _to_response(item: MochiItem) -> MochiItemResponse:
             for opt in item.review_options
         ],
         summary=item.summary,
+        category=item.category,
         importance=item.importance,
         lifecycle_kind=item.lifecycle.kind.value,
         sync_kind=item.sync.kind,

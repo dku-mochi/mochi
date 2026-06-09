@@ -96,6 +96,7 @@ def _row_to_entity(row: MochiItemRow) -> MochiItem:
             for r in row.review_options
         ),
         summary=row.summary,
+        category=row.category,
         importance=row.importance,
         model_version=row.model_version,
         lifecycle=LifecycleState(
@@ -141,6 +142,7 @@ class PostgresMochiItemRepository(MochiItemRepository):
             user_memo=item.source.user_memo,
             needs_review=item.needs_review,
             summary=item.summary,
+            category=item.category,
             importance=item.importance,
             model_version=item.model_version,
             lifecycle_kind=item.lifecycle.kind.value,
@@ -302,6 +304,7 @@ class PostgresMochiItemRepository(MochiItemRepository):
         needs_review: bool,
         review_options: tuple[ReviewOption, ...],
         summary: str,
+        category: str | None,
         importance: int,
         model_version: str,
         entities: tuple[tuple[str, str], ...],
@@ -314,6 +317,7 @@ class PostgresMochiItemRepository(MochiItemRepository):
             return
 
         row.summary = summary
+        row.category = category
         row.importance = importance
         row.needs_review = needs_review
         # 미확정 후보 영속 — JSONB 컬럼 in-place 덮어쓰기 (재분석 멱등, delete-reinsert 불필요).

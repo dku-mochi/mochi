@@ -210,6 +210,7 @@ public actor RealmMochiItemRepository: MochiItemRepository {
             }
             // analysis 제거 → listAnalyzing 대상으로 복귀.
             row.summary = nil
+            row.category = nil
             row.needsReview = false
             row.modelVersion = nil
             row.analyzedAt = nil

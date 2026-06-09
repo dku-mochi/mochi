@@ -6,6 +6,7 @@ import Foundation
 /// (저장되면 곧 active)와 `needsReview` boolean·`reviewOptions`(미확정 후보)로 재배선했다.
 public struct MochiItemAnalysis: Equatable, Sendable, Hashable, Codable {
     public let summary: String
+    public let category: String?
     /// 복수 의도 instance (저장된 것은 곧 active). 비어 있을 수 있다(분석 실패/폴백).
     public let instances: [IntentInstance]
     /// 모찌가 분류를 확신 못 해 사용자에게 물을지 — 서버 boolean 직접 미러 (LLM holistic, threshold 아님).
@@ -21,6 +22,7 @@ public struct MochiItemAnalysis: Equatable, Sendable, Hashable, Codable {
 
     public init(
         summary: String,
+        category: String? = nil,
         instances: [IntentInstance],
         needsReview: Bool = false,
         reviewOptions: [ReviewOption] = [],
@@ -32,6 +34,7 @@ public struct MochiItemAnalysis: Equatable, Sendable, Hashable, Codable {
         analyzedAt: Date
     ) {
         self.summary = summary
+        self.category = category
         self.instances = instances
         self.needsReview = needsReview
         self.reviewOptions = reviewOptions
@@ -75,6 +78,7 @@ public struct MochiItemAnalysis: Equatable, Sendable, Hashable, Codable {
     public func replacingInstances(_ newInstances: [IntentInstance]) -> MochiItemAnalysis {
         MochiItemAnalysis(
             summary: summary,
+            category: category,
             instances: newInstances,
             needsReview: needsReview,
             reviewOptions: reviewOptions,

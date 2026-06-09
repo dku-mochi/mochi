@@ -29,6 +29,7 @@ class MochiItemRow(Base):
     # push payload·GET projection·앱 내 버킷 fallback 이 모두 읽는다). [{intent_type,label,reasoning}].
     review_options: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, default_factory=list)
     summary: Mapped[str | None] = mapped_column(String, default=None)
+    category: Mapped[str | None] = mapped_column(String(64), default=None)
     importance: Mapped[int] = mapped_column(Integer, default=3)
     model_version: Mapped[str | None] = mapped_column(String(64), default=None)
 

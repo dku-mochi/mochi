@@ -25,7 +25,10 @@ class ProfileWindowItem:
 
     summary: str | None
     intent_types: tuple[Intent, ...]
-    user_memo: str | None
+    mochi_item_id: UUID | None = None
+    title: str | None = None
+    category: str | None = None
+    user_memo: str | None = None
 
 
 @dataclass(frozen=True, slots=True)

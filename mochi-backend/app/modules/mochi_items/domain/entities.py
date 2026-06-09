@@ -104,6 +104,7 @@ class MochiItem:
     needs_review: bool = False
     review_options: tuple[ReviewOption, ...] = ()
     summary: str | None = None
+    category: str | None = None
     importance: int = 3
     model_version: str | None = None
     lifecycle: LifecycleState = field(default_factory=LifecycleState.ingested)
@@ -118,3 +119,17 @@ class MochiItem:
         for inst in self.intent_instances:
             seen.setdefault(inst.intent_type, None)
         return tuple(seen)
+
+    @property
+    def display_title(self) -> str | None:
+        """프로필/분석 컨텍스트용 대표 제목. iOS 대표 우선순위와 같은 순서를 쓴다."""
+        priority = (Intent.SCHEDULE, Intent.TODO, Intent.KNOWLEDGE, Intent.MEMO)
+        for intent in priority:
+            for inst in self.intent_instances:
+                title = inst.payload.title
+                if inst.intent_type == intent and title:
+                    return title
+        for inst in self.intent_instances:
+            if inst.payload.title:
+                return inst.payload.title
+        return None

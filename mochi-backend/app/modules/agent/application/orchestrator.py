@@ -156,9 +156,16 @@ class AgentOrchestrator:
             has_profile=bool(profile_summary),
             profile_length=len(profile_summary or ""),
         )
+        recent_context = await self._recent_analysis_context(
+            owner_id=owner_id,
+            current_item_id=mochi_item_id,
+        )
         system_prompt = ACTIVE_PROMPT.body + _profile_preamble(profile_summary)
 
-        first_user: dict[str, Any] = {"role": "user", "text": _initial_user_text(source, reanalysis_hint)}
+        first_user: dict[str, Any] = {
+            "role": "user",
+            "text": _initial_user_text(source, reanalysis_hint, recent_context),
+        }
         if source.images:
             first_user["images"] = list(source.images)
         parts: list[dict[str, Any]] = [first_user]
@@ -247,6 +254,28 @@ class AgentOrchestrator:
             },
         )
         yield analysis
+
+    async def _recent_analysis_context(
+        self, *, owner_id: UUID, current_item_id: UUID
+    ) -> tuple[str, ...]:
+        if self._gateway is None:
+            return ()
+        window = await self._gateway.list_recent_window(owner_id=owner_id, limit=40)
+        lines: list[str] = []
+        for item in window:
+            if item.mochi_item_id == current_item_id:
+                continue
+            summary = (item.summary or "").strip()
+            if not summary:
+                continue
+            intents = ", ".join(intent.value for intent in item.intent_types) or "unknown"
+            category = (item.category or "").strip() or "기타"
+            title = f" / title: {item.title.strip()}" if item.title else ""
+            memo = f" / memo: {item.user_memo.strip()}" if item.user_memo else ""
+            lines.append(f"- [{category}] intents={intents}{title}: {summary}{memo}")
+            if len(lines) >= 18:
+                break
+        return tuple(lines)
 
     async def _run_tool(
         self,
@@ -447,7 +476,11 @@ def _profile_preamble(summary: str | None) -> str:
 KOREA_TZ = ZoneInfo("Asia/Seoul")
 
 
-def _initial_user_text(source: AnalysisInput, reanalysis_hint: str | None = None) -> str:
+def _initial_user_text(
+    source: AnalysisInput,
+    reanalysis_hint: str | None = None,
+    recent_context: tuple[str, ...] = (),
+) -> str:
     blocks: list[str] = []
     blocks.append(_korea_time_context())
     if source.text:
@@ -458,6 +491,14 @@ def _initial_user_text(source: AnalysisInput, reanalysis_hint: str | None = None
         blocks.append(f"사용자 메모: {source.user_memo}")
     if source.images:
         blocks.append("첨부된 스크린샷/이미지를 함께 분석하세요.")
+    if recent_context:
+        blocks.append(
+            "# 최근 기록 컨텍스트 (최근 1달)\n"
+            "같은 사용자의 최근 기록에서 category/title/intent/summary 만 추린 목록입니다. "
+            "현재 캡처가 직접 지지하는 해석 안에서 naming/category 일관성을 맞출 때만 약하게 사용하세요. "
+            "현재 캡처의 보이는 근거를 덮어쓰지 마세요.\n"
+            + "\n".join(recent_context)
+        )
     if reanalysis_hint:
         # "다른 의도" 재분석 — 사용자가 직접 적은 의도. user_memo 와 구분해서 우선 반영.
         blocks.append(
@@ -513,6 +554,7 @@ def _to_analysis_result(payload: dict[str, Any]) -> AnalysisResult:
     )
     return AnalysisResult(
         summary=out.summary,
+        category=out.category,
         needs_review=out.needs_review,
         intent_instances=instances,
         review_options=review_options,

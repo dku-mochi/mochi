@@ -255,6 +255,7 @@ public actor InMemoryMochiItemRepository: MochiItemRepository {
         if let existing = mochiItem.analysis {
             mochiItem.analysis = MochiItemAnalysis(
                 summary: existing.summary,
+                category: existing.category,
                 instances: [instance],
                 needsReview: false,
                 reviewOptions: [],
@@ -268,6 +269,7 @@ public actor InMemoryMochiItemRepository: MochiItemRepository {
         } else {
             mochiItem.analysis = MochiItemAnalysis(
                 summary: mochiItem.source.text ?? "",
+                category: nil,
                 instances: [instance],
                 needsReview: false,
                 reviewOptions: [],

@@ -1078,4 +1078,76 @@ CLASSIFY_AND_ACT_V13 = PromptVersion(
 )
 
 
-ACTIVE_PROMPT: PromptVersion = CLASSIFY_AND_ACT_V13
+CLASSIFY_AND_ACT_V14 = PromptVersion(
+    name="classify_and_act@v14",
+    body=CLASSIFY_AND_ACT_V13.body.replace(
+        (
+            "# Also produce\n"
+            "- summary: 1-2 Korean sentences — what this is and why the user likely saved it.\n"
+            "- entities: key facts {kind, value}, e.g. {\"kind\":\"deadline\",\"value\":\"2026-05-30 "
+            "23:59\"}; empty if none.\n"
+            "- importance: 1 (low) … 5 (high).\n\n"
+        ),
+        (
+            "# Also produce\n"
+            "- summary: 1-2 Korean sentences — what this is and why the user likely saved it.\n"
+            "- category: one short Korean noun phrase for weekly replay, 2-8 characters when "
+            "possible (examples: 데이트 코스, 개발 학습, 자동차 관리, 대학영어, 쇼핑 후보). "
+            "It is user-facing and should cluster records the user would naturally review together. "
+            "Use the current capture first; if '# 최근 기록 컨텍스트' is present, reuse an existing "
+            "category only when the new capture is genuinely the same kind. Do not force everything "
+            "into broad buckets like 일정, 할 일, 지식, 메모. For the first records with no context, "
+            "prefer a concrete subject-domain category over a generic one: course name over '공지', "
+            "car subsystem over '링크', place/activity over '메모'.\n"
+            "- entities: key facts {kind, value}, e.g. {\"kind\":\"deadline\",\"value\":\"2026-05-30 "
+            "23:59\"}; empty if none.\n"
+            "- importance: 1 (low) … 5 (high).\n\n"
+        ),
+    ).replace(
+        (
+            "# Personalization\n"
+            "If a '# 사용자 컨텍스트' section is present, it is WEAK evidence: it may choose among "
+            "readings the capture already supports, but it cannot supply missing commitment, upgrade a "
+            "memo to todo/schedule, or override the capture's visible purpose. Capture evidence wins; "
+            "the profile only nudges.\n\n"
+        ),
+        (
+            "# Personalization and recent-record consistency\n"
+            "If a '# 사용자 컨텍스트' section is present, it is WEAK evidence: it may choose among "
+            "readings the capture already supports, but it cannot supply missing commitment, upgrade a "
+            "memo to todo/schedule, or override the capture's visible purpose. Capture evidence wins; "
+            "the profile only nudges.\n"
+            "If a '# 최근 기록 컨텍스트' section is present, use it for consistency of category, title, "
+            "and field style. Example: if a previous record was titled '대학영어 중간고사 일정', a "
+            "similar X-learning notice for 대학수학 should become '대학수학 중간고사 일정', not a "
+            "generic '중간고사 공지'. This context is also WEAK evidence: it aligns naming for "
+            "matching patterns, but it must not invent facts or override the current capture.\n\n"
+        ),
+    ).replace(
+        (
+            "Call finalizeAnalysis exactly once with: summary, intent_instances (each {intent_type, "
+            "payload, label, reasoning}), needs_review (boolean), review_options (each {intent_type, "
+            "label, reasoning}; empty when needs_review is false), entities, importance. Every stored "
+            "instance is active — no scoring."
+        ),
+        (
+            "Call finalizeAnalysis exactly once with: summary, category, intent_instances (each "
+            "{intent_type, payload, label, reasoning}), needs_review (boolean), review_options (each "
+            "{intent_type, label, reasoning}; empty when needs_review is false), entities, importance. "
+            "Every stored instance is active — no scoring."
+        ),
+    ),
+    model_target="gemini-3.1-flash-lite",
+    eval_dataset_version="intent-schema-decision@2026-06-04",
+    revised_on=date(2026, 6, 9),
+    rationale=(
+        "홈 '이번주 리플레이'를 위한 category 필드 추가와 최근 1달 기록 컨텍스트 주입. 첫 기록은 "
+        "컨텍스트가 없어도 광범위 버킷이 아니라 구체 주제/도메인 카테고리를 만들도록 지시하고, 이후 "
+        "기록은 최근 context 로 category/title/field style 을 약하게 정렬한다. 현재 캡처 근거 우선·"
+        "기존 context 는 naming consistency 용 weak evidence 라는 경계를 명시해 비결정성을 줄이되 "
+        "개인화가 사실을 덮어쓰지 않게 했다."
+    ),
+)
+
+
+ACTIVE_PROMPT: PromptVersion = CLASSIFY_AND_ACT_V14

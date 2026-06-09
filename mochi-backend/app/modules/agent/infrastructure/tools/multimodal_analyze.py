@@ -57,6 +57,7 @@ class MultimodalAnalyzeOutput(BaseModel):
     """
 
     summary: str
+    category: str | None = None
     needs_review: bool = False
     intent_instances: list[IntentInstanceDTO] = Field(default_factory=list)
     review_options: list[ReviewOptionDTO] = Field(default_factory=list)
@@ -79,6 +80,7 @@ class MultimodalAnalyzeTool(Tool[MultimodalAnalyzeInput, MultimodalAnalyzeOutput
         started = time.perf_counter()
         base = MultimodalAnalyzeOutput(
             summary="",
+            category="기타",
             needs_review=False,
             intent_instances=[IntentInstanceDTO(intent_type=Intent.MEMO, label="메모")],
             review_options=[],

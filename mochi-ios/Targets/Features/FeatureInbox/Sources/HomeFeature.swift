@@ -25,12 +25,16 @@ public struct HomeFeature: Sendable {
         public var analyzing: IdentifiedArrayOf<MochiItem> = []
         /// 분석은 끝났으나 모찌가 확신 못 함 ("지금 확인해 주세요", `needsReview == true`).
         public var needsReview: IdentifiedArrayOf<MochiItem> = []
+        public var weeklyRecordCount: Int = 0
+        public var weeklyTopCategories: [WeeklyCategoryStat] = []
+        public var chatDraft: String = ""
         public var quickMemoText: String = ""
         /// 플로팅 버튼 → 입력 시트 표시 여부 (메모·링크 통합 창구).
         public var isComposingMemo: Bool = false
         public var needsReviewPage: Int = 0
         /// ② "모찌가 정리하고 있어요" 접힘 상태 (기본 접힘 — 평소엔 방해하지 않음).
         public var isProcessingExpanded: Bool = false
+        public var isNeedsReviewModalPresented: Bool = false
         public var isLoading: Bool = false
         public var isSaving: Bool = false
         public var lastError: String?
@@ -42,8 +46,17 @@ public struct HomeFeature: Sendable {
         case binding(BindingAction<State>)
         case onAppear
         case refresh
-        case sectionsLoaded(recent: [MochiItem], analyzing: [MochiItem], needsReview: [MochiItem])
+        case sectionsLoaded(
+            recent: [MochiItem],
+            analyzing: [MochiItem],
+            needsReview: [MochiItem],
+            weeklyItems: [MochiItem]
+        )
         case loadFailed(String)
+        case suggestedQuestionTapped(String)
+        case chatSubmitTapped
+        case reviewSummaryTapped
+        case dismissReviewModal
         case quickMemoSubmitted
         case quickMemoSaved
         /// 사진(라이브러리/카메라) 선택 결과 — JPEG 데이터 + 사용자 메모(선택)를 캡처로 ingest.
@@ -100,13 +113,18 @@ public struct HomeFeature: Sendable {
                     await loadAll(send: send)
                 }
 
-            case let .sectionsLoaded(recent, analyzing, needsReview):
+            case let .sectionsLoaded(recent, analyzing, needsReview, weeklyItems):
                 state.isLoading = false
                 state.recent = IdentifiedArray(uniqueElements: recent)
                 state.analyzing = IdentifiedArray(uniqueElements: analyzing)
                 state.needsReview = IdentifiedArray(uniqueElements: needsReview)
+                state.weeklyRecordCount = weeklyItems.count
+                state.weeklyTopCategories = Self.weeklyCategoryStats(from: weeklyItems)
                 if state.needsReviewPage >= needsReview.count {
                     state.needsReviewPage = max(0, needsReview.count - 1)
+                }
+                if needsReview.isEmpty {
+                    state.isNeedsReviewModalPresented = false
                 }
                 return .none
 
@@ -116,6 +134,23 @@ public struct HomeFeature: Sendable {
                 // 안 풀면 메모 저장 버튼(.disabled(store.isSaving))이 영구 비활성으로 잠긴다.
                 state.isSaving = false
                 state.lastError = message
+                return .none
+
+            case let .suggestedQuestionTapped(question):
+                state.chatDraft = question
+                return .none
+
+            case .chatSubmitTapped:
+                // 채팅 회수 기능은 아직 미구현. 홈에는 입력 affordance 만 먼저 둔다.
+                state.chatDraft = ""
+                return .none
+
+            case .reviewSummaryTapped:
+                state.isNeedsReviewModalPresented = !state.needsReview.isEmpty
+                return .none
+
+            case .dismissReviewModal:
+                state.isNeedsReviewModalPresented = false
                 return .none
 
             case .quickMemoSubmitted:
@@ -251,10 +286,57 @@ public struct HomeFeature: Sendable {
         async let recentTask: [MochiItem] = (try? await repository.listRecent(limit: 12)) ?? []
         async let analyzingTask: [MochiItem] = (try? await repository.listAnalyzing(limit: 10)) ?? []
         async let needsReviewTask: [MochiItem] = (try? await repository.listNeedsReview(limit: 10)) ?? []
+        async let weeklyTask: [MochiItem] = (try? await repository.listCaptured(in: Self.currentWeekInterval(now: date.now), limit: 500)) ?? []
 
-        let (recent, analyzing, needsReview) = await (recentTask, analyzingTask, needsReviewTask)
+        let (recent, analyzing, needsReview, weeklyItems) = await (
+            recentTask,
+            analyzingTask,
+            needsReviewTask,
+            weeklyTask
+        )
 
-        await send(.sectionsLoaded(recent: recent, analyzing: analyzing, needsReview: needsReview))
+        await send(.sectionsLoaded(
+            recent: recent,
+            analyzing: analyzing,
+            needsReview: needsReview,
+            weeklyItems: weeklyItems
+        ))
+    }
+
+    private static func currentWeekInterval(now: Date) -> DateInterval {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.locale = Locale(identifier: "ko_KR")
+        calendar.timeZone = .autoupdatingCurrent
+        calendar.firstWeekday = 2
+        return calendar.dateInterval(of: .weekOfYear, for: now) ?? DateInterval(start: now, duration: 7 * 24 * 60 * 60)
+    }
+
+    private static func weeklyCategoryStats(from items: [MochiItem]) -> [WeeklyCategoryStat] {
+        let counts = items.reduce(into: [String: Int]()) { partial, item in
+            let category = item.analysis?.category?.trimmingCharacters(in: .whitespacesAndNewlines)
+            let label = category.flatMap { $0.isEmpty ? nil : $0 } ?? fallbackCategory(for: item)
+            partial[label, default: 0] += 1
+        }
+        return counts
+            .map { WeeklyCategoryStat(name: $0.key, count: $0.value) }
+            .sorted { lhs, rhs in
+                if lhs.count != rhs.count { return lhs.count > rhs.count }
+                return lhs.name < rhs.name
+            }
+            .prefix(3)
+            .map { $0 }
+    }
+
+    private static func fallbackCategory(for item: MochiItem) -> String {
+        if let label = item.instances.first(where: { ($0.label ?? "").isEmpty == false })?.label {
+            return label
+        }
+        switch item.representativeIntent {
+        case .schedule: return "일정"
+        case .todo: return "할 일"
+        case .knowledge: return "학습"
+        case .memo, .none: return "기록"
+        }
     }
 
     /// 사용자가 적은 raw 문자열을 http(s) URL 로 정규화. scheme 누락 시 https 를 붙이고,
@@ -278,4 +360,10 @@ public struct HomeFeature: Sendable {
         if host.contains("apple.com") || host.contains("safari") { return .safari }
         return .appShareSheet
     }
+}
+
+public struct WeeklyCategoryStat: Equatable, Sendable, Hashable, Identifiable {
+    public var id: String { name }
+    public let name: String
+    public let count: Int
 }

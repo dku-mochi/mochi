@@ -10,6 +10,7 @@ public extension MochiItemDTO {
     func toMochiItemAnalysis() -> MochiItemAnalysis {
         MochiItemAnalysis(
             summary: summary ?? "",
+            category: category,
             instances: intentInstances.map { i in
                 IntentInstance(
                     id: i.id,
