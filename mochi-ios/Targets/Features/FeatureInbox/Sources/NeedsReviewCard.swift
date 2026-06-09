@@ -309,75 +309,73 @@ private struct ManualPickChip: View {
 // MARK: - Analyzing card ("모찌가 분석 중이에요")
 
 /// 분석 응답 대기 중인 항목 — 사용자 행동 불필요, 진행 표시만.
-/// 가로 캐러셀로 미리보기를 크게 보여준다 (이미지가 카드 폭을 꽉 채우는 2:1).
+/// 화면을 압도하던 세로 캐러셀 대신 컴팩트한 행 리스트로 — 썸네일(44pt) + 제목 + 진행 바.
 struct AnalyzingCard: View {
     let mochiItems: [MochiItem]
 
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: HomeDesign.Spacing.md) {
-                ForEach(mochiItems) { mochiItem in
-                    AnalyzingCardCell(mochiItem: mochiItem)
+        VStack(spacing: 0) {
+            ForEach(Array(mochiItems.enumerated()), id: \.element.id) { index, mochiItem in
+                AnalyzingRow(mochiItem: mochiItem)
+                if index < mochiItems.count - 1 {
+                    Rectangle()
+                        .fill(HomeDesign.Color.border)
+                        .frame(height: 1)
+                        .padding(.leading, HomeDesign.Spacing.lg + 44 + HomeDesign.Spacing.md)
                 }
             }
-            .padding(.horizontal, HomeDesign.Spacing.xl)
-            // 카드 그림자가 스크롤 영역 상·하단에서 잘리지 않게 세로 여백 확보.
-            // AnalyzingCardCell 은 cardShadow(radius 18, y 6 → 아래 ~24pt)라 sm(8)으론 크게 잘려 xxl(24)로 키운다.
-            // 안쪽 +xxl / 바깥 -xxl 이라 그림자 여백만 늘고 섹션 간격(레이아웃)은 중립.
-            .padding(.vertical, HomeDesign.Spacing.xxl)
-        }
-        .padding(.horizontal, -HomeDesign.Spacing.xl)
-        .padding(.vertical, -HomeDesign.Spacing.xxl)
-    }
-}
-
-private struct AnalyzingCardCell: View {
-    let mochiItem: MochiItem
-
-    /// 이미지가 카드 폭을 꽉 채우고 2:1(세로) 로 표시된다.
-    private static let cardWidth: CGFloat = 150
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            preview
-                .frame(width: Self.cardWidth, height: Self.cardWidth * 2)
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(mochiItem.displayTitle)
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(HomeDesign.Color.textPrimary)
-                    .lineLimit(1)
-                HStack(spacing: 5) {
-                    ProgressView()
-                        .controlSize(.mini)
-                    Text("모찌가 분석 중…")
-                        .font(.system(size: 11, weight: .regular))
-                        .foregroundStyle(HomeDesign.Color.textMuted)
-                }
-            }
-            .padding(HomeDesign.Spacing.md)
-            .frame(width: Self.cardWidth, alignment: .leading)
         }
         .background(
             RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous)
                 .fill(HomeDesign.Color.surface)
         )
-        .clipShape(RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous)
                 .stroke(HomeDesign.Color.border, lineWidth: 1)
         )
-        .cardShadow()
+        .clipShape(RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous))
+    }
+}
+
+private struct AnalyzingRow: View {
+    let mochiItem: MochiItem
+
+    var body: some View {
+        HStack(spacing: HomeDesign.Spacing.md) {
+            thumbnail
+                .frame(width: 44, height: 44)
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .stroke(HomeDesign.Color.border, lineWidth: 1)
+                )
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text(mochiItem.displayTitle)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(HomeDesign.Color.textPrimary)
+                    .lineLimit(1)
+                HStack(spacing: HomeDesign.Spacing.sm) {
+                    AnalyzingProgressBar()
+                        .frame(maxWidth: 120)
+                    Text("분석 중")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(HomeDesign.Color.textMuted)
+                }
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, HomeDesign.Spacing.lg)
+        .padding(.vertical, HomeDesign.Spacing.md)
     }
 
     @ViewBuilder
-    private var preview: some View {
+    private var thumbnail: some View {
         switch mochiItem.viewKind {
         case .screenshot:
             LocalThumbnail(
                 relativePath: mochiItem.source.imageRefs.first?.relativePath,
-                targetSize: CGSize(width: Self.cardWidth, height: Self.cardWidth * 2),
-                alignment: .top
+                targetSize: CGSize(width: 44, height: 44)
             ) {
                 Rectangle().fill(HomeDesign.Color.purple100)
             }
@@ -385,15 +383,45 @@ private struct AnalyzingCardCell: View {
             ZStack {
                 Rectangle().fill(HomeDesign.Color.butter50)
                 Image(systemName: "doc.text")
-                    .font(.system(size: 32, weight: .light))
+                    .font(.system(size: 16, weight: .medium))
                     .foregroundStyle(HomeDesign.Color.butter400.opacity(0.8))
             }
         case .url:
             ZStack {
                 Rectangle().fill(HomeDesign.Color.purple50)
                 Image(systemName: "link")
-                    .font(.system(size: 30, weight: .semibold))
+                    .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(HomeDesign.Color.purple600.opacity(0.75))
+            }
+        }
+    }
+}
+
+/// 보라 하이라이트가 좌→우로 흐르는 indeterminate 진행 바 — "모찌가 일하는 중" 신호.
+private struct AnalyzingProgressBar: View {
+    @State private var phase: CGFloat = -0.4
+
+    var body: some View {
+        GeometryReader { proxy in
+            ZStack(alignment: .leading) {
+                Capsule().fill(HomeDesign.Color.ink100.opacity(0.6))
+                Capsule()
+                    .fill(
+                        LinearGradient(
+                            colors: [HomeDesign.Color.purple400, HomeDesign.Color.purple200],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .frame(width: proxy.size.width * 0.38)
+                    .offset(x: proxy.size.width * phase)
+            }
+            .clipShape(Capsule())
+        }
+        .frame(height: 4)
+        .onAppear {
+            withAnimation(.easeInOut(duration: 1.1).repeatForever(autoreverses: false)) {
+                phase = 1.0
             }
         }
     }
