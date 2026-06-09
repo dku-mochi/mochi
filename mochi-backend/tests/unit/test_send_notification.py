@@ -1,4 +1,4 @@
-"""SendAnalysisNotification 단위 테스트 — alert 분기, LA content-state, 4KB 가드, apns no-op."""
+"""SendAnalysisNotification 단위 테스트 — alert 분기, LA push-to-start, 4KB 가드, apns no-op."""
 
 import json
 from uuid import UUID, uuid4
@@ -22,34 +22,32 @@ class _FakeAPNs:
         self.sent: list[dict] = []
 
     async def send(self, *, token, environment, push_type, topic, payload, collapse_id=None):
-        self.sent.append(
-            {"token": token, "push_type": push_type, "topic": topic, "payload": payload}
-        )
+        self.sent.append({"token": token, "push_type": push_type, "topic": topic, "payload": payload})
 
 
 class _FakeRepo:
-    def __init__(self, *, device=(), live_activity=()) -> None:
+    def __init__(self, *, device=(), la_start=()) -> None:
         self._device = list(device)
-        self._la = list(live_activity)
+        self._la_start = list(la_start)
 
     async def upsert(self, token):  # pragma: no cover - 미사용
         ...
 
     async def list_for_owner(self, *, owner_id, token_type):
-        return self._device if token_type == PushTokenType.APNS_DEVICE else []
-
-    async def list_live_activity_for_item(self, *, owner_id, mochi_item_id):
-        return self._la
+        if token_type == PushTokenType.APNS_DEVICE:
+            return self._device
+        if token_type == PushTokenType.LA_START:
+            return self._la_start
+        return []
 
 
 def _device_token(owner: UUID) -> DevicePushToken:
     return DevicePushToken(owner, "device-tok", PushTokenType.APNS_DEVICE, APNsEnvironment.SANDBOX)
 
 
-def _la_token(owner: UUID, item: UUID) -> DevicePushToken:
-    return DevicePushToken(
-        owner, "la-tok", PushTokenType.LIVE_ACTIVITY, APNsEnvironment.SANDBOX, mochi_item_id=item
-    )
+def _la_start_token(owner: UUID) -> DevicePushToken:
+    # push-to-start 토큰은 owner 단위(item 무관) — mochi_item_id 없음.
+    return DevicePushToken(owner, "la-start-tok", PushTokenType.LA_START, APNsEnvironment.SANDBOX)
 
 
 async def test_complete_alert_when_not_needs_review():
@@ -81,10 +79,25 @@ async def test_review_alert_when_needs_review():
     assert apns.sent[0]["payload"]["aps"]["alert"]["title"] == "어떤 의도로 남겼나요?"
 
 
-async def test_live_activity_push_carries_ready_phase_and_candidates():
+async def test_no_la_start_when_not_needs_review():
+    # 완료(needs_review=false)는 alert 만 — LA push-to-start 는 보내지 않는다(팀 결정 2026-06-09).
     owner, item = uuid4(), uuid4()
     apns = _FakeAPNs()
-    repo = _FakeRepo(live_activity=[_la_token(owner, item)])
+    repo = _FakeRepo(device=[_device_token(owner)], la_start=[_la_start_token(owner)])
+    await SendAnalysisNotification(tokens=repo, apns=apns).run(
+        owner_id=owner,
+        mochi_item_id=item,
+        notification=AnalysisNotification(needs_review=False, summary="저장됨", review_options=()),
+    )
+    assert all(s["push_type"] != APNsPushType.LIVEACTIVITY for s in apns.sent)
+    assert len([s for s in apns.sent if s["push_type"] == APNsPushType.ALERT]) == 1
+
+
+async def test_la_start_push_carries_attributes_and_content_state():
+    # needs_review=true 면 owner 의 push-to-start 토큰으로 LA 를 시작(event=start)한다.
+    owner, item = uuid4(), uuid4()
+    apns = _FakeAPNs()
+    repo = _FakeRepo(la_start=[_la_start_token(owner)])
     options = (
         ReviewOption(intent_type=Intent.TODO, label="구매 고민", reasoning="살까 말까"),
         ReviewOption(intent_type=Intent.MEMO, label="그냥 메모", reasoning="기록"),
@@ -97,19 +110,25 @@ async def test_live_activity_push_carries_ready_phase_and_candidates():
     la = [s for s in apns.sent if s["push_type"] == APNsPushType.LIVEACTIVITY]
     assert len(la) == 1
     assert la[0]["topic"].endswith(".push-type.liveactivity")
-    cs = la[0]["payload"]["aps"]["content-state"]
+    aps = la[0]["payload"]["aps"]
+    # start push: attributes(불변 초기값) + content-state 를 함께 싣는다.
+    assert aps["event"] == "start"
+    assert aps["attributes-type"] == "MochiLiveActivityAttributes"
+    assert aps["attributes"]["mochiItemID"] == str(item)
+    assert aps["attributes"]["thumbnailRelativePath"] is None  # 백엔드는 로컬경로를 모름 → placeholder
+    cs = aps["content-state"]
     assert cs["phase"] == "ready"
     assert cs["needsReview"] is True
     assert len(cs["candidates"]) == 2
     assert cs["candidates"][0]["intentType"] == Intent.TODO.value
 
 
-async def test_live_activity_candidate_label_is_never_null():
-    # ReviewOption.label 은 str|None 이지만 LA push 의 candidate label 은 non-null 이어야 한다 —
-    # iOS Candidate.label 이 비옵셔널이라 null 이면 content-state decode 가 throw(background LA 무음 드롭).
+async def test_la_start_candidate_label_is_never_null():
+    # ReviewOption.label 은 str|None 이지만 candidate label 은 non-null 이어야 한다 —
+    # iOS Candidate.label 이 비옵셔널이라 null 이면 content-state decode 가 throw(start 무음 드롭).
     owner, item = uuid4(), uuid4()
     apns = _FakeAPNs()
-    repo = _FakeRepo(live_activity=[_la_token(owner, item)])
+    repo = _FakeRepo(la_start=[_la_start_token(owner)])
     options = (ReviewOption(intent_type=Intent.SCHEDULE, label=None, reasoning=""),)
     await SendAnalysisNotification(tokens=repo, apns=apns).run(
         owner_id=owner,
@@ -121,10 +140,10 @@ async def test_live_activity_candidate_label_is_never_null():
     assert cs["candidates"][0]["label"] is not None
 
 
-async def test_live_activity_payload_within_4kb():
+async def test_la_start_payload_within_4kb():
     owner, item = uuid4(), uuid4()
     apns = _FakeAPNs()
-    repo = _FakeRepo(live_activity=[_la_token(owner, item)])
+    repo = _FakeRepo(la_start=[_la_start_token(owner)])
     huge = tuple(
         ReviewOption(intent_type=Intent.TODO, label="x" * 80, reasoning="아주 긴 이유 " * 200)
         for _ in range(10)

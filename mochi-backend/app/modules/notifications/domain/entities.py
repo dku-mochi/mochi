@@ -12,11 +12,13 @@ class PushTokenType(StrEnum):
     """등록되는 푸시 토큰의 종류.
 
     - ``apns_device``: 단말 remote notification 토큰 (owner 1:N 단말). 분석완료 alert 대상.
-    - ``live_activity``: ActivityKit Live Activity push 토큰 (mochi_item 1:1). .ready 전환 대상.
+    - ``la_start``: Live Activity push-to-start 토큰 (owner 1:N 단말, item 무관). needs_review=true
+      분석완료 시 백엔드가 이 토큰으로 LA 를 background(잠금)에서 시작한다(start push). iOS 17.2+.
+      진행중/완료 LA 는 띄우지 않는다(팀 결정 2026-06-09) — 구 per-item ``live_activity`` 토큰 폐기.
     """
 
     APNS_DEVICE = "apns_device"
-    LIVE_ACTIVITY = "live_activity"
+    LA_START = "la_start"
 
 
 class APNsEnvironment(StrEnum):

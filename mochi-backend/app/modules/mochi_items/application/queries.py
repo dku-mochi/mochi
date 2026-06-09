@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.mochi_items.domain.entities import MochiItem
 from app.modules.mochi_items.domain.ports import MochiItemRepository
+from app.modules.mochi_items.domain.value_objects import InstanceLifecycleKind, IntentInstance
 from app.modules.mochi_items.infrastructure.repository import PostgresMochiItemRepository
 from app.shared.intent import Intent
 
@@ -80,9 +81,7 @@ def _kst_month_bounds_utc(year: int, month: int) -> tuple[datetime, datetime]:
     """KST 기준 (해당 월 1일 00:00, 다음 달 1일 00:00) 을 UTC aware 로 반환."""
     start_kst = datetime(year, month, 1, tzinfo=KST)
     end_kst = (
-        datetime(year + 1, 1, 1, tzinfo=KST)
-        if month == 12
-        else datetime(year, month + 1, 1, tzinfo=KST)
+        datetime(year + 1, 1, 1, tzinfo=KST) if month == 12 else datetime(year, month + 1, 1, tzinfo=KST)
     )
     return start_kst.astimezone(UTC), end_kst.astimezone(UTC)
 
@@ -221,3 +220,85 @@ class ListUpcomingTodos:
             todos.append(UpcomingTodo(item=item, due_at=due_at, due_label=due_label))
         todos.sort(key=_todo_sort_key)
         return todos[:limit]
+
+
+@dataclass(slots=True, frozen=True)
+class UpcomingActionable:
+    """ "이번주 정리"의 "아직 안 끝났어요" 1건 — 미해결 todo 또는 다가올 schedule.
+
+    ``is_schedule`` 이 false(=todo)면 클라가 카드에서 1-tap 완료한다(``instance_id`` 가 전이 대상).
+    schedule 은 완료 개념이 어색해 표시·상세 진입만 한다. ``due_at`` 없으면 일시 미상(목록 뒤로).
+    """
+
+    item: MochiItem
+    due_at: datetime | None
+    due_label: str | None
+    is_schedule: bool
+    instance_id: UUID
+
+
+def _pick_active_actionable(item: MochiItem) -> tuple[IntentInstance | None, bool]:
+    """item 의 active actionable instance 1개 — todo 우선(완료 대상), 없으면 schedule.
+
+    한 캡처에 todo·schedule 이 함께면 닫을 수 있는 todo 를 대표로 삼는다(1-tap 완료 우선).
+    """
+    active_todo = next(
+        (
+            i
+            for i in item.intent_instances
+            if i.intent_type == Intent.TODO and i.lifecycle.kind == InstanceLifecycleKind.ACTIVE
+        ),
+        None,
+    )
+    if active_todo is not None:
+        return active_todo, False
+    active_schedule = next(
+        (
+            i
+            for i in item.intent_instances
+            if i.intent_type == Intent.SCHEDULE and i.lifecycle.kind == InstanceLifecycleKind.ACTIVE
+        ),
+        None,
+    )
+    return (active_schedule, True) if active_schedule is not None else (None, False)
+
+
+def _actionable_sort_key(actionable: UpcomingActionable) -> tuple[int, datetime]:
+    if actionable.due_at is not None:
+        return (0, actionable.due_at)
+    return (1, datetime.max.replace(tzinfo=UTC))
+
+
+@dataclass(slots=True)
+class ListUpcomingActionables:
+    """미해결 todo + 다가올 schedule 을 임박순으로 — "이번주 정리"의 "아직 안 끝났어요".
+
+    일시는 instance payload(deadline/date) → entities(kind='deadline') 순으로 첫 값을
+    ``_parse_deadline`` 으로 파싱한다. 자유텍스트라 파싱 실패 시 ``due_at`` null(목록 뒤로) —
+    todo 마감과 동일한 graceful 처리.
+    """
+
+    repository: MochiItemRepository
+
+    async def execute(self, *, owner_id: UUID, limit: int) -> list[UpcomingActionable]:
+        pairs = await self.repository.list_active_actionables_with_entities(
+            owner_id=owner_id, limit=_TODO_SCAN_LIMIT
+        )
+        actionables: list[UpcomingActionable] = []
+        for item, entities in pairs:
+            inst, is_schedule = _pick_active_actionable(item)
+            if inst is None:
+                continue
+            due_label = inst.payload.deadline or inst.payload.date or _deadline_value(entities)
+            due_at = _parse_deadline(due_label) if due_label else None
+            actionables.append(
+                UpcomingActionable(
+                    item=item,
+                    due_at=due_at,
+                    due_label=due_label,
+                    is_schedule=is_schedule,
+                    instance_id=inst.id,
+                )
+            )
+        actionables.sort(key=_actionable_sort_key)
+        return actionables[:limit]

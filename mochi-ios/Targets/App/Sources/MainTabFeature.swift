@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import DesignSystem
 import FeatureMochiItem
 import FeatureDetail
 import FeatureInbox
@@ -29,6 +30,13 @@ struct MainTabFeature: Sendable {
         /// 설정을 sheet 가 아닌 push 로 둬, 설정 위에 온보딩 fullScreenCover 를 띄울 때 "single sheet" 충돌을 피한다.
         var path = StackState<Path.State>()
         @Presents var mochiItem: MochiItemFeature.State?
+
+        /// 기록 카드 → 상세: UIKit 커스텀 zoom present (path push 가 아님).
+        /// push 에는 UIKit 전환을 입힐 수 없어, 상세만 별도 custom presentation 으로 띄워
+        /// 카드 frame 에서 확대되는 전환을 직접 제어한다. 설정은 그대로 path 에 push.
+        @Presents var detail: DetailFeature.State?
+        /// 카드 탭 시 캡처한 hero frame 묶음(카드·이미지·제목). nil 이면 중앙 scale 폴백(예: 캘린더 진입).
+        var detailHero: HeroSourceFrames?
     }
 
     enum Tab: String, CaseIterable, Sendable {
@@ -52,6 +60,7 @@ struct MainTabFeature: Sendable {
         case search(SearchFeature.Action)
         case path(StackActionOf<Path>)
         case mochiItem(PresentationAction<MochiItemFeature.Action>)
+        case detail(PresentationAction<DetailFeature.Action>)
         case debugInboxChanged(Bool)
         case delegate(Delegate)
 
@@ -73,12 +82,32 @@ struct MainTabFeature: Sendable {
                 state.selectedTab = tab
                 return .none
 
-            case let .home(.mochiItemTapped(mochiItemID)):
-                state.path.append(.detail(DetailFeature.State(mochiItemID: mochiItemID)))
+            case let .home(.mochiItemTapped(mochiItemID, hero)):
+                // 이미 상세가 떠 있으면(또는 present 애니메이션 진행 중) 재진입 무시 —
+                // presenter 가 중복 present 를 막으므로 state 만 바꾸면 state↔화면이 어긋난다.
+                guard state.detail == nil else { return .none }
+                // 탭한 카드의 hero frame 을 기억해 거기서 날아오는 hero 전환.
+                state.detailHero = hero
+                // 이미지 비행이 있으면 상세 hero 이미지를 숨긴 채 시작 — 비행 스냅샷과 이중 노출 방지.
+                state.detail = DetailFeature.State(
+                    mochiItemID: mochiItemID,
+                    heroImageHidden: hero.cardImage != nil
+                )
                 return .none
 
             case .home(.openSettingsTapped):
                 state.path.append(.settings(SettingsFeature.State()))
+                return .none
+
+            case .home(.delegate(.weeklyDigestRequested)):
+                state.path.append(.weeklyDigest(WeeklyDigestFeature.State()))
+                return .none
+
+            case let .path(.element(id: _, action: .weeklyDigest(.delegate(.mochiItemTapped(mochiItemID, hero))))):
+                // 정리 화면의 항목 탭 → 상세 present (캘린더처럼 hero 없으면 중앙 scale 폴백).
+                guard state.detail == nil else { return .none }
+                state.detailHero = hero
+                state.detail = DetailFeature.State(mochiItemID: mochiItemID)
                 return .none
 
             case .inbox(.mochiItemTapped):
@@ -86,10 +115,13 @@ struct MainTabFeature: Sendable {
                 return .none
 
             case let .mochiCalendar(.mochiItemTapped(mochiItemID)):
-                // 그날 목록 sheet(DaySheet)를 닫고 상세를 push (중첩 sheet 제거).
+                guard state.detail == nil else { return .none }
+                // 그날 목록 sheet(DaySheet)를 닫고 상세를 present (중첩 sheet 제거).
+                // 캘린더 카드는 source frame 매칭 없이 중앙 scale 폴백으로 띄운다.
                 state.mochiCalendar.selectedDay = nil
                 state.mochiCalendar.selectedDayItems = []
-                state.path.append(.detail(DetailFeature.State(mochiItemID: mochiItemID)))
+                state.detailHero = nil
+                state.detail = DetailFeature.State(mochiItemID: mochiItemID)
                 return .none
 
             case let .debugInboxChanged(isOn):
@@ -105,28 +137,30 @@ struct MainTabFeature: Sendable {
                  .path(.element(id: _, action: .settings(.delegate(.onboardingRequested)))):
                 return .send(.delegate(.onboardingRequested))
 
-            case let .path(.element(id: id, action: .detail(.delegate(.deleted)))):
-                // 상세에서 삭제 완료 → 해당 상세 화면을 스택에서 pop.
-                state.path.pop(from: id)
+            case .detail(.presented(.delegate(.deleted))),
+                 .detail(.presented(.delegate(.closeRequested))):
+                // 상세에서 삭제 완료 / 닫기 → custom present 를 닫는다 (state nil → presenter dismiss).
+                state.detail = nil
                 return .none
 
-            case .home, .inbox, .mochiCalendar, .search, .path, .mochiItem, .delegate:
+            case .home, .inbox, .mochiCalendar, .search, .path, .mochiItem, .detail, .delegate:
                 return .none
             }
         }
         .forEach(\.path, action: \.path)
         .ifLet(\.$mochiItem, action: \.mochiItem) { MochiItemFeature() }
+        .ifLet(\.$detail, action: \.detail) { DetailFeature() }
     }
 }
 
 extension MainTabFeature {
-    /// 상세·설정을 한 스택에 담는 네비게이션 destination.
-    /// 설정을 sheet 가 아닌 push 로 둬, 설정 위에 온보딩 fullScreenCover 를 띄울 때
-    /// "single sheet" 충돌을 피한다.
+    /// 설정 네비게이션 destination. 설정을 sheet 가 아닌 push 로 둬, 설정 위에 온보딩
+    /// fullScreenCover 를 띄울 때 "single sheet" 충돌을 피한다.
+    /// (상세는 path 가 아니라 `@Presents var detail` 로 별도 custom present.)
     @Reducer
     enum Path {
-        case detail(DetailFeature)
         case settings(SettingsFeature)
+        case weeklyDigest(WeeklyDigestFeature)
     }
 }
 

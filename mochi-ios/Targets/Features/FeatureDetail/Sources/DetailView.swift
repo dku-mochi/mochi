@@ -42,6 +42,14 @@ public struct DetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .background(PresentationAnchor(viewController: $presentationAnchor).frame(width: 0, height: 0))
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                // custom present 라 back 이 없다 — 닫기(X)로 dismiss. 아래로 드래그해도 닫힌다.
+                Button { store.send(.closeButtonTapped) } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(HomeDesign.Color.textPrimary)
+                }
+            }
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
                     Button("삭제", role: .destructive) { store.send(.deleteButtonTapped) }
@@ -116,11 +124,13 @@ private struct RecallHeader: View {
             if let path = mochiItem.source.imageRefs.first?.relativePath {
                 ScreenshotPreviewImage(
                     relativePath: path,
-                    targetSize: CGSize(width: 320, height: 320),
+                    targetSize: CGSize(width: 320, height: 240),
                     contentMode: .scaleAspectFill,
                     handle: previewHandle
                 )
-                .aspectRatio(1, contentMode: .fit)
+                // 카드 미디어와 같은 4:3·중앙 크롭으로 통일 — hero cross-fade 시 같은 이미지가
+                // 다른 비율로 튀지 않게 한다(카드: 178×134). 전체 보기는 탭 시 JXPhotoBrowser.
+                .aspectRatio(4.0 / 3.0, contentMode: .fit)
                 .frame(maxWidth: .infinity)
                 .background(Rectangle().fill(HomeDesign.Color.purple50))
                 // 하단 페이드 — 이미지가 카드 본문(surface)으로 부드럽게 녹아들게 한다. 밝은 배경
@@ -142,7 +152,9 @@ private struct RecallHeader: View {
                         .allowsHitTesting(false)
                 }
                 // 탭 → JXPhotoBrowser 확대. 배지·페이드는 hit-test 제외라 이미지 전체가 탭된다.
-                .opacity(sourceImageHidden ? 0 : 1)
+                // hero 전환 중에는 비행 스냅샷과 겹치지 않도록 숨긴다(App 이 비행 끝에 켬).
+                .opacity((sourceImageHidden || store.heroImageHidden) ? 0 : 1)
+                .animation(.easeInOut(duration: 0.22), value: store.heroImageHidden)
                 .contentShape(Rectangle())
                 .onTapGesture { onTapImage(previewHandle.image, previewHandle.imageView) }
             }

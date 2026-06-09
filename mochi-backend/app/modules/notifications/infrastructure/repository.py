@@ -52,23 +52,10 @@ class PostgresPushTokenRepository(PushTokenRepositoryPort):
         await self._session.execute(stmt)
         await self._session.flush()
 
-    async def list_for_owner(
-        self, *, owner_id: UUID, token_type: PushTokenType
-    ) -> list[DevicePushToken]:
+    async def list_for_owner(self, *, owner_id: UUID, token_type: PushTokenType) -> list[DevicePushToken]:
         stmt = select(DevicePushTokenRow).where(
             DevicePushTokenRow.owner_id == owner_id,
             DevicePushTokenRow.token_type == token_type.value,
-        )
-        rows = (await self._session.scalars(stmt)).all()
-        return [_to_entity(r) for r in rows]
-
-    async def list_live_activity_for_item(
-        self, *, owner_id: UUID, mochi_item_id: UUID
-    ) -> list[DevicePushToken]:
-        stmt = select(DevicePushTokenRow).where(
-            DevicePushTokenRow.owner_id == owner_id,
-            DevicePushTokenRow.token_type == PushTokenType.LIVE_ACTIVITY.value,
-            DevicePushTokenRow.mochi_item_id == mochi_item_id,
         )
         rows = (await self._session.scalars(stmt)).all()
         return [_to_entity(r) for r in rows]

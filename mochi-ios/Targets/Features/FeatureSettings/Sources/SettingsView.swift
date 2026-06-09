@@ -15,6 +15,24 @@ public struct SettingsView: View {
                 Toggle("캘린더 동기화", isOn: $store.calendarSyncEnabled)
                 Toggle("미리알림 동기화", isOn: $store.reminderSyncEnabled)
             }
+            Section {
+                Button {
+                    store.send(.syncAllTapped)
+                } label: {
+                    if store.isSyncing {
+                        HStack(spacing: 8) {
+                            ProgressView()
+                            Text("동기화 중…")
+                        }
+                    } else {
+                        Label("전체 동기화", systemImage: "arrow.triangle.2.circlepath")
+                    }
+                }
+                .disabled(store.isSyncing)
+            } footer: {
+                Text("다른 기기에 저장했거나 앱을 다시 설치한 경우, 서버에 보관된 기록을 이 기기로 불러옵니다.")
+            }
+
             Section("도움말") {
                 Button {
                     store.send(.onboardingButtonTapped)

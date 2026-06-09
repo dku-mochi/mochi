@@ -101,8 +101,6 @@ struct MainTabView: View {
             .tint(MochiTheme.Palette.primary)
         } destination: { pathStore in
             switch pathStore.case {
-            case let .detail(detailStore):
-                DetailView(store: detailStore)
             case let .settings(settingsStore):
                 // 설정은 push — back 버튼이 닫기를 대체한다. 받은 기록(디버그)은 설정 화면 위 sheet 로 띄운다.
                 SettingsView(store: settingsStore)
@@ -126,12 +124,21 @@ struct MainTabView: View {
                                 }
                         }
                     }
+
+            case let .weeklyDigest(digestStore):
+                // 이번주 정리 — 설정과 동일하게 push. 항목 탭은 delegate 로 상세 present.
+                WeeklyDigestView(store: digestStore)
             }
         }
-        // push 화면(설정·상세)의 바 버튼·back tint = 모찌 퍼플.
+        // push 화면(설정)의 바 버튼·back tint = 모찌 퍼플.
         // TabView 의 .tint 는 TabView 하위(탭바)에만 닿아 destination 까지 상속되지 않으므로
         // NavigationStack 전체에 한 번 더 걸어 push 화면의 toolbar/back 색을 브랜드 색으로 맞춘다.
         .tint(MochiTheme.Palette.primary)
+        // 기록 카드 → 상세: UIKit 커스텀 hero present (path push 아님). 풀스크린이라 탭바를 덮는다.
+        .zoomDetailPresentation(
+            store: $store.scope(state: \.detail, action: \.detail),
+            hero: store.detailHero
+        )
     }
 
     // MARK: - Tab bar appearance

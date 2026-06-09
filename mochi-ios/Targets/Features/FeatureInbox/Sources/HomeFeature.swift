@@ -4,6 +4,7 @@ import ComposableArchitecture
 import CoreDomain
 import CorePersistence
 import CoreNetworking
+import DesignSystem
 
 /// 홈 화면 reducer.
 ///
@@ -38,6 +39,8 @@ public struct HomeFeature: Sendable {
         public var isLoading: Bool = false
         public var isSaving: Bool = false
         public var lastError: String?
+        /// 카드 롱프레스 → 삭제 확인 alert. confirm 시 서버 soft delete + 로컬 hard delete.
+        @Presents public var deleteAlert: AlertState<Action.Alert>?
 
         public init() {}
     }
@@ -66,13 +69,22 @@ public struct HomeFeature: Sendable {
         case retryAnalysisTapped(MochiItem.ID)
         case reanalyzeTapped(mochiItemID: MochiItem.ID, hint: String)
         case toggleProcessing
-        case mochiItemTapped(MochiItem.ID)
+        // 탭 → 상세. hero 는 카드의 이미지·제목·카드 글로벌 frame (App 레이어 hero 전환 시작점).
+        case mochiItemTapped(MochiItem.ID, hero: HeroSourceFrames)
+        // 카드 롱프레스 메뉴의 삭제 → 확인 alert → soft delete.
+        case deleteMochiItemTapped(MochiItem.ID)
+        case deleteAlert(PresentationAction<Alert>)
         case openSettingsTapped
         case replayOnboardingTapped
+        case weeklyDigestTapped
         case delegate(Delegate)
 
+        public enum Alert: Equatable, Sendable {
+            case confirmDelete(MochiItem.ID)
+        }
         public enum Delegate: Equatable, Sendable {
             case onboardingRequested
+            case weeklyDigestRequested
         }
     }
 
@@ -99,6 +111,12 @@ public struct HomeFeature: Sendable {
                 // 최초 load + 저장소 변경 관찰(서버 응답·외부 캡처 도착 시 즉시 재로드).
                 return .merge(
                     .run { send in await loadAll(send: send) },
+                    // 로컬이 비어있으면(재설치 직후 등) 서버에서 복구 — pull 결과는 observeChanges 가 자동 재로드.
+                    .run { _ in
+                        if (try? await repository.listRecent(limit: 1))?.isEmpty ?? true {
+                            await syncTrigger.pullRemote()
+                        }
+                    },
                     .run { send in
                         for await _ in repository.observeChanges() {
                             await loadAll(send: send)
@@ -270,13 +288,46 @@ public struct HomeFeature: Sendable {
                 // 상위 Feature 가 처리 (탭 이동·모달·navigation).
                 return .none
 
+            case let .deleteMochiItemTapped(id):
+                state.deleteAlert = AlertState {
+                    TextState("기록을 삭제할까요?")
+                } actions: {
+                    ButtonState(role: .destructive, action: .confirmDelete(id)) { TextState("삭제") }
+                    ButtonState(role: .cancel) { TextState("취소") }
+                } message: {
+                    TextState("삭제한 기록은 되돌릴 수 없어요.")
+                }
+                return .none
+
+            case let .deleteAlert(.presented(.confirmDelete(id))):
+                // 업로드된(서버에 존재하는) 항목만 서버 soft delete. 미업로드면 로컬만 지운다.
+                // observeChanges() 가 리스트를 자동 갱신하므로 state 직접 조작은 불필요.
+                return .run { send in
+                    do {
+                        if let item = try await repository.find(id: id),
+                           case let .uploaded(serverID, _) = item.syncState {
+                            try await apiClient.deleteMochiItem(mochiServerID: serverID)
+                        }
+                        try await repository.delete(id: id)
+                    } catch {
+                        await send(.loadFailed(String(describing: error)))
+                    }
+                }
+
+            case .deleteAlert:
+                return .none
+
             case .replayOnboardingTapped:
                 return .send(.delegate(.onboardingRequested))
+
+            case .weeklyDigestTapped:
+                return .send(.delegate(.weeklyDigestRequested))
 
             case .delegate:
                 return .none
             }
         }
+        .ifLet(\.$deleteAlert, action: \.deleteAlert)
     }
 
     // MARK: - Helpers

@@ -47,7 +47,7 @@ public struct HomeView: View {
                     needsReviewPrompt
                     recentSection
                     processingSection
-                    settingsFooter
+                    //                    settingsFooter
                 }
                 .padding(.horizontal, HomeDesign.Spacing.xl)
                 .padding(.top, HomeDesign.Spacing.md)
@@ -83,6 +83,7 @@ public struct HomeView: View {
         // 시스템 placeholder/텍스트색이 어긋나 안 보인다 → 홈은 light 로 고정한다.
         .preferredColorScheme(.light)
         .task { store.send(.onAppear) }
+        .alert($store.scope(state: \.deleteAlert, action: \.deleteAlert))
         .sheet(isPresented: $store.isComposingMemo) { memoComposeSheet }
         .sheet(isPresented: $store.isNeedsReviewModalPresented) { needsReviewSheet }
         .sheet(item: $pendingImage) { pending in imageMemoSheet(pending) }
@@ -367,17 +368,22 @@ public struct HomeView: View {
     
     private var chatRecallSection: some View {
         VStack(alignment: .leading, spacing: HomeDesign.Spacing.lg) {
-            VStack(alignment: .leading, spacing: HomeDesign.Spacing.xs) {
-                Text("어떤 기억을 찾아드릴까요?")
-                    .font(.system(size: 18, weight: .heavy, design: .rounded))
-                    .foregroundStyle(HomeDesign.Color.textPrimary)
-                Text("모찌에게 물어보면 빠르게 찾아드려요.")
-                    .font(.system(size: 14, weight: .medium, design: .rounded))
-                    .foregroundStyle(HomeDesign.Color.textMuted)
-            }
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: HomeDesign.Spacing.xs) {
+                    Text("어떤 기억을 찾아드릴까요?")
+                        .font(.system(size: 18, weight: .heavy, design: .rounded))
+                        .foregroundStyle(HomeDesign.Color.textPrimary)
+                    Text("모찌에게 물어보면 빠르게 찾아드려요.")
+                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .foregroundStyle(HomeDesign.Color.textMuted)
+                }
+                Spacer()
+                settingsFooter
+            }.frame(maxWidth: .infinity, alignment: .leading)
+            
             
             HStack(spacing: HomeDesign.Spacing.md) {
-                Image(systemName: "magnifyingglass")
+                Image(systemName: "text.bubble")
                     .font(.system(size: 18, weight: .medium))
                     .foregroundStyle(HomeDesign.Color.textMuted)
                     .frame(width: 20)
@@ -460,80 +466,72 @@ public struct HomeView: View {
     // MARK: - 이번주 기억 리플레이
     
     private var weeklyReplayCard: some View {
-        ZStack(alignment: .trailing) {
-            RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [Color.white, HomeDesign.Color.purple50, HomeDesign.Color.sky100.opacity(0.42)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
+        VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
+            Text("이번주에 \(store.weeklyRecordCount)개의 기억을 저장했어요")
+                .font(.system(size: 15, weight: .bold, design: .rounded))
+                .foregroundStyle(HomeDesign.Color.textPrimary)
+                .lineSpacing(3)
+            ZStack(alignment: .trailing) {
+                RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.white, HomeDesign.Color.purple50, HomeDesign.Color.sky100.opacity(0.42)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
                     )
-                )
-            replayParticles
-            
-            
-            VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
+                replayParticles
+                
+                
                 VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
-//                    HStack(spacing: HomeDesign.Spacing.sm) {
-//                        Image(systemName: "sparkles")
-//                            .font(.system(size: 16, weight: .bold))
-//                            .foregroundStyle(HomeDesign.Color.purple500)
-//                        Text("이번주 기억 리플레이")
-//                            .font(.system(size: 16, weight: .heavy, design: .rounded))
-//                            .foregroundStyle(HomeDesign.Color.textPrimary)
-//                        Spacer(minLength: 0)
-//                    }
                     VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
-                        Text("이번주에 \(store.weeklyRecordCount)개의 기억을 저장했어요")
-                            .font(.system(size: 15, weight: .bold, design: .rounded))
-                            .foregroundStyle(HomeDesign.Color.textPrimary)
-                            .lineSpacing(3)
                         replayCategoryList
-                    }.zIndex(1)
-                    
-                    
-                    HStack {
-                        Spacer()
-                        Button {
-                            // 주간 정리 화면은 아직 없다. 홈 카드 affordance 만 먼저 둔다.
-                        } label: {
-                            HStack(spacing: HomeDesign.Spacing.sm) {
-                                Text("이번주 정리 보기")
-                                    .font(.system(size: 11, weight: .heavy, design: .rounded))
-                                Image(systemName: "chevron.right")
-                                    .font(.system(size: 9, weight: .bold))
+                        
+                        
+                        HStack {
+                            Spacer()
+                            Button {
+                                store.send(.weeklyDigestTapped)
+                            } label: {
+                                HStack(spacing: HomeDesign.Spacing.sm) {
+                                    Text("이번주 정리 보기")
+                                        .font(.system(size: 11, weight: .heavy, design: .rounded))
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 9, weight: .bold))
+                                }
+                                .foregroundStyle(HomeDesign.Color.purple600)
+                                .padding(.horizontal, HomeDesign.Spacing.md)
+                                .padding(.vertical, HomeDesign.Spacing.md)
+                                .background(
+                                    Capsule(style: .continuous)
+                                        .fill(HomeDesign.Color.surface.opacity(0.92))
+                                )
+                                .overlay(
+                                    Capsule(style: .continuous)
+                                        .stroke(HomeDesign.Color.purple200, lineWidth: 1.3)
+                                )
                             }
-                            .foregroundStyle(HomeDesign.Color.purple600)
-                            .padding(.horizontal, HomeDesign.Spacing.md)
-                            .padding(.vertical, HomeDesign.Spacing.md)
-                            .background(
-                                Capsule(style: .continuous)
-                                    .fill(HomeDesign.Color.surface.opacity(0.92))
-                            )
-                            .overlay(
-                                Capsule(style: .continuous)
-                                    .stroke(HomeDesign.Color.purple200, lineWidth: 1.3)
-                            )
+                            .buttonStyle(PressableStyle())
                         }
-                        .buttonStyle(PressableStyle())
+                        
                     }
-                    
                 }
+                .padding(HomeDesign.Spacing.xl)
+                .zIndex(1)
+                Image("mochi2")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 200, height: 200)
+                    .shadow(color: HomeDesign.Color.purple500.opacity(0.16), radius: 18, x: 0, y: 10)
             }
-            .padding(HomeDesign.Spacing.xl)
-            .zIndex(1)
-            Image("mochi2")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 200, height: 200)
-                .shadow(color: HomeDesign.Color.purple500.opacity(0.16), radius: 18, x: 0, y: 10)
+            .overlay(
+                RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous)
+                    .stroke(HomeDesign.Color.purple100, lineWidth: 1.2)
+            )
+            .frame(maxWidth: .infinity)
+            .cardShadow()
         }
-        .overlay(
-            RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous)
-                .stroke(HomeDesign.Color.purple100, lineWidth: 1.2)
-        )
-        .frame(maxWidth: .infinity)
-        .cardShadow()
+        
     }
     
     private var replayCategoryList: some View {
@@ -542,29 +540,43 @@ public struct HomeView: View {
             ? [WeeklyCategoryStat(name: "기록", count: store.weeklyRecordCount), WeeklyCategoryStat(name: "기록", count: store.weeklyRecordCount), WeeklyCategoryStat(name: "기록", count: store.weeklyRecordCount)]
             : store.weeklyTopCategories
             ForEach(Array(categories.prefix(3).enumerated()), id: \.element.id) { index, stat in
-                HStack(spacing: HomeDesign.Spacing.md) {
-                    ZStack {
-                        Circle().fill(replayTint(index).soft)
-                        Image(systemName: replayIcon(index))
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundStyle(replayTint(index).strong)
+                GeometryReader { proxy in
+                    HStack(spacing: HomeDesign.Spacing.md) {
+                        ZStack {
+                            Circle().fill(replayTint(index).soft)
+
+                            Image(systemName: replayIcon(index))
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundStyle(replayTint(index).strong)
+                        }
+                        .frame(width: 25, height: 25)
+
+                        Text(stat.name)
+                            .font(.system(size: 13, weight: .bold, design: .rounded))
+                            .foregroundStyle(HomeDesign.Color.textPrimary)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+
+                        Text("\(stat.count)개")
+                            .font(.system(size: 15, weight: .bold, design: .rounded))
+                            .foregroundStyle(HomeDesign.Color.purple600)
+                            .fixedSize(horizontal: true, vertical: false)
                     }
-                    .frame(width: 25, height: 25)
-                    Text(stat.name)
-                        .font(.system(size: 13, weight: .bold , design: .rounded))
-                        .foregroundStyle(HomeDesign.Color.textPrimary)
-                        .lineLimit(1)
-                    Spacer(minLength: 0)
-                    Text("\(stat.count)개")
-                        .font(.system(size: 15, weight: .bold, design: .rounded))
-                        .foregroundStyle(HomeDesign.Color.purple600)
+                    .padding(.horizontal, HomeDesign.Spacing.md)
+                    .padding(.vertical, 9)
+                    .frame(
+                        minWidth: proxy.size.width * 0.7,
+                        maxWidth: proxy.size.width,
+                        alignment: .leading
+                    )
+                    .fixedSize(horizontal: true, vertical: false)
+                    .background(
+                        RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
+                            .fill(Color.white.opacity(0.76))
+                    )
                 }
-                .padding(.horizontal, HomeDesign.Spacing.md)
-                .padding(.vertical, 9)
-                .background(
-                    RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
-                        .fill(Color.white.opacity(0.76))
-                )
+                .frame(height: 43)
             }
         }
     }
@@ -580,7 +592,7 @@ public struct HomeView: View {
                 rotation: -42,
                 opacity: 0.75
             )
-
+            
             // 캐릭터 중앙 위, 연한 작은 조각
             confetti(
                 x: 0.62,
@@ -590,7 +602,7 @@ public struct HomeView: View {
                 rotation: 38,
                 opacity: 0.35
             )
-
+            
             // 캐릭터 오른쪽 위, 포인트 핑크
             confetti(
                 x: 0.71,
@@ -600,7 +612,7 @@ public struct HomeView: View {
                 rotation: 8,
                 opacity: 0.85
             )
-
+            
             // 캐릭터 오른쪽 위 아래쪽, 오렌지
             confetti(
                 x: 0.72,
@@ -610,7 +622,7 @@ public struct HomeView: View {
                 rotation: 43,
                 opacity: 0.9
             )
-
+            
             // 말풍선 위쪽, 연한 보라
             confetti(
                 x: 0.82,
@@ -620,7 +632,7 @@ public struct HomeView: View {
                 rotation: 45,
                 opacity: 0.45
             )
-
+            
             // 카드 오른쪽 위
             confetti(
                 x: 0.92,
@@ -633,7 +645,7 @@ public struct HomeView: View {
         }
         .allowsHitTesting(false)
     }
-
+    
     private func confetti(
         x: CGFloat,
         y: CGFloat,
@@ -700,64 +712,72 @@ public struct HomeView: View {
     
     @ViewBuilder
     private var needsReviewPrompt: some View {
-        if !store.needsReview.isEmpty {
+        if store.needsReview.isEmpty {
             Button {
                 store.send(.reviewSummaryTapped)
             } label: {
-                HStack(spacing: HomeDesign.Spacing.lg) {
-                    ZStack {
-                        Circle().fill(HomeDesign.Color.butter50)
-                        Image(systemName: "lightbulb.fill")
-                            .font(.system(size: 22, weight: .semibold))
-                            .foregroundStyle(HomeDesign.Color.peach400)
-                    }
-                    .frame(width: 52, height: 52)
-                    
-                    VStack(alignment: .leading, spacing: 6) {
-                        HStack(spacing: HomeDesign.Spacing.sm) {
-                            Text("모찌가 확인이 필요해요")
-                                .font(.system(size: 17, weight: .heavy, design: .rounded))
-                                .foregroundStyle(HomeDesign.Color.textPrimary)
-                            Text("\(store.needsReview.count)개")
-                                .font(.system(size: 13, weight: .heavy, design: .rounded))
-                                .foregroundStyle(HomeDesign.Color.peach400)
-                                .padding(.horizontal, 9)
-                                .padding(.vertical, 4)
-                                .background(Capsule().fill(HomeDesign.Color.cream100))
+                VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
+                    Text("모찌가 확인이 필요해요")
+                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                        .foregroundStyle(HomeDesign.Color.textPrimary)
+                    VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
+                        HStack(alignment: .top, spacing: HomeDesign.Spacing.lg) {
+                            ZStack {
+                                Circle().fill(HomeDesign.Color.butter50)
+                                Image(systemName: "lightbulb.fill")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundStyle(HomeDesign.Color.peach400)
+                            }
+                            .frame(width: 24, height: 24)
+
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("\(store.needsReview.count)개")
+                                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                                    .foregroundStyle(HomeDesign.Color.peach400)
+                                    .padding(.horizontal, 9)
+                                    .padding(.vertical, 4)
+                                    .background(Capsule().fill(HomeDesign.Color.cream100))
+                                Text("일정인지 할 일인지 애매한 기억이 있어요.\n10초만에 정리할 수 있어요!")
+                                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                                    .foregroundStyle(HomeDesign.Color.ink700)
+                                    .lineSpacing(3)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            Spacer(minLength: 0)
                         }
-                        Text("일정인지 할 일인지 애매한 기억이 있어요.\n10초만에 정리할 수 있어요!")
-                            .font(.system(size: 13.5, weight: .medium, design: .rounded))
-                            .foregroundStyle(HomeDesign.Color.ink700)
-                            .lineSpacing(3)
+
+                        HStack(spacing: 0) {
+                            Spacer()
+                            HStack(spacing: HomeDesign.Spacing.sm) {
+                                Text("확인하기")
+                                    .font(.system(size: 11, weight: .heavy, design: .rounded))
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 9, weight: .bold))
+                            }
+                            .foregroundStyle(HomeDesign.Color.peach400)
+                            .padding(.horizontal, HomeDesign.Spacing.md)
+                            .padding(.vertical, HomeDesign.Spacing.md)
+                            .background(
+                                Capsule(style: .continuous)
+                                    .fill(HomeDesign.Color.surface.opacity(0.92))
+                            )
+                            .overlay(
+                                Capsule(style: .continuous)
+                                    .stroke(HomeDesign.Color.cream200, lineWidth: 1.3)
+                            )
+                        }
                     }
-                    Spacer(minLength: 0)
-                    HStack(spacing: HomeDesign.Spacing.sm) {
-                        Text("확인하기")
-                            .font(.system(size: 15, weight: .heavy, design: .rounded))
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 14, weight: .bold))
-                    }
-                    .foregroundStyle(HomeDesign.Color.peach400)
-                    .padding(.horizontal, HomeDesign.Spacing.lg)
-                    .padding(.vertical, 12)
+                    .padding(HomeDesign.Spacing.md)
                     .background(
-                        Capsule(style: .continuous)
-                            .fill(Color.white.opacity(0.92))
+                        RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous)
+                            .fill(HomeDesign.Color.cream50)
                     )
                     .overlay(
-                        Capsule(style: .continuous)
-                            .stroke(HomeDesign.Color.cream200, lineWidth: 1.2)
+                        RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous)
+                            .stroke(HomeDesign.Color.cream200, lineWidth: 1)
                     )
+                    .cardShadow()
                 }
-                .padding(HomeDesign.Spacing.xl)
-                .background(
-                    RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous)
-                        .fill(HomeDesign.Color.cream50)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous)
-                        .stroke(HomeDesign.Color.cream200, lineWidth: 1)
-                )
             }
             .buttonStyle(PressableStyle())
         }
@@ -928,11 +948,9 @@ public struct HomeView: View {
     
     private var settingsFooter: some View {
         HStack {
-            Spacer()
             CircleIconButton(systemName: "gearshape") {
                 store.send(.openSettingsTapped)
             }
-            Spacer()
         }
         .padding(.top, HomeDesign.Spacing.sm)
     }
@@ -941,9 +959,11 @@ public struct HomeView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: HomeDesign.Spacing.md) {
                 ForEach(mochiItems) { mochiItem in
-                    RecentMochiCard(mochiItem: mochiItem) {
-                        store.send(.mochiItemTapped(mochiItem.id))
-                    }
+                    RecentMochiCard(
+                        mochiItem: mochiItem,
+                        onTap: { hero in store.send(.mochiItemTapped(mochiItem.id, hero: hero)) },
+                        onDelete: { store.send(.deleteMochiItemTapped(mochiItem.id)) }
+                    )
                 }
             }
             .padding(.horizontal, HomeDesign.Spacing.xl)

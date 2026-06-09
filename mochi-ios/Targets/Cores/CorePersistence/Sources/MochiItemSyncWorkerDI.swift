@@ -8,6 +8,9 @@ import Foundation
 /// Feature 레이어는 `@Dependency(\.syncTrigger)` 로 받아 refresh 흐름에서 사용.
 public protocol SyncTrigger: Sendable {
     func runOnce() async
+    /// 서버→로컬 복구 — 재설치 후 서버의 owner 항목 전체를 로컬 Realm 으로 끌어온다.
+    /// 로그인 직후·홈 빈 상태·설정 "전체 동기화" 버튼이 호출한다.
+    func pullRemote() async
 }
 
 public enum SyncTriggerKey: DependencyKey {
@@ -26,6 +29,7 @@ public extension DependencyValues {
 public struct NotConfiguredSyncTrigger: SyncTrigger {
     public init() {}
     public func runOnce() async {}
+    public func pullRemote() async {}
 }
 
 /// ``MochiItemSyncWorker`` 가 그대로 ``SyncTrigger`` 역할 — actor 이므로 자동 Sendable.

@@ -82,6 +82,17 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `POST /api/v1/mochi_items/presign`.
     /// - Remark: Generated from `#/paths//api/v1/mochi_items/presign/post(presign_capture_upload_api_v1_mochi_items_presign_post)`.
     func presign_capture_upload_api_v1_mochi_items_presign_post(_ input: Operations.presign_capture_upload_api_v1_mochi_items_presign_post.Input) async throws -> Operations.presign_capture_upload_api_v1_mochi_items_presign_post.Output
+    /// Presign Capture Download
+    ///
+    /// 업로드된 캡처 이미지를 직접 GET 할 V4 Signed URL 발급 — 앱 재설치 후 이미지 복구.
+    ///
+    /// 재설치하면 로컬 Realm·이미지 파일이 사라지므로, 같은 Apple 계정으로 재로그인한 클라가
+    /// ``GET /mochi_items`` 로 받은 imageRef 의 ``objectKey`` 로 본 엔드포인트를 호출해 원본을
+    /// 내려받아 로컬에 복원한다. owner-prefix 검증(IDOR 방지)은 업로드 검증과 동일 규약.
+    ///
+    /// - Remark: HTTP `POST /api/v1/mochi_items/images/download-url`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/images/download-url/post(presign_capture_download_api_v1_mochi_items_images_download_url_post)`.
+    func presign_capture_download_api_v1_mochi_items_images_download_url_post(_ input: Operations.presign_capture_download_api_v1_mochi_items_images_download_url_post.Input) async throws -> Operations.presign_capture_download_api_v1_mochi_items_images_download_url_post.Output
     /// Get Monthly Calendar
     ///
     /// 캘린더 탭 — KST 월간 캘린더(날짜별 개수·대표 Intent·대표 썸네일 object_key).
@@ -99,6 +110,27 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `GET /api/v1/mochi_items/todos/upcoming`.
     /// - Remark: Generated from `#/paths//api/v1/mochi_items/todos/upcoming/get(get_upcoming_todos_api_v1_mochi_items_todos_upcoming_get)`.
     func get_upcoming_todos_api_v1_mochi_items_todos_upcoming_get(_ input: Operations.get_upcoming_todos_api_v1_mochi_items_todos_upcoming_get.Input) async throws -> Operations.get_upcoming_todos_api_v1_mochi_items_todos_upcoming_get.Output
+    /// Get Upcoming Actionables
+    ///
+    /// 이번주 정리 "아직 안 끝났어요" — 미해결 todo + 다가올 schedule(임박순).
+    ///
+    /// 캘린더 탭의 ``/todos/upcoming``(todo 전용)과 별개. 일시는 instance payload(deadline/date)→
+    /// entities(kind='deadline') 순으로 파싱하며, 파싱 불가/미상은 목록 뒤로 둔다(``dueAt`` null).
+    ///
+    /// - Remark: HTTP `GET /api/v1/mochi_items/upcoming`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/upcoming/get(get_upcoming_actionables_api_v1_mochi_items_upcoming_get)`.
+    func get_upcoming_actionables_api_v1_mochi_items_upcoming_get(_ input: Operations.get_upcoming_actionables_api_v1_mochi_items_upcoming_get.Input) async throws -> Operations.get_upcoming_actionables_api_v1_mochi_items_upcoming_get.Output
+    /// Generate Weekly Digest
+    ///
+    /// 이번주 정리 — 그 주(KST 월~일) item 의 카테고리 정규화(write) + 모찌 한마디(LLM 1회).
+    ///
+    /// 같은 의미인데 항목마다 제각각 생긴 category 를 LLM 이 통합 라벨로 정규화해 ``item.category`` 를
+    /// 갱신한다(파편화 수렴). 그 주 항목이 3개 미만이면 LLM 을 돌리지 않고 정적 인사로 폴백한다
+    /// (``generated=false``). ``weekStart`` 가 어긋나도 서버가 KST 월요일 00:00 으로 재정규화한다.
+    ///
+    /// - Remark: HTTP `POST /api/v1/mochi_items/weekly_digest`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/weekly_digest/post(generate_weekly_digest_api_v1_mochi_items_weekly_digest_post)`.
+    func generate_weekly_digest_api_v1_mochi_items_weekly_digest_post(_ input: Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.Input) async throws -> Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.Output
     /// Get Mochi Item
     ///
     /// - Remark: HTTP `GET /api/v1/mochi_items/{mochi_item_id}`.
@@ -169,7 +201,8 @@ public protocol APIProtocol: Sendable {
     ///
     /// 단말/Live Activity push 토큰 등록 (owner-scoped upsert).
     ///
-    /// iOS AppDelegate(apns_device) + LiveActivityCoordinator(live_activity)가 호출한다.
+    /// iOS AppDelegate(apns_device) + push-to-start observe(la_start)가 호출한다. 둘 다 owner 단위라
+    /// mochiItemID 없이 등록한다.
     ///
     /// - Remark: HTTP `POST /api/v1/devices/push-token`.
     /// - Remark: Generated from `#/paths//api/v1/devices/push-token/post(register_push_token_api_v1_devices_push_token_post)`.
@@ -311,6 +344,25 @@ extension APIProtocol {
             body: body
         ))
     }
+    /// Presign Capture Download
+    ///
+    /// 업로드된 캡처 이미지를 직접 GET 할 V4 Signed URL 발급 — 앱 재설치 후 이미지 복구.
+    ///
+    /// 재설치하면 로컬 Realm·이미지 파일이 사라지므로, 같은 Apple 계정으로 재로그인한 클라가
+    /// ``GET /mochi_items`` 로 받은 imageRef 의 ``objectKey`` 로 본 엔드포인트를 호출해 원본을
+    /// 내려받아 로컬에 복원한다. owner-prefix 검증(IDOR 방지)은 업로드 검증과 동일 규약.
+    ///
+    /// - Remark: HTTP `POST /api/v1/mochi_items/images/download-url`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/images/download-url/post(presign_capture_download_api_v1_mochi_items_images_download_url_post)`.
+    public func presign_capture_download_api_v1_mochi_items_images_download_url_post(
+        headers: Operations.presign_capture_download_api_v1_mochi_items_images_download_url_post.Input.Headers = .init(),
+        body: Operations.presign_capture_download_api_v1_mochi_items_images_download_url_post.Input.Body
+    ) async throws -> Operations.presign_capture_download_api_v1_mochi_items_images_download_url_post.Output {
+        try await presign_capture_download_api_v1_mochi_items_images_download_url_post(Operations.presign_capture_download_api_v1_mochi_items_images_download_url_post.Input(
+            headers: headers,
+            body: body
+        ))
+    }
     /// Get Monthly Calendar
     ///
     /// 캘린더 탭 — KST 월간 캘린더(날짜별 개수·대표 Intent·대표 썸네일 object_key).
@@ -340,6 +392,43 @@ extension APIProtocol {
         headers: Operations.get_upcoming_todos_api_v1_mochi_items_todos_upcoming_get.Input.Headers = .init()
     ) async throws -> Operations.get_upcoming_todos_api_v1_mochi_items_todos_upcoming_get.Output {
         try await get_upcoming_todos_api_v1_mochi_items_todos_upcoming_get(Operations.get_upcoming_todos_api_v1_mochi_items_todos_upcoming_get.Input(
+            query: query,
+            headers: headers
+        ))
+    }
+    /// Get Upcoming Actionables
+    ///
+    /// 이번주 정리 "아직 안 끝났어요" — 미해결 todo + 다가올 schedule(임박순).
+    ///
+    /// 캘린더 탭의 ``/todos/upcoming``(todo 전용)과 별개. 일시는 instance payload(deadline/date)→
+    /// entities(kind='deadline') 순으로 파싱하며, 파싱 불가/미상은 목록 뒤로 둔다(``dueAt`` null).
+    ///
+    /// - Remark: HTTP `GET /api/v1/mochi_items/upcoming`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/upcoming/get(get_upcoming_actionables_api_v1_mochi_items_upcoming_get)`.
+    public func get_upcoming_actionables_api_v1_mochi_items_upcoming_get(
+        query: Operations.get_upcoming_actionables_api_v1_mochi_items_upcoming_get.Input.Query = .init(),
+        headers: Operations.get_upcoming_actionables_api_v1_mochi_items_upcoming_get.Input.Headers = .init()
+    ) async throws -> Operations.get_upcoming_actionables_api_v1_mochi_items_upcoming_get.Output {
+        try await get_upcoming_actionables_api_v1_mochi_items_upcoming_get(Operations.get_upcoming_actionables_api_v1_mochi_items_upcoming_get.Input(
+            query: query,
+            headers: headers
+        ))
+    }
+    /// Generate Weekly Digest
+    ///
+    /// 이번주 정리 — 그 주(KST 월~일) item 의 카테고리 정규화(write) + 모찌 한마디(LLM 1회).
+    ///
+    /// 같은 의미인데 항목마다 제각각 생긴 category 를 LLM 이 통합 라벨로 정규화해 ``item.category`` 를
+    /// 갱신한다(파편화 수렴). 그 주 항목이 3개 미만이면 LLM 을 돌리지 않고 정적 인사로 폴백한다
+    /// (``generated=false``). ``weekStart`` 가 어긋나도 서버가 KST 월요일 00:00 으로 재정규화한다.
+    ///
+    /// - Remark: HTTP `POST /api/v1/mochi_items/weekly_digest`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/weekly_digest/post(generate_weekly_digest_api_v1_mochi_items_weekly_digest_post)`.
+    public func generate_weekly_digest_api_v1_mochi_items_weekly_digest_post(
+        query: Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.Input.Query,
+        headers: Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.Input.Headers = .init()
+    ) async throws -> Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.Output {
+        try await generate_weekly_digest_api_v1_mochi_items_weekly_digest_post(Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.Input(
             query: query,
             headers: headers
         ))
@@ -460,7 +549,8 @@ extension APIProtocol {
     ///
     /// 단말/Live Activity push 토큰 등록 (owner-scoped upsert).
     ///
-    /// iOS AppDelegate(apns_device) + LiveActivityCoordinator(live_activity)가 호출한다.
+    /// iOS AppDelegate(apns_device) + push-to-start observe(la_start)가 호출한다. 둘 다 owner 단위라
+    /// mochiItemID 없이 등록한다.
     ///
     /// - Remark: HTTP `POST /api/v1/devices/push-token`.
     /// - Remark: Generated from `#/paths//api/v1/devices/push-token/post(register_push_token_api_v1_devices_push_token_post)`.
@@ -622,6 +712,48 @@ public enum Components {
                 case subject
                 case displayName
                 case deviceLabel
+            }
+        }
+        /// 업로드된 캡처 이미지를 직접 GET 할 Signed URL 발급 요청 — 앱 재설치 후 이미지 복구.
+        ///
+        /// - Remark: Generated from `#/components/schemas/DownloadUrlRequest`.
+        public struct DownloadUrlRequest: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/DownloadUrlRequest/objectKey`.
+            public var objectKey: Swift.String
+            /// Creates a new `DownloadUrlRequest`.
+            ///
+            /// - Parameters:
+            ///   - objectKey:
+            public init(objectKey: Swift.String) {
+                self.objectKey = objectKey
+            }
+            public enum CodingKeys: String, CodingKey {
+                case objectKey
+            }
+        }
+        /// 발급된 V4 Signed GET URL.
+        ///
+        /// - Remark: Generated from `#/components/schemas/DownloadUrlResponse`.
+        public struct DownloadUrlResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/DownloadUrlResponse/downloadURL`.
+            public var downloadURL: Swift.String
+            /// - Remark: Generated from `#/components/schemas/DownloadUrlResponse/expiresAt`.
+            public var expiresAt: Foundation.Date
+            /// Creates a new `DownloadUrlResponse`.
+            ///
+            /// - Parameters:
+            ///   - downloadURL:
+            ///   - expiresAt:
+            public init(
+                downloadURL: Swift.String,
+                expiresAt: Foundation.Date
+            ) {
+                self.downloadURL = downloadURL
+                self.expiresAt = expiresAt
+            }
+            public enum CodingKeys: String, CodingKey {
+                case downloadURL
+                case expiresAt
             }
         }
         /// - Remark: Generated from `#/components/schemas/GoogleSignInRequest`.
@@ -1193,12 +1325,14 @@ public enum Components {
         /// 등록되는 푸시 토큰의 종류.
         ///
         /// - ``apns_device``: 단말 remote notification 토큰 (owner 1:N 단말). 분석완료 alert 대상.
-        /// - ``live_activity``: ActivityKit Live Activity push 토큰 (mochi_item 1:1). .ready 전환 대상.
+        /// - ``la_start``: Live Activity push-to-start 토큰 (owner 1:N 단말, item 무관). needs_review=true
+        ///   분석완료 시 백엔드가 이 토큰으로 LA 를 background(잠금)에서 시작한다(start push). iOS 17.2+.
+        ///   진행중/완료 LA 는 띄우지 않는다(팀 결정 2026-06-09) — 구 per-item ``live_activity`` 토큰 폐기.
         ///
         /// - Remark: Generated from `#/components/schemas/PushTokenType`.
         @frozen public enum PushTokenType: String, Codable, Hashable, Sendable, CaseIterable {
             case apns_device = "apns_device"
-            case live_activity = "live_activity"
+            case la_start = "la_start"
         }
         /// needs_review 항목 재분석 요청 — 사용자가 "다른 의도"를 고르며 자연어로 적은 의도 힌트.
         ///
@@ -1243,7 +1377,7 @@ public enum Components {
                 case deviceLabel
             }
         }
-        /// 단말(apns_device) 또는 Live Activity(live_activity) push 토큰 등록 요청.
+        /// 단말(apns_device) 또는 Live Activity push-to-start(la_start) push 토큰 등록 요청.
         ///
         /// - Remark: Generated from `#/components/schemas/RegisterPushTokenRequest`.
         public struct RegisterPushTokenRequest: Codable, Hashable, Sendable {
@@ -1447,6 +1581,67 @@ public enum Components {
                 case tokenType
             }
         }
+        /// - Remark: Generated from `#/components/schemas/UpcomingActionableListResponse`.
+        public struct UpcomingActionableListResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/UpcomingActionableListResponse/actionables`.
+            public var actionables: [Components.Schemas.UpcomingActionableResponse]?
+            /// Creates a new `UpcomingActionableListResponse`.
+            ///
+            /// - Parameters:
+            ///   - actionables:
+            public init(actionables: [Components.Schemas.UpcomingActionableResponse]? = nil) {
+                self.actionables = actionables
+            }
+            public enum CodingKeys: String, CodingKey {
+                case actionables
+            }
+        }
+        /// "이번주 정리"의 "아직 안 끝났어요" 1건 — 미해결 todo 또는 다가올 schedule.
+        ///
+        /// ``is_schedule`` false(=todo)면 클라가 카드에서 1-tap 완료(``instance_id`` 가 lifecycle 전이 대상).
+        /// ``due_at`` 은 instance/entities free-text 를 서버가 파싱한 값(미상이면 null), ``due_label`` 은 원문.
+        ///
+        /// - Remark: Generated from `#/components/schemas/UpcomingActionableResponse`.
+        public struct UpcomingActionableResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/UpcomingActionableResponse/item`.
+            public var item: Components.Schemas.MochiItemResponse
+            /// - Remark: Generated from `#/components/schemas/UpcomingActionableResponse/dueAt`.
+            public var dueAt: Foundation.Date?
+            /// - Remark: Generated from `#/components/schemas/UpcomingActionableResponse/dueLabel`.
+            public var dueLabel: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/UpcomingActionableResponse/isSchedule`.
+            public var isSchedule: Swift.Bool
+            /// - Remark: Generated from `#/components/schemas/UpcomingActionableResponse/instanceId`.
+            public var instanceId: Swift.String
+            /// Creates a new `UpcomingActionableResponse`.
+            ///
+            /// - Parameters:
+            ///   - item:
+            ///   - dueAt:
+            ///   - dueLabel:
+            ///   - isSchedule:
+            ///   - instanceId:
+            public init(
+                item: Components.Schemas.MochiItemResponse,
+                dueAt: Foundation.Date? = nil,
+                dueLabel: Swift.String? = nil,
+                isSchedule: Swift.Bool,
+                instanceId: Swift.String
+            ) {
+                self.item = item
+                self.dueAt = dueAt
+                self.dueLabel = dueLabel
+                self.isSchedule = isSchedule
+                self.instanceId = instanceId
+            }
+            public enum CodingKeys: String, CodingKey {
+                case item
+                case dueAt
+                case dueLabel
+                case isSchedule
+                case instanceId
+            }
+        }
         /// - Remark: Generated from `#/components/schemas/UpcomingTodoListResponse`.
         public struct UpcomingTodoListResponse: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/UpcomingTodoListResponse/todos`.
@@ -1625,6 +1820,66 @@ public enum Components {
                 case _type = "type"
                 case input
                 case ctx
+            }
+        }
+        /// 정규화된 coarse 카테고리 1묶음 — 그 그룹에 속한 item id 목록(captured_at desc).
+        ///
+        /// - Remark: Generated from `#/components/schemas/WeeklyDigestGroupResponse`.
+        public struct WeeklyDigestGroupResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/WeeklyDigestGroupResponse/coarse`.
+            public var coarse: Swift.String
+            /// - Remark: Generated from `#/components/schemas/WeeklyDigestGroupResponse/itemIds`.
+            public var itemIds: [Swift.String]?
+            /// Creates a new `WeeklyDigestGroupResponse`.
+            ///
+            /// - Parameters:
+            ///   - coarse:
+            ///   - itemIds:
+            public init(
+                coarse: Swift.String,
+                itemIds: [Swift.String]? = nil
+            ) {
+                self.coarse = coarse
+                self.itemIds = itemIds
+            }
+            public enum CodingKeys: String, CodingKey {
+                case coarse
+                case itemIds
+            }
+        }
+        /// 이번주 정리 — 모찌 한마디 + 정규화된 카테고리 그룹.
+        ///
+        /// ``generated`` 가 false 면 그 주 항목이 적어 LLM 을 돌리지 않은 정적 폴백이다(클라가 캐시 정책에 활용).
+        /// 카테고리 정규화는 서버가 item.category 를 write 한 결과이므로, 클라는 응답의 itemIds 로 로컬 캐시를
+        /// 함께 갱신한다.
+        ///
+        /// - Remark: Generated from `#/components/schemas/WeeklyDigestResponse`.
+        public struct WeeklyDigestResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/WeeklyDigestResponse/greeting`.
+            public var greeting: Swift.String
+            /// - Remark: Generated from `#/components/schemas/WeeklyDigestResponse/groups`.
+            public var groups: [Components.Schemas.WeeklyDigestGroupResponse]?
+            /// - Remark: Generated from `#/components/schemas/WeeklyDigestResponse/generated`.
+            public var generated: Swift.Bool?
+            /// Creates a new `WeeklyDigestResponse`.
+            ///
+            /// - Parameters:
+            ///   - greeting:
+            ///   - groups:
+            ///   - generated:
+            public init(
+                greeting: Swift.String,
+                groups: [Components.Schemas.WeeklyDigestGroupResponse]? = nil,
+                generated: Swift.Bool? = nil
+            ) {
+                self.greeting = greeting
+                self.groups = groups
+                self.generated = generated
+            }
+            public enum CodingKeys: String, CodingKey {
+                case greeting
+                case groups
+                case generated
             }
         }
     }
@@ -2868,6 +3123,133 @@ public enum Operations {
             }
         }
     }
+    /// Presign Capture Download
+    ///
+    /// 업로드된 캡처 이미지를 직접 GET 할 V4 Signed URL 발급 — 앱 재설치 후 이미지 복구.
+    ///
+    /// 재설치하면 로컬 Realm·이미지 파일이 사라지므로, 같은 Apple 계정으로 재로그인한 클라가
+    /// ``GET /mochi_items`` 로 받은 imageRef 의 ``objectKey`` 로 본 엔드포인트를 호출해 원본을
+    /// 내려받아 로컬에 복원한다. owner-prefix 검증(IDOR 방지)은 업로드 검증과 동일 규약.
+    ///
+    /// - Remark: HTTP `POST /api/v1/mochi_items/images/download-url`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/images/download-url/post(presign_capture_download_api_v1_mochi_items_images_download_url_post)`.
+    public enum presign_capture_download_api_v1_mochi_items_images_download_url_post {
+        public static let id: Swift.String = "presign_capture_download_api_v1_mochi_items_images_download_url_post"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/api/v1/mochi_items/images/download-url/POST/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.presign_capture_download_api_v1_mochi_items_images_download_url_post.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.presign_capture_download_api_v1_mochi_items_images_download_url_post.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.presign_capture_download_api_v1_mochi_items_images_download_url_post.Input.Headers
+            /// - Remark: Generated from `#/paths/api/v1/mochi_items/images/download-url/POST/requestBody`.
+            @frozen public enum Body: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/mochi_items/images/download-url/POST/requestBody/content/application\/json`.
+                case json(Components.Schemas.DownloadUrlRequest)
+            }
+            public var body: Operations.presign_capture_download_api_v1_mochi_items_images_download_url_post.Input.Body
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - headers:
+            ///   - body:
+            public init(
+                headers: Operations.presign_capture_download_api_v1_mochi_items_images_download_url_post.Input.Headers = .init(),
+                body: Operations.presign_capture_download_api_v1_mochi_items_images_download_url_post.Input.Body
+            ) {
+                self.headers = headers
+                self.body = body
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/mochi_items/images/download-url/POST/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/api/v1/mochi_items/images/download-url/POST/responses/200/content/application\/json`.
+                    case json(Components.Schemas.DownloadUrlResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.DownloadUrlResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.presign_capture_download_api_v1_mochi_items_images_download_url_post.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.presign_capture_download_api_v1_mochi_items_images_download_url_post.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Successful Response
+            ///
+            /// - Remark: Generated from `#/paths//api/v1/mochi_items/images/download-url/post(presign_capture_download_api_v1_mochi_items_images_download_url_post)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.presign_capture_download_api_v1_mochi_items_images_download_url_post.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.presign_capture_download_api_v1_mochi_items_images_download_url_post.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
     /// Get Monthly Calendar
     ///
     /// 캘린더 탭 — KST 월간 캘린더(날짜별 개수·대표 Intent·대표 썸네일 object_key).
@@ -3095,6 +3477,273 @@ public enum Operations {
             /// - Throws: An error if `self` is not `.ok`.
             /// - SeeAlso: `.ok`.
             public var ok: Operations.get_upcoming_todos_api_v1_mochi_items_todos_upcoming_get.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Get Upcoming Actionables
+    ///
+    /// 이번주 정리 "아직 안 끝났어요" — 미해결 todo + 다가올 schedule(임박순).
+    ///
+    /// 캘린더 탭의 ``/todos/upcoming``(todo 전용)과 별개. 일시는 instance payload(deadline/date)→
+    /// entities(kind='deadline') 순으로 파싱하며, 파싱 불가/미상은 목록 뒤로 둔다(``dueAt`` null).
+    ///
+    /// - Remark: HTTP `GET /api/v1/mochi_items/upcoming`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/upcoming/get(get_upcoming_actionables_api_v1_mochi_items_upcoming_get)`.
+    public enum get_upcoming_actionables_api_v1_mochi_items_upcoming_get {
+        public static let id: Swift.String = "get_upcoming_actionables_api_v1_mochi_items_upcoming_get"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/api/v1/mochi_items/upcoming/GET/query`.
+            public struct Query: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/mochi_items/upcoming/GET/query/limit`.
+                public var limit: Swift.Int?
+                /// Creates a new `Query`.
+                ///
+                /// - Parameters:
+                ///   - limit:
+                public init(limit: Swift.Int? = nil) {
+                    self.limit = limit
+                }
+            }
+            public var query: Operations.get_upcoming_actionables_api_v1_mochi_items_upcoming_get.Input.Query
+            /// - Remark: Generated from `#/paths/api/v1/mochi_items/upcoming/GET/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.get_upcoming_actionables_api_v1_mochi_items_upcoming_get.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.get_upcoming_actionables_api_v1_mochi_items_upcoming_get.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.get_upcoming_actionables_api_v1_mochi_items_upcoming_get.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - query:
+            ///   - headers:
+            public init(
+                query: Operations.get_upcoming_actionables_api_v1_mochi_items_upcoming_get.Input.Query = .init(),
+                headers: Operations.get_upcoming_actionables_api_v1_mochi_items_upcoming_get.Input.Headers = .init()
+            ) {
+                self.query = query
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/mochi_items/upcoming/GET/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/api/v1/mochi_items/upcoming/GET/responses/200/content/application\/json`.
+                    case json(Components.Schemas.UpcomingActionableListResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.UpcomingActionableListResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.get_upcoming_actionables_api_v1_mochi_items_upcoming_get.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.get_upcoming_actionables_api_v1_mochi_items_upcoming_get.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Successful Response
+            ///
+            /// - Remark: Generated from `#/paths//api/v1/mochi_items/upcoming/get(get_upcoming_actionables_api_v1_mochi_items_upcoming_get)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.get_upcoming_actionables_api_v1_mochi_items_upcoming_get.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.get_upcoming_actionables_api_v1_mochi_items_upcoming_get.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Generate Weekly Digest
+    ///
+    /// 이번주 정리 — 그 주(KST 월~일) item 의 카테고리 정규화(write) + 모찌 한마디(LLM 1회).
+    ///
+    /// 같은 의미인데 항목마다 제각각 생긴 category 를 LLM 이 통합 라벨로 정규화해 ``item.category`` 를
+    /// 갱신한다(파편화 수렴). 그 주 항목이 3개 미만이면 LLM 을 돌리지 않고 정적 인사로 폴백한다
+    /// (``generated=false``). ``weekStart`` 가 어긋나도 서버가 KST 월요일 00:00 으로 재정규화한다.
+    ///
+    /// - Remark: HTTP `POST /api/v1/mochi_items/weekly_digest`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/weekly_digest/post(generate_weekly_digest_api_v1_mochi_items_weekly_digest_post)`.
+    public enum generate_weekly_digest_api_v1_mochi_items_weekly_digest_post {
+        public static let id: Swift.String = "generate_weekly_digest_api_v1_mochi_items_weekly_digest_post"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/api/v1/mochi_items/weekly_digest/POST/query`.
+            public struct Query: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/mochi_items/weekly_digest/POST/query/weekStart`.
+                public var weekStart: Foundation.Date
+                /// Creates a new `Query`.
+                ///
+                /// - Parameters:
+                ///   - weekStart:
+                public init(weekStart: Foundation.Date) {
+                    self.weekStart = weekStart
+                }
+            }
+            public var query: Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.Input.Query
+            /// - Remark: Generated from `#/paths/api/v1/mochi_items/weekly_digest/POST/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - query:
+            ///   - headers:
+            public init(
+                query: Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.Input.Query,
+                headers: Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.Input.Headers = .init()
+            ) {
+                self.query = query
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/mochi_items/weekly_digest/POST/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/api/v1/mochi_items/weekly_digest/POST/responses/200/content/application\/json`.
+                    case json(Components.Schemas.WeeklyDigestResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.WeeklyDigestResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Successful Response
+            ///
+            /// - Remark: Generated from `#/paths//api/v1/mochi_items/weekly_digest/post(generate_weekly_digest_api_v1_mochi_items_weekly_digest_post)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.Output.Ok {
                 get throws {
                     switch self {
                     case let .ok(response):
@@ -3906,7 +4555,8 @@ public enum Operations {
     ///
     /// 단말/Live Activity push 토큰 등록 (owner-scoped upsert).
     ///
-    /// iOS AppDelegate(apns_device) + LiveActivityCoordinator(live_activity)가 호출한다.
+    /// iOS AppDelegate(apns_device) + push-to-start observe(la_start)가 호출한다. 둘 다 owner 단위라
+    /// mochiItemID 없이 등록한다.
     ///
     /// - Remark: HTTP `POST /api/v1/devices/push-token`.
     /// - Remark: Generated from `#/paths//api/v1/devices/push-token/post(register_push_token_api_v1_devices_push_token_post)`.

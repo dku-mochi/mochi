@@ -17,7 +17,7 @@ from google.auth import impersonated_credentials
 from google.cloud import storage
 
 from app.core.config import get_settings
-from app.modules.mochi_items.domain.ports import ObjectStat, SignedUpload
+from app.modules.mochi_items.domain.ports import ObjectStat, SignedDownload, SignedUpload
 
 _EXT = {"image/png": "png", "image/jpeg": "jpg"}
 _SIGN_SCOPES = ["https://www.googleapis.com/auth/devstorage.read_write"]
@@ -48,9 +48,7 @@ class GCSSignedUrlIssuer:
         self._signer_email = signer_email
         self._ttl = ttl_seconds
 
-    async def issue_upload_url(
-        self, *, owner_id: UUID, sha256: str, mime_type: str
-    ) -> SignedUpload:
+    async def issue_upload_url(self, *, owner_id: UUID, sha256: str, mime_type: str) -> SignedUpload:
         ext = _EXT.get(mime_type, "bin")
         object_key = f"{self._prefix}/{owner_id}/{sha256}.{ext}"
         url = await asyncio.to_thread(self._sign_put, object_key, mime_type)
@@ -67,6 +65,23 @@ class GCSSignedUrlIssuer:
             expiration=timedelta(seconds=self._ttl),
             method="PUT",
             content_type=mime_type,
+            credentials=_signer_credentials(self._signer_email),
+        )
+        return url
+
+    async def issue_download_url(self, *, object_key: str) -> SignedDownload:
+        url = await asyncio.to_thread(self._sign_get, object_key)
+        return SignedDownload(
+            download_url=url,
+            expires_at=datetime.utcnow() + timedelta(seconds=self._ttl),
+        )
+
+    def _sign_get(self, object_key: str) -> str:
+        blob = _client().bucket(self._bucket).blob(object_key)
+        url: str = blob.generate_signed_url(
+            version="v4",
+            expiration=timedelta(seconds=self._ttl),
+            method="GET",
             credentials=_signer_credentials(self._signer_email),
         )
         return url

@@ -261,6 +261,7 @@ let project = Project(
             layer: .feature,
             dependencies: [
                 .target(name: "CoreDomain"),
+                .target(name: "CorePersistence"),
                 .target(name: "DesignSystem"),
                 .package(product: "ComposableArchitecture"),
                 .package(product: "Dependencies"),
@@ -495,6 +496,11 @@ let project = Project(
             entitlements: .file(path: "Targets/Widgets/Support/Widgets.entitlements"),
             dependencies: [
                 .target(name: "CoreLiveActivity"),
+                // LA 후보 버튼(SelectCandidateIntent)이 위젯 프로세스에서 reanalyze 를 직접 호출한다 —
+                // ShareExtension 직접전송과 동일 패턴(App Group baseURL + Keychain 토큰 + OpenAPIMochiClient).
+                .target(name: "CoreNetworking"),
+                .target(name: "CoreAuth"),
+                .target(name: "CorePersistence"),
             ],
             settings: .settings(base: baseSettings)
         ),

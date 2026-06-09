@@ -93,6 +93,33 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
         }
     }
 
+    public func listMochiItems(limit: Int) async throws -> [MochiItemDTO] {
+        let output = try await client.list_mochi_items_api_v1_mochi_items_get(
+            query: .init(limit: limit)
+        )
+        switch output {
+        case let .ok(response):
+            let dto = try response.body.json
+            return try (dto.items ?? []).map(Self.mapMochiItem)
+        case let .undocumented(status, payload): throw await Self.error(status: status, payload: payload)
+        }
+    }
+
+    public func presignCaptureDownload(objectKey: String) async throws -> URL {
+        let output = try await client.presign_capture_download_api_v1_mochi_items_images_download_url_post(
+            body: .json(.init(objectKey: objectKey))
+        )
+        switch output {
+        case let .ok(response):
+            let dto = try response.body.json
+            guard let url = URL(string: dto.downloadURL) else {
+                throw Self.clientError("client.invalid_url", dto.downloadURL)
+            }
+            return url
+        case let .undocumented(status, payload): throw await Self.error(status: status, payload: payload)
+        }
+    }
+
     public func search(query: String, scope: SearchScope) async throws -> SearchResponse {
         let body = Components.Schemas.SearchRequest(query: query, scope: .init(rawValue: scope.rawValue))
         let output = try await client.search_api_v1_search_post(.init(body: .json(body)))
@@ -164,6 +191,48 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
         )
         switch output {
         case .noContent: return
+        case let .undocumented(status, payload): throw await Self.error(status: status, payload: payload)
+        }
+    }
+
+    public func upcomingActionables() async throws -> [UpcomingActionableDTO] {
+        let output = try await client.get_upcoming_actionables_api_v1_mochi_items_upcoming_get()
+        switch output {
+        case let .ok(response):
+            let dto = try response.body.json
+            return try (dto.actionables ?? []).map { actionable in
+                guard let instanceID = UUID(uuidString: actionable.instanceId) else {
+                    throw Self.clientError("client.invalid_uuid", actionable.instanceId)
+                }
+                return UpcomingActionableDTO(
+                    item: try Self.mapMochiItem(actionable.item),
+                    dueAt: actionable.dueAt,
+                    dueLabel: actionable.dueLabel,
+                    isSchedule: actionable.isSchedule,
+                    instanceID: instanceID
+                )
+            }
+        case let .undocumented(status, payload): throw await Self.error(status: status, payload: payload)
+        }
+    }
+
+    public func weeklyDigest(weekStart: Date) async throws -> WeeklyDigestDTO {
+        let output = try await client.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post(
+            query: .init(weekStart: weekStart)
+        )
+        switch output {
+        case let .ok(response):
+            let dto = try response.body.json
+            return WeeklyDigestDTO(
+                greeting: dto.greeting,
+                groups: (dto.groups ?? []).map { group in
+                    WeeklyDigestDTO.Group(
+                        coarse: group.coarse,
+                        itemIDs: (group.itemIds ?? []).compactMap { UUID(uuidString: $0) }
+                    )
+                },
+                generated: dto.generated ?? true
+            )
         case let .undocumented(status, payload): throw await Self.error(status: status, payload: payload)
         }
     }
