@@ -50,9 +50,20 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
 LAB_ROOT = Path(__file__).parent
 ANALYSIS_DIR = LAB_ROOT / "artifacts" / "analysis"
 EMBED_DIR = LAB_ROOT / "artifacts" / "embeddings"
-GOLD_PATH = LAB_ROOT / "gold" / "queries.json"
 RESULTS_DIR = LAB_ROOT / "results" / "retrieval"
 VOYAGE_EMBEDDINGS_URL = "https://api.voyageai.com/v1/embeddings"
+
+_GOLD_FILES = {
+    "default": LAB_ROOT / "gold" / "queries.json",
+    "semantic-gap": LAB_ROOT / "gold" / "semantic_gap_queries.json",
+}
+
+# semantic-gap 모드에서 비교할 voyage-4-large@1024 기준선 전략들
+_GAP_FOCUS_STRATEGIES = [
+    "summary+labels",
+    "summary+semantic_expansion",
+    "summary+labels+semantic_expansion",
+]
 
 RRF_K = 60
 
@@ -99,6 +110,12 @@ def _avg_metrics(query_results: list[dict]) -> dict:
     keys = ["hit_rate@3", "recall@5", "mrr", "ndcg@5"]
     n = len(query_results)
     return {k: round(sum(r[k] for r in query_results) / n, 3) for k in keys}
+
+
+def _avg_similarity_metrics(query_results: list[dict]) -> dict:
+    keys = ["expected_similarity", "best_incorrect_similarity", "similarity_margin"]
+    n = len(query_results)
+    return {k: round(sum(r[k] for r in query_results) / n, 4) for k in keys}
 
 
 # ── BM25 ──────────────────────────────────────────────────────────────────────
@@ -235,7 +252,7 @@ async def evaluate_combo(
 
     # ── BM25 단독 (전략당 1회만 계산) ──
     if strategy not in bm25_ranked_cache:
-        corpus = [item["doc_text"] for item in items]
+        corpus = [item.get("bm25_doc_text", item["doc_text"]) for item in items]
         bm25_ranked_cache[strategy] = {}
         for q in queries:
             indices = _bm25_rank(corpus, q["query"])
@@ -276,10 +293,24 @@ async def evaluate_combo(
         full_ranked = [s[0] for s in scores]
         vec_full_ranked[q["query"]] = full_ranked  # RRF용 전체 보존
         m = _metrics(full_ranked, q["expected_ids"])
+        expected_set = set(q["expected_ids"])
+        expected_similarity = max(
+            (score for item_id, score in scores if item_id in expected_set),
+            default=0.0,
+        )
+        best_incorrect_similarity = max(
+            (score for item_id, score in scores if item_id not in expected_set),
+            default=0.0,
+        )
         vec_qr.append({
             "query": q["query"], "type": q.get("type", "unknown"),
             "expected_ids": q["expected_ids"],
             "top5": full_ranked[:5],  # 출력용만 잘라냄
+            "expected_similarity": round(expected_similarity, 4),
+            "best_incorrect_similarity": round(best_incorrect_similarity, 4),
+            "similarity_margin": round(
+                expected_similarity - best_incorrect_similarity, 4
+            ),
             **m,
         })
 
@@ -290,6 +321,7 @@ async def evaluate_combo(
         "strategy": strategy,
         "label": f"vec:{model}@{dim} × {strategy}",
         "avg": _avg_metrics(vec_qr),
+        "similarity": _avg_similarity_metrics(vec_qr),
         "by_type": _stratified(vec_qr),
         "queries": vec_qr,
     })
@@ -319,9 +351,71 @@ async def evaluate_combo(
     return results
 
 
-async def main(analysis_fp: str | None = None, *, allow_partial: bool = False) -> None:
+def _print_semantic_gap_comparison(sorted_results: list[dict]) -> None:
+    focus_label = "vec:voyage-4-large@1024"
+    baseline_key = f"{focus_label} × summary+labels"
+    baseline = next((r for r in sorted_results if r["label"] == baseline_key), None)
+    if baseline is None:
+        print(f"\n[semantic-gap 비교] 기준선 '{baseline_key}' 결과 없음 — 스킵")
+        return
+
+    print("\n\n[Semantic Gap 비교 — voyage-4-large@1024, Δ = vs summary+labels 기준선]")
+    header = f"{'전략':<46} {'nDCG@5':>8} {'Hit@3':>7} {'Recall@5':>10} {'MRR':>7} {'Δ nDCG@5':>10}"
+    print(header)
+    print("-" * len(header))
+    base_ndcg = baseline["avg"]["ndcg@5"]
+    for strategy in _GAP_FOCUS_STRATEGIES:
+        label = f"{focus_label} × {strategy}"
+        r = next((x for x in sorted_results if x["label"] == label), None)
+        if r is None:
+            print(f"  {strategy:<44} (결과 없음)")
+            continue
+        a = r["avg"]
+        delta_str = "baseline" if strategy == "summary+labels" else f"{a['ndcg@5'] - base_ndcg:+.3f}"
+        print(
+            f"  {strategy:<44} {a['ndcg@5']:>8.3f} {a['hit_rate@3']:>7.3f}"
+            f" {a['recall@5']:>10.3f} {a['mrr']:>7.3f} {delta_str:>10}"
+        )
+
+    all_types = sorted(baseline["by_type"].keys())
+    print("\n[쿼리 유형별 nDCG@5]")
+    col_w = 22
+    print(f"{'유형':<25}", end="")
+    for s in _GAP_FOCUS_STRATEGIES:
+        print(f"  {s[:col_w]:<{col_w}}", end="")
+    print()
+    print("-" * (25 + (col_w + 2) * len(_GAP_FOCUS_STRATEGIES)))
+    for qtype in all_types:
+        base_val = baseline["by_type"].get(qtype, {}).get("ndcg@5", 0.0)
+        print(f"{qtype:<25}", end="")
+        for strategy in _GAP_FOCUS_STRATEGIES:
+            label = f"{focus_label} × {strategy}"
+            r = next((x for x in sorted_results if x["label"] == label), None)
+            val = r["by_type"].get(qtype, {}).get("ndcg@5", 0.0) if r else 0.0
+            if strategy == "summary+labels":
+                cell = f"{val:.3f}        "
+            else:
+                cell = f"{val:.3f}({val - base_val:+.3f})"
+            print(f"  {cell:<{col_w}}", end="")
+        print()
+
+
+async def main(
+    analysis_fp: str | None = None,
+    *,
+    allow_partial: bool = False,
+    gold: str = "default",
+) -> None:
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-    queries = json.loads(GOLD_PATH.read_text(encoding="utf-8"))
+
+    gold_path = _GOLD_FILES.get(gold)
+    if gold_path is None:
+        print(f"[ERROR] --gold 값 오류: {gold!r}. 가능한 값: {list(_GOLD_FILES)}")
+        return
+    if not gold_path.exists():
+        print(f"[ERROR] gold 파일 없음: {gold_path}")
+        return
+    queries = json.loads(gold_path.read_text(encoding="utf-8"))
 
     if analysis_fp is None:
         # 최신 analysis artifact 기준으로 fp 결정 — embedding mtime이 아님
@@ -419,12 +513,16 @@ async def main(analysis_fp: str | None = None, *, allow_partial: bool = False) -
         for qtype, m in sorted(r["by_type"].items()):
             print(f"    {qtype:<25} nDCG@5={m['ndcg@5']:.3f}  mrr={m['mrr']:.3f}")
 
+    if gold == "semantic-gap":
+        _print_semantic_gap_comparison(sorted_results)
+
     # ── 저장 ──
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    out_path = RESULTS_DIR / f"{ts}.json"
+    suffix = "_semantic_gap" if gold == "semantic-gap" else ""
+    out_path = RESULTS_DIR / f"{ts}{suffix}.json"
     out_path.write_text(
         json.dumps(
-            {"run_at": ts, "analysis_fp": analysis_fp, "results": all_results},
+            {"run_at": ts, "analysis_fp": analysis_fp, "gold": gold, "results": all_results},
             ensure_ascii=False, indent=2,
         ),
         encoding="utf-8",
@@ -440,5 +538,11 @@ if __name__ == "__main__":
         action="store_true",
         help="일부 embedding 조합이 누락되어도 평가 계속 (기본: 중단)",
     )
+    parser.add_argument(
+        "--gold",
+        default="default",
+        choices=list(_GOLD_FILES),
+        help="평가 gold 세트 선택 (default: gold/queries.json, semantic-gap: gold/semantic_gap_queries.json)",
+    )
     args = parser.parse_args()
-    asyncio.run(main(args.analysis_fp, allow_partial=args.allow_partial))
+    asyncio.run(main(args.analysis_fp, allow_partial=args.allow_partial, gold=args.gold))

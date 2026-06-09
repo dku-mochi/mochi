@@ -126,6 +126,7 @@ def _serialize(case: dict, result: AnalysisResult, source_hash: str) -> dict:
         "analysis": {
             "model_version": result.model_version,
             "summary": result.summary,
+            "category": result.category,
             "needs_review": result.needs_review,
             "importance": result.importance,
             "intent_instances": [

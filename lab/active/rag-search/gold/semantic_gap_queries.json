@@ -1,0 +1,128 @@
+[
+  {
+    "query": "딥러닝",
+    "type": "semantic_gap_keyword",
+    "expected_ids": ["knowledge_시험공부할때보려고"],
+    "note": "오토인코더·VAE 학습자료 — 원문엔 '딥러닝' 없고 '오토인코더', 'VAE'만 등장"
+  },
+  {
+    "query": "다이어트",
+    "type": "semantic_gap_keyword",
+    "expected_ids": ["memo_knowledge_식단짤때참고하려고"],
+    "note": "식단 예시 자료 — 원문엔 '식단', '칼로리'만 있고 '다이어트' 없음"
+  },
+  {
+    "query": "로맨스영화",
+    "type": "semantic_gap_keyword",
+    "expected_ids": ["memo_todo_저날이후로보러가려고_2", "memo_todo_저날이후로보러가려고"],
+    "note": "노트북·비포선라이즈 재개봉 — 원문엔 '영화', '재개봉'만 있고 '로맨스' 없음"
+  },
+  {
+    "query": "대중교통",
+    "type": "semantic_gap_keyword",
+    "expected_ids": ["memo_todo_해당날짜전까지등록하려고"],
+    "note": "K-패스 카드 재등록 — 원문엔 'K-패스', '환급'만 있고 '대중교통' 없음"
+  },
+  {
+    "query": "헬스",
+    "type": "semantic_gap_keyword",
+    "expected_ids": ["memo_나중에가격비교", "memo_다음운동때참고하려고"],
+    "note": "단백질 보충제·운동 기록 — 원문엔 '프로틴', '운동'만 있고 '헬스' 없음"
+  },
+  {
+    "query": "영양제",
+    "type": "semantic_gap_keyword",
+    "expected_ids": ["memo_나중에사먹으려고"],
+    "note": "비타민C 보충제 — 원문엔 '비타민'만 있고 '영양제' 없음"
+  },
+  {
+    "query": "웨어러블",
+    "type": "semantic_gap_keyword",
+    "expected_ids": ["memo_사고싶다"],
+    "note": "레이반 메타 스마트 글라스 — 원문엔 '스마트 글라스'만 있고 '웨어러블' 없음"
+  },
+  {
+    "query": "엔화",
+    "type": "semantic_gap_keyword",
+    "expected_ids": ["memo_나중에여행갈때참고하려고"],
+    "note": "일본 출국세 인상 정보 — 원문엔 '출국세', '항공권'만 있고 '엔화' 없음"
+  },
+  {
+    "query": "기본템",
+    "type": "semantic_gap_keyword",
+    "expected_ids": ["memo_나중에흰티살때비교"],
+    "note": "무지 흰 티셔츠 비교 — 원문엔 '티셔츠', '무지'만 있고 '기본템' 없음"
+  },
+  {
+    "query": "통신비",
+    "type": "semantic_gap_keyword",
+    "expected_ids": ["memo_납부금액확인"],
+    "note": "휴대폰 요금제 변경 기록 — 원문엔 '요금제', '납부금액'만 있고 '통신비' 없음"
+  },
+  {
+    "query": "사후세계",
+    "type": "semantic_gap_keyword",
+    "expected_ids": ["memo_넷플릭스에서볼것들"],
+    "note": "서바이빙 데스 시청 목록 — 원문엔 '서바이빙 데스'만 있고 '사후세계' 없음"
+  },
+  {
+    "query": "카메라",
+    "type": "semantic_gap_keyword",
+    "expected_ids": ["memo_접수내역기록"],
+    "note": "니콘이미징코리아 A/S 접수 — 원문엔 '니콘이미징코리아'만 있고 '카메라' 없음"
+  },
+  {
+    "query": "생일",
+    "type": "semantic_gap_keyword",
+    "expected_ids": ["memo_케이크살때참고"],
+    "note": "케이크 주문 정보 — 원문엔 '기념일'만 있고 '생일' 없음"
+  },
+  {
+    "query": "자외선차단",
+    "type": "semantic_gap_keyword",
+    "expected_ids": ["memo_화장품살때참고하려고"],
+    "note": "디어패커 선크림 — 원문엔 '선크림', '선스크린'만 있고 '자외선' 없음"
+  },
+  {
+    "query": "세금",
+    "type": "semantic_gap_keyword",
+    "expected_ids": ["memo_환급금기억"],
+    "note": "종합소득세 환급 신고 — 원문엔 '종합소득세', '환급'만 있고 '세금' 없음"
+  },
+  {
+    "query": "콘서트",
+    "type": "semantic_gap_keyword",
+    "expected_ids": ["schedule_todo_친구공연장장소와시간"],
+    "note": "너와나 정기공연 일정 — 원문엔 '정기공연', '공연'만 있고 '콘서트' 없음"
+  },
+  {
+    "query": "버블티",
+    "type": "semantic_gap_keyword",
+    "expected_ids": ["schedule_공차할인날짜시간"],
+    "note": "공차 해피아워 이벤트 — 원문엔 '공차'만 있고 '버블티' 없음"
+  },
+  {
+    "query": "취업",
+    "type": "semantic_gap_keyword",
+    "expected_ids": ["schedule_제출날짜"],
+    "note": "Qcells 면접 PT 자료 제출 — 원문엔 '면접 전형', 'PT 발표'만 있고 '취업' 없음"
+  },
+  {
+    "query": "나들이",
+    "type": "semantic_gap_keyword",
+    "expected_ids": ["memo_나중에가보려고", "memo_나중에가보려고저장", "memo_이뻐서나중에가보려고"],
+    "note": "북카페·실내데이트·흥인지문공원 — 세 항목 모두 '나들이' 없음"
+  },
+  {
+    "query": "피부관리",
+    "type": "semantic_gap_keyword",
+    "expected_ids": ["memo_좋아보여서나중에사려고"],
+    "note": "피카 홀리바질 버블 딥 마스크 — 원문엔 '마스크'만 있고 '피부관리' 없음"
+  },
+  {
+    "query": "생산성",
+    "type": "semantic_gap_keyword",
+    "expected_ids": ["memo_저장해두고나중에봐야지"],
+    "note": "HWPX·Claude 스킬 팁 — 원문엔 'HWPX', '클로드'만 있고 '생산성' 없음"
+  }
+]
