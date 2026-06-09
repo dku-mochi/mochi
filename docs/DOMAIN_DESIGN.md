@@ -194,7 +194,7 @@ CREATE TABLE mochi_items (
     channel                  varchar(32) NOT NULL,   -- 입력 채널 (Pydantic enum 게이트)
     url                      varchar(2048),
     text                     text,
-    user_memo                text,
+    user_memo                text,                   -- 사용자 메모: 분류 시 화면보다 우선하는 1차 의도 증거 (휴리스틱 본문은 프롬프트 classify_and_act@v15+ 가 단일원천)
     summary                  text,                   -- LLM 요약
     importance               int   NOT NULL DEFAULT 3,    -- 1~5 (numeric 0~1 아님)
     model_version            varchar(64),
