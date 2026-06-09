@@ -48,6 +48,7 @@ _FINALIZE_PARAMS: dict[str, Any] = {
     "type": "object",
     "properties": {
         "summary": {"type": "string"},
+        "category": {"type": "string"},
         "needs_review": {"type": "boolean"},
         "intent_instances": {
             # 저장할 것만(곧 active). 같은 type 다중 허용 — 개수 가변(점수/대표/위계 폐기).
@@ -89,7 +90,7 @@ _FINALIZE_PARAMS: dict[str, Any] = {
         },
         "importance": {"type": "integer"},
     },
-    "required": ["summary", "intent_instances", "needs_review"],
+    "required": ["summary", "category", "intent_instances", "needs_review"],
 }
 
 _WEBFETCH_PARAMS: dict[str, Any] = {

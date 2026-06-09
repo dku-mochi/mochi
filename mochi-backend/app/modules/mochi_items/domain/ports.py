@@ -58,6 +58,7 @@ class MochiItemRepository(Protocol):
         needs_review: bool,
         review_options: tuple[ReviewOption, ...],
         summary: str,
+        category: str | None,
         importance: int,
         model_version: str,
         entities: tuple[tuple[str, str], ...],

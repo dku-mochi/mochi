@@ -133,6 +133,7 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
     public let text: String?
     public let userMemo: String?
     public let summary: String?
+    public let category: String?
     public let importance: Int
     /// 저장된 의도 instance (저장된 것은 곧 active, 위계 없음). 분석 전엔 빈 배열.
     public let intentInstances: [IntentInstanceDTO]
@@ -148,7 +149,7 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
     public let createdAt: Date
 
     private enum CodingKeys: String, CodingKey {
-        case id, channel, url, text, summary, importance
+        case id, channel, url, text, summary, category, importance
         case userMemo = "userMemo"
         case intentInstances = "intentInstances"
         case needsReview = "needsReview"
@@ -167,6 +168,7 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
         text: String?,
         userMemo: String?,
         summary: String?,
+        category: String?,
         importance: Int,
         intentInstances: [IntentInstanceDTO],
         needsReview: Bool,
@@ -183,6 +185,7 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
         self.text = text
         self.userMemo = userMemo
         self.summary = summary
+        self.category = category
         self.importance = importance
         self.intentInstances = intentInstances
         self.needsReview = needsReview
@@ -202,6 +205,7 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
         text = try c.decodeIfPresent(String.self, forKey: .text)
         userMemo = try c.decodeIfPresent(String.self, forKey: .userMemo)
         summary = try c.decodeIfPresent(String.self, forKey: .summary)
+        category = try c.decodeIfPresent(String.self, forKey: .category)
         importance = try c.decode(Int.self, forKey: .importance)
         intentInstances = try c.decodeIfPresent([IntentInstanceDTO].self, forKey: .intentInstances) ?? []
         needsReview = try c.decodeIfPresent(Bool.self, forKey: .needsReview) ?? false

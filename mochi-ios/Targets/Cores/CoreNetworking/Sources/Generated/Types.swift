@@ -1016,6 +1016,8 @@ public enum Components {
             public var reviewOptions: [Components.Schemas.ReviewOptionResponse]?
             /// - Remark: Generated from `#/components/schemas/MochiItemResponse/summary`.
             public var summary: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/MochiItemResponse/category`.
+            public var category: Swift.String?
             /// - Remark: Generated from `#/components/schemas/MochiItemResponse/importance`.
             public var importance: Swift.Int
             /// - Remark: Generated from `#/components/schemas/MochiItemResponse/lifecycleKind`.
@@ -1040,6 +1042,7 @@ public enum Components {
             ///   - needsReview:
             ///   - reviewOptions:
             ///   - summary:
+            ///   - category:
             ///   - importance:
             ///   - lifecycleKind:
             ///   - syncKind:
@@ -1056,6 +1059,7 @@ public enum Components {
                 needsReview: Swift.Bool? = nil,
                 reviewOptions: [Components.Schemas.ReviewOptionResponse]? = nil,
                 summary: Swift.String? = nil,
+                category: Swift.String? = nil,
                 importance: Swift.Int,
                 lifecycleKind: Swift.String,
                 syncKind: Swift.String,
@@ -1072,6 +1076,7 @@ public enum Components {
                 self.needsReview = needsReview
                 self.reviewOptions = reviewOptions
                 self.summary = summary
+                self.category = category
                 self.importance = importance
                 self.lifecycleKind = lifecycleKind
                 self.syncKind = syncKind
@@ -1089,6 +1094,7 @@ public enum Components {
                 case needsReview
                 case reviewOptions
                 case summary
+                case category
                 case importance
                 case lifecycleKind
                 case syncKind

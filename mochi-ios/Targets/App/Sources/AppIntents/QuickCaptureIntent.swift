@@ -15,7 +15,7 @@ import CorePersistence
 @available(iOS 17.0, *)
 public struct QuickCaptureIntent: AppIntent {
     public static let title: LocalizedStringResource = "모찌 빠른 캡처"
-    public static let description = IntentDescription("Siri / Spotlight 에서 텍스트 메모와 URL 을 모찌에 즉시 흡수")
+    public static let description = IntentDescription("Spotlight·단축어에서 텍스트 메모와 URL 을 모찌에 즉시 흡수")
 
     @Parameter(title: "메모", default: "")
     public var memo: String

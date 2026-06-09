@@ -1328,6 +1328,11 @@
             "type": "string",
             "nullable": true
           },
+          "category": {
+            "title": "Category",
+            "type": "string",
+            "nullable": true
+          },
           "importance": {
             "type": "integer",
             "title": "Importance"

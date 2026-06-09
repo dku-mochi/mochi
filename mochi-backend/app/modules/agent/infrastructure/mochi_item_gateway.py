@@ -4,6 +4,7 @@
 (repository Protocol) 만 import 한다. infrastructure 직접 reach 없음.
 """
 
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -55,6 +56,7 @@ class MochiItemGatewayAdapter(MochiItemGateway):
             needs_review=result.needs_review,
             review_options=result.review_options,
             summary=result.summary,
+            category=result.category,
             importance=result.importance,
             model_version=result.model_version,
             entities=tuple((e.kind, e.value) for e in result.entities),
@@ -63,14 +65,26 @@ class MochiItemGatewayAdapter(MochiItemGateway):
     async def list_recent_window(
         self, *, owner_id: UUID, limit: int
     ) -> list[ProfileWindowItem]:
-        items = await self._repo.list_recent(owner_id=owner_id, limit=limit)
+        items = await self._repo.list_recent(owner_id=owner_id, limit=max(limit, 80))
+        cutoff = datetime.now(UTC) - timedelta(days=30)
+        recent = [
+            item
+            for item in items
+            if (
+                (item.source.captured_at if item.source.captured_at.tzinfo else item.source.captured_at.replace(tzinfo=UTC))
+                >= cutoff
+            )
+        ][:limit]
         return [
             ProfileWindowItem(
+                mochi_item_id=it.id,
                 summary=it.summary,
+                title=it.display_title,
+                category=it.category,
                 intent_types=it.intent_types,
                 user_memo=it.source.user_memo,
             )
-            for it in items
+            for it in recent
         ]
 
     async def count_items(self, *, owner_id: UUID) -> int:

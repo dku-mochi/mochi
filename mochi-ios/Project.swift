@@ -306,7 +306,10 @@ let project = Project(
         // MARK: App Shell
         .target(
             name: "Mochi",
-            destinations: .iOS,
+            // iPhone 전용 (TARGETED_DEVICE_FAMILY=1). iPad 를 포함하면 App Store 가
+            // multitasking 용 4방향 orientation 을 강제하는데, 본 앱은 portrait 전용 디자인이라
+            // iPad 를 빼서 Portrait 단독으로 통과시킨다. 내장 확장도 동일 family 로 맞춘다.
+            destinations: [.iPhone],
             product: .app,
             bundleId: bundleIdPrefix,
             deploymentTargets: .iOS(deploymentTarget),
@@ -447,7 +450,7 @@ let project = Project(
         // MARK: Share Extension
         .target(
             name: "ShareExtension",
-            destinations: .iOS,
+            destinations: [.iPhone],
             product: .appExtension,
             bundleId: "\(bundleIdPrefix).ShareExtension",
             deploymentTargets: .iOS(deploymentTarget),
@@ -482,7 +485,7 @@ let project = Project(
         // interactive button. ActivityAttributes 의 type identity 는 CoreLiveActivity 공유.
         .target(
             name: "MochiWidgets",
-            destinations: .iOS,
+            destinations: [.iPhone],
             product: .appExtension,
             bundleId: "\(bundleIdPrefix).MochiWidgets",
             deploymentTargets: .iOS(deploymentTarget),
