@@ -1150,4 +1150,83 @@ CLASSIFY_AND_ACT_V14 = PromptVersion(
 )
 
 
-ACTIVE_PROMPT: PromptVersion = CLASSIFY_AND_ACT_V14
+CLASSIFY_AND_ACT_V15 = PromptVersion(
+    name="classify_and_act@v15",
+    body=CLASSIFY_AND_ACT_V14.body.replace(
+        (
+            "# When a capture is ambiguous — one ladder (this sets needs_review)\n"
+            "This is the only ambiguity rule."
+        ),
+        (
+            "# When a capture is ambiguous — one ladder (this sets needs_review)\n"
+            "When the capture carries a user memo, the memo is your primary evidence and the "
+            "screen is secondary: the memo is the user's own statement of why they saved this, "
+            "while the screen is only a clue you infer that purpose from — and an inference "
+            "cannot overrule a direct statement. So read the follow-up action from the memo "
+            "first and walk the steps below using it; the commitment a step looks for is "
+            "equally satisfied when the memo states an action to take or a time to act on, not "
+            "only when the screen shows it. The screen then fills in title and payload "
+            "detail — it cannot contradict the memo's stated purpose, only enrich it. (The "
+            "steps still apply normally to captures with no memo, and to any on-screen intent "
+            "the memo doesn't mention.)\n"
+            "This is the only ambiguity rule."
+        ),
+    ).replace(
+        (
+            "committed (booked, applied, \"I'll definitely…,\" an active deadline they own).\n"
+        ),
+        (
+            "committed (booked, applied, \"I'll definitely…,\" an active deadline they own) — "
+            "or, just as decisively, the user's memo states that commitment in their own "
+            "words.\n"
+        ),
+    ).replace(
+        (
+            "# User memo\n"
+            "When a memo accompanies the capture, it is the user's explicit statement of "
+            "intent. The screen is a clue you infer from; the memo is the answer they already "
+            "gave.\n"
+            "- Carry its specific wording and nuance into the summary and instances; don't "
+            "abstract it into a generic category (\"김 싸 먹어야지\" → \"식사 계획\" loses the "
+            "point).\n"
+            "- Don't inflate it with actions the memo doesn't contain. A \"~해야지\" resolution "
+            "is reflected as that resolution, not escalated into a larger purchase/booking the "
+            "user never wrote.\n"
+            "- But the memo isn't a ceiling: if the screen clearly shows a distinct intent the "
+            "memo doesn't, keep that as a separate instance too.\n\n"
+        ),
+        (
+            "# User memo\n"
+            "When a memo accompanies the capture, it is the user's explicit statement of "
+            "intent and your primary evidence — it outranks the screen, which is only what you "
+            "infer that intent from. Let it decide the classification; the screen enriches the "
+            "details.\n"
+            "- Carry its specific wording and nuance into the summary and instances; don't "
+            "abstract it into a generic category (\"김 싸 먹어야지\" → \"식사 계획\" loses the "
+            "point).\n"
+            "- The memo binds you to what it says, not to more than it says: a resolution to "
+            "do something is that resolution at its own scale, not a larger purchase or "
+            "booking built around it — unless the screen independently shows that larger "
+            "action. Honoring a memo means following its intent, not inflating it.\n"
+            "- But the memo isn't a ceiling: if the screen clearly shows a distinct intent the "
+            "memo doesn't, keep that as a separate instance too.\n\n"
+        ),
+    ),
+    model_target="gemini-3.1-flash-lite",
+    eval_dataset_version="intent-schema-decision@2026-06-04",
+    revised_on=date(2026, 6, 10),
+    rationale=(
+        "V14 → V15: user_memo 가 분류에 들어가지만 지배하지 못하는 문제 수정. ambiguity ladder 와 "
+        "boundaries 가 commitment 를 '화면(screen)' 에서만 읽어, 메모에 명시된 행동/시점(예: '다음주 "
+        "금요일에 봐야지')이 있어도 화면에 commit 신호가 없으면 memo 로 강등됐다. 처방: 좁은 매핑 "
+        "리스트가 아니라(skill-creator: example 과적합 회피) '메모는 사용자가 직접 준 의도의 답이고 "
+        "화면은 그것을 추론하는 단서 — 추론이 직접 진술을 이길 수 없다' 는 단일 이유를 ladder 진입부에 "
+        "심어 모델이 표현을 일반화하게 했다. 3블록: ladder 진입부에 memo-primary 원칙 추가, boundaries "
+        "'Appeal is not commitment' 탈출조건에 '메모의 진술' 병기, User memo 섹션 선언을 'primary "
+        "evidence·화면보다 우선' 으로 격상. 부풀리기 가드(메모가 말 안 한 더 큰 행동 발명 금지)는 삭제 "
+        "않고 why 로 재프레이밍해 보존('말한 스케일 그대로 존중'). 분류 schema·도구·eval_dataset 불변."
+    ),
+)
+
+
+ACTIVE_PROMPT: PromptVersion = CLASSIFY_AND_ACT_V15
