@@ -1,5 +1,6 @@
 import ComposableArchitecture
 import DesignSystem
+import FeatureChat
 import FeatureMochiItem
 import FeatureDetail
 import FeatureInbox
@@ -17,6 +18,7 @@ struct MainTabFeature: Sendable {
         var selectedTab: Tab = .home
         var home = HomeFeature.State()
         var inbox = InboxFeature.State()    // dev debug 접근용 (설정 → 디버그)
+        var chat = ChatFeature.State()
         var mochiCalendar = MochiCalendarFeature.State()
         var search = SearchFeature.State()
 
@@ -57,6 +59,7 @@ struct MainTabFeature: Sendable {
         case searchTabReselected            // 검색 탭이 이미 선택된 상태에서 다시 탭 → 시작 화면으로 복귀
         case home(HomeFeature.Action)
         case inbox(InboxFeature.Action)
+        case chat(ChatFeature.Action)
         case mochiCalendar(MochiCalendarFeature.Action)
         case search(SearchFeature.Action)
         case path(StackActionOf<Path>)
@@ -74,6 +77,7 @@ struct MainTabFeature: Sendable {
     var body: some ReducerOf<Self> {
         Scope(state: \.home,     action: \.home)     { HomeFeature() }
         Scope(state: \.inbox,    action: \.inbox)    { InboxFeature() }
+        Scope(state: \.chat,     action: \.chat)     { ChatFeature() }
         Scope(state: \.mochiCalendar, action: \.mochiCalendar) { MochiCalendarFeature() }
         Scope(state: \.search,   action: \.search)   { SearchFeature() }
 
@@ -164,7 +168,7 @@ struct MainTabFeature: Sendable {
                 state.detail = nil
                 return .none
 
-            case .home, .inbox, .mochiCalendar, .search, .path, .mochiItem, .detail, .delegate:
+            case .home, .inbox, .chat, .mochiCalendar, .search, .path, .mochiItem, .detail, .delegate:
                 return .none
 
             case .tabSelected, .searchTabReselected:
