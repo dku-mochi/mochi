@@ -31,11 +31,11 @@ declare -a TARGETS
 case "$SCOPE" in
   l1)  TARGETS=("$REPO/docs/WORKFLOW.md" "$REPO/docs/PRODUCT.md" "$REPO/docs/HARNESS_GUIDE.md" "$REPO/docs/INDEX.md") ;;
   l2)  TARGETS=("$REPO/docs/ARCHITECTURE.md" "$REPO/docs/DOMAIN_DESIGN.md" "$REPO/docs/PRIVACY_SENSITIVE_CAPTURE.md") ;;
-  l3)  TARGETS=("$REPO/docs/TODO.md" "$REPO/docs/CHANGELOG.md" "$REPO"/journal/*.md) ;;
+  l3)  TARGETS=("$REPO/docs/UX_SPEC.md" "$REPO/docs/TODO.md" "$REPO/docs/CHANGELOG.md" "$REPO"/journal/*.md) ;;
   all) TARGETS=(
          "$REPO/docs/WORKFLOW.md" "$REPO/docs/PRODUCT.md" "$REPO/docs/HARNESS_GUIDE.md" "$REPO/docs/INDEX.md"
          "$REPO/docs/ARCHITECTURE.md" "$REPO/docs/DOMAIN_DESIGN.md" "$REPO/docs/PRIVACY_SENSITIVE_CAPTURE.md"
-         "$REPO/docs/TODO.md" "$REPO/docs/CHANGELOG.md"
+         "$REPO/docs/UX_SPEC.md" "$REPO/docs/TODO.md" "$REPO/docs/CHANGELOG.md"
          "$REPO"/journal/*.md
        ) ;;
   *) echo "사용: $0 [l1|l2|l3|all]" >&2; exit 1 ;;

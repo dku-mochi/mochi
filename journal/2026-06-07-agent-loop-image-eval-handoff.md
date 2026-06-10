@@ -1,4 +1,11 @@
 ---
+level: 3
+mode: log
+status: active
+last_verified: 2026-06-07
+confidence: 0.7
+owners: [박세현]
+description: agent-loop 이미지 평가 구조 개편과 첫 실험 결과의 세션 핸드오프. 이미지 분석 평가 실험을 이어받을 때 읽어라.
 title: "agent-loop-image-eval 평가 구조 개편 + 첫 실험 실행 + 결과 분석"
 date: 2026-06-07
 branch: lab/local-image-eval

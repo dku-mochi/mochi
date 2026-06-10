@@ -2,7 +2,7 @@
 level: 1
 mode: reference
 status: active
-last_verified: 2026-06-03
+last_verified: 2026-06-10
 confidence: 0.9
 owners: [송준서, 이용찬, 박세현]
 description: 모찌 docs/ 의 path-first 길잡이. AI 가 파일을 열기 전 어떤 디렉토리를 읽고 어떤 디렉토리를 skip 할지 path 만 보고 결정하도록 한 줄로 안내. 새 문서가 생기면 여기 한 줄 추가.
@@ -17,10 +17,11 @@ description: 모찌 docs/ 의 path-first 길잡이. AI 가 파일을 열기 전 
 | 경로 | 의미 | AI 가 언제 읽나 |
 |---|---|---|
 | `docs/WORKFLOW.md` | L1 운영 매뉴얼 (단일 원천) | **모든 작업 시작 전** — 티어·폭포·공유표면 확인 |
-| `docs/PRODUCT.md` | L1 제품 정의 | UX·핵심 기능 결정 시 |
+| `docs/PRODUCT.md` | L1 제품 정의 — 미션·문제·4-Intent 컨셉·MVP (화면 기획은 UX_SPEC) | "이 기능이 미션에 맞나"·scope-cut 판단 시 |
+| `docs/UX_SPEC.md` | L3 committed — 화면·시나리오·IA·디자인 톤·데모 | 화면 구성/플로우/UI 변경 시 (자유 수정) |
 | `docs/HARNESS_GUIDE.md` | L1 reference — 친절한 입문서 | 새 팀원/세션이 합류했을 때만 |
 | `docs/ARCHITECTURE.md` | L2 committed — 시스템 토폴로지·API 계약 | 두 프로젝트에 걸친 변경 시 |
-| `docs/DOMAIN_DESIGN.md` | L2 committed — 도메인·DB·4-Intent (as-built 정본 + §4.4 flat intents 타겟) | 도메인/마이그레이션 변경 시 |
+| `docs/DOMAIN_DESIGN.md` | L2 committed — 도메인 의미·intent 모델·lifecycle·동기화 규약 (DDL·라우트는 코드 정본) | 도메인/마이그레이션/intent·lifecycle 변경 시 |
 | `docs/INTENT_REDESIGN.md` | L2 reference (adopting) — flat intents 재설계 근거·토론 | intent 스키마·agent·프롬프트 손대기 전 |
 | `docs/PRIVACY_SENSITIVE_CAPTURE.md` | L2 committed — 민감 캡처 보호 | 캡처 ingestion/저장 경로 변경 시 |
 | `docs/aspirational/` | L2 aspirational — *목표 상태* (검증 대상 외) | **default skip**. 명시 요청 시만. |

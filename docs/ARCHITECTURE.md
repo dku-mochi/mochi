@@ -155,7 +155,7 @@ App  ──► AppIntents/          (QuickCaptureIntent + CaptureScreenshotInten
 
 ### 2.4 4-Intent 라이프사이클 (2분할 — 처리상태 ⊥ 의미상태)
 
-2026-06-04 빅뱅으로 lifecycle 은 **2분할**됐다(DOMAIN_DESIGN §7). **item 처리상태**와 **intent instance 의미상태**가 직교한다.
+2026-06-04 빅뱅으로 lifecycle 은 **2분할**됐다(DOMAIN_DESIGN §5). **item 처리상태**와 **intent instance 의미상태**가 직교한다.
 
 - **처리상태** (`mochi_items.lifecycle_kind`, item 단위): `ingested → analyzing → analyzed`(분석완료·instance 적재됨·iOS SSE `final`/폴링 컷오버 신호), 실패 시 `→ failed`. archive 없음.
 - **의미상태** (`intent_instances.lifecycle_kind`, instance 단위): instance 는 분석 성공 시 `active` 로 태어난다. `CoreDomain.LifecyclePolicy.validate(from:to:intent:)` 가 (1) `(current→next)` 페어가 intent_type 별 허용인지 (2) `.archived(reason:)` 의 reason 이 intent_type 별 허용인지 검증.
@@ -355,7 +355,7 @@ SearchResponse
 
 ## 4. iOS ↔ Backend 계약
 
-> **API 계약의 단일 원천은 [`mochi-backend/openapi.json`](../mochi-backend/openapi.json)** — 백엔드 `presentation/` 에서 `make openapi` 로 생성된다. **엔드포인트 목록·요청/응답 스키마·필드 타입은 이 문서에 복제하지 않는다**(로컬 구동 시 `GET /docs` Swagger UI). 어느 라우트가 실재하고 iOS 가 배선됐는지의 단일 원천은 [`DOMAIN_DESIGN.md`](DOMAIN_DESIGN.md) §6 이다. 이 절은 그 위에 얹히는 *런타임 규약*(헤더)·*매핑*만 다룬다.
+> **API 계약의 단일 원천은 [`mochi-backend/openapi.json`](../mochi-backend/openapi.json)** — 백엔드 `presentation/` 에서 `make openapi` 로 생성된다. **엔드포인트 목록·요청/응답 스키마·필드 타입은 이 문서에 복제하지 않는다**(로컬 구동 시 `GET /docs` Swagger UI). openapi 만으론 알 수 없는 iOS 배선 예외는 [`DOMAIN_DESIGN.md`](DOMAIN_DESIGN.md) §6.4 가 소유한다. 이 절은 그 위에 얹히는 *런타임 규약*(헤더)·*매핑*만 다룬다.
 
 ### 4.1 Request headers
 
@@ -367,7 +367,7 @@ SearchResponse
 
 ### 4.2 Endpoints
 
-엔드포인트 목록·요청/응답 스키마는 **`openapi.json`** 단일 원천(위 §4 노트). 각 라우트의 도메인 의미·실재/배선 상태(✅실재배선 / ◑서버만 / ○미존재)는 [`DOMAIN_DESIGN.md`](DOMAIN_DESIGN.md) §6 표를 본다.
+엔드포인트 목록·요청/응답 스키마·각 라우트의 의미는 **`openapi.json`** 단일 원천(위 §4 노트). iOS 배선 예외(서버만 실재·라우트 미존재 등)는 [`DOMAIN_DESIGN.md`](DOMAIN_DESIGN.md) §6.4 를 본다.
 
 ### 4.3 DTO 매핑
 
@@ -403,7 +403,7 @@ iOS `CoreNetworking.MochiAPIClient` 의 DTO 가 backend `openapi.json` 의 스�
 ### 5.5 Agent loop & 개인화 (Arch2 — LLM = 분석가)
 
 - **`GeminiAgentClient(LLMClient)`** (`gemini-3.1-flash-lite`/global) — function-calling 루프. LLM 이 분석가: `finalizeAnalysis`(V7, boolean instances) 로 가변 개수 `intent_instances`(`intent_type`·`payload`(typed)·`label`·`reasoning`) + `needs_review` + `review_options` + summary·entities 를 직접 저술한다. **서버 derive 없음**(점수·대표·위계 폐기 — `_to_analysis_result` 가 DTO→instance 1:1 분해). `platformContext`/`webFetch` 로 URL 그라운딩. `AgentOrchestrator` 가 첫 user turn 에 `# 시간 컨텍스트`(Asia/Seoul 현재시각)를 주입한다. orchestrator 의 `ANALYZED` 노드가 루프를, `PERSISTED` 노드가 `MochiItemGateway.apply_analysis` write-back(intent_instances delete-reinsert + 처리상태 `→analyzed`)을 담당.
-- **개인화**: `user_profiles` 에 유저 특성 요약(관심사·평소 분류 성향)을 sliding-window 로 적립(`RefreshUserProfile`, 디바운스), 분석 시 system prompt 에 주입 → 쓸수록 정확. 상세 흐름은 `DOMAIN_DESIGN.md §8.2`.
+- **개인화**: `user_profiles` 에 유저 특성 요약(관심사·평소 분류 성향)을 sliding-window 로 적립(`RefreshUserProfile`, 디바운스), 분석 시 system prompt 에 주입 → 쓸수록 정확 (도메인 위치: `DOMAIN_DESIGN.md` §7.2).
 - text+URL = 실연결. 이미지 bytes 분석·임베딩 적재(INDEXED)는 design-ahead.
 
 ---

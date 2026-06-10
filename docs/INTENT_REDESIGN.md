@@ -5,13 +5,13 @@ status: superseded
 last_verified: 2026-06-05
 confidence: 0.8
 owners: [송준서, 이용찬, 박세현]
-description: Intent 데이터 모델 재설계 토론 기록 (히스토리). **폐기됨(superseded)** — 이 문서의 flat `intents` + threshold τ 안은 2026-06-04 실험(lab FINDINGS, intent F1 0.809→0.935)이 뒤집었다. 최종 정본은 DOMAIN_DESIGN.md §4.4 (별도 `intent_instances` 테이블 + `needs_review` boolean, 점수·대표·위계·threshold 폐기). 이 문서는 "왜 flat+τ 를 버리고 instance 로 갔나" 의 근거로만 읽어라.
+description: Intent 데이터 모델 재설계 토론 기록 (히스토리). **폐기됨(superseded)** — 이 문서의 flat `intents` + threshold τ 안은 2026-06-04 실험(lab FINDINGS, intent F1 0.809→0.935)이 뒤집었다. 최종 정본은 DOMAIN_DESIGN.md §4 (별도 `intent_instances` 테이블 + `needs_review` boolean, 점수·대표·위계·threshold 폐기). 이 문서는 "왜 flat+τ 를 버리고 instance 로 갔나" 의 근거로만 읽어라.
 ---
 
 # Intent 데이터 모델 재설계 — 설계 노트
 
 > **상태: 폐기됨(superseded).** 2026-06-02 설계 토론(송준서 ↔ Claude) 기록. 이 문서의 flat `intents` + threshold τ 안은 2026-06-04 실험(`lab/active/intent-schema-decision/FINDINGS.md`, intent F1 0.809→0.935)이 뒤집었다.
-> **최종 정본은 [`DOMAIN_DESIGN.md`](DOMAIN_DESIGN.md) §4.4** — 별도 `intent_instances` 테이블(점수·대표·위계·threshold 폐기, boolean instance), alembic `0009` 빅뱅으로 as-built 완료.
+> **최종 정본은 [`DOMAIN_DESIGN.md`](DOMAIN_DESIGN.md) §4** — 별도 `intent_instances` 테이블(점수·대표·위계·threshold 폐기, boolean instance), alembic `0009` 빅뱅으로 as-built 완료.
 > 이 문서는 "왜 flat+τ 를 버리고 instance 로 갔나" 의 **근거·토론 기록**으로만 읽어라.
 
 ---

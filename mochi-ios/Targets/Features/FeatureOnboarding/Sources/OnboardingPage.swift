@@ -2,7 +2,7 @@ import Foundation
 
 /// 온보딩 4페이지의 데이터 정의.
 ///
-/// 카피는 시안 (`docs/PRODUCT.md §8.3` + 디자인 mockup) 그대로 유지한다.
+/// 카피는 시안 (`docs/UX_SPEC.md §3.3` + 디자인 mockup) 그대로 유지한다.
 /// 페이지 인덱스는 0-based 이며 ``OnboardingFeature.State.currentPage`` 와 1:1 매칭.
 public enum OnboardingPage: Int, CaseIterable, Sendable {
     case intro
