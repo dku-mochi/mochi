@@ -16,6 +16,9 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 > **동시 세션 / 공유 파일 주의**: CHANGELOG 는 여러 세션·작업자가 함께 쓰는 append-only 공유 파일이다. 동시 작업 중에는 다른 세션이 자기 항목을 먼저 커밋할 수 있고, 한 워킹트리에 여러 세션의 미커밋 항목이 섞여 보일 수 있다. 이때 **항목을 분리하려 애쓰지 말고** 자기 변경과 함께 그대로 staging·커밋한다 — 섞인 다른 항목은 해당 세션이 자기 코드와 함께 정리한다. diff 에 모르는 CHANGELOG 항목이 보여도 멈추지 않는다 (단, CHANGELOG 외의 *코드* 파일은 절대 임의로 섞어 커밋하지 않는다).
 
 ## 2026-06-10 — ios
+- **채팅 탭 iOS PR-3: proposal 카드 상태머신 + 확정 5경로**. `ChatProposal` 을 kind 별 typed payload 로 재설계(+SSE/스냅샷 JSON 파싱 — 결손 시 카드 숨김), 카드 상태머신 pending→confirming→confirmed/cancelled/expired/failed. 확정 실행: delete=`DELETE`+로컬 미러 정리, update=`PATCH /mochi_items`(신규 클라 메서드), schedule=`POST`+`confirmedInstances`(proposal id 가 Idempotency-Key, §5.2 예외)+pullRemote, memo=로컬 upsert(**channel `chat` 신설** — 팀 합의 ②)+sync, reminder=`UNUserNotificationCenter` 로컬 알림(권한 거부 → failed+설정 열기). 404 = 카드 만료. TestStore 5분기 green.
+
+## 2026-06-10 — ios
 - **채팅 탭 iOS PR-2: citation 렌더** (`feat/be-chat-web` 스택). 본문 `【item:id】` 마커를 raw 보관·표시 직전 변환(ChatMarkup — delta 분절 대응: 스트리밍 중 미완성 꼬리 트리밍, 매칭 citation 없으면 숨김) → 위첨자 뱃지(¹²) + 근거 미니카드 행(탭 → 서버 id 를 로컬 Realm id 로 해석 후 상세 present) + 완료 턴 "과정 보기 · N단계" 접힘. tuist build/test 전 타겟 green.
 
 ## 2026-06-10 — backend, docs

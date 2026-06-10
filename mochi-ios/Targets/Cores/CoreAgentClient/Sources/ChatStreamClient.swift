@@ -43,8 +43,9 @@ public struct ChatCitation: Equatable, Sendable, Identifiable {
 
 /// 모찌가 제안하는 행동 카드 — LLM 루프는 read-only, 실행은 사용자 확정 탭 → REST.
 ///
-/// PR-1 은 표시 필드만 — kind 별 typed 실행 payload(확정 경로 배선)는 proposal 카드
-/// 구현(PR-3)에서 확장한다.
+/// `action` 이 kind 별 typed 실행 payload — 백엔드 `propose.py` 의 proposal payload 와 1:1.
+/// 실행 경로 매핑(서버 docstring 정본): item_update→PATCH, item_delete→DELETE,
+/// create_schedule→POST+confirmedInstances, create_memo→일반 ingestion, reminder→iOS 로컬 알림.
 public struct ChatProposal: Equatable, Sendable, Identifiable {
     public enum Kind: String, Equatable, Sendable {
         case updateItem = "item_update"
@@ -54,17 +55,197 @@ public struct ChatProposal: Equatable, Sendable, Identifiable {
         case reminder = "reminder"
     }
 
-    public let id: UUID
-    public let kind: Kind
-    /// 카드 헤더 — 무엇을 할지 (예: "이 메모를 지울까요?").
-    public let title: String
-    /// 무엇이 어떻게 바뀌는지 1줄.
-    public let detail: String?
+    public struct InstanceChange: Equatable, Sendable {
+        public let instanceID: UUID
+        /// 부분 payload 필드 (title/date/time/deadline/person/topic/url/note) — 병합 PATCH.
+        public let payload: [String: String]
+        public let label: String?
+        public let lifecycleTo: String?
+        public let archiveReason: String?
 
-    public init(id: UUID, kind: Kind, title: String, detail: String?) {
+        public init(
+            instanceID: UUID, payload: [String: String] = [:],
+            label: String? = nil, lifecycleTo: String? = nil, archiveReason: String? = nil
+        ) {
+            self.instanceID = instanceID
+            self.payload = payload
+            self.label = label
+            self.lifecycleTo = lifecycleTo
+            self.archiveReason = archiveReason
+        }
+    }
+
+    public struct UpdateItemPayload: Equatable, Sendable {
+        public let mochiItemID: UUID
+        public let text: String?
+        public let userMemo: String?
+        public let summary: String?
+        public let instanceChanges: [InstanceChange]
+
+        public init(
+            mochiItemID: UUID, text: String? = nil, userMemo: String? = nil,
+            summary: String? = nil, instanceChanges: [InstanceChange] = []
+        ) {
+            self.mochiItemID = mochiItemID
+            self.text = text
+            self.userMemo = userMemo
+            self.summary = summary
+            self.instanceChanges = instanceChanges
+        }
+    }
+
+    public struct ConfirmedInstance: Equatable, Sendable {
+        public let intentType: String
+        public let payload: [String: String]
+
+        public init(intentType: String, payload: [String: String]) {
+            self.intentType = intentType
+            self.payload = payload
+        }
+    }
+
+    public struct CreateSchedulePayload: Equatable, Sendable {
+        public let text: String?
+        public let instances: [ConfirmedInstance]
+
+        public init(text: String?, instances: [ConfirmedInstance]) {
+            self.text = text
+            self.instances = instances
+        }
+    }
+
+    public struct ReminderPayload: Equatable, Sendable {
+        public let fireAt: Date
+        public let title: String
+        public let relatedMochiItemID: UUID?
+
+        public init(fireAt: Date, title: String, relatedMochiItemID: UUID? = nil) {
+            self.fireAt = fireAt
+            self.title = title
+            self.relatedMochiItemID = relatedMochiItemID
+        }
+    }
+
+    public enum ProposedAction: Equatable, Sendable {
+        case updateItem(UpdateItemPayload)
+        case deleteItem(mochiItemID: UUID)
+        case createSchedule(CreateSchedulePayload)
+        case createMemo(text: String)
+        case reminder(ReminderPayload)
+    }
+
+    public let id: UUID
+    /// 카드 헤더 — 무엇을 할지 (예: "이 메모를 지울까요?"). 서버 display.title.
+    public let title: String
+    /// 무엇이 어떻게 바뀌는지 1줄. 서버 display.description.
+    public let detail: String?
+    public let action: ProposedAction
+
+    public var kind: Kind {
+        switch action {
+        case .updateItem: .updateItem
+        case .deleteItem: .deleteItem
+        case .createSchedule: .createSchedule
+        case .createMemo: .createMemo
+        case .reminder: .reminder
+        }
+    }
+
+    public init(id: UUID, title: String, detail: String?, action: ProposedAction) {
         self.id = id
-        self.kind = kind
         self.title = title
         self.detail = detail
+        self.action = action
     }
+}
+
+public extension ChatProposal {
+    /// SSE `proposal` 이벤트·스냅샷 `proposals` 행의 JSON → typed proposal.
+    /// 알 수 없는 type / 필수 필드 결손이면 nil — 깨진 카드를 보여주느니 숨긴다(서버가 검증 정본).
+    init?(id: UUID, type: String, payload: [String: Any]) {
+        guard let kind = Kind(rawValue: type) else { return nil }
+        let display = payload["display"] as? [String: Any]
+        let title = (display?["title"] as? String) ?? ""
+        let detail = display?["description"] as? String
+
+        let action: ProposedAction
+        switch kind {
+        case .deleteItem:
+            guard let itemID = UUID(uuidString: payload["mochi_item_id"] as? String ?? "") else { return nil }
+            action = .deleteItem(mochiItemID: itemID)
+
+        case .updateItem:
+            guard let itemID = UUID(uuidString: payload["mochi_item_id"] as? String ?? "") else { return nil }
+            let changes = payload["changes"] as? [String: Any] ?? [:]
+            var instanceChanges: [InstanceChange] = []
+            for raw in payload["instance_changes"] as? [[String: Any]] ?? [] {
+                guard let instanceID = UUID(uuidString: raw["instance_id"] as? String ?? "") else { return nil }
+                let lifecycle = raw["lifecycle"] as? [String: Any]
+                instanceChanges.append(
+                    InstanceChange(
+                        instanceID: instanceID,
+                        payload: (raw["payload"] as? [String: String]) ?? [:],
+                        label: raw["label"] as? String,
+                        lifecycleTo: lifecycle?["to"] as? String,
+                        archiveReason: lifecycle?["archive_reason"] as? String
+                    )
+                )
+            }
+            action = .updateItem(
+                UpdateItemPayload(
+                    mochiItemID: itemID,
+                    text: changes["text"] as? String,
+                    userMemo: changes["user_memo"] as? String,
+                    summary: changes["summary"] as? String,
+                    instanceChanges: instanceChanges
+                )
+            )
+
+        case .createSchedule:
+            let instances = (payload["confirmed_instances"] as? [[String: Any]] ?? []).compactMap {
+                raw -> ConfirmedInstance? in
+                guard let intentType = raw["intent_type"] as? String else { return nil }
+                return ConfirmedInstance(
+                    intentType: intentType, payload: (raw["payload"] as? [String: String]) ?? [:]
+                )
+            }
+            guard !instances.isEmpty else { return nil }
+            action = .createSchedule(
+                CreateSchedulePayload(text: payload["text"] as? String, instances: instances)
+            )
+
+        case .createMemo:
+            guard let text = payload["text"] as? String, !text.isEmpty else { return nil }
+            action = .createMemo(text: text)
+
+        case .reminder:
+            guard let rawFireAt = payload["fire_at"] as? String,
+                  let fireAt = ISO8601DateFormatter.chatProposal.date(from: rawFireAt)
+                    ?? ISO8601DateFormatter.chatProposalNoFraction.date(from: rawFireAt),
+                  let reminderTitle = payload["title"] as? String
+            else { return nil }
+            let related = UUID(uuidString: payload["related_mochi_item_id"] as? String ?? "")
+            action = .reminder(
+                ReminderPayload(fireAt: fireAt, title: reminderTitle, relatedMochiItemID: related)
+            )
+        }
+
+        self.init(id: id, title: title, detail: detail, action: action)
+    }
+}
+
+private extension ISO8601DateFormatter {
+    /// 백엔드 fire_at 은 `+09:00` offset 포함 ISO — 초단위(.withInternetDateTime)와
+    /// 소수점 초 두 변형을 모두 수용한다.
+    static let chatProposal: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }()
+
+    static let chatProposalNoFraction: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime]
+        return formatter
+    }()
 }

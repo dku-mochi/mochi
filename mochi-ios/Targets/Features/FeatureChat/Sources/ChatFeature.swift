@@ -1,6 +1,7 @@
 import ComposableArchitecture
 import CoreAgentClient
 import CoreDomain
+import CoreNetworking
 import CorePersistence
 import Foundation
 
@@ -49,13 +50,36 @@ public struct ChatFeature: Sendable {
         /// 지금 돌고 있는 툴의 동사형 카피 (예: "기록을 뒤지고 있어요"). 스트리밍 중에만.
         public var activeToolLabel: String?
         public var citations: [ChatCitation] = []
-        public var proposals: [ChatProposal] = []
+        public var proposals: IdentifiedArrayOf<ProposalCard> = []
         public var isStreaming: Bool = false
 
         public init(id: UUID, role: Role, text: String) {
             self.id = id
             self.role = role
             self.text = text
+        }
+    }
+
+    /// proposal + 카드 상태머신. 쓰기는 전부 여기서만 — LLM 루프는 read-only (서버 설계).
+    public struct ProposalCard: Equatable, Sendable, Identifiable {
+        public var proposal: ChatProposal
+        public var status: Status
+
+        public var id: UUID { proposal.id }
+
+        public init(proposal: ChatProposal, status: Status = .pending) {
+            self.proposal = proposal
+            self.status = status
+        }
+
+        public enum Status: Equatable, Sendable {
+            case pending
+            case confirming
+            case confirmed
+            case cancelled
+            /// 확정 시점 404 — 카드 생성~확정 사이 대상이 사라짐(reanalyze delete-reinsert 포함).
+            case expired
+            case failed(reason: String, needsNotificationPermission: Bool)
         }
     }
 
@@ -83,6 +107,9 @@ public struct ChatFeature: Sendable {
         case streamFailed(String)
         /// 근거 미니카드 탭 — 서버 id 를 로컬 항목으로 해석해 상위(MainTab)가 상세를 띄운다.
         case citationTapped(ChatCitation)
+        case proposalConfirmTapped(messageID: UUID, proposalID: UUID)
+        case proposalCancelTapped(messageID: UUID, proposalID: UUID)
+        case proposalResolved(messageID: UUID, proposalID: UUID, status: ProposalCard.Status)
         case delegate(Delegate)
 
         public enum Delegate: Equatable, Sendable {
@@ -92,8 +119,10 @@ public struct ChatFeature: Sendable {
     }
 
     @Dependency(\.chatStreamClient) var chatStreamClient
+    @Dependency(\.mochiAPIClient) var apiClient
     @Dependency(\.mochiItemRepository) var repository
     @Dependency(\.syncTrigger) var syncTrigger
+    @Dependency(\.reminderScheduler) var reminderScheduler
     @Dependency(\.uuid) var uuid
 
     private enum CancelID { case stream }
@@ -155,29 +184,129 @@ public struct ChatFeature: Sendable {
                     // 미해석(서버에서 삭제된 출처 등) — 카드는 출처 스냅샷으로만 남는다.
                 }
 
+            case let .proposalConfirmTapped(messageID, proposalID):
+                guard let card = state.messages[id: messageID]?.proposals[id: proposalID],
+                      card.status == .pending
+                else { return .none }
+                state.messages[id: messageID]?.proposals[id: proposalID]?.status = .confirming
+                return .run { send in
+                    let status = await execute(card.proposal)
+                    await send(
+                        .proposalResolved(messageID: messageID, proposalID: proposalID, status: status)
+                    )
+                }
+
+            case let .proposalCancelTapped(messageID, proposalID):
+                guard state.messages[id: messageID]?.proposals[id: proposalID]?.status == .pending
+                else { return .none }
+                state.messages[id: messageID]?.proposals[id: proposalID]?.status = .cancelled
+                return .none
+
+            case let .proposalResolved(messageID, proposalID, status):
+                state.messages[id: messageID]?.proposals[id: proposalID]?.status = status
+                return .none
+
             case .delegate:
                 return .none
             }
         }
     }
 
-    /// citation 의 서버 id → 로컬 Realm id.
+    // MARK: - Proposal 확정 실행 (5경로 — propose.py 의 실행 경로 매핑과 1:1)
+
+    /// 확정 탭 → REST/로컬 실행. 결과를 카드 상태로 변환한다 — 404 는 에러가 아니라
+    /// "카드 만료"(생성~확정 사이 대상 소멸, reanalyze delete-reinsert known-drift 포함).
+    private func execute(_ proposal: ChatProposal) async -> ProposalCard.Status {
+        do {
+            switch proposal.action {
+            case let .deleteItem(mochiItemID):
+                try await apiClient.deleteMochiItem(mochiServerID: mochiItemID)
+                // 로컬 미러도 정리 — 남겨두면 홈/검색이 서버와 어긋난다 (DetailFeature 삭제와 동일).
+                if let localID = await Self.lookupLocalID(serverID: mochiItemID, repository: repository) {
+                    try? await repository.delete(id: localID)
+                }
+
+            case let .updateItem(payload):
+                try await apiClient.updateMochiItem(
+                    mochiServerID: payload.mochiItemID,
+                    MochiItemUpdateRequestDTO(
+                        text: payload.text,
+                        userMemo: payload.userMemo,
+                        summary: payload.summary,
+                        instances: payload.instanceChanges.map {
+                            InstanceChangeRequestDTO(
+                                instanceID: $0.instanceID,
+                                payload: $0.payload,
+                                label: $0.label,
+                                lifecycleKind: $0.lifecycleTo,
+                                archiveReason: $0.archiveReason
+                            )
+                        }
+                    )
+                )
+                // 서버가 정본 — 로컬 미러 갱신은 SSE/폴링·pull 의 몫이지만, 즉시성 위해 pull 1회.
+                await syncTrigger.pullRemote()
+
+            case let .createSchedule(payload):
+                // 분석 생략 직행 생성 (§5.2 예외). proposal id 가 Idempotency-Key — 재탭 멱등.
+                _ = try await apiClient.ingestMochiItem(
+                    MochiItemIngestRequest(
+                        channel: .chat,
+                        text: payload.text,
+                        confirmedInstances: payload.instances.map {
+                            ConfirmedInstanceIngestDTO(intentType: $0.intentType, payload: $0.payload)
+                        }
+                    ),
+                    idempotencyKey: proposal.id.uuidString
+                )
+                await syncTrigger.pullRemote()   // 캘린더·검색에 바로 보이게 로컬 미러 채움
+
+            case let .createMemo(text):
+                // 일반 캡처와 동일 경로: 로컬 upsert(.pendingUpload) → worker 가 ingest(분석 경유).
+                let source = IngestSource(id: uuid(), channel: .chat, text: text)
+                try await repository.upsert(MochiItem(source: source))
+                await syncTrigger.runOnce()
+
+            case let .reminder(payload):
+                try await reminderScheduler.schedule(
+                    id: proposal.id,
+                    title: payload.title,
+                    fireAt: payload.fireAt,
+                    relatedMochiItemID: payload.relatedMochiItemID
+                )
+            }
+            return .confirmed
+        } catch let error as APIErrorEnvelope where error.code.hasSuffix(".not_found") {
+            return .expired
+        } catch ReminderSchedulingError.permissionDenied {
+            return .failed(reason: "알림 권한이 꺼져 있어요", needsNotificationPermission: true)
+        } catch ReminderSchedulingError.invalidFireDate {
+            return .failed(reason: "이미 지난 시간이에요", needsNotificationPermission: false)
+        } catch {
+            return .failed(reason: "잠시 후 다시 시도해주세요", needsNotificationPermission: false)
+        }
+    }
+
+    /// 서버 id → 로컬 Realm id (조회만).
     /// 서버에서 pull 된 항목은 로컬 id == 서버 id, 로컬 생성 항목은 syncState 의 serverID 로 매칭.
-    /// 어느 쪽도 없으면(이 기기에 아직 없음) pullRemote 후 1회 재시도.
+    private static func lookupLocalID(
+        serverID: UUID, repository: any MochiItemRepository
+    ) async -> MochiItem.ID? {
+        if let direct = try? await repository.find(id: serverID), direct != nil { return serverID }
+        let all = (try? await repository.listRecent(limit: 2000)) ?? []
+        return all.first {
+            if case let .uploaded(id, _) = $0.syncState { return id == serverID }
+            return false
+        }?.id
+    }
+
+    /// ``lookupLocalID`` + 미발견 시(이 기기에 아직 없음) pullRemote 후 1회 재시도.
     private static func resolveLocalID(
         serverID: UUID, repository: any MochiItemRepository, syncTrigger: any SyncTrigger
     ) async -> MochiItem.ID? {
-        func lookup() async -> MochiItem.ID? {
-            if let direct = try? await repository.find(id: serverID), direct != nil { return serverID }
-            let all = (try? await repository.listRecent(limit: 2000)) ?? []
-            return all.first {
-                if case let .uploaded(id, _) = $0.syncState { return id == serverID }
-                return false
-            }?.id
-        }
-        if let found = await lookup() { return found }
+        if let found = await lookupLocalID(serverID: serverID, repository: repository) { return found }
         await syncTrigger.pullRemote()
-        return await lookup()
+        return await lookupLocalID(serverID: serverID, repository: repository)
     }
 
     // MARK: - Helpers
@@ -223,7 +352,7 @@ public struct ChatFeature: Sendable {
         case let .citation(citation):
             state.messages[id: lastID]?.citations.append(citation)
         case let .proposal(proposal):
-            state.messages[id: lastID]?.proposals.append(proposal)
+            state.messages[id: lastID]?.proposals.append(ProposalCard(proposal: proposal))
         case .done:
             state.messages[id: lastID]?.isStreaming = false
         }

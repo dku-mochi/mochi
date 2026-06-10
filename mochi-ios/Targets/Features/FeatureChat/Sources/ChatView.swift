@@ -135,7 +135,19 @@ public struct ChatView: View {
                     ForEach(store.messages) { message in
                         ChatBubbleView(
                             message: message,
-                            onCitationTap: { store.send(.citationTapped($0)) }
+                            onCitationTap: { store.send(.citationTapped($0)) },
+                            onProposalConfirm: { proposalID in
+                                store.send(
+                                    .proposalConfirmTapped(messageID: message.id, proposalID: proposalID),
+                                    animation: .spring(response: 0.35, dampingFraction: 0.85)
+                                )
+                            },
+                            onProposalCancel: { proposalID in
+                                store.send(
+                                    .proposalCancelTapped(messageID: message.id, proposalID: proposalID),
+                                    animation: .spring(response: 0.35, dampingFraction: 0.85)
+                                )
+                            }
                         )
                         .id(message.id)
                     }

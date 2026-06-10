@@ -243,6 +243,7 @@ let project = Project(
             dependencies: [
                 .target(name: "CoreDomain"),
                 .target(name: "CoreAgentClient"),
+                .target(name: "CoreNetworking"),
                 .target(name: "CorePersistence"),
                 .target(name: "DesignSystem"),
                 .package(product: "ComposableArchitecture"),
