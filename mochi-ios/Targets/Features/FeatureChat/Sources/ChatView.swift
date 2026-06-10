@@ -11,6 +11,7 @@ import SwiftUI
 /// 키보드가 인사·칩을 가리면 첫 진입에서 채팅의 능력 폭을 배울 기회가 사라진다.
 public struct ChatView: View {
     @Bindable var store: StoreOf<ChatFeature>
+    @Environment(\.scenePhase) private var scenePhase
 
     public init(store: StoreOf<ChatFeature>) {
         self.store = store
@@ -28,6 +29,10 @@ public struct ChatView: View {
         .background(HomeDesign.Color.bg.ignoresSafeArea())
         .safeAreaInset(edge: .bottom, spacing: 0) { inputDock }
         .onAppear { store.send(.appeared) }
+        .onChange(of: scenePhase) { _, newPhase in
+            // 백그라운드에서 SSE 가 끊겨도 run 은 서버에서 완주 — 복귀 시 스냅샷이 정본.
+            if newPhase == .active { store.send(.sceneActivated) }
+        }
         .sheet(item: $store.scope(state: \.history, action: \.history)) { historyStore in
             ChatHistoryView(store: historyStore)
         }

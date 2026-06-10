@@ -107,7 +107,7 @@ description: 시스템 토폴로지·iOS↔Backend 데이터흐름·API 계약�
 App  ──► Features ──► Cores ─┬─ CoreDomain        (pure model, 의존성 없음)
                              ├─ CorePersistence   (Realm + AppGroup + Repository)
                              ├─ CoreNetworking    (MochiAPIClient + DTO)
-                             ├─ CoreAgentClient   (AgentStreamClient — SSE)
+                             ├─ CoreAgentClient   (AgentStreamClient·ChatStreamClient — SSE)
                              ├─ CoreIntegrations  (EventKit / Reminders)
                              └─ DesignSystem      (MochiTheme, IntentBadge)
 

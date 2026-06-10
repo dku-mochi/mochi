@@ -134,6 +134,54 @@ final class ChatSessionTests: XCTestCase {
         XCTAssertNil(store.state.conversationID)
     }
 
+    // MARK: - 포그라운드 복귀 — running 이면 2초 폴링 (PR-5)
+
+    func test_scene_activated_polls_snapshot_until_run_completes() async {
+        /// 1회차: run 진행 중(user 행만) → 2회차: 완주(assistant 행 등장).
+        actor SequencedClient: ChatAPIClient {
+            let snapshots: [ChatSnapshotDTO]
+            private var calls = 0
+            init(snapshots: [ChatSnapshotDTO]) { self.snapshots = snapshots }
+            func listConversations(limit: Int) async throws -> [ChatConversationDTO] { [] }
+            func conversationSnapshot(id: UUID) async throws -> ChatSnapshotDTO {
+                defer { calls = min(calls + 1, snapshots.count - 1) }
+                return snapshots[calls]
+            }
+            func deleteConversation(id: UUID) async throws {}
+        }
+
+        let running = snapshot(messages: [
+            .init(id: UUID(30), role: "user", content: "질문", runStatus: "running")
+        ])
+        let completed = snapshot(messages: [
+            .init(id: UUID(30), role: "user", content: "질문", runStatus: "completed"),
+            .init(id: UUID(31), role: "assistant", content: "돌아왔더니 답이 와 있다"),
+        ])
+
+        let testClock = TestClock()
+        var initial = ChatFeature.State()
+        initial.conversationID = conversationID
+        initial.messages = [.init(id: UUID(30), role: .user, text: "질문")]
+        let store = TestStore(initialState: initial) {
+            ChatFeature()
+        } withDependencies: {
+            $0.chatAPIClient = SequencedClient(snapshots: [running, completed])
+            $0.chatSessionStore = .noop
+            $0.date = .constant(Date(timeIntervalSince1970: 0))
+            $0.continuousClock = testClock
+        }
+        store.exhaustivity = .off(showSkippedAssertions: false)
+
+        await store.send(.sceneActivated)
+        await store.receive(\.snapshotLoaded)            // 1회차 — 아직 running
+        await testClock.advance(by: .seconds(2))         // 폴링 간격
+        await store.receive(\.snapshotLoaded)            // 2회차 — 완주 스냅샷, 폴링 종료
+        await store.finish()
+
+        XCTAssertEqual(store.state.messages.count, 2)
+        XCTAssertEqual(store.state.messages[id: UUID(31)]?.text, "돌아왔더니 답이 와 있다")
+    }
+
     // MARK: - 히스토리 재개 + 스와이프 삭제
 
     func test_history_selection_loads_snapshot_and_dismisses_sheet() async {
