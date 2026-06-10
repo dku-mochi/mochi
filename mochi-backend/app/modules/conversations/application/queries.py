@@ -11,7 +11,12 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.modules.conversations.domain.entities import STALE_RUN_SECONDS, Conversation, Message
+from app.core.config import get_settings
+from app.modules.conversations.domain.entities import (
+    Conversation,
+    Message,
+    stale_threshold_seconds,
+)
 from app.modules.conversations.domain.ports import ConversationRepository
 
 
@@ -51,7 +56,8 @@ class GetConversationSnapshot:
         await self.repository.mark_stale_runs_failed(
             owner_id=owner_id,
             conversation_id=conversation_id,
-            started_before=datetime.utcnow() - timedelta(seconds=STALE_RUN_SECONDS),
+            started_before=datetime.utcnow()
+            - timedelta(seconds=stale_threshold_seconds(get_settings().chat_run_timeout_seconds)),
         )
         messages = await self.repository.list_messages(
             owner_id=owner_id, conversation_id=conversation_id

@@ -63,6 +63,11 @@ class Settings(BaseSettings):
     gemini_agent_model: str = "gemini-3.1-flash-lite"
     gemini_agent_location: str = "global"
 
+    # 채팅 탭 멀티턴 run (journal 2026-06-10). 비용 최우선 flash-lite 기본 —
+    # 멀티스텝 툴콜 신뢰도가 부족하면 lab 벤치 후 .env 로 상향 (코드 수정 없이 교체).
+    gemini_chat_model: str = "gemini-3.1-flash-lite"
+    chat_run_timeout_seconds: float = 60.0   # SSE 로 기다리는 사용자 기준 — run 전체 상한
+
     # 사용자 개인화 프로필 (sliding-window 특성 요약)
     profile_window_size: int = 20              # 요약에 넣을 최근 항목 수
     profile_refresh_every_n_items: int = 5     # 마지막 갱신 이후 N개 쌓이면 재요약 (비용 bound)

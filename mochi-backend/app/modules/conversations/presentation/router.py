@@ -1,30 +1,138 @@
-"""/conversations 라우터 — 채팅 세션 목록·스냅샷·삭제.
+"""/conversations 라우터 — 채팅 세션 목록·스냅샷·삭제 + 메시지 전송(POST-as-SSE).
 
-메시지 전송(POST /{id}/messages, POST-as-SSE)은 PR-2 (agent run + queue 중계).
+메시지 전송은 응답이 곧 SSE 스트림이다 — 202+별도 GET 분리안은 구독 전 이벤트 유실
+레이스로 기각(journal 2026-06-10). agent run 은 detached task 로 분리돼 클라이언트가
+끊겨도 완주하고, 복귀는 ``GET /{id}/messages`` 스냅샷 재조회가 담당한다.
 """
 
+import asyncio
+import json
+from collections.abc import AsyncIterator
+from functools import lru_cache
+from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Query, status
-from fastapi.responses import Response
+from fastapi.responses import Response, StreamingResponse
 
-from app.core.deps import DBSession
-from app.core.error_envelope import NotFoundError
+from app.core.config import get_settings
+from app.core.db import get_session_factory
+from app.core.deps import DBSession, get_chat_llm
+from app.core.error_envelope import ConflictError, DomainError, NotFoundError
 from app.core.security import CurrentUser
+from app.modules.conversations.application.begin_chat_turn import (
+    BeginChatTurn,
+    RunInProgressError,
+)
 from app.modules.conversations.application.queries import (
     DeleteConversation,
     GetConversationSnapshot,
     ListConversations,
     make_conversation_repository,
 )
+from app.modules.conversations.application.run_chat_turn import RunChatTurn
+from app.modules.conversations.domain.ports import ChatTool
+from app.modules.conversations.domain.run_events import ChatEvent
+from app.modules.conversations.infrastructure.run_registry import get_run_registry
+from app.modules.conversations.infrastructure.tools.get_item_detail import GetItemDetailTool
+from app.modules.conversations.infrastructure.tools.search_items import SearchItemsTool
+from app.modules.conversations.infrastructure.turn_store import SessionChatTurnStore
 from app.modules.conversations.presentation.schemas import (
     ConversationListResponse,
     ConversationResponse,
     ConversationSnapshotResponse,
     MessageResponse,
+    SendMessageRequest,
 )
+from app.modules.conversations.prompts.chat_prompts import ACTIVE_CHAT_PROMPT
 
 router = APIRouter(prefix="/conversations", tags=["conversations"])
+
+# detached run task 의 강한 참조 — 없으면 GC 가 진행 중 task 를 수거할 수 있다 (asyncio 명세).
+_RUNNING_TASKS: set[asyncio.Task[None]] = set()
+
+
+@lru_cache(maxsize=1)
+def _chat_tools() -> tuple[ChatTool, ...]:
+    """프로세스당 1회 조립 — 전부 read-only (쓰기는 proposal 카드, PR-3)."""
+    session_factory = get_session_factory()
+    return (SearchItemsTool(session_factory), GetItemDetailTool(session_factory))
+
+
+def _sse(event: ChatEvent) -> bytes:
+    body = json.dumps(event.payload, ensure_ascii=False, separators=(",", ":"))
+    return f"event: {event.kind}\ndata: {body}\n\n".encode()
+
+
+@router.post("/{conversation_id}/messages")
+async def send_message(
+    conversation_id: UUID, payload: SendMessageRequest, db: DBSession, user: CurrentUser
+) -> StreamingResponse:
+    """메시지 전송 — 응답이 곧 run 의 SSE 스트림 (POST-as-SSE).
+
+    conversationID 는 클라이언트 생성 — 첫 메시지가 대화를 암묵 생성한다. 동일 대화에
+    진행 중 run 이 있으면 409(`conversation.run_in_progress`). 클라이언트가 중간에 끊겨도
+    run 은 완주하며 모든 단계가 영속된다 — 복귀 시 스냅샷 재조회.
+
+    이벤트 wire format (서버 정본 — ARCHITECTURE §3.6, iOS `ChatStreamEvent` 와 1:1.
+    모든 payload 에 ``run_id`` 동봉):
+    ```
+    message_delta  {run_id, text}
+    tool_started   {run_id, name, label}
+    tool_finished  {run_id, name, summary}
+    citation       {run_id, index, item_id, title, snippet}
+    proposal       {run_id, type, payload}            (PR-3 예약)
+    done           {run_id, message_id}               (assistant 메시지 행 id)
+    error          {run_id, code, message}
+    ```
+    """
+    text = payload.text.strip()
+    if not text:
+        # 공백만 — pydantic min_length 는 통과하므로 여기서 400.
+        raise DomainError("empty message", code="conversation.empty_message")
+    try:
+        user_message = await BeginChatTurn(repository=make_conversation_repository(db)).execute(
+            owner_id=user, conversation_id=conversation_id, text=text
+        )
+    except RunInProgressError as exc:
+        raise ConflictError(
+            "A run is already in progress for this conversation",
+            code="conversation.run_in_progress",
+        ) from exc
+    await db.commit()
+
+    registry = get_run_registry()
+    run_id = user_message.run_id
+    assert run_id is not None  # BeginChatTurn 이 항상 채운다
+    queue = registry.create(run_id)
+
+    runner = RunChatTurn(
+        llm=get_chat_llm(),
+        tools=list(_chat_tools()),
+        store=SessionChatTurnStore(get_session_factory()),
+        registry=registry,
+        prompt=ACTIVE_CHAT_PROMPT,
+        timeout_seconds=get_settings().chat_run_timeout_seconds,
+    )
+    task = asyncio.create_task(
+        runner.execute(owner_id=user, conversation_id=conversation_id, run_id=run_id)
+    )
+    _RUNNING_TASKS.add(task)
+    task.add_done_callback(_RUNNING_TASKS.discard)
+
+    async def relay() -> AsyncIterator[bytes]:
+        yield b": stream-open\n\n"
+        while True:
+            event: Any = await queue.get()
+            if event is None:  # close sentinel — run 종료
+                return
+            yield _sse(event)
+
+    return StreamingResponse(
+        relay(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
 
 
 @router.get("", response_model=ConversationListResponse)
