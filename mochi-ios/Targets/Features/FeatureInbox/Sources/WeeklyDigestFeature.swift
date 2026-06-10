@@ -25,6 +25,8 @@ public struct WeeklyDigestFeature: Sendable {
         public var isLoading: Bool = false
         /// ② 아직 안 끝났어요 (미해결 todo + 다가올 일정).
         public var upcoming: IdentifiedArrayOf<UpcomingItem> = []
+        /// 표시에서 합쳐진 중복(같은 화면 중복 캡처) — 대표 행 id → 숨겨진 쌍둥이. 완료 탭 시 함께 전이된다.
+        public var duplicateUpcoming: [UUID: [UpcomingItem]] = [:]
         /// ③ 카테고리별 수확.
         public var groups: [DigestGroup] = []
         /// ④ 전체 보기.
@@ -55,7 +57,13 @@ public struct WeeklyDigestFeature: Sendable {
 
     public enum Action: Sendable {
         case onAppear
-        case loaded(greeting: String, upcoming: [UpcomingItem], groups: [DigestGroup], all: [MochiItem])
+        case loaded(
+            greeting: String,
+            upcoming: [UpcomingItem],
+            duplicateUpcoming: [UUID: [UpcomingItem]],
+            groups: [DigestGroup],
+            all: [MochiItem]
+        )
         case loadFailed(String)
         case todoCompleteTapped(localID: UUID, instanceID: UUID)
         case todoCompleted(localID: UUID)
@@ -80,10 +88,11 @@ public struct WeeklyDigestFeature: Sendable {
                 state.isLoading = true
                 return .run { send in await load(send: send) }
 
-            case let .loaded(greeting, upcoming, groups, all):
+            case let .loaded(greeting, upcoming, duplicateUpcoming, groups, all):
                 state.isLoading = false
                 state.greeting = greeting
                 state.upcoming = IdentifiedArray(uniqueElements: upcoming)
+                state.duplicateUpcoming = duplicateUpcoming
                 state.groups = groups
                 state.allWeekItems = IdentifiedArray(uniqueElements: all)
                 return .none
@@ -96,27 +105,11 @@ public struct WeeklyDigestFeature: Sendable {
             case let .todoCompleteTapped(localID, instanceID):
                 guard !state.completingIDs.contains(localID) else { return .none }
                 state.completingIDs.insert(localID)
-                return .run { send in
-                    do {
-                        // 서버에 존재(업로드됨)하면 서버 전이 먼저, 이어 로컬 반영. 미업로드면 로컬만.
-                        if let item = try await repository.find(id: localID),
-                           case let .uploaded(serverID, _) = item.syncState {
-                            _ = try await apiClient.updateInstanceLifecycle(
-                                mochiServerID: serverID,
-                                instanceID: instanceID,
-                                to: .archived(reason: .todoCompleted)
-                            )
-                        }
-                        try await repository.updateInstanceLifecycle(
-                            mochiItemID: localID,
-                            instanceID: instanceID,
-                            to: .archived(reason: .todoCompleted)
-                        )
-                        await send(.todoCompleted(localID: localID))
-                    } catch {
-                        await send(.loadFailed(String(describing: error)))
-                    }
-                }
+                // 표시에서 합쳐진 쌍둥이(같은 제목·마감)도 함께 완료 — 하나만 완료하면
+                // 다음 로드에 숨었던 쌍둥이가 미완료로 되살아난다.
+                let targets = [(localID, instanceID)]
+                    + (state.duplicateUpcoming[localID] ?? []).map { ($0.id, $0.instanceID) }
+                return .merge(targets.map { completeEffect(localID: $0.0, instanceID: $0.1) })
 
             case let .todoCompleted(localID):
                 state.completingIDs.remove(localID)
@@ -128,6 +121,33 @@ public struct WeeklyDigestFeature: Sendable {
 
             case .delegate:
                 return .none
+            }
+        }
+    }
+
+    /// 한 todo instance 의 완료 전이 effect — 서버(업로드된 item) 먼저, 이어 로컬 반영.
+    /// 쌍둥이 전파 중 일부만 실패하면 그 instance 는 다음 로드에 미완료로 다시 뜬다
+    /// (서버 우선이라 로컬 어긋남은 없음 — 재시도 UI 는 추후, 현재는 loadFailed 기록만).
+    private func completeEffect(localID: UUID, instanceID: UUID) -> Effect<Action> {
+        .run { send in
+            do {
+                // 서버에 존재(업로드됨)하면 서버 전이 먼저, 이어 로컬 반영. 미업로드면 로컬만.
+                if let item = try await repository.find(id: localID),
+                   case let .uploaded(serverID, _) = item.syncState {
+                    _ = try await apiClient.updateInstanceLifecycle(
+                        mochiServerID: serverID,
+                        instanceID: instanceID,
+                        to: .archived(reason: .todoCompleted)
+                    )
+                }
+                try await repository.updateInstanceLifecycle(
+                    mochiItemID: localID,
+                    instanceID: instanceID,
+                    to: .archived(reason: .todoCompleted)
+                )
+                await send(.todoCompleted(localID: localID))
+            } catch {
+                await send(.loadFailed(String(describing: error)))
             }
         }
     }
@@ -155,9 +175,15 @@ public struct WeeklyDigestFeature: Sendable {
         // 정규화 반영 후 그 주를 다시 읽어 카테고리별로 묶는다.
         let refreshed = (try? await repository.listCaptured(in: interval, limit: 500)) ?? weekItems
         let groups = Self.makeGroups(refreshed)
-        let upcoming = await loadUpcoming(serverToLocal: serverToLocal)
+        let (upcoming, duplicateUpcoming) = await loadUpcoming(serverToLocal: serverToLocal)
 
-        await send(.loaded(greeting: greeting, upcoming: upcoming, groups: groups, all: refreshed))
+        await send(.loaded(
+            greeting: greeting,
+            upcoming: upcoming,
+            duplicateUpcoming: duplicateUpcoming,
+            groups: groups,
+            all: refreshed
+        ))
     }
 
     /// 캐시 트리거(+3) 판정 후 필요하면 서버 digest 를 호출하고 category 를 로컬에 반영한다.
@@ -198,9 +224,13 @@ public struct WeeklyDigestFeature: Sendable {
 
     /// ② 아직 안 끝났어요 — 서버 upcoming(todo+일정, 임박순)을 로컬 item 으로 역매핑.
     /// 서버 실패 시 로컬 미완료 todo 로 폴백한다(오프라인 안전망).
-    private func loadUpcoming(serverToLocal: [UUID: MochiItem]) async -> [UpcomingItem] {
+    /// 같은 화면 중복 캡처(같은 제목·종류·마감)는 표시에서 하나로 합치고 쌍둥이는 따로 돌려준다.
+    private func loadUpcoming(
+        serverToLocal: [UUID: MochiItem]
+    ) async -> (display: [UpcomingItem], duplicates: [UUID: [UpcomingItem]]) {
+        let items: [UpcomingItem]
         if let dtos = try? await apiClient.upcomingActionables() {
-            return dtos.compactMap { dto in
+            items = dtos.compactMap { dto in
                 guard let local = serverToLocal[dto.item.id] else { return nil }
                 return UpcomingItem(
                     mochiItem: local,
@@ -209,19 +239,53 @@ public struct WeeklyDigestFeature: Sendable {
                     instanceID: dto.instanceID
                 )
             }
+        } else {
+            let todos = (try? await repository.listActiveTodos(limit: 20)) ?? []
+            items = todos.compactMap { item in
+                guard let inst = item.instances.first(where: {
+                    $0.intentType == .todo && $0.lifecycle == .active
+                }) else { return nil }
+                return UpcomingItem(
+                    mochiItem: item,
+                    dueLabel: inst.payload.deadline ?? inst.payload.date,
+                    isSchedule: false,
+                    instanceID: inst.id
+                )
+            }
         }
-        let todos = (try? await repository.listActiveTodos(limit: 20)) ?? []
-        return todos.compactMap { item in
-            guard let inst = item.instances.first(where: {
-                $0.intentType == .todo && $0.lifecycle == .active
-            }) else { return nil }
-            return UpcomingItem(
-                mochiItem: item,
-                dueLabel: inst.payload.deadline ?? inst.payload.date,
-                isSchedule: false,
-                instanceID: inst.id
-            )
+        return Self.dedupForDisplay(items)
+    }
+
+    /// 표시용 dedup — 캘린더 탭 `CalendarTodoSorter.dedupForDisplay` 와 같은 취지(같은 화면 중복 캡처 합치기).
+    /// 단 여기엔 instance label 이 없어 키가 (제목, 마감일, 종류)뿐이므로, **dueLabel 이 없으면 합치지 않는다**
+    /// — 제목만 같은 서로 다른 할 일을 오인 병합해 탭 한 번에 둘 다 완료되는 위험 회피.
+    /// 마감일은 파싱해 날짜(startOfDay) 기준으로 비교한다(표기 흔들림 흡수, 캘린더 키와 정렬).
+    static func dedupForDisplay(
+        _ items: [UpcomingItem]
+    ) -> (display: [UpcomingItem], duplicates: [UUID: [UpcomingItem]]) {
+        var ownerByKey: [String: UUID] = [:]
+        var display: [UpcomingItem] = []
+        var duplicates: [UUID: [UpcomingItem]] = [:]
+        for item in items {
+            guard let rawDue = item.dueLabel, !rawDue.isEmpty else {
+                display.append(item)
+                continue
+            }
+            let day = CalendarDueDate.parse(rawDue)
+                .map { Calendar.mochiSeoul.startOfDay(for: $0).timeIntervalSince1970 }
+            let key = [
+                normalizedDedupComponent(item.mochiItem.displayTitle),
+                day.map { String($0) } ?? normalizedDedupComponent(rawDue),
+                String(item.isSchedule),
+            ].joined(separator: "|")
+            if let ownerID = ownerByKey[key] {
+                duplicates[ownerID, default: []].append(item)
+            } else {
+                ownerByKey[key] = item.id
+                display.append(item)
+            }
         }
+        return (display, duplicates)
     }
 
     // MARK: - Helpers

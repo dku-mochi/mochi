@@ -322,23 +322,22 @@ private struct BubbleTail: Shape {
 
 // MARK: - ② 행 (미해결 todo / 다가올 일정)
 
+/// 캘린더 탭과 같은 시각 언어 — 일정은 날짜 타일(월/일) + 상대 라벨(sky),
+/// 할 일은 체크 + 긴급도 색 D-day(`DueDisplay`).
 private struct UnfinishedRow: View {
     let item: WeeklyDigestFeature.UpcomingItem
     let isCompleting: Bool
     let onComplete: () -> Void
     let onTap: () -> Void
 
+    /// 마감/일시 원문을 날짜로 파싱(자연어는 nil → 원문 그대로 표시).
+    private var dueDate: Date? { CalendarDueDate.parse(item.dueLabel) }
+
     var body: some View {
         HStack(spacing: HomeDesign.Spacing.md) {
-            // 할 일만 완료 체크 — 일정은 완료 개념이 어색해 달력 아이콘으로 표시만.
+            // 할 일만 완료 체크 — 일정은 완료 개념이 어색해 날짜 타일로 표시만.
             if item.isSchedule {
-                ZStack {
-                    Circle().fill(HomeDesign.Color.sky100)
-                    Image(systemName: "calendar")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(HomeDesign.Color.sky400)
-                }
-                .frame(width: 28, height: 28)
+                ScheduleDateTile(date: dueDate)
             } else {
                 Button(action: onComplete) {
                     ZStack {
@@ -372,17 +371,11 @@ private struct UnfinishedRow: View {
                             .foregroundStyle(HomeDesign.Color.textPrimary)
                             .lineLimit(1)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                        if let due = item.dueLabel, !due.isEmpty {
-                            HStack(spacing: 3) {
-                                Image(systemName: "clock")
-                                    .font(.system(size: 9, weight: .semibold))
-                                Text(due)
-                                    .font(.system(size: 11, weight: .semibold))
-                                    .lineLimit(1)
-                            }
-                            .foregroundStyle(
-                                item.isSchedule ? HomeDesign.Color.sky400 : HomeDesign.Color.blush400
-                            )
+                        if let due = dueText {
+                            Text(due)
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundStyle(dueColor)
+                                .lineLimit(1)
                         }
                     }
                     Image(systemName: "chevron.right")
@@ -393,9 +386,9 @@ private struct UnfinishedRow: View {
             }
             .buttonStyle(PressableStyle())
         }
-        .padding(.leading, HomeDesign.Spacing.sm)
+        .padding(.leading, item.isSchedule ? HomeDesign.Spacing.md : HomeDesign.Spacing.sm)
         .padding(.trailing, HomeDesign.Spacing.lg)
-        .padding(.vertical, HomeDesign.Spacing.sm)
+        .padding(.vertical, item.isSchedule ? HomeDesign.Spacing.md : HomeDesign.Spacing.sm)
         .background(
             RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
                 .fill(HomeDesign.Color.surface)
@@ -405,6 +398,20 @@ private struct UnfinishedRow: View {
                 .stroke(HomeDesign.Color.border, lineWidth: 1)
         )
         .opacity(isCompleting ? 0.55 : 1)
+    }
+
+    /// 파싱되면 캘린더 탭과 같은 표현(상대 라벨/D-day), 안 되면 원문 그대로.
+    private var dueText: String? {
+        if let dueDate {
+            return item.isSchedule ? DueDisplay.scheduleLabel(dueDate) : DueDisplay.deadlineLabel(dueDate)
+        }
+        guard let raw = item.dueLabel, !raw.isEmpty else { return nil }
+        return raw
+    }
+
+    private var dueColor: Color {
+        if item.isSchedule { return HomeDesign.Color.sky400 }
+        return DueDisplay.deadlineColor(dueDate)
     }
 }
 

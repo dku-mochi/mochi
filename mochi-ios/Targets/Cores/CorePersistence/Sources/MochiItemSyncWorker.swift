@@ -80,21 +80,26 @@ public actor MochiItemSyncWorker {
     /// **이미지**: `objectKey` 만 있고 로컬 파일이 없는 ref 는 GCS 원본을 받아 `captures/` 에 복원한다.
     public func pullRemote() async {
         guard await tokenProvider.bearerToken() != nil else { return }
-        let remote: [MochiItem]
+        let remote: [MochiItemDTO]
         do {
-            remote = try await apiClient.listMochiItems(limit: 200).map { $0.toMochiItem() }
+            remote = try await apiClient.listMochiItems(limit: 200)
         } catch {
             return
         }
-        for item in remote {
-            // 로컬에 아직 미업로드 동일 id 항목이 있으면(희귀) 서버본으로 덮지 않는다.
-            if let existing = try? await repository.find(id: item.id) {
-                switch existing.syncState {
-                case .pendingUpload, .uploading, .syncFailed: continue
-                default: break
-                }
-            }
-            let recovered = await withRecoveredImages(item)
+        // 이미 로컬에 있는 항목은 건너뛴다 — pull 은 "로컬에 *없는* 서버 항목을 채우는" 복구 전용이다.
+        // 두 키로 식별: (a) `MochiItem.id`(이전 pull 로 server-id PK 로 복구된 항목 — 재pull 멱등),
+        // (b) `syncState.uploaded(serverID:)`(로컬에서 만들어 업로드한 항목 — 로컬 UUID PK 라 server-id 로는
+        // 못 찾는다). (b)를 빼먹으면 로컬 origin 항목이 매 pull 마다 server-id PK 로 **중복 insert** 된다.
+        // 이미 있는 항목의 분석 갱신·재분석 반영은 pull 이 아니라 SSE/폴링 책임이라, skip 해도 누락이 없고
+        // 로컬 전용 수정(userTitle·수동 분류·오프라인 lifecycle)도 보존된다.
+        let local = (try? await repository.listRecent(limit: 2000)) ?? []
+        var known = Set<UUID>()
+        for item in local {
+            known.insert(item.id)
+            if case let .uploaded(serverID, _) = item.syncState { known.insert(serverID) }
+        }
+        for dto in remote where !known.contains(dto.id) {
+            let recovered = await withRecoveredImages(dto.toMochiItem())
             try? await repository.upsert(recovered)
         }
     }

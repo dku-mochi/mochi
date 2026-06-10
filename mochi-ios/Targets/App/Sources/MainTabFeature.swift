@@ -125,13 +125,12 @@ struct MainTabFeature: Sendable {
                 // dev 디버그 인박스 — push 전환 범위에서 제외(상세 진입 비활성).
                 return .none
 
-            case let .mochiCalendar(.mochiItemTapped(mochiItemID)):
+            case let .mochiCalendar(.mochiItemTapped(mochiItemID, hero)):
                 guard state.detail == nil else { return .none }
-                // 그날 목록 sheet(DaySheet)를 닫고 상세를 present (중첩 sheet 제거).
-                // 캘린더 카드는 source frame 매칭 없이 중앙 scale 폴백으로 띄운다.
-                state.mochiCalendar.selectedDay = nil
-                state.mochiCalendar.selectedDayItems = []
-                state.detailHero = nil
+                // DaySheet 는 열어둔 채 그 위로 상세를 hero present — presenter 가 최상단
+                // presented VC 위에서 띄우므로 sheet 와 충돌하지 않고, 상세를 닫으면
+                // 보던 날짜 목록으로 그대로 돌아온다. hero 없으면 중앙 scale 폴백.
+                state.detailHero = hero
                 state.detail = DetailFeature.State(mochiItemID: mochiItemID)
                 return .none
 

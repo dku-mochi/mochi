@@ -45,18 +45,14 @@ public struct DetailView: View {
             ToolbarItem(placement: .topBarLeading) {
                 // custom present 라 back 이 없다 — 닫기(X)로 dismiss. 아래로 드래그해도 닫힌다.
                 Button { store.send(.closeButtonTapped) } label: {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(HomeDesign.Color.textPrimary)
+                    toolbarIcon("xmark")
                 }
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
                     Button("삭제", role: .destructive) { store.send(.deleteButtonTapped) }
                 } label: {
-                    Image(systemName: "ellipsis")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(HomeDesign.Color.textPrimary)
+                    toolbarIcon("ellipsis")
                 }
             }
         }
@@ -91,6 +87,17 @@ public struct DetailView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
+    }
+
+    /// 원형 칩 toolbar 버튼 — bg(F2F4F7) 위에서도, 드래그 중 dim 이 비칠 때도 또렷한 모달 어포던스.
+    private func toolbarIcon(_ systemName: String) -> some View {
+        Image(systemName: systemName)
+            .font(.system(size: 13, weight: .semibold))
+            .foregroundStyle(HomeDesign.Color.textPrimary)
+            .frame(width: 30, height: 30)
+            .background(Circle().fill(HomeDesign.Color.surface))
+            .overlay(Circle().stroke(HomeDesign.Color.border, lineWidth: 1))
+            .shadow(color: HomeDesign.Color.ink900.opacity(0.06), radius: 6, x: 0, y: 2)
     }
 
     private func presentScreenshotBrowser(image: UIImage?, thumbnailView: UIImageView?) {
@@ -129,21 +136,12 @@ private struct RecallHeader: View {
                     handle: previewHandle
                 )
                 // 카드 미디어와 같은 4:3·중앙 크롭으로 통일 — hero cross-fade 시 같은 이미지가
-                // 다른 비율로 튀지 않게 한다(카드: 178×134). 전체 보기는 탭 시 JXPhotoBrowser.
-                .aspectRatio(4.0 / 3.0, contentMode: .fit)
+                // 다른 비율로 튀지 않게 한다(카드: 178×134). 비율은 ScreenshotPreviewImage 가 직접
+                // 잡는다(targetSize 4:3). 전체 보기는 탭 시 JXPhotoBrowser.
                 .frame(maxWidth: .infinity)
                 .background(Rectangle().fill(HomeDesign.Color.purple50))
                 // 하단 페이드 — 이미지가 카드 본문(surface)으로 부드럽게 녹아들게 한다. 밝은 배경
                 // 스크린샷(Safari·노션 등)이 흰 카드와 섞여 경계가 깨지던 edge-bleed 도 흰색으로 수렴시켜 해소.
-                .overlay(alignment: .bottom) {
-                    LinearGradient(
-                        colors: [HomeDesign.Color.surface.opacity(0), HomeDesign.Color.surface],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                    .frame(height: 56)
-                    .allowsHitTesting(false)
-                }
                 // 좌상단 '캡처' 배지 — 캡처한 다른 앱 화면(YouTube 등)을 라이브 화면으로 오인하지
                 // 않도록 '저장된 캡처'임을 명시한다.
                 .overlay(alignment: .topLeading) {
@@ -153,8 +151,9 @@ private struct RecallHeader: View {
                 }
                 // 탭 → JXPhotoBrowser 확대. 배지·페이드는 hit-test 제외라 이미지 전체가 탭된다.
                 // hero 전환 중에는 비행 스냅샷과 겹치지 않도록 숨긴다(App 이 비행 끝에 켬).
+                // reveal 은 **즉시**(애니메이션 없음) — 비행 스냅샷이 위를 덮은 채 그 밑에서 켜지므로
+                // 보이지 않고, 동일 이미지를 crossfade 하면 합성 불투명도가 1 아래로 꺼져 깜박인다.
                 .opacity((sourceImageHidden || store.heroImageHidden) ? 0 : 1)
-                .animation(.easeInOut(duration: 0.22), value: store.heroImageHidden)
                 .contentShape(Rectangle())
                 .onTapGesture { onTapImage(previewHandle.image, previewHandle.imageView) }
             }
@@ -162,9 +161,15 @@ private struct RecallHeader: View {
             VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
                 titleView
 
-                Text(mochiItem.displaySubtitle)
-                    .font(.system(size: 12))
-                    .foregroundStyle(HomeDesign.Color.textMuted)
+                // 출처·시간 메타데이터 — 종류 아이콘과 함께 한 줄.
+                HStack(spacing: 5) {
+                    Image(systemName: mochiItem.viewKind.icon)
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(HomeDesign.Color.textFaint)
+                    Text(mochiItem.displaySubtitle)
+                        .font(.system(size: 12, weight: .medium, design: .rounded))
+                        .foregroundStyle(HomeDesign.Color.textMuted)
+                }
             }
             .padding(HomeDesign.Spacing.lg)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -195,7 +200,7 @@ private struct RecallHeader: View {
         if store.isEditingTitle {
             VStack(alignment: .leading, spacing: HomeDesign.Spacing.sm) {
                 TextField("제목을 입력하세요", text: $store.titleDraft.sending(\.titleDraftChanged), axis: .vertical)
-                    .font(.system(size: 20, weight: .bold))
+                    .font(.system(size: 21, weight: .bold, design: .rounded))
                     .foregroundStyle(HomeDesign.Color.textPrimary)
                     .lineLimit(1...3)
                     .focused($titleFocused)
@@ -225,15 +230,21 @@ private struct RecallHeader: View {
             Button { store.send(.titleTapped) } label: {
                 HStack(alignment: .top, spacing: HomeDesign.Spacing.sm) {
                     Text(mochiItem.displayHeadline ?? "제목을 더해 주세요")
-                        .font(.system(size: 20, weight: .bold))
+                        .font(.system(size: 21, weight: .bold, design: .rounded))
                         .foregroundStyle(mochiItem.displayHeadline == nil ? HomeDesign.Color.textFaint : HomeDesign.Color.textPrimary)
                         .multilineTextAlignment(.leading)
+                        .lineSpacing(2)
                         .fixedSize(horizontal: false, vertical: true)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                    Image(systemName: "pencil")
-                        .font(.system(size: 12))
-                        .foregroundStyle(HomeDesign.Color.textFaint)
-                        .padding(.top, 6)
+                    // 편집 어포던스 — 맨글자 연필보다 칩이 "탭 가능"으로 읽힌다.
+                    ZStack {
+                        Circle().fill(HomeDesign.Color.bg)
+                        Image(systemName: "pencil")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(HomeDesign.Color.textMuted)
+                    }
+                    .frame(width: 26, height: 26)
+                    .padding(.top, 2)
                 }
             }
             .buttonStyle(.plain)
@@ -245,21 +256,35 @@ private struct RecallHeader: View {
 
 private struct NeedsReviewBanner: View {
     var body: some View {
-        HStack(alignment: .top, spacing: HomeDesign.Spacing.sm) {
-            Image(systemName: "questionmark.circle.fill")
-                .font(.system(size: 16))
-                .foregroundStyle(HomeDesign.Color.butter400)
-            Text("모찌가 아직 분류를 확신하지 못했어요. 홈의 ‘헷갈려요’에서 알려주면 다시 살펴볼게요.")
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(HomeDesign.Color.ink700)
-                .fixedSize(horizontal: false, vertical: true)
+        HStack(alignment: .top, spacing: HomeDesign.Spacing.md) {
+            ZStack {
+                Circle().fill(HomeDesign.Color.butter100)
+                Image(systemName: "questionmark")
+                    .font(.system(size: 11, weight: .heavy))
+                    .foregroundStyle(HomeDesign.Color.butter400)
+            }
+            .frame(width: 26, height: 26)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("모찌가 분류를 확신하지 못했어요")
+                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .foregroundStyle(HomeDesign.Color.textPrimary)
+                // 홈 카피("지금 확인해 주세요")와 같은 표현을 쓴다 — 없는 화면명('헷갈려요') 금지.
+                Text("홈의 '확인해 주세요'에서 알려주면 다시 살펴볼게요.")
+                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                    .foregroundStyle(HomeDesign.Color.ink700)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             Spacer(minLength: 0)
         }
         .padding(HomeDesign.Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
-                .fill(HomeDesign.Color.cream200)
+                .fill(HomeDesign.Color.cream100)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
+                .stroke(HomeDesign.Color.cream200, lineWidth: 1)
         )
     }
 }
@@ -318,12 +343,16 @@ private struct IntentActionsSection: View {
     }
 
     private var scheduleNotice: some View {
-        HStack(spacing: HomeDesign.Spacing.sm) {
-            Image(systemName: "calendar")
-                .font(.system(size: 13))
-                .foregroundStyle(HomeDesign.Color.purple600)
+        HStack(spacing: HomeDesign.Spacing.md) {
+            ZStack {
+                Circle().fill(HomeDesign.Color.purple100)
+                Image(systemName: "calendar")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(HomeDesign.Color.purple600)
+            }
+            .frame(width: 26, height: 26)
             Text("일정으로 분류했어요 — 캘린더 탭에 담아뒀어요")
-                .font(.system(size: 13, weight: .medium))
+                .font(.system(size: 13, weight: .medium, design: .rounded))
                 .foregroundStyle(HomeDesign.Color.ink700)
                 .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)
@@ -348,16 +377,27 @@ private struct IntentActionsSection: View {
 
     private func linkButton(_ url: URL) -> some View {
         Button { openURL(url) } label: {
-            Label(sourceLabel(url), systemImage: "arrow.up.right.square")
-                .font(.system(size: 14, weight: .semibold))
-                .padding(.horizontal, HomeDesign.Spacing.md)
-                .padding(.vertical, 11)
-                .frame(maxWidth: .infinity)
-                .background(
-                    RoundedRectangle(cornerRadius: HomeDesign.Radius.sm, style: .continuous)
-                        .fill(HomeDesign.Color.purple500)
-                )
-                .foregroundStyle(Color.white)
+            HStack(spacing: HomeDesign.Spacing.sm) {
+                Image(systemName: "arrow.up.right")
+                    .font(.system(size: 13, weight: .bold))
+                Text(sourceLabel(url))
+                    .font(.system(size: 14, weight: .bold, design: .rounded))
+            }
+            .padding(.vertical, 13)
+            .frame(maxWidth: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
+                // 원본으로 가는 1차 행동 — 홈 FAB 과 같은 브랜드 그라데이션 CTA.
+                    .fill(
+                        LinearGradient(
+                            colors: [HomeDesign.Color.purple400, HomeDesign.Color.purple600],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+            )
+            .foregroundStyle(Color.white)
+            .shadow(color: HomeDesign.Color.purple500.opacity(0.28), radius: 10, x: 0, y: 6)
         }
         .buttonStyle(PressableStyle())
     }
@@ -370,27 +410,33 @@ private struct TodoCheckRow: View {
 
     var body: some View {
         Button(action: onComplete) {
-            HStack(spacing: HomeDesign.Spacing.sm) {
-                Image(systemName: "circle")
-                    .font(.system(size: 20))
-                    .foregroundStyle(HomeDesign.Color.textMuted)
-                VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: HomeDesign.Spacing.md) {
+                Circle()
+                    .strokeBorder(HomeDesign.Color.purple200, lineWidth: 2)
+                    .frame(width: 22, height: 22)
+                VStack(alignment: .leading, spacing: 3) {
                     Text(instance.displayLabel)
-                        .font(.system(size: 14, weight: .medium))
+                        .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(HomeDesign.Color.textPrimary)
                         .multilineTextAlignment(.leading)
                     if let deadline = instance.payload.deadline {
-                        Text("마감 \(deadline)")
-                            .font(.system(size: 11))
-                            .foregroundStyle(HomeDesign.Color.blush400)
+                        HStack(spacing: 3) {
+                            Image(systemName: "clock")
+                                .font(.system(size: 9, weight: .semibold))
+                            Text("마감 \(deadline)")
+                                .font(.system(size: 11, weight: .semibold))
+                        }
+                        .foregroundStyle(HomeDesign.Color.blush400)
                     }
                 }
                 Spacer(minLength: 0)
             }
-            .padding(.vertical, 4)
+            .padding(.vertical, 6)
             .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
         }
         .buttonStyle(PressableStyle())
+        .accessibilityLabel("\(instance.displayLabel) 완료하기")
     }
 }
 
@@ -402,30 +448,43 @@ private struct GistCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
-            SectionHeader(title: "모찌가 정리했어요")
+            SectionHeader(title: "모찌가 정리했어요", icon: "sparkles")
             Text(analysis.summary)
-                .font(.system(size: 14))
+                .font(.system(size: 14.5))
                 .foregroundStyle(HomeDesign.Color.ink700)
+                .lineSpacing(5)
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             if let text = mochiItem.source.text, !text.isEmpty {
-                Text(text)
-                    .font(.system(size: 13))
-                    .foregroundStyle(HomeDesign.Color.textMuted)
-                    .lineLimit(8)
-                    .fixedSize(horizontal: false, vertical: true)
+                // 원본 텍스트 — 인용 바로 요약과 위계를 가른다.
+                HStack(alignment: .top, spacing: HomeDesign.Spacing.sm) {
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(HomeDesign.Color.purple200)
+                        .frame(width: 3)
+                    Text(text)
+                        .font(.system(size: 13))
+                        .foregroundStyle(HomeDesign.Color.textMuted)
+                        .lineSpacing(3)
+                        .lineLimit(8)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
             if let memo = mochiItem.source.userMemo, !memo.isEmpty {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("내가 남긴 메모")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(HomeDesign.Color.textMuted)
+                    HStack(spacing: 4) {
+                        Image(systemName: "pencil.line")
+                            .font(.system(size: 10, weight: .semibold))
+                        Text("내가 남긴 메모")
+                            .font(.system(size: 11, weight: .bold, design: .rounded))
+                    }
+                    .foregroundStyle(HomeDesign.Color.butter400)
                     Text(memo)
                         .font(.system(size: 13))
                         .foregroundStyle(HomeDesign.Color.ink700)
+                        .lineSpacing(3)
                 }
-                .padding(HomeDesign.Spacing.sm)
+                .padding(HomeDesign.Spacing.md)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(
                     RoundedRectangle(cornerRadius: HomeDesign.Radius.sm, style: .continuous)
@@ -450,12 +509,15 @@ private struct DetailsDisclosure: View {
                 if !analysis.entities.isEmpty {
                     detailBlock("추출 정보") {
                         ForEach(analysis.entities, id: \.self) { entity in
-                            HStack(spacing: 6) {
+                            HStack(spacing: HomeDesign.Spacing.sm) {
                                 Text(entity.kind.rawValue)
-                                    .font(.system(size: 11, weight: .semibold))
+                                    .font(.system(size: 10, weight: .bold))
                                     .foregroundStyle(HomeDesign.Color.textMuted)
+                                    .padding(.horizontal, 7)
+                                    .padding(.vertical, 3)
+                                    .background(Capsule().fill(HomeDesign.Color.bg))
                                 Text(entity.value)
-                                    .font(.system(size: 12))
+                                    .font(.system(size: 12.5, weight: .medium))
                                     .foregroundStyle(HomeDesign.Color.ink700)
                             }
                         }
@@ -463,10 +525,16 @@ private struct DetailsDisclosure: View {
                 }
                 if !analysis.tags.isEmpty {
                     detailBlock("태그") {
-                        Text(analysis.tags.map { "#\($0)" }.joined(separator: "  "))
-                            .font(.system(size: 12))
-                            .foregroundStyle(HomeDesign.Color.purple600)
-                            .fixedSize(horizontal: false, vertical: true)
+                        TagFlow(spacing: 6) {
+                            ForEach(analysis.tags, id: \.self) { tag in
+                                Text("#\(tag)")
+                                    .font(.system(size: 11.5, weight: .semibold, design: .rounded))
+                                    .foregroundStyle(HomeDesign.Color.purple600)
+                                    .padding(.horizontal, 9)
+                                    .padding(.vertical, 4)
+                                    .background(Capsule().fill(HomeDesign.Color.purple50))
+                            }
+                        }
                     }
                 }
                 let reasons = mochiItem.instances.compactMap { $0.reasoning }.filter { !$0.isEmpty }
@@ -490,7 +558,7 @@ private struct DetailsDisclosure: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         } label: {
             Text("더 자세히")
-                .font(.system(size: 14, weight: .semibold))
+                .font(.system(size: 14, weight: .bold, design: .rounded))
                 .foregroundStyle(HomeDesign.Color.textPrimary)
         }
         .tint(HomeDesign.Color.textMuted)
@@ -524,11 +592,55 @@ private struct DetailsDisclosure: View {
 
 private struct SectionHeader: View {
     let title: String
+    var icon: String? = nil
     var body: some View {
-        Text(title)
-            .font(.system(size: 13, weight: .bold))
-            .foregroundStyle(HomeDesign.Color.textPrimary)
-            .frame(maxWidth: .infinity, alignment: .leading)
+        HStack(spacing: 6) {
+            if let icon {
+                Image(systemName: icon)
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(HomeDesign.Color.purple500)
+            }
+            Text(title)
+                .font(.system(size: 14, weight: .heavy, design: .rounded))
+                .foregroundStyle(HomeDesign.Color.textPrimary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+/// 태그 칩을 가로로 채우다 넘치면 줄바꿈하는 최소 flow layout.
+private struct TagFlow: Layout {
+    var spacing: CGFloat = 6
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let maxWidth = proposal.width ?? .infinity
+        var x: CGFloat = 0, y: CGFloat = 0, rowHeight: CGFloat = 0
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+            if x > 0, x + size.width > maxWidth {
+                x = 0
+                y += rowHeight + spacing
+                rowHeight = 0
+            }
+            x += size.width + spacing
+            rowHeight = max(rowHeight, size.height)
+        }
+        return CGSize(width: maxWidth == .infinity ? max(x - spacing, 0) : maxWidth, height: y + rowHeight)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        var x = bounds.minX, y = bounds.minY, rowHeight: CGFloat = 0
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+            if x > bounds.minX, x + size.width > bounds.maxX {
+                x = bounds.minX
+                y += rowHeight + spacing
+                rowHeight = 0
+            }
+            subview.place(at: CGPoint(x: x, y: y), proposal: .unspecified)
+            x += size.width + spacing
+            rowHeight = max(rowHeight, size.height)
+        }
     }
 }
 
@@ -545,24 +657,26 @@ private enum DetailStateView {
             if let path = mochiItem.source.imageRefs.first?.relativePath {
                 LocalThumbnail(
                     relativePath: path,
-                    targetSize: CGSize(width: 320, height: 320),
+                    targetSize: CGSize(width: 320, height: 240),
                     alignment: .top
                 ) {
-                    RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
+                    RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous)
                         .fill(HomeDesign.Color.purple50)
                 }
-                .aspectRatio(1, contentMode: .fit)
+                // 분석 완료 후 헤더와 같은 4:3 — 분석이 끝나도 이미지가 튀지 않는다.
+                .aspectRatio(4.0 / 3.0, contentMode: .fit)
                 .frame(maxWidth: .infinity)
-                .clipShape(RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous))
+                .cardShadow()
             }
             HStack(spacing: HomeDesign.Spacing.sm) {
                 ProgressView().controlSize(.small)
                 Text("모찌가 정리하고 있어요…")
-                    .font(.system(size: 14, weight: .medium))
+                    .font(.system(size: 14, weight: .medium, design: .rounded))
                     .foregroundStyle(HomeDesign.Color.textMuted)
             }
         }
-        .padding(.top, 40)
+        .padding(.top, HomeDesign.Spacing.sm)
     }
 
     static var failed: some View {
@@ -657,13 +771,42 @@ private struct ScreenshotPreviewImage: View {
     @State private var image: UIImage?
 
     var body: some View {
-        UIKitImageView(image: image, contentMode: contentMode, handle: handle)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .clipped()
-            .task(id: relativePath) {
-                let maxPixel = Int(max(targetSize.width, targetSize.height) * 3)
-                image = await loadDownsampledDetailImage(relativePath: relativePath, maxPixel: maxPixel)
-            }
+        // 비율 박스(4:3)를 Layout 으로 직접 계산한다 — `aspectRatio(_:contentMode:)` 는 ScrollView 의
+        // nil 높이 제안을 자식(이미지뷰)의 ideal 크기로 메우는 협상이 끼어들어, 원본이 작은 캡처에서
+        // 박스가 이미지 크기로 쪼그라들고 양옆에 배경이 비쳤다. FixedRatioBox 는 "제안된 너비 ÷ 비율
+        // = 높이"만 답하므로 이미지 크기가 레이아웃에 개입할 경로가 없다.
+        FixedRatioBox(ratio: targetSize.width / targetSize.height, fallbackWidth: targetSize.width) {
+            UIKitImageView(image: image, contentMode: contentMode, handle: handle)
+        }
+        .clipped()
+        .task(id: relativePath) {
+            let maxPixel = Int(max(targetSize.width, targetSize.height) * 3)
+            image = await loadDownsampledDetailImage(relativePath: relativePath, maxPixel: maxPixel)
+        }
+    }
+}
+
+/// 제안된 너비에서 고정 비율로 높이를 직접 계산하는 박스. 자식에게는 박스 크기를 그대로 제안해
+/// 꽉 채우게 한다 — 자식의 ideal/원본 크기는 박스 크기에 전혀 영향을 주지 못한다.
+private struct FixedRatioBox: Layout {
+    let ratio: CGFloat
+    /// 너비 제안이 없을 때(ideal 질의)의 기준 너비.
+    let fallbackWidth: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        var width = proposal.width ?? fallbackWidth
+        if !width.isFinite { width = fallbackWidth }
+        return CGSize(width: width, height: width / ratio)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        for subview in subviews {
+            subview.place(
+                at: CGPoint(x: bounds.midX, y: bounds.midY),
+                anchor: .center,
+                proposal: ProposedViewSize(width: bounds.width, height: bounds.height)
+            )
+        }
     }
 }
 
@@ -690,6 +833,13 @@ private struct UIKitImageView: UIViewRepresentable {
         imageView.contentMode = contentMode
         handle.image = image
         handle.imageView = imageView
+    }
+
+    /// 이미지 원본 비율과 무관하게 SwiftUI 가 제안한 영역을 그대로 채운다.
+    /// 비율은 바깥 `FixedRatioBox` 가 잡으므로, 이 뷰는 그 박스를 꽉 채워(aspectFill+clip)
+    /// 양옆 여백 없이 렌더한다. 미구현 시 representable 이 이미지 크기로 협상해 박스를 못 채운다.
+    func sizeThatFits(_ proposal: ProposedViewSize, uiView: UIImageView, context: Context) -> CGSize? {
+        proposal.replacingUnspecifiedDimensions()
     }
 }
 
