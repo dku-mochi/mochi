@@ -72,16 +72,22 @@ struct ChatBubbleView: View {
                 }
 
                 if !message.text.isEmpty {
-                    Text(
-                        ChatMarkup.attributedText(
-                            raw: message.text,
-                            citations: message.citations,
-                            isStreaming: message.isStreaming
-                        )
+                    let blocks = ChatMarkup.blocks(
+                        raw: message.text,
+                        citations: message.citations,
+                        isStreaming: message.isStreaming
                     )
-                    .font(.system(size: 14.5, weight: .medium, design: .rounded))
-                    .foregroundStyle(HomeDesign.Color.textPrimary)
-                    .lineSpacing(3.5)
+                    ForEach(Array(blocks.enumerated()), id: \.offset) { _, block in
+                        switch block {
+                        case let .paragraph(text):
+                            Text(text)
+                                .font(.system(size: 14.5, weight: .medium, design: .rounded))
+                                .foregroundStyle(HomeDesign.Color.textPrimary)
+                                .lineSpacing(3.5)
+                        case let .table(header, rows):
+                            ChatTableView(header: header, rows: rows)
+                        }
+                    }
                     .transition(.opacity)
                 }
 
