@@ -1,6 +1,9 @@
 import Foundation
 import ComposableArchitecture
 import CoreDomain
+import CoreNetworking
+import CorePersistence
+import DesignSystem
 
 /// 검색 탭 reducer — 새 시안(D5+) 4 phase 구조.
 ///
@@ -59,14 +62,15 @@ public struct SearchFeature: Sendable {
         case quickFilterTapped(SearchD5.TypeFilter)  // 빠른 검색 칩 → typeFilter 적용 + 포커스 해제
 
         // 카드
-        case recentTapped(MochiItem.ID)        // 카드 탭 → 상세 (MainTabFeature 가 path.append)
-        case cardMoreTapped(MochiItem.ID)      // ⋯ → action sheet (D5.5)
+        case recentTapped(MochiItem.ID, HeroSourceFrames?)  // 카드 탭 → 상세 hero present (MainTabFeature)
+        case deleteTapped(MochiItem.ID)        // contextMenu/⋯ 삭제 — mock 단계: 로컬 dataset 에서만 제거
 
         // 빈 결과 CTA
         case retryAllTapped                    // "전체에서 다시 찾기" — 필터만 reset (query 유지)
         case clearFiltersTapped                // 검색 탭 재탭 / clear 버튼 — 모두 reset
 
         // 내부
+        case itemsLoaded([MochiItem])
         case resultsLoaded([SearchResult])
         case delegate(Delegate)
 
@@ -78,6 +82,8 @@ public struct SearchFeature: Sendable {
     }
 
     @Dependency(\.searchService) var searchService
+    @Dependency(\.mochiItemRepository) var repository
+    @Dependency(\.mochiAPIClient) var apiClient
 
     public init() {}
 
@@ -91,8 +97,26 @@ public struct SearchFeature: Sendable {
                 return .none
 
             case .onAppear:
-                if state.items.isEmpty {
-                    state.items = SampleMochiItems.designDemo()
+                // 실제 데이터(로컬 Realm = 서버 캐시) 로드 + 쓰기 발생 시 자동 재로드(홈과 동일 패턴).
+                // 탭 재진입마다 호출되므로 cancelInFlight 로 observe 루프를 1개로 유지.
+                return .run { [repository] send in
+                    if let items = try? await repository.listRecent(limit: 200) {
+                        await send(.itemsLoaded(items))
+                    }
+                    for await _ in repository.observeChanges() {
+                        if let items = try? await repository.listRecent(limit: 200) {
+                            await send(.itemsLoaded(items))
+                        }
+                    }
+                }
+                .cancellable(id: CancelID.observe, cancelInFlight: true)
+
+            case let .itemsLoaded(items):
+                // 저장소가 완전히 비어있으면(첫 로그인 직후 등) 디자인 시연용 mock 시드 폴백.
+                state.items = items.isEmpty ? SampleMochiItems.designDemo() : items
+                // 검색 중이었다면 새 dataset 위에서 결과 재계산.
+                if !state.query.isEmpty {
+                    return self.updateSearch(&state)
                 }
                 return .none
 
@@ -129,12 +153,21 @@ public struct SearchFeature: Sendable {
                 return .none
 
             case .recentTapped:
-                // MainTabFeature 가 path.append(.detail).
+                // MainTabFeature 가 hero present (state.detail).
                 return .none
 
-            case .cardMoreTapped:
-                // D5.5 — view 측 action sheet 발사.
-                return .none
+            case let .deleteTapped(id):
+                // 낙관 제거(즉시 UI 반영) + 홈과 동일한 삭제 규약 — 업로드된 항목만 서버 soft delete,
+                // 로컬 Realm 은 hard delete(서버 캐시). mock 폴백 항목은 repository 에 없어 no-op.
+                state.items.removeAll { $0.id == id }
+                state.results.removeAll { $0.item.id == id }
+                return .run { [repository, apiClient] _ in
+                    if let item = try? await repository.find(id: id),
+                       case let .uploaded(serverID, _) = item.syncState {
+                        try? await apiClient.deleteMochiItem(mochiServerID: serverID)
+                    }
+                    try? await repository.delete(id: id)
+                }
 
             case .retryAllTapped:
                 state.typeFilter = .all
@@ -163,7 +196,7 @@ public struct SearchFeature: Sendable {
 
     // MARK: - Helpers
 
-    private enum CancelID { case search }
+    private enum CancelID { case search, observe }
 
     private func updateSearch(_ state: inout State) -> Effect<Action> {
         if state.query.isEmpty {

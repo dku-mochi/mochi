@@ -138,11 +138,14 @@ struct MainTabFeature: Sendable {
                 state.detail = DetailFeature.State(mochiItemID: mochiItemID)
                 return .none
 
-            case let .search(.recentTapped(mochiItemID)):
-                // origin 의 새 hero present 로 통일 — Path.detail case 가 제거됨(상세는 @Presents).
+            case let .search(.recentTapped(mochiItemID, hero)):
+                // 홈 카드와 동일한 hero present — 검색 카드 frame 에서 확대.
                 guard state.detail == nil else { return .none }
-                state.detailHero = nil
-                state.detail = DetailFeature.State(mochiItemID: mochiItemID)
+                state.detailHero = hero
+                state.detail = DetailFeature.State(
+                    mochiItemID: mochiItemID,
+                    heroImageHidden: hero?.cardImage != nil
+                )
                 return .none
 
             case let .debugInboxChanged(isOn):
