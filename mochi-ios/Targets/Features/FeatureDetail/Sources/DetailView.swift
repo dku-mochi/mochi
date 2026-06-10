@@ -474,6 +474,13 @@ private struct TodoCheckRow: View {
     let instance: IntentInstance
     let onComplete: () -> Void
 
+    /// 할 일 이름은 `payload.title` 우선 — 채팅 수정(propose_item_update)이 갱신하는 구조 필드이고
+    /// 캘린더 탭(`displayTitle`→representativeTitle)과 같은 원천. `label` 은 분석 시점 시나리오
+    /// 라벨이라 수정 후 stale 할 수 있어 폴백으로만 쓴다.
+    private var title: String {
+        instance.payload.title ?? instance.displayLabel
+    }
+
     var body: some View {
         Button(action: onComplete) {
             HStack(spacing: HomeDesign.Spacing.md) {
@@ -481,7 +488,7 @@ private struct TodoCheckRow: View {
                     .strokeBorder(HomeDesign.Color.purple200, lineWidth: 2)
                     .frame(width: 22, height: 22)
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(instance.displayLabel)
+                    Text(title)
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(HomeDesign.Color.textPrimary)
                         .multilineTextAlignment(.leading)
@@ -502,7 +509,7 @@ private struct TodoCheckRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(PressableStyle())
-        .accessibilityLabel("\(instance.displayLabel) 완료하기")
+        .accessibilityLabel("\(title) 완료하기")
     }
 }
 
