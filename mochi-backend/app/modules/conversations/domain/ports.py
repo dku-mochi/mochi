@@ -68,13 +68,17 @@ class ConversationRepository(Protocol):
 class ChatToolResult:
     """툴 실행 결과 — 모델에 돌려줄 payload + 사용자에게 보여줄 1줄.
 
-    ``compact`` 는 과거 턴 히스토리 재구성용 축약본(상위 일부 id·제목) — tool result 가
-    토큰의 대부분이라, 현재 턴만 ``payload`` 풀 버전을 쓰고 지난 턴은 이것으로 접는다.
+    - ``compact``: 과거 턴 히스토리 재구성용 축약본(상위 일부 id·제목) — tool result 가
+      토큰의 대부분이라, 현재 턴만 ``payload`` 풀 버전을 쓰고 지난 턴은 이것으로 접는다.
+    - ``proposal``: propose_* 툴이 채우는 확인 카드 ``{id, type, payload}``. **DB 쓰기 없음** —
+      run 루프가 SSE ``proposal`` 이벤트로 흘리고 assistant 행 ``proposals`` 에 영속만 한다.
+      실행은 사용자 확정 탭 → REST.
     """
 
     payload: dict[str, Any]
     summary: str
     compact: dict[str, Any] = field(default_factory=dict)
+    proposal: dict[str, Any] | None = None
 
 
 class ChatTool(Protocol):

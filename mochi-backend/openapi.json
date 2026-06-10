@@ -702,6 +702,58 @@
           }
         }
       },
+      "patch": {
+        "tags": [
+          "mochi_items"
+        ],
+        "summary": "Update Mochi Item",
+        "description": "채팅 수정 proposal 확정 실행 — 콘텐츠 + instance 변경을 한 트랜잭션으로 (journal 2026-06-10 M1).\n\n- 콘텐츠(text/userMemo/summary): 제공 필드만 갱신 (null 클리어 미지원).\n- instances[]: payload 병합(\"일정 3시로\" = time 만 교체) · label · lifecycle 전이\n  (``lifecycle_policy`` 검증, 불법 409).\n- instance 미실재 404(`intent_instance.not_found`) — proposal 카드 생성~확정 사이\n  reanalyze 가 instance 를 재작성한 경우의 만료 신호 (iOS 가 카드 expired 처리).",
+        "operationId": "update_mochi_item_api_v1_mochi_items__mochi_item_id__patch",
+        "parameters": [
+          {
+            "name": "mochi_item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Mochi Item Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "Authorization",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MochiItemUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MochiItemResponse"
+                }
+              }
+            }
+          }
+        }
+      },
       "delete": {
         "tags": [
           "mochi_items"
@@ -860,7 +912,7 @@
           "conversations"
         ],
         "summary": "Send Message",
-        "description": "메시지 전송 — 응답이 곧 run 의 SSE 스트림 (POST-as-SSE).\n\nconversationID 는 클라이언트 생성 — 첫 메시지가 대화를 암묵 생성한다. 동일 대화에\n진행 중 run 이 있으면 409(`conversation.run_in_progress`). 클라이언트가 중간에 끊겨도\nrun 은 완주하며 모든 단계가 영속된다 — 복귀 시 스냅샷 재조회.\n\n이벤트 wire format (서버 정본 — ARCHITECTURE §3.6, iOS `ChatStreamEvent` 와 1:1.\n모든 payload 에 ``run_id`` 동봉):\n```\nmessage_delta  {run_id, text}\ntool_started   {run_id, name, label}\ntool_finished  {run_id, name, summary}\ncitation       {run_id, index, item_id, title, snippet}\nproposal       {run_id, type, payload}            (PR-3 예약)\ndone           {run_id, message_id}               (assistant 메시지 행 id)\nerror          {run_id, code, message}\n```",
+        "description": "메시지 전송 — 응답이 곧 run 의 SSE 스트림 (POST-as-SSE).\n\nconversationID 는 클라이언트 생성 — 첫 메시지가 대화를 암묵 생성한다. 동일 대화에\n진행 중 run 이 있으면 409(`conversation.run_in_progress`). 클라이언트가 중간에 끊겨도\nrun 은 완주하며 모든 단계가 영속된다 — 복귀 시 스냅샷 재조회.\n\n이벤트 wire format (서버 정본 — ARCHITECTURE §3.6, iOS `ChatStreamEvent` 와 1:1.\n모든 payload 에 ``run_id`` 동봉):\n```\nmessage_delta  {run_id, text}\ntool_started   {run_id, name, label}\ntool_finished  {run_id, name, summary}\ncitation       {run_id, index, item_id, title, snippet}\nproposal       {run_id, id, type, payload}        (type: item_update|item_delete|create_schedule|reminder|create_memo)\ndone           {run_id, message_id}               (assistant 메시지 행 id)\nerror          {run_id, code, message}\n```",
         "operationId": "send_message_api_v1_conversations__conversation_id__messages_post",
         "parameters": [
           {
@@ -1258,6 +1310,27 @@
         ],
         "title": "CitationDTO"
       },
+      "ConfirmedInstanceDTO": {
+        "properties": {
+          "intentType": {
+            "$ref": "#/components/schemas/Intent"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/IntentPayloadPatchDTO"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "intentType"
+        ],
+        "title": "ConfirmedInstanceDTO",
+        "description": "채팅 proposal 확정으로 생성되는 **사용자 확정 instance** — 분석 생략 (§5.2 예외).\n\n사용자가 카드에서 확정한 구조라 LLM 재분석이 덮으면 안 된다 — instance 가 곧바로\nactive 로 태어나고 outbox(분석 파이프라인)에 들어가지 않는다."
+      },
       "ConversationListResponse": {
         "properties": {
           "conversations": {
@@ -1496,6 +1569,38 @@
         ],
         "title": "IngestChannel"
       },
+      "InstanceChangeRequest": {
+        "properties": {
+          "instanceId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Instanceid"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/IntentPayloadPatchDTO",
+            "nullable": true
+          },
+          "label": {
+            "title": "Label",
+            "type": "string",
+            "nullable": true
+          },
+          "lifecycleKind": {
+            "$ref": "#/components/schemas/InstanceLifecycleKind",
+            "nullable": true
+          },
+          "archiveReason": {
+            "$ref": "#/components/schemas/ArchiveReason",
+            "nullable": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "instanceId"
+        ],
+        "title": "InstanceChangeRequest",
+        "description": "PATCH 의 instance 단위 변경 — payload 는 제공 필드만 병합, lifecycle 은 정책 검증."
+      },
       "InstanceLifecycleKind": {
         "type": "string",
         "enum": [
@@ -1576,6 +1681,53 @@
         ],
         "title": "IntentInstanceResponse",
         "description": "저장된 의도 instance 1건 — 곧 active. 점수/위계 없음.\n\n``id`` 는 서버 instance 식별자 — iOS 가 보존해 완료/완료취소(lifecycle 전이) API 의 대상으로 쓴다.\n(재분석 시 delete-reinsert 로 id 가 갈리는 한계는 known-drift — CHANGELOG 참고.)"
+      },
+      "IntentPayloadPatchDTO": {
+        "properties": {
+          "title": {
+            "title": "Title",
+            "type": "string",
+            "nullable": true
+          },
+          "date": {
+            "title": "Date",
+            "type": "string",
+            "nullable": true
+          },
+          "time": {
+            "title": "Time",
+            "type": "string",
+            "nullable": true
+          },
+          "deadline": {
+            "title": "Deadline",
+            "type": "string",
+            "nullable": true
+          },
+          "person": {
+            "title": "Person",
+            "type": "string",
+            "nullable": true
+          },
+          "topic": {
+            "title": "Topic",
+            "type": "string",
+            "nullable": true
+          },
+          "url": {
+            "title": "Url",
+            "type": "string",
+            "nullable": true
+          },
+          "note": {
+            "title": "Note",
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "type": "object",
+        "title": "IntentPayloadPatchDTO",
+        "description": "instance payload 의 부분 필드 — PATCH(병합)·confirmedInstances(생성) 공용."
       },
       "IntentPayloadResponse": {
         "properties": {
@@ -1760,6 +1912,13 @@
             },
             "type": "array",
             "title": "Imagerefs"
+          },
+          "confirmedInstances": {
+            "items": {
+              "$ref": "#/components/schemas/ConfirmedInstanceDTO"
+            },
+            "type": "array",
+            "title": "Confirmedinstances"
           }
         },
         "type": "object",
@@ -1767,7 +1926,7 @@
           "channel"
         ],
         "title": "MochiItemCreateRequest",
-        "description": "클라이언트(iOS)가 보내는 MochiItem ingestion payload.\n\niOS는 본 스키마와 동일한 모양의 ``MochiItemIngestRequest`` 를 송신한다 — 양쪽이 OpenAPI 로 검증된다."
+        "description": "클라이언트(iOS)가 보내는 MochiItem ingestion payload.\n\niOS는 본 스키마와 동일한 모양의 ``MochiItemIngestRequest`` 를 송신한다 — 양쪽이 OpenAPI 로 검증된다.\n``confirmedInstances`` 가 있으면 분석 파이프라인을 생략하고 확정 instance 를 직접 생성한다\n(채팅 schedule proposal 확정 — DOMAIN_DESIGN §5.2 예외)."
       },
       "MochiItemListResponse": {
         "properties": {
@@ -1881,6 +2040,35 @@
           "createdAt"
         ],
         "title": "MochiItemResponse"
+      },
+      "MochiItemUpdateRequest": {
+        "properties": {
+          "text": {
+            "title": "Text",
+            "type": "string",
+            "nullable": true
+          },
+          "userMemo": {
+            "title": "Usermemo",
+            "type": "string",
+            "nullable": true
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string",
+            "nullable": true
+          },
+          "instances": {
+            "items": {
+              "$ref": "#/components/schemas/InstanceChangeRequest"
+            },
+            "type": "array",
+            "title": "Instances"
+          }
+        },
+        "type": "object",
+        "title": "MochiItemUpdateRequest",
+        "description": "PATCH /mochi_items/{id} — 채팅 수정 proposal 확정 실행 (콘텐츠 + instance, 한 트랜잭션).\n\nNone/누락 = 변경 없음 (null 로 필드 클리어는 미지원 — 채팅 수정 시나리오에 불필요)."
       },
       "MonthlyCalendarResponse": {
         "properties": {

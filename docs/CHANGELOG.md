@@ -16,6 +16,9 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 > **동시 세션 / 공유 파일 주의**: CHANGELOG 는 여러 세션·작업자가 함께 쓰는 append-only 공유 파일이다. 동시 작업 중에는 다른 세션이 자기 항목을 먼저 커밋할 수 있고, 한 워킹트리에 여러 세션의 미커밋 항목이 섞여 보일 수 있다. 이때 **항목을 분리하려 애쓰지 말고** 자기 변경과 함께 그대로 staging·커밋한다 — 섞인 다른 항목은 해당 세션이 자기 코드와 함께 정리한다. diff 에 모르는 CHANGELOG 항목이 보여도 멈추지 않는다 (단, CHANGELOG 외의 *코드* 파일은 절대 임의로 섞어 커밋하지 않는다).
 
 ## 2026-06-10 — backend, docs
+- **채팅 탭 백엔드 PR-3: proposal 툴 5종 + PATCH + confirmedInstances** (`feat/be-chat-proposals`). propose_{item_update,item_delete,create_schedule,reminder,create_memo} — 전부 read-only(대상 실재·lifecycle 전이 합법성을 카드 생성 시점에 사전 검증, 실패 시 카드 미생성), run 루프가 `proposal` SSE 이벤트로 흘리고 assistant 행 `proposals` 에 영속. 확정 실행 경로: **`PATCH /mochi_items/{id}` 신설**(콘텐츠+instance payload 병합·label·lifecycle 전이를 한 트랜잭션, 검증 전부 통과 후에만 쓰기) + **`POST /mochi_items` `confirmedInstances` 확장**(분석 생략·instance 직접 생성·outbox 미적재 — **DOMAIN_DESIGN §5.2 에 "사용자 확정 = 분석보다 상위 신뢰" 예외 명문화**, memo 확정은 기존 분석 경유). `chat@v2`(카드 준비 ≠ 실행 완료 구분, get_item_detail 선행 규칙). 테스트 14종 추가(156 passed), openapi+generated client ⓪폭포, README·§10.3 동기화.
+
+## 2026-06-10 — backend, docs
 - **채팅 탭 백엔드 PR-2: agent run + POST-as-SSE + read 툴 + 프롬프트 + citation** (`feat/be-chat-run`). `POST /conversations/{id}/messages` 응답이 곧 SSE(이벤트 7종) — run 은 detached task 가 클라 이탈에도 완주하며 단계별 영속(`ChatTurnStore` 연산별 자체 세션), 전달은 `RunRegistry` in-process queue best-effort. 한도(5라운드/8콜/60s)는 에러가 아니라 "지금까지 찾은 걸로 답변" 폴백. 툴은 `search_items`(BM25+구조화 필터, `deleted_at` 가림 포함 — 기존 검색 쿼리의 누락은 별도 이슈)·`get_item_detail` 둘뿐(레지스트리 read-only 를 테스트로 고정). `chat@v1` 프롬프트(기준+why)·`【item:id】` citation 파싱(owner 검증, 미실재 마커는 본문 보존·citation 미생성)·동시 run 409. 모델 `gemini_chat_model`(기본 flash-lite, lab 벤치 후 env 상향). 테스트 10종 추가, openapi+generated client ⓪폭포, ARCHITECTURE §1/§3.2(낡은 SendMessage 트리 교체)/§3.6(SSE ⓪ 예외 명문화)·DOMAIN_DESIGN §6.4/§10.3·README 동기화. 팀 합의 4건 완료(2026-06-10) — 머지 가능 상태.
 
 ## 2026-06-10 — ios, docs

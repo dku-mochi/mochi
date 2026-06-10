@@ -181,7 +181,9 @@ ingested → analyzing → analyzed
 
 ### 5.2 의미상태 — `intent_instances.lifecycle_kind` (instance 단위, 4값)
 
-각 intent instance 의 완료/만료/decay. instance 는 분석 성공 시에만 생성되므로 항상 `active` 로 태어난다. intent_type 별 차등 전이 (`active`/`decaying`/`reviewRequested`/`archived`):
+각 intent instance 의 완료/만료/decay. instance 는 **분석 성공 시 또는 사용자 확정 시** 생성되며 항상 `active` 로 태어난다. intent_type 별 차등 전이 (`active`/`decaying`/`reviewRequested`/`archived`):
+
+> **사용자 확정 예외 (2026-06-10, 팀 합의)**: 채팅 proposal 카드를 사용자가 확정하면(`POST /mochi_items` + `confirmedInstances`) 분석 파이프라인(outbox)을 **생략**하고 확정 instance 를 직접 생성한다 — item 은 곧바로 `lifecycle_kind='analyzed'`. 근거: 사용자 확정은 LLM 추론보다 상위 신뢰 — 확정한 구조를 재분석이 다른 intent/needs_review 로 덮으면 "확정했는데 모찌가 되묻는" 미션 위반. 자유 텍스트(`create_memo` 확정)는 구조 미확정이므로 기존대로 분석을 탄다.
 
 | intent_type | 허용 전이 |
 |---|---|
@@ -330,9 +332,9 @@ instance 전이(from→to)·archive_reason×intent_type 검증은 application �
 
 ### 10.3 채팅 탭 (RAG 멀티턴 대화) — 게이트 개방, 대부분 구현
 
-설계 확정·전체 플랜: `journal/2026-06-10-chat-tab-design.md`. **구현됨**: 테이블 3종 + 세션 CRUD(§3 Conversations 그룹) + 메시지 전송 `POST /conversations/{id}/messages`(POST-as-SSE — 응답이 곧 스트림, agent run 은 detached task + in-process queue 중계라 클라 이탈에도 완주·단계별 영속) + read 툴 2종(`search_items` 구조화 필터·`get_item_detail`) + `chat@v1` 프롬프트 + citation(`【item:id】` 마커 → `message_citations` + SSE). 잔여(roadmap):
-- **proposal 툴 5종**(쓰기 없음 — LLM 루프는 read-only, 확정은 사용자 탭 → REST) + 확정 실행 경로: `PATCH /mochi_items/{id}`(콘텐츠+instance 변경, 넓은 범위) · `POST /mochi_items` `confirmedInstances` 확장(**사용자 확정 instance 는 분석 생략·직접 생성 — §5.2 불변식 예외, 구현 PR 에서 명문화**).
+설계 확정·전체 플랜: `journal/2026-06-10-chat-tab-design.md`. **구현됨**: 테이블 3종 + 세션 CRUD(§3 Conversations 그룹) + 메시지 전송 `POST /conversations/{id}/messages`(POST-as-SSE — agent run 은 detached task 라 클라 이탈에도 완주·단계별 영속) + 툴 7종(read 2 + **proposal 5 — 전부 read-only**, 확정은 사용자 탭 → REST) + 확정 실행 경로(`PATCH /mochi_items/{id}` 콘텐츠+instance 한 트랜잭션 · `POST /mochi_items` `confirmedInstances` — §5.2 사용자 확정 예외 · DELETE · 알림은 iOS 로컬) + `chat@v2` 프롬프트 + citation. 잔여(roadmap):
 - web_fetch(기존 SSRF 가드 팩토리 경유)·web_search(프로바이더 키 — `docs/TODO.md`).
+- iOS live 배선(현재 mock 스트림) — proposal 카드 UI·확정 REST 콜 포함.
 
 ### 10.4 기타
 
