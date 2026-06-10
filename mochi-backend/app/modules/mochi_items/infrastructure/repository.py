@@ -33,7 +33,9 @@ from app.modules.mochi_items.infrastructure.orm import (
 )
 from app.shared.intent import Intent
 
-_PAYLOAD_FIELDS = ("title", "date", "time", "deadline", "person", "topic", "url", "note")
+_PAYLOAD_FIELDS = (
+    "title", "date", "time", "end_date", "end_time", "deadline", "person", "topic", "url", "note"
+)
 
 
 def _payload_to_dict(payload: IntentPayload) -> dict[str, str]:
@@ -425,6 +427,61 @@ class PostgresMochiItemRepository(MochiItemRepository):
             return False
         row.lifecycle_kind = lifecycle.kind.value
         row.lifecycle_archive_reason = lifecycle.archive_reason.value if lifecycle.archive_reason else None
+        await self._session.flush()
+        return True
+
+    async def update_content(
+        self,
+        *,
+        owner_id: UUID,
+        mochi_item_id: UUID,
+        text: str | None,
+        user_memo: str | None,
+        summary: str | None,
+    ) -> bool:
+        values: dict[str, object] = {
+            key: value
+            for key, value in {"text": text, "user_memo": user_memo, "summary": summary}.items()
+            if value is not None
+        }
+        if not values:
+            return True  # 변경할 필드 없음 — 멱등 no-op
+        values["updated_at"] = datetime.utcnow()
+        result = await self._session.execute(
+            update(MochiItemRow)
+            .where(
+                MochiItemRow.id == mochi_item_id,
+                MochiItemRow.owner_id == owner_id,
+                MochiItemRow.deleted_at.is_(None),
+            )
+            .values(**values)
+        )
+        await self._session.flush()
+        return bool(getattr(result, "rowcount", 0))
+
+    async def update_instance_fields(
+        self,
+        *,
+        owner_id: UUID,
+        mochi_item_id: UUID,
+        instance_id: UUID,
+        payload: dict[str, str] | None,
+        label: str | None,
+    ) -> bool:
+        # owner+item+instance 3중 scoped — update_instance_lifecycle 과 동일 패턴.
+        stmt = select(IntentInstanceRow).where(
+            IntentInstanceRow.id == instance_id,
+            IntentInstanceRow.mochi_item_id == mochi_item_id,
+            IntentInstanceRow.owner_id == owner_id,
+        )
+        row = (await self._session.scalars(stmt)).one_or_none()
+        if row is None:
+            return False
+        if payload is not None:
+            row.payload = payload
+        if label is not None:
+            row.label = label
+        row.updated_at = datetime.utcnow()
         await self._session.flush()
         return True
 

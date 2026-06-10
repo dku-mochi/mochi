@@ -1,6 +1,7 @@
 import ComposableArchitecture
 import DesignSystem
 import FeatureAuth
+import FeatureChat
 import FeatureDetail
 import FeatureMochiItem
 import FeatureInbox
@@ -85,13 +86,9 @@ struct MainTabView: View {
                     .tabItem { Label("캘린더", image: "tab_mochis") }
                     .tag(MainTabFeature.Tab.mochis)
 
-                ComingSoonPlaceholder(
-                    icon: "message",
-                    title: "곧 만나요, 채팅",
-                    subtitle: "모찌랑 대화로 정리하는 기능을 준비 중이에요."
-                )
-                .tabItem { Label("채팅", image: "tab_chat") }
-                .tag(MainTabFeature.Tab.chat)
+                ChatLandingView(store: store.scope(state: \.chatLanding, action: \.chatLanding))
+                    .tabItem { Label("채팅", image: "tab_chat") }
+                    .tag(MainTabFeature.Tab.chat)
 
                 SearchView(store: store.scope(state: \.search, action: \.search))
                     .background(
@@ -137,6 +134,11 @@ struct MainTabView: View {
             case let .weeklyDigest(digestStore):
                 // 이번주 정리 — 설정과 동일하게 push. 항목 탭은 delegate 로 상세 present.
                 WeeklyDigestView(store: digestStore)
+
+            case let .chat(chatStore):
+                // 대화 풀스크린 — 탭바를 덮는 push 라 입력 독이 키보드에 정확히 붙는다
+                // (TabView 안 safeAreaInset 키보드 inset 버그·이중 바 회피, 2026-06-10).
+                ChatView(store: chatStore)
             }
         }
         // push 화면(설정)의 바 버튼·back tint = 모찌 퍼플.
@@ -208,38 +210,3 @@ struct MainTabView: View {
     }
 }
 
-// MARK: - Placeholder
-
-private struct ComingSoonPlaceholder: View {
-    let icon: String
-    let title: String
-    let subtitle: String
-
-    var body: some View {
-        VStack(spacing: 16) {
-            ZStack {
-                Circle()
-                    .fill(LinearGradient(
-                        colors: [.purple.opacity(0.15), .purple.opacity(0.05)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ))
-                    .frame(width: 96, height: 96)
-                Image(systemName: icon)
-                    .font(.system(size: 36, weight: .regular))
-                    .foregroundStyle(.purple)
-            }
-            VStack(spacing: 6) {
-                Text(title)
-                    .font(.system(size: 18, weight: .bold))
-                Text(subtitle)
-                    .font(.system(size: 13, weight: .regular))
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 40)
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(.systemGroupedBackground).ignoresSafeArea())
-    }
-}

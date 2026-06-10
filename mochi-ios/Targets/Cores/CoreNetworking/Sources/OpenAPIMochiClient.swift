@@ -40,7 +40,18 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
             url: request.url?.absoluteString,
             text: request.text,
             userMemo: request.userMemo,
-            imageRefs: request.imageRefs.map(Self.mapImageRefToRequest)
+            imageRefs: request.imageRefs.map(Self.mapImageRefToRequest),
+            confirmedInstances: request.confirmedInstances.map { instances in
+                instances.compactMap { instance in
+                    Components.Schemas.Intent(rawValue: instance.intentType).map {
+                        Components.Schemas.ConfirmedInstanceDTO(
+                            intentType: $0,
+                            payload: Self.payloadPatch(from: instance.payload),
+                            label: instance.label
+                        )
+                    }
+                }
+            }
         )
         let output = try await client.create_mochi_item_api_v1_mochi_items_post(
             .init(headers: .init(Idempotency_hyphen_Key: idempotencyKey), body: .json(body))
@@ -185,6 +196,54 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
         }
     }
 
+    @discardableResult
+    public func updateMochiItem(
+        mochiServerID: UUID, _ request: MochiItemUpdateRequestDTO
+    ) async throws -> MochiItemDTO {
+        let body = Components.Schemas.MochiItemUpdateRequest(
+            text: request.text,
+            userMemo: request.userMemo,
+            summary: request.summary,
+            instances: request.instances.isEmpty ? nil : request.instances.map { change in
+                Components.Schemas.InstanceChangeRequest(
+                    instanceId: change.instanceID.uuidString.lowercased(),
+                    payload: change.payload.isEmpty ? nil : Self.payloadPatch(from: change.payload),
+                    label: change.label,
+                    lifecycleKind: change.lifecycleKind.flatMap {
+                        Components.Schemas.InstanceLifecycleKind(rawValue: $0)
+                    },
+                    archiveReason: change.archiveReason.flatMap {
+                        Components.Schemas.ArchiveReason(rawValue: $0)
+                    }
+                )
+            }
+        )
+        let output = try await client.update_mochi_item_api_v1_mochi_items__mochi_item_id__patch(
+            .init(path: .init(mochi_item_id: mochiServerID.uuidString), body: .json(body))
+        )
+        switch output {
+        case let .ok(response): return try Self.mapMochiItem(try response.body.json)
+        case let .undocumented(status, payload): throw await Self.error(status: status, payload: payload)
+        }
+    }
+
+    /// [String:String] 부분 payload → 생성 DTO. 알 수 없는 키는 버린다(서버도 동일하게 무시).
+    private static func payloadPatch(from fields: [String: String]) -> Components.Schemas.IntentPayloadPatchDTO {
+        Components.Schemas.IntentPayloadPatchDTO(
+            title: fields["title"],
+            date: fields["date"],
+            time: fields["time"],
+            // 채팅 proposal payload 는 LLM 도구 키(snake_case)를 그대로 실어온다.
+            endDate: fields["end_date"],
+            endTime: fields["end_time"],
+            deadline: fields["deadline"],
+            person: fields["person"],
+            topic: fields["topic"],
+            url: fields["url"],
+            note: fields["note"]
+        )
+    }
+
     public func deleteMochiItem(mochiServerID: UUID) async throws {
         let output = try await client.delete_mochi_item_api_v1_mochi_items__mochi_item_id__delete(
             path: .init(mochi_item_id: mochiServerID.uuidString)
@@ -297,6 +356,8 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
             title: p.title,
             date: p.date,
             time: p.time,
+            endDate: p.endDate,
+            endTime: p.endTime,
             deadline: p.deadline,
             person: p.person,
             topic: p.topic,

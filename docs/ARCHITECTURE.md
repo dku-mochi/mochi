@@ -2,7 +2,7 @@
 level: 2
 mode: committed
 status: active
-last_verified: 2026-06-05
+last_verified: 2026-06-10
 confidence: 0.7
 owners: [송준서, 이용찬, 박세현]
 description: 시스템 토폴로지·iOS↔Backend 데이터흐름·API 계약의 committed 정본. 다음 중 하나라도 손대기 전 반드시 읽어라 — 두 프로젝트 모두 영향, presentation 스키마, openapi.json, Idempotency-Key, WebFetch SSRF 가드, 모노레포 빌드/배포. 일부 "목표 상태" 서술은 docs/l2/aspirational/ 로 분리 예정. 변경 시 양 README·openapi.json·plan(L3) 정합성 폭포 필수.
@@ -61,7 +61,8 @@ description: 시스템 토폴로지·iOS↔Backend 데이터흐름·API 계약�
 │  │  POST /auth/{apple,google,refresh,logout}          │               │
 │  │  GET  /users/me     GET /health                    │               │
 │  │  GET  /mochi_items(list)  …/images/download-url    │               │
-│  │  planned(no route): sync /search /conv.            │               │
+│  │  POST /search   /conversations/{id}/messages (SSE) │               │
+│  │  planned(no route): /sync                          │               │
 │  └────────┬────────────────────┬────────────────────┬─┘               │
 │           │                    │                    │                 │
 │           ▼                    ▼                    ▼                 │
@@ -106,7 +107,7 @@ description: 시스템 토폴로지·iOS↔Backend 데이터흐름·API 계약�
 App  ──► Features ──► Cores ─┬─ CoreDomain        (pure model, 의존성 없음)
                              ├─ CorePersistence   (Realm + AppGroup + Repository)
                              ├─ CoreNetworking    (MochiAPIClient + DTO)
-                             ├─ CoreAgentClient   (AgentStreamClient — SSE)
+                             ├─ CoreAgentClient   (AgentStreamClient·ChatStreamClient — SSE)
                              ├─ CoreIntegrations  (EventKit / Reminders)
                              └─ DesignSystem      (MochiTheme, IntentBadge)
 
@@ -218,7 +219,7 @@ app/
 │   │   └── domain/lifecycle_policy.py     4-Intent 상태 머신 (단일 진실 공급원)
 │   ├── agent/
 │   │   ├── domain/                AgentNode/AgentRun/Tool ABC/LLMClient port
-│   │   ├── application/           AgentOrchestrator + AgentRunPersistence + MochiWorker
+│   │   ├── application/           AgentOrchestrator + AgentRunPersistence + MochiWorker + tool_factories(타 모듈용 가드 툴 진입점)
 │   │   ├── infrastructure/
 │   │   │   ├── registry.py        StaticToolRegistry
 │   │   │   └── tools/             PlatformContextTool / WebFetchTool / EmbedTool / MultimodalAnalyzeTool
@@ -234,11 +235,12 @@ app/
 │   │   ├── application/           RegisterPushToken, SendAnalysisNotification, make_push_token_repository
 │   │   ├── infrastructure/        HttpxAPNsClient(http2+ES256 JWT), PostgresPushTokenRepository, DevicePushTokenRow
 │   │   └── presentation/router.py      POST /devices/push-token
-│   └── conversations/
-│       ├── domain/                Conversation / Message / Citation
-│       ├── application/           SendMessage, GetConversation
-│       ├── infrastructure/        SQLAlchemy ORM
-│       └── presentation/          POST /conversations, POST /conversations/{id}/messages
+│   └── conversations/                   채팅 탭 — LLM 루프 read-only + proposal (journal 2026-06-10)
+│       ├── domain/                Conversation/Message/MessageCitation, ChatTool·ChatLLMClient·ChatTurnStore ports, run_events
+│       ├── application/           BeginChatTurn(암묵 생성·동시 run 409) · RunChatTurn(detached run 본체) · queries(스냅샷+stale lazy repair)
+│       ├── infrastructure/        ORM·repository · RunRegistry(in-process queue) · GeminiChatClient(AUTO+stream) · turn_store(연산별 자체 세션) · tools/(search_items·get_item_detail·propose 5종·web_fetch(agent 가드 재사용)·web_search(Tavily, 키 미설정 시 제외) — 전부 read-only)
+│       ├── prompts/               chat@v3 활성 (PromptVersion 버저닝)
+│       └── presentation/          POST /{id}/messages(POST-as-SSE) · GET 목록/스냅샷 · DELETE · PATCH proposals/{id}(카드 확정/취소 영속)
 ├── api.py                         /api/v1 라우터 조립
 └── main.py                        FastAPI factory + 미들웨어 + 예외 핸들러
 ```
@@ -350,6 +352,7 @@ SearchResponse
 - `make openapi` (= `scripts/export_openapi.py`) → `openapi.json` 정적 추출 + iOS `CoreNetworking/openapi.json` 동기화. FastAPI 3.1 의 `anyOf:[X, {type:null}]` 은 `export_openapi.py` 가 3.0 `nullable:true` 로 낮춘다 (swift-openapi-generator 가 `type:null` 을 skip 하는 문제 회피).
 - iOS `CodeGen/generate.sh`(swift-openapi-generator)가 `openapi.json` → `CoreNetworking/Sources/Generated/{Client,Types}.swift` 생성. `OpenAPIMochiClient` 어댑터가 `MochiAPIClient` 라이브 구현(날짜 transcoder + auth 미들웨어 + 6 op 위임, `putCaptureImage` 만 GCS 직접 PUT).
 - 동기화 게이트: `ship-precheck §5a`(백엔드 code↔openapi.json no-diff) + `§5b`(openapi.json↔생성물 no-diff). CI(`ship-precheck.yml`)는 §5a 재실행.
+- **SSE 의 ⓪티어 예외 (2026-06-10 명문화)**: SSE 스트리밍 라우트(`GET /mochi_items/{id}/stream`, `POST /conversations/{id}/messages`)는 openapi.json 에 **라우트로는 명시**되지만 이벤트 wire format 은 OpenAPI 로 표현되지 않아, iOS 는 generated client 가 아닌 **raw URLSession**(`CoreAgentClient` — `LiveAgentStreamClient` 전례, 채팅은 `LiveChatStreamClient` 후속)으로 소비한다. 이벤트 스키마의 iOS 정본은 `CoreAgentClient` 의 event enum(`AgentEvent`/`ChatStreamEvent`), 서버 정본은 해당 라우터 docstring — 채팅 이벤트 7종(`message_delta`/`tool_started`/`tool_finished`/`citation`/`proposal`/`done`/`error`, payload 에 `run_id`)은 양쪽이 1:1 이어야 하며 변경 시 함께 고친다.
 
 ---
 

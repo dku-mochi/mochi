@@ -15,8 +15,9 @@ import DesignSystem
 /// - ① 지금 확인해 주세요(`listNeedsReview`): 모찌가 확신 못 한 것만. 분류 버튼 = `setIntent`.
 /// - ③ 최근에 보낸 것들(`listRecent`): 정리 대상이 아닌 안전망(원본 확인·되돌리기).
 /// - ② 모찌가 정리하고 있어요(`listAnalyzing`): 분석 응답 대기. 사용자 행동 불필요, 화면 맨 하단·기본 접힘.
-/// 자연어 회수(질문): 홈 입력바는 진입점만 — 제출 시 `delegate(.recallRequested)` 로
-/// 상위(MainTab)가 검색 탭으로 라우팅해 실제 회수를 수행한다 (UX_SPEC.md §3.4 회수 진입점).
+/// 자연어 회수(질문): 홈 입력바는 진입점만 — 제출 시 `delegate(.chatRequested)` 로
+/// 상위(MainTab)가 채팅 탭 새 대화의 첫 메시지로 라우팅한다 (UX_SPEC.md §3.4 — 칩이
+/// 광고하는 추천·수정은 검색 탭이 수행 불가, journal 2026-06-10 파급 ①).
 @Reducer
 public struct HomeFeature: Sendable {
 
@@ -87,8 +88,8 @@ public struct HomeFeature: Sendable {
         public enum Delegate: Equatable, Sendable {
             case onboardingRequested
             case weeklyDigestRequested
-            /// 홈 질문 입력바·추천 칩 제출 — 상위가 검색 탭으로 전환해 회수를 실행한다.
-            case recallRequested(String)
+            /// 홈 질문 입력바·추천 칩 제출 — 상위가 채팅 탭 새 대화의 첫 메시지로 전환한다.
+            case chatRequested(String)
             /// "최근에 보낸 것들 > 전체 보기" — 상위가 캘린더 탭(전체 기록 브라우징)으로 전환한다.
             case seeAllRecentRequested
         }
@@ -162,13 +163,13 @@ public struct HomeFeature: Sendable {
 
             case let .suggestedQuestionTapped(question):
                 // 칩은 입력 없이 바로 회수 — "떠올린다"가 아니라 "떠오른다"(미션, PRODUCT.md §1.5).
-                return .send(.delegate(.recallRequested(question)))
+                return .send(.delegate(.chatRequested(question)))
 
             case .chatSubmitTapped:
                 let query = state.chatDraft.trimmingCharacters(in: .whitespacesAndNewlines)
                 guard !query.isEmpty else { return .none }
                 state.chatDraft = ""
-                return .send(.delegate(.recallRequested(query)))
+                return .send(.delegate(.chatRequested(query)))
 
             case .reviewSummaryTapped:
                 state.isNeedsReviewModalPresented = !state.needsReview.isEmpty

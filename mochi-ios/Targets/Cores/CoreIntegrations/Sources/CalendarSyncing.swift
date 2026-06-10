@@ -13,7 +13,8 @@ public protocol CalendarSyncing: Sendable {
     func requestReminderAccess() async throws
 
     /// 분석 결과 액션 후보를 시스템에 반영하고 식별자를 반환.
-    func createEvent(title: String, start: Date, end: Date?) async throws -> String
+    /// `allDay` = 시간 정보 없이 날짜만 있는 일정 (payload date 만 있고 time 없음).
+    func createEvent(title: String, start: Date, end: Date?, allDay: Bool) async throws -> String
     func createReminder(title: String, due: Date?) async throws -> String
 }
 
@@ -37,11 +38,12 @@ public actor LiveCalendarSyncer: CalendarSyncing {
         if !granted { throw CalendarSyncError.accessDenied }
     }
 
-    public func createEvent(title: String, start: Date, end: Date?) async throws -> String {
+    public func createEvent(title: String, start: Date, end: Date?, allDay: Bool) async throws -> String {
         let event = EKEvent(eventStore: store)
         event.title = title
         event.startDate = start
-        event.endDate = end ?? start.addingTimeInterval(60 * 60)
+        event.endDate = end ?? (allDay ? start : start.addingTimeInterval(60 * 60))
+        event.isAllDay = allDay
         event.calendar = store.defaultCalendarForNewEvents
         do {
             try store.save(event, span: .thisEvent)

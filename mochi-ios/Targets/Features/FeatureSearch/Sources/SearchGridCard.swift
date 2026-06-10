@@ -310,6 +310,7 @@ struct SearchGridCard: View {
         case .appIntent:      return "단축어"
         case .appShareSheet:  return "캘린더"
         case .appDirectInput: return "내 메모"
+        case .chat:           return "모찌와 대화"
         case .unknown:        return "기록"
         }
     }

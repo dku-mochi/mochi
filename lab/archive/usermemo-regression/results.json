@@ -1,0 +1,2881 @@
+[
+  {
+    "file": "knowledge_시험공부할때보려고.jpg",
+    "gold_intents": [
+      "knowledge"
+    ],
+    "user_intent_ko": "시험공부할때보려고",
+    "v14": {
+      "summary": "Autoencoder의 주요 응용 분야와 VAE(Variational Autoencoder)가 잠재 공간을 확률적으로 학습하여 연속적인 데이터를 생성하는 원리를 정리한 학습 노트입니다.",
+      "category": "딥러닝 학습",
+      "intent_types": [
+        "knowledge"
+      ],
+      "instances": [
+        {
+          "intent_type": "knowledge",
+          "label": "Autoencoder 및 VAE 개념 정리",
+          "reasoning": "딥러닝 모델인 Autoencoder와 VAE의 작동 원리 및 응용 사례를 설명하는 학습 자료입니다. 추후 개념을 복습하거나 참고하기 위해 저장하는 지식 정보로 판단됩니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v15": {
+      "summary": "오토인코더의 다양한 응용 사례와 VAE(Variational Autoencoder)가 잠재 공간을 어떻게 학습하고 연속성을 보장하는지에 대한 학습 요약입니다. 딥러닝 개념 복습을 위해 저장합니다.",
+      "category": "딥러닝 학습",
+      "intent_types": [
+        "knowledge"
+      ],
+      "instances": [
+        {
+          "intent_type": "knowledge",
+          "label": "오토인코더 및 VAE 학습 정리",
+          "reasoning": "딥러닝 모델인 오토인코더와 VAE의 핵심 개념과 작동 원리를 설명하는 학습 자료입니다. 추후 관련 내용을 복습하거나 참고하기 위해 지식으로 저장합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v14_raw": {
+      "needs_review": false,
+      "summary": "Autoencoder의 주요 응용 분야와 VAE(Variational Autoencoder)가 잠재 공간을 확률적으로 학습하여 연속적인 데이터를 생성하는 원리를 정리한 학습 노트입니다.",
+      "importance": 3,
+      "entities": [],
+      "intent_instances": [
+        {
+          "payload": {
+            "title": "Autoencoder 및 VAE 학습 노트",
+            "note": "Autoencoder의 응용(특징 추출, 노이즈 제거, 컬러링 등)과 VAE의 확률적 잠재 공간 학습 원리에 대한 요약 노트입니다."
+          },
+          "label": "Autoencoder 및 VAE 개념 정리",
+          "reasoning": "딥러닝 모델인 Autoencoder와 VAE의 작동 원리 및 응용 사례를 설명하는 학습 자료입니다. 추후 개념을 복습하거나 참고하기 위해 저장하는 지식 정보로 판단됩니다.",
+          "intent_type": "knowledge"
+        }
+      ],
+      "category": "딥러닝 학습"
+    },
+    "v15_raw": {
+      "needs_review": false,
+      "entities": [],
+      "summary": "오토인코더의 다양한 응용 사례와 VAE(Variational Autoencoder)가 잠재 공간을 어떻게 학습하고 연속성을 보장하는지에 대한 학습 요약입니다. 딥러닝 개념 복습을 위해 저장합니다.",
+      "intent_instances": [
+        {
+          "intent_type": "knowledge",
+          "reasoning": "딥러닝 모델인 오토인코더와 VAE의 핵심 개념과 작동 원리를 설명하는 학습 자료입니다. 추후 관련 내용을 복습하거나 참고하기 위해 지식으로 저장합니다.",
+          "payload": {
+            "title": "오토인코더와 VAE 원리 정리",
+            "note": "오토인코더의 응용(노이즈 제거, 컬러링, 스타일 변환, 이상 탐지)과 VAE의 원리(잠재 공간 학습, 연속성 보장)에 대한 요약 노트입니다."
+          },
+          "label": "오토인코더 및 VAE 학습 정리"
+        }
+      ],
+      "importance": 3,
+      "category": "딥러닝 학습"
+    }
+  },
+  {
+    "file": "memo_knowledge_식단짤때참고하려고.png",
+    "gold_intents": [
+      "memo",
+      "knowledge"
+    ],
+    "user_intent_ko": "식단짤때참고하려고",
+    "v14": {
+      "summary": "영상에 나온 '올라잇 식단 예시'를 저장했습니다. 나중에 식단을 구성할 때 참고하기 위한 목적입니다.",
+      "category": "식단 관리",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "식단 참고",
+          "reasoning": "영상에서 소개된 식단 구성 예시를 나중에 참고하기 위해 저장합니다. 구체적인 실천 계획이라기보다는 식단 구성 시 참고할 만한 정보성 메모입니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v15": {
+      "summary": "운동 유튜버 '올라잇'이 소개한 식단 예시입니다. 식단 구성 시 참고하기 위해 저장했습니다.",
+      "category": "식단 관리",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "식단 참고",
+          "reasoning": "영상에서 소개된 식단 구성 예시를 나중에 참고하기 위해 저장하는 것으로, 구체적인 실천 계획이라기보다는 식단 구성의 아이디어나 참고 자료로 활용될 성격이 강합니다. 따라서 메모로 분류합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v14_raw": {
+      "importance": 3,
+      "category": "식단 관리",
+      "entities": [],
+      "needs_review": false,
+      "intent_instances": [
+        {
+          "intent_type": "memo",
+          "payload": {
+            "note": "Meal 1: 레몬수, 계란 흰자, 오트밀\nMeal 2: 닭가슴살, 쌀밥, 자몽/파인애플/브로콜리\nMeal 3: 단백질 보충제 위주 간단한 식사 (운동 전)",
+            "title": "올라잇 식단 예시"
+          },
+          "reasoning": "영상에서 소개된 식단 구성 예시를 나중에 참고하기 위해 저장합니다. 구체적인 실천 계획이라기보다는 식단 구성 시 참고할 만한 정보성 메모입니다.",
+          "label": "식단 참고"
+        }
+      ],
+      "summary": "영상에 나온 '올라잇 식단 예시'를 저장했습니다. 나중에 식단을 구성할 때 참고하기 위한 목적입니다."
+    },
+    "v15_raw": {
+      "category": "식단 관리",
+      "entities": [],
+      "intent_instances": [
+        {
+          "payload": {
+            "note": "Meal 1: 레몬수, 계란 흰자, 오트밀\nMeal 2: 닭가슴살, 쌀밥, 자몽/파인애플/브로콜리\nMeal 3: 단백질 보충제 위주 간단한 식사 (운동 전)",
+            "title": "올라잇 식단 예시"
+          },
+          "label": "식단 참고",
+          "reasoning": "영상에서 소개된 식단 구성 예시를 나중에 참고하기 위해 저장하는 것으로, 구체적인 실천 계획이라기보다는 식단 구성의 아이디어나 참고 자료로 활용될 성격이 강합니다. 따라서 메모로 분류합니다.",
+          "intent_type": "memo"
+        }
+      ],
+      "summary": "운동 유튜버 '올라잇'이 소개한 식단 예시입니다. 식단 구성 시 참고하기 위해 저장했습니다.",
+      "needs_review": false,
+      "importance": 3
+    }
+  },
+  {
+    "file": "memo_todo_저날이후로보러가려고 (2).png",
+    "gold_intents": [
+      "memo",
+      "todo"
+    ],
+    "user_intent_ko": "저날이후로보러가려고",
+    "v14": {
+      "summary": "6월 4일 재개봉한 영화 <노트북>에 대한 정보입니다. 나중에 볼 영화 후보로 저장합니다.",
+      "category": "영화 관람",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "영화 관람 후보",
+          "reasoning": "영화가 재개봉한다는 정보를 보고 나중에 볼 영화 후보로 저장하려는 의도로 판단됩니다. 이미 재개봉일(6월 4일)이 지난 시점이므로, 특정 일정을 잡는 것보다는 나중에 관람할지 고민해볼 수 있는 후보로 저장하는 것이 적절합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v15": {
+      "summary": "6월 4일 재개봉한 영화 '노트북'의 정보를 저장합니다. 나중에 영화를 볼 때 참고하기 위해 보관합니다.",
+      "category": "영화 관람",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "영화 관람 후보",
+          "reasoning": "영화가 이미 6월 4일에 재개봉하였고, 사용자가 관람을 확정했다는 증거가 없으므로 나중에 볼 영화 후보로 저장합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v14_raw": {
+      "category": "영화 관람",
+      "entities": [
+        {
+          "kind": "movie_title",
+          "value": "노트북"
+        }
+      ],
+      "summary": "6월 4일 재개봉한 영화 <노트북>에 대한 정보입니다. 나중에 볼 영화 후보로 저장합니다.",
+      "intent_instances": [
+        {
+          "intent_type": "memo",
+          "reasoning": "영화가 재개봉한다는 정보를 보고 나중에 볼 영화 후보로 저장하려는 의도로 판단됩니다. 이미 재개봉일(6월 4일)이 지난 시점이므로, 특정 일정을 잡는 것보다는 나중에 관람할지 고민해볼 수 있는 후보로 저장하는 것이 적절합니다.",
+          "label": "영화 관람 후보",
+          "payload": {
+            "note": "6월 4일 재개봉한 영화 '노트북'입니다. 나중에 볼 영화 후보로 저장합니다.",
+            "title": "영화 <노트북> 재개봉 정보"
+          }
+        }
+      ],
+      "importance": 2,
+      "needs_review": false
+    },
+    "v15_raw": {
+      "importance": 2,
+      "summary": "6월 4일 재개봉한 영화 '노트북'의 정보를 저장합니다. 나중에 영화를 볼 때 참고하기 위해 보관합니다.",
+      "intent_instances": [
+        {
+          "intent_type": "memo",
+          "reasoning": "영화가 이미 6월 4일에 재개봉하였고, 사용자가 관람을 확정했다는 증거가 없으므로 나중에 볼 영화 후보로 저장합니다.",
+          "label": "영화 관람 후보",
+          "payload": {
+            "title": "영화 '노트북' 재개봉 정보",
+            "note": "6월 4일 재개봉한 영화 '노트북' 정보입니다."
+          }
+        }
+      ],
+      "category": "영화 관람",
+      "needs_review": false,
+      "entities": [
+        {
+          "kind": "movie_title",
+          "value": "노트북"
+        }
+      ]
+    }
+  },
+  {
+    "file": "memo_todo_저날이후로보러가려고.png",
+    "gold_intents": [
+      "memo",
+      "todo"
+    ],
+    "user_intent_ko": "저날이후로보러가려고",
+    "v14": {
+      "summary": "로맨스 영화 '비포 선라이즈'가 6월 18일 CGV에서 단독 재개봉한다는 소식입니다. 영화를 관람할 계획이 있을 수 있어 정보를 저장합니다.",
+      "category": "영화 관람",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "영화 관람 후보",
+          "reasoning": "영화 재개봉 소식을 보고 나중에 보고 싶다는 관심을 표현한 것으로 보입니다. 확정된 일정이나 예매 완료 상태가 아니므로 메모로 분류합니다."
+        }
+      ],
+      "needs_review": true
+    },
+    "v15": {
+      "summary": "6월 18일 CGV에서 재개봉하는 영화 '비포 선라이즈' 정보입니다. 나중에 관람할지 고민하기 위해 저장했습니다.",
+      "category": "영화 관람",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "영화 관람 후보",
+          "reasoning": "영화 재개봉 소식을 보고 나중에 보고 싶다는 관심으로 저장한 것으로 판단됩니다. 구체적인 예매나 관람 약속이 명시되지 않았으므로 메모로 분류합니다."
+        }
+      ],
+      "needs_review": true
+    },
+    "v14_raw": {
+      "intent_instances": [
+        {
+          "label": "영화 관람 후보",
+          "reasoning": "영화 재개봉 소식을 보고 나중에 보고 싶다는 관심을 표현한 것으로 보입니다. 확정된 일정이나 예매 완료 상태가 아니므로 메모로 분류합니다.",
+          "intent_type": "memo",
+          "payload": {
+            "title": "비포 선라이즈 재개봉 정보",
+            "note": "6월 18일 CGV 단독 재개봉 예정"
+          }
+        }
+      ],
+      "category": "영화 관람",
+      "importance": 3,
+      "review_options": [
+        {
+          "label": "영화 관람 일정 등록",
+          "intent_type": "schedule",
+          "reasoning": "재개봉일에 맞춰 영화를 보러 갈 계획이 있다면 일정으로 등록할 수 있습니다."
+        }
+      ],
+      "entities": [
+        {
+          "value": "비포 선라이즈",
+          "kind": "title"
+        },
+        {
+          "value": "2026-06-18",
+          "kind": "date"
+        }
+      ],
+      "needs_review": true,
+      "summary": "로맨스 영화 '비포 선라이즈'가 6월 18일 CGV에서 단독 재개봉한다는 소식입니다. 영화를 관람할 계획이 있을 수 있어 정보를 저장합니다."
+    },
+    "v15_raw": {
+      "needs_review": true,
+      "importance": 3,
+      "category": "영화 관람",
+      "review_options": [
+        {
+          "reasoning": "재개봉일에 맞춰 영화를 관람할 계획이 있다면 일정으로 등록할 수 있습니다.",
+          "intent_type": "schedule",
+          "label": "영화 관람 일정 등록"
+        }
+      ],
+      "entities": [
+        {
+          "kind": "title",
+          "value": "비포 선라이즈"
+        },
+        {
+          "value": "2026-06-18",
+          "kind": "date"
+        }
+      ],
+      "summary": "6월 18일 CGV에서 재개봉하는 영화 '비포 선라이즈' 정보입니다. 나중에 관람할지 고민하기 위해 저장했습니다.",
+      "intent_instances": [
+        {
+          "label": "영화 관람 후보",
+          "intent_type": "memo",
+          "reasoning": "영화 재개봉 소식을 보고 나중에 보고 싶다는 관심으로 저장한 것으로 판단됩니다. 구체적인 예매나 관람 약속이 명시되지 않았으므로 메모로 분류합니다.",
+          "payload": {
+            "title": "비포 선라이즈 재개봉 정보",
+            "note": "6월 18일 CGV 단독 재개봉 예정인 로맨스 영화 '비포 선라이즈' 정보입니다."
+          }
+        }
+      ]
+    }
+  },
+  {
+    "file": "memo_todo_해당날짜전까지등록하려고.png",
+    "gold_intents": [
+      "memo",
+      "todo"
+    ],
+    "user_intent_ko": "해당날짜전까지등록하려고",
+    "v14": {
+      "summary": "K-패스 시스템 오류로 인해 5월 13일 이후 적립이 중단되었으며, 기존 회원은 7월 7일까지 카드 재등록을 완료해야 환급을 받을 수 있습니다.",
+      "category": "교통비 환급",
+      "intent_types": [
+        "todo"
+      ],
+      "instances": [
+        {
+          "intent_type": "todo",
+          "label": "K-패스 카드 재등록",
+          "reasoning": "사용자가 K-패스 기존 회원이라면 7월 7일까지 카드 재등록을 완료해야 환급을 받을 수 있다는 명확한 마감 기한과 행동 지침이 있습니다. 이는 사용자가 반드시 처리해야 할 할 일입니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v15": {
+      "summary": "K-패스 시스템 오류로 인해 기존 회원은 7월 7일까지 카드번호를 재등록해야 환급을 받을 수 있습니다. 환급 복구를 위해 기한 내에 재등록을 완료해야 합니다.",
+      "category": "교통비 환급",
+      "intent_types": [
+        "todo"
+      ],
+      "instances": [
+        {
+          "intent_type": "todo",
+          "label": "K-패스 카드 재등록",
+          "reasoning": "K-패스 기존 회원으로서 환급을 받기 위해 7월 7일까지 반드시 수행해야 하는 명확한 마감 기한이 있는 작업입니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v14_raw": {
+      "category": "교통비 환급",
+      "intent_instances": [
+        {
+          "intent_type": "todo",
+          "payload": {
+            "deadline": "2026-07-07 23:59",
+            "note": "K-패스 기존 회원인 경우 시스템 오류로 인한 환급 복구를 위해 7월 7일까지 카드번호 재등록 필수.",
+            "title": "K-패스 카드 재등록 완료하기"
+          },
+          "label": "K-패스 카드 재등록",
+          "reasoning": "사용자가 K-패스 기존 회원이라면 7월 7일까지 카드 재등록을 완료해야 환급을 받을 수 있다는 명확한 마감 기한과 행동 지침이 있습니다. 이는 사용자가 반드시 처리해야 할 할 일입니다."
+        }
+      ],
+      "summary": "K-패스 시스템 오류로 인해 5월 13일 이후 적립이 중단되었으며, 기존 회원은 7월 7일까지 카드 재등록을 완료해야 환급을 받을 수 있습니다.",
+      "entities": [
+        {
+          "kind": "deadline",
+          "value": "2026-07-07 23:59"
+        }
+      ],
+      "needs_review": false,
+      "importance": 5
+    },
+    "v15_raw": {
+      "category": "교통비 환급",
+      "intent_instances": [
+        {
+          "label": "K-패스 카드 재등록",
+          "intent_type": "todo",
+          "reasoning": "K-패스 기존 회원으로서 환급을 받기 위해 7월 7일까지 반드시 수행해야 하는 명확한 마감 기한이 있는 작업입니다.",
+          "payload": {
+            "title": "K-패스 카드 재등록 (7/7까지)",
+            "note": "5월 시스템 오류로 인한 환급 복구를 위해 7/7까지 카드번호 재등록 필수. 신규 가입자는 제외.",
+            "deadline": "2026-07-07 23:59"
+          }
+        }
+      ],
+      "importance": 5,
+      "needs_review": false,
+      "summary": "K-패스 시스템 오류로 인해 기존 회원은 7월 7일까지 카드번호를 재등록해야 환급을 받을 수 있습니다. 환급 복구를 위해 기한 내에 재등록을 완료해야 합니다.",
+      "entities": [
+        {
+          "value": "2026-07-07 23:59",
+          "kind": "deadline"
+        }
+      ]
+    }
+  },
+  {
+    "file": "memo_기프티콘나중에꼭써야지.jpeg",
+    "gold_intents": [
+      "memo"
+    ],
+    "user_intent_ko": "기프티콘나중에꼭써야지",
+    "v14": {
+      "summary": "유효기간이 만료된 메가MGC커피 모바일 금액권(5천원권) 이미지입니다. 이미 기간이 지나 사용할 수 없는 쿠폰입니다.",
+      "category": "쿠폰/기프티콘",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "사용 예정 쿠폰",
+          "reasoning": "이미지상의 유효기간(2025.09.28 ~ 2025.10.28)이 현재 시점(2026.06.10)보다 과거이므로, 더 이상 사용할 수 없는 만료된 쿠폰입니다. 사용 가능한 할 일이나 일정이 아니므로 메모로 분류하여 보관합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v15": {
+      "summary": "메가MGC커피 모바일 금액권 5천원권 스크린샷입니다. 유효기간이 이미 만료된 쿠폰이므로 참고용으로 보관합니다.",
+      "category": "쿠폰 관리",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "사용 예정 쿠폰 보관",
+          "reasoning": "사용자가 보유한 모바일 쿠폰을 저장해두었습니다. 다만, 스크린샷에 기재된 유효기간(2025.10.28)이 현재 시점(2026.06.10)보다 과거이므로, 이미 만료된 쿠폰임을 인지할 수 있도록 메모로 저장합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v14_raw": {
+      "category": "쿠폰/기프티콘",
+      "entities": [
+        {
+          "kind": "product",
+          "value": "메가MGC커피 모바일 금액권 5천원권"
+        }
+      ],
+      "summary": "유효기간이 만료된 메가MGC커피 모바일 금액권(5천원권) 이미지입니다. 이미 기간이 지나 사용할 수 없는 쿠폰입니다.",
+      "intent_instances": [
+        {
+          "intent_type": "memo",
+          "payload": {
+            "note": "유효기간이 2025년 10월 28일까지인 메가MGC커피 모바일 금액권입니다. 현재 시점(2026년 6월)에서는 이미 유효기간이 만료되었습니다.",
+            "title": "메가MGC커피 모바일 금액권 5천원권"
+          },
+          "reasoning": "이미지상의 유효기간(2025.09.28 ~ 2025.10.28)이 현재 시점(2026.06.10)보다 과거이므로, 더 이상 사용할 수 없는 만료된 쿠폰입니다. 사용 가능한 할 일이나 일정이 아니므로 메모로 분류하여 보관합니다.",
+          "label": "사용 예정 쿠폰"
+        }
+      ],
+      "importance": 1,
+      "needs_review": false
+    },
+    "v15_raw": {
+      "summary": "메가MGC커피 모바일 금액권 5천원권 스크린샷입니다. 유효기간이 이미 만료된 쿠폰이므로 참고용으로 보관합니다.",
+      "needs_review": false,
+      "entities": [
+        {
+          "value": "메가MGC커피 모바일 금액권 5천원권",
+          "kind": "product"
+        }
+      ],
+      "importance": 1,
+      "category": "쿠폰 관리",
+      "intent_instances": [
+        {
+          "label": "사용 예정 쿠폰 보관",
+          "reasoning": "사용자가 보유한 모바일 쿠폰을 저장해두었습니다. 다만, 스크린샷에 기재된 유효기간(2025.10.28)이 현재 시점(2026.06.10)보다 과거이므로, 이미 만료된 쿠폰임을 인지할 수 있도록 메모로 저장합니다.",
+          "intent_type": "memo",
+          "payload": {
+            "title": "메가MGC커피 모바일 금액권 5천원권",
+            "note": "유효기간이 2025년 10월 28일까지인 메가MGC커피 5천원권입니다. 현재 시점(2026년 6월)에서는 이미 유효기간이 만료되었습니다."
+          }
+        }
+      ]
+    }
+  },
+  {
+    "file": "memo_나중에가보려고.png",
+    "gold_intents": [
+      "memo"
+    ],
+    "user_intent_ko": "나중에가보려고",
+    "v14": {
+      "summary": "송파구 위례에 위치한 북카페 '그래픽 바이 대신'에 대한 정보입니다. 나중에 방문하기 위해 저장했습니다.",
+      "category": "카페 탐방",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "방문 후보",
+          "reasoning": "사용자가 나중에 방문할 후보지로 저장한 것으로 보입니다. 확정된 일정이 아니므로 메모로 분류합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v15": {
+      "summary": "송파구에 위치한 북카페 '그래픽 바이 대신'의 정보를 저장했습니다. 나중에 방문할 카페 후보로 참고하기 위해 기록합니다.",
+      "category": "카페 탐방",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "방문 후보",
+          "reasoning": "사용자가 방문하고 싶은 카페 정보를 저장한 것으로 보입니다. 구체적인 방문 일정이 정해진 것은 아니므로 방문 후보로 메모합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v14_raw": {
+      "needs_review": false,
+      "summary": "송파구 위례에 위치한 북카페 '그래픽 바이 대신'에 대한 정보입니다. 나중에 방문하기 위해 저장했습니다.",
+      "intent_instances": [
+        {
+          "payload": {
+            "title": "그래픽 바이 대신 카페",
+            "note": "기본 이용료 15,000원에 음료 및 간식 무제한 이용 가능. 화~일 10:00-21:00 운영."
+          },
+          "intent_type": "memo",
+          "reasoning": "사용자가 나중에 방문할 후보지로 저장한 것으로 보입니다. 확정된 일정이 아니므로 메모로 분류합니다.",
+          "label": "방문 후보"
+        }
+      ],
+      "category": "카페 탐방",
+      "entities": [
+        {
+          "kind": "location",
+          "value": "서울 송파구 위례순환로 387"
+        }
+      ],
+      "importance": 2
+    },
+    "v15_raw": {
+      "entities": [
+        {
+          "value": "서울 송파구 위례순환로 387",
+          "kind": "location"
+        },
+        {
+          "kind": "name",
+          "value": "그래픽 바이 대신"
+        }
+      ],
+      "category": "카페 탐방",
+      "intent_instances": [
+        {
+          "reasoning": "사용자가 방문하고 싶은 카페 정보를 저장한 것으로 보입니다. 구체적인 방문 일정이 정해진 것은 아니므로 방문 후보로 메모합니다.",
+          "payload": {
+            "note": "기본 이용료 15,000원에 음료 및 간식 무제한 이용 가능. 화~일 10:00-21:00 운영.",
+            "title": "그래픽 바이 대신 방문 고려"
+          },
+          "intent_type": "memo",
+          "label": "방문 후보"
+        }
+      ],
+      "summary": "송파구에 위치한 북카페 '그래픽 바이 대신'의 정보를 저장했습니다. 나중에 방문할 카페 후보로 참고하기 위해 기록합니다.",
+      "needs_review": false,
+      "importance": 2
+    }
+  },
+  {
+    "file": "memo_나중에가보려고저장.png",
+    "gold_intents": [
+      "memo"
+    ],
+    "user_intent_ko": "나중에가보려고저장",
+    "v14": {
+      "summary": "장마철을 대비해 방문하기 좋은 경기도 내 실내 데이트 장소 4곳(명필름아트센터, 바운스 슈퍼파크, 글로우사파리, 미리내힐링클럽)을 정리한 정보입니다.",
+      "category": "데이트 코스",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "데이트 장소 후보",
+          "reasoning": "장마철을 대비해 가볼 만한 실내 데이트 장소들을 모아둔 정보로, 구체적인 방문 계획이 확정된 것은 아니므로 메모로 분류합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v15": {
+      "summary": "장마철을 대비해 방문하기 좋은 경기도 실내 데이트 장소 4곳(명필름아트센터, 바운스 슈퍼파크, 글로우사파리, 미리내힐링클럽)을 저장했습니다.",
+      "category": "데이트 코스",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "데이트 장소 후보",
+          "reasoning": "사용자가 장마철을 대비해 알아두려고 저장한 실내 데이트 장소 후보들입니다. 특정 날짜에 가기로 확정된 것이 아니므로 메모로 분류합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v14_raw": {
+      "summary": "장마철을 대비해 방문하기 좋은 경기도 내 실내 데이트 장소 4곳(명필름아트센터, 바운스 슈퍼파크, 글로우사파리, 미리내힐링클럽)을 정리한 정보입니다.",
+      "needs_review": false,
+      "intent_instances": [
+        {
+          "label": "데이트 장소 후보",
+          "payload": {
+            "note": "장마철 실내 데이트 장소로 추천된 경기 지역 명소 4곳입니다.",
+            "title": "경기 실내 데이트 장소 후보"
+          },
+          "reasoning": "장마철을 대비해 가볼 만한 실내 데이트 장소들을 모아둔 정보로, 구체적인 방문 계획이 확정된 것은 아니므로 메모로 분류합니다.",
+          "intent_type": "memo"
+        }
+      ],
+      "entities": [
+        {
+          "kind": "location",
+          "value": "명필름아트센터"
+        },
+        {
+          "kind": "location",
+          "value": "바운스 슈퍼파크"
+        },
+        {
+          "kind": "location",
+          "value": "글로우사파리"
+        },
+        {
+          "kind": "location",
+          "value": "미리내힐링클럽"
+        }
+      ],
+      "category": "데이트 코스",
+      "importance": 3
+    },
+    "v15_raw": {
+      "intent_instances": [
+        {
+          "intent_type": "memo",
+          "label": "데이트 장소 후보",
+          "payload": {
+            "note": "장마철 실내 데이트를 위해 저장한 경기도 실내 데이트 장소 4곳입니다.",
+            "title": "경기도 실내 데이트 장소 후보"
+          },
+          "reasoning": "사용자가 장마철을 대비해 알아두려고 저장한 실내 데이트 장소 후보들입니다. 특정 날짜에 가기로 확정된 것이 아니므로 메모로 분류합니다."
+        }
+      ],
+      "summary": "장마철을 대비해 방문하기 좋은 경기도 실내 데이트 장소 4곳(명필름아트센터, 바운스 슈퍼파크, 글로우사파리, 미리내힐링클럽)을 저장했습니다.",
+      "entities": [
+        {
+          "kind": "location",
+          "value": "명필름아트센터"
+        },
+        {
+          "kind": "location",
+          "value": "바운스 슈퍼파크"
+        },
+        {
+          "value": "글로우사파리",
+          "kind": "location"
+        },
+        {
+          "value": "미리내힐링클럽",
+          "kind": "location"
+        }
+      ],
+      "category": "데이트 코스",
+      "importance": 3,
+      "needs_review": false
+    }
+  },
+  {
+    "file": "memo_나중에먹어보려고.png",
+    "gold_intents": [
+      "memo"
+    ],
+    "user_intent_ko": "나중에먹어보려고",
+    "v14": {
+      "summary": "용인 보정동의 퓨전 한식 맛집 '정희'에 대한 소개입니다. 나중에 방문해 볼 만한 맛집 후보로 저장합니다.",
+      "category": "맛집 탐방",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "방문 후보",
+          "reasoning": "사용자가 맛집 정보를 저장하여 나중에 방문할 후보지로 고려하고 있습니다. 구체적인 방문 약속이나 예약이 확인되지 않으므로 메모로 분류합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v15": {
+      "summary": "용인 보정동의 퓨전 한식 맛집 '정희'에 대한 정보입니다. 나중에 데이트나 가족 외식 시 방문하기 위해 저장했습니다.",
+      "category": "맛집 탐방",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "방문 후보",
+          "reasoning": "사용자가 맛집 정보를 저장하여 나중에 방문할 후보지로 고려하고 있으므로, 방문 의사를 기록하기 위해 메모로 분류합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v14_raw": {
+      "category": "맛집 탐방",
+      "importance": 2,
+      "summary": "용인 보정동의 퓨전 한식 맛집 '정희'에 대한 소개입니다. 나중에 방문해 볼 만한 맛집 후보로 저장합니다.",
+      "entities": [
+        {
+          "kind": "place",
+          "value": "정희 용인보정점"
+        }
+      ],
+      "needs_review": false,
+      "intent_instances": [
+        {
+          "label": "방문 후보",
+          "intent_type": "memo",
+          "reasoning": "사용자가 맛집 정보를 저장하여 나중에 방문할 후보지로 고려하고 있습니다. 구체적인 방문 약속이나 예약이 확인되지 않으므로 메모로 분류합니다.",
+          "payload": {
+            "note": "용인 보정동에 위치한 퓨전 한식 맛집. 고사리 크림수제비, 새우감자전, 깻잎고등어지짐밥이 추천 메뉴. 데이트나 가족 외식 장소로 적합.",
+            "title": "정희 용인보정점"
+          }
+        }
+      ]
+    },
+    "v15_raw": {
+      "importance": 3,
+      "intent_instances": [
+        {
+          "reasoning": "사용자가 맛집 정보를 저장하여 나중에 방문할 후보지로 고려하고 있으므로, 방문 의사를 기록하기 위해 메모로 분류합니다.",
+          "intent_type": "memo",
+          "label": "방문 후보",
+          "payload": {
+            "title": "정희 용인보정점",
+            "note": "용인 보정동에 위치한 퓨전 한식 맛집. 고사리 크림수제비, 새우감자전, 깻잎고등어지짐밥이 추천 메뉴. 데이트나 가족 외식 장소로 적합함."
+          }
+        }
+      ],
+      "needs_review": false,
+      "summary": "용인 보정동의 퓨전 한식 맛집 '정희'에 대한 정보입니다. 나중에 데이트나 가족 외식 시 방문하기 위해 저장했습니다.",
+      "entities": [
+        {
+          "kind": "location",
+          "value": "정희 용인보정점"
+        }
+      ],
+      "category": "맛집 탐방"
+    }
+  },
+  {
+    "file": "memo_나중에사먹으려고.jpg",
+    "gold_intents": [
+      "memo"
+    ],
+    "user_intent_ko": "나중에사먹으려고",
+    "v14": {
+      "summary": "영상에서 소개된 '고려은단 비타민C 1000' 제품입니다. 나중에 구매하거나 정보를 확인하기 위해 저장했습니다.",
+      "category": "건강 관리",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "구매 고려",
+          "reasoning": "영상에 등장한 제품에 관심을 가지고 나중에 다시 확인하거나 구매를 고려하기 위해 저장한 것으로 보입니다. 구매를 확정한 것은 아니므로 메모로 분류합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v15": {
+      "summary": "영상에 등장한 '고려은단 비타민C 1000' 제품입니다. 나중에 구매를 고려해보기 위해 저장합니다.",
+      "category": "건강 관리",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "비타민 구매 고려",
+          "reasoning": "영상에 등장한 제품을 보고 나중에 구매를 고려하기 위해 저장하는 것으로 판단됩니다. 현재 구매가 확정된 상태는 아니므로 메모로 분류합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v14_raw": {
+      "category": "건강 관리",
+      "importance": 2,
+      "intent_instances": [
+        {
+          "intent_type": "memo",
+          "reasoning": "영상에 등장한 제품에 관심을 가지고 나중에 다시 확인하거나 구매를 고려하기 위해 저장한 것으로 보입니다. 구매를 확정한 것은 아니므로 메모로 분류합니다.",
+          "label": "구매 고려",
+          "payload": {
+            "note": "영상에서 소개된 비타민 제품입니다.",
+            "title": "고려은단 비타민C 1000"
+          }
+        }
+      ],
+      "needs_review": false,
+      "entities": [
+        {
+          "kind": "product",
+          "value": "고려은단 비타민C 1000"
+        }
+      ],
+      "summary": "영상에서 소개된 '고려은단 비타민C 1000' 제품입니다. 나중에 구매하거나 정보를 확인하기 위해 저장했습니다."
+    },
+    "v15_raw": {
+      "entities": [
+        {
+          "value": "고려은단 비타민C 1000",
+          "kind": "product"
+        }
+      ],
+      "summary": "영상에 등장한 '고려은단 비타민C 1000' 제품입니다. 나중에 구매를 고려해보기 위해 저장합니다.",
+      "intent_instances": [
+        {
+          "intent_type": "memo",
+          "label": "비타민 구매 고려",
+          "payload": {
+            "title": "고려은단 비타민C 1000",
+            "note": "영상에서 언급된 비타민 제품입니다. 나중에 구매할지 고민해보기 위해 저장합니다."
+          },
+          "reasoning": "영상에 등장한 제품을 보고 나중에 구매를 고려하기 위해 저장하는 것으로 판단됩니다. 현재 구매가 확정된 상태는 아니므로 메모로 분류합니다."
+        }
+      ],
+      "needs_review": false,
+      "importance": 2,
+      "category": "건강 관리"
+    }
+  },
+  {
+    "file": "memo_나중에살신발.png",
+    "gold_intents": [
+      "memo"
+    ],
+    "user_intent_ko": "나중에살신발",
+    "v14": {
+      "summary": "로제니크의 '세릭 스틸레토 스트랩 슬링백힐' 상품 페이지입니다. 구매를 고려 중인 상품으로 보입니다.",
+      "category": "쇼핑 후보",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "구매 고민",
+          "reasoning": "사용자가 상품 페이지를 캡처하여 저장한 것은 구매를 고려하고 있다는 관심의 표현입니다. 현재 구매를 확정하거나 행동을 약속한 상태는 아니므로 메모로 분류하여 나중에 다시 볼 수 있도록 합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v15": {
+      "summary": "로제니크의 '세릭 스틸레토 스트랩 슬링백힐' 상품 페이지를 캡처했습니다. 구매를 고려 중인 상품으로 보입니다.",
+      "category": "쇼핑 후보",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "구매 고민",
+          "reasoning": "사용자가 상품 정보를 캡처하여 저장한 것으로, 구매를 확정한 상태가 아닌 상품에 대한 관심 및 구매 고려 단계로 판단됩니다. 따라서 나중에 다시 확인하고 결정할 수 있도록 메모로 저장합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v14_raw": {
+      "summary": "로제니크의 '세릭 스틸레토 스트랩 슬링백힐' 상품 페이지입니다. 구매를 고려 중인 상품으로 보입니다.",
+      "importance": 2,
+      "category": "쇼핑 후보",
+      "intent_instances": [
+        {
+          "payload": {
+            "title": "세릭 스틸레토 스트랩 슬링백힐 구매 고민",
+            "note": "로제니크 세릭 스틸레토 스트랩 슬링백힐 (29,830원)"
+          },
+          "intent_type": "memo",
+          "reasoning": "사용자가 상품 페이지를 캡처하여 저장한 것은 구매를 고려하고 있다는 관심의 표현입니다. 현재 구매를 확정하거나 행동을 약속한 상태는 아니므로 메모로 분류하여 나중에 다시 볼 수 있도록 합니다.",
+          "label": "구매 고민"
+        }
+      ],
+      "entities": [
+        {
+          "value": "세릭 스틸레토 스트랩 슬링백힐",
+          "kind": "product"
+        }
+      ],
+      "needs_review": false
+    },
+    "v15_raw": {
+      "importance": 2,
+      "summary": "로제니크의 '세릭 스틸레토 스트랩 슬링백힐' 상품 페이지를 캡처했습니다. 구매를 고려 중인 상품으로 보입니다.",
+      "entities": [
+        {
+          "value": "세릭 스틸레토 스트랩 슬링백힐",
+          "kind": "product"
+        }
+      ],
+      "intent_instances": [
+        {
+          "reasoning": "사용자가 상품 정보를 캡처하여 저장한 것으로, 구매를 확정한 상태가 아닌 상품에 대한 관심 및 구매 고려 단계로 판단됩니다. 따라서 나중에 다시 확인하고 결정할 수 있도록 메모로 저장합니다.",
+          "label": "구매 고민",
+          "payload": {
+            "note": "로제니크 세릭 스틸레토 스트랩 슬링백힐 (5cm/4colors) 구매 고려 중. 29,830원.",
+            "title": "세릭 스틸레토 스트랩 슬링백힐 구매 고민"
+          },
+          "intent_type": "memo"
+        }
+      ],
+      "needs_review": false,
+      "category": "쇼핑 후보"
+    }
+  },
+  {
+    "file": "memo_나중에살화장품.png",
+    "gold_intents": [
+      "memo"
+    ],
+    "user_intent_ko": "나중에살화장품",
+    "v14": {
+      "summary": "영상 댓글에서 추천받은 Bath and Body Works의 'warm vanilla sugar' 라인 바디 제품 정보를 저장합니다.",
+      "category": "쇼핑 후보",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "바닐라 향 바디 제품 추천 확인",
+          "reasoning": "영상 댓글에서 추천받은 바디 제품 정보를 나중에 참고하기 위해 저장합니다. 구매가 확정된 것은 아니므로 메모로 분류합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v15": {
+      "summary": "영상 댓글에서 추천받은 Bath and Body Works의 'Warm Vanilla Sugar' 라인 제품 정보입니다. 나중에 바닐라 향 제품을 구매할 때 참고하기 위해 저장합니다.",
+      "category": "쇼핑 후보",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "바닐라 향 제품 추천 참고",
+          "reasoning": "영상 댓글에서 추천받은 바닐라 향 제품 정보를 나중에 참고하기 위해 저장합니다. 구매가 확정된 것은 아니므로 메모로 분류합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v14_raw": {
+      "summary": "영상 댓글에서 추천받은 Bath and Body Works의 'warm vanilla sugar' 라인 바디 제품 정보를 저장합니다.",
+      "entities": [],
+      "needs_review": false,
+      "importance": 2,
+      "intent_instances": [
+        {
+          "label": "바닐라 향 바디 제품 추천 확인",
+          "reasoning": "영상 댓글에서 추천받은 바디 제품 정보를 나중에 참고하기 위해 저장합니다. 구매가 확정된 것은 아니므로 메모로 분류합니다.",
+          "intent_type": "memo",
+          "payload": {
+            "title": "Bath and Body Works 바닐라 향 제품 추천",
+            "note": "댓글에서 추천한 Bath and Body Works의 'warm vanilla sugar' 라인 바디 제품들."
+          }
+        }
+      ],
+      "category": "쇼핑 후보"
+    },
+    "v15_raw": {
+      "needs_review": false,
+      "importance": 2,
+      "intent_instances": [
+        {
+          "reasoning": "영상 댓글에서 추천받은 바닐라 향 제품 정보를 나중에 참고하기 위해 저장합니다. 구매가 확정된 것은 아니므로 메모로 분류합니다.",
+          "label": "바닐라 향 제품 추천 참고",
+          "payload": {
+            "title": "Bath and Body Works 바닐라 향 제품 추천",
+            "note": "Bath and Body Works의 Warm Vanilla Sugar 라인(바디로션, 바디워시, 바디미스트)을 사용하면 바닐라 향을 풍부하게 낼 수 있다는 댓글 추천 내용."
+          },
+          "intent_type": "memo"
+        }
+      ],
+      "summary": "영상 댓글에서 추천받은 Bath and Body Works의 'Warm Vanilla Sugar' 라인 제품 정보입니다. 나중에 바닐라 향 제품을 구매할 때 참고하기 위해 저장합니다.",
+      "category": "쇼핑 후보",
+      "entities": [
+        {
+          "kind": "product",
+          "value": "Bath and Body Works Warm Vanilla Sugar 라인"
+        }
+      ]
+    }
+  },
+  {
+    "file": "memo_나중에써봐야지.PNG",
+    "gold_intents": [
+      "memo"
+    ],
+    "user_intent_ko": "나중에써봐야지",
+    "v14": {
+      "summary": "유튜버 퓨디파이가 공개한 로컬 AI 통합 작업 공간 '오디세우스(Odysseus)'에 대한 정보입니다. 데이터 프라이버시를 중요시하는 사용자를 위한 로컬 AI 환경 구축 도구로, 추후 관련 기술을 검토하거나 도입할 때 참고하기 위해 저장합니다.",
+      "category": "AI 도구 정보",
+      "intent_types": [
+        "knowledge"
+      ],
+      "instances": [
+        {
+          "intent_type": "knowledge",
+          "label": "AI 도구 참고",
+          "reasoning": "로컬 AI 환경 구축 및 데이터 주권 확보에 관심이 있는 사용자에게 유용한 기술 정보로서, 나중에 다시 찾아보고 활용할 수 있는 지식 자산으로 판단됩니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v15": {
+      "summary": "유튜버 퓨디파이가 공개한 로컬 AI 워크스페이스 '오디세우스'에 대한 정보입니다. 데이터 프라이버시를 중시하는 사용자를 위한 로컬 AI 환경 구축 도구로, 관련 기술을 학습하거나 도입할 때 참고하기 위해 저장합니다.",
+      "category": "AI 도구 정보",
+      "intent_types": [
+        "knowledge"
+      ],
+      "instances": [
+        {
+          "intent_type": "knowledge",
+          "label": "AI 도구 참고",
+          "reasoning": "사용자 PC에서 로컬로 AI를 운영할 수 있는 새로운 도구에 대한 기술적 정보이므로, 나중에 필요할 때 찾아볼 수 있도록 지식으로 저장합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v14_raw": {
+      "category": "AI 도구 정보",
+      "importance": 3,
+      "intent_instances": [
+        {
+          "label": "AI 도구 참고",
+          "reasoning": "로컬 AI 환경 구축 및 데이터 주권 확보에 관심이 있는 사용자에게 유용한 기술 정보로서, 나중에 다시 찾아보고 활용할 수 있는 지식 자산으로 판단됩니다.",
+          "intent_type": "knowledge",
+          "payload": {
+            "url": "https://github.com/pewdiepie-archdaemon/odysseus",
+            "note": "로컬 환경에서 실행 가능한 AI 통합 작업 공간 '오디세우스'에 대한 정보입니다. 데이터 프라이버시를 중시하며 오픈소스 모델 및 다양한 API 연동을 지원합니다.",
+            "title": "AI 워크스페이스 '오디세우스' 소개"
+          }
+        }
+      ],
+      "entities": [
+        {
+          "kind": "url",
+          "value": "https://github.com/pewdiepie-archdaemon/odysseus"
+        }
+      ],
+      "needs_review": false,
+      "summary": "유튜버 퓨디파이가 공개한 로컬 AI 통합 작업 공간 '오디세우스(Odysseus)'에 대한 정보입니다. 데이터 프라이버시를 중요시하는 사용자를 위한 로컬 AI 환경 구축 도구로, 추후 관련 기술을 검토하거나 도입할 때 참고하기 위해 저장합니다."
+    },
+    "v15_raw": {
+      "intent_instances": [
+        {
+          "intent_type": "knowledge",
+          "reasoning": "사용자 PC에서 로컬로 AI를 운영할 수 있는 새로운 도구에 대한 기술적 정보이므로, 나중에 필요할 때 찾아볼 수 있도록 지식으로 저장합니다.",
+          "payload": {
+            "note": "사용자 PC에서 직접 실행하는 로컬 AI 작업 공간 '오디세우스'에 대한 정보입니다. 데이터 프라이버시와 로컬 AI 생태계에 관심이 있을 때 참고하기 좋습니다.",
+            "title": "로컬 AI 워크스페이스 '오디세우스' 정보",
+            "url": "https://github.com/pewdiepie-archdaemon/odysseus"
+          },
+          "label": "AI 도구 참고"
+        }
+      ],
+      "category": "AI 도구 정보",
+      "importance": 3,
+      "entities": [
+        {
+          "value": "https://github.com/pewdiepie-archdaemon/odysseus",
+          "kind": "url"
+        }
+      ],
+      "needs_review": false,
+      "summary": "유튜버 퓨디파이가 공개한 로컬 AI 워크스페이스 '오디세우스'에 대한 정보입니다. 데이터 프라이버시를 중시하는 사용자를 위한 로컬 AI 환경 구축 도구로, 관련 기술을 학습하거나 도입할 때 참고하기 위해 저장합니다."
+    }
+  },
+  {
+    "file": "memo_나중에여행갈때참고하려고.png",
+    "gold_intents": [
+      "memo"
+    ],
+    "user_intent_ko": "나중에여행갈때참고하려고",
+    "v14": {
+      "summary": "2026년 7월 1일부터 일본 출국세가 3배 인상된다는 정보입니다. 향후 일본 여행 계획 시 비용 절감을 위해 참고할 만한 내용입니다.",
+      "category": "여행 정보",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "일본 여행 참고",
+          "reasoning": "일본 출국세 인상이라는 정보성 콘텐츠로, 향후 일본 여행 계획 시 참고할 만한 내용입니다. 사용자가 당장 항공권을 구매하겠다고 확정한 상태는 아니므로 메모로 분류합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v15": {
+      "summary": "2026년 7월 1일부터 일본 출국세가 3배 인상된다는 정보입니다. 인상 전 항공권 구매를 고려해야 하는 여행 관련 참고 사항입니다.",
+      "category": "여행 정보",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "일본 여행 참고",
+          "reasoning": "일본 출국세 인상에 대한 정보성 콘텐츠로, 향후 일본 여행 계획 시 참고할 만한 내용입니다. 당장 실행해야 할 확정된 여행 계획이 없으므로 메모로 분류합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v14_raw": {
+      "importance": 3,
+      "category": "여행 정보",
+      "entities": [
+        {
+          "value": "2026-07-01",
+          "kind": "date"
+        }
+      ],
+      "intent_instances": [
+        {
+          "intent_type": "memo",
+          "reasoning": "일본 출국세 인상이라는 정보성 콘텐츠로, 향후 일본 여행 계획 시 참고할 만한 내용입니다. 사용자가 당장 항공권을 구매하겠다고 확정한 상태는 아니므로 메모로 분류합니다.",
+          "payload": {
+            "note": "2026년 7월 1일부터 일본 출국세가 1,000엔에서 3,000엔으로 인상됨. 인상 전 항공권 구매 고려 필요.",
+            "title": "일본 출국세 인상 정보"
+          },
+          "label": "일본 여행 참고"
+        }
+      ],
+      "summary": "2026년 7월 1일부터 일본 출국세가 3배 인상된다는 정보입니다. 향후 일본 여행 계획 시 비용 절감을 위해 참고할 만한 내용입니다.",
+      "needs_review": false
+    },
+    "v15_raw": {
+      "entities": [
+        {
+          "value": "2026-07-01",
+          "kind": "deadline"
+        }
+      ],
+      "needs_review": false,
+      "intent_instances": [
+        {
+          "label": "일본 여행 참고",
+          "reasoning": "일본 출국세 인상에 대한 정보성 콘텐츠로, 향후 일본 여행 계획 시 참고할 만한 내용입니다. 당장 실행해야 할 확정된 여행 계획이 없으므로 메모로 분류합니다.",
+          "payload": {
+            "note": "2026년 7월 1일부터 일본 출국세가 1,000엔에서 3,000엔으로 인상됨. 인상 전 항공권 구매 고려 필요.",
+            "title": "일본 출국세 인상 정보"
+          },
+          "intent_type": "memo"
+        }
+      ],
+      "importance": 3,
+      "category": "여행 정보",
+      "summary": "2026년 7월 1일부터 일본 출국세가 3배 인상된다는 정보입니다. 인상 전 항공권 구매를 고려해야 하는 여행 관련 참고 사항입니다."
+    }
+  },
+  {
+    "file": "memo_넷플릭스에서볼것들.png",
+    "gold_intents": [
+      "memo"
+    ],
+    "user_intent_ko": "넷플릭스에서볼것들",
+    "v14": {
+      "summary": "스레드에서 추천받은 이케가와 아키라의 저서들과 전생을 기억하는 아이들을 다룬 넷플릭스 다큐멘터리 <서바이빙 데스> 6화에 대한 정보를 저장했습니다.",
+      "category": "독서 및 콘텐츠 추천",
+      "intent_types": [
+        "memo",
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "도서 추천 참고",
+          "reasoning": "사용자가 나중에 읽어볼 만한 도서 추천 정보를 기록해두고 싶어 함. 구체적인 구매나 대출 일정이 확정된 것은 아니므로 메모로 분류."
+        },
+        {
+          "intent_type": "memo",
+          "label": "다큐멘터리 시청 후보",
+          "reasoning": "흥미로운 주제의 다큐멘터리 정보를 나중에 보기 위해 저장. 시청이 확정된 할 일은 아니므로 메모로 분류."
+        }
+      ],
+      "needs_review": false
+    },
+    "v15": {
+      "summary": "스레드에서 추천받은 이케가와 아키라 선생님의 책들과 전생을 다룬 넷플릭스 다큐멘터리 <서바이빙 데스> 6화에 대한 정보입니다. 나중에 관련 콘텐츠를 찾아보기 위해 저장했습니다.",
+      "category": "콘텐츠 추천",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "나중에 보기",
+          "reasoning": "사용자가 나중에 참고하거나 찾아보기 위해 저장한 콘텐츠 추천 정보입니다. 구체적인 실행 계획이 포함되어 있지 않으므로 메모로 분류합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v14_raw": {
+      "summary": "스레드에서 추천받은 이케가와 아키라의 저서들과 전생을 기억하는 아이들을 다룬 넷플릭스 다큐멘터리 <서바이빙 데스> 6화에 대한 정보를 저장했습니다.",
+      "entities": [],
+      "needs_review": false,
+      "importance": 3,
+      "category": "독서 및 콘텐츠 추천",
+      "intent_instances": [
+        {
+          "payload": {
+            "note": "이케가와 아키라 선생님의 책을 추천받음. 연구가 진행될수록 내용이 업그레이드되니 도서관에서 빌려보는 것도 좋다는 조언.",
+            "title": "이케가와 아키라 저서 추천"
+          },
+          "reasoning": "사용자가 나중에 읽어볼 만한 도서 추천 정보를 기록해두고 싶어 함. 구체적인 구매나 대출 일정이 확정된 것은 아니므로 메모로 분류.",
+          "intent_type": "memo",
+          "label": "도서 추천 참고"
+        },
+        {
+          "label": "다큐멘터리 시청 후보",
+          "reasoning": "흥미로운 주제의 다큐멘터리 정보를 나중에 보기 위해 저장. 시청이 확정된 할 일은 아니므로 메모로 분류.",
+          "payload": {
+            "note": "넷플릭스 다큐멘터리 <서바이빙 데스> 6화에서 전생을 기억하는 아이들에 대해 다룸.",
+            "title": "넷플릭스 <서바이빙 데스> 6화"
+          },
+          "intent_type": "memo"
+        }
+      ]
+    },
+    "v15_raw": {
+      "importance": 2,
+      "category": "콘텐츠 추천",
+      "intent_instances": [
+        {
+          "intent_type": "memo",
+          "payload": {
+            "title": "추천받은 도서 및 다큐멘터리 정보",
+            "note": "이케가와 아키라 선생님의 책들과 넷플릭스 다큐멘터리 <서바이빙 데스> 6화에 대한 추천 내용입니다."
+          },
+          "reasoning": "사용자가 나중에 참고하거나 찾아보기 위해 저장한 콘텐츠 추천 정보입니다. 구체적인 실행 계획이 포함되어 있지 않으므로 메모로 분류합니다.",
+          "label": "나중에 보기"
+        }
+      ],
+      "needs_review": false,
+      "summary": "스레드에서 추천받은 이케가와 아키라 선생님의 책들과 전생을 다룬 넷플릭스 다큐멘터리 <서바이빙 데스> 6화에 대한 정보입니다. 나중에 관련 콘텐츠를 찾아보기 위해 저장했습니다.",
+      "entities": [
+        {
+          "kind": "도서",
+          "value": "이케가와 아키라 저서"
+        },
+        {
+          "kind": "영상",
+          "value": "넷플릭스 다큐멘터리 <서바이빙 데스> 6화"
+        }
+      ]
+    }
+  },
+  {
+    "file": "memo_다음운동때참고하려고.png",
+    "gold_intents": [
+      "memo"
+    ],
+    "user_intent_ko": "다음운동때참고하려고",
+    "v14": {
+      "summary": "2026년 6월 6일 토요일에 수행한 운동 요약 기록입니다. 개인적인 운동 성과를 보관하기 위해 저장했습니다.",
+      "category": "운동 기록",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "운동 기록 보관",
+          "reasoning": "사용자의 개인적인 운동 활동 기록입니다. 추후 자신의 운동 성과를 확인하거나 참고하기 위해 저장하는 개인 기록이므로 메모로 분류합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v15": {
+      "summary": "6월 6일 토요일에 수행한 운동 기록 요약입니다. 개인의 운동 성과를 보관하기 위해 저장했습니다.",
+      "category": "운동 기록",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "운동 기록 보관",
+          "reasoning": "사용자의 개인적인 운동 활동 기록입니다. 이는 지식이나 할 일이 아닌, 본인의 과거 활동을 보관하는 메모에 해당합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v14_raw": {
+      "needs_review": false,
+      "intent_instances": [
+        {
+          "payload": {
+            "title": "6월 6일 운동 기록",
+            "note": "2026년 6월 6일 토요일 운동 요약 (운동 시간 1시간 40분, 총 볼륨 9,656kg, 칼로리 495kcal)"
+          },
+          "label": "운동 기록 보관",
+          "intent_type": "memo",
+          "reasoning": "사용자의 개인적인 운동 활동 기록입니다. 추후 자신의 운동 성과를 확인하거나 참고하기 위해 저장하는 개인 기록이므로 메모로 분류합니다."
+        }
+      ],
+      "importance": 2,
+      "entities": [
+        {
+          "value": "2026-06-06",
+          "kind": "date"
+        }
+      ],
+      "category": "운동 기록",
+      "summary": "2026년 6월 6일 토요일에 수행한 운동 요약 기록입니다. 개인적인 운동 성과를 보관하기 위해 저장했습니다."
+    },
+    "v15_raw": {
+      "category": "운동 기록",
+      "entities": [
+        {
+          "value": "2026-06-06",
+          "kind": "date"
+        }
+      ],
+      "importance": 2,
+      "needs_review": false,
+      "summary": "6월 6일 토요일에 수행한 운동 기록 요약입니다. 개인의 운동 성과를 보관하기 위해 저장했습니다.",
+      "intent_instances": [
+        {
+          "reasoning": "사용자의 개인적인 운동 활동 기록입니다. 이는 지식이나 할 일이 아닌, 본인의 과거 활동을 보관하는 메모에 해당합니다.",
+          "intent_type": "memo",
+          "payload": {
+            "title": "6월 6일 운동 요약",
+            "note": "6월 6일 토요일 운동 요약: 1시간 40분, 8개 운동, 총 볼륨 9,656kg, 495kcal."
+          },
+          "label": "운동 기록 보관"
+        }
+      ]
+    }
+  },
+  {
+    "file": "memo_머리자를때참고하려고.png",
+    "gold_intents": [
+      "memo"
+    ],
+    "user_intent_ko": "머리자를때참고하려고",
+    "v14": {
+      "summary": "여름에 어울리는 댄디컷과 리프컷 스타일을 조합한 헤어 스타일 정보입니다. 나중에 미용실 방문 시 참고하기 위해 저장했습니다.",
+      "category": "헤어 스타일",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "헤어 스타일 참고",
+          "reasoning": "사용자가 나중에 미용실에 방문할 때 참고하기 위해 저장한 헤어 스타일 정보입니다. 당장 예약하거나 실행해야 할 구체적인 계획은 보이지 않으므로 메모로 분류합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v15": {
+      "summary": "여름에 어울리는 댄디컷과 리프컷이 결합된 헤어 스타일을 참고용으로 저장했습니다. 나중에 미용실 방문 시 스타일 상담을 위해 활용할 예정입니다.",
+      "category": "헤어 스타일",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "헤어 스타일 참고",
+          "reasoning": "사용자가 나중에 미용실에 방문할 때 참고하기 위해 저장한 헤어 스타일 정보입니다. 당장 예약이나 실행이 확정된 것은 아니므로 메모로 분류합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v14_raw": {
+      "entities": [],
+      "summary": "여름에 어울리는 댄디컷과 리프컷 스타일을 조합한 헤어 스타일 정보입니다. 나중에 미용실 방문 시 참고하기 위해 저장했습니다.",
+      "needs_review": false,
+      "importance": 2,
+      "intent_instances": [
+        {
+          "label": "헤어 스타일 참고",
+          "reasoning": "사용자가 나중에 미용실에 방문할 때 참고하기 위해 저장한 헤어 스타일 정보입니다. 당장 예약하거나 실행해야 할 구체적인 계획은 보이지 않으므로 메모로 분류합니다.",
+          "intent_type": "memo",
+          "payload": {
+            "title": "여름 댄디 리프컷 스타일",
+            "note": "여름 버전 댄디컷과 리프컷 스타일 조합 참고용."
+          }
+        }
+      ],
+      "category": "헤어 스타일"
+    },
+    "v15_raw": {
+      "summary": "여름에 어울리는 댄디컷과 리프컷이 결합된 헤어 스타일을 참고용으로 저장했습니다. 나중에 미용실 방문 시 스타일 상담을 위해 활용할 예정입니다.",
+      "entities": [],
+      "needs_review": false,
+      "intent_instances": [
+        {
+          "label": "헤어 스타일 참고",
+          "reasoning": "사용자가 나중에 미용실에 방문할 때 참고하기 위해 저장한 헤어 스타일 정보입니다. 당장 예약이나 실행이 확정된 것은 아니므로 메모로 분류합니다.",
+          "intent_type": "memo",
+          "payload": {
+            "note": "여름 버전 댄디컷과 리프컷이 결합된 스타일. 가벼운 덮머리에 삐죽삐죽한 리프 쉐입.",
+            "title": "여름 버전 댄디컷/리프컷 스타일"
+          }
+        }
+      ],
+      "importance": 3,
+      "category": "헤어 스타일"
+    }
+  },
+  {
+    "file": "memo_부동산정보.png",
+    "gold_intents": [
+      "memo"
+    ],
+    "user_intent_ko": "부동산정보",
+    "v14": {
+      "summary": "인스타그램 DM으로 받은 신림동 '다올626' 신축 2룸 매물 정보입니다. 분양가 3억 3500만원의 매물 정보를 기록해두고 추후 방문 여부를 고민하기 위해 저장합니다.",
+      "category": "부동산 매물",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "매물 정보 확인",
+          "reasoning": "부동산 매물에 대한 정보를 확인하고 저장해두는 단계입니다. 아직 구체적인 방문 예약이나 계약 의사가 확정된 것은 아니므로 메모로 분류합니다."
+        }
+      ],
+      "needs_review": true
+    },
+    "v15": {
+      "summary": "인스타그램을 통해 문의한 신림동 '다올626' 신축 2룸 매물 정보입니다. 분양가 3억 3500만원으로, 향후 매물 비교 및 검토를 위해 저장합니다.",
+      "category": "부동산 매물",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "매물 정보 확인",
+          "reasoning": "부동산 매물 정보를 확인하고 저장해두는 것은 향후 주거지 탐색이나 비교를 위한 관심 매물 기록에 해당하므로 메모로 분류합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v14_raw": {
+      "category": "부동산 매물",
+      "importance": 3,
+      "entities": [
+        {
+          "value": "신림동 법원단지 부근 다올626",
+          "kind": "location"
+        },
+        {
+          "value": "3억 3500만원",
+          "kind": "price"
+        }
+      ],
+      "needs_review": true,
+      "intent_instances": [
+        {
+          "label": "매물 정보 확인",
+          "reasoning": "부동산 매물에 대한 정보를 확인하고 저장해두는 단계입니다. 아직 구체적인 방문 예약이나 계약 의사가 확정된 것은 아니므로 메모로 분류합니다.",
+          "payload": {
+            "note": "신림동 법원단지 부근 신축 2룸, 분양가 3억 3500만원. 방문 상담 가능.",
+            "title": "다올626 매물 정보"
+          },
+          "intent_type": "memo"
+        }
+      ],
+      "summary": "인스타그램 DM으로 받은 신림동 '다올626' 신축 2룸 매물 정보입니다. 분양가 3억 3500만원의 매물 정보를 기록해두고 추후 방문 여부를 고민하기 위해 저장합니다.",
+      "review_options": [
+        {
+          "label": "방문 상담 예약하기",
+          "reasoning": "상대방이 방문 상담이 가능하다고 안내했으므로, 사용자가 추후 방문을 결정할 경우 할 일로 관리할 수 있습니다.",
+          "intent_type": "todo"
+        }
+      ]
+    },
+    "v15_raw": {
+      "importance": 3,
+      "entities": [
+        {
+          "kind": "location",
+          "value": "신림동 법원단지 부근 다올626"
+        },
+        {
+          "kind": "price",
+          "value": "분양가 3억 3500만원"
+        }
+      ],
+      "summary": "인스타그램을 통해 문의한 신림동 '다올626' 신축 2룸 매물 정보입니다. 분양가 3억 3500만원으로, 향후 매물 비교 및 검토를 위해 저장합니다.",
+      "needs_review": false,
+      "category": "부동산 매물",
+      "intent_instances": [
+        {
+          "label": "매물 정보 확인",
+          "intent_type": "memo",
+          "reasoning": "부동산 매물 정보를 확인하고 저장해두는 것은 향후 주거지 탐색이나 비교를 위한 관심 매물 기록에 해당하므로 메모로 분류합니다.",
+          "payload": {
+            "note": "신림동 법원단지 부근 다올626 신축 2룸 매물 정보입니다. 분양가 3억 3500만원.",
+            "title": "신림동 다올626 매물 정보"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "file": "memo_사고싶다.PNG",
+    "gold_intents": [
+      "memo"
+    ],
+    "user_intent_ko": "사고싶다",
+    "v14": {
+      "summary": "eyesmag 인스타그램에 소개된 '레이반 메타 헤드라이너' 스마트 글래스 제품 정보입니다. 데일리 아이템으로 활용하기 좋아 보여 나중에 다시 확인하려고 저장했습니다.",
+      "category": "쇼핑 후보",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "구매 고민",
+          "reasoning": "사용자가 제품 정보를 저장하여 나중에 다시 확인하려는 의도로 보입니다. 구매를 확정한 것은 아니므로 메모로 분류합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v15": {
+      "summary": "레이반 메타 헤드라이너 제품에 대한 소개 콘텐츠입니다. 일반 안경 같은 자연스러운 디자인과 스마트 기능이 결합된 점이 매력적이라 구매를 고려하기 위해 저장했습니다.",
+      "category": "쇼핑 후보",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "구매 고민",
+          "reasoning": "사용자가 제품의 디자인과 기능을 확인하고 관심을 보이고 있으나, 즉각적인 구매나 행동을 약속한 것은 아니므로 나중에 다시 살펴볼 수 있도록 메모로 저장합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v14_raw": {
+      "needs_review": false,
+      "entities": [
+        {
+          "value": "레이반 메타 헤드라이너",
+          "kind": "product"
+        }
+      ],
+      "summary": "eyesmag 인스타그램에 소개된 '레이반 메타 헤드라이너' 스마트 글래스 제품 정보입니다. 데일리 아이템으로 활용하기 좋아 보여 나중에 다시 확인하려고 저장했습니다.",
+      "intent_instances": [
+        {
+          "label": "구매 고민",
+          "payload": {
+            "note": "레이반 메타 헤드라이너 제품 정보. 데일리 아이템으로 활용하기 좋은 스마트 글래스.",
+            "title": "레이반 메타 헤드라이너"
+          },
+          "reasoning": "사용자가 제품 정보를 저장하여 나중에 다시 확인하려는 의도로 보입니다. 구매를 확정한 것은 아니므로 메모로 분류합니다.",
+          "intent_type": "memo"
+        }
+      ],
+      "importance": 2,
+      "category": "쇼핑 후보"
+    },
+    "v15_raw": {
+      "category": "쇼핑 후보",
+      "entities": [
+        {
+          "value": "레이반 메타 헤드라이너",
+          "kind": "product"
+        }
+      ],
+      "importance": 2,
+      "summary": "레이반 메타 헤드라이너 제품에 대한 소개 콘텐츠입니다. 일반 안경 같은 자연스러운 디자인과 스마트 기능이 결합된 점이 매력적이라 구매를 고려하기 위해 저장했습니다.",
+      "needs_review": false,
+      "intent_instances": [
+        {
+          "payload": {
+            "note": "스마트 기능이 있지만 일반 안경처럼 자연스러운 디자인이라 데일리 아이템으로 활용하기 좋아 보임.",
+            "title": "레이반 메타 헤드라이너"
+          },
+          "reasoning": "사용자가 제품의 디자인과 기능을 확인하고 관심을 보이고 있으나, 즉각적인 구매나 행동을 약속한 것은 아니므로 나중에 다시 살펴볼 수 있도록 메모로 저장합니다.",
+          "intent_type": "memo",
+          "label": "구매 고민"
+        }
+      ]
+    }
+  },
+  {
+    "file": "memo_상하이갈곳들.jpeg",
+    "gold_intents": [
+      "memo"
+    ],
+    "user_intent_ko": "상하이갈곳들",
+    "v14": {
+      "summary": "상하이 여행 명소(우캉루, 디즈니랜드, 동방명주, 예원, 와이탄, 난징동루)가 언급된 영상을 저장했습니다. 나중에 여행 계획을 세울 때 참고하기 위한 후보지 리스트입니다.",
+      "category": "여행 계획",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "상하이 여행지 후보",
+          "reasoning": "영상에 등장하는 장소들은 사용자가 나중에 상하이 여행을 갈 때 참고하고 싶은 후보지들로 보입니다. 구체적인 여행 계획이 확정된 것은 아니므로 메모로 저장합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v15": {
+      "summary": "상하이의 주요 여행 명소(우캉루, 디즈니랜드, 동방명주, 와이탄, 예원, 난징루)가 언급된 영상입니다. 나중에 상하이 여행을 계획할 때 참고하기 위해 저장합니다.",
+      "category": "여행 후보",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "상하이 여행지 후보",
+          "reasoning": "영상에서 언급된 상하이의 주요 여행지들을 나열하고 있어, 향후 여행 계획 시 참고하기 위한 후보지로 저장합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v14_raw": {
+      "intent_instances": [
+        {
+          "intent_type": "memo",
+          "reasoning": "영상에 등장하는 장소들은 사용자가 나중에 상하이 여행을 갈 때 참고하고 싶은 후보지들로 보입니다. 구체적인 여행 계획이 확정된 것은 아니므로 메모로 저장합니다.",
+          "label": "상하이 여행지 후보",
+          "payload": {
+            "note": "영상에 언급된 상하이 여행 명소들(우캉루, 디즈니랜드, 동방명주, 예원, 와이탄, 난징동루)을 기록함.",
+            "title": "상하이 여행 명소 리스트"
+          }
+        }
+      ],
+      "importance": 2,
+      "category": "여행 계획",
+      "summary": "상하이 여행 명소(우캉루, 디즈니랜드, 동방명주, 예원, 와이탄, 난징동루)가 언급된 영상을 저장했습니다. 나중에 여행 계획을 세울 때 참고하기 위한 후보지 리스트입니다.",
+      "entities": [
+        {
+          "kind": "location",
+          "value": "상하이"
+        }
+      ],
+      "needs_review": false
+    },
+    "v15_raw": {
+      "category": "여행 후보",
+      "intent_instances": [
+        {
+          "intent_type": "memo",
+          "reasoning": "영상에서 언급된 상하이의 주요 여행지들을 나열하고 있어, 향후 여행 계획 시 참고하기 위한 후보지로 저장합니다.",
+          "payload": {
+            "note": "영상에 언급된 상하이 여행 명소들: 우캉루, 디즈니랜드, 동방명주, 와이탄, 예원, 난징루.",
+            "title": "상하이 여행 명소 리스트"
+          },
+          "label": "상하이 여행지 후보"
+        }
+      ],
+      "summary": "상하이의 주요 여행 명소(우캉루, 디즈니랜드, 동방명주, 와이탄, 예원, 난징루)가 언급된 영상입니다. 나중에 상하이 여행을 계획할 때 참고하기 위해 저장합니다.",
+      "needs_review": false,
+      "entities": [],
+      "importance": 2
+    }
+  },
+  {
+    "file": "memo_상하이정보.jpeg",
+    "gold_intents": [
+      "memo"
+    ],
+    "user_intent_ko": "상하이정보",
+    "v14": {
+      "summary": "상하이 푸동공항에서 마그레브 열차를 이용해 시내로 빠르게 이동하는 방법에 대한 정보입니다. 향후 상하이 여행 시 참고하기 위해 저장합니다.",
+      "category": "여행 정보",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "상하이 여행 참고",
+          "reasoning": "상하이 여행 시 유용한 교통 정보로, 나중에 여행 계획을 세울 때 참고하기 위해 저장하는 정보입니다. 당장 실행해야 할 할 일이나 일정이 아니므로 메모로 분류합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v15": {
+      "summary": "상하이 푸동공항에서 시내까지 마그레브 열차를 이용해 빠르게 이동하는 방법에 대한 정보입니다. 향후 상하이 여행 시 참고하기 위해 저장합니다.",
+      "category": "여행 정보",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "상하이 여행 참고",
+          "reasoning": "상하이 여행 시 유용한 교통 정보로, 나중에 여행 계획을 세울 때 참고하기 위해 저장하는 정보입니다. 직접적인 행동이나 일정이 확정된 것이 아니므로 메모로 분류합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v14_raw": {
+      "entities": [
+        {
+          "kind": "topic",
+          "value": "상하이 푸동공항에서 시내 이동 방법"
+        }
+      ],
+      "needs_review": false,
+      "intent_instances": [
+        {
+          "payload": {
+            "note": "푸동공항에서 마그레브 열차를 타고 롱양루를 거쳐 시내로 이동하는 방법 (약 30-40분 소요).",
+            "title": "상하이 푸동공항에서 시내 이동 방법"
+          },
+          "intent_type": "memo",
+          "label": "상하이 여행 참고",
+          "reasoning": "상하이 여행 시 유용한 교통 정보로, 나중에 여행 계획을 세울 때 참고하기 위해 저장하는 정보입니다. 당장 실행해야 할 할 일이나 일정이 아니므로 메모로 분류합니다."
+        }
+      ],
+      "importance": 3,
+      "category": "여행 정보",
+      "summary": "상하이 푸동공항에서 마그레브 열차를 이용해 시내로 빠르게 이동하는 방법에 대한 정보입니다. 향후 상하이 여행 시 참고하기 위해 저장합니다."
+    },
+    "v15_raw": {
+      "category": "여행 정보",
+      "intent_instances": [
+        {
+          "intent_type": "memo",
+          "label": "상하이 여행 참고",
+          "payload": {
+            "note": "푸동공항에서 상하이 시내까지 마그레브 열차를 이용해 30~40분 만에 이동하는 방법입니다.",
+            "title": "상하이 푸동공항에서 시내 이동 방법"
+          },
+          "reasoning": "상하이 여행 시 유용한 교통 정보로, 나중에 여행 계획을 세울 때 참고하기 위해 저장하는 정보입니다. 직접적인 행동이나 일정이 확정된 것이 아니므로 메모로 분류합니다."
+        }
+      ],
+      "summary": "상하이 푸동공항에서 시내까지 마그레브 열차를 이용해 빠르게 이동하는 방법에 대한 정보입니다. 향후 상하이 여행 시 참고하기 위해 저장합니다.",
+      "entities": [],
+      "importance": 3,
+      "needs_review": false
+    }
+  },
+  {
+    "file": "memo_옷살때참고하려고.png",
+    "gold_intents": [
+      "memo"
+    ],
+    "user_intent_ko": "옷살때참고하려고",
+    "v14": {
+      "summary": "유튜브 영상에서 소개된 여름 코디와 제품 정보(noise_wrk)를 나중에 참고하기 위해 저장했습니다.",
+      "category": "쇼핑 후보",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "여름 코디 참고",
+          "reasoning": "영상 속 여름 코디와 제품 정보가 마음에 들어 나중에 다시 확인하고 참고하기 위해 저장함. 구매가 확정된 것은 아니므로 메모로 분류함."
+        }
+      ],
+      "needs_review": false
+    },
+    "v15": {
+      "summary": "유튜브 영상에서 소개된 여름 코디 3가지와 관련 제품 정보(noise_wrk)를 저장했습니다. 나중에 스타일을 참고하거나 쇼핑할 때 활용할 예정입니다.",
+      "category": "패션 정보",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "코디 참고 및 쇼핑 후보",
+          "reasoning": "사용자가 여름 코디를 참고하기 위해 제품 정보를 저장했습니다. 구매를 확정한 상태가 아니므로 쇼핑 후보 및 스타일 참고용 메모로 분류합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v14_raw": {
+      "entities": [
+        {
+          "kind": "brand",
+          "value": "noise_wrk"
+        }
+      ],
+      "needs_review": false,
+      "intent_instances": [
+        {
+          "reasoning": "영상 속 여름 코디와 제품 정보가 마음에 들어 나중에 다시 확인하고 참고하기 위해 저장함. 구매가 확정된 것은 아니므로 메모로 분류함.",
+          "intent_type": "memo",
+          "label": "여름 코디 참고",
+          "payload": {
+            "title": "noise_wrk 여름 코디 제품 정보",
+            "note": "여름 코디 3가지 추천 영상. 신치백 다트 데님 팬츠, 스터드 커브드 코튼 팬츠, 아일렛 반팔 티셔츠 등 제품 정보 포함."
+          }
+        }
+      ],
+      "category": "쇼핑 후보",
+      "importance": 2,
+      "summary": "유튜브 영상에서 소개된 여름 코디와 제품 정보(noise_wrk)를 나중에 참고하기 위해 저장했습니다."
+    },
+    "v15_raw": {
+      "entities": [
+        {
+          "kind": "brand",
+          "value": "noise_wrk"
+        }
+      ],
+      "needs_review": false,
+      "summary": "유튜브 영상에서 소개된 여름 코디 3가지와 관련 제품 정보(noise_wrk)를 저장했습니다. 나중에 스타일을 참고하거나 쇼핑할 때 활용할 예정입니다.",
+      "intent_instances": [
+        {
+          "reasoning": "사용자가 여름 코디를 참고하기 위해 제품 정보를 저장했습니다. 구매를 확정한 상태가 아니므로 쇼핑 후보 및 스타일 참고용 메모로 분류합니다.",
+          "intent_type": "memo",
+          "payload": {
+            "title": "여름 코디 제품 정보 (noise_wrk)",
+            "note": "여름 코디 3가지 정보. 신치백 다트 데님 팬츠, 스터드 커브드 코튼 팬츠, 아일렛 반팔 티셔츠, 와플 링거 티셔츠, 오브 브이 골지 반팔 티셔츠 등 제품 정보 포함."
+          },
+          "label": "코디 참고 및 쇼핑 후보"
+        }
+      ],
+      "category": "패션 정보",
+      "importance": 2
+    }
+  },
+  {
+    "file": "memo_이뻐서나중에가보려고.png",
+    "gold_intents": [
+      "memo"
+    ],
+    "user_intent_ko": "이뻐서나중에가보려고",
+    "v14": {
+      "summary": "노을이 예쁜 산책 명소로 소개된 흥인지문공원 정보입니다. 나중에 방문할 후보지로 저장합니다.",
+      "category": "데이트 코스",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "가볼 곳",
+          "reasoning": "사용자가 나중에 방문하고 싶어 하는 장소에 대한 정보로, 방문을 확정한 일정이 아니므로 메모로 분류합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v15": {
+      "summary": "서울 종로구에 위치한 흥인지문공원 방문 후보입니다. 노을이 질 때 산책하기 좋은 곳으로 소개되어 나중에 가볼 만한 곳으로 저장합니다.",
+      "category": "나들이 후보",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "방문 후보",
+          "reasoning": "서울의 공원을 추천하는 콘텐츠로, 나중에 방문할 후보지로 저장해두고 싶어 하는 것으로 판단됩니다. 구체적인 방문 일정이 정해진 것은 아니므로 메모로 분류합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v14_raw": {
+      "intent_instances": [
+        {
+          "intent_type": "memo",
+          "reasoning": "사용자가 나중에 방문하고 싶어 하는 장소에 대한 정보로, 방문을 확정한 일정이 아니므로 메모로 분류합니다.",
+          "payload": {
+            "note": "동대문역 1, 10번 출구와 가깝고 노을 질 때 산책하기 좋은 공원.",
+            "title": "흥인지문공원 방문"
+          },
+          "label": "가볼 곳"
+        }
+      ],
+      "category": "데이트 코스",
+      "needs_review": false,
+      "summary": "노을이 예쁜 산책 명소로 소개된 흥인지문공원 정보입니다. 나중에 방문할 후보지로 저장합니다.",
+      "entities": [
+        {
+          "value": "흥인지문공원",
+          "kind": "location"
+        }
+      ],
+      "importance": 2
+    },
+    "v15_raw": {
+      "needs_review": false,
+      "intent_instances": [
+        {
+          "intent_type": "memo",
+          "reasoning": "서울의 공원을 추천하는 콘텐츠로, 나중에 방문할 후보지로 저장해두고 싶어 하는 것으로 판단됩니다. 구체적인 방문 일정이 정해진 것은 아니므로 메모로 분류합니다.",
+          "payload": {
+            "title": "흥인지문공원 방문",
+            "note": "동대문역 1,10번 출구와 가깝고, 19시쯤 노을과 함께 산책하기 좋은 곳."
+          },
+          "label": "방문 후보"
+        }
+      ],
+      "category": "나들이 후보",
+      "entities": [
+        {
+          "kind": "location",
+          "value": "흥인지문공원"
+        }
+      ],
+      "summary": "서울 종로구에 위치한 흥인지문공원 방문 후보입니다. 노을이 질 때 산책하기 좋은 곳으로 소개되어 나중에 가볼 만한 곳으로 저장합니다.",
+      "importance": 2
+    }
+  },
+  {
+    "file": "memo_저장해두고나중에봐야지.PNG",
+    "gold_intents": [
+      "memo"
+    ],
+    "user_intent_ko": "저장해두고나중에봐야지",
+    "v14": {
+      "summary": "인스타그램에서 소개된 '클로드(Claude)를 활용한 HWPX 파일 처리 스킬'에 관한 게시물입니다. 좋아요와 댓글을 통해 스킬 파일과 가이드를 받을 수 있다는 정보를 나중에 활용하기 위해 저장합니다.",
+      "category": "업무 생산성",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "스킬 파일 및 가이드 요청",
+          "reasoning": "사용자가 인스타그램 게시물을 통해 클로드의 HWPX 파일 처리 스킬과 가이드를 얻고자 하는 관심을 보임. 실제 댓글을 달아 자료를 받기로 결정한 상태는 아니므로, 나중에 필요할 때 참고할 수 있도록 메모로 저장함."
+        }
+      ],
+      "needs_review": false
+    },
+    "v15": {
+      "summary": "클로드(Claude)의 스킬 기능을 사용하여 번거로운 HWPX 파일 편집을 쉽게 처리하는 방법을 소개하는 콘텐츠입니다. 나중에 한글 문서 작업 시 유용하게 참고하기 위해 저장합니다.",
+      "category": "업무 생산성",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "AI 한글 파일 편집 참고",
+          "reasoning": "AI를 활용해 한글 문서(HWPX) 작업을 효율화하는 방법을 소개하는 콘텐츠입니다. 당장 실행해야 할 할 일이나 일정이 아니라, 나중에 필요할 때 참고하고 싶은 정보성 콘텐츠이므로 메모로 분류합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v14_raw": {
+      "summary": "인스타그램에서 소개된 '클로드(Claude)를 활용한 HWPX 파일 처리 스킬'에 관한 게시물입니다. 좋아요와 댓글을 통해 스킬 파일과 가이드를 받을 수 있다는 정보를 나중에 활용하기 위해 저장합니다.",
+      "importance": 3,
+      "category": "업무 생산성",
+      "intent_instances": [
+        {
+          "payload": {
+            "note": "인스타그램 게시물에 좋아요와 댓글을 남겨 클로드 스킬 파일과 가이드를 받을 수 있음.",
+            "title": "클로드(Claude) HWPX 파일 처리 스킬"
+          },
+          "label": "스킬 파일 및 가이드 요청",
+          "reasoning": "사용자가 인스타그램 게시물을 통해 클로드의 HWPX 파일 처리 스킬과 가이드를 얻고자 하는 관심을 보임. 실제 댓글을 달아 자료를 받기로 결정한 상태는 아니므로, 나중에 필요할 때 참고할 수 있도록 메모로 저장함.",
+          "intent_type": "memo"
+        }
+      ],
+      "needs_review": false,
+      "entities": []
+    },
+    "v15_raw": {
+      "summary": "클로드(Claude)의 스킬 기능을 사용하여 번거로운 HWPX 파일 편집을 쉽게 처리하는 방법을 소개하는 콘텐츠입니다. 나중에 한글 문서 작업 시 유용하게 참고하기 위해 저장합니다.",
+      "intent_instances": [
+        {
+          "payload": {
+            "note": "HWPX 파일을 클로드(Claude) 스킬로 쉽게 편집하는 방법 안내. 나중에 한글 문서 작업 시 활용하기 위해 저장.",
+            "title": "클로드(Claude)를 활용한 HWPX 파일 편집 팁"
+          },
+          "reasoning": "AI를 활용해 한글 문서(HWPX) 작업을 효율화하는 방법을 소개하는 콘텐츠입니다. 당장 실행해야 할 할 일이나 일정이 아니라, 나중에 필요할 때 참고하고 싶은 정보성 콘텐츠이므로 메모로 분류합니다.",
+          "intent_type": "memo",
+          "label": "AI 한글 파일 편집 참고"
+        }
+      ],
+      "entities": [],
+      "category": "업무 생산성",
+      "importance": 3,
+      "needs_review": false
+    }
+  },
+  {
+    "file": "memo_중국갈때설치할거.jpeg",
+    "gold_intents": [
+      "memo"
+    ],
+    "user_intent_ko": "중국갈때설치할거",
+    "v14": {
+      "summary": "중국 여행 시 필요한 필수 앱(샤오홍슈, 메이투안, 알리페이, 위챗, 바이두지도) 목록을 정리한 캡처입니다. 여행 준비를 위해 설치해야 할 앱들을 참고하기 위해 저장합니다.",
+      "category": "중국 여행 준비",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "여행 필수 앱 설치",
+          "reasoning": "중국 여행을 위해 필요한 앱들을 정리해둔 정보성 메모입니다. 여행 준비 과정에서 참고할 수 있도록 보존합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v15": {
+      "summary": "중국 여행을 위해 필요한 필수 앱 목록(샤오홍슈, 메이투안, 알리페이, 위챗, 바이두지도)을 정리한 스크린샷입니다. 여행 준비를 위해 해당 앱들을 설치해야 합니다.",
+      "category": "중국 여행 준비",
+      "intent_types": [
+        "todo"
+      ],
+      "instances": [
+        {
+          "intent_type": "todo",
+          "label": "필수 앱 설치",
+          "reasoning": "사용자가 '걍 여깃는것만 다 깔면 됨'이라고 명확한 행동 지침을 남겼으므로, 이를 완료해야 할 할 일로 분류합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v14_raw": {
+      "category": "중국 여행 준비",
+      "entities": [
+        {
+          "kind": "app",
+          "value": "샤오홍슈"
+        },
+        {
+          "kind": "app",
+          "value": "메이투안"
+        },
+        {
+          "kind": "app",
+          "value": "알리페이"
+        },
+        {
+          "value": "위챗",
+          "kind": "app"
+        },
+        {
+          "kind": "app",
+          "value": "바이두지도"
+        }
+      ],
+      "importance": 3,
+      "summary": "중국 여행 시 필요한 필수 앱(샤오홍슈, 메이투안, 알리페이, 위챗, 바이두지도) 목록을 정리한 캡처입니다. 여행 준비를 위해 설치해야 할 앱들을 참고하기 위해 저장합니다.",
+      "needs_review": false,
+      "intent_instances": [
+        {
+          "label": "여행 필수 앱 설치",
+          "payload": {
+            "note": "중국 여행 시 필요한 앱 목록: 샤오홍슈, 메이투안, 알리페이, 위챗, 바이두지도.",
+            "title": "중국 여행 필수 앱 목록"
+          },
+          "intent_type": "memo",
+          "reasoning": "중국 여행을 위해 필요한 앱들을 정리해둔 정보성 메모입니다. 여행 준비 과정에서 참고할 수 있도록 보존합니다."
+        }
+      ]
+    },
+    "v15_raw": {
+      "summary": "중국 여행을 위해 필요한 필수 앱 목록(샤오홍슈, 메이투안, 알리페이, 위챗, 바이두지도)을 정리한 스크린샷입니다. 여행 준비를 위해 해당 앱들을 설치해야 합니다.",
+      "category": "중국 여행 준비",
+      "importance": 3,
+      "intent_instances": [
+        {
+          "payload": {
+            "title": "중국 여행 필수 앱 설치",
+            "note": "샤오홍슈, 메이투안, 알리페이, 위챗, 바이두지도 설치하기"
+          },
+          "reasoning": "사용자가 '걍 여깃는것만 다 깔면 됨'이라고 명확한 행동 지침을 남겼으므로, 이를 완료해야 할 할 일로 분류합니다.",
+          "intent_type": "todo",
+          "label": "필수 앱 설치"
+        }
+      ],
+      "needs_review": false,
+      "entities": [
+        {
+          "kind": "topic",
+          "value": "중국 여행 필수 앱"
+        }
+      ]
+    }
+  },
+  {
+    "file": "memo_화장품나중에살거.png",
+    "gold_intents": [
+      "memo"
+    ],
+    "user_intent_ko": "화장품나중에살거",
+    "v14": {
+      "summary": "인스타그램 영상에서 소개된 디어달리아 립 틴트(오렌지 색상) 제품에 관심을 가지고 저장했습니다. 나중에 구매를 고려할 때 참고하기 위해 보관합니다.",
+      "category": "쇼핑 후보",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "구매 고민",
+          "reasoning": "사용자가 영상 속 립 제품에 관심을 보이며 구매를 고려하는 상황입니다. 명확한 구매 결정이나 행동 계획이 보이지 않으므로 메모로 저장하여 나중에 다시 볼 수 있게 합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v15": {
+      "summary": "인스타그램에서 발견한 디어달리아의 오렌지 색상 립틴트 제품입니다. 발색이 예뻐 보여서 나중에 구매를 고려하기 위해 저장했습니다.",
+      "category": "뷰티 제품 후보",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "구매 고민",
+          "reasoning": "사용자가 인스타그램에서 제품의 색상을 보고 매력을 느껴 저장한 것으로 보입니다. 당장 구매하겠다는 명확한 의사보다는 제품을 기억해두고 나중에 다시 확인하려는 의도로 판단되어 메모로 분류했습니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v14_raw": {
+      "importance": 2,
+      "category": "쇼핑 후보",
+      "summary": "인스타그램 영상에서 소개된 디어달리아 립 틴트(오렌지 색상) 제품에 관심을 가지고 저장했습니다. 나중에 구매를 고려할 때 참고하기 위해 보관합니다.",
+      "needs_review": false,
+      "entities": [
+        {
+          "kind": "product",
+          "value": "디어달리아 립 틴트 (오렌지 색상)"
+        }
+      ],
+      "intent_instances": [
+        {
+          "payload": {
+            "note": "디어달리아 립 틴트 (오렌지 색상) - 영상에서 소개된 제품으로, 댓글에서 언급된 제품 색상 정보를 확인함.",
+            "title": "디어달리아 립 틴트 구매 고려"
+          },
+          "reasoning": "사용자가 영상 속 립 제품에 관심을 보이며 구매를 고려하는 상황입니다. 명확한 구매 결정이나 행동 계획이 보이지 않으므로 메모로 저장하여 나중에 다시 볼 수 있게 합니다.",
+          "intent_type": "memo",
+          "label": "구매 고민"
+        }
+      ]
+    },
+    "v15_raw": {
+      "category": "뷰티 제품 후보",
+      "importance": 2,
+      "summary": "인스타그램에서 발견한 디어달리아의 오렌지 색상 립틴트 제품입니다. 발색이 예뻐 보여서 나중에 구매를 고려하기 위해 저장했습니다.",
+      "entities": [
+        {
+          "kind": "product",
+          "value": "디어달리아 립틴트 (오렌지 색상)"
+        }
+      ],
+      "needs_review": false,
+      "intent_instances": [
+        {
+          "payload": {
+            "note": "인스타그램에서 발견한 오렌지 색상 립틴트 제품. 발색이 예뻐 보여서 나중에 구매를 고려해보기 위해 저장함.",
+            "title": "디어달리아 오렌지 립틴트"
+          },
+          "intent_type": "memo",
+          "reasoning": "사용자가 인스타그램에서 제품의 색상을 보고 매력을 느껴 저장한 것으로 보입니다. 당장 구매하겠다는 명확한 의사보다는 제품을 기억해두고 나중에 다시 확인하려는 의도로 판단되어 메모로 분류했습니다.",
+          "label": "구매 고민"
+        }
+      ]
+    }
+  },
+  {
+    "file": "memo_화장품살때참고하려고.jpg",
+    "gold_intents": [
+      "memo"
+    ],
+    "user_intent_ko": "화장품살때참고하려고",
+    "v14": {
+      "summary": "올영세일 광고에 나온 디오프러스 선크림 제품입니다. 할인 중이라 구매를 고려해보기 위해 저장합니다.",
+      "category": "쇼핑 후보",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "구매 고민",
+          "reasoning": "광고를 보고 제품에 관심을 갖게 된 상황으로, 구매를 확정한 상태는 아니므로 메모로 저장하여 나중에 다시 살펴볼 수 있도록 합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v15": {
+      "summary": "올리브영 세일 기간에 노출된 디오프러스 선크림 광고입니다. 세일 기간은 이미 종료되었으나, 제품 정보를 나중에 확인하기 위해 저장합니다.",
+      "category": "쇼핑 후보",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "구매 고민",
+          "reasoning": "사용자가 광고를 캡처하여 저장했으나, 구매를 확정했다는 명시적인 의사 표시가 없습니다. 또한, 화면에 언급된 세일 기간(5/31~6/6)이 현재 시점(6/10) 기준으로 이미 종료되었으므로, 할인을 노린 즉각적인 구매 활동(todo)으로 분류하기 어렵습니다. 따라서 나중에 다시 살펴볼 수 있도록 메모로 저장합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v14_raw": {
+      "entities": [
+        {
+          "kind": "product",
+          "value": "디오프러스 블루 페더 톤업 선스크린"
+        }
+      ],
+      "needs_review": false,
+      "category": "쇼핑 후보",
+      "intent_instances": [
+        {
+          "intent_type": "memo",
+          "reasoning": "광고를 보고 제품에 관심을 갖게 된 상황으로, 구매를 확정한 상태는 아니므로 메모로 저장하여 나중에 다시 살펴볼 수 있도록 합니다.",
+          "payload": {
+            "title": "디오프러스 블루 페더 톤업 선스크린",
+            "note": "올영세일 기간에 할인 중인 선크림 제품입니다."
+          },
+          "label": "구매 고민"
+        }
+      ],
+      "summary": "올영세일 광고에 나온 디오프러스 선크림 제품입니다. 할인 중이라 구매를 고려해보기 위해 저장합니다.",
+      "importance": 2
+    },
+    "v15_raw": {
+      "needs_review": false,
+      "entities": [],
+      "summary": "올리브영 세일 기간에 노출된 디오프러스 선크림 광고입니다. 세일 기간은 이미 종료되었으나, 제품 정보를 나중에 확인하기 위해 저장합니다.",
+      "intent_instances": [
+        {
+          "label": "구매 고민",
+          "payload": {
+            "title": "디오프러스 블루 페더 톤업 선크림 광고",
+            "note": "올리브영 세일 기간(5/31~6/6)에 할인 중인 디오프러스 선크림 광고입니다. 현재 시점(6/10)에서는 세일이 종료되었습니다."
+          },
+          "intent_type": "memo",
+          "reasoning": "사용자가 광고를 캡처하여 저장했으나, 구매를 확정했다는 명시적인 의사 표시가 없습니다. 또한, 화면에 언급된 세일 기간(5/31~6/6)이 현재 시점(6/10) 기준으로 이미 종료되었으므로, 할인을 노린 즉각적인 구매 활동(todo)으로 분류하기 어렵습니다. 따라서 나중에 다시 살펴볼 수 있도록 메모로 저장합니다."
+        }
+      ],
+      "importance": 2,
+      "category": "쇼핑 후보"
+    }
+  },
+  {
+    "file": "schedule_todo_비행기스케줄.jpeg",
+    "gold_intents": [
+      "schedule",
+      "todo"
+    ],
+    "user_intent_ko": "비행기스케줄",
+    "v14": {
+      "summary": "2026년 1월에 다녀온 상하이 여행 항공권 예약 정보입니다. 이미 지난 여행 일정이므로 기록용으로 저장합니다.",
+      "category": "여행 일정",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "여행 정보 보관",
+          "reasoning": "사용자가 예약한 항공권 정보입니다. 현재 시점(2026-06-10)에서 이미 지난 일정(2026-01)이므로, 향후 여행을 추억하거나 기록을 확인하기 위한 용도로 보관합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v15": {
+      "summary": "1월 4일부터 7일까지 다녀온 서울-상하이 왕복 항공권 예약 정보입니다. 과거 여행 기록을 보관하기 위해 저장합니다.",
+      "category": "여행 일정",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "항공권 정보 보관",
+          "reasoning": "이미 지난 1월의 여행 기록이므로 현재 시점에서 일정이나 할 일로 등록하기에는 적절하지 않습니다. 여행 기록을 보관하기 위해 메모로 저장합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v14_raw": {
+      "summary": "2026년 1월에 다녀온 상하이 여행 항공권 예약 정보입니다. 이미 지난 여행 일정이므로 기록용으로 저장합니다.",
+      "importance": 5,
+      "category": "여행 일정",
+      "needs_review": false,
+      "entities": [
+        {
+          "kind": "date",
+          "value": "2026-01-04 ~ 2026-01-07"
+        },
+        {
+          "kind": "person",
+          "value": "JIYOON KIM"
+        }
+      ],
+      "intent_instances": [
+        {
+          "intent_type": "memo",
+          "payload": {
+            "note": "2026년 1월 4일부터 7일까지 상하이 여행 항공권 예약 정보입니다. 이미 지난 일정입니다.",
+            "title": "상하이 여행 항공권 예약 정보"
+          },
+          "reasoning": "사용자가 예약한 항공권 정보입니다. 현재 시점(2026-06-10)에서 이미 지난 일정(2026-01)이므로, 향후 여행을 추억하거나 기록을 확인하기 위한 용도로 보관합니다.",
+          "label": "여행 정보 보관"
+        }
+      ]
+    },
+    "v15_raw": {
+      "needs_review": false,
+      "entities": [
+        {
+          "value": "2026-01-04",
+          "kind": "date"
+        },
+        {
+          "value": "2026-01-07",
+          "kind": "date"
+        }
+      ],
+      "importance": 5,
+      "summary": "1월 4일부터 7일까지 다녀온 서울-상하이 왕복 항공권 예약 정보입니다. 과거 여행 기록을 보관하기 위해 저장합니다.",
+      "intent_instances": [
+        {
+          "intent_type": "memo",
+          "reasoning": "이미 지난 1월의 여행 기록이므로 현재 시점에서 일정이나 할 일로 등록하기에는 적절하지 않습니다. 여행 기록을 보관하기 위해 메모로 저장합니다.",
+          "payload": {
+            "note": "중국남방항공 CZ314편, 서울-상하이 왕복 항공권 예약 정보입니다. (1월 4일 ~ 1월 7일)",
+            "title": "서울-상하이 왕복 항공권 예약 정보"
+          },
+          "label": "항공권 정보 보관"
+        }
+      ],
+      "category": "여행 일정"
+    }
+  },
+  {
+    "file": "schedule_todo_수강신청꼭해야지.jpeg",
+    "gold_intents": [
+      "schedule",
+      "todo"
+    ],
+    "user_intent_ko": "수강신청꼭해야지",
+    "v14": {
+      "summary": "고려대학교 지속가능원에서 주관하는 '해양환경 시민과학자 양성 과정' 모집 공고입니다. 신청 마감일이 2024년 9월 8일로 이미 지난 과거의 정보입니다.",
+      "category": "대외활동",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "대외활동 정보 저장",
+          "reasoning": "이미 신청 마감일(2024년 9월 8일)이 지난 과거의 모집 공고이므로, 현재 시점에서 신청이나 일정을 위한 todo/schedule로 분류할 수 없습니다. 정보 보관 차원에서 메모로 저장합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v15": {
+      "summary": "고려대학교 지속가능원에서 주관하는 '해양환경 시민과학자 양성 과정' 모집 공고입니다. 이미 모집 기간이 지난 과거 정보이므로 참고용으로 저장합니다.",
+      "category": "대외활동",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "대외활동 정보 저장",
+          "reasoning": "현재 시점(2026년 6월 10일)에서 이미지 속 모집 기간(2024년 8월~9월)은 이미 종료된 과거의 정보입니다. 따라서 현재 시점에서 신청이나 일정 관리를 위한 todo/schedule로 분류할 수 없으며, 단순히 정보 보관을 위한 메모로 저장합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v14_raw": {
+      "entities": [
+        {
+          "value": "2024-09-08 23:59",
+          "kind": "deadline"
+        }
+      ],
+      "summary": "고려대학교 지속가능원에서 주관하는 '해양환경 시민과학자 양성 과정' 모집 공고입니다. 신청 마감일이 2024년 9월 8일로 이미 지난 과거의 정보입니다.",
+      "needs_review": false,
+      "importance": 3,
+      "intent_instances": [
+        {
+          "reasoning": "이미 신청 마감일(2024년 9월 8일)이 지난 과거의 모집 공고이므로, 현재 시점에서 신청이나 일정을 위한 todo/schedule로 분류할 수 없습니다. 정보 보관 차원에서 메모로 저장합니다.",
+          "label": "대외활동 정보 저장",
+          "intent_type": "memo",
+          "payload": {
+            "note": "고려대학교 지속가능원 주관 해양환경 시민과학자 양성 과정 모집 공고입니다. 신청 마감일이 2024년 9월 8일로 이미 지난 과거의 정보입니다.",
+            "title": "Sustainable Development Goals Academy 모집 공고"
+          }
+        }
+      ],
+      "category": "대외활동"
+    },
+    "v15_raw": {
+      "entities": [
+        {
+          "value": "2024-09-08 23:59",
+          "kind": "deadline"
+        }
+      ],
+      "summary": "고려대학교 지속가능원에서 주관하는 '해양환경 시민과학자 양성 과정' 모집 공고입니다. 이미 모집 기간이 지난 과거 정보이므로 참고용으로 저장합니다.",
+      "importance": 3,
+      "intent_instances": [
+        {
+          "label": "대외활동 정보 저장",
+          "reasoning": "현재 시점(2026년 6월 10일)에서 이미지 속 모집 기간(2024년 8월~9월)은 이미 종료된 과거의 정보입니다. 따라서 현재 시점에서 신청이나 일정 관리를 위한 todo/schedule로 분류할 수 없으며, 단순히 정보 보관을 위한 메모로 저장합니다.",
+          "payload": {
+            "title": "Sustainable Development Goals Academy 모집 안내",
+            "note": "고려대학교 지속가능원 주관 해양환경 시민과학자 양성 과정 모집 안내입니다. 신청 마감일은 2024년 9월 8일입니다."
+          },
+          "intent_type": "memo"
+        }
+      ],
+      "category": "대외활동",
+      "needs_review": false
+    }
+  },
+  {
+    "file": "schedule_todo_친구공연장장소와시간.jpeg",
+    "gold_intents": [
+      "schedule",
+      "todo"
+    ],
+    "user_intent_ko": "친구공연장장소와시간",
+    "v14": {
+      "summary": "'너와나'의 2024년 겨울 정기공연 안내 게시물입니다. 이미 지난 행사 정보이므로 참고용으로 보관합니다.",
+      "category": "공연 정보",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "공연 정보 보관",
+          "reasoning": "스크린샷에 나타난 공연 일시(2024년 12월 1일)가 현재 시점(2026년 6월)보다 훨씬 이전이므로, 더 이상 일정이나 할 일로 관리할 수 없습니다. 공연에 대한 기록으로서 메모로 저장합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v15": {
+      "summary": "2024년 12월 1일에 개최되었던 '너와나' 동아리의 겨울 정기공연 안내문입니다. 이미 종료된 행사 정보이므로 참고용으로 보관합니다.",
+      "category": "공연 정보",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "공연 정보 확인",
+          "reasoning": "공연 일시가 2024년 12월 1일로, 현재 시점(2026년 6월)보다 훨씬 이전이므로 일정이나 할 일로 등록할 수 없습니다. 공연에 대한 기록을 보관하는 차원에서 메모로 분류합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v14_raw": {
+      "entities": [],
+      "needs_review": false,
+      "summary": "'너와나'의 2024년 겨울 정기공연 안내 게시물입니다. 이미 지난 행사 정보이므로 참고용으로 보관합니다.",
+      "intent_instances": [
+        {
+          "intent_type": "memo",
+          "payload": {
+            "note": "2024년 12월 1일에 이미 종료된 공연 안내입니다.",
+            "title": "너와나 2024년 겨울 정기공연 안내"
+          },
+          "reasoning": "스크린샷에 나타난 공연 일시(2024년 12월 1일)가 현재 시점(2026년 6월)보다 훨씬 이전이므로, 더 이상 일정이나 할 일로 관리할 수 없습니다. 공연에 대한 기록으로서 메모로 저장합니다.",
+          "label": "공연 정보 보관"
+        }
+      ],
+      "category": "공연 정보",
+      "importance": 1
+    },
+    "v15_raw": {
+      "intent_instances": [
+        {
+          "payload": {
+            "note": "2024년 12월 1일에 진행된 과거 공연 안내문입니다.",
+            "title": "너와나 2024년 겨울 정기공연 안내"
+          },
+          "label": "공연 정보 확인",
+          "intent_type": "memo",
+          "reasoning": "공연 일시가 2024년 12월 1일로, 현재 시점(2026년 6월)보다 훨씬 이전이므로 일정이나 할 일로 등록할 수 없습니다. 공연에 대한 기록을 보관하는 차원에서 메모로 분류합니다."
+        }
+      ],
+      "importance": 1,
+      "category": "공연 정보",
+      "summary": "2024년 12월 1일에 개최되었던 '너와나' 동아리의 겨울 정기공연 안내문입니다. 이미 종료된 행사 정보이므로 참고용으로 보관합니다.",
+      "entities": [],
+      "needs_review": false
+    }
+  },
+  {
+    "file": "schedule_공차할인날짜시간.jpeg",
+    "gold_intents": [
+      "schedule"
+    ],
+    "user_intent_ko": "공차할인날짜시간",
+    "v14": {
+      "summary": "공차 900호점 기념으로 진행되었던 밀크티 50% 할인 해피아워 이벤트 정보입니다. 이미 종료된 이벤트이므로 참고용으로 저장합니다.",
+      "category": "쇼핑 정보",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "이벤트 확인",
+          "reasoning": "이미 2023년 8월 22일에 종료된 과거 이벤트 정보이므로, 현재 시점에서 수행할 수 있는 일정이나 할 일은 없습니다. 정보의 기록 차원에서 메모로 저장합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v15": {
+      "summary": "공차 900호점 기념 해피아워 이벤트 정보입니다. 이벤트 기간이 이미 지났으므로 참고용으로 저장합니다.",
+      "category": "브랜드 이벤트",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "공차 이벤트 정보",
+          "reasoning": "이미 2023년 8월에 종료된 이벤트 정보로, 현재 시점에서 수행할 수 있는 일정이나 할 일이 없습니다. 이벤트 내용 자체를 기록으로 남기기 위해 메모로 분류합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v14_raw": {
+      "importance": 1,
+      "needs_review": false,
+      "entities": [],
+      "summary": "공차 900호점 기념으로 진행되었던 밀크티 50% 할인 해피아워 이벤트 정보입니다. 이미 종료된 이벤트이므로 참고용으로 저장합니다.",
+      "intent_instances": [
+        {
+          "reasoning": "이미 2023년 8월 22일에 종료된 과거 이벤트 정보이므로, 현재 시점에서 수행할 수 있는 일정이나 할 일은 없습니다. 정보의 기록 차원에서 메모로 저장합니다.",
+          "payload": {
+            "title": "공차 900호점 기념 해피아워 이벤트",
+            "note": "2023년 8월 22일에 종료된 공차 900호점 기념 해피아워 이벤트 정보입니다."
+          },
+          "label": "이벤트 확인",
+          "intent_type": "memo"
+        }
+      ],
+      "category": "쇼핑 정보"
+    },
+    "v15_raw": {
+      "entities": [],
+      "summary": "공차 900호점 기념 해피아워 이벤트 정보입니다. 이벤트 기간이 이미 지났으므로 참고용으로 저장합니다.",
+      "importance": 1,
+      "category": "브랜드 이벤트",
+      "needs_review": false,
+      "intent_instances": [
+        {
+          "reasoning": "이미 2023년 8월에 종료된 이벤트 정보로, 현재 시점에서 수행할 수 있는 일정이나 할 일이 없습니다. 이벤트 내용 자체를 기록으로 남기기 위해 메모로 분류합니다.",
+          "label": "공차 이벤트 정보",
+          "payload": {
+            "note": "2023년 8월 22일에 종료된 공차 900호점 기념 해피아워 이벤트 정보입니다. 이미 지난 이벤트이므로 참고용으로 저장합니다.",
+            "title": "공차 900호점 기념 해피아워 이벤트"
+          },
+          "intent_type": "memo"
+        }
+      ]
+    }
+  },
+  {
+    "file": "schedule_이때집비워야함.png",
+    "gold_intents": [
+      "schedule"
+    ],
+    "user_intent_ko": "이때집비워야함",
+    "v14": {
+      "summary": "아름타운 기숙사 휴게실 이용 및 인터넷 신청 방법에 대한 안내입니다. 기숙사 생활 중 참고할 정보로 저장합니다.",
+      "category": "기숙사 생활",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "기숙사 이용 정보 확인",
+          "reasoning": "기숙사 이용에 필요한 전반적인 생활 정보를 담고 있어, 필요할 때 찾아보기 위해 저장합니다. 이미 날짜가 지난 정기점검 안내는 제외하고 유용한 정보 위주로 정리했습니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v15": {
+      "summary": "삼성디스플레이 아름타운 기숙사의 휴게실 이용 및 인터넷 신청 절차에 관한 안내입니다. 기숙사 생활 시 참고할 수 있도록 저장합니다.",
+      "category": "기숙사 생활",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "기숙사 이용 정보",
+          "reasoning": "기숙사 생활에 필요한 일반적인 정보와 인터넷 신청 절차를 담고 있어, 필요할 때 찾아볼 수 있도록 메모로 저장합니다. 2026년 3월 5일의 과거 공지이므로 일정이나 할 일로 분류하지 않습니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v14_raw": {
+      "summary": "아름타운 기숙사 휴게실 이용 및 인터넷 신청 방법에 대한 안내입니다. 기숙사 생활 중 참고할 정보로 저장합니다.",
+      "needs_review": false,
+      "entities": [
+        {
+          "kind": "phone_number",
+          "value": "041-912-9909"
+        },
+        {
+          "kind": "phone_number",
+          "value": "041-592-0116"
+        }
+      ],
+      "intent_instances": [
+        {
+          "payload": {
+            "note": "휴게실 이용(전자레인지, 건조기), 인터넷 신청 안내(LG 불가, SK/KT 가능) 등 기숙사 생활 관련 안내 사항입니다.",
+            "title": "아름타운 기숙사 생활 안내"
+          },
+          "intent_type": "memo",
+          "label": "기숙사 이용 정보 확인",
+          "reasoning": "기숙사 이용에 필요한 전반적인 생활 정보를 담고 있어, 필요할 때 찾아보기 위해 저장합니다. 이미 날짜가 지난 정기점검 안내는 제외하고 유용한 정보 위주로 정리했습니다."
+        }
+      ],
+      "importance": 2,
+      "category": "기숙사 생활"
+    },
+    "v15_raw": {
+      "importance": 2,
+      "category": "기숙사 생활",
+      "intent_instances": [
+        {
+          "reasoning": "기숙사 생활에 필요한 일반적인 정보와 인터넷 신청 절차를 담고 있어, 필요할 때 찾아볼 수 있도록 메모로 저장합니다. 2026년 3월 5일의 과거 공지이므로 일정이나 할 일로 분류하지 않습니다.",
+          "label": "기숙사 이용 정보",
+          "intent_type": "memo",
+          "payload": {
+            "note": "휴게실 이용(전자레인지, 건조기) 및 인터넷 신청 관련 안내입니다. 인터넷 신청 시 기사님 방문 1일 전까지 행정실에 전달해야 합니다.",
+            "title": "아름타운 기숙사 이용 안내"
+          }
+        }
+      ],
+      "needs_review": false,
+      "entities": [
+        {
+          "value": "041-912-9909",
+          "kind": "phone"
+        },
+        {
+          "kind": "phone",
+          "value": "041-592-0116"
+        }
+      ],
+      "summary": "삼성디스플레이 아름타운 기숙사의 휴게실 이용 및 인터넷 신청 절차에 관한 안내입니다. 기숙사 생활 시 참고할 수 있도록 저장합니다."
+    }
+  },
+  {
+    "file": "schedule_제출날짜.jpeg",
+    "gold_intents": [
+      "schedule"
+    ],
+    "user_intent_ko": "제출날짜",
+    "v14": {
+      "summary": "한화큐셀 채용 전형 중 PT 발표 자료 제출 기한(11월 17일 오전 10시)을 확인하고 저장했습니다.",
+      "category": "취업 준비",
+      "intent_types": [
+        "todo"
+      ],
+      "instances": [
+        {
+          "intent_type": "todo",
+          "label": "PT 발표 자료 제출",
+          "reasoning": "PT 발표 자료 제출이라는 명확한 과업과 마감이 존재하며, 사용자가 이를 수행해야 하므로 todo로 분류합니다. 마감 기한이 현재 시점보다 미래이므로 유효한 할 일입니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v15": {
+      "summary": "한화큐셀 PT 발표 자료 제출 기한(11월 17일 월요일 오전 10시)을 확인했습니다. 기한 내에 자료를 이메일로 제출해야 합니다.",
+      "category": "취업 준비",
+      "intent_types": [
+        "todo"
+      ],
+      "instances": [
+        {
+          "intent_type": "todo",
+          "label": "PT 발표 자료 제출",
+          "reasoning": "PT 발표 자료 제출 기한이 명시되어 있으며, 이는 사용자가 반드시 수행해야 할 과업입니다. 기한이 미래이므로 todo로 분류합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v14_raw": {
+      "entities": [
+        {
+          "kind": "deadline",
+          "value": "2026-11-17 10:00:00"
+        }
+      ],
+      "needs_review": false,
+      "intent_instances": [
+        {
+          "reasoning": "PT 발표 자료 제출이라는 명확한 과업과 마감이 존재하며, 사용자가 이를 수행해야 하므로 todo로 분류합니다. 마감 기한이 현재 시점보다 미래이므로 유효한 할 일입니다.",
+          "payload": {
+            "deadline": "2026-11-17 10:00:00",
+            "note": "이메일: rowoon.lee@qcells.com",
+            "title": "PT 발표 자료 제출 (한화큐셀)"
+          },
+          "intent_type": "todo",
+          "label": "PT 발표 자료 제출"
+        }
+      ],
+      "importance": 5,
+      "category": "취업 준비",
+      "summary": "한화큐셀 채용 전형 중 PT 발표 자료 제출 기한(11월 17일 오전 10시)을 확인하고 저장했습니다."
+    },
+    "v15_raw": {
+      "entities": [
+        {
+          "kind": "deadline",
+          "value": "2026-11-17 10:00:00"
+        }
+      ],
+      "summary": "한화큐셀 PT 발표 자료 제출 기한(11월 17일 월요일 오전 10시)을 확인했습니다. 기한 내에 자료를 이메일로 제출해야 합니다.",
+      "needs_review": false,
+      "intent_instances": [
+        {
+          "label": "PT 발표 자료 제출",
+          "intent_type": "todo",
+          "payload": {
+            "note": "이메일: rowoon.lee@qcells.com",
+            "deadline": "2026-11-17 10:00:00",
+            "title": "PT 발표 자료 제출 (한화큐셀)"
+          },
+          "reasoning": "PT 발표 자료 제출 기한이 명시되어 있으며, 이는 사용자가 반드시 수행해야 할 과업입니다. 기한이 미래이므로 todo로 분류합니다."
+        }
+      ],
+      "category": "취업 준비",
+      "importance": 5
+    }
+  },
+  {
+    "file": "todo_schedule_날짜맞춰서가려고.jpg",
+    "gold_intents": [
+      "todo",
+      "schedule"
+    ],
+    "user_intent_ko": "날짜맞춰서가려고",
+    "v14": {
+      "summary": "2025년 8월 3일에 관람한 '그룹사운드 잔나비 앵콜 콘서트'의 예매 완료 알림톡 캡처입니다. 이미 종료된 과거의 행사 기록입니다.",
+      "category": "공연 관람",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "공연 관람 기록",
+          "reasoning": "이미 2025년 8월에 종료된 과거의 공연 예매 내역입니다. 현재 시점(2026년 6월)에서 향후 수행해야 할 일정이나 할 일이 아니므로, 추억이나 기록 보관을 위한 메모로 분류합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v15": {
+      "summary": "2025년 8월 3일에 열렸던 '그룹사운드 잔나비 앵콜 콘서트 <모든소년소녀들 2125>'의 예매 완료 알림톡입니다. 이미 종료된 공연이므로 예매 기록을 보존하기 위해 저장합니다.",
+      "category": "공연 관람",
+      "intent_types": [
+        "memo"
+      ],
+      "instances": [
+        {
+          "intent_type": "memo",
+          "label": "공연 예매 정보 저장",
+          "reasoning": "이미 2025년 8월에 종료된 공연의 예매 내역입니다. 현재 시점(2026년 6월)에서는 향후 일정이나 할 일이 아니므로, 추억이나 기록 보존을 위해 메모로 저장합니다."
+        }
+      ],
+      "needs_review": false
+    },
+    "v14_raw": {
+      "importance": 1,
+      "summary": "2025년 8월 3일에 관람한 '그룹사운드 잔나비 앵콜 콘서트'의 예매 완료 알림톡 캡처입니다. 이미 종료된 과거의 행사 기록입니다.",
+      "intent_instances": [
+        {
+          "intent_type": "memo",
+          "reasoning": "이미 2025년 8월에 종료된 과거의 공연 예매 내역입니다. 현재 시점(2026년 6월)에서 향후 수행해야 할 일정이나 할 일이 아니므로, 추억이나 기록 보관을 위한 메모로 분류합니다.",
+          "label": "공연 관람 기록",
+          "payload": {
+            "note": "2025년 8월 3일 관람한 잔나비 앵콜 콘서트 예매 내역입니다.",
+            "title": "그룹사운드 잔나비 앵콜 콘서트 예매 내역"
+          }
+        }
+      ],
+      "category": "공연 관람",
+      "needs_review": false,
+      "entities": [
+        {
+          "kind": "event",
+          "value": "그룹사운드 잔나비 앵콜 콘서트 <모든소년소녀들 2125>"
+        },
+        {
+          "value": "2025-08-03",
+          "kind": "date"
+        }
+      ]
+    },
+    "v15_raw": {
+      "intent_instances": [
+        {
+          "intent_type": "memo",
+          "payload": {
+            "note": "2025년 8월 3일 17시에 진행된 잔나비 앵콜 콘서트 예매 내역입니다. 이미 종료된 공연입니다.",
+            "title": "잔나비 앵콜 콘서트 예매 내역"
+          },
+          "label": "공연 예매 정보 저장",
+          "reasoning": "이미 2025년 8월에 종료된 공연의 예매 내역입니다. 현재 시점(2026년 6월)에서는 향후 일정이나 할 일이 아니므로, 추억이나 기록 보존을 위해 메모로 저장합니다."
+        }
+      ],
+      "entities": [
+        {
+          "value": "그룹사운드 잔나비 앵콜 콘서트 <모든소년소녀들 2125>",
+          "kind": "event"
+        },
+        {
+          "value": "2025-08-03",
+          "kind": "date"
+        },
+        {
+          "value": "17:00",
+          "kind": "time"
+        }
+      ],
+      "needs_review": false,
+      "category": "공연 관람",
+      "importance": 1,
+      "summary": "2025년 8월 3일에 열렸던 '그룹사운드 잔나비 앵콜 콘서트 <모든소년소녀들 2125>'의 예매 완료 알림톡입니다. 이미 종료된 공연이므로 예매 기록을 보존하기 위해 저장합니다."
+    }
+  }
+]

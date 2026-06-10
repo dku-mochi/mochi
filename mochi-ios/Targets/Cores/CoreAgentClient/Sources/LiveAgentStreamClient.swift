@@ -66,37 +66,29 @@ public struct LiveAgentStreamClient: AgentStreamClient {
             throw DomainError.networkFailed(reason: "stream HTTP \(http.statusCode)", transientRetryAfter: nil)
         }
 
-        var event: String?
-        var data = ""
-        for try await line in bytes.lines {
-            try Task.checkCancellation()
-            if line.isEmpty {
+        // bytes.lines 금지 — 빈 줄(이벤트 경계)을 방출하지 않는다 (SSEEventParser 참고, 리뷰 P1).
+        var parser = SSEEventParser()
+        for try await byte in bytes {
+            if let (event, data) = parser.consume(byte: byte) {
+                try Task.checkCancellation()
                 if try await dispatch(event: event, data: data, mochiItemID: mochiItemID, continuation: continuation) {
                     return  // 종결 이벤트(final/failed) — 스트림 종료.
                 }
-                event = nil
-                data = ""
-                continue
-            }
-            if line.hasPrefix(":") { continue }  // 코멘트(": stream-open")
-            if let value = Self.fieldValue(line, prefix: "event:") {
-                event = value
-            } else if let value = Self.fieldValue(line, prefix: "data:") {
-                data += data.isEmpty ? value : "\n" + value
             }
         }
         // 스트림이 boundary 없이 끝난 경우 잔여 dispatch.
-        _ = try await dispatch(event: event, data: data, mochiItemID: mochiItemID, continuation: continuation)
+        if let (event, data) = parser.flush() {
+            _ = try await dispatch(event: event, data: data, mochiItemID: mochiItemID, continuation: continuation)
+        }
     }
 
     /// 누적된 한 이벤트를 처리. 종결 이벤트(final/failed)면 `true` 를 반환해 run 루프를 끝낸다.
     private func dispatch(
-        event: String?,
+        event: String,
         data: String,
         mochiItemID: UUID,
         continuation: AsyncThrowingStream<AgentEvent, Error>.Continuation
     ) async throws -> Bool {
-        guard let event, !data.isEmpty else { return false }
         let json = (try? JSONSerialization.jsonObject(with: Data(data.utf8))) as? [String: Any] ?? [:]
         switch event {
         case "node":
@@ -121,13 +113,5 @@ public struct LiveAgentStreamClient: AgentStreamClient {
             .appendingPathComponent("api/v1/mochi_items")
             .appendingPathComponent(mochiItemID.uuidString.lowercased())
             .appendingPathComponent("stream")
-    }
-
-    /// `"data: {...}"` → `"{...}"`. 콜론 뒤 선행 공백 1개만 제거(SSE 규약).
-    private static func fieldValue(_ line: String, prefix: String) -> String? {
-        guard line.hasPrefix(prefix) else { return nil }
-        var rest = Substring(line.dropFirst(prefix.count))
-        if rest.first == " " { rest = rest.dropFirst() }
-        return String(rest)
     }
 }
