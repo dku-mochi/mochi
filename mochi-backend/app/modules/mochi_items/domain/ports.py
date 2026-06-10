@@ -110,6 +110,33 @@ class MochiItemRepository(Protocol):
         """
         ...
 
+    async def update_content(
+        self,
+        *,
+        owner_id: UUID,
+        mochi_item_id: UUID,
+        text: str | None,
+        user_memo: str | None,
+        summary: str | None,
+    ) -> bool:
+        """제공된(non-None) 콘텐츠 필드만 갱신 + updated_at bump — 채팅 수정 proposal 확정
+        (`PATCH /mochi_items/{id}`, journal 2026-06-10). None = 변경 없음(null 클리어 미지원).
+        owner-scoped, 없으면 False."""
+        ...
+
+    async def update_instance_fields(
+        self,
+        *,
+        owner_id: UUID,
+        mochi_item_id: UUID,
+        instance_id: UUID,
+        payload: dict[str, str] | None,
+        label: str | None,
+    ) -> bool:
+        """instance 의 payload(전체 교체 — 병합은 application 책임)·label 갱신.
+        owner+item+instance 3중 scoped, 없으면 False (→ 404, reanalyze known-drift 만료 신호)."""
+        ...
+
     async def soft_delete(self, *, owner_id: UUID, mochi_item_id: UUID) -> None:
         """mochi_item 을 soft delete (deleted_at 마킹, 행 보존). owner-scoped — 다른 owner 면 no-op.
 

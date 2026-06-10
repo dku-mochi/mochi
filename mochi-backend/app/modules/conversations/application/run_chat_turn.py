@@ -88,6 +88,7 @@ class RunChatTurn:
         system_prompt = self._system_prompt()
 
         assistant_text = ""
+        proposals: list[dict[str, Any]] = []
         calls = 0
         for round_index in range(self.max_rounds):
             final_round = round_index == self.max_rounds - 1 or calls >= self.max_tool_calls
@@ -128,6 +129,19 @@ class RunChatTurn:
                     owner_id=owner_id, conversation_id=conversation_id, run_id=run_id,
                     name=name, args=args,
                 )
+                if result.proposal is not None:
+                    # propose_* 툴의 확인 카드 — 쓰기 없음. 즉시 스트림으로 흘리고
+                    # assistant 행 영속 시 proposals 에 함께 싣는다(스냅샷 재조회 정합).
+                    proposals.append(result.proposal)
+                    self._publish(
+                        run_id,
+                        run_events.PROPOSAL,
+                        {
+                            "id": result.proposal["id"],
+                            "type": result.proposal["type"],
+                            "payload": result.proposal["payload"],
+                        },
+                    )
                 contents.append(
                     {"function_call": {"name": name, "args": args}, "thought_signature": signature}
                 )
@@ -137,7 +151,11 @@ class RunChatTurn:
             raise RuntimeError("LLM produced no answer text")
 
         message_id = await self._persist_answer(
-            owner_id=owner_id, conversation_id=conversation_id, run_id=run_id, text=assistant_text
+            owner_id=owner_id,
+            conversation_id=conversation_id,
+            run_id=run_id,
+            text=assistant_text,
+            proposals=proposals,
         )
         await self.store.set_run_status(owner_id=owner_id, run_id=run_id, status=RunStatus.COMPLETED)
         self._publish(run_id, run_events.DONE, {"message_id": str(message_id)})
@@ -177,7 +195,13 @@ class RunChatTurn:
         return result
 
     async def _persist_answer(
-        self, *, owner_id: UUID, conversation_id: UUID, run_id: UUID, text: str
+        self,
+        *,
+        owner_id: UUID,
+        conversation_id: UUID,
+        run_id: UUID,
+        text: str,
+        proposals: list[dict[str, Any]] | None = None,
     ) -> UUID:
         """citation 마커 파싱·owner 검증 → assistant 행 + citations 영속 + citation 이벤트."""
         marker_ids: list[UUID] = []
@@ -205,6 +229,7 @@ class RunChatTurn:
             role=MessageRole.ASSISTANT,
             content=text,  # 마커 원문 보존 — 스냅샷 재조회 시 iOS 가 동일 치환
             run_id=run_id,
+            proposals=tuple(proposals or ()),
             citations=citations,
         )
         await self.store.append(owner_id=owner_id, message=message)

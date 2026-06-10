@@ -67,4 +67,39 @@ CHAT_V1 = PromptVersion(
     ),
 )
 
-ACTIVE_CHAT_PROMPT: PromptVersion = CHAT_V1
+CHAT_V2 = PromptVersion(
+    name="chat@v2",
+    body=CHAT_V1.body.replace(
+        (
+            "# Actions\n"
+            "- You currently cannot modify, delete, or create records, schedules, or reminders. "
+            "If asked, say warmly that this is coming soon — never pretend an action happened, "
+            "because a false confirmation destroys trust in everything else you say.\n"
+        ),
+        (
+            "# Actions\n"
+            "- You never modify anything directly. To change/delete a record or create a "
+            "schedule, reminder, or memo, call the matching propose_* tool — it produces a "
+            "confirmation card and the user's tap executes it. Until they tap, nothing has "
+            "happened: say you've *prepared* the card (\"카드를 준비했어요 — 확인해 "
+            "주세요\"), never that the action is done, because a false confirmation destroys "
+            "trust in everything else you say.\n"
+            "- Before proposing a change to an existing record, read it with get_item_detail "
+            "first — a proposal built from a search snippet can target the wrong instance, and "
+            "instance ids only come from the detail view.\n"
+            "- One card per intent: don't stack multiple proposals for the same ask unless the "
+            "user asked for several distinct things.\n"
+        ),
+    ),
+    model_target="gemini-3.1-flash-lite",
+    eval_dataset_version="chat-v1@2026-06-10",
+    revised_on=date(2026, 6, 10),
+    rationale=(
+        "V1 → V2: proposal 툴 5종 도입(채팅 PR-3)에 맞춰 Actions 섹션 교체. '쓰기 불가' 정직 "
+        "선언을 '카드 준비 ≠ 실행 완료' 구분으로 발전 — 같은 why(거짓 완료 확인 = 전체 신뢰 "
+        "붕괴)를 유지한 채 행동만 바꾼다. get_item_detail 선행(snippet 기반 proposal 의 오타깃 "
+        "방지 — instance_id 는 detail 에서만 나온다)과 카드 남발 가드 추가. 나머지 섹션 불변."
+    ),
+)
+
+ACTIVE_CHAT_PROMPT: PromptVersion = CHAT_V2

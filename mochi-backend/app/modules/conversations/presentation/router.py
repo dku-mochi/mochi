@@ -35,6 +35,14 @@ from app.modules.conversations.domain.ports import ChatTool
 from app.modules.conversations.domain.run_events import ChatEvent
 from app.modules.conversations.infrastructure.run_registry import get_run_registry
 from app.modules.conversations.infrastructure.tools.get_item_detail import GetItemDetailTool
+from app.modules.conversations.infrastructure.tools.propose import (
+    ProposeCreateMemoTool,
+    ProposeCreateScheduleTool,
+    ProposeItemDeleteTool,
+    ProposeItemUpdateTool,
+    ProposeReminderTool,
+    make_item_reader,
+)
 from app.modules.conversations.infrastructure.tools.search_items import SearchItemsTool
 from app.modules.conversations.infrastructure.turn_store import SessionChatTurnStore
 from app.modules.conversations.presentation.schemas import (
@@ -54,9 +62,20 @@ _RUNNING_TASKS: set[asyncio.Task[None]] = set()
 
 @lru_cache(maxsize=1)
 def _chat_tools() -> tuple[ChatTool, ...]:
-    """프로세스당 1회 조립 — 전부 read-only (쓰기는 proposal 카드, PR-3)."""
+    """프로세스당 1회 조립 — **전부 read-only**. propose_* 도 검증 후 카드 payload 만
+    반환할 뿐 DB 를 쓰지 않는다(실행은 사용자 확정 탭 → REST). 쓰기 가능한 툴을 여기
+    추가하는 것은 금지 — ``test_router_tool_registry_is_read_only`` 가 고정."""
     session_factory = get_session_factory()
-    return (SearchItemsTool(session_factory), GetItemDetailTool(session_factory))
+    item_reader = make_item_reader(session_factory)
+    return (
+        SearchItemsTool(session_factory),
+        GetItemDetailTool(session_factory),
+        ProposeItemUpdateTool(item_reader),
+        ProposeItemDeleteTool(item_reader),
+        ProposeCreateScheduleTool(),
+        ProposeReminderTool(),
+        ProposeCreateMemoTool(),
+    )
 
 
 def _sse(event: ChatEvent) -> bytes:
@@ -81,7 +100,7 @@ async def send_message(
     tool_started   {run_id, name, label}
     tool_finished  {run_id, name, summary}
     citation       {run_id, index, item_id, title, snippet}
-    proposal       {run_id, type, payload}            (PR-3 예약)
+    proposal       {run_id, id, type, payload}        (type: item_update|item_delete|create_schedule|reminder|create_memo)
     done           {run_id, message_id}               (assistant 메시지 행 id)
     error          {run_id, code, message}
     ```

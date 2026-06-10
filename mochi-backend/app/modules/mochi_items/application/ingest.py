@@ -10,6 +10,7 @@ from app.modules.mochi_items.domain.entities import (
     MochiItem,
 )
 from app.modules.mochi_items.domain.ports import MochiItemCreatedNotifier, MochiItemRepository
+from app.modules.mochi_items.domain.value_objects import IntentInstance
 
 
 @dataclass(slots=True)
@@ -21,6 +22,9 @@ class IngestCommand:
     user_memo: str | None
     idempotency_key: str
     image_refs: tuple[ImageRef, ...] = field(default_factory=tuple)
+    # 채팅 proposal 확정으로 사용자가 직접 확정한 instance — 있으면 분석 파이프라인을 생략한다
+    # (DOMAIN_DESIGN §5.2 예외: "사용자 확정 = 분석보다 상위 신뢰". journal 2026-06-10 M2).
+    confirmed_instances: tuple[IntentInstance, ...] = ()
 
 
 @dataclass(slots=True)
@@ -57,11 +61,21 @@ class Ingest:
             user_memo=command.user_memo,
             image_refs=command.image_refs,
         )
-        item = MochiItem(
-            id=source.id,
-            source=source,
-            lifecycle=LifecycleState(kind=LifecycleStateKind.INGESTED),
-        )
+        if command.confirmed_instances:
+            # §5.2 예외 — 사용자 확정 proposal: instance 즉시 active 생성 + 분석 완료 상태,
+            # outbox 미적재(재분석이 확정 내용을 덮으면 "확정했는데 모찌가 되묻는" UX 파탄).
+            item = MochiItem(
+                id=source.id,
+                source=source,
+                intent_instances=command.confirmed_instances,
+                lifecycle=LifecycleState(kind=LifecycleStateKind.ANALYZED),
+            )
+        else:
+            item = MochiItem(
+                id=source.id,
+                source=source,
+                lifecycle=LifecycleState(kind=LifecycleStateKind.INGESTED),
+            )
 
         await self._repo.add(owner_id=command.owner_id, item=item)
         await self._repo.remember_idempotency(
@@ -69,6 +83,7 @@ class Ingest:
             idempotency_key=command.idempotency_key,
             mochi_item_id=item.id,
         )
-        await self._notifier.emit(owner_id=command.owner_id, mochi_item_id=item.id)
+        if not command.confirmed_instances:
+            await self._notifier.emit(owner_id=command.owner_id, mochi_item_id=item.id)
 
         return IngestResult(item=item, was_idempotent_replay=False)

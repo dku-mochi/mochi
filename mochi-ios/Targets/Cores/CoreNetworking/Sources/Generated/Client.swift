@@ -1180,6 +1180,85 @@ public struct Client: APIProtocol {
             }
         )
     }
+    /// Update Mochi Item
+    ///
+    /// 채팅 수정 proposal 확정 실행 — 콘텐츠 + instance 변경을 한 트랜잭션으로 (journal 2026-06-10 M1).
+    ///
+    /// - 콘텐츠(text/userMemo/summary): 제공 필드만 갱신 (null 클리어 미지원).
+    /// - instances[]: payload 병합("일정 3시로" = time 만 교체) · label · lifecycle 전이
+    ///   (``lifecycle_policy`` 검증, 불법 409).
+    /// - instance 미실재 404(`intent_instance.not_found`) — proposal 카드 생성~확정 사이
+    ///   reanalyze 가 instance 를 재작성한 경우의 만료 신호 (iOS 가 카드 expired 처리).
+    ///
+    /// - Remark: HTTP `PATCH /api/v1/mochi_items/{mochi_item_id}`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/patch(update_mochi_item_api_v1_mochi_items__mochi_item_id__patch)`.
+    public func update_mochi_item_api_v1_mochi_items__mochi_item_id__patch(_ input: Operations.update_mochi_item_api_v1_mochi_items__mochi_item_id__patch.Input) async throws -> Operations.update_mochi_item_api_v1_mochi_items__mochi_item_id__patch.Output {
+        try await client.send(
+            input: input,
+            forOperation: Operations.update_mochi_item_api_v1_mochi_items__mochi_item_id__patch.id,
+            serializer: { input in
+                let path = try converter.renderedPath(
+                    template: "/api/v1/mochi_items/{}",
+                    parameters: [
+                        input.path.mochi_item_id
+                    ]
+                )
+                var request: HTTPTypes.HTTPRequest = .init(
+                    soar_path: path,
+                    method: .patch
+                )
+                suppressMutabilityWarning(&request)
+                converter.setAcceptHeader(
+                    in: &request.headerFields,
+                    contentTypes: input.headers.accept
+                )
+                let body: OpenAPIRuntime.HTTPBody?
+                switch input.body {
+                case let .json(value):
+                    body = try converter.setRequiredRequestBodyAsJSON(
+                        value,
+                        headerFields: &request.headerFields,
+                        contentType: "application/json; charset=utf-8"
+                    )
+                }
+                return (request, body)
+            },
+            deserializer: { response, responseBody in
+                switch response.status.code {
+                case 200:
+                    let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
+                    let body: Operations.update_mochi_item_api_v1_mochi_items__mochi_item_id__patch.Output.Ok.Body
+                    let chosenContentType = try converter.bestContentType(
+                        received: contentType,
+                        options: [
+                            "application/json"
+                        ]
+                    )
+                    switch chosenContentType {
+                    case "application/json":
+                        body = try await converter.getResponseBodyAsJSON(
+                            Components.Schemas.MochiItemResponse.self,
+                            from: responseBody,
+                            transforming: { value in
+                                .json(value)
+                            }
+                        )
+                    default:
+                        preconditionFailure("bestContentType chose an invalid content type.")
+                    }
+                    return .ok(.init(body: body))
+                default:
+                    return .undocumented(
+                        statusCode: response.status.code,
+                        .init(
+                            headerFields: response.headerFields,
+                            body: responseBody
+                        )
+                    )
+                }
+            }
+        )
+    }
     /// Delete Mochi Item
     ///
     /// 기록 soft delete — 행을 지우지 않고 ``deleted_at`` 마킹(되돌릴 수 있게, users 동일 패턴).
@@ -1461,7 +1540,7 @@ public struct Client: APIProtocol {
     /// tool_started   {run_id, name, label}
     /// tool_finished  {run_id, name, summary}
     /// citation       {run_id, index, item_id, title, snippet}
-    /// proposal       {run_id, type, payload}            (PR-3 예약)
+    /// proposal       {run_id, id, type, payload}        (type: item_update|item_delete|create_schedule|reminder|create_memo)
     /// done           {run_id, message_id}               (assistant 메시지 행 id)
     /// error          {run_id, code, message}
     /// ```
