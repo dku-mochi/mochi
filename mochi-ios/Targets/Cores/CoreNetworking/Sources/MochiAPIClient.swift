@@ -65,6 +65,14 @@ public protocol MochiAPIClient: Sendable {
     /// 없는/이미 삭제된 항목은 404 throw.
     func deleteMochiItem(mochiServerID: UUID) async throws
 
+    /// `PATCH /api/v1/mochi_items/{id}` — 콘텐츠(text/userMemo/summary) + instance 변경
+    /// (payload 병합·label·lifecycle 전이)을 **한 트랜잭션**으로. 채팅 수정 proposal 확정 경로.
+    /// 404(`*.not_found`) = 카드 만료, 409 = 불법 lifecycle 전이.
+    /// 반환 = 갱신된 항목(서버 정본) — 호출자가 로컬 Realm 미러에 merge 한다
+    /// (pullRemote 는 "없는 항목 채우기" 전용이라 기존 항목 수정을 반영하지 못한다).
+    @discardableResult
+    func updateMochiItem(mochiServerID: UUID, _ request: MochiItemUpdateRequestDTO) async throws -> MochiItemDTO
+
     /// `GET /api/v1/mochi_items/upcoming` — "이번주 정리"의 "아직 안 끝났어요".
     /// 미해결 todo + 다가올 schedule 을 서버가 마감일 파싱·임박순 정렬해 돌려준다(캘린더 탭과 별개).
     func upcomingActionables() async throws -> [UpcomingActionableDTO]
@@ -96,25 +104,83 @@ public struct MochiItemIngestRequest: Sendable, Hashable, Codable {
     public let text: String?
     public let userMemo: String?
     public let imageRefs: [ImageRefDTO]
+    /// 사용자 확정 instance — 존재 시 서버가 **분석을 생략**하고 instance 를 그대로 생성한다
+    /// (DOMAIN_DESIGN §5.2 예외: 사용자 확정 = 분석보다 상위 신뢰). 채팅 일정 proposal 확정 경로.
+    public let confirmedInstances: [ConfirmedInstanceIngestDTO]?
 
     public init(
         channel: IngestChannel,
         url: URL? = nil,
         text: String? = nil,
         userMemo: String? = nil,
-        imageRefs: [ImageRefDTO] = []
+        imageRefs: [ImageRefDTO] = [],
+        confirmedInstances: [ConfirmedInstanceIngestDTO]? = nil
     ) {
         self.channel = channel
         self.url = url
         self.text = text
         self.userMemo = userMemo
         self.imageRefs = imageRefs
+        self.confirmedInstances = confirmedInstances
     }
 
     private enum CodingKeys: String, CodingKey {
         case channel, url, text
         case userMemo = "userMemo"
         case imageRefs = "imageRefs"
+        case confirmedInstances = "confirmedInstances"
+    }
+}
+
+/// `confirmedInstances` 1건 — intentType rawValue 와 payload 키는 백엔드 스키마와 1:1.
+public struct ConfirmedInstanceIngestDTO: Sendable, Hashable, Codable {
+    public let intentType: String
+    /// 부분 payload (title/date/time/end_date/end_time/deadline/person/topic/url/note 중 채워진 것만).
+    public let payload: [String: String]
+    public let label: String?
+
+    public init(intentType: String, payload: [String: String], label: String? = nil) {
+        self.intentType = intentType
+        self.payload = payload
+        self.label = label
+    }
+}
+
+/// `PATCH /mochi_items/{id}` 요청 — nil 필드는 미변경(merge 시맨틱).
+public struct MochiItemUpdateRequestDTO: Sendable, Hashable, Codable {
+    public let text: String?
+    public let userMemo: String?
+    public let summary: String?
+    public let instances: [InstanceChangeRequestDTO]
+
+    public init(
+        text: String? = nil, userMemo: String? = nil,
+        summary: String? = nil, instances: [InstanceChangeRequestDTO] = []
+    ) {
+        self.text = text
+        self.userMemo = userMemo
+        self.summary = summary
+        self.instances = instances
+    }
+}
+
+public struct InstanceChangeRequestDTO: Sendable, Hashable, Codable {
+    public let instanceID: UUID
+    /// 부분 payload 병합 필드 — 키는 IntentPayloadPatchDTO (title/date/time/...).
+    public let payload: [String: String]
+    public let label: String?
+    public let lifecycleKind: String?
+    public let archiveReason: String?
+
+    public init(
+        instanceID: UUID, payload: [String: String] = [:],
+        label: String? = nil, lifecycleKind: String? = nil, archiveReason: String? = nil
+    ) {
+        self.instanceID = instanceID
+        self.payload = payload
+        self.label = label
+        self.lifecycleKind = lifecycleKind
+        self.archiveReason = archiveReason
     }
 }
 
@@ -276,6 +342,9 @@ public struct IntentPayloadDTO: Sendable, Hashable, Codable {
     public let title: String?
     public let date: String?
     public let time: String?
+    /// 기간형 일정의 끝 — date/time 은 시작 의미(없으면 점 일정).
+    public let endDate: String?
+    public let endTime: String?
     public let deadline: String?
     public let person: String?
     public let topic: String?
@@ -286,6 +355,8 @@ public struct IntentPayloadDTO: Sendable, Hashable, Codable {
         title: String? = nil,
         date: String? = nil,
         time: String? = nil,
+        endDate: String? = nil,
+        endTime: String? = nil,
         deadline: String? = nil,
         person: String? = nil,
         topic: String? = nil,
@@ -295,6 +366,8 @@ public struct IntentPayloadDTO: Sendable, Hashable, Codable {
         self.title = title
         self.date = date
         self.time = time
+        self.endDate = endDate
+        self.endTime = endTime
         self.deadline = deadline
         self.person = person
         self.topic = topic

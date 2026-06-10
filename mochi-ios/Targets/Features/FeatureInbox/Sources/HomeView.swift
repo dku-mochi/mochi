@@ -14,7 +14,7 @@ import DesignSystem
 ///  - ② 모찌가 정리하고 있어요     분석 응답 대기(analyzing), 맨 하단·기본 접힘
 /// 우하단 플로팅 버튼(+)이 빠른 입력 — 메모·URL·사진(이미지/카메라)을 한 버튼에 모은다.
 /// 4-Intent 라벨은 노출하지 않고 행동으로만 드러난다.
-/// 자연어 회수(질문): 상단 입력바·추천 칩이 진입점 — 제출하면 상위가 검색 탭으로 라우팅한다.
+/// 자연어 회수(질문): 상단 입력바·추천 칩이 진입점 — 제출하면 상위가 채팅 탭 새 대화로 라우팅한다.
 public struct HomeView: View {
     
     @Bindable public var store: StoreOf<HomeFeature>

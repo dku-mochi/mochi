@@ -23,6 +23,8 @@ class IntentPayloadDTO(BaseModel):
     title: str | None = None
     date: str | None = None
     time: str | None = None
+    end_date: str | None = None
+    end_time: str | None = None
     deadline: str | None = None
     person: str | None = None
     topic: str | None = None

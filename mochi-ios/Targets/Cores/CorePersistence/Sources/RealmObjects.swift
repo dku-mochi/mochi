@@ -52,6 +52,9 @@ public final class RealmIntentInstance: EmbeddedObject {
     @Persisted public var payloadTitle: String?
     @Persisted public var payloadDate: String?
     @Persisted public var payloadTime: String?
+    /// 기간형 일정의 끝 — date/time 은 시작 의미(없으면 점 일정).
+    @Persisted public var payloadEndDate: String?
+    @Persisted public var payloadEndTime: String?
     @Persisted public var payloadDeadline: String?
     @Persisted public var payloadPerson: String?
     @Persisted public var payloadTopic: String?

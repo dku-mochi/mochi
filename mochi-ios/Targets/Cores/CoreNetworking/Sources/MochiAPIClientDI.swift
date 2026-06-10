@@ -54,6 +54,11 @@ public struct NotConfiguredAPIClient: MochiAPIClient {
     public func deleteMochiItem(mochiServerID: UUID) async throws {
         throw Self.error
     }
+    public func updateMochiItem(
+        mochiServerID: UUID, _ request: MochiItemUpdateRequestDTO
+    ) async throws -> MochiItemDTO {
+        throw Self.error
+    }
     public func upcomingActionables() async throws -> [UpcomingActionableDTO] {
         throw Self.error
     }
