@@ -214,19 +214,24 @@ async def test_propose_update_strips_archive_reason_on_non_archived_transition()
     }
 
 
-def test_active_chat_prompt_is_v2_with_proposal_rules() -> None:
-    # CHAT_V2 는 V1.body.replace 파생 — V1 본문이 바뀌면 replace 가 silent no-op 으로
-    # "쓰기 불가" 행동 규칙이 부활한다 (리뷰 P2). 활성 프롬프트의 행동 규칙을 고정.
+def test_active_chat_prompt_is_v3_with_proposal_and_web_rules() -> None:
+    # V2/V3 는 직전 버전의 body.replace 파생 — 상류 본문이 바뀌면 replace 가 silent no-op
+    # 으로 구 규칙이 부활한다 (리뷰 P2). 활성 프롬프트의 행동·grounding 규칙을 고정.
     from app.modules.conversations.prompts.chat_prompts import (
         ACTIVE_CHAT_PROMPT,
         CHAT_V1,
         CHAT_V2,
+        CHAT_V3,
     )
 
-    assert ACTIVE_CHAT_PROMPT is CHAT_V2
+    assert ACTIVE_CHAT_PROMPT is CHAT_V3
     assert CHAT_V2.body != CHAT_V1.body, "V1 anchor 불일치 — replace 가 no-op"
+    assert CHAT_V3.body != CHAT_V2.body, "V2 anchor 불일치 — replace 가 no-op"
     assert "propose_" in ACTIVE_CHAT_PROMPT.body
     assert "currently cannot modify" not in ACTIVE_CHAT_PROMPT.body
+    # PR-4 web 툴: 출처 3원 구분 + citation 마커는 기록 전용.
+    assert "web-sourced" in ACTIVE_CHAT_PROMPT.body
+    assert "markers are for records only" in ACTIVE_CHAT_PROMPT.body
 
 
 # ---------- ② run 루프의 proposal 이벤트·영속 ----------

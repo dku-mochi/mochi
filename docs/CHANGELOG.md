@@ -16,6 +16,9 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 > **동시 세션 / 공유 파일 주의**: CHANGELOG 는 여러 세션·작업자가 함께 쓰는 append-only 공유 파일이다. 동시 작업 중에는 다른 세션이 자기 항목을 먼저 커밋할 수 있고, 한 워킹트리에 여러 세션의 미커밋 항목이 섞여 보일 수 있다. 이때 **항목을 분리하려 애쓰지 말고** 자기 변경과 함께 그대로 staging·커밋한다 — 섞인 다른 항목은 해당 세션이 자기 코드와 함께 정리한다. diff 에 모르는 CHANGELOG 항목이 보여도 멈추지 않는다 (단, CHANGELOG 외의 *코드* 파일은 절대 임의로 섞어 커밋하지 않는다).
 
 ## 2026-06-10 — backend, docs
+- **채팅 탭 백엔드 PR-4: web_search(Tavily) + web_fetch** (`feat/be-chat-proposals` 후속). web_fetch 는 기존 agent `WebFetchTool` SSRF·사이즈·MIME 가드를 **무수정 재사용** — 신설 `agent/application/tool_factories.py`(허용 진입점) 경유로 모듈 경계 통과, 채팅 래퍼는 HTML 텍스트화+truncation 만. web_search 는 고정 호스트(api.tavily.com), `TAVILY_API_KEY` **미설정 시 레지스트리에서만 제외**(서버·머지 블록 없음 — 키 발급이 PR 을 막지 않게). `chat@v3`(출처 3원 구분: 기록/웹/일반지식 + citation 마커는 기록 전용 — 웹 출처 마커는 파서가 silent drop 하므로). 테스트 6종 추가(164 passed), PRIVACY §10(채팅 web 툴 외부 반출 경계)·ARCHITECTURE §3.2(stale 툴목록·chat@v1 표기 함께 해소)·TODO §4.4 동기화. API 계약 무변경(openapi no-diff).
+
+## 2026-06-10 — backend, docs
 - **채팅 탭 백엔드 PR-3: proposal 툴 5종 + PATCH + confirmedInstances** (`feat/be-chat-proposals`). propose_{item_update,item_delete,create_schedule,reminder,create_memo} — 전부 read-only(대상 실재·lifecycle 전이 합법성을 카드 생성 시점에 사전 검증, 실패 시 카드 미생성), run 루프가 `proposal` SSE 이벤트로 흘리고 assistant 행 `proposals` 에 영속. 확정 실행 경로: **`PATCH /mochi_items/{id}` 신설**(콘텐츠+instance payload 병합·label·lifecycle 전이를 한 트랜잭션, 검증 전부 통과 후에만 쓰기) + **`POST /mochi_items` `confirmedInstances` 확장**(분석 생략·instance 직접 생성·outbox 미적재 — **DOMAIN_DESIGN §5.2 에 "사용자 확정 = 분석보다 상위 신뢰" 예외 명문화**, memo 확정은 기존 분석 경유). `chat@v2`(카드 준비 ≠ 실행 완료 구분, get_item_detail 선행 규칙). 테스트 14종 추가(156 passed), openapi+generated client ⓪폭포, README·§10.3 동기화.
 
 ## 2026-06-10 — backend, docs

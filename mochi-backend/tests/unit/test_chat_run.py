@@ -312,12 +312,12 @@ async def test_unknown_tool_call_recovers_without_persisting_row() -> None:
 
 
 def test_router_tool_registry_is_read_only() -> None:
-    from app.modules.conversations.presentation.router import _chat_tools
+    # _chat_tools 는 실제 settings(.env)를 읽어 환경 의존이라, 구성 규칙은 순수 빌더로 고정.
+    from app.modules.conversations.presentation.router import _build_chat_tools
 
-    names = {tool.name for tool in _chat_tools()}
     # 쓰기 가능 툴 추가는 의식적 결정이어야 한다 — propose_* 도 검증 후 카드 payload 만
     # 반환하는 read-only. 이 목록을 갱신할 땐 해당 툴이 DB 를 쓰지 않음을 리뷰로 보장할 것.
-    assert names == {
+    base = {
         "search_items",
         "get_item_detail",
         "propose_item_update",
@@ -325,7 +325,16 @@ def test_router_tool_registry_is_read_only() -> None:
         "propose_create_schedule",
         "propose_reminder",
         "propose_create_memo",
+        "web_fetch",
     }
+    session_factory: Any = object()  # 빌더는 팩토리를 보관만 한다 — 호출 없음
+
+    without_key = {tool.name for tool in _build_chat_tools(session_factory, tavily_api_key=None)}
+    assert without_key == base
+
+    # web_search 는 키가 있을 때만 — 키 발급이 머지를 블록하지 않는 설계 (journal 2026-06-10).
+    with_key = {tool.name for tool in _build_chat_tools(session_factory, tavily_api_key="tvly-x")}
+    assert with_key == base | {"web_search"}
 
 
 # ---------- ⑤ BeginChatTurn ----------

@@ -2,7 +2,7 @@
 level: 2
 mode: committed
 status: active
-last_verified: 2026-06-05
+last_verified: 2026-06-10
 confidence: 0.7
 owners: [송준서, 이용찬, 박세현]
 description: 시스템 토폴로지·iOS↔Backend 데이터흐름·API 계약의 committed 정본. 다음 중 하나라도 손대기 전 반드시 읽어라 — 두 프로젝트 모두 영향, presentation 스키마, openapi.json, Idempotency-Key, WebFetch SSRF 가드, 모노레포 빌드/배포. 일부 "목표 상태" 서술은 docs/l2/aspirational/ 로 분리 예정. 변경 시 양 README·openapi.json·plan(L3) 정합성 폭포 필수.
@@ -219,7 +219,7 @@ app/
 │   │   └── domain/lifecycle_policy.py     4-Intent 상태 머신 (단일 진실 공급원)
 │   ├── agent/
 │   │   ├── domain/                AgentNode/AgentRun/Tool ABC/LLMClient port
-│   │   ├── application/           AgentOrchestrator + AgentRunPersistence + MochiWorker
+│   │   ├── application/           AgentOrchestrator + AgentRunPersistence + MochiWorker + tool_factories(타 모듈용 가드 툴 진입점)
 │   │   ├── infrastructure/
 │   │   │   ├── registry.py        StaticToolRegistry
 │   │   │   └── tools/             PlatformContextTool / WebFetchTool / EmbedTool / MultimodalAnalyzeTool
@@ -238,8 +238,8 @@ app/
 │   └── conversations/                   채팅 탭 — LLM 루프 read-only + proposal (journal 2026-06-10)
 │       ├── domain/                Conversation/Message/MessageCitation, ChatTool·ChatLLMClient·ChatTurnStore ports, run_events
 │       ├── application/           BeginChatTurn(암묵 생성·동시 run 409) · RunChatTurn(detached run 본체) · queries(스냅샷+stale lazy repair)
-│       ├── infrastructure/        ORM·repository · RunRegistry(in-process queue) · GeminiChatClient(AUTO+stream) · turn_store(연산별 자체 세션) · tools/(search_items·get_item_detail — 전부 read-only)
-│       ├── prompts/               chat@v1 (PromptVersion 버저닝)
+│       ├── infrastructure/        ORM·repository · RunRegistry(in-process queue) · GeminiChatClient(AUTO+stream) · turn_store(연산별 자체 세션) · tools/(search_items·get_item_detail·propose 5종·web_fetch(agent 가드 재사용)·web_search(Tavily, 키 미설정 시 제외) — 전부 read-only)
+│       ├── prompts/               chat@v3 활성 (PromptVersion 버저닝)
 │       └── presentation/          POST /{id}/messages(POST-as-SSE) · GET 목록/스냅샷 · DELETE
 ├── api.py                         /api/v1 라우터 조립
 └── main.py                        FastAPI factory + 미들웨어 + 예외 핸들러
