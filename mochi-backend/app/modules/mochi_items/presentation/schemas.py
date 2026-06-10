@@ -39,11 +39,15 @@ class IntentPayloadPatchDTO(BaseModel):
     title: str | None = None
     date: str | None = None
     time: str | None = None
+    end_date: str | None = Field(default=None, alias="endDate")
+    end_time: str | None = Field(default=None, alias="endTime")
     deadline: str | None = None
     person: str | None = None
     topic: str | None = None
     url: str | None = None
     note: str | None = None
+
+    model_config = {"populate_by_name": True}
 
     def non_null_fields(self) -> dict[str, str]:
         return {k: v for k, v in self.model_dump().items() if v is not None}
@@ -136,16 +140,20 @@ class InstanceLifecycleUpdateRequest(BaseModel):
 
 
 class IntentPayloadResponse(BaseModel):
-    """instance 의 구조화 속성 (전부 optional)."""
+    """instance 의 구조화 속성 (전부 optional). date/time 은 시작, endDate/endTime 은 기간형 일정의 끝."""
 
     title: str | None = None
     date: str | None = None
     time: str | None = None
+    end_date: str | None = Field(default=None, alias="endDate")
+    end_time: str | None = Field(default=None, alias="endTime")
     deadline: str | None = None
     person: str | None = None
     topic: str | None = None
     url: str | None = None
     note: str | None = None
+
+    model_config = {"populate_by_name": True}
 
 
 class IntentInstanceResponse(BaseModel):

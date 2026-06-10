@@ -11,6 +11,8 @@ from uuid import uuid4
 import pytest
 
 from app.modules.conversations.infrastructure.tools.search_items import (
+    _OCCURS_DATE_SQL,
+    _OCCURS_END_DATE_SQL,
     _PARAMETERS,
     SearchItemsTool,
     _like_pattern,
@@ -83,6 +85,24 @@ async def test_intent_and_occurs_must_match_same_instance() -> None:
     assert "ii.intent_type = :intent" in exists_clause
     assert ":occurs_from" in exists_clause
     assert params["intent"] == "schedule"
+
+
+async def test_occurs_from_compares_against_end_date_for_ranges() -> None:
+    # 기간형 일정(end_date)은 끝나기 전까지 window 에 걸린다(overlap): occurs_from 은
+    # 종료일(coalesce(end_date, 시작일)) 기준, occurs_to 는 시작일 기준.
+    sql, _ = await _run({"occurs_from": "2026-06-11", "occurs_to": "2026-06-20"})
+    assert "ii.payload->>'end_date'" in sql
+    from_clause = sql.split(":occurs_from")[0]
+    assert "coalesce(CASE WHEN" in from_clause  # 종료일 폴백이 occurs_from 비교에 쓰인다
+    to_clause = sql.rsplit("<= :occurs_to", 1)[0].rsplit("AND", 1)[1]
+    assert "end_date" not in to_clause  # occurs_to 는 시작일만 본다
+
+
+def test_occurs_end_sql_converges_inverted_range_to_start() -> None:
+    # 역전(end<start) 데이터는 점 일정으로 수렴(DOMAIN_DESIGN §4.2 불변식) —
+    # CASE 가 end 모양 + end>=start 둘 다 만족할 때만 end 를 쓰고, 아니면 시작일 폴백.
+    assert f">= {_OCCURS_DATE_SQL} " in _OCCURS_END_DATE_SQL
+    assert _OCCURS_END_DATE_SQL.endswith(f"{_OCCURS_DATE_SQL})")
 
 
 async def test_single_bound_occurs_includes_shape_guard() -> None:

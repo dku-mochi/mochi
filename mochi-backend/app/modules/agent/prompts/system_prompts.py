@@ -1229,4 +1229,50 @@ CLASSIFY_AND_ACT_V15 = PromptVersion(
 )
 
 
-ACTIVE_PROMPT: PromptVersion = CLASSIFY_AND_ACT_V15
+CLASSIFY_AND_ACT_V16 = PromptVersion(
+    name="classify_and_act@v16",
+    body=CLASSIFY_AND_ACT_V15.body.replace(
+        (
+            "Every stored instance MUST carry a title; the rest (date, time, deadline, "
+            "person, topic, url, note) are optional — fill only what the capture supports and "
+            "leave the rest empty, don't invent."
+        ),
+        (
+            "Every stored instance MUST carry a title; the rest (date, time, end_date, "
+            "end_time, deadline, person, topic, url, note) are optional — fill only what the "
+            "capture supports and leave the rest empty, don't invent. date/time mark when an "
+            "event starts (or its single moment). When the capture shows the event runs through "
+            "a later end the user is part of — a trip, a stay, a multi-day program — put that "
+            "end in end_date (and end_time if shown), same format as date. A span you merely "
+            "see on screen (a sale window, an exhibition's run) is not the user's span; fill "
+            "end_* only when the user participates across it, and never invent an end."
+        ),
+    ).replace(
+        (
+            "Because the "
+            "moment is the whole value, an event whose time has already passed can no longer be a "
+            "schedule.\n"
+        ),
+        (
+            "Because the "
+            "moment is the whole value, an event whose time has already passed can no longer be a "
+            "schedule. Some events occupy a span rather than a moment — a trip, a course the user "
+            "attends from a start day to an end day; that is still one schedule, and it is past "
+            "only when its end has passed.\n"
+        ),
+    ),
+    model_target="gemini-3.1-flash-lite",
+    eval_dataset_version="intent-schema-decision@2026-06-04",
+    revised_on=date(2026, 6, 10),
+    rationale=(
+        "V15 → V16: 기간형 일정(range schedule) 지원 — payload 에 end_date/end_time 평면 필드 추가"
+        "(function schema `_PAYLOAD_PROPS` 동시 반영, date/time 은 시작 의미로 재해석·end 없으면 점 "
+        "일정이라 하위호환). 2블록 교체: payload 명세에 end_* 추가 + '사용자가 그 기간에 참여할 때만' "
+        "기준(할인 기간 등 정보성 span 을 end 로 부풀리는 오인 가드 — 좁은 예시 나열 대신 기준+why, "
+        "prompt-criteria 원칙), schedule 정의의 과거 판정을 '끝이 지났을 때만 과거'로 확장(진행 중 "
+        "기간 일정이 memo 로 강등되는 회귀 방지). 분류 ladder·도구·eval_dataset 불변."
+    ),
+)
+
+
+ACTIVE_PROMPT: PromptVersion = CLASSIFY_AND_ACT_V16

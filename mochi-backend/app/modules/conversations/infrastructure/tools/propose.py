@@ -74,10 +74,15 @@ def _card(kind: str, payload: dict[str, Any], summary: str) -> ChatToolResult:
 
 _PAYLOAD_FIELD_PROPS: dict[str, Any] = {
     key: {"type": "string"}
-    for key in ("title", "date", "time", "deadline", "person", "topic", "url", "note")
+    for key in ("title", "date", "time", "end_date", "end_time", "deadline", "person", "topic", "url", "note")
 }
 _PAYLOAD_FIELD_PROPS["date"] = {"type": "string", "description": "ISO date, e.g. 2026-06-17"}
 _PAYLOAD_FIELD_PROPS["time"] = {"type": "string", "description": "HH:MM"}
+_PAYLOAD_FIELD_PROPS["end_date"] = {
+    "type": "string",
+    "description": "ISO date the event ends, for multi-day events only (date is the start)",
+}
+_PAYLOAD_FIELD_PROPS["end_time"] = {"type": "string", "description": "HH:MM the event ends"}
 _PAYLOAD_FIELD_PROPS["deadline"] = {"type": "string", "description": "ISO date, e.g. 2026-06-17"}
 
 _DISPLAY_PROPS: dict[str, Any] = {
@@ -259,8 +264,13 @@ class ProposeCreateScheduleTool:
         "type": "object",
         "properties": {
             "title": {"type": "string"},
-            "date": {"type": "string", "description": "ISO date, e.g. 2026-06-12"},
+            "date": {"type": "string", "description": "ISO date the event starts, e.g. 2026-06-12"},
             "time": {"type": "string", "description": "HH:MM if known"},
+            "end_date": {
+                "type": "string",
+                "description": "ISO date the event ends — multi-day events only, omit for a single day",
+            },
+            "end_time": {"type": "string", "description": "HH:MM the event ends, if known"},
             "person": {"type": "string"},
             "note": {"type": "string"},
             "display": _DISPLAY_PROPS,
@@ -273,11 +283,19 @@ class ProposeCreateScheduleTool:
         date = args.get("date")
         if not isinstance(title, str) or not title.strip():
             return _error("title is required")
-        if not isinstance(date, str) or not _parse_iso(date):
+        parsed_start = _parse_iso(date) if isinstance(date, str) else None
+        if parsed_start is None:
             return _error("date must be ISO format (e.g. 2026-06-12)")
+        end_date = args.get("end_date")
+        if isinstance(end_date, str) and end_date:
+            parsed_end = _parse_iso(end_date)
+            if parsed_end is None:
+                return _error("end_date must be ISO format (e.g. 2026-06-14)")
+            if parsed_end < parsed_start:
+                return _error("end_date is before date — a range must end at or after its start")
         payload = {
             key: args[key]
-            for key in ("title", "date", "time", "person", "note")
+            for key in ("title", "date", "time", "end_date", "end_time", "person", "note")
             if isinstance(args.get(key), str) and args[key]
         }
         return _card(

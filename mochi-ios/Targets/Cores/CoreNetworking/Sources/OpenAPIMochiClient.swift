@@ -233,6 +233,9 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
             title: fields["title"],
             date: fields["date"],
             time: fields["time"],
+            // 채팅 proposal payload 는 LLM 도구 키(snake_case)를 그대로 실어온다.
+            endDate: fields["end_date"],
+            endTime: fields["end_time"],
             deadline: fields["deadline"],
             person: fields["person"],
             topic: fields["topic"],
@@ -353,6 +356,8 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
             title: p.title,
             date: p.date,
             time: p.time,
+            endDate: p.endDate,
+            endTime: p.endTime,
             deadline: p.deadline,
             person: p.person,
             topic: p.topic,

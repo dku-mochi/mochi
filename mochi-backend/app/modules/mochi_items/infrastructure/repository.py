@@ -33,7 +33,9 @@ from app.modules.mochi_items.infrastructure.orm import (
 )
 from app.shared.intent import Intent
 
-_PAYLOAD_FIELDS = ("title", "date", "time", "deadline", "person", "topic", "url", "note")
+_PAYLOAD_FIELDS = (
+    "title", "date", "time", "end_date", "end_time", "deadline", "person", "topic", "url", "note"
+)
 
 
 def _payload_to_dict(payload: IntentPayload) -> dict[str, str]:

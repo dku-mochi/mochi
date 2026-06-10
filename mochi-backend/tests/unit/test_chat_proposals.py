@@ -157,6 +157,25 @@ async def test_propose_schedule_requires_title_and_iso_date() -> None:
     assert instance["payload"]["time"] == "15:00"
 
 
+async def test_propose_schedule_range_validates_and_carries_end_date() -> None:
+    tool = ProposeCreateScheduleTool()
+    # 끝이 시작보다 앞서면 카드 자체를 만들지 않는다 — 모델이 정정하게 에러로 돌려준다.
+    inverted = await tool.run(
+        owner_id=_OWNER,
+        args={"title": "워크숍", "date": "2026-06-14", "end_date": "2026-06-12", **_DISPLAY},
+    )
+    assert inverted.proposal is None
+
+    ranged = await tool.run(
+        owner_id=_OWNER,
+        args={"title": "워크숍", "date": "2026-06-12", "end_date": "2026-06-14", **_DISPLAY},
+    )
+    assert ranged.proposal is not None
+    payload = ranged.proposal["payload"]["confirmed_instances"][0]["payload"]
+    assert payload["date"] == "2026-06-12"
+    assert payload["end_date"] == "2026-06-14"
+
+
 async def test_propose_reminder_rejects_past_fire_at() -> None:
     tool = ProposeReminderTool()
     past = (datetime.now(ZoneInfo("Asia/Seoul")) - timedelta(hours=1)).isoformat()
@@ -214,8 +233,8 @@ async def test_propose_update_strips_archive_reason_on_non_archived_transition()
     }
 
 
-def test_active_chat_prompt_is_v4_with_proposal_and_web_rules() -> None:
-    # V2~V4 는 직전 버전의 body.replace 파생 — 상류 본문이 바뀌면 replace 가 silent no-op
+def test_active_chat_prompt_is_v5_with_proposal_web_and_loose_search_rules() -> None:
+    # V2~V5 는 직전 버전의 body.replace 파생 — 상류 본문이 바뀌면 replace 가 silent no-op
     # 으로 구 규칙이 부활한다 (리뷰 P2). 활성 프롬프트의 행동·grounding 규칙을 고정.
     from app.modules.conversations.prompts.chat_prompts import (
         ACTIVE_CHAT_PROMPT,
@@ -223,12 +242,14 @@ def test_active_chat_prompt_is_v4_with_proposal_and_web_rules() -> None:
         CHAT_V2,
         CHAT_V3,
         CHAT_V4,
+        CHAT_V5,
     )
 
-    assert ACTIVE_CHAT_PROMPT is CHAT_V4
+    assert ACTIVE_CHAT_PROMPT is CHAT_V5
     assert CHAT_V2.body != CHAT_V1.body, "V1 anchor 불일치 — replace 가 no-op"
     assert CHAT_V3.body != CHAT_V2.body, "V2 anchor 불일치 — replace 가 no-op"
     assert CHAT_V4.body != CHAT_V3.body, "V3 anchor 불일치 — replace 가 no-op"
+    assert CHAT_V5.body != CHAT_V4.body, "V4 anchor 불일치 — replace 가 no-op"
     assert "propose_" in ACTIVE_CHAT_PROMPT.body
     assert "currently cannot modify" not in ACTIVE_CHAT_PROMPT.body
     # PR-4 web 툴: 출처 3원 구분 + citation 마커는 기록 전용.
@@ -236,6 +257,9 @@ def test_active_chat_prompt_is_v4_with_proposal_and_web_rules() -> None:
     assert "markers are for records only" in ACTIVE_CHAT_PROMPT.body
     # V4: 구조 필드(날짜 등) 수정은 instance_changes payload 로 — text 치환 금지.
     assert "instance_changes" in ACTIVE_CHAT_PROMPT.body
+    # V5: 사용자는 4-Intent 를 모른다 → 어휘로 intent_type 필터 금지 + 회상은 러프 브라우즈.
+    assert "Leave intent_type unset" in ACTIVE_CHAT_PROMPT.body
+    assert "Match loosely" in ACTIVE_CHAT_PROMPT.body
 
 
 # ---------- ② run 루프의 proposal 이벤트·영속 ----------
