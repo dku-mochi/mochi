@@ -15,6 +15,9 @@ public enum IngestChannel: String, Codable, Sendable, CaseIterable {
     case appIntent
     case appShareSheet       // 모찌가 공유 시트에 노출되어 들어옴
     case appDirectInput      // 앱 내 직접 입력
+    /// 채팅 proposal 확정으로 생성된 항목 (create_memo·create_schedule) — 채팅도 캡처 표면이다.
+    /// 백엔드 channel enum 과 1:1 (팀 합의 2026-06-10).
+    case chat
     case unknown
 }
 

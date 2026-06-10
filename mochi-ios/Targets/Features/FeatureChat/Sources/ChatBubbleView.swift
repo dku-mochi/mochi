@@ -7,6 +7,8 @@ import SwiftUI
 struct ChatBubbleView: View {
     let message: ChatFeature.ChatMessage
     var onCitationTap: (ChatCitation) -> Void = { _ in }
+    var onProposalConfirm: (UUID) -> Void = { _ in }
+    var onProposalCancel: (UUID) -> Void = { _ in }
 
     var body: some View {
         switch message.role {
@@ -85,6 +87,14 @@ struct ChatBubbleView: View {
 
                 if !message.citations.isEmpty {
                     CitationCardsRow(citations: message.citations, onTap: onCitationTap)
+                }
+
+                ForEach(message.proposals) { card in
+                    ProposalCardView(
+                        card: card,
+                        onConfirm: { onProposalConfirm(card.id) },
+                        onCancel: { onProposalCancel(card.id) }
+                    )
                 }
             }
             .padding(.horizontal, HomeDesign.Spacing.lg)
