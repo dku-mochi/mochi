@@ -16,9 +16,17 @@ from uuid import UUID, uuid4
 #: 첫 user 메시지에서 잘라 만드는 자동 제목 길이 (LLM 요약 안 씀 — 호출 1회 절약).
 TITLE_MAX_CHARS = 40
 
-#: run_started_at 이 이보다 오래된 running run 은 읽기 시점에 failed 로 lazy repair.
-#: run 자체 타임아웃(60s) + 마진. 서버 재시작으로 in-process run 이 유실된 경우를 줍는다.
+#: stale 판정 바닥값 — 실제 임계는 ``stale_threshold_seconds()`` 가 run 타임아웃에서 파생.
 STALE_RUN_SECONDS = 90
+
+
+def stale_threshold_seconds(run_timeout_seconds: float) -> float:
+    """running run 을 유실로 판정할 경과 시간 — run 타임아웃 + 마진.
+
+    타임아웃이 .env 로 늘어나도 살아있는 run 을 stale repair 가 FAILED 로 오판하지 않게
+    상수가 아니라 파생값으로 둔다(바닥 90s).
+    """
+    return max(float(STALE_RUN_SECONDS), run_timeout_seconds + 30.0)
 
 
 class MessageRole(StrEnum):

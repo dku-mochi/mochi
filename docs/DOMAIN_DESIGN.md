@@ -254,7 +254,7 @@ instance 전이(from→to)·archive_reason×intent_type 검증은 application �
 요청/응답 스키마·전체 라우트 목록의 정본은 `openapi.json` (§0). 여기는 **openapi 만으론 알 수 없는 배선 상태**만 소유한다:
 
 - `POST /search` — 서버 Hybrid Search + RAG 답변 라우트 실재 · **iOS 미배선** ◑ — 검색 탭 신시안(2026-06-10)은 샘플 데이터 로컬 매칭(`MockSearchService`), 서버 어댑터 교체 예정(동일 시그니처, `UX_SPEC.md` §3.5).
-- `/conversations`(목록·메시지 스냅샷·삭제) — 서버 실재(2026-06-10 채팅 탭 PR-1) · **iOS 미배선** ◑ (채팅 탭 live 배선과 함께). 메시지 전송(POST-as-SSE)·proposal 툴은 §10.3 잔여.
+- `/conversations`(목록·스냅샷·삭제 + 메시지 전송 POST-as-SSE) — 서버 실재(2026-06-10 채팅 탭 PR-1·2) · **iOS 미배선** ◑ — 채팅 탭은 현재 mock 스트림(`MockChatStreamClient`), live 교체는 채팅 PR-5. SSE 이벤트 wire format 의 ⓪ 예외는 `ARCHITECTURE.md` §3.6. proposal 툴은 §10.3 잔여.
 - `/sync` — **라우트 미존재** (§10 향후).
 - 캘린더 계열(`GET /mochi_items`·`/calendar`·`/todos/upcoming`) — 서버 실재, iOS 캘린더 탭은 즉시성·오프라인을 위해 **로컬 Realm 구동** (멀티기기/웹 대비 계약). 서버 `todos/upcoming` 은 마감일을 `entities(kind='deadline')` 로 파싱하지만 iOS 는 `payload` 단일 소스 — 서버 API 배선 시 정합 필요.
 - 라우터 규칙: 정적 경로(`/calendar` 등)는 동적 `/{id}` 보다 먼저 선언 (path-param 충돌 회피).
@@ -328,12 +328,11 @@ instance 전이(from→to)·archive_reason×intent_type 검증은 application �
 
 `mochi_analyses`(append-only 분석 이력) · `prompt_versions` · `mochi_search_index`. 현재는 `mochi_items` 인라인 + `embeddings` 로 충분. 모델/프롬프트 비교 필요가 생기면 분리.
 
-### 10.3 채팅 탭 (RAG 멀티턴 대화) — 게이트 개방, 부분 구현
+### 10.3 채팅 탭 (RAG 멀티턴 대화) — 게이트 개방, 대부분 구현
 
-설계 확정·전체 플랜: `journal/2026-06-10-chat-tab-design.md`. 테이블 3종(`conversations` · `messages` · `message_citations`)과 세션 CRUD 라우트는 **구현됨**(§3 Conversations 그룹). 잔여(roadmap):
-- 메시지 전송 `POST /conversations/{id}/messages` — **POST-as-SSE**(응답이 곧 스트림), agent run 은 detached task + in-process queue 중계(클라 이탈에도 완주).
-- 채팅 툴: read 2종(`search_items`/`get_item_detail`) + **proposal 5종(쓰기 없음 — LLM 루프는 read-only, 확정은 사용자 탭 → REST)** + web_fetch/web_search.
-- proposal 확정 실행 경로: `PATCH /mochi_items/{id}`(콘텐츠+instance 변경, 넓은 범위) · `POST /mochi_items` `confirmedInstances` 확장(**사용자 확정 instance 는 분석 생략·직접 생성 — §5.2 불변식 예외, 구현 PR 에서 명문화**).
+설계 확정·전체 플랜: `journal/2026-06-10-chat-tab-design.md`. **구현됨**: 테이블 3종 + 세션 CRUD(§3 Conversations 그룹) + 메시지 전송 `POST /conversations/{id}/messages`(POST-as-SSE — 응답이 곧 스트림, agent run 은 detached task + in-process queue 중계라 클라 이탈에도 완주·단계별 영속) + read 툴 2종(`search_items` 구조화 필터·`get_item_detail`) + `chat@v1` 프롬프트 + citation(`【item:id】` 마커 → `message_citations` + SSE). 잔여(roadmap):
+- **proposal 툴 5종**(쓰기 없음 — LLM 루프는 read-only, 확정은 사용자 탭 → REST) + 확정 실행 경로: `PATCH /mochi_items/{id}`(콘텐츠+instance 변경, 넓은 범위) · `POST /mochi_items` `confirmedInstances` 확장(**사용자 확정 instance 는 분석 생략·직접 생성 — §5.2 불변식 예외, 구현 PR 에서 명문화**).
+- web_fetch(기존 SSRF 가드 팩토리 경유)·web_search(프로바이더 키 — `docs/TODO.md`).
 
 ### 10.4 기타
 

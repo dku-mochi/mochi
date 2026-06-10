@@ -13,6 +13,10 @@ from app.modules.conversations.domain.entities import (
 )
 
 
+class SendMessageRequest(BaseModel):
+    text: str = Field(min_length=1, max_length=4000)
+
+
 class ConversationResponse(BaseModel):
     id: UUID
     title: str | None = None

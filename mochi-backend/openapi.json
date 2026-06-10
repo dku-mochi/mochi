@@ -854,6 +854,100 @@
         }
       }
     },
+    "/api/v1/conversations/{conversation_id}/messages": {
+      "post": {
+        "tags": [
+          "conversations"
+        ],
+        "summary": "Send Message",
+        "description": "메시지 전송 — 응답이 곧 run 의 SSE 스트림 (POST-as-SSE).\n\nconversationID 는 클라이언트 생성 — 첫 메시지가 대화를 암묵 생성한다. 동일 대화에\n진행 중 run 이 있으면 409(`conversation.run_in_progress`). 클라이언트가 중간에 끊겨도\nrun 은 완주하며 모든 단계가 영속된다 — 복귀 시 스냅샷 재조회.\n\n이벤트 wire format (서버 정본 — ARCHITECTURE §3.6, iOS `ChatStreamEvent` 와 1:1.\n모든 payload 에 ``run_id`` 동봉):\n```\nmessage_delta  {run_id, text}\ntool_started   {run_id, name, label}\ntool_finished  {run_id, name, summary}\ncitation       {run_id, index, item_id, title, snippet}\nproposal       {run_id, type, payload}            (PR-3 예약)\ndone           {run_id, message_id}               (assistant 메시지 행 id)\nerror          {run_id, code, message}\n```",
+        "operationId": "send_message_api_v1_conversations__conversation_id__messages_post",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Conversation Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "Authorization",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendMessageRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "conversations"
+        ],
+        "summary": "Get Conversation Snapshot",
+        "description": "대화 메시지 전체 스냅샷 — iOS 포그라운드 복귀·히스토리 재진입용.\n\nstale running run(서버 재시작으로 유실)은 이 읽기 시점에 failed 로 lazy repair 되므로\n클라이언트는 항상 정합한 run 상태를 본다.",
+        "operationId": "get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Conversation Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "Authorization",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationSnapshotResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/conversations": {
       "get": {
         "tags": [
@@ -893,50 +987,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ConversationListResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/conversations/{conversation_id}/messages": {
-      "get": {
-        "tags": [
-          "conversations"
-        ],
-        "summary": "Get Conversation Snapshot",
-        "description": "대화 메시지 전체 스냅샷 — iOS 포그라운드 복귀·히스토리 재진입용.\n\nstale running run(서버 재시작으로 유실)은 이 읽기 시점에 failed 로 lazy repair 되므로\n클라이언트는 항상 정합한 run 상태를 본다.",
-        "operationId": "get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get",
-        "parameters": [
-          {
-            "name": "conversation_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Conversation Id"
-            }
-          },
-          {
-            "name": "authorization",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "title": "Authorization",
-              "type": "string",
-              "nullable": true
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ConversationSnapshotResponse"
                 }
               }
             }
@@ -2063,6 +2113,21 @@
           "memo"
         ],
         "title": "SearchScope"
+      },
+      "SendMessageRequest": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "SendMessageRequest"
       },
       "SignInResponse": {
         "properties": {

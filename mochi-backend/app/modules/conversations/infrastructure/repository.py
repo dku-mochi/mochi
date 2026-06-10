@@ -169,6 +169,35 @@ class PostgresConversationRepository(ConversationRepositoryPort):
         )
         return [_to_message(r) for r in rows.all()]
 
+    async def has_running_run(self, *, owner_id: UUID, conversation_id: UUID) -> bool:
+        row = await self._session.scalar(
+            select(MessageRow.id)
+            .where(
+                MessageRow.conversation_id == conversation_id,
+                MessageRow.owner_id == owner_id,
+                MessageRow.run_status == RunStatus.RUNNING.value,
+            )
+            .limit(1)
+        )
+        return row is not None
+
+    async def set_run_status(self, *, owner_id: UUID, run_id: UUID, status: RunStatus) -> bool:
+        result = cast(
+            CursorResult[Any],
+            await self._session.execute(
+                update(MessageRow)
+                .where(
+                    MessageRow.run_id == run_id,
+                    MessageRow.owner_id == owner_id,
+                    # run 상태는 트리거한 user 행에만 — tool/assistant 행도 같은 run_id 를 가진다.
+                    MessageRow.role == MessageRole.USER.value,
+                )
+                .values(run_status=status.value)
+            ),
+        )
+        await self._session.flush()
+        return (result.rowcount or 0) > 0
+
     async def mark_stale_runs_failed(
         self, *, owner_id: UUID, conversation_id: UUID, started_before: datetime
     ) -> int:

@@ -1379,6 +1379,162 @@ public struct Client: APIProtocol {
             }
         )
     }
+    /// Get Conversation Snapshot
+    ///
+    /// 대화 메시지 전체 스냅샷 — iOS 포그라운드 복귀·히스토리 재진입용.
+    ///
+    /// stale running run(서버 재시작으로 유실)은 이 읽기 시점에 failed 로 lazy repair 되므로
+    /// 클라이언트는 항상 정합한 run 상태를 본다.
+    ///
+    /// - Remark: HTTP `GET /api/v1/conversations/{conversation_id}/messages`.
+    /// - Remark: Generated from `#/paths//api/v1/conversations/{conversation_id}/messages/get(get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get)`.
+    public func get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get(_ input: Operations.get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get.Input) async throws -> Operations.get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get.Output {
+        try await client.send(
+            input: input,
+            forOperation: Operations.get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get.id,
+            serializer: { input in
+                let path = try converter.renderedPath(
+                    template: "/api/v1/conversations/{}/messages",
+                    parameters: [
+                        input.path.conversation_id
+                    ]
+                )
+                var request: HTTPTypes.HTTPRequest = .init(
+                    soar_path: path,
+                    method: .get
+                )
+                suppressMutabilityWarning(&request)
+                converter.setAcceptHeader(
+                    in: &request.headerFields,
+                    contentTypes: input.headers.accept
+                )
+                return (request, nil)
+            },
+            deserializer: { response, responseBody in
+                switch response.status.code {
+                case 200:
+                    let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
+                    let body: Operations.get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get.Output.Ok.Body
+                    let chosenContentType = try converter.bestContentType(
+                        received: contentType,
+                        options: [
+                            "application/json"
+                        ]
+                    )
+                    switch chosenContentType {
+                    case "application/json":
+                        body = try await converter.getResponseBodyAsJSON(
+                            Components.Schemas.ConversationSnapshotResponse.self,
+                            from: responseBody,
+                            transforming: { value in
+                                .json(value)
+                            }
+                        )
+                    default:
+                        preconditionFailure("bestContentType chose an invalid content type.")
+                    }
+                    return .ok(.init(body: body))
+                default:
+                    return .undocumented(
+                        statusCode: response.status.code,
+                        .init(
+                            headerFields: response.headerFields,
+                            body: responseBody
+                        )
+                    )
+                }
+            }
+        )
+    }
+    /// Send Message
+    ///
+    /// 메시지 전송 — 응답이 곧 run 의 SSE 스트림 (POST-as-SSE).
+    ///
+    /// conversationID 는 클라이언트 생성 — 첫 메시지가 대화를 암묵 생성한다. 동일 대화에
+    /// 진행 중 run 이 있으면 409(`conversation.run_in_progress`). 클라이언트가 중간에 끊겨도
+    /// run 은 완주하며 모든 단계가 영속된다 — 복귀 시 스냅샷 재조회.
+    ///
+    /// 이벤트 wire format (서버 정본 — ARCHITECTURE §3.6, iOS `ChatStreamEvent` 와 1:1.
+    /// 모든 payload 에 ``run_id`` 동봉):
+    /// ```
+    /// message_delta  {run_id, text}
+    /// tool_started   {run_id, name, label}
+    /// tool_finished  {run_id, name, summary}
+    /// citation       {run_id, index, item_id, title, snippet}
+    /// proposal       {run_id, type, payload}            (PR-3 예약)
+    /// done           {run_id, message_id}               (assistant 메시지 행 id)
+    /// error          {run_id, code, message}
+    /// ```
+    ///
+    /// - Remark: HTTP `POST /api/v1/conversations/{conversation_id}/messages`.
+    /// - Remark: Generated from `#/paths//api/v1/conversations/{conversation_id}/messages/post(send_message_api_v1_conversations__conversation_id__messages_post)`.
+    public func send_message_api_v1_conversations__conversation_id__messages_post(_ input: Operations.send_message_api_v1_conversations__conversation_id__messages_post.Input) async throws -> Operations.send_message_api_v1_conversations__conversation_id__messages_post.Output {
+        try await client.send(
+            input: input,
+            forOperation: Operations.send_message_api_v1_conversations__conversation_id__messages_post.id,
+            serializer: { input in
+                let path = try converter.renderedPath(
+                    template: "/api/v1/conversations/{}/messages",
+                    parameters: [
+                        input.path.conversation_id
+                    ]
+                )
+                var request: HTTPTypes.HTTPRequest = .init(
+                    soar_path: path,
+                    method: .post
+                )
+                suppressMutabilityWarning(&request)
+                converter.setAcceptHeader(
+                    in: &request.headerFields,
+                    contentTypes: input.headers.accept
+                )
+                let body: OpenAPIRuntime.HTTPBody?
+                switch input.body {
+                case let .json(value):
+                    body = try converter.setRequiredRequestBodyAsJSON(
+                        value,
+                        headerFields: &request.headerFields,
+                        contentType: "application/json; charset=utf-8"
+                    )
+                }
+                return (request, body)
+            },
+            deserializer: { response, responseBody in
+                switch response.status.code {
+                case 200:
+                    let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
+                    let body: Operations.send_message_api_v1_conversations__conversation_id__messages_post.Output.Ok.Body
+                    let chosenContentType = try converter.bestContentType(
+                        received: contentType,
+                        options: [
+                            "application/json"
+                        ]
+                    )
+                    switch chosenContentType {
+                    case "application/json":
+                        body = try await converter.getResponseBodyAsJSON(
+                            OpenAPIRuntime.OpenAPIValueContainer.self,
+                            from: responseBody,
+                            transforming: { value in
+                                .json(value)
+                            }
+                        )
+                    default:
+                        preconditionFailure("bestContentType chose an invalid content type.")
+                    }
+                    return .ok(.init(body: body))
+                default:
+                    return .undocumented(
+                        statusCode: response.status.code,
+                        .init(
+                            headerFields: response.headerFields,
+                            body: responseBody
+                        )
+                    )
+                }
+            }
+        )
+    }
     /// List Conversations
     ///
     /// 히스토리 시트 — owner 의 살아있는 대화를 마지막 메시지 시각 내림차순으로.
@@ -1427,73 +1583,6 @@ public struct Client: APIProtocol {
                     case "application/json":
                         body = try await converter.getResponseBodyAsJSON(
                             Components.Schemas.ConversationListResponse.self,
-                            from: responseBody,
-                            transforming: { value in
-                                .json(value)
-                            }
-                        )
-                    default:
-                        preconditionFailure("bestContentType chose an invalid content type.")
-                    }
-                    return .ok(.init(body: body))
-                default:
-                    return .undocumented(
-                        statusCode: response.status.code,
-                        .init(
-                            headerFields: response.headerFields,
-                            body: responseBody
-                        )
-                    )
-                }
-            }
-        )
-    }
-    /// Get Conversation Snapshot
-    ///
-    /// 대화 메시지 전체 스냅샷 — iOS 포그라운드 복귀·히스토리 재진입용.
-    ///
-    /// stale running run(서버 재시작으로 유실)은 이 읽기 시점에 failed 로 lazy repair 되므로
-    /// 클라이언트는 항상 정합한 run 상태를 본다.
-    ///
-    /// - Remark: HTTP `GET /api/v1/conversations/{conversation_id}/messages`.
-    /// - Remark: Generated from `#/paths//api/v1/conversations/{conversation_id}/messages/get(get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get)`.
-    public func get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get(_ input: Operations.get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get.Input) async throws -> Operations.get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get.Output {
-        try await client.send(
-            input: input,
-            forOperation: Operations.get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get.id,
-            serializer: { input in
-                let path = try converter.renderedPath(
-                    template: "/api/v1/conversations/{}/messages",
-                    parameters: [
-                        input.path.conversation_id
-                    ]
-                )
-                var request: HTTPTypes.HTTPRequest = .init(
-                    soar_path: path,
-                    method: .get
-                )
-                suppressMutabilityWarning(&request)
-                converter.setAcceptHeader(
-                    in: &request.headerFields,
-                    contentTypes: input.headers.accept
-                )
-                return (request, nil)
-            },
-            deserializer: { response, responseBody in
-                switch response.status.code {
-                case 200:
-                    let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get.Output.Ok.Body
-                    let chosenContentType = try converter.bestContentType(
-                        received: contentType,
-                        options: [
-                            "application/json"
-                        ]
-                    )
-                    switch chosenContentType {
-                    case "application/json":
-                        body = try await converter.getResponseBodyAsJSON(
-                            Components.Schemas.ConversationSnapshotResponse.self,
                             from: responseBody,
                             transforming: { value in
                                 .json(value)
