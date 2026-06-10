@@ -58,8 +58,9 @@ final class MochiCalendarFeatureTests: XCTestCase {
 
     // MARK: - CalendarDaySummary.group
 
-    func test_group_buckets_by_kst_day_with_priority_intent_and_thumbnail() {
-        // 2026-06-01 KST: schedule 1 + todo 2 → 고정 우선순위 schedule>todo 라 대표는 schedule(최빈 아님).
+    func test_group_buckets_by_kst_day_with_due_dots_and_thumbnail() {
+        // 캘린더 리디자인(402eb8d) 이후 2축 집계 — captured(저장 수·썸네일) + due(일정/할일 점).
+        // 구 representativeIntent(고정 우선순위 대표 intent)는 제거됐다.
         let items = [
             item(intent: .schedule, capturedAt: iso("2026-06-01T03:00:00Z")),   // KST 6/1 12:00
             item(intent: .knowledge, capturedAt: iso("2026-06-02T05:00:00Z")),  // KST 6/2 14:00
@@ -68,15 +69,22 @@ final class MochiCalendarFeatureTests: XCTestCase {
         ]
         // repository 는 capturedAt desc 로 준다.
         let sorted = items.sorted { $0.source.capturedAt > $1.source.capturedAt }
+        // due 축: 6/1 에 active schedule 일정 1개 — sky 점만 켜져야 한다.
+        let due = [dueItem([
+            IntentInstance(intentType: .schedule, payload: IntentPayload(date: "2026-06-01")),
+        ], capturedAt: iso("2026-05-30T00:00:00Z"))]
 
-        let days = CalendarDaySummary.group(captured: sorted, due: [], calendar: kstCalendar)
+        let days = CalendarDaySummary.group(captured: sorted, due: due, calendar: kstCalendar)
         let byDay = Dictionary(uniqueKeysWithValues: days.map { (kstCalendar.dateComponents([.month, .day], from: $0.date).day ?? 0, $0) })
 
         XCTAssertEqual(byDay[1]?.count, 3)
-        XCTAssertEqual(byDay[1]?.representativeIntent, .schedule)            // 고정 우선순위 최상위
         XCTAssertEqual(byDay[1]?.thumbnailRelativePath, "captures/k1.heic")  // 유일한 relativePath
+        XCTAssertEqual(byDay[1]?.dueCount, 1)
+        XCTAssertEqual(byDay[1]?.hasScheduleDue, true)
+        XCTAssertEqual(byDay[1]?.hasTodoDue, false)
         XCTAssertEqual(byDay[2]?.count, 1)
         XCTAssertNil(byDay[2]?.thumbnailRelativePath)
+        XCTAssertEqual(byDay[2]?.hasDue, false)
     }
 
     func test_group_kst_boundary_pushes_late_utc_into_next_day() {

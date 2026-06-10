@@ -15,6 +15,44 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 >
 > **동시 세션 / 공유 파일 주의**: CHANGELOG 는 여러 세션·작업자가 함께 쓰는 append-only 공유 파일이다. 동시 작업 중에는 다른 세션이 자기 항목을 먼저 커밋할 수 있고, 한 워킹트리에 여러 세션의 미커밋 항목이 섞여 보일 수 있다. 이때 **항목을 분리하려 애쓰지 말고** 자기 변경과 함께 그대로 staging·커밋한다 — 섞인 다른 항목은 해당 세션이 자기 코드와 함께 정리한다. diff 에 모르는 CHANGELOG 항목이 보여도 멈추지 않는다 (단, CHANGELOG 외의 *코드* 파일은 절대 임의로 섞어 커밋하지 않는다).
 
+## 2026-06-10 — ios, backend, docs
+- **proposal 카드 확정 상태 영속 + 스트리밍 UX 개선** (사용자 버그 리포트 2건). ① 확정/취소한 카드가 스냅샷 복귀·히스토리 재진입 시 pending 으로 되살아나던 버그 — **`PATCH /conversations/{id}/proposals/{id}` 신설**(⓪ 계약 — assistant 행 `proposals` jsonb 에 `status` 병합, confirmed/cancelled 만 영속·expired/failed 는 결정적 재현이라 비영속), iOS 는 확정 실행 성공 후 best-effort 영속 + fold 가 status 복원. openapi→generated client ⓪폭포 + DOMAIN_DESIGN §10.3·ARCHITECTURE·README 동기화. ② 스트리밍 UX — tool pill 이 finished 마다 깜빡이던 것을 **다음 툴/첫 본문까지 유지**로, 블록 단위로 띡띡 오던 본문을 **타자기 스무딩**(`ChatStreamSmoothing` — 글자 단위 재방출, 백로그 비례 가속, 비-텍스트 이벤트 순서 보존)으로.
+
+## 2026-06-10 — ios, backend
+- **채팅 탭 리뷰 반영 (P1 1 + P2 4 + nit 2)** — 오늘 작업 전체(BE PR-4 + iOS PR-2~5) code-reviewer 딥리뷰. **P1: `bytes.lines` 가 빈 줄을 방출하지 않아 SSE 이벤트 경계가 사라져 라이브 스트림이 delta·done 을 한 건도 전달 못 함** → `SSEEventParser` 를 바이트 단위 소비로 재설계(빈 줄 보존), Live{Agent,Chat}StreamClient 양쪽 적용 + **CoreAgentClientTests 신설**로 wire 바이트 회귀 고정(기존 분석 스트림도 같은 결함이었음). P2: memo 재확정 멱등화(로컬 id=proposal.id), 열린 대화 히스토리 삭제 시 화면 리셋(soft-deleted PK 재사용 409 차단), 스트리밍 중 스냅샷 덮어쓰기 가드, reminder `fire_at` microsecond 절삭(iOS ISO 파서 3자리 한계). nit: 빈 tool label/스텝 렌더 정리.
+
+## 2026-06-10 — ios, docs
+- **채팅 탭 iOS PR-5: live 배선 — 채팅 탭 E2E 완성**. `LiveChatStreamClient`(raw URLSession POST-as-SSE, SSE 파서는 `SSEEventParser` 로 internal 추출해 `LiveAgentStreamClient` 와 공유, **워치독 75초** = run 상한 60s+여유), `OpenAPIChatClient`(생성 클라이언트 어댑터 — 목록/스냅샷/삭제, proposal jsonb 는 encode 재파싱으로 envelope 변환), 포그라운드 복귀 `sceneActivated` → 스냅샷 재조회 + 마지막 run 이 running 이면 2초 폴링(상한 45회 — run 은 서버에서 완주하므로 유한). AppDependencies mock → live 치환. ARCHITECTURE §2.2·UX_SPEC 동기화. tuist test 전 타겟 green — 실기기 E2E(전송→백그라운드→복귀)만 잔여(사용자 검증 영역).
+
+## 2026-06-10 — ios, docs
+- **채팅 탭 iOS PR-4: 히스토리 시트 + 30분 자동분리 + 홈 라우팅 전환**. `ChatAPIClient` 신설(CoreNetworking — 목록/스냅샷/삭제, proposal payload 는 raw JSON 운반·typed 파싱은 CoreAgentClient 소관), 히스토리 시트(스와이프 삭제 낙관 제거, 탭 → 스냅샷 fold 재개), 비활성 30분 자동분리(`ChatSessionStore` UserDefaults + `@Dependency(\.date)` — 30분 내 재진입 시 스냅샷 복귀, 지나면 조용히 새 대화), 스냅샷 fold(서버 user/tool/assistant 행 → 렌더 단위, 고아 tool 행 폐기). **홈 입력바 라우팅 전환**: `recallRequested`→`chatRequested` rename, 검색 탭 → 채팅 탭 새 대화 첫 메시지(칩이 광고하는 추천·수정은 검색이 수행 불가). UX_SPEC §1.5/§2/§3.4 폭포. tuist test 전 타겟 green.
+
+## 2026-06-10 — ios
+- **채팅 탭 iOS PR-3: proposal 카드 상태머신 + 확정 5경로**. `ChatProposal` 을 kind 별 typed payload 로 재설계(+SSE/스냅샷 JSON 파싱 — 결손 시 카드 숨김), 카드 상태머신 pending→confirming→confirmed/cancelled/expired/failed. 확정 실행: delete=`DELETE`+로컬 미러 정리, update=`PATCH /mochi_items`(신규 클라 메서드), schedule=`POST`+`confirmedInstances`(proposal id 가 Idempotency-Key, §5.2 예외)+pullRemote, memo=로컬 upsert(**channel `chat` 신설** — 팀 합의 ②)+sync, reminder=`UNUserNotificationCenter` 로컬 알림(권한 거부 → failed+설정 열기). 404 = 카드 만료. TestStore 5분기 green.
+
+## 2026-06-10 — ios
+- **채팅 탭 iOS PR-2: citation 렌더** (`feat/be-chat-web` 스택). 본문 `【item:id】` 마커를 raw 보관·표시 직전 변환(ChatMarkup — delta 분절 대응: 스트리밍 중 미완성 꼬리 트리밍, 매칭 citation 없으면 숨김) → 위첨자 뱃지(¹²) + 근거 미니카드 행(탭 → 서버 id 를 로컬 Realm id 로 해석 후 상세 present) + 완료 턴 "과정 보기 · N단계" 접힘. tuist build/test 전 타겟 green.
+
+## 2026-06-10 — backend, docs
+- **채팅 탭 백엔드 PR-4: web_search(Tavily) + web_fetch** (`feat/be-chat-proposals` 후속). web_fetch 는 기존 agent `WebFetchTool` SSRF·사이즈·MIME 가드를 **무수정 재사용** — 신설 `agent/application/tool_factories.py`(허용 진입점) 경유로 모듈 경계 통과, 채팅 래퍼는 HTML 텍스트화+truncation 만. web_search 는 고정 호스트(api.tavily.com), `TAVILY_API_KEY` **미설정 시 레지스트리에서만 제외**(서버·머지 블록 없음 — 키 발급이 PR 을 막지 않게). `chat@v3`(출처 3원 구분: 기록/웹/일반지식 + citation 마커는 기록 전용 — 웹 출처 마커는 파서가 silent drop 하므로). 테스트 6종 추가(164 passed), PRIVACY §10(채팅 web 툴 외부 반출 경계)·ARCHITECTURE §3.2(stale 툴목록·chat@v1 표기 함께 해소)·TODO §4.4 동기화. API 계약 무변경(openapi no-diff).
+
+## 2026-06-10 — backend, docs
+- **채팅 탭 백엔드 PR-3: proposal 툴 5종 + PATCH + confirmedInstances** (`feat/be-chat-proposals`). propose_{item_update,item_delete,create_schedule,reminder,create_memo} — 전부 read-only(대상 실재·lifecycle 전이 합법성을 카드 생성 시점에 사전 검증, 실패 시 카드 미생성), run 루프가 `proposal` SSE 이벤트로 흘리고 assistant 행 `proposals` 에 영속. 확정 실행 경로: **`PATCH /mochi_items/{id}` 신설**(콘텐츠+instance payload 병합·label·lifecycle 전이를 한 트랜잭션, 검증 전부 통과 후에만 쓰기) + **`POST /mochi_items` `confirmedInstances` 확장**(분석 생략·instance 직접 생성·outbox 미적재 — **DOMAIN_DESIGN §5.2 에 "사용자 확정 = 분석보다 상위 신뢰" 예외 명문화**, memo 확정은 기존 분석 경유). `chat@v2`(카드 준비 ≠ 실행 완료 구분, get_item_detail 선행 규칙). 테스트 14종 추가(156 passed), openapi+generated client ⓪폭포, README·§10.3 동기화.
+
+## 2026-06-10 — backend, docs
+- **채팅 탭 백엔드 PR-2: agent run + POST-as-SSE + read 툴 + 프롬프트 + citation** (`feat/be-chat-run`). `POST /conversations/{id}/messages` 응답이 곧 SSE(이벤트 7종) — run 은 detached task 가 클라 이탈에도 완주하며 단계별 영속(`ChatTurnStore` 연산별 자체 세션), 전달은 `RunRegistry` in-process queue best-effort. 한도(5라운드/8콜/60s)는 에러가 아니라 "지금까지 찾은 걸로 답변" 폴백. 툴은 `search_items`(BM25+구조화 필터, `deleted_at` 가림 포함 — 기존 검색 쿼리의 누락은 별도 이슈)·`get_item_detail` 둘뿐(레지스트리 read-only 를 테스트로 고정). `chat@v1` 프롬프트(기준+why)·`【item:id】` citation 파싱(owner 검증, 미실재 마커는 본문 보존·citation 미생성)·동시 run 409. 모델 `gemini_chat_model`(기본 flash-lite, lab 벤치 후 env 상향). 테스트 10종 추가, openapi+generated client ⓪폭포, ARCHITECTURE §1/§3.2(낡은 SendMessage 트리 교체)/§3.6(SSE ⓪ 예외 명문화)·DOMAIN_DESIGN §6.4/§10.3·README 동기화. 팀 합의 4건 완료(2026-06-10) — 머지 가능 상태.
+
+## 2026-06-10 — ios, docs
+- **채팅 탭 iOS PR-1: FeatureChat 신설 — placeholder 를 실 대화 화면으로 교체** (`feat/ios-chat-tab`). `ChatStreamClient` 계약(POST-as-SSE 이벤트 7종, 기존 AgentStreamClient 와 별도 프로토콜) + mock 클라이언트, `ChatFeature`(스트림 누적·새 대화·실패 시 빈 버블 제거) + 메신저형 UI(모찌 인사 빈 상태·능력 칩 4종·퍼플 그라데이션 user 버블·미니 모찌 아바타 assistant 버블·툴 상태 pulsing pill·타이핑 점). 홈 입력바 라우팅은 아직 검색 탭(전환은 후속 PR). `tuist build`·`FeatureChatTests` 6 green·경계 검사 통과. 리뷰 P2 반영: 툴만 돌고 실패한 턴의 빈 버블 껍데기 제거. 입력바는 떠 있는 캡슐 → **탭바와 한 덩어리로 읽히는 플랫 독**(불투명 흰색 + 상단 헤어라인, X DM 패턴)으로 교체 — 탭바와 이중 레이어로 보이는 어색함 해소(사용자 피드백).
+- **캘린더 테스트 컴파일 복구** — `MochiCalendarFeatureTests` 가 캘린더 리디자인(402eb8d)에서 제거된 `representativeIntent` 를 물고 있어 develop 에서도 전체 `tuist test` 가 막혀 있던 것(pre-existing)을 2축 집계(captured + due 점) 의미에 맞게 재작성. due 축(hasScheduleDue/hasTodoDue) 검증도 보강. 전 타겟 green 복구.
+
+## 2026-06-10 — backend, docs
+- **채팅 탭 백엔드 PR-1: conversations 모듈 신설** (`feat/be-chat-conversations`). 마이그레이션 0016(3테이블: conversations soft-delete · messages run 인라인 · message_citations item-FK-없는 출처 스냅샷) + 세션 CRUD 라우트(`GET /conversations` · `GET /{id}/messages` 스냅샷+stale run lazy repair · `DELETE`) + `IngestChannel.CHAT` 신설. 메시지 전송(POST-as-SSE)·proposal 툴은 PR-2~3. openapi.json 재생성 + iOS generated client 동기화(⓪폭포). DOMAIN_DESIGN §2/§3/§6.4/§10.3·백엔드 README 동기화. **⓪계약 확장이라 머지 전 팀 합의 필요.**
+
+## 2026-06-10 — docs
+- **채팅 탭 설계 확정** (`journal/2026-06-10-chat-tab-design.md`, 코드 변경 없음). 핵심: LLM 루프 read-only + 쓰기는 proposal 카드(끊김 안전·확인 UX·알림을 한 번에 해결), SSE 생성/전달 분리(create_task + queue 중계, 이탈해도 완주), 툴 7종(`propose_create_memo` 포함 — 채팅=캡처 표면), channel `chat` 신설, max tool 5라운드/윈도우 20 messages. 구현 시 UX_SPEC §3.4 홈 라우팅(검색 탭→채팅 탭)·DOMAIN_DESIGN §10.3 게이트 개방 따라옴 — ⓪티어 계약이라 팀 합의 선행.
+- 같은 날 후속(journal 추록): doc-guardian STOP 2건 해소 — `PATCH /mochi_items/{id}` 신설(좁게 text/user_memo/summary) + 사용자 확정 proposal 은 분석 생략·instance 직접 생성(`POST /mochi_items` `confirmedInstances` 확장, §5.2 예외 명문화 예정). 계약 형태 POST-as-SSE 확정(202+GET stream 은 구독 전 이벤트 유실 레이스로 기각). architect 백엔드 4-PR / iOS 5-PR 플랜 수립 — iOS PR-1~4 는 mock 으로 백엔드 비블로킹. 팀 합의 4건(⓪계약 일괄·channel enum·§5.2 예외·web_search 키) 대기.
+
 ## 2026-06-10 — ios, docs
 - **문서 재구조화 리뷰(P2) 반영.** code-reviewer deep review PASS(P1 없음) 후 P2 정리:
   - [docs] 실패/지연 fallback 정책(`demoteToManual`/90s/`requeueForAnalysis`) 복원 — 다이어트 중 유실된 행동 결정을 `UX_SPEC.md` §3.10 + `DOMAIN_DESIGN.md` §6.3 에 재기재. 주간 돌아보기 dedupe 뉘앙스·user_memo 포인터·INTENT_REDESIGN §4.4→§4·온보딩/홈 코드 주석의 옛 절번호도 정정.

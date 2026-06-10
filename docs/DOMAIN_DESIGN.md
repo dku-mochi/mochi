@@ -71,7 +71,7 @@ iOS · 백엔드 · 프롬프트 모두 동일 용어를 쓴다.
 | **review_options** | needs_review=true 일 때 제시할 미확정 후보 `[{intent_type, label, reasoning}]`. instance 아님 — 사용자가 고르면 그때 instance 생성 |
 | **memo fallback** | 대상/행동 불분명 시 memo instance 하나로 안전 보관 + needs_review=true (분류 못 해도 안 잃는다) |
 | **Lifecycle Kind** | 상태 enum. **2분할** — item 처리상태와 instance 의미상태가 직교 (§5) |
-| **Channel** | 입력 채널 (`screenshot`/`appDirectInput`/`appShareSheet`/`appIntent`/…). `mochi_items.channel` 인라인 |
+| **Channel** | 입력 채널 (`screenshot`/`appDirectInput`/`appShareSheet`/`appIntent`/`chat`/…). `mochi_items.channel` 인라인. `chat` = 채팅 proposal 확정으로 생성 (2026-06-10) |
 | **Entity** | AI 추출 의미 단위 (`entities.kind`/`value`). kind 는 free str — 프롬프트 가이드일 뿐 DB/앱 제약 아님 |
 | **AgentRun** | MochiItem 1건 처리 LLM 오케스트레이션 실행 1회 |
 | **Outbox Message** | mochi_items COMMIT 직후 worker 가 픽업할 행 (`mochi_item_outbox`) |
@@ -103,6 +103,10 @@ erDiagram
     mochi_items ||--o{ agent_runs : "processed by"
     agent_runs  ||--o{ tool_calls : invokes
     mochi_items ||--o| idempotency_keys : "create dedup"
+
+    users ||--o{ conversations : "owns (owner_id, app-level)"
+    conversations ||--o{ messages : "1:N turns"
+    messages ||--o{ message_citations : "출처 스냅샷 (item FK 없음)"
 ```
 
 | 그룹 | 테이블 | 책임 |
@@ -112,6 +116,7 @@ erDiagram
 | AI | `embeddings` | 청크 벡터 (768d, HNSW) |
 | Operations | `agent_runs` · `tool_calls` · `mochi_item_outbox` · `idempotency_keys` · `user_profiles` | 처리 로그·큐·멱등성·개인화 |
 | Notifications | `device_push_tokens` | APNs 토큰 (§6.4) |
+| Conversations | `conversations` · `messages` · `message_citations` | 채팅(질문 탭) 멀티턴 대화 — **서버 단일원천, iOS Realm 미러 없음** (§6 미러 규약은 MochiItem 소관). run 영속은 별도 테이블 없이 user message 행의 `run_id/run_status/run_started_at`(stale 은 스냅샷 읽기 시점 lazy repair). citation 은 item FK 없는 스냅샷 — item 삭제 후에도 "그때의 근거" 보존 |
 
 **구조적 결정 (DDL 에 안 보이는 why):**
 - `owner_id` 는 DB FK 가 아니라 **application-level 격리** — repository 가 강제, 테스트가 검증. `idempotency_keys.mochi_item_id` 도 FK 없음.
@@ -176,7 +181,9 @@ ingested → analyzing → analyzed
 
 ### 5.2 의미상태 — `intent_instances.lifecycle_kind` (instance 단위, 4값)
 
-각 intent instance 의 완료/만료/decay. instance 는 분석 성공 시에만 생성되므로 항상 `active` 로 태어난다. intent_type 별 차등 전이 (`active`/`decaying`/`reviewRequested`/`archived`):
+각 intent instance 의 완료/만료/decay. instance 는 **분석 성공 시 또는 사용자 확정 시** 생성되며 항상 `active` 로 태어난다. intent_type 별 차등 전이 (`active`/`decaying`/`reviewRequested`/`archived`):
+
+> **사용자 확정 예외 (2026-06-10, 팀 합의)**: 채팅 proposal 카드를 사용자가 확정하면(`POST /mochi_items` + `confirmedInstances`) 분석 파이프라인(outbox)을 **생략**하고 확정 instance 를 직접 생성한다 — item 은 곧바로 `lifecycle_kind='analyzed'`. 근거: 사용자 확정은 LLM 추론보다 상위 신뢰 — 확정한 구조를 재분석이 다른 intent/needs_review 로 덮으면 "확정했는데 모찌가 되묻는" 미션 위반. 자유 텍스트(`create_memo` 확정)는 구조 미확정이므로 기존대로 분석을 탄다.
 
 | intent_type | 허용 전이 |
 |---|---|
@@ -249,7 +256,8 @@ instance 전이(from→to)·archive_reason×intent_type 검증은 application �
 요청/응답 스키마·전체 라우트 목록의 정본은 `openapi.json` (§0). 여기는 **openapi 만으론 알 수 없는 배선 상태**만 소유한다:
 
 - `POST /search` — 서버 Hybrid Search + RAG 답변 라우트 실재 · **iOS 미배선** ◑ — 검색 탭 신시안(2026-06-10)은 샘플 데이터 로컬 매칭(`MockSearchService`), 서버 어댑터 교체 예정(동일 시그니처, `UX_SPEC.md` §3.5).
-- `/conversations` · `/sync` — **라우트 미존재** (§10 향후).
+- `/conversations`(목록·스냅샷·삭제·proposal 상태 PATCH + 메시지 전송 POST-as-SSE) — 서버 실재 · **iOS live 배선 완료** ✅ (2026-06-10 채팅 PR-5 — `LiveChatStreamClient`+`OpenAPIChatClient`). SSE 이벤트 wire format 의 ⓪ 예외는 `ARCHITECTURE.md` §3.6. proposal 확정/취소는 assistant 행 `proposals` jsonb 의 `status` 로 영속(스냅샷 복귀 시 카드 상태 복원 — 2026-06-10 버그 픽스).
+- `/sync` — **라우트 미존재** (§10 향후).
 - 캘린더 계열(`GET /mochi_items`·`/calendar`·`/todos/upcoming`) — 서버 실재, iOS 캘린더 탭은 즉시성·오프라인을 위해 **로컬 Realm 구동** (멀티기기/웹 대비 계약). 서버 `todos/upcoming` 은 마감일을 `entities(kind='deadline')` 로 파싱하지만 iOS 는 `payload` 단일 소스 — 서버 API 배선 시 정합 필요.
 - 라우터 규칙: 정적 경로(`/calendar` 등)는 동적 `/{id}` 보다 먼저 선언 (path-param 충돌 회피).
 
@@ -322,9 +330,9 @@ instance 전이(from→to)·archive_reason×intent_type 검증은 application �
 
 `mochi_analyses`(append-only 분석 이력) · `prompt_versions` · `mochi_search_index`. 현재는 `mochi_items` 인라인 + `embeddings` 로 충분. 모델/프롬프트 비교 필요가 생기면 분리.
 
-### 10.3 질문 탭 (RAG 멀티턴 대화)
+### 10.3 채팅 탭 (RAG 멀티턴 대화) — 게이트 개방, 대부분 구현
 
-`conversations` · `messages` · `message_citations`. 현재 회수는 단발 `POST /search` (홈 입력바 → 검색 탭). citation = 답변이 인용한 MochiItem ID + 발췌.
+설계 확정·전체 플랜: `journal/2026-06-10-chat-tab-design.md`. **구현 완료**(2026-06-10): 테이블 3종 + 세션 CRUD(§3 Conversations 그룹) + 메시지 전송 `POST /conversations/{id}/messages`(POST-as-SSE — agent run 은 detached task 라 클라 이탈에도 완주·단계별 영속) + 툴 9종(read 2 + **proposal 5 — 전부 read-only**, 확정은 사용자 탭 → REST + web_search·web_fetch — 키 미설정 시 web_search 만 제외) + 확정 실행 경로(`PATCH /mochi_items/{id}` 콘텐츠+instance 한 트랜잭션 · `POST /mochi_items` `confirmedInstances` — §5.2 사용자 확정 예외 · DELETE · 알림은 iOS 로컬) + proposal 카드 상태 영속(`PATCH /conversations/{id}/proposals/{id}` → `proposals` jsonb `status` 병합) + `chat@v3` 프롬프트 + citation + iOS live 배선. 잔여(roadmap): 없음 — 실기기 E2E 검증·lab 모델 벤치만.
 
 ### 10.4 기타
 

@@ -11,6 +11,8 @@ from app.modules.agent.domain.ports import LLMClient
 from app.modules.agent.domain.profile import UserProfileSummarizer
 from app.modules.agent.infrastructure.gemini_agent_client import GeminiAgentClient
 from app.modules.agent.infrastructure.gemini_profile_summarizer import GeminiProfileSummarizer
+from app.modules.conversations.domain.ports import ChatLLMClient
+from app.modules.conversations.infrastructure.gemini_chat_client import GeminiChatClient
 from app.modules.mochi_items.domain.ports import CaptureImageStorage
 from app.modules.mochi_items.infrastructure.gcs_storage import GCSSignedUrlIssuer
 from app.modules.notifications.domain.ports import APNsClient
@@ -48,6 +50,16 @@ def _agent_llm_singleton() -> LLMClient:
 def get_agent_llm() -> LLMClient:
     """Agent loop 용 Gemini function-calling 클라이언트 (프로세스당 1개)."""
     return _agent_llm_singleton()
+
+
+@lru_cache(maxsize=1)
+def _chat_llm_singleton() -> ChatLLMClient:
+    return GeminiChatClient()
+
+
+def get_chat_llm() -> ChatLLMClient:
+    """채팅 run 용 Gemini 스트리밍 클라이언트 (프로세스당 1개)."""
+    return _chat_llm_singleton()
 
 
 @lru_cache(maxsize=1)
