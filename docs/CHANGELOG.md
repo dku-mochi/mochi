@@ -15,6 +15,10 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 >
 > **동시 세션 / 공유 파일 주의**: CHANGELOG 는 여러 세션·작업자가 함께 쓰는 append-only 공유 파일이다. 동시 작업 중에는 다른 세션이 자기 항목을 먼저 커밋할 수 있고, 한 워킹트리에 여러 세션의 미커밋 항목이 섞여 보일 수 있다. 이때 **항목을 분리하려 애쓰지 말고** 자기 변경과 함께 그대로 staging·커밋한다 — 섞인 다른 항목은 해당 세션이 자기 코드와 함께 정리한다. diff 에 모르는 CHANGELOG 항목이 보여도 멈추지 않는다 (단, CHANGELOG 외의 *코드* 파일은 절대 임의로 섞어 커밋하지 않는다).
 
+## 2026-06-10 — ios, docs
+- **채팅 탭 iOS PR-1: FeatureChat 신설 — placeholder 를 실 대화 화면으로 교체** (`feat/ios-chat-tab`). `ChatStreamClient` 계약(POST-as-SSE 이벤트 7종, 기존 AgentStreamClient 와 별도 프로토콜) + mock 클라이언트, `ChatFeature`(스트림 누적·새 대화·실패 시 빈 버블 제거) + 메신저형 UI(모찌 인사 빈 상태·능력 칩 4종·퍼플 그라데이션 user 버블·미니 모찌 아바타 assistant 버블·툴 상태 pulsing pill·타이핑 점). 홈 입력바 라우팅은 아직 검색 탭(전환은 후속 PR). `tuist build`·`FeatureChatTests` 6 green·경계 검사 통과. 리뷰 P2 반영: 툴만 돌고 실패한 턴의 빈 버블 껍데기 제거. 입력바는 떠 있는 캡슐 → **탭바와 한 덩어리로 읽히는 플랫 독**(불투명 흰색 + 상단 헤어라인, X DM 패턴)으로 교체 — 탭바와 이중 레이어로 보이는 어색함 해소(사용자 피드백).
+- **캘린더 테스트 컴파일 복구** — `MochiCalendarFeatureTests` 가 캘린더 리디자인(402eb8d)에서 제거된 `representativeIntent` 를 물고 있어 develop 에서도 전체 `tuist test` 가 막혀 있던 것(pre-existing)을 2축 집계(captured + due 점) 의미에 맞게 재작성. due 축(hasScheduleDue/hasTodoDue) 검증도 보강. 전 타겟 green 복구.
+
 ## 2026-06-10 — backend, docs
 - **채팅 탭 백엔드 PR-1: conversations 모듈 신설** (`feat/be-chat-conversations`). 마이그레이션 0016(3테이블: conversations soft-delete · messages run 인라인 · message_citations item-FK-없는 출처 스냅샷) + 세션 CRUD 라우트(`GET /conversations` · `GET /{id}/messages` 스냅샷+stale run lazy repair · `DELETE`) + `IngestChannel.CHAT` 신설. 메시지 전송(POST-as-SSE)·proposal 툴은 PR-2~3. openapi.json 재생성 + iOS generated client 동기화(⓪폭포). DOMAIN_DESIGN §2/§3/§6.4/§10.3·백엔드 README 동기화. **⓪계약 확장이라 머지 전 팀 합의 필요.**
 

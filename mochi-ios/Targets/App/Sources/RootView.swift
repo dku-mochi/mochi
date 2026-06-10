@@ -1,6 +1,7 @@
 import ComposableArchitecture
 import DesignSystem
 import FeatureAuth
+import FeatureChat
 import FeatureDetail
 import FeatureMochiItem
 import FeatureInbox
@@ -85,13 +86,9 @@ struct MainTabView: View {
                     .tabItem { Label("캘린더", image: "tab_mochis") }
                     .tag(MainTabFeature.Tab.mochis)
 
-                ComingSoonPlaceholder(
-                    icon: "message",
-                    title: "곧 만나요, 채팅",
-                    subtitle: "모찌랑 대화로 정리하는 기능을 준비 중이에요."
-                )
-                .tabItem { Label("채팅", image: "tab_chat") }
-                .tag(MainTabFeature.Tab.chat)
+                ChatView(store: store.scope(state: \.chat, action: \.chat))
+                    .tabItem { Label("채팅", image: "tab_chat") }
+                    .tag(MainTabFeature.Tab.chat)
 
                 SearchView(store: store.scope(state: \.search, action: \.search))
                     .background(
@@ -208,38 +205,3 @@ struct MainTabView: View {
     }
 }
 
-// MARK: - Placeholder
-
-private struct ComingSoonPlaceholder: View {
-    let icon: String
-    let title: String
-    let subtitle: String
-
-    var body: some View {
-        VStack(spacing: 16) {
-            ZStack {
-                Circle()
-                    .fill(LinearGradient(
-                        colors: [.purple.opacity(0.15), .purple.opacity(0.05)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ))
-                    .frame(width: 96, height: 96)
-                Image(systemName: icon)
-                    .font(.system(size: 36, weight: .regular))
-                    .foregroundStyle(.purple)
-            }
-            VStack(spacing: 6) {
-                Text(title)
-                    .font(.system(size: 18, weight: .bold))
-                Text(subtitle)
-                    .font(.system(size: 13, weight: .regular))
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 40)
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(.systemGroupedBackground).ignoresSafeArea())
-    }
-}

@@ -54,6 +54,9 @@ enum AppDependencies {
             $0.mochiAPIClient    = liveAPI
             $0.authCoordinator   = coordinator
             $0.agentStreamClient = liveStream
+            // 채팅 탭은 백엔드 conversations run(POST-as-SSE) 배선 전까지 mock 시퀀스로 동작.
+            // LiveChatStreamClient 교체는 채팅 live 배선 PR (journal 2026-06-10 플랜 PR-5).
+            $0.chatStreamClient  = MockChatStreamClient()
             $0.backTapVerification = .live
         }
     }
