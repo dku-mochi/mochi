@@ -16,6 +16,44 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 > **동시 세션 / 공유 파일 주의**: CHANGELOG 는 여러 세션·작업자가 함께 쓰는 append-only 공유 파일이다. 동시 작업 중에는 다른 세션이 자기 항목을 먼저 커밋할 수 있고, 한 워킹트리에 여러 세션의 미커밋 항목이 섞여 보일 수 있다. 이때 **항목을 분리하려 애쓰지 말고** 자기 변경과 함께 그대로 staging·커밋한다 — 섞인 다른 항목은 해당 세션이 자기 코드와 함께 정리한다. diff 에 모르는 CHANGELOG 항목이 보여도 멈추지 않는다 (단, CHANGELOG 외의 *코드* 파일은 절대 임의로 섞어 커밋하지 않는다).
 
 ## 2026-06-10 — ios
+- **ShareExtension 디자인 개편 — 헤더 제거 + 다크모드 + 저장 성공 모먼트.**
+  - 인사말 헤더("모찌에 남길까요?") 제거 → `ShareTopBar`(좌 취소 + 중앙 출처칩) 한 행으로. 질문형 카피의 이중 확인 느낌을 없애고 수직 ~50pt 를 프리뷰에 양보(이 화면의 주인공은 캡처 내용).
+  - `ShareDesign` 토큰 전체를 라이트/다크 듀얼화(`UIColor(dynamicProvider:)`) — 백탭 캡처는 야간 사용 빈도가 높아 밤에 화면이 확 밝아지던 이질감 해소. 메모 placeholder 대비 0.55→0.7.
+  - CTA 로딩 닷 → `ShareSuccessOverlay`(mochi-cheer 만세 포즈 + 글로우 + "기억했어요!") 풀스크린 성공 모먼트. 큐 적재(로컬)가 진실원천이라 낙관 표현이 정직. principal 최소 노출 600→900ms(바운스 + 읽기 시간 보장). 캐릭터는 헤더에서 성공 모먼트로 이동.
+  - 백탭 이미지 제거 모드에 모찌 empty state("메모만 남길게요") — 헤더 제거로 사라진 모드 전환 단서 대체.
+
+## 2026-06-10 — ios, docs
+- **캘린더 탭 리디자인 + 일자 모달 hero 전환 + 중복 todo 표시 dedup.**
+  - 월 헤더를 `safeAreaInset` 고정 헤더(연/월 + "오늘" 점프 + 월 이동)로 — 스크롤 시 날짜 숫자가 상태바(시계·배터리)와 겹치던 충돌 해소.
+  - 날짜 칸 시각 언어를 점 3종(일정 sky · 할 일 butter · 저장 purple)으로 통일 + 카드 하단 범례. 기존 "대표 intent 색 점+개수 / 날짜 숫자 강조 / 막대" 혼용이 범례 없인 해석 불가하던 문제. 오늘은 보라 원 채움, 지난 날짜는 숫자만 옅게.
+  - 일정 행에 날짜 타일(월/일) + 상대 라벨(오늘/내일/요일/D-n + 시각), 할 일 D-day 는 긴급도 색(지남 blush > 오늘·내일 peach > 그 외 butter) — "내일"이 D-4 보다 옅어 보이던 역전 교정. 완료한 일은 "마감 임박" 리스트에서 분리해 접이식 섹션으로.
+  - 같은 화면 중복 캡처로 todo·일정이 쌍둥이로 뜨던 것 → 표시 dedup(제목·라벨·마감 기준). 숨은 쌍둥이 instance 는 완료 토글에 함께 전이(하나만 완료하면 되살아나는 혼란 방지). "이번 주 돌아보기" 미해결 리스트도 동일 정책.
+  - "이번 주 돌아보기" 일정·할 일 행을 캘린더와 같은 시각 언어로 통일(`DueDisplay`·`ScheduleDateTile` 공용화).
+  - 일자 탭 모달(DaySheet)을 날짜 헤더 + 「일정·마감 / 저장한 기억」 섹션 구조로 리디자인. 셀 탭은 sheet 를 닫지 않고 hero frame 을 실어 셀→상세 zoom 으로 — presenter 가 최상단 presented VC 위에서 present 하도록 수정(`ZoomDetailPresentation`), 상세를 닫으면 보던 날짜 목록 복귀. `DOMAIN_DESIGN.md` §API 캘린더 절 동기화.
+
+## 2026-06-10 — ios
+- **기록 상세 헤더 이미지 비율 버그 — 협상 여지 0 인 `FixedRatioBox`(Layout) 로 재수정.** `Color.clear.aspectRatio` 패턴으로도 디바이스에서 증상(원본이 작은 캡처일 때 박스가 이미지 크기로 쪼그라들고 양옆 purple50 노출)이 재현된다는 보고 → `aspectRatio(_:contentMode:)` 의 nil 높이 제안 협상을 아예 우회해 "제안된 너비 ÷ 비율 = 높이"를 Layout 으로 직접 계산. 자식(이미지) 크기가 레이아웃에 개입할 경로가 없음을 레이아웃 프로브(`lab/aspect-ratio-probe/`)로 검증. 부수: `LocalThumbnail.preservesAspectRatio` dead parameter 제거(호출처 0, 같은 "원본 비율이 레이아웃을 결정" 패턴).
+
+## 2026-06-10 — ios
+- **기록 상세 zoom 진입 경고 + 이미지 비율 버그 수정.**
+  - zoom present 시 dim 뷰를 `rootViewController.view`(= SwiftUI 앱에선 `UIHostingController.view`)에 addSubview 해 "broken view hierarchy" 경고가 나던 것 → `window` 에 직접 붙이고 present 를 그 뒤에 호출해 z-order 를 추가 순서로 유지(`ZoomDetailPresentation.swift`).
+  - 상세 헤더 이미지가 원본 비율에 따라 박스를 못 채우고 `purple50` 배경이 비치던 문제 → `ScreenshotPreviewImage` 를 `Color.clear.aspectRatio(4:3)` 비율 박스 + 이미지 overlay 패턴으로 교체(비율 협상을 representable 에서 분리, ScrollView 직속 `maxHeight:.infinity` 진동 제거).
+- **ShareExtension 디자인·피드백 패스.**
+  - 저장 탭 이후 직접전송 대기 구간(텍스트 최대 5s·이미지 최대 20s)이 무피드백으로 멈춘 듯 보이던 문제 → CTA 가 제자리에서 "···" 바운싱 닷 로딩으로 전환(+성공 햅틱, 취소 숨김). principal 은 최소 0.6s 노출을 보장해 빠른 경로에서 로딩이 한 프레임만 깜빡이는 glitch 방지.
+  - 입장 안무(헤더→칩→프리뷰→메모→CTA 스태거드 스프링), CTA 보라 그라데이션+유리 하이라이트+sparkles 아이콘, 출처칩 흰 유리 캡슐화, URL 프리뷰 행 host 강조(+전체 URL 보조), 텍스트 모드 `scrollDismissesKeyboard`.
+
+## 2026-06-10 — backend
+- **weekly digest 카테고리 컨텍스트 윈도우 확장 + 큰 단위 묶기 유도.**
+  - `list_normalized_categories` 를 row 40개 후 dedup → **distinct 라벨 기준 최근 50개**로 변경. row 기준이면 한 주 분량에 윈도우가 소진돼 사실상 "저번주" 카테고리만 컨텍스트로 들어가던 문제 해결 — 사용자 카테고리가 50개를 넘는 일은 드물어 사실상 전체 vocabulary 를 전달.
+  - digest 프롬프트: 같은 의미가 아니어도 같은 관심사·생활 영역이면 큰 단위로 묶도록("제주 맛집"+"항공권 예약" → "여행"), 작은 fine 은 어울리는 큰 주제로 흡수 우선. 카테고리 다양성 최소화 목적.
+
+## 2026-06-10 — ios
+- **zoom 전환 후속: 착지 깜박임 제거 + 오버스크롤 dismiss + 카드·상세 디자인 패스.**
+  - 깜박임: 동일 이미지를 crossfade 하면 합성 불투명도가 1 아래로 꺼져 착지 순간 깜박임 → 상세 hero reveal 을 **무애니메이션 즉시**로 바꾸고(스냅샷이 위를 덮은 채 밑에서 켜짐), SwiftUI 커밋 대기 0.12s 후 스냅샷만 걷는 순서로 교체.
+  - 드래그 dismiss 가 navigation bar 에서만 되던 문제: 스크롤뷰 pan 이 제스처를 독점 → `shouldRecognizeSimultaneouslyWith` 허용 + 끌어내리는 동안 contentOffset 최상단 고정(이중 이동 방지)으로 콘텐츠 위 오버스크롤에서도 dismiss.
+  - 기록 카드: 제목 2줄 공간 고정(`reservesSpace`, 카드 높이 균일), memo 카드 버터 그라데이션+인용 워터마크, URL 미니프리뷰(모노그램 그라데이션·화살표 힌트), rounded 타이포 통일.
+  - 기록 상세: toolbar 원형 칩 버튼, 제목 21pt rounded+연필 칩, 출처 메타 행(종류 아이콘), needsReview 배너 재구성(홈 카피와 통일 — 존재하지 않는 '헷갈려요' 표현 제거), 원본 보기 버튼 브랜드 그라데이션 CTA, 원본 텍스트 인용 바, 태그 flow 칩 레이아웃(`TagFlow`), 분석중 상태 이미지를 헤더와 같은 4:3 으로(분석 완료 시 이미지 안 튀게).
+- **카드→상세 zoom 전환 App Store 카드 스타일로 재작성 (`ZoomDetailPresentation`).** 기존엔 썸네일 스냅샷만 날아가고 나머지는 통째 crossfade 라 배경이 무반응하고(깊이 없음), 비행 스냅샷이 착지 전(0.34s<비행 0.5s)에 사라지기 시작해 끊겼으며, 드래그 dismiss 는 아래로 슬라이드만 해 공간 연속성이 없었다. 변경: ① 홈 위 dim(ink900 0.45, presented 레이어 아래 rootVC.view 에 부착) ② 카드 몸체(흰 컨테이너+카드 잔상 스냅샷)가 카드 frame→화면으로 자라며 상세에 녹아듦(memo/url 카드도 동일한 확장감) ③ 비행 이미지 top-corner 마스크 + radius 16→20 보간(양 끝 모두 위쪽만 둥근 실제 형태와 일치) ④ hero 이미지 reveal 을 비행 completion 으로 이동(착지 후 fade) ⑤ 드래그 중 코너 라운딩·dim 동조, 임계 통과 시 **현재 위치(transform·스크롤 반영 convert)에서 카드 자리로 진짜 복귀** ⑥ 스크롤로 이미지가 반 이상 가려졌으면 비행 대신 fade 폴백 ⑦ soft/light 햅틱.
 - **홈 리디자인 + 회수 진입점 연결 + 이번 주 돌아보기 전면 재설계.**
   - 홈 기능 수정: ① `needsReviewPrompt` 노출 조건 반전 버그 수정(비어 있을 때 떠 있고 정작 있을 때 진입점이 없던 문제 — PRODUCT.md §8.4 "needsReview 버킷이 진실원천" 위반) ② 질문 입력바·추천 칩이 입력을 조용히 버리던 것을 `delegate(.recallRequested)` → 검색 탭 전환+즉시 검색으로 연결(§8.4 "검색형 질문 입력 바") ③ 죽은 "전체 보기" 버튼 → 캘린더 탭 ④ 입력바 스크롤/바깥 탭 시 키보드 dismiss.
   - 홈 디자인: 주간 카드 재구성(마스코트 200pt→104pt 겹침 해소, 카테고리 키워드→아이콘 매핑 `MochiCategoryIcon`, 최댓값 대비 비중 바, 빈 주 메시지), "정리하고 있어요" 거대 세로 캐러셀 → 컴팩트 행+indeterminate 진행바, 상태바 스크림(스크롤 시 시계와 충돌 방지), 첫 로드 스켈레톤, 섹션 순차 entrance(`RiseInEffect`, DesignSystem 승격).
