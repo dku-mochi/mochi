@@ -5,8 +5,8 @@ status: active
 last_verified: 2026-06-10
 confidence: 0.9
 owners: [송준서]
-title: 채팅 탭 구현 Handoff — 백엔드 PR-1~3 + iOS PR-1 완료, 잔여 BE PR-4·iOS PR-2~5
-description: 채팅 탭(기록 기반 질문·요청 대화) 구현의 세션 인수인계. 설계 정본은 2026-06-10-chat-tab-design.md, 이 문서는 "무엇이 끝났고(커밋 맵·리뷰 반영 내역) 무엇이 남았는가(BE PR-4, iOS PR-2~5, 머지 절차, 이연된 nit)"의 단일 원천. 채팅 작업을 이어받는 사람·AI는 design 문서 → 이 문서 순으로 읽어라.
+title: 채팅 탭 구현 Handoff — 백엔드·iOS 전 PR 완료(리뷰 반영 포함), 잔여 실기기 E2E·머지
+description: 채팅 탭(기록 기반 질문·요청 대화) 구현의 세션 인수인계. 설계 정본은 2026-06-10-chat-tab-design.md, 이 문서는 "무엇이 끝났고(커밋 맵·리뷰 반영 내역) 무엇이 남았는가(실기기 E2E, 머지 절차, 이연된 nit)"의 단일 원천. 채팅 작업을 이어받는 사람·AI는 design 문서 → 이 문서 순으로 읽어라.
 ---
 
 # 채팅 탭 구현 — Handoff (2026-06-10)
@@ -42,10 +42,10 @@ develop
 
 **백엔드** (`make test` 158 passed / lint / typecheck / `make openapi` no-diff): 서버 띄우고 마이그레이션(0016·0017) 적용하면 `/conversations` 전 라우트 동작. 단 **실 LLM 호출(GeminiChatClient)은 Vertex 자격증명 환경에서만** — 유닛테스트는 fake LLM. `gemini_chat_model` 기본 flash-lite.
 
-**iOS** (`tuist build`·`tuist test` 전 타겟 green, 경계 0 위반): 채팅 탭이 **mock 스트림**(`MockChatStreamClient`, AppDependencies 주입)으로 풀 플로우 데모 가능 — 칩 탭 → 툴 pill → 타이핑 → 스트리밍 답변. 서버와 통신하지 않음(live 는 PR-5).
+**iOS** (`tuist build`·`tuist test` 전 타겟 7스위트 green, 경계 0 위반): 채팅 탭 **live 배선 완료** — 백엔드를 띄우면 실 SSE 로 풀 플로우(칩 탭 → 툴 pill → 스트리밍 답변 → citation 뱃지·근거 카드 → proposal 카드 확정 → 히스토리·복귀 폴링). Mock(`MockChatStreamClient`)은 프리뷰 전용으로 보존.
 
 핵심 파일 지도:
-- BE: `app/modules/conversations/` — application/`begin_chat_turn.py`(409·암묵생성)·`run_chat_turn.py`(루프 본체), infrastructure/`run_registry.py`·`gemini_chat_client.py`·`turn_store.py`·`tools/{search_items,get_item_detail,propose}.py`, prompts/`chat_prompts.py`(chat@v2 활성)
+- BE: `app/modules/conversations/` — application/`begin_chat_turn.py`(409·암묵생성)·`run_chat_turn.py`(루프 본체), infrastructure/`run_registry.py`·`gemini_chat_client.py`·`turn_store.py`·`tools/{search_items,get_item_detail,propose}.py`, prompts/`chat_prompts.py`(chat@v3 활성)
 - BE 확정 실행 경로: `mochi_items/application/update_mochi_item.py`(PATCH) · `ingest.py`(confirmedInstances 분기)
 - iOS: `Targets/Features/FeatureChat/` + `Cores/CoreAgentClient/ChatStreamClient*.swift`
 - 계약: `mochi-backend/openapi.json`(=iOS 미러) + SSE wire format 은 `conversations/presentation/router.py` docstring(서버 정본) ↔ iOS `ChatStreamEvent`(클라 정본) — ARCHITECTURE §3.6 에 ⓪ 예외 명문화
