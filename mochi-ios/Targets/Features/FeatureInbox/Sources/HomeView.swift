@@ -6,7 +6,7 @@ import CoreDomain
 import CorePersistence
 import DesignSystem
 
-/// 모찌 홈 화면 — "자동성의 예외 처리" 인박스 (docs/PRODUCT.md §8.4).
+/// 모찌 홈 화면 — "자동성의 예외 처리" 인박스 (docs/UX_SPEC.md §3.4).
 ///
 /// 위 → 아래:
 ///  - ① 지금 확인해 주세요        모찌가 혼자 정하기 애매한 것(needsReview, 있을 때만)
@@ -364,35 +364,17 @@ public struct HomeView: View {
         imageMemoText = ""
     }
     
-    // MARK: - Background (F2F4F7 기조 + 상단 옅은 라벤더 글로우)
-    
+    // MARK: - Background (F2F4F7 단색)
+
     private var backgroundLayer: some View {
-        ZStack {
-            HomeDesign.Color.bg
-            
-            LinearGradient(
-                colors: [
-                    HomeDesign.Color.purple200.opacity(0.35),
-                    HomeDesign.Color.purple100.opacity(0.12),
-                    Color.white.opacity(0.0),
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .frame(height: 240)
-            .frame(maxHeight: .infinity, alignment: .top)
-        }
+        HomeDesign.Color.bg
     }
-    
+
     /// 상태바 영역을 배경과 같은 색으로 덮고 아래로 갈수록 투명해지는 스크림 —
     /// 스크롤된 섹션 제목이 시계·배터리와 겹쳐 보이는 충돌을 막는다.
-    /// 색은 `backgroundLayer` 상단(bg + purple200 0.35 글로우)과 동일하게 합성해 이질감이 없다.
     private var statusBarScrim: some View {
         VStack(spacing: 0) {
-            ZStack {
-                HomeDesign.Color.bg
-                HomeDesign.Color.purple200.opacity(0.35)
-            }
+            HomeDesign.Color.bg
             .mask(
                 LinearGradient(
                     stops: [
@@ -421,11 +403,11 @@ public struct HomeView: View {
         VStack(alignment: .leading, spacing: HomeDesign.Spacing.lg) {
             HStack(alignment: .center) {
                 VStack(alignment: .leading, spacing: HomeDesign.Spacing.xs) {
-                    Text("어떤 기억을 찾아드릴까요?")
-                        .font(.system(size: 18, weight: .heavy, design: .rounded))
+                    Text("모찌에게 물어보세요")
+                        .font(.system(size: 19, weight: .heavy, design: .rounded))
                         .foregroundStyle(HomeDesign.Color.textPrimary)
-                    Text("모찌에게 물어보면 빠르게 찾아드려요.")
-                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                    Text("남겨둔 기억으로 답하고, 찾고, 정리해드려요.")
+                        .font(.system(size: 13.5, weight: .medium, design: .rounded))
                         .foregroundStyle(HomeDesign.Color.textMuted)
                 }
                 Spacer()
@@ -434,12 +416,17 @@ public struct HomeView: View {
             
             
             HStack(spacing: HomeDesign.Spacing.md) {
-                Image(systemName: "text.bubble")
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundStyle(HomeDesign.Color.textMuted)
-                    .frame(width: 20)
-                TextField("무엇을 찾고 있나요?", text: $store.chatDraft, axis: .vertical)
-                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                // 검색창이 아니라 AI 에게 묻는 입력 — sparkles 가 어시스턴트 어포던스를 만든다.
+                ZStack {
+                    Circle().fill(HomeDesign.Color.purple50)
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(HomeDesign.Color.purple500)
+                }
+                .frame(width: 28, height: 28)
+                .accessibilityHidden(true)
+                TextField("무엇이든 편하게 물어보세요", text: $store.chatDraft, axis: .vertical)
+                    .font(.system(size: 14, weight: .medium, design: .rounded))
                     .lineLimit(1...3)
                     .foregroundStyle(HomeDesign.Color.textPrimary)
                     .tint(HomeDesign.Color.purple500)
@@ -484,9 +471,11 @@ public struct HomeView: View {
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: HomeDesign.Spacing.sm) {
-                    suggestionChip(icon: "mappin.and.ellipse", text: "역삼동 데이트 코스 추천해줘")
+                    // 찾기·추천·요약·수정 — 검색을 넘어서는 대화 능력이 칩에서 드러나게 한다.
+                    suggestionChip(icon: "heart.fill", text: "오늘 데이트 어디서 갈까?")
+                    suggestionChip(icon: "book.fill", text: "이번주 공부하려고 남긴 기록 알려줘")
                     suggestionChip(icon: "calendar", text: "민수랑 언제 만나기로 했지?")
-                    suggestionChip(icon: "car.fill", text: "자동차 배터리 교체 방법 다시 보여줘")
+                    suggestionChip(icon: "pencil.line", text: "방금 남긴 메모 수정해줘")
                 }
                 .padding(.horizontal, HomeDesign.Spacing.xl)
             }
@@ -753,7 +742,7 @@ public struct HomeView: View {
     }
     
     /// ① 확인 필요 알림 카드 — needsReview 가 *있을 때만* 노출 (없으면 섹션 자체가 사라진다).
-    /// PRODUCT.md §8.4: 푸시를 놓쳐도 이 버킷이 진실원천이라 앱 안에서 언제든 처리 가능해야 한다.
+    /// UX_SPEC.md §3.10: 푸시를 놓쳐도 이 버킷이 진실원천이라 앱 안에서 언제든 처리 가능해야 한다.
     @ViewBuilder
     private var needsReviewPrompt: some View {
         if !store.needsReview.isEmpty {
