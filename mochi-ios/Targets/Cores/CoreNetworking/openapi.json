@@ -854,6 +854,133 @@
         }
       }
     },
+    "/api/v1/conversations": {
+      "get": {
+        "tags": [
+          "conversations"
+        ],
+        "summary": "List Conversations",
+        "description": "히스토리 시트 — owner 의 살아있는 대화를 마지막 메시지 시각 내림차순으로.",
+        "operationId": "list_conversations_api_v1_conversations_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "Authorization",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/conversations/{conversation_id}/messages": {
+      "get": {
+        "tags": [
+          "conversations"
+        ],
+        "summary": "Get Conversation Snapshot",
+        "description": "대화 메시지 전체 스냅샷 — iOS 포그라운드 복귀·히스토리 재진입용.\n\nstale running run(서버 재시작으로 유실)은 이 읽기 시점에 failed 로 lazy repair 되므로\n클라이언트는 항상 정합한 run 상태를 본다.",
+        "operationId": "get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Conversation Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "Authorization",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationSnapshotResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/conversations/{conversation_id}": {
+      "delete": {
+        "tags": [
+          "conversations"
+        ],
+        "summary": "Delete Conversation",
+        "description": "히스토리 스와이프 삭제 — soft delete (행·메시지 보존).",
+        "operationId": "delete_conversation_api_v1_conversations__conversation_id__delete",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Conversation Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "Authorization",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        }
+      }
+    },
     "/api/v1/mochi_items/{mochi_item_id}/stream": {
       "get": {
         "tags": [
@@ -1081,6 +1208,70 @@
         ],
         "title": "CitationDTO"
       },
+      "ConversationListResponse": {
+        "properties": {
+          "conversations": {
+            "items": {
+              "$ref": "#/components/schemas/ConversationResponse"
+            },
+            "type": "array",
+            "title": "Conversations"
+          }
+        },
+        "type": "object",
+        "title": "ConversationListResponse"
+      },
+      "ConversationResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updatedat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "createdAt",
+          "updatedAt"
+        ],
+        "title": "ConversationResponse"
+      },
+      "ConversationSnapshotResponse": {
+        "properties": {
+          "conversation": {
+            "$ref": "#/components/schemas/ConversationResponse"
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/MessageResponse"
+            },
+            "type": "array",
+            "title": "Messages"
+          }
+        },
+        "type": "object",
+        "required": [
+          "conversation"
+        ],
+        "title": "ConversationSnapshotResponse",
+        "description": "대화 메시지 전체 스냅샷 — 포그라운드 복귀·히스토리 재진입의 단일 데이터 소스."
+      },
       "DevSignInRequest": {
         "properties": {
           "subject": {
@@ -1250,6 +1441,7 @@
           "appIntent",
           "appShareSheet",
           "appDirectInput",
+          "chat",
           "unknown"
         ],
         "title": "IngestChannel"
@@ -1395,6 +1587,102 @@
           "refreshToken"
         ],
         "title": "LogoutRequest"
+      },
+      "MessageCitationResponse": {
+        "properties": {
+          "mochiItemId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Mochiitemid"
+          },
+          "index": {
+            "type": "integer",
+            "title": "Index"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string",
+            "nullable": true
+          },
+          "snippet": {
+            "title": "Snippet",
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "mochiItemId",
+          "index"
+        ],
+        "title": "MessageCitationResponse"
+      },
+      "MessageResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "content": {
+            "title": "Content",
+            "type": "string",
+            "nullable": true
+          },
+          "toolName": {
+            "title": "Toolname",
+            "type": "string",
+            "nullable": true
+          },
+          "toolPayload": {
+            "title": "Toolpayload",
+            "additionalProperties": true,
+            "type": "object",
+            "nullable": true
+          },
+          "proposals": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Proposals"
+          },
+          "runId": {
+            "title": "Runid",
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "runStatus": {
+            "title": "Runstatus",
+            "type": "string",
+            "nullable": true
+          },
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/MessageCitationResponse"
+            },
+            "type": "array",
+            "title": "Citations"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "role",
+          "createdAt"
+        ],
+        "title": "MessageResponse"
       },
       "MochiItemCreateRequest": {
         "properties": {

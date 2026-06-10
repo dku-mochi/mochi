@@ -169,6 +169,30 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `POST /api/v1/mochi_items/{mochi_item_id}/instances/{instance_id}/lifecycle`.
     /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/instances/{instance_id}/lifecycle/post(update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post)`.
     func update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post(_ input: Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Input) async throws -> Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Output
+    /// List Conversations
+    ///
+    /// 히스토리 시트 — owner 의 살아있는 대화를 마지막 메시지 시각 내림차순으로.
+    ///
+    /// - Remark: HTTP `GET /api/v1/conversations`.
+    /// - Remark: Generated from `#/paths//api/v1/conversations/get(list_conversations_api_v1_conversations_get)`.
+    func list_conversations_api_v1_conversations_get(_ input: Operations.list_conversations_api_v1_conversations_get.Input) async throws -> Operations.list_conversations_api_v1_conversations_get.Output
+    /// Get Conversation Snapshot
+    ///
+    /// 대화 메시지 전체 스냅샷 — iOS 포그라운드 복귀·히스토리 재진입용.
+    ///
+    /// stale running run(서버 재시작으로 유실)은 이 읽기 시점에 failed 로 lazy repair 되므로
+    /// 클라이언트는 항상 정합한 run 상태를 본다.
+    ///
+    /// - Remark: HTTP `GET /api/v1/conversations/{conversation_id}/messages`.
+    /// - Remark: Generated from `#/paths//api/v1/conversations/{conversation_id}/messages/get(get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get)`.
+    func get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get(_ input: Operations.get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get.Input) async throws -> Operations.get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get.Output
+    /// Delete Conversation
+    ///
+    /// 히스토리 스와이프 삭제 — soft delete (행·메시지 보존).
+    ///
+    /// - Remark: HTTP `DELETE /api/v1/conversations/{conversation_id}`.
+    /// - Remark: Generated from `#/paths//api/v1/conversations/{conversation_id}/delete(delete_conversation_api_v1_conversations__conversation_id__delete)`.
+    func delete_conversation_api_v1_conversations__conversation_id__delete(_ input: Operations.delete_conversation_api_v1_conversations__conversation_id__delete.Input) async throws -> Operations.delete_conversation_api_v1_conversations__conversation_id__delete.Output
     /// Stream Agent Run
     ///
     /// SSE 스트림 — worker 의 실제 분석 진행(``mochi_items.lifecycle_kind``)을 관찰해 흘린다.
@@ -501,6 +525,48 @@ extension APIProtocol {
             body: body
         ))
     }
+    /// List Conversations
+    ///
+    /// 히스토리 시트 — owner 의 살아있는 대화를 마지막 메시지 시각 내림차순으로.
+    ///
+    /// - Remark: HTTP `GET /api/v1/conversations`.
+    /// - Remark: Generated from `#/paths//api/v1/conversations/get(list_conversations_api_v1_conversations_get)`.
+    public func list_conversations_api_v1_conversations_get(
+        query: Operations.list_conversations_api_v1_conversations_get.Input.Query = .init(),
+        headers: Operations.list_conversations_api_v1_conversations_get.Input.Headers = .init()
+    ) async throws -> Operations.list_conversations_api_v1_conversations_get.Output {
+        try await list_conversations_api_v1_conversations_get(Operations.list_conversations_api_v1_conversations_get.Input(
+            query: query,
+            headers: headers
+        ))
+    }
+    /// Get Conversation Snapshot
+    ///
+    /// 대화 메시지 전체 스냅샷 — iOS 포그라운드 복귀·히스토리 재진입용.
+    ///
+    /// stale running run(서버 재시작으로 유실)은 이 읽기 시점에 failed 로 lazy repair 되므로
+    /// 클라이언트는 항상 정합한 run 상태를 본다.
+    ///
+    /// - Remark: HTTP `GET /api/v1/conversations/{conversation_id}/messages`.
+    /// - Remark: Generated from `#/paths//api/v1/conversations/{conversation_id}/messages/get(get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get)`.
+    public func get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get(
+        path: Operations.get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get.Input.Path,
+        headers: Operations.get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get.Input.Headers = .init()
+    ) async throws -> Operations.get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get.Output {
+        try await get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get(Operations.get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get.Input(
+            path: path,
+            headers: headers
+        ))
+    }
+    /// Delete Conversation
+    ///
+    /// 히스토리 스와이프 삭제 — soft delete (행·메시지 보존).
+    ///
+    /// - Remark: HTTP `DELETE /api/v1/conversations/{conversation_id}`.
+    /// - Remark: Generated from `#/paths//api/v1/conversations/{conversation_id}/delete(delete_conversation_api_v1_conversations__conversation_id__delete)`.
+    public func delete_conversation_api_v1_conversations__conversation_id__delete(path: Operations.delete_conversation_api_v1_conversations__conversation_id__delete.Input.Path) async throws -> Operations.delete_conversation_api_v1_conversations__conversation_id__delete.Output {
+        try await delete_conversation_api_v1_conversations__conversation_id__delete(Operations.delete_conversation_api_v1_conversations__conversation_id__delete.Input(path: path))
+    }
     /// Stream Agent Run
     ///
     /// SSE 스트림 — worker 의 실제 분석 진행(``mochi_items.lifecycle_kind``)을 관찰해 흘린다.
@@ -681,6 +747,81 @@ public enum Components {
                 case mochiItemId
                 case snippet
                 case score
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/ConversationListResponse`.
+        public struct ConversationListResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/ConversationListResponse/conversations`.
+            public var conversations: [Components.Schemas.ConversationResponse]?
+            /// Creates a new `ConversationListResponse`.
+            ///
+            /// - Parameters:
+            ///   - conversations:
+            public init(conversations: [Components.Schemas.ConversationResponse]? = nil) {
+                self.conversations = conversations
+            }
+            public enum CodingKeys: String, CodingKey {
+                case conversations
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/ConversationResponse`.
+        public struct ConversationResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/ConversationResponse/id`.
+            public var id: Swift.String
+            /// - Remark: Generated from `#/components/schemas/ConversationResponse/title`.
+            public var title: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/ConversationResponse/createdAt`.
+            public var createdAt: Foundation.Date
+            /// - Remark: Generated from `#/components/schemas/ConversationResponse/updatedAt`.
+            public var updatedAt: Foundation.Date
+            /// Creates a new `ConversationResponse`.
+            ///
+            /// - Parameters:
+            ///   - id:
+            ///   - title:
+            ///   - createdAt:
+            ///   - updatedAt:
+            public init(
+                id: Swift.String,
+                title: Swift.String? = nil,
+                createdAt: Foundation.Date,
+                updatedAt: Foundation.Date
+            ) {
+                self.id = id
+                self.title = title
+                self.createdAt = createdAt
+                self.updatedAt = updatedAt
+            }
+            public enum CodingKeys: String, CodingKey {
+                case id
+                case title
+                case createdAt
+                case updatedAt
+            }
+        }
+        /// 대화 메시지 전체 스냅샷 — 포그라운드 복귀·히스토리 재진입의 단일 데이터 소스.
+        ///
+        /// - Remark: Generated from `#/components/schemas/ConversationSnapshotResponse`.
+        public struct ConversationSnapshotResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/ConversationSnapshotResponse/conversation`.
+            public var conversation: Components.Schemas.ConversationResponse
+            /// - Remark: Generated from `#/components/schemas/ConversationSnapshotResponse/messages`.
+            public var messages: [Components.Schemas.MessageResponse]?
+            /// Creates a new `ConversationSnapshotResponse`.
+            ///
+            /// - Parameters:
+            ///   - conversation:
+            ///   - messages:
+            public init(
+                conversation: Components.Schemas.ConversationResponse,
+                messages: [Components.Schemas.MessageResponse]? = nil
+            ) {
+                self.conversation = conversation
+                self.messages = messages
+            }
+            public enum CodingKeys: String, CodingKey {
+                case conversation
+                case messages
             }
         }
         /// Local-only 임시 로그인 요청. ``subject`` 가 user 식별자 역할.
@@ -880,6 +1021,7 @@ public enum Components {
             case appIntent = "appIntent"
             case appShareSheet = "appShareSheet"
             case appDirectInput = "appDirectInput"
+            case chat = "chat"
             case unknown = "unknown"
         }
         /// intent instance 의 의미 lifecycle (완료/만료/decay).
@@ -1064,6 +1206,150 @@ public enum Components {
             }
             public enum CodingKeys: String, CodingKey {
                 case refreshToken
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/MessageCitationResponse`.
+        public struct MessageCitationResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/MessageCitationResponse/mochiItemId`.
+            public var mochiItemId: Swift.String
+            /// - Remark: Generated from `#/components/schemas/MessageCitationResponse/index`.
+            public var index: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/MessageCitationResponse/title`.
+            public var title: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/MessageCitationResponse/snippet`.
+            public var snippet: Swift.String?
+            /// Creates a new `MessageCitationResponse`.
+            ///
+            /// - Parameters:
+            ///   - mochiItemId:
+            ///   - index:
+            ///   - title:
+            ///   - snippet:
+            public init(
+                mochiItemId: Swift.String,
+                index: Swift.Int,
+                title: Swift.String? = nil,
+                snippet: Swift.String? = nil
+            ) {
+                self.mochiItemId = mochiItemId
+                self.index = index
+                self.title = title
+                self.snippet = snippet
+            }
+            public enum CodingKeys: String, CodingKey {
+                case mochiItemId
+                case index
+                case title
+                case snippet
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/MessageResponse`.
+        public struct MessageResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/MessageResponse/id`.
+            public var id: Swift.String
+            /// - Remark: Generated from `#/components/schemas/MessageResponse/role`.
+            public var role: Swift.String
+            /// - Remark: Generated from `#/components/schemas/MessageResponse/content`.
+            public var content: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/MessageResponse/toolName`.
+            public var toolName: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/MessageResponse/toolPayload`.
+            public struct toolPayloadPayload: Codable, Hashable, Sendable {
+                /// A container of undocumented properties.
+                public var additionalProperties: OpenAPIRuntime.OpenAPIObjectContainer
+                /// Creates a new `toolPayloadPayload`.
+                ///
+                /// - Parameters:
+                ///   - additionalProperties: A container of undocumented properties.
+                public init(additionalProperties: OpenAPIRuntime.OpenAPIObjectContainer = .init()) {
+                    self.additionalProperties = additionalProperties
+                }
+                public init(from decoder: any Swift.Decoder) throws {
+                    additionalProperties = try decoder.decodeAdditionalProperties(knownKeys: [])
+                }
+                public func encode(to encoder: any Swift.Encoder) throws {
+                    try encoder.encodeAdditionalProperties(additionalProperties)
+                }
+            }
+            /// - Remark: Generated from `#/components/schemas/MessageResponse/toolPayload`.
+            public var toolPayload: Components.Schemas.MessageResponse.toolPayloadPayload?
+            /// - Remark: Generated from `#/components/schemas/MessageResponse/proposalsPayload`.
+            public struct proposalsPayloadPayload: Codable, Hashable, Sendable {
+                /// A container of undocumented properties.
+                public var additionalProperties: OpenAPIRuntime.OpenAPIObjectContainer
+                /// Creates a new `proposalsPayloadPayload`.
+                ///
+                /// - Parameters:
+                ///   - additionalProperties: A container of undocumented properties.
+                public init(additionalProperties: OpenAPIRuntime.OpenAPIObjectContainer = .init()) {
+                    self.additionalProperties = additionalProperties
+                }
+                public init(from decoder: any Swift.Decoder) throws {
+                    additionalProperties = try decoder.decodeAdditionalProperties(knownKeys: [])
+                }
+                public func encode(to encoder: any Swift.Encoder) throws {
+                    try encoder.encodeAdditionalProperties(additionalProperties)
+                }
+            }
+            /// - Remark: Generated from `#/components/schemas/MessageResponse/proposals`.
+            public typealias proposalsPayload = [Components.Schemas.MessageResponse.proposalsPayloadPayload]
+            /// - Remark: Generated from `#/components/schemas/MessageResponse/proposals`.
+            public var proposals: Components.Schemas.MessageResponse.proposalsPayload?
+            /// - Remark: Generated from `#/components/schemas/MessageResponse/runId`.
+            public var runId: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/MessageResponse/runStatus`.
+            public var runStatus: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/MessageResponse/citations`.
+            public var citations: [Components.Schemas.MessageCitationResponse]?
+            /// - Remark: Generated from `#/components/schemas/MessageResponse/createdAt`.
+            public var createdAt: Foundation.Date
+            /// Creates a new `MessageResponse`.
+            ///
+            /// - Parameters:
+            ///   - id:
+            ///   - role:
+            ///   - content:
+            ///   - toolName:
+            ///   - toolPayload:
+            ///   - proposals:
+            ///   - runId:
+            ///   - runStatus:
+            ///   - citations:
+            ///   - createdAt:
+            public init(
+                id: Swift.String,
+                role: Swift.String,
+                content: Swift.String? = nil,
+                toolName: Swift.String? = nil,
+                toolPayload: Components.Schemas.MessageResponse.toolPayloadPayload? = nil,
+                proposals: Components.Schemas.MessageResponse.proposalsPayload? = nil,
+                runId: Swift.String? = nil,
+                runStatus: Swift.String? = nil,
+                citations: [Components.Schemas.MessageCitationResponse]? = nil,
+                createdAt: Foundation.Date
+            ) {
+                self.id = id
+                self.role = role
+                self.content = content
+                self.toolName = toolName
+                self.toolPayload = toolPayload
+                self.proposals = proposals
+                self.runId = runId
+                self.runStatus = runStatus
+                self.citations = citations
+                self.createdAt = createdAt
+            }
+            public enum CodingKeys: String, CodingKey {
+                case id
+                case role
+                case content
+                case toolName
+                case toolPayload
+                case proposals
+                case runId
+                case runStatus
+                case citations
+                case createdAt
             }
         }
         /// 클라이언트(iOS)가 보내는 MochiItem ingestion payload.
@@ -4282,6 +4568,341 @@ public enum Operations {
                     .json
                 ]
             }
+        }
+    }
+    /// List Conversations
+    ///
+    /// 히스토리 시트 — owner 의 살아있는 대화를 마지막 메시지 시각 내림차순으로.
+    ///
+    /// - Remark: HTTP `GET /api/v1/conversations`.
+    /// - Remark: Generated from `#/paths//api/v1/conversations/get(list_conversations_api_v1_conversations_get)`.
+    public enum list_conversations_api_v1_conversations_get {
+        public static let id: Swift.String = "list_conversations_api_v1_conversations_get"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/api/v1/conversations/GET/query`.
+            public struct Query: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/conversations/GET/query/limit`.
+                public var limit: Swift.Int?
+                /// Creates a new `Query`.
+                ///
+                /// - Parameters:
+                ///   - limit:
+                public init(limit: Swift.Int? = nil) {
+                    self.limit = limit
+                }
+            }
+            public var query: Operations.list_conversations_api_v1_conversations_get.Input.Query
+            /// - Remark: Generated from `#/paths/api/v1/conversations/GET/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.list_conversations_api_v1_conversations_get.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.list_conversations_api_v1_conversations_get.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.list_conversations_api_v1_conversations_get.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - query:
+            ///   - headers:
+            public init(
+                query: Operations.list_conversations_api_v1_conversations_get.Input.Query = .init(),
+                headers: Operations.list_conversations_api_v1_conversations_get.Input.Headers = .init()
+            ) {
+                self.query = query
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/conversations/GET/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/api/v1/conversations/GET/responses/200/content/application\/json`.
+                    case json(Components.Schemas.ConversationListResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ConversationListResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.list_conversations_api_v1_conversations_get.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.list_conversations_api_v1_conversations_get.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Successful Response
+            ///
+            /// - Remark: Generated from `#/paths//api/v1/conversations/get(list_conversations_api_v1_conversations_get)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.list_conversations_api_v1_conversations_get.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.list_conversations_api_v1_conversations_get.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Get Conversation Snapshot
+    ///
+    /// 대화 메시지 전체 스냅샷 — iOS 포그라운드 복귀·히스토리 재진입용.
+    ///
+    /// stale running run(서버 재시작으로 유실)은 이 읽기 시점에 failed 로 lazy repair 되므로
+    /// 클라이언트는 항상 정합한 run 상태를 본다.
+    ///
+    /// - Remark: HTTP `GET /api/v1/conversations/{conversation_id}/messages`.
+    /// - Remark: Generated from `#/paths//api/v1/conversations/{conversation_id}/messages/get(get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get)`.
+    public enum get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get {
+        public static let id: Swift.String = "get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/api/v1/conversations/{conversation_id}/messages/GET/path`.
+            public struct Path: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/conversations/{conversation_id}/messages/GET/path/conversation_id`.
+                public var conversation_id: Swift.String
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - conversation_id:
+                public init(conversation_id: Swift.String) {
+                    self.conversation_id = conversation_id
+                }
+            }
+            public var path: Operations.get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get.Input.Path
+            /// - Remark: Generated from `#/paths/api/v1/conversations/{conversation_id}/messages/GET/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            ///   - headers:
+            public init(
+                path: Operations.get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get.Input.Path,
+                headers: Operations.get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get.Input.Headers = .init()
+            ) {
+                self.path = path
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/conversations/{conversation_id}/messages/GET/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/api/v1/conversations/{conversation_id}/messages/GET/responses/200/content/application\/json`.
+                    case json(Components.Schemas.ConversationSnapshotResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.ConversationSnapshotResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Successful Response
+            ///
+            /// - Remark: Generated from `#/paths//api/v1/conversations/{conversation_id}/messages/get(get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Delete Conversation
+    ///
+    /// 히스토리 스와이프 삭제 — soft delete (행·메시지 보존).
+    ///
+    /// - Remark: HTTP `DELETE /api/v1/conversations/{conversation_id}`.
+    /// - Remark: Generated from `#/paths//api/v1/conversations/{conversation_id}/delete(delete_conversation_api_v1_conversations__conversation_id__delete)`.
+    public enum delete_conversation_api_v1_conversations__conversation_id__delete {
+        public static let id: Swift.String = "delete_conversation_api_v1_conversations__conversation_id__delete"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/api/v1/conversations/{conversation_id}/DELETE/path`.
+            public struct Path: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/conversations/{conversation_id}/DELETE/path/conversation_id`.
+                public var conversation_id: Swift.String
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - conversation_id:
+                public init(conversation_id: Swift.String) {
+                    self.conversation_id = conversation_id
+                }
+            }
+            public var path: Operations.delete_conversation_api_v1_conversations__conversation_id__delete.Input.Path
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            public init(path: Operations.delete_conversation_api_v1_conversations__conversation_id__delete.Input.Path) {
+                self.path = path
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct NoContent: Sendable, Hashable {
+                /// Creates a new `NoContent`.
+                public init() {}
+            }
+            /// Successful Response
+            ///
+            /// - Remark: Generated from `#/paths//api/v1/conversations/{conversation_id}/delete(delete_conversation_api_v1_conversations__conversation_id__delete)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            case noContent(Operations.delete_conversation_api_v1_conversations__conversation_id__delete.Output.NoContent)
+            /// Successful Response
+            ///
+            /// - Remark: Generated from `#/paths//api/v1/conversations/{conversation_id}/delete(delete_conversation_api_v1_conversations__conversation_id__delete)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            public static var noContent: Self {
+                .noContent(.init())
+            }
+            /// The associated value of the enum case if `self` is `.noContent`.
+            ///
+            /// - Throws: An error if `self` is not `.noContent`.
+            /// - SeeAlso: `.noContent`.
+            public var noContent: Operations.delete_conversation_api_v1_conversations__conversation_id__delete.Output.NoContent {
+                get throws {
+                    switch self {
+                    case let .noContent(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "noContent",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
         }
     }
     /// Stream Agent Run

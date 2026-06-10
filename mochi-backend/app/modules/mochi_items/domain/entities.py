@@ -17,6 +17,8 @@ class IngestChannel(StrEnum):
     APP_INTENT = "appIntent"
     APP_SHARE_SHEET = "appShareSheet"
     APP_DIRECT_INPUT = "appDirectInput"
+    # 채팅 proposal 확정으로 생성된 기록 (propose_create_memo/schedule — journal 2026-06-10).
+    CHAT = "chat"
     UNKNOWN = "unknown"
 
 

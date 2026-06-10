@@ -15,6 +15,13 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 >
 > **동시 세션 / 공유 파일 주의**: CHANGELOG 는 여러 세션·작업자가 함께 쓰는 append-only 공유 파일이다. 동시 작업 중에는 다른 세션이 자기 항목을 먼저 커밋할 수 있고, 한 워킹트리에 여러 세션의 미커밋 항목이 섞여 보일 수 있다. 이때 **항목을 분리하려 애쓰지 말고** 자기 변경과 함께 그대로 staging·커밋한다 — 섞인 다른 항목은 해당 세션이 자기 코드와 함께 정리한다. diff 에 모르는 CHANGELOG 항목이 보여도 멈추지 않는다 (단, CHANGELOG 외의 *코드* 파일은 절대 임의로 섞어 커밋하지 않는다).
 
+## 2026-06-10 — backend, docs
+- **채팅 탭 백엔드 PR-1: conversations 모듈 신설** (`feat/be-chat-conversations`). 마이그레이션 0016(3테이블: conversations soft-delete · messages run 인라인 · message_citations item-FK-없는 출처 스냅샷) + 세션 CRUD 라우트(`GET /conversations` · `GET /{id}/messages` 스냅샷+stale run lazy repair · `DELETE`) + `IngestChannel.CHAT` 신설. 메시지 전송(POST-as-SSE)·proposal 툴은 PR-2~3. openapi.json 재생성 + iOS generated client 동기화(⓪폭포). DOMAIN_DESIGN §2/§3/§6.4/§10.3·백엔드 README 동기화. **⓪계약 확장이라 머지 전 팀 합의 필요.**
+
+## 2026-06-10 — docs
+- **채팅 탭 설계 확정** (`journal/2026-06-10-chat-tab-design.md`, 코드 변경 없음). 핵심: LLM 루프 read-only + 쓰기는 proposal 카드(끊김 안전·확인 UX·알림을 한 번에 해결), SSE 생성/전달 분리(create_task + queue 중계, 이탈해도 완주), 툴 7종(`propose_create_memo` 포함 — 채팅=캡처 표면), channel `chat` 신설, max tool 5라운드/윈도우 20 messages. 구현 시 UX_SPEC §3.4 홈 라우팅(검색 탭→채팅 탭)·DOMAIN_DESIGN §10.3 게이트 개방 따라옴 — ⓪티어 계약이라 팀 합의 선행.
+- 같은 날 후속(journal 추록): doc-guardian STOP 2건 해소 — `PATCH /mochi_items/{id}` 신설(좁게 text/user_memo/summary) + 사용자 확정 proposal 은 분석 생략·instance 직접 생성(`POST /mochi_items` `confirmedInstances` 확장, §5.2 예외 명문화 예정). 계약 형태 POST-as-SSE 확정(202+GET stream 은 구독 전 이벤트 유실 레이스로 기각). architect 백엔드 4-PR / iOS 5-PR 플랜 수립 — iOS PR-1~4 는 mock 으로 백엔드 비블로킹. 팀 합의 4건(⓪계약 일괄·channel enum·§5.2 예외·web_search 키) 대기.
+
 ## 2026-06-10 — ios, docs
 - **문서 재구조화 리뷰(P2) 반영.** code-reviewer deep review PASS(P1 없음) 후 P2 정리:
   - [docs] 실패/지연 fallback 정책(`demoteToManual`/90s/`requeueForAnalysis`) 복원 — 다이어트 중 유실된 행동 결정을 `UX_SPEC.md` §3.10 + `DOMAIN_DESIGN.md` §6.3 에 재기재. 주간 돌아보기 dedupe 뉘앙스·user_memo 포인터·INTENT_REDESIGN §4.4→§4·온보딩/홈 코드 주석의 옛 절번호도 정정.
