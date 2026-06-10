@@ -104,10 +104,20 @@ struct RecentMochiCard: View {
 
         case .memo:
             ZStack(alignment: .topLeading) {
-                HomeDesign.Color.butter50
+                // 종이 메모 느낌 — 버터 톤 그라데이션 + 우하단 인용 워터마크.
+                LinearGradient(
+                    colors: [HomeDesign.Color.butter50, HomeDesign.Color.cream100],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                Image(systemName: "quote.closing")
+                    .font(.system(size: 26, weight: .bold))
+                    .foregroundStyle(HomeDesign.Color.butter400.opacity(0.22))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                    .padding(HomeDesign.Spacing.md)
                 Text(memoPreviewText)
-                    .font(.system(size: 11.5, weight: .regular))
-                    .lineSpacing(1)
+                    .font(.system(size: 11.5, weight: .medium, design: .rounded))
+                    .lineSpacing(2)
                     .foregroundStyle(HomeDesign.Color.ink700)
                     .lineLimit(4)
                     .multilineTextAlignment(.leading)
@@ -145,10 +155,11 @@ struct RecentMochiCard: View {
     private var textContent: some View {
         VStack(alignment: .leading, spacing: HomeDesign.Spacing.sm) {
             Text(mochiItem.displayTitle)
-                .font(.system(size: 12.5, weight: .semibold))
+                .font(.system(size: 13, weight: .semibold, design: .rounded))
                 .foregroundStyle(HomeDesign.Color.textPrimary)
-                .tracking(-0.1)
-                .lineLimit(2)
+                .tracking(-0.2)
+                // 2줄 공간을 항상 확보 — 가로 스크롤에서 카드 높이가 들쭉날쭉하지 않게.
+                .lineLimit(2, reservesSpace: true)
                 .multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -157,7 +168,7 @@ struct RecentMochiCard: View {
                     IntentChip(intent: MochiViewIntent(intent))
                 }
                 Text(mochiItem.displaySubtitle)
-                    .font(.system(size: 10.5, weight: .regular))
+                    .font(.system(size: 10.5, weight: .medium, design: .rounded))
                     .foregroundStyle(HomeDesign.Color.textMuted)
                     .lineLimit(1)
                     .truncationMode(.tail)
@@ -212,18 +223,32 @@ private struct URLPreviewMini: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 6) {
                 Text(faviconLetter)
-                    .font(.system(size: 9, weight: .bold))
+                    .font(.system(size: 9, weight: .heavy, design: .rounded))
                     .foregroundStyle(.white)
-                    .frame(width: 14, height: 14)
-                    .background(RoundedRectangle(cornerRadius: 3).fill(HomeDesign.Color.purple500))
+                    .frame(width: 15, height: 15)
+                    .background(
+                        RoundedRectangle(cornerRadius: 4, style: .continuous)
+                            .fill(
+                                LinearGradient(
+                                    colors: [HomeDesign.Color.purple400, HomeDesign.Color.purple600],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                    )
                 Text(host)
-                    .font(.system(size: 10.5, weight: .medium))
+                    .font(.system(size: 10.5, weight: .semibold, design: .rounded))
                     .foregroundStyle(HomeDesign.Color.purple600)
                     .lineLimit(1)
+                Spacer(minLength: 0)
+                Image(systemName: "arrow.up.right")
+                    .font(.system(size: 8, weight: .bold))
+                    .foregroundStyle(HomeDesign.Color.textFaint)
             }
             Text(headline)
-                .font(.system(size: 11.5, weight: .bold))
+                .font(.system(size: 11.5, weight: .bold, design: .rounded))
                 .foregroundStyle(HomeDesign.Color.textPrimary)
+                .lineSpacing(1)
                 .lineLimit(2)
                 .multilineTextAlignment(.leading)
         }
@@ -235,9 +260,10 @@ private struct URLPreviewMini: View {
                 .fill(HomeDesign.Color.surface)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: HomeDesign.Radius.sm)
+            RoundedRectangle(cornerRadius: HomeDesign.Radius.sm, style: .continuous)
                 .stroke(HomeDesign.Color.border, lineWidth: 1)
         )
+        .shadow(color: HomeDesign.Color.ink900.opacity(0.04), radius: 4, x: 0, y: 2)
     }
 }
 

@@ -2,55 +2,258 @@ import SwiftUI
 import CoreDomain
 import CorePersistence
 
+/// 라이트/다크 듀얼 토큰 — `UIColor(dynamicProvider:)` 로 trait 변화에 자동 추종한다.
+private extension Color {
+    init(light: Color, dark: Color) {
+        self.init(uiColor: UIColor { traits in
+            traits.userInterfaceStyle == .dark ? UIColor(dark) : UIColor(light)
+        })
+    }
+}
+
 /// ShareExtension 전용 디자인 토큰 + 공통 컴포넌트.
 ///
-/// `FeatureOnboarding.OnboardingTheme` 와 동일한 라벤더 톤. 모듈 경계상 직접 import 불가
+/// 라이트는 `FeatureOnboarding.OnboardingTheme` 와 동일한 라벤더 톤. 모듈 경계상 직접 import 불가
 /// 라 RGB 값을 정적 상수로 복제한다 (`BackTapSnippetView` 도 같은 패턴).
 /// `OnboardingTheme` 변경 시 본 파일도 sync 필요.
+/// 다크는 ShareExtension 고유 — 백탭 캡처는 야간 사용 빈도가 높아 밤에 화면이 확 밝아지는
+/// 이질감을 없앤다 (깊은 인디고·플럼 톤으로 라벤더 정체성 유지).
 enum ShareDesign {
     static let backgroundGradient = LinearGradient(
         stops: [
-            .init(color: Color(red: 0.84, green: 0.83, blue: 0.96), location: 0.0),
-            .init(color: Color(red: 0.89, green: 0.87, blue: 0.96), location: 0.45),
-            .init(color: Color(red: 0.93, green: 0.88, blue: 0.94), location: 1.0),
+            .init(color: Color(
+                light: Color(red: 0.84, green: 0.83, blue: 0.96),
+                dark: Color(red: 0.11, green: 0.10, blue: 0.19)
+            ), location: 0.0),
+            .init(color: Color(
+                light: Color(red: 0.89, green: 0.87, blue: 0.96),
+                dark: Color(red: 0.13, green: 0.11, blue: 0.21)
+            ), location: 0.45),
+            .init(color: Color(
+                light: Color(red: 0.93, green: 0.88, blue: 0.94),
+                dark: Color(red: 0.16, green: 0.12, blue: 0.21)
+            ), location: 1.0),
         ],
         startPoint: .top,
         endPoint: .bottom
     )
 
-    static let title          = Color(red: 0.21, green: 0.20, blue: 0.45)
-    static let subtitle       = Color(red: 0.36, green: 0.34, blue: 0.55)
-    static let muted          = Color(red: 0.55, green: 0.55, blue: 0.70)
-    static let primary        = Color(red: 0.55, green: 0.46, blue: 0.93)
-    static let primaryShadow  = Color(red: 0.55, green: 0.46, blue: 0.93).opacity(0.30)
-    static let cardFill       = Color.white.opacity(0.55)
-    static let cardSolid      = Color.white.opacity(0.92)
-    static let cardStroke     = Color(red: 0.55, green: 0.46, blue: 0.93).opacity(0.15)
-    /// 출처칩 텍스트 — 라벤더 배경 위 WCAG AA 대비 확보용 진보라 (#4C3EAD).
-    static let chipText       = Color(red: 0.30, green: 0.24, blue: 0.68)
-    /// 프리뷰 하단 "아래로 이어짐" 페이드 색 — 배경 그라데이션 상단 라벤더와 맞춰 이질감 최소화.
-    static let fadeHint       = Color(red: 0.86, green: 0.85, blue: 0.96)
+    static let title = Color(
+        light: Color(red: 0.21, green: 0.20, blue: 0.45),
+        dark: Color(red: 0.92, green: 0.91, blue: 0.99)
+    )
+    static let subtitle = Color(
+        light: Color(red: 0.36, green: 0.34, blue: 0.55),
+        dark: Color(red: 0.73, green: 0.71, blue: 0.87)
+    )
+    static let muted = Color(
+        light: Color(red: 0.55, green: 0.55, blue: 0.70),
+        dark: Color(red: 0.58, green: 0.57, blue: 0.72)
+    )
+    /// 다크에선 한 단계 밝혀 어두운 배경 위 가독성을 지킨다.
+    static let primary = Color(
+        light: Color(red: 0.55, green: 0.46, blue: 0.93),
+        dark: Color(red: 0.66, green: 0.59, blue: 0.98)
+    )
+    /// 다크에선 그림자가 안 보이므로 글로우처럼 더 진하게.
+    static let primaryShadow = Color(
+        light: Color(red: 0.55, green: 0.46, blue: 0.93).opacity(0.30),
+        dark: Color(red: 0.45, green: 0.36, blue: 0.85).opacity(0.50)
+    )
+    static let cardFill = Color(
+        light: Color.white.opacity(0.55),
+        dark: Color.white.opacity(0.07)
+    )
+    static let cardSolid = Color(
+        light: Color.white.opacity(0.92),
+        dark: Color(red: 0.21, green: 0.19, blue: 0.31)
+    )
+    static let cardStroke = Color(
+        light: Color(red: 0.55, green: 0.46, blue: 0.93).opacity(0.15),
+        dark: Color.white.opacity(0.10)
+    )
+    /// 출처칩 텍스트 — 라이트는 라벤더 위 WCAG AA 확보용 진보라(#4C3EAD), 다크는 연보라.
+    static let chipText = Color(
+        light: Color(red: 0.30, green: 0.24, blue: 0.68),
+        dark: Color(red: 0.81, green: 0.77, blue: 1.0)
+    )
+    /// 프리뷰 하단 "아래로 이어짐" 페이드 색 — 배경 그라데이션과 맞춰 이질감 최소화.
+    static let fadeHint = Color(
+        light: Color(red: 0.86, green: 0.85, blue: 0.96),
+        dark: Color(red: 0.13, green: 0.11, blue: 0.20)
+    )
+    /// 메모 입력란 채움 — 배경보다 살짝 가라앉은(recessed) 톤. 라이트=어둡게, 다크=밝게.
+    static let memoFill = Color(
+        light: Color.black.opacity(0.045),
+        dark: Color.white.opacity(0.06)
+    )
+    /// 스낵바 캡슐 채움 — 양 모드 모두 흰 텍스트가 얹히므로 어두운 면을 유지한다.
+    static let snackbarFill = Color(
+        light: Color(red: 0.21, green: 0.20, blue: 0.45).opacity(0.92),
+        dark: Color(red: 0.30, green: 0.28, blue: 0.47).opacity(0.96)
+    )
+
+    /// primary CTA 채움 — 단색 보라 대신 좌상→우하 그라데이션으로 깊이를 더한다 (양 모드 공용).
+    static let primaryGradient = LinearGradient(
+        colors: [
+            Color(red: 0.62, green: 0.53, blue: 0.97),
+            Color(red: 0.50, green: 0.40, blue: 0.90),
+        ],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
+}
+
+// MARK: - Haptics
+
+/// 익스텐션에서도 동작하는 가벼운 햅틱 래퍼 — 실패해도 무해(no-op).
+enum ShareHaptics {
+    static func success() {
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+    }
+}
+
+// MARK: - Entrance choreography
+
+/// 시트 등장 직후 콘텐츠가 위→아래 순서로 떠오르는 스태거드 입장 안무.
+/// `index` 순서대로 0.06s 간격 spring. `appeared` 는 부모가 `onAppear` 에서 켠다.
+private struct ShareEntranceModifier: ViewModifier {
+    let index: Int
+    let appeared: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .opacity(appeared ? 1 : 0)
+            .offset(y: appeared ? 0 : 14)
+            .animation(
+                .spring(response: 0.5, dampingFraction: 0.82).delay(Double(index) * 0.06),
+                value: appeared
+            )
+    }
+}
+
+extension View {
+    func shareEntrance(_ index: Int, appeared: Bool) -> some View {
+        modifier(ShareEntranceModifier(index: index, appeared: appeared))
+    }
+}
+
+// MARK: - Top bar
+
+/// 상단 고정 바 — 좌측 "취소", 중앙 출처칩. 인사말 헤더를 없애고 그 수직 공간을 프리뷰에
+/// 양보한다 (이 화면의 주인공은 캡처 내용). 출처칩이 컨텍스트 단서 역할을 이어받고,
+/// 모찌 캐릭터는 저장 성공 모먼트(``ShareSuccessOverlay``)로 옮겨간다.
+/// 저장 중엔 취소를 숨겨 중복 조작을 막는다 (기존 overlay 패턴과 동일 근거).
+struct ShareTopBar: View {
+    let sourceApp: String?
+    let isSubmitting: Bool
+    let onCancel: () -> Void
+
+    var body: some View {
+        ZStack {
+            if let sourceApp {
+                SourceAppChip(name: sourceApp)
+            }
+            HStack {
+                if !isSubmitting {
+                    ShareCloseButton(action: onCancel)
+                }
+                Spacer()
+            }
+        }
+        .frame(minHeight: 44)
+    }
+}
+
+// MARK: - Success moment
+
+/// 저장 직후 dismiss 까지 보이는 성공 모먼트 — 모찌가 글로우와 함께 스프링 바운스로 떠오르고
+/// "기억했어요!" 가 따라온다. 하루에도 수십 번 뜨는 표면이라 짧은 정서적 보상이 반복 사용의
+/// 동기가 된다 (이전엔 로딩 닷 → 무보상 dismiss).
+///
+/// 큐 적재(로컬 atomic write)가 진실원천이고 직접전송은 best-effort 라, 전송 완료를 기다리지
+/// 않는 낙관적 "기억했어요" 가 정직하다. 노출 시간은 ``ShareExtensionPrincipal`` 의
+/// `minSuccessDisplay` 가 보장한다.
+struct ShareSuccessOverlay: View {
+    @State private var appeared = false
+
+    var body: some View {
+        ZStack {
+            ShareDesign.backgroundGradient
+                .ignoresSafeArea()
+
+            VStack(spacing: 18) {
+                ZStack {
+                    // 캐릭터 뒤 소프트 글로우 — 다크모드에서 특히 "빛나는 순간" 으로 읽힌다.
+                    Circle()
+                        .fill(ShareDesign.primary.opacity(0.22))
+                        .frame(width: 132, height: 132)
+                        .blur(radius: 26)
+                        .scaleEffect(appeared ? 1.0 : 0.3)
+
+                    // mochi-cheer — 만세 + 눈 감고 웃는 "완료" 전용 포즈 (인사 포즈와 구분).
+                    Image("mochi-cheer")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 96, height: 96)
+                        .scaleEffect(appeared ? 1.0 : 0.45)
+                        .rotationEffect(.degrees(appeared ? 0 : -8))
+                }
+                .animation(.spring(response: 0.42, dampingFraction: 0.62), value: appeared)
+
+                Text("기억했어요!")
+                    .font(.system(size: 23, weight: .bold, design: .rounded))
+                    .foregroundStyle(ShareDesign.title)
+                    .opacity(appeared ? 1 : 0)
+                    .offset(y: appeared ? 0 : 12)
+                    .animation(.spring(response: 0.45, dampingFraction: 0.8).delay(0.12), value: appeared)
+            }
+        }
+        .onAppear { appeared = true }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("모찌에 저장 완료"))
+    }
 }
 
 // MARK: - Primary CTA
 
-/// 보라 채움 라운드 primary 버튼 — `OnboardingButton` 과 동일 톤.
+/// 보라 그라데이션 라운드 primary 버튼 — `OnboardingButton` 과 동일 톤.
+/// 제출 피드백은 버튼 내 로딩이 아니라 ``ShareSuccessOverlay`` 가 전담한다.
 struct SharePrimaryButton: View {
     let title: String
+    var icon: String? = nil
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            Text(title)
-                .font(.system(size: 18, weight: .semibold, design: .rounded))
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 17)
-                .background(
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .fill(ShareDesign.primary)
-                )
-                .shadow(color: ShareDesign.primaryShadow, radius: 16, x: 0, y: 10)
+            HStack(spacing: 7) {
+                if let icon {
+                    Image(systemName: icon)
+                        .font(.system(size: 15, weight: .semibold))
+                }
+                Text(title)
+                    .font(.system(size: 18, weight: .semibold, design: .rounded))
+            }
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 17)
+            .background(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(ShareDesign.primaryGradient)
+                    .overlay(
+                        // 상단 안쪽 하이라이트 — 빛을 받는 듯한 유리 질감.
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [.white.opacity(0.35), .white.opacity(0.05)],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                ),
+                                lineWidth: 1
+                            )
+                    )
+            )
+            .shadow(color: ShareDesign.primaryShadow, radius: 16, x: 0, y: 10)
         }
         .buttonStyle(ScalePressStyle())
         .accessibilityLabel(Text(title))
@@ -75,7 +278,9 @@ struct SourceAppChip: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 7)
         .background(
-            Capsule().fill(ShareDesign.primary.opacity(0.12))
+            Capsule()
+                .fill(.white.opacity(0.55))
+                .overlay(Capsule().stroke(ShareDesign.cardStroke, lineWidth: 1))
         )
         .accessibilityLabel(Text("\(name)에서 캡처됨"))
     }
@@ -115,6 +320,7 @@ struct RemoveImageButton: View {
                 .foregroundStyle(.white)
                 .frame(width: 32, height: 32)
                 .background(Color.black.opacity(0.42), in: Circle())
+                .overlay(Circle().stroke(.white.opacity(0.25), lineWidth: 0.5))
         }
         .frame(width: 44, height: 44)
         .padding(6)
@@ -150,9 +356,10 @@ struct ShareMemoField: View {
 
             ZStack(alignment: compact ? .leading : .topLeading) {
                 if memo.isEmpty {
+                    // 0.7 — 0.55 는 라벤더 위에서 "비활성 필드" 로 오해될 만큼 흐렸다.
                     Text("메모 추가하기 (선택)")
                         .font(memoFont)
-                        .foregroundStyle(ShareDesign.subtitle.opacity(0.55))
+                        .foregroundStyle(ShareDesign.subtitle.opacity(0.7))
                         .allowsHitTesting(false)
                 }
                 TextField("", text: $memo, axis: .vertical)
@@ -168,7 +375,7 @@ struct ShareMemoField: View {
         // 안쪽 stroke 로 "여기 적는 곳" 을 표준 텍스트필드처럼 표현한다. (그림자 없음 = recessed)
         .background(
             RoundedRectangle(cornerRadius: radius, style: .continuous)
-                .fill(Color.black.opacity(0.045))
+                .fill(ShareDesign.memoFill)
                 .overlay(
                     RoundedRectangle(cornerRadius: radius, style: .continuous)
                         .stroke(ShareDesign.title.opacity(0.10), lineWidth: 1)
@@ -246,8 +453,8 @@ struct SharePreviewImage: View {
 private struct ScalePressStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
+            .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
             .opacity(configuration.isPressed ? 0.92 : 1.0)
-            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: configuration.isPressed)
     }
 }

@@ -3,6 +3,7 @@ import ComposableArchitecture
 import CoreDomain
 import CorePersistence
 import CoreNetworking
+import DesignSystem
 
 /// 캘린더 탭 reducer.
 ///
@@ -20,6 +21,8 @@ public struct MochiCalendarFeature: Sendable {
         public var days: [CalendarDaySummary] = []
         /// 하단 "할 일" — **todo instance 단위** 행(한 아이템에 todo 여럿이면 각각 행). 미완료(마감임박순) + 완료(맨 밑).
         public var upcomingTodos: IdentifiedArrayOf<TodoRowItem> = []
+        /// 표시에서 합쳐진 중복 todo — 대표 행 id → 숨겨진 쌍둥이 행들. 완료 토글 시 함께 전이된다.
+        public var duplicateTodos: [UUID: [TodoRowItem]] = [:]
         /// 하단 "다가오는 일정" — 오늘 이후 일정 빠른순(시간축).
         public var upcomingSchedules: IdentifiedArrayOf<MochiItem> = []
         /// 마감(todo)·일정(schedule) 마커 + 날짜 sheet 의 원천 (payload 날짜 기준).
@@ -38,10 +41,19 @@ public struct MochiCalendarFeature: Sendable {
         case onAppear
         case repositoryChanged
         case monthStepped(Int)
-        case loaded(days: [CalendarDaySummary], todos: [TodoRowItem], schedules: [MochiItem], dueItems: [MochiItem])
+        /// 헤더 "오늘" — 현재 월로 점프.
+        case todayTapped
+        case loaded(
+            days: [CalendarDaySummary],
+            todos: [TodoRowItem],
+            duplicateTodos: [UUID: [TodoRowItem]],
+            schedules: [MochiItem],
+            dueItems: [MochiItem]
+        )
         case daySelected(Date?)
         case dayItemsLoaded([MochiItem])
-        case mochiItemTapped(MochiItem.ID)
+        /// 항목 탭 — DaySheet 셀은 hero frame 을 실어 보내 셀→상세 zoom 전환의 시작점이 된다.
+        case mochiItemTapped(MochiItem.ID, hero: HeroSourceFrames?)
         /// 할 일 체크박스 탭 — 그 todo instance 를 완료↔미완료 토글(로컬 낙관적 + 서버 push, 실패 시 롤백).
         case todoCompletionToggled(TodoRowItem)
         case operationFailed(String)
@@ -50,10 +62,12 @@ public struct MochiCalendarFeature: Sendable {
     @Dependency(\.mochiItemRepository) var repository
     @Dependency(\.mochiAPIClient) var apiClient
 
-    private enum CancelID { case observe }
+    private enum CancelID { case observe, load }
 
     /// 하단 마감 임박 할 일 표시 개수(스캔은 전량, 표시는 상한).
     static let upcomingTodoDisplayLimit = 20
+    /// 완료한 일(접이식) 표시 상한 — 잘못 누른 완료를 되돌릴 수 있는 최근 분량만.
+    static let completedTodoDisplayLimit = 10
 
     public init() {}
 
@@ -66,7 +80,8 @@ public struct MochiCalendarFeature: Sendable {
                 // 최초 load + 저장소 변경 관찰. observer 는 신호만 보내고(.repositoryChanged),
                 // 실제 reload 는 reducer 가 '현재' monthAnchor 로 한다(월 이동 후 stale anchor 방지).
                 return .merge(
-                    .run { send in await loadMonth(anchor, send: send) },
+                    .run { send in await loadMonth(anchor, send: send) }
+                        .cancellable(id: CancelID.load, cancelInFlight: true),
                     .run { send in
                         for await _ in repository.observeChanges() {
                             await send(.repositoryChanged)
@@ -78,6 +93,7 @@ public struct MochiCalendarFeature: Sendable {
             case .repositoryChanged:
                 let anchor = state.monthAnchor
                 return .run { send in await loadMonth(anchor, send: send) }
+                    .cancellable(id: CancelID.load, cancelInFlight: true)
 
             case let .monthStepped(delta):
                 let calendar = Calendar.mochiSeoul
@@ -86,12 +102,22 @@ public struct MochiCalendarFeature: Sendable {
                 }
                 state.isLoading = true
                 let anchor = state.monthAnchor
+                // 빠른 연타 시 늦게 도착한 stale loaded 가 최신 월을 덮지 않게 직전 로드를 취소.
                 return .run { send in await loadMonth(anchor, send: send) }
+                    .cancellable(id: CancelID.load, cancelInFlight: true)
 
-            case let .loaded(days, todos, schedules, dueItems):
+            case .todayTapped:
+                state.monthAnchor = Date()
+                state.isLoading = true
+                let anchor = state.monthAnchor
+                return .run { send in await loadMonth(anchor, send: send) }
+                    .cancellable(id: CancelID.load, cancelInFlight: true)
+
+            case let .loaded(days, todos, duplicateTodos, schedules, dueItems):
                 state.isLoading = false
                 state.days = days
                 state.upcomingTodos = IdentifiedArray(uniqueElements: todos)
+                state.duplicateTodos = duplicateTodos
                 state.upcomingSchedules = IdentifiedArray(uniqueElements: schedules)
                 state.dueItems = dueItems
                 return .none
@@ -128,43 +154,51 @@ public struct MochiCalendarFeature: Sendable {
                 return .none
 
             case let .todoCompletionToggled(row):
-                let todo = row.instance
-                let item = row.item
-                let isCompleted = todo.lifecycle.kind == .archived
-                let target: InstanceLifecycle = isCompleted ? .active : .archived(reason: .todoCompleted)
-                let rollback = todo.lifecycle
-                let serverID: UUID? = {
-                    if case let .uploaded(sid, _) = item.syncState { return sid } else { return nil }
-                }()
-                return .run { send in
-                    // 낙관적 로컬 전이 — observeChanges 가 즉시 리스트를 다시 그린다.
-                    try? await repository.updateInstanceLifecycle(mochiItemID: item.id, instanceID: todo.id, to: target)
-                    // 서버 영속(prod) — 업로드된 item 만(serverID 없으면 아직 서버에 없어 로컬만 유지).
-                    guard let serverID else { return }
-                    do {
-                        _ = try await apiClient.updateInstanceLifecycle(
-                            mochiServerID: serverID, instanceID: todo.id, to: target
-                        )
-                    } catch let error as APIErrorEnvelope where error.code == "intent_instance.not_found" {
-                        // 기존 데이터 치유 — 변경 전 분석된 todo 는 로컬 instance id 가 서버 id 와 불일치.
-                        // 서버 최신에서 같은 label 의 todo instance 를 찾아 재시도하고, 응답으로 로컬을 교정한다.
-                        await healLegacyTodoInstance(
-                            repository: repository, apiClient: apiClient,
-                            itemID: item.id, serverID: serverID, staleInstanceID: todo.id,
-                            staleLabel: todo.label, target: target, rollback: rollback, send: send
-                        )
-                    } catch {
-                        // 그 외 서버 실패 → 로컬 롤백(낙관적 업데이트 취소).
-                        try? await repository.updateInstanceLifecycle(
-                            mochiItemID: item.id, instanceID: todo.id, to: rollback
-                        )
-                        await send(.operationFailed(String(describing: error)))
-                    }
-                }
+                // 표시에서 합쳐진 중복(같은 제목·마감)도 함께 전이 — 하나만 완료하면
+                // 숨었던 쌍둥이가 미완료로 되살아나는 혼란을 막는다.
+                let rows = [row] + (state.duplicateTodos[row.id] ?? [])
+                return .merge(rows.map { toggleEffect(for: $0) })
 
             case .operationFailed:
                 // 롤백은 이미 수행됨 — 현재는 silent(추후 토스트). observeChanges 가 최신 상태로 복구.
                 return .none
+            }
+        }
+    }
+
+    /// 한 todo instance 의 완료↔미완료 토글 effect — 로컬 낙관적 전이 + 서버 push(실패 시 롤백).
+    private func toggleEffect(for row: TodoRowItem) -> Effect<Action> {
+        let todo = row.instance
+        let item = row.item
+        let isCompleted = todo.lifecycle.kind == .archived
+        let target: InstanceLifecycle = isCompleted ? .active : .archived(reason: .todoCompleted)
+        let rollback = todo.lifecycle
+        let serverID: UUID? = {
+            if case let .uploaded(sid, _) = item.syncState { return sid } else { return nil }
+        }()
+        return .run { send in
+            // 낙관적 로컬 전이 — observeChanges 가 즉시 리스트를 다시 그린다.
+            try? await repository.updateInstanceLifecycle(mochiItemID: item.id, instanceID: todo.id, to: target)
+            // 서버 영속(prod) — 업로드된 item 만(serverID 없으면 아직 서버에 없어 로컬만 유지).
+            guard let serverID else { return }
+            do {
+                _ = try await apiClient.updateInstanceLifecycle(
+                    mochiServerID: serverID, instanceID: todo.id, to: target
+                )
+            } catch let error as APIErrorEnvelope where error.code == "intent_instance.not_found" {
+                // 기존 데이터 치유 — 변경 전 분석된 todo 는 로컬 instance id 가 서버 id 와 불일치.
+                // 서버 최신에서 같은 label 의 todo instance 를 찾아 재시도하고, 응답으로 로컬을 교정한다.
+                await healLegacyTodoInstance(
+                    repository: repository, apiClient: apiClient,
+                    itemID: item.id, serverID: serverID, staleInstanceID: todo.id,
+                    staleLabel: todo.label, target: target, rollback: rollback, send: send
+                )
+            } catch {
+                // 그 외 서버 실패 → 로컬 롤백(낙관적 업데이트 취소).
+                try? await repository.updateInstanceLifecycle(
+                    mochiItemID: item.id, instanceID: todo.id, to: rollback
+                )
+                await send(.operationFailed(String(describing: error)))
             }
         }
     }
@@ -174,7 +208,7 @@ public struct MochiCalendarFeature: Sendable {
     private func loadMonth(_ anchor: Date, send: Send<Action>) async {
         let calendar = Calendar.mochiSeoul
         guard let monthInterval = calendar.dateInterval(of: .month, for: anchor) else {
-            await send(.loaded(days: [], todos: [], schedules: [], dueItems: []))
+            await send(.loaded(days: [], todos: [], duplicateTodos: [:], schedules: [], dueItems: []))
             return
         }
         // active todo 는 (사실상)전량 스캔 후 마감순 정렬 → 상위 N. captured 순으로 먼저 자르면
@@ -189,9 +223,15 @@ public struct MochiCalendarFeature: Sendable {
         let (items, todos, schedules) = await (itemsTask, todosTask, schedulesTask)
         // 마커·sheet 원천은 active todo·active schedule 만 기여(CalendarDueDate.dueDates 가 거른다).
         let dueItems = CalendarDueDate.merge(todos: todos, schedules: schedules)
+        // 같은 화면을 두 번 캡처해 todo 가 쌍둥이로 잡힌 경우 — 표시는 하나로 합치되,
+        // 숨겨진 중복은 duplicateTodos 로 보존해 완료 토글이 함께 전이되게 한다.
+        let (todoRows, duplicateTodos) = CalendarTodoSorter.dedupForDisplay(CalendarTodoSorter.rows(todos))
+        let incomplete = todoRows.filter { !$0.isCompleted }.prefix(Self.upcomingTodoDisplayLimit)
+        let completed = todoRows.filter(\.isCompleted).prefix(Self.completedTodoDisplayLimit)
         await send(.loaded(
             days: CalendarDaySummary.group(captured: items, due: dueItems, calendar: calendar),
-            todos: Array(CalendarTodoSorter.rows(todos).prefix(Self.upcomingTodoDisplayLimit)),
+            todos: Array(incomplete) + Array(completed),
+            duplicateTodos: duplicateTodos,
             schedules: Array(UpcomingScheduleSorter.sort(schedules).prefix(Self.upcomingTodoDisplayLimit)),
             dueItems: dueItems
         ))
@@ -217,19 +257,19 @@ public struct TodoRowItem: Identifiable, Equatable, Sendable {
     public var deadline: Date? { CalendarDueDate.parse(instance.payload.deadline ?? instance.payload.date) }
 }
 
-/// 캘린더 한 칸(하루)의 집계 — 두 축을 독립 인코딩한다.
-/// ① 저장(capturedAt): 가운데 점(대표 intent 색) + 개수. ② 마감/일정(payload 날짜): 날짜 숫자 강조.
+/// 캘린더 한 칸(하루)의 집계 — 세 신호를 **같은 시각 언어(점)** 로 인코딩한다.
+/// 일정(sky) · 할 일 마감(butter) · 저장(purple), 각 신호당 점 하나(개수 없음) — 카드 하단 범례와 1:1.
 public struct CalendarDaySummary: Equatable, Sendable, Identifiable {
     public let date: Date              // startOfDay(KST)
     /// 그날 **저장(capturedAt)** 개수.
     public let count: Int
-    /// 저장 점 색 — 그날 캡처된 것들의 대표 intent (저장 없으면 nil).
-    public let representativeIntent: Intent?
     public let thumbnailRelativePath: String?
     /// 그날 **마감(todo)·일정(schedule)** 개수.
     public let dueCount: Int
-    /// 마감/일정 강조 색 — `schedule > todo` 우선 (없으면 nil).
-    public let dueIntent: Intent?
+    /// 그날 일정(schedule) 있음 — sky 점.
+    public let hasScheduleDue: Bool
+    /// 그날 할 일 마감(todo) 있음 — butter 점.
+    public let hasTodoDue: Bool
     public var id: Date { date }
 
     public var hasCaptured: Bool { count > 0 }
@@ -257,28 +297,12 @@ public struct CalendarDaySummary: Equatable, Sendable, Identifiable {
             return CalendarDaySummary(
                 date: day,
                 count: group.count,
-                representativeIntent: Self.representative(group),
                 thumbnailRelativePath: group.lazy.compactMap { $0.source.imageRefs.first?.relativePath }.first,
                 dueCount: dueIntents.count,
-                dueIntent: Self.dueRepresentative(dueIntents)
+                hasScheduleDue: dueIntents.contains(.schedule),
+                hasTodoDue: dueIntents.contains(.todo)
             )
         }
-    }
-
-    /// 그날 대표 Intent = **고정 우선순위** `schedule > todo > knowledge > memo` 중 그날 instance 에
-    /// 존재하는 최상위. 최빈값/점수 argmax 폐기 — 의미 우선순위가 점 색의 단일 결정 기준이라
-    /// 매 로드마다 점 색이 안정적이다.
-    private static func representative(_ group: [MochiItem]) -> Intent? {
-        let priority: [Intent] = [.schedule, .todo, .knowledge, .memo]
-        let present = Set(group.flatMap { $0.intentTypes })
-        return priority.first { present.contains($0) }
-    }
-
-    /// 마감/일정 마커 색 — `schedule`(파랑) > `todo`(노랑) 우선.
-    private static func dueRepresentative(_ intents: [Intent]) -> Intent? {
-        let priority: [Intent] = [.schedule, .todo]
-        let present = Set(intents)
-        return priority.first { present.contains($0) }
     }
 }
 
@@ -308,19 +332,61 @@ enum CalendarTodoSorter {
                 : lhs.id.uuidString < rhs.id.uuidString
         }
     }
+
+    /// 표시용 dedup — 같은 (제목, 라벨, 마감일, 완료여부) 행은 하나로 합친다(같은 화면 중복 캡처).
+    /// 숨겨진 쌍둥이는 대표 행 id 로 매핑해 돌려준다 — 완료 토글이 함께 전이돼야
+    /// 하나만 완료한 뒤 숨었던 쌍둥이가 미완료로 되살아나지 않는다.
+    static func dedupForDisplay(_ rows: [TodoRowItem]) -> (display: [TodoRowItem], duplicates: [UUID: [TodoRowItem]]) {
+        var ownerByKey: [String: UUID] = [:]
+        var display: [TodoRowItem] = []
+        var duplicates: [UUID: [TodoRowItem]] = [:]
+        for row in rows {
+            let key = dedupKey(row)
+            if let ownerID = ownerByKey[key] {
+                duplicates[ownerID, default: []].append(row)
+            } else {
+                ownerByKey[key] = row.id
+                display.append(row)
+            }
+        }
+        return (display, duplicates)
+    }
+
+    private static func dedupKey(_ row: TodoRowItem) -> String {
+        let day = row.deadline.map { Calendar.mochiSeoul.startOfDay(for: $0).timeIntervalSince1970 }
+        return [
+            normalizedDedupComponent(row.item.displayTitle),
+            normalizedDedupComponent(row.instance.label ?? ""),
+            day.map { String($0) } ?? "-",
+            String(row.isCompleted),
+        ].joined(separator: "|")
+    }
+}
+
+/// dedup 키용 문자열 정규화 — 공백 트림 + 소문자(같은 화면 재캡처의 사소한 흔들림 흡수).
+/// 캘린더 탭과 "이번 주 돌아보기"가 같은 정책을 쓴다.
+func normalizedDedupComponent(_ raw: String) -> String {
+    raw.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
 }
 
 /// 캘린더 하단 "다가오는 일정" 정렬 — 오늘 0시(KST) 이후 일정만, 가장 빠른 일정이 맨 위.
 /// 일정은 시각 고정·완료 개념 없음이라 todo(긴급도축)와 다른 시간축으로 떠오른다(지난 일정은 제외).
 enum UpcomingScheduleSorter {
     static func sort(_ schedules: [MochiItem]) -> [MochiItem] {
-        let todayStart = Calendar.mochiSeoul.startOfDay(for: Date())
+        let calendar = Calendar.mochiSeoul
+        let todayStart = calendar.startOfDay(for: Date())
+        var seen = Set<String>()
         return schedules
             .compactMap { item -> (item: MochiItem, date: Date)? in
                 guard let date = scheduleDate(of: item, onOrAfter: todayStart) else { return nil }
                 return (item, date)
             }
             .sorted { $0.date != $1.date ? $0.date < $1.date : $0.item.id.uuidString < $1.item.id.uuidString }
+            // 같은 화면 중복 캡처(같은 제목·같은 날) 표시 dedup — 일정은 완료 개념이 없어 표시만 합치면 충분.
+            .filter { pair in
+                let day = calendar.startOfDay(for: pair.date).timeIntervalSince1970
+                return seen.insert("\(normalizedDedupComponent(pair.item.displayTitle))|\(day)").inserted
+            }
             .map(\.item)
     }
 
