@@ -388,11 +388,36 @@ private struct IntentActionsSection: View {
     /// 일정 일시 표기 — `payload.date`(+`time`)를 `PayloadDate`(단일 원천)로 파싱해
     /// 캘린더 탭과 같은 한국어·KST 로 보여준다. 파싱 불가(자연어 표기)면 원문 그대로 —
     /// 날짜가 아예 안 보이는 것보다 낫다. 일시 자체가 없으면 nil(기존 한 줄 통지 유지).
+    /// 기간 일정(`endDate`)은 "시작 ~ 끝" 으로 표기한다 — 역전(끝<시작)·파싱 불가 end 는
+    /// 점 일정으로 수렴해 시작만 표기(캘린더 `CalendarDueDate.scheduleEnd`·EK 등록과 동일 가드).
     private static func scheduleWhen(_ instance: IntentInstance) -> String? {
-        guard let rawDate = instance.payload.date, !rawDate.isEmpty else { return nil }
-        // date 가 날짜만(yyyy-MM-dd, 10자)이고 time 이 따로 오면 합쳐 파싱한다.
+        let payload = instance.payload
+        guard let startLabel = formatted(date: payload.date, time: payload.time) else { return nil }
+        guard let start = parsed(date: payload.date, time: payload.time),
+              let end = parsed(date: payload.endDate, time: payload.endTime),
+              end > start,
+              let endLabel = formatted(date: payload.endDate, time: payload.endTime)
+        else { return startLabel }
+        return "\(startLabel) ~ \(endLabel)"
+    }
+
+    /// date 가 날짜만(yyyy-MM-dd, 10자)이고 time 이 따로 오면 합쳐 파싱한다.
+    private static func parsed(date rawDate: String?, time: String?) -> Date? {
+        guard let rawDate, !rawDate.isEmpty else { return nil }
         let raw: String = {
-            if let time = instance.payload.time, !time.isEmpty, rawDate.count <= 10 {
+            if let time, !time.isEmpty, rawDate.count <= 10 {
+                return "\(rawDate) \(time)"
+            }
+            return rawDate
+        }()
+        return PayloadDate.parse(raw) ?? PayloadDate.parse(rawDate)
+    }
+
+    /// date(+time) 문자열 한 쌍을 표기 문자열로 — 파싱 불가면 원문, date 없으면 nil.
+    private static func formatted(date rawDate: String?, time: String?) -> String? {
+        guard let rawDate, !rawDate.isEmpty else { return nil }
+        let raw: String = {
+            if let time, !time.isEmpty, rawDate.count <= 10 {
                 return "\(rawDate) \(time)"
             }
             return rawDate

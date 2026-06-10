@@ -537,6 +537,8 @@ def _to_analysis_result(payload: dict[str, Any]) -> AnalysisResult:
                 title=i.payload.title,
                 date=i.payload.date,
                 time=i.payload.time,
+                end_date=i.payload.end_date,
+                end_time=i.payload.end_time,
                 deadline=i.payload.deadline,
                 person=i.payload.person,
                 topic=i.payload.topic,

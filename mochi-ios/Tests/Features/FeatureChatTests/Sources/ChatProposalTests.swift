@@ -280,6 +280,22 @@ final class ChatProposalTests: XCTestCase {
         XCTAssertNotNil(reminders.first?.due)
     }
 
+    func test_scheduleEnd_parses_range_and_degrades_invalid_to_nil() {
+        let (start, _) = ChatFeature.scheduleStart(from: ["date": "2026-06-12"])!
+        // 기간 일정: end_date(+end_time) → EKEvent 종료 시각.
+        XCTAssertEqual(
+            ChatFeature.scheduleEnd(from: ["end_date": "2026-06-14", "end_time": "18:00"], start: start),
+            PayloadDate.parse("2026-06-14 18:00")
+        )
+        XCTAssertEqual(
+            ChatFeature.scheduleEnd(from: ["end_date": "2026-06-14"], start: start),
+            PayloadDate.parse("2026-06-14")
+        )
+        // end 없음·역전 데이터는 nil — 점 일정의 기존 기본값(종일=start, 시각=+1h)을 따른다.
+        XCTAssertNil(ChatFeature.scheduleEnd(from: [:], start: start))
+        XCTAssertNil(ChatFeature.scheduleEnd(from: ["end_date": "2026-06-10"], start: start))
+    }
+
     func test_confirm_schedule_permission_denied_fails_with_settings_nudge() async {
         let api = StubAPIClient()
         await api.setIngestResult(schedulePayloadDTO())

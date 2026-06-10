@@ -167,4 +167,52 @@ CHAT_V4 = PromptVersion(
     ),
 )
 
-ACTIVE_CHAT_PROMPT: PromptVersion = CHAT_V4
+CHAT_V5 = PromptVersion(
+    name="chat@v5",
+    body=CHAT_V4.body.replace(
+        (
+            "- The user's saved records are your primary truth. Call search_items before answering "
+            "anything about their life, plans, or saved content — your built-in knowledge cannot "
+            "contain their records, so an unsearched answer about them is a guess.\n"
+        ),
+        (
+            "- The user's saved records are your primary truth. Call search_items before answering "
+            "anything about their life, plans, or saved content — your built-in knowledge cannot "
+            "contain their records, so an unsearched answer about them is a guess.\n"
+            "- The user has no idea how their records are filed inside. They call everything "
+            "\"메모\" or \"그거\", and the word they reach for (\"할 일\", \"일정\", \"메모\") "
+            "rarely matches the intent a record was actually classified as — so their vocabulary "
+            "is a hint about what they want, never a filter. Leave intent_type unset and let the "
+            "records' content decide relevance; narrowing to one kind because they named it "
+            "silently buries the very record they're asking for.\n"
+            "- Two flavors of time question, two axes. When they recall what they *saved* "
+            "(\"오늘 적은 거\", \"방금 그 메모\", \"요즘 모아둔 거\"), scope by capture time "
+            "(date_from/date_to) and browse newest-first — they're retracing their own notes, so "
+            "\"오늘 할 거\" means everything they captured today across every kind, not only "
+            "today's deadlines. When they ask what *happens or is due* in a window (\"내일 "
+            "일정\", \"이번주 마감\"), scope by occurs_from/occurs_to instead.\n"
+            "- Match loosely, then let content confirm it. For a vague pointer at something recent "
+            "(\"방금 그거\", \"아까 그 메모\", \"방금 남긴 거 수정\") just take the newest "
+            "record rather than inventing keywords from their paraphrase that may not appear in "
+            "what they saved — a confident \"못 찾았어요\" over a record that's right there is "
+            "worse than offering a near-miss for them to confirm.\n"
+        ),
+    ),
+    model_target="gemini-3.1-flash-lite",
+    eval_dataset_version="chat-v1@2026-06-10",
+    revised_on=date(2026, 6, 10),
+    rationale=(
+        "V4 → V5: '사용자는 4-Intent 분류를 모른다'는 전제를 검색 전략으로 승격. 두 실기기 "
+        "패턴 대응 — ① \"방금 남긴 메모 수정\"류를 모델이 vague 패러프레이즈로 키워드를 "
+        "지어내거나 intent_type=memo 로 좁혀 0건을 내던 것을, 최신순 러프 브라우즈(무필터·"
+        "무키워드)로. ② \"오늘 할 거 알려줘\"를 occurs-today TODO 로 좁히지 말고 capture-time "
+        "today 전체 mochi-item 으로 — 사용자 멘탈모델은 '오늘 적은 거'이지 마감일 달력이 "
+        "아니다. 핵심 why: 사용자 어휘(메모/할일/일정)는 내부 intent 와 거의 안 맞아서 그 "
+        "단어로 intent_type 필터를 걸면 정작 찾는 기록이 묻힌다. 좁은 발화 예시 나열 대신 "
+        "기준+why 로 작성(skill-creator 철학). 트레이드오프: '오늘 적은 것 회상'을 우선한 "
+        "결정이라, 마감일이 오늘인데 이전에 저장한 항목은 capture-time 윈도에서 빠진다 — "
+        "future-dated 'occurs' 질문(\"오늘 마감인 거\")은 occurs 축이 여전히 잡는다."
+    ),
+)
+
+ACTIVE_CHAT_PROMPT: PromptVersion = CHAT_V5

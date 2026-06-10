@@ -57,7 +57,7 @@ public struct ChatProposal: Equatable, Sendable, Identifiable {
 
     public struct InstanceChange: Equatable, Sendable {
         public let instanceID: UUID
-        /// 부분 payload 필드 (title/date/time/deadline/person/topic/url/note) — 병합 PATCH.
+        /// 부분 payload 필드 (title/date/time/end_date/end_time/deadline/person/topic/url/note) — 병합 PATCH.
         public let payload: [String: String]
         public let label: String?
         public let lifecycleTo: String?

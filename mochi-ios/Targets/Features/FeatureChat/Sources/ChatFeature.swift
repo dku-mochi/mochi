@@ -530,19 +530,37 @@ public struct ChatFeature: Sendable {
         if !schedules.isEmpty { try await calendarSyncer.requestEventAccess() }
         if !todos.isEmpty { try await calendarSyncer.requestReminderAccess() }
 
+        // 권한 확보 후의 save 실패(기본 캘린더 부재 등)는 best-effort 로 삼킨다 — 모찌 기록은
+        // 이미 생성됐고(확정의 본질), failed 카드로 재확정을 유도하면 앞서 만든 EK 항목만
+        // 중복된다(EventKit save 는 멱등이 아님) (리뷰 P2).
         for instance in schedules {
             guard let (start, allDay) = Self.scheduleStart(from: instance.payload) else { continue }
-            _ = try await calendarSyncer.createEvent(
+            _ = try? await calendarSyncer.createEvent(
                 title: instance.payload["title"] ?? payload.text ?? "모찌 일정",
-                start: start, end: nil, allDay: allDay
+                start: start,
+                end: Self.scheduleEnd(from: instance.payload, start: start),
+                allDay: allDay
             )
         }
         for instance in todos {
-            _ = try await calendarSyncer.createReminder(
+            _ = try? await calendarSyncer.createReminder(
                 title: instance.payload["title"] ?? payload.text ?? "모찌 할 일",
                 due: PayloadDate.parse(instance.payload["deadline"])
             )
         }
+    }
+
+    /// payload end_date(+end_time) → 기간 일정의 이벤트 종료 시각.
+    /// 없거나 파싱 불가·시작 이전이면 nil — 점 일정으로 기존 기본값(종일=start, 시각=+1h)을 따른다.
+    /// 종일 기간 일정의 end(그날 00:00)는 시작과 같은 규약이라 그대로 둔다(EKEvent 종일 관례와 일치).
+    static func scheduleEnd(from payload: [String: String], start: Date) -> Date? {
+        guard let rawEndDate = payload["end_date"], !rawEndDate.isEmpty else { return nil }
+        let rawEndTime = payload["end_time"] ?? ""
+        let parsed = rawEndTime.isEmpty
+            ? PayloadDate.parse(rawEndDate)
+            : PayloadDate.parse("\(rawEndDate) \(rawEndTime)") ?? PayloadDate.parse(rawEndDate)
+        guard let end = parsed, end > start else { return nil }
+        return end
     }
 
     /// payload date(+time) → 이벤트 시작 시각. time 이 없으면 종일 일정.

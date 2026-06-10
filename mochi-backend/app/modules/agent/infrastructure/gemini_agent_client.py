@@ -37,6 +37,8 @@ _PAYLOAD_PROPS: dict[str, Any] = {
     "title": {"type": "string"},
     "date": {"type": "string"},
     "time": {"type": "string"},
+    "end_date": {"type": "string"},
+    "end_time": {"type": "string"},
     "deadline": {"type": "string"},
     "person": {"type": "string"},
     "topic": {"type": "string"},

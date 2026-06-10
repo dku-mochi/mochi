@@ -137,6 +137,8 @@ def _to_response(item: MochiItem) -> MochiItemResponse:
                     title=inst.payload.title,
                     date=inst.payload.date,
                     time=inst.payload.time,
+                    end_date=inst.payload.end_date,
+                    end_time=inst.payload.end_time,
                     deadline=inst.payload.deadline,
                     person=inst.payload.person,
                     topic=inst.payload.topic,
