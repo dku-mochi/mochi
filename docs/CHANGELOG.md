@@ -15,6 +15,13 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 >
 > **동시 세션 / 공유 파일 주의**: CHANGELOG 는 여러 세션·작업자가 함께 쓰는 append-only 공유 파일이다. 동시 작업 중에는 다른 세션이 자기 항목을 먼저 커밋할 수 있고, 한 워킹트리에 여러 세션의 미커밋 항목이 섞여 보일 수 있다. 이때 **항목을 분리하려 애쓰지 말고** 자기 변경과 함께 그대로 staging·커밋한다 — 섞인 다른 항목은 해당 세션이 자기 코드와 함께 정리한다. diff 에 모르는 CHANGELOG 항목이 보여도 멈추지 않는다 (단, CHANGELOG 외의 *코드* 파일은 절대 임의로 섞어 커밋하지 않는다).
 
+## 2026-06-10 — ios, docs
+- **문서 재구조화 리뷰(P2) 반영.** code-reviewer deep review PASS(P1 없음) 후 P2 정리:
+  - [docs] 실패/지연 fallback 정책(`demoteToManual`/90s/`requeueForAnalysis`) 복원 — 다이어트 중 유실된 행동 결정을 `UX_SPEC.md` §3.10 + `DOMAIN_DESIGN.md` §6.3 에 재기재. 주간 돌아보기 dedupe 뉘앙스·user_memo 포인터·INTENT_REDESIGN §4.4→§4·온보딩/홈 코드 주석의 옛 절번호도 정정.
+  - [ios] `TabBarReselect` 크로스탭 누출 수정 — 전역 delegate 라 홈/캘린더 재탭에도 `searchTabReselected` 가 발사되던 것을 probe 소속 탭 검사(`ownTabRootViewController`)로 제한.
+  - [ios] `SearchFeature` 검색 effect 에 `cancellable(cancelInFlight:)` + clear 시 `.cancel` — mock 은 즉답이라 잠복하지만 서버 어댑터 교체 시 stale 결과 race 가 되는 것을 선제 차단. `tuist build Mochi` green.
+  - 미해소(원작성자 결정 필요): 검색 샘플 카드 탭 → Realm 에 없는 designDemo id 라 빈 상세로 빠지는 죽은 플로우(탭 무시 vs Realm 시드), `SearchFeature.Delegate` dead 선언, `MainTabFeature` 도달불가 case.
+
 ## 2026-06-10 — infra
 - **하네스: UX_SPEC 신설 반영 + .env 키 introspection 경로 신설.**
   - `audit.sh`/`/audit`/`doc-guardian`/`/sprint-end` 가 신설 `UX_SPEC.md`(L3 committed)를 감사·스캔 대상에 포함, sprint 목표 포인터를 PRODUCT MVP 로 정정.

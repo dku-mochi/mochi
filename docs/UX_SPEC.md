@@ -149,7 +149,7 @@ description: 화면·시나리오·IA·디자인 톤·데모 시나리오의 com
 1. **월간 캘린더** — 칸을 **점 3종(단일 시각 언어)** 으로 칠한다: 일정(sky, active schedule 의 `payload.date`) · 할 일 마감(butter, active todo 의 `payload.deadline ?? payload.date`) · 저장(purple, `capturedAt`). 각 신호당 점 하나 — 개수·대표 intent 색 폐기(2026-06-10, 캡처 intent 색과 마감 마커 색의 한 칸 충돌 제거). 카드 하단 범례와 1:1.
 2. **날짜 탭** — 그날 캡처 + 그날 마감/일정 항목을 sheet 로 함께 표시. sheet 셀 탭은 sheet 를 닫지 않고 그 위로 상세를 hero present (닫으면 보던 목록 복귀).
 3. **하단 리스트** — ① 다가오는 일정(active schedule, 오늘 이후 빠른 시간순) ② 마감 임박한 할 일(미완료) ③ 완료한 일(접이식, 재토글 가능).
-4. **할 일 체크박스** — `active ↔ archived(todoCompleted)` 토글, 서버 `POST .../lifecycle` 로 영속(낙관적 로컬 + 서버 push, 실패 시 롤백). 같은 화면 중복 캡처(같은 제목·라벨·마감)는 **표시에서 하나로 합치되**, 숨은 쌍둥이 instance 도 완료 토글에 함께 전이된다(하나만 완료하면 쌍둥이가 되살아나는 혼란 방지). 도메인 데이터는 합치지 않는다.
+4. **할 일 체크박스** — `active ↔ archived(todoCompleted)` 토글, 서버 `POST .../lifecycle` 로 영속(낙관적 로컬 + 서버 push, 실패 시 롤백). 같은 화면 중복 캡처(같은 제목·라벨·마감)는 **표시에서 하나로 합치되**, 숨은 쌍둥이 instance 도 완료 토글에 함께 전이된다(하나만 완료하면 쌍둥이가 되살아나는 혼란 방지). 주간 돌아보기도 같은 취지로 합치되, 거긴 instance label 이 없어 마감 없는 항목은 합치지 않는다. 도메인 데이터는 합치지 않는다.
 
 ### 3.7 백탭 Snippet 카드 + 메모 모달 + 온보딩 검증
 
@@ -216,7 +216,7 @@ UI (`ShareEntryView`) — 콘텐츠에 따라 2가지 레이아웃:
 - **이미지 우세 모드** (이미지만): 탑바(취소+출처 칩) + 첫 이미지 전체 높이 + 추가 이미지 개수 + 메모 필드(compact) + 저장
 - **텍스트/URL 우세 모드**: 탑바 + Preview 카드(URL host 강조·텍스트 인용·이미지 개수) + 메모 필드(펼침) + 저장
 
-메모 필드(`userMemo`, "추가 메모가 있으면 알려주세요")는 분류 시 화면보다 우선하는 1차 의도 증거로 쓰인다 (DOMAIN_DESIGN §4).
+메모 필드(`userMemo`, "추가 메모가 있으면 알려주세요")는 분류 시 화면보다 우선하는 1차 의도 증거로 쓰인다 (DOMAIN_DESIGN §3).
 
 ### 3.10 분석 진행·완료 피드백 — Live Activity + 알림
 
@@ -237,6 +237,8 @@ UI (`ShareEntryView`) — 콘텐츠에 따라 2가지 레이아웃:
 - 앱 복귀 시 reconcile — background 중 놓친 상태를 1회 동기화.
 
 **always-on fallback**: 알림 권한을 거부하거나 푸시를 놓쳐도, 홈의 **"지금 확인해 주세요" 버킷**(§3.4)이 진실원천이라 헷갈려요 처리는 언제든 앱 안에서 가능하다.
+
+**실패/지연 fallback**: lifecycle `failed` 또는 분석 90s 초과 시 `demoteToManual` → "헷갈려요(의견 없음)" + 직접 분류 + "다시 맡기기"(`requeueForAnalysis`). webFetch 실패 등으로 인한 무한 폴링을 차단하고, 분석이 죽어도 항목이 사용자 손에서 벗어나지 않게 한다.
 
 ---
 
