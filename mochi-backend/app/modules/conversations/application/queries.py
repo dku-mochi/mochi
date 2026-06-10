@@ -73,3 +73,24 @@ class DeleteConversation:
 
     async def execute(self, *, owner_id: UUID, conversation_id: UUID) -> bool:
         return await self.repository.soft_delete(owner_id=owner_id, conversation_id=conversation_id)
+
+
+@dataclass(frozen=True, slots=True)
+class SetProposalStatus:
+    """proposal 카드 확정/취소 영속 — 스냅샷 복귀 시 카드 상태 복원의 단일 원천.
+
+    confirmed/cancelled 만 영속한다 — expired(404)·failed 는 재확정 시 결정적으로
+    재현되는 일시 상태라 저장할 가치가 없다. 없으면 False (→404).
+    """
+
+    repository: ConversationRepository
+
+    async def execute(
+        self, *, owner_id: UUID, conversation_id: UUID, proposal_id: UUID, status: str
+    ) -> bool:
+        return await self.repository.set_proposal_status(
+            owner_id=owner_id,
+            conversation_id=conversation_id,
+            proposal_id=proposal_id,
+            status=status,
+        )

@@ -32,6 +32,9 @@ final class ChatSessionTests: XCTestCase {
             return snapshot
         }
         func deleteConversation(id: UUID) async throws {}
+        func setProposalStatus(
+            conversationID: UUID, proposalID: UUID, status: ChatProposalStatusUpdate
+        ) async throws {}
     }
 
     // MARK: - fold: 서버 행 → 렌더 단위
@@ -50,7 +53,11 @@ final class ChatSessionTests: XCTestCase {
             .init(
                 id: assistantID, role: "assistant", content: "답이에요",
                 citations: [.init(index: 1, mochiItemID: UUID(13), title: "제목", snippet: nil)],
-                proposals: [.init(id: UUID(14), type: "create_memo", payloadJSON: proposalPayload)]
+                proposals: [
+                    .init(id: UUID(14), type: "create_memo", payloadJSON: proposalPayload),
+                    // 서버가 영속한 확정 상태 — pending 으로 되살아나지 않아야 한다 (2026-06-10 버그).
+                    .init(id: UUID(17), type: "create_memo", payloadJSON: proposalPayload, status: "confirmed"),
+                ]
             ),
             // 다음 턴 — 실패한 run: tool 행만 있고 assistant 없음 → 버린다.
             .init(id: UUID(15), role: "user", content: "두번째"),
@@ -64,9 +71,10 @@ final class ChatSessionTests: XCTestCase {
         XCTAssertEqual(assistant.toolSteps.count, 1)
         XCTAssertEqual(assistant.toolSteps[0].summary, "3개를 찾았어요")
         XCTAssertEqual(assistant.citations.count, 1)
-        XCTAssertEqual(assistant.proposals.count, 1)
+        XCTAssertEqual(assistant.proposals.count, 2)
         XCTAssertEqual(assistant.proposals[0].status, .pending)
         XCTAssertEqual(assistant.proposals[0].proposal.kind, .createMemo)
+        XCTAssertEqual(assistant.proposals[1].status, .confirmed)   // 영속 상태 복원
     }
 
     // MARK: - 30분 자동분리
@@ -148,6 +156,9 @@ final class ChatSessionTests: XCTestCase {
                 return snapshots[calls]
             }
             func deleteConversation(id: UUID) async throws {}
+            func setProposalStatus(
+                conversationID: UUID, proposalID: UUID, status: ChatProposalStatusUpdate
+            ) async throws {}
         }
 
         let running = snapshot(messages: [
@@ -216,6 +227,9 @@ final class ChatSessionTests: XCTestCase {
                 throw APIErrorEnvelope(code: "x", message: "x", requestID: "r", retryAfter: nil)
             }
             func deleteConversation(id: UUID) async throws { deleted.withValue { $0.append(id) } }
+            func setProposalStatus(
+                conversationID: UUID, proposalID: UUID, status: ChatProposalStatusUpdate
+            ) async throws {}
         }
 
         var initial = ChatHistoryFeature.State()

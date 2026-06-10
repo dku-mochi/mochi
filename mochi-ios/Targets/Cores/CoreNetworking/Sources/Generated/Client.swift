@@ -1683,6 +1683,61 @@ public struct Client: APIProtocol {
             }
         )
     }
+    /// Update Proposal Status
+    ///
+    /// proposal 카드 확정/취소 영속 — 클라이언트가 확정 실행(REST) **성공 후** 호출한다.
+    ///
+    /// 스냅샷 복귀·히스토리 재진입 시 카드가 pending 으로 되살아나 "안 누른 것처럼" 보이는
+    /// 문제(2026-06-10 버그 리포트)의 단일 원천 해결 — 스냅샷의 proposals entry 에 ``status``
+    /// 가 실려 내려간다. 실행 자체(PATCH/DELETE/ingest)와 별도 호출인 것은 의도: 실행 경로가
+    /// 5종(로컬 알림 포함 — 서버 무관)이라 실행 API 에 끼워 넣을 단일 지점이 없다.
+    ///
+    /// - Remark: HTTP `PATCH /api/v1/conversations/{conversation_id}/proposals/{proposal_id}`.
+    /// - Remark: Generated from `#/paths//api/v1/conversations/{conversation_id}/proposals/{proposal_id}/patch(update_proposal_status_api_v1_conversations__conversation_id__proposals__proposal_id__patch)`.
+    public func update_proposal_status_api_v1_conversations__conversation_id__proposals__proposal_id__patch(_ input: Operations.update_proposal_status_api_v1_conversations__conversation_id__proposals__proposal_id__patch.Input) async throws -> Operations.update_proposal_status_api_v1_conversations__conversation_id__proposals__proposal_id__patch.Output {
+        try await client.send(
+            input: input,
+            forOperation: Operations.update_proposal_status_api_v1_conversations__conversation_id__proposals__proposal_id__patch.id,
+            serializer: { input in
+                let path = try converter.renderedPath(
+                    template: "/api/v1/conversations/{}/proposals/{}",
+                    parameters: [
+                        input.path.conversation_id,
+                        input.path.proposal_id
+                    ]
+                )
+                var request: HTTPTypes.HTTPRequest = .init(
+                    soar_path: path,
+                    method: .patch
+                )
+                suppressMutabilityWarning(&request)
+                let body: OpenAPIRuntime.HTTPBody?
+                switch input.body {
+                case let .json(value):
+                    body = try converter.setRequiredRequestBodyAsJSON(
+                        value,
+                        headerFields: &request.headerFields,
+                        contentType: "application/json; charset=utf-8"
+                    )
+                }
+                return (request, body)
+            },
+            deserializer: { response, responseBody in
+                switch response.status.code {
+                case 204:
+                    return .noContent(.init())
+                default:
+                    return .undocumented(
+                        statusCode: response.status.code,
+                        .init(
+                            headerFields: response.headerFields,
+                            body: responseBody
+                        )
+                    )
+                }
+            }
+        )
+    }
     /// Delete Conversation
     ///
     /// 히스토리 스와이프 삭제 — soft delete (행·메시지 보존).

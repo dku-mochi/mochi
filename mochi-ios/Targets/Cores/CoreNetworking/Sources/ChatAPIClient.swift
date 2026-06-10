@@ -14,6 +14,18 @@ public protocol ChatAPIClient: Sendable {
     func conversationSnapshot(id: UUID) async throws -> ChatSnapshotDTO
     /// 스와이프 삭제 — 서버 soft delete.
     func deleteConversation(id: UUID) async throws
+    /// proposal 카드 확정/취소 영속 — 확정 실행(REST/로컬 알림) **성공 후** 호출.
+    /// 스냅샷 복귀 시 카드가 pending 으로 되살아나지 않게 하는 단일 원천. 404 = 이미 없는 카드.
+    func setProposalStatus(
+        conversationID: UUID, proposalID: UUID, status: ChatProposalStatusUpdate
+    ) async throws
+}
+
+/// 영속 대상 상태 — confirmed/cancelled 만. expired·failed 는 재확정 시 결정적으로
+/// 재현되는 일시 상태라 서버에 저장하지 않는다 (서버 schemas 와 1:1).
+public enum ChatProposalStatusUpdate: String, Sendable {
+    case confirmed
+    case cancelled
 }
 
 // MARK: - DTOs (서버 ConversationResponse/MessageResponse 와 1:1)
@@ -95,11 +107,14 @@ public struct ChatProposalEnvelopeDTO: Sendable, Equatable {
     public let id: UUID
     public let type: String
     public let payloadJSON: Data
+    /// 영속된 카드 상태 — "confirmed"/"cancelled", 없으면(pending) nil.
+    public let status: String?
 
-    public init(id: UUID, type: String, payloadJSON: Data) {
+    public init(id: UUID, type: String, payloadJSON: Data, status: String? = nil) {
         self.id = id
         self.type = type
         self.payloadJSON = payloadJSON
+        self.status = status
     }
 }
 
@@ -123,6 +138,9 @@ public struct NotConfiguredChatAPIClient: ChatAPIClient {
     public func listConversations(limit: Int) async throws -> [ChatConversationDTO] { throw Self.error }
     public func conversationSnapshot(id: UUID) async throws -> ChatSnapshotDTO { throw Self.error }
     public func deleteConversation(id: UUID) async throws { throw Self.error }
+    public func setProposalStatus(
+        conversationID: UUID, proposalID: UUID, status: ChatProposalStatusUpdate
+    ) async throws { throw Self.error }
     private static let error = APIErrorEnvelope(
         code: "client.not_configured", message: "ChatAPIClient not wired", requestID: "n/a", retryAfter: nil
     )
@@ -174,4 +192,8 @@ public struct MockChatAPIClient: ChatAPIClient {
     }
 
     public func deleteConversation(id: UUID) async throws {}
+
+    public func setProposalStatus(
+        conversationID: UUID, proposalID: UUID, status: ChatProposalStatusUpdate
+    ) async throws {}
 }

@@ -219,3 +219,30 @@ async def test_delete_soft_deletes_existing_conversation() -> None:
         is True
     )
     assert repo.deleted == [conversation.id]
+
+
+# ---------- proposal 카드 확정/취소 영속 (jsonb 병합 — 순수 함수) ----------
+
+
+def test_merge_proposal_status_updates_matching_entry_only() -> None:
+    from app.modules.conversations.infrastructure.repository import merge_proposal_status
+
+    proposals = [
+        {"id": "aaa", "type": "create_memo", "payload": {"text": "x"}},
+        {"id": "bbb", "type": "item_delete", "payload": {}},
+    ]
+
+    updated = merge_proposal_status(proposals, "bbb", "confirmed")
+
+    assert updated is not None
+    assert updated[1]["status"] == "confirmed"
+    assert updated[1]["payload"] == {}          # 기존 필드 보존 (병합이지 교체 아님)
+    assert "status" not in updated[0]           # 다른 entry 불변
+    assert "status" not in proposals[1]         # 원본 리스트 불변 (새 리스트 반환)
+
+
+def test_merge_proposal_status_returns_none_when_missing() -> None:
+    from app.modules.conversations.infrastructure.repository import merge_proposal_status
+
+    assert merge_proposal_status([{"id": "aaa"}], "zzz", "confirmed") is None
+    assert merge_proposal_status([], "aaa", "cancelled") is None

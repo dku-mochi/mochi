@@ -285,17 +285,32 @@ public struct ChatFeature: Sendable {
                 guard state.messages[id: messageID]?.proposals[id: proposalID]?.status == .pending
                 else { return .none }
                 state.messages[id: messageID]?.proposals[id: proposalID]?.status = .cancelled
-                return .none
+                return persistProposalStatus(state, proposalID: proposalID, status: .cancelled)
 
             case let .proposalResolved(messageID, proposalID, status):
                 state.messages[id: messageID]?.proposals[id: proposalID]?.status = status
-                return .none
+                // 확정 성공만 영속 — expired/failed 는 재확정 시 결정적으로 재현되는 일시 상태.
+                guard status == .confirmed else { return .none }
+                return persistProposalStatus(state, proposalID: proposalID, status: .confirmed)
 
             case .delegate:
                 return .none
             }
         }
         .ifLet(\.$history, action: \.history) { ChatHistoryFeature() }
+    }
+
+    /// 카드 상태 서버 영속 — best-effort: 실패해도 로컬 상태는 이미 바뀌었고(행동 자체는
+    /// 실행 완료), 다음 스냅샷에서 pending 으로 보이는 옛 증상으로 되돌아갈 뿐이라 막지 않는다.
+    private func persistProposalStatus(
+        _ state: State, proposalID: UUID, status: ChatProposalStatusUpdate
+    ) -> Effect<Action> {
+        guard let conversationID = state.conversationID else { return .none }
+        return .run { _ in
+            try? await chatAPIClient.setProposalStatus(
+                conversationID: conversationID, proposalID: proposalID, status: status
+            )
+        }
     }
 
     // MARK: - 스냅샷 복귀 (히스토리 재개·자동분리 내 복귀 공용)
@@ -356,8 +371,8 @@ public struct ChatFeature: Sendable {
                         index: $0.index, mochiItemID: $0.mochiItemID, title: $0.title, snippet: $0.snippet
                     )
                 }
-                // 스냅샷의 proposal 은 pending 으로 복원 — 서버는 확정 여부를 모른다(로컬 알림 등
-                // 서버 무관 경로 존재). 재확정은 멱등(Idempotency-Key·404→만료)으로 안전.
+                // 확정/취소는 서버 proposals.status 가 단일 원천 — 없으면 pending.
+                // (영속은 확정 실행 성공 후 setProposalStatus 가 기록한다.)
                 message.proposals = IdentifiedArray(
                     uniqueElements: row.proposals.compactMap { envelope -> ProposalCard? in
                         guard
@@ -365,7 +380,12 @@ public struct ChatFeature: Sendable {
                                 as? [String: Any],
                             let proposal = ChatProposal(id: envelope.id, type: envelope.type, payload: payload)
                         else { return nil }
-                        return ProposalCard(proposal: proposal)
+                        let status: ProposalCard.Status = switch envelope.status {
+                        case "confirmed": .confirmed
+                        case "cancelled": .cancelled
+                        default: .pending
+                        }
+                        return ProposalCard(proposal: proposal, status: status)
                     }
                 )
                 result.append(message)
@@ -510,11 +530,14 @@ public struct ChatFeature: Sendable {
         switch event {
         case let .messageDelta(delta):
             state.messages[id: lastID]?.text.append(delta)
+            // 본문이 시작되면 pill 을 내린다 — 텍스트가 진행 표시를 대체.
+            state.messages[id: lastID]?.activeToolLabel = nil
         case let .toolStarted(name, label):
             state.messages[id: lastID]?.activeToolLabel = label
             state.messages[id: lastID]?.toolSteps.append(ToolStep(name: name, label: label))
         case let .toolFinished(name, summary):
-            state.messages[id: lastID]?.activeToolLabel = nil
+            // pill 은 유지 — 즉시 내리면 "찾고 있어요 → (깜빡) … → 다음 툴" 로 어색하다.
+            // 다음 toolStarted 가 교체하거나 첫 본문 delta 가 내린다 (2026-06-10 피드백).
             if let stepIndex = state.messages[id: lastID]?.toolSteps.lastIndex(where: { $0.name == name }) {
                 state.messages[id: lastID]?.toolSteps[stepIndex].summary = summary
             }

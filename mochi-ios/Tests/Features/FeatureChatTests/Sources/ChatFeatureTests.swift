@@ -152,4 +152,35 @@ final class ChatFeatureTests: XCTestCase {
 
         await store.send(.sendTapped)   // 변경 없음 — 진행 중엔 전송 불가
     }
+
+    func test_tool_pill_persists_until_next_tool_or_first_text() async {
+        // "찾고 있어요 → (깜빡) … → 다음 툴" 깜빡임 제거 (2026-06-10 피드백):
+        // toolFinished 는 pill 을 내리지 않고, 다음 toolStarted 가 교체·첫 delta 가 내린다.
+        var initial = ChatFeature.State()
+        initial.runPhase = .streaming
+        var assistant = ChatFeature.ChatMessage(id: UUID(1), role: .assistant, text: "")
+        assistant.isStreaming = true
+        initial.messages = [assistant]
+        let store = TestStore(initialState: initial) { ChatFeature() }
+
+        await store.send(.streamEvent(.toolStarted(name: "search_items", label: "기록을 뒤지고 있어요"))) {
+            $0.messages[id: UUID(1)]?.activeToolLabel = "기록을 뒤지고 있어요"
+            $0.messages[id: UUID(1)]?.toolSteps = [.init(name: "search_items", label: "기록을 뒤지고 있어요")]
+        }
+        await store.send(.streamEvent(.toolFinished(name: "search_items", summary: "3개를 찾았어요"))) {
+            // pill 유지 — activeToolLabel 불변, summary 만 기록.
+            $0.messages[id: UUID(1)]?.toolSteps[0].summary = "3개를 찾았어요"
+        }
+        await store.send(.streamEvent(.toolStarted(name: "get_item_detail", label: "기록을 자세히 보고 있어요"))) {
+            $0.messages[id: UUID(1)]?.activeToolLabel = "기록을 자세히 보고 있어요"
+            $0.messages[id: UUID(1)]?.toolSteps.append(
+                .init(name: "get_item_detail", label: "기록을 자세히 보고 있어요")
+            )
+        }
+        await store.send(.streamEvent(.messageDelta("답"))) {
+            // 본문 시작 — pill 을 내리고 텍스트가 진행 표시를 대체.
+            $0.messages[id: UUID(1)]?.text = "답"
+            $0.messages[id: UUID(1)]?.activeToolLabel = nil
+        }
+    }
 }
