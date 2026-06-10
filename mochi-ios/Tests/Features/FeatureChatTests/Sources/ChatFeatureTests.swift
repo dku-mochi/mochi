@@ -83,7 +83,10 @@ final class ChatFeatureTests: XCTestCase {
     }
 
     func test_stream_failure_removes_empty_bubble_and_sets_failed_phase() async {
-        let store = TestStore(initialState: ChatFeature.State()) {
+        // 랜딩 칩 진입(Entry.firstMessage) — push 직후 .appeared 가 첫 메시지를 전송한다.
+        let store = TestStore(
+            initialState: ChatFeature.State(entry: .firstMessage("이번주 공부 기록 알려줘"))
+        ) {
             ChatFeature()
         } withDependencies: {
             $0.chatStreamClient = ScriptedChatStreamClient(events: [], failure: StubError.boom)
@@ -92,7 +95,7 @@ final class ChatFeatureTests: XCTestCase {
         }
         store.exhaustivity = .off(showSkippedAssertions: false)
 
-        await store.send(.chipTapped("이번주 공부 기록 알려줘"))
+        await store.send(.appeared)
         await store.finish()
         await store.skipReceivedActions()
 
@@ -104,28 +107,31 @@ final class ChatFeatureTests: XCTestCase {
         }
     }
 
-    func test_start_conversation_always_begins_fresh() async {
-        var initial = ChatFeature.State()
-        initial.conversationID = UUID(7)
-        initial.messages = [
-            .init(id: UUID(1), role: .user, text: "이전 질문"),
-            .init(id: UUID(2), role: .assistant, text: "이전 답변"),
-        ]
-        let store = TestStore(initialState: initial) {
+    func test_first_message_entry_starts_fresh_conversation() async {
+        // 홈 입력바·랜딩 칩 — 활성 세션(30분 내)이 남아 있어도 복원하지 않고 항상 새 대화.
+        let persistedID = UUID(7)
+        let store = TestStore(
+            initialState: ChatFeature.State(entry: .firstMessage("민수랑 언제 만나기로 했지?"))
+        ) {
             ChatFeature()
         } withDependencies: {
             $0.chatStreamClient = ScriptedChatStreamClient(events: [.done(messageID: UUID(8))])
             $0.uuid = .incrementing
             $0.date = .constant(Date(timeIntervalSince1970: 0))
+            $0.chatSessionStore = ChatSessionStore(
+                load: { .init(conversationID: persistedID, lastActivityAt: Date(timeIntervalSince1970: 0)) },
+                save: { _, _ in }, clear: {}
+            )
         }
         store.exhaustivity = .off(showSkippedAssertions: false)
 
-        await store.send(.startConversation(firstMessage: "민수랑 언제 만나기로 했지?"))
+        await store.send(.appeared)
         await store.finish()
         await store.skipReceivedActions()
 
-        // 기존 대화는 버려지고 새 conversationID + 첫 user 메시지로 시작.
-        XCTAssertNotEqual(store.state.conversationID, UUID(7))
+        // 이전 세션은 무시 — 새 conversationID + 첫 user 메시지로 시작.
+        XCTAssertNotEqual(store.state.conversationID, persistedID)
+        XCTAssertNotNil(store.state.conversationID)
         XCTAssertEqual(store.state.messages[0].text, "민수랑 언제 만나기로 했지?")
     }
 

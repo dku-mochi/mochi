@@ -1,6 +1,7 @@
 import ComposableArchitecture
 import CoreAgentClient
 import CoreDomain
+import CoreIntegrations
 import CoreNetworking
 import CorePersistence
 import XCTest
@@ -147,6 +148,165 @@ final class ChatProposalTests: XCTestCase {
         XCTAssertEqual(recorded.value.first?.2, .confirmed)
     }
 
+    // MARK: - 수정 확정 = PATCH 응답을 로컬 미러에 merge (날짜 변경 캘린더 미반영 — 2026-06-10 버그)
+
+    func test_confirm_update_merges_server_response_into_local_mirror() async {
+        let repository = InMemoryMochiItemRepository()
+        let instanceID = UUID(20)
+        // 로컬 미러 — pull 로 복구된 항목(로컬 PK == 서버 id), 일정 날짜 6/12.
+        let local = MochiItem(
+            source: IngestSource(id: serverItemID, channel: .chat, text: "원래 메모"),
+            analysis: MochiItemAnalysis(
+                summary: "원래 요약",
+                instances: [
+                    IntentInstance(
+                        id: instanceID, intentType: .schedule,
+                        payload: IntentPayload(date: "2026-06-12")
+                    )
+                ],
+                entities: [], actionCandidates: [], tags: [],
+                importance: .medium, modelVersion: "test", analyzedAt: Date(timeIntervalSince1970: 0)
+            ),
+            lifecycleState: .analyzed,
+            syncState: .uploaded(serverID: serverItemID, at: Date(timeIntervalSince1970: 0))
+        )
+        try? await repository.upsert(local)
+
+        // 서버 PATCH 응답 — 날짜가 6/15 로 병합된 정본.
+        let api = StubAPIClient()
+        await api.setUpdateResult(
+            MochiItemDTO(
+                id: serverItemID, channel: .chat, url: nil, text: "원래 메모", userMemo: nil,
+                summary: "원래 요약", category: nil, importance: 2,
+                intentInstances: [
+                    IntentInstanceDTO(
+                        id: instanceID, intentType: .schedule,
+                        payload: IntentPayloadDTO(date: "2026-06-15"),
+                        label: nil, reasoning: nil, lifecycleKind: "active", lifecycleArchiveReason: nil
+                    )
+                ],
+                needsReview: false, reviewOptions: [], lifecycleKind: "analyzed", syncKind: "synced",
+                imageRefs: [], capturedAt: Date(timeIntervalSince1970: 0),
+                createdAt: Date(timeIntervalSince1970: 0)
+            )
+        )
+
+        let update = ChatProposal(
+            id: UUID(13), title: "날짜를 바꿀까요?", detail: nil,
+            action: .updateItem(
+                .init(
+                    mochiItemID: serverItemID,
+                    instanceChanges: [.init(instanceID: instanceID, payload: ["date": "2026-06-15"])]
+                )
+            )
+        )
+        let store = TestStore(initialState: makeState(update)) {
+            ChatFeature()
+        } withDependencies: {
+            $0.mochiAPIClient = api
+            $0.mochiItemRepository = repository
+            $0.syncTrigger = SpySyncTrigger()
+            $0.date = .constant(Date(timeIntervalSince1970: 1_000))
+        }
+
+        await store.send(.proposalConfirmTapped(messageID: messageID, proposalID: UUID(13))) {
+            $0.messages[id: self.messageID]?.proposals[id: UUID(13)]?.status = .confirming
+        }
+        await store.receive(\.proposalResolved) {
+            $0.messages[id: self.messageID]?.proposals[id: UUID(13)]?.status = .confirmed
+        }
+
+        // 캘린더는 로컬 Realm 구동 — merge 된 날짜가 로컬에서 바로 보여야 한다.
+        let saved = try? await repository.find(id: serverItemID)
+        XCTAssertEqual(saved?.analysis?.instances.first?.payload.date, "2026-06-15")
+        XCTAssertEqual(saved?.source.text, "원래 메모")   // 콘텐츠 보존
+    }
+
+    // MARK: - 일정 확정 = 시스템 캘린더(EKEvent)·미리알림(EKReminder) 등록 (2026-06-10 요청)
+
+    private func schedulePayloadDTO() -> MochiItemDTO {
+        MochiItemDTO(
+            id: UUID(30), channel: .chat, url: nil, text: "팀 회식", userMemo: nil,
+            summary: nil, category: nil, importance: 2, intentInstances: [],
+            needsReview: false, reviewOptions: [], lifecycleKind: "analyzed", syncKind: "synced",
+            imageRefs: [], capturedAt: Date(timeIntervalSince1970: 0),
+            createdAt: Date(timeIntervalSince1970: 0)
+        )
+    }
+
+    private func scheduleProposal() -> ChatProposal {
+        ChatProposal(
+            id: UUID(14), title: "일정을 등록할까요?", detail: nil,
+            action: .createSchedule(
+                .init(
+                    text: "팀 회식",
+                    instances: [
+                        .init(
+                            intentType: "schedule",
+                            payload: ["title": "팀 회식", "date": "2026-06-12", "time": "19:00"]
+                        ),
+                        .init(intentType: "schedule", payload: ["title": "워크숍", "date": "2026-06-20"]),
+                        .init(intentType: "todo", payload: ["title": "선물 사기", "deadline": "2026-06-14"]),
+                    ]
+                )
+            )
+        )
+    }
+
+    func test_confirm_schedule_registers_system_calendar_and_reminders() async {
+        let api = StubAPIClient()
+        await api.setIngestResult(schedulePayloadDTO())
+        let syncer = SpyCalendarSyncer()
+        let store = TestStore(initialState: makeState(scheduleProposal())) {
+            ChatFeature()
+        } withDependencies: {
+            $0.mochiAPIClient = api
+            $0.syncTrigger = SpySyncTrigger()
+            $0.calendarSyncer = syncer
+        }
+
+        await store.send(.proposalConfirmTapped(messageID: messageID, proposalID: UUID(14))) {
+            $0.messages[id: self.messageID]?.proposals[id: UUID(14)]?.status = .confirming
+        }
+        await store.receive(\.proposalResolved) {
+            $0.messages[id: self.messageID]?.proposals[id: UUID(14)]?.status = .confirmed
+        }
+
+        let events = await syncer.events
+        XCTAssertEqual(events.map { $0.title }, ["팀 회식", "워크숍"])
+        XCTAssertEqual(events.map { $0.allDay }, [false, true])   // time 있으면 시각, 없으면 종일
+        let reminders = await syncer.reminders
+        XCTAssertEqual(reminders.map { $0.title }, ["선물 사기"])
+        XCTAssertNotNil(reminders.first?.due)
+    }
+
+    func test_confirm_schedule_permission_denied_fails_with_settings_nudge() async {
+        let api = StubAPIClient()
+        await api.setIngestResult(schedulePayloadDTO())
+        let syncer = SpyCalendarSyncer()
+        await syncer.setDenyAccess()
+        let store = TestStore(initialState: makeState(scheduleProposal())) {
+            ChatFeature()
+        } withDependencies: {
+            $0.mochiAPIClient = api
+            $0.syncTrigger = SpySyncTrigger()
+            $0.calendarSyncer = syncer
+        }
+
+        await store.send(.proposalConfirmTapped(messageID: messageID, proposalID: UUID(14))) {
+            $0.messages[id: self.messageID]?.proposals[id: UUID(14)]?.status = .confirming
+        }
+        await store.receive(\.proposalResolved) {
+            $0.messages[id: self.messageID]?.proposals[id: UUID(14)]?.status =
+                .failed(reason: "캘린더·미리알림 권한이 꺼져 있어요", needsNotificationPermission: true)
+        }
+        // 권한 거부 시 아무것도 만들지 않는다 — 재확정 시 중복 등록 방지.
+        let events = await syncer.events
+        let reminders = await syncer.reminders
+        XCTAssertTrue(events.isEmpty)
+        XCTAssertTrue(reminders.isEmpty)
+    }
+
     // MARK: - 메모 확정 = 로컬 upsert(channel .chat) + sync
 
     func test_confirm_memo_upserts_local_chat_item_and_triggers_sync() async {
@@ -186,8 +346,12 @@ final class ChatProposalTests: XCTestCase {
 private actor StubAPIClient: MochiAPIClient {
     var deletedServerIDs: [UUID] = []
     private var deleteError: APIErrorEnvelope?
+    private var updateResult: MochiItemDTO?
+    private var ingestResult: MochiItemDTO?
 
     func setDeleteError(_ error: APIErrorEnvelope) { deleteError = error }
+    func setUpdateResult(_ dto: MochiItemDTO) { updateResult = dto }
+    func setIngestResult(_ dto: MochiItemDTO) { ingestResult = dto }
 
     func deleteMochiItem(mochiServerID: UUID) async throws {
         if let deleteError { throw deleteError }
@@ -197,7 +361,10 @@ private actor StubAPIClient: MochiAPIClient {
     // 미사용 표면 — 호출되면 테스트가 즉시 드러나게 NotConfigured 에 위임.
     private let unimplemented = NotConfiguredAPIClient()
     func ingestMochiItem(_ request: MochiItemIngestRequest, idempotencyKey: String) async throws -> MochiItemDTO {
-        try await unimplemented.ingestMochiItem(request, idempotencyKey: idempotencyKey)
+        guard let ingestResult else {
+            return try await unimplemented.ingestMochiItem(request, idempotencyKey: idempotencyKey)
+        }
+        return ingestResult
     }
     func presignCaptureUpload(sha256: String, mimeType: String) async throws -> PresignUploadDTO {
         try await unimplemented.presignCaptureUpload(sha256: sha256, mimeType: mimeType)
@@ -226,8 +393,13 @@ private actor StubAPIClient: MochiAPIClient {
     func updateInstanceLifecycle(mochiServerID: UUID, instanceID: UUID, to newState: InstanceLifecycle) async throws -> MochiItemDTO {
         try await unimplemented.updateInstanceLifecycle(mochiServerID: mochiServerID, instanceID: instanceID, to: newState)
     }
-    func updateMochiItem(mochiServerID: UUID, _ request: MochiItemUpdateRequestDTO) async throws {
-        try await unimplemented.updateMochiItem(mochiServerID: mochiServerID, request)
+    func updateMochiItem(
+        mochiServerID: UUID, _ request: MochiItemUpdateRequestDTO
+    ) async throws -> MochiItemDTO {
+        guard let updateResult else {
+            return try await unimplemented.updateMochiItem(mochiServerID: mochiServerID, request)
+        }
+        return updateResult
     }
     func upcomingActionables() async throws -> [UpcomingActionableDTO] {
         try await unimplemented.upcomingActionables()
@@ -248,4 +420,28 @@ private actor SpySyncTrigger: SyncTrigger {
     var pullRemoteCount = 0
     func runOnce() async { runOnceCount += 1 }
     func pullRemote() async { pullRemoteCount += 1 }
+}
+
+/// 시스템 캘린더·미리알림 등록 기록 스파이 — EventKit 은 절대 부르지 않는다.
+private actor SpyCalendarSyncer: CalendarSyncing {
+    var events: [(title: String, start: Date, allDay: Bool)] = []
+    var reminders: [(title: String, due: Date?)] = []
+    private var denyAccess = false
+
+    func setDenyAccess() { denyAccess = true }
+
+    func requestEventAccess() async throws {
+        if denyAccess { throw CalendarSyncError.accessDenied }
+    }
+    func requestReminderAccess() async throws {
+        if denyAccess { throw CalendarSyncError.accessDenied }
+    }
+    func createEvent(title: String, start: Date, end: Date?, allDay: Bool) async throws -> String {
+        events.append((title, start, allDay))
+        return "event-\(events.count)"
+    }
+    func createReminder(title: String, due: Date?) async throws -> String {
+        reminders.append((title, due))
+        return "reminder-\(reminders.count)"
+    }
 }

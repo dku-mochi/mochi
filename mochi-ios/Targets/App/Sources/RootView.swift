@@ -86,7 +86,7 @@ struct MainTabView: View {
                     .tabItem { Label("캘린더", image: "tab_mochis") }
                     .tag(MainTabFeature.Tab.mochis)
 
-                ChatView(store: store.scope(state: \.chat, action: \.chat))
+                ChatLandingView(store: store.scope(state: \.chatLanding, action: \.chatLanding))
                     .tabItem { Label("채팅", image: "tab_chat") }
                     .tag(MainTabFeature.Tab.chat)
 
@@ -134,6 +134,11 @@ struct MainTabView: View {
             case let .weeklyDigest(digestStore):
                 // 이번주 정리 — 설정과 동일하게 push. 항목 탭은 delegate 로 상세 present.
                 WeeklyDigestView(store: digestStore)
+
+            case let .chat(chatStore):
+                // 대화 풀스크린 — 탭바를 덮는 push 라 입력 독이 키보드에 정확히 붙는다
+                // (TabView 안 safeAreaInset 키보드 inset 버그·이중 바 회피, 2026-06-10).
+                ChatView(store: chatStore)
             }
         }
         // push 화면(설정)의 바 버튼·back tint = 모찌 퍼플.

@@ -2,7 +2,8 @@ import CoreAgentClient
 import DesignSystem
 import SwiftUI
 
-/// 대화 버블 — user 는 퍼플 그라데이션, assistant 는 미니 모찌 아바타가 붙은 화이트 카드.
+/// 대화 버블 — user 는 퍼플 그라데이션, assistant 는 화이트 카드.
+/// (미니 모찌 아바타는 26pt 로 뭉개져 보여 제거 — 2026-06-10 피드백.)
 /// 스트리밍 중에는 텍스트 대신 툴 상태 pill / 타이핑 점이 같은 버블 자리에서 숨 쉰다.
 struct ChatBubbleView: View {
     let message: ChatFeature.ChatMessage
@@ -53,23 +54,21 @@ struct ChatBubbleView: View {
     // MARK: - Assistant
 
     private var assistantBubble: some View {
-        HStack(alignment: .bottom, spacing: HomeDesign.Spacing.sm) {
-            Image("mochi2")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 26, height: 26)
-                .accessibilityHidden(true)
-
+        // HStack 은 trailing Spacer(36)로 버블 최대폭을 잡는 용도로만 남는다 (아바타 제거 후).
+        HStack(spacing: HomeDesign.Spacing.sm) {
             VStack(alignment: .leading, spacing: HomeDesign.Spacing.sm) {
                 if let label = message.activeToolLabel {
                     ToolStatusPill(label: label)
+                        .transition(.opacity.combined(with: .scale(scale: 0.9, anchor: .leading)))
                 } else if message.isStreaming, message.text.isEmpty {
                     TypingDots()
+                        .transition(.opacity)
                 }
 
                 // 완료된 턴의 접힌 "과정 보기" — 스트리밍 중에는 pill 이 그 역할을 한다.
                 if !message.isStreaming, !message.toolSteps.isEmpty {
                     ProcessDisclosure(steps: message.toolSteps)
+                        .transition(.opacity.combined(with: .offset(y: -4)))
                 }
 
                 if !message.text.isEmpty {
@@ -83,10 +82,12 @@ struct ChatBubbleView: View {
                     .font(.system(size: 14.5, weight: .medium, design: .rounded))
                     .foregroundStyle(HomeDesign.Color.textPrimary)
                     .lineSpacing(3.5)
+                    .transition(.opacity)
                 }
 
                 if !message.citations.isEmpty {
                     CitationCardsRow(citations: message.citations, onTap: onCitationTap)
+                        .transition(.opacity.combined(with: .offset(y: 6)))
                 }
 
                 ForEach(message.proposals) { card in
@@ -95,6 +96,7 @@ struct ChatBubbleView: View {
                         onConfirm: { onProposalConfirm(card.id) },
                         onCancel: { onProposalCancel(card.id) }
                     )
+                    .transition(.scale(scale: 0.96, anchor: .top).combined(with: .opacity))
                 }
             }
             .padding(.horizontal, HomeDesign.Spacing.lg)
@@ -114,7 +116,30 @@ struct ChatBubbleView: View {
             Spacer(minLength: 36)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        // 스트림 이벤트는 reducer 에 애니메이션 없이 들어온다 — 구조 변화(pill 교체·과정·
+        // 출처·proposal 등장)만 여기서 implicit 스프링으로 받아 transition 을 발동시킨다.
+        // 본문 text 는 delta 마다 바뀌므로 키에서 제외(타이핑마다 레이아웃 스프링 금지).
+        .animation(.spring(response: 0.42, dampingFraction: 0.85), value: structure)
         .transition(.move(edge: .bottom).combined(with: .opacity))
+    }
+
+    /// 구조 등장 애니메이션 키 — "무엇이 보이는가"만 추린 스냅샷.
+    private var structure: Structure {
+        Structure(
+            toolLabel: message.activeToolLabel,
+            isStreaming: message.isStreaming,
+            hasText: !message.text.isEmpty,
+            citationCount: message.citations.count,
+            proposalCount: message.proposals.count
+        )
+    }
+
+    private struct Structure: Equatable {
+        let toolLabel: String?
+        let isStreaming: Bool
+        let hasText: Bool
+        let citationCount: Int
+        let proposalCount: Int
     }
 }
 
@@ -129,10 +154,15 @@ struct CitationCardsRow: View {
             HStack(spacing: HomeDesign.Spacing.sm) {
                 ForEach(citations) { citation in
                     card(citation)
+                        .transition(.scale(scale: 0.9, anchor: .leading).combined(with: .opacity))
                 }
             }
+            // 버블 콘텐츠 패딩(lg)을 콘텐츠 inset 으로 옮기고, 아래 음수 패딩으로 클립
+            // 경계를 버블 가장자리까지 넓힌다 — scrollClipDisabled 는 카드가 여러 장일 때
+            // 말풍선 밖까지 그려지는 문제가 있어 제거.
+            .padding(.horizontal, HomeDesign.Spacing.lg)
         }
-        .scrollClipDisabled()
+        .padding(.horizontal, -HomeDesign.Spacing.lg)
     }
 
     private func card(_ citation: ChatCitation) -> some View {
@@ -251,6 +281,9 @@ struct ToolStatusPill: View {
             Text(label + "…")
                 .font(.system(size: 12.5, weight: .bold, design: .rounded))
                 .foregroundStyle(HomeDesign.Color.purple600)
+                // 다음 툴로 라벨이 바뀔 때 글자가 크로스페이드 — 버블의 structure 키
+                // (toolLabel 포함) 가 애니메이션 transaction 을 공급한다.
+                .contentTransition(.opacity)
         }
         .padding(.horizontal, HomeDesign.Spacing.sm + 2)
         .padding(.vertical, 6)

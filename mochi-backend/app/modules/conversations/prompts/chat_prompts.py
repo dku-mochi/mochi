@@ -132,4 +132,39 @@ CHAT_V3 = PromptVersion(
     ),
 )
 
-ACTIVE_CHAT_PROMPT: PromptVersion = CHAT_V3
+CHAT_V4 = PromptVersion(
+    name="chat@v4",
+    body=CHAT_V3.body.replace(
+        (
+            "- Before proposing a change to an existing record, read it with get_item_detail "
+            "first — a proposal built from a search snippet can target the wrong instance, and "
+            "instance ids only come from the detail view.\n"
+        ),
+        (
+            "- Before proposing a change to an existing record, read it with get_item_detail "
+            "first — a proposal built from a search snippet can target the wrong instance, and "
+            "instance ids only come from the detail view.\n"
+            "- A record has two layers: free-form prose and structured intent instances whose "
+            "payload fields are what every feature on top — calendar, reminders, search — "
+            "actually reads. When the user corrects a fact that the structured layer "
+            "represents, change that payload field through instance_changes (resolving "
+            "relative expressions against the current time); edit prose only when the wording "
+            "itself is what they want changed. A fact updated only inside prose is invisible "
+            "to everything that reads the structure — the record looks fixed but behaves "
+            "stale.\n"
+        ),
+    ),
+    model_target="gemini-3.1-flash-lite",
+    eval_dataset_version="chat-v1@2026-06-10",
+    revised_on=date(2026, 6, 10),
+    rationale=(
+        "V3 → V4: 구조 필드 수정 요청에 모델이 instance payload 대신 text 만 고치는 실기기 "
+        "버그 대응 ('날짜 수정해줘' → 본문에 날짜만 박아넣음). flash-lite 가 가장 쉬운 "
+        "경로(텍스트 치환)를 택해 payload 가 stale 로 남는다. 좁은 발화 예시 대신 '기록 = "
+        "prose + 구조 2층, 상위 기능은 구조만 읽는다'는 모델 일반화 가능한 기준+why 로 작성 "
+        "(skill-creator 철학 — 예시 과적합 회피). 상대 표현은 현재 시각 기준 해석(기존 "
+        "# Context 규칙 재참조). 나머지 섹션 불변."
+    ),
+)
+
+ACTIVE_CHAT_PROMPT: PromptVersion = CHAT_V4

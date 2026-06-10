@@ -20,6 +20,13 @@ final class ChatSessionTests: XCTestCase {
         )
     }
 
+    /// 이벤트 없이 즉시 완료하는 스트림 — 전송 횟수 검증용.
+    private struct ImmediateChatStreamClient: ChatStreamClient {
+        func send(conversationID: UUID, text: String) -> AsyncThrowingStream<ChatStreamEvent, Error> {
+            AsyncThrowingStream { $0.finish() }
+        }
+    }
+
     private struct StubChatAPIClient: ChatAPIClient {
         var snapshot: ChatSnapshotDTO?
         func listConversations(limit: Int) async throws -> [ChatConversationDTO] { [] }
@@ -94,7 +101,9 @@ final class ChatSessionTests: XCTestCase {
             )
         }
 
-        await store.send(.appeared)
+        await store.send(.appeared) {
+            $0.entryConsumed = true
+        }
         await store.receive(\.snapshotLoaded) {
             $0.conversationID = self.conversationID
             $0.messages = [.init(id: UUID(20), role: .user, text: "이전 질문")]
@@ -117,7 +126,9 @@ final class ChatSessionTests: XCTestCase {
             )
         }
 
-        await store.send(.appeared)   // 상태 변화 없음 — 새 대화 그대로
+        await store.send(.appeared) {   // 복원 없음 — 새 대화 그대로
+            $0.entryConsumed = true
+        }
         XCTAssertTrue(cleared.value)
     }
 
@@ -136,10 +147,96 @@ final class ChatSessionTests: XCTestCase {
             $0.chatAPIClient = StubChatAPIClient(snapshot: nil)   // 404
         }
 
-        await store.send(.appeared)
+        await store.send(.appeared) {
+            $0.entryConsumed = true
+        }
         await store.receive(\.snapshotLoadFailed)
         XCTAssertTrue(cleared.value)
         XCTAssertNil(store.state.conversationID)
+    }
+
+    func test_resume_entry_loads_selected_conversation_snapshot() async {
+        // 랜딩 지난 대화 선택(Entry.resume) — push 직후 .appeared 가 해당 스냅샷을 연다.
+        let store = TestStore(initialState: ChatFeature.State(entry: .resume(conversationID))) {
+            ChatFeature()
+        } withDependencies: {
+            $0.date = .constant(Date(timeIntervalSince1970: 0))
+            $0.chatSessionStore = .noop
+            $0.chatAPIClient = StubChatAPIClient(
+                snapshot: snapshot(messages: [.init(id: UUID(22), role: "user", content: "재개 질문")])
+            )
+        }
+
+        await store.send(.appeared) {
+            $0.entryConsumed = true
+        }
+        await store.receive(\.snapshotLoaded) {
+            $0.conversationID = self.conversationID
+            $0.messages = [.init(id: UUID(22), role: .user, text: "재개 질문")]
+        }
+    }
+
+    func test_reentry_while_run_in_progress_blocks_send_and_shows_typing() async {
+        // 전송 → back → 곧장 재진입: run 이 아직 서버에서 도는 중 — 전송을 막고(409 예방)
+        // 타이핑 점 placeholder 로 진행을 보인다 (push 전환으로 도달성이 높아진 경로).
+        let now = Date(timeIntervalSince1970: 100_000)
+        let store = TestStore(initialState: ChatFeature.State()) {
+            ChatFeature()
+        } withDependencies: {
+            $0.date = .constant(now)
+            $0.continuousClock = TestClock()
+            $0.chatSessionStore = ChatSessionStore(
+                load: { [id = conversationID] in .init(conversationID: id, lastActivityAt: now) },
+                save: { _, _ in }, clear: {}
+            )
+            $0.chatAPIClient = StubChatAPIClient(
+                snapshot: snapshot(messages: [
+                    .init(id: UUID(40), role: "user", content: "보내고 나감", runStatus: "running")
+                ])
+            )
+        }
+        store.exhaustivity = .off(showSkippedAssertions: false)
+
+        await store.send(.appeared)
+        await store.receive(\.snapshotLoaded)
+
+        XCTAssertEqual(store.state.runPhase, .awaitingRemote)
+        XCTAssertEqual(store.state.messages.last?.id, ChatFeature.remotePendingMessageID)
+        XCTAssertEqual(store.state.messages.last?.isStreaming, true)
+        await store.send(\.binding.draft, "추가 질문")
+        XCTAssertFalse(store.state.canSubmit)   // 전송 버튼 비활성
+        await store.send(.sendTapped)            // 눌려도 무시
+
+        // 폴링 정리 후 종료 (새 대화 = 명시 취소 경로).
+        await store.send(.newConversationTapped)
+        await store.finish()
+    }
+
+    func test_appeared_consumes_entry_once() async {
+        // fullScreenCover(백탭 모달) dismiss 의 onAppear 재발화 — 새 대화로 리셋된 뒤에도
+        // firstMessage 가 재전송되지 않는다 (entryConsumed 가드).
+        let store = TestStore(
+            initialState: ChatFeature.State(entry: .firstMessage("같은 질문"))
+        ) {
+            ChatFeature()
+        } withDependencies: {
+            $0.chatStreamClient = ImmediateChatStreamClient()
+            $0.chatSessionStore = .noop
+            $0.uuid = .incrementing
+            $0.date = .constant(Date(timeIntervalSince1970: 0))
+        }
+        store.exhaustivity = .off(showSkippedAssertions: false)
+
+        await store.send(.appeared)
+        await store.finish()
+        await store.skipReceivedActions()
+        let countAfterFirst = store.state.messages.count
+        XCTAssertGreaterThanOrEqual(countAfterFirst, 1)
+
+        await store.send(.newConversationTapped)   // 새 대화 리셋 — messages 비워짐
+        await store.send(.appeared)                // 재발화 — 재전송 없음
+        await store.finish()
+        XCTAssertTrue(store.state.messages.isEmpty)
     }
 
     // MARK: - 포그라운드 복귀 — running 이면 2초 폴링 (PR-5)

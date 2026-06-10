@@ -6,7 +6,7 @@ public actor UnconfiguredCalendarSyncer: CalendarSyncing {
     public init() {}
     public func requestEventAccess() async throws { throw CalendarSyncError.accessDenied }
     public func requestReminderAccess() async throws { throw CalendarSyncError.accessDenied }
-    public func createEvent(title: String, start: Date, end: Date?) async throws -> String {
+    public func createEvent(title: String, start: Date, end: Date?, allDay: Bool) async throws -> String {
         throw CalendarSyncError.underlying(message: "CalendarSyncer not configured")
     }
     public func createReminder(title: String, due: Date?) async throws -> String {

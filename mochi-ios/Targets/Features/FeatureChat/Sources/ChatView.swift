@@ -3,32 +3,60 @@ import CoreAgentClient
 import DesignSystem
 import SwiftUI
 
-/// 채팅 탭 — 모찌에게 묻는 메신저형 대화 화면.
+/// 대화 풀스크린 — 모찌에게 묻는 메신저형 화면. NavigationStack push 로 열린다.
 ///
-/// 탭 진입 = 곧장 대화(세션 리스트 아님). 빈 상태는 모찌 캐릭터 인사 + 능력 칩 4종,
-/// 입력바는 홈 회수 진입점과 같은 문법(sparkles 리딩 + 퍼플 그라데이션 전송)을 써서
-/// "홈에서 본 그 입력"이 여기로 이어진다는 감각을 만든다. 자동 포커스는 걸지 않는다 —
-/// 키보드가 인사·칩을 가리면 첫 진입에서 채팅의 능력 폭을 배울 기회가 사라진다.
+/// 탭 콘텐츠가 아니라 push 인 이유(2026-06-10 구조 전환): 입력 독이 탭바 위에 상주하면
+/// 이중 바로 읽히고, TabView 안 `safeAreaInset(.bottom)` 은 키보드 inset 이 어긋나는
+/// 고질 버그가 있다. push 풀스크린에선 탭바가 없어 입력 독이 키보드에 정확히 붙는다.
+/// 빈 상태 인사·능력 칩은 랜딩(``ChatLandingView``)의 몫 — 여기는 대화에만 집중한다.
 public struct ChatView: View {
     @Bindable var store: StoreOf<ChatFeature>
     @Environment(\.scenePhase) private var scenePhase
+    @FocusState private var composerFocused: Bool
 
     public init(store: StoreOf<ChatFeature>) {
         self.store = store
     }
 
     public var body: some View {
-        VStack(spacing: 0) {
-            header
+        Group {
             if store.isEmpty {
-                emptyState
+                emptyHint
             } else {
                 messageList
             }
         }
         .background(HomeDesign.Color.bg.ignoresSafeArea())
         .safeAreaInset(edge: .bottom, spacing: 0) { inputDock }
+        .navigationTitle("모찌와 대화")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                Button {
+                    store.send(.historyButtonTapped)
+                } label: {
+                    Image(systemName: "clock.arrow.circlepath")
+                }
+                .accessibilityLabel("지난 대화")
+
+                Button {
+                    store.send(.newConversationTapped, animation: .spring(response: 0.4, dampingFraction: 0.85))
+                } label: {
+                    Image(systemName: "plus.bubble")
+                }
+                .disabled(store.isEmpty)
+                .accessibilityLabel("새 대화")
+            }
+        }
         .onAppear { store.send(.appeared) }
+        .task {
+            // 입력바 탭(blank) 진입은 곧장 타이핑이 목적 — push 전환이 끝난 뒤 포커스해
+            // 전환 애니메이션과 키보드 등장이 겹쳐 덜컹대지 않게 한다.
+            guard case .blank = store.entry, store.isEmpty else { return }
+            try? await Task.sleep(for: .milliseconds(450))
+            guard !Task.isCancelled else { return }   // 450ms 내 pop — 포커스 무의미
+            composerFocused = true
+        }
         .onChange(of: scenePhase) { _, newPhase in
             // 백그라운드에서 SSE 가 끊겨도 run 은 서버에서 완주 — 복귀 시 스냅샷이 정본.
             if newPhase == .active { store.send(.sceneActivated) }
@@ -38,116 +66,23 @@ public struct ChatView: View {
         }
     }
 
-    // MARK: - 헤더
+    // MARK: - 빈 상태 (blank 진입 직후, 첫 전송 전)
 
-    private var header: some View {
-        HStack(alignment: .center) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text("모찌와 대화")
-                    .font(.system(size: 22, weight: .heavy, design: .rounded))
-                    .foregroundStyle(HomeDesign.Color.textPrimary)
-                Text("남겨둔 기억으로 답해드려요")
-                    .font(.system(size: 12.5, weight: .medium, design: .rounded))
-                    .foregroundStyle(HomeDesign.Color.textMuted)
-            }
+    /// 키보드가 이미 올라온 상태라 공간이 좁다 — 인사는 랜딩이 했으니 한 줄 힌트만.
+    private var emptyHint: some View {
+        VStack(spacing: HomeDesign.Spacing.md) {
             Spacer()
-            HStack(spacing: HomeDesign.Spacing.sm) {
-                Button {
-                    store.send(.historyButtonTapped)
-                } label: {
-                    Image(systemName: "clock.arrow.circlepath")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(HomeDesign.Color.textMuted)
-                        .frame(width: 36, height: 36)
-                        .background(Circle().fill(HomeDesign.Color.surface))
-                        .overlay(Circle().stroke(HomeDesign.Color.border.opacity(0.8), lineWidth: 1))
-                }
-                .buttonStyle(PressableStyle())
-                .accessibilityLabel("지난 대화")
-
-                Button {
-                    store.send(.newConversationTapped, animation: .spring(response: 0.4, dampingFraction: 0.85))
-                } label: {
-                    Image(systemName: "plus.bubble")
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(HomeDesign.Color.purple600)
-                        .frame(width: 36, height: 36)
-                        .background(Circle().fill(HomeDesign.Color.purple100.opacity(0.7)))
-                }
-                .buttonStyle(PressableStyle())
-                .opacity(store.isEmpty ? 0 : 1)
-                .disabled(store.isEmpty)
-                .accessibilityHidden(store.isEmpty)
-                .accessibilityLabel("새 대화")
-            }
-        }
-        .padding(.horizontal, HomeDesign.Spacing.xl)
-        .padding(.top, HomeDesign.Spacing.sm)
-        .padding(.bottom, HomeDesign.Spacing.xs)
-    }
-
-    // MARK: - 빈 상태 (첫 진입)
-
-    private var emptyState: some View {
-        VStack(spacing: 0) {
-            Spacer(minLength: HomeDesign.Spacing.xl)
-
-            MochiGreeting()
-
-            Spacer(minLength: HomeDesign.Spacing.lg)
-
-            VStack(spacing: HomeDesign.Spacing.sm) {
-                ForEach(Array(Self.suggestions.enumerated()), id: \.offset) { _, chip in
-                    suggestionRow(icon: chip.icon, tint: chip.tint, text: chip.text)
-                }
-            }
-            .padding(.horizontal, HomeDesign.Spacing.xl)
-
-            Spacer(minLength: HomeDesign.Spacing.xl)
+            Image("mochi-chat")
+                .resizable()
+                .scaledToFit()
+                .frame(height: 84)
+                .accessibilityHidden(true)
+            Text("남겨둔 기억으로 답해드려요")
+                .font(.system(size: 14, weight: .medium, design: .rounded))
+                .foregroundStyle(HomeDesign.Color.textMuted)
+            Spacer()
         }
         .frame(maxWidth: .infinity)
-    }
-
-    /// 찾기·추천·요약·수정 — 홈 칩과 동일 문구로 채팅의 능력 폭을 일관되게 가르친다.
-    private static let suggestions: [(icon: String, tint: Color, text: String)] = [
-        ("heart.fill", HomeDesign.Color.blush400, "오늘 데이트 어디서 갈까?"),
-        ("book.fill", HomeDesign.Color.sky400, "이번주 공부하려고 남긴 기록 알려줘"),
-        ("calendar", HomeDesign.Color.mint400, "민수랑 언제 만나기로 했지?"),
-        ("pencil.line", HomeDesign.Color.butter400, "방금 남긴 메모 수정해줘"),
-    ]
-
-    private func suggestionRow(icon: String, tint: Color, text: String) -> some View {
-        Button {
-            store.send(.chipTapped(text), animation: .spring(response: 0.45, dampingFraction: 0.85))
-        } label: {
-            HStack(spacing: HomeDesign.Spacing.md) {
-                Image(systemName: icon)
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(tint)
-                    .frame(width: 30, height: 30)
-                    .background(Circle().fill(tint.opacity(0.14)))
-                Text(text)
-                    .font(.system(size: 14, weight: .bold, design: .rounded))
-                    .foregroundStyle(HomeDesign.Color.textPrimary)
-                    .lineLimit(1)
-                Spacer()
-                Image(systemName: "arrow.up.right")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(HomeDesign.Color.textFaint)
-            }
-            .padding(.horizontal, HomeDesign.Spacing.lg)
-            .padding(.vertical, HomeDesign.Spacing.sm + 2)
-            .background(
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(HomeDesign.Color.surface)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .stroke(HomeDesign.Color.border.opacity(0.8), lineWidth: 1)
-            )
-            .shadow(color: HomeDesign.Color.ink900.opacity(0.04), radius: 10, x: 0, y: 5)
-        }
-        .buttonStyle(PressableStyle())
     }
 
     // MARK: - 메시지 리스트
@@ -195,17 +130,29 @@ public struct ChatView: View {
                     proxy.scrollTo(Self.bottomAnchor, anchor: .bottom)
                 }
             }
+            // 출처·proposal 카드와 "과정 보기"는 본문 delta 이후(턴 종료 무렵)에 붙는다 —
+            // 위 두 onChange 가 못 잡으므로 구조 변화에도 바닥을 따라간다.
+            .onChange(of: lastMessageStructure) {
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
+                    proxy.scrollTo(Self.bottomAnchor, anchor: .bottom)
+                }
+            }
         }
     }
 
     private static let bottomAnchor = "chat-bottom"
 
+    /// 마지막 버블의 구조 스냅샷 — 카드 등장·스트림 종료 시 스크롤 추적용.
+    private var lastMessageStructure: [Int] {
+        guard let last = store.messages.last else { return [] }
+        return [last.citations.count, last.proposals.count, last.isStreaming ? 1 : 0]
+    }
+
     // MARK: - 입력 독
 
-    /// 탭바 위에 얹히는 **플랫 독** — 탭바와 같은 불투명 흰색 풀폭 바 + 상단 헤어라인.
-    /// 떠 있는 캡슐(그림자·페이드)은 탭바와 이중 레이어로 읽혀 폐기(2026-06-10 피드백) —
-    /// 메신저 표준(X DM·카카오톡)처럼 입력 독과 탭바가 한 덩어리의 바 스택으로 읽히게 한다.
-    /// 키보드가 올라오면 탭바는 가려지고 독만 키보드에 붙어 같은 문법이 유지된다.
+    /// 키보드 위에 붙는 **플랫 독** — 불투명 흰색 풀폭 바 + 상단 헤어라인 (메신저 표준).
+    /// push 풀스크린이라 아래에 탭바가 없다 — 키보드가 내려가면 홈 인디케이터 영역까지
+    /// 배경이 이어진다(ignoresSafeArea).
     private var inputDock: some View {
         HStack(spacing: HomeDesign.Spacing.sm) {
             HStack(spacing: HomeDesign.Spacing.sm) {
@@ -219,6 +166,7 @@ public struct ChatView: View {
                     .lineLimit(1...4)
                     .foregroundStyle(HomeDesign.Color.textPrimary)
                     .tint(HomeDesign.Color.purple500)
+                    .focused($composerFocused)
                     .onSubmit { submit() }
             }
             .padding(.horizontal, HomeDesign.Spacing.md)
@@ -256,7 +204,6 @@ public struct ChatView: View {
         .padding(.top, 10)
         .padding(.bottom, 8)
         .background(
-            // 탭바와 동일한 불투명 흰색 + 상단 1px 헤어라인 — 탭바 appearance(0.82 white)와 톤 일치.
             HomeDesign.Color.surface
                 .overlay(alignment: .top) {
                     SwiftUI.Color(white: 0.82).frame(height: 0.5)
@@ -268,35 +215,6 @@ public struct ChatView: View {
     private func submit() {
         guard store.canSubmit else { return }
         store.send(.sendTapped, animation: .spring(response: 0.45, dampingFraction: 0.85))
-    }
-}
-
-/// 빈 상태 시그니처 — 둥실 떠 있는 모찌가 말풍선으로 먼저 인사한다.
-private struct MochiGreeting: View {
-    @State private var floating = false
-
-    var body: some View {
-        VStack(spacing: HomeDesign.Spacing.md) {
-            Image("mochi-hello")
-                .resizable()
-                .scaledToFit()
-                .frame(height: 116)
-                .offset(y: floating ? -7 : 5)
-                .animation(.easeInOut(duration: 2.1).repeatForever(autoreverses: true), value: floating)
-                .onAppear { floating = true }
-                .accessibilityHidden(true)
-
-            VStack(spacing: HomeDesign.Spacing.xs) {
-                Text("무엇이든 물어보세요")
-                    .font(.system(size: 20, weight: .heavy, design: .rounded))
-                    .foregroundStyle(HomeDesign.Color.textPrimary)
-                Text("남겨둔 기록을 뒤져서 답하고,\n찾고, 정리하고, 고쳐드려요.")
-                    .font(.system(size: 14, weight: .medium, design: .rounded))
-                    .foregroundStyle(HomeDesign.Color.textMuted)
-                    .multilineTextAlignment(.center)
-                    .lineSpacing(3)
-            }
-        }
     }
 }
 
@@ -325,12 +243,14 @@ private struct ChatErrorBanner: View {
     }
 }
 
-#Preview("빈 상태") {
-    ChatView(
-        store: Store(initialState: ChatFeature.State()) {
-            ChatFeature()
-        } withDependencies: {
-            $0.chatStreamClient = MockChatStreamClient()
-        }
-    )
+#Preview("대화") {
+    NavigationStack {
+        ChatView(
+            store: Store(initialState: ChatFeature.State()) {
+                ChatFeature()
+            } withDependencies: {
+                $0.chatStreamClient = MockChatStreamClient()
+            }
+        )
+    }
 }

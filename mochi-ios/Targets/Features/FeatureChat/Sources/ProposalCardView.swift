@@ -117,7 +117,7 @@ struct ProposalCardView: View {
                             openURL(url)
                         }
                     } label: {
-                        Text("설정에서 알림 켜기")
+                        Text("설정에서 권한 켜기")
                             .font(.system(size: 12.5, weight: .bold, design: .rounded))
                             .foregroundStyle(HomeDesign.Color.purple600)
                             .padding(.horizontal, HomeDesign.Spacing.md)

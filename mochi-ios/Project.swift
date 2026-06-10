@@ -245,6 +245,7 @@ let project = Project(
                 .target(name: "CoreAgentClient"),
                 .target(name: "CoreNetworking"),
                 .target(name: "CorePersistence"),
+                .target(name: "CoreIntegrations"),
                 .target(name: "DesignSystem"),
                 .package(product: "ComposableArchitecture"),
                 .package(product: "Dependencies"),
@@ -578,6 +579,7 @@ let project = Project(
             layer: .feature,
             dependencies: [
                 .target(name: "CoreAgentClient"),
+                .target(name: "CoreIntegrations"),
                 .package(product: "Clocks"),
                 .package(product: "ComposableArchitecture"),
                 .package(product: "Dependencies"),
