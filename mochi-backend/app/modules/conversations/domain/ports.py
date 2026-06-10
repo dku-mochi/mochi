@@ -60,6 +60,15 @@ class ConversationRepository(Protocol):
         """run 을 트리거한 user message 행의 run_status 갱신. 없으면 False."""
         ...
 
+    async def set_proposal_status(
+        self, *, owner_id: UUID, conversation_id: UUID, proposal_id: UUID, status: str
+    ) -> bool:
+        """proposal 카드 확정/취소 영속 — assistant 행 ``proposals`` jsonb 의 해당 entry 에
+        ``status`` 를 병합한다. 스냅샷 복귀 시 카드가 pending 으로 되살아나지 않게 하는
+        단일 원천 (2026-06-10 사용자 버그 리포트). 해당 proposal 이 없으면 False (→404).
+        """
+        ...
+
 
 # ---------- 채팅 run (agent loop) ----------
 

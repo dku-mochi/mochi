@@ -240,7 +240,7 @@ app/
 │       ├── application/           BeginChatTurn(암묵 생성·동시 run 409) · RunChatTurn(detached run 본체) · queries(스냅샷+stale lazy repair)
 │       ├── infrastructure/        ORM·repository · RunRegistry(in-process queue) · GeminiChatClient(AUTO+stream) · turn_store(연산별 자체 세션) · tools/(search_items·get_item_detail·propose 5종·web_fetch(agent 가드 재사용)·web_search(Tavily, 키 미설정 시 제외) — 전부 read-only)
 │       ├── prompts/               chat@v3 활성 (PromptVersion 버저닝)
-│       └── presentation/          POST /{id}/messages(POST-as-SSE) · GET 목록/스냅샷 · DELETE
+│       └── presentation/          POST /{id}/messages(POST-as-SSE) · GET 목록/스냅샷 · DELETE · PATCH proposals/{id}(카드 확정/취소 영속)
 ├── api.py                         /api/v1 라우터 조립
 └── main.py                        FastAPI factory + 미들웨어 + 예외 핸들러
 ```

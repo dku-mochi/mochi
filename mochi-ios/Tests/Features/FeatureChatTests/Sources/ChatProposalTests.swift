@@ -105,6 +105,48 @@ final class ChatProposalTests: XCTestCase {
         await store.send(.proposalConfirmTapped(messageID: messageID, proposalID: UUID(10)))
     }
 
+    // MARK: - 확정/취소가 서버에 영속된다 (스냅샷 복귀 시 pending 부활 방지 — 2026-06-10 버그)
+
+    func test_confirm_persists_status_to_server() async {
+        struct RecordingChatClient: ChatAPIClient {
+            let recorded: LockIsolated<[(UUID, UUID, ChatProposalStatusUpdate)]>
+            func listConversations(limit: Int) async throws -> [ChatConversationDTO] { [] }
+            func conversationSnapshot(id: UUID) async throws -> ChatSnapshotDTO {
+                throw APIErrorEnvelope(code: "x", message: "x", requestID: "r", retryAfter: nil)
+            }
+            func deleteConversation(id: UUID) async throws {}
+            func setProposalStatus(
+                conversationID: UUID, proposalID: UUID, status: ChatProposalStatusUpdate
+            ) async throws {
+                recorded.withValue { $0.append((conversationID, proposalID, status)) }
+            }
+        }
+
+        let recorded = LockIsolated<[(UUID, UUID, ChatProposalStatusUpdate)]>([])
+        var initial = makeState(deleteProposal())
+        initial.conversationID = UUID(3)
+        let store = TestStore(initialState: initial) {
+            ChatFeature()
+        } withDependencies: {
+            $0.mochiAPIClient = StubAPIClient()
+            $0.mochiItemRepository = InMemoryMochiItemRepository()
+            $0.chatAPIClient = RecordingChatClient(recorded: recorded)
+        }
+
+        await store.send(.proposalConfirmTapped(messageID: messageID, proposalID: UUID(10))) {
+            $0.messages[id: self.messageID]?.proposals[id: UUID(10)]?.status = .confirming
+        }
+        await store.receive(\.proposalResolved) {
+            $0.messages[id: self.messageID]?.proposals[id: UUID(10)]?.status = .confirmed
+        }
+        await store.finish()
+
+        XCTAssertEqual(recorded.value.count, 1)
+        XCTAssertEqual(recorded.value.first?.0, UUID(3))
+        XCTAssertEqual(recorded.value.first?.1, UUID(10))
+        XCTAssertEqual(recorded.value.first?.2, .confirmed)
+    }
+
     // MARK: - 메모 확정 = 로컬 upsert(channel .chat) + sync
 
     func test_confirm_memo_upserts_local_chat_item_and_triggers_sync() async {

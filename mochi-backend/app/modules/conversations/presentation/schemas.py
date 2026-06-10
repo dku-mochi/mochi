@@ -1,7 +1,7 @@
 """/conversations DTO — iOS 채팅 탭(히스토리 시트·스냅샷 재조회)과 1:1."""
 
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -15,6 +15,15 @@ from app.modules.conversations.domain.entities import (
 
 class SendMessageRequest(BaseModel):
     text: str = Field(min_length=1, max_length=4000)
+
+
+class ProposalStatusUpdateRequest(BaseModel):
+    """proposal 카드 확정/취소 영속 — 스냅샷 복귀 시 카드가 pending 으로 안 되살아나게.
+
+    confirmed/cancelled 만 — expired·failed 는 재확정 시 결정적으로 재현되는 일시 상태.
+    """
+
+    status: Literal["confirmed", "cancelled"]
 
 
 class ConversationResponse(BaseModel):

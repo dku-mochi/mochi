@@ -15,6 +15,9 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 >
 > **동시 세션 / 공유 파일 주의**: CHANGELOG 는 여러 세션·작업자가 함께 쓰는 append-only 공유 파일이다. 동시 작업 중에는 다른 세션이 자기 항목을 먼저 커밋할 수 있고, 한 워킹트리에 여러 세션의 미커밋 항목이 섞여 보일 수 있다. 이때 **항목을 분리하려 애쓰지 말고** 자기 변경과 함께 그대로 staging·커밋한다 — 섞인 다른 항목은 해당 세션이 자기 코드와 함께 정리한다. diff 에 모르는 CHANGELOG 항목이 보여도 멈추지 않는다 (단, CHANGELOG 외의 *코드* 파일은 절대 임의로 섞어 커밋하지 않는다).
 
+## 2026-06-10 — ios, backend, docs
+- **proposal 카드 확정 상태 영속 + 스트리밍 UX 개선** (사용자 버그 리포트 2건). ① 확정/취소한 카드가 스냅샷 복귀·히스토리 재진입 시 pending 으로 되살아나던 버그 — **`PATCH /conversations/{id}/proposals/{id}` 신설**(⓪ 계약 — assistant 행 `proposals` jsonb 에 `status` 병합, confirmed/cancelled 만 영속·expired/failed 는 결정적 재현이라 비영속), iOS 는 확정 실행 성공 후 best-effort 영속 + fold 가 status 복원. openapi→generated client ⓪폭포 + DOMAIN_DESIGN §10.3·ARCHITECTURE·README 동기화. ② 스트리밍 UX — tool pill 이 finished 마다 깜빡이던 것을 **다음 툴/첫 본문까지 유지**로, 블록 단위로 띡띡 오던 본문을 **타자기 스무딩**(`ChatStreamSmoothing` — 글자 단위 재방출, 백로그 비례 가속, 비-텍스트 이벤트 순서 보존)으로.
+
 ## 2026-06-10 — ios, backend
 - **채팅 탭 리뷰 반영 (P1 1 + P2 4 + nit 2)** — 오늘 작업 전체(BE PR-4 + iOS PR-2~5) code-reviewer 딥리뷰. **P1: `bytes.lines` 가 빈 줄을 방출하지 않아 SSE 이벤트 경계가 사라져 라이브 스트림이 delta·done 을 한 건도 전달 못 함** → `SSEEventParser` 를 바이트 단위 소비로 재설계(빈 줄 보존), Live{Agent,Chat}StreamClient 양쪽 적용 + **CoreAgentClientTests 신설**로 wire 바이트 회귀 고정(기존 분석 스트림도 같은 결함이었음). P2: memo 재확정 멱등화(로컬 id=proposal.id), 열린 대화 히스토리 삭제 시 화면 리셋(soft-deleted PK 재사용 409 차단), 스트리밍 중 스냅샷 덮어쓰기 가드, reminder `fire_at` microsecond 절삭(iOS ISO 파서 3자리 한계). nit: 빈 tool label/스텝 렌더 정리.
 

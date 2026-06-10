@@ -222,6 +222,18 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `GET /api/v1/conversations`.
     /// - Remark: Generated from `#/paths//api/v1/conversations/get(list_conversations_api_v1_conversations_get)`.
     func list_conversations_api_v1_conversations_get(_ input: Operations.list_conversations_api_v1_conversations_get.Input) async throws -> Operations.list_conversations_api_v1_conversations_get.Output
+    /// Update Proposal Status
+    ///
+    /// proposal 카드 확정/취소 영속 — 클라이언트가 확정 실행(REST) **성공 후** 호출한다.
+    ///
+    /// 스냅샷 복귀·히스토리 재진입 시 카드가 pending 으로 되살아나 "안 누른 것처럼" 보이는
+    /// 문제(2026-06-10 버그 리포트)의 단일 원천 해결 — 스냅샷의 proposals entry 에 ``status``
+    /// 가 실려 내려간다. 실행 자체(PATCH/DELETE/ingest)와 별도 호출인 것은 의도: 실행 경로가
+    /// 5종(로컬 알림 포함 — 서버 무관)이라 실행 API 에 끼워 넣을 단일 지점이 없다.
+    ///
+    /// - Remark: HTTP `PATCH /api/v1/conversations/{conversation_id}/proposals/{proposal_id}`.
+    /// - Remark: Generated from `#/paths//api/v1/conversations/{conversation_id}/proposals/{proposal_id}/patch(update_proposal_status_api_v1_conversations__conversation_id__proposals__proposal_id__patch)`.
+    func update_proposal_status_api_v1_conversations__conversation_id__proposals__proposal_id__patch(_ input: Operations.update_proposal_status_api_v1_conversations__conversation_id__proposals__proposal_id__patch.Input) async throws -> Operations.update_proposal_status_api_v1_conversations__conversation_id__proposals__proposal_id__patch.Output
     /// Delete Conversation
     ///
     /// 히스토리 스와이프 삭제 — soft delete (행·메시지 보존).
@@ -648,6 +660,26 @@ extension APIProtocol {
         try await list_conversations_api_v1_conversations_get(Operations.list_conversations_api_v1_conversations_get.Input(
             query: query,
             headers: headers
+        ))
+    }
+    /// Update Proposal Status
+    ///
+    /// proposal 카드 확정/취소 영속 — 클라이언트가 확정 실행(REST) **성공 후** 호출한다.
+    ///
+    /// 스냅샷 복귀·히스토리 재진입 시 카드가 pending 으로 되살아나 "안 누른 것처럼" 보이는
+    /// 문제(2026-06-10 버그 리포트)의 단일 원천 해결 — 스냅샷의 proposals entry 에 ``status``
+    /// 가 실려 내려간다. 실행 자체(PATCH/DELETE/ingest)와 별도 호출인 것은 의도: 실행 경로가
+    /// 5종(로컬 알림 포함 — 서버 무관)이라 실행 API 에 끼워 넣을 단일 지점이 없다.
+    ///
+    /// - Remark: HTTP `PATCH /api/v1/conversations/{conversation_id}/proposals/{proposal_id}`.
+    /// - Remark: Generated from `#/paths//api/v1/conversations/{conversation_id}/proposals/{proposal_id}/patch(update_proposal_status_api_v1_conversations__conversation_id__proposals__proposal_id__patch)`.
+    public func update_proposal_status_api_v1_conversations__conversation_id__proposals__proposal_id__patch(
+        path: Operations.update_proposal_status_api_v1_conversations__conversation_id__proposals__proposal_id__patch.Input.Path,
+        body: Operations.update_proposal_status_api_v1_conversations__conversation_id__proposals__proposal_id__patch.Input.Body
+    ) async throws -> Operations.update_proposal_status_api_v1_conversations__conversation_id__proposals__proposal_id__patch.Output {
+        try await update_proposal_status_api_v1_conversations__conversation_id__proposals__proposal_id__patch(Operations.update_proposal_status_api_v1_conversations__conversation_id__proposals__proposal_id__patch.Input(
+            path: path,
+            body: body
         ))
     }
     /// Delete Conversation
@@ -1883,6 +1915,30 @@ public enum Components {
                 case objectKey
                 case uploadURL
                 case expiresAt
+            }
+        }
+        /// proposal 카드 확정/취소 영속 — 스냅샷 복귀 시 카드가 pending 으로 안 되살아나게.
+        ///
+        /// confirmed/cancelled 만 — expired·failed 는 재확정 시 결정적으로 재현되는 일시 상태.
+        ///
+        /// - Remark: Generated from `#/components/schemas/ProposalStatusUpdateRequest`.
+        public struct ProposalStatusUpdateRequest: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/ProposalStatusUpdateRequest/status`.
+            @frozen public enum statusPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                case confirmed = "confirmed"
+                case cancelled = "cancelled"
+            }
+            /// - Remark: Generated from `#/components/schemas/ProposalStatusUpdateRequest/status`.
+            public var status: Components.Schemas.ProposalStatusUpdateRequest.statusPayload
+            /// Creates a new `ProposalStatusUpdateRequest`.
+            ///
+            /// - Parameters:
+            ///   - status:
+            public init(status: Components.Schemas.ProposalStatusUpdateRequest.statusPayload) {
+                self.status = status
+            }
+            public enum CodingKeys: String, CodingKey {
+                case status
             }
         }
         /// 등록되는 푸시 토큰의 종류.
@@ -5423,6 +5479,101 @@ public enum Operations {
                     .json
                 ]
             }
+        }
+    }
+    /// Update Proposal Status
+    ///
+    /// proposal 카드 확정/취소 영속 — 클라이언트가 확정 실행(REST) **성공 후** 호출한다.
+    ///
+    /// 스냅샷 복귀·히스토리 재진입 시 카드가 pending 으로 되살아나 "안 누른 것처럼" 보이는
+    /// 문제(2026-06-10 버그 리포트)의 단일 원천 해결 — 스냅샷의 proposals entry 에 ``status``
+    /// 가 실려 내려간다. 실행 자체(PATCH/DELETE/ingest)와 별도 호출인 것은 의도: 실행 경로가
+    /// 5종(로컬 알림 포함 — 서버 무관)이라 실행 API 에 끼워 넣을 단일 지점이 없다.
+    ///
+    /// - Remark: HTTP `PATCH /api/v1/conversations/{conversation_id}/proposals/{proposal_id}`.
+    /// - Remark: Generated from `#/paths//api/v1/conversations/{conversation_id}/proposals/{proposal_id}/patch(update_proposal_status_api_v1_conversations__conversation_id__proposals__proposal_id__patch)`.
+    public enum update_proposal_status_api_v1_conversations__conversation_id__proposals__proposal_id__patch {
+        public static let id: Swift.String = "update_proposal_status_api_v1_conversations__conversation_id__proposals__proposal_id__patch"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/api/v1/conversations/{conversation_id}/proposals/{proposal_id}/PATCH/path`.
+            public struct Path: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/conversations/{conversation_id}/proposals/{proposal_id}/PATCH/path/conversation_id`.
+                public var conversation_id: Swift.String
+                /// - Remark: Generated from `#/paths/api/v1/conversations/{conversation_id}/proposals/{proposal_id}/PATCH/path/proposal_id`.
+                public var proposal_id: Swift.String
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - conversation_id:
+                ///   - proposal_id:
+                public init(
+                    conversation_id: Swift.String,
+                    proposal_id: Swift.String
+                ) {
+                    self.conversation_id = conversation_id
+                    self.proposal_id = proposal_id
+                }
+            }
+            public var path: Operations.update_proposal_status_api_v1_conversations__conversation_id__proposals__proposal_id__patch.Input.Path
+            /// - Remark: Generated from `#/paths/api/v1/conversations/{conversation_id}/proposals/{proposal_id}/PATCH/requestBody`.
+            @frozen public enum Body: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/conversations/{conversation_id}/proposals/{proposal_id}/PATCH/requestBody/content/application\/json`.
+                case json(Components.Schemas.ProposalStatusUpdateRequest)
+            }
+            public var body: Operations.update_proposal_status_api_v1_conversations__conversation_id__proposals__proposal_id__patch.Input.Body
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            ///   - body:
+            public init(
+                path: Operations.update_proposal_status_api_v1_conversations__conversation_id__proposals__proposal_id__patch.Input.Path,
+                body: Operations.update_proposal_status_api_v1_conversations__conversation_id__proposals__proposal_id__patch.Input.Body
+            ) {
+                self.path = path
+                self.body = body
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct NoContent: Sendable, Hashable {
+                /// Creates a new `NoContent`.
+                public init() {}
+            }
+            /// Successful Response
+            ///
+            /// - Remark: Generated from `#/paths//api/v1/conversations/{conversation_id}/proposals/{proposal_id}/patch(update_proposal_status_api_v1_conversations__conversation_id__proposals__proposal_id__patch)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            case noContent(Operations.update_proposal_status_api_v1_conversations__conversation_id__proposals__proposal_id__patch.Output.NoContent)
+            /// Successful Response
+            ///
+            /// - Remark: Generated from `#/paths//api/v1/conversations/{conversation_id}/proposals/{proposal_id}/patch(update_proposal_status_api_v1_conversations__conversation_id__proposals__proposal_id__patch)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            public static var noContent: Self {
+                .noContent(.init())
+            }
+            /// The associated value of the enum case if `self` is `.noContent`.
+            ///
+            /// - Throws: An error if `self` is not `.noContent`.
+            /// - SeeAlso: `.noContent`.
+            public var noContent: Operations.update_proposal_status_api_v1_conversations__conversation_id__proposals__proposal_id__patch.Output.NoContent {
+                get throws {
+                    switch self {
+                    case let .noContent(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "noContent",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
         }
     }
     /// Delete Conversation

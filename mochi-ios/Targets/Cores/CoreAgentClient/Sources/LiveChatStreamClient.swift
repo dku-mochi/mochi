@@ -31,6 +31,11 @@ public struct LiveChatStreamClient: ChatStreamClient {
     }
 
     public func send(conversationID: UUID, text: String) -> AsyncThrowingStream<ChatStreamEvent, Error> {
+        // 타자기 스무딩 래핑 — 서버 블록 delta 를 글자 단위 일정 속도로 (ChatStreamSmoothing).
+        ChatStreamSmoothing.smoothed(rawSend(conversationID: conversationID, text: text))
+    }
+
+    private func rawSend(conversationID: UUID, text: String) -> AsyncThrowingStream<ChatStreamEvent, Error> {
         AsyncThrowingStream { continuation in
             let task = Task {
                 do {

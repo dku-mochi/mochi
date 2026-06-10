@@ -1046,6 +1046,63 @@
         }
       }
     },
+    "/api/v1/conversations/{conversation_id}/proposals/{proposal_id}": {
+      "patch": {
+        "tags": [
+          "conversations"
+        ],
+        "summary": "Update Proposal Status",
+        "description": "proposal 카드 확정/취소 영속 — 클라이언트가 확정 실행(REST) **성공 후** 호출한다.\n\n스냅샷 복귀·히스토리 재진입 시 카드가 pending 으로 되살아나 \"안 누른 것처럼\" 보이는\n문제(2026-06-10 버그 리포트)의 단일 원천 해결 — 스냅샷의 proposals entry 에 ``status``\n가 실려 내려간다. 실행 자체(PATCH/DELETE/ingest)와 별도 호출인 것은 의도: 실행 경로가\n5종(로컬 알림 포함 — 서버 무관)이라 실행 API 에 끼워 넣을 단일 지점이 없다.",
+        "operationId": "update_proposal_status_api_v1_conversations__conversation_id__proposals__proposal_id__patch",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Conversation Id"
+            }
+          },
+          {
+            "name": "proposal_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Proposal Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "Authorization",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProposalStatusUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        }
+      }
+    },
     "/api/v1/conversations/{conversation_id}": {
       "delete": {
         "tags": [
@@ -2141,6 +2198,24 @@
         ],
         "title": "PresignResponse",
         "description": "발급된 V4 Signed PUT URL + 서버가 부여한 object_key."
+      },
+      "ProposalStatusUpdateRequest": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "confirmed",
+              "cancelled"
+            ],
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "ProposalStatusUpdateRequest",
+        "description": "proposal 카드 확정/취소 영속 — 스냅샷 복귀 시 카드가 pending 으로 안 되살아나게.\n\nconfirmed/cancelled 만 — expired·failed 는 재확정 시 결정적으로 재현되는 일시 상태."
       },
       "PushTokenType": {
         "type": "string",

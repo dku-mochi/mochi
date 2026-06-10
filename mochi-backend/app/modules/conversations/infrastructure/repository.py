@@ -58,6 +58,19 @@ def _to_message(row: MessageRow) -> Message:
     )
 
 
+def merge_proposal_status(
+    proposals: list[dict[str, Any]], proposal_id: str, status: str
+) -> list[dict[str, Any]] | None:
+    """proposals jsonb 에서 ``proposal_id`` entry 에 status 를 병합한 새 리스트.
+    해당 entry 가 없으면 None — 순수 함수로 분리해 jsonb 병합 로직을 단위테스트한다."""
+    for index, entry in enumerate(proposals):
+        if isinstance(entry, dict) and entry.get("id") == proposal_id:
+            updated = list(proposals)
+            updated[index] = {**entry, "status": status}
+            return updated
+    return None
+
+
 class PostgresConversationRepository(ConversationRepositoryPort):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
@@ -197,6 +210,27 @@ class PostgresConversationRepository(ConversationRepositoryPort):
         )
         await self._session.flush()
         return (result.rowcount or 0) > 0
+
+    async def set_proposal_status(
+        self, *, owner_id: UUID, conversation_id: UUID, proposal_id: UUID, status: str
+    ) -> bool:
+        # 대화의 assistant 행을 훑어 Python 에서 병합 — 세션 자동분리(30분)라 행 수가 작고,
+        # jsonb path 연산을 피해 단순함을 산다.
+        rows = await self._session.scalars(
+            select(MessageRow).where(
+                MessageRow.conversation_id == conversation_id,
+                MessageRow.owner_id == owner_id,
+                MessageRow.role == MessageRole.ASSISTANT.value,
+            )
+        )
+        target = str(proposal_id)
+        for row in rows.all():
+            updated = merge_proposal_status(list(row.proposals or []), target, status)
+            if updated is not None:
+                row.proposals = updated
+                await self._session.flush()
+                return True
+        return False
 
     async def mark_stale_runs_failed(
         self, *, owner_id: UUID, conversation_id: UUID, started_before: datetime

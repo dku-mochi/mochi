@@ -46,6 +46,29 @@ public final class OpenAPIChatClient: ChatAPIClient, @unchecked Sendable {
         }
     }
 
+    public func setProposalStatus(
+        conversationID: UUID, proposalID: UUID, status: ChatProposalStatusUpdate
+    ) async throws {
+        let body = Components.Schemas.ProposalStatusUpdateRequest(
+            status: status == .confirmed ? .confirmed : .cancelled
+        )
+        let output = try await client
+            .update_proposal_status_api_v1_conversations__conversation_id__proposals__proposal_id__patch(
+                .init(
+                    path: .init(
+                        conversation_id: conversationID.uuidString,
+                        proposal_id: proposalID.uuidString
+                    ),
+                    body: .json(body)
+                )
+            )
+        switch output {
+        case .noContent: return
+        case let .undocumented(status, payload):
+            throw await Self.error(status: status, payload: payload)
+        }
+    }
+
     public func deleteConversation(id: UUID) async throws {
         let output = try await client.delete_conversation_api_v1_conversations__conversation_id__delete(
             .init(path: .init(conversation_id: id.uuidString))
@@ -88,7 +111,10 @@ public final class OpenAPIChatClient: ChatAPIClient, @unchecked Sendable {
                   let payload = object["payload"] as? [String: Any],
                   let payloadJSON = try? JSONSerialization.data(withJSONObject: payload)
             else { return nil }
-            return ChatProposalEnvelopeDTO(id: proposalID, type: type, payloadJSON: payloadJSON)
+            return ChatProposalEnvelopeDTO(
+                id: proposalID, type: type, payloadJSON: payloadJSON,
+                status: object["status"] as? String
+            )
         }
 
         return ChatSnapshotMessageDTO(

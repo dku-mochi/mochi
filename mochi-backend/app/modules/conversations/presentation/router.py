@@ -30,6 +30,7 @@ from app.modules.conversations.application.queries import (
     DeleteConversation,
     GetConversationSnapshot,
     ListConversations,
+    SetProposalStatus,
     make_conversation_repository,
 )
 from app.modules.conversations.application.run_chat_turn import RunChatTurn
@@ -54,6 +55,7 @@ from app.modules.conversations.presentation.schemas import (
     ConversationResponse,
     ConversationSnapshotResponse,
     MessageResponse,
+    ProposalStatusUpdateRequest,
     SendMessageRequest,
 )
 from app.modules.conversations.prompts.chat_prompts import ACTIVE_CHAT_PROMPT
@@ -207,6 +209,35 @@ async def get_conversation_snapshot(
         conversation=ConversationResponse.from_entity(snapshot.conversation),
         messages=[MessageResponse.from_entity(m) for m in snapshot.messages],
     )
+
+
+@router.patch(
+    "/{conversation_id}/proposals/{proposal_id}", status_code=status.HTTP_204_NO_CONTENT
+)
+async def update_proposal_status(
+    conversation_id: UUID,
+    proposal_id: UUID,
+    payload: ProposalStatusUpdateRequest,
+    db: DBSession,
+    user: CurrentUser,
+) -> Response:
+    """proposal 카드 확정/취소 영속 — 클라이언트가 확정 실행(REST) **성공 후** 호출한다.
+
+    스냅샷 복귀·히스토리 재진입 시 카드가 pending 으로 되살아나 "안 누른 것처럼" 보이는
+    문제(2026-06-10 버그 리포트)의 단일 원천 해결 — 스냅샷의 proposals entry 에 ``status``
+    가 실려 내려간다. 실행 자체(PATCH/DELETE/ingest)와 별도 호출인 것은 의도: 실행 경로가
+    5종(로컬 알림 포함 — 서버 무관)이라 실행 API 에 끼워 넣을 단일 지점이 없다.
+    """
+    updated = await SetProposalStatus(repository=make_conversation_repository(db)).execute(
+        owner_id=user,
+        conversation_id=conversation_id,
+        proposal_id=proposal_id,
+        status=payload.status,
+    )
+    if not updated:
+        raise NotFoundError("Proposal not found", code="conversation.proposal_not_found")
+    await db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.delete("/{conversation_id}", status_code=status.HTTP_204_NO_CONTENT)
