@@ -41,12 +41,14 @@ public struct MockChatStreamClient: ChatStreamClient {
                     try await Task.sleep(nanoseconds: UInt64(seconds * delayFactor * 1_000_000_000))
                 }
                 do {
+                    let citedID = UUID()
                     try await sleep(0.4)
                     continuation.yield(.toolStarted(name: "search_items", label: "기록을 뒤지고 있어요"))
                     try await sleep(1.1)
                     continuation.yield(.toolFinished(name: "search_items", summary: "기록 3개를 찾았어요"))
                     try await sleep(0.3)
-                    let answer = "남겨두신 기록을 봤어요. 지난주에 저장한 카페 두 곳이 있는데, 그중 한강 근처 베이커리 카페가 분위기 메모와 가장 잘 맞아요. 지도 스크린샷도 같이 남겨두셨더라고요."
+                    // 본문 마커는 서버와 동일하게 raw 로 흘린다 — 표시 치환은 클라이언트 책임 (PR-2).
+                    let answer = "남겨두신 기록을 봤어요. 지난주에 저장한 카페 두 곳이 있는데, 그중 한강 근처 베이커리 카페가 분위기 메모와 가장 잘 맞아요【item:\(citedID.uuidString.lowercased())】. 지도 스크린샷도 같이 남겨두셨더라고요."
                     for character in answer {
                         continuation.yield(.messageDelta(String(character)))
                         try await sleep(0.012)
@@ -55,7 +57,7 @@ public struct MockChatStreamClient: ChatStreamClient {
                         .citation(
                             ChatCitation(
                                 index: 1,
-                                mochiItemID: UUID(),
+                                mochiItemID: citedID,
                                 title: "한강 베이커리 카페",
                                 snippet: "통창 뷰가 좋다고 메모"
                             )

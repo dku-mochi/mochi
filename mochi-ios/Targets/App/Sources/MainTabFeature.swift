@@ -149,6 +149,13 @@ struct MainTabFeature: Sendable {
                 state.detail = DetailFeature.State(mochiItemID: mochiItemID)
                 return .none
 
+            case let .chat(.delegate(.openItemRequested(mochiItemID))):
+                // 채팅 근거 미니카드 탭 — hero frame 이 없어 중앙 scale 폴백 (캘린더와 동일).
+                guard state.detail == nil else { return .none }
+                state.detailHero = nil
+                state.detail = DetailFeature.State(mochiItemID: mochiItemID)
+                return .none
+
             case let .debugInboxChanged(isOn):
                 state.isDebugInboxPresented = isOn
                 return .none
