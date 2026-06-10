@@ -94,6 +94,15 @@ struct MainTabView: View {
                 .tag(MainTabFeature.Tab.chat)
 
                 SearchView(store: store.scope(state: \.search, action: \.search))
+                    .background(
+                        TabBarReselect {
+                            // 키보드 내려가게 + state reset.
+                            UIApplication.shared.sendAction(
+                                #selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil
+                            )
+                            store.send(.searchTabReselected)
+                        }
+                    )
                     .tabItem { Label("검색", image: "tab_search") }
                     .tag(MainTabFeature.Tab.search)
             }
