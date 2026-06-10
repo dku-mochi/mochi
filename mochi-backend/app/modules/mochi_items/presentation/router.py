@@ -24,10 +24,20 @@ from app.modules.mochi_items.application.update_instance_lifecycle import (
     UpdateInstanceLifecycle,
     UpdateInstanceLifecycleCommand,
 )
+from app.modules.mochi_items.application.update_mochi_item import (
+    InstanceChange,
+    UpdateMochiItem,
+    UpdateMochiItemCommand,
+)
 from app.modules.mochi_items.application.weekly_digest import GenerateWeeklyDigest
 from app.modules.mochi_items.domain.entities import ImageRef, MochiItem
 from app.modules.mochi_items.domain.ports import CaptureImageStorage, ObjectStat
-from app.modules.mochi_items.domain.value_objects import InstanceLifecycleState
+from app.modules.mochi_items.domain.value_objects import (
+    InstanceLifecycleKind,
+    InstanceLifecycleState,
+    IntentInstance,
+    IntentPayload,
+)
 from app.modules.mochi_items.infrastructure.gemini_weekly_digest import GeminiWeeklyDigest
 from app.modules.mochi_items.infrastructure.outbox import OutboxNotifier
 from app.modules.mochi_items.infrastructure.repository import PostgresMochiItemRepository
@@ -42,6 +52,7 @@ from app.modules.mochi_items.presentation.schemas import (
     MochiItemCreateRequest,
     MochiItemListResponse,
     MochiItemResponse,
+    MochiItemUpdateRequest,
     MonthlyCalendarResponse,
     PresignRequest,
     PresignResponse,
@@ -224,6 +235,16 @@ async def create_mochi_item(
             user_memo=payload.user_memo,
             image_refs=tuple(image_refs),
             idempotency_key=idempotency_key,
+            # 채팅 proposal 확정 — 사용자 확정 instance 는 분석 생략·직접 생성 (§5.2 예외).
+            confirmed_instances=tuple(
+                IntentInstance(
+                    intent_type=ci.intent_type,
+                    payload=IntentPayload(**ci.payload.non_null_fields()),
+                    label=ci.label,
+                    reasoning="user-confirmed via chat proposal",
+                )
+                for ci in payload.confirmed_instances
+            ),
         )
     )
     await db.commit()
@@ -429,6 +450,57 @@ async def get_mochi_item(mochi_item_id: UUID, db: DBSession, user: CurrentUser) 
     item = await repo.find_by_id(owner_id=user, mochi_item_id=mochi_item_id)
     if not item:
         raise NotFoundError("Mochi item not found", code="mochi_item.not_found")
+    return _to_response(item)
+
+
+@router.patch("/{mochi_item_id}", response_model=MochiItemResponse)
+async def update_mochi_item(
+    mochi_item_id: UUID,
+    payload: MochiItemUpdateRequest,
+    db: DBSession,
+    user: CurrentUser,
+) -> MochiItemResponse:
+    """채팅 수정 proposal 확정 실행 — 콘텐츠 + instance 변경을 한 트랜잭션으로 (journal 2026-06-10 M1).
+
+    - 콘텐츠(text/userMemo/summary): 제공 필드만 갱신 (null 클리어 미지원).
+    - instances[]: payload 병합("일정 3시로" = time 만 교체) · label · lifecycle 전이
+      (``lifecycle_policy`` 검증, 불법 409).
+    - instance 미실재 404(`intent_instance.not_found`) — proposal 카드 생성~확정 사이
+      reanalyze 가 instance 를 재작성한 경우의 만료 신호 (iOS 가 카드 expired 처리).
+    """
+    changes = tuple(
+        InstanceChange(
+            instance_id=req.instance_id,
+            payload_fields=req.payload.non_null_fields() if req.payload else {},
+            label=req.label,
+            lifecycle=(
+                InstanceLifecycleState(
+                    kind=req.lifecycle_kind,
+                    # archive_reason 은 archived 전이에서만 의미 — 비-archived 에 끼면
+                    # active 행에 reason 이 영속되는 도메인 위생 위반이라 무시한다 (리뷰 P2).
+                    archive_reason=(
+                        req.archive_reason
+                        if req.lifecycle_kind is InstanceLifecycleKind.ARCHIVED
+                        else None
+                    ),
+                )
+                if req.lifecycle_kind is not None
+                else None
+            ),
+        )
+        for req in payload.instances
+    )
+    item = await UpdateMochiItem(repository=PostgresMochiItemRepository(db)).execute(
+        UpdateMochiItemCommand(
+            owner_id=user,
+            mochi_item_id=mochi_item_id,
+            text=payload.text,
+            user_memo=payload.user_memo,
+            summary=payload.summary,
+            instance_changes=changes,
+        )
+    )
+    await db.commit()
     return _to_response(item)
 
 

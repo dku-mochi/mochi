@@ -238,6 +238,24 @@ let project = Project(
             ]
         ),
         module(
+            "FeatureChat",
+            layer: .feature,
+            dependencies: [
+                .target(name: "CoreDomain"),
+                .target(name: "CoreAgentClient"),
+                .target(name: "CoreNetworking"),
+                .target(name: "CorePersistence"),
+                .target(name: "DesignSystem"),
+                .package(product: "ComposableArchitecture"),
+                .package(product: "Dependencies"),
+                .package(product: "CasePaths"),
+                .package(product: "IdentifiedCollections"),
+                .package(product: "Perception"),
+                .package(product: "PerceptionCore"),
+                .package(product: "SwiftNavigation"),
+            ]
+        ),
+        module(
             "FeatureDetail",
             layer: .feature,
             dependencies: [
@@ -402,6 +420,7 @@ let project = Project(
                 .target(name: "FeatureMochiItem"),
                 .target(name: "FeatureInbox"),
                 .target(name: "FeatureSearch"),
+                .target(name: "FeatureChat"),
                 .target(name: "FeatureDetail"),
                 .target(name: "FeatureSettings"),
                 .target(name: "CoreDomain"),
@@ -514,6 +533,7 @@ let project = Project(
         // MARK: Tests
         unitTests(for: "CoreDomain", layer: .core),
         unitTests(for: "CorePersistence", layer: .core, dependencies: [.target(name: "CoreDomain")]),
+        unitTests(for: "CoreAgentClient", layer: .core, dependencies: [.target(name: "CoreDomain")]),
         unitTests(
             for: "FeatureMochiItem",
             layer: .feature,
@@ -553,6 +573,21 @@ let project = Project(
                 .package(product: "SwiftNavigation"),
             ]
         ),
+        unitTests(
+            for: "FeatureChat",
+            layer: .feature,
+            dependencies: [
+                .target(name: "CoreAgentClient"),
+                .package(product: "Clocks"),
+                .package(product: "ComposableArchitecture"),
+                .package(product: "Dependencies"),
+                .package(product: "CasePaths"),
+                .package(product: "IdentifiedCollections"),
+                .package(product: "Perception"),
+                .package(product: "PerceptionCore"),
+                .package(product: "SwiftNavigation"),
+            ]
+        ),
     ],
     schemes: [
         .scheme(
@@ -562,9 +597,11 @@ let project = Project(
             testAction: .targets([
                 "CoreDomainTests",
                 "CorePersistenceTests",
+                "CoreAgentClientTests",
                 "FeatureMochiItemTests",
                 "FeatureInboxTests",
                 "FeatureSearchTests",
+                "FeatureChatTests",
             ]),
             runAction: .runAction(executable: "Mochi")
         ),

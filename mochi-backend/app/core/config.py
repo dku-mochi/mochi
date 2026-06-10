@@ -63,6 +63,11 @@ class Settings(BaseSettings):
     gemini_agent_model: str = "gemini-3.1-flash-lite"
     gemini_agent_location: str = "global"
 
+    # 채팅 탭 멀티턴 run (journal 2026-06-10). 비용 최우선 flash-lite 기본 —
+    # 멀티스텝 툴콜 신뢰도가 부족하면 lab 벤치 후 .env 로 상향 (코드 수정 없이 교체).
+    gemini_chat_model: str = "gemini-3.1-flash-lite"
+    chat_run_timeout_seconds: float = 60.0   # SSE 로 기다리는 사용자 기준 — run 전체 상한
+
     # 사용자 개인화 프로필 (sliding-window 특성 요약)
     profile_window_size: int = 20              # 요약에 넣을 최근 항목 수
     profile_refresh_every_n_items: int = 5     # 마지막 갱신 이후 N개 쌓이면 재요약 (비용 bound)
@@ -77,6 +82,10 @@ class Settings(BaseSettings):
         "metadata.google.internal",
         "0.0.0.0",
     )
+
+    # 채팅 web_search — Tavily (journal 2026-06-10 PR-4). 미설정 시 web_search 툴만
+    # 레지스트리에서 제외되고 서버는 정상 기동한다 (키 발급이 머지를 블록하지 않게).
+    tavily_api_key: str | None = None
 
     # PlatformContext tool — Instagram 공식 oEmbed 는 Meta app token + review 가 필요하다.
     instagram_oembed_access_token: str | None = None
