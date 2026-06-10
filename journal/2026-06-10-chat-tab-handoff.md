@@ -15,7 +15,7 @@ description: 채팅 탭(기록 기반 질문·요청 대화) 구현의 세션 �
 
 ## 0. TL;DR
 
-채팅 탭의 **백엔드는 web 툴만 빼고 완성**(PR-1 스키마·CRUD → PR-2 agent run·POST-as-SSE·read 툴 → PR-3 proposal 툴·PATCH·confirmedInstances), **iOS 는 화면(mock 스트림)까지 완성**(PR-1). 모든 커밋이 리뷰(P1/P2 반영) + lint/typecheck/테스트(백 158·iOS 전 타겟) + ⓪폭포(openapi→generated client) green. **팀 합의 4건은 2026-06-10 완료** — 머지 가능 상태. 잔여: BE PR-4(web 툴), iOS PR-2~5(citation 렌더·proposal 카드·세션 관리·live 배선), lab 모델 벤치, develop 머지.
+채팅 탭의 **백엔드는 완성**(PR-1 스키마·CRUD → PR-2 agent run·POST-as-SSE·read 툴 → PR-3 proposal 툴·PATCH·confirmedInstances → PR-4 web_search·web_fetch), **iOS 는 화면(mock 스트림)까지 완성**(PR-1). PR-1~3 은 리뷰(P1/P2 반영) green, **PR-4 는 사용자 지시로 리뷰 스킵** — lint/typecheck/테스트(백 164·iOS 전 타겟) + ⓪폭포 + ship-precheck 은 전부 green. **팀 합의 4건 + Tavily 키 발급은 2026-06-10 완료** — 머지 가능 상태. 잔여: iOS PR-2~5(citation 렌더·proposal 카드·세션 관리·live 배선), lab 모델 벤치, develop 머지.
 
 브랜치 스택 (전부 develop 기준 직렬 — 순서대로 머지):
 ```
@@ -25,6 +25,7 @@ develop
                                 e346e66  iOS PR-1: FeatureChat + 메신저 UI (mock)
          └─ feat/be-chat-run    1c84f45  BE PR-2: agent run + POST-as-SSE + read 툴 + chat@v1
              └─ feat/be-chat-proposals  ace9d44  BE PR-3: proposal 5종 + PATCH + confirmedInstances + chat@v2
+                 └─ feat/be-chat-web    a9852fd  BE PR-4: web_search(Tavily)+web_fetch(가드 재사용) + chat@v3
 ```
 
 ## 1. 대화 흐름 — 어떻게 여기까지 왔는가
@@ -64,15 +65,15 @@ develop
 
 ## 4. 미완 결정 / 사람 액션 대기
 
-- **web_search 프로바이더 키 발급** — Tavily 권고(무료 1,000회/월). 키가 BE PR-4 를 블록. 발급 후 `docs/TODO.md` 체크리스트에 추가 예정(키 없이도 머지 가능하게 "미설정 시 레지스트리 제외" 설계).
-- **codex 재리뷰 여부** — codex 사용량 한도(2026-06-11 13:11 복구)로 이번 4개 PR 전부 code-reviewer 자체 딥리뷰로 대체했다. 복구 후 codex 로 한 번 더 돌릴지는 사람 판단.
+- ~~web_search 프로바이더 키 발급~~ — **완료(2026-06-10)**: Tavily 키 발급·`.env` 설정, `docs/TODO.md` §4.4 기록. PR-4 구현 완료.
+- **codex 재리뷰 여부** — codex 사용량 한도(2026-06-11 13:11 복구)로 PR-1~3 은 code-reviewer 자체 딥리뷰로 대체, **PR-4 는 사용자 지시로 리뷰 자체를 스킵**. 복구 후 codex 로 한 번 더 돌릴지는 사람 판단 (PR-4 가 1순위 후보).
 - **머지 절차** — 스택 순서대로 develop 에 머지(또는 squash 단일 PR). push 는 사용자 확인 필요(워크플로우 규칙).
 
 ## 5. 다음 단계 + 검증 기준
 
 | # | 작업 | 검증 |
 |---|---|---|
-| 1 | **BE PR-4**: `agent/application/tool_factories.py`(make_web_fetch_tool, SSRF 가드 무수정) + `tools/web_search.py`(키 미설정 시 레지스트리 제외) + TODO.md 키 행 | 키 미설정 제외 테스트 + make test/lint/typecheck |
+| 1 | ~~BE PR-4~~ **완료(a9852fd)**: tool_factories + web_fetch 래퍼(HTML 텍스트화+truncation) + web_search(Tavily) + chat@v3(출처 3원 구분) + PRIVACY §10·TODO §4.4 폭포 | 키 게이트 테스트 포함 164 passed + lint/typecheck/precheck ✅ (리뷰는 사용자 지시로 스킵) |
 | 2 | **iOS PR-2**: citation 렌더(`【item:id】`→¹² 뱃지 치환·근거 미니카드·"과정 보기" 접힘) — delta 가 마커를 글자 단위로 쪼갤 수 있어 "raw 보관, 표시 직전 변환" 방식(설계 문서 PR-2 절) | TestStore 마커 치환 + 시뮬레이터 육안 |
 | 3 | **iOS PR-3**: proposal 카드 상태머신(pending→confirming→confirmed/cancelled/expired/failed) + 확정 5경로(delete=기존 DELETE, memo=로컬 upsert+sync, update=PATCH, schedule=confirmedInstances POST, reminder=UNUserNotificationCenter+권한거부 fallback) + 404=만료 | TestStore 4분기 + 알림은 실기기 |
 | 4 | **iOS PR-4**: 히스토리 시트(스와이프 삭제)·비활성 30분 자동분리(UserDefaults+@Dependency(\.date))·**홈 입력바 라우팅 검색→채팅 전환**(`recallRequested`→`chatRequested` rename) + UX_SPEC §1.5/§2/§3.4 폭포 | MainTab 라우팅 TestStore |
