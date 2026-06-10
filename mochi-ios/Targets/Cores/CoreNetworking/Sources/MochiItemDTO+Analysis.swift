@@ -88,7 +88,8 @@ public extension MochiItemDTO {
     private static func payload(from dto: IntentPayloadDTO?) -> IntentPayload {
         guard let dto else { return IntentPayload() }
         return IntentPayload(
-            title: dto.title, date: dto.date, time: dto.time, deadline: dto.deadline,
+            title: dto.title, date: dto.date, time: dto.time,
+            endDate: dto.endDate, endTime: dto.endTime, deadline: dto.deadline,
             person: dto.person, topic: dto.topic, url: dto.url, note: dto.note
         )
     }

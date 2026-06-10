@@ -55,6 +55,9 @@ class IntentPayload:
     title: str | None = None
     date: str | None = None
     time: str | None = None
+    # 기간형 일정의 끝 — date/time 은 시작 의미로 재해석(end_* 없으면 점 일정, 하위호환).
+    end_date: str | None = None
+    end_time: str | None = None
     deadline: str | None = None
     person: str | None = None
     topic: str | None = None
