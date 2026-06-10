@@ -257,9 +257,9 @@ def test_active_chat_prompt_is_v5_with_proposal_web_and_loose_search_rules() -> 
     assert "markers are for records only" in ACTIVE_CHAT_PROMPT.body
     # V4: 구조 필드(날짜 등) 수정은 instance_changes payload 로 — text 치환 금지.
     assert "instance_changes" in ACTIVE_CHAT_PROMPT.body
-    # V5: 사용자는 4-Intent 를 모른다 → 어휘로 intent_type 필터 금지 + 회상은 러프 브라우즈.
-    assert "Leave intent_type unset" in ACTIVE_CHAT_PROMPT.body
-    assert "Match loosely" in ACTIVE_CHAT_PROMPT.body
+    # V5: 사용자는 4-Intent 를 모른다 → 어휘로 intent_type 필터 금지 + 회상은 capture 축.
+    assert "Default intent_type to unset" in ACTIVE_CHAT_PROMPT.body
+    assert "browse newest-first" in ACTIVE_CHAT_PROMPT.body
 
 
 # ---------- ② run 루프의 proposal 이벤트·영속 ----------

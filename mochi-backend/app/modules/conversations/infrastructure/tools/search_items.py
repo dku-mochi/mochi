@@ -45,9 +45,8 @@ _PARAMETERS: dict[str, Any] = {
                 "Only records carrying this intent (schedule/todo/knowledge/memo). Leave unset "
                 "for broad asks — a question about a period's plans spans schedule and todo "
                 "records, and filtering to one kind silently drops the rest. The user doesn't "
-                "know these categories, so their own word for a kind (\"메모\", \"할 일\") is "
-                "not a reliable signal for this filter: set it only when you are sure the ask is "
-                "about exactly one kind."
+                "know these categories, so their own word for a kind is not a reliable signal "
+                "for this filter: set it only when you are sure the ask is about exactly one kind."
             ),
         },
         "date_from": {
