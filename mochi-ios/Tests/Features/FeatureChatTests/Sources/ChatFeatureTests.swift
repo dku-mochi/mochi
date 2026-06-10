@@ -54,6 +54,7 @@ final class ChatFeatureTests: XCTestCase {
         } withDependencies: {
             $0.chatStreamClient = ScriptedChatStreamClient(events: events)
             $0.uuid = .incrementing
+            $0.date = .constant(Date(timeIntervalSince1970: 0))
         }
         store.exhaustivity = .off(showSkippedAssertions: false)
 
@@ -87,6 +88,7 @@ final class ChatFeatureTests: XCTestCase {
         } withDependencies: {
             $0.chatStreamClient = ScriptedChatStreamClient(events: [], failure: StubError.boom)
             $0.uuid = .incrementing
+            $0.date = .constant(Date(timeIntervalSince1970: 0))
         }
         store.exhaustivity = .off(showSkippedAssertions: false)
 
@@ -114,6 +116,7 @@ final class ChatFeatureTests: XCTestCase {
         } withDependencies: {
             $0.chatStreamClient = ScriptedChatStreamClient(events: [.done(messageID: UUID(8))])
             $0.uuid = .incrementing
+            $0.date = .constant(Date(timeIntervalSince1970: 0))
         }
         store.exhaustivity = .off(showSkippedAssertions: false)
 

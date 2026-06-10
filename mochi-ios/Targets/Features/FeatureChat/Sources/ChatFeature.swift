@@ -18,6 +18,7 @@ public struct ChatFeature: Sendable {
         public var messages: IdentifiedArrayOf<ChatMessage> = []
         public var draft: String = ""
         public var runPhase: RunPhase = .idle
+        @Presents public var history: ChatHistoryFeature.State?
 
         public init() {}
 
@@ -105,6 +106,12 @@ public struct ChatFeature: Sendable {
         case streamEvent(ChatStreamEvent)
         case streamFinished
         case streamFailed(String)
+        /// 화면 진입(탭 전환 포함) — 비활성 30분 자동분리 판정 + 이전 세션 스냅샷 복귀.
+        case appeared
+        case historyButtonTapped
+        case history(PresentationAction<ChatHistoryFeature.Action>)
+        case snapshotLoaded(conversationID: UUID, messages: IdentifiedArrayOf<ChatMessage>)
+        case snapshotLoadFailed
         /// 근거 미니카드 탭 — 서버 id 를 로컬 항목으로 해석해 상위(MainTab)가 상세를 띄운다.
         case citationTapped(ChatCitation)
         case proposalConfirmTapped(messageID: UUID, proposalID: UUID)
@@ -119,11 +126,17 @@ public struct ChatFeature: Sendable {
     }
 
     @Dependency(\.chatStreamClient) var chatStreamClient
+    @Dependency(\.chatAPIClient) var chatAPIClient
+    @Dependency(\.chatSessionStore) var sessionStore
     @Dependency(\.mochiAPIClient) var apiClient
     @Dependency(\.mochiItemRepository) var repository
     @Dependency(\.syncTrigger) var syncTrigger
     @Dependency(\.reminderScheduler) var reminderScheduler
+    @Dependency(\.date) var date
     @Dependency(\.uuid) var uuid
+
+    /// 비활성 자동분리 임계 — 30분 (journal 2026-06-10 플랜).
+    static let sessionMaxIdleSeconds: TimeInterval = 30 * 60
 
     private enum CancelID { case stream }
 
@@ -158,7 +171,45 @@ public struct ChatFeature: Sendable {
                 state.messages.removeAll()
                 state.draft = ""
                 state.runPhase = .idle
+                sessionStore.clear()
                 return .cancel(id: CancelID.stream)
+
+            case .appeared:
+                // 이미 대화가 떠 있으면 그대로 — 분리 판정은 빈 화면 진입에만.
+                guard state.conversationID == nil, state.messages.isEmpty else { return .none }
+                guard let persisted = sessionStore.load() else { return .none }
+                guard date.now.timeIntervalSince(persisted.lastActivityAt) < Self.sessionMaxIdleSeconds else {
+                    // 30분 지남 — 조용히 새 대화 (사용자가 세션을 관리하지 않는다).
+                    sessionStore.clear()
+                    return .none
+                }
+                return loadSnapshot(persisted.conversationID)
+
+            case .historyButtonTapped:
+                state.history = ChatHistoryFeature.State()
+                return .none
+
+            case let .history(.presented(.delegate(.conversationSelected(conversationID)))):
+                state.history = nil
+                return .merge(
+                    .cancel(id: CancelID.stream),
+                    loadSnapshot(conversationID)
+                )
+
+            case .history:
+                return .none
+
+            case let .snapshotLoaded(conversationID, messages):
+                state.conversationID = conversationID
+                state.messages = messages
+                state.runPhase = .idle
+                sessionStore.save(conversationID, date.now)
+                return .none
+
+            case .snapshotLoadFailed:
+                // 404(삭제됨)·네트워크 실패 — 새 대화로 조용히 폴백.
+                sessionStore.clear()
+                return .none
 
             case let .streamEvent(event):
                 reduce(event: event, into: &state)
@@ -167,6 +218,9 @@ public struct ChatFeature: Sendable {
             case .streamFinished:
                 finishStreaming(&state)
                 state.runPhase = .idle
+                if let conversationID = state.conversationID {
+                    sessionStore.save(conversationID, date.now)   // 답변 수신도 활동
+                }
                 return .none
 
             case let .streamFailed(message):
@@ -210,6 +264,73 @@ public struct ChatFeature: Sendable {
                 return .none
             }
         }
+        .ifLet(\.$history, action: \.history) { ChatHistoryFeature() }
+    }
+
+    // MARK: - 스냅샷 복귀 (히스토리 재개·자동분리 내 복귀 공용)
+
+    private func loadSnapshot(_ conversationID: UUID) -> Effect<Action> {
+        .run { send in
+            do {
+                let snapshot = try await chatAPIClient.conversationSnapshot(id: conversationID)
+                await send(
+                    .snapshotLoaded(
+                        conversationID: conversationID,
+                        messages: Self.fold(snapshot.messages)
+                    )
+                )
+            } catch {
+                await send(.snapshotLoadFailed)
+            }
+        }
+    }
+
+    /// 서버 메시지 행(user/tool/assistant) → 렌더 단위 접기.
+    /// tool 행들은 다음 assistant 행의 "과정 보기"로 흡수되고, assistant 없이 끝난 턴
+    /// (실패 run)의 tool 행은 버린다 — 빈 껍데기 버블 금지(스트림 쪽과 동일 규칙).
+    static func fold(_ rows: [ChatSnapshotMessageDTO]) -> IdentifiedArrayOf<ChatMessage> {
+        var result: IdentifiedArrayOf<ChatMessage> = []
+        var pendingSteps: [ToolStep] = []
+        for row in rows {
+            switch row.role {
+            case "user":
+                pendingSteps = []
+                result.append(ChatMessage(id: row.id, role: .user, text: row.content ?? ""))
+            case "tool":
+                pendingSteps.append(
+                    ToolStep(
+                        name: row.toolName ?? "tool",
+                        label: row.toolLabel ?? "",
+                        summary: row.toolSummary
+                    )
+                )
+            case "assistant":
+                var message = ChatMessage(id: row.id, role: .assistant, text: row.content ?? "")
+                message.toolSteps = pendingSteps
+                pendingSteps = []
+                message.citations = row.citations.map {
+                    ChatCitation(
+                        index: $0.index, mochiItemID: $0.mochiItemID, title: $0.title, snippet: $0.snippet
+                    )
+                }
+                // 스냅샷의 proposal 은 pending 으로 복원 — 서버는 확정 여부를 모른다(로컬 알림 등
+                // 서버 무관 경로 존재). 재확정은 멱등(Idempotency-Key·404→만료)으로 안전.
+                message.proposals = IdentifiedArray(
+                    uniqueElements: row.proposals.compactMap { envelope -> ProposalCard? in
+                        guard
+                            let payload = (try? JSONSerialization.jsonObject(with: envelope.payloadJSON))
+                                as? [String: Any],
+                            let proposal = ChatProposal(id: envelope.id, type: envelope.type, payload: payload)
+                        else { return nil }
+                        return ProposalCard(proposal: proposal)
+                    }
+                )
+                result.append(message)
+            default:
+                break
+            }
+        }
+        return result
     }
 
     // MARK: - Proposal 확정 실행 (5경로 — propose.py 의 실행 경로 매핑과 1:1)
@@ -315,6 +436,7 @@ public struct ChatFeature: Sendable {
         let conversationID = state.conversationID ?? uuid()
         state.conversationID = conversationID
         state.runPhase = .streaming
+        sessionStore.save(conversationID, date.now)   // 활동 시각 갱신 — 자동분리 기준점
         state.messages.append(ChatMessage(id: uuid(), role: .user, text: text))
         var assistant = ChatMessage(id: uuid(), role: .assistant, text: "")
         assistant.isStreaming = true

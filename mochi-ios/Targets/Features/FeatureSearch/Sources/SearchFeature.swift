@@ -45,7 +45,7 @@ public struct SearchFeature: Sendable {
         case binding(BindingAction<State>)
         case onAppear
 
-        // 외부 직접 트리거 — 홈 회수(`recallRequested`) 등 binding 거치지 않는 query set 직후 호출.
+        // 외부 직접 트리거 — binding 을 거치지 않고 query 를 set 한 직후 호출하는 진입점.
         case submit
 
         // 검색바 / 필터
@@ -97,7 +97,7 @@ public struct SearchFeature: Sendable {
                 return .none
 
             case .submit:
-                // 외부에서 query 를 직접 set 한 뒤 호출(예: 홈 `recallRequested` → 검색 탭으로 회수).
+                // 외부에서 query 를 직접 set 한 뒤 호출 (홈 라우팅은 2026-06-10 채팅 탭으로 전환됨).
                 state.isFocused = false
                 return self.updateSearch(&state)
 

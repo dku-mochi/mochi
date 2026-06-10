@@ -27,6 +27,10 @@ public struct ChatView: View {
         }
         .background(HomeDesign.Color.bg.ignoresSafeArea())
         .safeAreaInset(edge: .bottom, spacing: 0) { inputDock }
+        .onAppear { store.send(.appeared) }
+        .sheet(item: $store.scope(state: \.history, action: \.history)) { historyStore in
+            ChatHistoryView(store: historyStore)
+        }
     }
 
     // MARK: - 헤더
@@ -42,20 +46,35 @@ public struct ChatView: View {
                     .foregroundStyle(HomeDesign.Color.textMuted)
             }
             Spacer()
-            Button {
-                store.send(.newConversationTapped, animation: .spring(response: 0.4, dampingFraction: 0.85))
-            } label: {
-                Image(systemName: "plus.bubble")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(HomeDesign.Color.purple600)
-                    .frame(width: 36, height: 36)
-                    .background(Circle().fill(HomeDesign.Color.purple100.opacity(0.7)))
+            HStack(spacing: HomeDesign.Spacing.sm) {
+                Button {
+                    store.send(.historyButtonTapped)
+                } label: {
+                    Image(systemName: "clock.arrow.circlepath")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(HomeDesign.Color.textMuted)
+                        .frame(width: 36, height: 36)
+                        .background(Circle().fill(HomeDesign.Color.surface))
+                        .overlay(Circle().stroke(HomeDesign.Color.border.opacity(0.8), lineWidth: 1))
+                }
+                .buttonStyle(PressableStyle())
+                .accessibilityLabel("지난 대화")
+
+                Button {
+                    store.send(.newConversationTapped, animation: .spring(response: 0.4, dampingFraction: 0.85))
+                } label: {
+                    Image(systemName: "plus.bubble")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(HomeDesign.Color.purple600)
+                        .frame(width: 36, height: 36)
+                        .background(Circle().fill(HomeDesign.Color.purple100.opacity(0.7)))
+                }
+                .buttonStyle(PressableStyle())
+                .opacity(store.isEmpty ? 0 : 1)
+                .disabled(store.isEmpty)
+                .accessibilityHidden(store.isEmpty)
+                .accessibilityLabel("새 대화")
             }
-            .buttonStyle(PressableStyle())
-            .opacity(store.isEmpty ? 0 : 1)
-            .disabled(store.isEmpty)
-            .accessibilityHidden(store.isEmpty)
-            .accessibilityLabel("새 대화")
         }
         .padding(.horizontal, HomeDesign.Spacing.xl)
         .padding(.top, HomeDesign.Spacing.sm)
