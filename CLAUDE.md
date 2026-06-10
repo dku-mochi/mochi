@@ -118,9 +118,10 @@ iOS 쪽은 `tuist test`, 백엔드는 `make test` / `make lint` / `make typechec
 | **팀원 온보딩 · 하네스 입문 가이드 (L1 reference)** | [`docs/HARNESS_GUIDE.md`](docs/HARNESS_GUIDE.md) | 새 팀원 첫 진입, "왜 이렇게 일하나" 가 흔들릴 때 — `WORKFLOW.md`의 친절한 풀이 버전 |
 | **팀 워크플로우 · 정합성 통제 (L1)** | [`docs/WORKFLOW.md`](docs/WORKFLOW.md) | 협업·브랜치·티어·문서레벨·공유표면·2달 단기 모드·메타데이터 컨벤션 — 작업 시작 전 |
 | 시스템 전체 아키텍처 (iOS ↔ Backend) | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | 두 프로젝트에 걸친 변경, 데이터 흐름·계약 수정 시 |
-| 도메인 모델 · DB 스키마 · 4-Intent 상태머신 | [`docs/DOMAIN_DESIGN.md`](docs/DOMAIN_DESIGN.md) | Intent / lifecycle / 테이블 / 마이그레이션 변경 시 |
+| 도메인 의미 · intent 모델 · lifecycle · 동기화 규약 | [`docs/DOMAIN_DESIGN.md`](docs/DOMAIN_DESIGN.md) | Intent / lifecycle / 마이그레이션 변경 시 (DDL·라우트는 코드 정본) |
 | 민감 캡처 보호 설계 (on-device 감지, 마스킹) | [`docs/PRIVACY_SENSITIVE_CAPTURE.md`](docs/PRIVACY_SENSITIVE_CAPTURE.md) | 캡처 ingestion · 업로드 · 저장 경로 변경 시 |
-| 제품 정의 · 사용자 문제 · 컨셉 | [`docs/PRODUCT.md`](docs/PRODUCT.md) | UX · 핵심 기능 의사결정이 흔들릴 때 |
+| 제품 정의 · 미션 · 4-Intent 컨셉 (L1) | [`docs/PRODUCT.md`](docs/PRODUCT.md) | "미션에 맞나" · MVP/scope-cut 의사결정이 흔들릴 때 |
+| 화면 · 시나리오 · 디자인 톤 (L3, 자유 수정) | [`docs/UX_SPEC.md`](docs/UX_SPEC.md) | 화면 구성 · 플로우 · UI 변경 시 |
 | 외부 설정 · 비밀값 체크리스트 (Apple/Google) | [`docs/TODO.md`](docs/TODO.md) | 인증 · 외부 통합 작업 시 |
 | 변경 이력 | [`docs/CHANGELOG.md`](docs/CHANGELOG.md) | 모든 변경의 종착지 (§6 참고) |
 
