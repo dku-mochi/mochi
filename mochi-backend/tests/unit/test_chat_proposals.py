@@ -459,6 +459,41 @@ async def test_update_merges_payload_and_applies_transition() -> None:
     assert repo.lifecycle_updates == [(instance.id, target)]
 
 
+async def test_update_merge_preserves_range_end_fields() -> None:
+    # 회귀: 병합 기준 dict 에 end_date/end_time 이 빠져, 다른 필드 수정 시
+    # 기간형 일정의 기간 정보가 통째로 소실되던 버그 (2026-06-10).
+    instance = IntentInstance(
+        intent_type=Intent.SCHEDULE,
+        payload=IntentPayload(
+            title="워크숍", date="2026-06-12", end_date="2026-06-14", end_time="18:00"
+        ),
+    )
+    item = MochiItem(
+        id=uuid4(),
+        source=IngestSource(channel=IngestChannel.CHAT, text="원문"),
+        intent_instances=(instance,),
+    )
+    repo = _UpdateStubRepo(item)
+
+    await UpdateMochiItem(repository=repo).execute(
+        UpdateMochiItemCommand(
+            owner_id=_OWNER,
+            mochi_item_id=item.id,
+            instance_changes=(
+                InstanceChange(instance_id=instance.id, payload_fields={"title": "팀 워크숍"}),
+            ),
+        )
+    )
+
+    _instance_id, merged, _label = repo.field_updates[0]
+    assert merged == {
+        "title": "팀 워크숍",
+        "date": "2026-06-12",
+        "end_date": "2026-06-14",
+        "end_time": "18:00",
+    }
+
+
 async def test_update_rejects_illegal_transition_before_any_write() -> None:
     item = _item_with_instance(Intent.SCHEDULE)
     repo = _UpdateStubRepo(item)

@@ -78,6 +78,8 @@ class UpdateMochiItem:
                         "title": instance.payload.title,
                         "date": instance.payload.date,
                         "time": instance.payload.time,
+                        "end_date": instance.payload.end_date,
+                        "end_time": instance.payload.end_time,
                         "deadline": instance.payload.deadline,
                         "person": instance.payload.person,
                         "topic": instance.payload.topic,
