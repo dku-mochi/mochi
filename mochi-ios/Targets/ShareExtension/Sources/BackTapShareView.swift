@@ -14,6 +14,10 @@ import CorePersistence
 /// **출처앱 칩**: sentinel 로 받은 출처앱은 ``SourceAppChip`` 으로 보여주고, 백엔드 `text` 에는
 /// 정규화 1줄로 합친다 (사용자 메모는 `user_memo` 로 끝까지 격리).
 ///
+/// **저장 피드백**: 제출 즉시 ``ShareSuccessOverlay`` (모찌 + "기억했어요!") 가 화면을 덮는다 —
+/// best-effort 직접전송 대기 구간(이전엔 무피드백 멈춤)을 성공 모먼트로 채우고, 취소는 숨겨
+/// 중복 조작을 막는다. 오버레이가 터치를 가로채 CTA 중복 탭도 함께 차단된다.
+///
 /// 디자인 토큰/컴포넌트는 ``ShareDesign`` 을 통해 ``ShareEntryView`` 와 공유한다.
 struct BackTapShareView: View {
     let imageRefs: [ImageRef]
@@ -28,6 +32,7 @@ struct BackTapShareView: View {
     @State private var imageRemoved = false
     @State private var showUndo = false
     @State private var isSubmitting = false
+    @State private var appeared = false
     @FocusState private var memoFocused: Bool
 
     var body: some View {
@@ -36,11 +41,8 @@ struct BackTapShareView: View {
                 .ignoresSafeArea()
 
             VStack(spacing: 14) {
-                header
-
-                if let sourceApp {
-                    SourceAppChip(name: sourceApp)
-                }
+                ShareTopBar(sourceApp: sourceApp, isSubmitting: isSubmitting, onCancel: onCancel)
+                    .shareEntrance(0, appeared: appeared)
 
                 if !imageRemoved, let firstImage = imageRefs.first {
                     SharePreviewImage(imageRef: firstImage)
@@ -49,25 +51,31 @@ struct BackTapShareView: View {
                             RemoveImageButton(action: removeImage)
                         }
                         .transition(.opacity.combined(with: .scale(scale: 0.96)))
+                        .shareEntrance(1, appeared: appeared)
+                }
+
+                if imageRemoved {
+                    memoOnlyHint
+                        .frame(maxHeight: .infinity)
+                        .transition(.opacity.combined(with: .scale(scale: 0.9)))
                 }
 
                 ShareMemoField(memo: $memo, compact: !imageRemoved)
                     .focused($memoFocused)
+                    .shareEntrance(2, appeared: appeared)
 
-                if imageRemoved {
-                    Spacer(minLength: 0)
-                }
-
-                SharePrimaryButton(title: "모찌에 저장", action: submit)
+                SharePrimaryButton(title: "모찌에 저장", icon: "sparkles", action: submit)
+                    .shareEntrance(3, appeared: appeared)
             }
             .padding(.horizontal, 16)
-            .padding(.top, 50)
+            .padding(.top, 6)
             .padding(.bottom, 16)
-        }
-        .overlay(alignment: .topLeading) {
-            ShareCloseButton(action: onCancel)
-                .padding(.top, 14)
-                .padding(.leading, 22)
+
+            if isSubmitting {
+                ShareSuccessOverlay()
+                    .transition(.opacity)
+                    .zIndex(1)
+            }
         }
         .overlay(alignment: .bottom) {
             if showUndo {
@@ -75,18 +83,21 @@ struct BackTapShareView: View {
                     .padding(.bottom, 92)
             }
         }
+        .onAppear { appeared = true }
     }
 
-    private var header: some View {
-        HStack(spacing: 8) {
+    /// 스크린샷을 뺀 뒤 비는 공간의 empty state — "비어 보임 ≠ 깨짐" 을 모찌가 알려준다.
+    /// 키보드가 올라오면 자연스럽게 압축되어 사라진다 (maxHeight: .infinity).
+    private var memoOnlyHint: some View {
+        VStack(spacing: 10) {
             Image("mochi-hello")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 42, height: 42)
+                .frame(width: 56, height: 56)
 
-            Text(imageRemoved ? "메모를 남겨요" : "모찌에 남길까요?")
-                .font(.system(size: 24, weight: .bold, design: .rounded))
-                .foregroundStyle(ShareDesign.title)
+            Text("메모만 남길게요")
+                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .foregroundStyle(ShareDesign.subtitle)
         }
     }
 
@@ -101,7 +112,7 @@ struct BackTapShareView: View {
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 12)
-        .background(Capsule().fill(ShareDesign.title.opacity(0.92)))
+        .background(Capsule().fill(ShareDesign.snackbarFill))
         .transition(.move(edge: .bottom).combined(with: .opacity))
     }
 
@@ -126,7 +137,9 @@ struct BackTapShareView: View {
 
     private func submit() {
         guard !isSubmitting else { return }   // 중복 탭 방지 — 매 submit 마다 payload.id 가 새로 생겨 중복 적재 위험
-        isSubmitting = true
+        memoFocused = false
+        withAnimation(.easeInOut(duration: 0.2)) { isSubmitting = true }
+        ShareHaptics.success()
         let text = CaptureContextSentinel.composeText(sourceApp: sourceApp, base: nil)
         onSubmit(InboundIngestPayload(
             url: imageRemoved ? nil : url,

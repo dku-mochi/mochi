@@ -20,7 +20,9 @@ from app.modules.mochi_items.domain.ports import MochiItemRepository
 KST = ZoneInfo("Asia/Seoul")
 _MIN_ITEMS_FOR_LLM = 3
 _MAX_LLM_ITEMS = 30
-_RECENT_CATEGORY_LIMIT = 40
+# distinct 라벨 기준 (row 아님 — repository 참조). 사용자 카테고리가 50개를 넘는 일은
+# 드물다는 가정 — 사실상 전체 vocabulary 를 컨텍스트로 준다.
+_RECENT_CATEGORY_LIMIT = 50
 _WEEK_FETCH_LIMIT = 500
 _FALLBACK_GROUP = "그 외"
 STATIC_GREETING = "이번 주는 차분했네요. 모아둔 기록은 제가 잘 정리해 둘게요."
