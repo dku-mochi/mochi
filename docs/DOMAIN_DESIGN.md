@@ -248,7 +248,7 @@ instance 전이(from→to)·archive_reason×intent_type 검증은 application �
 
 요청/응답 스키마·전체 라우트 목록의 정본은 `openapi.json` (§0). 여기는 **openapi 만으론 알 수 없는 배선 상태**만 소유한다:
 
-- `POST /search` — 서버 Hybrid Search + RAG 답변. iOS 검색 탭(`SearchFeature`)이 호출 ✅.
+- `POST /search` — 서버 Hybrid Search + RAG 답변 라우트 실재 · **iOS 미배선** ◑ — 검색 탭 신시안(2026-06-10)은 샘플 데이터 로컬 매칭(`MockSearchService`), 서버 어댑터 교체 예정(동일 시그니처, `UX_SPEC.md` §3.5).
 - `/conversations` · `/sync` — **라우트 미존재** (§10 향후).
 - 캘린더 계열(`GET /mochi_items`·`/calendar`·`/todos/upcoming`) — 서버 실재, iOS 캘린더 탭은 즉시성·오프라인을 위해 **로컬 Realm 구동** (멀티기기/웹 대비 계약). 서버 `todos/upcoming` 은 마감일을 `entities(kind='deadline')` 로 파싱하지만 iOS 는 `payload` 단일 소스 — 서버 API 배선 시 정합 필요.
 - 라우터 규칙: 정적 경로(`/calendar` 등)는 동적 `/{id}` 보다 먼저 선언 (path-param 충돌 회피).

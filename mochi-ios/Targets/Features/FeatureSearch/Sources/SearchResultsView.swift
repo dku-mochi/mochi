@@ -1,0 +1,151 @@
+import SwiftUI
+import CoreDomain
+
+/// 검색 결과 화면 (.results phase) — 새 시안.
+///
+/// 구조: intent 필터칩 row (전체/일정/할일/지식/기록) + 결과 요약 + 2col 그리드.
+struct SearchResultsView: View {
+    let query: String
+    let results: [SearchResult]
+    let selectedIntent: Intent?
+    let onIntent: (Intent?) -> Void
+    let onCardTap: (MochiItem.ID) -> Void
+    let onCardMoreTap: (MochiItem.ID) -> Void
+
+    var body: some View {
+        VStack(spacing: 0) {
+            IntentFilterChipsRow(selectedIntent: selectedIntent, onTap: onIntent)
+                .padding(.top, 10)
+                .padding(.bottom, 6)
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    summary
+                        .padding(.horizontal, SearchD5.Sizes.pageH)
+
+                    LazyVGrid(
+                        columns: [
+                            GridItem(.flexible(), spacing: SearchD5.Sizes.gridGap),
+                            GridItem(.flexible()),
+                        ],
+                        spacing: SearchD5.Sizes.gridGap
+                    ) {
+                        ForEach(results) { result in
+                            SearchGridCard(
+                                item: result.item,
+                                onTap: { onCardTap(result.item.id) },
+                                onMoreTap: { onCardMoreTap(result.item.id) }
+                            )
+                        }
+                    }
+                    .padding(.horizontal, SearchD5.Sizes.pageH)
+                }
+                .padding(.top, 10)
+                .padding(.bottom, 16)
+            }
+            .scrollIndicators(.hidden)
+            .scrollDismissesKeyboard(.immediately)
+        }
+    }
+
+    // MARK: - 결과 요약
+
+    private var summary: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "sparkles")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(SearchD5.Palette.primary)
+            Text(summaryText)
+                .font(.system(size: 14, weight: .medium))
+                .tracking(-0.2)
+                .foregroundStyle(SearchD5.Palette.textSecondary)
+                .lineLimit(2)
+                .multilineTextAlignment(.leading)
+            Spacer(minLength: 0)
+        }
+    }
+
+    private var summaryText: AttributedString {
+        var s = AttributedString()
+        var head = AttributedString(query)
+        head.font = .system(size: 14, weight: .semibold)
+        head.foregroundColor = SearchD5.Palette.textPrimary
+        s.append(head)
+
+        var tail = AttributedString("과 관련된 모찌 ")
+        tail.foregroundColor = SearchD5.Palette.textSecondary
+        s.append(tail)
+
+        var count = AttributedString("\(results.count)개")
+        count.font = .system(size: 14, weight: .bold)
+        count.foregroundColor = SearchD5.Palette.primaryDeep
+        s.append(count)
+        return s
+    }
+}
+
+// MARK: - Intent filter chips (전체 + 4 intent — 결과/빈결과 공용)
+
+struct IntentFilterChipsRow: View {
+    let selectedIntent: Intent?
+    let onTap: (Intent?) -> Void
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 6) {
+                IntentChip(
+                    label: "전체",
+                    systemImage: "square.grid.2x2",
+                    bg: SearchD5.Palette.primaryPale,
+                    fg: SearchD5.Palette.primaryDeep,
+                    isActive: selectedIntent == nil
+                ) { onTap(nil) }
+
+                ForEach(Intent.allCases, id: \.self) { intent in
+                    IntentChip(
+                        label: SearchD5.IntentColor.label(intent),
+                        systemImage: SearchD5.IntentColor.systemImage(intent),
+                        bg: SearchD5.IntentColor.bg(intent),
+                        fg: SearchD5.IntentColor.fg(intent),
+                        isActive: selectedIntent == intent
+                    ) { onTap(intent) }
+                }
+            }
+            .padding(.horizontal, SearchD5.Sizes.pageH)
+            .padding(.vertical, 4)
+        }
+    }
+}
+
+private struct IntentChip: View {
+    let label: String
+    let systemImage: String
+    let bg: Color
+    let fg: Color
+    let isActive: Bool
+    let onTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
+            HStack(spacing: 4) {
+                Image(systemName: systemImage)
+                    .font(.system(size: 13.5, weight: .semibold))
+                Text(label)
+                    .font(.system(size: 13, weight: .semibold))
+                    .tracking(-0.3)
+            }
+            .padding(.horizontal, 9)
+            .frame(height: SearchD5.Sizes.filterChipHeight)
+            .foregroundStyle(isActive ? fg : SearchD5.Palette.textPrimary.opacity(0.82))
+            .background(Capsule().fill(isActive ? bg : SearchD5.Palette.card))
+            .overlay(
+                Capsule().stroke(
+                    isActive ? fg.opacity(0.55) : SearchD5.Palette.cardBorder,
+                    lineWidth: isActive ? 1.2 : 1
+                )
+            )
+            .animation(.easeInOut(duration: 0.18), value: isActive)
+        }
+        .buttonStyle(.plain)
+    }
+}

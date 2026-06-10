@@ -60,8 +60,8 @@ description: 화면·시나리오·IA·디자인 톤·데모 시나리오의 com
 **질문 예시**: "지난주에 저장한 AI Agent 관련 자료 정리해줘."
 
 1. 홈 상단 "모찌에게 물어보세요" 입력바(또는 추천 칩)에 자연어 입력
-2. 검색 탭으로 전환 → 서버 `POST /search` (Hybrid Search + RAG 답변)
-3. 자연어 답변 + 근거 모찌 목록 표시
+2. 검색 탭으로 전환 → 검색 실행 (§3.5 — 현재 로컬 매칭, 서버 Hybrid Search 어댑터 교체 예정)
+3. (서버 배선 후) 자연어 답변(RAG) + 근거 모찌 목록 표시
 
 > 전용 채팅 탭은 현재 placeholder("곧 만나요, 채팅") — 멀티턴 대화는 향후 (DOMAIN_DESIGN §10 conversations).
 
@@ -76,7 +76,7 @@ description: 화면·시나리오·IA·디자인 톤·데모 시나리오의 com
 | 홈 | 회수 진입점·주간 리포트·최근 모찌 | ✅ |
 | 채팅 | AI 대화 (멀티턴) | placeholder — 회수는 홈 입력바 → 검색 탭 라우팅 |
 | 캘린더 | 날짜 기반 기록·일정·할 일 | ✅ |
-| 검색 | 자연어/키워드 검색 + RAG 답변 | ✅ |
+| 검색 | 4 phase 검색·회수 (§3.5) | ✅ 시안 (서버 검색 어댑터 교체 예정) |
 
 입력 경로는 다음 셋으로 통일:
 1. 백탭 (Shortcuts)
@@ -120,9 +120,28 @@ description: 화면·시나리오·IA·디자인 톤·데모 시나리오의 com
 
 ### 3.5 검색 (회수)
 
-- 검색창: 자연어/키워드 입력 → 서버 `POST /search` (Hybrid Search). 응답에 **자연어 답변(RAG) + 근거 모찌 목록**
-- 필터(scope): 전체 / 일정 / 할 일 / 지식 / 기록
-- 답변에는 반드시 근거 모찌를 표시한다 (환각 대응)
+검색 탭은 **4 phase 화면** — `query` 와 `isFocused` 의 조합으로 자동 분기 (시안 #34-36, 2026-06-10 전면 재구현):
+
+| phase | 트리거 | 화면 |
+|---|---|---|
+| `.idle` | 탭 진입 default (검색바 빈 + 포커스 X) | 출처/타입 필터칩 + 2col 그리드(전체 모찌) |
+| `.focused` | 검색바 탭, query 빈 상태 | 모찌(♥) 인사 + 최근 검색 + 빠른 검색(링크/스크린샷/메모) |
+| `.results` | 검색어 입력 + 결과 ≥ 1 | Intent 필터칩 + 결과 요약 + 2col 그리드 |
+| `.empty` | 검색어 입력 + 결과 0 | 물음표 모찌 + "전체에서 다시 찾기" + "필터 초기화" |
+
+**두 종류 필터** — 검색에선 Intent 가 *주된 분류 단서가 아닐 수* 있어(사용자가 자기 모찌의 의도를 정확히 모를 수 있음 — PRODUCT §5 노출 원칙과 정합) 화면별로 분리:
+- 기본 화면(`.idle`) = **출처/타입** 5칩: 전체 / 링크 / 스크린샷 / 메모 / 미확인(needsReview). *어디서 받았나* 의 기억 단서.
+- 결과 화면(`.results`/`.empty`) = **Intent** 5칩: 전체 / 일정 / 할일 / 지식 / 기록. 검색 결과를 의도별로 좁힘.
+- Intent 분류 자체는 폐기 X — 홈/캘린더/알림의 배관은 그대로.
+
+**카드** — 2col compact thumbnail (height ~138pt). type 별 layout:
+- 링크: 제목 → 메타 → mini link preview (favicon + host)
+- 스크린샷: preview 박스가 main content
+- 메모/미확인: 제목 → 본문 2줄 → 메타
+
+**키보드 ✓ toolbar** — 키보드만 dismiss, 화면 phase 유지(FocusState 와 state.isFocused 분리). `.idle` 복귀는 명시 action(빠른 검색·최근 검색·검색 탭 reselect)으로만. **검색 탭 reselect** — 탭바 검색 탭 재탭 시 filter+query reset → `.idle` 그리드 복귀.
+
+> **배선 상태**: 현재 검색은 디자인 시안 단계 — `SampleMochiItems.designDemo()` 샘플 데이터 위 로컬 매칭(`MockSearchService`, token-contains + intent 필터). **서버 Hybrid Search(`POST /search`) 어댑터로 교체 예정**(동일 시그니처). RAG 자연어 답변 + 근거 모찌 표시는 서버 배선과 함께.
 
 ### 3.6 캘린더
 
