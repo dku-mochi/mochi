@@ -1,40 +1,185 @@
 import SwiftUI
 import ComposableArchitecture
-import CoreNetworking
-import DesignSystem
+import CoreDomain
 
 public struct SearchView: View {
     @Bindable public var store: StoreOf<SearchFeature>
+    @FocusState private var isSearchFocused: Bool
 
     public init(store: StoreOf<SearchFeature>) { self.store = store }
 
     public var body: some View {
-        VStack(spacing: MochiTheme.Spacing.m) {
-            TextField("자연어로 질문…", text: $store.query)
-                .textFieldStyle(.roundedBorder)
-                .onSubmit { store.send(.submit) }
+        ZStack(alignment: .top) {
+            SearchD5.Palette.bgCream.ignoresSafeArea()
 
-            Picker("범위", selection: $store.selectedScope) {
-                ForEach(SearchScope.allCases, id: \.self) { scope in
-                    Text(scope.rawValue).tag(scope)
+            // 포커스 화면에만 워시 깔기
+            if store.phase == .focused {
+                VStack(spacing: 0) {
+                    SearchD5.Palette.headerWash
+                        .frame(height: 360)
+                        .opacity(0.55)
+                    Spacer()
                 }
+                .ignoresSafeArea()
+                .allowsHitTesting(false)
             }
-            .pickerStyle(.segmented)
 
-            if store.isSearching { ProgressView() }
-            if let response = store.response {
-                ScrollView {
-                    Text(response.answer)
-                        .font(MochiTheme.Typography.body)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding()
-                }
-            }
-            if let error = store.lastError {
-                Text(error).font(MochiTheme.Typography.caption).foregroundStyle(.red)
+            VStack(spacing: 0) {
+                searchBar
+                    .padding(.horizontal, SearchD5.Sizes.pageH)
+                    .padding(.top, 16)
+                    .padding(.bottom, 14)
+
+                phaseBody
             }
         }
-        .padding()
-        .navigationTitle("검색")
+        .toolbar(.hidden, for: .navigationBar)
+        .preferredColorScheme(.light)
+        .onAppear { store.send(.onAppear) }
+        .onChange(of: isSearchFocused) { _, newValue in
+            // 키보드 띄울 때만 focused phase 진입.
+            // ✓ 또는 스와이프로 키보드만 dismiss 될 때는 state.isFocused 유지 → focused 화면 그대로.
+            // .idle 복귀는 명시 action (quickFilter / recentSearch / clearFilters / 탭 reselect) 으로만.
+            if newValue {
+                store.send(.searchBarFocused(true))
+            }
+        }
+        .onChange(of: store.isFocused) { _, newValue in
+            // reducer 가 isFocused 를 false 로 바꿀 때(빠른검색 칩 등) FocusState 도 sync.
+            if newValue != isSearchFocused {
+                isSearchFocused = newValue
+            }
+        }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            keyboardDismissBar
+        }
+        .dynamicTypeSize(.medium)
+    }
+
+    // MARK: - Keyboard dismiss bar (검색바 포커스 시 키보드 위 ✓)
+
+    /// 키보드가 올라오면 시스템이 bottom safe area 를 키보드 위까지 올려주므로,
+    /// `.safeAreaInset(edge: .bottom)` 에 둔 view 가 자동으로 키보드 위에 stick 된다.
+    @ViewBuilder
+    private var keyboardDismissBar: some View {
+        if isSearchFocused {
+            HStack(spacing: 0) {
+                Spacer()
+                Button {
+                    isSearchFocused = false
+                } label: {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(SearchD5.Palette.primary)
+                        .frame(width: 40, height: 40)
+                        .contentShape(Rectangle())
+                }
+            }
+            .padding(.horizontal, 12)
+            .frame(height: 44)
+            .background(SearchD5.Palette.card)
+            .overlay(
+                Rectangle()
+                    .fill(SearchD5.Palette.cardBorder)
+                    .frame(height: 0.5),
+                alignment: .top
+            )
+            .transition(.move(edge: .bottom).combined(with: .opacity))
+        }
+    }
+
+    // MARK: - 검색바
+
+    private var searchBar: some View {
+        HStack(spacing: 13) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 22, weight: .medium))
+                .foregroundStyle(SearchD5.Palette.textTertiary)
+
+            ZStack(alignment: .leading) {
+                if store.query.isEmpty {
+                    Text("기억나는 말로 찾아보세요")
+                        .font(.system(size: 16, weight: .regular))
+                        .foregroundStyle(SearchD5.Palette.placeholder)
+                        .allowsHitTesting(false)
+                }
+                TextField("", text: $store.query)
+                    .font(.system(size: 17, weight: .regular))
+                    .foregroundStyle(SearchD5.Palette.textPrimary)
+                    .submitLabel(.search)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
+                    .focused($isSearchFocused)
+                    .onSubmit { isSearchFocused = false }
+            }
+
+            if !store.query.isEmpty {
+                Button {
+                    store.send(.clearFiltersTapped)
+                    isSearchFocused = false
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 18))
+                        .foregroundStyle(SearchD5.Palette.textTertiary)
+                }
+            }
+        }
+        .padding(.horizontal, 20)
+        .frame(height: SearchD5.Sizes.searchBarHeight)
+        .background(
+            RoundedRectangle(cornerRadius: SearchD5.Sizes.searchBarRadius, style: .continuous)
+                .fill(SearchD5.Palette.card)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: SearchD5.Sizes.searchBarRadius, style: .continuous)
+                .stroke(
+                    isSearchFocused ? SearchD5.Palette.primary : SearchD5.Palette.cardBorder,
+                    lineWidth: isSearchFocused ? 1.5 : 1
+                )
+        )
+        .shadow(color: SearchD5.Palette.cardShadow.opacity(isSearchFocused ? 0.8 : 0.5),
+                radius: isSearchFocused ? 14 : 10, x: 0, y: 6)
+        .animation(.easeInOut(duration: 0.18), value: isSearchFocused)
+    }
+
+    // MARK: - Body (phase 4 분기)
+
+    @ViewBuilder
+    private var phaseBody: some View {
+        switch store.phase {
+        case .idle:
+            SearchDefaultView(
+                items: store.filteredItems,
+                typeFilter: store.typeFilter,
+                onTypeFilter:  { store.send(.typeFilterTapped($0)) },
+                onCardTap:     { store.send(.recentTapped($0)) },
+                onCardMoreTap: { store.send(.cardMoreTapped($0)) }
+            )
+
+        case .focused:
+            SearchFocusedView(
+                onRecent:       { store.send(.recentSearchTapped($0)) },
+                onClearRecents: { store.send(.clearRecentSearchesTapped) },
+                onQuickFilter:  { store.send(.quickFilterTapped($0)) }
+            )
+
+        case .results:
+            SearchResultsView(
+                query: store.query,
+                results: store.results,
+                selectedIntent: store.selectedIntent,
+                onIntent:       { store.send(.intentChipTapped($0)) },
+                onCardTap:      { store.send(.recentTapped($0)) },
+                onCardMoreTap:  { store.send(.cardMoreTapped($0)) }
+            )
+
+        case .empty:
+            SearchEmptyResultView(
+                selectedIntent: store.selectedIntent,
+                onIntent:       { store.send(.intentChipTapped($0)) },
+                onRetryAll:     { store.send(.retryAllTapped) },
+                onClearFilters: { store.send(.clearFiltersTapped) }
+            )
+        }
     }
 }

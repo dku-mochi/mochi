@@ -2,7 +2,7 @@
 level: 1
 mode: committed
 status: active
-last_verified: 2026-06-07
+last_verified: 2026-06-10
 confidence: 0.9
 owners: [송준서, 이용찬, 박세현]
 description: 모찌 제품 정의·사용자 문제·컨셉의 committed 정본. 다음 중 하나라도 손대기 전 읽어라 — UX·핵심 기능 결정이 흔들릴 때, 데모 시연 기능 우선순위 결정, scope-cut 판단. 해결할 문제가 바뀌면 도메인(L2)→구현·plan(L3) 폭포 전파.
@@ -348,9 +348,28 @@ Share Extension 은 별도 프로세스로 실행되며, App Group + shared cont
 
 ### 8.7 검색
 
-- 검색창: "제목, 내용, 링크, 기억나는 말로 검색"
-- 필터: 전체 / 일정 / 할 일 / 지식 / 기록 / 이미지 / 링크 / 메모 / 미확인 / 중요
-- 결과 카드: 제목·요약·Intent·출처·저장일·하이라이트
+검색 탭은 4 phase 화면 — `query` 와 `isFocused` 의 조합으로 자동 분기.
+
+| phase | 트리거 | 화면 |
+|---|---|---|
+| `.idle` | 탭 진입 default (검색바 빈 + 포커스 X) | 출처/타입 필터칩 + 2col 그리드(전체 모찌) |
+| `.focused` | 검색바 탭, query 빈 상태 | 모찌(♥) 인사 + 최근 검색 + 빠른 검색(링크/스크린샷/메모) |
+| `.results` | 검색어 입력 + 결과 ≥ 1 | Intent 필터칩 + 결과 요약 + 2col 그리드 |
+| `.empty` | 검색어 입력 + 결과 0 | 물음표 모찌 + "전체에서 다시 찾기" + "필터 초기화" |
+
+**두 종류 필터** — 검색에선 Intent 가 *주된 분류 단서가 아닐 수* 있어(사용자가 자기 모찌의 의도를 정확히 모를 수 있음) 화면 별로 분리:
+- 기본 화면(.idle) = **출처/타입** 5칩: 전체 / 링크 / 스크린샷 / 메모 / 미확인(needsReview). *어디서 받았나* 의 기억 단서.
+- 결과 화면(.results/.empty) = **Intent** 5칩: 전체 / 일정 / 할일 / 지식 / 기록. 검색 결과를 의도별로 좁힘.
+- Intent 분류 자체는 폐기 X — 홈/캘린더/알림의 배관은 그대로(§13).
+
+**카드** — 2col compact thumbnail (height ~138pt, width:height ≈ 1.3:1). type 별 layout:
+- 링크: 제목 → 메타 → mini link preview (favicon + host)
+- 스크린샷: preview 박스가 main content (제목·요약·본문 박스 안)
+- 메모/미확인: 제목 → 본문 2줄 → 메타
+
+**키보드 ✓ toolbar** — 키보드만 dismiss, 화면 phase 유지(FocusState 와 state.isFocused 분리). `.idle` 복귀는 명시 action(빠른 검색·최근 검색·검색 탭 reselect)으로만.
+
+**검색 탭 reselect** — 탭바 검색 탭을 다시 누르면 모든 filter + query reset → `.idle` 그리드 복귀.
 
 ### 8.8 모찌 상세
 
