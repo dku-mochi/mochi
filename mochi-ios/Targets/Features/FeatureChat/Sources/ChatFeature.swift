@@ -211,10 +211,26 @@ public struct ChatFeature: Sendable {
                     loadSnapshot(conversationID)
                 )
 
+            case let .history(.presented(.deleteSwiped(deletedID))):
+                // 지금 열려 있는 대화를 지웠으면 본 화면도 리셋 — 남겨두면 다음 전송이
+                // soft-deleted PK 에 암묵 생성을 시도해 409 로 오수렴한다 (리뷰 P2).
+                guard deletedID == state.conversationID else { return .none }
+                state.conversationID = nil
+                state.messages.removeAll()
+                state.runPhase = .idle
+                sessionStore.clear()
+                return .merge(
+                    .cancel(id: CancelID.stream),
+                    .cancel(id: CancelID.snapshotPoll)
+                )
+
             case .history:
                 return .none
 
             case let .snapshotLoaded(conversationID, messages):
+                // 폴링 effect 의 in-flight 결과가 새 턴 시작 직후 도착하는 좁은 경합 가드 —
+                // 스트리밍 중인 버블을 스냅샷이 덮어쓰지 않는다 (리뷰 P2).
+                guard state.runPhase != .streaming else { return .none }
                 state.conversationID = conversationID
                 state.messages = messages
                 state.runPhase = .idle
@@ -322,6 +338,8 @@ public struct ChatFeature: Sendable {
                 pendingSteps = []
                 result.append(ChatMessage(id: row.id, role: .user, text: row.content ?? ""))
             case "tool":
+                // label·summary 둘 다 비면(검증 실패 propose 등) "과정 보기"에 빈 줄만 남는다 — 버린다.
+                guard row.toolLabel?.isEmpty == false || row.toolSummary?.isEmpty == false else { break }
                 pendingSteps.append(
                     ToolStep(
                         name: row.toolName ?? "tool",
@@ -409,7 +427,8 @@ public struct ChatFeature: Sendable {
 
             case let .createMemo(text):
                 // 일반 캡처와 동일 경로: 로컬 upsert(.pendingUpload) → worker 가 ingest(분석 경유).
-                let source = IngestSource(id: uuid(), channel: .chat, text: text)
+                // 로컬 id = proposal.id — 스냅샷 복귀 후 재확정해도 upsert 가 멱등 (리뷰 P2).
+                let source = IngestSource(id: proposal.id, channel: .chat, text: text)
                 try await repository.upsert(MochiItem(source: source))
                 await syncTrigger.runOnce()
 

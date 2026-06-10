@@ -66,10 +66,11 @@ public struct LiveAgentStreamClient: AgentStreamClient {
             throw DomainError.networkFailed(reason: "stream HTTP \(http.statusCode)", transientRetryAfter: nil)
         }
 
+        // bytes.lines 금지 — 빈 줄(이벤트 경계)을 방출하지 않는다 (SSEEventParser 참고, 리뷰 P1).
         var parser = SSEEventParser()
-        for try await line in bytes.lines {
-            try Task.checkCancellation()
-            if let (event, data) = parser.consume(line: line) {
+        for try await byte in bytes {
+            if let (event, data) = parser.consume(byte: byte) {
+                try Task.checkCancellation()
                 if try await dispatch(event: event, data: data, mochiItemID: mochiItemID, continuation: continuation) {
                     return  // 종결 이벤트(final/failed) — 스트림 종료.
                 }

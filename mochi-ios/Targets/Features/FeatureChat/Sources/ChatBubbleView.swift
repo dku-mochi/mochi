@@ -215,10 +215,15 @@ struct ProcessDisclosure: View {
                             Image(systemName: "checkmark")
                                 .font(.system(size: 8.5, weight: .bold))
                                 .foregroundStyle(HomeDesign.Color.mint400)
-                            Text(step.summary?.isEmpty == false ? "\(step.label) → \(step.summary!)" : step.label)
-                                .font(.system(size: 11.5, weight: .medium, design: .rounded))
-                                .foregroundStyle(HomeDesign.Color.textMuted)
-                                .lineLimit(1)
+                            // 스냅샷 복원 턴은 label 이 비어 있다(서버 미영속) — 빈 조각은 건너뛴다.
+                            Text(
+                                [step.label, step.summary ?? ""]
+                                    .filter { !$0.isEmpty }
+                                    .joined(separator: " → ")
+                            )
+                            .font(.system(size: 11.5, weight: .medium, design: .rounded))
+                            .foregroundStyle(HomeDesign.Color.textMuted)
+                            .lineLimit(1)
                         }
                     }
                 }

@@ -15,7 +15,7 @@ description: 채팅 탭(기록 기반 질문·요청 대화) 구현의 세션 �
 
 ## 0. TL;DR
 
-채팅 탭 **백엔드·iOS 모두 코드 완성** — 백엔드 PR-1~4(스키마·CRUD → agent run·POST-as-SSE → proposal·PATCH·confirmedInstances → web 툴) + iOS PR-1~5(화면 → citation 렌더 → proposal 카드 → 히스토리·자동분리·홈 라우팅 → live 배선). BE PR-1~3·iOS PR-1 은 리뷰(P1/P2 반영) green, **BE PR-4·iOS PR-2~5 는 사용자 지시로 리뷰 스킵**(codex 복구 후 재리뷰 1순위 후보) — lint/typecheck/테스트(백 164·iOS 전 타겟) + ⓪폭포 + ship-precheck(backend·ios)은 전부 green. **팀 합의 4건 + Tavily 키 발급 완료**. 잔여: **실기기 E2E**(전송→백그라운드→복귀, 알림 권한), lab 모델 벤치(비블로킹), develop 머지.
+채팅 탭 **백엔드·iOS 모두 코드 완성** — 백엔드 PR-1~4(스키마·CRUD → agent run·POST-as-SSE → proposal·PATCH·confirmedInstances → web 툴) + iOS PR-1~5(화면 → citation 렌더 → proposal 카드 → 히스토리·자동분리·홈 라우팅 → live 배선). 전 PR 리뷰 완료 — BE PR-4·iOS PR-2~5 는 작업 후 일괄 딥리뷰(사용자 지시)로 **P1 1건(`bytes.lines` 빈 줄 미방출 → 라이브 SSE 전달 0건 — 기존 분석 스트림도 동일 결함) + P2 4건 + nit 2건 발견·전부 반영**(`SSEEventParser` 바이트 단위 재설계 + CoreAgentClientTests 신설). lint/typecheck/테스트(백 164·iOS 전 타겟 7스위트) + ⓪폭포 + ship-precheck(backend·ios) 전부 green. **팀 합의 4건 + Tavily 키 발급 완료**. 잔여: **실기기 E2E**(전송→백그라운드→복귀, 알림 권한), lab 모델 벤치(비블로킹), develop 머지.
 
 브랜치 스택 (전부 develop 기준 직렬 — 순서대로 머지):
 ```
@@ -70,7 +70,7 @@ develop
 ## 4. 미완 결정 / 사람 액션 대기
 
 - ~~web_search 프로바이더 키 발급~~ — **완료(2026-06-10)**: Tavily 키 발급·`.env` 설정, `docs/TODO.md` §4.4 기록. PR-4 구현 완료.
-- **codex 재리뷰 여부** — codex 사용량 한도(2026-06-11 13:11 복구)로 PR-1~3 은 code-reviewer 자체 딥리뷰로 대체, **PR-4 는 사용자 지시로 리뷰 자체를 스킵**. 복구 후 codex 로 한 번 더 돌릴지는 사람 판단 (PR-4 가 1순위 후보).
+- **codex 재리뷰 여부** — codex 사용량 한도(2026-06-11 13:11 복구)로 오늘 리뷰는 전부 code-reviewer 자체 딥리뷰(BE PR-4 + iOS PR-2~5 일괄 리뷰에서 P1 1건 적중·수정). 복구 후 codex 재확인 여부는 사람 판단.
 - **머지 절차** — 스택 순서대로 develop 에 머지(또는 squash 단일 PR). push 는 사용자 확인 필요(워크플로우 규칙).
 
 ## 5. 다음 단계 + 검증 기준
