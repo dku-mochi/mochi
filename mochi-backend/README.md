@@ -56,11 +56,21 @@ app/
 │   │   │   └── tools/             PlatformContextTool, WebFetchTool (SSRF/MIME/size 가드), Embed, MultimodalAnalyze
 │   │   ├── prompts/system_prompts.py     버전 관리되는 system prompt
 │   │   └── presentation/router.py        SSE 스트림 엔드포인트
-│   └── search/
-│       ├── domain/                SearchQuery, Citation, RetrievalIndex/Reranker/AnswerSynthesizer ports
-│       ├── application/           HybridSearch use case (BM25 + 벡터 → RRF → reranker → synthesizer)
-│       ├── infrastructure/        PostgresHybridIndex, rrf
-│       └── presentation/router.py
+│   ├── search/
+│   │   ├── domain/                SearchQuery, Citation, RetrievalIndex/Reranker/AnswerSynthesizer ports
+│   │   ├── application/           HybridSearch use case (BM25 + 벡터 → RRF → reranker → synthesizer)
+│   │   ├── infrastructure/        PostgresHybridIndex, rrf
+│   │   └── presentation/router.py
+│   ├── conversations/             채팅(질문 탭) 멀티턴 대화 — 설계: journal/2026-06-10-chat-tab-design.md
+│   │   ├── domain/                Conversation, Message, MessageCitation, ConversationRepository port
+│   │   ├── application/           queries (목록·스냅샷+stale run lazy repair·soft delete)
+│   │   ├── infrastructure/        ORM + PostgresConversationRepository
+│   │   └── presentation/router.py /conversations 세션 CRUD (메시지 전송 POST-as-SSE 는 후속 PR)
+│   └── notifications/
+│       ├── domain/                DevicePushToken, APNsClient port
+│       ├── application/           RegisterPushToken, SendNotification
+│       ├── infrastructure/        HttpxAPNsClient(HTTP/2), PostgresPushTokenRepository
+│       └── presentation/router.py /devices/push-token
 ├── api.py                         /api/v1 라우터 조립
 └── main.py                        FastAPI app factory + 미들웨어 + 예외 핸들러
 ```
@@ -202,4 +212,4 @@ ingested → normalized → analyzed → routed → persisted → indexed → sy
 
 전체 엔드포인트·요청/응답 스키마의 단일 원천은 **`openapi.json`** 이다 (`make openapi` 생성물, 서버 구동 시 `GET /docs` Swagger UI). iOS 배선 예외(서버만 실재·라우트 미존재 등)는 [`docs/DOMAIN_DESIGN.md`](../docs/DOMAIN_DESIGN.md) §6.4 를 본다.
 
-대분류: `auth/*`(Apple·Google·dev·refresh·logout) · `users/me` · `mochi_items`(ingest · presign · 조회 · list · calendar · todos/upcoming · instance lifecycle 완료/완료취소 · reanalyze · SSE stream) · `search`(Hybrid RAG) · `health`. 모든 보호 라우트는 `Authorization: Bearer`, `POST /mochi_items` 는 `Idempotency-Key` 필수. (2026-06-04 단일 ingest — back-tap·intent override 라우트 폐기)
+대분류: `auth/*`(Apple·Google·dev·refresh·logout) · `users/me` · `mochi_items`(ingest · presign · 조회 · list · calendar · todos/upcoming · instance lifecycle 완료/완료취소 · reanalyze · SSE stream) · `search`(Hybrid RAG) · `conversations`(채팅 세션 목록·메시지 스냅샷·삭제 — 전송 POST-as-SSE 는 후속 PR) · `devices`(push 토큰) · `health`. 모든 보호 라우트는 `Authorization: Bearer`, `POST /mochi_items` 는 `Idempotency-Key` 필수. (2026-06-04 단일 ingest — back-tap·intent override 라우트 폐기)

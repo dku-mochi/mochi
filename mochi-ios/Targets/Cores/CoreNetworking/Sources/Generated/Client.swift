@@ -1379,6 +1379,182 @@ public struct Client: APIProtocol {
             }
         )
     }
+    /// List Conversations
+    ///
+    /// 히스토리 시트 — owner 의 살아있는 대화를 마지막 메시지 시각 내림차순으로.
+    ///
+    /// - Remark: HTTP `GET /api/v1/conversations`.
+    /// - Remark: Generated from `#/paths//api/v1/conversations/get(list_conversations_api_v1_conversations_get)`.
+    public func list_conversations_api_v1_conversations_get(_ input: Operations.list_conversations_api_v1_conversations_get.Input) async throws -> Operations.list_conversations_api_v1_conversations_get.Output {
+        try await client.send(
+            input: input,
+            forOperation: Operations.list_conversations_api_v1_conversations_get.id,
+            serializer: { input in
+                let path = try converter.renderedPath(
+                    template: "/api/v1/conversations",
+                    parameters: []
+                )
+                var request: HTTPTypes.HTTPRequest = .init(
+                    soar_path: path,
+                    method: .get
+                )
+                suppressMutabilityWarning(&request)
+                try converter.setQueryItemAsURI(
+                    in: &request,
+                    style: .form,
+                    explode: true,
+                    name: "limit",
+                    value: input.query.limit
+                )
+                converter.setAcceptHeader(
+                    in: &request.headerFields,
+                    contentTypes: input.headers.accept
+                )
+                return (request, nil)
+            },
+            deserializer: { response, responseBody in
+                switch response.status.code {
+                case 200:
+                    let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
+                    let body: Operations.list_conversations_api_v1_conversations_get.Output.Ok.Body
+                    let chosenContentType = try converter.bestContentType(
+                        received: contentType,
+                        options: [
+                            "application/json"
+                        ]
+                    )
+                    switch chosenContentType {
+                    case "application/json":
+                        body = try await converter.getResponseBodyAsJSON(
+                            Components.Schemas.ConversationListResponse.self,
+                            from: responseBody,
+                            transforming: { value in
+                                .json(value)
+                            }
+                        )
+                    default:
+                        preconditionFailure("bestContentType chose an invalid content type.")
+                    }
+                    return .ok(.init(body: body))
+                default:
+                    return .undocumented(
+                        statusCode: response.status.code,
+                        .init(
+                            headerFields: response.headerFields,
+                            body: responseBody
+                        )
+                    )
+                }
+            }
+        )
+    }
+    /// Get Conversation Snapshot
+    ///
+    /// 대화 메시지 전체 스냅샷 — iOS 포그라운드 복귀·히스토리 재진입용.
+    ///
+    /// stale running run(서버 재시작으로 유실)은 이 읽기 시점에 failed 로 lazy repair 되므로
+    /// 클라이언트는 항상 정합한 run 상태를 본다.
+    ///
+    /// - Remark: HTTP `GET /api/v1/conversations/{conversation_id}/messages`.
+    /// - Remark: Generated from `#/paths//api/v1/conversations/{conversation_id}/messages/get(get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get)`.
+    public func get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get(_ input: Operations.get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get.Input) async throws -> Operations.get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get.Output {
+        try await client.send(
+            input: input,
+            forOperation: Operations.get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get.id,
+            serializer: { input in
+                let path = try converter.renderedPath(
+                    template: "/api/v1/conversations/{}/messages",
+                    parameters: [
+                        input.path.conversation_id
+                    ]
+                )
+                var request: HTTPTypes.HTTPRequest = .init(
+                    soar_path: path,
+                    method: .get
+                )
+                suppressMutabilityWarning(&request)
+                converter.setAcceptHeader(
+                    in: &request.headerFields,
+                    contentTypes: input.headers.accept
+                )
+                return (request, nil)
+            },
+            deserializer: { response, responseBody in
+                switch response.status.code {
+                case 200:
+                    let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
+                    let body: Operations.get_conversation_snapshot_api_v1_conversations__conversation_id__messages_get.Output.Ok.Body
+                    let chosenContentType = try converter.bestContentType(
+                        received: contentType,
+                        options: [
+                            "application/json"
+                        ]
+                    )
+                    switch chosenContentType {
+                    case "application/json":
+                        body = try await converter.getResponseBodyAsJSON(
+                            Components.Schemas.ConversationSnapshotResponse.self,
+                            from: responseBody,
+                            transforming: { value in
+                                .json(value)
+                            }
+                        )
+                    default:
+                        preconditionFailure("bestContentType chose an invalid content type.")
+                    }
+                    return .ok(.init(body: body))
+                default:
+                    return .undocumented(
+                        statusCode: response.status.code,
+                        .init(
+                            headerFields: response.headerFields,
+                            body: responseBody
+                        )
+                    )
+                }
+            }
+        )
+    }
+    /// Delete Conversation
+    ///
+    /// 히스토리 스와이프 삭제 — soft delete (행·메시지 보존).
+    ///
+    /// - Remark: HTTP `DELETE /api/v1/conversations/{conversation_id}`.
+    /// - Remark: Generated from `#/paths//api/v1/conversations/{conversation_id}/delete(delete_conversation_api_v1_conversations__conversation_id__delete)`.
+    public func delete_conversation_api_v1_conversations__conversation_id__delete(_ input: Operations.delete_conversation_api_v1_conversations__conversation_id__delete.Input) async throws -> Operations.delete_conversation_api_v1_conversations__conversation_id__delete.Output {
+        try await client.send(
+            input: input,
+            forOperation: Operations.delete_conversation_api_v1_conversations__conversation_id__delete.id,
+            serializer: { input in
+                let path = try converter.renderedPath(
+                    template: "/api/v1/conversations/{}",
+                    parameters: [
+                        input.path.conversation_id
+                    ]
+                )
+                var request: HTTPTypes.HTTPRequest = .init(
+                    soar_path: path,
+                    method: .delete
+                )
+                suppressMutabilityWarning(&request)
+                return (request, nil)
+            },
+            deserializer: { response, responseBody in
+                switch response.status.code {
+                case 204:
+                    return .noContent(.init())
+                default:
+                    return .undocumented(
+                        statusCode: response.status.code,
+                        .init(
+                            headerFields: response.headerFields,
+                            body: responseBody
+                        )
+                    )
+                }
+            }
+        )
+    }
     /// Stream Agent Run
     ///
     /// SSE 스트림 — worker 의 실제 분석 진행(``mochi_items.lifecycle_kind``)을 관찰해 흘린다.
