@@ -1,5 +1,6 @@
 import SwiftUI
 import CoreDomain
+import DesignSystem
 
 /// 검색 결과 0 화면 (.empty phase) — 새 시안 #36.
 ///
@@ -46,12 +47,7 @@ struct SearchEmptyResultView: View {
                        height: SearchD5.Sizes.emptyMascotSize - 30)
                 .blur(radius: 24)
                 .opacity(0.55)
-            Image("mochi-question")
-                .resizable()
-                .interpolation(.high)
-                .scaledToFit()
-                .frame(width: SearchD5.Sizes.emptyMascotSize,
-                       height: SearchD5.Sizes.emptyMascotSize)
+            FloatingMascot(imageName: "mochi-question", size: SearchD5.Sizes.emptyMascotSize)
         }
         .accessibilityHidden(true)
     }
@@ -61,11 +57,11 @@ struct SearchEmptyResultView: View {
     private var headings: some View {
         VStack(spacing: 8) {
             Text("찾는 모찌가 없어요")
-                .font(.system(size: 26, weight: .bold))
+                .font(.system(size: 26, weight: .bold, design: .rounded))
                 .tracking(-0.6)
                 .foregroundStyle(SearchD5.Palette.textPrimary)
             Text("다른 단어로 찾아보거나 필터를 줄여보세요")
-                .font(.system(size: 16, weight: .regular))
+                .font(.system(size: 16, weight: .regular, design: .rounded))
                 .tracking(-0.2)
                 .foregroundStyle(SearchD5.Palette.textSecondary)
         }
@@ -78,7 +74,7 @@ struct SearchEmptyResultView: View {
         VStack(spacing: 12) {
             Button(action: onRetryAll) {
                 Text("전체에서 다시 찾기")
-                    .font(.system(size: 17, weight: .bold))
+                    .font(.system(size: 17, weight: .bold, design: .rounded))
                     .tracking(-0.3)
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
@@ -93,7 +89,7 @@ struct SearchEmptyResultView: View {
 
             Button(action: onClearFilters) {
                 Text("필터 초기화")
-                    .font(.system(size: 17, weight: .semibold))
+                    .font(.system(size: 17, weight: .semibold, design: .rounded))
                     .tracking(-0.3)
                     .foregroundStyle(SearchD5.Palette.primary)
                     .frame(maxWidth: .infinity)

@@ -1,5 +1,6 @@
 import SwiftUI
 import CoreDomain
+import DesignSystem
 
 /// 검색 탭 *기본* 화면 (.idle phase) — 검색바 빈 상태 + 포커스 X.
 ///
@@ -8,8 +9,8 @@ struct SearchDefaultView: View {
     let items: [MochiItem]
     let typeFilter: SearchD5.TypeFilter
     let onTypeFilter: (SearchD5.TypeFilter) -> Void
-    let onCardTap: (MochiItem.ID) -> Void
-    let onCardMoreTap: (MochiItem.ID) -> Void
+    let onCardTap: (MochiItem.ID, HeroSourceFrames) -> Void
+    let onCardDelete: (MochiItem.ID) -> Void
 
     var body: some View {
         VStack(spacing: 0) {
@@ -28,8 +29,8 @@ struct SearchDefaultView: View {
                     ForEach(items) { item in
                         SearchGridCard(
                             item: item,
-                            onTap: { onCardTap(item.id) },
-                            onMoreTap: { onCardMoreTap(item.id) }
+                            onTap: { hero in onCardTap(item.id, hero) },
+                            onDelete: { onCardDelete(item.id) }
                         )
                     }
                 }
@@ -73,9 +74,9 @@ struct TypeFilterChip: View {
         Button(action: onTap) {
             HStack(spacing: 4) {
                 Image(systemName: filter.systemImage)
-                    .font(.system(size: 13.5, weight: .semibold))
+                    .font(.system(size: 13.5, weight: .semibold, design: .rounded))
                 Text(filter.label)
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.system(size: 13, weight: .semibold, design: .rounded))
                     .tracking(-0.3)
             }
             .padding(.horizontal, 9)

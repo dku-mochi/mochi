@@ -1,10 +1,13 @@
 import SwiftUI
 import ComposableArchitecture
 import CoreDomain
+import DesignSystem
 
 public struct SearchView: View {
     @Bindable public var store: StoreOf<SearchFeature>
     @FocusState private var isSearchFocused: Bool
+    /// 첫 진입 시 phaseBody 가 시차 두고 떠오르는 entrance — 홈·캘린더 `riseIn` 패턴.
+    @State private var hasEntered: Bool = false
 
     public init(store: StoreOf<SearchFeature>) { self.store = store }
 
@@ -35,7 +38,10 @@ public struct SearchView: View {
         }
         .toolbar(.hidden, for: .navigationBar)
         .preferredColorScheme(.light)
-        .onAppear { store.send(.onAppear) }
+        .onAppear {
+            store.send(.onAppear)
+            hasEntered = true
+        }
         .onChange(of: isSearchFocused) { _, newValue in
             // 키보드 띄울 때만 focused phase 진입.
             // ✓ 또는 스와이프로 키보드만 dismiss 될 때는 state.isFocused 유지 → focused 화면 그대로.
@@ -69,7 +75,7 @@ public struct SearchView: View {
                     isSearchFocused = false
                 } label: {
                     Image(systemName: "checkmark")
-                        .font(.system(size: 18, weight: .semibold))
+                        .font(.system(size: 18, weight: .semibold, design: .rounded))
                         .foregroundStyle(SearchD5.Palette.primary)
                         .frame(width: 40, height: 40)
                         .contentShape(Rectangle())
@@ -93,18 +99,18 @@ public struct SearchView: View {
     private var searchBar: some View {
         HStack(spacing: 13) {
             Image(systemName: "magnifyingglass")
-                .font(.system(size: 22, weight: .medium))
+                .font(.system(size: 22, weight: .medium, design: .rounded))
                 .foregroundStyle(SearchD5.Palette.textTertiary)
 
             ZStack(alignment: .leading) {
                 if store.query.isEmpty {
                     Text("기억나는 말로 찾아보세요")
-                        .font(.system(size: 16, weight: .regular))
+                        .font(.system(size: 16, weight: .regular, design: .rounded))
                         .foregroundStyle(SearchD5.Palette.placeholder)
                         .allowsHitTesting(false)
                 }
                 TextField("", text: $store.query)
-                    .font(.system(size: 17, weight: .regular))
+                    .font(.system(size: 17, weight: .regular, design: .rounded))
                     .foregroundStyle(SearchD5.Palette.textPrimary)
                     .submitLabel(.search)
                     .autocorrectionDisabled()
@@ -113,7 +119,8 @@ public struct SearchView: View {
                     .onSubmit { isSearchFocused = false }
             }
 
-            if !store.query.isEmpty {
+            // query 가 있거나 focused 상태일 때 X 활성 — focused 에서 .idle 그리드로 돌아가는 affordance.
+            if !store.query.isEmpty || store.isFocused {
                 Button {
                     store.send(.clearFiltersTapped)
                     isSearchFocused = false
@@ -146,40 +153,43 @@ public struct SearchView: View {
 
     @ViewBuilder
     private var phaseBody: some View {
-        switch store.phase {
-        case .idle:
-            SearchDefaultView(
-                items: store.filteredItems,
-                typeFilter: store.typeFilter,
-                onTypeFilter:  { store.send(.typeFilterTapped($0)) },
-                onCardTap:     { store.send(.recentTapped($0)) },
-                onCardMoreTap: { store.send(.cardMoreTapped($0)) }
-            )
+        Group {
+            switch store.phase {
+            case .idle:
+                SearchDefaultView(
+                    items: store.filteredItems,
+                    typeFilter: store.typeFilter,
+                    onTypeFilter: { store.send(.typeFilterTapped($0)) },
+                    onCardTap:    { id, hero in store.send(.recentTapped(id, hero)) },
+                    onCardDelete: { store.send(.deleteTapped($0)) }
+                )
 
-        case .focused:
-            SearchFocusedView(
-                onRecent:       { store.send(.recentSearchTapped($0)) },
-                onClearRecents: { store.send(.clearRecentSearchesTapped) },
-                onQuickFilter:  { store.send(.quickFilterTapped($0)) }
-            )
+            case .focused:
+                SearchFocusedView(
+                    onRecent:       { store.send(.recentSearchTapped($0)) },
+                    onClearRecents: { store.send(.clearRecentSearchesTapped) },
+                    onQuickFilter:  { store.send(.quickFilterTapped($0)) }
+                )
 
-        case .results:
-            SearchResultsView(
-                query: store.query,
-                results: store.results,
-                selectedIntent: store.selectedIntent,
-                onIntent:       { store.send(.intentChipTapped($0)) },
-                onCardTap:      { store.send(.recentTapped($0)) },
-                onCardMoreTap:  { store.send(.cardMoreTapped($0)) }
-            )
+            case .results:
+                SearchResultsView(
+                    query: store.query,
+                    results: store.results,
+                    selectedIntent: store.selectedIntent,
+                    onIntent:     { store.send(.intentChipTapped($0)) },
+                    onCardTap:    { id, hero in store.send(.recentTapped(id, hero)) },
+                    onCardDelete: { store.send(.deleteTapped($0)) }
+                )
 
-        case .empty:
-            SearchEmptyResultView(
-                selectedIntent: store.selectedIntent,
-                onIntent:       { store.send(.intentChipTapped($0)) },
-                onRetryAll:     { store.send(.retryAllTapped) },
-                onClearFilters: { store.send(.clearFiltersTapped) }
-            )
+            case .empty:
+                SearchEmptyResultView(
+                    selectedIntent: store.selectedIntent,
+                    onIntent:       { store.send(.intentChipTapped($0)) },
+                    onRetryAll:     { store.send(.retryAllTapped) },
+                    onClearFilters: { store.send(.clearFiltersTapped) }
+                )
+            }
         }
+        .riseIn(hasEntered, index: 0)
     }
 }
