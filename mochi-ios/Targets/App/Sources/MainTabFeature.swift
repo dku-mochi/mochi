@@ -18,7 +18,7 @@ struct MainTabFeature: Sendable {
         var selectedTab: Tab = .home
         var home = HomeFeature.State()
         var inbox = InboxFeature.State()    // dev debug 접근용 (설정 → 디버그)
-        var chat = ChatFeature.State()
+        var chatLanding = ChatLandingFeature.State()
         var mochiCalendar = MochiCalendarFeature.State()
         var search = SearchFeature.State()
 
@@ -59,7 +59,7 @@ struct MainTabFeature: Sendable {
         case searchTabReselected            // 검색 탭이 이미 선택된 상태에서 다시 탭 → 시작 화면으로 복귀
         case home(HomeFeature.Action)
         case inbox(InboxFeature.Action)
-        case chat(ChatFeature.Action)
+        case chatLanding(ChatLandingFeature.Action)
         case mochiCalendar(MochiCalendarFeature.Action)
         case search(SearchFeature.Action)
         case path(StackActionOf<Path>)
@@ -77,7 +77,7 @@ struct MainTabFeature: Sendable {
     var body: some ReducerOf<Self> {
         Scope(state: \.home,     action: \.home)     { HomeFeature() }
         Scope(state: \.inbox,    action: \.inbox)    { InboxFeature() }
-        Scope(state: \.chat,     action: \.chat)     { ChatFeature() }
+        Scope(state: \.chatLanding, action: \.chatLanding) { ChatLandingFeature() }
         Scope(state: \.mochiCalendar, action: \.mochiCalendar) { MochiCalendarFeature() }
         Scope(state: \.search,   action: \.search)   { SearchFeature() }
 
@@ -112,10 +112,15 @@ struct MainTabFeature: Sendable {
                 return .none
 
             case let .home(.delegate(.chatRequested(query))):
-                // 홈 질문 입력바 → 채팅 탭 새 대화의 첫 메시지로 (2026-06-10 라우팅 전환 —
-                // 홈 칩이 광고하는 추천·수정·요약은 결정적 검색이 아니라 대화의 능력이다).
-                state.selectedTab = .chat
-                return .send(.chat(.startConversation(firstMessage: query)))
+                // 홈 질문 입력바 → 대화 풀스크린 push, 첫 메시지로 전송 (2026-06-10 push 전환).
+                // 탭은 바꾸지 않는다 — back 으로 홈에 그대로 돌아온다.
+                state.path.append(.chat(ChatFeature.State(entry: .firstMessage(query))))
+                return .none
+
+            case let .chatLanding(.delegate(.conversationRequested(entry))):
+                // 랜딩(입력바 모양 버튼·칩·지난 대화) → 대화 풀스크린 push.
+                state.path.append(.chat(ChatFeature.State(entry: entry)))
+                return .none
 
             case .home(.delegate(.seeAllRecentRequested)):
                 // "전체 보기" — 전체 기록을 날짜로 훑을 수 있는 캘린더 탭으로.
@@ -149,7 +154,7 @@ struct MainTabFeature: Sendable {
                 state.detail = DetailFeature.State(mochiItemID: mochiItemID)
                 return .none
 
-            case let .chat(.delegate(.openItemRequested(mochiItemID))):
+            case let .path(.element(id: _, action: .chat(.delegate(.openItemRequested(mochiItemID))))):
                 // 채팅 근거 미니카드 탭 — hero frame 이 없어 중앙 scale 폴백 (캘린더와 동일).
                 guard state.detail == nil else { return .none }
                 state.detailHero = nil
@@ -175,7 +180,7 @@ struct MainTabFeature: Sendable {
                 state.detail = nil
                 return .none
 
-            case .home, .inbox, .chat, .mochiCalendar, .search, .path, .mochiItem, .detail, .delegate:
+            case .home, .inbox, .chatLanding, .mochiCalendar, .search, .path, .mochiItem, .detail, .delegate:
                 return .none
 
             case .tabSelected, .searchTabReselected:
@@ -190,13 +195,15 @@ struct MainTabFeature: Sendable {
 }
 
 extension MainTabFeature {
-    /// 설정 네비게이션 destination. 설정을 sheet 가 아닌 push 로 둬, 설정 위에 온보딩
-    /// fullScreenCover 를 띄울 때 "single sheet" 충돌을 피한다.
+    /// 네비게이션 destination — 설정·이번주 정리·대화. 설정을 sheet 가 아닌 push 로 둬,
+    /// 설정 위에 온보딩 fullScreenCover 를 띄울 때 "single sheet" 충돌을 피한다.
     /// (상세는 path 가 아니라 `@Presents var detail` 로 별도 custom present.)
     @Reducer
     enum Path {
         case settings(SettingsFeature)
         case weeklyDigest(WeeklyDigestFeature)
+        /// 대화 풀스크린 — 탭바를 덮는 push (랜딩·홈 입력바가 Entry 를 들고 연다).
+        case chat(ChatFeature)
     }
 }
 

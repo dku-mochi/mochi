@@ -476,25 +476,10 @@ enum CalendarDueDate {
         return result
     }
 
-    /// payload 날짜 문자열 → Date. ISO8601 / "yyyy-MM-dd'T'HH:mm" / "yyyy-MM-dd HH:mm" / "yyyy-MM-dd" 를
-    /// 지원하고, TZ 미명시(날짜만 등)는 KST 로 해석한다. 파싱 불가(자연어)면 nil.
+    /// payload 날짜 문자열 → Date — `PayloadDate.parse`(CoreDomain, 단일 원천)에 위임.
+    /// 채팅 proposal 확정(시스템 캘린더 등록)과 해석 규칙이 갈라지지 않게 한 곳에 둔다.
     static func parse(_ raw: String?) -> Date? {
-        guard let raw, !raw.isEmpty else { return nil }
-        let withFractional = ISO8601DateFormatter()
-        withFractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let date = withFractional.date(from: raw) { return date }
-        let plain = ISO8601DateFormatter()
-        plain.formatOptions = [.withInternetDateTime]
-        if let date = plain.date(from: raw) { return date }
-        for format in ["yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd HH:mm:ss",
-                       "yyyy-MM-dd'T'HH:mm", "yyyy-MM-dd HH:mm", "yyyy-MM-dd"] {
-            let formatter = DateFormatter()
-            formatter.locale = Locale(identifier: "en_US_POSIX")
-            formatter.timeZone = TimeZone(identifier: "Asia/Seoul")
-            formatter.dateFormat = format
-            if let date = formatter.date(from: raw) { return date }
-        }
-        return nil
+        PayloadDate.parse(raw)
     }
 }
 

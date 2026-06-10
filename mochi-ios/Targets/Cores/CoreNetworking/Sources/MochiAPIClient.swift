@@ -68,7 +68,10 @@ public protocol MochiAPIClient: Sendable {
     /// `PATCH /api/v1/mochi_items/{id}` — 콘텐츠(text/userMemo/summary) + instance 변경
     /// (payload 병합·label·lifecycle 전이)을 **한 트랜잭션**으로. 채팅 수정 proposal 확정 경로.
     /// 404(`*.not_found`) = 카드 만료, 409 = 불법 lifecycle 전이.
-    func updateMochiItem(mochiServerID: UUID, _ request: MochiItemUpdateRequestDTO) async throws
+    /// 반환 = 갱신된 항목(서버 정본) — 호출자가 로컬 Realm 미러에 merge 한다
+    /// (pullRemote 는 "없는 항목 채우기" 전용이라 기존 항목 수정을 반영하지 못한다).
+    @discardableResult
+    func updateMochiItem(mochiServerID: UUID, _ request: MochiItemUpdateRequestDTO) async throws -> MochiItemDTO
 
     /// `GET /api/v1/mochi_items/upcoming` — "이번주 정리"의 "아직 안 끝났어요".
     /// 미해결 todo + 다가올 schedule 을 서버가 마감일 파싱·임박순 정렬해 돌려준다(캘린더 탭과 별개).

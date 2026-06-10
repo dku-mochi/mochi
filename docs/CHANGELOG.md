@@ -15,6 +15,23 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 >
 > **동시 세션 / 공유 파일 주의**: CHANGELOG 는 여러 세션·작업자가 함께 쓰는 append-only 공유 파일이다. 동시 작업 중에는 다른 세션이 자기 항목을 먼저 커밋할 수 있고, 한 워킹트리에 여러 세션의 미커밋 항목이 섞여 보일 수 있다. 이때 **항목을 분리하려 애쓰지 말고** 자기 변경과 함께 그대로 staging·커밋한다 — 섞인 다른 항목은 해당 세션이 자기 코드와 함께 정리한다. diff 에 모르는 CHANGELOG 항목이 보여도 멈추지 않는다 (단, CHANGELOG 외의 *코드* 파일은 절대 임의로 섞어 커밋하지 않는다).
 
+## 2026-06-10 — ios, docs
+- **proposal 확정 결과 로컬 반영 + 시스템 캘린더·미리알림 등록** (사용자 리포트: 날짜 변경·메모 확정이 캘린더 탭에 안 보임). ① 원인 — 캘린더·홈은 로컬 Realm 구동(observeChanges)인데 `pullRemote` 는 "없는 항목 insert" 전용이고 분석 SSE/폴링은 analysis 가 붙은 항목을 건너뛰어, **`updateItem` PATCH 결과가 로컬에 닿는 경로가 없었다**. `updateMochiItem` 이 PATCH 응답(서버 정본)을 반환하도록 바꾸고 ChatFeature 가 로컬 미러에 merge(콘텐츠·instances 는 서버 값, userTitle·syncState·이미지 경로 보존, updatedAt bump 로 stale 분석 가드). ② `create_schedule` 확정 시 **실제 iOS 캘린더(schedule→EKEvent, time 없으면 종일)·미리알림(todo→EKReminder)** 등록 — 기존 미사용 `LiveCalendarSyncer`(CoreIntegrations) 배선, 권한은 생성 전 일괄 확보(부분 생성 후 재확정 시 EK 중복 방지), 거부 시 failed 카드 + 설정 링크(ingest 멱등이라 재확정 안전). payload 날짜 파서는 `PayloadDate`(CoreDomain)로 승격해 캘린더 탭과 단일 원천화. Info.plist 권한 키는 기존 보유.
+
+## 2026-06-10 — ios, docs
+- **기록 상세 — "더 자세히" 섹션 제거 + 일정 통지에 일시 표기** (사용자 피드백: "일정으로 분류했어요"만 뜨고 정작 날짜가 안 보임). 일정 통지를 일시 헤드라인("6월 12일 (목) 오후 2:00") + 보조 문구 2층으로 — `payload.date`(+`time`)를 `PayloadDate`(단일 원천)로 파싱해 캘린더 탭과 같은 한국어·KST 표기, 자연어 표기는 원문 그대로, 일시 없으면 기존 한 줄 유지. "더 자세히"(추출 정보·태그·근거·처리)는 회수에 기여하지 않는 내부 디테일이라 통째 제거(전용 TagFlow 레이아웃 포함). UX_SPEC §3.8 동기화.
+
+## 2026-06-10 — ios
+- **채팅 버블 내부 요소 등장 transition + 출처 카드 overflow 수정** (사용자 피드백: 출처 카드·proposal 카드·"과정 보기"·출처 행이 갑자기 툭 나타남 + 출처 카드 여러 장일 때 말풍선 밖으로 삐져나옴). 스트림 이벤트가 reducer 에 애니메이션 없이 들어와 버블 *내부* 조건부 뷰들이 무전환 등장하던 것 — 버블에 구조 변화(pill 라벨·과정·출처·proposal 등장)만 추린 `structure` 키로 implicit spring 을 걸고 요소별 `.transition` 부여(본문 delta 는 키에서 제외해 타이핑마다 레이아웃 스프링 방지). overflow 는 `scrollClipDisabled()` 가 원인 — 음수 패딩 블리드로 교체해 클립 경계를 버블 가장자리에 정렬. 카드·과정 보기는 본문 이후에 붙어 기존 스크롤 추적이 못 잡으므로 구조 변화 onChange 로 바닥 추적 추가.
+
+## 2026-06-10 — backend
+- **search_items 한국어 키워드 0건 수정 — 토큰 동일성 → 단어별 substring** (실기기 리포트: "민수랑 언제 만나기로 했지?" → "민수" 검색 0건). `plainto_tsquery('simple')` 는 토큰 동일성만 봐서 조사 붙은 한국어("민수와")가 표제어("민수")와 매칭되지 않는다. 매칭을 단어별 ILIKE(simple 토큰 매칭의 상위집합, 와일드카드 escape)로 바꾸고 랭킹은 ts_rank_cd 유지 + captured_at 보조 정렬(조사 매칭은 rank 0). 같은 결함이 검색 탭 `search/postgres_index.py` 에도 있음 — 별도 작업 단위로 미수정(known-drift).
+- **search_items 에 발생일 축(`occurs_from`/`occurs_to`) 추가** (실기기 리포트: "내일 스케줄 알려줘" → 0건). 기존 `date_from`/`date_to` 는 `captured_at`(저장 시각) 필터뿐이라 미래 일정 질문이 "내일 캡처된 기록" 검색이 되어 항상 빈다. 발생일은 instance payload deadline/date(`ListUpcomingActionables` 와 동일 우선순위)를 SQL 에서 ISO 모양으로 정규화해 비교 — 비정형 표기는 graceful 미매칭. intent·발생일 조건은 같은 instance 가 만족해야 하는 단일 EXISTS. intent_type 설명에 "기간 질문은 schedule·todo 를 가로지르니 단일 intent 필터 금지" 조향 추가. `tests/unit/test_chat_search_items.py` 신설.
+- **chat@v4 — 구조 필드 수정이 text 치환으로 새는 버그 대응** (실기기 리포트: "날짜 수정해줘"에 모델이 instance payload.date 대신 본문에 날짜를 박아넣음 — 캘린더 등 구조를 읽는 기능엔 stale). 백엔드 경로(propose_item_update `instance_changes` → PATCH payload 병합)는 정상이고 프롬프트 결함 — Actions 에 "기록 = prose + 구조 2층, 상위 기능은 구조만 읽는다" 기준+why 추가(좁은 예시 대신 범용 기준 — skill-creator 철학). propose_item_update description 동일 보강 + payload date/time/deadline 포맷 명시.
+
+## 2026-06-10 — ios, docs
+- **채팅 탭 push 구조 전환 — 이중 바·키보드 가림 해소** (사용자 피드백: 탭바+입력 독 스택이 어색, 첫 채팅 시 입력바가 키보드에 일부 가림). 원인은 스타일이 아니라 구조 — "탭 = 곧장 대화"라 입력 독이 탭바 위에 상주했고, TabView 안 `safeAreaInset(.bottom)` 은 키보드 inset 이 어긋나는 SwiftUI 고질 버그가 있다. 채팅 탭을 **랜딩**(인사 + 칩 + 입력바 *모양* 버튼 + 지난 대화, `ChatLandingFeature` 신설)으로 바꾸고 **대화는 `MainTabFeature.Path.chat` 풀스크린 push**(탭바 슬라이드아웃 구조 재활용)로 — `ChatFeature.Entry`(blank/firstMessage/resume)가 진입 컨텍스트를 든다. 홈 입력바도 탭 전환 대신 push (back 으로 홈 복귀). 부수 피드백 2건: assistant 버블 미니 모찌 아바타 제거(26pt 로 뭉개짐), 채팅 인사 이미지를 `mochi-chat` 에셋으로 교체(512px 압축). 리뷰(P2) 반영: ① run 진행 중 대화로 재진입 시 `RunPhase.awaitingRemote` — 전송 차단(서버 409 예방) + 타이핑 점 placeholder (push 전환으로 "back→재진입" 도달성이 높아짐), ② Entry 1회 소비를 `entryConsumed` 플래그로 가드(fullScreenCover dismiss 의 onAppear 재발화 시 첫 메시지 재전송 방지), ③ 랜딩 히스토리에서 활성 세션 삭제 시 sessionStore 포인터 정리. UX_SPEC §1.5·§2·§3.4 동기화.
+
 ## 2026-06-10 — ios, backend, docs
 - **proposal 카드 확정 상태 영속 + 스트리밍 UX 개선** (사용자 버그 리포트 2건). ① 확정/취소한 카드가 스냅샷 복귀·히스토리 재진입 시 pending 으로 되살아나던 버그 — **`PATCH /conversations/{id}/proposals/{id}` 신설**(⓪ 계약 — assistant 행 `proposals` jsonb 에 `status` 병합, confirmed/cancelled 만 영속·expired/failed 는 결정적 재현이라 비영속), iOS 는 확정 실행 성공 후 best-effort 영속 + fold 가 status 복원. openapi→generated client ⓪폭포 + DOMAIN_DESIGN §10.3·ARCHITECTURE·README 동기화. ② 스트리밍 UX — tool pill 이 finished 마다 깜빡이던 것을 **다음 툴/첫 본문까지 유지**로, 블록 단위로 띡띡 오던 본문을 **타자기 스무딩**(`ChatStreamSmoothing` — 글자 단위 재방출, 백로그 비례 가속, 비-텍스트 이벤트 순서 보존)으로.
 

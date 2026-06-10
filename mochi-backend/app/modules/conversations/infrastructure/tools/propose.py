@@ -76,6 +76,9 @@ _PAYLOAD_FIELD_PROPS: dict[str, Any] = {
     key: {"type": "string"}
     for key in ("title", "date", "time", "deadline", "person", "topic", "url", "note")
 }
+_PAYLOAD_FIELD_PROPS["date"] = {"type": "string", "description": "ISO date, e.g. 2026-06-17"}
+_PAYLOAD_FIELD_PROPS["time"] = {"type": "string", "description": "HH:MM"}
+_PAYLOAD_FIELD_PROPS["deadline"] = {"type": "string", "description": "ISO date, e.g. 2026-06-17"}
 
 _DISPLAY_PROPS: dict[str, Any] = {
     "type": "object",
@@ -99,6 +102,8 @@ class ProposeItemUpdateTool:
     description = (
         "Propose changes to an existing record — content fields (text/user_memo/summary) and/or "
         "its intent instances (payload fields, label, lifecycle transition like completing a todo). "
+        "A fact that an instance payload field represents must change through instance_changes — "
+        "rewriting it only into text leaves the structured field stale for everything that reads it. "
         "Use ids from get_item_detail. The user confirms on a card; nothing changes until then."
     )
     parameters: dict[str, Any] = {

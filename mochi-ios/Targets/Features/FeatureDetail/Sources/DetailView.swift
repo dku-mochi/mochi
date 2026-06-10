@@ -10,8 +10,9 @@ import UIKit
 /// 기록 상세 화면 — "검수"가 아니라 "회수".
 ///
 /// 정보 위계: ① 회수 헤더(썸네일·정체성 제목·출처·시간) → (헷갈려요 배너) →
-/// ② 지금 할 수 있어요(할일 체크 / 일정 통지 / 링크) → ③ 모찌가 정리했어요(요약·원본) →
-/// ④ 더 자세히(추출정보·태그·근거). 제목은 탭 한 번으로 인라인 교정(로컬 `userTitle` 오버라이드).
+/// ② 지금 할 수 있어요(할일 체크 / 일정 통지 / 링크) → ③ 모찌가 정리했어요(요약·원본).
+/// 제목은 탭 한 번으로 인라인 교정(로컬 `userTitle` 오버라이드).
+/// ("더 자세히" 접힘 섹션은 2026-06-10 제거 — 추출정보·태그·근거는 회수에 기여하지 않는 내부 디테일.)
 public struct DetailView: View {
     @Bindable public var store: StoreOf<DetailFeature>
     @State private var presentationAnchor: UIViewController?
@@ -77,7 +78,6 @@ public struct DetailView: View {
                 }
 
                 GistCard(mochiItem: mochiItem, analysis: analysis)
-                DetailsDisclosure(mochiItem: mochiItem, analysis: analysis)
 
                 if let error = store.lastError {
                     Text(error)
@@ -300,9 +300,12 @@ private struct IntentActionsSection: View {
     private var activeTodos: [IntentInstance] {
         mochiItem.instances.filter { $0.intentType == .todo && $0.lifecycle == .active }
     }
+    private var activeSchedules: [IntentInstance] {
+        mochiItem.instances.filter { $0.intentType == .schedule && $0.lifecycle == .active }
+    }
     /// 확신할 때만 "넣어뒀어요" 통지 — 미확신(needsReview)이면 헷갈려요 배너가 담당.
     private var hasConfirmedSchedule: Bool {
-        !mochiItem.needsReview && mochiItem.instances.contains { $0.intentType == .schedule && $0.lifecycle == .active }
+        !mochiItem.needsReview && !activeSchedules.isEmpty
     }
     private var primaryURL: URL? {
         if let url = mochiItem.source.url { return url }
@@ -342,20 +345,37 @@ private struct IntentActionsSection: View {
         }
     }
 
+    /// 일정 통지 — 일시가 핵심 정보라 날짜를 헤드라인으로 올린다(한 캡처에 일정 여럿이면 행 반복).
     private var scheduleNotice: some View {
-        HStack(spacing: HomeDesign.Spacing.md) {
-            ZStack {
-                Circle().fill(HomeDesign.Color.purple100)
-                Image(systemName: "calendar")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(HomeDesign.Color.purple600)
+        VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
+            ForEach(activeSchedules) { instance in
+                HStack(spacing: HomeDesign.Spacing.md) {
+                    ZStack {
+                        Circle().fill(HomeDesign.Color.purple100)
+                        Image(systemName: "calendar")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(HomeDesign.Color.purple600)
+                    }
+                    .frame(width: 26, height: 26)
+                    if let when = Self.scheduleWhen(instance) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(when)
+                                .font(.system(size: 14, weight: .bold, design: .rounded))
+                                .foregroundStyle(HomeDesign.Color.textPrimary)
+                            Text("일정으로 분류했어요 — 캘린더 탭에 담아뒀어요")
+                                .font(.system(size: 12, weight: .medium, design: .rounded))
+                                .foregroundStyle(HomeDesign.Color.ink700)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    } else {
+                        Text("일정으로 분류했어요 — 캘린더 탭에 담아뒀어요")
+                            .font(.system(size: 13, weight: .medium, design: .rounded))
+                            .foregroundStyle(HomeDesign.Color.ink700)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    Spacer(minLength: 0)
+                }
             }
-            .frame(width: 26, height: 26)
-            Text("일정으로 분류했어요 — 캘린더 탭에 담아뒀어요")
-                .font(.system(size: 13, weight: .medium, design: .rounded))
-                .foregroundStyle(HomeDesign.Color.ink700)
-                .fixedSize(horizontal: false, vertical: true)
-            Spacer(minLength: 0)
         }
         .padding(HomeDesign.Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -363,6 +383,27 @@ private struct IntentActionsSection: View {
             RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
                 .fill(HomeDesign.Color.purple50)
         )
+    }
+
+    /// 일정 일시 표기 — `payload.date`(+`time`)를 `PayloadDate`(단일 원천)로 파싱해
+    /// 캘린더 탭과 같은 한국어·KST 로 보여준다. 파싱 불가(자연어 표기)면 원문 그대로 —
+    /// 날짜가 아예 안 보이는 것보다 낫다. 일시 자체가 없으면 nil(기존 한 줄 통지 유지).
+    private static func scheduleWhen(_ instance: IntentInstance) -> String? {
+        guard let rawDate = instance.payload.date, !rawDate.isEmpty else { return nil }
+        // date 가 날짜만(yyyy-MM-dd, 10자)이고 time 이 따로 오면 합쳐 파싱한다.
+        let raw: String = {
+            if let time = instance.payload.time, !time.isEmpty, rawDate.count <= 10 {
+                return "\(rawDate) \(time)"
+            }
+            return rawDate
+        }()
+        guard let date = PayloadDate.parse(raw) ?? PayloadDate.parse(rawDate) else { return rawDate }
+        let hasTime = PayloadDate.parse(raw) != nil ? raw.count > 10 : rawDate.count > 10
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ko_KR")
+        formatter.timeZone = TimeZone(identifier: "Asia/Seoul")
+        formatter.dateFormat = hasTime ? "M월 d일 (E) a h:mm" : "M월 d일 (E)"
+        return formatter.string(from: date)
     }
 
     /// URL host 로 커뮤니티 플랫폼을 판별해 버튼 라벨을 정한다 — openURL 이 설치된 앱(YouTube 등)으로 라우팅.
@@ -496,98 +537,6 @@ private struct GistCard: View {
     }
 }
 
-// MARK: - ④ 더 자세히 (접힘)
-
-private struct DetailsDisclosure: View {
-    let mochiItem: MochiItem
-    let analysis: MochiItemAnalysis
-    @State private var expanded = false
-
-    var body: some View {
-        DisclosureGroup(isExpanded: $expanded) {
-            VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
-                if !analysis.entities.isEmpty {
-                    detailBlock("추출 정보") {
-                        ForEach(analysis.entities, id: \.self) { entity in
-                            HStack(spacing: HomeDesign.Spacing.sm) {
-                                Text(entity.kind.rawValue)
-                                    .font(.system(size: 10, weight: .bold))
-                                    .foregroundStyle(HomeDesign.Color.textMuted)
-                                    .padding(.horizontal, 7)
-                                    .padding(.vertical, 3)
-                                    .background(Capsule().fill(HomeDesign.Color.bg))
-                                Text(entity.value)
-                                    .font(.system(size: 12.5, weight: .medium))
-                                    .foregroundStyle(HomeDesign.Color.ink700)
-                            }
-                        }
-                    }
-                }
-                if !analysis.tags.isEmpty {
-                    detailBlock("태그") {
-                        TagFlow(spacing: 6) {
-                            ForEach(analysis.tags, id: \.self) { tag in
-                                Text("#\(tag)")
-                                    .font(.system(size: 11.5, weight: .semibold, design: .rounded))
-                                    .foregroundStyle(HomeDesign.Color.purple600)
-                                    .padding(.horizontal, 9)
-                                    .padding(.vertical, 4)
-                                    .background(Capsule().fill(HomeDesign.Color.purple50))
-                            }
-                        }
-                    }
-                }
-                let reasons = mochiItem.instances.compactMap { $0.reasoning }.filter { !$0.isEmpty }
-                if !reasons.isEmpty {
-                    detailBlock("모찌의 근거") {
-                        ForEach(Array(reasons.enumerated()), id: \.offset) { _, reason in
-                            Text(reason)
-                                .font(.system(size: 12))
-                                .foregroundStyle(HomeDesign.Color.textMuted)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                    }
-                }
-                detailBlock("처리") {
-                    Text("중요도 \(analysis.importance.rawValue)/5 · \(syncLabel)")
-                        .font(.system(size: 11))
-                        .foregroundStyle(HomeDesign.Color.textFaint)
-                }
-            }
-            .padding(.top, HomeDesign.Spacing.sm)
-            .frame(maxWidth: .infinity, alignment: .leading)
-        } label: {
-            Text("더 자세히")
-                .font(.system(size: 14, weight: .bold, design: .rounded))
-                .foregroundStyle(HomeDesign.Color.textPrimary)
-        }
-        .tint(HomeDesign.Color.textMuted)
-        .detailCard()
-    }
-
-    @ViewBuilder
-    private func detailBlock<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title)
-                .font(.system(size: 11, weight: .bold))
-                .foregroundStyle(HomeDesign.Color.textPrimary)
-            content()
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private var syncLabel: String {
-        switch mochiItem.syncState {
-        case .pendingUpload:  return "동기화 대기"
-        case .uploading:      return "업로드 중"
-        case .uploaded:       return "저장됨"
-        case .calendarSynced: return "캘린더 반영"
-        case .reminderSynced: return "미리알림 반영"
-        case .syncFailed:     return "동기화 실패"
-        }
-    }
-}
-
 // MARK: - Shared bits
 
 private struct SectionHeader: View {
@@ -605,42 +554,6 @@ private struct SectionHeader: View {
                 .foregroundStyle(HomeDesign.Color.textPrimary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-    }
-}
-
-/// 태그 칩을 가로로 채우다 넘치면 줄바꿈하는 최소 flow layout.
-private struct TagFlow: Layout {
-    var spacing: CGFloat = 6
-
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        let maxWidth = proposal.width ?? .infinity
-        var x: CGFloat = 0, y: CGFloat = 0, rowHeight: CGFloat = 0
-        for subview in subviews {
-            let size = subview.sizeThatFits(.unspecified)
-            if x > 0, x + size.width > maxWidth {
-                x = 0
-                y += rowHeight + spacing
-                rowHeight = 0
-            }
-            x += size.width + spacing
-            rowHeight = max(rowHeight, size.height)
-        }
-        return CGSize(width: maxWidth == .infinity ? max(x - spacing, 0) : maxWidth, height: y + rowHeight)
-    }
-
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
-        var x = bounds.minX, y = bounds.minY, rowHeight: CGFloat = 0
-        for subview in subviews {
-            let size = subview.sizeThatFits(.unspecified)
-            if x > bounds.minX, x + size.width > bounds.maxX {
-                x = bounds.minX
-                y += rowHeight + spacing
-                rowHeight = 0
-            }
-            subview.place(at: CGPoint(x: x, y: y), proposal: .unspecified)
-            x += size.width + spacing
-            rowHeight = max(rowHeight, size.height)
-        }
     }
 }
 

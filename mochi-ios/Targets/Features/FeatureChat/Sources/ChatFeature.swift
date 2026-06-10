@@ -1,37 +1,60 @@
 import ComposableArchitecture
 import CoreAgentClient
 import CoreDomain
+import CoreIntegrations
 import CoreNetworking
 import CorePersistence
 import Foundation
 
-/// 채팅 탭 — 기록 기반 질문·요청 대화 (검색이 아니라 "내 기억에게 묻는" 표면).
+/// 대화 화면 — 기록 기반 질문·요청 대화 (검색이 아니라 "내 기억에게 묻는" 표면).
 ///
-/// 탭 진입 = 곧장 대화 화면(세션 리스트 아님 — 짧은 과업형 대화라 재개 빈도가 낮다).
+/// 탭 콘텐츠가 아니라 **NavigationStack push 풀스크린**이다(2026-06-10 구조 전환) —
+/// 탭바 위에 입력 독이 얹히는 이중 바와 TabView 안 키보드 inset 버그를 구조에서 제거.
+/// 랜딩(``ChatLandingFeature``)·홈 입력바가 ``Entry`` 를 들고 push 한다.
 /// conversationID 는 클라이언트가 생성, 서버가 첫 메시지에서 암묵 생성한다.
-/// 스트림은 ``ChatStreamClient`` (POST-as-SSE) — 히스토리·세션 자동분리는 후속 PR.
+/// 스트림은 ``ChatStreamClient`` (POST-as-SSE).
 @Reducer
 public struct ChatFeature: Sendable {
+    /// push 진입 컨텍스트 — `.appeared` 에서 한 번 소비된다.
+    public enum Entry: Equatable, Sendable {
+        /// 랜딩 입력바 탭 — 활성 세션(30분 내) 복원 + 컴포저 자동 포커스.
+        case blank
+        /// 랜딩 칩·홈 입력바 — 항상 새 대화의 첫 메시지로 즉시 전송.
+        case firstMessage(String)
+        /// 지난 대화 선택 — 해당 대화 스냅샷 재개.
+        case resume(UUID)
+    }
+
     @ObservableState
     public struct State: Equatable, Sendable {
+        public let entry: Entry
+        /// `.appeared` 1회 소비 가드 — fullScreenCover(백탭 모달) dismiss 가 onAppear 를
+        /// 재발화해도, 새 대화로 리셋된 빈 state 에 firstMessage 가 재전송되지 않게 한다.
+        public var entryConsumed = false
         public var conversationID: UUID?
         public var messages: IdentifiedArrayOf<ChatMessage> = []
         public var draft: String = ""
         public var runPhase: RunPhase = .idle
         @Presents public var history: ChatHistoryFeature.State?
 
-        public init() {}
+        public init(entry: Entry = .blank) {
+            self.entry = entry
+        }
 
         public var isEmpty: Bool { messages.isEmpty }
         public var isStreaming: Bool { runPhase == .streaming }
         public var canSubmit: Bool {
-            !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && runPhase != .streaming
+            !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                && runPhase != .streaming && runPhase != .awaitingRemote
         }
     }
 
     public enum RunPhase: Equatable, Sendable {
         case idle
         case streaming
+        /// 서버 run 이 아직 진행 중인 대화로 복귀 — 스냅샷 폴링이 답을 기다리는 중.
+        /// 전송을 막는다(서버가 동시 run 을 409 로 거부) + 타이핑 점으로 진행을 보인다.
+        case awaitingRemote
         case failed(String)
     }
 
@@ -99,21 +122,20 @@ public struct ChatFeature: Sendable {
     public enum Action: BindableAction, Sendable {
         case binding(BindingAction<State>)
         case sendTapped
-        case chipTapped(String)
-        /// 홈 입력바 라우팅 진입점 — 항상 새 대화의 첫 메시지로 (MainTab 이 send, 후속 PR 배선).
-        case startConversation(firstMessage: String)
         case newConversationTapped
         case streamEvent(ChatStreamEvent)
         case streamFinished
         case streamFailed(String)
-        /// 화면 진입(탭 전환 포함) — 비활성 30분 자동분리 판정 + 이전 세션 스냅샷 복귀.
+        /// push 진입 — ``Entry`` 소비 (비활성 30분 자동분리 판정 / 첫 메시지 전송 / 재개).
         case appeared
         /// 백그라운드 → 포그라운드 복귀 — SSE 가 끊겼어도 run 은 서버에서 완주하므로
         /// 스냅샷을 다시 읽는다 ("돌아왔더니 답이 와 있다"). running 이면 2초 폴링.
         case sceneActivated
         case historyButtonTapped
         case history(PresentationAction<ChatHistoryFeature.Action>)
-        case snapshotLoaded(conversationID: UUID, messages: IdentifiedArrayOf<ChatMessage>)
+        case snapshotLoaded(
+            conversationID: UUID, messages: IdentifiedArrayOf<ChatMessage>, isRunning: Bool
+        )
         case snapshotLoadFailed
         /// 근거 미니카드 탭 — 서버 id 를 로컬 항목으로 해석해 상위(MainTab)가 상세를 띄운다.
         case citationTapped(ChatCitation)
@@ -135,6 +157,7 @@ public struct ChatFeature: Sendable {
     @Dependency(\.mochiItemRepository) var repository
     @Dependency(\.syncTrigger) var syncTrigger
     @Dependency(\.reminderScheduler) var reminderScheduler
+    @Dependency(\.calendarSyncer) var calendarSyncer
     @Dependency(\.date) var date
     @Dependency(\.uuid) var uuid
     @Dependency(\.continuousClock) var clock
@@ -143,6 +166,8 @@ public struct ChatFeature: Sendable {
     static let sessionMaxIdleSeconds: TimeInterval = 30 * 60
     /// 복귀 폴링 상한 — run 60초 + stale 임계(90초) 여유. 2초 간격이라 최대 ~90초.
     static let maxSnapshotPolls = 45
+    /// 원격 run 대기 중 타이핑 점 placeholder 의 고정 id — 폴링마다 새 id 면 스크롤이 튄다.
+    static let remotePendingMessageID = UUID(uuidString: "00000000-0000-0000-0000-FEEDFEEDFEED")!
 
     private enum CancelID { case stream, snapshotPoll }
 
@@ -156,21 +181,10 @@ public struct ChatFeature: Sendable {
                 return .none
 
             case .sendTapped:
+                guard state.canSubmit else { return .none }
                 let text = state.draft.trimmingCharacters(in: .whitespacesAndNewlines)
-                guard !text.isEmpty, state.runPhase != .streaming else { return .none }
                 state.draft = ""
                 return sendMessage(text, state: &state)
-
-            case let .chipTapped(question):
-                guard state.runPhase != .streaming else { return .none }
-                return sendMessage(question, state: &state)
-
-            case let .startConversation(firstMessage):
-                // 홈에서 넘어온 첫 메시지 — 진행 중 스트림은 끊고 항상 새 대화로.
-                state.conversationID = nil
-                state.messages.removeAll()
-                state.runPhase = .idle
-                return sendMessage(firstMessage, state: &state)
 
             case .newConversationTapped:
                 state.conversationID = nil
@@ -184,15 +198,27 @@ public struct ChatFeature: Sendable {
                 )
 
             case .appeared:
-                // 이미 대화가 떠 있으면 그대로 — 분리 판정은 빈 화면 진입에만.
-                guard state.conversationID == nil, state.messages.isEmpty else { return .none }
-                guard let persisted = sessionStore.load() else { return .none }
-                guard date.now.timeIntervalSince(persisted.lastActivityAt) < Self.sessionMaxIdleSeconds else {
-                    // 30분 지남 — 조용히 새 대화 (사용자가 세션을 관리하지 않는다).
-                    sessionStore.clear()
-                    return .none
+                // Entry 는 1회 소비 — onAppear 재발화(상세·fullScreenCover dismiss)에 안전.
+                guard !state.entryConsumed else { return .none }
+                state.entryConsumed = true
+                switch state.entry {
+                case .blank:
+                    guard let persisted = sessionStore.load() else { return .none }
+                    guard date.now.timeIntervalSince(persisted.lastActivityAt) < Self.sessionMaxIdleSeconds
+                    else {
+                        // 30분 지남 — 조용히 새 대화 (사용자가 세션을 관리하지 않는다).
+                        sessionStore.clear()
+                        return .none
+                    }
+                    return loadSnapshot(persisted.conversationID)
+
+                case let .firstMessage(text):
+                    // 칩·홈 입력바 — 항상 새 대화 (state 가 push 마다 fresh 라 그대로 전송).
+                    return sendMessage(text, state: &state)
+
+                case let .resume(conversationID):
+                    return loadSnapshot(conversationID)
                 }
-                return loadSnapshot(persisted.conversationID)
 
             case .sceneActivated:
                 // 스트림이 살아 있으면(짧은 백그라운드) 건드리지 않는다 — 끊겼을 때만 서버 정본 재조회.
@@ -227,13 +253,20 @@ public struct ChatFeature: Sendable {
             case .history:
                 return .none
 
-            case let .snapshotLoaded(conversationID, messages):
+            case let .snapshotLoaded(conversationID, messages, isRunning):
                 // 폴링 effect 의 in-flight 결과가 새 턴 시작 직후 도착하는 좁은 경합 가드 —
                 // 스트리밍 중인 버블을 스냅샷이 덮어쓰지 않는다 (리뷰 P2).
                 guard state.runPhase != .streaming else { return .none }
                 state.conversationID = conversationID
                 state.messages = messages
-                state.runPhase = .idle
+                // run 진행 중 복귀(스트림 끊긴 채 back→재진입 등) — 전송을 막고(서버 409)
+                // 타이핑 점 placeholder 로 "답이 오는 중"을 보인다. 다음 스냅샷이 통째로 교체.
+                state.runPhase = isRunning ? .awaitingRemote : .idle
+                if isRunning {
+                    var pending = ChatMessage(id: Self.remotePendingMessageID, role: .assistant, text: "")
+                    pending.isStreaming = true
+                    state.messages.append(pending)
+                }
                 sessionStore.save(conversationID, date.now)
                 return .none
 
@@ -327,13 +360,15 @@ public struct ChatFeature: Sendable {
                     await send(.snapshotLoadFailed)
                     return
                 }
+                let isRunning = snapshot.messages.last { $0.role == "user" }?.runStatus == "running"
                 await send(
                     .snapshotLoaded(
                         conversationID: conversationID,
-                        messages: Self.fold(snapshot.messages)
+                        messages: Self.fold(snapshot.messages),
+                        // 폴링 소진 시점엔 false 로 — awaitingRemote 에 영원히 잠기지 않게.
+                        isRunning: isRunning && attempt < Self.maxSnapshotPolls
                     )
                 )
-                let isRunning = snapshot.messages.last { $0.role == "user" }?.runStatus == "running"
                 guard isRunning, attempt < Self.maxSnapshotPolls else { return }
                 try await clock.sleep(for: .seconds(2))
             }
@@ -411,7 +446,7 @@ public struct ChatFeature: Sendable {
                 }
 
             case let .updateItem(payload):
-                try await apiClient.updateMochiItem(
+                let updated = try await apiClient.updateMochiItem(
                     mochiServerID: payload.mochiItemID,
                     MochiItemUpdateRequestDTO(
                         text: payload.text,
@@ -428,8 +463,11 @@ public struct ChatFeature: Sendable {
                         }
                     )
                 )
-                // 서버가 정본 — 로컬 미러 갱신은 SSE/폴링·pull 의 몫이지만, 즉시성 위해 pull 1회.
-                await syncTrigger.pullRemote()
+                // PATCH 응답(서버 정본)을 로컬 미러에 직접 merge — 캘린더·홈은 로컬 Realm
+                // 구동(observeChanges)인데 pullRemote 는 "없는 항목 채우기" 전용이고, 분석
+                // SSE/폴링도 analysis 가 이미 붙은 항목은 건드리지 않아 여기 말곤 반영 경로가 없다
+                // (날짜 수정이 캘린더에 안 보이던 2026-06-10 버그).
+                await applyServerItem(updated)
 
             case let .createSchedule(payload):
                 // 분석 생략 직행 생성 (§5.2 예외). proposal id 가 Idempotency-Key — 재탭 멱등.
@@ -444,6 +482,9 @@ public struct ChatFeature: Sendable {
                     idempotencyKey: proposal.id.uuidString
                 )
                 await syncTrigger.pullRemote()   // 캘린더·검색에 바로 보이게 로컬 미러 채움
+                // 시스템 캘린더(schedule→EKEvent)·미리알림(todo→EKReminder) 등록 (2026-06-10 요청).
+                // 권한 거부 시 failed 카드 — ingest 가 멱등이라 권한 허용 후 재확정해도 안전.
+                try await registerToSystemCalendar(payload)
 
             case let .createMemo(text):
                 // 일반 캡처와 동일 경로: 로컬 upsert(.pendingUpload) → worker 가 ingest(분석 경유).
@@ -467,9 +508,88 @@ public struct ChatFeature: Sendable {
             return .failed(reason: "알림 권한이 꺼져 있어요", needsNotificationPermission: true)
         } catch ReminderSchedulingError.invalidFireDate {
             return .failed(reason: "이미 지난 시간이에요", needsNotificationPermission: false)
+        } catch CalendarSyncError.accessDenied {
+            return .failed(reason: "캘린더·미리알림 권한이 꺼져 있어요", needsNotificationPermission: true)
         } catch {
             return .failed(reason: "잠시 후 다시 시도해주세요", needsNotificationPermission: false)
         }
+    }
+
+    // MARK: - 시스템 캘린더·미리알림 등록 (createSchedule 확정)
+
+    /// 확정된 instance 를 실제 iOS 캘린더(schedule→EKEvent)·미리알림(todo→EKReminder)에 등록한다 —
+    /// 일정·할 일이 모찌 안에만 머물지 않게(미션: "필요한 기억은 쉽게 떠오른다").
+    ///
+    /// **권한을 전부 먼저 확보**하고 나서 생성한다 — 일부만 만들어진 채 권한으로 실패하면
+    /// 재확정 시 EK 항목이 중복 등록된다(EventKit save 는 멱등이 아님).
+    private func registerToSystemCalendar(_ payload: ChatProposal.CreateSchedulePayload) async throws {
+        let schedules = payload.instances.filter {
+            $0.intentType == "schedule" && Self.scheduleStart(from: $0.payload) != nil
+        }
+        let todos = payload.instances.filter { $0.intentType == "todo" }
+        if !schedules.isEmpty { try await calendarSyncer.requestEventAccess() }
+        if !todos.isEmpty { try await calendarSyncer.requestReminderAccess() }
+
+        for instance in schedules {
+            guard let (start, allDay) = Self.scheduleStart(from: instance.payload) else { continue }
+            _ = try await calendarSyncer.createEvent(
+                title: instance.payload["title"] ?? payload.text ?? "모찌 일정",
+                start: start, end: nil, allDay: allDay
+            )
+        }
+        for instance in todos {
+            _ = try await calendarSyncer.createReminder(
+                title: instance.payload["title"] ?? payload.text ?? "모찌 할 일",
+                due: PayloadDate.parse(instance.payload["deadline"])
+            )
+        }
+    }
+
+    /// payload date(+time) → 이벤트 시작 시각. time 이 없으면 종일 일정.
+    /// 날짜 파싱 불가(자연어 등)면 nil — 시스템 등록은 건너뛴다(모찌 기록 자체는 이미 생성됨).
+    static func scheduleStart(from payload: [String: String]) -> (start: Date, allDay: Bool)? {
+        let rawDate = payload["date"]
+        if let rawDate, let rawTime = payload["time"], !rawTime.isEmpty,
+           let combined = PayloadDate.parse("\(rawDate) \(rawTime)") {
+            return (combined, false)
+        }
+        guard let date = PayloadDate.parse(rawDate) else { return nil }
+        // date 문자열 자체에 시간이 포함된 경우(ISO datetime, 10자 초과)는 시각 일정으로.
+        return (date, (rawDate?.count ?? 0) <= 10)
+    }
+
+    /// PATCH 응답(갱신된 서버 항목)을 로컬 Realm 미러에 merge 한다.
+    ///
+    /// 콘텐츠(text/userMemo)와 분석(summary/instances — 날짜 payload 포함)만 서버 값으로 갈고,
+    /// 로컬 전용 필드(userTitle·syncState·이미지 경로·createdAt)는 보존한다.
+    /// `updatedAt` 은 bump — 분석 SSE/폴링의 세대 가드가 stale 결과로 되덮지 않게.
+    private func applyServerItem(_ dto: MochiItemDTO) async {
+        guard let localID = await Self.lookupLocalID(serverID: dto.id, repository: repository),
+              let current = try? await repository.find(id: localID)
+        else {
+            // 로컬 미러에 아직 없는 항목(재설치 직후 등) — pull 의 "없는 항목 insert" 가 채운다.
+            await syncTrigger.pullRemote()
+            return
+        }
+        let source = IngestSource(
+            id: current.source.id,
+            channel: current.source.channel,
+            url: current.source.url,
+            text: dto.text,
+            imageRefs: current.source.imageRefs,
+            userMemo: dto.userMemo,
+            capturedAt: current.source.capturedAt
+        )
+        let merged = MochiItem(
+            source: source,
+            analysis: dto.lifecycleKind == "analyzed" ? dto.toMochiItemAnalysis() : current.analysis,
+            lifecycleState: current.lifecycleState,
+            syncState: current.syncState,
+            userTitle: current.userTitle,
+            createdAt: current.createdAt,
+            updatedAt: date.now
+        )
+        try? await repository.upsert(merged)
     }
 
     /// 서버 id → 로컬 Realm id (조회만).

@@ -196,7 +196,10 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
         }
     }
 
-    public func updateMochiItem(mochiServerID: UUID, _ request: MochiItemUpdateRequestDTO) async throws {
+    @discardableResult
+    public func updateMochiItem(
+        mochiServerID: UUID, _ request: MochiItemUpdateRequestDTO
+    ) async throws -> MochiItemDTO {
         let body = Components.Schemas.MochiItemUpdateRequest(
             text: request.text,
             userMemo: request.userMemo,
@@ -219,7 +222,7 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
             .init(path: .init(mochi_item_id: mochiServerID.uuidString), body: .json(body))
         )
         switch output {
-        case .ok: return
+        case let .ok(response): return try Self.mapMochiItem(try response.body.json)
         case let .undocumented(status, payload): throw await Self.error(status: status, payload: payload)
         }
     }
