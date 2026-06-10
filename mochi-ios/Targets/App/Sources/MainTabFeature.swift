@@ -9,7 +9,7 @@ import FeatureSettings
 
 /// 메인 탭 reducer.
 ///
-/// 시안에 따라 4개 탭(홈/채팅/캘린더/검색) 구조. 채팅은 현 단계 placeholder, 캘린더 탭은 월간 캘린더 화면.
+/// 시안에 따라 4개 탭(홈/채팅/캘린더/검색) 구조. 캘린더 탭은 월간 캘린더 화면.
 /// 기존 InboxFeature 는 설정 화면의 디버그 항목에서만 접근 가능하도록 보존.
 @Reducer
 struct MainTabFeature: Sendable {
@@ -111,11 +111,11 @@ struct MainTabFeature: Sendable {
                 state.path.append(.weeklyDigest(WeeklyDigestFeature.State()))
                 return .none
 
-            case let .home(.delegate(.recallRequested(query))):
-                // 홈 질문 입력바 → 검색 탭으로 전환해 즉시 회수 실행.
-                state.selectedTab = .search
-                state.search.query = query
-                return .send(.search(.submit))
+            case let .home(.delegate(.chatRequested(query))):
+                // 홈 질문 입력바 → 채팅 탭 새 대화의 첫 메시지로 (2026-06-10 라우팅 전환 —
+                // 홈 칩이 광고하는 추천·수정·요약은 결정적 검색이 아니라 대화의 능력이다).
+                state.selectedTab = .chat
+                return .send(.chat(.startConversation(firstMessage: query)))
 
             case .home(.delegate(.seeAllRecentRequested)):
                 // "전체 보기" — 전체 기록을 날짜로 훑을 수 있는 캘린더 탭으로.

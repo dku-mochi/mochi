@@ -15,6 +15,9 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 >
 > **동시 세션 / 공유 파일 주의**: CHANGELOG 는 여러 세션·작업자가 함께 쓰는 append-only 공유 파일이다. 동시 작업 중에는 다른 세션이 자기 항목을 먼저 커밋할 수 있고, 한 워킹트리에 여러 세션의 미커밋 항목이 섞여 보일 수 있다. 이때 **항목을 분리하려 애쓰지 말고** 자기 변경과 함께 그대로 staging·커밋한다 — 섞인 다른 항목은 해당 세션이 자기 코드와 함께 정리한다. diff 에 모르는 CHANGELOG 항목이 보여도 멈추지 않는다 (단, CHANGELOG 외의 *코드* 파일은 절대 임의로 섞어 커밋하지 않는다).
 
+## 2026-06-10 — ios, docs
+- **채팅 탭 iOS PR-4: 히스토리 시트 + 30분 자동분리 + 홈 라우팅 전환**. `ChatAPIClient` 신설(CoreNetworking — 목록/스냅샷/삭제, proposal payload 는 raw JSON 운반·typed 파싱은 CoreAgentClient 소관), 히스토리 시트(스와이프 삭제 낙관 제거, 탭 → 스냅샷 fold 재개), 비활성 30분 자동분리(`ChatSessionStore` UserDefaults + `@Dependency(\.date)` — 30분 내 재진입 시 스냅샷 복귀, 지나면 조용히 새 대화), 스냅샷 fold(서버 user/tool/assistant 행 → 렌더 단위, 고아 tool 행 폐기). **홈 입력바 라우팅 전환**: `recallRequested`→`chatRequested` rename, 검색 탭 → 채팅 탭 새 대화 첫 메시지(칩이 광고하는 추천·수정은 검색이 수행 불가). UX_SPEC §1.5/§2/§3.4 폭포. tuist test 전 타겟 green.
+
 ## 2026-06-10 — ios
 - **채팅 탭 iOS PR-3: proposal 카드 상태머신 + 확정 5경로**. `ChatProposal` 을 kind 별 typed payload 로 재설계(+SSE/스냅샷 JSON 파싱 — 결손 시 카드 숨김), 카드 상태머신 pending→confirming→confirmed/cancelled/expired/failed. 확정 실행: delete=`DELETE`+로컬 미러 정리, update=`PATCH /mochi_items`(신규 클라 메서드), schedule=`POST`+`confirmedInstances`(proposal id 가 Idempotency-Key, §5.2 예외)+pullRemote, memo=로컬 upsert(**channel `chat` 신설** — 팀 합의 ②)+sync, reminder=`UNUserNotificationCenter` 로컬 알림(권한 거부 → failed+설정 열기). 404 = 카드 만료. TestStore 5분기 green.
 
