@@ -83,6 +83,10 @@ class Settings(BaseSettings):
         "0.0.0.0",
     )
 
+    # 채팅 web_search — Tavily (journal 2026-06-10 PR-4). 미설정 시 web_search 툴만
+    # 레지스트리에서 제외되고 서버는 정상 기동한다 (키 발급이 머지를 블록하지 않게).
+    tavily_api_key: str | None = None
+
     # PlatformContext tool — Instagram 공식 oEmbed 는 Meta app token + review 가 필요하다.
     instagram_oembed_access_token: str | None = None
     instagram_oembed_api_version: str = "v20.0"

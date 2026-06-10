@@ -102,4 +102,34 @@ CHAT_V2 = PromptVersion(
     ),
 )
 
-ACTIVE_CHAT_PROMPT: PromptVersion = CHAT_V2
+CHAT_V3 = PromptVersion(
+    name="chat@v3",
+    body=CHAT_V2.body.replace(
+        (
+            "- Keep record-sourced and general-knowledge statements distinguishable inside the "
+            "sentence itself (\"저장해두신 메모에는 …\" vs "
+            "\"일반적으로는 …\") — the user must always know which "
+            "memory is theirs.\n"
+        ),
+        (
+            "- Keep record-sourced, web-sourced, and general-knowledge statements "
+            "distinguishable inside the sentence itself (\"저장해두신 메모에는 …\" / "
+            "\"웹에서 찾아보니 …\" / \"일반적으로는 …\") — the user "
+            "must always know which memory is theirs. 【item:<id>】 markers are for records "
+            "only; name a web source in the sentence instead of marking it.\n"
+        ),
+    ),
+    model_target="gemini-3.1-flash-lite",
+    eval_dataset_version="chat-v1@2026-06-10",
+    revised_on=date(2026, 6, 10),
+    rationale=(
+        "V2 → V3: web_search/web_fetch 도입(채팅 PR-4)에 맞춰 Grounding 의 출처 구분을 "
+        "2원(기록/일반지식)에서 3원(기록/웹/일반지식)으로 확장 — 설계 정본(journal "
+        "2026-06-10 톤 ②)의 '기억 출처와 웹 출처를 문장 안에서 구분' 반영. citation 마커는 "
+        "기록 전용임을 명시 — 마커 파서가 UUID 만 받으므로 웹 출처에 마커를 시도하면 silent "
+        "drop 되어 출처가 증발한다. 기록 원문의 외부 반출 금지는 V1 부터 선제 명시돼 있어 "
+        "불변. 나머지 섹션 불변."
+    ),
+)
+
+ACTIVE_CHAT_PROMPT: PromptVersion = CHAT_V3
