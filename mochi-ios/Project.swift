@@ -6,8 +6,8 @@ private let bundleIdPrefix = "app.mochi"
 private let deploymentTarget = "17.0"
 private let swiftVersion = "5.0"
 private let developmentTeam = "U9SLX327XS"
-private let marketingVersion = "0.1.0"
-private let currentProjectVersion = "1"
+private let marketingVersion = "0.1.5"
+private let currentProjectVersion = "5"
 private let appGroup = "group.app.mochi"
 
 private let baseSettings: SettingsDictionary = [
