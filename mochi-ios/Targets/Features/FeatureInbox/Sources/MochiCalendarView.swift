@@ -397,6 +397,11 @@ enum DueDisplay {
         return HomeDesign.Color.butter400
     }
 
+    /// 기간 일정 라벨 — 시작은 상대 표현 그대로, 끝은 절대 날짜로 못박는다.
+    static func scheduleRangeLabel(_ start: Date, _ end: Date) -> String {
+        scheduleLabel(start) + " ~ " + DateFormatter.mochiSeoul("M월 d일 (E)").string(from: end)
+    }
+
     /// 일정 상대 라벨 — 오늘/내일/요일(7일 미만)/D-n + (자정이 아니면) 시각.
     /// 절대 날짜는 왼쪽 날짜 타일이 담당하므로 여기선 상대 표현만.
     static func scheduleLabel(_ date: Date) -> String {
@@ -452,8 +457,9 @@ struct ScheduleDateTile: View {
 
 // MARK: - Day cell
 
-/// 날짜 한 칸 — 숫자 + 점 3종(일정 sky · 할 일 butter · 저장 purple).
-/// 오늘은 보라 원 채움(흰 숫자), 지난 날짜는 숫자를 옅게 — 점은 그대로 둬 기록 신호를 잃지 않는다.
+/// 날짜 한 칸 — 숫자 + 점 3종(하루 일정 sky · 할 일 butter · 저장 purple) + 기간 일정 막대(sky).
+/// 막대는 시작~끝에 걸친 칸을 가로지르며, 이어지는 쪽은 라운드 없이 옆 칸과 연결돼 보인다.
+/// 오늘은 보라 원 채움(흰 숫자), 지난 날짜는 숫자를 옅게 — 점·막대는 그대로 둬 기록 신호를 잃지 않는다.
 private struct DayCell: View {
     let date: Date
     let summary: CalendarDaySummary?
@@ -466,7 +472,7 @@ private struct DayCell: View {
 
     var body: some View {
         Button(action: onTap) {
-            VStack(spacing: 5) {
+            VStack(spacing: 3) {
                 Text("\(Calendar.mochiSeoul.component(.day, from: date))")
                     .font(.system(size: 13, weight: isToday ? .bold : .medium, design: .rounded))
                     .foregroundStyle(numberColor)
@@ -478,6 +484,9 @@ private struct DayCell: View {
                                 .shadow(color: HomeDesign.Color.purpleGlow.opacity(0.55), radius: 5, x: 0, y: 2)
                         }
                     }
+                rangeBarLane
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 3)
                 HStack(spacing: 3) {
                     if summary?.hasScheduleDue == true { dot(HomeDesign.Color.sky400) }
                     if summary?.hasTodoDue == true { dot(HomeDesign.Color.butter400) }
@@ -491,6 +500,26 @@ private struct DayCell: View {
         }
         .buttonStyle(PressableStyle())
         .disabled(summary == nil)
+    }
+
+    /// 기간 일정 막대 — 이어지는 쪽은 그리드 간격(4pt)을 음수 패딩으로 메워 연속된 막대로 보인다.
+    @ViewBuilder
+    private var rangeBarLane: some View {
+        if let summary, summary.hasRangeSchedule {
+            let leftRadius: CGFloat = summary.rangeConnectsLeft ? 0 : 1.5
+            let rightRadius: CGFloat = summary.rangeConnectsRight ? 0 : 1.5
+            UnevenRoundedRectangle(
+                topLeadingRadius: leftRadius,
+                bottomLeadingRadius: leftRadius,
+                bottomTrailingRadius: rightRadius,
+                topTrailingRadius: rightRadius
+            )
+            .fill(HomeDesign.Color.sky400)
+            .padding(.leading, summary.rangeConnectsLeft ? -2 : 0)
+            .padding(.trailing, summary.rangeConnectsRight ? -2 : 0)
+        } else {
+            Color.clear
+        }
     }
 
     private var numberColor: Color {
@@ -577,13 +606,18 @@ private struct UpcomingTodoRow: View {
 // MARK: - Upcoming schedule row
 
 /// 일정 행 — 왼쪽 날짜 타일(월/일)로 스캔 가능하게, 라벨은 상대 표현(오늘·내일·요일·D-n)과 시각.
+/// 기간 일정은 "시작 ~ 끝" 으로, 진행 중(시작 지남·끝 안 옴)이어도 떠 있는다.
 private struct UpcomingScheduleRow: View {
     let item: MochiItem
     let onTap: () -> Void
 
-    private var scheduleDate: Date? {
-        UpcomingScheduleSorter.scheduleDate(of: item, onOrAfter: Calendar.mochiSeoul.startOfDay(for: Date()))
+    private var scheduleSpan: (start: Date, end: Date?)? {
+        UpcomingScheduleSorter.scheduleSpan(
+            of: item, notEndedBefore: Calendar.mochiSeoul.startOfDay(for: Date())
+        )
     }
+
+    private var scheduleDate: Date? { scheduleSpan?.start }
 
     var body: some View {
         Button(action: onTap) {
@@ -617,8 +651,9 @@ private struct UpcomingScheduleRow: View {
     }
 
     private var scheduleLabel: String {
-        guard let date = scheduleDate else { return "날짜 미정" }
-        return DueDisplay.scheduleLabel(date)
+        guard let span = scheduleSpan else { return "날짜 미정" }
+        guard let end = span.end else { return DueDisplay.scheduleLabel(span.start) }
+        return DueDisplay.scheduleRangeLabel(span.start, end)
     }
 }
 
@@ -632,12 +667,13 @@ private struct DaySheet: View {
     let onTap: (MochiItem.ID, HeroSourceFrames?) -> Void
 
     /// 그날 마감(todo)·일정(schedule)인 항목과 그 외(그날 저장한 기억) 분리.
+    /// 기간 일정은 시작~끝에 걸친 모든 날의 「일정·마감」에 포함된다.
     private var partitioned: (due: [MochiItem], captured: [MochiItem]) {
         var due: [MochiItem] = []
         var captured: [MochiItem] = []
         for item in items {
             let isDueOnDay = CalendarDueDate.dueDates(of: item).contains {
-                Calendar.mochiSeoul.isDate($0.date, inSameDayAs: date)
+                CalendarDueDate.covers($0, day: date, calendar: Calendar.mochiSeoul)
             }
             if isDueOnDay { due.append(item) } else { captured.append(item) }
         }

@@ -44,7 +44,10 @@ _PARAMETERS: dict[str, Any] = {
             "description": (
                 "Only records carrying this intent (schedule/todo/knowledge/memo). Leave unset "
                 "for broad asks — a question about a period's plans spans schedule and todo "
-                "records, and filtering to one kind silently drops the rest."
+                "records, and filtering to one kind silently drops the rest. The user doesn't "
+                "know these categories, so their own word for a kind (\"메모\", \"할 일\") is "
+                "not a reliable signal for this filter: set it only when you are sure the ask is "
+                "about exactly one kind."
             ),
         },
         "date_from": {
@@ -84,7 +87,7 @@ _HAYSTACK_SQL = "coalesce(m.summary,'') || ' ' || coalesce(m.text,'') || ' ' || 
 #: 키워드당 substring 매칭 상한 — 그 이상은 노이즈 (plainto 의 AND 의미는 유지).
 _MAX_KEYWORDS = 5
 
-#: instance 의 "발생일" — deadline 우선, 없으면 date (``ListUpcomingActionables`` 와 동일 우선순위).
+#: instance 의 "발생 시작일" — deadline 우선, 없으면 date (``ListUpcomingActionables`` 와 동일 우선순위).
 #: payload 값이 free-text 라 앞 10자를 ISO 모양으로 정규화('/'·'.' → '-')해 사전식 비교한다.
 _OCCURS_DATE_SQL = (
     "translate(left(coalesce(nullif(ii.payload->>'deadline',''), ii.payload->>'date'), 10), "
@@ -94,6 +97,15 @@ _OCCURS_DATE_SQL = (
 #: 빈문자열·non-padded("2026.6.1") free-text 가 오탐/누락되므로, 모양이 어긋난 값은 전부
 #: 조용히 미매칭으로 수렴시킨다 (``_parse_deadline`` 의 graceful 실패와 동일 철학, 리뷰 P1).
 _OCCURS_SHAPE_GUARD = rf"{_OCCURS_DATE_SQL} ~ '^\d{{4}}-\d{{2}}-\d{{2}}'"
+_OCCURS_END_RAW_SQL = "translate(left(nullif(ii.payload->>'end_date',''), 10), './', '--')"
+#: 발생 "종료일" — 기간형 일정의 ``end_date``. 모양이 어긋나거나 없거나 **시작보다 앞서면**
+#: (역전 데이터) 시작일로 수렴 — "역전·비정형 end 는 점 일정" 불변식 (DOMAIN_DESIGN §4.2).
+#: 기간 질의는 overlap 의미: 시작 <= occurs_to AND 종료 >= occurs_from.
+_OCCURS_END_DATE_SQL = (
+    rf"coalesce(CASE WHEN {_OCCURS_END_RAW_SQL} ~ '^\d{{4}}-\d{{2}}-\d{{2}}' "
+    rf"AND {_OCCURS_END_RAW_SQL} >= {_OCCURS_DATE_SQL} "
+    rf"THEN {_OCCURS_END_RAW_SQL} END, {_OCCURS_DATE_SQL})"
+)
 
 
 def _parse_dt(raw: Any) -> datetime | None:
@@ -178,7 +190,8 @@ class SearchItemsTool:
         if occurs_from or occurs_to:
             instance_conds.append(_OCCURS_SHAPE_GUARD)
         if occurs_from:
-            instance_conds.append(f"{_OCCURS_DATE_SQL} >= :occurs_from")
+            # 종료일 기준 — 기간형 일정은 끝나기 전까지 window 에 걸린다(점 일정은 종료=시작).
+            instance_conds.append(f"{_OCCURS_END_DATE_SQL} >= :occurs_from")
             params["occurs_from"] = occurs_from
         if occurs_to:
             instance_conds.append(f"{_OCCURS_DATE_SQL} <= :occurs_to")

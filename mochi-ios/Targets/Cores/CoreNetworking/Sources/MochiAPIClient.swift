@@ -135,7 +135,7 @@ public struct MochiItemIngestRequest: Sendable, Hashable, Codable {
 /// `confirmedInstances` 1건 — intentType rawValue 와 payload 키는 백엔드 스키마와 1:1.
 public struct ConfirmedInstanceIngestDTO: Sendable, Hashable, Codable {
     public let intentType: String
-    /// 부분 payload (title/date/time/deadline/person/topic/url/note 중 채워진 것만).
+    /// 부분 payload (title/date/time/end_date/end_time/deadline/person/topic/url/note 중 채워진 것만).
     public let payload: [String: String]
     public let label: String?
 
@@ -342,6 +342,9 @@ public struct IntentPayloadDTO: Sendable, Hashable, Codable {
     public let title: String?
     public let date: String?
     public let time: String?
+    /// 기간형 일정의 끝 — date/time 은 시작 의미(없으면 점 일정).
+    public let endDate: String?
+    public let endTime: String?
     public let deadline: String?
     public let person: String?
     public let topic: String?
@@ -352,6 +355,8 @@ public struct IntentPayloadDTO: Sendable, Hashable, Codable {
         title: String? = nil,
         date: String? = nil,
         time: String? = nil,
+        endDate: String? = nil,
+        endTime: String? = nil,
         deadline: String? = nil,
         person: String? = nil,
         topic: String? = nil,
@@ -361,6 +366,8 @@ public struct IntentPayloadDTO: Sendable, Hashable, Codable {
         self.title = title
         self.date = date
         self.time = time
+        self.endDate = endDate
+        self.endTime = endTime
         self.deadline = deadline
         self.person = person
         self.topic = topic

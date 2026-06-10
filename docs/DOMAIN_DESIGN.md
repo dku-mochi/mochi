@@ -141,7 +141,8 @@ intent 를 `mochi_items` 컬럼이 아니라 별도 `intent_instances` 행으로
 - **`needs_review`**: 모찌가 분류를 확신 못 해 사용자에게 물을지의 boolean. τ/τ_review threshold 가 아니라 LLM 이 holistic 하게 판단(실험에서 score calibration 보다 정확 — review acc 0.833→0.944).
 - **`review_options`**: needs_review=true 일 때 제시할 미확정 후보. **instance 아님** — 사용자가 고르면 그때 instance 생성. `mochi_items.review_options` JSONB 컬럼 영속 — 헷갈려요 후보를 push payload·GET projection·앱 내 needsReview 버킷 fallback 이 모두 읽는다.
 - **`memo` fallback**: 대상/행동 불분명 시 memo instance 하나로 안전 보관 + needs_review=true. 미션("놓치기 쉬운 순간은 쉽게 남긴다")과 정합 — 분류를 못 해도 안 잃는다.
-- **`payload.title` 필수** (프롬프트 v13~, 현재 `ACTIVE_PROMPT`=v15): 저장되는 모든 instance 는 title 을 가진다. **LLM 출력 계약 레벨** — function schema `payload.required=['title']` + 프롬프트가 강제. iOS 카드·캘린더·기록상세가 제목으로 `payload.title` 을 쓴다. 정체조차 못 짚어 title 을 못 만들 정도면 그 자체가 분류 불신뢰 신호라 `needs_review=true` 로 빠진다. 단 **DB 는 JSONB `DEFAULT '{}'` 유지**(필수는 계약 레벨이지 DB 제약 아님), **DTO `title` 은 optional 유지**(graceful degradation — LLM 일탈 시에도 분석 전체가 죽지 않게, iOS 가 빈 title→summary 폴백).
+- **`payload.title` 필수** (프롬프트 v13~, 현재 `ACTIVE_PROMPT`=v16): 저장되는 모든 instance 는 title 을 가진다. **LLM 출력 계약 레벨** — function schema `payload.required=['title']` + 프롬프트가 강제. iOS 카드·캘린더·기록상세가 제목으로 `payload.title` 을 쓴다. 정체조차 못 짚어 title 을 못 만들 정도면 그 자체가 분류 불신뢰 신호라 `needs_review=true` 로 빠진다. 단 **DB 는 JSONB `DEFAULT '{}'` 유지**(필수는 계약 레벨이지 DB 제약 아님), **DTO `title` 은 optional 유지**(graceful degradation — LLM 일탈 시에도 분석 전체가 죽지 않게, iOS 가 빈 title→summary 폴백).
+- **기간형 일정 — `payload.end_date`/`end_time`** (프롬프트 v16~): schedule 의 `date`/`time` 은 **시작**(또는 단일 시점), `end_date`/`end_time` 은 기간형 일정의 **끝** — 없으면 점 일정(기존 데이터 하위호환). 사용자가 그 기간에 *참여*할 때만 채운다(여행·다회차 프로그램 — 할인 기간 등 화면에 보이는 정보성 span 은 비대상). 끝<시작 역전·비정형 값은 모든 소비자(검색 occurs overlap·iOS 캘린더 막대·EKEvent 등록)가 **점 일정으로 수렴**시킨다(graceful — DB 제약 없음, 채팅 `propose_create_schedule` 만 카드 생성 전 역전을 거부). API projection 은 camelCase `endDate`/`endTime`.
 
 ### 4.3 파생 — 저장 안 함, read 시 계산 (projection)
 
@@ -213,7 +214,7 @@ archive 전이는 instance 의 `intent_type` 으로 검증한다. 한 캡쳐의 
 | `knowledge` instance `decaying` 진입 후 `KNOWLEDGE_DECAY_DAYS=180`일 경과 | → `reviewRequested` |
 | item dead-letter (outbox `attempts > max`) | item `lifecycle_kind` → `failed` |
 
-> 일정/할일 종료 판정의 실제 소스(종료시각·완료여부)는 typed 테이블(§10) 구현 후 정밀화 — 현재는 entity/payload 기반.
+> **일정 종료 시각** = `payload.end_date`(+`end_time`), 없으면 `date`(+`time`) — 점 일정은 시작=종료, 기간형 일정은 끝이 지나야 종료(§4.2 기간형 일정). 일정/할일 종료 판정의 실제 소스(종료시각·완료여부)는 typed 테이블(§10) 구현 후 정밀화 — 현재는 entity/payload 기반.
 
 ### 5.5 전이 강제
 

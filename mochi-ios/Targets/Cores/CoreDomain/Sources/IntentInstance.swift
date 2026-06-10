@@ -35,10 +35,13 @@ public struct IntentInstance: Equatable, Sendable, Hashable, Codable, Identifiab
 }
 
 /// intent instance 의 구조화 속성 (전부 optional).
+/// `date`/`time` 은 시작(또는 단일 시점), `endDate`/`endTime` 은 기간형 일정의 끝(없으면 점 일정).
 public struct IntentPayload: Equatable, Sendable, Hashable, Codable {
     public var title: String?
     public var date: String?
     public var time: String?
+    public var endDate: String?
+    public var endTime: String?
     public var deadline: String?
     public var person: String?
     public var topic: String?
@@ -49,6 +52,8 @@ public struct IntentPayload: Equatable, Sendable, Hashable, Codable {
         title: String? = nil,
         date: String? = nil,
         time: String? = nil,
+        endDate: String? = nil,
+        endTime: String? = nil,
         deadline: String? = nil,
         person: String? = nil,
         topic: String? = nil,
@@ -58,6 +63,8 @@ public struct IntentPayload: Equatable, Sendable, Hashable, Codable {
         self.title = title
         self.date = date
         self.time = time
+        self.endDate = endDate
+        self.endTime = endTime
         self.deadline = deadline
         self.person = person
         self.topic = topic
@@ -66,8 +73,8 @@ public struct IntentPayload: Equatable, Sendable, Hashable, Codable {
     }
 
     public var isEmpty: Bool {
-        title == nil && date == nil && time == nil && deadline == nil
-            && person == nil && topic == nil && url == nil && note == nil
+        title == nil && date == nil && time == nil && endDate == nil && endTime == nil
+            && deadline == nil && person == nil && topic == nil && url == nil && note == nil
     }
 }
 

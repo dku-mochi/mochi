@@ -1343,6 +1343,10 @@ public enum Components {
             public var date: Swift.String?
             /// - Remark: Generated from `#/components/schemas/IntentPayloadPatchDTO/time`.
             public var time: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/IntentPayloadPatchDTO/endDate`.
+            public var endDate: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/IntentPayloadPatchDTO/endTime`.
+            public var endTime: Swift.String?
             /// - Remark: Generated from `#/components/schemas/IntentPayloadPatchDTO/deadline`.
             public var deadline: Swift.String?
             /// - Remark: Generated from `#/components/schemas/IntentPayloadPatchDTO/person`.
@@ -1359,6 +1363,8 @@ public enum Components {
             ///   - title:
             ///   - date:
             ///   - time:
+            ///   - endDate:
+            ///   - endTime:
             ///   - deadline:
             ///   - person:
             ///   - topic:
@@ -1368,6 +1374,8 @@ public enum Components {
                 title: Swift.String? = nil,
                 date: Swift.String? = nil,
                 time: Swift.String? = nil,
+                endDate: Swift.String? = nil,
+                endTime: Swift.String? = nil,
                 deadline: Swift.String? = nil,
                 person: Swift.String? = nil,
                 topic: Swift.String? = nil,
@@ -1377,6 +1385,8 @@ public enum Components {
                 self.title = title
                 self.date = date
                 self.time = time
+                self.endDate = endDate
+                self.endTime = endTime
                 self.deadline = deadline
                 self.person = person
                 self.topic = topic
@@ -1387,6 +1397,8 @@ public enum Components {
                 case title
                 case date
                 case time
+                case endDate
+                case endTime
                 case deadline
                 case person
                 case topic
@@ -1394,7 +1406,7 @@ public enum Components {
                 case note
             }
         }
-        /// instance 의 구조화 속성 (전부 optional).
+        /// instance 의 구조화 속성 (전부 optional). date/time 은 시작, endDate/endTime 은 기간형 일정의 끝.
         ///
         /// - Remark: Generated from `#/components/schemas/IntentPayloadResponse`.
         public struct IntentPayloadResponse: Codable, Hashable, Sendable {
@@ -1404,6 +1416,10 @@ public enum Components {
             public var date: Swift.String?
             /// - Remark: Generated from `#/components/schemas/IntentPayloadResponse/time`.
             public var time: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/IntentPayloadResponse/endDate`.
+            public var endDate: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/IntentPayloadResponse/endTime`.
+            public var endTime: Swift.String?
             /// - Remark: Generated from `#/components/schemas/IntentPayloadResponse/deadline`.
             public var deadline: Swift.String?
             /// - Remark: Generated from `#/components/schemas/IntentPayloadResponse/person`.
@@ -1420,6 +1436,8 @@ public enum Components {
             ///   - title:
             ///   - date:
             ///   - time:
+            ///   - endDate:
+            ///   - endTime:
             ///   - deadline:
             ///   - person:
             ///   - topic:
@@ -1429,6 +1447,8 @@ public enum Components {
                 title: Swift.String? = nil,
                 date: Swift.String? = nil,
                 time: Swift.String? = nil,
+                endDate: Swift.String? = nil,
+                endTime: Swift.String? = nil,
                 deadline: Swift.String? = nil,
                 person: Swift.String? = nil,
                 topic: Swift.String? = nil,
@@ -1438,6 +1458,8 @@ public enum Components {
                 self.title = title
                 self.date = date
                 self.time = time
+                self.endDate = endDate
+                self.endTime = endTime
                 self.deadline = deadline
                 self.person = person
                 self.topic = topic
@@ -1448,6 +1470,8 @@ public enum Components {
                 case title
                 case date
                 case time
+                case endDate
+                case endTime
                 case deadline
                 case person
                 case topic

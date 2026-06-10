@@ -145,6 +145,77 @@ final class MochiCalendarFeatureTests: XCTestCase {
         XCTAssertEqual(dues.filter { $0.intent == .schedule }.count, 1)
     }
 
+    func test_dueDates_returns_end_for_range_schedule_and_degrades_inverted_to_point() {
+        let item = dueItem([
+            IntentInstance(intentType: .schedule,
+                           payload: IntentPayload(date: "2026-06-12", endDate: "2026-06-14")),
+            // 끝이 시작보다 앞서는 역전 데이터 — 점 일정으로 수렴해야 한다.
+            IntentInstance(intentType: .schedule,
+                           payload: IntentPayload(date: "2026-06-20", endDate: "2026-06-18")),
+        ])
+        let dues = CalendarDueDate.dueDates(of: item).sorted { $0.start < $1.start }
+        XCTAssertEqual(dues.count, 2)
+        XCTAssertNotNil(dues[0].end)
+        XCTAssertNil(dues[1].end)
+    }
+
+    func test_group_spreads_range_schedule_into_bar_days_without_sky_dot() {
+        // 6/12~6/14 기간 일정 → 3일 모두 막대(hasRangeSchedule), 점(hasScheduleDue)은 켜지지 않는다.
+        // 막대 라운드는 양 끝에만 — 가운데 날은 양쪽으로 이어진다.
+        let due = [dueItem([
+            IntentInstance(intentType: .schedule,
+                           payload: IntentPayload(date: "2026-06-12", endDate: "2026-06-14")),
+        ])]
+        let days = CalendarDaySummary.group(captured: [], due: due, calendar: kstCalendar)
+        let byDay = Dictionary(uniqueKeysWithValues: days.map { (kstCalendar.component(.day, from: $0.date), $0) })
+
+        XCTAssertEqual(days.count, 3)
+        for day in [12, 13, 14] {
+            XCTAssertEqual(byDay[day]?.hasRangeSchedule, true)
+            XCTAssertEqual(byDay[day]?.hasScheduleDue, false)
+            XCTAssertEqual(byDay[day]?.hasDue, true)  // 셀 탭(sheet) 활성 신호는 유지
+        }
+        XCTAssertEqual(byDay[12]?.rangeConnectsLeft, false)
+        XCTAssertEqual(byDay[12]?.rangeConnectsRight, true)
+        XCTAssertEqual(byDay[13]?.rangeConnectsLeft, true)
+        XCTAssertEqual(byDay[13]?.rangeConnectsRight, true)
+        XCTAssertEqual(byDay[14]?.rangeConnectsLeft, true)
+        XCTAssertEqual(byDay[14]?.rangeConnectsRight, false)
+    }
+
+    func test_covers_includes_middle_days_of_range_only() {
+        let entry: (start: Date, end: Date?, intent: Intent) = (
+            CalendarDueDate.parse("2026-06-12")!, CalendarDueDate.parse("2026-06-14"), .schedule
+        )
+        XCTAssertTrue(CalendarDueDate.covers(entry, day: CalendarDueDate.parse("2026-06-13")!, calendar: kstCalendar))
+        XCTAssertTrue(CalendarDueDate.covers(entry, day: CalendarDueDate.parse("2026-06-14")!, calendar: kstCalendar))
+        XCTAssertFalse(CalendarDueDate.covers(entry, day: CalendarDueDate.parse("2026-06-15")!, calendar: kstCalendar))
+    }
+
+    func test_upcoming_sorter_keeps_ongoing_range_schedule() {
+        // 시작은 지났지만 끝이 안 온 기간 일정 — "다가오는 일정"에 진행 중으로 남아야 한다.
+        let calendar = Calendar.mochiSeoul
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: Date())!
+        let tomorrow = calendar.date(byAdding: .day, value: 1, to: Date())!
+        let dayFormatter = DateFormatter()
+        dayFormatter.locale = Locale(identifier: "en_US_POSIX")
+        dayFormatter.timeZone = TimeZone(identifier: "Asia/Seoul")
+        dayFormatter.dateFormat = "yyyy-MM-dd"
+
+        let ongoing = dueItem([IntentInstance(
+            intentType: .schedule,
+            payload: IntentPayload(date: dayFormatter.string(from: yesterday),
+                                   endDate: dayFormatter.string(from: tomorrow))
+        )])
+        let pastPoint = dueItem([IntentInstance(
+            intentType: .schedule,
+            payload: IntentPayload(date: dayFormatter.string(from: yesterday))
+        )])
+
+        let sorted = UpcomingScheduleSorter.sort([ongoing, pastPoint])
+        XCTAssertEqual(sorted.map(\.id), [ongoing.id])  // 지난 점 일정은 빠지고 진행 중 기간만 남는다
+    }
+
     func test_parse_handles_iso_with_seconds_and_rejects_natural_language() {
         // payload 날짜 포맷 계약이 느슨해 TZ 없는 초 단위 ISO·날짜-only 도 KST 로 파싱, 자연어/nil 은 거른다.
         XCTAssertNotNil(CalendarDueDate.parse("2026-06-15T09:00:00"))

@@ -133,8 +133,11 @@ public struct MochiCalendarFeature: Sendable {
                 let start = calendar.startOfDay(for: date)
                 guard let end = calendar.date(byAdding: .day, value: 1, to: start) else { return .none }
                 // 그날 마감(todo)·일정(schedule)인 항목 — 다른 날 캡처됐어도 이 날짜에 함께 보여준다.
+                // 기간 일정은 시작~끝에 걸치는 모든 날에 뜬다(covers).
                 let dueOnDay = state.dueItems.filter { item in
-                    CalendarDueDate.dueDates(of: item).contains { calendar.isDate($0.date, inSameDayAs: date) }
+                    CalendarDueDate.dueDates(of: item).contains {
+                        CalendarDueDate.covers($0, day: date, calendar: calendar)
+                    }
                 }
                 return .run { send in
                     let captured = (try? await repository.listCaptured(
@@ -257,50 +260,79 @@ public struct TodoRowItem: Identifiable, Equatable, Sendable {
     public var deadline: Date? { CalendarDueDate.parse(instance.payload.deadline ?? instance.payload.date) }
 }
 
-/// 캘린더 한 칸(하루)의 집계 — 세 신호를 **같은 시각 언어(점)** 로 인코딩한다.
-/// 일정(sky) · 할 일 마감(butter) · 저장(purple), 각 신호당 점 하나(개수 없음) — 카드 하단 범례와 1:1.
+/// 캘린더 한 칸(하루)의 집계 — 점 일정(sky 점) · 할 일 마감(butter 점) · 저장(purple 점)은
+/// 같은 시각 언어(점)로, **기간 일정**(`endDate` 있는 schedule)만 날짜를 가로지르는 막대(sky)로
+/// 인코딩한다 — 하루짜리 일정은 기존대로 점.
 public struct CalendarDaySummary: Equatable, Sendable, Identifiable {
     public let date: Date              // startOfDay(KST)
     /// 그날 **저장(capturedAt)** 개수.
     public let count: Int
     public let thumbnailRelativePath: String?
-    /// 그날 **마감(todo)·일정(schedule)** 개수.
+    /// 그날 **마감(todo)·일정(schedule)** 개수 (기간 일정이 걸친 날 포함).
     public let dueCount: Int
-    /// 그날 일정(schedule) 있음 — sky 점.
+    /// 그날 점 일정(schedule, 하루짜리) 있음 — sky 점.
     public let hasScheduleDue: Bool
     /// 그날 할 일 마감(todo) 있음 — butter 점.
     public let hasTodoDue: Bool
+    /// 그날이 기간 일정(시작~끝)에 걸림 — sky 막대.
+    public let hasRangeSchedule: Bool
+    /// 막대가 전날에서 이어짐(왼끝 라운드 없음) / 다음날로 이어짐(오른끝 라운드 없음).
+    public let rangeConnectsLeft: Bool
+    public let rangeConnectsRight: Bool
     public var id: Date { date }
 
     public var hasCaptured: Bool { count > 0 }
     public var hasDue: Bool { dueCount > 0 }
 
+    /// 비정상 데이터(끝이 수년 뒤 등)가 캘린더 전체를 칠하지 않게 기간 펼침 상한을 둔다.
+    static let rangeSpanCapDays = 93
+
     /// 두 축으로 집계 — ① captured(capturedAt) ② due(todo 마감일·schedule 일정 날짜, `CalendarDueDate`).
     /// captured 는 capturedAt desc 입력이라 각 그룹 첫 항목이 그날 최신(대표 썸네일).
+    /// 기간 schedule 은 걸치는 모든 날에 펼치고, 겹치는 기간들은 하나의 연속 막대로 합쳐진다.
     static func group(captured: [MochiItem], due: [MochiItem], calendar: Calendar) -> [CalendarDaySummary] {
         var capturedByDay: [Date: [MochiItem]] = [:]
         for item in captured {
             let day = calendar.startOfDay(for: item.source.capturedAt)
             capturedByDay[day, default: []].append(item)
         }
-        var dueByDay: [Date: [Intent]] = [:]
+        var pointDueByDay: [Date: [Intent]] = [:]
+        var rangeDays: Set<Date> = []
         for item in due {
             for entry in CalendarDueDate.dueDates(of: item) {
-                let day = calendar.startOfDay(for: entry.date)
-                dueByDay[day, default: []].append(entry.intent)
+                let startDay = calendar.startOfDay(for: entry.start)
+                guard entry.intent == .schedule, let end = entry.end else {
+                    pointDueByDay[startDay, default: []].append(entry.intent)
+                    continue
+                }
+                let endDay = calendar.startOfDay(for: end)
+                var day = startDay
+                var span = 0
+                while day <= endDay, span < Self.rangeSpanCapDays {
+                    rangeDays.insert(day)
+                    guard let next = calendar.date(byAdding: .day, value: 1, to: day) else { break }
+                    day = next
+                    span += 1
+                }
             }
         }
-        let allDays = Set(capturedByDay.keys).union(dueByDay.keys)
+        let allDays = Set(capturedByDay.keys).union(pointDueByDay.keys).union(rangeDays)
         return allDays.sorted().map { day in
             let group = capturedByDay[day] ?? []
-            let dueIntents = dueByDay[day] ?? []
+            let dueIntents = pointDueByDay[day] ?? []
+            let inRange = rangeDays.contains(day)
+            let prevInRange = calendar.date(byAdding: .day, value: -1, to: day).map(rangeDays.contains) ?? false
+            let nextInRange = calendar.date(byAdding: .day, value: 1, to: day).map(rangeDays.contains) ?? false
             return CalendarDaySummary(
                 date: day,
                 count: group.count,
                 thumbnailRelativePath: group.lazy.compactMap { $0.source.imageRefs.first?.relativePath }.first,
-                dueCount: dueIntents.count,
+                dueCount: dueIntents.count + (inRange ? 1 : 0),
                 hasScheduleDue: dueIntents.contains(.schedule),
-                hasTodoDue: dueIntents.contains(.todo)
+                hasTodoDue: dueIntents.contains(.todo),
+                hasRangeSchedule: inRange,
+                rangeConnectsLeft: inRange && prevInRange,
+                rangeConnectsRight: inRange && nextInRange
             )
         }
     }
@@ -369,34 +401,39 @@ func normalizedDedupComponent(_ raw: String) -> String {
     raw.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
 }
 
-/// 캘린더 하단 "다가오는 일정" 정렬 — 오늘 0시(KST) 이후 일정만, 가장 빠른 일정이 맨 위.
-/// 일정은 시각 고정·완료 개념 없음이라 todo(긴급도축)와 다른 시간축으로 떠오른다(지난 일정은 제외).
+/// 캘린더 하단 "다가오는 일정" 정렬 — 아직 안 끝난 일정만, 시작 빠른순.
+/// 일정은 시각 고정·완료 개념 없음이라 todo(긴급도축)와 다른 시간축으로 떠오른다.
+/// 기간 일정은 시작이 지났어도 끝(`endDate`)이 오늘 이후면 "진행 중"으로 포함된다.
 enum UpcomingScheduleSorter {
     static func sort(_ schedules: [MochiItem]) -> [MochiItem] {
         let calendar = Calendar.mochiSeoul
         let todayStart = calendar.startOfDay(for: Date())
         var seen = Set<String>()
         return schedules
-            .compactMap { item -> (item: MochiItem, date: Date)? in
-                guard let date = scheduleDate(of: item, onOrAfter: todayStart) else { return nil }
-                return (item, date)
+            .compactMap { item -> (item: MochiItem, start: Date)? in
+                guard let span = scheduleSpan(of: item, notEndedBefore: todayStart) else { return nil }
+                return (item, span.start)
             }
-            .sorted { $0.date != $1.date ? $0.date < $1.date : $0.item.id.uuidString < $1.item.id.uuidString }
+            .sorted { $0.start != $1.start ? $0.start < $1.start : $0.item.id.uuidString < $1.item.id.uuidString }
             // 같은 화면 중복 캡처(같은 제목·같은 날) 표시 dedup — 일정은 완료 개념이 없어 표시만 합치면 충분.
             .filter { pair in
-                let day = calendar.startOfDay(for: pair.date).timeIntervalSince1970
+                let day = calendar.startOfDay(for: pair.start).timeIntervalSince1970
                 return seen.insert("\(normalizedDedupComponent(pair.item.displayTitle))|\(day)").inserted
             }
             .map(\.item)
     }
 
-    /// 일정일 — active schedule instance 의 `payload.date` 중 `onOrAfter` 이상인 가장 이른 것.
-    static func scheduleDate(of item: MochiItem, onOrAfter: Date) -> Date? {
+    /// 일정 구간 — active schedule instance 중 끝(점이면 시작)이 `notEndedBefore` 이상인 가장 이른 것.
+    static func scheduleSpan(of item: MochiItem, notEndedBefore: Date) -> (start: Date, end: Date?)? {
         item.instances
             .filter { $0.intentType == .schedule && $0.lifecycle == .active }
-            .compactMap { CalendarDueDate.parse($0.payload.date) }
-            .filter { $0 >= onOrAfter }
-            .min()
+            .compactMap { inst -> (start: Date, end: Date?)? in
+                guard let start = CalendarDueDate.parse(inst.payload.date) else { return nil }
+                let end = CalendarDueDate.scheduleEnd(of: inst, start: start)
+                guard (end ?? start) >= notEndedBefore else { return nil }
+                return (start, end)
+            }
+            .min { $0.start < $1.start }
     }
 }
 
@@ -444,25 +481,43 @@ private func healLegacyTodoInstance(
 /// 캘린더 마커용 마감/일정 날짜 추출 — todo 마감일(active) + schedule 일정 날짜.
 /// payload 의 날짜 문자열을 KST 기준 `Date` 로 파싱한다(자연어는 nil).
 enum CalendarDueDate {
-    /// item 의 마감/일정 날짜들. todo=active instance 의 `deadline ?? date`, schedule=instance 의 `date`.
+    /// item 의 마감/일정 날짜들. todo=active instance 의 `deadline ?? date`, schedule=instance 의
+    /// `date`(시작). 기간형 schedule 은 `endDate` 를 `end` 로 함께 돌려준다(점이면 nil).
     /// 한 캡처에 여러 instance(todo 둘, todo+schedule)면 각각 기여한다.
-    static func dueDates(of item: MochiItem) -> [(date: Date, intent: Intent)] {
+    static func dueDates(of item: MochiItem) -> [(start: Date, end: Date?, intent: Intent)] {
         item.instances.compactMap { inst in
             switch inst.intentType {
             case .todo:
                 guard inst.lifecycle == .active,
                       let date = parse(inst.payload.deadline ?? inst.payload.date) else { return nil }
-                return (date, .todo)
+                return (date, nil, .todo)
             case .schedule:
                 // active 일정만 — 끝났거나(scheduleEnded) 사용자가 치운(userManual) 일정은 캘린더에서 제외
                 // (todo 의 active 가드와 대칭, DOMAIN_DESIGN schedule lifecycle 정합).
                 guard inst.lifecycle == .active,
-                      let date = parse(inst.payload.date) else { return nil }
-                return (date, .schedule)
+                      let start = parse(inst.payload.date) else { return nil }
+                return (start, scheduleEnd(of: inst, start: start), .schedule)
             case .knowledge, .memo:
                 return nil
             }
         }
+    }
+
+    /// 기간형 일정의 끝 — `payload.endDate` 파싱. 실패하거나 시작보다 앞서면(역전 데이터) nil
+    /// 로 점 일정에 수렴시킨다(백엔드 search_items 의 graceful 철학과 동일).
+    static func scheduleEnd(of inst: IntentInstance, start: Date) -> Date? {
+        guard let end = parse(inst.payload.endDate), end > start else { return nil }
+        return end
+    }
+
+    /// `day` 가 entry 의 시작~끝(달력 날짜 기준, 양 끝 포함)에 걸리는가 — 점 일정은 같은 날만.
+    static func covers(
+        _ entry: (start: Date, end: Date?, intent: Intent), day: Date, calendar: Calendar
+    ) -> Bool {
+        let target = calendar.startOfDay(for: day)
+        let startDay = calendar.startOfDay(for: entry.start)
+        let endDay = calendar.startOfDay(for: entry.end ?? entry.start)
+        return target >= startDay && target <= endDay
     }
 
     /// 마커·sheet 원천 — todo(마감) + schedule(일정) item 을 id 중복 없이 합친다
