@@ -133,8 +133,11 @@ public struct ChatView: View {
             ScrollView {
                 LazyVStack(spacing: HomeDesign.Spacing.md) {
                     ForEach(store.messages) { message in
-                        ChatBubbleView(message: message)
-                            .id(message.id)
+                        ChatBubbleView(
+                            message: message,
+                            onCitationTap: { store.send(.citationTapped($0)) }
+                        )
+                        .id(message.id)
                     }
                     if case let .failed(reason) = store.runPhase {
                         ChatErrorBanner(reason: reason)

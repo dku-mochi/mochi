@@ -1,5 +1,7 @@
 import ComposableArchitecture
 import CoreAgentClient
+import CoreDomain
+import CorePersistence
 import Foundation
 
 /// 채팅 탭 — 기록 기반 질문·요청 대화 (검색이 아니라 "내 기억에게 묻는" 표면).
@@ -79,9 +81,19 @@ public struct ChatFeature: Sendable {
         case streamEvent(ChatStreamEvent)
         case streamFinished
         case streamFailed(String)
+        /// 근거 미니카드 탭 — 서버 id 를 로컬 항목으로 해석해 상위(MainTab)가 상세를 띄운다.
+        case citationTapped(ChatCitation)
+        case delegate(Delegate)
+
+        public enum Delegate: Equatable, Sendable {
+            /// 로컬 Realm id 로 해석 완료된 상세 진입 요청 (DetailFeature 는 로컬 id 로 로드한다).
+            case openItemRequested(MochiItem.ID)
+        }
     }
 
     @Dependency(\.chatStreamClient) var chatStreamClient
+    @Dependency(\.mochiItemRepository) var repository
+    @Dependency(\.syncTrigger) var syncTrigger
     @Dependency(\.uuid) var uuid
 
     private enum CancelID { case stream }
@@ -132,8 +144,40 @@ public struct ChatFeature: Sendable {
                 finishStreaming(&state)
                 state.runPhase = .failed(message)
                 return .none
+
+            case let .citationTapped(citation):
+                return .run { [repository, syncTrigger] send in
+                    if let localID = await Self.resolveLocalID(
+                        serverID: citation.mochiItemID, repository: repository, syncTrigger: syncTrigger
+                    ) {
+                        await send(.delegate(.openItemRequested(localID)))
+                    }
+                    // 미해석(서버에서 삭제된 출처 등) — 카드는 출처 스냅샷으로만 남는다.
+                }
+
+            case .delegate:
+                return .none
             }
         }
+    }
+
+    /// citation 의 서버 id → 로컬 Realm id.
+    /// 서버에서 pull 된 항목은 로컬 id == 서버 id, 로컬 생성 항목은 syncState 의 serverID 로 매칭.
+    /// 어느 쪽도 없으면(이 기기에 아직 없음) pullRemote 후 1회 재시도.
+    private static func resolveLocalID(
+        serverID: UUID, repository: any MochiItemRepository, syncTrigger: any SyncTrigger
+    ) async -> MochiItem.ID? {
+        func lookup() async -> MochiItem.ID? {
+            if let direct = try? await repository.find(id: serverID), direct != nil { return serverID }
+            let all = (try? await repository.listRecent(limit: 2000)) ?? []
+            return all.first {
+                if case let .uploaded(id, _) = $0.syncState { return id == serverID }
+                return false
+            }?.id
+        }
+        if let found = await lookup() { return found }
+        await syncTrigger.pullRemote()
+        return await lookup()
     }
 
     // MARK: - Helpers
