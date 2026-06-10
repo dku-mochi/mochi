@@ -533,6 +533,7 @@ let project = Project(
         // MARK: Tests
         unitTests(for: "CoreDomain", layer: .core),
         unitTests(for: "CorePersistence", layer: .core, dependencies: [.target(name: "CoreDomain")]),
+        unitTests(for: "CoreAgentClient", layer: .core, dependencies: [.target(name: "CoreDomain")]),
         unitTests(
             for: "FeatureMochiItem",
             layer: .feature,
@@ -596,6 +597,7 @@ let project = Project(
             testAction: .targets([
                 "CoreDomainTests",
                 "CorePersistenceTests",
+                "CoreAgentClientTests",
                 "FeatureMochiItemTests",
                 "FeatureInboxTests",
                 "FeatureSearchTests",

@@ -314,7 +314,9 @@ class ProposeReminderTool:
         if fire_at <= datetime.now(_KST):
             return _error("fire_at is in the past — resolve against current time first")
         payload: dict[str, Any] = {
-            "fire_at": fire_at.isoformat(),
+            # microsecond 절삭 — iOS ISO8601 파서는 3자리 fractional 만 받아 6자리면
+            # proposal 이 silent drop 된다 (리뷰 P2). 알림에 초 이하 정밀도는 무의미.
+            "fire_at": fire_at.replace(microsecond=0).isoformat(),
             "title": title,
             "display": _display(args, f"'{title}' 알림을 맞출까요?"),
         }

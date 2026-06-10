@@ -84,10 +84,11 @@ public struct LiveChatStreamClient: ChatStreamClient {
             )
         }
 
+        // bytes.lines 금지 — 빈 줄(이벤트 경계)을 방출하지 않는다 (SSEEventParser 참고).
         var parser = SSEEventParser()
-        for try await line in bytes.lines {
-            try Task.checkCancellation()
-            if let (event, data) = parser.consume(line: line) {
+        for try await byte in bytes {
+            if let (event, data) = parser.consume(byte: byte) {
+                try Task.checkCancellation()
                 if try dispatch(event: event, data: data, continuation: continuation) {
                     return  // done — 정상 종결
                 }
