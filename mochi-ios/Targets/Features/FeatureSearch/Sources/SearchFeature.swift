@@ -148,7 +148,7 @@ public struct SearchFeature: Sendable {
                 state.results = []
                 state.isSearching = false
                 state.isFocused = false
-                return .none
+                return .cancel(id: CancelID.search)   // in-flight 결과가 빈 query 상태에 잔류하는 것 방지
 
             case let .resultsLoaded(results):
                 state.results = results
@@ -163,16 +163,20 @@ public struct SearchFeature: Sendable {
 
     // MARK: - Helpers
 
+    private enum CancelID { case search }
+
     private func updateSearch(_ state: inout State) -> Effect<Action> {
         if state.query.isEmpty {
             state.results = []
             state.isSearching = false
-            return .none
+            return .cancel(id: CancelID.search)
         }
         state.isSearching = true
         let query = state.query
         let intent = state.selectedIntent
         let dataset = state.items
+        // cancelInFlight: 키스트로크마다 발사되므로 늦게 도착한 stale 결과가 최신을 덮지 않게.
+        // mock 은 즉답이라 잠복하지만 서버 어댑터 교체(동일 시그니처) 시 그대로 race 가 된다.
         return .run { [searchService] send in
             let results = await searchService.search(
                 query: query,
@@ -181,5 +185,6 @@ public struct SearchFeature: Sendable {
             )
             await send(.resultsLoaded(results))
         }
+        .cancellable(id: CancelID.search, cancelInFlight: true)
     }
 }

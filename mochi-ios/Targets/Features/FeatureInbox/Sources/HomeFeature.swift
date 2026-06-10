@@ -8,7 +8,7 @@ import DesignSystem
 
 /// 홈 화면 reducer.
 ///
-/// 홈은 요약 피드가 아니라 "모찌 자동성의 예외 처리" 화면이다 (docs/PRODUCT.md §8.4).
+/// 홈은 요약 피드가 아니라 "모찌 자동성의 예외 처리" 화면이다 (docs/UX_SPEC.md §3.4).
 /// - 빠른 입력(우하단 플로팅 버튼): 텍스트(메모/URL 자동 판별)·사진(`screenshot`)을 한 버튼에
 ///   모은다. 텍스트는 한 입력창에서 받아 URL 이면 `url` 채널로, 아니면 `appDirectInput` 으로
 ///   흘려보낸다 — 사용자는 링크·메모를 구분해 적을 필요가 없다. 어느 경로든 upsert + sync trigger.
@@ -16,7 +16,7 @@ import DesignSystem
 /// - ③ 최근에 보낸 것들(`listRecent`): 정리 대상이 아닌 안전망(원본 확인·되돌리기).
 /// - ② 모찌가 정리하고 있어요(`listAnalyzing`): 분석 응답 대기. 사용자 행동 불필요, 화면 맨 하단·기본 접힘.
 /// 자연어 회수(질문): 홈 입력바는 진입점만 — 제출 시 `delegate(.recallRequested)` 로
-/// 상위(MainTab)가 검색 탭으로 라우팅해 실제 회수를 수행한다 (PRODUCT.md §8.4 "검색형 질문 입력 바").
+/// 상위(MainTab)가 검색 탭으로 라우팅해 실제 회수를 수행한다 (UX_SPEC.md §3.4 회수 진입점).
 @Reducer
 public struct HomeFeature: Sendable {
 

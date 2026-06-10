@@ -50,10 +50,24 @@ struct TabBarReselect: UIViewControllerRepresentable {
             shouldSelect viewController: UIViewController
         ) -> Bool {
             // 같은 탭 재탭 감지: selectedViewController === 새 viewController.
-            if let selected = tabBarController.selectedViewController, selected === viewController {
+            // 단, *probe 자신이 속한 탭* 의 재탭만 — delegate 는 전역이라 이 검사가 없으면
+            // 다른 탭(홈/캘린더) 재탭에도 onReselect 가 발사된다 (검색 state 리셋 + 키보드 dismiss 누출).
+            if let selected = tabBarController.selectedViewController,
+               selected === viewController,
+               viewController === ownTabRootViewController() {
                 onReselect?()
             }
             return previousDelegate?.tabBarController?(tabBarController, shouldSelect: viewController) ?? true
+        }
+
+        /// probe(self)가 속한 탭의 root viewController — tabBarController 의 직계 자식까지 parent 체인 추적.
+        private func ownTabRootViewController() -> UIViewController? {
+            guard let tbc = tabBarController else { return nil }
+            var node: UIViewController? = self
+            while let current = node, current.parent !== tbc {
+                node = current.parent
+            }
+            return node
         }
 
         func tabBarController(
