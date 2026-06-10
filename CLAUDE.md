@@ -173,7 +173,7 @@ iOS 쪽은 `tuist test`, 백엔드는 `make test` / `make lint` / `make typechec
 
 **Hooks (`.claude/hooks/`, 대부분 ②티어 강제력 — 마지막 1개만 ③ 넛지):**
 - `session-start.sh` — 경진대회 제출 D-day + 활성 known-drift + 직전 journal 의 "다음 할 일" 1줄
-- `pre-bash.sh` — 위험 Bash 패턴 차단 (force-push, reset --hard, rm -rf /, .env 직접 출력)
+- `pre-bash.sh` — 위험 Bash 패턴 차단 (force-push, reset --hard, rm -rf /, .env 읽기 — cat 뿐 아니라 grep/sed/awk 류 전부. 키 목록·값 존재 여부만 필요하면 `bash .claude/scripts/env-inspect.sh` 가 유일한 허용 경로)
 - `pre-edit-scope.sh` — `lab-experimenter` 의 Edit/Write 를 `lab/` 안으로 제한 (payload `agent_type` 로 판별, fail-open 이라 부모 Claude 는 자유). lab 경계를 ③(프롬프트)에서 ②(기계 강제)로 승격.
 - `post-edit-md.sh` — `.md` Edit/Write 직후 front-matter 7필드 누락 알림
 - `stop-summary.sh` — 세션 종료 직전 CHANGELOG 누락 + CLAUDE↔AGENTS mtime drift 알림
@@ -184,6 +184,7 @@ iOS 쪽은 `tuist test`, 백엔드는 `make test` / `make lint` / `make typechec
 - `audit.sh <l1|l2|l3|all>` — 시간 강등 + 코드 식별자 grep 강등 + STOP 후보. 모노레포·macOS/Linux 이식.
 - `ship-precheck.sh <ios|backend|docs|all>` — `/ship` 자동 사전 체크 **7단계** (audit / CHANGELOG / 미러 mtime / iOS 경계 / OpenAPI 단일계약 동기화(§5a make openapi · §5b generate.sh no-diff) / **백엔드 lint+typecheck** / git status). 게이트 무결성 보장(exit code 명시).
 - `ios-boundaries.sh` — TCA 레이어 위반 자동 검출 (Features 간 import / Cores 역방향 / @main 위치).
+- `env-inspect.sh [path...]` — .env 의 **키 목록·값 존재 여부·길이만** 출력(값 자체 절대 미출력). "이 키 설정돼 있나" 확인은 이걸로.
 
 **표준 작업 루프:**
 ```

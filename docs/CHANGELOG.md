@@ -15,6 +15,12 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 >
 > **동시 세션 / 공유 파일 주의**: CHANGELOG 는 여러 세션·작업자가 함께 쓰는 append-only 공유 파일이다. 동시 작업 중에는 다른 세션이 자기 항목을 먼저 커밋할 수 있고, 한 워킹트리에 여러 세션의 미커밋 항목이 섞여 보일 수 있다. 이때 **항목을 분리하려 애쓰지 말고** 자기 변경과 함께 그대로 staging·커밋한다 — 섞인 다른 항목은 해당 세션이 자기 코드와 함께 정리한다. diff 에 모르는 CHANGELOG 항목이 보여도 멈추지 않는다 (단, CHANGELOG 외의 *코드* 파일은 절대 임의로 섞어 커밋하지 않는다).
 
+## 2026-06-10 — infra
+- **하네스: UX_SPEC 신설 반영 + .env 키 introspection 경로 신설.**
+  - `audit.sh`/`/audit`/`doc-guardian`/`/sprint-end` 가 신설 `UX_SPEC.md`(L3 committed)를 감사·스캔 대상에 포함, sprint 목표 포인터를 PRODUCT MVP 로 정정.
+  - `.claude/scripts/env-inspect.sh` 신설 — .env 의 **키 목록·값 존재 여부·길이만** 출력(값 미출력). 사용자 요청: 완전 차단 대신 "무슨 키가 있고 값이 채워졌는지"는 AI 가 알 수 있게.
+  - `pre-bash.sh` .env 가드 강화 — 기존 cat/head 류만 막아 `grep/sed/awk` 로 값이 새던 구멍을 차단(reader 목록 확대), `env-inspect.sh` 만 허용 경로. 차단/허용 시뮬레이션 검증 완료.
+
 ## 2026-06-10 — docs
 - **PRODUCT/DOMAIN_DESIGN 안정도 분할 + 코드 소유권 codify** — "L1 보호가 L3 급 내용까지 잠가 수정 마찰 → 방치 → drift" 문제(팀 공통 인식) 해소.
   - `PRODUCT.md`(L1, 556→~230줄): 미션·문제·4-Intent 컨셉·MVP·UX 원칙만 남김. 화면·시나리오·IA·디자인 톤·데모는 신설 **`UX_SPEC.md`(L3, 자유 수정)** 로 분리 + 현재 코드 기준 갱신(홈 5섹션·대화 프레임 입력바, 캘린더 점 3종, LA needs_review 전용 push-to-start, ShareExtension 2레이아웃, 검색 = 서버 `/search`+RAG, 채팅 탭 placeholder).
