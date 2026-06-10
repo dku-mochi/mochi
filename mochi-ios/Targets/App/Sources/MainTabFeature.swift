@@ -45,7 +45,7 @@ struct MainTabFeature: Sendable {
         var title: String {
             switch self {
             case .home:   return "홈"
-            case .chat:   return "채팅"
+            case .chat:   return "질문"
             case .mochis: return "캘린더"
             case .search: return "검색"
             }
@@ -54,6 +54,7 @@ struct MainTabFeature: Sendable {
 
     enum Action: Sendable {
         case tabSelected(Tab)
+        case searchTabReselected            // 검색 탭이 이미 선택된 상태에서 다시 탭 → 시작 화면으로 복귀
         case home(HomeFeature.Action)
         case inbox(InboxFeature.Action)
         case mochiCalendar(MochiCalendarFeature.Action)
@@ -81,6 +82,9 @@ struct MainTabFeature: Sendable {
             case let .tabSelected(tab):
                 state.selectedTab = tab
                 return .none
+
+            case .searchTabReselected:
+                return .send(.search(.clearFiltersTapped))
 
             case let .home(.mochiItemTapped(mochiItemID, hero)):
                 // 이미 상세가 떠 있으면(또는 present 애니메이션 진행 중) 재진입 무시 —
@@ -134,6 +138,13 @@ struct MainTabFeature: Sendable {
                 state.detail = DetailFeature.State(mochiItemID: mochiItemID)
                 return .none
 
+            case let .search(.recentTapped(mochiItemID)):
+                // origin 의 새 hero present 로 통일 — Path.detail case 가 제거됨(상세는 @Presents).
+                guard state.detail == nil else { return .none }
+                state.detailHero = nil
+                state.detail = DetailFeature.State(mochiItemID: mochiItemID)
+                return .none
+
             case let .debugInboxChanged(isOn):
                 state.isDebugInboxPresented = isOn
                 return .none
@@ -154,6 +165,10 @@ struct MainTabFeature: Sendable {
                 return .none
 
             case .home, .inbox, .mochiCalendar, .search, .path, .mochiItem, .detail, .delegate:
+                return .none
+
+            case .tabSelected, .searchTabReselected:
+                // 위에서 명시 처리됨 — Swift exhaustive 매칭 만족용 (실제 도달 X).
                 return .none
             }
         }

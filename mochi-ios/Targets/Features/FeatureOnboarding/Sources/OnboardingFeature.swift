@@ -3,7 +3,7 @@ import Foundation
 
 /// 가입 직후 노출되는 4단계 튜토리얼.
 ///
-/// 시안 (`docs/PRODUCT.md §8.3`) 의 4 페이지를 순서대로 보여주고, 마지막 페이지에서
+/// 시안 (`docs/UX_SPEC.md §3.3`) 의 4 페이지를 순서대로 보여주고, 마지막 페이지에서
 /// 사용자가 "다음" 을 누르면 ``Delegate.finished`` 를 발행해 부모 (App 또는 RootFeature)
 /// 가 메인 흐름으로 전이하도록 한다.
 ///
