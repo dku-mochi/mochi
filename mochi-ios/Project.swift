@@ -577,6 +577,7 @@ let project = Project(
             layer: .feature,
             dependencies: [
                 .target(name: "CoreAgentClient"),
+                .package(product: "Clocks"),
                 .package(product: "ComposableArchitecture"),
                 .package(product: "Dependencies"),
                 .package(product: "CasePaths"),

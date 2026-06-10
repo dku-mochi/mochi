@@ -108,6 +108,9 @@ public struct ChatFeature: Sendable {
         case streamFailed(String)
         /// 화면 진입(탭 전환 포함) — 비활성 30분 자동분리 판정 + 이전 세션 스냅샷 복귀.
         case appeared
+        /// 백그라운드 → 포그라운드 복귀 — SSE 가 끊겼어도 run 은 서버에서 완주하므로
+        /// 스냅샷을 다시 읽는다 ("돌아왔더니 답이 와 있다"). running 이면 2초 폴링.
+        case sceneActivated
         case historyButtonTapped
         case history(PresentationAction<ChatHistoryFeature.Action>)
         case snapshotLoaded(conversationID: UUID, messages: IdentifiedArrayOf<ChatMessage>)
@@ -134,11 +137,14 @@ public struct ChatFeature: Sendable {
     @Dependency(\.reminderScheduler) var reminderScheduler
     @Dependency(\.date) var date
     @Dependency(\.uuid) var uuid
+    @Dependency(\.continuousClock) var clock
 
     /// 비활성 자동분리 임계 — 30분 (journal 2026-06-10 플랜).
     static let sessionMaxIdleSeconds: TimeInterval = 30 * 60
+    /// 복귀 폴링 상한 — run 60초 + stale 임계(90초) 여유. 2초 간격이라 최대 ~90초.
+    static let maxSnapshotPolls = 45
 
-    private enum CancelID { case stream }
+    private enum CancelID { case stream, snapshotPoll }
 
     public init() {}
 
@@ -172,7 +178,10 @@ public struct ChatFeature: Sendable {
                 state.draft = ""
                 state.runPhase = .idle
                 sessionStore.clear()
-                return .cancel(id: CancelID.stream)
+                return .merge(
+                    .cancel(id: CancelID.stream),
+                    .cancel(id: CancelID.snapshotPoll)
+                )
 
             case .appeared:
                 // 이미 대화가 떠 있으면 그대로 — 분리 판정은 빈 화면 진입에만.
@@ -184,6 +193,12 @@ public struct ChatFeature: Sendable {
                     return .none
                 }
                 return loadSnapshot(persisted.conversationID)
+
+            case .sceneActivated:
+                // 스트림이 살아 있으면(짧은 백그라운드) 건드리지 않는다 — 끊겼을 때만 서버 정본 재조회.
+                guard let conversationID = state.conversationID, state.runPhase != .streaming
+                else { return .none }
+                return loadSnapshot(conversationID)
 
             case .historyButtonTapped:
                 state.history = ChatHistoryFeature.State()
@@ -269,20 +284,30 @@ public struct ChatFeature: Sendable {
 
     // MARK: - 스냅샷 복귀 (히스토리 재개·자동분리 내 복귀 공용)
 
+    /// 스냅샷 1회 조회 + 마지막 run 이 running 이면 2초 폴링 — run 은 서버에서 완주하므로
+    /// (생성/전달 분리) 폴링은 유한하다(60초 상한 + stale 90초 lazy repair).
     private func loadSnapshot(_ conversationID: UUID) -> Effect<Action> {
         .run { send in
-            do {
-                let snapshot = try await chatAPIClient.conversationSnapshot(id: conversationID)
+            for attempt in 0...Self.maxSnapshotPolls {
+                let snapshot: ChatSnapshotDTO
+                do {
+                    snapshot = try await chatAPIClient.conversationSnapshot(id: conversationID)
+                } catch {
+                    await send(.snapshotLoadFailed)
+                    return
+                }
                 await send(
                     .snapshotLoaded(
                         conversationID: conversationID,
                         messages: Self.fold(snapshot.messages)
                     )
                 )
-            } catch {
-                await send(.snapshotLoadFailed)
+                let isRunning = snapshot.messages.last { $0.role == "user" }?.runStatus == "running"
+                guard isRunning, attempt < Self.maxSnapshotPolls else { return }
+                try await clock.sleep(for: .seconds(2))
             }
         }
+        .cancellable(id: CancelID.snapshotPoll, cancelInFlight: true)
     }
 
     /// 서버 메시지 행(user/tool/assistant) → 렌더 단위 접기.
@@ -441,19 +466,22 @@ public struct ChatFeature: Sendable {
         var assistant = ChatMessage(id: uuid(), role: .assistant, text: "")
         assistant.isStreaming = true
         state.messages.append(assistant)
-        return .run { send in
-            do {
-                for try await event in chatStreamClient.send(conversationID: conversationID, text: text) {
-                    await send(.streamEvent(event))
+        return .merge(
+            .cancel(id: CancelID.snapshotPoll),   // 새 턴 시작 — 복귀 폴링과 경합 금지
+            .run { send in
+                do {
+                    for try await event in chatStreamClient.send(conversationID: conversationID, text: text) {
+                        await send(.streamEvent(event))
+                    }
+                    await send(.streamFinished)
+                } catch is CancellationError {
+                    // 새 대화 전환 등 의도적 취소 — 실패 아님.
+                } catch {
+                    await send(.streamFailed(error.localizedDescription))
                 }
-                await send(.streamFinished)
-            } catch is CancellationError {
-                // 새 대화 전환 등 의도적 취소 — 실패 아님.
-            } catch {
-                await send(.streamFailed(error.localizedDescription))
             }
-        }
-        .cancellable(id: CancelID.stream, cancelInFlight: true)
+            .cancellable(id: CancelID.stream, cancelInFlight: true)
+        )
     }
 
     private func reduce(event: ChatStreamEvent, into state: inout State) {
