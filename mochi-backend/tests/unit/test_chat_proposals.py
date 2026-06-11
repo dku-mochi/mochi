@@ -233,39 +233,30 @@ async def test_propose_update_strips_archive_reason_on_non_archived_transition()
     }
 
 
-def test_active_chat_prompt_is_v6_with_proposal_web_and_agentic_retrieval_rules() -> None:
-    # V2~V6 는 직전 버전의 body.replace 파생 — 상류 본문이 바뀌면 replace 가 silent no-op
-    # 으로 구 규칙이 부활한다 (리뷰 P2). 활성 프롬프트의 행동·grounding 규칙을 고정.
-    from app.modules.conversations.prompts.chat_prompts import (
-        ACTIVE_CHAT_PROMPT,
-        CHAT_V1,
-        CHAT_V2,
-        CHAT_V3,
-        CHAT_V4,
-        CHAT_V5,
-        CHAT_V6,
-    )
+def test_active_chat_prompt_keeps_proposal_web_and_agentic_retrieval_rules() -> None:
+    # 프롬프트 전문 버전 관리는 git 이 담당한다. 런타임 모듈은 active 하나만 노출하고,
+    # 테스트는 현재 active prompt 의 행동·grounding 규칙을 고정한다.
+    import app.modules.conversations.prompts.chat_prompts as chat_prompts
 
-    assert ACTIVE_CHAT_PROMPT is CHAT_V6
-    assert CHAT_V2.body != CHAT_V1.body, "V1 anchor 불일치 — replace 가 no-op"
-    assert CHAT_V3.body != CHAT_V2.body, "V2 anchor 불일치 — replace 가 no-op"
-    assert CHAT_V4.body != CHAT_V3.body, "V3 anchor 불일치 — replace 가 no-op"
-    assert CHAT_V5.body != CHAT_V4.body, "V4 anchor 불일치 — replace 가 no-op"
-    assert CHAT_V6.body != CHAT_V5.body, "V5 anchor 불일치 — replace 가 no-op"
-    assert "propose_" in ACTIVE_CHAT_PROMPT.body
-    assert "currently cannot modify" not in ACTIVE_CHAT_PROMPT.body
+    assert chat_prompts.ACTIVE_CHAT_PROMPT.name == "chat@v6"
+    assert not any(name.startswith("CHAT_V") for name in dir(chat_prompts))
+
+    active_chat_prompt = chat_prompts.ACTIVE_CHAT_PROMPT
+
+    assert "propose_" in active_chat_prompt.body
+    assert "currently cannot modify" not in active_chat_prompt.body
     # PR-4 web 툴: 출처 3원 구분 + citation 마커는 기록 전용.
-    assert "web-sourced" in ACTIVE_CHAT_PROMPT.body
-    assert "markers are for records only" in ACTIVE_CHAT_PROMPT.body
+    assert "web-sourced" in active_chat_prompt.body
+    assert "markers are for records only" in active_chat_prompt.body
     # V4: 구조 필드(날짜 등) 수정은 instance_changes payload 로 — text 치환 금지.
-    assert "instance_changes" in ACTIVE_CHAT_PROMPT.body
+    assert "instance_changes" in active_chat_prompt.body
     # V5: 사용자는 4-Intent 를 모른다 → 어휘로 intent_type 필터 금지 + 회상은 capture 축.
-    assert "Default intent_type to unset" in ACTIVE_CHAT_PROMPT.body
-    assert "browse newest-first" in ACTIVE_CHAT_PROMPT.body
+    assert "Default intent_type to unset" in active_chat_prompt.body
+    assert "browse newest-first" in active_chat_prompt.body
     # V6: 빈 결과 = 표현의 판정(어휘 변주 재검색) + 회수는 묻지 않고 턴 안에서 완결.
-    assert "offer what you can do" not in ACTIVE_CHAT_PROMPT.body
-    assert "verdict on your phrasing" in ACTIVE_CHAT_PROMPT.body
-    assert "never end a turn asking" in ACTIVE_CHAT_PROMPT.body
+    assert "offer what you can do" not in active_chat_prompt.body
+    assert "verdict on your phrasing" in active_chat_prompt.body
+    assert "never end a turn asking" in active_chat_prompt.body
 
 
 # ---------- ② run 루프의 proposal 이벤트·영속 ----------
