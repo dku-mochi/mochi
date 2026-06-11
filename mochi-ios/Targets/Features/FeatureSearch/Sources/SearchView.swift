@@ -62,15 +62,39 @@ public struct SearchView: View {
         .dynamicTypeSize(.medium)
     }
 
-    // MARK: - Keyboard dismiss bar (검색바 포커스 시 키보드 위 ✓)
+    // MARK: - Keyboard dismiss bar (검색바 포커스 시 키보드 위)
 
     /// 키보드가 올라오면 시스템이 bottom safe area 를 키보드 위까지 올려주므로,
     /// `.safeAreaInset(edge: .bottom)` 에 둔 view 가 자동으로 키보드 위에 stick 된다.
+    ///
+    /// 빈 결과(.empty)일 땐 좌측에 "모찌에게 물어보기" 제안을 함께 띄운다 —
+    /// 키보드가 빈 결과 화면의 CTA 를 가려서 사용자가 기능 존재를 모른 채
+    /// 지나치는 것을 막는다 (키보드 dismiss 를 요구하지 않는 발견 경로).
     @ViewBuilder
     private var keyboardDismissBar: some View {
         if isSearchFocused {
-            HStack(spacing: 0) {
-                Spacer()
+            HStack(spacing: 8) {
+                if store.phase == .empty {
+                    Button {
+                        isSearchFocused = false
+                        store.send(.askMochiTapped)
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "bubble.left.fill")
+                                .font(.system(size: 12, weight: .semibold))
+                            Text("못 찾았어요 — 모찌에게 물어보기")
+                                .font(.system(size: 13.5, weight: .semibold, design: .rounded))
+                                .tracking(-0.2)
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 7)
+                        .foregroundStyle(.white)
+                        .background(Capsule().fill(SearchD5.Palette.ctaGradient))
+                    }
+                    .buttonStyle(PressableStyle())
+                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                }
+                Spacer(minLength: 0)
                 Button {
                     isSearchFocused = false
                 } label: {
@@ -90,6 +114,7 @@ public struct SearchView: View {
                     .frame(height: 0.5),
                 alignment: .top
             )
+            .animation(.easeInOut(duration: 0.18), value: store.phase)
             .transition(.move(edge: .bottom).combined(with: .opacity))
         }
     }
@@ -116,7 +141,11 @@ public struct SearchView: View {
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.never)
                     .focused($isSearchFocused)
-                    .onSubmit { isSearchFocused = false }
+                    .onSubmit {
+                        isSearchFocused = false
+                        // return 제출 — 최근 검색어 저장 + 서버 의미 검색 보강.
+                        store.send(.submit)
+                    }
             }
 
             // query 가 있거나 focused 상태일 때 X 활성 — focused 에서 .idle 그리드로 돌아가는 affordance.
@@ -166,6 +195,7 @@ public struct SearchView: View {
 
             case .focused:
                 SearchFocusedView(
+                    recentSearches: store.recentSearches,
                     onRecent:       { store.send(.recentSearchTapped($0)) },
                     onClearRecents: { store.send(.clearRecentSearchesTapped) },
                     onQuickFilter:  { store.send(.quickFilterTapped($0)) }
@@ -176,6 +206,7 @@ public struct SearchView: View {
                     query: store.query,
                     results: store.results,
                     selectedIntent: store.selectedIntent,
+                    isSemanticSearching: store.isSemanticSearching,
                     onIntent:     { store.send(.intentChipTapped($0)) },
                     onCardTap:    { id, hero in store.send(.recentTapped(id, hero)) },
                     onCardDelete: { store.send(.deleteTapped($0)) }
@@ -184,9 +215,9 @@ public struct SearchView: View {
             case .empty:
                 SearchEmptyResultView(
                     selectedIntent: store.selectedIntent,
-                    onIntent:       { store.send(.intentChipTapped($0)) },
-                    onRetryAll:     { store.send(.retryAllTapped) },
-                    onClearFilters: { store.send(.clearFiltersTapped) }
+                    onIntent:    { store.send(.intentChipTapped($0)) },
+                    onAskMochi:  { store.send(.askMochiTapped) },
+                    onRetryAll:  { store.send(.retryAllTapped) }
                 )
             }
         }

@@ -157,6 +157,11 @@ struct MainTabFeature: Sendable {
                 )
                 return .none
 
+            case let .search(.delegate(.askChatRequested(query))):
+                // 검색 빈 결과 "모찌에게 물어보기" — 채팅을 query 첫 메시지로 push (홈 입력바와 동일 패턴).
+                state.path.append(.chat(ChatFeature.State(entry: .firstMessage(query))))
+                return .none
+
             case let .path(.element(id: _, action: .chat(.delegate(.openItemRequested(mochiItemID))))):
                 // 채팅 근거 미니카드 탭 — hero frame 이 없어 중앙 scale 폴백 (캘린더와 동일).
                 guard state.detail == nil else { return .none }
