@@ -233,8 +233,8 @@ async def test_propose_update_strips_archive_reason_on_non_archived_transition()
     }
 
 
-def test_active_chat_prompt_is_v5_with_proposal_web_and_loose_search_rules() -> None:
-    # V2~V5 는 직전 버전의 body.replace 파생 — 상류 본문이 바뀌면 replace 가 silent no-op
+def test_active_chat_prompt_is_v6_with_proposal_web_and_agentic_retrieval_rules() -> None:
+    # V2~V6 는 직전 버전의 body.replace 파생 — 상류 본문이 바뀌면 replace 가 silent no-op
     # 으로 구 규칙이 부활한다 (리뷰 P2). 활성 프롬프트의 행동·grounding 규칙을 고정.
     from app.modules.conversations.prompts.chat_prompts import (
         ACTIVE_CHAT_PROMPT,
@@ -243,13 +243,15 @@ def test_active_chat_prompt_is_v5_with_proposal_web_and_loose_search_rules() -> 
         CHAT_V3,
         CHAT_V4,
         CHAT_V5,
+        CHAT_V6,
     )
 
-    assert ACTIVE_CHAT_PROMPT is CHAT_V5
+    assert ACTIVE_CHAT_PROMPT is CHAT_V6
     assert CHAT_V2.body != CHAT_V1.body, "V1 anchor 불일치 — replace 가 no-op"
     assert CHAT_V3.body != CHAT_V2.body, "V2 anchor 불일치 — replace 가 no-op"
     assert CHAT_V4.body != CHAT_V3.body, "V3 anchor 불일치 — replace 가 no-op"
     assert CHAT_V5.body != CHAT_V4.body, "V4 anchor 불일치 — replace 가 no-op"
+    assert CHAT_V6.body != CHAT_V5.body, "V5 anchor 불일치 — replace 가 no-op"
     assert "propose_" in ACTIVE_CHAT_PROMPT.body
     assert "currently cannot modify" not in ACTIVE_CHAT_PROMPT.body
     # PR-4 web 툴: 출처 3원 구분 + citation 마커는 기록 전용.
@@ -260,6 +262,10 @@ def test_active_chat_prompt_is_v5_with_proposal_web_and_loose_search_rules() -> 
     # V5: 사용자는 4-Intent 를 모른다 → 어휘로 intent_type 필터 금지 + 회상은 capture 축.
     assert "Default intent_type to unset" in ACTIVE_CHAT_PROMPT.body
     assert "browse newest-first" in ACTIVE_CHAT_PROMPT.body
+    # V6: 빈 결과 = 표현의 판정(어휘 변주 재검색) + 회수는 묻지 않고 턴 안에서 완결.
+    assert "offer what you can do" not in ACTIVE_CHAT_PROMPT.body
+    assert "verdict on your phrasing" in ACTIVE_CHAT_PROMPT.body
+    assert "never end a turn asking" in ACTIVE_CHAT_PROMPT.body
 
 
 # ---------- ② run 루프의 proposal 이벤트·영속 ----------

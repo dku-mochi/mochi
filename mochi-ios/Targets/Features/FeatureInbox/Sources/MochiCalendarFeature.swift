@@ -170,38 +170,20 @@ public struct MochiCalendarFeature: Sendable {
     }
 
     /// 한 todo instance 의 완료↔미완료 토글 effect — 로컬 낙관적 전이 + 서버 push(실패 시 롤백).
+    /// push·레거시 치유·롤백은 기록 상세와 공용인 `TodoLifecycleSync`(CorePersistence)가 맡는다.
     private func toggleEffect(for row: TodoRowItem) -> Effect<Action> {
         let todo = row.instance
         let item = row.item
         let isCompleted = todo.lifecycle.kind == .archived
         let target: InstanceLifecycle = isCompleted ? .active : .archived(reason: .todoCompleted)
-        let rollback = todo.lifecycle
-        let serverID: UUID? = {
-            if case let .uploaded(sid, _) = item.syncState { return sid } else { return nil }
-        }()
         return .run { send in
             // 낙관적 로컬 전이 — observeChanges 가 즉시 리스트를 다시 그린다.
             try? await repository.updateInstanceLifecycle(mochiItemID: item.id, instanceID: todo.id, to: target)
-            // 서버 영속(prod) — 업로드된 item 만(serverID 없으면 아직 서버에 없어 로컬만 유지).
-            guard let serverID else { return }
-            do {
-                _ = try await apiClient.updateInstanceLifecycle(
-                    mochiServerID: serverID, instanceID: todo.id, to: target
-                )
-            } catch let error as APIErrorEnvelope where error.code == "intent_instance.not_found" {
-                // 기존 데이터 치유 — 변경 전 분석된 todo 는 로컬 instance id 가 서버 id 와 불일치.
-                // 서버 최신에서 같은 label 의 todo instance 를 찾아 재시도하고, 응답으로 로컬을 교정한다.
-                await healLegacyTodoInstance(
-                    repository: repository, apiClient: apiClient,
-                    itemID: item.id, serverID: serverID, staleInstanceID: todo.id,
-                    staleLabel: todo.label, target: target, rollback: rollback, send: send
-                )
-            } catch {
-                // 그 외 서버 실패 → 로컬 롤백(낙관적 업데이트 취소).
-                try? await repository.updateInstanceLifecycle(
-                    mochiItemID: item.id, instanceID: todo.id, to: rollback
-                )
-                await send(.operationFailed(String(describing: error)))
+            if let failure = await TodoLifecycleSync.pushToggle(
+                item: item, instance: todo, target: target,
+                repository: repository, apiClient: apiClient
+            ) {
+                await send(.operationFailed(failure))
             }
         }
     }
@@ -258,6 +240,11 @@ public struct TodoRowItem: Identifiable, Equatable, Sendable {
     public var isCompleted: Bool { instance.lifecycle.kind == .archived }
     /// 그 instance 의 마감일 — `payload.deadline ?? payload.date` 파싱(자연어/미상은 nil).
     public var deadline: Date? { CalendarDueDate.parse(instance.payload.deadline ?? instance.payload.date) }
+    /// 카드 본문 — todo 자신의 이름(`payload.title`)이 정본, 없으면 캡처 제목 폴백.
+    public var displayTitle: String {
+        if let title = instance.payload.title, !title.isEmpty { return title }
+        return item.displayTitle
+    }
 }
 
 /// 캘린더 한 칸(하루)의 집계 — 점 일정(sky 점) · 할 일 마감(butter 점) · 저장(purple 점)은
@@ -387,7 +374,7 @@ enum CalendarTodoSorter {
     private static func dedupKey(_ row: TodoRowItem) -> String {
         let day = row.deadline.map { Calendar.mochiSeoul.startOfDay(for: $0).timeIntervalSince1970 }
         return [
-            normalizedDedupComponent(row.item.displayTitle),
+            normalizedDedupComponent(row.displayTitle),
             normalizedDedupComponent(row.instance.label ?? ""),
             day.map { String($0) } ?? "-",
             String(row.isCompleted),
@@ -434,47 +421,6 @@ enum UpcomingScheduleSorter {
                 return (start, end)
             }
             .min { $0.start < $1.start }
-    }
-}
-
-/// 기존 데이터(변경 전 분석분) 완료 토글의 404 치유 — 로컬 instance id 가 서버 id 와 불일치할 때.
-/// 서버 최신(`getMochiItem`)에서 진짜 todo instance id 를 얻어 재시도하고, 응답으로 로컬 analysis 를
-/// 교체해 instance id 를 서버값으로 영구 일치시킨다(다음 토글부터 정상). 실패 시 낙관적 로컬을 롤백.
-private func healLegacyTodoInstance(
-    repository: any MochiItemRepository,
-    apiClient: any MochiAPIClient,
-    itemID: UUID,
-    serverID: UUID,
-    staleInstanceID: UUID,
-    staleLabel: String?,
-    target: InstanceLifecycle,
-    rollback: InstanceLifecycle,
-    send: Send<MochiCalendarFeature.Action>
-) async {
-    let todos = (try? await apiClient.getMochiItem(id: serverID))?
-        .intentInstances.filter { $0.intentType == .todo } ?? []
-    // 여러 todo 중 같은 label 우선(정확한 대상 지목), 없으면 첫 todo.
-    guard let freshTodo = todos.first(where: { $0.label == staleLabel }) ?? todos.first else {
-        try? await repository.updateInstanceLifecycle(
-            mochiItemID: itemID, instanceID: staleInstanceID, to: rollback
-        )
-        await send(.operationFailed("intent_instance.not_found; heal failed"))
-        return
-    }
-    do {
-        let updated = try await apiClient.updateInstanceLifecycle(
-            mochiServerID: serverID, instanceID: freshTodo.id, to: target
-        )
-        // 서버 응답(서버 instance id + 갱신된 상태)으로 로컬 교정 — 다음 토글부터 id 일치.
-        if var domain = try? await repository.find(id: itemID) {
-            domain.analysis = updated.toMochiItemAnalysis()
-            try? await repository.upsert(domain)
-        }
-    } catch {
-        try? await repository.updateInstanceLifecycle(
-            mochiItemID: itemID, instanceID: staleInstanceID, to: rollback
-        )
-        await send(.operationFailed(String(describing: error)))
     }
 }
 
@@ -538,24 +484,5 @@ enum CalendarDueDate {
     }
 }
 
-extension Calendar {
-    /// 캘린더 탭의 모든 날짜 계산(월 경계·일 그룹·오늘·D-day)은 백엔드 KST 월간 집계와
-    /// 일치시키기 위해 Asia/Seoul 로 고정한다. `Calendar.current`(기기 TZ)에 의존하면 월말
-    /// UTC 캡처가 다른 날짜로 그룹돼 서버와 어긋난다.
-    static let mochiSeoul: Calendar = {
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = TimeZone(identifier: "Asia/Seoul") ?? .current
-        return calendar
-    }()
-}
-
-extension DateFormatter {
-    /// 캘린더 탭 표시용 한국어·KST 고정 포매터.
-    static func mochiSeoul(_ format: String) -> DateFormatter {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "ko_KR")
-        formatter.timeZone = TimeZone(identifier: "Asia/Seoul")
-        formatter.dateFormat = format
-        return formatter
-    }
-}
+// Calendar.mochiSeoul / DateFormatter.mochiSeoul / DueDisplay / ScheduleDateTile 은
+// 기록 상세와 공유하기 위해 DesignSystem(DueDisplay.swift)으로 승격됐다 (2026-06-11).

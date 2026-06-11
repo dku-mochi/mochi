@@ -29,7 +29,8 @@ public struct DetailFeature: Sendable {
     public enum Action: Sendable {
         case onAppear
         case loaded(MochiItem?)
-        case archiveTapped(instanceID: UUID, reason: InstanceLifecycle.ArchiveReason)
+        /// 할 일 완료↔미완료 토글 — 캘린더 탭과 같은 경로(낙관적 로컬 + 서버 push + 치유/롤백).
+        case todoToggled(IntentInstance)
         // 제목 인라인 교정 — 로컬 userTitle 오버라이드 (백엔드 재추론 아님).
         case titleTapped
         case titleDraftChanged(String)
@@ -72,14 +73,25 @@ public struct DetailFeature: Sendable {
                 state.mochiItem = mochiItem
                 return .none
 
-            case let .archiveTapped(instanceID, reason):
-                guard let mochiItem = state.mochiItem else { return .none }
+            case let .todoToggled(instance):
+                guard let item = state.mochiItem else { return .none }
+                let isCompleted = instance.lifecycle.kind == .archived
+                let target: InstanceLifecycle = isCompleted ? .active : .archived(reason: .todoCompleted)
                 return .run { send in
-                    do {
-                        try await repository.updateInstanceLifecycle(mochiItemID: mochiItem.id, instanceID: instanceID, to: .archived(reason: reason))
-                    } catch {
-                        await send(.operationFailed(String(describing: error)))
-                    }
+                    // 낙관적 로컬 전이 + 즉시 reload — 상세는 observeChanges 미구독이라
+                    // state.mochiItem 을 직접 갱신해야 토글이 화면에 보인다.
+                    try? await repository.updateInstanceLifecycle(
+                        mochiItemID: item.id, instanceID: instance.id, to: target
+                    )
+                    await send(.loaded(try? await repository.find(id: item.id)))
+                    // 서버 push(+레거시 instance id 치유, 실패 시 로컬 롤백) — 캘린더 탭과 공용 경로.
+                    let failure = await TodoLifecycleSync.pushToggle(
+                        item: item, instance: instance, target: target,
+                        repository: repository, apiClient: apiClient
+                    )
+                    // 치유 교정·롤백 결과 반영.
+                    await send(.loaded(try? await repository.find(id: item.id)))
+                    if let failure { await send(.operationFailed(failure)) }
                 }
 
             case .titleTapped:
@@ -88,6 +100,17 @@ public struct DetailFeature: Sendable {
                 return .none
 
             case let .titleDraftChanged(text):
+                // 리턴 키 = 완료 — axis .vertical TextField 는 리턴이 개행으로 들어와 onSubmit 이
+                // 안 불릴 수 있다(여러 줄로 감긴 제목). 제목에 개행은 의미가 없으므로
+                // 개행 감지 시 공백으로 합치고 커밋한다(붙여넣기 멀티라인도 동일 처리).
+                if text.contains("\n") {
+                    state.titleDraft = text
+                        .components(separatedBy: .newlines)
+                        .map { $0.trimmingCharacters(in: .whitespaces) }
+                        .filter { !$0.isEmpty }
+                        .joined(separator: " ")
+                    return .send(.titleCommitted)
+                }
                 state.titleDraft = text
                 return .none
 
@@ -141,6 +164,18 @@ public struct DetailFeature: Sendable {
                             try await apiClient.deleteMochiItem(mochiServerID: serverID)
                         }
                         try await repository.delete(id: localID)
+                        // pull↔upload 경합 복제 쌍 방어(양방향) — 같은 서버 항목으로 매핑되는
+                        // 다른 로컬 행(origin: uploaded(serverID) / pull 복제: PK == serverID,
+                        // syncState 도 uploaded(serverID)라 같은 스캔에 잡힘)을 전부 거둔다.
+                        // 한 행만 지우면 남은 쪽이 영구 고아로 홈에 잔존(없으면 no-op).
+                        if let serverID {
+                            let all = (try? await repository.listRecent(limit: 2000)) ?? []
+                            for item in all where item.id != localID {
+                                if case let .uploaded(sid, _) = item.syncState, sid == serverID {
+                                    try? await repository.delete(id: item.id)
+                                }
+                            }
+                        }
                         await send(.delegate(.deleted))
                     } catch {
                         await send(.operationFailed(String(describing: error)))

@@ -47,6 +47,15 @@ public struct WeeklyDigestFeature: Sendable {
         public let isSchedule: Bool
         /// 완료 전이 대상 instance(서버=로컬 id 보존).
         public let instanceID: UUID
+
+        /// 카드 본문 — 대상 instance 의 이름(`payload.title`)이 정본, 없으면 캡처 제목 폴백.
+        public var displayTitle: String {
+            if let title = mochiItem.instances.first(where: { $0.id == instanceID })?.payload.title,
+               !title.isEmpty {
+                return title
+            }
+            return mochiItem.displayTitle
+        }
     }
 
     public struct DigestGroup: Equatable, Identifiable, Sendable {
@@ -274,7 +283,7 @@ public struct WeeklyDigestFeature: Sendable {
             let day = CalendarDueDate.parse(rawDue)
                 .map { Calendar.mochiSeoul.startOfDay(for: $0).timeIntervalSince1970 }
             let key = [
-                normalizedDedupComponent(item.mochiItem.displayTitle),
+                normalizedDedupComponent(item.displayTitle),
                 day.map { String($0) } ?? normalizedDedupComponent(rawDue),
                 String(item.isSchedule),
             ].joined(separator: "|")

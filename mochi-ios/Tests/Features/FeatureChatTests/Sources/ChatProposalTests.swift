@@ -50,18 +50,60 @@ final class ChatProposalTests: XCTestCase {
         XCTAssertEqual(deleted, [serverItemID])
     }
 
+    /// pull↔upload 경합이 남긴 복제 쌍(origin 행 + server-id PK 행)에서 확정 삭제가 **두 행 모두**
+    /// 지우는지 — 한 행만 지우면 남은 쪽이 영구 고아(서버에선 이미 삭제돼 pull/dedup 이 다시는
+    /// 안 만짐)로 홈에 계속 보인다 (2026-06-11 사용자 리포트: 채팅 삭제 카드가 반영 안 됨).
+    func test_confirm_delete_removes_all_local_mirror_rows() async throws {
+        let repository = InMemoryMochiItemRepository()
+        let originID = UUID(20)
+        try await repository.upsert(
+            MochiItem(
+                source: IngestSource(id: originID, channel: .screenshot),
+                syncState: .uploaded(serverID: serverItemID, at: Date())
+            )
+        )
+        try await repository.upsert(
+            MochiItem(
+                source: IngestSource(id: serverItemID, channel: .screenshot),
+                syncState: .uploaded(serverID: serverItemID, at: Date())
+            )
+        )
+
+        let store = TestStore(initialState: makeState(deleteProposal())) {
+            ChatFeature()
+        } withDependencies: {
+            $0.mochiAPIClient = StubAPIClient()
+            $0.mochiItemRepository = repository
+        }
+        store.exhaustivity = .off(showSkippedAssertions: false)
+
+        await store.send(.proposalConfirmTapped(messageID: messageID, proposalID: UUID(10)))
+        await store.finish()
+
+        let remaining = try await repository.listRecent(limit: 10)
+        XCTAssertTrue(remaining.isEmpty, "로컬 미러 행이 남음: \(remaining.map(\.id))")
+    }
+
     // MARK: - 분기 ② 404 = 카드 만료
 
-    func test_confirm_on_missing_item_transitions_to_expired() async {
+    func test_confirm_on_missing_item_transitions_to_expired() async throws {
         let api = StubAPIClient()
         await api.setDeleteError(
             APIErrorEnvelope(code: "mochi_item.not_found", message: "gone", requestID: "r", retryAfter: nil)
+        )
+        // 서버에선 이미 사라진 기록의 고아 미러 — 만료 카드로 보내더라도 로컬은 거둬야 한다.
+        let repository = InMemoryMochiItemRepository()
+        try await repository.upsert(
+            MochiItem(
+                source: IngestSource(id: UUID(21), channel: .screenshot),
+                syncState: .uploaded(serverID: serverItemID, at: Date())
+            )
         )
         let store = TestStore(initialState: makeState(deleteProposal())) {
             ChatFeature()
         } withDependencies: {
             $0.mochiAPIClient = api
-            $0.mochiItemRepository = InMemoryMochiItemRepository()
+            $0.mochiItemRepository = repository
         }
 
         await store.send(.proposalConfirmTapped(messageID: messageID, proposalID: UUID(10))) {
@@ -70,6 +112,8 @@ final class ChatProposalTests: XCTestCase {
         await store.receive(\.proposalResolved) {
             $0.messages[id: self.messageID]?.proposals[id: UUID(10)]?.status = .expired
         }
+        let remaining = try await repository.listRecent(limit: 10)
+        XCTAssertTrue(remaining.isEmpty, "만료 경로에서 고아 미러가 남음: \(remaining.map(\.id))")
     }
 
     // MARK: - 분기 ③ 알림 권한 거부 = failed + 설정 안내

@@ -36,7 +36,11 @@ _PARAMETERS: dict[str, Any] = {
     "properties": {
         "query": {
             "type": "string",
-            "description": "Keyword(s) to match against record text. Omit to filter-only browse.",
+            "description": (
+                "Keyword(s) to match against record text. Every word must match the same "
+                "record (AND) — keep one concept per call and explore alternative terms with "
+                "separate calls instead of stacking words. Omit to filter-only browse."
+            ),
         },
         "intent_type": {
             "type": "string",
@@ -146,7 +150,9 @@ class SearchItemsTool:
         "Combine keyword and filters. Two time axes: date_from/date_to scope when a record "
         "was saved; occurs_from/occurs_to scope when its event happens or is due — asks about "
         "a period's plans or due work need occurs_*, because a plan for tomorrow was usually "
-        "saved earlier. Always search before answering about the user's records."
+        "saved earlier. Always search before answering about the user's records. "
+        "An empty result reflects the phrasing, not absence — retry with different "
+        "vocabulary before concluding nothing is saved."
     )
     parameters = _PARAMETERS
 

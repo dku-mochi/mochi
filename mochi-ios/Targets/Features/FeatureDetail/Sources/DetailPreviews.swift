@@ -71,6 +71,34 @@ private enum DetailPreviewData {
         syncState: .uploaded(serverID: UUID(), at: Date())
     )
 
+    /// 행동(할일·일정·링크)이 하나도 없는 메모 — ② 섹션이 숨고 헤더+③ 만 남는 최소 골격 확인용.
+    static let memoOnly = MochiItem(
+        source: IngestSource(
+            channel: .appDirectInput,
+            text: "포트폴리오 사이트 레퍼런스 — 미니멀 레이아웃에 큰 타이포, 프로젝트는 스크롤 한 줄로.",
+            userMemo: "다음 사이드 프로젝트 때 참고",
+            capturedAt: Date()
+        ),
+        analysis: MochiItemAnalysis(
+            summary: "포트폴리오 사이트를 만들 때 참고할 디자인 방향 메모예요. 미니멀 레이아웃과 큰 타이포그래피가 핵심이에요.",
+            instances: [
+                IntentInstance(
+                    intentType: .memo,
+                    payload: IntentPayload(title: "포트폴리오 디자인 레퍼런스"),
+                    reasoning: "나중에 다시 볼 기록으로 보여요."
+                )
+            ],
+            entities: [],
+            actionCandidates: [],
+            tags: ["디자인"],
+            importance: .medium,
+            modelVersion: "preview",
+            analyzedAt: Date()
+        ),
+        lifecycleState: .analyzed,
+        syncState: .uploaded(serverID: UUID(), at: Date())
+    )
+
     static let processing = MochiItem(
         source: IngestSource(
             channel: .screenshot,
@@ -99,6 +127,10 @@ private enum DetailPreviewData {
 
 #Preview("멀티 의도 · 헷갈림") {
     NavigationStack { DetailView(store: DetailPreviewData.store(DetailPreviewData.multiIntent)) }
+}
+
+#Preview("메모 · 행동 없음") {
+    NavigationStack { DetailView(store: DetailPreviewData.store(DetailPreviewData.memoOnly)) }
 }
 
 #Preview("분석 중") {
