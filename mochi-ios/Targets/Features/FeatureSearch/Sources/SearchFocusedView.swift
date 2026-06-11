@@ -1,5 +1,6 @@
 import SwiftUI
 import CoreDomain
+import DesignSystem
 
 /// 검색 탭 *포커스* 화면 (.focused phase) — 검색바 active + query 빈 상태.
 ///
@@ -40,21 +41,15 @@ struct SearchFocusedView: View {
 
     private var hello: some View {
         VStack(spacing: 22) {
-            Image("mochi-hello")
-                .resizable()
-                .interpolation(.high)
-                .scaledToFit()
-                .frame(width: SearchD5.Sizes.helloMascotSize,
-                       height: SearchD5.Sizes.helloMascotSize)
-                .accessibilityHidden(true)
+            FloatingMascot(imageName: "mochi-hello", size: SearchD5.Sizes.helloMascotSize)
 
             VStack(spacing: 8) {
                 Text("어떤 모찌를 찾고 있나요?")
-                    .font(.system(size: 26, weight: .bold))
+                    .font(.system(size: 26, weight: .bold, design: .rounded))
                     .tracking(-0.6)
                     .foregroundStyle(SearchD5.Palette.textPrimary)
                 Text("모찌가 필요한 정보를 도와드릴게요!")
-                    .font(.system(size: 16, weight: .regular))
+                    .font(.system(size: 16, weight: .regular, design: .rounded))
                     .tracking(-0.2)
                     .foregroundStyle(SearchD5.Palette.textSecondary)
             }
@@ -68,13 +63,13 @@ struct SearchFocusedView: View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .firstTextBaseline) {
                 Text("최근 검색")
-                    .font(.system(size: 19, weight: .bold))
+                    .font(.system(size: 19, weight: .bold, design: .rounded))
                     .tracking(-0.4)
                     .foregroundStyle(SearchD5.Palette.textPrimary)
                 Spacer()
                 Button(action: onClearRecents) {
                     Text("모두 지우기")
-                        .font(.system(size: 15, weight: .semibold))
+                        .font(.system(size: 15, weight: .semibold, design: .rounded))
                         .tracking(-0.2)
                         .foregroundStyle(SearchD5.Palette.primary)
                 }
@@ -95,7 +90,7 @@ struct SearchFocusedView: View {
     private var quickSection: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("빠른 검색")
-                .font(.system(size: 15, weight: .semibold))
+                .font(.system(size: 15, weight: .semibold, design: .rounded))
                 .tracking(-0.2)
                 .foregroundStyle(SearchD5.Palette.textSecondary)
 
@@ -109,6 +104,29 @@ struct SearchFocusedView: View {
     }
 }
 
+// MARK: - Floating mascot (focused·empty 공용 — 아주 약한 둥둥)
+
+struct FloatingMascot: View {
+    let imageName: String
+    let size: CGFloat
+    @State private var isFloating = false
+
+    var body: some View {
+        Image(imageName)
+            .resizable()
+            .interpolation(.high)
+            .scaledToFit()
+            .frame(width: size, height: size)
+            .offset(y: isFloating ? -4 : 4)
+            .animation(
+                .easeInOut(duration: 2.6).repeatForever(autoreverses: true),
+                value: isFloating
+            )
+            .onAppear { isFloating = true }
+            .accessibilityHidden(true)
+    }
+}
+
 // MARK: - Recent chip (검색어 칩)
 
 private struct RecentChip: View {
@@ -118,7 +136,7 @@ private struct RecentChip: View {
     var body: some View {
         Button(action: onTap) {
             Text(term)
-                .font(.system(size: 15, weight: .semibold))
+                .font(.system(size: 15, weight: .semibold, design: .rounded))
                 .tracking(-0.2)
                 .foregroundStyle(SearchD5.Palette.textPrimary.opacity(0.84))
                 .padding(.horizontal, 20)
@@ -145,11 +163,11 @@ private struct QuickFilterChip: View {
                         .fill(filter.activeBg)
                         .frame(width: 26, height: 26)
                     Image(systemName: filter.systemImage)
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(.system(size: 13, weight: .semibold, design: .rounded))
                         .foregroundStyle(filter.activeFg)
                 }
                 Text(filter.label)
-                    .font(.system(size: 14.5, weight: .semibold))
+                    .font(.system(size: 14.5, weight: .semibold, design: .rounded))
                     .tracking(-0.2)
                     .foregroundStyle(SearchD5.Palette.textPrimary.opacity(0.84))
             }
