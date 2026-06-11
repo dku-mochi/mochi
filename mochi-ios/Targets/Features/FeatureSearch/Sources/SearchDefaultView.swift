@@ -22,20 +22,11 @@ struct SearchDefaultView: View {
                 emptyState
             } else {
                 ScrollView {
-                    LazyVGrid(
-                        columns: [
-                            GridItem(.flexible(), spacing: SearchD5.Sizes.gridGap),
-                            GridItem(.flexible()),
-                        ],
-                        spacing: SearchD5.Sizes.gridGap
-                    ) {
-                        ForEach(items) { item in
-                            SearchGridCard(
-                                item: item,
-                                onTap: { hero in onCardTap(item.id, hero) },
-                                onDelete: { onCardDelete(item.id) }
-                            )
-                        }
+                    // 카드 높이가 type 별 가변(이미지-led 182 / 텍스트 138)이라
+                    // LazyVGrid(행 정렬) 대신 좌우 독립 column 의 masonry — 높이 균형 분배.
+                    HStack(alignment: .top, spacing: SearchD5.Sizes.gridGap) {
+                        masonryColumn(columns.left)
+                        masonryColumn(columns.right)
                     }
                     .padding(.horizontal, SearchD5.Sizes.pageH)
                     .padding(.top, 8)
@@ -45,6 +36,33 @@ struct SearchDefaultView: View {
                 .scrollDismissesKeyboard(.immediately)
             }
         }
+    }
+
+    private func masonryColumn(_ columnItems: [MochiItem]) -> some View {
+        LazyVStack(spacing: SearchD5.Sizes.gridGap) {
+            ForEach(columnItems) { item in
+                SearchGridCard(
+                    item: item,
+                    onTap: { hero in onCardTap(item.id, hero) },
+                    onDelete: { onCardDelete(item.id) }
+                )
+            }
+        }
+    }
+
+    /// 예상 높이 기준 좌우 균형 분배 — 짧은 column 에 다음 카드를 넣는다.
+    private var columns: (left: [MochiItem], right: [MochiItem]) {
+        var left: [MochiItem] = [], right: [MochiItem] = []
+        var leftH: CGFloat = 0, rightH: CGFloat = 0
+        for item in items {
+            let h = SearchGridCard.estimatedHeight(for: item)
+            if leftH <= rightH {
+                left.append(item); leftH += h
+            } else {
+                right.append(item); rightH += h
+            }
+        }
+        return (left, right)
     }
 
     // MARK: - 빈 상태 (저장된 모찌 0 — 필터 결과 0 도 동일 처리)
