@@ -533,7 +533,8 @@ let project = Project(
 
         // MARK: Tests
         unitTests(for: "CoreDomain", layer: .core),
-        unitTests(for: "CorePersistence", layer: .core, dependencies: [.target(name: "CoreDomain")]),
+        // CoreNetworking: MochiItemSyncWorker 테스트가 MochiAPIClient 스텁·DTO 를 직접 구성한다.
+        unitTests(for: "CorePersistence", layer: .core, dependencies: [.target(name: "CoreDomain"), .target(name: "CoreNetworking")]),
         unitTests(for: "CoreAgentClient", layer: .core, dependencies: [.target(name: "CoreDomain")]),
         unitTests(
             for: "FeatureMochiItem",

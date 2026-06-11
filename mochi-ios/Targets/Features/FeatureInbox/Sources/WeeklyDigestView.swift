@@ -366,7 +366,7 @@ private struct UnfinishedRow: View {
             Button(action: onTap) {
                 HStack(spacing: HomeDesign.Spacing.sm) {
                     VStack(alignment: .leading, spacing: 3) {
-                        Text(item.mochiItem.displayTitle)
+                        Text(item.displayTitle)
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundStyle(HomeDesign.Color.textPrimary)
                             .lineLimit(1)

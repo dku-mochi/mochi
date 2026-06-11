@@ -439,11 +439,21 @@ public struct ChatFeature: Sendable {
         do {
             switch proposal.action {
             case let .deleteItem(mochiItemID):
-                try await apiClient.deleteMochiItem(mochiServerID: mochiItemID)
-                // 로컬 미러도 정리 — 남겨두면 홈/검색이 서버와 어긋난다 (DetailFeature 삭제와 동일).
-                if let localID = await Self.lookupLocalID(serverID: mochiItemID, repository: repository) {
+                // 서버 먼저 — 비-404 실패(네트워크·5xx)면 로컬을 건드리지 않아 일시 소실이 없다.
+                // 404(이미 서버에 없음)는 만료 카드로 보내되, 어느 쪽이든 로컬 미러는 **전부**
+                // 거둔다 — pull↔upload 경합 복제 쌍(origin 행 + server-id PK 행)에서 한 행만
+                // 지우면 남은 쪽이 영구 고아가 된다(서버에서 사라져 pull 도 dedup 도 다시는
+                // 안 만짐). 2026-06-11 사용자 리포트: 삭제 카드 확정이 홈에 반영 안 됨.
+                var notFound: APIErrorEnvelope?
+                do {
+                    try await apiClient.deleteMochiItem(mochiServerID: mochiItemID)
+                } catch let error as APIErrorEnvelope where error.code.hasSuffix(".not_found") {
+                    notFound = error
+                }
+                for localID in await Self.lookupLocalIDs(serverID: mochiItemID, repository: repository) {
                     try? await repository.delete(id: localID)
                 }
+                if let notFound { throw notFound }   // 기존 만료(expired) 분기 유지
 
             case let .updateItem(payload):
                 let updated = try await apiClient.updateMochiItem(
@@ -615,12 +625,23 @@ public struct ChatFeature: Sendable {
     private static func lookupLocalID(
         serverID: UUID, repository: any MochiItemRepository
     ) async -> MochiItem.ID? {
-        if let direct = try? await repository.find(id: serverID), direct != nil { return serverID }
+        await lookupLocalIDs(serverID: serverID, repository: repository).first
+    }
+
+    /// 서버 id 로 매핑되는 로컬 행 **전부**. pull↔upload 경합 복제 쌍이면 둘 다 돌려준다.
+    /// origin 행(로컬 PK + `syncState.uploaded(serverID)`)을 server-id PK 행보다 앞에 둔다 —
+    /// MochiItemSyncWorker dedup 과 같은 "origin 행이 정본" 규약. 복제 쌍에서 server-id PK 행에
+    /// 수정을 merge 하면 다음 pull 의 dedup 정리가 그 행을 지워 수정이 증발한다.
+    private static func lookupLocalIDs(
+        serverID: UUID, repository: any MochiItemRepository
+    ) async -> [MochiItem.ID] {
+        var ids: [MochiItem.ID] = []
         let all = (try? await repository.listRecent(limit: 2000)) ?? []
-        return all.first {
-            if case let .uploaded(id, _) = $0.syncState { return id == serverID }
-            return false
-        }?.id
+        for item in all where item.id != serverID {
+            if case let .uploaded(id, _) = item.syncState, id == serverID { ids.append(item.id) }
+        }
+        if let direct = try? await repository.find(id: serverID), direct != nil { ids.append(serverID) }
+        return ids
     }
 
     /// ``lookupLocalID`` + 미발견 시(이 기기에 아직 없음) pullRemote 후 1회 재시도.

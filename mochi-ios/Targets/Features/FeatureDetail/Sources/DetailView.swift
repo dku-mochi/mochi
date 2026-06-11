@@ -9,8 +9,11 @@ import UIKit
 
 /// 기록 상세 화면 — "검수"가 아니라 "회수".
 ///
-/// 정보 위계: ① 회수 헤더(썸네일·정체성 제목·출처·시간) → (헷갈려요 배너) →
-/// ② 지금 할 수 있어요(할일 체크 / 일정 통지 / 링크) → ③ 모찌가 정리했어요(요약·원본).
+/// 정보 위계(UX_SPEC §3.8 과 같은 번호): ① 회수 헤더(썸네일 · 출처·시간 eyebrow · 정체성 제목) →
+/// ② 헷갈려요 배너(조건) → ③ 지금 할 수 있어요(할일 체크 / 일정 / 링크 — 전부 같은 행 문법) →
+/// ④ 모찌가 정리했어요(요약·원본).
+/// **어떤 intent·source 조합이든 골격이 같다** — eyebrow 가 항상 첫 텍스트 줄이고, 섹션 라벨이
+/// 카드 밖에 노출되며, ③ 의 행들은 leading 타일·제목·부제의 단일 문법을 공유한다(2026-06-11 통일).
 /// 제목은 탭 한 번으로 인라인 교정(로컬 `userTitle` 오버라이드).
 /// ("더 자세히" 접힘 섹션은 2026-06-10 제거 — 추출정보·태그·근거는 회수에 기여하지 않는 내부 디테일.)
 public struct DetailView: View {
@@ -18,6 +21,9 @@ public struct DetailView: View {
     @State private var presentationAnchor: UIViewController?
     @State private var photoBrowserPresenter: ScreenshotPhotoBrowserPresenter?
     @State private var sourceImageHidden = false
+    /// 헤더 아래 섹션들의 시차 등장 트리거 — hero 비행(0.55s)과 겹쳐 콘텐츠가 차오르는 인상.
+    /// 헤더는 비행 착지 지점이라 제외(움직이면 `detailImageFrame` 예측이 깨진다).
+    @State private var sectionsAppeared = false
 
     public init(store: StoreOf<DetailFeature>) { self.store = store }
 
@@ -69,15 +75,21 @@ public struct DetailView: View {
                     presentScreenshotBrowser(image: image, thumbnailView: imageView)
                 }
 
+                // 배너가 없으면 index 를 0 부터 당긴다 — 첫 가시 섹션 앞의 빈 선딜레이 방지
+                // (홈/주간 정리의 분기별 index 재사용 패턴과 동일).
+                let bump = mochiItem.needsReview ? 1 : 0
                 if mochiItem.needsReview {
                     NeedsReviewBanner()
+                        .riseIn(sectionsAppeared, index: 0)
                 }
 
-                IntentActionsSection(mochiItem: mochiItem, analysis: analysis) { instanceID, reason in
-                    store.send(.archiveTapped(instanceID: instanceID, reason: reason))
+                IntentActionsSection(mochiItem: mochiItem, analysis: analysis) { instance in
+                    store.send(.todoToggled(instance))
                 }
+                .riseIn(sectionsAppeared, index: bump)
 
                 GistCard(mochiItem: mochiItem, analysis: analysis)
+                    .riseIn(sectionsAppeared, index: bump + 1)
 
                 if let error = store.lastError {
                     Text(error)
@@ -86,6 +98,7 @@ public struct DetailView: View {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            .onAppear { sectionsAppeared = true }
         }
     }
 
@@ -158,10 +171,9 @@ private struct RecallHeader: View {
                 .onTapGesture { onTapImage(previewHandle.image, previewHandle.imageView) }
             }
 
-            VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
-                titleView
-
-                // 출처·시간 메타데이터 — 종류 아이콘과 함께 한 줄.
+            VStack(alignment: .leading, spacing: HomeDesign.Spacing.sm) {
+                // 출처·시간 eyebrow — 제목 **위**에 둔다. 썸네일이 없는 기록(메모·URL)도
+                // 첫 텍스트 줄이 항상 같아, 어떤 조합을 열어도 "기록 상세"로 즉시 읽힌다.
                 HStack(spacing: 5) {
                     Image(systemName: mochiItem.viewKind.icon)
                         .font(.system(size: 10, weight: .semibold))
@@ -170,6 +182,8 @@ private struct RecallHeader: View {
                         .font(.system(size: 12, weight: .medium, design: .rounded))
                         .foregroundStyle(HomeDesign.Color.textMuted)
                 }
+
+                titleView
             }
             .padding(HomeDesign.Spacing.lg)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -202,7 +216,8 @@ private struct RecallHeader: View {
                 TextField("제목을 입력하세요", text: $store.titleDraft.sending(\.titleDraftChanged), axis: .vertical)
                     .font(.system(size: 21, weight: .bold, design: .rounded))
                     .foregroundStyle(HomeDesign.Color.textPrimary)
-                    .lineLimit(1...3)
+                    // 여러 줄로 감기는 긴 제목도 잘리지 않고 보이게 — 리턴 키는 reducer 가 커밋으로 처리.
+                    .lineLimit(1...5)
                     .focused($titleFocused)
                     .submitLabel(.done)
                     .onSubmit { store.send(.titleCommitted) }
@@ -294,16 +309,29 @@ private struct NeedsReviewBanner: View {
 private struct IntentActionsSection: View {
     let mochiItem: MochiItem
     let analysis: MochiItemAnalysis
-    let onArchive: (UUID, InstanceLifecycle.ArchiveReason) -> Void
+    let onToggle: (IntentInstance) -> Void
     @Environment(\.openURL) private var openURL
 
-    private var activeTodos: [IntentInstance] {
-        mochiItem.instances.filter { $0.intentType == .todo && $0.lifecycle == .active }
+    /// 캘린더 탭과 같은 정렬 — 미완료(마감 임박순) 위, 완료(strikethrough)는 아래에 남긴다.
+    private var todoRows: [IntentInstance] {
+        mochiItem.instances
+            .filter { $0.intentType == .todo }
+            .sorted { lhs, rhs in
+                let lDone = lhs.lifecycle.kind == .archived
+                let rDone = rhs.lifecycle.kind == .archived
+                if lDone != rDone { return !lDone }
+                switch (DetailTodoRow.deadline(of: lhs), DetailTodoRow.deadline(of: rhs)) {
+                case let (l?, r?): return l < r
+                case (_?, nil):    return true
+                case (nil, _?):    return false
+                case (nil, nil):   return lhs.id.uuidString < rhs.id.uuidString  // 안정 정렬
+                }
+            }
     }
     private var activeSchedules: [IntentInstance] {
         mochiItem.instances.filter { $0.intentType == .schedule && $0.lifecycle == .active }
     }
-    /// 확신할 때만 "넣어뒀어요" 통지 — 미확신(needsReview)이면 헷갈려요 배너가 담당.
+    /// 확신할 때만 보여준다 — 미확신(needsReview)이면 헷갈려요 배너가 담당.
     private var hasConfirmedSchedule: Bool {
         !mochiItem.needsReview && !activeSchedules.isEmpty
     }
@@ -319,86 +347,201 @@ private struct IntentActionsSection: View {
         return nil
     }
     private var hasAnyAction: Bool {
-        !activeTodos.isEmpty || hasConfirmedSchedule || primaryURL != nil
+        !todoRows.isEmpty || hasConfirmedSchedule || primaryURL != nil
     }
     var body: some View {
         if hasAnyAction {
+            // 섹션 라벨을 카드 밖에 노출해 화면 골격(③행동 → ④정리)이 한눈에 읽히게 한다.
+            // 할 일·일정·링크 행은 캘린더 탭과 같은 시각 언어 — 행마다 독립된 흰 카드(surface+border).
+            // 아이콘은 의도 중립 bolt — 체크는 할 일 전용 시각 언어라, 링크만 있는 기록에서도
+            // 어긋나지 않는 "지금 가능한 행동" 기호로 고정한다.
             VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
-                // 할 일(체크 리스트)만 흰 카드로 묶는다 — 여러 행이 한 덩어리로 읽혀야 하므로.
-                if !activeTodos.isEmpty {
-                    VStack(alignment: .leading, spacing: HomeDesign.Spacing.sm) {
-                        ForEach(activeTodos) { todo in
-                            TodoCheckRow(instance: todo) { onArchive(todo.id, .todoCompleted) }
+                SectionHeader(title: "지금 할 수 있어요", icon: "bolt.fill")
+                    .padding(.horizontal, HomeDesign.Spacing.xs)
+                VStack(alignment: .leading, spacing: HomeDesign.Spacing.sm) {
+                    ForEach(todoRows) { todo in
+                        DetailTodoRow(instance: todo) { onToggle(todo) }
+                    }
+                    if hasConfirmedSchedule {
+                        ForEach(activeSchedules) { schedule in
+                            DetailScheduleRow(instance: schedule)
                         }
                     }
-                    .detailCard()
-                }
-                // 일정 통지·링크 버튼은 그 자체가 완결된 박스/버튼 — 흰 카드로 또 감싸지 않고
-                // 배경 위 독립 요소로 둔다.
-                if hasConfirmedSchedule {
-                    scheduleNotice
-                }
-                if let url = primaryURL {
-                    linkButton(url)
+                    if let url = primaryURL {
+                        DetailLinkRow(url: url, label: sourceLabel(url)) { openURL(url) }
+                    }
                 }
             }
         }
     }
 
-    /// 일정 통지 — 일시가 핵심 정보라 날짜를 헤드라인으로 올린다(한 캡처에 일정 여럿이면 행 반복).
-    private var scheduleNotice: some View {
-        VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
-            ForEach(activeSchedules) { instance in
-                HStack(spacing: HomeDesign.Spacing.md) {
-                    ZStack {
-                        Circle().fill(HomeDesign.Color.purple100)
-                        Image(systemName: "calendar")
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundStyle(HomeDesign.Color.purple600)
-                    }
-                    .frame(width: 26, height: 26)
-                    if let when = Self.scheduleWhen(instance) {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(when)
-                                .font(.system(size: 14, weight: .bold, design: .rounded))
-                                .foregroundStyle(HomeDesign.Color.textPrimary)
-                            Text("일정으로 분류했어요 — 캘린더 탭에 담아뒀어요")
-                                .font(.system(size: 12, weight: .medium, design: .rounded))
-                                .foregroundStyle(HomeDesign.Color.ink700)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                    } else {
-                        Text("일정으로 분류했어요 — 캘린더 탭에 담아뒀어요")
-                            .font(.system(size: 13, weight: .medium, design: .rounded))
-                            .foregroundStyle(HomeDesign.Color.ink700)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    Spacer(minLength: 0)
+    /// URL host 로 커뮤니티 플랫폼을 판별해 행 라벨을 정한다 — openURL 이 설치된 앱(YouTube 등)으로 라우팅.
+    private func sourceLabel(_ url: URL) -> String {
+        let host = (url.host ?? "").lowercased()
+        if host.contains("youtu") { return "YouTube에서 보기" }
+        if host == "x.com" || host.hasSuffix(".x.com") || host.contains("twitter") { return "X에서 보기" }
+        if host.contains("instagram") { return "Instagram에서 보기" }
+        if host.contains("tiktok") { return "TikTok에서 보기" }
+        return "원본에서 보기"
+    }
+}
+
+/// 링크 행 — 할 일·일정 행과 같은 문법(leading 타일 + 제목·부제 + 흰 카드).
+/// 이전의 그라데이션 CTA 는 체크 행·날짜 타일 사이에서 혼자 다른 종이라 폐기(2026-06-11) —
+/// ② 섹션의 모든 행이 단일 시각 언어를 공유해야 어떤 의도 조합이든 화면이 같게 읽힌다.
+/// 브랜드 보라는 타일·부제 틴트로 남겨 "원본으로 가는 행동"의 무게를 유지한다.
+private struct DetailLinkRow: View {
+    let url: URL
+    let label: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: HomeDesign.Spacing.md) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: HomeDesign.Radius.sm, style: .continuous)
+                        .fill(HomeDesign.Color.purple50)
+                    Image(systemName: "arrow.up.right")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundStyle(HomeDesign.Color.purple600)
                 }
+                .frame(width: 46, height: 48)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(label)
+                        .font(.system(size: 13.5, weight: .semibold))
+                        .foregroundStyle(HomeDesign.Color.textPrimary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Text(url.host ?? url.absoluteString)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(HomeDesign.Color.purple500)
+                        .lineLimit(1)
+                }
+            }
+            .padding(HomeDesign.Spacing.md)
+            .background(
+                RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
+                    .fill(HomeDesign.Color.surface)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
+                    .stroke(HomeDesign.Color.border, lineWidth: 1)
+            )
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(PressableStyle())
+    }
+}
+
+/// 할 일 행 — 캘린더 탭 `UpcomingTodoRow` 와 같은 시각 언어(체크 토글 · strikethrough · D-day 라벨 ·
+/// 행마다 흰 카드). 완료↔미완료 양방향 토글(잘못 눌러도 다시 해제 가능). 상세 안이라 chevron 은 없다.
+private struct DetailTodoRow: View {
+    let instance: IntentInstance
+    let onToggle: () -> Void
+
+    private var isCompleted: Bool { instance.lifecycle.kind == .archived }
+
+    /// 할 일 이름은 `payload.title` 우선 — 채팅 수정(propose_item_update)이 갱신하는 구조 필드이고
+    /// 캘린더 탭과 같은 원천. `label` 은 분석 시점 시나리오 라벨이라 수정 후 stale 할 수 있어 폴백.
+    private var title: String {
+        if let title = instance.payload.title, !title.isEmpty { return title }
+        return instance.displayLabel
+    }
+
+    /// 마감일 — 캘린더 탭 `TodoRowItem.deadline` 과 같은 규칙(`payload.deadline ?? payload.date`).
+    static func deadline(of instance: IntentInstance) -> Date? {
+        PayloadDate.parse(instance.payload.deadline ?? instance.payload.date)
+    }
+
+    private var deadline: Date? { Self.deadline(of: instance) }
+
+    var body: some View {
+        HStack(spacing: HomeDesign.Spacing.md) {
+            Button(action: onToggle) {
+                Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 22, weight: .regular))
+                    .foregroundStyle(isCompleted ? HomeDesign.Color.butter400 : HomeDesign.Color.textFaint)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(PressableStyle())
+            .accessibilityLabel(isCompleted ? "\(title) 완료 취소" : "\(title) 완료하기")
+
+            VStack(alignment: .leading, spacing: 3) {
+                // 상세는 읽는 자리 — 캘린더처럼 한 줄로 자르지 않고 전체를 보여준다.
+                Text(title)
+                    .font(.system(size: 13.5, weight: .semibold))
+                    .foregroundStyle(isCompleted ? HomeDesign.Color.textMuted : HomeDesign.Color.textPrimary)
+                    .strikethrough(isCompleted, color: HomeDesign.Color.textFaint)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Text(deadlineLabel)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(isCompleted ? HomeDesign.Color.textFaint : DueDisplay.deadlineColor(deadline))
+                    .lineLimit(1)
             }
         }
         .padding(HomeDesign.Spacing.md)
-        .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
-                .fill(HomeDesign.Color.purple50)
+                .fill(HomeDesign.Color.surface)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
+                .stroke(HomeDesign.Color.border, lineWidth: 1)
+        )
+        .opacity(isCompleted ? 0.65 : 1.0)
+        .animation(.spring(response: 0.3, dampingFraction: 0.75), value: isCompleted)
+    }
+
+    private var deadlineLabel: String {
+        if isCompleted { return "완료함" }
+        guard let deadline else { return "마감일 미정" }
+        return DueDisplay.deadlineLabel(deadline)
+    }
+}
+
+/// 일정 행 — 캘린더 탭 `UpcomingScheduleRow` 와 같은 시각 언어(날짜 타일 · 상대 라벨 · 흰 카드).
+/// 기간 일정은 "시작 ~ 끝", 역전(끝<시작)·파싱 불가 end 는 점 일정으로 수렴(캘린더와 동일 가드).
+private struct DetailScheduleRow: View {
+    let instance: IntentInstance
+
+    private var title: String {
+        if let title = instance.payload.title, !title.isEmpty { return title }
+        return instance.displayLabel
+    }
+
+    private var start: Date? { Self.parsed(date: instance.payload.date, time: instance.payload.time) }
+    private var end: Date? { Self.parsed(date: instance.payload.endDate, time: instance.payload.endTime) }
+
+    var body: some View {
+        HStack(spacing: HomeDesign.Spacing.md) {
+            ScheduleDateTile(date: start)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title)
+                    .font(.system(size: 13.5, weight: .semibold))
+                    .foregroundStyle(HomeDesign.Color.textPrimary)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Text(scheduleLabel)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(HomeDesign.Color.sky400)
+                    .lineLimit(1)
+            }
+        }
+        .padding(HomeDesign.Spacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
+                .fill(HomeDesign.Color.surface)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
+                .stroke(HomeDesign.Color.border, lineWidth: 1)
         )
     }
 
-    /// 일정 일시 표기 — `payload.date`(+`time`)를 `PayloadDate`(단일 원천)로 파싱해
-    /// 캘린더 탭과 같은 한국어·KST 로 보여준다. 파싱 불가(자연어 표기)면 원문 그대로 —
-    /// 날짜가 아예 안 보이는 것보다 낫다. 일시 자체가 없으면 nil(기존 한 줄 통지 유지).
-    /// 기간 일정(`endDate`)은 "시작 ~ 끝" 으로 표기한다 — 역전(끝<시작)·파싱 불가 end 는
-    /// 점 일정으로 수렴해 시작만 표기(캘린더 `CalendarDueDate.scheduleEnd`·EK 등록과 동일 가드).
-    private static func scheduleWhen(_ instance: IntentInstance) -> String? {
-        let payload = instance.payload
-        guard let startLabel = formatted(date: payload.date, time: payload.time) else { return nil }
-        guard let start = parsed(date: payload.date, time: payload.time),
-              let end = parsed(date: payload.endDate, time: payload.endTime),
-              end > start,
-              let endLabel = formatted(date: payload.endDate, time: payload.endTime)
-        else { return startLabel }
-        return "\(startLabel) ~ \(endLabel)"
+    private var scheduleLabel: String {
+        guard let start else { return "날짜 미정" }
+        guard let end, end > start else { return DueDisplay.scheduleLabel(start) }
+        return DueDisplay.scheduleRangeLabel(start, end)
     }
 
     /// date 가 날짜만(yyyy-MM-dd, 10자)이고 time 이 따로 오면 합쳐 파싱한다.
@@ -412,105 +555,6 @@ private struct IntentActionsSection: View {
         }()
         return PayloadDate.parse(raw) ?? PayloadDate.parse(rawDate)
     }
-
-    /// date(+time) 문자열 한 쌍을 표기 문자열로 — 파싱 불가면 원문, date 없으면 nil.
-    private static func formatted(date rawDate: String?, time: String?) -> String? {
-        guard let rawDate, !rawDate.isEmpty else { return nil }
-        let raw: String = {
-            if let time, !time.isEmpty, rawDate.count <= 10 {
-                return "\(rawDate) \(time)"
-            }
-            return rawDate
-        }()
-        guard let date = PayloadDate.parse(raw) ?? PayloadDate.parse(rawDate) else { return rawDate }
-        let hasTime = PayloadDate.parse(raw) != nil ? raw.count > 10 : rawDate.count > 10
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "ko_KR")
-        formatter.timeZone = TimeZone(identifier: "Asia/Seoul")
-        formatter.dateFormat = hasTime ? "M월 d일 (E) a h:mm" : "M월 d일 (E)"
-        return formatter.string(from: date)
-    }
-
-    /// URL host 로 커뮤니티 플랫폼을 판별해 버튼 라벨을 정한다 — openURL 이 설치된 앱(YouTube 등)으로 라우팅.
-    private func sourceLabel(_ url: URL) -> String {
-        let host = (url.host ?? "").lowercased()
-        if host.contains("youtu") { return "YouTube에서 보기" }
-        if host == "x.com" || host.hasSuffix(".x.com") || host.contains("twitter") { return "X에서 보기" }
-        if host.contains("instagram") { return "Instagram에서 보기" }
-        if host.contains("tiktok") { return "TikTok에서 보기" }
-        return "원본에서 보기"
-    }
-
-    private func linkButton(_ url: URL) -> some View {
-        Button { openURL(url) } label: {
-            HStack(spacing: HomeDesign.Spacing.sm) {
-                Image(systemName: "arrow.up.right")
-                    .font(.system(size: 13, weight: .bold))
-                Text(sourceLabel(url))
-                    .font(.system(size: 14, weight: .bold, design: .rounded))
-            }
-            .padding(.vertical, 13)
-            .frame(maxWidth: .infinity)
-            .background(
-                RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
-                // 원본으로 가는 1차 행동 — 홈 FAB 과 같은 브랜드 그라데이션 CTA.
-                    .fill(
-                        LinearGradient(
-                            colors: [HomeDesign.Color.purple400, HomeDesign.Color.purple600],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-            )
-            .foregroundStyle(Color.white)
-            .shadow(color: HomeDesign.Color.purple500.opacity(0.28), radius: 10, x: 0, y: 6)
-        }
-        .buttonStyle(PressableStyle())
-    }
-}
-
-/// 할일 — 체크박스 한 번으로 완료 → archive(.todoCompleted). 마감은 정보 표시(액션 아님).
-private struct TodoCheckRow: View {
-    let instance: IntentInstance
-    let onComplete: () -> Void
-
-    /// 할 일 이름은 `payload.title` 우선 — 채팅 수정(propose_item_update)이 갱신하는 구조 필드이고
-    /// 캘린더 탭(`displayTitle`→representativeTitle)과 같은 원천. `label` 은 분석 시점 시나리오
-    /// 라벨이라 수정 후 stale 할 수 있어 폴백으로만 쓴다.
-    private var title: String {
-        instance.payload.title ?? instance.displayLabel
-    }
-
-    var body: some View {
-        Button(action: onComplete) {
-            HStack(spacing: HomeDesign.Spacing.md) {
-                Circle()
-                    .strokeBorder(HomeDesign.Color.purple200, lineWidth: 2)
-                    .frame(width: 22, height: 22)
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(title)
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(HomeDesign.Color.textPrimary)
-                        .multilineTextAlignment(.leading)
-                    if let deadline = instance.payload.deadline {
-                        HStack(spacing: 3) {
-                            Image(systemName: "clock")
-                                .font(.system(size: 9, weight: .semibold))
-                            Text("마감 \(deadline)")
-                                .font(.system(size: 11, weight: .semibold))
-                        }
-                        .foregroundStyle(HomeDesign.Color.blush400)
-                    }
-                }
-                Spacer(minLength: 0)
-            }
-            .padding(.vertical, 6)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(PressableStyle())
-        .accessibilityLabel("\(title) 완료하기")
-    }
 }
 
 // MARK: - ③ 모찌가 정리했어요 (요약 + 원본)
@@ -520,8 +564,16 @@ private struct GistCard: View {
     let analysis: MochiItemAnalysis
 
     var body: some View {
+        // 섹션 라벨은 카드 밖 — ② "지금 할 수 있어요"와 같은 리듬(라벨 → 카드)으로 골격을 통일.
         VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
             SectionHeader(title: "모찌가 정리했어요", icon: "sparkles")
+                .padding(.horizontal, HomeDesign.Spacing.xs)
+            cardContent
+        }
+    }
+
+    private var cardContent: some View {
+        VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
             Text(analysis.summary)
                 .font(.system(size: 14.5))
                 .foregroundStyle(HomeDesign.Color.ink700)
