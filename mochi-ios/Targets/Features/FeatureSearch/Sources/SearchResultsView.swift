@@ -47,9 +47,15 @@ struct SearchResultsView: View {
                     item: result.item,
                     titleHighlights: result.titleHighlights,
                     summaryHighlights: result.summaryHighlights,
+                    isSemantic: result.isSemantic,
                     onTap: { hero in onCardTap(result.item.id, hero) },
                     onDelete: { onCardDelete(result.item.id) }
                 )
+                .scrollTransition(.animated(.easeOut(duration: 0.25))) { content, phase in
+                    content
+                        .opacity(phase.isIdentity ? 1 : 0.55)
+                        .scaleEffect(phase.isIdentity ? 1 : 0.96)
+                }
             }
         }
     }
@@ -189,5 +195,7 @@ private struct IntentChip: View {
             .animation(.easeInOut(duration: 0.18), value: isActive)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("\(label) 필터")
+        .accessibilityAddTraits(isActive ? [.isSelected] : [])
     }
 }
