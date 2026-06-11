@@ -77,7 +77,7 @@ description: 화면·시나리오·IA·디자인 톤·데모 시나리오의 com
 | 홈 | 회수 진입점·주간 리포트·최근 모찌 | ✅ |
 | 채팅 | AI 대화 (멀티턴) — 기록 기반 질문·요청이 정체성 (§1.5). 탭 = 랜딩, 대화는 풀스크린 push (§1.5 인용 블록). citation 뱃지·근거 카드·proposal 확인 카드·히스토리 시트·30분 자동분리 | ✅ live 배선 완료(POST-as-SSE·복귀 스냅샷 폴링) + push 구조 전환(이중 바·키보드 가림 해소). 실기기 E2E 검증만 잔여 |
 | 캘린더 | 날짜 기반 기록·일정·할 일 | ✅ |
-| 검색 | 4 phase 검색·회수 (§3.5) | ✅ 시안 (서버 검색 어댑터 교체 예정) |
+| 검색 | 4 phase 검색·회수 (§3.5) | ✅ 실데이터 + 2단 검색(로컬 즉답 + 의미 보강) + 채팅 연계 (2026-06-11) |
 
 입력 경로는 다음 셋으로 통일:
 1. 백탭 (Shortcuts)
@@ -135,14 +135,15 @@ description: 화면·시나리오·IA·디자인 톤·데모 시나리오의 com
 - 결과 화면(`.results`/`.empty`) = **Intent** 5칩: 전체 / 일정 / 할일 / 지식 / 기록. 검색 결과를 의도별로 좁힘.
 - Intent 분류 자체는 폐기 X — 홈/캘린더/알림의 배관은 그대로.
 
-**카드** — 2col compact thumbnail (height ~138pt). type 별 layout:
-- 링크: 제목 → 메타 → mini link preview (favicon + host)
-- 스크린샷: preview 박스가 main content
-- 메모/미확인: 제목 → 본문 2줄 → 메타
+**카드** — masonry 2-column (좌우 독립 LazyVStack + 예상 높이 균형 분배). type 별 layout (2026-06-11):
+- 스크린샷(+로컬 이미지): **이미지-led** — 미디어가 카드 상단 100pt edge-to-edge(top 크롭) + 배지 material overlay, 카드 182pt. 홈 RecentMochiCard 패턴
+- 링크: 제목 → 메타 → favicon letter mini preview (host 첫 글자 보라 타일), 138pt
+- 메모/미확인: 제목 → 본문 2줄(인용 워터마크) → 메타, 138pt
+- 제목은 `displayTitle` 위계 + "[출처앱: …]" 메타 strip. 분석 전 항목은 "모찌가 정리하고 있어요" + 메타줄 "분석 중"
 
-**키보드 ✓ toolbar** — 키보드만 dismiss, 화면 phase 유지(FocusState 와 state.isFocused 분리). `.idle` 복귀는 명시 action(빠른 검색·최근 검색·검색 탭 reselect)으로만. **검색 탭 reselect** — 탭바 검색 탭 재탭 시 filter+query reset → `.idle` 그리드 복귀.
+**키보드 ✓ toolbar** — 키보드만 dismiss, 화면 phase 유지(FocusState 와 state.isFocused 분리). `.idle` 복귀는 명시 action(빠른 검색·최근 검색·검색 탭 reselect·검색바 X)으로만. **검색 탭 reselect** — 탭바 검색 탭 재탭 시 filter+query reset → `.idle` 그리드 복귀. 타이핑 중 결과 0 이면 키보드 위 bar 에 "못 찾았어요 — 모찌에게 물어보기" 캡슐(키보드 dismiss 없는 발견 경로).
 
-> **배선 상태**: 현재 검색은 디자인 시안 단계 — `SampleMochiItems.designDemo()` 샘플 데이터 위 로컬 매칭(`MockSearchService`, token-contains + intent 필터). **서버 Hybrid Search(`POST /search`) 어댑터로 교체 예정**(동일 시그니처). RAG 자연어 답변 + 근거 모찌 표시는 서버 배선과 함께.
+> **배선 상태 (2026-06-11 실연결 완료)**: 그리드 = 로컬 Realm(`listRecent(200)` + `observeChanges` 자동 재로드, 홈 패턴), 저장 0 이면 빈 상태 화면. **2단 검색** — 키 입력 중 로컬 token 매칭(`LocalSearchService`, 즉답) + return 제출 시 `POST /search`(RAG) 의미 검색 보강(citations 서버 id → 로컬 역매핑, literal 우선 + semantic 추가). 최근 검색어 UserDefaults 실저장(최대 10). 빈 결과 "모찌에게 물어보기" → 채팅을 query 첫 메시지로 push. 삭제 = 홈 규약(서버 soft delete + 로컬 hard delete). 카드 탭 → 상세 hero present.
 
 ### 3.6 캘린더
 
