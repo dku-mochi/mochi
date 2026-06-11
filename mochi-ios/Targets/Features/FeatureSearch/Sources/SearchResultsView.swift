@@ -9,6 +9,7 @@ struct SearchResultsView: View {
     let query: String
     let results: [SearchResult]
     let selectedIntent: Intent?
+    let isSemanticSearching: Bool
     let onIntent: (Intent?) -> Void
     let onCardTap: (MochiItem.ID, HeroSourceFrames) -> Void
     let onCardDelete: (MochiItem.ID) -> Void
@@ -24,22 +25,10 @@ struct SearchResultsView: View {
                     summary
                         .padding(.horizontal, SearchD5.Sizes.pageH)
 
-                    LazyVGrid(
-                        columns: [
-                            GridItem(.flexible(), spacing: SearchD5.Sizes.gridGap),
-                            GridItem(.flexible()),
-                        ],
-                        spacing: SearchD5.Sizes.gridGap
-                    ) {
-                        ForEach(results) { result in
-                            SearchGridCard(
-                                item: result.item,
-                                titleHighlights: result.titleHighlights,
-                                summaryHighlights: result.summaryHighlights,
-                                onTap: { hero in onCardTap(result.item.id, hero) },
-                                onDelete: { onCardDelete(result.item.id) }
-                            )
-                        }
+                    // 카드 높이 가변(이미지-led 182 / 텍스트 138) — 기본 그리드와 동일 masonry.
+                    HStack(alignment: .top, spacing: SearchD5.Sizes.gridGap) {
+                        masonryColumn(columns.left)
+                        masonryColumn(columns.right)
                     }
                     .padding(.horizontal, SearchD5.Sizes.pageH)
                 }
@@ -49,6 +38,35 @@ struct SearchResultsView: View {
             .scrollIndicators(.hidden)
             .scrollDismissesKeyboard(.immediately)
         }
+    }
+
+    private func masonryColumn(_ columnResults: [SearchResult]) -> some View {
+        LazyVStack(spacing: SearchD5.Sizes.gridGap) {
+            ForEach(columnResults) { result in
+                SearchGridCard(
+                    item: result.item,
+                    titleHighlights: result.titleHighlights,
+                    summaryHighlights: result.summaryHighlights,
+                    onTap: { hero in onCardTap(result.item.id, hero) },
+                    onDelete: { onCardDelete(result.item.id) }
+                )
+            }
+        }
+    }
+
+    /// 예상 높이 기준 좌우 균형 분배 — 짧은 column 에 다음 카드를 넣는다.
+    private var columns: (left: [SearchResult], right: [SearchResult]) {
+        var left: [SearchResult] = [], right: [SearchResult] = []
+        var leftH: CGFloat = 0, rightH: CGFloat = 0
+        for result in results {
+            let h = SearchGridCard.estimatedHeight(for: result.item)
+            if leftH <= rightH {
+                left.append(result); leftH += h
+            } else {
+                right.append(result); rightH += h
+            }
+        }
+        return (left, right)
     }
 
     // MARK: - 결과 요약
@@ -64,6 +82,13 @@ struct SearchResultsView: View {
                 .foregroundStyle(SearchD5.Palette.textSecondary)
                 .lineLimit(2)
                 .multilineTextAlignment(.leading)
+            if isSemanticSearching {
+                ProgressView()
+                    .controlSize(.mini)
+                Text("더 찾는 중")
+                    .font(.system(size: 12.5, weight: .medium, design: .rounded))
+                    .foregroundStyle(SearchD5.Palette.textTertiary)
+            }
             Spacer(minLength: 0)
         }
     }

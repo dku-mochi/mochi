@@ -6,9 +6,7 @@ import DesignSystem
 ///
 /// 구조: 모찌(♥) + 인사 → 최근 검색 + "모두 지우기" → divider → 빠른 검색 (출처 3 칩).
 struct SearchFocusedView: View {
-    /// mock 단계 정적 최근 검색어 — D6+ 에서 SearchHistoryService 로 교체.
-    static let mockRecents: [String] = ["AI", "병원", "과제"]
-
+    let recentSearches: [String]
     let onRecent: (String) -> Void
     let onClearRecents: () -> Void
     let onQuickFilter: (SearchD5.TypeFilter) -> Void
@@ -21,11 +19,13 @@ struct SearchFocusedView: View {
                     .padding(.bottom, 60)
 
                 VStack(alignment: .leading, spacing: 16) {
-                    recentSection
-                    Rectangle()
-                        .fill(SearchD5.Palette.divider)
-                        .frame(height: 1)
-                        .padding(.vertical, 4)
+                    if !recentSearches.isEmpty {
+                        recentSection
+                        Rectangle()
+                            .fill(SearchD5.Palette.divider)
+                            .frame(height: 1)
+                            .padding(.vertical, 4)
+                    }
                     quickSection
                 }
                 .padding(.horizontal, SearchD5.Sizes.pageH)
@@ -76,7 +76,7 @@ struct SearchFocusedView: View {
             }
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 10) {
-                    ForEach(Self.mockRecents, id: \.self) { term in
+                    ForEach(recentSearches, id: \.self) { term in
                         RecentChip(term: term) { onRecent(term) }
                     }
                 }
