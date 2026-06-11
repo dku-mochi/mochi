@@ -6,17 +6,27 @@ import DesignSystem
 public struct SearchView: View {
     @Bindable public var store: StoreOf<SearchFeature>
     @FocusState private var isSearchFocused: Bool
+    /// TextField 의 로컬 미러 — store 직접 binding 은 글자마다 reducer 동기 왕복 + body 전체
+    /// 재평가가 끝나야 글자가 그려져 타이핑이 버벅인다. 입력은 로컬에 즉시 렌더하고 store 는 따라온다.
+    @State private var queryText: String = ""
     /// 첫 진입 시 phaseBody 가 시차 두고 떠오르는 entrance — 홈·캘린더 `riseIn` 패턴.
     @State private var hasEntered: Bool = false
 
     public init(store: StoreOf<SearchFeature>) { self.store = store }
+
+    /// 화면이 그리는 phase — 포커스 진입은 store 왕복을 기다리지 않고 FocusState 로 즉시 전환.
+    /// (탭 → focused 화면 전환이 reducer 응답 대기로 늦어 두 번 탭하게 되던 문제)
+    private var displayPhase: SearchFeature.State.Phase {
+        if isSearchFocused && queryText.isEmpty && store.query.isEmpty { return .focused }
+        return store.phase
+    }
 
     public var body: some View {
         ZStack(alignment: .top) {
             SearchD5.Palette.bgCream.ignoresSafeArea()
 
             // 포커스 화면에만 워시 깔기
-            if store.phase == .focused {
+            if displayPhase == .focused {
                 VStack(spacing: 0) {
                     SearchD5.Palette.headerWash
                         .frame(height: 360)
@@ -40,7 +50,20 @@ public struct SearchView: View {
         .preferredColorScheme(.light)
         .onAppear {
             store.send(.onAppear)
+            queryText = store.query
             hasEntered = true
+        }
+        .onChange(of: queryText) { _, newValue in
+            // 로컬 입력 → store 전달 (검색 effect 는 reducer 의 200ms 디바운스가 흡수).
+            if store.query != newValue {
+                store.query = newValue
+            }
+        }
+        .onChange(of: store.query) { _, newValue in
+            // 외부발 변경(최근 검색 탭·X clear·탭 reselect) → 로컬 미러 sync.
+            if queryText != newValue {
+                queryText = newValue
+            }
         }
         .onChange(of: isSearchFocused) { _, newValue in
             // 키보드 띄울 때만 focused phase 진입.
@@ -59,7 +82,8 @@ public struct SearchView: View {
         .safeAreaInset(edge: .bottom, spacing: 0) {
             keyboardDismissBar
         }
-        .dynamicTypeSize(.medium)
+        // 카드 height 고정(182/138) 레이아웃이라 무제한 확대는 잘림 — large 까지는 lineLimit 으로 안전.
+        .dynamicTypeSize(...DynamicTypeSize.large)
     }
 
     // MARK: - Keyboard dismiss bar (검색바 포커스 시 키보드 위)
@@ -125,16 +149,16 @@ public struct SearchView: View {
         HStack(spacing: 13) {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 22, weight: .medium, design: .rounded))
-                .foregroundStyle(SearchD5.Palette.textTertiary)
+                .foregroundStyle(SearchD5.Palette.primary)
 
             ZStack(alignment: .leading) {
-                if store.query.isEmpty {
+                if queryText.isEmpty {
                     Text("기억나는 말로 찾아보세요")
                         .font(.system(size: 16, weight: .regular, design: .rounded))
                         .foregroundStyle(SearchD5.Palette.placeholder)
                         .allowsHitTesting(false)
                 }
-                TextField("", text: $store.query)
+                TextField("", text: $queryText)
                     .font(.system(size: 17, weight: .regular, design: .rounded))
                     .foregroundStyle(SearchD5.Palette.textPrimary)
                     .submitLabel(.search)
@@ -149,8 +173,9 @@ public struct SearchView: View {
             }
 
             // query 가 있거나 focused 상태일 때 X 활성 — focused 에서 .idle 그리드로 돌아가는 affordance.
-            if !store.query.isEmpty || store.isFocused {
+            if !queryText.isEmpty || isSearchFocused || store.isFocused {
                 Button {
+                    queryText = ""
                     store.send(.clearFiltersTapped)
                     isSearchFocused = false
                 } label: {
@@ -183,20 +208,22 @@ public struct SearchView: View {
     @ViewBuilder
     private var phaseBody: some View {
         Group {
-            switch store.phase {
+            switch displayPhase {
             case .idle:
                 SearchDefaultView(
                     items: store.filteredItems,
                     typeFilter: store.typeFilter,
                     onTypeFilter: { store.send(.typeFilterTapped($0)) },
                     onCardTap:    { id, hero in store.send(.recentTapped(id, hero)) },
-                    onCardDelete: { store.send(.deleteTapped($0)) }
+                    onCardDelete: { store.send(.deleteTapped($0)) },
+                    onRefresh:    { await store.send(.refreshPulled).finish() }
                 )
 
             case .focused:
                 SearchFocusedView(
                     recentSearches: store.recentSearches,
                     onRecent:       { store.send(.recentSearchTapped($0)) },
+                    onRemoveRecent: { store.send(.removeRecentSearchTapped($0)) },
                     onClearRecents: { store.send(.clearRecentSearchesTapped) },
                     onQuickFilter:  { store.send(.quickFilterTapped($0)) }
                 )

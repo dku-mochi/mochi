@@ -63,8 +63,12 @@ public struct SearchFeature: Sendable {
 
         // 시작 / 포커스 화면
         case recentSearchTapped(String)        // 최근 검색 칩
+        case removeRecentSearchTapped(String)  // 칩 long-press → 개별 삭제
         case clearRecentSearchesTapped         // "모두 지우기"
         case quickFilterTapped(SearchD5.TypeFilter)  // 빠른 검색 칩 → typeFilter 적용 + 포커스 해제
+
+        // 그리드 pull-to-refresh — 백엔드 sync 1회 트리거 (반영은 observeChanges 가)
+        case refreshPulled
 
         // 카드
         case recentTapped(MochiItem.ID, HeroSourceFrames?)  // 카드 탭 → 상세 hero present (MainTabFeature)
@@ -90,6 +94,8 @@ public struct SearchFeature: Sendable {
     @Dependency(\.searchService) var searchService
     @Dependency(\.mochiItemRepository) var repository
     @Dependency(\.mochiAPIClient) var apiClient
+    @Dependency(\.syncTrigger) var syncTrigger
+    @Dependency(\.continuousClock) var clock
 
     public init() {}
 
@@ -152,10 +158,21 @@ public struct SearchFeature: Sendable {
                 Self.saveRecentSearch(term, into: &state)
                 return .merge(self.updateSearch(&state), self.semanticSearch(&state))
 
+            case let .removeRecentSearchTapped(term):
+                state.recentSearches.removeAll { $0 == term }
+                UserDefaults.standard.set(state.recentSearches, forKey: Self.recentSearchesKey)
+                return .none
+
             case .clearRecentSearchesTapped:
                 state.recentSearches = []
                 UserDefaults.standard.removeObject(forKey: Self.recentSearchesKey)
                 return .none
+
+            case .refreshPulled:
+                // 업로드 대기분 push + 분석 폴링 1회 — 변경 반영은 observeChanges 루프가 한다.
+                return .run { [syncTrigger] _ in
+                    await syncTrigger.runOnce()
+                }
 
             case let .quickFilterTapped(filter):
                 state.typeFilter = filter
@@ -219,7 +236,7 @@ public struct SearchFeature: Sendable {
                     .sorted { $0.score > $1.score }
                     .compactMap { byServerID[$0.mochiItemID] }
                     .filter { !existing.contains($0.id) }
-                state.results.append(contentsOf: additions.map { SearchResult(item: $0) })
+                state.results.append(contentsOf: additions.map { SearchResult(item: $0, isSemantic: true) })
                 return .none
 
             case .delegate:
@@ -244,10 +261,14 @@ public struct SearchFeature: Sendable {
         let query = state.query
         let intent = state.selectedIntent
         let dataset = state.items
-        // cancelInFlight: 키스트로크마다 발사되므로 늦게 도착한 stale 결과가 최신을 덮지 않게.
+        // 디바운스 200ms — 빠른 타이핑 중 글자마다 dataset 캡처 + 검색 + results 통째 교체
+        // (보이는 카드 전부 diff)가 돌면 키 입력이 버벅인다. 멈췄을 때 1회만.
+        // cancelInFlight: 늦게 도착한 stale 결과가 최신을 덮지 않게.
         return .merge(
             .cancel(id: CancelID.semantic),
-            .run { [searchService] send in
+            .run { [searchService, clock] send in
+                try? await clock.sleep(for: .milliseconds(200))
+                guard !Task.isCancelled else { return }
                 let results = await searchService.search(
                     query: query,
                     intent: intent,

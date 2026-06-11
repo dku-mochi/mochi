@@ -8,6 +8,7 @@ import DesignSystem
 struct SearchFocusedView: View {
     let recentSearches: [String]
     let onRecent: (String) -> Void
+    let onRemoveRecent: (String) -> Void
     let onClearRecents: () -> Void
     let onQuickFilter: (SearchD5.TypeFilter) -> Void
 
@@ -78,6 +79,13 @@ struct SearchFocusedView: View {
                 HStack(spacing: 10) {
                     ForEach(recentSearches, id: \.self) { term in
                         RecentChip(term: term) { onRecent(term) }
+                            .contextMenu {
+                                Button(role: .destructive) {
+                                    onRemoveRecent(term)
+                                } label: {
+                                    Label("이 검색어 지우기", systemImage: "trash")
+                                }
+                            }
                     }
                 }
                 .padding(.vertical, 2)

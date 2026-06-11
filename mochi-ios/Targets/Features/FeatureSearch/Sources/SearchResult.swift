@@ -9,17 +9,21 @@ public struct SearchResult: Equatable, Sendable, Hashable, Identifiable {
     public let item: MochiItem
     public let titleHighlights: [HighlightRange]
     public let summaryHighlights: [HighlightRange]
+    /// 서버 의미 검색(citations)으로 보강된 항목 — literal 매칭과 구분 표시("비슷한 기억").
+    public let isSemantic: Bool
 
     public var id: UUID { item.id }
 
     public init(
         item: MochiItem,
         titleHighlights: [HighlightRange] = [],
-        summaryHighlights: [HighlightRange] = []
+        summaryHighlights: [HighlightRange] = [],
+        isSemantic: Bool = false
     ) {
         self.item = item
         self.titleHighlights = titleHighlights
         self.summaryHighlights = summaryHighlights
+        self.isSemantic = isSemantic
     }
 }
 
