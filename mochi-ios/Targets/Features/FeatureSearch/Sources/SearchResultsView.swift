@@ -9,6 +9,7 @@ struct SearchResultsView: View {
     let query: String
     let results: [SearchResult]
     let selectedIntent: Intent?
+    let isSemanticSearching: Bool
     let onIntent: (Intent?) -> Void
     let onCardTap: (MochiItem.ID, HeroSourceFrames) -> Void
     let onCardDelete: (MochiItem.ID) -> Void
@@ -81,6 +82,13 @@ struct SearchResultsView: View {
                 .foregroundStyle(SearchD5.Palette.textSecondary)
                 .lineLimit(2)
                 .multilineTextAlignment(.leading)
+            if isSemanticSearching {
+                ProgressView()
+                    .controlSize(.mini)
+                Text("더 찾는 중")
+                    .font(.system(size: 12.5, weight: .medium, design: .rounded))
+                    .foregroundStyle(SearchD5.Palette.textTertiary)
+            }
             Spacer(minLength: 0)
         }
     }

@@ -2,10 +2,10 @@ import Foundation
 import ComposableArchitecture
 import CoreDomain
 
-/// 검색 서비스 추상 — mock 단계와 백엔드 단계가 같은 시그니처를 공유한다.
+/// 검색 서비스 추상 — 로컬 literal 검색(키 입력 즉답)의 시그니처.
 ///
-/// mock: 시드 dataset 위에서 로컬 token-contains + intent EXISTS 필터.
-/// backend: 서버 Hybrid Search(`POST /api/v1/search`) 어댑터로 교체 예정 — 동일 시그니처.
+/// 로컬: 실데이터 dataset 위에서 token-contains + intent EXISTS 필터.
+/// 서버 의미 검색(RAG citations)은 SearchFeature.semanticSearch 가 return 제출 시 보강한다.
 public protocol SearchService: Sendable {
     func search(
         query: String,
@@ -14,7 +14,7 @@ public protocol SearchService: Sendable {
     ) async -> [SearchResult]
 }
 
-public struct MockSearchService: SearchService {
+public struct LocalSearchService: SearchService {
     public init() {}
 
     public func search(
@@ -99,9 +99,9 @@ public struct MockSearchService: SearchService {
 // MARK: - DI
 
 private enum SearchServiceKey: DependencyKey {
-    static let liveValue: any SearchService = MockSearchService()
-    static let previewValue: any SearchService = MockSearchService()
-    static let testValue: any SearchService = MockSearchService()
+    static let liveValue: any SearchService = LocalSearchService()
+    static let previewValue: any SearchService = LocalSearchService()
+    static let testValue: any SearchService = LocalSearchService()
 }
 
 public extension DependencyValues {
