@@ -112,8 +112,7 @@ public struct SearchFeature: Sendable {
                 .cancellable(id: CancelID.observe, cancelInFlight: true)
 
             case let .itemsLoaded(items):
-                // 저장소가 완전히 비어있으면(첫 로그인 직후 등) 디자인 시연용 mock 시드 폴백.
-                state.items = items.isEmpty ? SampleMochiItems.designDemo() : items
+                state.items = items
                 // 검색 중이었다면 새 dataset 위에서 결과 재계산.
                 if !state.query.isEmpty {
                     return self.updateSearch(&state)
