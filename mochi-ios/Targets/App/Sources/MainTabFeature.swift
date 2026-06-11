@@ -147,11 +147,19 @@ struct MainTabFeature: Sendable {
                 state.detail = DetailFeature.State(mochiItemID: mochiItemID)
                 return .none
 
-            case let .search(.recentTapped(mochiItemID)):
-                // origin 의 새 hero present 로 통일 — Path.detail case 가 제거됨(상세는 @Presents).
+            case let .search(.recentTapped(mochiItemID, hero)):
+                // 홈 카드와 동일한 hero present — 검색 카드 frame 에서 확대.
                 guard state.detail == nil else { return .none }
-                state.detailHero = nil
-                state.detail = DetailFeature.State(mochiItemID: mochiItemID)
+                state.detailHero = hero
+                state.detail = DetailFeature.State(
+                    mochiItemID: mochiItemID,
+                    heroImageHidden: hero?.cardImage != nil
+                )
+                return .none
+
+            case let .search(.delegate(.askChatRequested(query))):
+                // 검색 빈 결과 "모찌에게 물어보기" — 채팅을 query 첫 메시지로 push (홈 입력바와 동일 패턴).
+                state.path.append(.chat(ChatFeature.State(entry: .firstMessage(query))))
                 return .none
 
             case let .path(.element(id: _, action: .chat(.delegate(.openItemRequested(mochiItemID))))):

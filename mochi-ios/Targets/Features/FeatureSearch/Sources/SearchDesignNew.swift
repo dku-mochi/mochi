@@ -1,60 +1,56 @@
 import SwiftUI
 import CoreDomain
+import DesignSystem
 
-/// 검색 탭 새 시안 (D5+) — 사용자 디자인 가이드 정합 토큰 셋.
+/// 검색 탭 토큰 셋 — `HomeDesign` 위에 검색 전용(TypeFilter/IntentColor) 만 얹은 얇은 레이어.
 ///
-/// 기존 `SearchDesign` 은 보존 (이전 view 들 호환). 새 view 는 이 namespace 사용.
-/// 점진 마이그레이션 끝나면 통합/정리.
+/// D5 단계에선 별도 namespace 였지만 D6 에서 톤 일치를 위해 `HomeDesign` 을 단일 원천으로 삼고,
+/// 검색 고유의 *5축 출처/타입 필터* 색·*결과 화면 Intent 색* 만 여기서 정의.
 public enum SearchD5 {
 
-    // MARK: - Palette
+    // MARK: - Palette (HomeDesign 위임)
 
     public enum Palette {
-        // Primary
-        static let primary       = Color(red: 0x8B/255.0, green: 0x5C/255.0, blue: 0xF6/255.0) // #8B5CF6
-        static let primaryDeep   = Color(red: 0x7C/255.0, green: 0x3A/255.0, blue: 0xED/255.0) // #7C3AED
-        static let primaryLight  = Color(red: 0xA7/255.0, green: 0x8B/255.0, blue: 0xFA/255.0) // #A78BFA
-        static let primaryPale   = Color(red: 0xF1/255.0, green: 0xEA/255.0, blue: 0xFF/255.0) // #F1EAFF
+        // Primary — HomeDesign purple500/600/100/50 으로 통일.
+        public static let primary       = HomeDesign.Color.purple500
+        public static let primaryDeep   = HomeDesign.Color.purple600
+        public static let primaryLight  = HomeDesign.Color.purple400
+        public static let primaryPale   = HomeDesign.Color.purple50
 
-        // Background
-        static let bgCream       = Color(red: 0xFA/255.0, green: 0xF7/255.0, blue: 0xF1/255.0) // #FAF7F1
-        static let bgLavender    = Color(red: 0xEE/255.0, green: 0xE6/255.0, blue: 0xFF/255.0) // #EEE6FF
-        static let bgPink        = Color(red: 0xFF/255.0, green: 0xF1/255.0, blue: 0xF8/255.0) // #FFF1F8
-        static let bgCool        = Color(red: 0xF7/255.0, green: 0xF7/255.0, blue: 0xFB/255.0) // #F7F7FB
+        // Background — 홈/캘린더와 동일 cool gray.
+        public static let bgCream       = HomeDesign.Color.bg
 
         // Card
-        static let card          = Color.white
-        static let cardBorder    = Color(red: 0xEC/255.0, green: 0xEA/255.0, blue: 0xF3/255.0) // #ECEAF3
-        static let cardShadow    = Color(red: 80/255.0, green: 70/255.0, blue: 120/255.0).opacity(0.08)
-        static let cardShadowStrong = Color(red: 80/255.0, green: 70/255.0, blue: 120/255.0).opacity(0.16)
-        static let divider       = Color(red: 0xE7/255.0, green: 0xE4/255.0, blue: 0xEE/255.0) // #E7E4EE
+        public static let card          = HomeDesign.Color.surface
+        public static let cardBorder    = HomeDesign.Color.border
+        // shadow color — cardShadow() modifier 와 동일 톤.
+        public static let cardShadow    = HomeDesign.Color.ink900.opacity(0.06)
+        public static let divider       = HomeDesign.Color.ink100
 
         // Text
-        static let textPrimary   = Color(red: 0x1F/255.0, green: 0x24/255.0, blue: 0x33/255.0) // #1F2433
-        static let textSecondary = Color(red: 0x6F/255.0, green: 0x72/255.0, blue: 0x85/255.0) // #6F7285
-        static let textTertiary  = Color(red: 0xA3/255.0, green: 0xA6/255.0, blue: 0xB5/255.0) // #A3A6B5
-        static let textDisabled  = Color(red: 0xC7/255.0, green: 0xCA/255.0, blue: 0xD6/255.0) // #C7CAD6
-        static let placeholder   = Color(red: 0xA8/255.0, green: 0xA6/255.0, blue: 0xB5/255.0) // #A8A6B5
+        public static let textPrimary   = HomeDesign.Color.textPrimary
+        public static let textSecondary = HomeDesign.Color.textMuted
+        public static let textTertiary  = HomeDesign.Color.textFaint
+        public static let placeholder   = HomeDesign.Color.textFaint
 
-        // Highlight (검색어)
-        static let highlightBg   = Color(red: 0xF0/255.0, green: 0xE6/255.0, blue: 0xFF/255.0) // #F0E6FF
-        static let highlightFg   = textPrimary
+        // Highlight (검색어 강조)
+        public static let highlightBg   = HomeDesign.Color.butter100
+        public static let highlightFg   = HomeDesign.Color.ink900
 
-        // CTA / 검색바 포커스 그라데이션
-        static let ctaGradient = LinearGradient(
-            gradient: Gradient(colors: [primary, primaryDeep]),
+        // CTA gradient
+        public static let ctaGradient = LinearGradient(
+            gradient: Gradient(colors: [HomeDesign.Color.purple500, HomeDesign.Color.purple600]),
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
-        // 상단 헤더 워시 — 포커스 화면 부드러운 배경
-        static let headerWash = LinearGradient(
+        // focused 화면 상단 wash — bg 위에 아주 낮은 opacity 보조 레이어로만.
+        public static let headerWash = LinearGradient(
             gradient: Gradient(stops: [
-                .init(color: bgLavender, location: 0.00),
-                .init(color: bgPink,     location: 0.50),
-                .init(color: bgCream,    location: 1.00),
+                .init(color: HomeDesign.Color.purple50.opacity(0.6), location: 0.00),
+                .init(color: HomeDesign.Color.bg.opacity(0.0),       location: 1.00),
             ]),
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
+            startPoint: .top,
+            endPoint: .bottom
         )
     }
 
@@ -62,6 +58,7 @@ public enum SearchD5 {
 
     /// 검색 탭 *기본* 화면의 필터칩.
     /// 명세: 전체 / 링크 / 스크린샷 / 메모 / 미확인 (needsReview).
+    /// 색은 HomeDesign 의 파스텔 톤으로 약화 — fg 만 또렷, bg 는 부드러운 보조 fill.
     public enum TypeFilter: String, CaseIterable, Sendable, Identifiable {
         case all, link, screenshot, memo, unconfirmed
 
@@ -87,20 +84,20 @@ public enum SearchD5 {
         }
         public var activeBg: Color {
             switch self {
-            case .all:         return Color(red: 0xF1/255.0, green: 0xEA/255.0, blue: 0xFF/255.0)
-            case .link:        return Color(red: 0xF3/255.0, green: 0xEE/255.0, blue: 0xFF/255.0)
-            case .screenshot:  return Color(red: 0xEA/255.0, green: 0xF3/255.0, blue: 0xFF/255.0)
-            case .memo:        return Color(red: 0xFF/255.0, green: 0xF1/255.0, blue: 0xE8/255.0)
-            case .unconfirmed: return Color(red: 0xF3/255.0, green: 0xF4/255.0, blue: 0xF8/255.0)
+            case .all:         return HomeDesign.Color.purple50
+            case .link:        return HomeDesign.Color.purple50
+            case .screenshot:  return HomeDesign.Color.sky100
+            case .memo:        return HomeDesign.Color.butter50
+            case .unconfirmed: return HomeDesign.Color.ink100
             }
         }
         public var activeFg: Color {
             switch self {
-            case .all:         return Color(red: 0x7C/255.0, green: 0x3A/255.0, blue: 0xED/255.0)
-            case .link:        return Color(red: 0x8B/255.0, green: 0x5C/255.0, blue: 0xF6/255.0)
-            case .screenshot:  return Color(red: 0x4F/255.0, green: 0x8D/255.0, blue: 0xF7/255.0)
-            case .memo:        return Color(red: 0xE4/255.0, green: 0x7B/255.0, blue: 0x36/255.0)
-            case .unconfirmed: return Color(red: 0x6F/255.0, green: 0x72/255.0, blue: 0x85/255.0)
+            case .all:         return HomeDesign.Color.purple600
+            case .link:        return HomeDesign.Color.purple500
+            case .screenshot:  return HomeDesign.Color.sky400
+            case .memo:        return HomeDesign.Color.peach400
+            case .unconfirmed: return HomeDesign.Color.ink500
             }
         }
 
@@ -124,18 +121,18 @@ public enum SearchD5 {
     public enum IntentColor {
         public static func bg(_ intent: Intent) -> Color {
             switch intent {
-            case .schedule:  return Color(red: 0xEA/255.0, green: 0xF3/255.0, blue: 0xFF/255.0) // #EAF3FF
-            case .todo:      return Color(red: 0xFF/255.0, green: 0xF1/255.0, blue: 0xE3/255.0) // #FFF1E3
-            case .knowledge: return Color(red: 0xE8/255.0, green: 0xF8/255.0, blue: 0xF0/255.0) // #E8F8F0
-            case .memo:      return Color(red: 0xFF/255.0, green: 0xEA/255.0, blue: 0xF0/255.0) // #FFEAF0
+            case .schedule:  return HomeDesign.Color.sky100
+            case .todo:      return HomeDesign.Color.butter50
+            case .knowledge: return HomeDesign.Color.mint100
+            case .memo:      return HomeDesign.Color.blush100
             }
         }
         public static func fg(_ intent: Intent) -> Color {
             switch intent {
-            case .schedule:  return Color(red: 0x4F/255.0, green: 0x8D/255.0, blue: 0xF7/255.0) // #4F8DF7
-            case .todo:      return Color(red: 0xE4/255.0, green: 0x7B/255.0, blue: 0x36/255.0) // #E47B36
-            case .knowledge: return Color(red: 0x31/255.0, green: 0xA8/255.0, blue: 0x79/255.0) // #31A879
-            case .memo:      return Color(red: 0xED/255.0, green: 0x6F/255.0, blue: 0x8C/255.0) // #ED6F8C
+            case .schedule:  return HomeDesign.Color.sky400
+            case .todo:      return HomeDesign.Color.peach400
+            case .knowledge: return HomeDesign.Color.mint400
+            case .memo:      return HomeDesign.Color.blush400
             }
         }
         public static func label(_ intent: Intent) -> String {
@@ -165,13 +162,12 @@ public enum SearchD5 {
         static let filterChipHeight: CGFloat = 32
         static let filterChipRadius: CGFloat = 16
         static let gridGap: CGFloat          = 10
-        static let gridCardRadius: CGFloat   = 22
+        // 홈 item 카드(RecentMochiCard)와 같은 HomeDesign.Radius.md — 둥글둥글한 인상 제거.
+        static let gridCardRadius: CGFloat   = HomeDesign.Radius.md
         static let gridCardHeight: CGFloat   = 138
         static let cardPadding: CGFloat      = 10
-        static let badgeHeight: CGFloat      = 22
-        static let badgeRadius: CGFloat      = 11
         static let ctaButtonHeight: CGFloat  = 56
-        static let ctaButtonRadius: CGFloat  = 20
+        static let ctaButtonRadius: CGFloat  = HomeDesign.Radius.md
         static let emptyMascotSize: CGFloat  = 220
         static let helloMascotSize: CGFloat  = 180
         static let sectionGap: CGFloat       = 28
