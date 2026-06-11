@@ -11,6 +11,7 @@ struct SearchDefaultView: View {
     let onTypeFilter: (SearchD5.TypeFilter) -> Void
     let onCardTap: (MochiItem.ID, HeroSourceFrames) -> Void
     let onCardDelete: (MochiItem.ID) -> Void
+    let onRefresh: () async -> Void
 
     var body: some View {
         VStack(spacing: 0) {
@@ -34,6 +35,7 @@ struct SearchDefaultView: View {
                 }
                 .scrollIndicators(.hidden)
                 .scrollDismissesKeyboard(.immediately)
+                .refreshable { await onRefresh() }
             }
         }
     }
@@ -46,6 +48,11 @@ struct SearchDefaultView: View {
                     onTap: { hero in onCardTap(item.id, hero) },
                     onDelete: { onCardDelete(item.id) }
                 )
+                .scrollTransition(.animated(.easeOut(duration: 0.25))) { content, phase in
+                    content
+                        .opacity(phase.isIdentity ? 1 : 0.55)
+                        .scaleEffect(phase.isIdentity ? 1 : 0.96)
+                }
             }
         }
     }
@@ -143,6 +150,8 @@ struct TypeFilterChip: View {
             .animation(.easeInOut(duration: 0.18), value: isActive)
         }
         .buttonStyle(TypeChipPress())
+        .accessibilityLabel("\(filter.label) 필터")
+        .accessibilityAddTraits(isActive ? [.isSelected] : [])
     }
 }
 

@@ -17,55 +17,69 @@ struct SearchGridCard: View {
     /// 검색어 매칭 위치 — 결과 화면에서만 전달. 기본 화면(.idle) 카드는 빈 배열.
     let titleHighlights: [HighlightRange]
     let summaryHighlights: [HighlightRange]
+    /// 서버 의미 검색으로 보강된 항목 — "비슷한 기억" 구분 표시.
+    let isSemantic: Bool
     /// 탭 시 카드 frame 묶음을 넘긴다 — 홈 카드와 동일한 hero 확대 전환의 시작점.
     let onTap: (HeroSourceFrames) -> Void
     let onDelete: () -> Void
 
-    @State private var cardFrame: CGRect = .zero
-    @State private var mediaFrame: CGRect = .zero
+    /// hero 비행 시작 frame 저장소 — *비관찰* class box.
+    /// @State CGRect 로 두면 스크롤·키보드 애니메이션 중 global frame 이 매 틱 바뀌며
+    /// 보이는 카드 전부가 재렌더되는 연쇄(검색 탭 랙의 주범)가 생긴다.
+    /// frame 은 탭 순간에만 필요하므로 쓰기가 뷰를 무효화하지 않는 box 에 담는다.
+    @State private var frames = FrameBox()
+
+    private final class FrameBox {
+        var card: CGRect = .zero
+        var media: CGRect = .zero
+    }
 
     init(
         item: MochiItem,
         titleHighlights: [HighlightRange] = [],
         summaryHighlights: [HighlightRange] = [],
+        isSemantic: Bool = false,
         onTap: @escaping (HeroSourceFrames) -> Void,
         onDelete: @escaping () -> Void
     ) {
         self.item = item
         self.titleHighlights = titleHighlights
         self.summaryHighlights = summaryHighlights
+        self.isSemantic = isSemantic
         self.onTap = onTap
         self.onDelete = onDelete
     }
 
-    /// masonry 분배가 쓰는 카드 예상 높이 — 이미지-led 스크린샷만 크다.
+    /// masonry 분배가 쓰는 카드 예상 높이.
+    /// 스크린샷+썸네일 = 4:5 이미지(~222) + 제목·메타 footer(~70) ≈ 292 (mymind 식 showcase 카드).
     static func estimatedHeight(for item: MochiItem) -> CGFloat {
-        isImageLed(item) ? 182 : 138
+        Self.hasThumbnail(item) ? 292 : 138
     }
 
-    private static func isImageLed(_ item: MochiItem) -> Bool {
-        !item.needsReview
-            && SearchD5.TypeFilter.screenshot.matches(item)
-            && item.source.imageRefs.first?.relativePath != nil
+    private static func hasThumbnail(_ item: MochiItem) -> Bool {
+        item.source.imageRefs.first?.relativePath != nil
     }
+
+    private var hasThumbnail: Bool { Self.hasThumbnail(item) }
 
     var body: some View {
         Button {
             onTap(HeroSourceFrames(
-                card: cardFrame,
-                cardImage: Self.isImageLed(item) ? mediaFrame : nil,
+                card: frames.card,
+                cardImage: hasThumbnail ? frames.media : nil,
                 imageRelativePath: item.source.imageRefs.first?.relativePath
             ))
         } label: {
             Group {
-                if Self.isImageLed(item) {
-                    imageLedBody
+                if hasThumbnail {
+                    // showcase 카드 — 이미지 비율이 높이를 정하므로 고정 frame 없음.
+                    showcaseBody
                 } else {
                     textCardBody
+                        .frame(height: Self.estimatedHeight(for: item))
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .frame(height: Self.estimatedHeight(for: item))
             .background(
                 RoundedRectangle(cornerRadius: SearchD5.Sizes.gridCardRadius, style: .continuous)
                     .fill(SearchD5.Palette.card)
@@ -81,9 +95,9 @@ struct SearchGridCard: View {
         .background(
             GeometryReader { geo in
                 Color.clear
-                    .onAppear { cardFrame = geo.frame(in: .global) }
+                    .onAppear { frames.card = geo.frame(in: .global) }
                     .onChange(of: geo.frame(in: .global)) { _, newFrame in
-                        cardFrame = newFrame
+                        frames.card = newFrame
                     }
             }
         )
@@ -94,67 +108,22 @@ struct SearchGridCard: View {
             Button(role: .destructive, action: onDelete) {
                 Label("삭제", systemImage: "trash")
             }
+        } preview: {
+            SearchCardPreview(item: item)
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(accessibilitySummary)
+        .accessibilityHint("두 번 탭하면 상세를 열어요")
     }
 
-    // MARK: - 이미지-led (스크린샷 + 로컬 이미지) — 홈 RecentMochiCard 패턴
-
-    private var imageLedBody: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            ZStack(alignment: .topLeading) {
-                LocalThumbnail(
-                    relativePath: item.source.imageRefs.first?.relativePath,
-                    targetSize: CGSize(width: 180, height: 100),
-                    alignment: .top
-                ) {
-                    LinearGradient(
-                        colors: [HomeDesign.Color.sky100, HomeDesign.Color.purple100],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                }
-                .frame(height: 100)
-                .clipped()
-
-                overlayBadge
-                    .padding(HomeDesign.Spacing.sm)
-            }
-            .frame(height: 100)
-            .background(
-                GeometryReader { geo in
-                    Color.clear
-                        .onAppear { mediaFrame = geo.frame(in: .global) }
-                        .onChange(of: geo.frame(in: .global)) { _, newFrame in
-                            mediaFrame = newFrame
-                        }
-                }
-            )
-
-            VStack(alignment: .leading, spacing: 4) {
-                titleText
-                Spacer(minLength: 0)
-                metaRow
-            }
-            .padding(SearchD5.Sizes.cardPadding)
-        }
+    private var accessibilitySummary: String {
+        var parts = [typeFilter.label, cardTitle, "\(sourceLabel), \(absoluteDate)"]
+        if isAnalyzing { parts.append("분석 중") }
+        if isSemantic { parts.append("비슷한 기억으로 찾음") }
+        return parts.joined(separator: ", ")
     }
 
-    /// 이미지 위 배지 — 홈 tag() 와 동일하게 material 캡슐로 가독성 확보.
-    private var overlayBadge: some View {
-        HStack(spacing: 4) {
-            Image(systemName: SearchD5.TypeFilter.screenshot.systemImage)
-                .font(.system(size: 10, weight: .semibold, design: .rounded))
-            Text(SearchD5.TypeFilter.screenshot.label)
-                .font(.system(size: 10.5, weight: .semibold, design: .rounded))
-                .tracking(0.05)
-        }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 5)
-        .foregroundStyle(HomeDesign.Color.ink700)
-        .background(.ultraThinMaterial, in: Capsule())
-    }
-
-    // MARK: - 텍스트 카드 (링크/메모/미확인/이미지 없는 스크린샷)
+    // MARK: - 텍스트 카드 (공통 골격)
 
     private var textCardBody: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -203,12 +172,83 @@ struct SearchGridCard: View {
         }
     }
 
-    /// 이미지 없는 스크린샷 (서버 복구 전 등) — 텍스트 preview 박스 폴백.
+    // MARK: - Showcase 카드 (스크린샷 + 로컬 이미지) — mymind 식
+
+    /// 이미지가 4:5 로 크게(콘텐츠가 알아볼 수 있는 크기) + 아래 제목·메타 footer.
+    /// 이전 두 시도와의 차이 — ① 100pt strip top-크롭(상태바·배너 쓰레기만 보임)이 아니라
+    /// 4:5 center 크롭이라 본 콘텐츠가 화면을 채우고, ② 텍스트는 이미지 위가 아니라 아래 흰 footer.
+    private var showcaseBody: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            ZStack(alignment: .topLeading) {
+                LocalThumbnail(
+                    relativePath: item.source.imageRefs.first?.relativePath,
+                    targetSize: CGSize(width: 178, height: 222),
+                    alignment: .center
+                ) {
+                    LinearGradient(
+                        colors: [HomeDesign.Color.sky100, HomeDesign.Color.purple100],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                }
+                .aspectRatio(0.8, contentMode: .fit)
+                .frame(maxWidth: .infinity)
+                .clipped()
+
+                overlayBadge
+                    .padding(HomeDesign.Spacing.sm)
+            }
+            .background(
+                GeometryReader { geo in
+                    Color.clear
+                        .onAppear { frames.media = geo.frame(in: .global) }
+                        .onChange(of: geo.frame(in: .global)) { _, newFrame in
+                            frames.media = newFrame
+                        }
+                }
+            )
+
+            VStack(alignment: .leading, spacing: 4) {
+                titleText
+                metaRow
+            }
+            .padding(SearchD5.Sizes.cardPadding)
+        }
+    }
+
+    /// 이미지 위 배지 — 홈 tag() 와 동일하게 material 캡슐로 가독성 확보.
+    private var overlayBadge: some View {
+        HStack(spacing: 4) {
+            Image(systemName: SearchD5.TypeFilter.screenshot.systemImage)
+                .font(.system(size: 10, weight: .semibold, design: .rounded))
+            Text(SearchD5.TypeFilter.screenshot.label)
+                .font(.system(size: 10.5, weight: .semibold, design: .rounded))
+                .tracking(0.05)
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 5)
+        .foregroundStyle(HomeDesign.Color.ink700)
+        .background(.ultraThinMaterial, in: Capsule())
+    }
+
+    /// 이미지 없는 스크린샷 (서버 복구 전 등) — 텍스트 폴백.
     private var screenshotTextBody: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 0) {
             titleText
-            screenshotTextBox
-            Spacer(minLength: 0)
+                .padding(.bottom, 6)
+            if let summary = item.analysis?.summary, !summary.isEmpty,
+               Self.stripSourceMeta(summary) != cardTitle {
+                Text(Self.highlight(Self.stripSourceMeta(summary), ranges: summaryHighlights))
+                    .font(.system(size: 12.5, weight: .regular, design: .rounded))
+                    .tracking(-0.2)
+                    .lineSpacing(1)
+                    .foregroundStyle(SearchD5.Palette.textSecondary)
+                    .lineLimit(2)
+                    .truncationMode(.tail)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            Spacer(minLength: 4)
             metaRow
         }
     }
@@ -269,6 +309,17 @@ struct SearchGridCard: View {
                     .font(.system(size: 11, weight: .semibold, design: .rounded))
                     .foregroundStyle(SearchD5.Palette.primary)
             }
+            if isSemantic {
+                Circle().fill(SearchD5.Palette.textTertiary).opacity(0.6)
+                    .frame(width: 2.5, height: 2.5)
+                HStack(spacing: 2) {
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 9, weight: .semibold))
+                    Text("비슷한 기억")
+                        .font(.system(size: 11, weight: .semibold, design: .rounded))
+                }
+                .foregroundStyle(SearchD5.Palette.primary)
+            }
         }
         .lineLimit(1)
     }
@@ -314,26 +365,6 @@ struct SearchGridCard: View {
         .background(
             RoundedRectangle(cornerRadius: HomeDesign.Radius.sm, style: .continuous)
                 .fill(HomeDesign.Color.purple50.opacity(0.55))
-        )
-    }
-
-    private var screenshotTextBox: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(item.analysis?.summary ?? cardTitle)
-                .font(.system(size: 12, weight: .semibold, design: .rounded))
-                .tracking(-0.2)
-                .foregroundStyle(SearchD5.Palette.textPrimary)
-                .lineLimit(2)
-        }
-        .padding(8)
-        .frame(maxWidth: .infinity, minHeight: 48, alignment: .topLeading)
-        .background(
-            RoundedRectangle(cornerRadius: HomeDesign.Radius.sm, style: .continuous)
-                .fill(HomeDesign.Color.bg)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: HomeDesign.Radius.sm, style: .continuous)
-                .stroke(SearchD5.Palette.cardBorder, lineWidth: 1)
         )
     }
 
@@ -408,6 +439,46 @@ struct SearchGridCard: View {
             }
         }
         return attr
+    }
+}
+
+// MARK: - Long-press preview (contextMenu 확대 미리보기)
+
+/// long-press 시 카드 위에 뜨는 미리보기 — 그리드 카드가 잘라낸 내용(전체 본문·큰 이미지)을 보여준다.
+private struct SearchCardPreview: View {
+    let item: MochiItem
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            if let path = item.source.imageRefs.first?.relativePath {
+                LocalThumbnail(
+                    relativePath: path,
+                    targetSize: CGSize(width: 320, height: 240),
+                    alignment: .top
+                ) {
+                    Color.clear
+                }
+                .frame(height: 240)
+                .clipShape(RoundedRectangle(cornerRadius: HomeDesign.Radius.sm, style: .continuous))
+            }
+
+            Text(item.displayTitle)
+                .font(.system(size: 17, weight: .bold, design: .rounded))
+                .foregroundStyle(HomeDesign.Color.textPrimary)
+                .multilineTextAlignment(.leading)
+
+            if let body = item.analysis?.summary ?? item.source.text, !body.isEmpty {
+                Text(body)
+                    .font(.system(size: 14, weight: .regular, design: .rounded))
+                    .lineSpacing(2)
+                    .foregroundStyle(HomeDesign.Color.textMuted)
+                    .lineLimit(8)
+                    .multilineTextAlignment(.leading)
+            }
+        }
+        .padding(16)
+        .frame(width: 320, alignment: .leading)
+        .background(HomeDesign.Color.surface)
     }
 }
 
