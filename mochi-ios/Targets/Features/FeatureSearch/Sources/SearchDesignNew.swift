@@ -161,11 +161,10 @@ public enum SearchD5 {
         static let searchBarRadius: CGFloat  = 24
         static let filterChipHeight: CGFloat = 32
         static let filterChipRadius: CGFloat = 16
-        static let gridGap: CGFloat          = 10
-        // 홈 item 카드(RecentMochiCard)와 같은 HomeDesign.Radius.md — 둥글둥글한 인상 제거.
+        // edge-to-edge 모자이크 — 좌우 패딩 없이 셀 간 6pt 이음새, 테두리·그림자 없이 radius 만.
+        static let gridGap: CGFloat          = 6
         static let gridCardRadius: CGFloat   = HomeDesign.Radius.md
         static let gridCardHeight: CGFloat   = 138
-        static let cardPadding: CGFloat      = 10
         static let ctaButtonHeight: CGFloat  = 56
         static let ctaButtonRadius: CGFloat  = HomeDesign.Radius.md
         static let emptyMascotSize: CGFloat  = 220

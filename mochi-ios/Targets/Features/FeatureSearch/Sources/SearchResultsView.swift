@@ -25,12 +25,12 @@ struct SearchResultsView: View {
                     summary
                         .padding(.horizontal, SearchD5.Sizes.pageH)
 
-                    // 카드 높이 가변(이미지-led 182 / 텍스트 138) — 기본 그리드와 동일 masonry.
+                    // 카드 높이 가변(2:3 이미지 ~290 / 텍스트 타일 138) — 기본 그리드와 동일 masonry.
                     HStack(alignment: .top, spacing: SearchD5.Sizes.gridGap) {
                         masonryColumn(columns.left)
                         masonryColumn(columns.right)
                     }
-                    .padding(.horizontal, SearchD5.Sizes.pageH)
+                    // edge-to-edge 모자이크 — 그리드만 좌우 패딩 없이 화면 가득 (칩·요약은 pageH 유지).
                 }
                 .padding(.top, 10)
                 .padding(.bottom, 16)
