@@ -82,12 +82,16 @@ class ChatToolResult:
     - ``proposal``: propose_* 툴이 채우는 확인 카드 ``{id, type, payload}``. **DB 쓰기 없음** —
       run 루프가 SSE ``proposal`` 이벤트로 흘리고 assistant 행 ``proposals`` 에 영속만 한다.
       실행은 사용자 확정 탭 → REST.
+    - ``images``: ``(gs:// URI, mime_type)`` 목록 — run 루프가 별도 user part 로 모델에
+      첨부한다(Vertex 가 직접 read). **현재 턴 in-memory 전용** — tool 행 영속에 실리지
+      않아 과거 턴 히스토리에 재주입되지 않는다(이미지 토큰 비용, ``compact`` 와 같은 원리).
     """
 
     payload: dict[str, Any]
     summary: str
     compact: dict[str, Any] = field(default_factory=dict)
     proposal: dict[str, Any] | None = None
+    images: tuple[tuple[str, str], ...] = ()
 
 
 class ChatTool(Protocol):

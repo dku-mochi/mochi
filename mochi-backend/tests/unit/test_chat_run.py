@@ -329,12 +329,21 @@ def test_router_tool_registry_is_read_only() -> None:
     }
     session_factory: Any = object()  # 빌더는 팩토리를 보관만 한다 — 호출 없음
 
-    without_key = {tool.name for tool in _build_chat_tools(session_factory, tavily_api_key=None)}
-    assert without_key == base
+    bare = {
+        tool.name
+        for tool in _build_chat_tools(session_factory, tavily_api_key=None, gcs_capture_bucket=None)
+    }
+    assert bare == base
 
     # web_search 는 키가 있을 때만 — 키 발급이 머지를 블록하지 않는 설계 (journal 2026-06-10).
-    with_key = {tool.name for tool in _build_chat_tools(session_factory, tavily_api_key="tvly-x")}
-    assert with_key == base | {"web_search"}
+    # view_item_image 는 버킷이 있을 때만 — 없는데 등록하면 항상 "no image" 로 모델을 오도.
+    full = {
+        tool.name
+        for tool in _build_chat_tools(
+            session_factory, tavily_api_key="tvly-x", gcs_capture_bucket="mochi-captures"
+        )
+    }
+    assert full == base | {"web_search", "view_item_image"}
 
 
 # ---------- ⑤ BeginChatTurn ----------

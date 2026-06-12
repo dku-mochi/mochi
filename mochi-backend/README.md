@@ -65,7 +65,7 @@ app/
 │   │   ├── domain/                Conversation/Message/MessageCitation + ChatTool·ChatLLMClient·ChatTurnStore ports + run_events
 │   │   ├── application/           BeginChatTurn(암묵 생성·동시 run 409) · RunChatTurn(detached run — 한도 폴백·citation 파싱) · queries
 │   │   ├── infrastructure/        ORM·repository · RunRegistry(in-process queue) · GeminiChatClient(AUTO+stream) · turn_store · tools/(read-only)
-│   │   ├── prompts/               chat@v6 — PromptVersion 버저닝, 기준+why
+│   │   ├── prompts/               chat@v7 — PromptVersion 버저닝, 기준+why
 │   │   └── presentation/router.py POST /{id}/messages(POST-as-SSE) · GET 목록/스냅샷 · DELETE
 │   └── notifications/
 │       ├── domain/                DevicePushToken, APNsClient port
