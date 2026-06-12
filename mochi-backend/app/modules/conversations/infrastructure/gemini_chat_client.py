@@ -36,6 +36,7 @@ def _to_contents(parts: list[dict[str, Any]]) -> list[types.Content]:
     """정규화 대화(list[dict])를 genai Content 로 변환 — agent ``_to_contents`` 와 동형.
 
     지원 형태: {"role","text"} / {"function_call":{name,args}} / {"function_response":{name,response}}.
+    text part 는 ``images``(gs:// URI, mime) 목록을 동반할 수 있다 — view_item_image 첨부.
     """
     contents: list[types.Content] = []
     for part in parts:
@@ -65,9 +66,11 @@ def _to_contents(parts: list[dict[str, Any]]) -> list[types.Content]:
                 )
             )
         else:
-            contents.append(
-                types.Content(role=part.get("role", "user"), parts=[types.Part(text=part.get("text", ""))])
-            )
+            content_parts: list[types.Part] = [types.Part(text=part.get("text", ""))]
+            # 멀티모달 입력: gs:// 이미지를 같은 user turn 에 첨부 (Gemini 가 직접 read) — agent 와 동형.
+            for uri, mime in part.get("images", []):
+                content_parts.append(types.Part.from_uri(file_uri=uri, mime_type=mime))
+            contents.append(types.Content(role=part.get("role", "user"), parts=content_parts))
     return contents
 
 
