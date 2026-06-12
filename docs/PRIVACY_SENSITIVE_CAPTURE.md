@@ -21,7 +21,11 @@ description: 민감 캡처 보호 설계(on-device 감지·마스킹·최소전�
 - 원본 스크린샷은 기본적으로 iPhone 로컬 저장소에만 보관한다.
 - 민감도가 높은 캡처는 서버 업로드 전에 사용자에게 경고한다.
 - 서버 AI 분석이 필요하더라도 원본 식별 정보 대신 privacy-preserving semantic payload 를 전송한다.
-- 서버에 임시 이미지가 올라간 경우 분석 완료 후 TTL 기반으로 삭제한다.
+- 서버에 올라간 캡처 이미지(업로드용 파생본 — 원본 PNG 는 위 첫 항목대로 단말 로컬 전용)는
+  GCS 에 owner-scoped 로 보존한다. 분석·복구 pull·채팅 `view_item_image` 가 재조회를
+  전제하므로 구 "분석 후 TTL 삭제" 목표는 폐기한다 (2026-06-12 결정 — as-built 정합:
+  삭제 경로가 처음부터 없었고 복구 pull 이 보존에 의존). 삭제는 계정/항목 삭제 정책과
+  함께 후속 결정.
 - 원본, OCR 텍스트, embedding, 분석 결과를 모두 개인정보 파생 데이터로 취급한다.
 
 ### 1.2 제품 목표
@@ -285,7 +289,7 @@ privacy_policy: local_only | text_only | redacted_image | original_allowed
 
 - 원본 이미지 없음: semantic payload + OCR 텍스트 기반 분석
 - redacted 이미지 있음: redacted 이미지 + semantic payload 함께 분석
-- 원본 승인됨: 임시 이미지 사용 후 TTL 삭제
+- 원본 승인됨: 업로드 이미지로 분석 (GCS 보존 — §1.1 의 TTL 폐기 결정)
 
 ---
 
@@ -367,3 +371,10 @@ agent/application
   `agent.application.tool_factories` 경유로 그대로 쓴다. 채팅 쪽 래퍼는 텍스트화·truncation 만.
 - **web_search 는 고정 호스트(api.tavily.com)** — 모델이 임의 호스트로 요청을 보낼 수 없다.
   임의 URL 접근은 전부 가드 있는 web_fetch 로만 가능하다.
+- **`view_item_image`(2026-06-12) 는 외부 반출 경로가 아니다** — 채팅 모델이 기록의 업로드
+  이미지를 다시 보는 툴이지만, 분석 파이프라인과 동일하게 Vertex AI 가 `gs://` 를 직접
+  read 한다(백엔드 bytes 무접촉, 제3자 전송 없음 — 데이터 경계는 분석 시점과 동일).
+  민감도 게이트는 미적용 — §6.2 privacy 필드가 아직 미구현이라 판별 근거가 없고, 분석
+  경로도 동일하게 ungated 라 노출 표면이 새로 늘지 않는다 (의도된 결정 2026-06-12,
+  필드 도입은 `TODO.md` §5.1 후속). 이미지는 현재 턴 in-memory 전용 — 과거 턴 히스토리에
+  재주입되지 않으며 대화 DB 에 이미지 URI 가 영속되지 않는다.
