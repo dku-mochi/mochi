@@ -133,6 +133,10 @@ public final class ShareExtensionPrincipal: UIViewController {
         }
         Self.deleteImagePNGs(removed)
         Task { [weak self] in
+            // 성공 모먼트(`ShareSuccessOverlay`)의 최소 노출시간 — 직접전송이 즉시 반환되는 빠른 경로
+            // (앱 미실행·토큰 만료 등)에서 한 프레임만 깜빡이고 닫히는 glitch 를 막고, 캐릭터
+            // 바운스(~0.45s) + "기억했어요!" 읽을 시간을 보장한다. (기존 600ms 로딩 닷 → 900ms)
+            let minSuccessDisplay = Task { try? await Task.sleep(nanoseconds: 900_000_000) }
             // 1) 큐 적재가 **항상 진실원천** — 로컬 Realm ingest·동기화·유실 방지(다음 active tick 의
             //    drain → upsert → SyncWorker 업로드). 직접전송보다 먼저 써 유실을 0으로 만든다.
             let fileURL = AppGroup.inboundQueueURL.appendingPathComponent("\(payload.id.uuidString).json")
@@ -144,6 +148,7 @@ public final class ShareExtensionPrincipal: UIViewController {
             //    반환해 이중 적재가 없다. 이미지 업로드 성공 시 큐 JSON 도 objectKey 로 보강한다.
             //    completeRequest 전에 시도해 extension 이 살아있는 동안 끝낸다.
             await ShareExtDirectUpload.attempt(payload, queueFileURL: fileURL)
+            await minSuccessDisplay.value
             self?.complete(success: true)
         }
     }

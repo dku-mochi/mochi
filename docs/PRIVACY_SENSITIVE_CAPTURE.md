@@ -2,7 +2,7 @@
 level: 2
 mode: committed
 status: active
-last_verified: 2026-05-29
+last_verified: 2026-06-10
 confidence: 0.8
 owners: [송준서, 이용찬, 박세현]
 description: 민감 캡처 보호 설계(on-device 감지·마스킹·최소전송)의 committed 정본. 캡처 ingestion·업로드·저장 경로를 손대기 전 반드시 읽어라 — 도메인 불변식이라 우회 금지(code-reviewer/qa-validator 가 P1 으로 잡음). 변경 시 정합성 폭포 필수.
@@ -49,7 +49,7 @@ description: 민감 캡처 보호 설계(on-device 감지·마스킹·최소전�
 서버는 전체 카드번호를 보지 못하지만, 검색과 요약에 필요한 결제 맥락은 유지한다.
 
 > **개인화 프로필도 같은 원칙을 따른다.** agent loop 가 분석에 주입하는 사용자 특성 요약
-> (`user_profiles`, `DOMAIN_DESIGN.md §8.2`)은 최근 입력의 raw 내용이 아니라 "관심사·평소 분류
+> (`user_profiles`, `DOMAIN_DESIGN.md §7.2`)은 최근 입력의 raw 내용이 아니라 "관심사·평소 분류
 > 성향" 추상 요약만 저장하며, `owner_id` 로 격리되어 cross-tenant 누설을 차단한다.
 
 ### 2.2 위험도 기반 정책
@@ -349,3 +349,21 @@ agent/application
 - embedding 을 민감도 6 이상에도 생성할지 여부
 - 로컬 전용 캡처를 자연어 검색에 포함하려면 온디바이스 검색 인덱스를 둘지 여부
 - 마스킹 이미지 생성 시 blur, solid fill, semantic overlay 중 어떤 방식을 기본으로 할지 여부
+
+---
+
+## 10. 채팅 web 툴의 외부 반출 경계 (2026-06-10)
+
+채팅 탭의 LLM 루프는 `web_search`(Tavily)·`web_fetch` 로 외부에 닿는다 — 사용자의 기록이
+**제3자(검색 프로바이더·임의 웹서버)로 새어 나갈 수 있는 유일한 채팅 경로**라 경계를 명시한다.
+
+- **검색 쿼리에 기록 원문 금지** — 시스템 프롬프트 행동규칙이 "기록 원문·식별 가능 파생
+  표현을 데이터 경계 밖으로 나가는 쿼리에 넣지 않는다"를 강제한다 (`chat_prompts.py`,
+  chat@v1 부터 선제 명시). 툴 파라미터 설명에도 동일 규칙을 중복 명시 — 일반화된 쿼리로
+  재표현(rephrase)하게 한다. 프롬프트 기반 가드(③티어)라는 한계는 인지 — 기계 강제가
+  필요해지면 쿼리 PII 필터를 후속으로 검토.
+- **web_fetch 는 기존 SSRF 가드 무수정 재사용** — agent `WebFetchTool`(호스트 블록리스트·
+  사설/링크로컬 IP 차단·redirect 마다 재검증·사이즈/MIME 상한)을
+  `agent.application.tool_factories` 경유로 그대로 쓴다. 채팅 쪽 래퍼는 텍스트화·truncation 만.
+- **web_search 는 고정 호스트(api.tavily.com)** — 모델이 임의 호스트로 요청을 보낼 수 없다.
+  임의 URL 접근은 전부 가드 있는 web_fetch 로만 가능하다.

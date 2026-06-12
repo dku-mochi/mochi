@@ -236,6 +236,8 @@ public enum RealmMochiItemMapper {
         row.payloadTitle = instance.payload.title
         row.payloadDate = instance.payload.date
         row.payloadTime = instance.payload.time
+        row.payloadEndDate = instance.payload.endDate
+        row.payloadEndTime = instance.payload.endTime
         row.payloadDeadline = instance.payload.deadline
         row.payloadPerson = instance.payload.person
         row.payloadTopic = instance.payload.topic
@@ -252,6 +254,8 @@ public enum RealmMochiItemMapper {
             title: row.payloadTitle,
             date: row.payloadDate,
             time: row.payloadTime,
+            endDate: row.payloadEndDate,
+            endTime: row.payloadEndTime,
             deadline: row.payloadDeadline,
             person: row.payloadPerson,
             topic: row.payloadTopic,

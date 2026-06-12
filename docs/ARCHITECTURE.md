@@ -2,7 +2,7 @@
 level: 2
 mode: committed
 status: active
-last_verified: 2026-06-05
+last_verified: 2026-06-10
 confidence: 0.7
 owners: [송준서, 이용찬, 박세현]
 description: 시스템 토폴로지·iOS↔Backend 데이터흐름·API 계약의 committed 정본. 다음 중 하나라도 손대기 전 반드시 읽어라 — 두 프로젝트 모두 영향, presentation 스키마, openapi.json, Idempotency-Key, WebFetch SSRF 가드, 모노레포 빌드/배포. 일부 "목표 상태" 서술은 docs/l2/aspirational/ 로 분리 예정. 변경 시 양 README·openapi.json·plan(L3) 정합성 폭포 필수.
@@ -61,7 +61,8 @@ description: 시스템 토폴로지·iOS↔Backend 데이터흐름·API 계약�
 │  │  POST /auth/{apple,google,refresh,logout}          │               │
 │  │  GET  /users/me     GET /health                    │               │
 │  │  GET  /mochi_items(list)  …/images/download-url    │               │
-│  │  planned(no route): sync /search /conv.            │               │
+│  │  POST /search   /conversations/{id}/messages (SSE) │               │
+│  │  planned(no route): /sync                          │               │
 │  └────────┬────────────────────┬────────────────────┬─┘               │
 │           │                    │                    │                 │
 │           ▼                    ▼                    ▼                 │
@@ -106,7 +107,7 @@ description: 시스템 토폴로지·iOS↔Backend 데이터흐름·API 계약�
 App  ──► Features ──► Cores ─┬─ CoreDomain        (pure model, 의존성 없음)
                              ├─ CorePersistence   (Realm + AppGroup + Repository)
                              ├─ CoreNetworking    (MochiAPIClient + DTO)
-                             ├─ CoreAgentClient   (AgentStreamClient — SSE)
+                             ├─ CoreAgentClient   (AgentStreamClient·ChatStreamClient — SSE)
                              ├─ CoreIntegrations  (EventKit / Reminders)
                              └─ DesignSystem      (MochiTheme, IntentBadge)
 
@@ -149,13 +150,13 @@ App  ──► AppIntents/          (QuickCaptureIntent + CaptureScreenshotInten
 1. `InboundQueueConsumer.drain()` → 큐를 비우고 Realm 에 ingest
 2. `MochiSyncWorker.runOnce()` → `syncState == .pendingUpload` 인 MochiItem 를 backend 에 업로드 → `.uploaded` 또는 `.syncFailed`
 
-> **서버→로컬 복구 (pull) — 재설치/기기 변경 후 데이터 복구**: 앱을 지웠다 깔면 Keychain 토큰이 사라져 재로그인해야 하고, 로컬 Realm·`captures/` 이미지도 비어 "넣어둔 게 다 사라진" 것처럼 보인다. 하지만 서버엔 owner 항목이 그대로 있다(같은 Apple 계정 = 같은 `user_id`, mochi_item 은 `owner_id` 스코핑). `MochiItemSyncWorker.pullRemote()` 가 `GET /mochi_items`(limit 200) 로 받은 항목을 `MochiItemDTO.toMochiItem()` 으로 역매핑해 Realm 에 upsert 한다. **머지 규약: 복구 항목은 서버 id 를 로컬 Realm primary key 로 채택**(`syncState=.uploaded(serverID:)`) — 재설치 직후 로컬엔 매칭 키가 없으므로 서버 id 를 정체성으로 삼아야 재pull 이 같은 행을 덮어 멱등이다(새 캡처의 "서버 id ≠ 로컬 id" 규약과 별개 — 복구 항목은 서버가 정본). 아직 업로드 안 끝난 로컬 항목(`.pendingUpload`/`.uploading`/`.syncFailed`)은 보존한다. 이미지는 `objectKey` 만 있고 로컬 파일이 없으면 `POST /mochi_items/images/download-url`(GCS Signed GET URL)로 원본을 받아 `captures/<sha256>.<ext>` 에 복원한다(content-addressed 멱등 → 기존 `LocalThumbnail` 무변경). 트리거: 세션 복원·새 로그인 직후(`RootFeature.sessionResolved`/`signedIn`), 홈 빈 상태 폴백(`HomeFeature.onAppear`), 설정 "전체 동기화" 버튼(`SettingsFeature`).
+> **서버→로컬 복구 (pull) — 재설치/기기 변경 후 데이터 복구**: 앱을 지웠다 깔면 Keychain 토큰이 사라져 재로그인해야 하고, 로컬 Realm·`captures/` 이미지도 비어 "넣어둔 게 다 사라진" 것처럼 보인다. 하지만 서버엔 owner 항목이 그대로 있다(같은 Apple 계정 = 같은 `user_id`, mochi_item 은 `owner_id` 스코핑). `MochiItemSyncWorker.pullRemote()` 가 `GET /mochi_items`(limit 200) 로 받은 항목을 `MochiItemDTO.toMochiItem()` 으로 역매핑해 Realm 에 upsert 한다. **머지 규약: 복구 항목은 서버 id 를 로컬 Realm primary key 로 채택**(`syncState=.uploaded(serverID:)`) — 재설치 직후 로컬엔 매칭 키가 없으므로 서버 id 를 정체성으로 삼아야 재pull 이 같은 행을 덮어 멱등이다(새 캡처의 "서버 id ≠ 로컬 id" 규약과 별개 — 복구 항목은 서버가 정본). **이미 로컬에 있는 항목(`MochiItem.id` + `syncState.uploaded(serverID:)` 두 키로 식별)은 건너뛴다** — 로컬 origin 항목이 server-id PK 로 중복 insert 되는 것을 막고, 로컬 전용 수정(userTitle 등)을 보존한다(분석 갱신은 SSE/폴링 책임). 이미지는 `objectKey` 만 있고 로컬 파일이 없으면 `POST /mochi_items/images/download-url`(GCS Signed GET URL)로 원본을 받아 `captures/<sha256>.<ext>` 에 복원한다(content-addressed 멱등 → 기존 `LocalThumbnail` 무변경). 트리거: 세션 복원·새 로그인 직후(`RootFeature.sessionResolved`/`signedIn`), 홈 빈 상태 폴백(`HomeFeature.onAppear`), 설정 "전체 동기화" 버튼(`SettingsFeature`). **pull↔upload 경합 정리(2026-06-11)**: skip 의 두 키도 못 막는 틈이 있다 — `uploadOne` 의 서버 commit 과 로컬 `updateSync(.uploaded)` 사이(actor reentrancy)에 pull 이 끼면 같은 캡처가 server-id PK 행으로 한 번 더 들어온다(간헐 중복). 업로드 완료 시(serverID 확정) 그 PK 의 복제 행을 지우고, pull 진입 시에도 중복 쌍(로컬 origin 행의 serverID == 다른 행의 PK)을 정리한다 — 로컬 origin 행이 정본.
 
 별도로 `RootFeature` 가 `.appLaunched` / `.appBecameActive` 시점에 `pending-backtap/` 을 검사 → (a) `.png` 잔재 (snippet 시스템 dismiss 후 남은 것) 는 모두 sweep, (b) `.memo` marker 가 있으면 가장 최근 한 장의 captureID 를 추출해 `BackTapModalFeature` 메모 phase 로 띄움 (인증된 상태에서만; 미인증이면 다음 active 시점까지 대기).
 
 ### 2.4 4-Intent 라이프사이클 (2분할 — 처리상태 ⊥ 의미상태)
 
-2026-06-04 빅뱅으로 lifecycle 은 **2분할**됐다(DOMAIN_DESIGN §7). **item 처리상태**와 **intent instance 의미상태**가 직교한다.
+2026-06-04 빅뱅으로 lifecycle 은 **2분할**됐다(DOMAIN_DESIGN §5). **item 처리상태**와 **intent instance 의미상태**가 직교한다.
 
 - **처리상태** (`mochi_items.lifecycle_kind`, item 단위): `ingested → analyzing → analyzed`(분석완료·instance 적재됨·iOS SSE `final`/폴링 컷오버 신호), 실패 시 `→ failed`. archive 없음.
 - **의미상태** (`intent_instances.lifecycle_kind`, instance 단위): instance 는 분석 성공 시 `active` 로 태어난다. `CoreDomain.LifecyclePolicy.validate(from:to:intent:)` 가 (1) `(current→next)` 페어가 intent_type 별 허용인지 (2) `.archived(reason:)` 의 reason 이 intent_type 별 허용인지 검증.
@@ -218,7 +219,7 @@ app/
 │   │   └── domain/lifecycle_policy.py     4-Intent 상태 머신 (단일 진실 공급원)
 │   ├── agent/
 │   │   ├── domain/                AgentNode/AgentRun/Tool ABC/LLMClient port
-│   │   ├── application/           AgentOrchestrator + AgentRunPersistence + MochiWorker
+│   │   ├── application/           AgentOrchestrator + AgentRunPersistence + MochiWorker + tool_factories(타 모듈용 가드 툴 진입점)
 │   │   ├── infrastructure/
 │   │   │   ├── registry.py        StaticToolRegistry
 │   │   │   └── tools/             PlatformContextTool / WebFetchTool / EmbedTool / MultimodalAnalyzeTool
@@ -234,11 +235,12 @@ app/
 │   │   ├── application/           RegisterPushToken, SendAnalysisNotification, make_push_token_repository
 │   │   ├── infrastructure/        HttpxAPNsClient(http2+ES256 JWT), PostgresPushTokenRepository, DevicePushTokenRow
 │   │   └── presentation/router.py      POST /devices/push-token
-│   └── conversations/
-│       ├── domain/                Conversation / Message / Citation
-│       ├── application/           SendMessage, GetConversation
-│       ├── infrastructure/        SQLAlchemy ORM
-│       └── presentation/          POST /conversations, POST /conversations/{id}/messages
+│   └── conversations/                   채팅 탭 — LLM 루프 read-only + proposal (journal 2026-06-10)
+│       ├── domain/                Conversation/Message/MessageCitation, ChatTool·ChatLLMClient·ChatTurnStore ports, run_events
+│       ├── application/           BeginChatTurn(암묵 생성·동시 run 409) · RunChatTurn(detached run 본체) · queries(스냅샷+stale lazy repair)
+│       ├── infrastructure/        ORM·repository · RunRegistry(in-process queue) · GeminiChatClient(AUTO+stream) · turn_store(연산별 자체 세션) · tools/(search_items·get_item_detail·propose 5종·web_fetch(agent 가드 재사용)·web_search(Tavily, 키 미설정 시 제외) — 전부 read-only)
+│       ├── prompts/               chat@v6 활성 (PromptVersion 버저닝)
+│       └── presentation/          POST /{id}/messages(POST-as-SSE) · GET 목록/스냅샷 · DELETE · PATCH proposals/{id}(카드 확정/취소 영속)
 ├── api.py                         /api/v1 라우터 조립
 └── main.py                        FastAPI factory + 미들웨어 + 예외 핸들러
 ```
@@ -350,12 +352,13 @@ SearchResponse
 - `make openapi` (= `scripts/export_openapi.py`) → `openapi.json` 정적 추출 + iOS `CoreNetworking/openapi.json` 동기화. FastAPI 3.1 의 `anyOf:[X, {type:null}]` 은 `export_openapi.py` 가 3.0 `nullable:true` 로 낮춘다 (swift-openapi-generator 가 `type:null` 을 skip 하는 문제 회피).
 - iOS `CodeGen/generate.sh`(swift-openapi-generator)가 `openapi.json` → `CoreNetworking/Sources/Generated/{Client,Types}.swift` 생성. `OpenAPIMochiClient` 어댑터가 `MochiAPIClient` 라이브 구현(날짜 transcoder + auth 미들웨어 + 6 op 위임, `putCaptureImage` 만 GCS 직접 PUT).
 - 동기화 게이트: `ship-precheck §5a`(백엔드 code↔openapi.json no-diff) + `§5b`(openapi.json↔생성물 no-diff). CI(`ship-precheck.yml`)는 §5a 재실행.
+- **SSE 의 ⓪티어 예외 (2026-06-10 명문화)**: SSE 스트리밍 라우트(`GET /mochi_items/{id}/stream`, `POST /conversations/{id}/messages`)는 openapi.json 에 **라우트로는 명시**되지만 이벤트 wire format 은 OpenAPI 로 표현되지 않아, iOS 는 generated client 가 아닌 **raw URLSession**(`CoreAgentClient` — `LiveAgentStreamClient` 전례, 채팅은 `LiveChatStreamClient` 후속)으로 소비한다. 이벤트 스키마의 iOS 정본은 `CoreAgentClient` 의 event enum(`AgentEvent`/`ChatStreamEvent`), 서버 정본은 해당 라우터 docstring — 채팅 이벤트 7종(`message_delta`/`tool_started`/`tool_finished`/`citation`/`proposal`/`done`/`error`, payload 에 `run_id`)은 양쪽이 1:1 이어야 하며 변경 시 함께 고친다.
 
 ---
 
 ## 4. iOS ↔ Backend 계약
 
-> **API 계약의 단일 원천은 [`mochi-backend/openapi.json`](../mochi-backend/openapi.json)** — 백엔드 `presentation/` 에서 `make openapi` 로 생성된다. **엔드포인트 목록·요청/응답 스키마·필드 타입은 이 문서에 복제하지 않는다**(로컬 구동 시 `GET /docs` Swagger UI). 어느 라우트가 실재하고 iOS 가 배선됐는지의 단일 원천은 [`DOMAIN_DESIGN.md`](DOMAIN_DESIGN.md) §6 이다. 이 절은 그 위에 얹히는 *런타임 규약*(헤더)·*매핑*만 다룬다.
+> **API 계약의 단일 원천은 [`mochi-backend/openapi.json`](../mochi-backend/openapi.json)** — 백엔드 `presentation/` 에서 `make openapi` 로 생성된다. **엔드포인트 목록·요청/응답 스키마·필드 타입은 이 문서에 복제하지 않는다**(로컬 구동 시 `GET /docs` Swagger UI). openapi 만으론 알 수 없는 iOS 배선 예외는 [`DOMAIN_DESIGN.md`](DOMAIN_DESIGN.md) §6.4 가 소유한다. 이 절은 그 위에 얹히는 *런타임 규약*(헤더)·*매핑*만 다룬다.
 
 ### 4.1 Request headers
 
@@ -367,7 +370,7 @@ SearchResponse
 
 ### 4.2 Endpoints
 
-엔드포인트 목록·요청/응답 스키마는 **`openapi.json`** 단일 원천(위 §4 노트). 각 라우트의 도메인 의미·실재/배선 상태(✅실재배선 / ◑서버만 / ○미존재)는 [`DOMAIN_DESIGN.md`](DOMAIN_DESIGN.md) §6 표를 본다.
+엔드포인트 목록·요청/응답 스키마·각 라우트의 의미는 **`openapi.json`** 단일 원천(위 §4 노트). iOS 배선 예외(서버만 실재·라우트 미존재 등)는 [`DOMAIN_DESIGN.md`](DOMAIN_DESIGN.md) §6.4 를 본다.
 
 ### 4.3 DTO 매핑
 
@@ -403,7 +406,7 @@ iOS `CoreNetworking.MochiAPIClient` 의 DTO 가 backend `openapi.json` 의 스�
 ### 5.5 Agent loop & 개인화 (Arch2 — LLM = 분석가)
 
 - **`GeminiAgentClient(LLMClient)`** (`gemini-3.1-flash-lite`/global) — function-calling 루프. LLM 이 분석가: `finalizeAnalysis`(V7, boolean instances) 로 가변 개수 `intent_instances`(`intent_type`·`payload`(typed)·`label`·`reasoning`) + `needs_review` + `review_options` + summary·entities 를 직접 저술한다. **서버 derive 없음**(점수·대표·위계 폐기 — `_to_analysis_result` 가 DTO→instance 1:1 분해). `platformContext`/`webFetch` 로 URL 그라운딩. `AgentOrchestrator` 가 첫 user turn 에 `# 시간 컨텍스트`(Asia/Seoul 현재시각)를 주입한다. orchestrator 의 `ANALYZED` 노드가 루프를, `PERSISTED` 노드가 `MochiItemGateway.apply_analysis` write-back(intent_instances delete-reinsert + 처리상태 `→analyzed`)을 담당.
-- **개인화**: `user_profiles` 에 유저 특성 요약(관심사·평소 분류 성향)을 sliding-window 로 적립(`RefreshUserProfile`, 디바운스), 분석 시 system prompt 에 주입 → 쓸수록 정확. 상세 흐름은 `DOMAIN_DESIGN.md §8.2`.
+- **개인화**: `user_profiles` 에 유저 특성 요약(관심사·평소 분류 성향)을 sliding-window 로 적립(`RefreshUserProfile`, 디바운스), 분석 시 system prompt 에 주입 → 쓸수록 정확 (도메인 위치: `DOMAIN_DESIGN.md` §7.2).
 - text+URL = 실연결. 이미지 bytes 분석·임베딩 적재(INDEXED)는 design-ahead.
 
 ---

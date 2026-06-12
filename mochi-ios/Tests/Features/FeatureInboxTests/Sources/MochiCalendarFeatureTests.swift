@@ -58,8 +58,9 @@ final class MochiCalendarFeatureTests: XCTestCase {
 
     // MARK: - CalendarDaySummary.group
 
-    func test_group_buckets_by_kst_day_with_priority_intent_and_thumbnail() {
-        // 2026-06-01 KST: schedule 1 + todo 2 → 고정 우선순위 schedule>todo 라 대표는 schedule(최빈 아님).
+    func test_group_buckets_by_kst_day_with_due_dots_and_thumbnail() {
+        // 캘린더 리디자인(402eb8d) 이후 2축 집계 — captured(저장 수·썸네일) + due(일정/할일 점).
+        // 구 representativeIntent(고정 우선순위 대표 intent)는 제거됐다.
         let items = [
             item(intent: .schedule, capturedAt: iso("2026-06-01T03:00:00Z")),   // KST 6/1 12:00
             item(intent: .knowledge, capturedAt: iso("2026-06-02T05:00:00Z")),  // KST 6/2 14:00
@@ -68,15 +69,22 @@ final class MochiCalendarFeatureTests: XCTestCase {
         ]
         // repository 는 capturedAt desc 로 준다.
         let sorted = items.sorted { $0.source.capturedAt > $1.source.capturedAt }
+        // due 축: 6/1 에 active schedule 일정 1개 — sky 점만 켜져야 한다.
+        let due = [dueItem([
+            IntentInstance(intentType: .schedule, payload: IntentPayload(date: "2026-06-01")),
+        ], capturedAt: iso("2026-05-30T00:00:00Z"))]
 
-        let days = CalendarDaySummary.group(captured: sorted, due: [], calendar: kstCalendar)
+        let days = CalendarDaySummary.group(captured: sorted, due: due, calendar: kstCalendar)
         let byDay = Dictionary(uniqueKeysWithValues: days.map { (kstCalendar.dateComponents([.month, .day], from: $0.date).day ?? 0, $0) })
 
         XCTAssertEqual(byDay[1]?.count, 3)
-        XCTAssertEqual(byDay[1]?.representativeIntent, .schedule)            // 고정 우선순위 최상위
         XCTAssertEqual(byDay[1]?.thumbnailRelativePath, "captures/k1.heic")  // 유일한 relativePath
+        XCTAssertEqual(byDay[1]?.dueCount, 1)
+        XCTAssertEqual(byDay[1]?.hasScheduleDue, true)
+        XCTAssertEqual(byDay[1]?.hasTodoDue, false)
         XCTAssertEqual(byDay[2]?.count, 1)
         XCTAssertNil(byDay[2]?.thumbnailRelativePath)
+        XCTAssertEqual(byDay[2]?.hasDue, false)
     }
 
     func test_group_kst_boundary_pushes_late_utc_into_next_day() {
@@ -135,6 +143,77 @@ final class MochiCalendarFeatureTests: XCTestCase {
         XCTAssertEqual(dues.count, 2)
         XCTAssertEqual(dues.filter { $0.intent == .todo }.count, 1)
         XCTAssertEqual(dues.filter { $0.intent == .schedule }.count, 1)
+    }
+
+    func test_dueDates_returns_end_for_range_schedule_and_degrades_inverted_to_point() {
+        let item = dueItem([
+            IntentInstance(intentType: .schedule,
+                           payload: IntentPayload(date: "2026-06-12", endDate: "2026-06-14")),
+            // 끝이 시작보다 앞서는 역전 데이터 — 점 일정으로 수렴해야 한다.
+            IntentInstance(intentType: .schedule,
+                           payload: IntentPayload(date: "2026-06-20", endDate: "2026-06-18")),
+        ])
+        let dues = CalendarDueDate.dueDates(of: item).sorted { $0.start < $1.start }
+        XCTAssertEqual(dues.count, 2)
+        XCTAssertNotNil(dues[0].end)
+        XCTAssertNil(dues[1].end)
+    }
+
+    func test_group_spreads_range_schedule_into_bar_days_without_sky_dot() {
+        // 6/12~6/14 기간 일정 → 3일 모두 막대(hasRangeSchedule), 점(hasScheduleDue)은 켜지지 않는다.
+        // 막대 라운드는 양 끝에만 — 가운데 날은 양쪽으로 이어진다.
+        let due = [dueItem([
+            IntentInstance(intentType: .schedule,
+                           payload: IntentPayload(date: "2026-06-12", endDate: "2026-06-14")),
+        ])]
+        let days = CalendarDaySummary.group(captured: [], due: due, calendar: kstCalendar)
+        let byDay = Dictionary(uniqueKeysWithValues: days.map { (kstCalendar.component(.day, from: $0.date), $0) })
+
+        XCTAssertEqual(days.count, 3)
+        for day in [12, 13, 14] {
+            XCTAssertEqual(byDay[day]?.hasRangeSchedule, true)
+            XCTAssertEqual(byDay[day]?.hasScheduleDue, false)
+            XCTAssertEqual(byDay[day]?.hasDue, true)  // 셀 탭(sheet) 활성 신호는 유지
+        }
+        XCTAssertEqual(byDay[12]?.rangeConnectsLeft, false)
+        XCTAssertEqual(byDay[12]?.rangeConnectsRight, true)
+        XCTAssertEqual(byDay[13]?.rangeConnectsLeft, true)
+        XCTAssertEqual(byDay[13]?.rangeConnectsRight, true)
+        XCTAssertEqual(byDay[14]?.rangeConnectsLeft, true)
+        XCTAssertEqual(byDay[14]?.rangeConnectsRight, false)
+    }
+
+    func test_covers_includes_middle_days_of_range_only() {
+        let entry: (start: Date, end: Date?, intent: Intent) = (
+            CalendarDueDate.parse("2026-06-12")!, CalendarDueDate.parse("2026-06-14"), .schedule
+        )
+        XCTAssertTrue(CalendarDueDate.covers(entry, day: CalendarDueDate.parse("2026-06-13")!, calendar: kstCalendar))
+        XCTAssertTrue(CalendarDueDate.covers(entry, day: CalendarDueDate.parse("2026-06-14")!, calendar: kstCalendar))
+        XCTAssertFalse(CalendarDueDate.covers(entry, day: CalendarDueDate.parse("2026-06-15")!, calendar: kstCalendar))
+    }
+
+    func test_upcoming_sorter_keeps_ongoing_range_schedule() {
+        // 시작은 지났지만 끝이 안 온 기간 일정 — "다가오는 일정"에 진행 중으로 남아야 한다.
+        let calendar = Calendar.mochiSeoul
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: Date())!
+        let tomorrow = calendar.date(byAdding: .day, value: 1, to: Date())!
+        let dayFormatter = DateFormatter()
+        dayFormatter.locale = Locale(identifier: "en_US_POSIX")
+        dayFormatter.timeZone = TimeZone(identifier: "Asia/Seoul")
+        dayFormatter.dateFormat = "yyyy-MM-dd"
+
+        let ongoing = dueItem([IntentInstance(
+            intentType: .schedule,
+            payload: IntentPayload(date: dayFormatter.string(from: yesterday),
+                                   endDate: dayFormatter.string(from: tomorrow))
+        )])
+        let pastPoint = dueItem([IntentInstance(
+            intentType: .schedule,
+            payload: IntentPayload(date: dayFormatter.string(from: yesterday))
+        )])
+
+        let sorted = UpcomingScheduleSorter.sort([ongoing, pastPoint])
+        XCTAssertEqual(sorted.map(\.id), [ongoing.id])  // 지난 점 일정은 빠지고 진행 중 기간만 남는다
     }
 
     func test_parse_handles_iso_with_seconds_and_rejects_natural_language() {

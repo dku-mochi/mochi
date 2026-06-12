@@ -6,8 +6,8 @@ private let bundleIdPrefix = "app.mochi"
 private let deploymentTarget = "17.0"
 private let swiftVersion = "5.0"
 private let developmentTeam = "U9SLX327XS"
-private let marketingVersion = "0.1.0"
-private let currentProjectVersion = "1"
+private let marketingVersion = "0.1.5"
+private let currentProjectVersion = "5"
 private let appGroup = "group.app.mochi"
 
 private let baseSettings: SettingsDictionary = [
@@ -227,6 +227,27 @@ let project = Project(
             dependencies: [
                 .target(name: "CoreDomain"),
                 .target(name: "CoreAgentClient"),
+                .target(name: "CorePersistence"),
+                .target(name: "CoreNetworking"),
+                .target(name: "DesignSystem"),
+                .package(product: "ComposableArchitecture"),
+                .package(product: "Dependencies"),
+                .package(product: "CasePaths"),
+                .package(product: "IdentifiedCollections"),
+                .package(product: "Perception"),
+                .package(product: "PerceptionCore"),
+                .package(product: "SwiftNavigation"),
+            ]
+        ),
+        module(
+            "FeatureChat",
+            layer: .feature,
+            dependencies: [
+                .target(name: "CoreDomain"),
+                .target(name: "CoreAgentClient"),
+                .target(name: "CoreNetworking"),
+                .target(name: "CorePersistence"),
+                .target(name: "CoreIntegrations"),
                 .target(name: "DesignSystem"),
                 .package(product: "ComposableArchitecture"),
                 .package(product: "Dependencies"),
@@ -402,6 +423,7 @@ let project = Project(
                 .target(name: "FeatureMochiItem"),
                 .target(name: "FeatureInbox"),
                 .target(name: "FeatureSearch"),
+                .target(name: "FeatureChat"),
                 .target(name: "FeatureDetail"),
                 .target(name: "FeatureSettings"),
                 .target(name: "CoreDomain"),
@@ -513,7 +535,9 @@ let project = Project(
 
         // MARK: Tests
         unitTests(for: "CoreDomain", layer: .core),
-        unitTests(for: "CorePersistence", layer: .core, dependencies: [.target(name: "CoreDomain")]),
+        // CoreNetworking: MochiItemSyncWorker 테스트가 MochiAPIClient 스텁·DTO 를 직접 구성한다.
+        unitTests(for: "CorePersistence", layer: .core, dependencies: [.target(name: "CoreDomain"), .target(name: "CoreNetworking")]),
+        unitTests(for: "CoreAgentClient", layer: .core, dependencies: [.target(name: "CoreDomain")]),
         unitTests(
             for: "FeatureMochiItem",
             layer: .feature,
@@ -553,6 +577,22 @@ let project = Project(
                 .package(product: "SwiftNavigation"),
             ]
         ),
+        unitTests(
+            for: "FeatureChat",
+            layer: .feature,
+            dependencies: [
+                .target(name: "CoreAgentClient"),
+                .target(name: "CoreIntegrations"),
+                .package(product: "Clocks"),
+                .package(product: "ComposableArchitecture"),
+                .package(product: "Dependencies"),
+                .package(product: "CasePaths"),
+                .package(product: "IdentifiedCollections"),
+                .package(product: "Perception"),
+                .package(product: "PerceptionCore"),
+                .package(product: "SwiftNavigation"),
+            ]
+        ),
     ],
     schemes: [
         .scheme(
@@ -562,9 +602,11 @@ let project = Project(
             testAction: .targets([
                 "CoreDomainTests",
                 "CorePersistenceTests",
+                "CoreAgentClientTests",
                 "FeatureMochiItemTests",
                 "FeatureInboxTests",
                 "FeatureSearchTests",
+                "FeatureChatTests",
             ]),
             runAction: .runAction(executable: "Mochi")
         ),

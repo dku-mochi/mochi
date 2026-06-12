@@ -2,7 +2,7 @@
 level: 1
 mode: committed
 status: active
-last_verified: 2026-06-04
+last_verified: 2026-06-10
 confidence: 0.9
 owners: [송준서, 이용찬, 박세현]
 title: 팀 워크플로우 · 정합성 통제
@@ -51,7 +51,9 @@ description: 3인 + AI 협업의 운영 매뉴얼. 갈라질 수 있는 모든 �
 |---|---|---|---|
 | **L1** 불변 기반 | 문제·팀·워크플로우 | `WORKFLOW.md`(이 문서), `PRODUCT.md` | 팀 합의 + 사람 명시 승인 |
 | **L2** 바뀌면 골치 | 도메인·아키텍처·인프라·민감캡처 | `DOMAIN_DESIGN.md`, `ARCHITECTURE.md`, `PRIVACY_SENSITIVE_CAPTURE.md`, `gcp-architecture.html` | 수정 시 L3·양 README 재검토 강제 |
-| **L3** 자주 바뀜 | 주간플랜·아이디어·로그 | `TODO.md`, `journal/*`, `lab/*` | 자유 |
+| **L3** 자주 바뀜 | 화면 기획·주간플랜·아이디어·로그 | `UX_SPEC.md`, `TODO.md`, `journal/*`, `lab/*` | 자유 |
+
+**레벨은 문서가 아니라 내용에 붙는다** — 한 문서 안에 안정도가 다른 내용이 섞이면 분할한다. (2026-06-10: `PRODUCT.md` 의 화면·시나리오·디자인 층을 `UX_SPEC.md`(L3) 로 분리 — L1 보호가 L3 급 내용까지 잠가 수정 마찰 → 방치 → drift 를 만들던 문제 해소.)
 
 **폭포 예시 (반드시 따라 바꿔야 함):**
 - DB 스키마 변경(L2 `DOMAIN_DESIGN`) → 백엔드 코드·iOS 코드·양 README·이번주 plan(L3) 동기화
@@ -60,13 +62,18 @@ description: 3인 + AI 협업의 운영 매뉴얼. 갈라질 수 있는 모든 �
 작업 시작 전 `doc-guardian` 서브에이전트가 이 폭포를 스캔해 모순/모호성을 먼저 잡는다 (§4).
 
 ### 2.1 참조하되 복제하지 마라 (정보 소유 경계)
-각 사실은 정확히 한 문서가 소유한다. 다른 문서는 이름으로 *참조*할 뿐 내용을 *복제*하지 않는다.
-- PRODUCT(L1): 사용자 문제·미션·컨셉 — 스키마/필드 금지
-- DOMAIN_DESIGN(L2): 엔티티·스키마·상태머신·DDL (스키마 정본)
+각 사실은 정확히 한 곳이 소유한다. 다른 문서는 이름으로 *참조*할 뿐 내용을 *복제*하지 않는다.
+
+**코드 ↔ 문서 (2026-06-10 codify)**: 코드가 소유한 as-built 사실(DDL·마이그레이션 목록·라우트 목록·인덱스·스키마버전·프롬프트 본문)은 **어떤 문서도 복제하지 않는다 — 포인터만.** 문서는 코드로 표현할 수 없는 것(why·의미·불변식·플랫폼 간 규약)을 소유한다. as-built 스냅샷은 복제하는 순간부터 drift 가 시작된다(DOMAIN_DESIGN 의 DDL 복제가 alembic 0009 에서 멈춰 0015 까지 6개 마이그레이션이 누락됐던 사고).
+
+**문서 ↔ 문서**:
+- PRODUCT(L1): 사용자 문제·미션·4-Intent 컨셉·MVP 우선순위 — 화면/스키마/필드 금지
+- UX_SPEC(L3): 화면 구성·시나리오·IA·디자인 톤·데모 — 도메인 의미 금지
+- DOMAIN_DESIGN(L2): Ubiquitous Language·intent 모델 결정·lifecycle 상태머신 의미·동기화 규약 (DDL 은 코드 정본)
 - ARCHITECTURE(L2): 토폴로지·데이터흐름·계약 — DB 컬럼 나열 대신 "DOMAIN §N대로" 참조
 - PRIVACY(L2): 민감캡처 정책 — 스키마 컬럼 금지
 
-엔티티 *이름* 참조는 허용. *컬럼/DDL 복제*만 위반. (실측상 현재 위반은 경미 — 예방 규칙.)
+엔티티 *이름* 참조는 허용. *컬럼/DDL/라우트표 복제*만 위반.
 
 ### 2.2 문서 수명 — canonical vs ephemeral
 - canonical(`docs/` 안정 문서): 영속. 갱신하되 삭제 안 함.

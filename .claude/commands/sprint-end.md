@@ -28,7 +28,7 @@ allowed-tools: Bash, Read, Grep, Glob, Edit, Write
 ```
 ## 다음 sprint: <식별자> — <목표 1문장 + 검증 기준>
 ```
-- 목표는 `docs/PRODUCT.md` 의 데모 핵심 기능 중 *하나*. 다 못 한다.
+- 목표는 `docs/PRODUCT.md` MVP 우선순위(P0/P1) 중 *하나*. 다 못 한다. (데모 시나리오 상세는 `docs/UX_SPEC.md` §5)
 - 검증 기준은 "데모 시연 가능 = X 화면이 Y 동작" 으로 구체적.
 
 ### 4. scope-cut 결정 강제

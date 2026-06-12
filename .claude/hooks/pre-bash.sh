@@ -37,8 +37,11 @@ echo "$cmd" | grep -qE '(^|[[:space:]])rm[[:space:]]+(-[a-zA-Z]*r[a-zA-Z]*f|-[a-
 echo "$cmd" | grep -qE '(^|[[:space:]])rm[[:space:]]+(-[a-zA-Z]*r[a-zA-Z]*f|-[a-zA-Z]*f[a-zA-Z]*r)[[:space:]]+/(etc|usr|var|bin|sbin|System|Library|Applications|home|root)(/|$|[[:space:]])' && \
   block "rm -rf <시스템 디렉토리>" "시스템 디렉토리 광범위 삭제."
 
-# 3) .env 류 직접 출력 — 비밀 누출 가능
-echo "$cmd" | grep -qE '(cat|less|head|tail|cp)[[:space:]]+[^|;&]*\.env(\.|[[:space:]]|$)' && \
-  block ".env 직접 읽기" "비밀값을 모델 컨텍스트에 노출하지 마라. 정말 필요하면 사용자 승인."
+# 3) .env 류 직접 출력 — 비밀 누출 가능.
+#    키 목록·값 존재 여부는 .claude/scripts/env-inspect.sh 가 유일한 허용 경로(값은 출력 안 함).
+if ! echo "$cmd" | grep -q 'env-inspect\.sh'; then
+  echo "$cmd" | grep -qE '(cat|less|more|head|tail|cp|grep|rg|ugrep|sed|awk|sort|uniq|nl|strings|xxd|od|base64|python3?|ruby|perl|node)[[:space:]]+[^|;&]*\.env(\.|[[:space:]]|$)' && \
+    block ".env 직접 읽기" "비밀값을 모델 컨텍스트에 노출하지 마라. 키 목록·값 존재 여부는 'bash .claude/scripts/env-inspect.sh' 사용. 값이 정말 필요하면 사용자 승인."
+fi
 
 exit 0

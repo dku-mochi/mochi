@@ -2,7 +2,7 @@
 level: 3
 mode: log
 status: active
-last_verified: 2026-06-05
+last_verified: 2026-06-10
 confidence: 0.9
 owners: [송준서, 이용찬, 박세현]
 description: 외부 설정·비밀값 체크리스트 + 활성 작업·다음 sprint 목표. 다음 중 하나라도 손대기 전 읽어라 — 인증·외부 통합, sprint 작업 분배, /sprint-end 직후. 자주 바뀜 · `/sprint-end` 가 done 항목을 docs/archive/ 로 이관.
@@ -173,6 +173,10 @@ APNS_TEAM_ID=U9SLX327XS
 APNS_KEY_ID=CA6C3JCHW3
 APNS_BUNDLE_ID=app.mochi
 APNS_AUTH_KEY_P8_BASE64=<base64 of AuthKey_CA6C3JCHW3.p8>
+
+# === 채팅 web_search — Tavily ===
+# 미설정 시 web_search 툴만 채팅 레지스트리에서 제외 — 서버·머지 블록 없음.
+TAVILY_API_KEY=<tavily.com 발급 키>
 ```
 
 ### 4.1 비밀값 생성
@@ -187,6 +191,10 @@ APNS_AUTH_KEY_P8_BASE64=<base64 of AuthKey_CA6C3JCHW3.p8>
 - [x] YouTube/X/Instagram URL 은 Agent `platformContext` 로 먼저 그라운딩 (2026-05-30).
 - [ ] Instagram 공식 oEmbed 를 운영에서 쓰려면 Meta app token + oEmbed 권한/리뷰를 확보하고 `INSTAGRAM_OEMBED_ACCESS_TOKEN` 을 설정.
 - [ ] 토큰 미설정 상태에서는 Instagram OG fallback + screenshot Vision context 를 조합해 분석 정확도를 보강.
+
+### 4.4 채팅 web_search — Tavily
+- [x] Tavily API 키 발급(무료 1,000회/월, LLM-agent 전용 — journal 2026-06-10 권고) 후 `.env` `TAVILY_API_KEY` 설정 (2026-06-10)
+- 미설정이어도 동작: web_search 툴만 채팅 레지스트리에서 제외되고 채팅·web_fetch 는 정상.
 
 ---
 

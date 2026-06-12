@@ -2,7 +2,7 @@
 level: 1
 mode: reference
 status: active
-last_verified: 2026-06-04
+last_verified: 2026-06-10
 confidence: 0.9
 owners: [송준서, 이용찬, 박세현]
 description: codex CLI 가 모찌 저장소에서 작업할 때 읽는 진입점. CLAUDE.md 의 미러이며 codex 고유 검증자 역할만 추가로 담는다. 직접 손대지 말고 CLAUDE.md 를 고친 뒤 /sync-agents 로 재생성한다.

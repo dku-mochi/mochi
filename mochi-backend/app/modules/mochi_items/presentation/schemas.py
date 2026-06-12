@@ -33,10 +33,46 @@ class ImageRefResponse(BaseModel):
     model_config = {"populate_by_name": True}
 
 
+class IntentPayloadPatchDTO(BaseModel):
+    """instance payload 의 부분 필드 — PATCH(병합)·confirmedInstances(생성) 공용."""
+
+    title: str | None = None
+    date: str | None = None
+    time: str | None = None
+    end_date: str | None = Field(default=None, alias="endDate")
+    end_time: str | None = Field(default=None, alias="endTime")
+    deadline: str | None = None
+    person: str | None = None
+    topic: str | None = None
+    url: str | None = None
+    note: str | None = None
+
+    model_config = {"populate_by_name": True}
+
+    def non_null_fields(self) -> dict[str, str]:
+        return {k: v for k, v in self.model_dump().items() if v is not None}
+
+
+class ConfirmedInstanceDTO(BaseModel):
+    """채팅 proposal 확정으로 생성되는 **사용자 확정 instance** — 분석 생략 (§5.2 예외).
+
+    사용자가 카드에서 확정한 구조라 LLM 재분석이 덮으면 안 된다 — instance 가 곧바로
+    active 로 태어나고 outbox(분석 파이프라인)에 들어가지 않는다.
+    """
+
+    intent_type: Intent = Field(alias="intentType")
+    payload: IntentPayloadPatchDTO = Field(default_factory=IntentPayloadPatchDTO)
+    label: str | None = None
+
+    model_config = {"populate_by_name": True}
+
+
 class MochiItemCreateRequest(BaseModel):
     """클라이언트(iOS)가 보내는 MochiItem ingestion payload.
 
     iOS는 본 스키마와 동일한 모양의 ``MochiItemIngestRequest`` 를 송신한다 — 양쪽이 OpenAPI 로 검증된다.
+    ``confirmedInstances`` 가 있으면 분석 파이프라인을 생략하고 확정 instance 를 직접 생성한다
+    (채팅 schedule proposal 확정 — DOMAIN_DESIGN §5.2 예외).
     """
 
     channel: IngestChannel
@@ -44,6 +80,35 @@ class MochiItemCreateRequest(BaseModel):
     text: str | None = None
     user_memo: str | None = Field(default=None, alias="userMemo")
     image_refs: list[ImageRefDTO] = Field(default_factory=list, alias="imageRefs")
+    confirmed_instances: list[ConfirmedInstanceDTO] = Field(
+        default_factory=list, alias="confirmedInstances"
+    )
+
+    model_config = {"populate_by_name": True}
+
+
+class InstanceChangeRequest(BaseModel):
+    """PATCH 의 instance 단위 변경 — payload 는 제공 필드만 병합, lifecycle 은 정책 검증."""
+
+    instance_id: UUID = Field(alias="instanceId")
+    payload: IntentPayloadPatchDTO | None = None
+    label: str | None = None
+    lifecycle_kind: InstanceLifecycleKind | None = Field(default=None, alias="lifecycleKind")
+    archive_reason: ArchiveReason | None = Field(default=None, alias="archiveReason")
+
+    model_config = {"populate_by_name": True}
+
+
+class MochiItemUpdateRequest(BaseModel):
+    """PATCH /mochi_items/{id} — 채팅 수정 proposal 확정 실행 (콘텐츠 + instance, 한 트랜잭션).
+
+    None/누락 = 변경 없음 (null 로 필드 클리어는 미지원 — 채팅 수정 시나리오에 불필요).
+    """
+
+    text: str | None = None
+    user_memo: str | None = Field(default=None, alias="userMemo")
+    summary: str | None = None
+    instances: list[InstanceChangeRequest] = Field(default_factory=list)
 
     model_config = {"populate_by_name": True}
 
@@ -75,16 +140,20 @@ class InstanceLifecycleUpdateRequest(BaseModel):
 
 
 class IntentPayloadResponse(BaseModel):
-    """instance 의 구조화 속성 (전부 optional)."""
+    """instance 의 구조화 속성 (전부 optional). date/time 은 시작, endDate/endTime 은 기간형 일정의 끝."""
 
     title: str | None = None
     date: str | None = None
     time: str | None = None
+    end_date: str | None = Field(default=None, alias="endDate")
+    end_time: str | None = Field(default=None, alias="endTime")
     deadline: str | None = None
     person: str | None = None
     topic: str | None = None
     url: str | None = None
     note: str | None = None
+
+    model_config = {"populate_by_name": True}
 
 
 class IntentInstanceResponse(BaseModel):

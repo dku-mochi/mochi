@@ -17,9 +17,6 @@ public struct LocalThumbnail<Placeholder: View>: View {
     /// `.fill` 로 채운 이미지가 프레임을 넘칠 때 어느 쪽을 보여줄지. 스크린샷(세로 비율)은
     /// `.top` 으로 상단(상태바·제목)을 보여주는 게 알아보기 쉽다. 기본 `.center`.
     var alignment: Alignment = .center
-    /// true 면 부모 프레임을 채우는 대신 **이미지 원본 종횡비**로 표시한다(잘림·블러 레터박스 없음).
-    /// 너비는 컨테이너, 높이는 비율로 자동 — 상세 화면처럼 캡처 전체를 보여줘야 할 때. 기본 false.
-    var preservesAspectRatio: Bool = false
     @ViewBuilder var placeholder: () -> Placeholder
 
     @State private var image: UIImage?
@@ -28,46 +25,22 @@ public struct LocalThumbnail<Placeholder: View>: View {
         relativePath: String?,
         targetSize: CGSize,
         alignment: Alignment = .center,
-        preservesAspectRatio: Bool = false,
         @ViewBuilder placeholder: @escaping () -> Placeholder
     ) {
         self.relativePath = relativePath
         self.targetSize = targetSize
         self.alignment = alignment
-        self.preservesAspectRatio = preservesAspectRatio
         self.placeholder = placeholder
     }
 
     public var body: some View {
-        Group {
-            if preservesAspectRatio {
-                aspectFitBody
-            } else {
-                GeometryReader { geo in
-                    content(geo.size)
-                }
-            }
+        GeometryReader { geo in
+            content(geo.size)
         }
         .task(id: relativePath) {
             // @3x 까지 커버하도록 셀 변 길이의 3배를 상한 픽셀로 둔다.
             let maxPixel = Int(max(targetSize.width, targetSize.height) * 3)
             image = await loadDownsampledContainerImage(relativePath: relativePath, maxPixel: maxPixel)?.image
-        }
-    }
-
-    /// 원본 종횡비 유지 — 부모 너비에 맞추고 높이는 이미지 비율로 자동. 잘림·레터박스 없음.
-    /// 로드 전 placeholder 는 `targetSize` 비율로 임시 표시한다(로드 후 실제 비율로 확정).
-    @ViewBuilder
-    private var aspectFitBody: some View {
-        if let image {
-            Image(uiImage: image)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(maxWidth: .infinity)
-        } else {
-            placeholder()
-                .aspectRatio(targetSize.width / max(targetSize.height, 1), contentMode: .fit)
-                .frame(maxWidth: .infinity)
         }
     }
 

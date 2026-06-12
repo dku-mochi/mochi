@@ -54,12 +54,16 @@ enum AppDependencies {
             $0.mochiAPIClient    = liveAPI
             $0.authCoordinator   = coordinator
             $0.agentStreamClient = liveStream
+            // 채팅 탭 live 배선 (2026-06-10 PR-5): 메시지 전송 = raw SSE(POST-as-SSE,
+            // 워치독 75초), 세션 목록/스냅샷/삭제 = 생성 클라이언트 어댑터.
+            $0.chatStreamClient  = LiveChatStreamClient(baseURL: baseURL, tokenProvider: coordinator)
+            $0.chatAPIClient     = OpenAPIChatClient(baseURL: baseURL, tokenProvider: coordinator)
             $0.backTapVerification = .live
         }
     }
 
     private static func resolveBaseURL() -> URL {
-//        return URL(string: "https://34-64-104-136.nip.io")!
+        return URL(string: "https://34-64-104-136.nip.io")!
         // 1) 명시적 override — Xcode scheme 환경변수. 시뮬레이터만 적용됨(실기기는 호스트 env 미전달).
         if let env = ProcessInfo.processInfo.environment["MOCHI_API_BASE_URL"],
            let url = URL(string: env) {

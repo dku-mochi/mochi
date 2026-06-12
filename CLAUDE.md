@@ -118,9 +118,10 @@ iOS 쪽은 `tuist test`, 백엔드는 `make test` / `make lint` / `make typechec
 | **팀원 온보딩 · 하네스 입문 가이드 (L1 reference)** | [`docs/HARNESS_GUIDE.md`](docs/HARNESS_GUIDE.md) | 새 팀원 첫 진입, "왜 이렇게 일하나" 가 흔들릴 때 — `WORKFLOW.md`의 친절한 풀이 버전 |
 | **팀 워크플로우 · 정합성 통제 (L1)** | [`docs/WORKFLOW.md`](docs/WORKFLOW.md) | 협업·브랜치·티어·문서레벨·공유표면·2달 단기 모드·메타데이터 컨벤션 — 작업 시작 전 |
 | 시스템 전체 아키텍처 (iOS ↔ Backend) | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | 두 프로젝트에 걸친 변경, 데이터 흐름·계약 수정 시 |
-| 도메인 모델 · DB 스키마 · 4-Intent 상태머신 | [`docs/DOMAIN_DESIGN.md`](docs/DOMAIN_DESIGN.md) | Intent / lifecycle / 테이블 / 마이그레이션 변경 시 |
+| 도메인 의미 · intent 모델 · lifecycle · 동기화 규약 | [`docs/DOMAIN_DESIGN.md`](docs/DOMAIN_DESIGN.md) | Intent / lifecycle / 마이그레이션 변경 시 (DDL·라우트는 코드 정본) |
 | 민감 캡처 보호 설계 (on-device 감지, 마스킹) | [`docs/PRIVACY_SENSITIVE_CAPTURE.md`](docs/PRIVACY_SENSITIVE_CAPTURE.md) | 캡처 ingestion · 업로드 · 저장 경로 변경 시 |
-| 제품 정의 · 사용자 문제 · 컨셉 | [`docs/PRODUCT.md`](docs/PRODUCT.md) | UX · 핵심 기능 의사결정이 흔들릴 때 |
+| 제품 정의 · 미션 · 4-Intent 컨셉 (L1) | [`docs/PRODUCT.md`](docs/PRODUCT.md) | "미션에 맞나" · MVP/scope-cut 의사결정이 흔들릴 때 |
+| 화면 · 시나리오 · 디자인 톤 (L3, 자유 수정) | [`docs/UX_SPEC.md`](docs/UX_SPEC.md) | 화면 구성 · 플로우 · UI 변경 시 |
 | 외부 설정 · 비밀값 체크리스트 (Apple/Google) | [`docs/TODO.md`](docs/TODO.md) | 인증 · 외부 통합 작업 시 |
 | 변경 이력 | [`docs/CHANGELOG.md`](docs/CHANGELOG.md) | 모든 변경의 종착지 (§6 참고) |
 
@@ -172,7 +173,7 @@ iOS 쪽은 `tuist test`, 백엔드는 `make test` / `make lint` / `make typechec
 
 **Hooks (`.claude/hooks/`, 대부분 ②티어 강제력 — 마지막 1개만 ③ 넛지):**
 - `session-start.sh` — 경진대회 제출 D-day + 활성 known-drift + 직전 journal 의 "다음 할 일" 1줄
-- `pre-bash.sh` — 위험 Bash 패턴 차단 (force-push, reset --hard, rm -rf /, .env 직접 출력)
+- `pre-bash.sh` — 위험 Bash 패턴 차단 (force-push, reset --hard, rm -rf /, .env 읽기 — cat 뿐 아니라 grep/sed/awk 류 전부. 키 목록·값 존재 여부만 필요하면 `bash .claude/scripts/env-inspect.sh` 가 유일한 허용 경로)
 - `pre-edit-scope.sh` — `lab-experimenter` 의 Edit/Write 를 `lab/` 안으로 제한 (payload `agent_type` 로 판별, fail-open 이라 부모 Claude 는 자유). lab 경계를 ③(프롬프트)에서 ②(기계 강제)로 승격.
 - `post-edit-md.sh` — `.md` Edit/Write 직후 front-matter 7필드 누락 알림
 - `stop-summary.sh` — 세션 종료 직전 CHANGELOG 누락 + CLAUDE↔AGENTS mtime drift 알림
@@ -183,6 +184,7 @@ iOS 쪽은 `tuist test`, 백엔드는 `make test` / `make lint` / `make typechec
 - `audit.sh <l1|l2|l3|all>` — 시간 강등 + 코드 식별자 grep 강등 + STOP 후보. 모노레포·macOS/Linux 이식.
 - `ship-precheck.sh <ios|backend|docs|all>` — `/ship` 자동 사전 체크 **7단계** (audit / CHANGELOG / 미러 mtime / iOS 경계 / OpenAPI 단일계약 동기화(§5a make openapi · §5b generate.sh no-diff) / **백엔드 lint+typecheck** / git status). 게이트 무결성 보장(exit code 명시).
 - `ios-boundaries.sh` — TCA 레이어 위반 자동 검출 (Features 간 import / Cores 역방향 / @main 위치).
+- `env-inspect.sh [path...]` — .env 의 **키 목록·값 존재 여부·길이만** 출력(값 자체 절대 미출력). "이 키 설정돼 있나" 확인은 이걸로.
 
 **표준 작업 루프:**
 ```

@@ -1,4 +1,11 @@
 ---
+level: 3
+mode: log
+status: active
+last_verified: 2026-06-06
+confidence: 0.7
+owners: [박세현]
+description: lab 구조 정비·환경 연동·RAG 검색 실험 방향의 세션 핸드오프. lab/ RAG 검색 실험을 이어받을 때 읽어라.
 title: "lab 구조 정비 + 환경 연동 확인 + RAG 검색 실험 방향 설정"
 date: 2026-06-06
 branch: lab/local-image-eval

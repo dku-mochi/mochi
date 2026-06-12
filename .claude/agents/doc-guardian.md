@@ -10,7 +10,7 @@ model: inherit
 ## 문서 레벨 (안정도)
 - **L1 불변 기반**: `docs/WORKFLOW.md`, `docs/PRODUCT.md`
 - **L2 바뀌면 골치**: `docs/DOMAIN_DESIGN.md`, `docs/ARCHITECTURE.md`, `docs/PRIVACY_SENSITIVE_CAPTURE.md`, `docs/gcp-architecture.html`
-- **L3 자주 바뀜**: `docs/TODO.md`, `journal/*`, `lab/*`
+- **L3 자주 바뀜**: `docs/UX_SPEC.md`(화면·시나리오, committed), `docs/TODO.md`, `journal/*`, `lab/*`
 - 프로젝트 로컬: `mochi-ios/README.md`, `mochi-backend/README.md`
 
 ## 정합성 폭포 규칙

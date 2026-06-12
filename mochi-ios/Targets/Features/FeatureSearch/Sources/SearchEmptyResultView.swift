@@ -1,0 +1,125 @@
+import SwiftUI
+import CoreDomain
+import DesignSystem
+
+/// 검색 결과 0 화면 (.empty phase).
+///
+/// 구조: intent 필터칩 row + 모찌(?) + 메시지 + CTA(모찌에게 물어보기 — 채팅 의미 검색으로)
+/// + 고스트(intent 필터 걸렸을 때만 "전체에서 다시 찾기").
+struct SearchEmptyResultView: View {
+    let selectedIntent: Intent?
+    let onIntent: (Intent?) -> Void
+    let onAskMochi: () -> Void
+    let onRetryAll: () -> Void
+
+    var body: some View {
+        VStack(spacing: 0) {
+            IntentFilterChipsRow(selectedIntent: selectedIntent, onTap: onIntent)
+                .padding(.top, 10)
+                .padding(.bottom, 6)
+
+            ScrollView {
+                VStack(spacing: 0) {
+                    mascot
+                        .padding(.top, 60)
+                        .padding(.bottom, 28)
+
+                    headings
+                        .padding(.bottom, 36)
+
+                    ctas
+                        .padding(.horizontal, SearchD5.Sizes.pageH)
+                        .padding(.bottom, 16)
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .scrollIndicators(.hidden)
+            .scrollDismissesKeyboard(.immediately)
+        }
+    }
+
+    // MARK: - 모찌(?) + halo
+
+    private var mascot: some View {
+        ZStack {
+            Circle()
+                .fill(SearchD5.Palette.primaryPale)
+                .frame(width: SearchD5.Sizes.emptyMascotSize - 30,
+                       height: SearchD5.Sizes.emptyMascotSize - 30)
+                .blur(radius: 24)
+                .opacity(0.55)
+            FloatingMascot(imageName: "mochi-question", size: SearchD5.Sizes.emptyMascotSize)
+        }
+        .accessibilityHidden(true)
+    }
+
+    // MARK: - Headings
+
+    private var headings: some View {
+        VStack(spacing: 8) {
+            Text("찾는 모찌가 없어요")
+                .font(.system(size: 26, weight: .bold, design: .rounded))
+                .tracking(-0.6)
+                .foregroundStyle(SearchD5.Palette.textPrimary)
+            Text("모찌에게 물어보면 기억의 의미까지 더듬어 찾아드려요")
+                .font(.system(size: 16, weight: .regular, design: .rounded))
+                .tracking(-0.2)
+                .foregroundStyle(SearchD5.Palette.textSecondary)
+        }
+        .multilineTextAlignment(.center)
+    }
+
+    // MARK: - CTAs
+
+    private var ctas: some View {
+        VStack(spacing: 12) {
+            Button(action: onAskMochi) {
+                HStack(spacing: 7) {
+                    Image(systemName: "bubble.left.fill")
+                        .font(.system(size: 15, weight: .semibold))
+                    Text("모찌에게 물어보기")
+                        .font(.system(size: 17, weight: .bold, design: .rounded))
+                        .tracking(-0.3)
+                }
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .frame(height: SearchD5.Sizes.ctaButtonHeight)
+                .background(
+                    RoundedRectangle(cornerRadius: SearchD5.Sizes.ctaButtonRadius, style: .continuous)
+                        .fill(SearchD5.Palette.ctaGradient)
+                )
+                .shadow(color: SearchD5.Palette.primary.opacity(0.28), radius: 14, x: 0, y: 8)
+            }
+            .buttonStyle(EmptyCTAPress())
+
+            // intent 필터로 좁혀서 0 인 경우에만 — 필터 풀고 전체에서 재검색.
+            if selectedIntent != nil {
+                Button(action: onRetryAll) {
+                    Text("전체에서 다시 찾기")
+                        .font(.system(size: 17, weight: .semibold, design: .rounded))
+                        .tracking(-0.3)
+                        .foregroundStyle(SearchD5.Palette.primary)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: SearchD5.Sizes.ctaButtonHeight - 2)
+                        .background(
+                            RoundedRectangle(cornerRadius: SearchD5.Sizes.ctaButtonRadius, style: .continuous)
+                                .fill(SearchD5.Palette.card)
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: SearchD5.Sizes.ctaButtonRadius, style: .continuous)
+                                .stroke(SearchD5.Palette.cardBorder, lineWidth: 1)
+                        )
+                }
+                .buttonStyle(EmptyCTAPress())
+            }
+        }
+    }
+}
+
+private struct EmptyCTAPress: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
+            .animation(.easeOut(duration: 0.14), value: configuration.isPressed)
+    }
+}
