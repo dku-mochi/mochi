@@ -50,6 +50,7 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
 LAB_ROOT = Path(__file__).parent
 ANALYSIS_DIR = LAB_ROOT / "artifacts" / "analysis"
 EMBED_DIR = LAB_ROOT / "artifacts" / "embeddings"
+DISTRACTOR_EMBED_DIR = LAB_ROOT / "artifacts" / "embeddings_distractor" / "pool_500"
 RESULTS_DIR = LAB_ROOT / "results" / "retrieval"
 VOYAGE_EMBEDDINGS_URL = "https://api.voyageai.com/v1/embeddings"
 
@@ -100,6 +101,8 @@ def _ndcg_at_k(ranked: list[str], expected: list[str], k: int = 5) -> float:
 def _metrics(ranked: list[str], expected: list[str]) -> dict:
     return {
         "hit_rate@3": round(_hit_rate_at_k(ranked, expected, 3), 3),
+        "hit_rate@4": round(_hit_rate_at_k(ranked, expected, 4), 3),
+        "hit_rate@5": round(_hit_rate_at_k(ranked, expected, 5), 3),
         "recall@5": round(_recall_at_k(ranked, expected, 5), 3),
         "mrr": round(_mrr(ranked, expected), 3),
         "ndcg@5": round(_ndcg_at_k(ranked, expected, 5), 3),
@@ -107,7 +110,7 @@ def _metrics(ranked: list[str], expected: list[str]) -> dict:
 
 
 def _avg_metrics(query_results: list[dict]) -> dict:
-    keys = ["hit_rate@3", "recall@5", "mrr", "ndcg@5"]
+    keys = ["hit_rate@3", "hit_rate@4", "hit_rate@5", "recall@5", "mrr", "ndcg@5"]
     n = len(query_results)
     return {k: round(sum(r[k] for r in query_results) / n, 3) for k in keys}
 
@@ -233,18 +236,49 @@ def _stratified(query_results: list[dict]) -> dict[str, dict]:
     return {t: _avg_metrics(rs) for t, rs in by_type.items()}
 
 
+def _load_distractor_items(embed_path: Path, count: int) -> list[dict]:
+    """원본 embedding 파일과 동일한 이름의 distractor embedding에서 앞 count개를 로드.
+
+    distractor 임베딩이 원본과 같은 (model,dim,strategy) 조합으로 생성됐다고 가정한다.
+    파일이 없거나 count<=0이면 빈 리스트.
+    """
+    if count <= 0:
+        return []
+    dpath = DISTRACTOR_EMBED_DIR / embed_path.name
+    if not dpath.exists():
+        raise RuntimeError(
+            f"distractor embedding 없음: {dpath} — embed_distractors.py를 먼저 실행하세요."
+        )
+    ddata = json.loads(dpath.read_text(encoding="utf-8"))
+    ditems = ddata["items"]
+    if len(ditems) < count:
+        raise RuntimeError(
+            f"distractor embedding {dpath.name} item={len(ditems)} < 요청 {count}"
+        )
+    return ditems[:count]
+
+
 async def evaluate_combo(
     client: genai.Client,
     embed_path: Path,
     queries: list[dict],
     bm25_ranked_cache: dict[str, dict],   # strategy -> {query -> full_ranked_ids}
     query_vec_cache: dict[tuple, list[float]],  # (model, dim, query) -> vector
+    distractor_count: int = 0,
 ) -> list[dict]:
     embed_data = json.loads(embed_path.read_text(encoding="utf-8"))  # noqa: ASYNC240
-    items = embed_data["items"]
+    items = list(embed_data["items"])
     model = embed_data["model"]
     dim = embed_data["dimension"]
     strategy = embed_data["strategy"]
+
+    # ── distractor 주입 ──
+    # distractor item도 원본과 동일한 {id, vector, (bm25_)doc_text} 구조이므로
+    # 코퍼스에 그대로 합친다. gold expected_ids에는 distractor id가 없으므로
+    # distractor는 순위 경쟁만 하고 정답이 될 수 없다.
+    distractors = _load_distractor_items(embed_path, distractor_count)
+    items = items + distractors
+
     item_ids = [item["id"] for item in items]
     doc_vecs = [item["vector"] for item in items]
 
@@ -405,17 +439,27 @@ async def main(
     *,
     allow_partial: bool = False,
     gold: str = "default",
+    gold_file: str | None = None,
+    distractor_count: int = 0,
+    only: list[str] | None = None,
 ) -> None:
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
-    gold_path = _GOLD_FILES.get(gold)
-    if gold_path is None:
-        print(f"[ERROR] --gold 값 오류: {gold!r}. 가능한 값: {list(_GOLD_FILES)}")
-        return
+    if gold_file is not None:
+        gold_path = Path(gold_file)
+        if not gold_path.is_absolute():
+            gold_path = LAB_ROOT / gold_path
+    else:
+        gold_path = _GOLD_FILES.get(gold)
+        if gold_path is None:
+            print(f"[ERROR] --gold 값 오류: {gold!r}. 가능한 값: {list(_GOLD_FILES)}")
+            return
     if not gold_path.exists():
         print(f"[ERROR] gold 파일 없음: {gold_path}")
         return
-    queries = json.loads(gold_path.read_text(encoding="utf-8"))
+    _raw = json.loads(gold_path.read_text(encoding="utf-8"))
+    # generated_queries 형식 {"queries": [...]} 와 gold 형식 [...] 양쪽 지원
+    queries = _raw["queries"] if isinstance(_raw, dict) else _raw
 
     if analysis_fp is None:
         # 최신 analysis artifact 기준으로 fp 결정 — embedding mtime이 아님
@@ -433,6 +477,15 @@ async def main(
     if not embed_files:
         print(f"[ERROR] {embed_fp_dir} 에 임베딩 파일 없음")
         return
+
+    # distractor 실험은 semantic_expansion 전략을 다루지 않는다
+    # (distractor엔 per-item expansion artifact가 없음). 해당 조합은 제외.
+    if distractor_count > 0:
+        embed_files = [
+            ef for ef in embed_files
+            if not ef.name.endswith("_summary+semantic_expansion.json")
+            and not ef.name.endswith("_summary+labels+semantic_expansion.json")
+        ]
 
     # ── 캐시 정합성 검증 ──────────────────────────────────────────────────────
 
@@ -459,6 +512,13 @@ async def main(
 
     # 누락 조합 검증 — 기본은 중단, --allow-partial 시에만 계속
     expected = expected_embed_names()
+    if distractor_count > 0:
+        # distractor 실험에서 제외한 semantic_expansion 조합은 기대 집합에서도 뺀다
+        expected = {
+            n for n in expected
+            if not n.endswith("_summary+semantic_expansion.json")
+            and not n.endswith("_summary+labels+semantic_expansion.json")
+        }
     found = {ef.name for ef in embed_files}
     missing = expected - found
     if missing:
@@ -472,7 +532,11 @@ async def main(
         print()
 
     client = _get_client()
-    print(f"analysis_fp={analysis_fp}  combos={len(embed_files)}  queries={len(queries)}\n")
+    corpus_size = len(queries) and (len(json.loads(embed_files[0].read_text(encoding="utf-8"))["items"]) + distractor_count)
+    print(
+        f"analysis_fp={analysis_fp}  combos={len(embed_files)}  queries={len(queries)}"
+        f"  distractor_count={distractor_count}  corpus_size={corpus_size}\n"
+    )
 
     all_results = []
     bm25_cache: dict[str, dict] = {}
@@ -482,7 +546,8 @@ async def main(
         print(f"[{embed_path.stem}]", flush=True)
         try:
             combo_results = await evaluate_combo(
-                client, embed_path, queries, bm25_cache, query_vec_cache
+                client, embed_path, queries, bm25_cache, query_vec_cache,
+                distractor_count=distractor_count,
             )
             all_results.extend(combo_results)
         except Exception as exc:
@@ -490,12 +555,18 @@ async def main(
 
     # ── 요약 테이블 ──
     sorted_results = sorted(all_results, key=lambda x: x["avg"]["ndcg@5"], reverse=True)
-    print("\n" + "=" * 100)
-    print(f"{'레이블':<55} {'HitRate@3':>10} {'Recall@5':>10} {'MRR':>8} {'nDCG@5':>8}")
-    print("-" * 100)
+    print("\n" + "=" * 116)
+    print(
+        f"{'레이블':<55} {'Hit@3':>7} {'Hit@4':>7} {'Hit@5':>7}"
+        f" {'Recall@5':>9} {'MRR':>7} {'nDCG@5':>7}"
+    )
+    print("-" * 116)
     for r in sorted_results:
         a = r["avg"]
-        print(f"{r['label']:<55} {a['hit_rate@3']:>10.3f} {a['recall@5']:>10.3f} {a['mrr']:>8.3f} {a['ndcg@5']:>8.3f}")
+        print(
+            f"{r['label']:<55} {a['hit_rate@3']:>7.3f} {a['hit_rate@4']:>7.3f}"
+            f" {a['hit_rate@5']:>7.3f} {a['recall@5']:>9.3f} {a['mrr']:>7.3f} {a['ndcg@5']:>7.3f}"
+        )
 
     # ── 핵심 쿼리 상세 ──
     print("\n\n[핵심 쿼리 '화장품' top-5]")
@@ -518,11 +589,19 @@ async def main(
 
     # ── 저장 ──
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    suffix = "_semantic_gap" if gold == "semantic-gap" else ""
-    out_path = RESULTS_DIR / f"{ts}{suffix}.json"
+    gap_suffix = "_semantic_gap" if gold == "semantic-gap" else ""
+    distractor_suffix = f"_d{distractor_count}" if distractor_count else ""
+    out_path = RESULTS_DIR / f"{ts}{gap_suffix}{distractor_suffix}.json"
     out_path.write_text(
         json.dumps(
-            {"run_at": ts, "analysis_fp": analysis_fp, "gold": gold, "results": all_results},
+            {
+                "run_at": ts,
+                "analysis_fp": analysis_fp,
+                "gold": gold,
+                "distractor_count": distractor_count,
+                "corpus_size": corpus_size,
+                "results": all_results,
+            },
             ensure_ascii=False, indent=2,
         ),
         encoding="utf-8",
@@ -544,5 +623,22 @@ if __name__ == "__main__":
         choices=list(_GOLD_FILES),
         help="평가 gold 세트 선택 (default: gold/queries.json, semantic-gap: gold/semantic_gap_queries.json)",
     )
+    parser.add_argument(
+        "--gold-file",
+        default=None,
+        help="gold query JSON 파일 경로 직접 지정 (절대경로 또는 lab 루트 기준 상대경로)",
+    )
+    parser.add_argument(
+        "--distractor-count",
+        type=int,
+        default=0,
+        help="코퍼스에 추가할 distractor 문서 수 (0=없음). embeddings_distractor/pool_500 에서 앞 N개 로드",
+    )
     args = parser.parse_args()
-    asyncio.run(main(args.analysis_fp, allow_partial=args.allow_partial, gold=args.gold))
+    asyncio.run(main(
+        args.analysis_fp,
+        allow_partial=args.allow_partial,
+        gold=args.gold,
+        gold_file=args.gold_file,
+        distractor_count=args.distractor_count,
+    ))

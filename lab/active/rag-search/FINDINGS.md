@@ -62,13 +62,13 @@ uv run --group lab python "../lab/active/rag-search/eval_retrieval.py"
 
 평가 지표: HitRate@3, Recall@5, MRR, nDCG@5 — 쿼리 유형별(exact_keyword/semantic_paraphrase/intent_based/entity_based/colloquial) 분리
 
-## 결론 (실험 완료 후 채울 것)
+## 결론
 
-- **선택 모델×차원:**
-- **선택 문서 전략:**
-- **최적 검색 방식:**
-- **avg nDCG@5:**
-- **근거:**
+- **선택 모델×차원:** `voyage-4-large@1024`
+- **선택 문서 전략:** `summary+labels+payload+entities` (voyage-4-large 한정) / `summary+labels` (전 모델 평균 기준)
+- **최적 검색 방식:** Vector 단독
+- **nDCG@5:** `0.813` (voyage-4-large@1024 × summary+labels+payload+entities) / `0.711` (전 모델 평균, summary+labels)
+- **근거:** voyage-4-large@1024는 예외적으로 payload/entities 추가 시 성능 향상. 다른 모델은 summary+labels에서 정점. category 필드는 임베딩 입력에서 제외.
 
 ## 결과 요약
 
@@ -251,3 +251,62 @@ analysis artifact의 summary·labels·payload·entities를 Gemini에 입력하�
 - 문서 전략은 정보를 많이 넣는 `payload/entities`보다 `summary+labels`가 더 좋았다. 검색 문서는 과도하게 길게 만들기보다 핵심 요약과 intent label 정도로 압축하는 쪽이 유리해 보인다.
 - BM25와 RRF는 이번 데이터셋에서 Vector 단독보다 낮았다. 현재는 Vector 단독을 우선 적용하고, 이후 실제 사용자 쿼리가 늘어난 뒤 hybrid/RRF 재평가가 맞다.
 - 평가 중 일부 `voyage-4@1024` 조합은 Voyage API 429로 실패했지만, 최상위 결론은 `voyage-4-large@1024` 조합에서 나왔기 때문에 현재 추천에는 큰 영향이 없다.
+
+---
+
+## 2026-06-10 Category 전략 추가 실험 (최종)
+
+- retrieval result: `results/retrieval/20260610_204101.json`
+- gold: `artifacts/generated_queries/1b10b2cd_semantic_gap.json` (자동 생성 semantic-gap 쿼리 27개)
+- analysis fingerprint: `1b10b2cd` (프롬프트 업데이트 후 재분석)
+- 평가 전략: 기존 5개 + category 추가 5개 = 10개 (semantic_expansion 제외)
+- 평가 모델: 전체 11개 (Voyage 포함)
+
+### 쿼리 생성 방식
+
+`generate_semantic_gap_queries.py` — Gemini가 각 문서 summary를 보고 **사람이 검색창에 치는 상위 분류어** 한 단어를 생성한다. 원문 **7개 필드** (summary/category/intent/title/topic/organization/note) 미포함 검증 통과. 동일 키워드가 여러 문서에서 생성되면 **multi expected_ids**로 병합해 과소평가 제거.
+
+- 46개 문서 → 27개 고유 쿼리 (4개 키워드 × 복수 문서 병합)
+- 병합된 키워드: 문화(3), 나들이(2), 주거(2), 화장품(2)
+
+> category 필드를 검증에서 제외했던 초기 버전(28개 쿼리)에서 3개 쿼리가 category 값과 겹침을 확인,
+> 재생성 후 27개로 확정. (`교통`→`행정`, `부동산`→`주거`, `공연`→`문화`)
+
+### 모델 그룹별 최고 조합
+
+| 모델 | 최고 조합 | HitRate@3 | nDCG@5 |
+|---|---|---|---|
+| **voyage-4-large** | `@1024 × summary+labels+payload+entities` | 0.889 | **0.813** |
+| gemini-embedding-001 | `@1536 × summary` | 0.889 | 0.775 |
+| voyage-4 | `@1024 × structured_fields` | 0.852 | 0.715 |
+| text-multilingual-embedding-002 | `@768 × summary+labels+category` | 0.815 | 0.695 |
+
+### 전략별 평균 nDCG@5 (전 모델·차원 평균, vector)
+
+| 전략 | nDCG@5 |
+|------|--------|
+| `summary+labels` | **0.711** |
+| `summary+labels+category` | 0.701 |
+| `summary+labels+payload` | 0.701 |
+| `structured_fields` | 0.700 |
+| `summary+labels+payload+entities` | 0.700 |
+| `summary+category` | 0.699 |
+| `summary+labels+payload+category` | 0.694 |
+| `summary` | 0.693 |
+| `structured_fields+category` | 0.687 |
+| `summary+labels+payload+entities+category` | 0.683 |
+
+### category 전략 효과
+
+| 그룹 | 조합 수 | nDCG@5 |
+|------|---------|--------|
+| category 미포함 (5개 전략) | 55 | **0.701** |
+| category 포함 (5개 전략) | 55 | 0.693 |
+| Δ | — | **-0.008** |
+
+### 핵심 발견
+
+1. **`summary+labels`이 전략 전반 1위.** payload/entities/category를 추가할수록 nDCG@5가 단조 감소 — 상위 분류어 쿼리에서 구체 필드가 벡터를 분산시켜 매칭 거리가 벌어진다.
+2. **category 필드는 임베딩에 불필요.** 전 쿼리 유형(exact/field-gap/semantic-gap)에서 평균 -0.008. 제거 권장.
+3. **voyage-4-large@1024 예외 패턴.** 이 모델 한정으로 `summary+labels+payload+entities`가 최고(nDCG@5=0.813). 다른 모델과 반대 방향 — 고차원 모델은 정보가 많아도 표현력으로 소화한다.
+4. **RRF는 semantic-gap에서 무력.** Vector 최고 0.813 vs RRF 최고 ~0.36. BM25가 상위 분류어 토큰을 원문에서 찾지 못해 Vector를 희석.

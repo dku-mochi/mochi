@@ -58,6 +58,10 @@ def _entity_text(item: dict) -> str:
     )
 
 
+def _category(item: dict) -> str:
+    return item["analysis"].get("category") or ""
+
+
 STRATEGIES: dict[str, callable] = {  # keys must match _lab_utils.STRATEGY_NAMES
     "summary": lambda item: item["analysis"]["summary"],
     "summary+labels": lambda item: (
@@ -83,6 +87,30 @@ STRATEGIES: dict[str, callable] = {  # keys must match _lab_utils.STRATEGY_NAMES
     "summary+labels+semantic_expansion": lambda item: (
         f"summary: {item['analysis']['summary']} intent: {_labels(item)}"
         + (f" semantic_expansion: {item['_expansion']}" if item.get("_expansion") else "")
+    ),
+    "summary+category": lambda item: (
+        f"summary: {item['analysis']['summary']}"
+        + (f" category: {_category(item)}" if _category(item) else "")
+    ),
+    "summary+labels+category": lambda item: (
+        f"summary: {item['analysis']['summary']} intent: {_labels(item)}"
+        + (f" category: {_category(item)}" if _category(item) else "")
+    ),
+    "summary+labels+payload+category": lambda item: (
+        f"summary: {item['analysis']['summary']} intent: {_labels(item)} {_payload_text(item)}"
+        + (f" category: {_category(item)}" if _category(item) else "")
+    ),
+    "summary+labels+payload+entities+category": lambda item: (
+        f"summary: {item['analysis']['summary']} intent: {_labels(item)} "
+        f"{_payload_text(item)} {_entity_text(item)}"
+        + (f" category: {_category(item)}" if _category(item) else "")
+    ),
+    "structured_fields+category": lambda item: (
+        f"summary: {item['analysis']['summary']}\n"
+        f"intent: {_labels(item)}\n"
+        f"{_payload_text(item)}\n"
+        f"{_entity_text(item)}"
+        + (f"\ncategory: {_category(item)}" if _category(item) else "")
     ),
 }
 

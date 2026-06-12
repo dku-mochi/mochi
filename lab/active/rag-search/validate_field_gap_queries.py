@@ -56,45 +56,49 @@ def _fields(item: dict) -> dict[str, str]:
             values["organization"].append(str(entity.get("value", "")))
     return {
         "summary": str(analysis.get("summary", "")),
+        "category": str(analysis.get("category", "")),
         **{name: " ".join(parts) for name, parts in values.items()},
     }
 
 
-def main(analysis_fp: str) -> None:
+def main(analysis_fp: str, query_file: str | None = None) -> None:
     analysis = json.loads(
         (ANALYSIS_DIR / f"{analysis_fp}.json").read_text(encoding="utf-8")
     )
-    generated = json.loads(
-        (QUERY_DIR / f"{analysis_fp}.json").read_text(encoding="utf-8")
-    )
+    if query_file is not None:
+        query_path = Path(query_file)
+    else:
+        query_path = QUERY_DIR / f"{analysis_fp}.json"
+    generated = json.loads(query_path.read_text(encoding="utf-8"))
     item_map = {item["id"]: item for item in analysis["items"]}
     violations = []
     for query in generated["queries"]:
-        expected_id = query["expected_ids"][0]
-        item = item_map.get(expected_id)
-        if item is None:
-            violations.append((query["query"], expected_id, ["unknown_id"]))
-            continue
-        if not _is_keyword(query["query"]):
-            violations.append((query["query"], expected_id, ["not_keyword"]))
-            continue
-        normalized_query = _normalize(query["query"])
-        query_terms = {
-            _normalize(term)
-            for term in re.findall(r"[0-9A-Za-z가-힣]+", query["query"])
-            if len(_normalize(term)) >= 2 and _normalize(term) not in COMMON_QUERY_TERMS
-        }
-        hits = [
-            name
-            for name, value in _fields(item).items()
-            if (
-                normalized_query
-                and normalized_query in _normalize(value)
-                or any(term in _normalize(value) for term in query_terms)
-            )
-        ]
-        if hits:
-            violations.append((query["query"], expected_id, hits))
+        # multi expected_ids: 모든 id에 대해 누수 체크
+        for expected_id in query["expected_ids"]:
+            item = item_map.get(expected_id)
+            if item is None:
+                violations.append((query["query"], expected_id, ["unknown_id"]))
+                continue
+            if not _is_keyword(query["query"]):
+                violations.append((query["query"], expected_id, ["not_keyword"]))
+                continue
+            normalized_query = _normalize(query["query"])
+            query_terms = {
+                _normalize(term)
+                for term in re.findall(r"[0-9A-Za-z가-힣]+", query["query"])
+                if len(_normalize(term)) >= 2 and _normalize(term) not in COMMON_QUERY_TERMS
+            }
+            hits = [
+                name
+                for name, value in _fields(item).items()
+                if (
+                    normalized_query
+                    and normalized_query in _normalize(value)
+                    or any(term in _normalize(value) for term in query_terms)
+                )
+            ]
+            if hits:
+                violations.append((query["query"], expected_id, hits))
 
     if violations:
         for query, expected_id, hits in violations:
@@ -106,5 +110,6 @@ def main(analysis_fp: str) -> None:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--analysis-fp", required=True)
+    parser.add_argument("--query-file", default=None, help="검증할 쿼리 JSON 파일 경로 (기본: artifacts/generated_queries/{analysis_fp}.json)")
     args = parser.parse_args()
-    main(args.analysis_fp)
+    main(args.analysis_fp, args.query_file)

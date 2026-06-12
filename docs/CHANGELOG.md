@@ -15,6 +15,9 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 >
 > **동시 세션 / 공유 파일 주의**: CHANGELOG 는 여러 세션·작업자가 함께 쓰는 append-only 공유 파일이다. 동시 작업 중에는 다른 세션이 자기 항목을 먼저 커밋할 수 있고, 한 워킹트리에 여러 세션의 미커밋 항목이 섞여 보일 수 있다. 이때 **항목을 분리하려 애쓰지 말고** 자기 변경과 함께 그대로 staging·커밋한다 — 섞인 다른 항목은 해당 세션이 자기 코드와 함께 정리한다. diff 에 모르는 CHANGELOG 항목이 보여도 멈추지 않는다 (단, CHANGELOG 외의 *코드* 파일은 절대 임의로 섞어 커밋하지 않는다).
 
+## 2026-06-12 — docs
+- **lab/rag-search: category 전략 비교 실험 기록 + 임베딩 input 결정 확정.** category 필드를 임베딩 입력에 추가하는 5전략을 비교한 결과 전 모델 평균 nDCG@5 -0.008로 임베딩 입력에서 제외 확정. 최종 결론: `voyage-4-large@1024 × summary+labels+payload+entities`(semantic-gap 27쿼리 nDCG@5=0.813). embed.py category 전략 5종, 자동 semantic-gap 쿼리 생성기(generate_semantic_gap_queries.py), 결과 분석 헬퍼(_analyze_results.py) 추가.
+
 ## 2026-06-10 — docs
 - **lab/rag-search: semantic gap keyword 평가 추가 (gold/semantic_gap_queries.json, validate_semantic_gap.py, eval_retrieval.py --gold).** 원문에 없는 상위 개념 키워드 21개(딥러닝·다이어트·로맨스영화 등) gold 세트 작성·누수 검증(OK). BM25는 nDCG@5=0.021로 완전 붕괴, Vector 단독이 0.798로 필수. expansion 전략의 직접 비교는 VOYAGE_API_KEY 재설정 후 재실험 필요.
 
