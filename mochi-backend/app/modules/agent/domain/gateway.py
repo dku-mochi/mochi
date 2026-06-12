@@ -37,6 +37,18 @@ class MochiItemGateway(Protocol):
         self, *, owner_id: UUID, mochi_item_id: UUID, result: AnalysisResult
     ) -> None: ...
 
+    async def index_embedding(
+        self,
+        *,
+        owner_id: UUID,
+        mochi_item_id: UUID,
+        chunk_text: str,
+        embedding: list[float],
+        model_version: str,
+    ) -> None:
+        """INDEXED 노드 — item 의 vector 색인을 교체한다 (delete-reinsert 멱등)."""
+        ...
+
     async def list_recent_window(
         self, *, owner_id: UUID, limit: int
     ) -> list[ProfileWindowItem]: ...

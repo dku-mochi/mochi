@@ -1,0 +1,587 @@
+[
+  {
+    "id": "c_001",
+    "summary": "SH 서울주택도시공사 청년안심주택 2026년 1차 모집공고 캡처. 보증금 무이자 지원이랑 신청 자격(만 19~39세 무주택 청년) 정리돼 있음.",
+    "labels": ["청년 주거 지원 신청"],
+    "entities": [{"kind": "topic", "value": "청년안심주택"}, {"kind": "platform", "value": "SH서울주택도시공사"}, {"kind": "location", "value": "서울"}],
+    "category": "housing",
+    "role": "answer",
+    "for_query": "청년 주거"
+  },
+  {
+    "id": "c_002",
+    "summary": "국토부 청년월세 특별지원 신청 페이지 스크린샷. 월 최대 20만원씩 12개월 지원, 소득·재산 요건이랑 마이홈포털 신청 링크 저장함.",
+    "labels": ["청년 주거 지원 신청"],
+    "entities": [{"kind": "topic", "value": "청년월세 특별지원"}, {"kind": "platform", "value": "마이홈포털"}, {"kind": "product", "value": "월세 지원"}],
+    "category": "housing",
+    "role": "answer",
+    "for_query": "청년 주거"
+  },
+  {
+    "id": "c_003",
+    "summary": "LH 행복주택 동탄2신도시 A-12블록 입주자 모집공고 메모. 전용 26㎡, 주변 시세 대비 60~80% 임대료, 청년·신혼부부 우선공급 비율 적어둠.",
+    "labels": ["청년 주거 지원 신청"],
+    "entities": [{"kind": "topic", "value": "행복주택"}, {"kind": "platform", "value": "LH한국토지주택공사"}, {"kind": "location", "value": "동탄2신도시"}],
+    "category": "housing",
+    "role": "answer",
+    "for_query": "청년 주거"
+  },
+  {
+    "id": "c_004",
+    "summary": "신혼부부 매입임대주택 특별공급 공고 캡처. 혼인 7년 이내 부부 대상이라 청년 단독은 해당 안 됨. 보증금이랑 자격 메모.",
+    "labels": ["주거 지원 정보"],
+    "entities": [{"kind": "topic", "value": "신혼부부 특별공급"}, {"kind": "platform", "value": "LH한국토지주택공사"}],
+    "category": "housing",
+    "role": "hard_neg",
+    "for_query": "청년 주거"
+  },
+  {
+    "id": "c_005",
+    "summary": "고령자 복지주택(어르신 임대) 안내 페이지. 만 65세 이상 무주택 어르신 대상 주거복지로, 청년 대상은 아님.",
+    "labels": ["주거 지원 정보"],
+    "entities": [{"kind": "topic", "value": "고령자 복지주택"}, {"kind": "platform", "value": "LH한국토지주택공사"}],
+    "category": "housing",
+    "role": "hard_neg",
+    "for_query": "청년 주거"
+  },
+  {
+    "id": "c_006",
+    "summary": "청년도약계좌 가입 조건 정리한 캡처. 5년 만기 적금으로 정부 기여금 붙는 상품. 청년 대상이지만 주거가 아니라 자산형성 지원.",
+    "labels": ["금융 상품 정보"],
+    "entities": [{"kind": "product", "value": "청년도약계좌"}, {"kind": "topic", "value": "청년 자산형성"}],
+    "category": "housing",
+    "role": "hard_neg",
+    "for_query": "청년 주거"
+  },
+  {
+    "id": "c_007",
+    "summary": "청년내일채움공제 일자리 지원 안내. 중소기업 청년 근로자 대상 목돈 마련 제도라 주거 지원과 무관.",
+    "labels": ["일자리 지원 정보"],
+    "entities": [{"kind": "topic", "value": "청년내일채움공제"}, {"kind": "platform", "value": "고용노동부"}],
+    "category": "housing",
+    "role": "hard_neg",
+    "for_query": "청년 주거"
+  },
+  {
+    "id": "c_008",
+    "summary": "직방에서 본 강남구 역삼동 원룸 월세 매물. 보증금 1000/월 65만, 전용 5평 풀옵션 분리형 원룸. 채광 좋고 역세권이라 저장.",
+    "labels": ["부동산 매물 저장"],
+    "entities": [{"kind": "platform", "value": "직방"}, {"kind": "location", "value": "역삼동"}, {"kind": "topic", "value": "원룸 월세"}],
+    "category": "housing",
+    "role": "answer",
+    "for_query": "원룸"
+  },
+  {
+    "id": "c_009",
+    "summary": "다방 앱 부천 중동 신축 오피스텔 원룸 매물 캡처. 보증금 500/월 50만, 빌트인 풀옵션에 주차 가능. 입주 가능일 메모.",
+    "labels": ["부동산 매물 저장"],
+    "entities": [{"kind": "platform", "value": "다방"}, {"kind": "location", "value": "부천 중동"}, {"kind": "topic", "value": "오피스텔 원룸"}],
+    "category": "housing",
+    "role": "answer",
+    "for_query": "원룸"
+  },
+  {
+    "id": "c_010",
+    "summary": "유튜브 원룸 셀프 인테리어 시공 영상 저장. 페인트칠·필름지·조명 교체로 자취방 꾸미는 법. 매물이 아니라 인테리어 팁.",
+    "labels": ["인테리어 정보"],
+    "entities": [{"kind": "topic", "value": "원룸 셀프 인테리어"}, {"kind": "platform", "value": "유튜브"}],
+    "category": "housing",
+    "role": "hard_neg",
+    "for_query": "원룸"
+  },
+  {
+    "id": "c_011",
+    "summary": "원룸 이사 후 입주청소 업체 견적 캡처. 5평 기준 12만원, 곰팡이·화장실 특수청소 옵션. 매물 검색이 아니라 청소 서비스.",
+    "labels": ["생활 서비스 정보"],
+    "entities": [{"kind": "topic", "value": "원룸 입주청소"}, {"kind": "platform", "value": "숨고"}],
+    "category": "housing",
+    "role": "hard_neg",
+    "for_query": "원룸"
+  },
+  {
+    "id": "c_012",
+    "summary": "원룸용 미니 세탁기·소형 냉장고 추천 블로그. 좁은 자취방 가전 사이즈 비교. 매물이 아니라 가전 쇼핑 정보.",
+    "labels": ["가전 정보"],
+    "entities": [{"kind": "topic", "value": "원룸 가전"}, {"kind": "product", "value": "미니 세탁기"}],
+    "category": "housing",
+    "role": "hard_neg",
+    "for_query": "원룸"
+  },
+  {
+    "id": "c_013",
+    "summary": "투룸 빌라 전세 매물 캡처. 신혼집으로 보고 있는 전용 15평 분리형 투룸이라 원룸 검색 의도와는 평형이 다름.",
+    "labels": ["부동산 매물 저장"],
+    "entities": [{"kind": "platform", "value": "직방"}, {"kind": "topic", "value": "투룸 전세"}, {"kind": "location", "value": "일산"}],
+    "category": "housing",
+    "role": "hard_neg",
+    "for_query": "원룸"
+  },
+  {
+    "id": "c_014",
+    "summary": "카카오뱅크 전월세보증금 대출(전세자금대출) 상품 안내 캡처. 최대 2.2억, 연 3.5%대 금리, 비대면 신청에 한도 조회까지 정리.",
+    "labels": ["금융 상품 정보"],
+    "entities": [{"kind": "brand", "value": "카카오뱅크"}, {"kind": "product", "value": "전월세보증금 대출"}, {"kind": "topic", "value": "전세자금대출"}],
+    "category": "housing",
+    "role": "answer",
+    "for_query": "전세 대출"
+  },
+  {
+    "id": "c_015",
+    "summary": "주택도시기금 버팀목 전세자금대출 조건 메모. 청년 우대형 연 1.5~2.1% 금리, 보증금 1억 이하, 만 34세 이하 요건이랑 HUG 보증 정리함.",
+    "labels": ["금융 상품 정보"],
+    "entities": [{"kind": "product", "value": "버팀목 전세자금대출"}, {"kind": "platform", "value": "주택도시기금"}, {"kind": "topic", "value": "전세자금대출"}],
+    "category": "housing",
+    "role": "answer",
+    "for_query": "전세 대출"
+  },
+  {
+    "id": "c_016",
+    "summary": "월세보증금 대출(소액 임차보증금) 상품 캡처. 전세가 아니라 월세 보증금용이라 한도·조건이 전세자금대출과 다름.",
+    "labels": ["금융 상품 정보"],
+    "entities": [{"kind": "product", "value": "월세보증금 대출"}, {"kind": "topic", "value": "월세 대출"}],
+    "category": "housing",
+    "role": "hard_neg",
+    "for_query": "전세 대출"
+  },
+  {
+    "id": "c_017",
+    "summary": "주택담보대출(매매) 금리 비교 캡처. 아파트 구입용 주담대라 전세자금대출과 목적이 다름. LTV·DSR 정리.",
+    "labels": ["금융 상품 정보"],
+    "entities": [{"kind": "product", "value": "주택담보대출"}, {"kind": "topic", "value": "아파트 매매 대출"}],
+    "category": "housing",
+    "role": "hard_neg",
+    "for_query": "전세 대출"
+  },
+  {
+    "id": "c_018",
+    "summary": "한국장학재단 학자금대출 신청 안내 캡처. 등록금·생활비 대출이라 전세와 무관한데 '대출' 키워드만 겹침.",
+    "labels": ["금융 상품 정보"],
+    "entities": [{"kind": "product", "value": "학자금대출"}, {"kind": "platform", "value": "한국장학재단"}],
+    "category": "housing",
+    "role": "hard_neg",
+    "for_query": "전세 대출"
+  },
+  {
+    "id": "c_019",
+    "summary": "전세버스 대절 견적 캡처. MT용 45인승 전세버스 대절 비용이라 전세자금대출과 전혀 무관, '전세' 단어만 동일.",
+    "labels": ["생활 서비스 정보"],
+    "entities": [{"kind": "topic", "value": "전세버스 대절"}, {"kind": "platform", "value": "버스대절 견적사이트"}],
+    "category": "housing",
+    "role": "hard_neg",
+    "for_query": "전세 대출"
+  },
+  {
+    "id": "c_020",
+    "summary": "KB부동산 전국 아파트 시세·매매가 동향 리포트 캡처. 수도권 전세가율이랑 거래량 추이, 정부 부동산 정책 요약 저장.",
+    "labels": ["부동산 시세 정보"],
+    "entities": [{"kind": "platform", "value": "KB부동산"}, {"kind": "topic", "value": "아파트 시세"}, {"kind": "topic", "value": "부동산 정책"}],
+    "category": "housing",
+    "role": "answer",
+    "for_query": "부동산"
+  },
+  {
+    "id": "c_021",
+    "summary": "부동산 공인중개사 자격증 시험 일정·과목 정리 캡처. 시세 정보가 아니라 자격증 수험 정보라 부동산 일반 검색과 의도가 다름.",
+    "labels": ["자격증 정보"],
+    "entities": [{"kind": "topic", "value": "공인중개사 시험"}, {"kind": "platform", "value": "큐넷"}],
+    "category": "housing",
+    "role": "hard_neg",
+    "for_query": "부동산"
+  },
+  {
+    "id": "c_022",
+    "summary": "부동산 리츠(REITs) ETF 투자 종목 분석 블로그. 부동산 간접투자 상품이라 시세·정책 일반 정보와는 결이 다름.",
+    "labels": ["투자 정보"],
+    "entities": [{"kind": "topic", "value": "부동산 리츠"}, {"kind": "product", "value": "리츠 ETF"}],
+    "category": "housing",
+    "role": "hard_neg",
+    "for_query": "부동산"
+  },
+  {
+    "id": "c_023",
+    "summary": "재산세·종합부동산세 납부 일정과 계산법 정리 캡처. 부동산 보유세 행정 정보라 시세 동향 검색과는 다른 의도.",
+    "labels": ["세금 정보"],
+    "entities": [{"kind": "topic", "value": "종합부동산세"}, {"kind": "platform", "value": "홈택스"}],
+    "category": "housing",
+    "role": "hard_neg",
+    "for_query": "부동산"
+  },
+  {
+    "id": "c_024",
+    "summary": "이케아 BILLY 책장이랑 MALM 침대 프레임 장바구니 캡처. 자취방 가구 배치 고민하며 사이즈 메모.",
+    "labels": ["가구 쇼핑"],
+    "entities": [{"kind": "brand", "value": "이케아"}, {"kind": "product", "value": "BILLY 책장"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_025",
+    "summary": "당근마켓에서 본 중고 6인용 식탁 거래글. 직거래 위치랑 가격 5만원 메모.",
+    "labels": ["중고거래"],
+    "entities": [{"kind": "platform", "value": "당근마켓"}, {"kind": "product", "value": "중고 식탁"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_026",
+    "summary": "포장이사 업체 3곳 견적 비교 메모. 5톤 기준 가격이랑 사다리차 포함 여부, 예약 가능일 정리.",
+    "labels": ["이사 정보"],
+    "entities": [{"kind": "topic", "value": "포장이사"}, {"kind": "platform", "value": "이사 견적 앱"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_027",
+    "summary": "LG 디오스 오브제컬렉션 냉장고 스펙·가격 비교 캡처. 용량이랑 에너지효율 등급 메모.",
+    "labels": ["가전 정보"],
+    "entities": [{"kind": "brand", "value": "LG"}, {"kind": "product", "value": "디오스 냉장고"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_028",
+    "summary": "도시가스 요금 인상 안내문 캡처. 겨울철 난방비 절약 팁이랑 캐시백 신청 방법 저장.",
+    "labels": ["공과금 정보"],
+    "entities": [{"kind": "topic", "value": "도시가스 요금"}, {"kind": "platform", "value": "도시가스공사"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_029",
+    "summary": "아파트 관리비 고지서 캡처. 공용 전기료랑 장기수선충당금 항목 확인하려고 저장.",
+    "labels": ["관리비 정보"],
+    "entities": [{"kind": "topic", "value": "아파트 관리비"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_030",
+    "summary": "주택청약종합저축 가입·납입 안내 캡처. 매달 10만원 납입이랑 청약 가점 계산법 메모.",
+    "labels": ["금융 상품 정보"],
+    "entities": [{"kind": "product", "value": "주택청약종합저축"}, {"kind": "platform", "value": "청약홈"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_031",
+    "summary": "오늘의집에서 본 자취방 인테리어 룩북 저장. 우드톤 가구랑 간접조명 배치 참고하려고.",
+    "labels": ["인테리어 정보"],
+    "entities": [{"kind": "platform", "value": "오늘의집"}, {"kind": "topic", "value": "인테리어 룩북"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_032",
+    "summary": "다이슨 무선청소기 V12 가격 비교랑 사은품 행사 캡처. 자취방 청소용으로 고민 중.",
+    "labels": ["가전 정보"],
+    "entities": [{"kind": "brand", "value": "다이슨"}, {"kind": "product", "value": "무선청소기 V12"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_033",
+    "summary": "로켓배송에서 산 부엌 살림 정리 용품 주문내역. 전자레인지 선반이랑 싱크대 수납 정리함.",
+    "labels": ["생활용품 쇼핑"],
+    "entities": [{"kind": "platform", "value": "쿠팡"}, {"kind": "product", "value": "주방 수납용품"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_034",
+    "summary": "전기요금 누진제 구간이랑 에어컨 사용량 계산기 캡처. 여름철 전기료 폭탄 피하려고 저장.",
+    "labels": ["공과금 정보"],
+    "entities": [{"kind": "topic", "value": "전기요금 누진제"}, {"kind": "platform", "value": "한국전력"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_035",
+    "summary": "맘에 든 카페 라떼 레시피 영상 저장. 홈카페 도구랑 원두 추천 메모.",
+    "labels": ["요리 정보"],
+    "entities": [{"kind": "topic", "value": "홈카페 레시피"}, {"kind": "platform", "value": "유튜브"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_036",
+    "summary": "넷플릭스 보고 싶은 드라마 위시리스트 스크린샷. 주말에 정주행할 작품 3개 메모.",
+    "labels": ["콘텐츠 메모"],
+    "entities": [{"kind": "platform", "value": "넷플릭스"}, {"kind": "topic", "value": "드라마 위시리스트"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_037",
+    "summary": "제주도 2박3일 여행 일정 캡처. 렌터카랑 맛집 동선 정리, 숙소 예약 링크 저장.",
+    "labels": ["여행 계획"],
+    "entities": [{"kind": "location", "value": "제주도"}, {"kind": "topic", "value": "여행 일정"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_038",
+    "summary": "헬스장 PT 등록 상담 견적 캡처. 회차당 가격이랑 식단 관리 옵션 메모.",
+    "labels": ["운동 정보"],
+    "entities": [{"kind": "topic", "value": "PT 등록"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_039",
+    "summary": "맥북 에어 M3 중고 시세 비교 캡처. 용량별 가격이랑 보증 잔여기간 확인하려고.",
+    "labels": ["전자기기 쇼핑"],
+    "entities": [{"kind": "brand", "value": "애플"}, {"kind": "product", "value": "맥북 에어 M3"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_040",
+    "summary": "건강검진 예약 안내 문자 캡처. 검진 항목이랑 공복 준비사항 메모.",
+    "labels": ["건강 정보"],
+    "entities": [{"kind": "topic", "value": "건강검진"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_041",
+    "summary": "토스 자동이체 관리 화면 캡처. 월세·관리비·구독료 빠져나가는 날짜 정리하려고 저장.",
+    "labels": ["가계부 정보"],
+    "entities": [{"kind": "brand", "value": "토스"}, {"kind": "topic", "value": "자동이체 관리"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_042",
+    "summary": "에어프라이어 추천 요리 레시피 모음 캡처. 자취 요리용으로 간단 메뉴 5개 메모.",
+    "labels": ["요리 정보"],
+    "entities": [{"kind": "topic", "value": "에어프라이어 레시피"}, {"kind": "product", "value": "에어프라이어"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_043",
+    "summary": "무인양품 수납 정리함이랑 침구 세트 장바구니 캡처. 방 정리할 때 사려고 사이즈 메모.",
+    "labels": ["생활용품 쇼핑"],
+    "entities": [{"kind": "brand", "value": "무인양품"}, {"kind": "product", "value": "수납 정리함"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_044",
+    "summary": "분리수거 요일·방법 안내문 캡처. 우리 동네 음식물 쓰레기 배출 규정 헷갈려서 저장.",
+    "labels": ["생활 정보"],
+    "entities": [{"kind": "topic", "value": "분리수거 방법"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_045",
+    "summary": "침대 매트리스 브랜드별 경도·가격 비교 블로그. 허리 안 아픈 매트리스 찾으려고 저장.",
+    "labels": ["가구 쇼핑"],
+    "entities": [{"kind": "topic", "value": "매트리스 비교"}, {"kind": "product", "value": "매트리스"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_046",
+    "summary": "스타벅스 신메뉴 출시 안내 캡처. 친구랑 가서 먹어볼 음료 메모.",
+    "labels": ["콘텐츠 메모"],
+    "entities": [{"kind": "brand", "value": "스타벅스"}, {"kind": "topic", "value": "신메뉴"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_047",
+    "summary": "전입신고·확정일자 온라인 신청 방법 캡처. 정부24에서 처리하는 절차랑 필요 서류 메모.",
+    "labels": ["행정 정보"],
+    "entities": [{"kind": "topic", "value": "전입신고 확정일자"}, {"kind": "platform", "value": "정부24"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_048",
+    "summary": "커튼·블라인드 맞춤 제작 견적 캡처. 창문 사이즈 재서 가격 비교하려고 저장.",
+    "labels": ["인테리어 정보"],
+    "entities": [{"kind": "topic", "value": "커튼 블라인드 제작"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_049",
+    "summary": "겨울철 결로·곰팡이 제거 꿀팁 블로그. 제습제 추천이랑 환기 방법 정리해서 저장.",
+    "labels": ["생활 정보"],
+    "entities": [{"kind": "topic", "value": "결로 곰팡이 제거"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_050",
+    "summary": "삼성 비스포크 식기세척기 설치 후기 영상. 자취방에 들일 수 있는 소형 모델 메모.",
+    "labels": ["가전 정보"],
+    "entities": [{"kind": "brand", "value": "삼성"}, {"kind": "product", "value": "비스포크 식기세척기"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_051",
+    "summary": "쿠팡에서 산 차량용 핸드폰 거치대 주문내역. 운전할 때 쓰려고 호환 기종 확인.",
+    "labels": ["생활용품 쇼핑"],
+    "entities": [{"kind": "platform", "value": "쿠팡"}, {"kind": "product", "value": "차량용 거치대"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_052",
+    "summary": "통신사 요금제 변경 비교 캡처. 5G 무제한이랑 알뜰폰 요금 비교해서 갈아탈지 고민.",
+    "labels": ["통신 정보"],
+    "entities": [{"kind": "topic", "value": "통신 요금제"}, {"kind": "platform", "value": "알뜰폰"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_053",
+    "summary": "보일러 온도조절기 사용법이랑 외출 모드 설정 캡처. 난방비 아끼려고 적정 온도 메모.",
+    "labels": ["생활 정보"],
+    "entities": [{"kind": "topic", "value": "보일러 사용법"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_054",
+    "summary": "올리브영 세일 품목 장바구니 캡처. 스킨케어 떨어진 거 채우려고 메모.",
+    "labels": ["쇼핑 메모"],
+    "entities": [{"kind": "brand", "value": "올리브영"}, {"kind": "topic", "value": "세일 품목"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_055",
+    "summary": "전동 드릴이랑 벽 선반 설치 DIY 영상. 자취방에 못 안 박고 선반 다는 법 참고.",
+    "labels": ["인테리어 정보"],
+    "entities": [{"kind": "topic", "value": "벽 선반 설치 DIY"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_056",
+    "summary": "지역화폐 캐시백 충전 안내 캡처. 10% 인센티브 받으려고 충전 한도랑 사용처 메모.",
+    "labels": ["금융 정보"],
+    "entities": [{"kind": "topic", "value": "지역화폐 캐시백"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_057",
+    "summary": "반려식물 몬스테라 키우기 가이드 캡처. 물 주기랑 햇빛 위치 메모해서 저장.",
+    "labels": ["생활 정보"],
+    "entities": [{"kind": "topic", "value": "반려식물 키우기"}, {"kind": "product", "value": "몬스테라"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_058",
+    "summary": "코스트코 대용량 생필품 추천 리스트 캡처. 휴지·세제 쟁여둘 거 메모.",
+    "labels": ["쇼핑 메모"],
+    "entities": [{"kind": "brand", "value": "코스트코"}, {"kind": "topic", "value": "생필품"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_059",
+    "summary": "지하철 정기권 충전 안내랑 출퇴근 환승 경로 캡처. 통근 시간 줄이는 루트 메모.",
+    "labels": ["교통 정보"],
+    "entities": [{"kind": "topic", "value": "지하철 정기권"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_060",
+    "summary": "건조기 vs 빨래건조대 비교 블로그. 자취방에 건조기 둘 공간 있나 고민하며 저장.",
+    "labels": ["가전 정보"],
+    "entities": [{"kind": "topic", "value": "건조기 비교"}, {"kind": "product", "value": "의류건조기"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_061",
+    "summary": "전자레인지로 만드는 간단 자취 요리 레시피 모음. 5분 컷 한 그릇 메뉴 메모.",
+    "labels": ["요리 정보"],
+    "entities": [{"kind": "topic", "value": "자취 요리"}, {"kind": "product", "value": "전자레인지"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_062",
+    "summary": "에어컨 청소 셀프 vs 업체 비용 비교 캡처. 여름 전에 곰팡이 제거하려고 메모.",
+    "labels": ["생활 서비스 정보"],
+    "entities": [{"kind": "topic", "value": "에어컨 청소"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_063",
+    "summary": "현관 디지털 도어록 교체 모델 비교 캡처. 지문·번호 방식이랑 설치비 메모.",
+    "labels": ["생활용품 쇼핑"],
+    "entities": [{"kind": "topic", "value": "디지털 도어록"}, {"kind": "product", "value": "도어록"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_064",
+    "summary": "주말 플리마켓 일정 캡처. 빈티지 소품이랑 핸드메이드 가구 구경 가려고 위치 메모.",
+    "labels": ["콘텐츠 메모"],
+    "entities": [{"kind": "topic", "value": "플리마켓"}, {"kind": "location", "value": "성수동"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_065",
+    "summary": "월패드·스마트홈 IoT 기기 연동 가이드 캡처. 조명·온도 앱으로 제어하는 설정 메모.",
+    "labels": ["생활 정보"],
+    "entities": [{"kind": "topic", "value": "스마트홈 IoT"}, {"kind": "product", "value": "스마트 조명"}],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  }
+]

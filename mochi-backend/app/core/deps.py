@@ -17,6 +17,7 @@ from app.modules.mochi_items.domain.ports import CaptureImageStorage
 from app.modules.mochi_items.infrastructure.gcs_storage import GCSSignedUrlIssuer
 from app.modules.notifications.domain.ports import APNsClient
 from app.modules.notifications.infrastructure.apns_client import HttpxAPNsClient
+from app.shared.voyage import VoyageClient
 
 DBSession = Annotated[AsyncSession, Depends(get_session)]
 
@@ -88,3 +89,22 @@ def _apns_client_singleton() -> APNsClient | None:
 def get_apns_client() -> APNsClient | None:
     """APNs HTTP/2 클라이언트 (프로세스당 1개). p8 미설정 시 ``None`` → push no-op."""
     return _apns_client_singleton()
+
+
+@lru_cache(maxsize=1)
+def _voyage_client_singleton() -> VoyageClient | None:
+    settings = get_settings()
+    if not settings.voyage_api_key:
+        return None
+    return VoyageClient(
+        settings.voyage_api_key,
+        embedding_model=settings.voyage_embedding_model,
+        embedding_dim=settings.voyage_embedding_dim,
+        rerank_model=settings.voyage_rerank_model,
+    )
+
+
+def get_voyage_client() -> VoyageClient | None:
+    """Voyage 임베딩·리랭크 클라이언트 (프로세스당 1개). 키 미설정 시 ``None`` —
+    vector·rerank 경로가 비활성화되고 검색은 BM25/키워드로 degrade 한다."""
+    return _voyage_client_singleton()

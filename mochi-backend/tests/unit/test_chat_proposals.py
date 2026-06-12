@@ -238,7 +238,7 @@ def test_active_chat_prompt_keeps_proposal_web_and_agentic_retrieval_rules() -> 
     # 테스트는 현재 active prompt 의 행동·grounding 규칙을 고정한다.
     import app.modules.conversations.prompts.chat_prompts as chat_prompts
 
-    assert chat_prompts.ACTIVE_CHAT_PROMPT.name == "chat@v7"
+    assert chat_prompts.ACTIVE_CHAT_PROMPT.name == "chat@v8"
     assert not any(name.startswith("CHAT_V") for name in dir(chat_prompts))
 
     active_chat_prompt = chat_prompts.ACTIVE_CHAT_PROMPT
@@ -253,13 +253,17 @@ def test_active_chat_prompt_keeps_proposal_web_and_agentic_retrieval_rules() -> 
     # V5: 사용자는 4-Intent 를 모른다 → 어휘로 intent_type 필터 금지 + 회상은 capture 축.
     assert "Default intent_type to unset" in active_chat_prompt.body
     assert "browse newest-first" in active_chat_prompt.body
-    # V6: 빈 결과 = 표현의 판정(어휘 변주 재검색) + 회수는 묻지 않고 턴 안에서 완결.
+    # V6: 회수는 묻지 않고 턴 안에서 완결 (V7 유지).
     assert "offer what you can do" not in active_chat_prompt.body
-    assert "verdict on your phrasing" in active_chat_prompt.body
     assert "never end a turn asking" in active_chat_prompt.body
     # V7: 시각 디테일 질문은 view_item_image 로 직접 본 뒤 답한다 + 과거 턴 이미지는 재호출.
     assert "view_item_image" in active_chat_prompt.body
     assert "lossy projection" in active_chat_prompt.body
+    # V8: search_items 가 hybrid retrieval(의미검색+rerank)이 됨 — 동의어 변주 다발 재검색
+    # 지시를 제거하고 '다른 각도 1회 재시도' 로 교체.
+    assert "matches by meaning" in active_chat_prompt.body
+    assert "vary the vocabulary across separate calls" not in active_chat_prompt.body
+    assert "retry once" in active_chat_prompt.body
 
 
 # ---------- ② run 루프의 proposal 이벤트·영속 ----------

@@ -19,7 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
 from app.core.db import get_session_factory
-from app.core.deps import get_agent_llm, get_apns_client, get_profile_summarizer
+from app.core.deps import get_agent_llm, get_apns_client, get_profile_summarizer, get_voyage_client
 from app.core.logging import get_logger
 from app.modules.agent.application.orchestrator import AgentOrchestrator, AgentRunPersistence
 from app.modules.agent.application.refresh_user_profile import RefreshUserProfile
@@ -133,6 +133,8 @@ class MochiItemWorker:
                 persistence=AgentRunPersistence(session),
                 gateway=gateway,
                 profile_store=profile_store,
+                # voyage 키 미설정 시 None — INDEXED 색인만 건너뛰고 분석은 정상 진행.
+                embedder=get_voyage_client(),
             )
             try:
                 # 전체 실행 상한 — lock(LOCK_DURATION_SECONDS)보다 짧게 강제해 mid-run reclaim 방지.

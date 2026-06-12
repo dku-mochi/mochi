@@ -11,7 +11,7 @@ from datetime import date
 from app.modules.agent.prompts.system_prompts import PromptVersion
 
 ACTIVE_CHAT_PROMPT = PromptVersion(
-    name='chat@v7',
+    name='chat@v8',
     body=(
         "You are MOCHI (모찌) — the user's memory companion. They save screenshots, links, and "
         "short notes; you answer questions, find records, and summarize — always replying in "
@@ -56,13 +56,12 @@ ACTIVE_CHAT_PROMPT = PromptVersion(
         "inside the sentence itself (\"저장해두신 메모에는 …\" / \"웹에서 찾아보니 …\" / \"일반적으로는 …\") — the user must "
         "always know which memory is theirs. 【item:<id>】 markers are for records only; name a web "
         "source in the sentence instead of marking it.\n"
-        "- An empty search is a verdict on your phrasing, not on their records — records speak in "
-        "whatever words the user happened to save, which rarely match the words they ask with. "
-        "Each query tests a single phrasing (every word in it must match the same record), so "
-        "vary the vocabulary across separate calls — synonyms, broader and narrower framings, "
-        "adjacent kinds of records that would serve the same ask — and when you can already name "
-        "the variations, issue those calls together rather than one at a time. Only after the "
-        "variations come back empty may you conclude nothing exists.\n"
+        "- Search matches by meaning as well as exact words — describe what the record would be "
+        "about in natural language instead of guessing the vocabulary the user saved it with. An "
+        "empty result is still a verdict on the search, not on their records, but the fix is no "
+        "longer synonym enumeration: retry once with a genuinely different angle — reframe what "
+        "the record is about, widen or drop a filter, or browse by time for vague recalls. If "
+        "that reframed retry also comes back empty, you may conclude nothing is saved.\n"
         "- Finish retrieval before you speak: never end a turn asking whether you should look "
         "something up. If a tool you hold can close the gap, use it now and answer — records "
         "first for anything about the user, the web for what records cannot contain, both woven "
@@ -106,6 +105,12 @@ ACTIVE_CHAT_PROMPT = PromptVersion(
     eval_dataset_version='chat-v1@2026-06-10',
     revised_on=date(2026, 6, 12),
     rationale=(
+        "V7 → V8: search_items 가 hybrid retrieval(키워드 ILIKE + voyage-3-large 의미검색 → rerank-2.5)로 "
+        "업그레이드됨(lab/active/rag-rerank-eval 2026-06-12 — reranker 가 R@1 0.15→0.43 의 승부처). V6 의 '어휘 "
+        "변주를 여러 콜로 발행' 지시는 어휘 불일치를 LLM 의 추가 툴콜(토큰·지연·라운드 예산)로 보상하던 것 — 이제 의미검색이 동의어·패러프레이즈를 "
+        "retrieval 단에서 흡수하므로 해당 불릿을 교체: ⑴ 쿼리는 '기록이 무엇에 관한 것인지'를 자연어로 서술(저장 어휘 추측 불필요) ⑵ 빈 결과 후 "
+        "재시도는 동의어 나열이 아니라 '다른 각도 1회'(재서술·필터 완화·시간 브라우즈) ⑶ 그 1회도 비면 '없다' 결론 허용 — 검색 시도 수 감소로 라운드 "
+        "한도 5 병목(V6 트레이드오프)이 완화된다. 회수 완결성·인용·시간 2축·view_item_image 등 나머지 행동규칙은 V7 유지.\n"
         "V6 → V7: view_item_image 툴 추가에 맞춰 Grounding 에 불릿 1개 — 저장된 text/summary 는 캡처의 lossy "
         "projection 이라, 답이 '캡처에 실제로 뭐가 보이는가'에 달린 질문은 이미지를 직접 본 뒤 답한다(보지 않은 시각 디테일 단정 = fabricated "
         "memory, V1 의 why 재사용). 과거 턴 이미지는 히스토리 재구성에서 떨어져 나가므로(토큰 비용) '기억'하지 말고 재호출하라는 한 줄을 같이 "

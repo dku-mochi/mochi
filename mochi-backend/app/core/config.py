@@ -42,8 +42,14 @@ class Settings(BaseSettings):
     gcs_signer_service_account: str | None = None   # Signed URL 서명용 impersonate 대상 SA email
     gcs_signed_url_ttl_seconds: int = 900            # 15분
     gemini_model: str = "gemini-3.5-flash"
-    gemini_embedding_model: str = "text-embedding-005"
-    embedding_dim: int = 768
+
+    # Embedding / Rerank — Voyage AI (lab/active/rag-rerank-eval 2026-06-12 확정).
+    # voyage-3-large@1024 + rerank-2.5: vector 단독 대비 R@1 0.15→0.43, MRR 0.56→0.88.
+    # 키 미설정 시 vector·rerank 경로만 비활성(BM25/키워드 검색으로 degrade) — 서버는 정상 기동.
+    voyage_api_key: str | None = None
+    voyage_embedding_model: str = "voyage-3-large"
+    voyage_embedding_dim: int = 1024
+    voyage_rerank_model: str = "rerank-2.5"
 
     # 백탭 캡쳐 의도 분류 — `_workspace/2026-05-25-intent-classification-bench.md`
     # v6 spec. flash-lite + global location 이 p50 ~2.8s / ~85KB 최적 조합.
@@ -91,11 +97,12 @@ class Settings(BaseSettings):
     instagram_oembed_access_token: str | None = None
     instagram_oembed_api_version: str = "v20.0"
 
-    # Hybrid search
+    # Hybrid search — BM25+Vector→RRF→rerank-2.5. reranker 는 voyage 키가 있을 때만
+    # wire 되므로 enabled 기본 True 가 안전하다 (키 없으면 RRF 순서 그대로).
     bm25_k: int = 80
     vector_k: int = 80
     rrf_k_constant: int = 60
-    reranker_enabled: bool = False
+    reranker_enabled: bool = True
     reranker_top_n: int = 30
 
     # Security / auth — 자체 발행 access JWT

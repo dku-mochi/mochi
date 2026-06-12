@@ -24,7 +24,7 @@ description: FastAPI 백엔드 진입점·빌드 가이드·모듈 구조. 백�
 | 비동기 ORM | SQLAlchemy 2 (asyncio, typed `MappedAsDataclass`) + asyncpg |
 | 마이그레이션 | Alembic (autogenerate + compare_type) |
 | DB | Postgres 16 + pgvector (HNSW + cosine) |
-| AI | Vertex AI · `gemini-3.1-flash-lite` (multimodal function calling, streaming) · text-embedding-005 |
+| AI | Vertex AI · `gemini-3.1-flash-lite` (multimodal function calling, streaming) / Voyage AI · `voyage-3-large@1024` (임베딩) + `rerank-2.5` (리랭커) |
 | 로깅 / 관측 | structlog (JSON, bound contextvars: request_id, idempotency_key) |
 
 ## 모듈 구조 — Modular Monolith + Hexagonal
@@ -65,7 +65,7 @@ app/
 │   │   ├── domain/                Conversation/Message/MessageCitation + ChatTool·ChatLLMClient·ChatTurnStore ports + run_events
 │   │   ├── application/           BeginChatTurn(암묵 생성·동시 run 409) · RunChatTurn(detached run — 한도 폴백·citation 파싱) · queries
 │   │   ├── infrastructure/        ORM·repository · RunRegistry(in-process queue) · GeminiChatClient(AUTO+stream) · turn_store · tools/(read-only)
-│   │   ├── prompts/               chat@v7 — PromptVersion 버저닝, 기준+why
+│   │   ├── prompts/               chat@v8 — PromptVersion 버저닝, 기준+why
 │   │   └── presentation/router.py POST /{id}/messages(POST-as-SSE) · GET 목록/스냅샷 · DELETE
 │   └── notifications/
 │       ├── domain/                DevicePushToken, APNsClient port
@@ -180,7 +180,7 @@ ingested → normalized → analyzed → routed → persisted → indexed → sy
 ### Hybrid Search RAG
 - `bm25_k=80`, `vector_k=80` 두 후보를 만들어 RRF (`k=60`) 융합
 - recall@50 가 90% 이상 측정될 때만 cross-encoder reranker 활성화 (settings.toggleable)
-- 임베딩 차원 768, `HNSW (m=16, ef_construction=64) cosine`
+- 임베딩 voyage-3-large@1024 (input=summary+labels, doc/query input_type 비대칭), `HNSW (m=16, ef_construction=64) cosine`. `VOYAGE_API_KEY` 미설정 시 vector·rerank 만 비활성(BM25 degrade). 기존 데이터 재색인: `scripts/backfill_embeddings.py`
 
 ### WebFetch SSRF 가드
 - 호스트 블록리스트 + 사설/링크로컬/루프백/메타데이터/multicast/reserved IP 차단

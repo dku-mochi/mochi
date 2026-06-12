@@ -1,3 +1,4 @@
+import asyncio
 import hashlib
 import json
 from collections.abc import AsyncIterator
@@ -14,7 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.logging import get_logger
 from app.modules.agent.domain.analysis import AnalysisResult, ExtractedEntity
 from app.modules.agent.domain.gateway import AnalysisInput, MochiItemGateway
-from app.modules.agent.domain.ports import LLMClient, ToolRegistry
+from app.modules.agent.domain.ports import DocumentEmbedder, LLMClient, ToolRegistry
 from app.modules.agent.domain.profile import UserProfileStore
 from app.modules.agent.domain.run import AgentRun, ToolCall
 from app.modules.agent.domain.states import HAPPY_PATH, AgentNode
@@ -26,8 +27,14 @@ from app.modules.mochi_items.domain.value_objects import (
     IntentPayload,
     ReviewOption,
 )
+from app.shared.voyage import build_embedding_text
 
 log = get_logger("agent")
+
+#: INDEXED 색인 단계 자체 상한 — 임베딩 재시도가 워커 전체 예산(agent_total_timeout, 120s)을
+#: 침범해 run 전체가 CancelledError 로 죽는 것을 막는다 (리뷰 P1: best-effort 계약 위반 경로).
+#: 분석이 예산 근접까지 쓴 턴에서도 색인은 이 안에서 끝나거나 포기된다.
+_INDEX_EMBED_TIMEOUT_SECONDS = 15.0
 
 
 @dataclass(slots=True)
@@ -45,6 +52,8 @@ class AgentOrchestrator:
       ``webFetch`` 로 URL 을 그라운딩한 뒤 ``finalizeAnalysis`` 로 구조화 분석을 저술.
       개인화 프로필이 있으면 system prompt 에 주입한다. ``max_steps`` 상한.
     - ``PERSISTED``: 분석 결과를 ``MochiItemGateway`` 로 write-back.
+    - ``INDEXED``: summary + intent labels 를 voyage 임베딩으로 색인 (결정적 후처리,
+      best-effort — 실패해도 run 은 계속, ``backfill_embeddings.py`` 가 재색인).
     - DB 세션 주입 시 `agent_runs` / `tool_calls` 행 persist + 모든 tool usage 누적.
 
     실패 시 ``failed`` 이벤트를 흘리고 예외를 re-raise 한다 — 워커가 outbox
@@ -60,6 +69,7 @@ class AgentOrchestrator:
         persistence: "AgentRunPersistence | None" = None,
         gateway: MochiItemGateway | None = None,
         profile_store: UserProfileStore | None = None,
+        embedder: DocumentEmbedder | None = None,
     ):
         self._llm = llm
         self._tools = tools
@@ -67,6 +77,7 @@ class AgentOrchestrator:
         self._persistence = persistence
         self._gateway = gateway
         self._profile_store = profile_store
+        self._embedder = embedder
 
     async def run(
         self, mochi_item_id: UUID, owner_id: UUID, reanalysis_hint: str | None = None
@@ -107,6 +118,13 @@ class AgentOrchestrator:
                     await self._gateway.apply_analysis(
                         owner_id=owner_id, mochi_item_id=mochi_item_id, result=analysis
                     )
+                elif (
+                    node is AgentNode.INDEXED
+                    and analysis is not None
+                    and self._gateway is not None
+                    and self._embedder is not None
+                ):
+                    await self._index_embedding(agent_run, owner_id, mochi_item_id, analysis)
 
             agent_run.succeed()
             if self._persistence is not None:
@@ -255,6 +273,49 @@ class AgentOrchestrator:
         )
         yield analysis
 
+    async def _index_embedding(
+        self,
+        agent_run: AgentRun,
+        owner_id: UUID,
+        mochi_item_id: UUID,
+        analysis: AnalysisResult,
+    ) -> None:
+        """INDEXED — 분석 결과(summary + labels)를 voyage 문서 임베딩으로 색인한다.
+
+        **절대 raise 하지 않는다**: 분석(PERSISTED)은 이미 영속됐고, 여기서 실패하면
+        run 을 죽여 outbox 재시도(=Gemini 재분석 비용)를 유발하는 대신 해당 아이템만
+        vector 검색에서 빠진 채 BM25/키워드로 degrade 한다. 누락분은
+        ``scripts/backfill_embeddings.py`` 가 멱등 재색인한다.
+        """
+        assert self._gateway is not None and self._embedder is not None
+        chunk_text = build_embedding_text(
+            analysis.summary, (i.label for i in analysis.intent_instances)
+        )
+        if not chunk_text:
+            return
+        try:
+            async with asyncio.timeout(_INDEX_EMBED_TIMEOUT_SECONDS):
+                vectors = await self._embedder.embed_documents([chunk_text])
+            await self._gateway.index_embedding(
+                owner_id=owner_id,
+                mochi_item_id=mochi_item_id,
+                chunk_text=chunk_text,
+                embedding=vectors[0],
+                model_version=self._embedder.model_version,
+            )
+        except Exception as exc:  # noqa: BLE001
+            # DB flush 실패가 세션을 오염시키면 이후 노드 update 가 PendingRollbackError 로
+            # 연쇄 실패한다 — rollback 으로 복구 (worker 의 profile refresh 와 동일 패턴).
+            if self._persistence is not None:
+                await self._persistence.rollback()
+            log.warning(
+                "agent.index_embedding_failed",
+                run_id=str(agent_run.id),
+                mochi_item_id=str(mochi_item_id),
+                owner_id=str(owner_id),
+                exception=str(exc),
+            )
+
     async def _recent_analysis_context(
         self, *, owner_id: UUID, current_item_id: UUID
     ) -> tuple[str, ...]:
@@ -389,6 +450,11 @@ class AgentRunPersistence:
             },
         )
         await self._session.commit()
+
+    async def rollback(self) -> None:
+        """베스트에포트 단계(INDEXED 색인)의 DB 실패 후 세션 복구 — 오염된 세션을
+        그대로 두면 이후 노드 update 가 PendingRollbackError 로 연쇄 실패한다."""
+        await self._session.rollback()
 
     async def update_node(self, run_id: UUID, node: AgentNode) -> None:
         await self._session.execute(

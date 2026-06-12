@@ -1,4 +1,4 @@
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Sequence
 from typing import Any, Protocol
 
 from pydantic import BaseModel
@@ -37,3 +37,14 @@ class LLMClient(Protocol):
 class ToolRegistry(Protocol):
     def get(self, name: ToolName) -> Tool[Any, Any]: ...
     def all(self) -> list[Tool[Any, Any]]: ...
+
+
+class DocumentEmbedder(Protocol):
+    """문서 임베딩 provider — INDEXED 노드 색인용. ``app.shared.voyage.VoyageClient`` 가
+    구조적으로 만족한다 (테스트는 fake 주입). ``model_version`` 은 embeddings 행에 기록돼
+    모델·차원 변경 시 backfill 의 재색인 판별 키가 된다."""
+
+    @property
+    def model_version(self) -> str: ...
+
+    async def embed_documents(self, texts: Sequence[str]) -> list[list[float]]: ...

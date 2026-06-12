@@ -1,0 +1,592 @@
+[
+  {
+    "id": "b_001",
+    "summary": "아이오닉6 롱레인지 시승 후기 블로그. 실주행 전비 18.2km/kWh랑 급속충전 18분 컷 정리됨. 카니발이랑 막판 고민 중이라 저장.",
+    "labels": ["전기차 구매 검토"],
+    "entities": [{"kind": "product", "value": "아이오닉6"}, {"kind": "topic", "value": "전비"}, {"kind": "topic", "value": "급속충전"}],
+    "category": "mobility",
+    "role": "answer",
+    "for_query": "전기차"
+  },
+  {
+    "id": "b_002",
+    "summary": "테슬라 모델Y RWD vs 기아 EV6 비교 표 캡처. 가격, 주행거리, 트렁크 용량 한눈에 정리해둔 거. 둘 중 하나 살 예정.",
+    "labels": ["전기차 구매 검토", "모델 비교"],
+    "entities": [{"kind": "product", "value": "모델Y"}, {"kind": "product", "value": "EV6"}, {"kind": "brand", "value": "테슬라"}, {"kind": "brand", "value": "기아"}],
+    "category": "mobility",
+    "role": "answer",
+    "for_query": "전기차"
+  },
+  {
+    "id": "b_003",
+    "summary": "현대 캐스퍼 일렉트릭 출고 대기 카페글 스크랩. 4개월 걸린다는 후기랑 옵션 추천 댓글 모아둠. 첫 전기차로 소형 보는 중.",
+    "labels": ["전기차 구매 검토", "출고 대기"],
+    "entities": [{"kind": "product", "value": "캐스퍼 일렉트릭"}, {"kind": "brand", "value": "현대"}, {"kind": "topic", "value": "출고"}],
+    "category": "mobility",
+    "role": "answer",
+    "for_query": "전기차"
+  },
+  {
+    "id": "b_004",
+    "summary": "2026년 서울시 전기승용차 구매보조금 공고 PDF. 국비 최대 580만원에 시비 추가, 차상위 청년 우대 항목 형광펜. 신청기한 메모.",
+    "labels": ["전기차 보조금", "구매 보조금"],
+    "entities": [{"kind": "topic", "value": "전기차 보조금"}, {"kind": "location", "value": "서울시"}, {"kind": "topic", "value": "국비 보조금"}],
+    "category": "mobility",
+    "role": "answer",
+    "for_query": "보조금"
+  },
+  {
+    "id": "b_005",
+    "summary": "무공해차 통합누리집에서 본 경기도 전기차 보조금 지자체별 잔여대수 현황. 성남은 마감, 용인 아직 남음. 빨리 계약하라고 캡처해둠.",
+    "labels": ["전기차 보조금", "지자체 보조금"],
+    "entities": [{"kind": "platform", "value": "무공해차 통합누리집"}, {"kind": "location", "value": "경기도"}, {"kind": "topic", "value": "지자체 보조금"}],
+    "category": "mobility",
+    "role": "answer",
+    "for_query": "보조금"
+  },
+  {
+    "id": "b_006",
+    "summary": "트렉 도마니 AL3 로드 입문용 리뷰 영상 저장. 100만원대 알루미늄 프레임 가성비 좋다고. 출퇴근+주말 라이딩용으로 구매 고민.",
+    "labels": ["자전거 구매 검토", "로드자전거"],
+    "entities": [{"kind": "product", "value": "도마니 AL3"}, {"kind": "brand", "value": "트렉"}, {"kind": "topic", "value": "로드자전거"}],
+    "category": "mobility",
+    "role": "answer",
+    "for_query": "자전거"
+  },
+  {
+    "id": "b_007",
+    "summary": "삼천리 팬텀Q SF 전기자전거 스펙 페이지. PAS 모드 주행거리 55km, 접이식이라 지하철 반입 가능. 통근용으로 살까 저장.",
+    "labels": ["자전거 구매 검토", "전기자전거"],
+    "entities": [{"kind": "product", "value": "팬텀Q SF"}, {"kind": "brand", "value": "삼천리"}, {"kind": "topic", "value": "전기자전거"}],
+    "category": "mobility",
+    "role": "answer",
+    "for_query": "자전거"
+  },
+  {
+    "id": "b_008",
+    "summary": "환경부 전기차 충전소 앱에서 본 집 근처 급속충전기 위치랑 요금. 한전 kW당 347.2원, 회원카드 할인. 주말마다 갈 곳 즐겨찾기.",
+    "labels": ["전기차 충전", "충전소 위치"],
+    "entities": [{"kind": "topic", "value": "급속충전"}, {"kind": "topic", "value": "충전 요금"}, {"kind": "brand", "value": "한전"}],
+    "category": "mobility",
+    "role": "answer",
+    "for_query": "충전"
+  },
+
+  {
+    "id": "b_009",
+    "summary": "지하주차장 전기차 화재 영상 뉴스. 벤츠 EQE 배터리 발화로 차량 수십대 전소. 우리 아파트도 충전구역 어디였나 걱정돼서 저장.",
+    "labels": ["전기차 화재", "뉴스"],
+    "entities": [{"kind": "topic", "value": "전기차 화재"}, {"kind": "product", "value": "EQE"}, {"kind": "brand", "value": "벤츠"}],
+    "category": "mobility",
+    "role": "hard_neg",
+    "for_query": "전기차"
+  },
+  {
+    "id": "b_010",
+    "summary": "전기차 폐배터리 재활용 산업 전망 기사. 리튬 회수율이랑 ESS 재사용 사례. 관련주 투자 참고하려고 클립.",
+    "labels": ["전기차 폐배터리", "정책 기사"],
+    "entities": [{"kind": "topic", "value": "폐배터리 재활용"}, {"kind": "topic", "value": "ESS"}],
+    "category": "mobility",
+    "role": "hard_neg",
+    "for_query": "전기차"
+  },
+  {
+    "id": "b_011",
+    "summary": "전기차 정기점검 후기 글. 감속기 오일 교체랑 브레이크 패드 마모 적다는 내용. 이미 EV 타고 있는 사람이 정비소 비교한 거.",
+    "labels": ["전기차 정비", "유지보수"],
+    "entities": [{"kind": "topic", "value": "정기점검"}, {"kind": "topic", "value": "감속기 오일"}],
+    "category": "mobility",
+    "role": "hard_neg",
+    "for_query": "전기차"
+  },
+  {
+    "id": "b_012",
+    "summary": "전기차 자동차세 연납 할인 안내 캡처. 영업용/비영업용 세율이랑 1월 신청 시 공제율. 구매가 아니라 보유세 정보라 저장.",
+    "labels": ["전기차 세금", "자동차세"],
+    "entities": [{"kind": "topic", "value": "자동차세"}, {"kind": "topic", "value": "연납 할인"}],
+    "category": "mobility",
+    "role": "hard_neg",
+    "for_query": "전기차"
+  },
+  {
+    "id": "b_013",
+    "summary": "전기 화물차 봉고EV 렌탈 vs 리스 비교 블로그. 자영업 차량 운용 관점이라 개인 구매랑은 결이 다름. 참고용 저장.",
+    "labels": ["전기 화물차", "리스 비교"],
+    "entities": [{"kind": "product", "value": "봉고EV"}, {"kind": "topic", "value": "리스"}],
+    "category": "mobility",
+    "role": "hard_neg",
+    "for_query": "전기차"
+  },
+
+  {
+    "id": "b_014",
+    "summary": "국토부 청년 월세 특별지원 보조금 공고. 월 20만원 최대 12개월, 소득기준이랑 신청서류 정리됨. 자취하는 동생 보내주려고 저장.",
+    "labels": ["월세 보조금", "청년 지원"],
+    "entities": [{"kind": "topic", "value": "청년 월세 보조금"}, {"kind": "topic", "value": "소득기준"}],
+    "category": "mobility",
+    "role": "hard_neg",
+    "for_query": "보조금"
+  },
+  {
+    "id": "b_015",
+    "summary": "소상공인 전기요금 특별지원 보조금 신청 페이지. 연매출 6천만원 이하 20만원 지원. 카페 하는 친구한테 알려주려고 캡처.",
+    "labels": ["소상공인 보조금", "전기요금 지원"],
+    "entities": [{"kind": "topic", "value": "소상공인 보조금"}, {"kind": "topic", "value": "전기요금 지원"}],
+    "category": "mobility",
+    "role": "hard_neg",
+    "for_query": "보조금"
+  },
+  {
+    "id": "b_016",
+    "summary": "첫만남이용권 출산 보조금 안내. 200만원 바우처 사용처랑 둘째부터 300만원. 출산 앞둔 동료가 물어봐서 저장한 정부24 캡처.",
+    "labels": ["출산 보조금", "정부 지원금"],
+    "entities": [{"kind": "topic", "value": "출산 보조금"}, {"kind": "platform", "value": "정부24"}],
+    "category": "mobility",
+    "role": "hard_neg",
+    "for_query": "보조금"
+  },
+  {
+    "id": "b_017",
+    "summary": "농업인 면세유 보조금이랑 농기계 구입 지원 공고. 트랙터 보조금 비율 정리. 시골 부모님 농사용이라 모빌리티랑 무관해도 보조금 검색됨.",
+    "labels": ["농업 보조금", "농기계 지원"],
+    "entities": [{"kind": "topic", "value": "농업 보조금"}, {"kind": "topic", "value": "면세유"}],
+    "category": "mobility",
+    "role": "hard_neg",
+    "for_query": "보조금"
+  },
+  {
+    "id": "b_018",
+    "summary": "고효율 가전 으뜸효율 환급 보조금 안내. 1등급 냉장고/세탁기 10% 환급 한도 30만원. 가전 바꿀 때 쓰려고 저장.",
+    "labels": ["가전 환급", "에너지 보조금"],
+    "entities": [{"kind": "topic", "value": "가전 환급"}, {"kind": "topic", "value": "으뜸효율"}],
+    "category": "mobility",
+    "role": "hard_neg",
+    "for_query": "보조금"
+  },
+
+  {
+    "id": "b_019",
+    "summary": "한강 자전거 도로 정비공사 통제구간 안내 캡처. 뚝섬~잠실 구간 야간 부분통제. 라이딩 코스 짤 때 참고하려고 저장. 자전거 구매랑은 무관.",
+    "labels": ["자전거 도로 공사", "통제 안내"],
+    "entities": [{"kind": "topic", "value": "자전거 도로 공사"}, {"kind": "location", "value": "한강"}],
+    "category": "mobility",
+    "role": "hard_neg",
+    "for_query": "자전거"
+  },
+  {
+    "id": "b_020",
+    "summary": "따릉이 정기권 가격이랑 우리 동네 대여소 위치 지도. 1시간권 자전거 대여 요금표. 공유자전거라 직접 사는 거랑은 다름.",
+    "labels": ["공유자전거", "따릉이 대여"],
+    "entities": [{"kind": "platform", "value": "따릉이"}, {"kind": "topic", "value": "대여소"}],
+    "category": "mobility",
+    "role": "hard_neg",
+    "for_query": "자전거"
+  },
+  {
+    "id": "b_021",
+    "summary": "자전거 보험 비교 정리. 동호회 가입한다고 상해/배상책임 특약 보는 중. 사고 대비용이지 자전거 구매 검토는 아님.",
+    "labels": ["자전거 보험", "보험 비교"],
+    "entities": [{"kind": "topic", "value": "자전거 보험"}, {"kind": "topic", "value": "상해 특약"}],
+    "category": "mobility",
+    "role": "hard_neg",
+    "for_query": "자전거"
+  },
+  {
+    "id": "b_022",
+    "summary": "자전거 헬멧이랑 라이트 추천 글. 야간 라이딩용 후미등이랑 MIPS 헬멧 비교. 액세서리지 자전거 본체 구매는 아님.",
+    "labels": ["자전거 용품", "액세서리"],
+    "entities": [{"kind": "product", "value": "MIPS 헬멧"}, {"kind": "topic", "value": "후미등"}],
+    "category": "mobility",
+    "role": "hard_neg",
+    "for_query": "자전거"
+  },
+
+  {
+    "id": "b_023",
+    "summary": "보조배터리 고속충전 안 되는 문제 해결 글. PD 충전기 W수랑 케이블 규격 확인하라고. 전기차랑 무관한 폰 충전 얘기.",
+    "labels": ["보조배터리 충전", "전자기기"],
+    "entities": [{"kind": "topic", "value": "보조배터리 충전"}, {"kind": "topic", "value": "PD 충전"}],
+    "category": "mobility",
+    "role": "hard_neg",
+    "for_query": "충전"
+  },
+  {
+    "id": "b_024",
+    "summary": "교통카드 티머니 자동충전 설정 방법 캡처. 잔액 부족 시 2만원 자동충전 연결. 대중교통 카드 충전이라 EV 충전이랑 다름.",
+    "labels": ["교통카드 충전", "티머니"],
+    "entities": [{"kind": "platform", "value": "티머니"}, {"kind": "topic", "value": "자동충전"}],
+    "category": "mobility",
+    "role": "hard_neg",
+    "for_query": "충전"
+  },
+  {
+    "id": "b_025",
+    "summary": "기프티콘 스타벅스 카드 충전 적립 이벤트. 5만원 충전 시 별 추가 적립. 카페 결제 얘기라 자동차 충전이랑 전혀 무관.",
+    "labels": ["기프티콘 충전", "적립 이벤트"],
+    "entities": [{"kind": "brand", "value": "스타벅스"}, {"kind": "topic", "value": "충전 적립"}],
+    "category": "mobility",
+    "role": "hard_neg",
+    "for_query": "충전"
+  },
+  {
+    "id": "b_026",
+    "summary": "아파트 입주민 EV 충전기 신규 설치 동의 안내문. 화재 대비 완속 위주 설치라 위치/요금 정보가 아니라 설치 행정 공지. 참고만.",
+    "labels": ["충전기 설치", "아파트 공지"],
+    "entities": [{"kind": "topic", "value": "충전기 설치"}, {"kind": "topic", "value": "완속충전"}],
+    "category": "mobility",
+    "role": "hard_neg",
+    "for_query": "충전"
+  },
+
+  {
+    "id": "b_027",
+    "summary": "엔진오일 교환 주기 정리 글. 합성유 1만km, 광유 5천km. 내 가솔린차 정비 메모.",
+    "labels": ["자동차 정비"],
+    "entities": [{"kind": "topic", "value": "엔진오일"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_028",
+    "summary": "동네 공영주차장 월정기권 신청 페이지. 자리 대기 12번. 출근용 주차 자리 알아보는 중.",
+    "labels": ["주차장"],
+    "entities": [{"kind": "topic", "value": "월정기 주차"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_029",
+    "summary": "광역버스 9401번 노선이랑 첫차 시간표 캡처. 강남행 막차 23시 10분. 출퇴근 참고.",
+    "labels": ["대중교통 노선"],
+    "entities": [{"kind": "topic", "value": "광역버스"}, {"kind": "location", "value": "강남"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_030",
+    "summary": "제주도 렌터카 가격 비교 사이트. 아반떼 3일 대여 면책 포함 견적. 여름 휴가용으로 저장.",
+    "labels": ["렌터카"],
+    "entities": [{"kind": "topic", "value": "렌터카"}, {"kind": "location", "value": "제주도"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_031",
+    "summary": "한국타이어 사계절 타이어 215/55R17 가격이랑 장착점 비교. 마모한계 슬슬 보여서 교체 알아보는 중.",
+    "labels": ["타이어"],
+    "entities": [{"kind": "brand", "value": "한국타이어"}, {"kind": "topic", "value": "타이어 교체"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_032",
+    "summary": "운전면허 1종 보통 갱신 절차 안내. 적성검사랑 신체검사 받을 수 있는 병원 위치. 만료 두 달 남아서 메모.",
+    "labels": ["운전면허"],
+    "entities": [{"kind": "topic", "value": "면허 갱신"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_033",
+    "summary": "하이패스 단말기 잔액 충전 안 될 때 카드 재등록 방법. 휴게소 충전소 위치도 같이.",
+    "labels": ["하이패스"],
+    "entities": [{"kind": "topic", "value": "하이패스"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_034",
+    "summary": "KTX 부산행 주말 할인 예매 꿀팁. 환승 연계 할인이랑 자유석 시간대. 명절 귀성 참고.",
+    "labels": ["기차 예매"],
+    "entities": [{"kind": "platform", "value": "KTX"}, {"kind": "location", "value": "부산"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_035",
+    "summary": "지하철 2호선 연착 잦은 시간대 정리한 블로그. 출근 동선 다시 짜려고 저장.",
+    "labels": ["지하철"],
+    "entities": [{"kind": "topic", "value": "지하철 2호선"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_036",
+    "summary": "카니발 9인승 중고 시세 표. 연식별 주행거리 대비 가격. 가족 차 바꿀까 보는 중.",
+    "labels": ["중고차"],
+    "entities": [{"kind": "product", "value": "카니발"}, {"kind": "topic", "value": "중고 시세"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_037",
+    "summary": "자동차 보험 갱신 견적 비교. 운전자보험 특약이랑 마일리지 할인. 다음 달 만기라 저장.",
+    "labels": ["자동차 보험"],
+    "entities": [{"kind": "topic", "value": "자동차 보험"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_038",
+    "summary": "셀프 세차장 위치랑 코인 요금 정리. 발수코팅 잘 되는 곳 후기.",
+    "labels": ["세차"],
+    "entities": [{"kind": "topic", "value": "셀프 세차"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_039",
+    "summary": "카셰어링 쏘카 주말 부정기 요금이랑 페널티 규정. 잠깐 짐 옮길 때 쓰려고 저장.",
+    "labels": ["카셰어링"],
+    "entities": [{"kind": "platform", "value": "쏘카"}, {"kind": "topic", "value": "카셰어링"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_040",
+    "summary": "고속도로 실시간 정체 구간 확인하는 앱 추천 글. 명절 우회로 같이.",
+    "labels": ["교통정보"],
+    "entities": [{"kind": "topic", "value": "고속도로 정체"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_041",
+    "summary": "주차위반 과태료 이의신청 절차. 견인된 차 찾는 보관소 위치도. 억울해서 저장.",
+    "labels": ["주차 과태료"],
+    "entities": [{"kind": "topic", "value": "주차위반 과태료"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_042",
+    "summary": "공항버스 6005번 인천공항 노선이랑 새벽 첫차. 캐리어 짐칸 있음. 출국 때 참고.",
+    "labels": ["공항버스"],
+    "entities": [{"kind": "topic", "value": "공항버스"}, {"kind": "location", "value": "인천공항"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_043",
+    "summary": "와이퍼 블레이드 교체 셀프 방법 영상. 사이즈 규격 확인하는 법. 비 올 때 끽끽거려서 저장.",
+    "labels": ["자동차 정비"],
+    "entities": [{"kind": "topic", "value": "와이퍼 교체"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_044",
+    "summary": "블랙박스 상시녹화 배터리 방전 방지 설정. 보조배터리팩 추천도 같이.",
+    "labels": ["블랙박스"],
+    "entities": [{"kind": "topic", "value": "블랙박스"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_045",
+    "summary": "킥보드 공유 지쿠 면허 인증이랑 요금제. 단거리 이동용. 우리 동네 운영 구역 확인.",
+    "labels": ["공유 킥보드"],
+    "entities": [{"kind": "platform", "value": "지쿠"}, {"kind": "topic", "value": "공유 킥보드"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_046",
+    "summary": "자동차 검사 정기검사 예약 사이트. 종합검사 대상이랑 미수검 과태료. 안내문 받아서 저장.",
+    "labels": ["자동차 검사"],
+    "entities": [{"kind": "topic", "value": "정기검사"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_047",
+    "summary": "주유 할인 카드 비교. 리터당 100원 할인되는 신용카드 실적 조건. 기름값 아끼려고.",
+    "labels": ["주유 할인"],
+    "entities": [{"kind": "topic", "value": "주유 할인카드"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_048",
+    "summary": "내비게이션 티맵 음성안내 커스텀 목소리 설정 방법. 운전 심심할 때 바꾸려고.",
+    "labels": ["내비게이션"],
+    "entities": [{"kind": "platform", "value": "티맵"}, {"kind": "topic", "value": "내비게이션"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_049",
+    "summary": "택시 호출 카카오T 블루 예약 수수료랑 심야 할증. 공항 갈 때 미리 잡으려고.",
+    "labels": ["택시 호출"],
+    "entities": [{"kind": "platform", "value": "카카오T"}, {"kind": "topic", "value": "택시 호출"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_050",
+    "summary": "시외버스 예매 환불 규정 정리. 출발 전 시간대별 위약금. 명절 표 취소할까 봐 저장.",
+    "labels": ["시외버스"],
+    "entities": [{"kind": "topic", "value": "시외버스"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_051",
+    "summary": "차량용 방향제랑 공기청정기 추천 글. 새차 냄새 빼는 법. 인테리어 용품 정리.",
+    "labels": ["차량 용품"],
+    "entities": [{"kind": "topic", "value": "차량 방향제"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_052",
+    "summary": "겨울철 스노우체인 장착법이랑 4WD 눈길 운전 팁. 스키장 갈 때 대비.",
+    "labels": ["겨울 운전"],
+    "entities": [{"kind": "topic", "value": "스노우체인"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_053",
+    "summary": "자동차 리스 vs 장기렌트 세금 비교 표. 사업자 비용처리 관점. 차 운용방식 고민.",
+    "labels": ["리스 장기렌트"],
+    "entities": [{"kind": "topic", "value": "장기렌트"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_054",
+    "summary": "주차 끼임 사고 대인접수 절차랑 합의금 후기. 접촉사고 처리 참고.",
+    "labels": ["교통사고"],
+    "entities": [{"kind": "topic", "value": "접촉사고"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_055",
+    "summary": "고속도로 휴게소 맛집 지도. 호두과자랑 우동 유명한 곳. 장거리 운전 코스 참고.",
+    "labels": ["휴게소"],
+    "entities": [{"kind": "topic", "value": "휴게소 맛집"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_056",
+    "summary": "버스전용차로 위반 단속 구간 지도. 명절 단속 강화 안내. 헷갈려서 저장.",
+    "labels": ["교통법규"],
+    "entities": [{"kind": "topic", "value": "버스전용차로"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_057",
+    "summary": "차량 도색 부분 판금 견적 비교. 문콕 흠집 복원 비용 후기. 견적 받아보려고.",
+    "labels": ["판금 도색"],
+    "entities": [{"kind": "topic", "value": "판금 도색"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_058",
+    "summary": "수도권 광역급행철도 GTX-A 개통 구간이랑 요금. 출퇴근 단축되나 확인.",
+    "labels": ["광역철도"],
+    "entities": [{"kind": "topic", "value": "GTX-A"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_059",
+    "summary": "자동차 키 배터리 교체 방법이랑 스마트키 인식 안 될 때 비상키 위치. 갑자기 안 열려서 저장.",
+    "labels": ["스마트키"],
+    "entities": [{"kind": "topic", "value": "스마트키"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_060",
+    "summary": "주차 대행 발렛 분실 사고 배상 사례. 호텔 발렛 맡길 때 주의점. 참고용.",
+    "labels": ["발렛파킹"],
+    "entities": [{"kind": "topic", "value": "발렛파킹"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_061",
+    "summary": "전동킥보드 헬멧 의무화 단속이랑 인도주행 과태료. 출퇴근 킥보드 타서 저장.",
+    "labels": ["개인형 이동장치"],
+    "entities": [{"kind": "topic", "value": "전동킥보드 단속"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_062",
+    "summary": "차량 에어컨 냄새 제거 에바클리닝 비용이랑 셀프 항균 스프레이 후기. 여름 전에 하려고.",
+    "labels": ["자동차 정비"],
+    "entities": [{"kind": "topic", "value": "에바클리닝"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_063",
+    "summary": "운전 초보 주차 후방 카메라 보는 법이랑 평행주차 팁 영상. 연수 끝나고 복습용.",
+    "labels": ["운전 연수"],
+    "entities": [{"kind": "topic", "value": "주차 팁"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_064",
+    "summary": "통근 카풀 앱 출퇴근 매칭이랑 비용 정산 방식. 기름값 절약하려고 알아보는 중.",
+    "labels": ["카풀"],
+    "entities": [{"kind": "topic", "value": "카풀"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_065",
+    "summary": "공유 자동차 그린카 vs 쏘카 가입비랑 보험료 비교. 가끔 쓸 거라 어디가 싼지 저장.",
+    "labels": ["카셰어링"],
+    "entities": [{"kind": "platform", "value": "그린카"}, {"kind": "topic", "value": "카셰어링"}],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  }
+]

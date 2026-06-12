@@ -85,7 +85,7 @@ description: 시스템 토폴로지·iOS↔Backend 데이터흐름·API 계약�
 │  (FOR UPDATE SKIP LOCKED, AgentRunPersistence, DLQ)                   │
 │                                                                       │
 │  Vertex AI │ gemini-3.1-flash-lite (multimodal function calling)      │
-│  Vertex AI │ text-embedding-005                                       │
+│  Voyage AI │ voyage-3-large@1024 (embedding) + rerank-2.5 (reranker)  │
 └───────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -189,7 +189,7 @@ App  ──► AppIntents/          (QuickCaptureIntent + CaptureScreenshotInten
 - **언어/Runtime**: Python 3.12, FastAPI, uv 패키지 관리
 - **아키텍처**: Modular Monolith + Hexagonal (per-module `domain / application / infrastructure / presentation`)
 - **DB**: Postgres 16 + pgvector (HNSW + cosine), async SQLAlchemy 2 + asyncpg, Alembic
-- **AI**: Vertex AI · `gemini-3.1-flash-lite` (multimodal function calling, streaming) · text-embedding-005
+- **AI**: Vertex AI · `gemini-3.1-flash-lite` (multimodal function calling, streaming) / Voyage AI · `voyage-3-large@1024` (임베딩) + `rerank-2.5` (리랭커)
 - **관측**: structlog (JSON, contextvars 로 request_id/idempotency_key/path 바인딩)
 - **인증**: PyJWT + PyJWKClient (RS256/ES256/EdDSA), JWKS TTL 캐시; dev mode 는 `Bearer dev:<subject>` (environment=local 한정)
 
@@ -222,7 +222,7 @@ app/
 │   │   ├── application/           AgentOrchestrator + AgentRunPersistence + MochiWorker + tool_factories(타 모듈용 가드 툴 진입점)
 │   │   ├── infrastructure/
 │   │   │   ├── registry.py        StaticToolRegistry
-│   │   │   └── tools/             PlatformContextTool / WebFetchTool / EmbedTool / MultimodalAnalyzeTool
+│   │   │   └── tools/             PlatformContextTool / WebFetchTool / MultimodalAnalyzeTool
 │   │   ├── prompts/system_prompts.py   PromptVersion(name/model/eval/revised_on/rationale)
 │   │   └── presentation/router.py      GET /mochi_items/{id}/stream (SSE)
 │   ├── search/
@@ -238,8 +238,8 @@ app/
 │   └── conversations/                   채팅 탭 — LLM 루프 read-only + proposal (journal 2026-06-10)
 │       ├── domain/                Conversation/Message/MessageCitation, ChatTool·ChatLLMClient·ChatTurnStore ports, run_events
 │       ├── application/           BeginChatTurn(암묵 생성·동시 run 409) · RunChatTurn(detached run 본체) · queries(스냅샷+stale lazy repair)
-│       ├── infrastructure/        ORM·repository · RunRegistry(in-process queue) · GeminiChatClient(AUTO+stream) · turn_store(연산별 자체 세션) · tools/(search_items·get_item_detail·view_item_image(캡처 이미지를 gs:// 로 직접 보기 — 버킷 미설정 시 제외)·propose 5종·web_fetch(agent 가드 재사용)·web_search(Tavily, 키 미설정 시 제외) — 전부 read-only)
-│       ├── prompts/               chat@v7 활성 (PromptVersion 버저닝)
+│       ├── infrastructure/        ORM·repository · RunRegistry(in-process queue) · GeminiChatClient(AUTO+stream) · turn_store(연산별 자체 세션) · tools/(search_items(hybrid: 키워드+의미→rerank)·get_item_detail·view_item_image(캡처 이미지를 gs:// 로 직접 보기 — 버킷 미설정 시 제외)·propose 5종·web_fetch(agent 가드 재사용)·web_search(Tavily, 키 미설정 시 제외) — 전부 read-only)
+│       ├── prompts/               chat@v8 활성 (PromptVersion 버저닝)
 │       └── presentation/          POST /{id}/messages(POST-as-SSE) · GET 목록/스냅샷 · DELETE · PATCH proposals/{id}(카드 확정/취소 영속)
 ├── api.py                         /api/v1 라우터 조립
 └── main.py                        FastAPI factory + 미들웨어 + 예외 핸들러
@@ -327,14 +327,29 @@ POST /search (Bearer)
 SearchQuery(text, scope, owner_id=user)
   ↓
 HybridSearch.execute
-  ├─ PostgresHybridIndex.bm25  (owner_id 필터, ts_rank_cd)
-  ├─ PostgresHybridIndex.vector (owner_id 필터, embeddings <=> CAST(:vec AS vector))
+  ├─ PostgresHybridIndex.bm25  (owner_id + deleted_at IS NULL, ts_rank_cd)
+  ├─ PostgresHybridIndex.vector (owner_id + deleted_at IS NULL,
+  │     voyage-3-large 쿼리 임베딩(input_type=query, 1024d) <=> embeddings HNSW)
   ├─ reciprocal_rank_fusion(k=60)
-  ├─ (optional) Reranker
+  ├─ VoyageReranker (rerank-2.5, reranker_enabled)
   └─ AnswerSynthesizer.synthesize → answer + citations
   ↓
 SearchResponse
 ```
+
+**임베딩·리랭크 (2026-06-12, `lab/active/rag-rerank-eval` 확정)**: 모델 `voyage-3-large@1024`,
+문서 임베딩 input = `summary + intent labels`(`app/shared/voyage.build_embedding_text` 단일
+원천 — INDEXED 노드·backfill 공용), doc/query `input_type` 비대칭. reranker `rerank-2.5`
+(vector 단독 대비 R@1 0.15→0.43, MRR 0.56→0.88). 색인은 agent orchestrator 의 **INDEXED
+노드**가 분석 직후 best-effort 로 수행하고(실패해도 run 유지 — Gemini 재분석 비용 방지),
+누락분은 `scripts/backfill_embeddings.py` 가 멱등 재색인한다.
+
+**degrade 계약**: `VOYAGE_API_KEY` 미설정·일시 장애 시 vector·rerank 경로만 비활성 —
+검색탭은 BM25+RRF, 채팅 `search_items` 는 키워드(ILIKE)로 degrade 하고 서버는 정상 동작한다.
+검색이 외부 AI API 장애로 죽지 않는다.
+
+채팅 `search_items` 도 같은 인프라를 쓴다: 키워드(ILIKE AND) + 의미(vector) 두 갈래 후보를
+구조화 필터(intent·시간 2축) 공통 적용으로 모은 뒤 rerank-2.5 가 최종 순위 (갈래당 후보 24).
 
 ### 3.5 보안
 
@@ -400,7 +415,7 @@ iOS `CoreNetworking.MochiAPIClient` 의 DTO 가 backend `openapi.json` 의 스�
 ### 5.4 `Tool` (Pydantic 기반 타입 안전)
 
 - `TIn`, `TOut` 두 Pydantic 모델로 generic. `schema()` 가 Gemini function-calling 용 JSON Schema 자동 생성.
-- agent loop 가 LLM 에 광고하는 URL 그라운딩 도구는 `PlatformContextTool` 과 `WebFetchTool` 이다. `PlatformContextTool` 은 YouTube/X/Instagram URL 을 먼저 처리한다: YouTube는 oEmbed+watch page metadata, X는 `publish.x.com/oembed`, Instagram은 Meta oEmbed 토큰이 있으면 공식 oEmbed·없으면 OG fallback 을 사용한다. Instagram은 이미지 맥락 의존도가 높아 screenshot Vision 결과를 primary context 로 둔다. `EmbedTool`/`MultimodalAnalyzeTool` 은 스키마 재사용·후속 wire 용으로 보존.
+- agent loop 가 LLM 에 광고하는 URL 그라운딩 도구는 `PlatformContextTool` 과 `WebFetchTool` 이다. `PlatformContextTool` 은 YouTube/X/Instagram URL 을 먼저 처리한다: YouTube는 oEmbed+watch page metadata, X는 `publish.x.com/oembed`, Instagram은 Meta oEmbed 토큰이 있으면 공식 oEmbed·없으면 OG fallback 을 사용한다. Instagram은 이미지 맥락 의존도가 높아 screenshot Vision 결과를 primary context 로 둔다. `MultimodalAnalyzeTool` 은 스키마 재사용용으로 보존. 임베딩은 LLM 도구가 아니라 orchestrator 가 INDEXED 노드에서 voyage 로 직접 색인한다(§3.4).
 - screenshot/image 분석은 `lab/active/extraction-strategy` 의 C 전략을 prompt-level grounding 으로 채택한다: 모델이 내부적으로 `fact` / `opinion` / `info` typed statement 를 세운 뒤 final summary/entities 를 만들며, `facts/opinions/key_info/entities` 버킷을 모두 채우도록 강제하지 않는다. Agent 입력에는 매 run `Asia/Seoul` 현재 기준시각을 넣어 상대 날짜·요일·마감 해석 기준을 고정한다.
 
 ### 5.5 Agent loop & 개인화 (Arch2 — LLM = 분석가)
