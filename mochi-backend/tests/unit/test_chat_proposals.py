@@ -238,7 +238,7 @@ def test_active_chat_prompt_keeps_proposal_web_and_agentic_retrieval_rules() -> 
     # 테스트는 현재 active prompt 의 행동·grounding 규칙을 고정한다.
     import app.modules.conversations.prompts.chat_prompts as chat_prompts
 
-    assert chat_prompts.ACTIVE_CHAT_PROMPT.name == "chat@v6"
+    assert chat_prompts.ACTIVE_CHAT_PROMPT.name == "chat@v7"
     assert not any(name.startswith("CHAT_V") for name in dir(chat_prompts))
 
     active_chat_prompt = chat_prompts.ACTIVE_CHAT_PROMPT
@@ -257,6 +257,9 @@ def test_active_chat_prompt_keeps_proposal_web_and_agentic_retrieval_rules() -> 
     assert "offer what you can do" not in active_chat_prompt.body
     assert "verdict on your phrasing" in active_chat_prompt.body
     assert "never end a turn asking" in active_chat_prompt.body
+    # V7: 시각 디테일 질문은 view_item_image 로 직접 본 뒤 답한다 + 과거 턴 이미지는 재호출.
+    assert "view_item_image" in active_chat_prompt.body
+    assert "lossy projection" in active_chat_prompt.body
 
 
 # ---------- ② run 루프의 proposal 이벤트·영속 ----------
