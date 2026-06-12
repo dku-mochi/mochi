@@ -1,0 +1,662 @@
+[
+  {
+    "query": "RYOO Faded sweatshirts",
+    "providers": {
+      "coupang": {
+        "url": "https://www.coupang.com/np/search?q=RYOO%20Faded%20sweatshirts",
+        "status": 403,
+        "final_url": "https://www.coupang.com/np/search?q=RYOO%20Faded%20sweatshirts",
+        "body_bytes": 387,
+        "token_hit_rate": 0.0
+      },
+      "naver_shopping": {
+        "url": "https://search.shopping.naver.com/search/all?query=RYOO%20Faded%20sweatshirts",
+        "status": 418,
+        "final_url": "https://search.shopping.naver.com/search/all?query=RYOO%20Faded%20sweatshirts",
+        "body_bytes": 3104,
+        "token_hit_rate": 0.0
+      },
+      "naver_total": {
+        "url": "https://search.naver.com/search.naver?query=RYOO%20Faded%20sweatshirts",
+        "status": 200,
+        "final_url": "https://m.search.naver.com/search.naver?query=RYOO%20Faded%20sweatshirts&ssc=tab.m.all&where=m",
+        "body_bytes": 187571,
+        "token_hit_rate": 1.0
+      },
+      "google": {
+        "url": "https://www.google.com/search?q=RYOO%20Faded%20sweatshirts",
+        "status": 200,
+        "final_url": "https://www.google.com/search?q=RYOO%20Faded%20sweatshirts",
+        "body_bytes": 91537,
+        "token_hit_rate": 1.0
+      }
+    }
+  },
+  {
+    "query": "RYOO 12 logo sweatshirt",
+    "providers": {
+      "coupang": {
+        "url": "https://www.coupang.com/np/search?q=RYOO%2012%20logo%20sweatshirt",
+        "status": 200,
+        "final_url": "https://www.coupang.com/np/search?q=RYOO%2012%20logo%20sweatshirt",
+        "body_bytes": 17884,
+        "token_hit_rate": 1.0
+      },
+      "naver_shopping": {
+        "url": "https://search.shopping.naver.com/search/all?query=RYOO%2012%20logo%20sweatshirt",
+        "status": 418,
+        "final_url": "https://search.shopping.naver.com/search/all?query=RYOO%2012%20logo%20sweatshirt",
+        "body_bytes": 3104,
+        "token_hit_rate": 0.25
+      },
+      "naver_total": {
+        "url": "https://search.naver.com/search.naver?query=RYOO%2012%20logo%20sweatshirt",
+        "status": 200,
+        "final_url": "https://m.search.naver.com/search.naver?query=RYOO%2012%20logo%20sweatshirt&ssc=tab.m.all&where=m",
+        "body_bytes": 225889,
+        "token_hit_rate": 1.0
+      },
+      "google": {
+        "url": "https://www.google.com/search?q=RYOO%2012%20logo%20sweatshirt",
+        "status": 200,
+        "final_url": "https://www.google.com/search?q=RYOO%2012%20logo%20sweatshirt",
+        "body_bytes": 91509,
+        "token_hit_rate": 1.0
+      }
+    }
+  },
+  {
+    "query": "RYOO 12 로고 맨투맨",
+    "providers": {
+      "coupang": {
+        "url": "https://www.coupang.com/np/search?q=RYOO%2012%20%EB%A1%9C%EA%B3%A0%20%EB%A7%A8%ED%88%AC%EB%A7%A8",
+        "status": 200,
+        "final_url": "https://www.coupang.com/np/search?q=RYOO%2012%20%EB%A1%9C%EA%B3%A0%20%EB%A7%A8%ED%88%AC%EB%A7%A8",
+        "body_bytes": 18259,
+        "token_hit_rate": 1.0
+      },
+      "naver_shopping": {
+        "url": "https://search.shopping.naver.com/search/all?query=RYOO%2012%20%EB%A1%9C%EA%B3%A0%20%EB%A7%A8%ED%88%AC%EB%A7%A8",
+        "status": 418,
+        "final_url": "https://search.shopping.naver.com/search/all?query=RYOO%2012%20%EB%A1%9C%EA%B3%A0%20%EB%A7%A8%ED%88%AC%EB%A7%A8",
+        "body_bytes": 3104,
+        "token_hit_rate": 0.25
+      },
+      "naver_total": {
+        "url": "https://search.naver.com/search.naver?query=RYOO%2012%20%EB%A1%9C%EA%B3%A0%20%EB%A7%A8%ED%88%AC%EB%A7%A8",
+        "status": 200,
+        "final_url": "https://m.search.naver.com/search.naver?query=RYOO%2012%20%EB%A1%9C%EA%B3%A0%20%EB%A7%A8%ED%88%AC%EB%A7%A8&ssc=tab.m.all&where=m",
+        "body_bytes": 214681,
+        "token_hit_rate": 1.0
+      },
+      "google": {
+        "url": "https://www.google.com/search?q=RYOO%2012%20%EB%A1%9C%EA%B3%A0%20%EB%A7%A8%ED%88%AC%EB%A7%A8",
+        "status": 200,
+        "final_url": "https://www.google.com/search?q=RYOO%2012%20%EB%A1%9C%EA%B3%A0%20%EB%A7%A8%ED%88%AC%EB%A7%A8",
+        "body_bytes": 91350,
+        "token_hit_rate": 0.5
+      }
+    }
+  },
+  {
+    "query": "에스네이처 아쿠아 스쿠알란 수분크림",
+    "providers": {
+      "coupang": {
+        "url": "https://www.coupang.com/np/search?q=%EC%97%90%EC%8A%A4%EB%84%A4%EC%9D%B4%EC%B2%98%20%EC%95%84%EC%BF%A0%EC%95%84%20%EC%8A%A4%EC%BF%A0%EC%95%8C%EB%9E%80%20%EC%88%98%EB%B6%84%ED%81%AC%EB%A6%BC",
+        "status": 200,
+        "final_url": "https://www.coupang.com/np/search?q=%EC%97%90%EC%8A%A4%EB%84%A4%EC%9D%B4%EC%B2%98%20%EC%95%84%EC%BF%A0%EC%95%84%20%EC%8A%A4%EC%BF%A0%EC%95%8C%EB%9E%80%20%EC%88%98%EB%B6%84%ED%81%AC%EB%A6%BC",
+        "body_bytes": 19015,
+        "token_hit_rate": 1.0
+      },
+      "naver_shopping": {
+        "url": "https://search.shopping.naver.com/search/all?query=%EC%97%90%EC%8A%A4%EB%84%A4%EC%9D%B4%EC%B2%98%20%EC%95%84%EC%BF%A0%EC%95%84%20%EC%8A%A4%EC%BF%A0%EC%95%8C%EB%9E%80%20%EC%88%98%EB%B6%84%ED%81%AC%EB%A6%BC",
+        "status": 418,
+        "final_url": "https://search.shopping.naver.com/search/all?query=%EC%97%90%EC%8A%A4%EB%84%A4%EC%9D%B4%EC%B2%98%20%EC%95%84%EC%BF%A0%EC%95%84%20%EC%8A%A4%EC%BF%A0%EC%95%8C%EB%9E%80%20%EC%88%98%EB%B6%84%ED%81%AC%EB%A6%BC",
+        "body_bytes": 3104,
+        "token_hit_rate": 0.0
+      },
+      "naver_total": {
+        "url": "https://search.naver.com/search.naver?query=%EC%97%90%EC%8A%A4%EB%84%A4%EC%9D%B4%EC%B2%98%20%EC%95%84%EC%BF%A0%EC%95%84%20%EC%8A%A4%EC%BF%A0%EC%95%8C%EB%9E%80%20%EC%88%98%EB%B6%84%ED%81%AC%EB%A6%BC",
+        "status": 200,
+        "final_url": "https://m.search.naver.com/search.naver?query=%EC%97%90%EC%8A%A4%EB%84%A4%EC%9D%B4%EC%B2%98%20%EC%95%84%EC%BF%A0%EC%95%84%20%EC%8A%A4%EC%BF%A0%EC%95%8C%EB%9E%80%20%EC%88%98%EB%B6%84%ED%81%AC%EB%A6%BC&ssc=tab.m.all&where=m",
+        "body_bytes": 708043,
+        "token_hit_rate": 1.0
+      },
+      "google": {
+        "url": "https://www.google.com/search?q=%EC%97%90%EC%8A%A4%EB%84%A4%EC%9D%B4%EC%B2%98%20%EC%95%84%EC%BF%A0%EC%95%84%20%EC%8A%A4%EC%BF%A0%EC%95%8C%EB%9E%80%20%EC%88%98%EB%B6%84%ED%81%AC%EB%A6%BC",
+        "status": 200,
+        "final_url": "https://www.google.com/search?q=%EC%97%90%EC%8A%A4%EB%84%A4%EC%9D%B4%EC%B2%98%20%EC%95%84%EC%BF%A0%EC%95%84%20%EC%8A%A4%EC%BF%A0%EC%95%8C%EB%9E%80%20%EC%88%98%EB%B6%84%ED%81%AC%EB%A6%BC",
+        "body_bytes": 91621,
+        "token_hit_rate": 0.0
+      }
+    }
+  },
+  {
+    "query": "아비브 어성초 패드 140매",
+    "providers": {
+      "coupang": {
+        "url": "https://www.coupang.com/np/search?q=%EC%95%84%EB%B9%84%EB%B8%8C%20%EC%96%B4%EC%84%B1%EC%B4%88%20%ED%8C%A8%EB%93%9C%20140%EB%A7%A4",
+        "status": 200,
+        "final_url": "https://www.coupang.com/np/search?q=%EC%95%84%EB%B9%84%EB%B8%8C%20%EC%96%B4%EC%84%B1%EC%B4%88%20%ED%8C%A8%EB%93%9C%20140%EB%A7%A4",
+        "body_bytes": 18529,
+        "token_hit_rate": 1.0
+      },
+      "naver_shopping": {
+        "url": "https://search.shopping.naver.com/search/all?query=%EC%95%84%EB%B9%84%EB%B8%8C%20%EC%96%B4%EC%84%B1%EC%B4%88%20%ED%8C%A8%EB%93%9C%20140%EB%A7%A4",
+        "status": 418,
+        "final_url": "https://search.shopping.naver.com/search/all?query=%EC%95%84%EB%B9%84%EB%B8%8C%20%EC%96%B4%EC%84%B1%EC%B4%88%20%ED%8C%A8%EB%93%9C%20140%EB%A7%A4",
+        "body_bytes": 3104,
+        "token_hit_rate": 0.0
+      },
+      "naver_total": {
+        "url": "https://search.naver.com/search.naver?query=%EC%95%84%EB%B9%84%EB%B8%8C%20%EC%96%B4%EC%84%B1%EC%B4%88%20%ED%8C%A8%EB%93%9C%20140%EB%A7%A4",
+        "status": 200,
+        "final_url": "https://m.search.naver.com/search.naver?query=%EC%95%84%EB%B9%84%EB%B8%8C%20%EC%96%B4%EC%84%B1%EC%B4%88%20%ED%8C%A8%EB%93%9C%20140%EB%A7%A4&ssc=tab.m.all&where=m",
+        "body_bytes": 680575,
+        "token_hit_rate": 1.0
+      },
+      "google": {
+        "url": "https://www.google.com/search?q=%EC%95%84%EB%B9%84%EB%B8%8C%20%EC%96%B4%EC%84%B1%EC%B4%88%20%ED%8C%A8%EB%93%9C%20140%EB%A7%A4",
+        "status": 200,
+        "final_url": "https://www.google.com/search?q=%EC%95%84%EB%B9%84%EB%B8%8C%20%EC%96%B4%EC%84%B1%EC%B4%88%20%ED%8C%A8%EB%93%9C%20140%EB%A7%A4",
+        "body_bytes": 91607,
+        "token_hit_rate": 0.0
+      }
+    }
+  },
+  {
+    "query": "아누아 어성초 80 수분 진정 앰플",
+    "providers": {
+      "coupang": {
+        "url": "https://www.coupang.com/np/search?q=%EC%95%84%EB%88%84%EC%95%84%20%EC%96%B4%EC%84%B1%EC%B4%88%2080%20%EC%88%98%EB%B6%84%20%EC%A7%84%EC%A0%95%20%EC%95%B0%ED%94%8C",
+        "status": 200,
+        "final_url": "https://www.coupang.com/np/search?q=%EC%95%84%EB%88%84%EC%95%84%20%EC%96%B4%EC%84%B1%EC%B4%88%2080%20%EC%88%98%EB%B6%84%20%EC%A7%84%EC%A0%95%20%EC%95%B0%ED%94%8C",
+        "body_bytes": 18767,
+        "token_hit_rate": 1.0
+      },
+      "naver_shopping": {
+        "url": "https://search.shopping.naver.com/search/all?query=%EC%95%84%EB%88%84%EC%95%84%20%EC%96%B4%EC%84%B1%EC%B4%88%2080%20%EC%88%98%EB%B6%84%20%EC%A7%84%EC%A0%95%20%EC%95%B0%ED%94%8C",
+        "status": 418,
+        "final_url": "https://search.shopping.naver.com/search/all?query=%EC%95%84%EB%88%84%EC%95%84%20%EC%96%B4%EC%84%B1%EC%B4%88%2080%20%EC%88%98%EB%B6%84%20%EC%A7%84%EC%A0%95%20%EC%95%B0%ED%94%8C",
+        "body_bytes": 3104,
+        "token_hit_rate": 0.0
+      },
+      "naver_total": {
+        "url": "https://search.naver.com/search.naver?query=%EC%95%84%EB%88%84%EC%95%84%20%EC%96%B4%EC%84%B1%EC%B4%88%2080%20%EC%88%98%EB%B6%84%20%EC%A7%84%EC%A0%95%20%EC%95%B0%ED%94%8C",
+        "status": 200,
+        "final_url": "https://m.search.naver.com/search.naver?query=%EC%95%84%EB%88%84%EC%95%84%20%EC%96%B4%EC%84%B1%EC%B4%88%2080%20%EC%88%98%EB%B6%84%20%EC%A7%84%EC%A0%95%20%EC%95%B0%ED%94%8C&ssc=tab.m.all&where=m",
+        "body_bytes": 766544,
+        "token_hit_rate": 1.0
+      },
+      "google": {
+        "url": "https://www.google.com/search?q=%EC%95%84%EB%88%84%EC%95%84%20%EC%96%B4%EC%84%B1%EC%B4%88%2080%20%EC%88%98%EB%B6%84%20%EC%A7%84%EC%A0%95%20%EC%95%B0%ED%94%8C",
+        "status": 200,
+        "final_url": "https://www.google.com/search?q=%EC%95%84%EB%88%84%EC%95%84%20%EC%96%B4%EC%84%B1%EC%B4%88%2080%20%EC%88%98%EB%B6%84%20%EC%A7%84%EC%A0%95%20%EC%95%B0%ED%94%8C",
+        "body_bytes": 91598,
+        "token_hit_rate": 0.17
+      }
+    }
+  },
+  {
+    "query": "닥터자르트 시카페어 인텐시브 수딩 리페어 크림 기획",
+    "providers": {
+      "coupang": {
+        "url": "https://www.coupang.com/np/search?q=%EB%8B%A5%ED%84%B0%EC%9E%90%EB%A5%B4%ED%8A%B8%20%EC%8B%9C%EC%B9%B4%ED%8E%98%EC%96%B4%20%EC%9D%B8%ED%85%90%EC%8B%9C%EB%B8%8C%20%EC%88%98%EB%94%A9%20%EB%A6%AC%ED%8E%98%EC%96%B4%20%ED%81%AC%EB%A6%BC%20%EA%B8%B0%ED%9A%8D",
+        "status": 200,
+        "final_url": "https://www.coupang.com/np/search?q=%EB%8B%A5%ED%84%B0%EC%9E%90%EB%A5%B4%ED%8A%B8%20%EC%8B%9C%EC%B9%B4%ED%8E%98%EC%96%B4%20%EC%9D%B8%ED%85%90%EC%8B%9C%EB%B8%8C%20%EC%88%98%EB%94%A9%20%EB%A6%AC%ED%8E%98%EC%96%B4%20%ED%81%AC%EB%A6%BC%20%EA%B8%B0%ED%9A%8D",
+        "body_bytes": 19502,
+        "token_hit_rate": 1.0
+      },
+      "naver_shopping": {
+        "url": "https://search.shopping.naver.com/search/all?query=%EB%8B%A5%ED%84%B0%EC%9E%90%EB%A5%B4%ED%8A%B8%20%EC%8B%9C%EC%B9%B4%ED%8E%98%EC%96%B4%20%EC%9D%B8%ED%85%90%EC%8B%9C%EB%B8%8C%20%EC%88%98%EB%94%A9%20%EB%A6%AC%ED%8E%98%EC%96%B4%20%ED%81%AC%EB%A6%BC%20%EA%B8%B0%ED%9A%8D",
+        "status": 418,
+        "final_url": "https://search.shopping.naver.com/search/all?query=%EB%8B%A5%ED%84%B0%EC%9E%90%EB%A5%B4%ED%8A%B8%20%EC%8B%9C%EC%B9%B4%ED%8E%98%EC%96%B4%20%EC%9D%B8%ED%85%90%EC%8B%9C%EB%B8%8C%20%EC%88%98%EB%94%A9%20%EB%A6%AC%ED%8E%98%EC%96%B4%20%ED%81%AC%EB%A6%BC%20%EA%B8%B0%ED%9A%8D",
+        "body_bytes": 3104,
+        "token_hit_rate": 0.0
+      },
+      "naver_total": {
+        "url": "https://search.naver.com/search.naver?query=%EB%8B%A5%ED%84%B0%EC%9E%90%EB%A5%B4%ED%8A%B8%20%EC%8B%9C%EC%B9%B4%ED%8E%98%EC%96%B4%20%EC%9D%B8%ED%85%90%EC%8B%9C%EB%B8%8C%20%EC%88%98%EB%94%A9%20%EB%A6%AC%ED%8E%98%EC%96%B4%20%ED%81%AC%EB%A6%BC%20%EA%B8%B0%ED%9A%8D",
+        "status": 200,
+        "final_url": "https://m.search.naver.com/search.naver?query=%EB%8B%A5%ED%84%B0%EC%9E%90%EB%A5%B4%ED%8A%B8%20%EC%8B%9C%EC%B9%B4%ED%8E%98%EC%96%B4%20%EC%9D%B8%ED%85%90%EC%8B%9C%EB%B8%8C%20%EC%88%98%EB%94%A9%20%EB%A6%AC%ED%8E%98%EC%96%B4%20%ED%81%AC%EB%A6%BC%20%EA%B8%B0%ED%9A%8D&ssc=tab.m.all&where=m",
+        "body_bytes": 595751,
+        "token_hit_rate": 1.0
+      },
+      "google": {
+        "url": "https://www.google.com/search?q=%EB%8B%A5%ED%84%B0%EC%9E%90%EB%A5%B4%ED%8A%B8%20%EC%8B%9C%EC%B9%B4%ED%8E%98%EC%96%B4%20%EC%9D%B8%ED%85%90%EC%8B%9C%EB%B8%8C%20%EC%88%98%EB%94%A9%20%EB%A6%AC%ED%8E%98%EC%96%B4%20%ED%81%AC%EB%A6%BC%20%EA%B8%B0%ED%9A%8D",
+        "status": 200,
+        "final_url": "https://www.google.com/search?q=%EB%8B%A5%ED%84%B0%EC%9E%90%EB%A5%B4%ED%8A%B8%20%EC%8B%9C%EC%B9%B4%ED%8E%98%EC%96%B4%20%EC%9D%B8%ED%85%90%EC%8B%9C%EB%B8%8C%20%EC%88%98%EB%94%A9%20%EB%A6%AC%ED%8E%98%EC%96%B4%20%ED%81%AC%EB%A6%BC%20%EA%B8%B0%ED%9A%8D",
+        "body_bytes": 91121,
+        "token_hit_rate": 0.0
+      }
+    }
+  },
+  {
+    "query": "닥터자르트 시카페어 인텐시브 수딩 리페어 크림",
+    "providers": {
+      "coupang": {
+        "url": "https://www.coupang.com/np/search?q=%EB%8B%A5%ED%84%B0%EC%9E%90%EB%A5%B4%ED%8A%B8%20%EC%8B%9C%EC%B9%B4%ED%8E%98%EC%96%B4%20%EC%9D%B8%ED%85%90%EC%8B%9C%EB%B8%8C%20%EC%88%98%EB%94%A9%20%EB%A6%AC%ED%8E%98%EC%96%B4%20%ED%81%AC%EB%A6%BC",
+        "status": 200,
+        "final_url": "https://www.coupang.com/np/search?q=%EB%8B%A5%ED%84%B0%EC%9E%90%EB%A5%B4%ED%8A%B8%20%EC%8B%9C%EC%B9%B4%ED%8E%98%EC%96%B4%20%EC%9D%B8%ED%85%90%EC%8B%9C%EB%B8%8C%20%EC%88%98%EB%94%A9%20%EB%A6%AC%ED%8E%98%EC%96%B4%20%ED%81%AC%EB%A6%BC",
+        "body_bytes": 19331,
+        "token_hit_rate": 1.0
+      },
+      "naver_shopping": {
+        "url": "https://search.shopping.naver.com/search/all?query=%EB%8B%A5%ED%84%B0%EC%9E%90%EB%A5%B4%ED%8A%B8%20%EC%8B%9C%EC%B9%B4%ED%8E%98%EC%96%B4%20%EC%9D%B8%ED%85%90%EC%8B%9C%EB%B8%8C%20%EC%88%98%EB%94%A9%20%EB%A6%AC%ED%8E%98%EC%96%B4%20%ED%81%AC%EB%A6%BC",
+        "status": 418,
+        "final_url": "https://search.shopping.naver.com/search/all?query=%EB%8B%A5%ED%84%B0%EC%9E%90%EB%A5%B4%ED%8A%B8%20%EC%8B%9C%EC%B9%B4%ED%8E%98%EC%96%B4%20%EC%9D%B8%ED%85%90%EC%8B%9C%EB%B8%8C%20%EC%88%98%EB%94%A9%20%EB%A6%AC%ED%8E%98%EC%96%B4%20%ED%81%AC%EB%A6%BC",
+        "body_bytes": 3104,
+        "token_hit_rate": 0.0
+      },
+      "naver_total": {
+        "url": "https://search.naver.com/search.naver?query=%EB%8B%A5%ED%84%B0%EC%9E%90%EB%A5%B4%ED%8A%B8%20%EC%8B%9C%EC%B9%B4%ED%8E%98%EC%96%B4%20%EC%9D%B8%ED%85%90%EC%8B%9C%EB%B8%8C%20%EC%88%98%EB%94%A9%20%EB%A6%AC%ED%8E%98%EC%96%B4%20%ED%81%AC%EB%A6%BC",
+        "status": 200,
+        "final_url": "https://m.search.naver.com/search.naver?query=%EB%8B%A5%ED%84%B0%EC%9E%90%EB%A5%B4%ED%8A%B8%20%EC%8B%9C%EC%B9%B4%ED%8E%98%EC%96%B4%20%EC%9D%B8%ED%85%90%EC%8B%9C%EB%B8%8C%20%EC%88%98%EB%94%A9%20%EB%A6%AC%ED%8E%98%EC%96%B4%20%ED%81%AC%EB%A6%BC&ssc=tab.m.all&where=m",
+        "body_bytes": 635284,
+        "token_hit_rate": 1.0
+      },
+      "google": {
+        "url": "https://www.google.com/search?q=%EB%8B%A5%ED%84%B0%EC%9E%90%EB%A5%B4%ED%8A%B8%20%EC%8B%9C%EC%B9%B4%ED%8E%98%EC%96%B4%20%EC%9D%B8%ED%85%90%EC%8B%9C%EB%B8%8C%20%EC%88%98%EB%94%A9%20%EB%A6%AC%ED%8E%98%EC%96%B4%20%ED%81%AC%EB%A6%BC",
+        "status": 200,
+        "final_url": "https://www.google.com/search?q=%EB%8B%A5%ED%84%B0%EC%9E%90%EB%A5%B4%ED%8A%B8%20%EC%8B%9C%EC%B9%B4%ED%8E%98%EC%96%B4%20%EC%9D%B8%ED%85%90%EC%8B%9C%EB%B8%8C%20%EC%88%98%EB%94%A9%20%EB%A6%AC%ED%8E%98%EC%96%B4%20%ED%81%AC%EB%A6%BC",
+        "body_bytes": 91892,
+        "token_hit_rate": 0.0
+      }
+    }
+  },
+  {
+    "query": "네스프레소 코코넛 바닐라향 커피",
+    "providers": {
+      "coupang": {
+        "url": "https://www.coupang.com/np/search?q=%EB%84%A4%EC%8A%A4%ED%94%84%EB%A0%88%EC%86%8C%20%EC%BD%94%EC%BD%94%EB%84%9B%20%EB%B0%94%EB%8B%90%EB%9D%BC%ED%96%A5%20%EC%BB%A4%ED%94%BC",
+        "status": 200,
+        "final_url": "https://www.coupang.com/np/search?q=%EB%84%A4%EC%8A%A4%ED%94%84%EB%A0%88%EC%86%8C%20%EC%BD%94%EC%BD%94%EB%84%9B%20%EB%B0%94%EB%8B%90%EB%9D%BC%ED%96%A5%20%EC%BB%A4%ED%94%BC",
+        "body_bytes": 18871,
+        "token_hit_rate": 1.0
+      },
+      "naver_shopping": {
+        "url": "https://search.shopping.naver.com/search/all?query=%EB%84%A4%EC%8A%A4%ED%94%84%EB%A0%88%EC%86%8C%20%EC%BD%94%EC%BD%94%EB%84%9B%20%EB%B0%94%EB%8B%90%EB%9D%BC%ED%96%A5%20%EC%BB%A4%ED%94%BC",
+        "status": 418,
+        "final_url": "https://search.shopping.naver.com/search/all?query=%EB%84%A4%EC%8A%A4%ED%94%84%EB%A0%88%EC%86%8C%20%EC%BD%94%EC%BD%94%EB%84%9B%20%EB%B0%94%EB%8B%90%EB%9D%BC%ED%96%A5%20%EC%BB%A4%ED%94%BC",
+        "body_bytes": 3104,
+        "token_hit_rate": 0.0
+      },
+      "naver_total": {
+        "url": "https://search.naver.com/search.naver?query=%EB%84%A4%EC%8A%A4%ED%94%84%EB%A0%88%EC%86%8C%20%EC%BD%94%EC%BD%94%EB%84%9B%20%EB%B0%94%EB%8B%90%EB%9D%BC%ED%96%A5%20%EC%BB%A4%ED%94%BC",
+        "status": 200,
+        "final_url": "https://m.search.naver.com/search.naver?query=%EB%84%A4%EC%8A%A4%ED%94%84%EB%A0%88%EC%86%8C%20%EC%BD%94%EC%BD%94%EB%84%9B%20%EB%B0%94%EB%8B%90%EB%9D%BC%ED%96%A5%20%EC%BB%A4%ED%94%BC&ssc=tab.m.all&where=m",
+        "body_bytes": 912919,
+        "token_hit_rate": 1.0
+      },
+      "google": {
+        "url": "https://www.google.com/search?q=%EB%84%A4%EC%8A%A4%ED%94%84%EB%A0%88%EC%86%8C%20%EC%BD%94%EC%BD%94%EB%84%9B%20%EB%B0%94%EB%8B%90%EB%9D%BC%ED%96%A5%20%EC%BB%A4%ED%94%BC",
+        "status": 200,
+        "final_url": "https://www.google.com/search?q=%EB%84%A4%EC%8A%A4%ED%94%84%EB%A0%88%EC%86%8C%20%EC%BD%94%EC%BD%94%EB%84%9B%20%EB%B0%94%EB%8B%90%EB%9D%BC%ED%96%A5%20%EC%BB%A4%ED%94%BC",
+        "body_bytes": 91588,
+        "token_hit_rate": 0.0
+      }
+    }
+  },
+  {
+    "query": "로지텍 MX 마스터 3S 펄화이트",
+    "providers": {
+      "coupang": {
+        "url": "https://www.coupang.com/np/search?q=%EB%A1%9C%EC%A7%80%ED%85%8D%20MX%20%EB%A7%88%EC%8A%A4%ED%84%B0%203S%20%ED%8E%84%ED%99%94%EC%9D%B4%ED%8A%B8",
+        "status": 200,
+        "final_url": "https://www.coupang.com/np/search?q=%EB%A1%9C%EC%A7%80%ED%85%8D%20MX%20%EB%A7%88%EC%8A%A4%ED%84%B0%203S%20%ED%8E%84%ED%99%94%EC%9D%B4%ED%8A%B8",
+        "body_bytes": 18621,
+        "token_hit_rate": 1.0
+      },
+      "naver_shopping": {
+        "url": "https://search.shopping.naver.com/search/all?query=%EB%A1%9C%EC%A7%80%ED%85%8D%20MX%20%EB%A7%88%EC%8A%A4%ED%84%B0%203S%20%ED%8E%84%ED%99%94%EC%9D%B4%ED%8A%B8",
+        "status": 418,
+        "final_url": "https://search.shopping.naver.com/search/all?query=%EB%A1%9C%EC%A7%80%ED%85%8D%20MX%20%EB%A7%88%EC%8A%A4%ED%84%B0%203S%20%ED%8E%84%ED%99%94%EC%9D%B4%ED%8A%B8",
+        "body_bytes": 3104,
+        "token_hit_rate": 0.0
+      },
+      "naver_total": {
+        "url": "https://search.naver.com/search.naver?query=%EB%A1%9C%EC%A7%80%ED%85%8D%20MX%20%EB%A7%88%EC%8A%A4%ED%84%B0%203S%20%ED%8E%84%ED%99%94%EC%9D%B4%ED%8A%B8",
+        "status": 200,
+        "final_url": "https://m.search.naver.com/search.naver?query=%EB%A1%9C%EC%A7%80%ED%85%8D%20MX%20%EB%A7%88%EC%8A%A4%ED%84%B0%203S%20%ED%8E%84%ED%99%94%EC%9D%B4%ED%8A%B8&ssc=tab.m.all&where=m",
+        "body_bytes": 590429,
+        "token_hit_rate": 1.0
+      },
+      "google": {
+        "url": "https://www.google.com/search?q=%EB%A1%9C%EC%A7%80%ED%85%8D%20MX%20%EB%A7%88%EC%8A%A4%ED%84%B0%203S%20%ED%8E%84%ED%99%94%EC%9D%B4%ED%8A%B8",
+        "status": 200,
+        "final_url": "https://www.google.com/search?q=%EB%A1%9C%EC%A7%80%ED%85%8D%20MX%20%EB%A7%88%EC%8A%A4%ED%84%B0%203S%20%ED%8E%84%ED%99%94%EC%9D%B4%ED%8A%B8",
+        "body_bytes": 91390,
+        "token_hit_rate": 0.4
+      }
+    }
+  },
+  {
+    "query": "쿠어 스탠드 칼라 넥 다운 푸퍼",
+    "providers": {
+      "coupang": {
+        "url": "https://www.coupang.com/np/search?q=%EC%BF%A0%EC%96%B4%20%EC%8A%A4%ED%83%A0%EB%93%9C%20%EC%B9%BC%EB%9D%BC%20%EB%84%A5%20%EB%8B%A4%EC%9A%B4%20%ED%91%B8%ED%8D%BC",
+        "status": 200,
+        "final_url": "https://www.coupang.com/np/search?q=%EC%BF%A0%EC%96%B4%20%EC%8A%A4%ED%83%A0%EB%93%9C%20%EC%B9%BC%EB%9D%BC%20%EB%84%A5%20%EB%8B%A4%EC%9A%B4%20%ED%91%B8%ED%8D%BC",
+        "body_bytes": 18755,
+        "token_hit_rate": 1.0
+      },
+      "naver_shopping": {
+        "url": "https://search.shopping.naver.com/search/all?query=%EC%BF%A0%EC%96%B4%20%EC%8A%A4%ED%83%A0%EB%93%9C%20%EC%B9%BC%EB%9D%BC%20%EB%84%A5%20%EB%8B%A4%EC%9A%B4%20%ED%91%B8%ED%8D%BC",
+        "status": 418,
+        "final_url": "https://search.shopping.naver.com/search/all?query=%EC%BF%A0%EC%96%B4%20%EC%8A%A4%ED%83%A0%EB%93%9C%20%EC%B9%BC%EB%9D%BC%20%EB%84%A5%20%EB%8B%A4%EC%9A%B4%20%ED%91%B8%ED%8D%BC",
+        "body_bytes": 3104,
+        "token_hit_rate": 0.0
+      },
+      "naver_total": {
+        "url": "https://search.naver.com/search.naver?query=%EC%BF%A0%EC%96%B4%20%EC%8A%A4%ED%83%A0%EB%93%9C%20%EC%B9%BC%EB%9D%BC%20%EB%84%A5%20%EB%8B%A4%EC%9A%B4%20%ED%91%B8%ED%8D%BC",
+        "status": 200,
+        "final_url": "https://m.search.naver.com/search.naver?query=%EC%BF%A0%EC%96%B4%20%EC%8A%A4%ED%83%A0%EB%93%9C%20%EC%B9%BC%EB%9D%BC%20%EB%84%A5%20%EB%8B%A4%EC%9A%B4%20%ED%91%B8%ED%8D%BC&ssc=tab.m.all&where=m",
+        "body_bytes": 418755,
+        "token_hit_rate": 1.0
+      },
+      "google": {
+        "url": "https://www.google.com/search?q=%EC%BF%A0%EC%96%B4%20%EC%8A%A4%ED%83%A0%EB%93%9C%20%EC%B9%BC%EB%9D%BC%20%EB%84%A5%20%EB%8B%A4%EC%9A%B4%20%ED%91%B8%ED%8D%BC",
+        "status": 200,
+        "final_url": "https://www.google.com/search?q=%EC%BF%A0%EC%96%B4%20%EC%8A%A4%ED%83%A0%EB%93%9C%20%EC%B9%BC%EB%9D%BC%20%EB%84%A5%20%EB%8B%A4%EC%9A%B4%20%ED%91%B8%ED%8D%BC",
+        "body_bytes": 91311,
+        "token_hit_rate": 0.0
+      }
+    }
+  },
+  {
+    "query": "다이슨 에어랩 멀티 스타일러 컴플리트",
+    "providers": {
+      "coupang": {
+        "url": "https://www.coupang.com/np/search?q=%EB%8B%A4%EC%9D%B4%EC%8A%A8%20%EC%97%90%EC%96%B4%EB%9E%A9%20%EB%A9%80%ED%8B%B0%20%EC%8A%A4%ED%83%80%EC%9D%BC%EB%9F%AC%20%EC%BB%B4%ED%94%8C%EB%A6%AC%ED%8A%B8",
+        "status": 200,
+        "final_url": "https://www.coupang.com/np/search?q=%EB%8B%A4%EC%9D%B4%EC%8A%A8%20%EC%97%90%EC%96%B4%EB%9E%A9%20%EB%A9%80%ED%8B%B0%20%EC%8A%A4%ED%83%80%EC%9D%BC%EB%9F%AC%20%EC%BB%B4%ED%94%8C%EB%A6%AC%ED%8A%B8",
+        "body_bytes": 19029,
+        "token_hit_rate": 1.0
+      },
+      "naver_shopping": {
+        "url": "https://search.shopping.naver.com/search/all?query=%EB%8B%A4%EC%9D%B4%EC%8A%A8%20%EC%97%90%EC%96%B4%EB%9E%A9%20%EB%A9%80%ED%8B%B0%20%EC%8A%A4%ED%83%80%EC%9D%BC%EB%9F%AC%20%EC%BB%B4%ED%94%8C%EB%A6%AC%ED%8A%B8",
+        "status": 418,
+        "final_url": "https://search.shopping.naver.com/search/all?query=%EB%8B%A4%EC%9D%B4%EC%8A%A8%20%EC%97%90%EC%96%B4%EB%9E%A9%20%EB%A9%80%ED%8B%B0%20%EC%8A%A4%ED%83%80%EC%9D%BC%EB%9F%AC%20%EC%BB%B4%ED%94%8C%EB%A6%AC%ED%8A%B8",
+        "body_bytes": 3104,
+        "token_hit_rate": 0.0
+      },
+      "naver_total": {
+        "url": "https://search.naver.com/search.naver?query=%EB%8B%A4%EC%9D%B4%EC%8A%A8%20%EC%97%90%EC%96%B4%EB%9E%A9%20%EB%A9%80%ED%8B%B0%20%EC%8A%A4%ED%83%80%EC%9D%BC%EB%9F%AC%20%EC%BB%B4%ED%94%8C%EB%A6%AC%ED%8A%B8",
+        "status": 200,
+        "final_url": "https://m.search.naver.com/search.naver?query=%EB%8B%A4%EC%9D%B4%EC%8A%A8%20%EC%97%90%EC%96%B4%EB%9E%A9%20%EB%A9%80%ED%8B%B0%20%EC%8A%A4%ED%83%80%EC%9D%BC%EB%9F%AC%20%EC%BB%B4%ED%94%8C%EB%A6%AC%ED%8A%B8&ssc=tab.m.all&where=m",
+        "body_bytes": 797488,
+        "token_hit_rate": 1.0
+      },
+      "google": {
+        "url": "https://www.google.com/search?q=%EB%8B%A4%EC%9D%B4%EC%8A%A8%20%EC%97%90%EC%96%B4%EB%9E%A9%20%EB%A9%80%ED%8B%B0%20%EC%8A%A4%ED%83%80%EC%9D%BC%EB%9F%AC%20%EC%BB%B4%ED%94%8C%EB%A6%AC%ED%8A%B8",
+        "status": 200,
+        "final_url": "https://www.google.com/search?q=%EB%8B%A4%EC%9D%B4%EC%8A%A8%20%EC%97%90%EC%96%B4%EB%9E%A9%20%EB%A9%80%ED%8B%B0%20%EC%8A%A4%ED%83%80%EC%9D%BC%EB%9F%AC%20%EC%BB%B4%ED%94%8C%EB%A6%AC%ED%8A%B8",
+        "body_bytes": 91674,
+        "token_hit_rate": 0.0
+      }
+    }
+  },
+  {
+    "query": "나이키 페가수스 41 270",
+    "providers": {
+      "coupang": {
+        "url": "https://www.coupang.com/np/search?q=%EB%82%98%EC%9D%B4%ED%82%A4%20%ED%8E%98%EA%B0%80%EC%88%98%EC%8A%A4%2041%20270",
+        "status": 200,
+        "final_url": "https://www.coupang.com/np/search?q=%EB%82%98%EC%9D%B4%ED%82%A4%20%ED%8E%98%EA%B0%80%EC%88%98%EC%8A%A4%2041%20270",
+        "body_bytes": 18397,
+        "token_hit_rate": 1.0
+      },
+      "naver_shopping": {
+        "url": "https://search.shopping.naver.com/search/all?query=%EB%82%98%EC%9D%B4%ED%82%A4%20%ED%8E%98%EA%B0%80%EC%88%98%EC%8A%A4%2041%20270",
+        "status": 418,
+        "final_url": "https://search.shopping.naver.com/search/all?query=%EB%82%98%EC%9D%B4%ED%82%A4%20%ED%8E%98%EA%B0%80%EC%88%98%EC%8A%A4%2041%20270",
+        "body_bytes": 3104,
+        "token_hit_rate": 0.0
+      },
+      "naver_total": {
+        "url": "https://search.naver.com/search.naver?query=%EB%82%98%EC%9D%B4%ED%82%A4%20%ED%8E%98%EA%B0%80%EC%88%98%EC%8A%A4%2041%20270",
+        "status": 200,
+        "final_url": "https://m.search.naver.com/search.naver?query=%EB%82%98%EC%9D%B4%ED%82%A4%20%ED%8E%98%EA%B0%80%EC%88%98%EC%8A%A4%2041%20270&ssc=tab.m.all&where=m",
+        "body_bytes": 683593,
+        "token_hit_rate": 1.0
+      },
+      "google": {
+        "url": "https://www.google.com/search?q=%EB%82%98%EC%9D%B4%ED%82%A4%20%ED%8E%98%EA%B0%80%EC%88%98%EC%8A%A4%2041%20270",
+        "status": 200,
+        "final_url": "https://www.google.com/search?q=%EB%82%98%EC%9D%B4%ED%82%A4%20%ED%8E%98%EA%B0%80%EC%88%98%EC%8A%A4%2041%20270",
+        "body_bytes": 91483,
+        "token_hit_rate": 0.5
+      }
+    }
+  },
+  {
+    "query": "나이키 페가수스 41",
+    "providers": {
+      "coupang": {
+        "url": "https://www.coupang.com/np/search?q=%EB%82%98%EC%9D%B4%ED%82%A4%20%ED%8E%98%EA%B0%80%EC%88%98%EC%8A%A4%2041",
+        "status": 200,
+        "final_url": "https://www.coupang.com/np/search?q=%EB%82%98%EC%9D%B4%ED%82%A4%20%ED%8E%98%EA%B0%80%EC%88%98%EC%8A%A4%2041",
+        "body_bytes": 18365,
+        "token_hit_rate": 1.0
+      },
+      "naver_shopping": {
+        "url": "https://search.shopping.naver.com/search/all?query=%EB%82%98%EC%9D%B4%ED%82%A4%20%ED%8E%98%EA%B0%80%EC%88%98%EC%8A%A4%2041",
+        "status": 418,
+        "final_url": "https://search.shopping.naver.com/search/all?query=%EB%82%98%EC%9D%B4%ED%82%A4%20%ED%8E%98%EA%B0%80%EC%88%98%EC%8A%A4%2041",
+        "body_bytes": 3104,
+        "token_hit_rate": 0.0
+      },
+      "naver_total": {
+        "url": "https://search.naver.com/search.naver?query=%EB%82%98%EC%9D%B4%ED%82%A4%20%ED%8E%98%EA%B0%80%EC%88%98%EC%8A%A4%2041",
+        "status": 200,
+        "final_url": "https://m.search.naver.com/search.naver?query=%EB%82%98%EC%9D%B4%ED%82%A4%20%ED%8E%98%EA%B0%80%EC%88%98%EC%8A%A4%2041&ssc=tab.m.all&where=m",
+        "body_bytes": 515571,
+        "token_hit_rate": 1.0
+      },
+      "google": {
+        "url": "https://www.google.com/search?q=%EB%82%98%EC%9D%B4%ED%82%A4%20%ED%8E%98%EA%B0%80%EC%88%98%EC%8A%A4%2041",
+        "status": 200,
+        "final_url": "https://www.google.com/search?q=%EB%82%98%EC%9D%B4%ED%82%A4%20%ED%8E%98%EA%B0%80%EC%88%98%EC%8A%A4%2041",
+        "body_bytes": 91514,
+        "token_hit_rate": 0.33
+      }
+    }
+  },
+  {
+    "query": "로지텍 MX Master 3S",
+    "providers": {
+      "coupang": {
+        "url": "https://www.coupang.com/np/search?q=%EB%A1%9C%EC%A7%80%ED%85%8D%20MX%20Master%203S",
+        "status": 200,
+        "final_url": "https://www.coupang.com/np/search?q=%EB%A1%9C%EC%A7%80%ED%85%8D%20MX%20Master%203S",
+        "body_bytes": 18139,
+        "token_hit_rate": 1.0
+      },
+      "naver_shopping": {
+        "url": "https://search.shopping.naver.com/search/all?query=%EB%A1%9C%EC%A7%80%ED%85%8D%20MX%20Master%203S",
+        "status": 418,
+        "final_url": "https://search.shopping.naver.com/search/all?query=%EB%A1%9C%EC%A7%80%ED%85%8D%20MX%20Master%203S",
+        "body_bytes": 3104,
+        "token_hit_rate": 0.0
+      },
+      "naver_total": {
+        "url": "https://search.naver.com/search.naver?query=%EB%A1%9C%EC%A7%80%ED%85%8D%20MX%20Master%203S",
+        "status": 200,
+        "final_url": "https://m.search.naver.com/search.naver?query=%EB%A1%9C%EC%A7%80%ED%85%8D%20MX%20Master%203S&ssc=tab.m.all&where=m",
+        "body_bytes": 573330,
+        "token_hit_rate": 1.0
+      },
+      "google": {
+        "url": "https://www.google.com/search?q=%EB%A1%9C%EC%A7%80%ED%85%8D%20MX%20Master%203S",
+        "status": 200,
+        "final_url": "https://www.google.com/search?q=%EB%A1%9C%EC%A7%80%ED%85%8D%20MX%20Master%203S",
+        "body_bytes": 91463,
+        "token_hit_rate": 0.75
+      }
+    }
+  },
+  {
+    "query": "에어팟 프로 2세대",
+    "providers": {
+      "coupang": {
+        "url": "https://www.coupang.com/np/search?q=%EC%97%90%EC%96%B4%ED%8C%9F%20%ED%94%84%EB%A1%9C%202%EC%84%B8%EB%8C%80",
+        "status": 200,
+        "final_url": "https://www.coupang.com/np/search?q=%EC%97%90%EC%96%B4%ED%8C%9F%20%ED%94%84%EB%A1%9C%202%EC%84%B8%EB%8C%80",
+        "body_bytes": 18359,
+        "token_hit_rate": 1.0
+      },
+      "naver_shopping": {
+        "url": "https://search.shopping.naver.com/search/all?query=%EC%97%90%EC%96%B4%ED%8C%9F%20%ED%94%84%EB%A1%9C%202%EC%84%B8%EB%8C%80",
+        "status": 418,
+        "final_url": "https://search.shopping.naver.com/search/all?query=%EC%97%90%EC%96%B4%ED%8C%9F%20%ED%94%84%EB%A1%9C%202%EC%84%B8%EB%8C%80",
+        "body_bytes": 3104,
+        "token_hit_rate": 0.33
+      },
+      "naver_total": {
+        "url": "https://search.naver.com/search.naver?query=%EC%97%90%EC%96%B4%ED%8C%9F%20%ED%94%84%EB%A1%9C%202%EC%84%B8%EB%8C%80",
+        "status": 200,
+        "final_url": "https://m.search.naver.com/search.naver?query=%EC%97%90%EC%96%B4%ED%8C%9F%20%ED%94%84%EB%A1%9C%202%EC%84%B8%EB%8C%80&ssc=tab.m.all&where=m",
+        "body_bytes": 494255,
+        "token_hit_rate": 1.0
+      },
+      "google": {
+        "url": "https://www.google.com/search?q=%EC%97%90%EC%96%B4%ED%8C%9F%20%ED%94%84%EB%A1%9C%202%EC%84%B8%EB%8C%80",
+        "status": 200,
+        "final_url": "https://www.google.com/search?q=%EC%97%90%EC%96%B4%ED%8C%9F%20%ED%94%84%EB%A1%9C%202%EC%84%B8%EB%8C%80",
+        "body_bytes": 91445,
+        "token_hit_rate": 0.0
+      }
+    }
+  },
+  {
+    "query": "애플 에어팟 프로 2세대",
+    "providers": {
+      "coupang": {
+        "url": "https://www.coupang.com/np/search?q=%EC%95%A0%ED%94%8C%20%EC%97%90%EC%96%B4%ED%8C%9F%20%ED%94%84%EB%A1%9C%202%EC%84%B8%EB%8C%80",
+        "status": 200,
+        "final_url": "https://www.coupang.com/np/search?q=%EC%95%A0%ED%94%8C%20%EC%97%90%EC%96%B4%ED%8C%9F%20%ED%94%84%EB%A1%9C%202%EC%84%B8%EB%8C%80",
+        "body_bytes": 18517,
+        "token_hit_rate": 1.0
+      },
+      "naver_shopping": {
+        "url": "https://search.shopping.naver.com/search/all?query=%EC%95%A0%ED%94%8C%20%EC%97%90%EC%96%B4%ED%8C%9F%20%ED%94%84%EB%A1%9C%202%EC%84%B8%EB%8C%80",
+        "status": 418,
+        "final_url": "https://search.shopping.naver.com/search/all?query=%EC%95%A0%ED%94%8C%20%EC%97%90%EC%96%B4%ED%8C%9F%20%ED%94%84%EB%A1%9C%202%EC%84%B8%EB%8C%80",
+        "body_bytes": 3104,
+        "token_hit_rate": 0.25
+      },
+      "naver_total": {
+        "url": "https://search.naver.com/search.naver?query=%EC%95%A0%ED%94%8C%20%EC%97%90%EC%96%B4%ED%8C%9F%20%ED%94%84%EB%A1%9C%202%EC%84%B8%EB%8C%80",
+        "status": 200,
+        "final_url": "https://m.search.naver.com/search.naver?query=%EC%95%A0%ED%94%8C%20%EC%97%90%EC%96%B4%ED%8C%9F%20%ED%94%84%EB%A1%9C%202%EC%84%B8%EB%8C%80&ssc=tab.m.all&where=m",
+        "body_bytes": 818935,
+        "token_hit_rate": 1.0
+      },
+      "google": {
+        "url": "https://www.google.com/search?q=%EC%95%A0%ED%94%8C%20%EC%97%90%EC%96%B4%ED%8C%9F%20%ED%94%84%EB%A1%9C%202%EC%84%B8%EB%8C%80",
+        "status": 200,
+        "final_url": "https://www.google.com/search?q=%EC%95%A0%ED%94%8C%20%EC%97%90%EC%96%B4%ED%8C%9F%20%ED%94%84%EB%A1%9C%202%EC%84%B8%EB%8C%80",
+        "body_bytes": 91476,
+        "token_hit_rate": 0.0
+      }
+    }
+  },
+  {
+    "query": "신발",
+    "providers": {
+      "coupang": {
+        "url": "https://www.coupang.com/np/search?q=%EC%8B%A0%EB%B0%9C",
+        "status": 200,
+        "final_url": "https://www.coupang.com/np/search?q=%EC%8B%A0%EB%B0%9C",
+        "body_bytes": 17952,
+        "token_hit_rate": 1.0
+      },
+      "naver_shopping": {
+        "url": "https://search.shopping.naver.com/search/all?query=%EC%8B%A0%EB%B0%9C",
+        "status": 418,
+        "final_url": "https://search.shopping.naver.com/search/all?query=%EC%8B%A0%EB%B0%9C",
+        "body_bytes": 3104,
+        "token_hit_rate": 0.0
+      },
+      "naver_total": {
+        "url": "https://search.naver.com/search.naver?query=%EC%8B%A0%EB%B0%9C",
+        "status": 200,
+        "final_url": "https://m.search.naver.com/search.naver?query=%EC%8B%A0%EB%B0%9C&ssc=tab.m.all&where=m",
+        "body_bytes": 1415604,
+        "token_hit_rate": 1.0
+      },
+      "google": {
+        "url": "https://www.google.com/search?q=%EC%8B%A0%EB%B0%9C",
+        "status": 200,
+        "final_url": "https://www.google.com/search?q=%EC%8B%A0%EB%B0%9C",
+        "body_bytes": 91353,
+        "token_hit_rate": 0.0
+      }
+    }
+  },
+  {
+    "query": "검정 원피스",
+    "providers": {
+      "coupang": {
+        "url": "https://www.coupang.com/np/search?q=%EA%B2%80%EC%A0%95%20%EC%9B%90%ED%94%BC%EC%8A%A4",
+        "status": 200,
+        "final_url": "https://www.coupang.com/np/search?q=%EA%B2%80%EC%A0%95%20%EC%9B%90%ED%94%BC%EC%8A%A4",
+        "body_bytes": 18182,
+        "token_hit_rate": 1.0
+      },
+      "naver_shopping": {
+        "url": "https://search.shopping.naver.com/search/all?query=%EA%B2%80%EC%A0%95%20%EC%9B%90%ED%94%BC%EC%8A%A4",
+        "status": 418,
+        "final_url": "https://search.shopping.naver.com/search/all?query=%EA%B2%80%EC%A0%95%20%EC%9B%90%ED%94%BC%EC%8A%A4",
+        "body_bytes": 3104,
+        "token_hit_rate": 0.0
+      },
+      "naver_total": {
+        "url": "https://search.naver.com/search.naver?query=%EA%B2%80%EC%A0%95%20%EC%9B%90%ED%94%BC%EC%8A%A4",
+        "status": 200,
+        "final_url": "https://m.search.naver.com/search.naver?query=%EA%B2%80%EC%A0%95%20%EC%9B%90%ED%94%BC%EC%8A%A4&ssc=tab.m.all&where=m",
+        "body_bytes": 970858,
+        "token_hit_rate": 1.0
+      },
+      "google": {
+        "url": "https://www.google.com/search?q=%EA%B2%80%EC%A0%95%20%EC%9B%90%ED%94%BC%EC%8A%A4",
+        "status": 200,
+        "final_url": "https://www.google.com/search?q=%EA%B2%80%EC%A0%95%20%EC%9B%90%ED%94%BC%EC%8A%A4",
+        "body_bytes": 90785,
+        "token_hit_rate": 0.0
+      }
+    }
+  },
+  {
+    "query": "블랙 원피스",
+    "providers": {
+      "coupang": {
+        "url": "https://www.coupang.com/np/search?q=%EB%B8%94%EB%9E%99%20%EC%9B%90%ED%94%BC%EC%8A%A4",
+        "status": 403,
+        "final_url": "https://www.coupang.com/np/search?q=%EB%B8%94%EB%9E%99%20%EC%9B%90%ED%94%BC%EC%8A%A4",
+        "body_bytes": 56,
+        "token_hit_rate": 0.0
+      },
+      "naver_shopping": {
+        "url": "https://search.shopping.naver.com/search/all?query=%EB%B8%94%EB%9E%99%20%EC%9B%90%ED%94%BC%EC%8A%A4",
+        "status": 418,
+        "final_url": "https://search.shopping.naver.com/search/all?query=%EB%B8%94%EB%9E%99%20%EC%9B%90%ED%94%BC%EC%8A%A4",
+        "body_bytes": 3104,
+        "token_hit_rate": 0.0
+      },
+      "naver_total": {
+        "url": "https://search.naver.com/search.naver?query=%EB%B8%94%EB%9E%99%20%EC%9B%90%ED%94%BC%EC%8A%A4",
+        "status": 200,
+        "final_url": "https://m.search.naver.com/search.naver?query=%EB%B8%94%EB%9E%99%20%EC%9B%90%ED%94%BC%EC%8A%A4&ssc=tab.m.all&where=m",
+        "body_bytes": 1081931,
+        "token_hit_rate": 1.0
+      },
+      "google": {
+        "url": "https://www.google.com/search?q=%EB%B8%94%EB%9E%99%20%EC%9B%90%ED%94%BC%EC%8A%A4",
+        "status": 200,
+        "final_url": "https://www.google.com/search?q=%EB%B8%94%EB%9E%99%20%EC%9B%90%ED%94%BC%EC%8A%A4",
+        "body_bytes": 91388,
+        "token_hit_rate": 0.0
+      }
+    }
+  }
+]

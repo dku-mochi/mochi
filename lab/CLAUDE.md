@@ -7,6 +7,7 @@
 - `active/` — 진행 중인 실험
   - `agent-loop-image-eval/` — **이미지 agent loop eval** (2026-06-05~). 로컬 스크린샷을 GCS 없이 Gemini에 직접 전달해 agent loop 전체를 검증. 평가 항목: 툴 호출 여부·기대 intent 일치·LLM-as-judge summary 점수. 데이터는 `lab/data/screenshot/intent_N/`에 배치 (gitignore). 결과는 `results/YYYYMMDD_HHMMSS.json`. 파일명 컨벤션: `설명_intent1_intent2.PNG` (끝 토큰이 기대 intent). `FINDINGS.md`에 결론·프로덕션 반영 메모 기록.
   - `agent-loop-live/` — **agent loop 라이브 통합 테스트** (text/URL end-to-end). DB 없이 FakeGateway로 실행.
+  - `shopping-product-link/` — **쇼핑 캡처 → 구매 링크** (2026-06-13~). exp1: 캡처에서 상품을 검색어 수준으로 식별 가능한지 (flash-lite vs 3.5-flash + LLM judge), exp2: 상품명으로 커머스 "검색된 상태" URL(쿠팡/네이버) 도달성. 결론·반영 스케치는 `FINDINGS.md`.
 
 - `archive/` — 종료된 실험 (보관용, 경로가 stale 할 수 있음 — 재실행 시 `data/` 경로 확인 필요)
   - `extraction-strategy/` — **추출 형식 비교** (2026-05-29, 종료). A(자유형)·B(구조화)·C(하이브리드) × flash-lite·flash 비교. 결론: **C + flash-lite** → `system_prompts.py` 반영.
