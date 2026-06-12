@@ -273,28 +273,19 @@ struct SearchGridCard: View {
             .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    /// 링크 타일 하단 — favicon letter 미니 타일 + 도메인. 어떤 링크였는지 떠올리게 하는 회수 단서.
+    /// 링크 타일 하단 — 멘션 필: 실제 파비콘 + 도메인을 흰 캡슐에. 어떤 링크였는지 떠올리게 하는 회수 단서.
     private var domainRow: some View {
-        HStack(spacing: 6) {
-            Text(faviconLetter)
-                .font(.system(size: 10, weight: .heavy, design: .rounded))
-                .foregroundStyle(.white)
-                .frame(width: 20, height: 20)
-                .background(
-                    RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .fill(
-                            LinearGradient(
-                                colors: [HomeDesign.Color.purple400, HomeDesign.Color.purple600],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                )
+        HStack(spacing: 5) {
+            FaviconTile(host: item.source.url?.host, size: 16)
             Text(item.source.url?.host?.replacingOccurrences(of: "www.", with: "") ?? "링크")
-                .font(.system(size: 11.5, weight: .medium, design: .rounded))
+                .font(.system(size: 11.5, weight: .semibold, design: .rounded))
                 .foregroundStyle(SearchD5.Palette.textSecondary)
                 .lineLimit(1)
         }
+        .padding(.leading, 5)
+        .padding(.trailing, 9)
+        .frame(height: 26)
+        .background(Capsule().fill(Color.white.opacity(0.6)))
     }
 
     // MARK: - Helpers
@@ -328,10 +319,6 @@ struct SearchGridCard: View {
     private var bodyPreview: String {
         let raw = item.analysis?.summary ?? item.source.text ?? ""
         return Self.stripSourceMeta(raw)
-    }
-
-    private var faviconLetter: String {
-        String(item.source.url?.host?.replacingOccurrences(of: "www.", with: "").prefix(1) ?? "L").uppercased()
     }
 
     private var typeFilter: SearchD5.TypeFilter {

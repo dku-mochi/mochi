@@ -43,15 +43,6 @@ public enum SearchD5 {
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
-        // focused 화면 상단 wash — bg 위에 아주 낮은 opacity 보조 레이어로만.
-        public static let headerWash = LinearGradient(
-            gradient: Gradient(stops: [
-                .init(color: HomeDesign.Color.purple50.opacity(0.6), location: 0.00),
-                .init(color: HomeDesign.Color.bg.opacity(0.0),       location: 1.00),
-            ]),
-            startPoint: .top,
-            endPoint: .bottom
-        )
     }
 
     // MARK: - Type Filter (기본 화면 — 출처/타입 5축)
@@ -168,7 +159,6 @@ public enum SearchD5 {
         static let ctaButtonHeight: CGFloat  = 56
         static let ctaButtonRadius: CGFloat  = HomeDesign.Radius.md
         static let emptyMascotSize: CGFloat  = 220
-        static let helloMascotSize: CGFloat  = 180
         static let sectionGap: CGFloat       = 28
         static let componentGap: CGFloat     = 12
     }
