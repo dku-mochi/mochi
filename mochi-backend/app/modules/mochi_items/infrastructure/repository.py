@@ -25,6 +25,7 @@ from app.modules.mochi_items.domain.value_objects import (
     ReviewOption,
 )
 from app.modules.mochi_items.infrastructure.orm import (
+    EmbeddingRow,
     EntityRow,
     IdempotencyKeyRow,
     IntentInstanceRow,
@@ -406,6 +407,40 @@ class PostgresMochiItemRepository(MochiItemRepository):
                     mochi_item=row,
                 )
             )
+        await self._session.flush()
+
+    async def replace_embedding(
+        self,
+        *,
+        owner_id: UUID,
+        mochi_item_id: UUID,
+        chunk_text: str,
+        embedding: list[float],
+        model_version: str,
+    ) -> None:
+        stmt = select(MochiItemRow).where(
+            MochiItemRow.id == mochi_item_id,
+            MochiItemRow.owner_id == owner_id,
+            # soft-delete 직후 재색인되는 TOCTOU 창 차단 — 지워진 기록은 색인하지 않는다 (리뷰 P2).
+            MochiItemRow.deleted_at.is_(None),
+        )
+        row = (await self._session.scalars(stmt)).one_or_none()
+        if row is None:
+            return
+        # delete-reinsert — 재분석·backfill 멱등 (apply_analysis 의 instances/entities 와 동일 패턴).
+        await self._session.execute(
+            delete(EmbeddingRow).where(EmbeddingRow.mochi_item_id == mochi_item_id)
+        )
+        self._session.add(
+            EmbeddingRow(
+                mochi_item_id=mochi_item_id,
+                chunk_text=chunk_text,
+                embedding=embedding,
+                model_version=model_version,
+                # FK 만 주면 relationship(default=None)이 flush 시 NULL 로 덮어쓴다 — EntityRow 와 동일.
+                mochi_item=row,
+            )
+        )
         await self._session.flush()
 
     async def update_instance_lifecycle(
