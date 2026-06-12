@@ -2,22 +2,25 @@ import SwiftUI
 import CoreDomain
 import DesignSystem
 
-/// 검색 탭 2col 그리드 카드 — type 별 가변 높이 (스크린샷 이미지-led 182 / 그 외 138).
+/// 검색 탭 2col 그리드 카드 — 이미지/타이포 모자이크.
 ///
-/// 요소 언어는 홈(RecentMochiCard·MochiItemKindTag)을 따른다 — 캐릭터는 귀엽되
-/// 카드·배지 같은 구조 요소는 작고 실용적으로.
+/// 배지·날짜·출처 같은 chrome 을 모두 걷어내고 카드의 *형태*가 타입을 말한다 —
+/// 사진 타일이면 스크린샷, 파스텔 타이포 타일이면 메모/링크. 타입 구분·날짜는
+/// 필터칩과 상세 화면이 담당 (시각적으론 빼되 VoiceOver 라벨에는 유지).
 ///
 /// type 별 layout:
-/// - 스크린샷(+이미지): 미디어가 카드 상단 edge-to-edge (배지 overlay) → 제목 → 메타. 홈 카드 패턴.
-/// - 스크린샷(이미지 없음): 제목 → 텍스트 preview 박스 → 메타 (서버 복구 전 폴백)
-/// - 링크: 제목 → 메타 → favicon letter mini preview
-/// - 메모/미확인: 제목 → 본문 2줄 (인용 워터마크) → 메타
+/// - 스크린샷(+이미지): 2:3 풀블리드 이미지 + 하단 적응형 스크림 + 흰 제목 overlay.
+///   center 크롭 — 사용자가 어느 부분을 중요하게 캡처했는지 모르므로 위쪽을 가정하지 않는다.
+/// - 스크린샷(이미지 없음): sky 타일 — 제목 → 텍스트 preview (서버 복구 전 폴백)
+/// - 링크: purple 타일 — 제목 → favicon letter + 도메인 한 줄 (도메인은 장식이 아니라 회수 단서)
+/// - 메모: butter 타일 / 미확인: ink 타일 — 제목 → 본문 2줄 (인용 워터마크)
 struct SearchGridCard: View {
     let item: MochiItem
     /// 검색어 매칭 위치 — 결과 화면에서만 전달. 기본 화면(.idle) 카드는 빈 배열.
     let titleHighlights: [HighlightRange]
     let summaryHighlights: [HighlightRange]
-    /// 서버 의미 검색으로 보강된 항목 — "비슷한 기억" 구분 표시.
+    /// 서버 의미 검색으로 보강된 항목 — 시각 표시는 모자이크 미니멀화로 제거,
+    /// VoiceOver 라벨("비슷한 기억으로 찾음")에만 유지.
     let isSemantic: Bool
     /// 탭 시 카드 frame 묶음을 넘긴다 — 홈 카드와 동일한 hero 확대 전환의 시작점.
     let onTap: (HeroSourceFrames) -> Void
@@ -28,6 +31,11 @@ struct SearchGridCard: View {
     /// 보이는 카드 전부가 재렌더되는 연쇄(검색 탭 랙의 주범)가 생긴다.
     /// frame 은 탭 순간에만 필요하므로 쓰기가 뷰를 무효화하지 않는 box 에 담는다.
     @State private var frames = FrameBox()
+
+    /// 썸네일 하단 35% 평균 휘도(0~1) — 스크림 강도를 이미지에 맞춘다.
+    /// 측정 전 기본값은 밝음(0.8) — 모찌 캡처 대부분이 흰 배경 스크린샷이고,
+    /// 로드 전 placeholder 도 밝은 파스텔이라 진한 스크림이 안전하다.
+    @State private var bottomLuminance: CGFloat = 0.8
 
     private final class FrameBox {
         var card: CGRect = .zero
@@ -51,9 +59,9 @@ struct SearchGridCard: View {
     }
 
     /// masonry 분배가 쓰는 카드 예상 높이.
-    /// 스크린샷+썸네일 = 4:5 이미지(~222) + 제목·메타 footer(~70) ≈ 292 (mymind 식 showcase 카드).
+    /// 스크린샷+썸네일 = 2:3 풀블리드 이미지 (edge-to-edge col 폭 ~194 × 1.5 ≈ 290, 제목은 overlay 라 추가 높이 없음).
     static func estimatedHeight(for item: MochiItem) -> CGFloat {
-        Self.hasThumbnail(item) ? 292 : 138
+        Self.hasThumbnail(item) ? 290 : 138
     }
 
     private static func hasThumbnail(_ item: MochiItem) -> Bool {
@@ -80,16 +88,12 @@ struct SearchGridCard: View {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            // edge-to-edge 모자이크 — 테두리·그림자 없이 6pt 이음새 + radius 가 셀을 구분한다.
             .background(
                 RoundedRectangle(cornerRadius: SearchD5.Sizes.gridCardRadius, style: .continuous)
-                    .fill(SearchD5.Palette.card)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: SearchD5.Sizes.gridCardRadius, style: .continuous)
-                    .stroke(SearchD5.Palette.cardBorder, lineWidth: 1)
+                    .fill(tileBackground)
             )
             .clipShape(RoundedRectangle(cornerRadius: SearchD5.Sizes.gridCardRadius, style: .continuous))
-            .shadow(color: HomeDesign.Color.ink900.opacity(0.05), radius: 8, x: 0, y: 2)
         }
         .buttonStyle(PressableStyle())
         .background(
@@ -123,35 +127,11 @@ struct SearchGridCard: View {
         return parts.joined(separator: ", ")
     }
 
-    // MARK: - 텍스트 카드 (공통 골격)
+    // MARK: - 텍스트 카드 (파스텔 타이포 타일 — 글자가 곧 커버)
 
     private var textCardBody: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            topRow
-            cardBody
-        }
-        .padding(SearchD5.Sizes.cardPadding)
-    }
-
-    private var topRow: some View {
-        HStack(alignment: .center, spacing: 0) {
-            TypeBadge(filter: typeFilter)
-            Spacer(minLength: 0)
-            Menu {
-                ShareLink(item: shareText) {
-                    Label("공유", systemImage: "square.and.arrow.up")
-                }
-                Button(role: .destructive, action: onDelete) {
-                    Label("삭제", systemImage: "trash")
-                }
-            } label: {
-                Image(systemName: "ellipsis")
-                    .font(.system(size: 12, weight: .bold, design: .rounded))
-                    .foregroundStyle(SearchD5.Palette.textTertiary)
-                    .frame(width: 22, height: 22)
-                    .contentShape(Rectangle())
-            }
-        }
+        cardBody
+            .padding(HomeDesign.Spacing.md)
     }
 
     @ViewBuilder
@@ -163,41 +143,42 @@ struct SearchGridCard: View {
         }
     }
 
+    /// 카드 바탕 — 이미지 카드는 surface(이미지가 전부 덮음), 텍스트 타일은 타입 파스텔.
+    /// 필터칩(activeBg)과 같은 색이라 "타일 색 = 타입" 매핑이 화면 안에서 자가 설명된다.
+    private var tileBackground: Color {
+        hasThumbnail ? SearchD5.Palette.card : typeFilter.activeBg
+    }
+
     private var linkBody: some View {
-        VStack(alignment: .leading, spacing: 3) {
-            titleText
-            metaRow
+        VStack(alignment: .leading, spacing: 4) {
+            titleText(size: 16)
             Spacer(minLength: 2)
-            linkPreview
+            domainRow
         }
     }
 
-    // MARK: - Showcase 카드 (스크린샷 + 로컬 이미지) — mymind 식
+    // MARK: - Showcase 카드 (스크린샷 + 로컬 이미지) — 인스타 탐색탭 식 오버레이
 
-    /// 이미지가 4:5 로 크게(콘텐츠가 알아볼 수 있는 크기) + 아래 제목·메타 footer.
-    /// 이전 두 시도와의 차이 — ① 100pt strip top-크롭(상태바·배너 쓰레기만 보임)이 아니라
-    /// 4:5 center 크롭이라 본 콘텐츠가 화면을 채우고, ② 텍스트는 이미지 위가 아니라 아래 흰 footer.
+    /// 2:3 풀블리드 이미지 위에 하단 스크림 + 흰 제목. footer·배지·메타 없음.
+    /// 스크림 강도는 썸네일 하단 휘도에 비례 — 흰 텍스트 스크린샷(모찌의 다수)에서 진하게,
+    /// 어두운 사진에서 옅게. center 크롭: 캡처의 어느 부분이 중요한지 모르므로 위쪽을 가정하지 않는다.
     private var showcaseBody: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            ZStack(alignment: .topLeading) {
-                LocalThumbnail(
-                    relativePath: item.source.imageRefs.first?.relativePath,
-                    targetSize: CGSize(width: 178, height: 222),
-                    alignment: .center
-                ) {
-                    LinearGradient(
-                        colors: [HomeDesign.Color.sky100, HomeDesign.Color.purple100],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                }
-                .aspectRatio(0.8, contentMode: .fit)
-                .frame(maxWidth: .infinity)
-                .clipped()
-
-                overlayBadge
-                    .padding(HomeDesign.Spacing.sm)
+        ZStack(alignment: .bottomLeading) {
+            LocalThumbnail(
+                relativePath: item.source.imageRefs.first?.relativePath,
+                targetSize: CGSize(width: 196, height: 294),
+                alignment: .center,
+                onBottomLuminance: { bottomLuminance = $0 }
+            ) {
+                LinearGradient(
+                    colors: [HomeDesign.Color.sky100, HomeDesign.Color.purple100],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
             }
+            .aspectRatio(2.0 / 3.0, contentMode: .fit)
+            .frame(maxWidth: .infinity)
+            .clipped()
             .background(
                 GeometryReader { geo in
                     Color.clear
@@ -208,33 +189,34 @@ struct SearchGridCard: View {
                 }
             )
 
-            VStack(alignment: .leading, spacing: 4) {
-                titleText
-                metaRow
-            }
-            .padding(SearchD5.Sizes.cardPadding)
+            scrim
+
+            titleText(size: 14.5, color: .white)
+                .shadow(color: .black.opacity(0.35), radius: 3, x: 0, y: 1)
+                .padding(HomeDesign.Spacing.md)
         }
     }
 
-    /// 이미지 위 배지 — 홈 tag() 와 동일하게 material 캡슐로 가독성 확보.
-    private var overlayBadge: some View {
-        HStack(spacing: 4) {
-            Image(systemName: SearchD5.TypeFilter.screenshot.systemImage)
-                .font(.system(size: 10, weight: .semibold, design: .rounded))
-            Text(SearchD5.TypeFilter.screenshot.label)
-                .font(.system(size: 10.5, weight: .semibold, design: .rounded))
-                .tracking(0.05)
-        }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 5)
-        .foregroundStyle(HomeDesign.Color.ink700)
-        .background(.ultraThinMaterial, in: Capsule())
+    /// 하단 휘도 적응형 스크림 — 이미지 위쪽 절반은 건드리지 않고 하단으로 갈수록 어두워진다.
+    /// 최대 불투명도 0.45(어두운 이미지)~0.8(흰 이미지) — 흰 제목 대비 확보가 기준.
+    private var scrim: some View {
+        let maxOpacity = 0.45 + min(max(bottomLuminance, 0), 1) * 0.35
+        return LinearGradient(
+            stops: [
+                .init(color: .black.opacity(0), location: 0.5),
+                .init(color: .black.opacity(maxOpacity * 0.5), location: 0.78),
+                .init(color: .black.opacity(maxOpacity), location: 1.0),
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+        .allowsHitTesting(false)
     }
 
     /// 이미지 없는 스크린샷 (서버 복구 전 등) — 텍스트 폴백.
     private var screenshotTextBody: some View {
         VStack(alignment: .leading, spacing: 0) {
-            titleText
+            titleText(size: 16)
                 .padding(.bottom, 6)
             if let summary = item.analysis?.summary, !summary.isEmpty,
                Self.stripSourceMeta(summary) != cardTitle {
@@ -248,20 +230,19 @@ struct SearchGridCard: View {
                     .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
-            Spacer(minLength: 4)
-            metaRow
+            Spacer(minLength: 0)
         }
     }
 
     private var memoBody: some View {
         VStack(alignment: .leading, spacing: 4) {
-            titleText
+            titleText(size: 16)
             Text(Self.highlight(bodyPreview, ranges: summaryHighlights))
                 .font(.system(size: 12.5, weight: .regular, design: .rounded))
                 .tracking(-0.2)
                 .lineSpacing(1)
                 .foregroundStyle(SearchD5.Palette.textSecondary)
-                .lineLimit(2)
+                .lineLimit(3)
                 .truncationMode(.tail)
                 .multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -274,17 +255,17 @@ struct SearchGridCard: View {
                         .allowsHitTesting(false)
                 }
             Spacer(minLength: 0)
-            metaRow
         }
     }
 
     // MARK: - Reusable
 
-    private var titleText: some View {
+    /// 제목 — 이미지 overlay(흰색)와 파스텔 타일(잉크색) 양쪽에서 쓴다.
+    private func titleText(size: CGFloat, color: Color? = nil) -> some View {
         Text(Self.highlight(cardTitle, ranges: titleHighlights))
-            .font(.system(size: 14.5, weight: .bold, design: .rounded))
+            .font(.system(size: size, weight: .bold, design: .rounded))
             .tracking(-0.3)
-            .foregroundStyle(isAnalyzing ? SearchD5.Palette.textSecondary : SearchD5.Palette.textPrimary)
+            .foregroundStyle(color ?? (isAnalyzing ? SearchD5.Palette.textSecondary : SearchD5.Palette.textPrimary))
             .lineSpacing(0.5)
             .lineLimit(2)
             .truncationMode(.tail)
@@ -292,49 +273,15 @@ struct SearchGridCard: View {
             .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private var metaRow: some View {
-        HStack(spacing: 4) {
-            Text(sourceLabel)
-                .font(.system(size: 11, weight: .medium, design: .rounded))
-                .foregroundStyle(SearchD5.Palette.textTertiary)
-            Circle().fill(SearchD5.Palette.textTertiary).opacity(0.6)
-                .frame(width: 2.5, height: 2.5)
-            Text(absoluteDate)
-                .font(.system(size: 11, weight: .medium, design: .rounded))
-                .foregroundStyle(SearchD5.Palette.textTertiary)
-            if isAnalyzing {
-                Circle().fill(SearchD5.Palette.textTertiary).opacity(0.6)
-                    .frame(width: 2.5, height: 2.5)
-                Text("분석 중")
-                    .font(.system(size: 11, weight: .semibold, design: .rounded))
-                    .foregroundStyle(SearchD5.Palette.primary)
-            }
-            if isSemantic {
-                Circle().fill(SearchD5.Palette.textTertiary).opacity(0.6)
-                    .frame(width: 2.5, height: 2.5)
-                HStack(spacing: 2) {
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 9, weight: .semibold))
-                    Text("비슷한 기억")
-                        .font(.system(size: 11, weight: .semibold, design: .rounded))
-                }
-                .foregroundStyle(SearchD5.Palette.primary)
-            }
-        }
-        .lineLimit(1)
-    }
-
-    // MARK: - Mini previews
-
-    /// 링크 preview — 홈 URLPreviewMini 의 favicon letter 패턴 (host 첫 글자 보라 타일).
-    private var linkPreview: some View {
-        HStack(spacing: 7) {
+    /// 링크 타일 하단 — favicon letter 미니 타일 + 도메인. 어떤 링크였는지 떠올리게 하는 회수 단서.
+    private var domainRow: some View {
+        HStack(spacing: 6) {
             Text(faviconLetter)
-                .font(.system(size: 13, weight: .heavy, design: .rounded))
+                .font(.system(size: 10, weight: .heavy, design: .rounded))
                 .foregroundStyle(.white)
-                .frame(width: 30, height: 30)
+                .frame(width: 20, height: 20)
                 .background(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
                         .fill(
                             LinearGradient(
                                 colors: [HomeDesign.Color.purple400, HomeDesign.Color.purple600],
@@ -343,29 +290,11 @@ struct SearchGridCard: View {
                             )
                         )
                 )
-
-            VStack(alignment: .leading, spacing: 1) {
-                Text(item.analysis?.summary ?? "링크")
-                    .font(.system(size: 12, weight: .semibold, design: .rounded))
-                    .tracking(-0.2)
-                    .foregroundStyle(SearchD5.Palette.textPrimary)
-                    .lineLimit(1)
-                Text(item.source.url?.host ?? "")
-                    .font(.system(size: 11, weight: .regular, design: .rounded))
-                    .foregroundStyle(SearchD5.Palette.textTertiary)
-                    .lineLimit(1)
-            }
-            Spacer(minLength: 0)
-            Image(systemName: "arrow.up.right")
-                .font(.system(size: 10, weight: .bold, design: .rounded))
-                .foregroundStyle(SearchD5.Palette.textTertiary)
+            Text(item.source.url?.host?.replacingOccurrences(of: "www.", with: "") ?? "링크")
+                .font(.system(size: 11.5, weight: .medium, design: .rounded))
+                .foregroundStyle(SearchD5.Palette.textSecondary)
+                .lineLimit(1)
         }
-        .padding(.horizontal, 7)
-        .frame(height: 38)
-        .background(
-            RoundedRectangle(cornerRadius: HomeDesign.Radius.sm, style: .continuous)
-                .fill(HomeDesign.Color.purple50.opacity(0.55))
-        )
     }
 
     // MARK: - Helpers
@@ -479,26 +408,5 @@ private struct SearchCardPreview: View {
         .padding(16)
         .frame(width: 320, alignment: .leading)
         .background(HomeDesign.Color.surface)
-    }
-}
-
-// MARK: - Type badge (홈 MochiItemKindTag 스케일 — 작고 실용적)
-
-struct TypeBadge: View {
-    let filter: SearchD5.TypeFilter
-
-    var body: some View {
-        HStack(spacing: 4) {
-            Image(systemName: filter.systemImage)
-                .font(.system(size: 10, weight: .semibold, design: .rounded))
-            Text(filter.label)
-                .font(.system(size: 10.5, weight: .semibold, design: .rounded))
-                .tracking(0.05)
-        }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 5)
-        .foregroundStyle(filter.activeFg)
-        .background(Capsule().fill(filter.activeBg))
-        .overlay(Capsule().stroke(HomeDesign.Color.border, lineWidth: 1))
     }
 }

@@ -135,11 +135,11 @@ description: 화면·시나리오·IA·디자인 톤·데모 시나리오의 com
 - 결과 화면(`.results`/`.empty`) = **Intent** 5칩: 전체 / 일정 / 할일 / 지식 / 기록. 검색 결과를 의도별로 좁힘.
 - Intent 분류 자체는 폐기 X — 홈/캘린더/알림의 배관은 그대로.
 
-**카드** — masonry 2-column (좌우 독립 LazyVStack + 예상 높이 균형 분배). type 별 layout (2026-06-11):
-- 스크린샷(+로컬 이미지): **이미지-led** — 미디어가 카드 상단 100pt edge-to-edge(top 크롭) + 배지 material overlay, 카드 182pt. 홈 RecentMochiCard 패턴
-- 링크: 제목 → 메타 → favicon letter mini preview (host 첫 글자 보라 타일), 138pt
-- 메모/미확인: 제목 → 본문 2줄(인용 워터마크) → 메타, 138pt
-- 제목은 `displayTitle` 위계 + "[출처앱: …]" 메타 strip. 분석 전 항목은 "모찌가 정리하고 있어요" + 메타줄 "분석 중"
+**카드** — masonry 2-column (좌우 독립 LazyVStack + 예상 높이 균형 분배). **이미지/타이포 모자이크** (2026-06-12 재설계 — 배지·날짜·출처 chrome 전부 제거, 카드의 *형태*가 타입을 말한다. 타입·날짜는 필터칩·상세·VoiceOver 라벨이 담당). 그리드는 **edge-to-edge** — 좌우 패딩 0(칩·요약 row 는 pageH 유지), 셀 간 6pt 이음새 + radius 16, 테두리·그림자 없음:
+- 스크린샷(+로컬 이미지): **2:3 풀블리드 이미지** center 크롭(캡처의 어느 부분이 중요한지 모르므로 위쪽을 가정 X) + 하단 **휘도 적응형 스크림**(가시 영역 하단 35% 평균 휘도에 비례, 흰 스크린샷일수록 진하게) + 흰 제목 overlay, ~293pt. 인스타 탐색탭 패턴
+- 링크: purple 파스텔 타이포 타일 — 제목 → favicon letter + 도메인 한 줄(회수 단서), 138pt
+- 메모: butter / 스크린샷(이미지 없음): sky / 미확인: ink 파스텔 타일 — 제목 → 본문 preview(인용 워터마크), 138pt. 타일 색 = 타입 필터칩 activeBg 와 동일 매핑
+- 제목은 `displayTitle` 위계 + "[출처앱: …]" 메타 strip. 분석 전 항목은 "모찌가 정리하고 있어요" (메타줄 삭제로 "분석 중" 칩도 제거). semantic("비슷한 기억") 구분도 시각 표시 제거, VoiceOver 만 유지
 
 **키보드 ✓ toolbar** — 키보드만 dismiss, 화면 phase 유지(FocusState 와 state.isFocused 분리). `.idle` 복귀는 명시 action(빠른 검색·최근 검색·검색 탭 reselect·검색바 X)으로만. **검색 탭 reselect** — 탭바 검색 탭 재탭 시 filter+query reset → `.idle` 그리드 복귀. 타이핑 중 결과 0 이면 키보드 위 bar 에 "못 찾았어요 — 모찌에게 물어보기" 캡슐(키보드 dismiss 없는 발견 경로).
 
