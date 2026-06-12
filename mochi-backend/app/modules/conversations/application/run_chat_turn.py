@@ -120,6 +120,7 @@ class RunChatTurn:
                 assistant_text += "\n"
                 self._publish(run_id, run_events.MESSAGE_DELTA, {"text": "\n"})
 
+            round_images: list[tuple[str, str]] = []
             for name, args, signature in round_calls:
                 if calls >= self.max_tool_calls:
                     # 콜 예산 소진 — 잔여 콜은 미실행·미기록(contents 정합 유지), 다음 라운드 폴백이 답변을 끌어낸다.
@@ -146,6 +147,24 @@ class RunChatTurn:
                     {"function_call": {"name": name, "args": args}, "thought_signature": signature}
                 )
                 contents.append({"function_response": {"name": name, "response": result.payload}})
+                round_images.extend(result.images)
+            if round_images:
+                # 이미지는 function_response(JSON)에 실을 수 없어 별도 user part 로 첨부
+                # (Part 변환은 분석 경로와 동형 — Vertex 직접 read). 라운드의 모든
+                # function_call/response 쌍이 닫힌 **뒤** 한 번만 — 병렬 툴콜 시퀀스
+                # 사이에 user turn 이 끼면 Gemini contents 검증이 깨진다 (리뷰 P1).
+                # 현재 턴 in-memory 전용: tool 행 영속엔 compact 만 남아 과거 턴
+                # 히스토리에 재주입되지 않는다(토큰 비용).
+                contents.append(
+                    {
+                        "role": "user",
+                        "text": (
+                            f"(attached: {len(round_images)} image(s) from the "
+                            "view_item_image results above)"
+                        ),
+                        "images": round_images,
+                    }
+                )
 
         if not assistant_text.strip():
             raise RuntimeError("LLM produced no answer text")
