@@ -11,7 +11,7 @@ from datetime import date
 from app.modules.agent.prompts.system_prompts import PromptVersion
 
 ACTIVE_CHAT_PROMPT = PromptVersion(
-    name='chat@v7',
+    name='chat@v8',
     body=(
         "You are MOCHI (모찌) — the user's memory companion. They save screenshots, links, and "
         "short notes; you answer questions, find records, and summarize — always replying in "
@@ -42,6 +42,13 @@ ACTIVE_CHAT_PROMPT = PromptVersion(
         "paraphrase — those words may not appear in what they actually saved. Take the newest "
         "record and let its content confirm the match; a confident \"못 찾았어요\" over a record that's "
         "right there is worse than offering a near-miss to confirm.\n"
+        "- A record's text and summary are a lossy projection of its capture — they hold what "
+        "extraction happened to keep, not everything the image shows. When the answer hinges on "
+        "what the capture actually shows (a number on screen, layout, fine print), call "
+        "view_item_image — when you hold that tool — and read the image before answering; "
+        "without it, say plainly you cannot read the capture's visual detail. Asserting visual "
+        "detail you have not seen is a fabricated memory. Images from earlier turns are no "
+        "longer visible — view the record again instead of recalling.\n"
         "- After every sentence whose claim comes from a record, append 【item:<id>】 using the "
         "exact UUID from tool results. An invented or altered id breaks the user's trust chain to "
         "their own memory — if you cannot cite it, do not claim it.\n"
@@ -98,11 +105,24 @@ ACTIVE_CHAT_PROMPT = PromptVersion(
     eval_dataset_version='chat-v1@2026-06-10',
     revised_on=date(2026, 6, 12),
     rationale=(
-        "V6 → V7: search_items 가 hybrid retrieval(키워드 ILIKE + voyage-3-large 의미검색 → rerank-2.5)로 "
+        "V7 → V8: search_items 가 hybrid retrieval(키워드 ILIKE + voyage-3-large 의미검색 → rerank-2.5)로 "
         "업그레이드됨(lab/active/rag-rerank-eval 2026-06-12 — reranker 가 R@1 0.15→0.43 의 승부처). V6 의 '어휘 "
         "변주를 여러 콜로 발행' 지시는 어휘 불일치를 LLM 의 추가 툴콜(토큰·지연·라운드 예산)로 보상하던 것 — 이제 의미검색이 동의어·패러프레이즈를 "
         "retrieval 단에서 흡수하므로 해당 불릿을 교체: ⑴ 쿼리는 '기록이 무엇에 관한 것인지'를 자연어로 서술(저장 어휘 추측 불필요) ⑵ 빈 결과 후 "
         "재시도는 동의어 나열이 아니라 '다른 각도 1회'(재서술·필터 완화·시간 브라우즈) ⑶ 그 1회도 비면 '없다' 결론 허용 — 검색 시도 수 감소로 라운드 "
-        "한도 5 병목(V6 트레이드오프)이 완화된다. 회수 완결성·인용·시간 2축 등 나머지 행동규칙은 V6 유지."
+        "한도 5 병목(V6 트레이드오프)이 완화된다. 회수 완결성·인용·시간 2축·view_item_image 등 나머지 행동규칙은 V7 유지.\n"
+        "V6 → V7: view_item_image 툴 추가에 맞춰 Grounding 에 불릿 1개 — 저장된 text/summary 는 캡처의 lossy "
+        "projection 이라, 답이 '캡처에 실제로 뭐가 보이는가'에 달린 질문은 이미지를 직접 본 뒤 답한다(보지 않은 시각 디테일 단정 = fabricated "
+        "memory, V1 의 why 재사용). 과거 턴 이미지는 히스토리 재구성에서 떨어져 나가므로(토큰 비용) '기억'하지 말고 재호출하라는 한 줄을 같이 "
+        "둔다 — 모델이 안 보이는 이미지를 본 것처럼 답하는 silent 실패 방지. 좁은 발화 예시 미나열(skill-creator 과적합 회피). 이하 V6 "
+        "rationale 승계.\n"
+        "V5 → V6: 실기기 패턴 — 키워드 1개로 1회 검색해 0건이면 곧장 '결과 없음 + 웹에서 찾아드릴까요?' 로 턴을 끝낸다. 근본 원인 둘: ① V1 "
+        "grounding 의 'say so plainly and offer what you can do instead' 가 도구를 직접 쓰는 대신 '제안하고 멈추는' "
+        "행동을 정당화 ② 빈 결과를 '기록 부재'로 읽는다(쿼리 표현의 실패라는 인식 부재 + AND 의미라 콜당 한 표현만 검증됨을 모름). 해당 불릿을 둘로 교체 "
+        "— ⑴ 빈 결과 = 표현의 판정: 기록은 저장 당시 어휘로 말하니 어휘를 바꿔(동의어·넓힘/좁힘·같은 요구를 채울 인접 기록 종류) 재검색 후에야 '없다' "
+        "결론 — 변주를 이미 알면 콜을 한 번에 함께 발행(순차 1콜/라운드 패턴이면 라운드 한도 5가 병목이 되어 종합이 상시 폴백 아래로 밀린다, 리뷰 P2) ⑵ "
+        "회수는 묻지 않고 턴 안에서 완결: 허락 요청은 내 일을 사용자 일로 떠넘기는 것 — 기록 우선, 웹은 기록이 담을 수 없는 것, 둘 다 필요하면 한 답변으로 "
+        "종합. 소스 소진 후에만 정직하게 '못 찾았다'(V1 의 fabricated memory why 유지). 좁은 발화 예시 미나열(skill-creator "
+        "과적합 회피). 트레이드오프: 검색 시도 증가 — 콜 예산(8)·라운드 한도(5)의 폴백이 상한을 잡는다."
     ),
 )

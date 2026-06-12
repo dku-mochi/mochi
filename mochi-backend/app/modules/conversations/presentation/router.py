@@ -47,6 +47,7 @@ from app.modules.conversations.infrastructure.tools.propose import (
     make_item_reader,
 )
 from app.modules.conversations.infrastructure.tools.search_items import SearchItemsTool
+from app.modules.conversations.infrastructure.tools.view_item_image import ViewItemImageTool
 from app.modules.conversations.infrastructure.tools.web_fetch import WebFetchChatTool
 from app.modules.conversations.infrastructure.tools.web_search import WebSearchTool
 from app.modules.conversations.infrastructure.turn_store import SessionChatTurnStore
@@ -71,6 +72,7 @@ def _build_chat_tools(
     session_factory: Callable[[], AsyncSession] | async_sessionmaker[AsyncSession],
     *,
     tavily_api_key: str | None,
+    gcs_capture_bucket: str | None,
     voyage: VoyageClient | None = None,
 ) -> tuple[ChatTool, ...]:
     """**전부 read-only**. propose_* 도 검증 후 카드 payload 만 반환할 뿐 DB 를 쓰지
@@ -79,6 +81,8 @@ def _build_chat_tools(
 
     web_search 는 키 미설정 시 제외(키 발급이 머지를 블록하지 않게 — journal
     2026-06-10), web_fetch 는 기록 속 링크 읽기에도 쓰여 키 없이 항상 등록.
+    view_item_image 는 버킷 미설정 시 제외 — 등록해두고 항상 "no image" 를 돌려주면
+    모델을 오도한다 (web_search 와 같은 원리).
     voyage 는 search_items 의 의미검색·리랭크용 — 미설정 시 키워드 단독 degrade."""
     item_reader = make_item_reader(session_factory)
     tools: list[ChatTool] = [
@@ -91,6 +95,8 @@ def _build_chat_tools(
         ProposeCreateMemoTool(),
         WebFetchChatTool(make_web_fetch_tool()),
     ]
+    if gcs_capture_bucket:
+        tools.append(ViewItemImageTool(item_reader, bucket=gcs_capture_bucket))
     if tavily_api_key:
         tools.append(WebSearchTool(tavily_api_key))
     return tuple(tools)
@@ -99,9 +105,11 @@ def _build_chat_tools(
 @lru_cache(maxsize=1)
 def _chat_tools() -> tuple[ChatTool, ...]:
     """프로세스당 1회 조립 — 구성 규칙은 ``_build_chat_tools`` docstring 참고."""
+    settings = get_settings()
     return _build_chat_tools(
         get_session_factory(),
-        tavily_api_key=get_settings().tavily_api_key,
+        tavily_api_key=settings.tavily_api_key,
+        gcs_capture_bucket=settings.gcs_capture_bucket,
         voyage=get_voyage_client(),
     )
 

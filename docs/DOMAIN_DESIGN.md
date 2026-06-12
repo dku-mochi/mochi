@@ -333,7 +333,7 @@ instance 전이(from→to)·archive_reason×intent_type 검증은 application �
 
 ### 10.3 채팅 탭 (RAG 멀티턴 대화) — 게이트 개방, 대부분 구현
 
-설계 확정·전체 플랜: `journal/2026-06-10-chat-tab-design.md`. **구현 완료**(2026-06-10): 테이블 3종 + 세션 CRUD(§3 Conversations 그룹) + 메시지 전송 `POST /conversations/{id}/messages`(POST-as-SSE — agent run 은 detached task 라 클라 이탈에도 완주·단계별 영속) + 툴 9종(read 2 + **proposal 5 — 전부 read-only**, 확정은 사용자 탭 → REST + web_search·web_fetch — 키 미설정 시 web_search 만 제외) + 확정 실행 경로(`PATCH /mochi_items/{id}` 콘텐츠+instance 한 트랜잭션 · `POST /mochi_items` `confirmedInstances` — §5.2 사용자 확정 예외 · DELETE · 알림은 iOS 로컬) + proposal 카드 상태 영속(`PATCH /conversations/{id}/proposals/{id}` → `proposals` jsonb `status` 병합) + `chat@v3` 프롬프트 + citation + iOS live 배선. 잔여(roadmap): 없음 — 실기기 E2E 검증·lab 모델 벤치만.
+설계 확정·전체 플랜: `journal/2026-06-10-chat-tab-design.md`. **구현 완료**(2026-06-10): 테이블 3종 + 세션 CRUD(§3 Conversations 그룹) + 메시지 전송 `POST /conversations/{id}/messages`(POST-as-SSE — agent run 은 detached task 라 클라 이탈에도 완주·단계별 영속) + 툴 10종(read 3 — search_items·get_item_detail·view_item_image(캡처 이미지 직접 보기, 2026-06-12) + **proposal 5 — 전부 read-only**, 확정은 사용자 탭 → REST + web_search·web_fetch — 키/버킷 미설정 시 web_search·view_item_image 각각 제외) + 확정 실행 경로(`PATCH /mochi_items/{id}` 콘텐츠+instance 한 트랜잭션 · `POST /mochi_items` `confirmedInstances` — §5.2 사용자 확정 예외 · DELETE · 알림은 iOS 로컬) + proposal 카드 상태 영속(`PATCH /conversations/{id}/proposals/{id}` → `proposals` jsonb `status` 병합) + `chat@v8` 프롬프트 + citation + iOS live 배선. 잔여(roadmap): 없음 — 실기기 E2E 검증·lab 모델 벤치만.
 
 ### 10.4 기타
 

@@ -233,6 +233,8 @@ VOYAGE_API_KEY=<dash.voyageai.com 또는 MongoDB Atlas 발급 키>
 - [ ] 서버 mochi_items API 에 privacy metadata 추가: `sensitivity_score`, `sensitivity_level`, `redaction_status`, `original_image_uploaded`, `privacy_policy`.
 - [ ] Agent/search 가 원본 이미지 없는 semantic payload 를 정상 분석하도록 fallback 구현.
 - [ ] 민감 캡처 embedding 생성/삭제 정책 결정 및 계정 삭제 플로우에 반영.
+- [ ] privacy 필드 도입 시 채팅 `view_item_image` 에 민감도 게이트 추가 — 현재는 판별
+      메타데이터 부재로 ungated 진행(2026-06-12 결정, 분석 경로와 동일 노출 — PRIVACY §10).
 
 ---
 
