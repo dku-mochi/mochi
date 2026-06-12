@@ -14,6 +14,9 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 > 범위는 `ios` / `backend` / `docs` / `infra` 중 하나 이상. "왜" 가 자명하지 않으면 한 줄 이유를 덧붙인다.
 >
 
+## 2026-06-12 — infra
+- **voyage retrieval 프로덕션 배포** (PR#31 머지 직후). 런북 §4 절차 — tar/IAP scp → `/opt/mochi` in-place 교체(서버 env 보존) → `uv sync --frozen --no-dev` → **alembic 0017→0018**(embeddings 1024d, 운영 임베딩 행 0건이라 무손실) → restart → health OK. `VOYAGE_API_KEY` 는 Secret Manager `mochi-voyage-api-key` 신설 후 SA metadata 토큰 경유로 svc env 에 주입(키파일 zero 원칙, 값 비노출 파이프 — 사용자 승인). 운영 기존 데이터 **67건 백필 색인** 완료(voyage-3-large@1024). INFRA.md §0/§2.5 동기화.
+
 ## 2026-06-12 — backend, docs
 - **검색·채팅 retrieval 에 voyage-3-large 임베딩 + rerank-2.5 실연결** (`lab/active/rag-rerank-eval` 확정 반영 — reranker 가 R@1 0.15→0.43, MRR 0.56→0.88 의 승부처). 그동안 임베딩이 zero-vector placeholder 라 vector 검색이 사실상 죽어 있었다.
   - **공용 어댑터** `app/shared/voyage.py` — httpx 직접 호출(voyageai SDK 는 lab 전용 유지), tenacity 재시도(429/5xx/타임아웃), doc/query `input_type` 비대칭, 배치 분할, MongoDB Atlas 발급 키(`al-` 접두) 엔드포인트 자동 라우팅. 임베딩 input = `summary + intent labels`(`build_embedding_text` 단일 원천). 키 미설정 시 전 경로 graceful degrade(BM25/키워드) — 검색이 외부 AI API 장애로 죽지 않는다.
