@@ -62,6 +62,23 @@ class MochiItemGatewayAdapter(MochiItemGateway):
             entities=tuple((e.kind, e.value) for e in result.entities),
         )
 
+    async def index_embedding(
+        self,
+        *,
+        owner_id: UUID,
+        mochi_item_id: UUID,
+        chunk_text: str,
+        embedding: list[float],
+        model_version: str,
+    ) -> None:
+        await self._repo.replace_embedding(
+            owner_id=owner_id,
+            mochi_item_id=mochi_item_id,
+            chunk_text=chunk_text,
+            embedding=embedding,
+            model_version=model_version,
+        )
+
     async def list_recent_window(
         self, *, owner_id: UUID, limit: int
     ) -> list[ProfileWindowItem]:

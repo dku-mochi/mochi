@@ -1,0 +1,3184 @@
+{
+  "config": {
+    "embed_model": "voyage-3-large",
+    "dim": 1024,
+    "doc_input": "summary+labels",
+    "rerankers": [
+      "rerank-2.5",
+      "rerank-2.5-lite"
+    ],
+    "rrf_k": 60,
+    "vec_topn_B": 50,
+    "vec_topn_C": 60,
+    "bm25_topn_C": 60,
+    "rrf_topn_C": 50,
+    "n_corpus": 391,
+    "n_queries": 24
+  },
+  "summary": {
+    "A": {
+      "recall@10": 0.9896,
+      "hit@10": 1.0
+    },
+    "B/rerank-2.5": {
+      "recall@10": 1.0,
+      "hit@10": 1.0
+    },
+    "B/rerank-2.5-lite": {
+      "recall@10": 0.9896,
+      "hit@10": 1.0
+    },
+    "C/rerank-2.5": {
+      "recall@10": 1.0,
+      "hit@10": 1.0
+    },
+    "C/rerank-2.5-lite": {
+      "recall@10": 0.9896,
+      "hit@10": 1.0
+    }
+  },
+  "candidate_recall": {
+    "vec_top50": 1.0,
+    "rrf_top50": 1.0
+  },
+  "per_query": [
+    {
+      "query": "강아지 사료",
+      "expected_ids": [
+        "f_003",
+        "f_004"
+      ],
+      "single_answer": false,
+      "pipelines": {
+        "A": [
+          "f_004",
+          "f_017",
+          "f_003",
+          "f_015",
+          "f_014",
+          "f_013",
+          "f_016",
+          "f_063",
+          "f_057",
+          "f_039"
+        ],
+        "B/rerank-2.5": [
+          "f_003",
+          "f_004",
+          "f_015",
+          "f_017",
+          "f_016",
+          "f_014",
+          "f_013",
+          "f_063",
+          "a_017",
+          "f_049"
+        ],
+        "B/rerank-2.5-lite": [
+          "f_003",
+          "f_004",
+          "f_015",
+          "f_016",
+          "f_013",
+          "f_017",
+          "f_014",
+          "a_017",
+          "f_057",
+          "f_039"
+        ],
+        "C/rerank-2.5": [
+          "f_003",
+          "f_004",
+          "f_015",
+          "f_017",
+          "f_016",
+          "f_014",
+          "f_013",
+          "f_063",
+          "a_017",
+          "f_049"
+        ],
+        "C/rerank-2.5-lite": [
+          "f_003",
+          "f_004",
+          "f_015",
+          "f_016",
+          "f_013",
+          "f_017",
+          "f_014",
+          "a_017",
+          "f_057",
+          "f_039"
+        ]
+      },
+      "answer_diag": [
+        {
+          "id": "f_003",
+          "vec_rank": 3,
+          "bm25_rank": 1,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 2,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 3,
+            "B/rerank-2.5": 1,
+            "B/rerank-2.5-lite": 1,
+            "C/rerank-2.5": 1,
+            "C/rerank-2.5-lite": 1
+          }
+        },
+        {
+          "id": "f_004",
+          "vec_rank": 1,
+          "bm25_rank": 2,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 1,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 1,
+            "B/rerank-2.5": 2,
+            "B/rerank-2.5-lite": 2,
+            "C/rerank-2.5": 2,
+            "C/rerank-2.5-lite": 2
+          }
+        }
+      ],
+      "vec_top10": [
+        "f_004",
+        "f_017",
+        "f_003",
+        "f_015",
+        "f_014",
+        "f_013",
+        "f_016",
+        "f_063",
+        "f_057",
+        "f_039"
+      ],
+      "bm25_top10": [
+        "f_003",
+        "f_004",
+        "f_015",
+        "f_014",
+        "f_016",
+        "f_013",
+        "f_039",
+        "f_049",
+        "f_063",
+        "f_017"
+      ]
+    },
+    {
+      "query": "노트북",
+      "expected_ids": [
+        "e_001",
+        "e_002",
+        "e_003"
+      ],
+      "single_answer": false,
+      "pipelines": {
+        "A": [
+          "e_007",
+          "e_003",
+          "e_061",
+          "e_004",
+          "e_002",
+          "e_001",
+          "e_006",
+          "e_005",
+          "c_039",
+          "e_047"
+        ],
+        "B/rerank-2.5": [
+          "e_001",
+          "e_003",
+          "e_005",
+          "e_002",
+          "e_004",
+          "e_061",
+          "e_006",
+          "c_039",
+          "e_007",
+          "e_024"
+        ],
+        "B/rerank-2.5-lite": [
+          "e_001",
+          "e_061",
+          "e_002",
+          "e_005",
+          "e_003",
+          "e_007",
+          "e_004",
+          "e_006",
+          "c_039",
+          "e_024"
+        ],
+        "C/rerank-2.5": [
+          "e_001",
+          "e_003",
+          "e_005",
+          "e_002",
+          "e_004",
+          "e_061",
+          "e_006",
+          "c_039",
+          "e_007",
+          "e_024"
+        ],
+        "C/rerank-2.5-lite": [
+          "e_001",
+          "e_061",
+          "e_002",
+          "e_005",
+          "e_003",
+          "e_007",
+          "e_004",
+          "e_006",
+          "c_039",
+          "e_024"
+        ]
+      },
+      "answer_diag": [
+        {
+          "id": "e_001",
+          "vec_rank": 6,
+          "bm25_rank": 9,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 8,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 6,
+            "B/rerank-2.5": 1,
+            "B/rerank-2.5-lite": 1,
+            "C/rerank-2.5": 1,
+            "C/rerank-2.5-lite": 1
+          }
+        },
+        {
+          "id": "e_002",
+          "vec_rank": 5,
+          "bm25_rank": 8,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 6,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 5,
+            "B/rerank-2.5": 4,
+            "B/rerank-2.5-lite": 3,
+            "C/rerank-2.5": 4,
+            "C/rerank-2.5-lite": 3
+          }
+        },
+        {
+          "id": "e_003",
+          "vec_rank": 2,
+          "bm25_rank": 4,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 3,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 2,
+            "B/rerank-2.5": 2,
+            "B/rerank-2.5-lite": 5,
+            "C/rerank-2.5": 2,
+            "C/rerank-2.5-lite": 5
+          }
+        }
+      ],
+      "vec_top10": [
+        "e_007",
+        "e_003",
+        "e_061",
+        "e_004",
+        "e_002",
+        "e_001",
+        "e_006",
+        "e_005",
+        "c_039",
+        "e_047"
+      ],
+      "bm25_top10": [
+        "e_007",
+        "e_061",
+        "e_006",
+        "e_003",
+        "e_004",
+        "e_005",
+        "e_024",
+        "e_002",
+        "e_001",
+        "c_006"
+      ]
+    },
+    {
+      "query": "다이어트",
+      "expected_ids": [
+        "f_001",
+        "f_002"
+      ],
+      "single_answer": false,
+      "pipelines": {
+        "A": [
+          "f_002",
+          "f_001",
+          "f_022",
+          "f_060",
+          "f_024",
+          "f_042",
+          "f_023",
+          "f_025",
+          "d_063",
+          "c_038"
+        ],
+        "B/rerank-2.5": [
+          "f_002",
+          "f_001",
+          "f_042",
+          "f_022",
+          "f_060",
+          "d_063",
+          "f_024",
+          "c_038",
+          "f_023",
+          "f_025"
+        ],
+        "B/rerank-2.5-lite": [
+          "f_002",
+          "f_001",
+          "f_022",
+          "f_042",
+          "d_063",
+          "f_024",
+          "f_060",
+          "f_051",
+          "f_023",
+          "d_037"
+        ],
+        "C/rerank-2.5": [
+          "f_002",
+          "f_001",
+          "f_042",
+          "f_022",
+          "f_060",
+          "d_063",
+          "f_024",
+          "c_038",
+          "f_023",
+          "f_025"
+        ],
+        "C/rerank-2.5-lite": [
+          "f_002",
+          "f_001",
+          "f_022",
+          "f_042",
+          "d_063",
+          "f_024",
+          "f_060",
+          "f_051",
+          "f_023",
+          "d_037"
+        ]
+      },
+      "answer_diag": [
+        {
+          "id": "f_001",
+          "vec_rank": 2,
+          "bm25_rank": 2,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 3,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 2,
+            "B/rerank-2.5": 2,
+            "B/rerank-2.5-lite": 2,
+            "C/rerank-2.5": 2,
+            "C/rerank-2.5-lite": 2
+          }
+        },
+        {
+          "id": "f_002",
+          "vec_rank": 1,
+          "bm25_rank": 3,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 1,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 1,
+            "B/rerank-2.5": 1,
+            "B/rerank-2.5-lite": 1,
+            "C/rerank-2.5": 1,
+            "C/rerank-2.5-lite": 1
+          }
+        }
+      ],
+      "vec_top10": [
+        "f_002",
+        "f_001",
+        "f_022",
+        "f_060",
+        "f_024",
+        "f_042",
+        "f_023",
+        "f_025",
+        "d_063",
+        "c_038"
+      ],
+      "bm25_top10": [
+        "f_022",
+        "f_001",
+        "f_002",
+        "f_042",
+        "f_060",
+        "f_024",
+        "d_051",
+        "b_031",
+        "a_045",
+        "e_013"
+      ]
+    },
+    {
+      "query": "맛집",
+      "expected_ids": [
+        "d_004",
+        "d_005"
+      ],
+      "single_answer": false,
+      "pipelines": {
+        "A": [
+          "d_015",
+          "d_005",
+          "d_004",
+          "b_055",
+          "d_014",
+          "d_016",
+          "d_017",
+          "d_007",
+          "d_012",
+          "d_021"
+        ],
+        "B/rerank-2.5": [
+          "d_015",
+          "d_014",
+          "d_004",
+          "d_005",
+          "b_055",
+          "d_016",
+          "d_017",
+          "d_001",
+          "d_007",
+          "d_012"
+        ],
+        "B/rerank-2.5-lite": [
+          "d_015",
+          "d_017",
+          "d_014",
+          "d_016",
+          "d_004",
+          "d_005",
+          "b_055",
+          "d_001",
+          "d_012",
+          "c_037"
+        ],
+        "C/rerank-2.5": [
+          "d_015",
+          "d_014",
+          "d_004",
+          "d_005",
+          "b_055",
+          "d_016",
+          "d_017",
+          "d_001",
+          "d_007",
+          "d_012"
+        ],
+        "C/rerank-2.5-lite": [
+          "d_015",
+          "d_017",
+          "d_014",
+          "d_016",
+          "d_004",
+          "d_005",
+          "b_055",
+          "d_001",
+          "d_012",
+          "c_037"
+        ]
+      },
+      "answer_diag": [
+        {
+          "id": "d_004",
+          "vec_rank": 3,
+          "bm25_rank": 5,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 4,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 3,
+            "B/rerank-2.5": 3,
+            "B/rerank-2.5-lite": 5,
+            "C/rerank-2.5": 3,
+            "C/rerank-2.5-lite": 5
+          }
+        },
+        {
+          "id": "d_005",
+          "vec_rank": 2,
+          "bm25_rank": 3,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 2,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 2,
+            "B/rerank-2.5": 4,
+            "B/rerank-2.5-lite": 6,
+            "C/rerank-2.5": 4,
+            "C/rerank-2.5-lite": 6
+          }
+        }
+      ],
+      "vec_top10": [
+        "d_015",
+        "d_005",
+        "d_004",
+        "b_055",
+        "d_014",
+        "d_016",
+        "d_017",
+        "d_007",
+        "d_012",
+        "d_021"
+      ],
+      "bm25_top10": [
+        "d_015",
+        "d_014",
+        "d_005",
+        "d_016",
+        "d_004",
+        "b_055",
+        "c_037",
+        "d_017",
+        "d_012",
+        "d_001"
+      ]
+    },
+    {
+      "query": "보조금",
+      "expected_ids": [
+        "b_004",
+        "b_005"
+      ],
+      "single_answer": false,
+      "pipelines": {
+        "A": [
+          "b_014",
+          "b_017",
+          "b_015",
+          "b_016",
+          "b_004",
+          "d_013",
+          "c_007",
+          "c_002",
+          "b_005",
+          "b_018"
+        ],
+        "B/rerank-2.5": [
+          "b_014",
+          "b_015",
+          "b_004",
+          "b_017",
+          "b_018",
+          "b_016",
+          "b_005",
+          "d_013",
+          "c_002",
+          "c_001"
+        ],
+        "B/rerank-2.5-lite": [
+          "b_015",
+          "b_014",
+          "b_016",
+          "b_017",
+          "b_004",
+          "b_005",
+          "b_018",
+          "d_013",
+          "c_002",
+          "c_001"
+        ],
+        "C/rerank-2.5": [
+          "b_014",
+          "b_015",
+          "b_004",
+          "b_017",
+          "b_018",
+          "b_016",
+          "b_005",
+          "d_013",
+          "c_002",
+          "c_001"
+        ],
+        "C/rerank-2.5-lite": [
+          "b_015",
+          "b_014",
+          "b_016",
+          "b_017",
+          "b_004",
+          "b_005",
+          "b_018",
+          "d_013",
+          "c_002",
+          "c_001"
+        ]
+      },
+      "answer_diag": [
+        {
+          "id": "b_004",
+          "vec_rank": 5,
+          "bm25_rank": 3,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 3,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 5,
+            "B/rerank-2.5": 3,
+            "B/rerank-2.5-lite": 5,
+            "C/rerank-2.5": 3,
+            "C/rerank-2.5-lite": 5
+          }
+        },
+        {
+          "id": "b_005",
+          "vec_rank": 9,
+          "bm25_rank": 2,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 5,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 9,
+            "B/rerank-2.5": 7,
+            "B/rerank-2.5-lite": 6,
+            "C/rerank-2.5": 7,
+            "C/rerank-2.5-lite": 6
+          }
+        }
+      ],
+      "vec_top10": [
+        "b_014",
+        "b_017",
+        "b_015",
+        "b_016",
+        "b_004",
+        "d_013",
+        "c_007",
+        "c_002",
+        "b_005",
+        "b_018"
+      ],
+      "bm25_top10": [
+        "b_017",
+        "b_005",
+        "b_004",
+        "b_018",
+        "b_014",
+        "b_015",
+        "b_016",
+        "d_013",
+        "e_033",
+        "b_023"
+      ]
+    },
+    {
+      "query": "부동산",
+      "expected_ids": [
+        "c_020"
+      ],
+      "single_answer": true,
+      "pipelines": {
+        "A": [
+          "d_009",
+          "d_047",
+          "c_021",
+          "c_022",
+          "c_023",
+          "c_020",
+          "c_010",
+          "c_013",
+          "f_055",
+          "c_009"
+        ],
+        "B/rerank-2.5": [
+          "c_020",
+          "c_009",
+          "c_008",
+          "d_009",
+          "c_022",
+          "d_047",
+          "c_023",
+          "c_021",
+          "c_013",
+          "c_004"
+        ],
+        "B/rerank-2.5-lite": [
+          "c_020",
+          "c_022",
+          "c_009",
+          "d_009",
+          "c_008",
+          "c_013",
+          "c_023",
+          "c_017",
+          "d_047",
+          "c_021"
+        ],
+        "C/rerank-2.5": [
+          "c_020",
+          "c_009",
+          "c_008",
+          "d_009",
+          "c_022",
+          "d_047",
+          "c_023",
+          "c_021",
+          "c_013",
+          "c_003"
+        ],
+        "C/rerank-2.5-lite": [
+          "c_020",
+          "c_022",
+          "c_009",
+          "d_009",
+          "c_008",
+          "c_013",
+          "c_023",
+          "c_017",
+          "d_047",
+          "c_021"
+        ]
+      },
+      "answer_diag": [
+        {
+          "id": "c_020",
+          "vec_rank": 6,
+          "bm25_rank": 1,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 2,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 6,
+            "B/rerank-2.5": 1,
+            "B/rerank-2.5-lite": 1,
+            "C/rerank-2.5": 1,
+            "C/rerank-2.5-lite": 1
+          }
+        }
+      ],
+      "vec_top10": [
+        "d_009",
+        "d_047",
+        "c_021",
+        "c_022",
+        "c_023",
+        "c_020",
+        "c_010",
+        "c_013",
+        "f_055",
+        "c_009"
+      ],
+      "bm25_top10": [
+        "c_020",
+        "d_009",
+        "c_023",
+        "c_022",
+        "c_021",
+        "d_047",
+        "f_055",
+        "c_013",
+        "c_009",
+        "c_008"
+      ]
+    },
+    {
+      "query": "선크림",
+      "expected_ids": [
+        "a_015",
+        "a_016"
+      ],
+      "single_answer": false,
+      "pipelines": {
+        "A": [
+          "a_015",
+          "a_016",
+          "a_019",
+          "a_002",
+          "a_018",
+          "a_055",
+          "a_017",
+          "a_003",
+          "d_030",
+          "c_054"
+        ],
+        "B/rerank-2.5": [
+          "a_015",
+          "a_016",
+          "a_019",
+          "a_017",
+          "a_018",
+          "a_055",
+          "a_001",
+          "a_002",
+          "a_062",
+          "a_003"
+        ],
+        "B/rerank-2.5-lite": [
+          "a_015",
+          "a_016",
+          "a_017",
+          "a_019",
+          "a_018",
+          "a_001",
+          "a_026",
+          "a_003",
+          "a_062",
+          "a_002"
+        ],
+        "C/rerank-2.5": [
+          "a_015",
+          "a_016",
+          "a_019",
+          "a_017",
+          "a_018",
+          "a_055",
+          "a_001",
+          "a_002",
+          "a_062",
+          "a_003"
+        ],
+        "C/rerank-2.5-lite": [
+          "a_015",
+          "a_016",
+          "a_017",
+          "a_019",
+          "a_018",
+          "a_001",
+          "a_003",
+          "a_062",
+          "a_002",
+          "c_002"
+        ]
+      },
+      "answer_diag": [
+        {
+          "id": "a_015",
+          "vec_rank": 1,
+          "bm25_rank": 2,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 1,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 1,
+            "B/rerank-2.5": 1,
+            "B/rerank-2.5-lite": 1,
+            "C/rerank-2.5": 1,
+            "C/rerank-2.5-lite": 1
+          }
+        },
+        {
+          "id": "a_016",
+          "vec_rank": 2,
+          "bm25_rank": 1,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 2,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 2,
+            "B/rerank-2.5": 2,
+            "B/rerank-2.5-lite": 2,
+            "C/rerank-2.5": 2,
+            "C/rerank-2.5-lite": 2
+          }
+        }
+      ],
+      "vec_top10": [
+        "a_015",
+        "a_016",
+        "a_019",
+        "a_002",
+        "a_018",
+        "a_055",
+        "a_017",
+        "a_003",
+        "d_030",
+        "c_054"
+      ],
+      "bm25_top10": [
+        "a_016",
+        "a_015",
+        "a_017",
+        "a_018",
+        "a_019",
+        "a_003",
+        "a_062",
+        "a_055",
+        "d_030",
+        "a_002"
+      ]
+    },
+    {
+      "query": "아이폰 케이스",
+      "expected_ids": [
+        "e_014",
+        "e_015"
+      ],
+      "single_answer": false,
+      "pipelines": {
+        "A": [
+          "e_015",
+          "e_014",
+          "e_019",
+          "e_016",
+          "e_017",
+          "e_011",
+          "e_018",
+          "c_051",
+          "e_023",
+          "e_009"
+        ],
+        "B/rerank-2.5": [
+          "e_015",
+          "e_014",
+          "e_019",
+          "e_011",
+          "e_017",
+          "e_016",
+          "e_018",
+          "e_009",
+          "d_040",
+          "e_007"
+        ],
+        "B/rerank-2.5-lite": [
+          "e_015",
+          "e_014",
+          "e_019",
+          "e_017",
+          "e_016",
+          "e_011",
+          "e_018",
+          "e_007",
+          "d_040",
+          "e_023"
+        ],
+        "C/rerank-2.5": [
+          "e_015",
+          "e_014",
+          "e_019",
+          "e_011",
+          "e_017",
+          "e_016",
+          "e_018",
+          "e_009",
+          "d_040",
+          "e_065"
+        ],
+        "C/rerank-2.5-lite": [
+          "e_015",
+          "e_014",
+          "e_019",
+          "e_017",
+          "e_016",
+          "e_011",
+          "e_065",
+          "e_018",
+          "e_007",
+          "d_040"
+        ]
+      },
+      "answer_diag": [
+        {
+          "id": "e_014",
+          "vec_rank": 2,
+          "bm25_rank": 2,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 2,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 2,
+            "B/rerank-2.5": 2,
+            "B/rerank-2.5-lite": 2,
+            "C/rerank-2.5": 2,
+            "C/rerank-2.5-lite": 2
+          }
+        },
+        {
+          "id": "e_015",
+          "vec_rank": 1,
+          "bm25_rank": 1,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 1,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 1,
+            "B/rerank-2.5": 1,
+            "B/rerank-2.5-lite": 1,
+            "C/rerank-2.5": 1,
+            "C/rerank-2.5-lite": 1
+          }
+        }
+      ],
+      "vec_top10": [
+        "e_015",
+        "e_014",
+        "e_019",
+        "e_016",
+        "e_017",
+        "e_011",
+        "e_018",
+        "c_051",
+        "e_023",
+        "e_009"
+      ],
+      "bm25_top10": [
+        "e_015",
+        "e_014",
+        "e_016",
+        "e_019",
+        "e_017",
+        "e_011",
+        "e_018",
+        "d_040",
+        "e_023",
+        "e_007"
+      ]
+    },
+    {
+      "query": "에어팟",
+      "expected_ids": [
+        "e_008",
+        "e_009"
+      ],
+      "single_answer": false,
+      "pipelines": {
+        "A": [
+          "e_019",
+          "e_011",
+          "e_009",
+          "e_012",
+          "e_008",
+          "e_010",
+          "e_013",
+          "e_054",
+          "e_032",
+          "e_040"
+        ],
+        "B/rerank-2.5": [
+          "e_008",
+          "e_010",
+          "e_009",
+          "e_012",
+          "e_011",
+          "e_019",
+          "e_013",
+          "c_042",
+          "e_032",
+          "e_002"
+        ],
+        "B/rerank-2.5-lite": [
+          "e_008",
+          "e_009",
+          "e_011",
+          "e_012",
+          "e_010",
+          "e_019",
+          "e_013",
+          "c_042",
+          "e_054",
+          "c_065"
+        ],
+        "C/rerank-2.5": [
+          "e_008",
+          "e_010",
+          "e_009",
+          "e_012",
+          "e_011",
+          "e_019",
+          "e_013",
+          "d_031",
+          "c_042",
+          "e_032"
+        ],
+        "C/rerank-2.5-lite": [
+          "e_008",
+          "e_009",
+          "e_011",
+          "e_012",
+          "e_010",
+          "e_019",
+          "e_013",
+          "c_042",
+          "d_031",
+          "e_054"
+        ]
+      },
+      "answer_diag": [
+        {
+          "id": "e_008",
+          "vec_rank": 5,
+          "bm25_rank": 6,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 6,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 5,
+            "B/rerank-2.5": 1,
+            "B/rerank-2.5-lite": 1,
+            "C/rerank-2.5": 1,
+            "C/rerank-2.5-lite": 1
+          }
+        },
+        {
+          "id": "e_009",
+          "vec_rank": 3,
+          "bm25_rank": 1,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 1,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 3,
+            "B/rerank-2.5": 3,
+            "B/rerank-2.5-lite": 2,
+            "C/rerank-2.5": 3,
+            "C/rerank-2.5-lite": 2
+          }
+        }
+      ],
+      "vec_top10": [
+        "e_019",
+        "e_011",
+        "e_009",
+        "e_012",
+        "e_008",
+        "e_010",
+        "e_013",
+        "e_054",
+        "e_032",
+        "e_040"
+      ],
+      "bm25_top10": [
+        "e_009",
+        "e_012",
+        "e_010",
+        "e_011",
+        "e_019",
+        "e_008",
+        "e_013",
+        "e_063",
+        "e_002",
+        "d_052"
+      ]
+    },
+    {
+      "query": "올리브영",
+      "expected_ids": [
+        "a_020",
+        "a_021"
+      ],
+      "single_answer": false,
+      "pipelines": {
+        "A": [
+          "a_022",
+          "c_054",
+          "a_021",
+          "a_020",
+          "a_001",
+          "a_024",
+          "a_023",
+          "a_025",
+          "a_002",
+          "a_010"
+        ],
+        "B/rerank-2.5": [
+          "a_021",
+          "a_020",
+          "a_001",
+          "c_054",
+          "a_024",
+          "a_023",
+          "a_025",
+          "a_022",
+          "a_043",
+          "a_019"
+        ],
+        "B/rerank-2.5-lite": [
+          "a_021",
+          "a_020",
+          "c_054",
+          "a_001",
+          "a_023",
+          "a_024",
+          "a_025",
+          "a_022",
+          "e_025",
+          "a_053"
+        ],
+        "C/rerank-2.5": [
+          "a_021",
+          "a_020",
+          "a_001",
+          "c_054",
+          "a_024",
+          "a_023",
+          "a_025",
+          "a_022",
+          "d_006",
+          "a_019"
+        ],
+        "C/rerank-2.5-lite": [
+          "a_021",
+          "a_020",
+          "c_054",
+          "a_001",
+          "a_023",
+          "a_024",
+          "a_025",
+          "a_022",
+          "e_025",
+          "e_059"
+        ]
+      },
+      "answer_diag": [
+        {
+          "id": "a_020",
+          "vec_rank": 4,
+          "bm25_rank": 4,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 4,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 4,
+            "B/rerank-2.5": 2,
+            "B/rerank-2.5-lite": 2,
+            "C/rerank-2.5": 2,
+            "C/rerank-2.5-lite": 2
+          }
+        },
+        {
+          "id": "a_021",
+          "vec_rank": 3,
+          "bm25_rank": 3,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 3,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 3,
+            "B/rerank-2.5": 1,
+            "B/rerank-2.5-lite": 1,
+            "C/rerank-2.5": 1,
+            "C/rerank-2.5-lite": 1
+          }
+        }
+      ],
+      "vec_top10": [
+        "a_022",
+        "c_054",
+        "a_021",
+        "a_020",
+        "a_001",
+        "a_024",
+        "a_023",
+        "a_025",
+        "a_002",
+        "a_010"
+      ],
+      "bm25_top10": [
+        "c_054",
+        "a_023",
+        "a_021",
+        "a_020",
+        "a_022",
+        "a_024",
+        "a_025",
+        "a_001",
+        "d_006",
+        "d_015"
+      ]
+    },
+    {
+      "query": "원룸",
+      "expected_ids": [
+        "c_008",
+        "c_009"
+      ],
+      "single_answer": false,
+      "pipelines": {
+        "A": [
+          "c_013",
+          "c_010",
+          "c_012",
+          "c_008",
+          "c_009",
+          "c_031",
+          "c_011",
+          "c_024",
+          "c_043",
+          "e_053"
+        ],
+        "B/rerank-2.5": [
+          "c_008",
+          "c_009",
+          "c_010",
+          "c_012",
+          "c_011",
+          "c_013",
+          "c_031",
+          "c_003",
+          "c_024",
+          "c_043"
+        ],
+        "B/rerank-2.5-lite": [
+          "c_008",
+          "c_009",
+          "c_011",
+          "c_010",
+          "c_012",
+          "c_013",
+          "c_003",
+          "c_004",
+          "c_002",
+          "c_005"
+        ],
+        "C/rerank-2.5": [
+          "c_008",
+          "c_009",
+          "c_010",
+          "c_012",
+          "c_011",
+          "c_013",
+          "c_031",
+          "c_003",
+          "c_024",
+          "c_043"
+        ],
+        "C/rerank-2.5-lite": [
+          "c_008",
+          "c_009",
+          "c_011",
+          "c_010",
+          "c_012",
+          "c_013",
+          "c_003",
+          "c_004",
+          "c_002",
+          "c_048"
+        ]
+      },
+      "answer_diag": [
+        {
+          "id": "c_008",
+          "vec_rank": 4,
+          "bm25_rank": 1,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 2,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 4,
+            "B/rerank-2.5": 1,
+            "B/rerank-2.5-lite": 1,
+            "C/rerank-2.5": 1,
+            "C/rerank-2.5-lite": 1
+          }
+        },
+        {
+          "id": "c_009",
+          "vec_rank": 5,
+          "bm25_rank": 5,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 5,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 5,
+            "B/rerank-2.5": 2,
+            "B/rerank-2.5-lite": 2,
+            "C/rerank-2.5": 2,
+            "C/rerank-2.5-lite": 2
+          }
+        }
+      ],
+      "vec_top10": [
+        "c_013",
+        "c_010",
+        "c_012",
+        "c_008",
+        "c_009",
+        "c_031",
+        "c_011",
+        "c_024",
+        "c_043",
+        "e_053"
+      ],
+      "bm25_top10": [
+        "c_008",
+        "c_012",
+        "c_013",
+        "c_010",
+        "c_009",
+        "c_011",
+        "d_065",
+        "c_001",
+        "e_059",
+        "e_060"
+      ]
+    },
+    {
+      "query": "자전거",
+      "expected_ids": [
+        "b_006",
+        "b_007"
+      ],
+      "single_answer": false,
+      "pipelines": {
+        "A": [
+          "b_022",
+          "b_021",
+          "b_019",
+          "b_006",
+          "b_007",
+          "b_061",
+          "b_020",
+          "b_045",
+          "d_056",
+          "d_023"
+        ],
+        "B/rerank-2.5": [
+          "b_007",
+          "b_006",
+          "b_020",
+          "b_022",
+          "b_019",
+          "b_021",
+          "d_056",
+          "b_061",
+          "b_045",
+          "b_039"
+        ],
+        "B/rerank-2.5-lite": [
+          "b_007",
+          "b_006",
+          "b_019",
+          "b_022",
+          "b_020",
+          "b_021",
+          "b_052",
+          "b_031",
+          "b_061",
+          "d_056"
+        ],
+        "C/rerank-2.5": [
+          "b_007",
+          "b_006",
+          "b_020",
+          "b_022",
+          "b_019",
+          "b_021",
+          "d_056",
+          "b_061",
+          "b_045",
+          "b_039"
+        ],
+        "C/rerank-2.5-lite": [
+          "b_007",
+          "b_006",
+          "b_019",
+          "b_022",
+          "b_020",
+          "b_021",
+          "b_052",
+          "b_031",
+          "b_061",
+          "d_056"
+        ]
+      },
+      "answer_diag": [
+        {
+          "id": "b_006",
+          "vec_rank": 4,
+          "bm25_rank": 6,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 6,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 4,
+            "B/rerank-2.5": 2,
+            "B/rerank-2.5-lite": 2,
+            "C/rerank-2.5": 2,
+            "C/rerank-2.5-lite": 2
+          }
+        },
+        {
+          "id": "b_007",
+          "vec_rank": 5,
+          "bm25_rank": 4,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 4,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 5,
+            "B/rerank-2.5": 1,
+            "B/rerank-2.5-lite": 1,
+            "C/rerank-2.5": 1,
+            "C/rerank-2.5-lite": 1
+          }
+        }
+      ],
+      "vec_top10": [
+        "b_022",
+        "b_021",
+        "b_019",
+        "b_006",
+        "b_007",
+        "b_061",
+        "b_020",
+        "b_045",
+        "d_056",
+        "d_023"
+      ],
+      "bm25_top10": [
+        "b_021",
+        "b_022",
+        "b_020",
+        "b_007",
+        "b_019",
+        "b_006",
+        "e_065",
+        "e_057",
+        "e_058",
+        "e_059"
+      ]
+    },
+    {
+      "query": "적금",
+      "expected_ids": [
+        "f_005",
+        "f_006"
+      ],
+      "single_answer": false,
+      "pipelines": {
+        "A": [
+          "f_006",
+          "b_017",
+          "f_011",
+          "c_004",
+          "f_005",
+          "c_006",
+          "b_039",
+          "e_048",
+          "d_052",
+          "b_014"
+        ],
+        "B/rerank-2.5": [
+          "f_005",
+          "f_011",
+          "f_006",
+          "c_006",
+          "b_025",
+          "f_044",
+          "b_014",
+          "b_015",
+          "c_056",
+          "d_052"
+        ],
+        "B/rerank-2.5-lite": [
+          "f_006",
+          "f_005",
+          "f_011",
+          "c_006",
+          "b_025",
+          "f_044",
+          "b_014",
+          "d_052",
+          "b_015",
+          "c_056"
+        ],
+        "C/rerank-2.5": [
+          "f_005",
+          "f_011",
+          "f_006",
+          "c_006",
+          "b_014",
+          "c_014",
+          "b_015",
+          "d_052",
+          "c_034",
+          "b_018"
+        ],
+        "C/rerank-2.5-lite": [
+          "f_006",
+          "f_005",
+          "f_011",
+          "c_006",
+          "c_014",
+          "b_014",
+          "d_052",
+          "b_015",
+          "c_009",
+          "c_034"
+        ]
+      },
+      "answer_diag": [
+        {
+          "id": "f_005",
+          "vec_rank": 5,
+          "bm25_rank": 1,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 3,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 5,
+            "B/rerank-2.5": 1,
+            "B/rerank-2.5-lite": 2,
+            "C/rerank-2.5": 1,
+            "C/rerank-2.5-lite": 2
+          }
+        },
+        {
+          "id": "f_006",
+          "vec_rank": 1,
+          "bm25_rank": 3,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 1,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 1,
+            "B/rerank-2.5": 3,
+            "B/rerank-2.5-lite": 1,
+            "C/rerank-2.5": 3,
+            "C/rerank-2.5-lite": 1
+          }
+        }
+      ],
+      "vec_top10": [
+        "f_006",
+        "b_017",
+        "f_011",
+        "c_004",
+        "f_005",
+        "c_006",
+        "b_039",
+        "e_048",
+        "d_052",
+        "b_014"
+      ],
+      "bm25_top10": [
+        "f_005",
+        "f_011",
+        "f_006",
+        "c_006",
+        "c_004",
+        "e_060",
+        "e_061",
+        "e_062",
+        "e_063",
+        "e_064"
+      ]
+    },
+    {
+      "query": "전기차",
+      "expected_ids": [
+        "b_001",
+        "b_002",
+        "b_003"
+      ],
+      "single_answer": false,
+      "pipelines": {
+        "A": [
+          "b_001",
+          "b_011",
+          "b_003",
+          "b_009",
+          "b_002",
+          "b_013",
+          "b_008",
+          "b_010",
+          "b_023",
+          "b_012"
+        ],
+        "B/rerank-2.5": [
+          "b_003",
+          "b_001",
+          "b_008",
+          "b_002",
+          "b_004",
+          "b_012",
+          "b_011",
+          "b_009",
+          "b_010",
+          "b_005"
+        ],
+        "B/rerank-2.5-lite": [
+          "b_003",
+          "b_001",
+          "b_002",
+          "b_004",
+          "b_009",
+          "b_011",
+          "b_008",
+          "b_012",
+          "b_010",
+          "b_005"
+        ],
+        "C/rerank-2.5": [
+          "b_003",
+          "b_001",
+          "b_008",
+          "b_002",
+          "b_004",
+          "b_012",
+          "b_011",
+          "b_009",
+          "b_010",
+          "b_005"
+        ],
+        "C/rerank-2.5-lite": [
+          "b_003",
+          "b_001",
+          "b_002",
+          "b_004",
+          "b_009",
+          "b_011",
+          "b_008",
+          "b_012",
+          "b_010",
+          "b_005"
+        ]
+      },
+      "answer_diag": [
+        {
+          "id": "b_001",
+          "vec_rank": 1,
+          "bm25_rank": 11,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 6,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 1,
+            "B/rerank-2.5": 2,
+            "B/rerank-2.5-lite": 2,
+            "C/rerank-2.5": 2,
+            "C/rerank-2.5-lite": 2
+          }
+        },
+        {
+          "id": "b_002",
+          "vec_rank": 5,
+          "bm25_rank": 10,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 8,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 5,
+            "B/rerank-2.5": 4,
+            "B/rerank-2.5-lite": 3,
+            "C/rerank-2.5": 4,
+            "C/rerank-2.5-lite": 3
+          }
+        },
+        {
+          "id": "b_003",
+          "vec_rank": 3,
+          "bm25_rank": 5,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 3,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 3,
+            "B/rerank-2.5": 1,
+            "B/rerank-2.5-lite": 1,
+            "C/rerank-2.5": 1,
+            "C/rerank-2.5-lite": 1
+          }
+        }
+      ],
+      "vec_top10": [
+        "b_001",
+        "b_011",
+        "b_003",
+        "b_009",
+        "b_002",
+        "b_013",
+        "b_008",
+        "b_010",
+        "b_023",
+        "b_012"
+      ],
+      "bm25_top10": [
+        "b_008",
+        "b_010",
+        "b_011",
+        "b_012",
+        "b_003",
+        "b_009",
+        "b_005",
+        "b_023",
+        "b_004",
+        "b_002"
+      ]
+    },
+    {
+      "query": "전세 대출",
+      "expected_ids": [
+        "c_014",
+        "c_015"
+      ],
+      "single_answer": false,
+      "pipelines": {
+        "A": [
+          "c_018",
+          "f_050",
+          "c_016",
+          "c_014",
+          "c_019",
+          "c_015",
+          "c_017",
+          "d_047",
+          "b_014",
+          "c_020"
+        ],
+        "B/rerank-2.5": [
+          "c_014",
+          "f_050",
+          "c_015",
+          "c_016",
+          "c_017",
+          "c_019",
+          "c_018",
+          "d_047",
+          "c_002",
+          "b_014"
+        ],
+        "B/rerank-2.5-lite": [
+          "f_050",
+          "c_014",
+          "c_015",
+          "c_016",
+          "c_017",
+          "c_019",
+          "c_018",
+          "c_008",
+          "c_009",
+          "c_013"
+        ],
+        "C/rerank-2.5": [
+          "c_014",
+          "f_050",
+          "c_015",
+          "c_016",
+          "c_017",
+          "c_019",
+          "c_018",
+          "d_047",
+          "c_002",
+          "b_014"
+        ],
+        "C/rerank-2.5-lite": [
+          "f_050",
+          "c_014",
+          "c_015",
+          "c_016",
+          "c_017",
+          "c_019",
+          "c_018",
+          "c_008",
+          "c_009",
+          "c_013"
+        ]
+      },
+      "answer_diag": [
+        {
+          "id": "c_014",
+          "vec_rank": 4,
+          "bm25_rank": 6,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 5,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 4,
+            "B/rerank-2.5": 1,
+            "B/rerank-2.5-lite": 2,
+            "C/rerank-2.5": 1,
+            "C/rerank-2.5-lite": 2
+          }
+        },
+        {
+          "id": "c_015",
+          "vec_rank": 6,
+          "bm25_rank": 7,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 7,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 6,
+            "B/rerank-2.5": 3,
+            "B/rerank-2.5-lite": 3,
+            "C/rerank-2.5": 3,
+            "C/rerank-2.5-lite": 3
+          }
+        }
+      ],
+      "vec_top10": [
+        "c_018",
+        "f_050",
+        "c_016",
+        "c_014",
+        "c_019",
+        "c_015",
+        "c_017",
+        "d_047",
+        "b_014",
+        "c_020"
+      ],
+      "bm25_top10": [
+        "f_050",
+        "c_016",
+        "c_019",
+        "c_018",
+        "c_017",
+        "c_014",
+        "c_015",
+        "e_039",
+        "d_047",
+        "c_003"
+      ]
+    },
+    {
+      "query": "제주도 여행",
+      "expected_ids": [
+        "d_001",
+        "d_002",
+        "d_003"
+      ],
+      "single_answer": false,
+      "pipelines": {
+        "A": [
+          "c_037",
+          "d_001",
+          "d_011",
+          "d_003",
+          "d_002",
+          "b_030",
+          "d_012",
+          "d_010",
+          "d_009",
+          "d_029"
+        ],
+        "B/rerank-2.5": [
+          "c_037",
+          "d_001",
+          "d_011",
+          "d_003",
+          "d_002",
+          "b_030",
+          "d_033",
+          "d_010",
+          "d_012",
+          "d_009"
+        ],
+        "B/rerank-2.5-lite": [
+          "c_037",
+          "d_001",
+          "d_011",
+          "d_002",
+          "d_003",
+          "b_030",
+          "f_028",
+          "f_049",
+          "d_010",
+          "d_056"
+        ],
+        "C/rerank-2.5": [
+          "c_037",
+          "d_001",
+          "d_011",
+          "d_003",
+          "d_002",
+          "b_030",
+          "d_033",
+          "d_010",
+          "d_012",
+          "d_009"
+        ],
+        "C/rerank-2.5-lite": [
+          "c_037",
+          "d_001",
+          "d_011",
+          "d_002",
+          "d_003",
+          "b_030",
+          "f_028",
+          "d_010",
+          "d_024",
+          "d_012"
+        ]
+      },
+      "answer_diag": [
+        {
+          "id": "d_001",
+          "vec_rank": 2,
+          "bm25_rank": 4,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 3,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 2,
+            "B/rerank-2.5": 2,
+            "B/rerank-2.5-lite": 2,
+            "C/rerank-2.5": 2,
+            "C/rerank-2.5-lite": 2
+          }
+        },
+        {
+          "id": "d_002",
+          "vec_rank": 5,
+          "bm25_rank": 10,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 7,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 5,
+            "B/rerank-2.5": 5,
+            "B/rerank-2.5-lite": 4,
+            "C/rerank-2.5": 5,
+            "C/rerank-2.5-lite": 4
+          }
+        },
+        {
+          "id": "d_003",
+          "vec_rank": 4,
+          "bm25_rank": 7,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 4,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 4,
+            "B/rerank-2.5": 4,
+            "B/rerank-2.5-lite": 5,
+            "C/rerank-2.5": 4,
+            "C/rerank-2.5-lite": 5
+          }
+        }
+      ],
+      "vec_top10": [
+        "c_037",
+        "d_001",
+        "d_011",
+        "d_003",
+        "d_002",
+        "b_030",
+        "d_012",
+        "d_010",
+        "d_009",
+        "d_029"
+      ],
+      "bm25_top10": [
+        "c_037",
+        "d_011",
+        "d_013",
+        "d_001",
+        "b_030",
+        "d_012",
+        "d_003",
+        "d_055",
+        "d_009",
+        "d_002"
+      ]
+    },
+    {
+      "query": "청년 주거",
+      "expected_ids": [
+        "c_001",
+        "c_002",
+        "c_003"
+      ],
+      "single_answer": false,
+      "pipelines": {
+        "A": [
+          "c_001",
+          "c_005",
+          "c_004",
+          "c_002",
+          "c_007",
+          "c_003",
+          "b_014",
+          "c_006",
+          "d_013",
+          "c_010"
+        ],
+        "B/rerank-2.5": [
+          "c_001",
+          "c_002",
+          "c_003",
+          "b_014",
+          "c_015",
+          "c_004",
+          "c_008",
+          "c_007",
+          "d_013",
+          "c_013"
+        ],
+        "B/rerank-2.5-lite": [
+          "c_001",
+          "c_003",
+          "c_002",
+          "c_004",
+          "b_014",
+          "c_015",
+          "c_005",
+          "c_006",
+          "c_007",
+          "d_013"
+        ],
+        "C/rerank-2.5": [
+          "c_001",
+          "c_002",
+          "c_003",
+          "b_014",
+          "c_015",
+          "c_004",
+          "c_008",
+          "c_007",
+          "d_013",
+          "c_013"
+        ],
+        "C/rerank-2.5-lite": [
+          "c_001",
+          "c_003",
+          "c_002",
+          "c_004",
+          "b_014",
+          "c_015",
+          "c_005",
+          "c_006",
+          "c_007",
+          "d_013"
+        ]
+      },
+      "answer_diag": [
+        {
+          "id": "c_001",
+          "vec_rank": 1,
+          "bm25_rank": 1,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 1,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 1,
+            "B/rerank-2.5": 1,
+            "B/rerank-2.5-lite": 1,
+            "C/rerank-2.5": 1,
+            "C/rerank-2.5-lite": 1
+          }
+        },
+        {
+          "id": "c_002",
+          "vec_rank": 4,
+          "bm25_rank": 2,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 2,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 4,
+            "B/rerank-2.5": 2,
+            "B/rerank-2.5-lite": 3,
+            "C/rerank-2.5": 2,
+            "C/rerank-2.5-lite": 3
+          }
+        },
+        {
+          "id": "c_003",
+          "vec_rank": 6,
+          "bm25_rank": 3,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 4,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 6,
+            "B/rerank-2.5": 3,
+            "B/rerank-2.5-lite": 2,
+            "C/rerank-2.5": 3,
+            "C/rerank-2.5-lite": 2
+          }
+        }
+      ],
+      "vec_top10": [
+        "c_001",
+        "c_005",
+        "c_004",
+        "c_002",
+        "c_007",
+        "c_003",
+        "b_014",
+        "c_006",
+        "d_013",
+        "c_010"
+      ],
+      "bm25_top10": [
+        "c_001",
+        "c_002",
+        "c_003",
+        "c_007",
+        "c_005",
+        "c_006",
+        "c_004",
+        "b_014",
+        "f_006",
+        "d_013"
+      ]
+    },
+    {
+      "query": "충전",
+      "expected_ids": [
+        "b_008"
+      ],
+      "single_answer": true,
+      "pipelines": {
+        "A": [
+          "b_025",
+          "b_024",
+          "b_033",
+          "b_008",
+          "c_056",
+          "b_023",
+          "b_026",
+          "e_032",
+          "b_044",
+          "c_059"
+        ],
+        "B/rerank-2.5": [
+          "b_008",
+          "c_056",
+          "b_024",
+          "b_025",
+          "b_023",
+          "e_032",
+          "c_059",
+          "b_026",
+          "b_033",
+          "d_028"
+        ],
+        "B/rerank-2.5-lite": [
+          "b_008",
+          "b_025",
+          "b_024",
+          "c_056",
+          "b_023",
+          "e_032",
+          "b_026",
+          "b_033",
+          "c_059",
+          "b_001"
+        ],
+        "C/rerank-2.5": [
+          "b_008",
+          "c_056",
+          "b_024",
+          "b_025",
+          "b_023",
+          "e_032",
+          "c_059",
+          "b_026",
+          "b_033",
+          "d_028"
+        ],
+        "C/rerank-2.5-lite": [
+          "b_008",
+          "b_025",
+          "b_024",
+          "c_056",
+          "b_023",
+          "e_032",
+          "b_026",
+          "b_033",
+          "c_059",
+          "b_001"
+        ]
+      },
+      "answer_diag": [
+        {
+          "id": "b_008",
+          "vec_rank": 4,
+          "bm25_rank": 5,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 4,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 4,
+            "B/rerank-2.5": 1,
+            "B/rerank-2.5-lite": 1,
+            "C/rerank-2.5": 1,
+            "C/rerank-2.5-lite": 1
+          }
+        }
+      ],
+      "vec_top10": [
+        "b_025",
+        "b_024",
+        "b_033",
+        "b_008",
+        "c_056",
+        "b_023",
+        "b_026",
+        "e_032",
+        "b_044",
+        "c_059"
+      ],
+      "bm25_top10": [
+        "b_024",
+        "b_025",
+        "e_032",
+        "b_023",
+        "b_008",
+        "b_033",
+        "c_056",
+        "b_026",
+        "c_059",
+        "d_028"
+      ]
+    },
+    {
+      "query": "카메라",
+      "expected_ids": [
+        "e_020"
+      ],
+      "single_answer": true,
+      "pipelines": {
+        "A": [
+          "e_023",
+          "e_021",
+          "e_024",
+          "e_020",
+          "d_040",
+          "e_039",
+          "c_048",
+          "d_024",
+          "b_063",
+          "e_064"
+        ],
+        "B/rerank-2.5": [
+          "e_020",
+          "e_021",
+          "e_023",
+          "e_022",
+          "e_024",
+          "b_063",
+          "d_040",
+          "b_044",
+          "d_024",
+          "e_064"
+        ],
+        "B/rerank-2.5-lite": [
+          "e_021",
+          "e_020",
+          "e_023",
+          "e_022",
+          "e_024",
+          "d_040",
+          "b_063",
+          "d_024",
+          "e_039",
+          "e_064"
+        ],
+        "C/rerank-2.5": [
+          "e_020",
+          "e_021",
+          "e_023",
+          "e_022",
+          "e_024",
+          "b_063",
+          "d_040",
+          "b_044",
+          "d_024",
+          "e_064"
+        ],
+        "C/rerank-2.5-lite": [
+          "e_021",
+          "e_020",
+          "e_023",
+          "e_022",
+          "e_024",
+          "d_040",
+          "b_063",
+          "d_024",
+          "e_039",
+          "e_064"
+        ]
+      },
+      "answer_diag": [
+        {
+          "id": "e_020",
+          "vec_rank": 4,
+          "bm25_rank": 2,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 3,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 4,
+            "B/rerank-2.5": 1,
+            "B/rerank-2.5-lite": 2,
+            "C/rerank-2.5": 1,
+            "C/rerank-2.5-lite": 2
+          }
+        }
+      ],
+      "vec_top10": [
+        "e_023",
+        "e_021",
+        "e_024",
+        "e_020",
+        "d_040",
+        "e_039",
+        "c_048",
+        "d_024",
+        "b_063",
+        "e_064"
+      ],
+      "bm25_top10": [
+        "e_021",
+        "e_020",
+        "b_063",
+        "e_023",
+        "e_022",
+        "e_024",
+        "e_060",
+        "e_061",
+        "e_062",
+        "e_063"
+      ]
+    },
+    {
+      "query": "카페",
+      "expected_ids": [
+        "d_006",
+        "d_007"
+      ],
+      "single_answer": false,
+      "pipelines": {
+        "A": [
+          "d_006",
+          "d_018",
+          "d_021",
+          "c_035",
+          "d_020",
+          "d_007",
+          "f_042",
+          "c_046",
+          "d_060",
+          "d_057"
+        ],
+        "B/rerank-2.5": [
+          "d_006",
+          "d_020",
+          "d_021",
+          "d_007",
+          "d_018",
+          "c_035",
+          "f_042",
+          "d_057",
+          "b_015",
+          "d_019"
+        ],
+        "B/rerank-2.5-lite": [
+          "d_021",
+          "d_006",
+          "d_020",
+          "d_007",
+          "c_035",
+          "d_018",
+          "f_042",
+          "d_019",
+          "d_057",
+          "d_051"
+        ],
+        "C/rerank-2.5": [
+          "d_006",
+          "d_020",
+          "d_021",
+          "d_007",
+          "d_018",
+          "c_035",
+          "f_042",
+          "d_057",
+          "b_015",
+          "d_019"
+        ],
+        "C/rerank-2.5-lite": [
+          "d_021",
+          "d_006",
+          "d_020",
+          "d_007",
+          "c_035",
+          "d_018",
+          "f_042",
+          "d_019",
+          "d_057",
+          "d_051"
+        ]
+      },
+      "answer_diag": [
+        {
+          "id": "d_006",
+          "vec_rank": 1,
+          "bm25_rank": 3,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 2,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 1,
+            "B/rerank-2.5": 1,
+            "B/rerank-2.5-lite": 2,
+            "C/rerank-2.5": 1,
+            "C/rerank-2.5-lite": 2
+          }
+        },
+        {
+          "id": "d_007",
+          "vec_rank": 6,
+          "bm25_rank": 4,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 5,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 6,
+            "B/rerank-2.5": 4,
+            "B/rerank-2.5-lite": 4,
+            "C/rerank-2.5": 4,
+            "C/rerank-2.5-lite": 4
+          }
+        }
+      ],
+      "vec_top10": [
+        "d_006",
+        "d_018",
+        "d_021",
+        "c_035",
+        "d_020",
+        "d_007",
+        "f_042",
+        "c_046",
+        "d_060",
+        "d_057"
+      ],
+      "bm25_top10": [
+        "d_018",
+        "d_021",
+        "d_006",
+        "d_007",
+        "c_035",
+        "d_057",
+        "f_042",
+        "d_019",
+        "d_020",
+        "d_051"
+      ]
+    },
+    {
+      "query": "캠핑",
+      "expected_ids": [
+        "d_008"
+      ],
+      "single_answer": true,
+      "pipelines": {
+        "A": [
+          "d_025",
+          "d_024",
+          "d_008",
+          "d_023",
+          "d_022",
+          "d_061",
+          "e_040",
+          "e_039",
+          "d_058",
+          "f_036"
+        ],
+        "B/rerank-2.5": [
+          "d_024",
+          "d_008",
+          "d_025",
+          "d_061",
+          "d_022",
+          "e_047",
+          "e_039",
+          "e_040",
+          "d_023",
+          "e_033"
+        ],
+        "B/rerank-2.5-lite": [
+          "d_024",
+          "d_008",
+          "d_025",
+          "d_061",
+          "d_022",
+          "e_039",
+          "e_047",
+          "e_040",
+          "f_028",
+          "c_037"
+        ],
+        "C/rerank-2.5": [
+          "d_024",
+          "d_008",
+          "d_025",
+          "d_061",
+          "d_022",
+          "e_047",
+          "e_039",
+          "e_040",
+          "d_023",
+          "e_033"
+        ],
+        "C/rerank-2.5-lite": [
+          "d_024",
+          "d_008",
+          "d_025",
+          "d_061",
+          "d_022",
+          "e_039",
+          "e_047",
+          "e_040",
+          "f_028",
+          "c_037"
+        ]
+      },
+      "answer_diag": [
+        {
+          "id": "d_008",
+          "vec_rank": 3,
+          "bm25_rank": 1,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 2,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 3,
+            "B/rerank-2.5": 2,
+            "B/rerank-2.5-lite": 2,
+            "C/rerank-2.5": 2,
+            "C/rerank-2.5-lite": 2
+          }
+        }
+      ],
+      "vec_top10": [
+        "d_025",
+        "d_024",
+        "d_008",
+        "d_023",
+        "d_022",
+        "d_061",
+        "e_040",
+        "e_039",
+        "d_058",
+        "f_036"
+      ],
+      "bm25_top10": [
+        "d_008",
+        "d_024",
+        "d_025",
+        "d_022",
+        "e_040",
+        "d_061",
+        "e_039",
+        "e_047",
+        "e_064",
+        "c_004"
+      ]
+    },
+    {
+      "query": "토익",
+      "expected_ids": [
+        "f_007",
+        "f_008"
+      ],
+      "single_answer": false,
+      "pipelines": {
+        "A": [
+          "d_046",
+          "f_008",
+          "f_018",
+          "f_048",
+          "f_040",
+          "f_019",
+          "f_007",
+          "f_021",
+          "f_020",
+          "b_042"
+        ],
+        "B/rerank-2.5": [
+          "f_008",
+          "f_007",
+          "f_021",
+          "d_046",
+          "f_018",
+          "f_040",
+          "f_048",
+          "f_019",
+          "f_020",
+          "f_041"
+        ],
+        "B/rerank-2.5-lite": [
+          "f_008",
+          "f_007",
+          "d_046",
+          "f_018",
+          "f_021",
+          "f_040",
+          "f_048",
+          "f_020",
+          "f_019",
+          "f_037"
+        ],
+        "C/rerank-2.5": [
+          "f_008",
+          "f_007",
+          "f_021",
+          "d_046",
+          "f_018",
+          "f_040",
+          "f_048",
+          "f_019",
+          "f_020",
+          "f_041"
+        ],
+        "C/rerank-2.5-lite": [
+          "f_008",
+          "f_007",
+          "d_046",
+          "f_018",
+          "f_021",
+          "f_040",
+          "f_048",
+          "f_020",
+          "f_019",
+          "f_037"
+        ]
+      },
+      "answer_diag": [
+        {
+          "id": "f_007",
+          "vec_rank": 7,
+          "bm25_rank": 2,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 4,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 7,
+            "B/rerank-2.5": 2,
+            "B/rerank-2.5-lite": 2,
+            "C/rerank-2.5": 2,
+            "C/rerank-2.5-lite": 2
+          }
+        },
+        {
+          "id": "f_008",
+          "vec_rank": 2,
+          "bm25_rank": 3,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 2,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 2,
+            "B/rerank-2.5": 1,
+            "B/rerank-2.5-lite": 1,
+            "C/rerank-2.5": 1,
+            "C/rerank-2.5-lite": 1
+          }
+        }
+      ],
+      "vec_top10": [
+        "d_046",
+        "f_008",
+        "f_018",
+        "f_048",
+        "f_040",
+        "f_019",
+        "f_007",
+        "f_021",
+        "f_020",
+        "b_042"
+      ],
+      "bm25_top10": [
+        "f_018",
+        "f_007",
+        "f_008",
+        "f_021",
+        "d_046",
+        "f_048",
+        "f_040",
+        "f_019",
+        "f_020",
+        "c_002"
+      ]
+    },
+    {
+      "query": "향수",
+      "expected_ids": [
+        "a_010"
+      ],
+      "single_answer": true,
+      "pipelines": {
+        "A": [
+          "a_014",
+          "a_010",
+          "a_013",
+          "a_012",
+          "a_011",
+          "a_002",
+          "a_001",
+          "b_051",
+          "a_046",
+          "c_054"
+        ],
+        "B/rerank-2.5": [
+          "a_013",
+          "a_010",
+          "a_012",
+          "a_014",
+          "a_011",
+          "b_051",
+          "d_048",
+          "d_029",
+          "d_042",
+          "a_060"
+        ],
+        "B/rerank-2.5-lite": [
+          "a_010",
+          "a_013",
+          "a_012",
+          "a_014",
+          "a_011",
+          "d_032",
+          "d_048",
+          "a_056",
+          "a_046",
+          "b_051"
+        ],
+        "C/rerank-2.5": [
+          "a_013",
+          "a_010",
+          "a_012",
+          "a_014",
+          "a_011",
+          "b_051",
+          "d_042",
+          "c_046",
+          "a_060",
+          "a_056"
+        ],
+        "C/rerank-2.5-lite": [
+          "a_010",
+          "a_013",
+          "a_012",
+          "a_014",
+          "a_011",
+          "a_056",
+          "a_046",
+          "b_051",
+          "a_001",
+          "a_048"
+        ]
+      },
+      "answer_diag": [
+        {
+          "id": "a_010",
+          "vec_rank": 2,
+          "bm25_rank": 1,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 1,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 2,
+            "B/rerank-2.5": 2,
+            "B/rerank-2.5-lite": 1,
+            "C/rerank-2.5": 2,
+            "C/rerank-2.5-lite": 1
+          }
+        }
+      ],
+      "vec_top10": [
+        "a_014",
+        "a_010",
+        "a_013",
+        "a_012",
+        "a_011",
+        "a_002",
+        "a_001",
+        "b_051",
+        "a_046",
+        "c_054"
+      ],
+      "bm25_top10": [
+        "a_010",
+        "a_013",
+        "a_014",
+        "a_012",
+        "a_011",
+        "c_006",
+        "e_061",
+        "e_062",
+        "e_063",
+        "e_064"
+      ]
+    },
+    {
+      "query": "화장품",
+      "expected_ids": [
+        "a_001",
+        "a_002",
+        "a_003",
+        "a_004"
+      ],
+      "single_answer": false,
+      "pipelines": {
+        "A": [
+          "a_008",
+          "a_060",
+          "a_001",
+          "a_029",
+          "a_022",
+          "a_003",
+          "a_006",
+          "a_002",
+          "a_007",
+          "a_062"
+        ],
+        "B/rerank-2.5": [
+          "a_001",
+          "a_003",
+          "a_002",
+          "a_022",
+          "a_060",
+          "a_007",
+          "d_042",
+          "a_004",
+          "a_008",
+          "a_009"
+        ],
+        "B/rerank-2.5-lite": [
+          "d_042",
+          "a_001",
+          "a_002",
+          "a_060",
+          "a_022",
+          "a_003",
+          "a_007",
+          "a_015",
+          "a_006",
+          "a_005"
+        ],
+        "C/rerank-2.5": [
+          "a_001",
+          "a_003",
+          "a_002",
+          "a_022",
+          "a_060",
+          "a_007",
+          "d_042",
+          "a_004",
+          "a_008",
+          "a_009"
+        ],
+        "C/rerank-2.5-lite": [
+          "d_042",
+          "a_001",
+          "a_002",
+          "a_060",
+          "a_022",
+          "a_003",
+          "a_007",
+          "a_015",
+          "a_006",
+          "a_005"
+        ]
+      },
+      "answer_diag": [
+        {
+          "id": "a_001",
+          "vec_rank": 3,
+          "bm25_rank": 2,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 2,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 3,
+            "B/rerank-2.5": 1,
+            "B/rerank-2.5-lite": 2,
+            "C/rerank-2.5": 1,
+            "C/rerank-2.5-lite": 2
+          }
+        },
+        {
+          "id": "a_002",
+          "vec_rank": 8,
+          "bm25_rank": 12,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 11,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 8,
+            "B/rerank-2.5": 3,
+            "B/rerank-2.5-lite": 3,
+            "C/rerank-2.5": 3,
+            "C/rerank-2.5-lite": 3
+          }
+        },
+        {
+          "id": "a_003",
+          "vec_rank": 6,
+          "bm25_rank": 11,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 8,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": 6,
+            "B/rerank-2.5": 2,
+            "B/rerank-2.5-lite": 6,
+            "C/rerank-2.5": 2,
+            "C/rerank-2.5-lite": 6
+          }
+        },
+        {
+          "id": "a_004",
+          "vec_rank": 12,
+          "bm25_rank": 8,
+          "in_vec_top50": true,
+          "in_vec_top60": true,
+          "rrf_rank": 12,
+          "in_rrf_top50": true,
+          "bm25_rescued": false,
+          "final_rank": {
+            "A": null,
+            "B/rerank-2.5": 8,
+            "B/rerank-2.5-lite": null,
+            "C/rerank-2.5": 8,
+            "C/rerank-2.5-lite": null
+          }
+        }
+      ],
+      "vec_top10": [
+        "a_008",
+        "a_060",
+        "a_001",
+        "a_029",
+        "a_022",
+        "a_003",
+        "a_006",
+        "a_002",
+        "a_007",
+        "a_062"
+      ],
+      "bm25_top10": [
+        "a_008",
+        "a_001",
+        "a_009",
+        "a_060",
+        "d_042",
+        "a_007",
+        "a_006",
+        "a_004",
+        "a_022",
+        "a_005"
+      ]
+    }
+  ]
+}

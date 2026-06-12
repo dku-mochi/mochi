@@ -13,10 +13,36 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 > 모찌 저장소의 의미 있는 변경 이력. 새 항목은 항상 **맨 위**에 추가한다.
 > 범위는 `ios` / `backend` / `docs` / `infra` 중 하나 이상. "왜" 가 자명하지 않으면 한 줄 이유를 덧붙인다.
 >
+
+## 2026-06-12 — infra
+- **voyage retrieval 프로덕션 배포** (PR#31 머지 직후). 런북 §4 절차 — tar/IAP scp → `/opt/mochi` in-place 교체(서버 env 보존) → `uv sync --frozen --no-dev` → **alembic 0017→0018**(embeddings 1024d, 운영 임베딩 행 0건이라 무손실) → restart → health OK. `VOYAGE_API_KEY` 는 Secret Manager `mochi-voyage-api-key` 신설 후 SA metadata 토큰 경유로 svc env 에 주입(키파일 zero 원칙, 값 비노출 파이프 — 사용자 승인). 운영 기존 데이터 **67건 백필 색인** 완료(voyage-3-large@1024). INFRA.md §0/§2.5 동기화.
+
+## 2026-06-12 — backend, docs
+- **검색·채팅 retrieval 에 voyage-3-large 임베딩 + rerank-2.5 실연결** (`lab/active/rag-rerank-eval` 확정 반영 — reranker 가 R@1 0.15→0.43, MRR 0.56→0.88 의 승부처). 그동안 임베딩이 zero-vector placeholder 라 vector 검색이 사실상 죽어 있었다.
+  - **공용 어댑터** `app/shared/voyage.py` — httpx 직접 호출(voyageai SDK 는 lab 전용 유지), tenacity 재시도(429/5xx/타임아웃), doc/query `input_type` 비대칭, 배치 분할, MongoDB Atlas 발급 키(`al-` 접두) 엔드포인트 자동 라우팅. 임베딩 input = `summary + intent labels`(`build_embedding_text` 단일 원천). 키 미설정 시 전 경로 graceful degrade(BM25/키워드) — 검색이 외부 AI API 장애로 죽지 않는다.
+  - **마이그레이션 0018**: `embeddings.embedding` vector(768)→**vector(1024)** + HNSW 재생성. 기존 행은 zero-vector placeholder 뿐이라 TRUNCATE (손실 아님).
+  - **ingestion**: agent orchestrator **INDEXED 노드**가 분석 직후 색인 (best-effort — 실패 시 run 유지, Gemini 재분석 비용 방지). placeholder `EmbedTool` 삭제. 기존 데이터·누락분은 `scripts/backfill_embeddings.py` (멱등).
+  - **검색탭** `POST /search`: zero-vector `naive_embed` → 실제 voyage 쿼리 임베딩, `Reranker` port 에 `VoyageReranker`(rerank-2.5) 장착(`reranker_enabled` 기본 true 로 — 키 유무로 게이트되므로 안전). BM25/vector 쿼리에 `deleted_at IS NULL` 누락 보강. 실험상 BM25+RRF 는 "무해하나 무익"이지만 짧은 키워드·고유명사 질의의 보험으로 유지(rerank 가 노이즈를 거름 — 실험 검증).
+  - **채팅** `search_items`: 키워드(ILIKE AND) 단독 → **hybrid** — 키워드 + 의미(vector) 두 갈래 후보(각 24)에 구조화 필터(intent·시간 2축) 공통 적용 후 rerank-2.5 가 최종 순위. 시그니처·payload 불변(iOS 무변경). **chat@v8** (PR#30 의 v7 위에 적층): 어휘 불일치를 "동의어 변주 다발 재검색"으로 보상하던 v6 지시를 제거 — 의미검색이 retrieval 단에서 흡수하므로 "다른 각도 1회 재시도"로 교체(라운드 한도 5 병목 완화).
+  - 코드리뷰(codex) 반영: ① transport 예외(`httpx.ConnectError`/타임아웃)가 원형으로 새서 degrade 계약(`except VoyageError`)을 뚫던 P1 — `_post` 경계에서 전부 `VoyageError` 래핑(비정상 JSON 포함) ② INDEXED 색인에 자체 상한 15s — 임베딩 재시도가 워커 전체 예산(120s)을 침범해 run 이 통째로 죽는 경로 차단 ③ 재시도 예산을 경로별로 분리(인터랙티브 2회/5s, 배치 3회/10s — 장애 시 1분짜리 검색 방지) ④ backfill 선정 조건을 ingestion 과 동일 커버리지로(label-only 아이템 영구 제외 버그) ⑤ `replace_embedding` 에 `deleted_at IS NULL` 가드(soft-delete 직후 재색인 TOCTOU).
+  - 검증: 단위 205 passed(+26) / ruff·mypy 기존과 동일(신규 오류 0) / 마이그레이션 0018 로컬 적용 / 라이브 E2E — "휴가 숙소" 질의(코퍼스에 없는 어휘)가 "보라카이 호텔" 기록을 검색탭·채팅 양쪽 1위로 회수(rerank 0.605), cross-tenant 격리 확인. 로컬 실데이터 357건 백필 완료.
+  - 외부 설정: `VOYAGE_API_KEY` (TODO §4.4) + 기존 로컬 .env 의 `RERANKER_ENABLED=false` → `true` 갱신 필요.
+
+## 2026-06-12 — lab
+- `lab/active/rag-rerank-eval/` 신규 — 검색 파이프라인 A/B/C 비교 실험 (Vector / Vector+Reranker / Hybrid+Reranker).
+  - 임베딩 고정: `voyage-3-large`@1024, input=`summary+labels`. Reranker 비교군 `rerank-2.5` vs `rerank-2.5-lite`.
+  - 합성 코퍼스 391개(answer 49/hard_neg 100/filler 242, 서브에이전트 6개 분담 생성) + 짧은 키워드 gold 24개.
+  - 결론: Recall@10 은 전 파이프라인 천장(0.99~1.0)이라 변별 없음. 실차이는 R@1/R@3/MRR — Vector+Reranker 가 Vector 대비 R@1 0.15→0.43. **Hybrid 는 Vector+Reranker 대비 Recall@10 개선 0** (vector 후보 recall 이미 100%, BM25 rescue 0건). reranker 는 `rerank-2.5` 우위.
+  - `mochi-backend` lab group 에 `voyageai` 의존성 추가.
+
 > **동시 세션 / 공유 파일 주의**: CHANGELOG 는 여러 세션·작업자가 함께 쓰는 append-only 공유 파일이다. 동시 작업 중에는 다른 세션이 자기 항목을 먼저 커밋할 수 있고, 한 워킹트리에 여러 세션의 미커밋 항목이 섞여 보일 수 있다. 이때 **항목을 분리하려 애쓰지 말고** 자기 변경과 함께 그대로 staging·커밋한다 — 섞인 다른 항목은 해당 세션이 자기 코드와 함께 정리한다. diff 에 모르는 CHANGELOG 항목이 보여도 멈추지 않는다 (단, CHANGELOG 외의 *코드* 파일은 절대 임의로 섞어 커밋하지 않는다).
+
+## 2026-06-12 — backend, docs
+- **채팅 툴 `view_item_image` 추가 — 모델이 기록의 캡처 이미지를 직접 보고 시각 디테일에 답한다** (사전 추출 요약/텍스트는 캡처의 lossy projection 이라 "화면에 가격이 얼마였지?" 류 질문을 못 받아치던 한계 해소). 툴이 owner-scoped 로 item 의 GCS object key 를 `gs://` URI 로 해석(`_MAX_IMAGES=3` cap)하면, run 루프가 라운드의 모든 function_call/response 쌍이 닫힌 **뒤** 별도 user part 로 1회 주입(병렬 툴콜 시퀀스 사이에 끼면 Gemini contents 검증이 깨진다 — 리뷰 P1) — Part 변환은 분석 경로(`mochi_item_gateway`)와 동형으로 Vertex 가 직접 read, 백엔드 bytes 무접촉. 이미지는 현재 턴 in-memory 전용 — tool 행 영속·히스토리 재구성엔 compact note("다시 보려면 재호출")만 남아 토큰 비용 유계. 버킷 미설정 시 미등록(web_search 선례 — 등록해두고 항상 "no image" 면 모델 오도). `chat@v7`: 시각 디테일 질문은 이미지를 본 뒤 답하라는 grounding 불릿(보지 않은 디테일 단정 = fabricated memory). **사람 결정 2건 반영**: ① PRIVACY 의 "분석 후 TTL 삭제" 목표를 as-built(GCS 보존 — 복구 pull·분석이 이미 의존)로 갱신 ② 민감도 게이트는 ungated 진행(판별 필드 미구현 + 분석 경로와 동일 노출이라 경계 불변 — 필드 도입 시 게이트는 TODO §5.1). PRIVACY §10·ARCHITECTURE(stale "이미지 분석 design-ahead" 표기 정정 포함)·DOMAIN_DESIGN §10.3 동기화. 테스트 11종(시퀀스 정합·영속 제외·owner 스코핑·cap·예산 교차).
 
 ## 2026-06-12 — ios, docs
 - **lab/rag-search: category 전략 비교 실험 기록 + 임베딩 input 결정 확정.** category 필드를 임베딩 입력에 추가하는 5전략을 비교한 결과 전 모델 평균 nDCG@5 -0.008로 임베딩 입력에서 제외 확정. 최종 결론: `voyage-4-large@1024 × summary+labels+payload+entities`(semantic-gap 27쿼리 nDCG@5=0.813). embed.py category 전략 5종, 자동 semantic-gap 쿼리 생성기(generate_semantic_gap_queries.py), 결과 분석 헬퍼(_analyze_results.py) 추가.
+- **검색 그리드 카드 — 이미지/타이포 모자이크 재설계 (인스타 탐색탭 레퍼런스).** 어제(D9) 정착한 showcase 카드(4:5 + 흰 footer)에서 한 발 더: 배지·날짜·출처 메타 행을 전부 제거하고 카드 형태 자체가 타입을 말하게(타입·날짜는 필터칩·상세·VoiceOver 라벨이 담당). ① 스크린샷 = **2:3 풀블리드** center 크롭(어느 부분을 중요하게 캡처했는지 모르므로 상단 가정 X) + **하단 휘도 적응형 스크림** + 흰 제목 overlay — 모찌 캡처 다수가 흰 텍스트 스크린샷이라 고정 스크림은 모자라거나 때 타 보임 → `LocalThumbnail` 다운샘플 디코드 시 가시 영역 하단 35% 평균 휘도를 같이 계산(8×8 샘플, ~ms, opt-in 콜백)해 0.45~0.8 비례 적용. ② 메모 butter / 링크 purple / 이미지 없는 스크린샷 sky / 미확인 ink **파스텔 타이포 타일**(타일 색 = 필터칩 activeBg 매핑), 링크는 favicon letter+도메인 한 줄(회수 단서) 유지. ③ 그리드 모자이크 — 좌우 10pt + 셀 간 6pt + radius 16, 테두리·그림자 제거(이음새 얼룩 방지), 제목 최대 3줄, `TypeBadge`·metaRow·linkPreview·ellipsis 메뉴 제거(공유·삭제는 contextMenu 보전), masonry 예상 높이 292→275. codex 리뷰 PASS — P2 3건 반영(task 취소 가드 / 휘도 측정을 fill 가시 영역 기준으로 보정 / 8×8 직접 평균), semantic "비슷한 기억" 시각 표시 소실은 미니멀화에 포함된 의도로 확정. 검증: `tuist build` green.
 - **검색 탭 polish 마감 — showcase 카드 + 인터랙션 + 접근성 + 성능 (D9, `feature/d9-search-polish`).** ① **showcase 스크린샷 카드(mymind 식)**: 이미지 4:5(~222pt) center 크롭이 카드를 채우고 아래 흰 footer(제목 2줄+메타) — 이전 두 시도(100pt strip top 크롭=상태바·배너 쓰레기만 / 제목 옆 48×60·우하단 32×32=텍스트 끊김·공백, codex 협의 경유)를 거쳐 "그 화면이 알아볼 수 있는 크기로 보이는" 구조로 정착. masonry 가 텍스트 카드(138)와 자동 균형. ② **semantic 구분**: `SearchResult.isSemantic` — 의미 검색 보강 항목 메타줄에 보라 "✨ 비슷한 기억". ③ **인터랙션**: long-press 확대 preview(`SearchCardPreview` — 이미지 240pt+본문 8줄), 최근 검색어 칩 long-press 개별 삭제, 그리드 pull-to-refresh(`syncTrigger.runOnce()`), masonry 카드 scrollTransition(fade+scale). ④ **접근성**: 카드 통합 VoiceOver 라벨(+분석중/비슷한기억 상태), 필터칩 "[라벨] 필터"+isSelected trait, dynamicTypeSize `.medium` 고정→`...large` 허용. ⑤ **성능 — 검색 탭만 랙 걸리던 원인 2개**: hero frame 추적이 @State CGRect 라 스크롤·키보드 애니메이션 매 틱 보이는 카드 전부 재렌더 연쇄 → *비관찰 class FrameBox* 로 교체(쓰기가 뷰 무효화 X, frame 은 탭 순간만 필요); 키 입력마다 로컬 검색 effect 풀가동 → 200ms 디바운스. ⑥ **입력 즉답성**: TextField 를 store 직접 binding → 로컬 `@State queryText` 미러로(글자가 reducer 왕복 대기 없이 즉시 렌더, 양방향 sync), 포커스 전환도 `displayPhase` 로 FocusState 기준 즉시 전환(탭 → focused 화면이 reducer 응답 대기로 늦어 두 번 탭하던 문제). ⑦ 검색바 돋보기 색 → 탭바와 동일 모찌 퍼플. UX_SPEC §3.5 의 stale "mock 시안 단계" 표기를 실연결 상태로 동기화. 검증: `tuist build Mochi` green + 실기기 시각·체감 검증 완료.
 
 ## 2026-06-11 — backend

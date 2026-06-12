@@ -27,7 +27,7 @@ description: mochi-backend GCP 배포·운영 런북. 서버를 처음부터 배
 | 공개 도메인 | `https://34-64-104-136.nip.io` (Caddy 자동 Let's Encrypt) |
 | 런타임 SA | `mochi-backend-sa@axial-device-460408-i9.iam.gserviceaccount.com` |
 | 캡처 버킷 | `gs://mochi-captures-axial-device-460408-i9` |
-| 비밀값 | Secret Manager: `mochi-auth-access-secret`, `mochi-db-password` |
+| 비밀값 | Secret Manager: `mochi-auth-access-secret`, `mochi-db-password`, `mochi-apns-p8-base64`, `mochi-voyage-api-key` |
 | 앱 | systemd `mochi.service` (uvicorn, `/opt/mochi`, `WORKER_CONCURRENCY=2`) |
 | DB | `pgvector/pgvector:pg16` 컨테이너 (`docker`, host volume `/var/lib/mochi-pg`) |
 
@@ -160,7 +160,7 @@ gcloud compute scp /tmp/mochi-backend.tar.gz mochi-svc:~/ \
 # 3) svc 셋업: uv 설치 → 코드 /opt/mochi → Secret 으로 .env → uv sync → alembic → systemd
 #    (세부는 §부록 mochi-svc-setup.sh. find /opt/mochi -name '._*' -delete 필수)
 ```
-`.env` 는 Secret Manager 값으로 svc 안에서 생성 (`ENVIRONMENT=production`, `DATABASE_URL=...@10.30.0.2:5432/mochi`, `GOOGLE_CLOUD_PROJECT`, `AUTH_ACCESS_SECRET`, `GCS_CAPTURE_BUCKET`, `GCS_SIGNER_SERVICE_ACCOUNT`, `WORKER_CONCURRENCY=2`, `DB_POOL_SIZE/MAX_OVERFLOW`). `chmod 600 .env`.
+`.env` 는 Secret Manager 값으로 svc 안에서 생성 (`ENVIRONMENT=production`, `DATABASE_URL=...@10.30.0.2:5432/mochi`, `GOOGLE_CLOUD_PROJECT`, `AUTH_ACCESS_SECRET`, `GCS_CAPTURE_BUCKET`, `GCS_SIGNER_SERVICE_ACCOUNT`, `WORKER_CONCURRENCY=2`, `DB_POOL_SIZE/MAX_OVERFLOW`, `TAVILY_API_KEY`, `VOYAGE_API_KEY`(Secret `mochi-voyage-api-key` — 검색·채팅 임베딩/리랭크, 2026-06-12)). `chmod 600 .env`.
 
 ### 2.6 Caddy TLS (svc)
 ```bash

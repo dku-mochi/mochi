@@ -135,7 +135,9 @@ class EmbeddingRow(Base):
         PgUUIDColumn(as_uuid=True), ForeignKey("mochi_items.id", ondelete="CASCADE"), index=True
     )
     chunk_text: Mapped[str] = mapped_column(String)
-    embedding: Mapped[list[float]] = mapped_column(Vector(768))
+    # voyage-3-large @ 1024 (rag-rerank-eval 확정, 마이그레이션 0018). 차원 변경은
+    # HNSW drop → ALTER TYPE → 재색인이 한 묶음 — settings 만 바꿔서는 안 된다.
+    embedding: Mapped[list[float]] = mapped_column(Vector(1024))
     model_version: Mapped[str] = mapped_column(String(64))
     mochi_item: Mapped["MochiItemRow"] = relationship(back_populates="embeddings", default=None)
 

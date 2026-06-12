@@ -23,13 +23,13 @@ struct SearchDefaultView: View {
                 emptyState
             } else {
                 ScrollView {
-                    // 카드 높이가 type 별 가변(이미지-led 182 / 텍스트 138)이라
+                    // 카드 높이가 type 별 가변(2:3 이미지 ~290 / 텍스트 타일 138)이라
                     // LazyVGrid(행 정렬) 대신 좌우 독립 column 의 masonry — 높이 균형 분배.
                     HStack(alignment: .top, spacing: SearchD5.Sizes.gridGap) {
                         masonryColumn(columns.left)
                         masonryColumn(columns.right)
                     }
-                    .padding(.horizontal, SearchD5.Sizes.pageH)
+                    // edge-to-edge 모자이크 — 그리드만 좌우 패딩 없이 화면 가득 (칩·요약은 pageH 유지).
                     .padding(.top, 8)
                     .padding(.bottom, 16)
                 }
