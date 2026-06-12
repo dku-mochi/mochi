@@ -18,7 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.core.config import get_settings
 from app.core.db import get_session_factory
-from app.core.deps import DBSession, get_chat_llm
+from app.core.deps import DBSession, get_chat_llm, get_voyage_client
 from app.core.error_envelope import ConflictError, DomainError, NotFoundError
 from app.core.security import CurrentUser
 from app.modules.agent.application.tool_factories import make_web_fetch_tool
@@ -59,6 +59,7 @@ from app.modules.conversations.presentation.schemas import (
     SendMessageRequest,
 )
 from app.modules.conversations.prompts.chat_prompts import ACTIVE_CHAT_PROMPT
+from app.shared.voyage import VoyageClient
 
 router = APIRouter(prefix="/conversations", tags=["conversations"])
 
@@ -70,16 +71,18 @@ def _build_chat_tools(
     session_factory: Callable[[], AsyncSession] | async_sessionmaker[AsyncSession],
     *,
     tavily_api_key: str | None,
+    voyage: VoyageClient | None = None,
 ) -> tuple[ChatTool, ...]:
     """**전부 read-only**. propose_* 도 검증 후 카드 payload 만 반환할 뿐 DB 를 쓰지
     않는다(실행은 사용자 확정 탭 → REST). 쓰기 가능한 툴을 여기 추가하는 것은 금지 —
     ``test_router_tool_registry_is_read_only`` 가 고정.
 
     web_search 는 키 미설정 시 제외(키 발급이 머지를 블록하지 않게 — journal
-    2026-06-10), web_fetch 는 기록 속 링크 읽기에도 쓰여 키 없이 항상 등록."""
+    2026-06-10), web_fetch 는 기록 속 링크 읽기에도 쓰여 키 없이 항상 등록.
+    voyage 는 search_items 의 의미검색·리랭크용 — 미설정 시 키워드 단독 degrade."""
     item_reader = make_item_reader(session_factory)
     tools: list[ChatTool] = [
-        SearchItemsTool(session_factory),
+        SearchItemsTool(session_factory, voyage=voyage),
         GetItemDetailTool(session_factory),
         ProposeItemUpdateTool(item_reader),
         ProposeItemDeleteTool(item_reader),
@@ -97,7 +100,9 @@ def _build_chat_tools(
 def _chat_tools() -> tuple[ChatTool, ...]:
     """프로세스당 1회 조립 — 구성 규칙은 ``_build_chat_tools`` docstring 참고."""
     return _build_chat_tools(
-        get_session_factory(), tavily_api_key=get_settings().tavily_api_key
+        get_session_factory(),
+        tavily_api_key=get_settings().tavily_api_key,
+        voyage=get_voyage_client(),
     )
 
 

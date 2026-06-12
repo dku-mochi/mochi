@@ -177,6 +177,13 @@ APNS_AUTH_KEY_P8_BASE64=<base64 of AuthKey_CA6C3JCHW3.p8>
 # === 채팅 web_search — Tavily ===
 # 미설정 시 web_search 툴만 채팅 레지스트리에서 제외 — 서버·머지 블록 없음.
 TAVILY_API_KEY=<tavily.com 발급 키>
+
+# === 검색·채팅 임베딩/리랭크 — Voyage AI (2026-06-12) ===
+# 미설정 시 vector·rerank 경로만 비활성(BM25/키워드 degrade) — 서버·머지 블록 없음.
+# MongoDB Atlas 발급 키(`al-` 접두)도 지원 — 클라이언트가 엔드포인트 자동 라우팅.
+VOYAGE_API_KEY=<dash.voyageai.com 또는 MongoDB Atlas 발급 키>
+# reranker 는 키가 있으면 기본 활성(reranker_enabled=true). 기존 .env 에
+# RERANKER_ENABLED=false 가 남아 있으면 reranker 가 꺼진 채 돈다 — true 로 갱신 필요.
 ```
 
 ### 4.1 비밀값 생성
@@ -190,6 +197,10 @@ TAVILY_API_KEY=<tavily.com 발급 키>
 ### 4.3 PlatformContext / Instagram oEmbed
 - [x] YouTube/X/Instagram URL 은 Agent `platformContext` 로 먼저 그라운딩 (2026-05-30).
 - [ ] Instagram 공식 oEmbed 를 운영에서 쓰려면 Meta app token + oEmbed 권한/리뷰를 확보하고 `INSTAGRAM_OEMBED_ACCESS_TOKEN` 을 설정.
+
+### 4.4 Voyage 임베딩 색인 (2026-06-12)
+- [ ] 각자 로컬 `.env`: `VOYAGE_API_KEY` 설정 + 기존 `RERANKER_ENABLED=false` 줄을 `true` 로 (또는 삭제 — 기본값이 true).
+- [ ] 마이그레이션 0018 적용 후 기존 데이터 재색인: `PYTHONPATH=. uv run python scripts/backfill_embeddings.py` (멱등 — 재실행 안전).
 - [ ] 토큰 미설정 상태에서는 Instagram OG fallback + screenshot Vision context 를 조합해 분석 정확도를 보강.
 
 ### 4.4 채팅 web_search — Tavily

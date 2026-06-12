@@ -1,0 +1,219 @@
+[
+  {
+    "query": "강아지 사료",
+    "expected_ids": [
+      "f_003",
+      "f_004"
+    ],
+    "single_answer": false,
+    "n_hard_neg": 5
+  },
+  {
+    "query": "노트북",
+    "expected_ids": [
+      "e_001",
+      "e_002",
+      "e_003"
+    ],
+    "single_answer": false,
+    "n_hard_neg": 4
+  },
+  {
+    "query": "다이어트",
+    "expected_ids": [
+      "f_001",
+      "f_002"
+    ],
+    "single_answer": false,
+    "n_hard_neg": 4
+  },
+  {
+    "query": "맛집",
+    "expected_ids": [
+      "d_004",
+      "d_005"
+    ],
+    "single_answer": false,
+    "n_hard_neg": 4
+  },
+  {
+    "query": "보조금",
+    "expected_ids": [
+      "b_004",
+      "b_005"
+    ],
+    "single_answer": false,
+    "n_hard_neg": 5
+  },
+  {
+    "query": "부동산",
+    "expected_ids": [
+      "c_020"
+    ],
+    "single_answer": true,
+    "n_hard_neg": 3
+  },
+  {
+    "query": "선크림",
+    "expected_ids": [
+      "a_015",
+      "a_016"
+    ],
+    "single_answer": false,
+    "n_hard_neg": 3
+  },
+  {
+    "query": "아이폰 케이스",
+    "expected_ids": [
+      "e_014",
+      "e_015"
+    ],
+    "single_answer": false,
+    "n_hard_neg": 4
+  },
+  {
+    "query": "에어팟",
+    "expected_ids": [
+      "e_008",
+      "e_009"
+    ],
+    "single_answer": false,
+    "n_hard_neg": 4
+  },
+  {
+    "query": "올리브영",
+    "expected_ids": [
+      "a_020",
+      "a_021"
+    ],
+    "single_answer": false,
+    "n_hard_neg": 4
+  },
+  {
+    "query": "원룸",
+    "expected_ids": [
+      "c_008",
+      "c_009"
+    ],
+    "single_answer": false,
+    "n_hard_neg": 4
+  },
+  {
+    "query": "자전거",
+    "expected_ids": [
+      "b_006",
+      "b_007"
+    ],
+    "single_answer": false,
+    "n_hard_neg": 4
+  },
+  {
+    "query": "적금",
+    "expected_ids": [
+      "f_005",
+      "f_006"
+    ],
+    "single_answer": false,
+    "n_hard_neg": 5
+  },
+  {
+    "query": "전기차",
+    "expected_ids": [
+      "b_001",
+      "b_002",
+      "b_003"
+    ],
+    "single_answer": false,
+    "n_hard_neg": 5
+  },
+  {
+    "query": "전세 대출",
+    "expected_ids": [
+      "c_014",
+      "c_015"
+    ],
+    "single_answer": false,
+    "n_hard_neg": 4
+  },
+  {
+    "query": "제주도 여행",
+    "expected_ids": [
+      "d_001",
+      "d_002",
+      "d_003"
+    ],
+    "single_answer": false,
+    "n_hard_neg": 5
+  },
+  {
+    "query": "청년 주거",
+    "expected_ids": [
+      "c_001",
+      "c_002",
+      "c_003"
+    ],
+    "single_answer": false,
+    "n_hard_neg": 4
+  },
+  {
+    "query": "충전",
+    "expected_ids": [
+      "b_008"
+    ],
+    "single_answer": true,
+    "n_hard_neg": 4
+  },
+  {
+    "query": "카메라",
+    "expected_ids": [
+      "e_020"
+    ],
+    "single_answer": true,
+    "n_hard_neg": 4
+  },
+  {
+    "query": "카페",
+    "expected_ids": [
+      "d_006",
+      "d_007"
+    ],
+    "single_answer": false,
+    "n_hard_neg": 4
+  },
+  {
+    "query": "캠핑",
+    "expected_ids": [
+      "d_008"
+    ],
+    "single_answer": true,
+    "n_hard_neg": 4
+  },
+  {
+    "query": "토익",
+    "expected_ids": [
+      "f_007",
+      "f_008"
+    ],
+    "single_answer": false,
+    "n_hard_neg": 4
+  },
+  {
+    "query": "향수",
+    "expected_ids": [
+      "a_010"
+    ],
+    "single_answer": true,
+    "n_hard_neg": 4
+  },
+  {
+    "query": "화장품",
+    "expected_ids": [
+      "a_001",
+      "a_002",
+      "a_003",
+      "a_004"
+    ],
+    "single_answer": false,
+    "n_hard_neg": 5
+  }
+]

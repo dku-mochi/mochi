@@ -94,6 +94,22 @@ class MochiItemRepository(Protocol):
         """
         ...
 
+    async def replace_embedding(
+        self,
+        *,
+        owner_id: UUID,
+        mochi_item_id: UUID,
+        chunk_text: str,
+        embedding: list[float],
+        model_version: str,
+    ) -> None:
+        """item 의 vector 색인을 단일 행으로 교체한다 (delete-reinsert — 재분석 멱등).
+
+        INDEXED 노드·backfill 의 write 경로. item 이 없거나 다른 owner 면 조용히 no-op
+        (분석 write-back 과 동일 계약). owner-scoped.
+        """
+        ...
+
     async def update_instance_lifecycle(
         self,
         *,

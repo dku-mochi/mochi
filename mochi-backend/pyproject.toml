@@ -55,6 +55,7 @@ dev = [
 lab = [
     "rank-bm25>=0.2.2",
     "numpy>=1.26.0",
+    "voyageai>=0.4.0",
 ]
 
 [tool.uv]

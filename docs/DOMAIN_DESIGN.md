@@ -76,7 +76,7 @@ iOS · 백엔드 · 프롬프트 모두 동일 용어를 쓴다.
 | **AgentRun** | MochiItem 1건 처리 LLM 오케스트레이션 실행 1회 |
 | **Outbox Message** | mochi_items COMMIT 직후 worker 가 픽업할 행 (`mochi_item_outbox`) |
 | **Idempotency Key** | `POST /mochi_items` 의 owner-scoped 키 |
-| **Embedding** | text-embedding (768d) chunk 벡터 |
+| **Embedding** | voyage-3-large (1024d) chunk 벡터 — input = summary + intent labels, INDEXED 노드가 색인 |
 | **Category** | LLM 이 뽑는 자유 카테고리 라벨. 주간 정리가 coarse 정규화 write (§4.4) |
 
 > design-ahead 용어(ActionCandidate · Citation · Tag · Conversation 등)는 §10 에서 정의. 본문은 as-built 만.
@@ -98,7 +98,7 @@ erDiagram
     mochi_items ||--o{ intent_instances : "1:N intents"
     mochi_items ||--o{ mochi_item_image_refs : has
     mochi_items ||--o{ entities : extracts
-    mochi_items ||--o{ embeddings : "HNSW 768d"
+    mochi_items ||--o{ embeddings : "HNSW 1024d"
     mochi_items ||--|| mochi_item_outbox : "1:1 enqueue"
     mochi_items ||--o{ agent_runs : "processed by"
     agent_runs  ||--o{ tool_calls : invokes
@@ -113,7 +113,7 @@ erDiagram
 |---|---|---|
 | Identity | `users` · `auth_accounts` · `refresh_tokens` | OAuth 연결, refresh rotation chain, soft delete |
 | Mochi | `mochi_items` · `intent_instances` · `mochi_item_image_refs` · `entities` | aggregate root + 의도 1급 행 + 이미지·추출물 |
-| AI | `embeddings` | 청크 벡터 (768d, HNSW) |
+| AI | `embeddings` | 청크 벡터 (voyage-3-large 1024d, HNSW) |
 | Operations | `agent_runs` · `tool_calls` · `mochi_item_outbox` · `idempotency_keys` · `user_profiles` | 처리 로그·큐·멱등성·개인화 |
 | Notifications | `device_push_tokens` | APNs 토큰 (§6.4) |
 | Conversations | `conversations` · `messages` · `message_citations` | 채팅(질문 탭) 멀티턴 대화 — **서버 단일원천, iOS Realm 미러 없음** (§6 미러 규약은 MochiItem 소관). run 영속은 별도 테이블 없이 user message 행의 `run_id/run_status/run_started_at`(stale 은 스냅샷 읽기 시점 lazy repair). citation 은 item FK 없는 스냅샷 — item 삭제 후에도 "그때의 근거" 보존 |

@@ -96,6 +96,7 @@ class _FakeGateway:
     def __init__(self, source: AnalysisInput):
         self._source = source
         self.applied = None
+        self.indexed = None
 
     async def load_source(self, *, owner_id, mochi_item_id):
         return self._source
@@ -103,11 +104,36 @@ class _FakeGateway:
     async def apply_analysis(self, *, owner_id, mochi_item_id, result):
         self.applied = result
 
+    async def index_embedding(self, *, owner_id, mochi_item_id, chunk_text, embedding, model_version):
+        self.indexed = {
+            "chunk_text": chunk_text,
+            "embedding": embedding,
+            "model_version": model_version,
+        }
+
     async def list_recent_window(self, *, owner_id, limit):
         return []
 
     async def count_items(self, *, owner_id):
         return 0
+
+
+class _FakeEmbedder:
+    model_version = "voyage-3-large@1024"
+
+    def __init__(self):
+        self.calls = []
+
+    async def embed_documents(self, texts):
+        self.calls.append(list(texts))
+        return [[0.1] * 4 for _ in texts]
+
+
+class _ExplodingEmbedder:
+    model_version = "voyage-3-large@1024"
+
+    async def embed_documents(self, texts):
+        raise RuntimeError("voyage down")
 
 
 def _finalize_chunk(
@@ -172,6 +198,84 @@ async def test_no_url_single_turn_finalize_writes_back():
     assert gateway.applied.summary == "할 일 요약"
     assert any(e.kind == "final" for e in events)
     assert "# 시간 컨텍스트" in llm.calls[0]["user_parts"][0]["text"]
+
+
+@pytest.mark.asyncio
+async def test_indexed_node_embeds_summary_and_labels():
+    # INDEXED — 임베딩 input 은 summary + intent labels (rag-rerank-eval 고정 조건).
+    gateway = _FakeGateway(AnalysisInput(text="t", url=None, user_memo=None))
+    embedder = _FakeEmbedder()
+    orch = AgentOrchestrator(
+        llm=_ScriptedLLM([_finalize_chunk()]),
+        tools=_Registry(),
+        max_steps=8,
+        gateway=gateway,
+        embedder=embedder,
+    )
+    await _drain(orch, uuid4(), uuid4())
+    assert embedder.calls == [["할 일 요약 후보"]]
+    assert gateway.indexed["chunk_text"] == "할 일 요약 후보"
+    assert gateway.indexed["embedding"] == [0.1] * 4
+    assert gateway.indexed["model_version"] == "voyage-3-large@1024"
+
+
+@pytest.mark.asyncio
+async def test_indexed_failure_is_best_effort_and_run_succeeds():
+    # 색인 실패가 run 을 죽이면 outbox 재시도 = Gemini 재분석 비용 — 분석은 이미 영속됐다.
+    gateway = _FakeGateway(AnalysisInput(text="t", url=None, user_memo=None))
+    orch = AgentOrchestrator(
+        llm=_ScriptedLLM([_finalize_chunk()]),
+        tools=_Registry(),
+        max_steps=8,
+        gateway=gateway,
+        embedder=_ExplodingEmbedder(),
+    )
+    events = await _drain(orch, uuid4(), uuid4())
+    assert gateway.applied is not None
+    assert gateway.indexed is None
+    assert any(e.kind == "final" for e in events)
+
+
+@pytest.mark.asyncio
+async def test_indexed_timeout_is_best_effort(monkeypatch):
+    # 임베딩이 INDEXED 자체 상한을 넘으면 — 워커 전체 예산(120s)을 침범해 run 이
+    # CancelledError 로 죽는 대신 — 색인만 포기하고 run 은 완주한다 (리뷰 P1).
+    import asyncio
+
+    import app.modules.agent.application.orchestrator as orch_mod
+
+    monkeypatch.setattr(orch_mod, "_INDEX_EMBED_TIMEOUT_SECONDS", 0.01)
+
+    class _SlowEmbedder:
+        model_version = "voyage-3-large@1024"
+
+        async def embed_documents(self, texts):
+            await asyncio.sleep(0.2)
+            return [[0.1] * 4 for _ in texts]
+
+    gateway = _FakeGateway(AnalysisInput(text="t", url=None, user_memo=None))
+    orch = AgentOrchestrator(
+        llm=_ScriptedLLM([_finalize_chunk()]),
+        tools=_Registry(),
+        max_steps=8,
+        gateway=gateway,
+        embedder=_SlowEmbedder(),
+    )
+    events = await _drain(orch, uuid4(), uuid4())
+    assert gateway.applied is not None
+    assert gateway.indexed is None
+    assert any(e.kind == "final" for e in events)
+
+
+@pytest.mark.asyncio
+async def test_without_embedder_indexing_is_skipped():
+    gateway = _FakeGateway(AnalysisInput(text="t", url=None, user_memo=None))
+    orch = AgentOrchestrator(
+        llm=_ScriptedLLM([_finalize_chunk()]), tools=_Registry(), max_steps=8, gateway=gateway
+    )
+    events = await _drain(orch, uuid4(), uuid4())
+    assert gateway.indexed is None
+    assert any(e.kind == "final" for e in events)
 
 
 @pytest.mark.asyncio

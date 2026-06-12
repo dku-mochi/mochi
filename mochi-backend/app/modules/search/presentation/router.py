@@ -3,12 +3,13 @@ from uuid import UUID
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
 
-from app.core.deps import DBSession
+from app.core.deps import DBSession, get_voyage_client
 from app.core.security import CurrentUser
 from app.modules.search.application.hybrid_search import HybridSearch
 from app.modules.search.domain.entities import Citation, SearchQuery, SearchScope
 from app.modules.search.domain.ports import AnswerSynthesizer
-from app.modules.search.infrastructure.postgres_index import PostgresHybridIndex, naive_embed
+from app.modules.search.infrastructure.postgres_index import PostgresHybridIndex
+from app.modules.search.infrastructure.voyage_adapter import VoyageReranker, make_query_embedder
 
 router = APIRouter(prefix="/search", tags=["search"])
 
@@ -52,8 +53,15 @@ class _ExtractiveSynthesizer(AnswerSynthesizer):
 
 @router.post("", response_model=SearchResponse)
 async def search(payload: SearchRequest, db: DBSession, user: CurrentUser) -> SearchResponse:
-    index = PostgresHybridIndex(db, query_embedding_provider=naive_embed)
-    use_case = HybridSearch(index=index, synthesizer=_ExtractiveSynthesizer())
+    # voyage 키 미설정 시: embedder 는 None 을 돌려 vector 후보 생략, reranker 는 미장착 —
+    # BM25 + RRF 순서로 degrade 하되 검색 자체는 항상 동작한다.
+    voyage = get_voyage_client()
+    index = PostgresHybridIndex(db, query_embedding_provider=make_query_embedder(voyage))
+    use_case = HybridSearch(
+        index=index,
+        synthesizer=_ExtractiveSynthesizer(),
+        reranker=VoyageReranker(voyage) if voyage is not None else None,
+    )
     result = await use_case.execute(
         SearchQuery(
             text=payload.query,

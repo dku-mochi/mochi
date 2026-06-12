@@ -1,0 +1,8047 @@
+[
+  {
+    "id": "a_001",
+    "summary": "올리브영 앱 스크린샷. 토리든 다이브인 저분자 히알루론산 세럼 50ml, 평소 사려고 장바구니에 담아둔 화장품.",
+    "labels": [
+      "화장품 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "토리든"
+      },
+      {
+        "kind": "product",
+        "value": "다이브인 세럼"
+      },
+      {
+        "kind": "platform",
+        "value": "올리브영"
+      }
+    ],
+    "category": "beauty",
+    "role": "answer",
+    "for_query": "화장품"
+  },
+  {
+    "id": "a_002",
+    "summary": "인스타에서 본 에스트라 아토베리어365 크림 추천 게시물 캡처. 건성 피부에 좋다고 해서 다음에 써보려고 저장.",
+    "labels": [
+      "화장품 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "에스트라"
+      },
+      {
+        "kind": "product",
+        "value": "아토베리어365 크림"
+      }
+    ],
+    "category": "beauty",
+    "role": "answer",
+    "for_query": "화장품"
+  },
+  {
+    "id": "a_003",
+    "summary": "유튜브 영상에서 추천한 라네즈 워터뱅크 블루 히알루로닉 크림 메모. 환절기 수분크림으로 바꿀까 고민 중.",
+    "labels": [
+      "화장품 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "라네즈"
+      },
+      {
+        "kind": "product",
+        "value": "워터뱅크 크림"
+      }
+    ],
+    "category": "beauty",
+    "role": "answer",
+    "for_query": "화장품"
+  },
+  {
+    "id": "a_004",
+    "summary": "닥터지 레드 블레미쉬 클리어 수딩 토너 5만 리뷰 캡처. 진정 토너 사려고 후보로 저장해둠.",
+    "labels": [
+      "화장품 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "닥터지"
+      },
+      {
+        "kind": "product",
+        "value": "수딩 토너"
+      }
+    ],
+    "category": "beauty",
+    "role": "answer",
+    "for_query": "화장품"
+  },
+  {
+    "id": "a_005",
+    "summary": "화장품 공병 분리배출 안내 카드뉴스 캡처. 펌프 용기는 일반쓰레기라는 내용. 버릴 때 참고하려고 저장.",
+    "labels": [
+      "재활용 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "공병 분리배출"
+      }
+    ],
+    "category": "beauty",
+    "role": "hard_neg",
+    "for_query": "화장품"
+  },
+  {
+    "id": "a_006",
+    "summary": "아모레퍼시픽 주가 차트 스크린샷. 화장품 대장주 실적 발표 후 급등했다는 증권사 리포트.",
+    "labels": [
+      "투자 정보"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "아모레퍼시픽"
+      },
+      {
+        "kind": "topic",
+        "value": "주가"
+      }
+    ],
+    "category": "beauty",
+    "role": "hard_neg",
+    "for_query": "화장품"
+  },
+  {
+    "id": "a_007",
+    "summary": "화장품 가짜 성분 표기 논란 뉴스 기사 링크. 특정 브랜드 EWG 등급 조작 의혹 보도.",
+    "labels": [
+      "뉴스 스크랩"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "성분 논란"
+      }
+    ],
+    "category": "beauty",
+    "role": "hard_neg",
+    "for_query": "화장품"
+  },
+  {
+    "id": "a_008",
+    "summary": "어린이 화장품 놀이 키트 광고 캡처. 조카 선물용 장난감 메이크업 세트. 화장품 구매가 아니라 장난감.",
+    "labels": [
+      "선물 아이디어"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "어린이 화장품 키트"
+      }
+    ],
+    "category": "beauty",
+    "role": "hard_neg",
+    "for_query": "화장품"
+  },
+  {
+    "id": "a_009",
+    "summary": "화장품 회사 마케팅 직무 채용공고 캡처. 이직 알아보다가 저장한 구인글.",
+    "labels": [
+      "채용 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "채용공고"
+      }
+    ],
+    "category": "beauty",
+    "role": "hard_neg",
+    "for_query": "화장품"
+  },
+  {
+    "id": "a_010",
+    "summary": "딥티크 도손 오 드 뚜왈렛 75ml 면세점 가격 비교 캡처. 다음 여행 때 사려고 점찍어둔 향수.",
+    "labels": [
+      "향수 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "딥티크"
+      },
+      {
+        "kind": "product",
+        "value": "도손 오 드 뚜왈렛"
+      }
+    ],
+    "category": "beauty",
+    "role": "answer",
+    "for_query": "향수"
+  },
+  {
+    "id": "a_011",
+    "summary": "다 쓴 조말론 향수 공병 업사이클링 방법 블로그 캡처. 디퓨저로 재활용하는 법. 사려는 게 아니라 처리법.",
+    "labels": [
+      "재활용 정보"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "조말론"
+      },
+      {
+        "kind": "topic",
+        "value": "공병 재활용"
+      }
+    ],
+    "category": "beauty",
+    "role": "hard_neg",
+    "for_query": "향수"
+  },
+  {
+    "id": "a_012",
+    "summary": "성수동 나만의 향수 만들기 원데이클래스 예약 페이지 캡처. 향 조향 체험 클래스. 제품 구매와 무관.",
+    "labels": [
+      "클래스 예약"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "향수 만들기 클래스"
+      },
+      {
+        "kind": "location",
+        "value": "성수동"
+      }
+    ],
+    "category": "beauty",
+    "role": "hard_neg",
+    "for_query": "향수"
+  },
+  {
+    "id": "a_013",
+    "summary": "섬유 향수(패브릭 퍼퓸) 추천 글 캡처. 옷에 뿌리는 다우니 계열 제품. 몸에 뿌리는 향수가 아님.",
+    "labels": [
+      "생활용품 정보"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "섬유 향수"
+      }
+    ],
+    "category": "beauty",
+    "role": "hard_neg",
+    "for_query": "향수"
+  },
+  {
+    "id": "a_014",
+    "summary": "방향제·룸스프레이 향수 비교 영상 캡처. 집에 둘 디퓨저 고르는 중. 착용하는 향수가 아니라 공간용.",
+    "labels": [
+      "인테리어 정보"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "룸스프레이"
+      }
+    ],
+    "category": "beauty",
+    "role": "hard_neg",
+    "for_query": "향수"
+  },
+  {
+    "id": "a_015",
+    "summary": "라운드랩 자작나무 수분 선크림 SPF50+ PA++++ 50ml 리뷰 캡처. 끈적임 적다고 해서 사려고 저장.",
+    "labels": [
+      "선크림 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "라운드랩"
+      },
+      {
+        "kind": "product",
+        "value": "자작나무 수분 선크림"
+      }
+    ],
+    "category": "beauty",
+    "role": "answer",
+    "for_query": "선크림"
+  },
+  {
+    "id": "a_016",
+    "summary": "닥터지 브라이트닝 업 선크림 톤업 제품 캡처. 백탁 없는 톤업선크림 찾다가 후보로 저장.",
+    "labels": [
+      "선크림 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "닥터지"
+      },
+      {
+        "kind": "product",
+        "value": "브라이트닝 업 선크림"
+      }
+    ],
+    "category": "beauty",
+    "role": "answer",
+    "for_query": "선크림"
+  },
+  {
+    "id": "a_017",
+    "summary": "반려견 코·귀 화상 방지용 강아지 선크림 광고 캡처. 사람용이 아니라 펫 전용 제품.",
+    "labels": [
+      "반려동물 용품"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "강아지 선크림"
+      }
+    ],
+    "category": "beauty",
+    "role": "hard_neg",
+    "for_query": "선크림"
+  },
+  {
+    "id": "a_018",
+    "summary": "자동차 앞유리 썬팅(선팅) 시공 견적 캡처. 차량 유리 필름. 피부용 선크림과 전혀 다름.",
+    "labels": [
+      "차량 정비"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "자동차 썬팅"
+      }
+    ],
+    "category": "beauty",
+    "role": "hard_neg",
+    "for_query": "선크림"
+  },
+  {
+    "id": "a_019",
+    "summary": "선크림 다시 바르는 타이밍 정리한 피부과 의사 카드뉴스. 사용법 정보일 뿐 구매 대상 제품이 아님.",
+    "labels": [
+      "스킨케어 상식"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "선크림 재도포"
+      }
+    ],
+    "category": "beauty",
+    "role": "hard_neg",
+    "for_query": "선크림"
+  },
+  {
+    "id": "a_020",
+    "summary": "올리브영 세일 캘린더 캡처. 이번 달 올영세일 기간과 증정 사은품 정리. 세일 때 쇼핑하려고 저장.",
+    "labels": [
+      "세일 일정 체크"
+    ],
+    "entities": [
+      {
+        "kind": "platform",
+        "value": "올리브영"
+      },
+      {
+        "kind": "topic",
+        "value": "올영세일"
+      }
+    ],
+    "category": "beauty",
+    "role": "answer",
+    "for_query": "올리브영"
+  },
+  {
+    "id": "a_021",
+    "summary": "올리브영 강남본점 리뉴얼 오픈 안내 인스타 캡처. 매장 가서 신상 구경하려고 저장한 위치 정보.",
+    "labels": [
+      "매장 방문 계획"
+    ],
+    "entities": [
+      {
+        "kind": "platform",
+        "value": "올리브영"
+      },
+      {
+        "kind": "location",
+        "value": "강남본점"
+      }
+    ],
+    "category": "beauty",
+    "role": "answer",
+    "for_query": "올리브영"
+  },
+  {
+    "id": "a_022",
+    "summary": "쿠팡에서 본 화장품 할인 기획전 캡처. 올리브영이 아니라 쿠팡 뷰티 단독 세일. 매장·플랫폼이 다름.",
+    "labels": [
+      "세일 정보"
+    ],
+    "entities": [
+      {
+        "kind": "platform",
+        "value": "쿠팡"
+      }
+    ],
+    "category": "beauty",
+    "role": "hard_neg",
+    "for_query": "올리브영"
+  },
+  {
+    "id": "a_023",
+    "summary": "CJ올리브영 채용 설명회 일정 캡처. 입사 지원 알아보다가 저장. 쇼핑이 아니라 취업.",
+    "labels": [
+      "채용 정보"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "올리브영"
+      },
+      {
+        "kind": "topic",
+        "value": "채용"
+      }
+    ],
+    "category": "beauty",
+    "role": "hard_neg",
+    "for_query": "올리브영"
+  },
+  {
+    "id": "a_024",
+    "summary": "올리브영 주차 정산 영수증 사진. 방문 후 주차비 환급용으로 찍어둔 것. 제품·세일과 무관한 기록.",
+    "labels": [
+      "영수증 보관"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "올리브영"
+      },
+      {
+        "kind": "topic",
+        "value": "주차 정산"
+      }
+    ],
+    "category": "beauty",
+    "role": "hard_neg",
+    "for_query": "올리브영"
+  },
+  {
+    "id": "a_025",
+    "summary": "올리브영 적립포인트 소멸 예정 알림 캡처. 포인트 만료 전 쓰라는 안내. 특정 제품·세일 정보는 아님.",
+    "labels": [
+      "포인트 관리"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "올리브영"
+      },
+      {
+        "kind": "topic",
+        "value": "적립포인트"
+      }
+    ],
+    "category": "beauty",
+    "role": "hard_neg",
+    "for_query": "올리브영"
+  },
+  {
+    "id": "a_026",
+    "summary": "굵은 웨이브 매직 셋팅펌 헤어스타일 캡처. 다음 미용실 갈 때 보여주려고 저장한 스타일 참고.",
+    "labels": [
+      "헤어스타일 참고"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "셋팅펌"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_027",
+    "summary": "젤네일 아트 디자인 모음 핀터레스트 캡처. 봄 시즌 파스텔 네일 도안. 네일샵 예약 전 참고용.",
+    "labels": [
+      "네일 디자인 참고"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "젤네일"
+      },
+      {
+        "kind": "platform",
+        "value": "핀터레스트"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_028",
+    "summary": "메디힐 마스크팩 10+10 묶음 후기 영상. 환절기 진정팩 데일리로 쓰는 사람들 리뷰.",
+    "labels": [
+      "마스크팩 정보"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "메디힐"
+      },
+      {
+        "kind": "product",
+        "value": "마스크팩"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_029",
+    "summary": "데일리 메이크업 튜토리얼 유튜브 캡처. 회사용 5분 자연 화장 따라하기 영상 북마크.",
+    "labels": [
+      "메이크업 튜토리얼"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "데일리 메이크업"
+      },
+      {
+        "kind": "platform",
+        "value": "유튜브"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_030",
+    "summary": "뷰티 유튜버 '레오제이' 신상 쿠션 리뷰 영상 캡처. 데일리 추천템 정리 영상 저장.",
+    "labels": [
+      "뷰티 콘텐츠"
+    ],
+    "entities": [
+      {
+        "kind": "person",
+        "value": "레오제이"
+      },
+      {
+        "kind": "platform",
+        "value": "유튜브"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_031",
+    "summary": "동네 미용실 예약 앱 화면 캡처. 토요일 오전 컷 예약 시간 확인용 스크린샷.",
+    "labels": [
+      "미용실 예약"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "미용실 예약"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_032",
+    "summary": "쌍커풀 없는 눈 아이라이너 그리는 법 카드뉴스. 속눈썹 사이 채우는 팁 정리 저장.",
+    "labels": [
+      "메이크업 팁"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "아이라이너"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_033",
+    "summary": "퍼스널컬러 진단 결과 사진. 여름 쿨톤 라이트 진단표. 어울리는 색 참고용으로 저장.",
+    "labels": [
+      "퍼스널컬러"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "퍼스널컬러"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_034",
+    "summary": "두피 스케일링 홈케어 방법 블로그 캡처. 비듬·각질 관리 루틴 정리 메모.",
+    "labels": [
+      "두피 관리"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "두피 스케일링"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_035",
+    "summary": "셀프 왁싱 키트 사용 후기 영상. 집에서 하는 제모 방법 비교 콘텐츠 북마크.",
+    "labels": [
+      "제모 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "셀프 왁싱"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_036",
+    "summary": "속눈썹 연장 디자인 종류 비교 캡처. C컬·D컬 차이 정리. 다음 시술 때 참고하려고 저장.",
+    "labels": [
+      "속눈썹 연장"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "속눈썹 연장"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_037",
+    "summary": "남자 눈썹 정리 가이드 캡처. 일자눈썹 다듬는 법 단계별 사진. 셀프 그루밍 참고.",
+    "labels": [
+      "그루밍 팁"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "눈썹 정리"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_038",
+    "summary": "립 메이크업 컬러별 추천 정리표. MLBB·코랄·뮤트레드 비교 이미지 저장.",
+    "labels": [
+      "립 컬러 참고"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "립스틱 컬러"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_039",
+    "summary": "셀프 염색 갈색 컬러 발색 비교 사진. 어두운 애쉬브라운 후기 모음 캡처.",
+    "labels": [
+      "셀프 염색"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "셀프 염색"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_040",
+    "summary": "피부과 모공·여드름흉터 레이저 시술 가격 비교 캡처. 상담 예약 전 후기 참고용.",
+    "labels": [
+      "피부과 시술"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "레이저 시술"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_041",
+    "summary": "헤어 드라이 볼륨 살리는 법 영상 캡처. 뿌리 볼륨 롤브러시 사용법 따라하기.",
+    "labels": [
+      "헤어 스타일링"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "헤어 드라이"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_042",
+    "summary": "수분 가득 글로우 베이스 메이크업 순서 정리. 촉촉한 물광 표현 단계별 캡처.",
+    "labels": [
+      "베이스 메이크업"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "글로우 메이크업"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_043",
+    "summary": "네일 영양제·큐티클 오일 셀프케어 루틴 메모. 손톱 약한 사람 관리법 정리.",
+    "labels": [
+      "손톱 관리"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "큐티클 케어"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_044",
+    "summary": "뷰티 인플루언서 '이사배' 가을 메이크업 룩북 영상. 분위기 메이크업 참고 저장.",
+    "labels": [
+      "메이크업 룩북"
+    ],
+    "entities": [
+      {
+        "kind": "person",
+        "value": "이사배"
+      },
+      {
+        "kind": "platform",
+        "value": "유튜브"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_045",
+    "summary": "헤어 트리트먼트 홈케어 추천 글 캡처. 손상모 단백질 케어 순서 정리 메모.",
+    "labels": [
+      "헤어 케어"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "헤어 트리트먼트"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_046",
+    "summary": "남자 면도 후 피부 진정 루틴 정리. 면도독 줄이는 애프터쉐이브 사용법 캡처.",
+    "labels": [
+      "면도 관리"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "면도 케어"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_047",
+    "summary": "다크서클 가리는 컨실러 색 고르는 법 카드뉴스. 피치·오렌지 보정 팁 저장.",
+    "labels": [
+      "컨실러 팁"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "컨실러"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_048",
+    "summary": "발 각질·발뒤꿈치 관리 풋케어 방법 영상 캡처. 집에서 하는 풋스파 루틴 북마크.",
+    "labels": [
+      "풋케어"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "풋케어"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_049",
+    "summary": "웨딩 메이크업 스타일 모음 캡처. 친구 결혼식 하객 화장 참고용 이미지 저장.",
+    "labels": [
+      "행사 메이크업"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "웨딩 메이크업"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_050",
+    "summary": "헤어 컬러별 피부톤 매칭 차트 캡처. 쿨톤에 어울리는 염색 색 정리표 저장.",
+    "labels": [
+      "헤어 컬러 참고"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "헤어 컬러"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_051",
+    "summary": "마스크팩 올바른 사용 시간 정리 카드뉴스. 15분 넘기면 오히려 건조해진다는 팁.",
+    "labels": [
+      "스킨케어 상식"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "마스크팩 사용법"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_052",
+    "summary": "남자 머리 스타일 댄디컷 사진 모음. 미용실 가서 보여줄 컷 참고 이미지.",
+    "labels": [
+      "헤어스타일 참고"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "댄디컷"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_053",
+    "summary": "아이브로우 펜슬 그리는 각도 가이드 캡처. 자연스러운 눈썹 산 위치 잡는 법 저장.",
+    "labels": [
+      "눈썹 메이크업"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "아이브로우"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_054",
+    "summary": "속눈썹 뷰러 사용 꿀팁 영상 캡처. 컬 오래 유지하는 드라이기 데우기 방법.",
+    "labels": [
+      "메이크업 팁"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "뷰러"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_055",
+    "summary": "수면팩 vs 나이트크림 차이 정리 글 캡처. 밤 스킨케어 마무리 단계 비교 메모.",
+    "labels": [
+      "스킨케어 상식"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "수면팩"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_056",
+    "summary": "헤어 에센스 추천 순위 영상 캡처. 푸석한 모발 윤기내는 오일 비교 콘텐츠.",
+    "labels": [
+      "헤어 케어"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "헤어 에센스"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_057",
+    "summary": "블러셔 위치별 인상 변화 비교 캡처. 어려보이는 볼터치 위치 정리 이미지.",
+    "labels": [
+      "블러셔 팁"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "블러셔"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_058",
+    "summary": "셀프 손톱 정리 도구 추천 글 캡처. 네일 파일·푸셔 세트 입문 가이드 저장.",
+    "labels": [
+      "네일 도구"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "네일 도구"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_059",
+    "summary": "피부 타입별 클렌징 순서 정리 카드뉴스. 이중세안 필요한 경우 설명 메모.",
+    "labels": [
+      "클렌징 상식"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "이중세안"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_060",
+    "summary": "뷰티 유튜버 합동 데일리 화장품 정리 영상 캡처. 비포애프터 메이크업 모음.",
+    "labels": [
+      "뷰티 콘텐츠"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "메이크업 영상"
+      },
+      {
+        "kind": "platform",
+        "value": "유튜브"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_061",
+    "summary": "헤어 고데기 웨이브 만드는 법 영상 캡처. 32mm 봉으로 굵은 컬 내기 따라하기.",
+    "labels": [
+      "헤어 스타일링"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "고데기"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_062",
+    "summary": "남자 화장 입문 BB크림 바르는 법 캡처. 티 안 나게 피부톤만 정리하는 팁.",
+    "labels": [
+      "남성 메이크업"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "남자 화장"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_063",
+    "summary": "마스크팩 종류별 효과 비교표 캡처. 시트팩·워시오프·필오프 차이 정리 저장.",
+    "labels": [
+      "마스크팩 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "마스크팩 종류"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_064",
+    "summary": "네일샵 예약 카톡 캡처. 다음 주 수요일 7시 젤네일 예약 확정 메시지 보관.",
+    "labels": [
+      "네일샵 예약"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "네일샵 예약"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "a_065",
+    "summary": "피부 진정에 좋은 음식 정리 카드뉴스. 여드름 피부 식습관 팁 메모. 제품과 무관한 생활 정보.",
+    "labels": [
+      "피부 건강 상식"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "피부 건강"
+      }
+    ],
+    "category": "beauty",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_001",
+    "summary": "LG 그램 2025 16인치 (16Z90TR) 스펙·가격 비교표 캡처. 인텔 Core Ultra7, 16GB, 무게 1.19kg. 인강·문서작업용으로 살지 고민 중. 다나와 최저가 189만원.",
+    "labels": [
+      "노트북 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "LG 그램 16Z90TR"
+      },
+      {
+        "kind": "brand",
+        "value": "LG"
+      },
+      {
+        "kind": "topic",
+        "value": "스펙비교"
+      },
+      {
+        "kind": "platform",
+        "value": "다나와"
+      }
+    ],
+    "category": "electronics",
+    "role": "answer",
+    "for_query": "노트북"
+  },
+  {
+    "id": "e_002",
+    "summary": "맥북 에어 M3 13인치 vs 맥북 프로 M4 14인치 어떤 걸 살지 정리한 노션 페이지 캡처. 영상편집 가끔 하는데 에어로 충분한지 댓글 후기 모음.",
+    "labels": [
+      "노트북 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "맥북 에어 M3"
+      },
+      {
+        "kind": "product",
+        "value": "맥북 프로 M4"
+      },
+      {
+        "kind": "brand",
+        "value": "Apple"
+      },
+      {
+        "kind": "topic",
+        "value": "영상편집"
+      }
+    ],
+    "category": "electronics",
+    "role": "answer",
+    "for_query": "노트북"
+  },
+  {
+    "id": "e_003",
+    "summary": "삼성 갤럭시북4 프로 360 학생할인가 캡처. 교육스토어에서 142만원, 펜 포함. 필기용 2in1 노트북으로 살까 고민하며 저장.",
+    "labels": [
+      "노트북 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "갤럭시북4 프로 360"
+      },
+      {
+        "kind": "brand",
+        "value": "삼성"
+      },
+      {
+        "kind": "topic",
+        "value": "학생할인"
+      },
+      {
+        "kind": "platform",
+        "value": "삼성 교육스토어"
+      }
+    ],
+    "category": "electronics",
+    "role": "answer",
+    "for_query": "노트북"
+  },
+  {
+    "id": "e_004",
+    "summary": "3년 쓴 그램 노트북 힌지 깨짐·배터리 부풀음 LG 서비스센터 수리비 견적 캡처. 메인보드 포함 38만원이라 새로 살지 고치는 게 나은지 메모.",
+    "labels": [
+      "노트북 수리"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "LG 그램"
+      },
+      {
+        "kind": "topic",
+        "value": "수리견적"
+      },
+      {
+        "kind": "location",
+        "value": "LG 서비스센터"
+      }
+    ],
+    "category": "electronics",
+    "role": "hard_neg",
+    "for_query": "노트북"
+  },
+  {
+    "id": "e_005",
+    "summary": "안 쓰는 맥북 프로 2020 인텔 모델 중고나라 시세 조회 캡처. 65만~75만원 선. 처분하려고 상태 사진이랑 같이 저장.",
+    "labels": [
+      "노트북 처분"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "맥북 프로 2020"
+      },
+      {
+        "kind": "topic",
+        "value": "중고판매"
+      },
+      {
+        "kind": "platform",
+        "value": "중고나라"
+      }
+    ],
+    "category": "electronics",
+    "role": "hard_neg",
+    "for_query": "노트북"
+  },
+  {
+    "id": "e_006",
+    "summary": "노트북 거치대 추천 블로그 캡처. 알루미늄 접이식 스탠드 vs 모니터암 비교. 목 안 아프게 쓰려고 액세서리 알아보는 중.",
+    "labels": [
+      "노트북 액세서리"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "노트북 거치대"
+      },
+      {
+        "kind": "topic",
+        "value": "액세서리"
+      }
+    ],
+    "category": "electronics",
+    "role": "hard_neg",
+    "for_query": "노트북"
+  },
+  {
+    "id": "e_007",
+    "summary": "노트북 가방 겸 백팩 추천 정리. 16인치 수납되는 쌤소나이트 vs 인케이스 비교. 출퇴근용으로 살지 저장.",
+    "labels": [
+      "노트북 액세서리"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "노트북 백팩"
+      },
+      {
+        "kind": "brand",
+        "value": "인케이스"
+      },
+      {
+        "kind": "topic",
+        "value": "액세서리"
+      }
+    ],
+    "category": "electronics",
+    "role": "hard_neg",
+    "for_query": "노트북"
+  },
+  {
+    "id": "e_008",
+    "summary": "에어팟 프로 2 USB-C 쿠팡 로켓 가격 캡처. 31만2천원, 액티브 노이즈캔슬링. 지하철 출퇴근용으로 살까 고민하며 후기 같이 저장.",
+    "labels": [
+      "에어팟 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "에어팟 프로 2 USB-C"
+      },
+      {
+        "kind": "brand",
+        "value": "Apple"
+      },
+      {
+        "kind": "topic",
+        "value": "노이즈캔슬링"
+      },
+      {
+        "kind": "platform",
+        "value": "쿠팡"
+      }
+    ],
+    "category": "electronics",
+    "role": "answer",
+    "for_query": "에어팟"
+  },
+  {
+    "id": "e_009",
+    "summary": "에어팟 프로 2 vs 삼성 갤럭시 버즈3 프로 노이즈캔슬링·통화품질 비교 유튜브 캡처. 아이폰이라 에어팟 쪽으로 기우는 중. 무선이어폰 구매 결정 보류.",
+    "labels": [
+      "에어팟 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "에어팟 프로 2"
+      },
+      {
+        "kind": "product",
+        "value": "갤럭시 버즈3 프로"
+      },
+      {
+        "kind": "topic",
+        "value": "이어폰비교"
+      },
+      {
+        "kind": "platform",
+        "value": "유튜브"
+      }
+    ],
+    "category": "electronics",
+    "role": "answer",
+    "for_query": "에어팟"
+  },
+  {
+    "id": "e_010",
+    "summary": "잃어버린 에어팟 한쪽 '나의 찾기'로 위치 추적 화면 캡처. 회사 회의실 근처로 떠서 가서 찾아봐야 함. 분실 기록.",
+    "labels": [
+      "에어팟 분실"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "에어팟"
+      },
+      {
+        "kind": "topic",
+        "value": "분실추적"
+      },
+      {
+        "kind": "location",
+        "value": "회의실"
+      }
+    ],
+    "category": "electronics",
+    "role": "hard_neg",
+    "for_query": "에어팟"
+  },
+  {
+    "id": "e_011",
+    "summary": "에어팟 프로 케이스 실리콘 커버 추천 캡처. 카라비너 달린 거 9900원. 본체 말고 케이스 보호하려고 알아보는 중.",
+    "labels": [
+      "에어팟 액세서리"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "에어팟 케이스 커버"
+      },
+      {
+        "kind": "topic",
+        "value": "액세서리"
+      }
+    ],
+    "category": "electronics",
+    "role": "hard_neg",
+    "for_query": "에어팟"
+  },
+  {
+    "id": "e_012",
+    "summary": "에어팟 프로 2 한쪽만 소리 안 나서 청소·재페어링 방법 정리 글 캡처. 메쉬 귀지 청소법. 수리 전에 해보려고 저장.",
+    "labels": [
+      "에어팟 수리"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "에어팟 프로 2"
+      },
+      {
+        "kind": "topic",
+        "value": "고장수리"
+      }
+    ],
+    "category": "electronics",
+    "role": "hard_neg",
+    "for_query": "에어팟"
+  },
+  {
+    "id": "e_013",
+    "summary": "소니 WF-1000XM5 무선이어폰 가격·후기 캡처. 안드로이드폰용으로 살까 봤는데 32만원. 에어팟이랑 고민하다 일단 보류.",
+    "labels": [
+      "이어폰 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "소니 WF-1000XM5"
+      },
+      {
+        "kind": "brand",
+        "value": "소니"
+      },
+      {
+        "kind": "topic",
+        "value": "노이즈캔슬링"
+      }
+    ],
+    "category": "electronics",
+    "role": "hard_neg",
+    "for_query": "에어팟"
+  },
+  {
+    "id": "e_014",
+    "summary": "아이폰15 프로 투명 케이스 추천 캡처. 슈피겐 울트라하이브리드 1만8천원, 누렁이 안 되는 제품 후기. MagSafe 호환 확인하고 살까 고민.",
+    "labels": [
+      "아이폰 케이스 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "아이폰15 프로 케이스"
+      },
+      {
+        "kind": "brand",
+        "value": "슈피겐"
+      },
+      {
+        "kind": "topic",
+        "value": "MagSafe"
+      }
+    ],
+    "category": "electronics",
+    "role": "answer",
+    "for_query": "아이폰 케이스"
+  },
+  {
+    "id": "e_015",
+    "summary": "아이폰15 가죽 케이스 vs 실리콘 케이스 비교 블로그 캡처. 누비드 브랜드 카드수납 케이스 4만원. 그립감·내구성 따져보고 결정하려고 저장.",
+    "labels": [
+      "아이폰 케이스 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "아이폰15 케이스"
+      },
+      {
+        "kind": "brand",
+        "value": "누비드"
+      },
+      {
+        "kind": "topic",
+        "value": "케이스비교"
+      }
+    ],
+    "category": "electronics",
+    "role": "answer",
+    "for_query": "아이폰 케이스"
+  },
+  {
+    "id": "e_016",
+    "summary": "갤럭시 S24 울트라 케이스 추천 캡처. 스피겐 터프아머 2만2천원. 친구 폰 케이스 골라주려고 본 거.",
+    "labels": [
+      "갤럭시 케이스 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "갤럭시 S24 울트라 케이스"
+      },
+      {
+        "kind": "brand",
+        "value": "스피겐"
+      },
+      {
+        "kind": "topic",
+        "value": "케이스비교"
+      }
+    ],
+    "category": "electronics",
+    "role": "hard_neg",
+    "for_query": "아이폰 케이스"
+  },
+  {
+    "id": "e_017",
+    "summary": "아이폰15 프로 강화유리 보호필름 추천 캡처. 신지모루 9H 2매입 1만원, 지문방지. 케이스 말고 액정필름 알아보는 중.",
+    "labels": [
+      "아이폰 보호필름 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "아이폰15 보호필름"
+      },
+      {
+        "kind": "brand",
+        "value": "신지모루"
+      },
+      {
+        "kind": "topic",
+        "value": "액정보호"
+      }
+    ],
+    "category": "electronics",
+    "role": "hard_neg",
+    "for_query": "아이폰 케이스"
+  },
+  {
+    "id": "e_018",
+    "summary": "아이폰16 프로 자급제 가격 비교 캡처. 쿠팡 155만원, 애플스토어 동일. 기변할지 고민 중. 본체 구매 검토.",
+    "labels": [
+      "아이폰 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "아이폰16 프로"
+      },
+      {
+        "kind": "brand",
+        "value": "Apple"
+      },
+      {
+        "kind": "topic",
+        "value": "자급제"
+      },
+      {
+        "kind": "platform",
+        "value": "쿠팡"
+      }
+    ],
+    "category": "electronics",
+    "role": "hard_neg",
+    "for_query": "아이폰 케이스"
+  },
+  {
+    "id": "e_019",
+    "summary": "에어팟 맥스 케이스 실리콘 커버 캡처. 스마트케이스 대체용 2만5천원. 헤드폰 보호하려고 본 거라 아이폰이랑 무관.",
+    "labels": [
+      "에어팟맥스 액세서리"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "에어팟 맥스 케이스"
+      },
+      {
+        "kind": "topic",
+        "value": "액세서리"
+      }
+    ],
+    "category": "electronics",
+    "role": "hard_neg",
+    "for_query": "아이폰 케이스"
+  },
+  {
+    "id": "e_020",
+    "summary": "소니 ZV-E10 II 미러리스 카메라 스펙·가격 캡처. 브이로그용 APS-C, 바디 99만원. 입문용으로 살까 렌즈킷이랑 같이 고민 중.",
+    "labels": [
+      "카메라 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "소니 ZV-E10 II"
+      },
+      {
+        "kind": "brand",
+        "value": "소니"
+      },
+      {
+        "kind": "topic",
+        "value": "브이로그"
+      },
+      {
+        "kind": "topic",
+        "value": "미러리스"
+      }
+    ],
+    "category": "electronics",
+    "role": "answer",
+    "for_query": "카메라"
+  },
+  {
+    "id": "e_021",
+    "summary": "현관 도어 IP 카메라(홈캠) 설치 후기 캡처. 샤오미 미마 카메라 4만원, 양방향 통화. 보안용으로 달까 알아보는 중.",
+    "labels": [
+      "홈캠 설치 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "샤오미 홈캠"
+      },
+      {
+        "kind": "topic",
+        "value": "보안설치"
+      },
+      {
+        "kind": "location",
+        "value": "현관"
+      }
+    ],
+    "category": "electronics",
+    "role": "hard_neg",
+    "for_query": "카메라"
+  },
+  {
+    "id": "e_022",
+    "summary": "차량용 블랙박스 2채널 추천 캡처. 아이나비 QXD3000 전후방 QHD 18만원. 카메라 화질·주차녹화 보고 설치 고민.",
+    "labels": [
+      "블랙박스 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "아이나비 QXD3000"
+      },
+      {
+        "kind": "brand",
+        "value": "아이나비"
+      },
+      {
+        "kind": "topic",
+        "value": "차량용"
+      }
+    ],
+    "category": "electronics",
+    "role": "hard_neg",
+    "for_query": "카메라"
+  },
+  {
+    "id": "e_023",
+    "summary": "아이폰15 프로 카메라 설정·야간모드 촬영 팁 정리 글 캡처. 폰카로 잘 찍는 법. 기기 구매 아니라 촬영법 메모.",
+    "labels": [
+      "촬영 팁"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "아이폰15 프로"
+      },
+      {
+        "kind": "topic",
+        "value": "촬영법"
+      }
+    ],
+    "category": "electronics",
+    "role": "hard_neg",
+    "for_query": "카메라"
+  },
+  {
+    "id": "e_024",
+    "summary": "웹캠 추천 캡처. 로지텍 C920 화상회의용 6만원. 노트북 내장캠 화질 별로라 외장 웹캠 알아보는 중. 미러리스 카메라랑은 무관.",
+    "labels": [
+      "웹캠 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "로지텍 C920"
+      },
+      {
+        "kind": "brand",
+        "value": "로지텍"
+      },
+      {
+        "kind": "topic",
+        "value": "화상회의"
+      }
+    ],
+    "category": "electronics",
+    "role": "hard_neg",
+    "for_query": "카메라"
+  },
+  {
+    "id": "e_025",
+    "summary": "LG 올레드 evo 65인치 TV (OLED65C4) 가격 캡처. 하이마트 행사가 239만원. 거실 TV 바꿀까 고민하며 저장.",
+    "labels": [
+      "TV 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "LG OLED65C4"
+      },
+      {
+        "kind": "brand",
+        "value": "LG"
+      },
+      {
+        "kind": "platform",
+        "value": "하이마트"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_026",
+    "summary": "삼성 비스포크 무선청소기 제트 AI 후기 캡처. 흡입력·먼지통 비움 편의성. 다이슨이랑 비교 중.",
+    "labels": [
+      "청소기 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "삼성 비스포크 제트 AI"
+      },
+      {
+        "kind": "brand",
+        "value": "삼성"
+      },
+      {
+        "kind": "topic",
+        "value": "무선청소기"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_027",
+    "summary": "로지텍 MX Keys S 무선 키보드 가격 캡처. 13만원, 백라이트·멀티페어링. 작업용 키보드로 살까 저장.",
+    "labels": [
+      "키보드 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "로지텍 MX Keys S"
+      },
+      {
+        "kind": "brand",
+        "value": "로지텍"
+      },
+      {
+        "kind": "topic",
+        "value": "무선키보드"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_028",
+    "summary": "LG 울트라기어 27인치 4K 게이밍 모니터 캡처. 144Hz, 49만원. 듀얼모니터 추가하려고 알아보는 중.",
+    "labels": [
+      "모니터 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "LG 울트라기어 27인치"
+      },
+      {
+        "kind": "brand",
+        "value": "LG"
+      },
+      {
+        "kind": "topic",
+        "value": "게이밍모니터"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_029",
+    "summary": "삼성 공기청정기 블루스카이 후기 캡처. 미세먼지 센서·필터 교체주기. 안방용으로 하나 더 살까 고민.",
+    "labels": [
+      "공기청정기 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "삼성 블루스카이"
+      },
+      {
+        "kind": "brand",
+        "value": "삼성"
+      },
+      {
+        "kind": "topic",
+        "value": "공기청정기"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_030",
+    "summary": "애플워치 시리즈10 셀룰러 가격 캡처. 59만원, 42mm. 운동 추적용으로 살까 갤럭시워치랑 비교 중.",
+    "labels": [
+      "스마트워치 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "애플워치 시리즈10"
+      },
+      {
+        "kind": "brand",
+        "value": "Apple"
+      },
+      {
+        "kind": "topic",
+        "value": "스마트워치"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_031",
+    "summary": "닌텐도 스위치2 예약 구매 안내 캡처. 6월 출시, 50만원대. 동물의숲 하려고 예약할까 고민.",
+    "labels": [
+      "게임기 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "닌텐도 스위치2"
+      },
+      {
+        "kind": "brand",
+        "value": "닌텐도"
+      },
+      {
+        "kind": "topic",
+        "value": "게임기"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_032",
+    "summary": "애플 정품 20W USB-C 충전기 vs 호환 충전기 비교 캡처. 베이스어스 65W GaN 2만5천원. 고속충전기 하나 살까.",
+    "labels": [
+      "충전기 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "베이스어스 65W GaN"
+      },
+      {
+        "kind": "brand",
+        "value": "베이스어스"
+      },
+      {
+        "kind": "topic",
+        "value": "고속충전"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_033",
+    "summary": "앵커 보조배터리 20000mAh 캡처. PD 30W, 3만5천원. 여행용으로 살까 용량·무게 비교.",
+    "labels": [
+      "보조배터리 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "앵커 보조배터리 20000mAh"
+      },
+      {
+        "kind": "brand",
+        "value": "앵커"
+      },
+      {
+        "kind": "topic",
+        "value": "보조배터리"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_034",
+    "summary": "삼성 비스포크 4도어 냉장고 가격 캡처. 패널 색상 커스텀, 290만원. 이사하면서 바꿀까 알아보는 중.",
+    "labels": [
+      "냉장고 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "삼성 비스포크 냉장고"
+      },
+      {
+        "kind": "brand",
+        "value": "삼성"
+      },
+      {
+        "kind": "topic",
+        "value": "냉장고"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_035",
+    "summary": "LG 트롬 오브제컬렉션 세탁기·건조기 워시타워 캡처. 230만원. 신혼집 가전 알아보는 중.",
+    "labels": [
+      "세탁기 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "LG 트롬 워시타워"
+      },
+      {
+        "kind": "brand",
+        "value": "LG"
+      },
+      {
+        "kind": "topic",
+        "value": "세탁기"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_036",
+    "summary": "다이슨 에어랩 멀티스타일러 캡처. 65만원, 곱슬머리 스타일링 후기. 살까 직구가 더 싼지 비교.",
+    "labels": [
+      "헤어기기 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "다이슨 에어랩"
+      },
+      {
+        "kind": "brand",
+        "value": "다이슨"
+      },
+      {
+        "kind": "topic",
+        "value": "헤어스타일러"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_037",
+    "summary": "발뮤다 더 토스터 가격 캡처. 30만원, 스팀 토스터. 식빵 맛있게 굽는다는 후기 보고 살까 고민.",
+    "labels": [
+      "주방가전 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "발뮤다 더 토스터"
+      },
+      {
+        "kind": "brand",
+        "value": "발뮤다"
+      },
+      {
+        "kind": "topic",
+        "value": "주방가전"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_038",
+    "summary": "아이패드 프로 11인치 M4 가격 캡처. 159만원, 256GB. 그림 그리려고 펜슬이랑 같이 살까 고민.",
+    "labels": [
+      "태블릿 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "아이패드 프로 11인치 M4"
+      },
+      {
+        "kind": "brand",
+        "value": "Apple"
+      },
+      {
+        "kind": "topic",
+        "value": "태블릿"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_039",
+    "summary": "삼성 더 프리스타일 2세대 빔프로젝터 캡처. 110만원, 캠핑·홈시네마용. 벽에 쏴서 영화 볼까 후기 저장.",
+    "labels": [
+      "프로젝터 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "삼성 더 프리스타일 2세대"
+      },
+      {
+        "kind": "brand",
+        "value": "삼성"
+      },
+      {
+        "kind": "topic",
+        "value": "빔프로젝터"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_040",
+    "summary": "보스 사운드링크 플렉스 블루투스 스피커 캡처. 18만원, 방수. 캠핑용으로 살까 JBL이랑 비교.",
+    "labels": [
+      "스피커 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "보스 사운드링크 플렉스"
+      },
+      {
+        "kind": "brand",
+        "value": "보스"
+      },
+      {
+        "kind": "topic",
+        "value": "블루투스스피커"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_041",
+    "summary": "로보락 S8 맥스 울트라 로봇청소기 캡처. 물걸레 자동세척, 139만원. 자취방용으로 살까 고민 중.",
+    "labels": [
+      "로봇청소기 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "로보락 S8 맥스 울트라"
+      },
+      {
+        "kind": "brand",
+        "value": "로보락"
+      },
+      {
+        "kind": "topic",
+        "value": "로봇청소기"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_042",
+    "summary": "삼성 갤럭시탭 S10 울트라 가격 캡처. 14.6인치, 149만원. 영상 보기용 대화면 태블릿 알아보는 중.",
+    "labels": [
+      "태블릿 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "갤럭시탭 S10 울트라"
+      },
+      {
+        "kind": "brand",
+        "value": "삼성"
+      },
+      {
+        "kind": "topic",
+        "value": "태블릿"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_043",
+    "summary": "쿠쿠 6인용 IH압력밥솥 캡처. 21만원, 현미·잡곡 메뉴. 혼자 살 밥솥 작은 걸로 살까 비교.",
+    "labels": [
+      "밥솥 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "쿠쿠 IH압력밥솥"
+      },
+      {
+        "kind": "brand",
+        "value": "쿠쿠"
+      },
+      {
+        "kind": "topic",
+        "value": "주방가전"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_044",
+    "summary": "키크론 K8 프로 기계식 키보드 캡처. 갈축, 12만원. 타건감 좋다는 후기. 게이밍 키보드로 살까.",
+    "labels": [
+      "키보드 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "키크론 K8 프로"
+      },
+      {
+        "kind": "brand",
+        "value": "키크론"
+      },
+      {
+        "kind": "topic",
+        "value": "기계식키보드"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_045",
+    "summary": "로지텍 MX Master 3S 무선 마우스 캡처. 11만원, 정숙 클릭. 손목 편한 마우스 알아보는 중.",
+    "labels": [
+      "마우스 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "로지텍 MX Master 3S"
+      },
+      {
+        "kind": "brand",
+        "value": "로지텍"
+      },
+      {
+        "kind": "topic",
+        "value": "무선마우스"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_046",
+    "summary": "삼성 갤럭시 S25 울트라 사전예약 혜택 캡처. 자급제 기변 시 보상판매. 폰 바꿀까 고민 중.",
+    "labels": [
+      "스마트폰 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "갤럭시 S25 울트라"
+      },
+      {
+        "kind": "brand",
+        "value": "삼성"
+      },
+      {
+        "kind": "topic",
+        "value": "사전예약"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_047",
+    "summary": "LG 스탠바이미 go 이동식 27인치 화면 캡처. 100만원, 배터리 내장. 캠핑·주방용으로 살까 후기.",
+    "labels": [
+      "디스플레이 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "LG 스탠바이미 go"
+      },
+      {
+        "kind": "brand",
+        "value": "LG"
+      },
+      {
+        "kind": "topic",
+        "value": "이동식TV"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_048",
+    "summary": "위닉스 제습기 16L 캡처. 19만원, 장마철 빨래건조. 살까 에너지효율 비교 중.",
+    "labels": [
+      "제습기 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "위닉스 제습기 16L"
+      },
+      {
+        "kind": "brand",
+        "value": "위닉스"
+      },
+      {
+        "kind": "topic",
+        "value": "제습기"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_049",
+    "summary": "샤오미 미밴드 9 스마트밴드 캡처. 4만5천원, 수면·심박 측정. 가성비 웨어러블로 살까.",
+    "labels": [
+      "웨어러블 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "샤오미 미밴드 9"
+      },
+      {
+        "kind": "brand",
+        "value": "샤오미"
+      },
+      {
+        "kind": "topic",
+        "value": "스마트밴드"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_050",
+    "summary": "오스템 안마의자 렌탈 안내 캡처. 월 3만9천원, 3년 약정. 부모님 선물로 할까 알아보는 중.",
+    "labels": [
+      "안마의자 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "오스템 안마의자"
+      },
+      {
+        "kind": "brand",
+        "value": "오스템"
+      },
+      {
+        "kind": "topic",
+        "value": "렌탈"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_051",
+    "summary": "필립스 전동칫솔 소닉케어 캡처. 9만원, 진동 모드 5단계. 치과에서 추천받아 살까 저장.",
+    "labels": [
+      "전동칫솔 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "필립스 소닉케어"
+      },
+      {
+        "kind": "brand",
+        "value": "필립스"
+      },
+      {
+        "kind": "topic",
+        "value": "전동칫솔"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_052",
+    "summary": "삼성 오디세이 OLED G8 34인치 울트라와이드 모니터 캡처. 175만원. 작업+게임용 곡면 모니터 고민.",
+    "labels": [
+      "모니터 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "삼성 오디세이 OLED G8"
+      },
+      {
+        "kind": "brand",
+        "value": "삼성"
+      },
+      {
+        "kind": "topic",
+        "value": "울트라와이드"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_053",
+    "summary": "쿠첸 인덕션 1구 휴대용 캡처. 5만9천원. 자취방 요리용으로 살까 화구 출력 비교.",
+    "labels": [
+      "인덕션 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "쿠첸 휴대용 인덕션"
+      },
+      {
+        "kind": "brand",
+        "value": "쿠첸"
+      },
+      {
+        "kind": "topic",
+        "value": "주방가전"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_054",
+    "summary": "소니 WH-1000XM5 오버이어 헤드폰 캡처. 42만원, 노이즈캔슬링. 비행기용으로 살까 후기 저장.",
+    "labels": [
+      "헤드폰 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "소니 WH-1000XM5"
+      },
+      {
+        "kind": "brand",
+        "value": "소니"
+      },
+      {
+        "kind": "topic",
+        "value": "헤드폰"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_055",
+    "summary": "캐논 픽사 G3960 잉크젯 복합기 캡처. 19만원, 무한잉크. 집에서 서류 출력용 프린터 알아보는 중.",
+    "labels": [
+      "프린터 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "캐논 픽사 G3960"
+      },
+      {
+        "kind": "brand",
+        "value": "캐논"
+      },
+      {
+        "kind": "topic",
+        "value": "프린터"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_056",
+    "summary": "샤오미 가습기 가열식 캡처. 4만원, 자동살균. 겨울 건조해서 침실용 살까 비교 중.",
+    "labels": [
+      "가습기 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "샤오미 가습기"
+      },
+      {
+        "kind": "brand",
+        "value": "샤오미"
+      },
+      {
+        "kind": "topic",
+        "value": "가습기"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_057",
+    "summary": "삼성 갤럭시 Z 플립7 가격 캡처. 폴더블, 139만원. 메인폰으로 접는 폰 어떨까 후기 보는 중.",
+    "labels": [
+      "스마트폰 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "갤럭시 Z 플립7"
+      },
+      {
+        "kind": "brand",
+        "value": "삼성"
+      },
+      {
+        "kind": "topic",
+        "value": "폴더블"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_058",
+    "summary": "신일 서큘레이터 BLDC 캡처. 7만9천원, 리모컨·타이머. 여름 대비 에어컨 보조용으로 살까.",
+    "labels": [
+      "선풍기 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "신일 서큘레이터"
+      },
+      {
+        "kind": "brand",
+        "value": "신일"
+      },
+      {
+        "kind": "topic",
+        "value": "서큘레이터"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_059",
+    "summary": "WD 외장 SSD 1TB 캡처. 13만원, USB 3.2 읽기 1050MB/s. 영상 백업용으로 살까 속도 비교.",
+    "labels": [
+      "저장장치 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "WD 외장 SSD 1TB"
+      },
+      {
+        "kind": "brand",
+        "value": "WD"
+      },
+      {
+        "kind": "topic",
+        "value": "외장SSD"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_060",
+    "summary": "쿠쿠 정수기 직수형 렌탈 캡처. 월 2만9천원. 자취방 정수기 렌탈할까 약정 조건 비교.",
+    "labels": [
+      "정수기 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "쿠쿠 직수정수기"
+      },
+      {
+        "kind": "brand",
+        "value": "쿠쿠"
+      },
+      {
+        "kind": "topic",
+        "value": "렌탈"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_061",
+    "summary": "ASUS ROG 게이밍 노트북 그래픽카드 RTX 4060 모델 캡처. 169만원. 게임용은 부담돼서 일단 구경만.",
+    "labels": [
+      "게이밍노트북 구경"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "ASUS ROG"
+      },
+      {
+        "kind": "brand",
+        "value": "ASUS"
+      },
+      {
+        "kind": "topic",
+        "value": "게이밍노트북"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_062",
+    "summary": "TP-Link 와이파이7 공유기 캡처. 12만원, 메시 확장. 집 인터넷 끊겨서 공유기 바꿀까 알아보는 중.",
+    "labels": [
+      "공유기 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "TP-Link 와이파이7 공유기"
+      },
+      {
+        "kind": "brand",
+        "value": "TP-Link"
+      },
+      {
+        "kind": "topic",
+        "value": "네트워크"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_063",
+    "summary": "엘지 휘센 벽걸이 에어컨 6평형 캡처. 설치비 포함 79만원. 작은방 에어컨 추가 설치 알아보는 중.",
+    "labels": [
+      "에어컨 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "LG 휘센 벽걸이"
+      },
+      {
+        "kind": "brand",
+        "value": "LG"
+      },
+      {
+        "kind": "topic",
+        "value": "에어컨"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_064",
+    "summary": "디지털 액자 14인치 캡처. 9만원, 와이파이로 사진 전송. 부모님 댁에 둘까 선물용으로 보는 중.",
+    "labels": [
+      "디지털액자 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "디지털 액자 14인치"
+      },
+      {
+        "kind": "topic",
+        "value": "디지털액자"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "e_065",
+    "summary": "라즈베리파이5 8GB 키트 캡처. 13만원, 홈서버용. 토이프로젝트로 살까 케이스·쿨러 같이 보는 중.",
+    "labels": [
+      "싱글보드 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "라즈베리파이5 8GB"
+      },
+      {
+        "kind": "brand",
+        "value": "Raspberry Pi"
+      },
+      {
+        "kind": "topic",
+        "value": "홈서버"
+      }
+    ],
+    "category": "electronics",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_001",
+    "summary": "SH 서울주택도시공사 청년안심주택 2026년 1차 모집공고 캡처. 보증금 무이자 지원이랑 신청 자격(만 19~39세 무주택 청년) 정리돼 있음.",
+    "labels": [
+      "청년 주거 지원 신청"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "청년안심주택"
+      },
+      {
+        "kind": "platform",
+        "value": "SH서울주택도시공사"
+      },
+      {
+        "kind": "location",
+        "value": "서울"
+      }
+    ],
+    "category": "housing",
+    "role": "answer",
+    "for_query": "청년 주거"
+  },
+  {
+    "id": "c_002",
+    "summary": "국토부 청년월세 특별지원 신청 페이지 스크린샷. 월 최대 20만원씩 12개월 지원, 소득·재산 요건이랑 마이홈포털 신청 링크 저장함.",
+    "labels": [
+      "청년 주거 지원 신청"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "청년월세 특별지원"
+      },
+      {
+        "kind": "platform",
+        "value": "마이홈포털"
+      },
+      {
+        "kind": "product",
+        "value": "월세 지원"
+      }
+    ],
+    "category": "housing",
+    "role": "answer",
+    "for_query": "청년 주거"
+  },
+  {
+    "id": "c_003",
+    "summary": "LH 행복주택 동탄2신도시 A-12블록 입주자 모집공고 메모. 전용 26㎡, 주변 시세 대비 60~80% 임대료, 청년·신혼부부 우선공급 비율 적어둠.",
+    "labels": [
+      "청년 주거 지원 신청"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "행복주택"
+      },
+      {
+        "kind": "platform",
+        "value": "LH한국토지주택공사"
+      },
+      {
+        "kind": "location",
+        "value": "동탄2신도시"
+      }
+    ],
+    "category": "housing",
+    "role": "answer",
+    "for_query": "청년 주거"
+  },
+  {
+    "id": "c_004",
+    "summary": "신혼부부 매입임대주택 특별공급 공고 캡처. 혼인 7년 이내 부부 대상이라 청년 단독은 해당 안 됨. 보증금이랑 자격 메모.",
+    "labels": [
+      "주거 지원 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "신혼부부 특별공급"
+      },
+      {
+        "kind": "platform",
+        "value": "LH한국토지주택공사"
+      }
+    ],
+    "category": "housing",
+    "role": "hard_neg",
+    "for_query": "청년 주거"
+  },
+  {
+    "id": "c_005",
+    "summary": "고령자 복지주택(어르신 임대) 안내 페이지. 만 65세 이상 무주택 어르신 대상 주거복지로, 청년 대상은 아님.",
+    "labels": [
+      "주거 지원 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "고령자 복지주택"
+      },
+      {
+        "kind": "platform",
+        "value": "LH한국토지주택공사"
+      }
+    ],
+    "category": "housing",
+    "role": "hard_neg",
+    "for_query": "청년 주거"
+  },
+  {
+    "id": "c_006",
+    "summary": "청년도약계좌 가입 조건 정리한 캡처. 5년 만기 적금으로 정부 기여금 붙는 상품. 청년 대상이지만 주거가 아니라 자산형성 지원.",
+    "labels": [
+      "금융 상품 정보"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "청년도약계좌"
+      },
+      {
+        "kind": "topic",
+        "value": "청년 자산형성"
+      }
+    ],
+    "category": "housing",
+    "role": "hard_neg",
+    "for_query": "청년 주거"
+  },
+  {
+    "id": "c_007",
+    "summary": "청년내일채움공제 일자리 지원 안내. 중소기업 청년 근로자 대상 목돈 마련 제도라 주거 지원과 무관.",
+    "labels": [
+      "일자리 지원 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "청년내일채움공제"
+      },
+      {
+        "kind": "platform",
+        "value": "고용노동부"
+      }
+    ],
+    "category": "housing",
+    "role": "hard_neg",
+    "for_query": "청년 주거"
+  },
+  {
+    "id": "c_008",
+    "summary": "직방에서 본 강남구 역삼동 원룸 월세 매물. 보증금 1000/월 65만, 전용 5평 풀옵션 분리형 원룸. 채광 좋고 역세권이라 저장.",
+    "labels": [
+      "부동산 매물 저장"
+    ],
+    "entities": [
+      {
+        "kind": "platform",
+        "value": "직방"
+      },
+      {
+        "kind": "location",
+        "value": "역삼동"
+      },
+      {
+        "kind": "topic",
+        "value": "원룸 월세"
+      }
+    ],
+    "category": "housing",
+    "role": "answer",
+    "for_query": "원룸"
+  },
+  {
+    "id": "c_009",
+    "summary": "다방 앱 부천 중동 신축 오피스텔 원룸 매물 캡처. 보증금 500/월 50만, 빌트인 풀옵션에 주차 가능. 입주 가능일 메모.",
+    "labels": [
+      "부동산 매물 저장"
+    ],
+    "entities": [
+      {
+        "kind": "platform",
+        "value": "다방"
+      },
+      {
+        "kind": "location",
+        "value": "부천 중동"
+      },
+      {
+        "kind": "topic",
+        "value": "오피스텔 원룸"
+      }
+    ],
+    "category": "housing",
+    "role": "answer",
+    "for_query": "원룸"
+  },
+  {
+    "id": "c_010",
+    "summary": "유튜브 원룸 셀프 인테리어 시공 영상 저장. 페인트칠·필름지·조명 교체로 자취방 꾸미는 법. 매물이 아니라 인테리어 팁.",
+    "labels": [
+      "인테리어 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "원룸 셀프 인테리어"
+      },
+      {
+        "kind": "platform",
+        "value": "유튜브"
+      }
+    ],
+    "category": "housing",
+    "role": "hard_neg",
+    "for_query": "원룸"
+  },
+  {
+    "id": "c_011",
+    "summary": "원룸 이사 후 입주청소 업체 견적 캡처. 5평 기준 12만원, 곰팡이·화장실 특수청소 옵션. 매물 검색이 아니라 청소 서비스.",
+    "labels": [
+      "생활 서비스 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "원룸 입주청소"
+      },
+      {
+        "kind": "platform",
+        "value": "숨고"
+      }
+    ],
+    "category": "housing",
+    "role": "hard_neg",
+    "for_query": "원룸"
+  },
+  {
+    "id": "c_012",
+    "summary": "원룸용 미니 세탁기·소형 냉장고 추천 블로그. 좁은 자취방 가전 사이즈 비교. 매물이 아니라 가전 쇼핑 정보.",
+    "labels": [
+      "가전 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "원룸 가전"
+      },
+      {
+        "kind": "product",
+        "value": "미니 세탁기"
+      }
+    ],
+    "category": "housing",
+    "role": "hard_neg",
+    "for_query": "원룸"
+  },
+  {
+    "id": "c_013",
+    "summary": "투룸 빌라 전세 매물 캡처. 신혼집으로 보고 있는 전용 15평 분리형 투룸이라 원룸 검색 의도와는 평형이 다름.",
+    "labels": [
+      "부동산 매물 저장"
+    ],
+    "entities": [
+      {
+        "kind": "platform",
+        "value": "직방"
+      },
+      {
+        "kind": "topic",
+        "value": "투룸 전세"
+      },
+      {
+        "kind": "location",
+        "value": "일산"
+      }
+    ],
+    "category": "housing",
+    "role": "hard_neg",
+    "for_query": "원룸"
+  },
+  {
+    "id": "c_014",
+    "summary": "카카오뱅크 전월세보증금 대출(전세자금대출) 상품 안내 캡처. 최대 2.2억, 연 3.5%대 금리, 비대면 신청에 한도 조회까지 정리.",
+    "labels": [
+      "금융 상품 정보"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "카카오뱅크"
+      },
+      {
+        "kind": "product",
+        "value": "전월세보증금 대출"
+      },
+      {
+        "kind": "topic",
+        "value": "전세자금대출"
+      }
+    ],
+    "category": "housing",
+    "role": "answer",
+    "for_query": "전세 대출"
+  },
+  {
+    "id": "c_015",
+    "summary": "주택도시기금 버팀목 전세자금대출 조건 메모. 청년 우대형 연 1.5~2.1% 금리, 보증금 1억 이하, 만 34세 이하 요건이랑 HUG 보증 정리함.",
+    "labels": [
+      "금융 상품 정보"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "버팀목 전세자금대출"
+      },
+      {
+        "kind": "platform",
+        "value": "주택도시기금"
+      },
+      {
+        "kind": "topic",
+        "value": "전세자금대출"
+      }
+    ],
+    "category": "housing",
+    "role": "answer",
+    "for_query": "전세 대출"
+  },
+  {
+    "id": "c_016",
+    "summary": "월세보증금 대출(소액 임차보증금) 상품 캡처. 전세가 아니라 월세 보증금용이라 한도·조건이 전세자금대출과 다름.",
+    "labels": [
+      "금융 상품 정보"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "월세보증금 대출"
+      },
+      {
+        "kind": "topic",
+        "value": "월세 대출"
+      }
+    ],
+    "category": "housing",
+    "role": "hard_neg",
+    "for_query": "전세 대출"
+  },
+  {
+    "id": "c_017",
+    "summary": "주택담보대출(매매) 금리 비교 캡처. 아파트 구입용 주담대라 전세자금대출과 목적이 다름. LTV·DSR 정리.",
+    "labels": [
+      "금융 상품 정보"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "주택담보대출"
+      },
+      {
+        "kind": "topic",
+        "value": "아파트 매매 대출"
+      }
+    ],
+    "category": "housing",
+    "role": "hard_neg",
+    "for_query": "전세 대출"
+  },
+  {
+    "id": "c_018",
+    "summary": "한국장학재단 학자금대출 신청 안내 캡처. 등록금·생활비 대출이라 전세와 무관한데 '대출' 키워드만 겹침.",
+    "labels": [
+      "금융 상품 정보"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "학자금대출"
+      },
+      {
+        "kind": "platform",
+        "value": "한국장학재단"
+      }
+    ],
+    "category": "housing",
+    "role": "hard_neg",
+    "for_query": "전세 대출"
+  },
+  {
+    "id": "c_019",
+    "summary": "전세버스 대절 견적 캡처. MT용 45인승 전세버스 대절 비용이라 전세자금대출과 전혀 무관, '전세' 단어만 동일.",
+    "labels": [
+      "생활 서비스 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "전세버스 대절"
+      },
+      {
+        "kind": "platform",
+        "value": "버스대절 견적사이트"
+      }
+    ],
+    "category": "housing",
+    "role": "hard_neg",
+    "for_query": "전세 대출"
+  },
+  {
+    "id": "c_020",
+    "summary": "KB부동산 전국 아파트 시세·매매가 동향 리포트 캡처. 수도권 전세가율이랑 거래량 추이, 정부 부동산 정책 요약 저장.",
+    "labels": [
+      "부동산 시세 정보"
+    ],
+    "entities": [
+      {
+        "kind": "platform",
+        "value": "KB부동산"
+      },
+      {
+        "kind": "topic",
+        "value": "아파트 시세"
+      },
+      {
+        "kind": "topic",
+        "value": "부동산 정책"
+      }
+    ],
+    "category": "housing",
+    "role": "answer",
+    "for_query": "부동산"
+  },
+  {
+    "id": "c_021",
+    "summary": "부동산 공인중개사 자격증 시험 일정·과목 정리 캡처. 시세 정보가 아니라 자격증 수험 정보라 부동산 일반 검색과 의도가 다름.",
+    "labels": [
+      "자격증 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "공인중개사 시험"
+      },
+      {
+        "kind": "platform",
+        "value": "큐넷"
+      }
+    ],
+    "category": "housing",
+    "role": "hard_neg",
+    "for_query": "부동산"
+  },
+  {
+    "id": "c_022",
+    "summary": "부동산 리츠(REITs) ETF 투자 종목 분석 블로그. 부동산 간접투자 상품이라 시세·정책 일반 정보와는 결이 다름.",
+    "labels": [
+      "투자 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "부동산 리츠"
+      },
+      {
+        "kind": "product",
+        "value": "리츠 ETF"
+      }
+    ],
+    "category": "housing",
+    "role": "hard_neg",
+    "for_query": "부동산"
+  },
+  {
+    "id": "c_023",
+    "summary": "재산세·종합부동산세 납부 일정과 계산법 정리 캡처. 부동산 보유세 행정 정보라 시세 동향 검색과는 다른 의도.",
+    "labels": [
+      "세금 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "종합부동산세"
+      },
+      {
+        "kind": "platform",
+        "value": "홈택스"
+      }
+    ],
+    "category": "housing",
+    "role": "hard_neg",
+    "for_query": "부동산"
+  },
+  {
+    "id": "c_024",
+    "summary": "이케아 BILLY 책장이랑 MALM 침대 프레임 장바구니 캡처. 자취방 가구 배치 고민하며 사이즈 메모.",
+    "labels": [
+      "가구 쇼핑"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "이케아"
+      },
+      {
+        "kind": "product",
+        "value": "BILLY 책장"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_025",
+    "summary": "당근마켓에서 본 중고 6인용 식탁 거래글. 직거래 위치랑 가격 5만원 메모.",
+    "labels": [
+      "중고거래"
+    ],
+    "entities": [
+      {
+        "kind": "platform",
+        "value": "당근마켓"
+      },
+      {
+        "kind": "product",
+        "value": "중고 식탁"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_026",
+    "summary": "포장이사 업체 3곳 견적 비교 메모. 5톤 기준 가격이랑 사다리차 포함 여부, 예약 가능일 정리.",
+    "labels": [
+      "이사 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "포장이사"
+      },
+      {
+        "kind": "platform",
+        "value": "이사 견적 앱"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_027",
+    "summary": "LG 디오스 오브제컬렉션 냉장고 스펙·가격 비교 캡처. 용량이랑 에너지효율 등급 메모.",
+    "labels": [
+      "가전 정보"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "LG"
+      },
+      {
+        "kind": "product",
+        "value": "디오스 냉장고"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_028",
+    "summary": "도시가스 요금 인상 안내문 캡처. 겨울철 난방비 절약 팁이랑 캐시백 신청 방법 저장.",
+    "labels": [
+      "공과금 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "도시가스 요금"
+      },
+      {
+        "kind": "platform",
+        "value": "도시가스공사"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_029",
+    "summary": "아파트 관리비 고지서 캡처. 공용 전기료랑 장기수선충당금 항목 확인하려고 저장.",
+    "labels": [
+      "관리비 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "아파트 관리비"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_030",
+    "summary": "주택청약종합저축 가입·납입 안내 캡처. 매달 10만원 납입이랑 청약 가점 계산법 메모.",
+    "labels": [
+      "금융 상품 정보"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "주택청약종합저축"
+      },
+      {
+        "kind": "platform",
+        "value": "청약홈"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_031",
+    "summary": "오늘의집에서 본 자취방 인테리어 룩북 저장. 우드톤 가구랑 간접조명 배치 참고하려고.",
+    "labels": [
+      "인테리어 정보"
+    ],
+    "entities": [
+      {
+        "kind": "platform",
+        "value": "오늘의집"
+      },
+      {
+        "kind": "topic",
+        "value": "인테리어 룩북"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_032",
+    "summary": "다이슨 무선청소기 V12 가격 비교랑 사은품 행사 캡처. 자취방 청소용으로 고민 중.",
+    "labels": [
+      "가전 정보"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "다이슨"
+      },
+      {
+        "kind": "product",
+        "value": "무선청소기 V12"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_033",
+    "summary": "로켓배송에서 산 부엌 살림 정리 용품 주문내역. 전자레인지 선반이랑 싱크대 수납 정리함.",
+    "labels": [
+      "생활용품 쇼핑"
+    ],
+    "entities": [
+      {
+        "kind": "platform",
+        "value": "쿠팡"
+      },
+      {
+        "kind": "product",
+        "value": "주방 수납용품"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_034",
+    "summary": "전기요금 누진제 구간이랑 에어컨 사용량 계산기 캡처. 여름철 전기료 폭탄 피하려고 저장.",
+    "labels": [
+      "공과금 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "전기요금 누진제"
+      },
+      {
+        "kind": "platform",
+        "value": "한국전력"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_035",
+    "summary": "맘에 든 카페 라떼 레시피 영상 저장. 홈카페 도구랑 원두 추천 메모.",
+    "labels": [
+      "요리 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "홈카페 레시피"
+      },
+      {
+        "kind": "platform",
+        "value": "유튜브"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_036",
+    "summary": "넷플릭스 보고 싶은 드라마 위시리스트 스크린샷. 주말에 정주행할 작품 3개 메모.",
+    "labels": [
+      "콘텐츠 메모"
+    ],
+    "entities": [
+      {
+        "kind": "platform",
+        "value": "넷플릭스"
+      },
+      {
+        "kind": "topic",
+        "value": "드라마 위시리스트"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_037",
+    "summary": "제주도 2박3일 여행 일정 캡처. 렌터카랑 맛집 동선 정리, 숙소 예약 링크 저장.",
+    "labels": [
+      "여행 계획"
+    ],
+    "entities": [
+      {
+        "kind": "location",
+        "value": "제주도"
+      },
+      {
+        "kind": "topic",
+        "value": "여행 일정"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_038",
+    "summary": "헬스장 PT 등록 상담 견적 캡처. 회차당 가격이랑 식단 관리 옵션 메모.",
+    "labels": [
+      "운동 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "PT 등록"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_039",
+    "summary": "맥북 에어 M3 중고 시세 비교 캡처. 용량별 가격이랑 보증 잔여기간 확인하려고.",
+    "labels": [
+      "전자기기 쇼핑"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "애플"
+      },
+      {
+        "kind": "product",
+        "value": "맥북 에어 M3"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_040",
+    "summary": "건강검진 예약 안내 문자 캡처. 검진 항목이랑 공복 준비사항 메모.",
+    "labels": [
+      "건강 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "건강검진"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_041",
+    "summary": "토스 자동이체 관리 화면 캡처. 월세·관리비·구독료 빠져나가는 날짜 정리하려고 저장.",
+    "labels": [
+      "가계부 정보"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "토스"
+      },
+      {
+        "kind": "topic",
+        "value": "자동이체 관리"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_042",
+    "summary": "에어프라이어 추천 요리 레시피 모음 캡처. 자취 요리용으로 간단 메뉴 5개 메모.",
+    "labels": [
+      "요리 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "에어프라이어 레시피"
+      },
+      {
+        "kind": "product",
+        "value": "에어프라이어"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_043",
+    "summary": "무인양품 수납 정리함이랑 침구 세트 장바구니 캡처. 방 정리할 때 사려고 사이즈 메모.",
+    "labels": [
+      "생활용품 쇼핑"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "무인양품"
+      },
+      {
+        "kind": "product",
+        "value": "수납 정리함"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_044",
+    "summary": "분리수거 요일·방법 안내문 캡처. 우리 동네 음식물 쓰레기 배출 규정 헷갈려서 저장.",
+    "labels": [
+      "생활 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "분리수거 방법"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_045",
+    "summary": "침대 매트리스 브랜드별 경도·가격 비교 블로그. 허리 안 아픈 매트리스 찾으려고 저장.",
+    "labels": [
+      "가구 쇼핑"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "매트리스 비교"
+      },
+      {
+        "kind": "product",
+        "value": "매트리스"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_046",
+    "summary": "스타벅스 신메뉴 출시 안내 캡처. 친구랑 가서 먹어볼 음료 메모.",
+    "labels": [
+      "콘텐츠 메모"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "스타벅스"
+      },
+      {
+        "kind": "topic",
+        "value": "신메뉴"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_047",
+    "summary": "전입신고·확정일자 온라인 신청 방법 캡처. 정부24에서 처리하는 절차랑 필요 서류 메모.",
+    "labels": [
+      "행정 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "전입신고 확정일자"
+      },
+      {
+        "kind": "platform",
+        "value": "정부24"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_048",
+    "summary": "커튼·블라인드 맞춤 제작 견적 캡처. 창문 사이즈 재서 가격 비교하려고 저장.",
+    "labels": [
+      "인테리어 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "커튼 블라인드 제작"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_049",
+    "summary": "겨울철 결로·곰팡이 제거 꿀팁 블로그. 제습제 추천이랑 환기 방법 정리해서 저장.",
+    "labels": [
+      "생활 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "결로 곰팡이 제거"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_050",
+    "summary": "삼성 비스포크 식기세척기 설치 후기 영상. 자취방에 들일 수 있는 소형 모델 메모.",
+    "labels": [
+      "가전 정보"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "삼성"
+      },
+      {
+        "kind": "product",
+        "value": "비스포크 식기세척기"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_051",
+    "summary": "쿠팡에서 산 차량용 핸드폰 거치대 주문내역. 운전할 때 쓰려고 호환 기종 확인.",
+    "labels": [
+      "생활용품 쇼핑"
+    ],
+    "entities": [
+      {
+        "kind": "platform",
+        "value": "쿠팡"
+      },
+      {
+        "kind": "product",
+        "value": "차량용 거치대"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_052",
+    "summary": "통신사 요금제 변경 비교 캡처. 5G 무제한이랑 알뜰폰 요금 비교해서 갈아탈지 고민.",
+    "labels": [
+      "통신 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "통신 요금제"
+      },
+      {
+        "kind": "platform",
+        "value": "알뜰폰"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_053",
+    "summary": "보일러 온도조절기 사용법이랑 외출 모드 설정 캡처. 난방비 아끼려고 적정 온도 메모.",
+    "labels": [
+      "생활 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "보일러 사용법"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_054",
+    "summary": "올리브영 세일 품목 장바구니 캡처. 스킨케어 떨어진 거 채우려고 메모.",
+    "labels": [
+      "쇼핑 메모"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "올리브영"
+      },
+      {
+        "kind": "topic",
+        "value": "세일 품목"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_055",
+    "summary": "전동 드릴이랑 벽 선반 설치 DIY 영상. 자취방에 못 안 박고 선반 다는 법 참고.",
+    "labels": [
+      "인테리어 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "벽 선반 설치 DIY"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_056",
+    "summary": "지역화폐 캐시백 충전 안내 캡처. 10% 인센티브 받으려고 충전 한도랑 사용처 메모.",
+    "labels": [
+      "금융 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "지역화폐 캐시백"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_057",
+    "summary": "반려식물 몬스테라 키우기 가이드 캡처. 물 주기랑 햇빛 위치 메모해서 저장.",
+    "labels": [
+      "생활 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "반려식물 키우기"
+      },
+      {
+        "kind": "product",
+        "value": "몬스테라"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_058",
+    "summary": "코스트코 대용량 생필품 추천 리스트 캡처. 휴지·세제 쟁여둘 거 메모.",
+    "labels": [
+      "쇼핑 메모"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "코스트코"
+      },
+      {
+        "kind": "topic",
+        "value": "생필품"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_059",
+    "summary": "지하철 정기권 충전 안내랑 출퇴근 환승 경로 캡처. 통근 시간 줄이는 루트 메모.",
+    "labels": [
+      "교통 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "지하철 정기권"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_060",
+    "summary": "건조기 vs 빨래건조대 비교 블로그. 자취방에 건조기 둘 공간 있나 고민하며 저장.",
+    "labels": [
+      "가전 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "건조기 비교"
+      },
+      {
+        "kind": "product",
+        "value": "의류건조기"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_061",
+    "summary": "전자레인지로 만드는 간단 자취 요리 레시피 모음. 5분 컷 한 그릇 메뉴 메모.",
+    "labels": [
+      "요리 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "자취 요리"
+      },
+      {
+        "kind": "product",
+        "value": "전자레인지"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_062",
+    "summary": "에어컨 청소 셀프 vs 업체 비용 비교 캡처. 여름 전에 곰팡이 제거하려고 메모.",
+    "labels": [
+      "생활 서비스 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "에어컨 청소"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_063",
+    "summary": "현관 디지털 도어록 교체 모델 비교 캡처. 지문·번호 방식이랑 설치비 메모.",
+    "labels": [
+      "생활용품 쇼핑"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "디지털 도어록"
+      },
+      {
+        "kind": "product",
+        "value": "도어록"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_064",
+    "summary": "주말 플리마켓 일정 캡처. 빈티지 소품이랑 핸드메이드 가구 구경 가려고 위치 메모.",
+    "labels": [
+      "콘텐츠 메모"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "플리마켓"
+      },
+      {
+        "kind": "location",
+        "value": "성수동"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "c_065",
+    "summary": "월패드·스마트홈 IoT 기기 연동 가이드 캡처. 조명·온도 앱으로 제어하는 설정 메모.",
+    "labels": [
+      "생활 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "스마트홈 IoT"
+      },
+      {
+        "kind": "product",
+        "value": "스마트 조명"
+      }
+    ],
+    "category": "housing",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_001",
+    "summary": "2주 식단 다이어트 유튜브 영상. 닭가슴살·고구마·계란 위주 저탄고지 식단표와 홈트 루틴 정리. 다음 주 월요일부터 시작하기로 함.",
+    "labels": [
+      "다이어트 식단 시작"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "저탄고지"
+      },
+      {
+        "kind": "platform",
+        "value": "유튜브"
+      },
+      {
+        "kind": "topic",
+        "value": "닭가슴살"
+      }
+    ],
+    "category": "life",
+    "role": "answer",
+    "for_query": "다이어트"
+  },
+  {
+    "id": "f_002",
+    "summary": "인스타에서 저장한 한 달 -5kg 다이어트 루틴. 아침 공복 유산소 30분 + 저녁 16:8 간헐적 단식 + 하루 1500kcal 식단 캡처. 체중 기록 앱도 같이 깔기로.",
+    "labels": [
+      "다이어트 운동 루틴"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "간헐적단식"
+      },
+      {
+        "kind": "topic",
+        "value": "유산소"
+      },
+      {
+        "kind": "platform",
+        "value": "인스타그램"
+      }
+    ],
+    "category": "life",
+    "role": "answer",
+    "for_query": "다이어트"
+  },
+  {
+    "id": "f_003",
+    "summary": "강아지 사료 구매 비교 캡처. 로얄캐닌 미니 어덜트 vs 오리젠 6피쉬, 우리 말티즈 3살에 맞는 소형견 사료 고르는 중. 쿠팡 가격이랑 성분표 비교했다.",
+    "labels": [
+      "강아지 사료 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "로얄캐닌"
+      },
+      {
+        "kind": "brand",
+        "value": "오리젠"
+      },
+      {
+        "kind": "product",
+        "value": "소형견 사료"
+      },
+      {
+        "kind": "platform",
+        "value": "쿠팡"
+      }
+    ],
+    "category": "life",
+    "role": "answer",
+    "for_query": "강아지 사료"
+  },
+  {
+    "id": "f_004",
+    "summary": "반려견 사료 추천 블로그 글 저장. 그레인프리 연어 사료 후기, 우리 강아지 알러지 때문에 닭고기 빼고 찾는 중. 나우프레쉬·아카나 정기배송 할인 정보도 있음.",
+    "labels": [
+      "강아지 사료 알러지 검토"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "아카나"
+      },
+      {
+        "kind": "brand",
+        "value": "나우프레쉬"
+      },
+      {
+        "kind": "topic",
+        "value": "그레인프리"
+      },
+      {
+        "kind": "platform",
+        "value": "네이버블로그"
+      }
+    ],
+    "category": "life",
+    "role": "answer",
+    "for_query": "강아지 사료"
+  },
+  {
+    "id": "f_005",
+    "summary": "카카오뱅크 26주 적금 vs 토스 자유적금 금리 비교 캡처. 우대금리 포함 연 4.5% 상품. 매달 30만원씩 넣을지 가입 검토 중.",
+    "labels": [
+      "적금 상품 가입 검토"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "카카오뱅크"
+      },
+      {
+        "kind": "brand",
+        "value": "토스"
+      },
+      {
+        "kind": "product",
+        "value": "26주적금"
+      },
+      {
+        "kind": "topic",
+        "value": "우대금리"
+      }
+    ],
+    "category": "life",
+    "role": "answer",
+    "for_query": "적금"
+  },
+  {
+    "id": "f_006",
+    "summary": "신한은행 정기적금 특판 상품 안내 화면 저장. 12개월 만기 연 5.0% 우대 조건이랑 비과세 한도 메모. 청년 우대형이라 조건 맞는지 확인 필요.",
+    "labels": [
+      "청년 적금 가입 검토"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "신한은행"
+      },
+      {
+        "kind": "product",
+        "value": "정기적금"
+      },
+      {
+        "kind": "topic",
+        "value": "청년우대"
+      },
+      {
+        "kind": "topic",
+        "value": "비과세"
+      }
+    ],
+    "category": "life",
+    "role": "answer",
+    "for_query": "적금"
+  },
+  {
+    "id": "f_007",
+    "summary": "토익 시험 접수 일정 캡처. 다음 달 정기시험 접수 마감일이랑 응시료 48,000원. 해커스 토익 700+ 인강 패키지도 같이 결제 고민 중.",
+    "labels": [
+      "토익 시험 접수"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "해커스"
+      },
+      {
+        "kind": "topic",
+        "value": "토익"
+      },
+      {
+        "kind": "topic",
+        "value": "인강"
+      },
+      {
+        "kind": "topic",
+        "value": "정기시험"
+      }
+    ],
+    "category": "life",
+    "role": "answer",
+    "for_query": "토익"
+  },
+  {
+    "id": "f_008",
+    "summary": "토익 교재 추천 글 저장. ETS 토익 정기시험 RC/LC 1000제랑 해커스 보카 어휘책 비교. 850점 목표로 2개월 단기 공부 계획 세우는 중.",
+    "labels": [
+      "토익 교재 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "ETS"
+      },
+      {
+        "kind": "product",
+        "value": "토익 1000제"
+      },
+      {
+        "kind": "topic",
+        "value": "토익"
+      },
+      {
+        "kind": "topic",
+        "value": "보카"
+      }
+    ],
+    "category": "life",
+    "role": "answer",
+    "for_query": "토익"
+  },
+  {
+    "id": "f_009",
+    "summary": "삼성전자 주식 분할 매수 전략 유튜브. 배당주 포트폴리오 구성이랑 ISA 계좌 활용법 정리. 매달 적립식으로 모으는 중.",
+    "labels": [
+      "주식 투자 검토"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "삼성전자"
+      },
+      {
+        "kind": "topic",
+        "value": "배당주"
+      },
+      {
+        "kind": "topic",
+        "value": "ISA"
+      },
+      {
+        "kind": "platform",
+        "value": "유튜브"
+      }
+    ],
+    "category": "life",
+    "role": "hard_neg",
+    "for_query": "적금"
+  },
+  {
+    "id": "f_010",
+    "summary": "한화생명 종신보험 vs 정기보험 비교 상담 캡처. 월 납입 보험료랑 보장 범위, 환급률 메모. 가입 전 비교 사이트로 견적 더 받아보기로.",
+    "labels": [
+      "보험 상품 비교"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "한화생명"
+      },
+      {
+        "kind": "product",
+        "value": "종신보험"
+      },
+      {
+        "kind": "topic",
+        "value": "환급률"
+      }
+    ],
+    "category": "life",
+    "role": "hard_neg",
+    "for_query": "적금"
+  },
+  {
+    "id": "f_010b",
+    "summary": "현대카드 M포인트 적립 혜택 정리. 연회비 대비 카드 혜택 비교표, 스타벅스·주유 할인. 새 카드로 갈아탈지 고민.",
+    "labels": [
+      "신용카드 혜택 비교"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "현대카드"
+      },
+      {
+        "kind": "topic",
+        "value": "카드혜택"
+      },
+      {
+        "kind": "brand",
+        "value": "스타벅스"
+      }
+    ],
+    "category": "life",
+    "role": "hard_neg",
+    "for_query": "적금"
+  },
+  {
+    "id": "f_011",
+    "summary": "적금 풍차돌리기 챌린지 후기 블로그. 매달 새 적금 12개 만들어 굴리는 재테크 챌린지 인증샷. 따라할까 말까 고민만 하는 중.",
+    "labels": [
+      "풍차돌리기 챌린지"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "풍차돌리기"
+      },
+      {
+        "kind": "topic",
+        "value": "재테크챌린지"
+      },
+      {
+        "kind": "platform",
+        "value": "네이버블로그"
+      }
+    ],
+    "category": "life",
+    "role": "hard_neg",
+    "for_query": "적금"
+  },
+  {
+    "id": "f_012",
+    "summary": "주택청약종합저축 납입 인정 회차랑 1순위 조건 정리. 청약 가점 계산기 캡처. 매달 10만원 납입 유지 중.",
+    "labels": [
+      "청약저축 관리"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "주택청약종합저축"
+      },
+      {
+        "kind": "topic",
+        "value": "청약가점"
+      }
+    ],
+    "category": "life",
+    "role": "hard_neg",
+    "for_query": "적금"
+  },
+  {
+    "id": "f_013",
+    "summary": "고양이 사료 구매 비교 캡처. 지위픽 캣 vs 내추럴발란스, 우리 코숏 비만묘용 저칼로리 사료 고르는 중. 강아지 아니고 고양이용.",
+    "labels": [
+      "고양이 사료 구매"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "지위픽"
+      },
+      {
+        "kind": "product",
+        "value": "고양이 사료"
+      },
+      {
+        "kind": "topic",
+        "value": "비만묘"
+      }
+    ],
+    "category": "life",
+    "role": "hard_neg",
+    "for_query": "강아지 사료"
+  },
+  {
+    "id": "f_014",
+    "summary": "햄스터 사료랑 베딩 구매 리스트. 골든햄스터용 믹스사료, 해바라기씨 간식, 톱밥 베딩 쿠팡 장바구니. 강아지 아님.",
+    "labels": [
+      "햄스터 사료 구매"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "햄스터 사료"
+      },
+      {
+        "kind": "topic",
+        "value": "골든햄스터"
+      },
+      {
+        "kind": "platform",
+        "value": "쿠팡"
+      }
+    ],
+    "category": "life",
+    "role": "hard_neg",
+    "for_query": "강아지 사료"
+  },
+  {
+    "id": "f_015",
+    "summary": "강아지 수제 간식 추천 모음. 닭가슴살 육포, 고구마 말랭이 트릿 비교. 훈련용 보상 간식으로 쓸 거. 사료 아니고 간식.",
+    "labels": [
+      "강아지 간식 구매"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "강아지 간식"
+      },
+      {
+        "kind": "topic",
+        "value": "수제간식"
+      },
+      {
+        "kind": "topic",
+        "value": "훈련보상"
+      }
+    ],
+    "category": "life",
+    "role": "hard_neg",
+    "for_query": "강아지 사료"
+  },
+  {
+    "id": "f_016",
+    "summary": "강아지 관절 영양제 후기 캡처. 노령견 슬개골 탈구 예방 글루코사민·오메가3 보조제 비교. 사료 말고 영양제 따로 챙기는 중.",
+    "labels": [
+      "강아지 영양제 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "강아지 영양제"
+      },
+      {
+        "kind": "topic",
+        "value": "글루코사민"
+      },
+      {
+        "kind": "topic",
+        "value": "슬개골"
+      }
+    ],
+    "category": "life",
+    "role": "hard_neg",
+    "for_query": "강아지 사료"
+  },
+  {
+    "id": "f_017",
+    "summary": "강아지 자동급식기 구매 후기. 펫큐브 vs 펫닥 자동급식기 용량이랑 앱 연동 비교. 사료 자체가 아니라 급식 기기 고르는 중.",
+    "labels": [
+      "자동급식기 구매"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "펫큐브"
+      },
+      {
+        "kind": "product",
+        "value": "자동급식기"
+      },
+      {
+        "kind": "topic",
+        "value": "앱연동"
+      }
+    ],
+    "category": "life",
+    "role": "hard_neg",
+    "for_query": "강아지 사료"
+  },
+  {
+    "id": "f_018",
+    "summary": "토익스피킹 레벨 6 목표 공부법 영상. AL 받는 템플릿이랑 파트별 시간 배분 정리. 토익(LC/RC) 말고 스피킹 시험 준비.",
+    "labels": [
+      "토익스피킹 준비"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "토익스피킹"
+      },
+      {
+        "kind": "topic",
+        "value": "AL"
+      },
+      {
+        "kind": "platform",
+        "value": "유튜브"
+      }
+    ],
+    "category": "life",
+    "role": "hard_neg",
+    "for_query": "토익"
+  },
+  {
+    "id": "f_019",
+    "summary": "오픽 IH 등급 공략 인강 패키지 캡처. 서베이 항목 고르는 법이랑 콤보 답변 스크립트. 토익 아니라 오픽 준비 중.",
+    "labels": [
+      "오픽 시험 준비"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "오픽"
+      },
+      {
+        "kind": "topic",
+        "value": "IH"
+      },
+      {
+        "kind": "topic",
+        "value": "인강"
+      }
+    ],
+    "category": "life",
+    "role": "hard_neg",
+    "for_query": "토익"
+  },
+  {
+    "id": "f_020",
+    "summary": "HSK 4급 단어장 추천 글 저장. 중국어 시험 어휘 600개 암기 앱이랑 모의고사 교재. 영어 토익이 아니라 중국어 시험.",
+    "labels": [
+      "HSK 중국어 시험"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "HSK"
+      },
+      {
+        "kind": "topic",
+        "value": "중국어"
+      },
+      {
+        "kind": "product",
+        "value": "단어장"
+      }
+    ],
+    "category": "life",
+    "role": "hard_neg",
+    "for_query": "토익"
+  },
+  {
+    "id": "f_021",
+    "summary": "토익 학원 현장강의 시간표 비교. 강남 해커스 vs 종로 YBM 새벽반 수강료랑 강사 후기. 인강 말고 오프라인 학원 등록 고민. 시험 자체보다 학원 다닐지 결정.",
+    "labels": [
+      "토익 학원 등록 고민"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "YBM"
+      },
+      {
+        "kind": "location",
+        "value": "강남"
+      },
+      {
+        "kind": "topic",
+        "value": "현장강의"
+      }
+    ],
+    "category": "life",
+    "role": "hard_neg",
+    "for_query": "토익"
+  },
+  {
+    "id": "f_022",
+    "summary": "다이어트 보조제 부작용 뉴스 기사 저장. 가르시니아·CLA 다이어트 약 간 손상 사례, 식약처 주의 권고. 약 먹을까 말까 망설이는 중.",
+    "labels": [
+      "다이어트 보조제 부작용"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "가르시니아"
+      },
+      {
+        "kind": "topic",
+        "value": "다이어트보조제"
+      },
+      {
+        "kind": "platform",
+        "value": "뉴스"
+      }
+    ],
+    "category": "life",
+    "role": "hard_neg",
+    "for_query": "다이어트"
+  },
+  {
+    "id": "f_023",
+    "summary": "헬스장 PT 30회 등록 견적 비교 캡처. 벌크업 근비대 프로그램이랑 단백질 보충제 추천. 살 빼기보다 근육 키우는 목적.",
+    "labels": [
+      "PT 등록 검토"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "PT"
+      },
+      {
+        "kind": "topic",
+        "value": "벌크업"
+      },
+      {
+        "kind": "topic",
+        "value": "근비대"
+      }
+    ],
+    "category": "life",
+    "role": "hard_neg",
+    "for_query": "다이어트"
+  },
+  {
+    "id": "f_024",
+    "summary": "당뇨 환자 혈당 관리 식단 정보. 저GI 식품이랑 식후 혈당 스파이크 줄이는 법. 살 빼는 다이어트가 아니라 건강 관리 목적.",
+    "labels": [
+      "혈당 관리 식단"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "저GI"
+      },
+      {
+        "kind": "topic",
+        "value": "혈당관리"
+      },
+      {
+        "kind": "topic",
+        "value": "당뇨"
+      }
+    ],
+    "category": "life",
+    "role": "hard_neg",
+    "for_query": "다이어트"
+  },
+  {
+    "id": "f_025",
+    "summary": "비만 클리닉 위고비 처방 후기 블로그. 삭센다·위고비 비만 주사 가격이랑 병원 비교. 식단 운동이 아니라 의료 시술로 빼는 방법 알아보는 중.",
+    "labels": [
+      "비만 주사 처방 검토"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "위고비"
+      },
+      {
+        "kind": "brand",
+        "value": "삭센다"
+      },
+      {
+        "kind": "topic",
+        "value": "비만클리닉"
+      }
+    ],
+    "category": "life",
+    "role": "hard_neg",
+    "for_query": "다이어트"
+  },
+  {
+    "id": "f_026",
+    "summary": "동네 헬스장 6개월 등록 이벤트 캡처. 락커·운동복 포함 가격이랑 운영 시간. 집에서 가까운 곳으로 끊을지 비교 중.",
+    "labels": [
+      "헬스장 등록"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "헬스장"
+      },
+      {
+        "kind": "topic",
+        "value": "등록이벤트"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_027",
+    "summary": "요가원 입문 클래스 시간표 저장. 하타요가·빈야사 초보반 주 2회 수강권 가격 메모.",
+    "labels": [
+      "요가 클래스 등록"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "하타요가"
+      },
+      {
+        "kind": "topic",
+        "value": "빈야사"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_028",
+    "summary": "북한산 등산 코스 정보 캡처. 우이동에서 백운대까지 난이도랑 소요시간, 주말 단풍 명소 사진.",
+    "labels": [
+      "등산 코스 메모"
+    ],
+    "entities": [
+      {
+        "kind": "location",
+        "value": "북한산"
+      },
+      {
+        "kind": "topic",
+        "value": "등산"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_029",
+    "summary": "명상 앱 마보 무료 체험 안내. 수면 명상이랑 호흡 가이드 7일 코스. 자기 전에 해볼까 저장해둠.",
+    "labels": [
+      "명상 앱 체험"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "마보"
+      },
+      {
+        "kind": "topic",
+        "value": "명상"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_030",
+    "summary": "정보처리기사 필기 시험 일정이랑 합격 후기 정리. 과목별 공부 순서랑 기출 문제집 추천.",
+    "labels": [
+      "정보처리기사 준비"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "정보처리기사"
+      },
+      {
+        "kind": "topic",
+        "value": "자격증"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_031",
+    "summary": "이번 달 독서 모임 추천 도서 리스트. 트렌드 코리아 2026이랑 소설 신간 3권 메모.",
+    "labels": [
+      "독서 모임 도서"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "독서"
+      },
+      {
+        "kind": "topic",
+        "value": "독서모임"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_032",
+    "summary": "주말 봉사활동 모집 공고 저장. 유기견 보호소 산책 봉사 신청 링크랑 준비물 안내.",
+    "labels": [
+      "봉사활동 신청"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "봉사활동"
+      },
+      {
+        "kind": "topic",
+        "value": "유기견보호소"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_033",
+    "summary": "환테크 달러 분할 매수 정보. 환율 떨어질 때 외화통장에 모으는 법이랑 환전 수수료 우대 캡처.",
+    "labels": [
+      "환테크 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "환테크"
+      },
+      {
+        "kind": "topic",
+        "value": "외화통장"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_034",
+    "summary": "퇴근 후 사이드잡 아이디어 영상. 스마트스토어·블로그 애드포스트 부수입 사례 정리.",
+    "labels": [
+      "사이드잡 아이디어"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "사이드잡"
+      },
+      {
+        "kind": "topic",
+        "value": "스마트스토어"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_035",
+    "summary": "필라테스 1:1 레슨 체험권 안내. 자세 교정 목적 주 1회 6개월 등록 가격 비교.",
+    "labels": [
+      "필라테스 등록"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "필라테스"
+      },
+      {
+        "kind": "topic",
+        "value": "자세교정"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_036",
+    "summary": "클라이밍 입문 강습 후기 저장. 볼더링 신발 대여랑 첫 방문 가격, 동네 암장 위치 메모.",
+    "labels": [
+      "클라이밍 입문"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "클라이밍"
+      },
+      {
+        "kind": "topic",
+        "value": "볼더링"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_037",
+    "summary": "토스 만보기 포인트 적립 이벤트 캡처. 하루 만보 걸으면 주는 리워드랑 친구 초대 보너스.",
+    "labels": [
+      "만보기 리워드"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "토스"
+      },
+      {
+        "kind": "topic",
+        "value": "만보기"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_038",
+    "summary": "고양이 화장실 모래 비교 글. 벤토나이트 vs 두부모래 먼지·응고력 후기. 어떤 거 살지 고민.",
+    "labels": [
+      "고양이 모래 비교"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "고양이모래"
+      },
+      {
+        "kind": "topic",
+        "value": "두부모래"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_039",
+    "summary": "강아지 미용 예약 정보 캡처. 푸들 가위컷 스타일 사진이랑 동네 애견미용실 가격표.",
+    "labels": [
+      "강아지 미용 예약"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "강아지미용"
+      },
+      {
+        "kind": "topic",
+        "value": "가위컷"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_040",
+    "summary": "토익 만점자 인터뷰 기사 저장. 공부 동기부여용으로 읽으려고 캡처. 구체적 교재나 접수 정보는 없음.",
+    "labels": [
+      "공부 동기부여"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "동기부여"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_041",
+    "summary": "공무원 9급 시험 과목 개편 안내 기사. 영어·한국사 검정 대체 일정 정리.",
+    "labels": [
+      "공무원 시험 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "공무원시험"
+      },
+      {
+        "kind": "topic",
+        "value": "9급"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_042",
+    "summary": "홈카페 다이어트 음료 레시피. 제로콜라 에이드랑 아메리카노 베이스 무설탕 음료 만드는 법.",
+    "labels": [
+      "홈카페 레시피"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "홈카페"
+      },
+      {
+        "kind": "topic",
+        "value": "제로음료"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_043",
+    "summary": "반려묘 펫보험 가입 비교 캡처. 메리츠 펫퍼민트 vs 삼성 보장 항목이랑 자기부담금 정리.",
+    "labels": [
+      "펫보험 비교"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "메리츠"
+      },
+      {
+        "kind": "topic",
+        "value": "펫보험"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_044",
+    "summary": "연말정산 소득공제 항목 정리 글. 청약·연금저축·기부금 공제 한도랑 신용카드 사용 비율 메모.",
+    "labels": [
+      "연말정산 준비"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "연말정산"
+      },
+      {
+        "kind": "topic",
+        "value": "소득공제"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_045",
+    "summary": "수영 강습 초급반 등록 안내. 자유형·배영 4주 과정 수강권이랑 수영모·물안경 준비물.",
+    "labels": [
+      "수영 강습 등록"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "수영"
+      },
+      {
+        "kind": "topic",
+        "value": "자유형"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_046",
+    "summary": "테니스 레슨 그룹반 모집 공고. 주말 초보 4인 클래스 가격이랑 라켓 추천 메모.",
+    "labels": [
+      "테니스 레슨"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "테니스"
+      },
+      {
+        "kind": "topic",
+        "value": "레슨"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_047",
+    "summary": "ETF 적립식 투자 입문 영상. S&P500·나스닥100 ETF 매달 분할 매수 전략. 연금저축계좌로 굴리는 법.",
+    "labels": [
+      "ETF 적립 투자"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "ETF"
+      },
+      {
+        "kind": "topic",
+        "value": "S&P500"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_048",
+    "summary": "토익 말고 텝스 응시 후기 글. 서울대 텝스 점수랑 환산표, 대학원 지원에 필요해서 알아보는 중.",
+    "labels": [
+      "텝스 응시 정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "텝스"
+      },
+      {
+        "kind": "topic",
+        "value": "대학원"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_049",
+    "summary": "강아지 산책 코스 추천 글. 한강공원 반려견 동반 구역이랑 배변봉투 비치 위치 메모.",
+    "labels": [
+      "강아지 산책 코스"
+    ],
+    "entities": [
+      {
+        "kind": "location",
+        "value": "한강공원"
+      },
+      {
+        "kind": "topic",
+        "value": "반려견산책"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_050",
+    "summary": "전세보증금 대출 금리 비교 캡처. 버팀목 전세자금대출 한도랑 우대 조건, 중기청 대출이랑 비교.",
+    "labels": [
+      "전세대출 비교"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "버팀목대출"
+      },
+      {
+        "kind": "topic",
+        "value": "전세자금"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_051",
+    "summary": "홈트 풀바디 루틴 영상. 맨몸 스쿼트·플랭크·버피 4주 챌린지. 기구 없이 거실에서 하는 운동.",
+    "labels": [
+      "홈트 루틴"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "홈트"
+      },
+      {
+        "kind": "topic",
+        "value": "맨몸운동"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_052",
+    "summary": "고양이 입양 절차 안내 캡처. 보호소 입양비랑 중성화 여부 체크리스트, 첫 준비물 목록.",
+    "labels": [
+      "고양이 입양 준비"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "고양이입양"
+      },
+      {
+        "kind": "topic",
+        "value": "중성화"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_053",
+    "summary": "컴퓨터활용능력 1급 실기 일정이랑 합격 팁. 엑셀 함수 정리랑 모의고사 다운로드 링크.",
+    "labels": [
+      "컴활 자격증 준비"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "컴퓨터활용능력"
+      },
+      {
+        "kind": "topic",
+        "value": "자격증"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_054",
+    "summary": "배드민턴 동호회 가입 안내. 평일 저녁 체육관 대관 시간이랑 회비, 초보 환영 메모.",
+    "labels": [
+      "배드민턴 동호회"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "배드민턴"
+      },
+      {
+        "kind": "topic",
+        "value": "동호회"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_055",
+    "summary": "P2P 투자 플랫폼 후기 글. 부동산 담보 P2P 수익률이랑 원금 손실 위험 정리. 소액으로 해볼까 고민.",
+    "labels": [
+      "P2P 투자 검토"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "P2P투자"
+      },
+      {
+        "kind": "topic",
+        "value": "부동산담보"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_056",
+    "summary": "러닝 입문 가이드 저장. 5km 완주 8주 프로그램이랑 러닝화 추천, 러닝앱 페이스 설정 팁.",
+    "labels": [
+      "러닝 입문"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "러닝"
+      },
+      {
+        "kind": "topic",
+        "value": "러닝화"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_057",
+    "summary": "강아지 치석 제거 덴탈껌 비교 후기. 그리니즈 vs 동물병원 스케일링 비용. 구강 관리 방법 찾는 중.",
+    "labels": [
+      "강아지 치아 관리"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "그리니즈"
+      },
+      {
+        "kind": "topic",
+        "value": "덴탈껌"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_058",
+    "summary": "주식 배당락일이랑 배당 캘린더 정리. 분기 배당주 매수 타이밍 메모, 배당소득세 안내.",
+    "labels": [
+      "배당 캘린더"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "배당주"
+      },
+      {
+        "kind": "topic",
+        "value": "배당락"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_059",
+    "summary": "프랑스어 독학 인강 추천 글. DELF A2 목표 기초 문법이랑 발음 앱. 새 외국어 도전해볼까 저장.",
+    "labels": [
+      "프랑스어 독학"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "프랑스어"
+      },
+      {
+        "kind": "topic",
+        "value": "DELF"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_060",
+    "summary": "다이어트 도시락 정기배송 업체 비교. 닭가슴살 샐러드 도시락 가격이랑 칼로리. 그냥 후보로만 저장.",
+    "labels": [
+      "식단 도시락 배송"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "다이어트도시락"
+      },
+      {
+        "kind": "topic",
+        "value": "정기배송"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_061",
+    "summary": "노후 연금저축펀드 세액공제 정리. 연 600만원 한도 세액공제율이랑 IRP 추가 납입 메모.",
+    "labels": [
+      "연금저축 세액공제"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "연금저축"
+      },
+      {
+        "kind": "topic",
+        "value": "IRP"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_062",
+    "summary": "캘리그라피 원데이 클래스 모집. 붓펜 입문이랑 재료 키트 포함 가격. 취미로 배워볼까 캡처.",
+    "labels": [
+      "캘리그라피 클래스"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "캘리그라피"
+      },
+      {
+        "kind": "topic",
+        "value": "원데이클래스"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_063",
+    "summary": "강아지 켄넬·이동장 구매 비교. 비행기 기내반입 규격이랑 차량용 안전벨트 호환 제품 정리.",
+    "labels": [
+      "강아지 이동장 구매"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "이동장"
+      },
+      {
+        "kind": "topic",
+        "value": "기내반입"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_064",
+    "summary": "주식 초보 계좌 개설 가이드. 비대면 증권계좌 개설 절차랑 거래 수수료 무료 이벤트 비교.",
+    "labels": [
+      "증권계좌 개설"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "증권계좌"
+      },
+      {
+        "kind": "topic",
+        "value": "거래수수료"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "f_065",
+    "summary": "단백질 보충제 비교 후기. WPI vs WPC 흡수율이랑 맛 평가, 운동 후 섭취 타이밍 메모.",
+    "labels": [
+      "단백질 보충제 비교"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "단백질보충제"
+      },
+      {
+        "kind": "topic",
+        "value": "WPI"
+      }
+    ],
+    "category": "life",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_001",
+    "summary": "아이오닉6 롱레인지 시승 후기 블로그. 실주행 전비 18.2km/kWh랑 급속충전 18분 컷 정리됨. 카니발이랑 막판 고민 중이라 저장.",
+    "labels": [
+      "전기차 구매 검토"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "아이오닉6"
+      },
+      {
+        "kind": "topic",
+        "value": "전비"
+      },
+      {
+        "kind": "topic",
+        "value": "급속충전"
+      }
+    ],
+    "category": "mobility",
+    "role": "answer",
+    "for_query": "전기차"
+  },
+  {
+    "id": "b_002",
+    "summary": "테슬라 모델Y RWD vs 기아 EV6 비교 표 캡처. 가격, 주행거리, 트렁크 용량 한눈에 정리해둔 거. 둘 중 하나 살 예정.",
+    "labels": [
+      "전기차 구매 검토",
+      "모델 비교"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "모델Y"
+      },
+      {
+        "kind": "product",
+        "value": "EV6"
+      },
+      {
+        "kind": "brand",
+        "value": "테슬라"
+      },
+      {
+        "kind": "brand",
+        "value": "기아"
+      }
+    ],
+    "category": "mobility",
+    "role": "answer",
+    "for_query": "전기차"
+  },
+  {
+    "id": "b_003",
+    "summary": "현대 캐스퍼 일렉트릭 출고 대기 카페글 스크랩. 4개월 걸린다는 후기랑 옵션 추천 댓글 모아둠. 첫 전기차로 소형 보는 중.",
+    "labels": [
+      "전기차 구매 검토",
+      "출고 대기"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "캐스퍼 일렉트릭"
+      },
+      {
+        "kind": "brand",
+        "value": "현대"
+      },
+      {
+        "kind": "topic",
+        "value": "출고"
+      }
+    ],
+    "category": "mobility",
+    "role": "answer",
+    "for_query": "전기차"
+  },
+  {
+    "id": "b_004",
+    "summary": "2026년 서울시 전기승용차 구매보조금 공고 PDF. 국비 최대 580만원에 시비 추가, 차상위 청년 우대 항목 형광펜. 신청기한 메모.",
+    "labels": [
+      "전기차 보조금",
+      "구매 보조금"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "전기차 보조금"
+      },
+      {
+        "kind": "location",
+        "value": "서울시"
+      },
+      {
+        "kind": "topic",
+        "value": "국비 보조금"
+      }
+    ],
+    "category": "mobility",
+    "role": "answer",
+    "for_query": "보조금"
+  },
+  {
+    "id": "b_005",
+    "summary": "무공해차 통합누리집에서 본 경기도 전기차 보조금 지자체별 잔여대수 현황. 성남은 마감, 용인 아직 남음. 빨리 계약하라고 캡처해둠.",
+    "labels": [
+      "전기차 보조금",
+      "지자체 보조금"
+    ],
+    "entities": [
+      {
+        "kind": "platform",
+        "value": "무공해차 통합누리집"
+      },
+      {
+        "kind": "location",
+        "value": "경기도"
+      },
+      {
+        "kind": "topic",
+        "value": "지자체 보조금"
+      }
+    ],
+    "category": "mobility",
+    "role": "answer",
+    "for_query": "보조금"
+  },
+  {
+    "id": "b_006",
+    "summary": "트렉 도마니 AL3 로드 입문용 리뷰 영상 저장. 100만원대 알루미늄 프레임 가성비 좋다고. 출퇴근+주말 라이딩용으로 구매 고민.",
+    "labels": [
+      "자전거 구매 검토",
+      "로드자전거"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "도마니 AL3"
+      },
+      {
+        "kind": "brand",
+        "value": "트렉"
+      },
+      {
+        "kind": "topic",
+        "value": "로드자전거"
+      }
+    ],
+    "category": "mobility",
+    "role": "answer",
+    "for_query": "자전거"
+  },
+  {
+    "id": "b_007",
+    "summary": "삼천리 팬텀Q SF 전기자전거 스펙 페이지. PAS 모드 주행거리 55km, 접이식이라 지하철 반입 가능. 통근용으로 살까 저장.",
+    "labels": [
+      "자전거 구매 검토",
+      "전기자전거"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "팬텀Q SF"
+      },
+      {
+        "kind": "brand",
+        "value": "삼천리"
+      },
+      {
+        "kind": "topic",
+        "value": "전기자전거"
+      }
+    ],
+    "category": "mobility",
+    "role": "answer",
+    "for_query": "자전거"
+  },
+  {
+    "id": "b_008",
+    "summary": "환경부 전기차 충전소 앱에서 본 집 근처 급속충전기 위치랑 요금. 한전 kW당 347.2원, 회원카드 할인. 주말마다 갈 곳 즐겨찾기.",
+    "labels": [
+      "전기차 충전",
+      "충전소 위치"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "급속충전"
+      },
+      {
+        "kind": "topic",
+        "value": "충전 요금"
+      },
+      {
+        "kind": "brand",
+        "value": "한전"
+      }
+    ],
+    "category": "mobility",
+    "role": "answer",
+    "for_query": "충전"
+  },
+  {
+    "id": "b_009",
+    "summary": "지하주차장 전기차 화재 영상 뉴스. 벤츠 EQE 배터리 발화로 차량 수십대 전소. 우리 아파트도 충전구역 어디였나 걱정돼서 저장.",
+    "labels": [
+      "전기차 화재",
+      "뉴스"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "전기차 화재"
+      },
+      {
+        "kind": "product",
+        "value": "EQE"
+      },
+      {
+        "kind": "brand",
+        "value": "벤츠"
+      }
+    ],
+    "category": "mobility",
+    "role": "hard_neg",
+    "for_query": "전기차"
+  },
+  {
+    "id": "b_010",
+    "summary": "전기차 폐배터리 재활용 산업 전망 기사. 리튬 회수율이랑 ESS 재사용 사례. 관련주 투자 참고하려고 클립.",
+    "labels": [
+      "전기차 폐배터리",
+      "정책 기사"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "폐배터리 재활용"
+      },
+      {
+        "kind": "topic",
+        "value": "ESS"
+      }
+    ],
+    "category": "mobility",
+    "role": "hard_neg",
+    "for_query": "전기차"
+  },
+  {
+    "id": "b_011",
+    "summary": "전기차 정기점검 후기 글. 감속기 오일 교체랑 브레이크 패드 마모 적다는 내용. 이미 EV 타고 있는 사람이 정비소 비교한 거.",
+    "labels": [
+      "전기차 정비",
+      "유지보수"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "정기점검"
+      },
+      {
+        "kind": "topic",
+        "value": "감속기 오일"
+      }
+    ],
+    "category": "mobility",
+    "role": "hard_neg",
+    "for_query": "전기차"
+  },
+  {
+    "id": "b_012",
+    "summary": "전기차 자동차세 연납 할인 안내 캡처. 영업용/비영업용 세율이랑 1월 신청 시 공제율. 구매가 아니라 보유세 정보라 저장.",
+    "labels": [
+      "전기차 세금",
+      "자동차세"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "자동차세"
+      },
+      {
+        "kind": "topic",
+        "value": "연납 할인"
+      }
+    ],
+    "category": "mobility",
+    "role": "hard_neg",
+    "for_query": "전기차"
+  },
+  {
+    "id": "b_013",
+    "summary": "전기 화물차 봉고EV 렌탈 vs 리스 비교 블로그. 자영업 차량 운용 관점이라 개인 구매랑은 결이 다름. 참고용 저장.",
+    "labels": [
+      "전기 화물차",
+      "리스 비교"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "봉고EV"
+      },
+      {
+        "kind": "topic",
+        "value": "리스"
+      }
+    ],
+    "category": "mobility",
+    "role": "hard_neg",
+    "for_query": "전기차"
+  },
+  {
+    "id": "b_014",
+    "summary": "국토부 청년 월세 특별지원 보조금 공고. 월 20만원 최대 12개월, 소득기준이랑 신청서류 정리됨. 자취하는 동생 보내주려고 저장.",
+    "labels": [
+      "월세 보조금",
+      "청년 지원"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "청년 월세 보조금"
+      },
+      {
+        "kind": "topic",
+        "value": "소득기준"
+      }
+    ],
+    "category": "mobility",
+    "role": "hard_neg",
+    "for_query": "보조금"
+  },
+  {
+    "id": "b_015",
+    "summary": "소상공인 전기요금 특별지원 보조금 신청 페이지. 연매출 6천만원 이하 20만원 지원. 카페 하는 친구한테 알려주려고 캡처.",
+    "labels": [
+      "소상공인 보조금",
+      "전기요금 지원"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "소상공인 보조금"
+      },
+      {
+        "kind": "topic",
+        "value": "전기요금 지원"
+      }
+    ],
+    "category": "mobility",
+    "role": "hard_neg",
+    "for_query": "보조금"
+  },
+  {
+    "id": "b_016",
+    "summary": "첫만남이용권 출산 보조금 안내. 200만원 바우처 사용처랑 둘째부터 300만원. 출산 앞둔 동료가 물어봐서 저장한 정부24 캡처.",
+    "labels": [
+      "출산 보조금",
+      "정부 지원금"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "출산 보조금"
+      },
+      {
+        "kind": "platform",
+        "value": "정부24"
+      }
+    ],
+    "category": "mobility",
+    "role": "hard_neg",
+    "for_query": "보조금"
+  },
+  {
+    "id": "b_017",
+    "summary": "농업인 면세유 보조금이랑 농기계 구입 지원 공고. 트랙터 보조금 비율 정리. 시골 부모님 농사용이라 모빌리티랑 무관해도 보조금 검색됨.",
+    "labels": [
+      "농업 보조금",
+      "농기계 지원"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "농업 보조금"
+      },
+      {
+        "kind": "topic",
+        "value": "면세유"
+      }
+    ],
+    "category": "mobility",
+    "role": "hard_neg",
+    "for_query": "보조금"
+  },
+  {
+    "id": "b_018",
+    "summary": "고효율 가전 으뜸효율 환급 보조금 안내. 1등급 냉장고/세탁기 10% 환급 한도 30만원. 가전 바꿀 때 쓰려고 저장.",
+    "labels": [
+      "가전 환급",
+      "에너지 보조금"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "가전 환급"
+      },
+      {
+        "kind": "topic",
+        "value": "으뜸효율"
+      }
+    ],
+    "category": "mobility",
+    "role": "hard_neg",
+    "for_query": "보조금"
+  },
+  {
+    "id": "b_019",
+    "summary": "한강 자전거 도로 정비공사 통제구간 안내 캡처. 뚝섬~잠실 구간 야간 부분통제. 라이딩 코스 짤 때 참고하려고 저장. 자전거 구매랑은 무관.",
+    "labels": [
+      "자전거 도로 공사",
+      "통제 안내"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "자전거 도로 공사"
+      },
+      {
+        "kind": "location",
+        "value": "한강"
+      }
+    ],
+    "category": "mobility",
+    "role": "hard_neg",
+    "for_query": "자전거"
+  },
+  {
+    "id": "b_020",
+    "summary": "따릉이 정기권 가격이랑 우리 동네 대여소 위치 지도. 1시간권 자전거 대여 요금표. 공유자전거라 직접 사는 거랑은 다름.",
+    "labels": [
+      "공유자전거",
+      "따릉이 대여"
+    ],
+    "entities": [
+      {
+        "kind": "platform",
+        "value": "따릉이"
+      },
+      {
+        "kind": "topic",
+        "value": "대여소"
+      }
+    ],
+    "category": "mobility",
+    "role": "hard_neg",
+    "for_query": "자전거"
+  },
+  {
+    "id": "b_021",
+    "summary": "자전거 보험 비교 정리. 동호회 가입한다고 상해/배상책임 특약 보는 중. 사고 대비용이지 자전거 구매 검토는 아님.",
+    "labels": [
+      "자전거 보험",
+      "보험 비교"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "자전거 보험"
+      },
+      {
+        "kind": "topic",
+        "value": "상해 특약"
+      }
+    ],
+    "category": "mobility",
+    "role": "hard_neg",
+    "for_query": "자전거"
+  },
+  {
+    "id": "b_022",
+    "summary": "자전거 헬멧이랑 라이트 추천 글. 야간 라이딩용 후미등이랑 MIPS 헬멧 비교. 액세서리지 자전거 본체 구매는 아님.",
+    "labels": [
+      "자전거 용품",
+      "액세서리"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "MIPS 헬멧"
+      },
+      {
+        "kind": "topic",
+        "value": "후미등"
+      }
+    ],
+    "category": "mobility",
+    "role": "hard_neg",
+    "for_query": "자전거"
+  },
+  {
+    "id": "b_023",
+    "summary": "보조배터리 고속충전 안 되는 문제 해결 글. PD 충전기 W수랑 케이블 규격 확인하라고. 전기차랑 무관한 폰 충전 얘기.",
+    "labels": [
+      "보조배터리 충전",
+      "전자기기"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "보조배터리 충전"
+      },
+      {
+        "kind": "topic",
+        "value": "PD 충전"
+      }
+    ],
+    "category": "mobility",
+    "role": "hard_neg",
+    "for_query": "충전"
+  },
+  {
+    "id": "b_024",
+    "summary": "교통카드 티머니 자동충전 설정 방법 캡처. 잔액 부족 시 2만원 자동충전 연결. 대중교통 카드 충전이라 EV 충전이랑 다름.",
+    "labels": [
+      "교통카드 충전",
+      "티머니"
+    ],
+    "entities": [
+      {
+        "kind": "platform",
+        "value": "티머니"
+      },
+      {
+        "kind": "topic",
+        "value": "자동충전"
+      }
+    ],
+    "category": "mobility",
+    "role": "hard_neg",
+    "for_query": "충전"
+  },
+  {
+    "id": "b_025",
+    "summary": "기프티콘 스타벅스 카드 충전 적립 이벤트. 5만원 충전 시 별 추가 적립. 카페 결제 얘기라 자동차 충전이랑 전혀 무관.",
+    "labels": [
+      "기프티콘 충전",
+      "적립 이벤트"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "스타벅스"
+      },
+      {
+        "kind": "topic",
+        "value": "충전 적립"
+      }
+    ],
+    "category": "mobility",
+    "role": "hard_neg",
+    "for_query": "충전"
+  },
+  {
+    "id": "b_026",
+    "summary": "아파트 입주민 EV 충전기 신규 설치 동의 안내문. 화재 대비 완속 위주 설치라 위치/요금 정보가 아니라 설치 행정 공지. 참고만.",
+    "labels": [
+      "충전기 설치",
+      "아파트 공지"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "충전기 설치"
+      },
+      {
+        "kind": "topic",
+        "value": "완속충전"
+      }
+    ],
+    "category": "mobility",
+    "role": "hard_neg",
+    "for_query": "충전"
+  },
+  {
+    "id": "b_027",
+    "summary": "엔진오일 교환 주기 정리 글. 합성유 1만km, 광유 5천km. 내 가솔린차 정비 메모.",
+    "labels": [
+      "자동차 정비"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "엔진오일"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_028",
+    "summary": "동네 공영주차장 월정기권 신청 페이지. 자리 대기 12번. 출근용 주차 자리 알아보는 중.",
+    "labels": [
+      "주차장"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "월정기 주차"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_029",
+    "summary": "광역버스 9401번 노선이랑 첫차 시간표 캡처. 강남행 막차 23시 10분. 출퇴근 참고.",
+    "labels": [
+      "대중교통 노선"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "광역버스"
+      },
+      {
+        "kind": "location",
+        "value": "강남"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_030",
+    "summary": "제주도 렌터카 가격 비교 사이트. 아반떼 3일 대여 면책 포함 견적. 여름 휴가용으로 저장.",
+    "labels": [
+      "렌터카"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "렌터카"
+      },
+      {
+        "kind": "location",
+        "value": "제주도"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_031",
+    "summary": "한국타이어 사계절 타이어 215/55R17 가격이랑 장착점 비교. 마모한계 슬슬 보여서 교체 알아보는 중.",
+    "labels": [
+      "타이어"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "한국타이어"
+      },
+      {
+        "kind": "topic",
+        "value": "타이어 교체"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_032",
+    "summary": "운전면허 1종 보통 갱신 절차 안내. 적성검사랑 신체검사 받을 수 있는 병원 위치. 만료 두 달 남아서 메모.",
+    "labels": [
+      "운전면허"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "면허 갱신"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_033",
+    "summary": "하이패스 단말기 잔액 충전 안 될 때 카드 재등록 방법. 휴게소 충전소 위치도 같이.",
+    "labels": [
+      "하이패스"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "하이패스"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_034",
+    "summary": "KTX 부산행 주말 할인 예매 꿀팁. 환승 연계 할인이랑 자유석 시간대. 명절 귀성 참고.",
+    "labels": [
+      "기차 예매"
+    ],
+    "entities": [
+      {
+        "kind": "platform",
+        "value": "KTX"
+      },
+      {
+        "kind": "location",
+        "value": "부산"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_035",
+    "summary": "지하철 2호선 연착 잦은 시간대 정리한 블로그. 출근 동선 다시 짜려고 저장.",
+    "labels": [
+      "지하철"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "지하철 2호선"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_036",
+    "summary": "카니발 9인승 중고 시세 표. 연식별 주행거리 대비 가격. 가족 차 바꿀까 보는 중.",
+    "labels": [
+      "중고차"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "카니발"
+      },
+      {
+        "kind": "topic",
+        "value": "중고 시세"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_037",
+    "summary": "자동차 보험 갱신 견적 비교. 운전자보험 특약이랑 마일리지 할인. 다음 달 만기라 저장.",
+    "labels": [
+      "자동차 보험"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "자동차 보험"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_038",
+    "summary": "셀프 세차장 위치랑 코인 요금 정리. 발수코팅 잘 되는 곳 후기.",
+    "labels": [
+      "세차"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "셀프 세차"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_039",
+    "summary": "카셰어링 쏘카 주말 부정기 요금이랑 페널티 규정. 잠깐 짐 옮길 때 쓰려고 저장.",
+    "labels": [
+      "카셰어링"
+    ],
+    "entities": [
+      {
+        "kind": "platform",
+        "value": "쏘카"
+      },
+      {
+        "kind": "topic",
+        "value": "카셰어링"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_040",
+    "summary": "고속도로 실시간 정체 구간 확인하는 앱 추천 글. 명절 우회로 같이.",
+    "labels": [
+      "교통정보"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "고속도로 정체"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_041",
+    "summary": "주차위반 과태료 이의신청 절차. 견인된 차 찾는 보관소 위치도. 억울해서 저장.",
+    "labels": [
+      "주차 과태료"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "주차위반 과태료"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_042",
+    "summary": "공항버스 6005번 인천공항 노선이랑 새벽 첫차. 캐리어 짐칸 있음. 출국 때 참고.",
+    "labels": [
+      "공항버스"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "공항버스"
+      },
+      {
+        "kind": "location",
+        "value": "인천공항"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_043",
+    "summary": "와이퍼 블레이드 교체 셀프 방법 영상. 사이즈 규격 확인하는 법. 비 올 때 끽끽거려서 저장.",
+    "labels": [
+      "자동차 정비"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "와이퍼 교체"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_044",
+    "summary": "블랙박스 상시녹화 배터리 방전 방지 설정. 보조배터리팩 추천도 같이.",
+    "labels": [
+      "블랙박스"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "블랙박스"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_045",
+    "summary": "킥보드 공유 지쿠 면허 인증이랑 요금제. 단거리 이동용. 우리 동네 운영 구역 확인.",
+    "labels": [
+      "공유 킥보드"
+    ],
+    "entities": [
+      {
+        "kind": "platform",
+        "value": "지쿠"
+      },
+      {
+        "kind": "topic",
+        "value": "공유 킥보드"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_046",
+    "summary": "자동차 검사 정기검사 예약 사이트. 종합검사 대상이랑 미수검 과태료. 안내문 받아서 저장.",
+    "labels": [
+      "자동차 검사"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "정기검사"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_047",
+    "summary": "주유 할인 카드 비교. 리터당 100원 할인되는 신용카드 실적 조건. 기름값 아끼려고.",
+    "labels": [
+      "주유 할인"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "주유 할인카드"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_048",
+    "summary": "내비게이션 티맵 음성안내 커스텀 목소리 설정 방법. 운전 심심할 때 바꾸려고.",
+    "labels": [
+      "내비게이션"
+    ],
+    "entities": [
+      {
+        "kind": "platform",
+        "value": "티맵"
+      },
+      {
+        "kind": "topic",
+        "value": "내비게이션"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_049",
+    "summary": "택시 호출 카카오T 블루 예약 수수료랑 심야 할증. 공항 갈 때 미리 잡으려고.",
+    "labels": [
+      "택시 호출"
+    ],
+    "entities": [
+      {
+        "kind": "platform",
+        "value": "카카오T"
+      },
+      {
+        "kind": "topic",
+        "value": "택시 호출"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_050",
+    "summary": "시외버스 예매 환불 규정 정리. 출발 전 시간대별 위약금. 명절 표 취소할까 봐 저장.",
+    "labels": [
+      "시외버스"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "시외버스"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_051",
+    "summary": "차량용 방향제랑 공기청정기 추천 글. 새차 냄새 빼는 법. 인테리어 용품 정리.",
+    "labels": [
+      "차량 용품"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "차량 방향제"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_052",
+    "summary": "겨울철 스노우체인 장착법이랑 4WD 눈길 운전 팁. 스키장 갈 때 대비.",
+    "labels": [
+      "겨울 운전"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "스노우체인"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_053",
+    "summary": "자동차 리스 vs 장기렌트 세금 비교 표. 사업자 비용처리 관점. 차 운용방식 고민.",
+    "labels": [
+      "리스 장기렌트"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "장기렌트"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_054",
+    "summary": "주차 끼임 사고 대인접수 절차랑 합의금 후기. 접촉사고 처리 참고.",
+    "labels": [
+      "교통사고"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "접촉사고"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_055",
+    "summary": "고속도로 휴게소 맛집 지도. 호두과자랑 우동 유명한 곳. 장거리 운전 코스 참고.",
+    "labels": [
+      "휴게소"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "휴게소 맛집"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_056",
+    "summary": "버스전용차로 위반 단속 구간 지도. 명절 단속 강화 안내. 헷갈려서 저장.",
+    "labels": [
+      "교통법규"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "버스전용차로"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_057",
+    "summary": "차량 도색 부분 판금 견적 비교. 문콕 흠집 복원 비용 후기. 견적 받아보려고.",
+    "labels": [
+      "판금 도색"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "판금 도색"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_058",
+    "summary": "수도권 광역급행철도 GTX-A 개통 구간이랑 요금. 출퇴근 단축되나 확인.",
+    "labels": [
+      "광역철도"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "GTX-A"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_059",
+    "summary": "자동차 키 배터리 교체 방법이랑 스마트키 인식 안 될 때 비상키 위치. 갑자기 안 열려서 저장.",
+    "labels": [
+      "스마트키"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "스마트키"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_060",
+    "summary": "주차 대행 발렛 분실 사고 배상 사례. 호텔 발렛 맡길 때 주의점. 참고용.",
+    "labels": [
+      "발렛파킹"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "발렛파킹"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_061",
+    "summary": "전동킥보드 헬멧 의무화 단속이랑 인도주행 과태료. 출퇴근 킥보드 타서 저장.",
+    "labels": [
+      "개인형 이동장치"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "전동킥보드 단속"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_062",
+    "summary": "차량 에어컨 냄새 제거 에바클리닝 비용이랑 셀프 항균 스프레이 후기. 여름 전에 하려고.",
+    "labels": [
+      "자동차 정비"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "에바클리닝"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_063",
+    "summary": "운전 초보 주차 후방 카메라 보는 법이랑 평행주차 팁 영상. 연수 끝나고 복습용.",
+    "labels": [
+      "운전 연수"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "주차 팁"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_064",
+    "summary": "통근 카풀 앱 출퇴근 매칭이랑 비용 정산 방식. 기름값 절약하려고 알아보는 중.",
+    "labels": [
+      "카풀"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "카풀"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "b_065",
+    "summary": "공유 자동차 그린카 vs 쏘카 가입비랑 보험료 비교. 가끔 쓸 거라 어디가 싼지 저장.",
+    "labels": [
+      "카셰어링"
+    ],
+    "entities": [
+      {
+        "kind": "platform",
+        "value": "그린카"
+      },
+      {
+        "kind": "topic",
+        "value": "카셰어링"
+      }
+    ],
+    "category": "mobility",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_001",
+    "summary": "제주 3박4일 동부 코스 블로그. 성산일출봉-섭지코지-월정리 동선에 우진해장국, 명진전복 흑돼지 맛집이랑 카페 글라드 정리됨.",
+    "labels": [
+      "제주 여행 계획",
+      "여행 코스"
+    ],
+    "entities": [
+      {
+        "kind": "location",
+        "value": "제주"
+      },
+      {
+        "kind": "topic",
+        "value": "여행코스"
+      },
+      {
+        "kind": "location",
+        "value": "성산일출봉"
+      }
+    ],
+    "category": "travel_food",
+    "role": "answer",
+    "for_query": "제주도 여행"
+  },
+  {
+    "id": "d_002",
+    "summary": "제주 애월 오션뷰 독채 펜션 '바다정원' 예약 페이지. 1박 18만원, 7월 둘째주 주말 빈방 확인하려고 저장.",
+    "labels": [
+      "제주 숙소",
+      "펜션 예약"
+    ],
+    "entities": [
+      {
+        "kind": "location",
+        "value": "애월"
+      },
+      {
+        "kind": "brand",
+        "value": "바다정원"
+      },
+      {
+        "kind": "topic",
+        "value": "숙소예약"
+      }
+    ],
+    "category": "travel_food",
+    "role": "answer",
+    "for_query": "제주도 여행"
+  },
+  {
+    "id": "d_003",
+    "summary": "김포-제주 항공권 비교 캡처. 진에어 편도 4만2천원, 제주항공 5만원. 7/12 출발 8/15 귀국으로 알아보는 중.",
+    "labels": [
+      "제주 항공권",
+      "항공권 예약"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "진에어"
+      },
+      {
+        "kind": "brand",
+        "value": "제주항공"
+      },
+      {
+        "kind": "topic",
+        "value": "항공권"
+      },
+      {
+        "kind": "location",
+        "value": "제주"
+      }
+    ],
+    "category": "travel_food",
+    "role": "answer",
+    "for_query": "제주도 여행"
+  },
+  {
+    "id": "d_004",
+    "summary": "성수동 '소금집델리' 파스트라미 샌드위치 맛집 인스타. 웨이팅 30분이라는데 다음주에 가보려고 저장.",
+    "labels": [
+      "가볼 맛집",
+      "샌드위치"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "소금집델리"
+      },
+      {
+        "kind": "location",
+        "value": "성수동"
+      },
+      {
+        "kind": "topic",
+        "value": "맛집"
+      }
+    ],
+    "category": "travel_food",
+    "role": "answer",
+    "for_query": "맛집"
+  },
+  {
+    "id": "d_005",
+    "summary": "을지로 노포 '안성집' 평양냉면 맛집 블로그 후기. 점심에 가면 자리 있다길래 회사 근처라 가보려고 캡처함.",
+    "labels": [
+      "가볼 맛집",
+      "냉면"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "안성집"
+      },
+      {
+        "kind": "location",
+        "value": "을지로"
+      },
+      {
+        "kind": "topic",
+        "value": "맛집"
+      }
+    ],
+    "category": "travel_food",
+    "role": "answer",
+    "for_query": "맛집"
+  },
+  {
+    "id": "d_006",
+    "summary": "연남동 '커피리브레' 핸드드립 카페 사진. 산미 있는 원두 좋아해서 주말에 들러보려고 저장한 카페.",
+    "labels": [
+      "가볼 카페",
+      "핸드드립"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "커피리브레"
+      },
+      {
+        "kind": "location",
+        "value": "연남동"
+      },
+      {
+        "kind": "topic",
+        "value": "카페"
+      }
+    ],
+    "category": "travel_food",
+    "role": "answer",
+    "for_query": "카페"
+  },
+  {
+    "id": "d_007",
+    "summary": "양평 '테라로사 서종점' 베이커리 카페. 통창 계곡뷰에 빵 맛있다고 해서 드라이브 겸 가보려고 캡처.",
+    "labels": [
+      "가볼 카페",
+      "베이커리 카페"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "테라로사"
+      },
+      {
+        "kind": "location",
+        "value": "양평"
+      },
+      {
+        "kind": "topic",
+        "value": "카페"
+      }
+    ],
+    "category": "travel_food",
+    "role": "answer",
+    "for_query": "카페"
+  },
+  {
+    "id": "d_008",
+    "summary": "가평 '자라섬 오토캠핑장' 예약 페이지 캡처. 데크 사이트 1박 4만원, 8월 첫주 예약 오픈일 확인하려고 저장.",
+    "labels": [
+      "캠핑장 예약",
+      "오토캠핑"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "자라섬오토캠핑장"
+      },
+      {
+        "kind": "location",
+        "value": "가평"
+      },
+      {
+        "kind": "topic",
+        "value": "캠핑"
+      }
+    ],
+    "category": "travel_food",
+    "role": "answer",
+    "for_query": "캠핑"
+  },
+  {
+    "id": "d_009",
+    "summary": "제주 서귀포 빌라 매매 시세 정리 기사. 평당 가격이랑 분양 일정 나온 부동산 글, 이주 고민하다가 저장함.",
+    "labels": [
+      "제주 부동산"
+    ],
+    "entities": [
+      {
+        "kind": "location",
+        "value": "서귀포"
+      },
+      {
+        "kind": "topic",
+        "value": "부동산"
+      }
+    ],
+    "category": "travel_food",
+    "role": "hard_neg",
+    "for_query": "제주도 여행"
+  },
+  {
+    "id": "d_010",
+    "summary": "제주 한 달 살기 게스트하우스 스태프 구인 공고. 숙식 제공 무급, 주 5일 청소 조건. 일자리라 정보용으로만 저장.",
+    "labels": [
+      "제주 한달살기 구인"
+    ],
+    "entities": [
+      {
+        "kind": "location",
+        "value": "제주"
+      },
+      {
+        "kind": "topic",
+        "value": "구인"
+      }
+    ],
+    "category": "travel_food",
+    "role": "hard_neg",
+    "for_query": "제주도 여행"
+  },
+  {
+    "id": "d_011",
+    "summary": "지난 봄 제주 가족여행 경비 정산 엑셀 캡처. 항공·렌터카·숙소 합쳐 87만원 나온 다녀온 여행 결산표.",
+    "labels": [
+      "제주 여행 정산"
+    ],
+    "entities": [
+      {
+        "kind": "location",
+        "value": "제주"
+      },
+      {
+        "kind": "topic",
+        "value": "여행정산"
+      }
+    ],
+    "category": "travel_food",
+    "role": "hard_neg",
+    "for_query": "제주도 여행"
+  },
+  {
+    "id": "d_012",
+    "summary": "부산 2박3일 여행 코스 블로그. 해운대-감천문화마을-광안리 동선에 밀면 맛집 포함. 제주 말고 부산 후보로 저장.",
+    "labels": [
+      "부산 여행 계획"
+    ],
+    "entities": [
+      {
+        "kind": "location",
+        "value": "부산"
+      },
+      {
+        "kind": "topic",
+        "value": "여행코스"
+      }
+    ],
+    "category": "travel_food",
+    "role": "hard_neg",
+    "for_query": "제주도 여행"
+  },
+  {
+    "id": "d_013",
+    "summary": "제주도청 청년 이주 정착지원금 신청 안내. 정착 보조금 조건이랑 서류 목록 정리된 행정 페이지.",
+    "labels": [
+      "제주 이주 지원"
+    ],
+    "entities": [
+      {
+        "kind": "location",
+        "value": "제주"
+      },
+      {
+        "kind": "topic",
+        "value": "정착지원"
+      }
+    ],
+    "category": "travel_food",
+    "role": "hard_neg",
+    "for_query": "제주도 여행"
+  },
+  {
+    "id": "d_014",
+    "summary": "'맛집 창업 클래스' 패스트캠퍼스 강의 광고. 외식 메뉴 개발이랑 상권 분석 커리큘럼, 수강료 39만원.",
+    "labels": [
+      "맛집 창업 강의"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "패스트캠퍼스"
+      },
+      {
+        "kind": "topic",
+        "value": "창업강의"
+      }
+    ],
+    "category": "travel_food",
+    "role": "hard_neg",
+    "for_query": "맛집"
+  },
+  {
+    "id": "d_015",
+    "summary": "백종원 '맛집' 유튜브 영상 — 골목식당 솔루션 편. 그냥 보다가 저장한 방송 콘텐츠, 갈 가게는 아님.",
+    "labels": [
+      "맛집 방송"
+    ],
+    "entities": [
+      {
+        "kind": "person",
+        "value": "백종원"
+      },
+      {
+        "kind": "platform",
+        "value": "유튜브"
+      },
+      {
+        "kind": "topic",
+        "value": "방송"
+      }
+    ],
+    "category": "travel_food",
+    "role": "hard_neg",
+    "for_query": "맛집"
+  },
+  {
+    "id": "d_016",
+    "summary": "지난 주말 다녀온 마라탕 맛집 영수증 사진. 4만8천원 결제, 가계부 정리하려고 캡처한 이미 다녀온 기록.",
+    "labels": [
+      "다녀온 맛집 영수증"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "영수증"
+      },
+      {
+        "kind": "topic",
+        "value": "가계부"
+      }
+    ],
+    "category": "travel_food",
+    "role": "hard_neg",
+    "for_query": "맛집"
+  },
+  {
+    "id": "d_017",
+    "summary": "'전국 맛집 배달 가능' 쿠팡이츠 프로모션 배너. 첫 주문 5천원 할인 쿠폰, 집에서 시켜먹는 배달 광고.",
+    "labels": [
+      "배달 프로모션"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "쿠팡이츠"
+      },
+      {
+        "kind": "topic",
+        "value": "배달"
+      }
+    ],
+    "category": "travel_food",
+    "role": "hard_neg",
+    "for_query": "맛집"
+  },
+  {
+    "id": "d_018",
+    "summary": "네이버 '카페' 가입 안내 — 중고거래 동네 카페 등업 규칙. 커뮤니티 카페지 마실 카페 아님. 등업 글 저장.",
+    "labels": [
+      "네이버 카페 커뮤니티"
+    ],
+    "entities": [
+      {
+        "kind": "platform",
+        "value": "네이버카페"
+      },
+      {
+        "kind": "topic",
+        "value": "커뮤니티"
+      }
+    ],
+    "category": "travel_food",
+    "role": "hard_neg",
+    "for_query": "카페"
+  },
+  {
+    "id": "d_019",
+    "summary": "카페24 쇼핑몰 창업 호스팅 요금제 비교. 무료 플랜이랑 결제 수수료 정리된 이커머스 플랫폼 페이지.",
+    "labels": [
+      "카페24 쇼핑몰"
+    ],
+    "entities": [
+      {
+        "kind": "platform",
+        "value": "카페24"
+      },
+      {
+        "kind": "topic",
+        "value": "쇼핑몰창업"
+      }
+    ],
+    "category": "travel_food",
+    "role": "hard_neg",
+    "for_query": "카페"
+  },
+  {
+    "id": "d_020",
+    "summary": "개인 카페 창업 인테리어 견적 블로그. 10평 기준 에스프레소 머신·바 시공 비용 정리. 가게 차리는 정보라 저장.",
+    "labels": [
+      "카페 창업"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "창업"
+      },
+      {
+        "kind": "topic",
+        "value": "인테리어"
+      }
+    ],
+    "category": "travel_food",
+    "role": "hard_neg",
+    "for_query": "카페"
+  },
+  {
+    "id": "d_021",
+    "summary": "지난달 다녀온 망원동 카페 '딥블루레이크' 디저트 사진. 추억용으로 저장한 이미 방문한 카페 인증샷.",
+    "labels": [
+      "다녀온 카페"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "딥블루레이크"
+      },
+      {
+        "kind": "location",
+        "value": "망원동"
+      },
+      {
+        "kind": "topic",
+        "value": "방문기록"
+      }
+    ],
+    "category": "travel_food",
+    "role": "hard_neg",
+    "for_query": "카페"
+  },
+  {
+    "id": "d_022",
+    "summary": "캠핑카 '포레스트 리버' 중고 매물 당근마켓 글. 4인용 모터홈 6천8백만원, 차박 개조 옵션 포함. 구매 고민용 저장.",
+    "labels": [
+      "캠핑카 구매"
+    ],
+    "entities": [
+      {
+        "kind": "platform",
+        "value": "당근마켓"
+      },
+      {
+        "kind": "topic",
+        "value": "캠핑카"
+      },
+      {
+        "kind": "topic",
+        "value": "중고매물"
+      }
+    ],
+    "category": "travel_food",
+    "role": "hard_neg",
+    "for_query": "캠핑"
+  },
+  {
+    "id": "d_023",
+    "summary": "SUV 차박 개조 DIY 유튜브. 트렁크 평탄화 자작 매트랑 도킹텐트 설치 영상. 차량 개조 정보라 저장.",
+    "labels": [
+      "차박 개조"
+    ],
+    "entities": [
+      {
+        "kind": "platform",
+        "value": "유튜브"
+      },
+      {
+        "kind": "topic",
+        "value": "차박"
+      },
+      {
+        "kind": "topic",
+        "value": "차량개조"
+      }
+    ],
+    "category": "travel_food",
+    "role": "hard_neg",
+    "for_query": "캠핑"
+  },
+  {
+    "id": "d_024",
+    "summary": "지난 가을 다녀온 캠핑 사진첩 백업. 불멍·텐트 야경 모음, 추억 정리용으로 저장한 이미 다녀온 기록.",
+    "labels": [
+      "다녀온 캠핑 기록"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "캠핑사진"
+      },
+      {
+        "kind": "topic",
+        "value": "추억"
+      }
+    ],
+    "category": "travel_food",
+    "role": "hard_neg",
+    "for_query": "캠핑"
+  },
+  {
+    "id": "d_025",
+    "summary": "감성캠핑 텐트 '코베아 고스트' 쿠팡 최저가 캡처. 2인용 18만9천원, 폴대 스펙 비교. 장비 구매 후보로 저장.",
+    "labels": [
+      "캠핑 장비 구매"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "코베아"
+      },
+      {
+        "kind": "brand",
+        "value": "쿠팡"
+      },
+      {
+        "kind": "topic",
+        "value": "캠핑장비"
+      }
+    ],
+    "category": "travel_food",
+    "role": "hard_neg",
+    "for_query": "캠핑"
+  },
+  {
+    "id": "d_026",
+    "summary": "메리어트 본보이 멤버십 등급 혜택 비교표. 골드 엘리트 객실 업그레이드 조건 정리된 호텔 로열티 안내.",
+    "labels": [
+      "호텔 멤버십"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "메리어트"
+      },
+      {
+        "kind": "topic",
+        "value": "멤버십"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_027",
+    "summary": "대한항공 마일리지 적립·소멸 안내. 스카이패스 보너스 항공권 차감 마일 표 정리된 페이지.",
+    "labels": [
+      "항공 마일리지"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "대한항공"
+      },
+      {
+        "kind": "topic",
+        "value": "마일리지"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_028",
+    "summary": "트래블월렛 환전 수수료 비교 캡처. 달러·엔화 실시간 환율이랑 충전 한도 정리. 환전 앱 정보.",
+    "labels": [
+      "환전"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "트래블월렛"
+      },
+      {
+        "kind": "topic",
+        "value": "환전"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_029",
+    "summary": "기내 반입 캐리어 짐싸기 체크리스트 블로그. 100ml 액체 규정이랑 압축팩 활용 팁 정리.",
+    "labels": [
+      "여행 짐싸기"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "짐싸기"
+      },
+      {
+        "kind": "topic",
+        "value": "여행팁"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_030",
+    "summary": "바스크 치즈케이크 노오븐 레시피. 크림치즈 200g 비율이랑 굽는 온도 정리된 디저트 만들기 글.",
+    "labels": [
+      "디저트 레시피"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "레시피"
+      },
+      {
+        "kind": "topic",
+        "value": "디저트"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_031",
+    "summary": "에어프라이어 닭다리 양념구이 레시피. 간장·물엿 비율이랑 180도 15분 조리법 캡처.",
+    "labels": [
+      "집밥 레시피"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "레시피"
+      },
+      {
+        "kind": "topic",
+        "value": "에어프라이어"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_032",
+    "summary": "내추럴 와인 입문 가이드. 오렌지 와인·펫낫 종류랑 보관 온도 정리된 와인 초보 글.",
+    "labels": [
+      "와인"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "와인"
+      },
+      {
+        "kind": "topic",
+        "value": "주류"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_033",
+    "summary": "자라섬 재즈페스티벌 라인업·티켓 안내. 1일권 8만8천원, 셔틀버스 시간표 포함된 공연 정보.",
+    "labels": [
+      "페스티벌"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "자라섬재즈페스티벌"
+      },
+      {
+        "kind": "topic",
+        "value": "페스티벌"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_034",
+    "summary": "넷플릭스 신작 다큐 '셰프의 테이블' 시즌6 공개 안내. 주말에 볼 영상 위시리스트로 저장.",
+    "labels": [
+      "볼 콘텐츠"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "넷플릭스"
+      },
+      {
+        "kind": "topic",
+        "value": "다큐멘터리"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_035",
+    "summary": "여권 갱신 온라인 신청 절차 안내. 전자여권 발급 수수료 5만3천원이랑 사진 규격 정리.",
+    "labels": [
+      "여권 갱신"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "여권"
+      },
+      {
+        "kind": "topic",
+        "value": "행정"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_036",
+    "summary": "삼성 비스포크 냉장고 김치플러스 성에 제거 방법 블로그. 가전 관리 팁 저장.",
+    "labels": [
+      "가전 관리"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "삼성"
+      },
+      {
+        "kind": "topic",
+        "value": "가전"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_037",
+    "summary": "홈트 하체 루틴 유튜브. 스쿼트 자세 교정이랑 주 3회 프로그램 정리된 운동 영상.",
+    "labels": [
+      "홈트레이닝"
+    ],
+    "entities": [
+      {
+        "kind": "platform",
+        "value": "유튜브"
+      },
+      {
+        "kind": "topic",
+        "value": "운동"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_038",
+    "summary": "월급 통장 쪼개기 가계부 앱 추천 글. 뱅크샐러드·토스 자동 분류 기능 비교.",
+    "labels": [
+      "가계부 앱"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "토스"
+      },
+      {
+        "kind": "topic",
+        "value": "가계부"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_039",
+    "summary": "겨울 패딩 세탁·보관법 블로그. 다운 세제랑 압축팩 사용 시 복원 팁 정리.",
+    "labels": [
+      "의류 관리"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "세탁"
+      },
+      {
+        "kind": "topic",
+        "value": "의류"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_040",
+    "summary": "아이폰 16 프로 사진 야간모드 설정법. 셔터스피드 조정이랑 RAW 촬영 팁 캡처.",
+    "labels": [
+      "사진 촬영 팁"
+    ],
+    "entities": [
+      {
+        "kind": "product",
+        "value": "아이폰16프로"
+      },
+      {
+        "kind": "topic",
+        "value": "사진"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_041",
+    "summary": "회사 연차 사용 촉진제 안내 메일 캡처. 미사용 연차 소멸일이랑 사용 권장 기간 정리.",
+    "labels": [
+      "연차"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "연차"
+      },
+      {
+        "kind": "topic",
+        "value": "회사"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_042",
+    "summary": "면세점 화장품 사전예약 할인 행사. 신라면세 립스틱 1+1 프로모션 캡처.",
+    "labels": [
+      "면세점 쇼핑"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "신라면세점"
+      },
+      {
+        "kind": "topic",
+        "value": "쇼핑"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_043",
+    "summary": "전기장판 안전 사용법 안내. 저온화상 예방이랑 외출 시 전원 차단 팁 정리된 글.",
+    "labels": [
+      "생활 안전"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "생활팁"
+      },
+      {
+        "kind": "topic",
+        "value": "안전"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_044",
+    "summary": "수제맥주 4캔 만원 편의점 행사 캡처. CU 신상 IPA 추천이랑 안주 페어링 글.",
+    "labels": [
+      "주류 행사"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "CU"
+      },
+      {
+        "kind": "topic",
+        "value": "맥주"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_045",
+    "summary": "강아지 동반 가능 펜션 예약 주의사항 블로그. 반려견 추가요금이랑 입실 규칙 정리.",
+    "labels": [
+      "반려견 동반"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "반려동물"
+      },
+      {
+        "kind": "topic",
+        "value": "펜션"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_046",
+    "summary": "토익 스피킹 벼락치기 템플릿 정리 글. 파트별 만능 답변 패턴이랑 점수대 전략.",
+    "labels": [
+      "어학시험"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "토익"
+      },
+      {
+        "kind": "topic",
+        "value": "공부"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_047",
+    "summary": "전월세 계약 전 등기부등본 확인법 블로그. 근저당 보는 법이랑 전세사기 예방 체크리스트.",
+    "labels": [
+      "부동산 계약"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "전세"
+      },
+      {
+        "kind": "topic",
+        "value": "부동산"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_048",
+    "summary": "겨울 제철 과일 한라봉·천혜향 차이 정리 글. 당도랑 보관법 비교한 과일 정보.",
+    "labels": [
+      "제철 식재료"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "과일"
+      },
+      {
+        "kind": "topic",
+        "value": "식재료"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_049",
+    "summary": "넷플릭스 요금제 광고형 베이직 비교 캡처. 월 5500원 화질·동시접속 정리.",
+    "labels": [
+      "구독 서비스"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "넷플릭스"
+      },
+      {
+        "kind": "topic",
+        "value": "구독"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_050",
+    "summary": "겨울철 자동차 배터리 방전 예방 팁 블로그. 블랙박스 상시전원 차단이랑 점프스타트 방법.",
+    "labels": [
+      "차량 관리"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "자동차"
+      },
+      {
+        "kind": "topic",
+        "value": "정비"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_051",
+    "summary": "스타벅스 e프리퀀시 굿즈 교환 안내. 미션음료 17잔 조건이랑 다이어리 종류 캡처.",
+    "labels": [
+      "카페 굿즈 이벤트"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "스타벅스"
+      },
+      {
+        "kind": "topic",
+        "value": "이벤트"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_052",
+    "summary": "전기요금 누진제 계산기 캡처. 여름철 에어컨 사용량별 요금 구간 정리된 글.",
+    "labels": [
+      "공과금"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "전기요금"
+      },
+      {
+        "kind": "topic",
+        "value": "공과금"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_053",
+    "summary": "유럽 인터레일 패스 종류·가격 비교 글. 글로벌 패스 7일권이랑 좌석 예약비 정리.",
+    "labels": [
+      "해외 기차여행"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "유럽여행"
+      },
+      {
+        "kind": "topic",
+        "value": "기차"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_054",
+    "summary": "베트남 다낭 e비자 발급 절차 안내. 신청 수수료 25달러랑 처리 기간 정리된 페이지.",
+    "labels": [
+      "해외여행 비자"
+    ],
+    "entities": [
+      {
+        "kind": "location",
+        "value": "다낭"
+      },
+      {
+        "kind": "topic",
+        "value": "비자"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_055",
+    "summary": "여행자보험 비교 사이트 캡처. 휴대품 손해 보장이랑 항공기 지연 특약 비교한 글.",
+    "labels": [
+      "여행자보험"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "보험"
+      },
+      {
+        "kind": "topic",
+        "value": "여행"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_056",
+    "summary": "공유 모빌리티 따릉이 정기권 안내. 30일권 5천원이랑 대여소 위치 앱 캡처.",
+    "labels": [
+      "대중교통"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "따릉이"
+      },
+      {
+        "kind": "topic",
+        "value": "교통"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_057",
+    "summary": "홈카페 라떼아트 입문 도구 추천 글. 우유 스티밍 피처랑 가정용 머신 가격 비교.",
+    "labels": [
+      "홈카페 도구"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "홈카페"
+      },
+      {
+        "kind": "topic",
+        "value": "커피도구"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_058",
+    "summary": "겨울 등산 초보 장비 리스트 블로그. 아이젠·스패츠 필요성이랑 보온 레이어링 팁 정리.",
+    "labels": [
+      "등산 장비"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "등산"
+      },
+      {
+        "kind": "topic",
+        "value": "아웃도어"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_059",
+    "summary": "에어비앤비 호스트 슈퍼호스트 조건 정리 글. 청소비 설정이랑 응답률 기준 안내한 운영 정보.",
+    "labels": [
+      "숙박 운영"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "에어비앤비"
+      },
+      {
+        "kind": "topic",
+        "value": "호스팅"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_060",
+    "summary": "달고나 커피 만들기 유행 레시피 캡처. 인스턴트 커피·설탕 1:1:1 비율 정리한 홈음료 글.",
+    "labels": [
+      "음료 레시피"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "레시피"
+      },
+      {
+        "kind": "topic",
+        "value": "커피"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_061",
+    "summary": "겨울 캠핑 난방 안전수칙 카드뉴스. 텐트 내 일산화탄소 경보기 필수랑 화로대 사용 주의. 일반 안전상식.",
+    "labels": [
+      "겨울 안전상식"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "안전"
+      },
+      {
+        "kind": "topic",
+        "value": "겨울"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_062",
+    "summary": "지역화폐 온누리상품권 할인 구매 안내. 10% 할인 한도랑 사용처 정리된 캡처.",
+    "labels": [
+      "지역화폐"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "온누리상품권"
+      },
+      {
+        "kind": "topic",
+        "value": "상품권"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_063",
+    "summary": "간헐적 단식 16:8 방법 정리 블로그. 공복 시간대랑 식단 구성 예시 캡처.",
+    "labels": [
+      "식단 관리"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "다이어트"
+      },
+      {
+        "kind": "topic",
+        "value": "식단"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_064",
+    "summary": "캐리어 브랜드 쌤소나이트 vs 샤오미 내구성 비교 글. 28인치 무게랑 보증 기간 정리.",
+    "labels": [
+      "여행 캐리어"
+    ],
+    "entities": [
+      {
+        "kind": "brand",
+        "value": "쌤소나이트"
+      },
+      {
+        "kind": "topic",
+        "value": "캐리어"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_065",
+    "summary": "스마트폰 데이터 로밍 vs 유심 비교 글. 해외 통신 옵션별 요금이랑 e심 설정법 정리.",
+    "labels": [
+      "해외 로밍"
+    ],
+    "entities": [
+      {
+        "kind": "topic",
+        "value": "로밍"
+      },
+      {
+        "kind": "topic",
+        "value": "통신"
+      }
+    ],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  }
+]

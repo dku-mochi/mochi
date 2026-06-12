@@ -1,0 +1,587 @@
+[
+  {
+    "id": "d_001",
+    "summary": "제주 3박4일 동부 코스 블로그. 성산일출봉-섭지코지-월정리 동선에 우진해장국, 명진전복 흑돼지 맛집이랑 카페 글라드 정리됨.",
+    "labels": ["제주 여행 계획", "여행 코스"],
+    "entities": [{"kind": "location", "value": "제주"}, {"kind": "topic", "value": "여행코스"}, {"kind": "location", "value": "성산일출봉"}],
+    "category": "travel_food",
+    "role": "answer",
+    "for_query": "제주도 여행"
+  },
+  {
+    "id": "d_002",
+    "summary": "제주 애월 오션뷰 독채 펜션 '바다정원' 예약 페이지. 1박 18만원, 7월 둘째주 주말 빈방 확인하려고 저장.",
+    "labels": ["제주 숙소", "펜션 예약"],
+    "entities": [{"kind": "location", "value": "애월"}, {"kind": "brand", "value": "바다정원"}, {"kind": "topic", "value": "숙소예약"}],
+    "category": "travel_food",
+    "role": "answer",
+    "for_query": "제주도 여행"
+  },
+  {
+    "id": "d_003",
+    "summary": "김포-제주 항공권 비교 캡처. 진에어 편도 4만2천원, 제주항공 5만원. 7/12 출발 8/15 귀국으로 알아보는 중.",
+    "labels": ["제주 항공권", "항공권 예약"],
+    "entities": [{"kind": "brand", "value": "진에어"}, {"kind": "brand", "value": "제주항공"}, {"kind": "topic", "value": "항공권"}, {"kind": "location", "value": "제주"}],
+    "category": "travel_food",
+    "role": "answer",
+    "for_query": "제주도 여행"
+  },
+  {
+    "id": "d_004",
+    "summary": "성수동 '소금집델리' 파스트라미 샌드위치 맛집 인스타. 웨이팅 30분이라는데 다음주에 가보려고 저장.",
+    "labels": ["가볼 맛집", "샌드위치"],
+    "entities": [{"kind": "brand", "value": "소금집델리"}, {"kind": "location", "value": "성수동"}, {"kind": "topic", "value": "맛집"}],
+    "category": "travel_food",
+    "role": "answer",
+    "for_query": "맛집"
+  },
+  {
+    "id": "d_005",
+    "summary": "을지로 노포 '안성집' 평양냉면 맛집 블로그 후기. 점심에 가면 자리 있다길래 회사 근처라 가보려고 캡처함.",
+    "labels": ["가볼 맛집", "냉면"],
+    "entities": [{"kind": "brand", "value": "안성집"}, {"kind": "location", "value": "을지로"}, {"kind": "topic", "value": "맛집"}],
+    "category": "travel_food",
+    "role": "answer",
+    "for_query": "맛집"
+  },
+  {
+    "id": "d_006",
+    "summary": "연남동 '커피리브레' 핸드드립 카페 사진. 산미 있는 원두 좋아해서 주말에 들러보려고 저장한 카페.",
+    "labels": ["가볼 카페", "핸드드립"],
+    "entities": [{"kind": "brand", "value": "커피리브레"}, {"kind": "location", "value": "연남동"}, {"kind": "topic", "value": "카페"}],
+    "category": "travel_food",
+    "role": "answer",
+    "for_query": "카페"
+  },
+  {
+    "id": "d_007",
+    "summary": "양평 '테라로사 서종점' 베이커리 카페. 통창 계곡뷰에 빵 맛있다고 해서 드라이브 겸 가보려고 캡처.",
+    "labels": ["가볼 카페", "베이커리 카페"],
+    "entities": [{"kind": "brand", "value": "테라로사"}, {"kind": "location", "value": "양평"}, {"kind": "topic", "value": "카페"}],
+    "category": "travel_food",
+    "role": "answer",
+    "for_query": "카페"
+  },
+  {
+    "id": "d_008",
+    "summary": "가평 '자라섬 오토캠핑장' 예약 페이지 캡처. 데크 사이트 1박 4만원, 8월 첫주 예약 오픈일 확인하려고 저장.",
+    "labels": ["캠핑장 예약", "오토캠핑"],
+    "entities": [{"kind": "brand", "value": "자라섬오토캠핑장"}, {"kind": "location", "value": "가평"}, {"kind": "topic", "value": "캠핑"}],
+    "category": "travel_food",
+    "role": "answer",
+    "for_query": "캠핑"
+  },
+  {
+    "id": "d_009",
+    "summary": "제주 서귀포 빌라 매매 시세 정리 기사. 평당 가격이랑 분양 일정 나온 부동산 글, 이주 고민하다가 저장함.",
+    "labels": ["제주 부동산"],
+    "entities": [{"kind": "location", "value": "서귀포"}, {"kind": "topic", "value": "부동산"}],
+    "category": "travel_food",
+    "role": "hard_neg",
+    "for_query": "제주도 여행"
+  },
+  {
+    "id": "d_010",
+    "summary": "제주 한 달 살기 게스트하우스 스태프 구인 공고. 숙식 제공 무급, 주 5일 청소 조건. 일자리라 정보용으로만 저장.",
+    "labels": ["제주 한달살기 구인"],
+    "entities": [{"kind": "location", "value": "제주"}, {"kind": "topic", "value": "구인"}],
+    "category": "travel_food",
+    "role": "hard_neg",
+    "for_query": "제주도 여행"
+  },
+  {
+    "id": "d_011",
+    "summary": "지난 봄 제주 가족여행 경비 정산 엑셀 캡처. 항공·렌터카·숙소 합쳐 87만원 나온 다녀온 여행 결산표.",
+    "labels": ["제주 여행 정산"],
+    "entities": [{"kind": "location", "value": "제주"}, {"kind": "topic", "value": "여행정산"}],
+    "category": "travel_food",
+    "role": "hard_neg",
+    "for_query": "제주도 여행"
+  },
+  {
+    "id": "d_012",
+    "summary": "부산 2박3일 여행 코스 블로그. 해운대-감천문화마을-광안리 동선에 밀면 맛집 포함. 제주 말고 부산 후보로 저장.",
+    "labels": ["부산 여행 계획"],
+    "entities": [{"kind": "location", "value": "부산"}, {"kind": "topic", "value": "여행코스"}],
+    "category": "travel_food",
+    "role": "hard_neg",
+    "for_query": "제주도 여행"
+  },
+  {
+    "id": "d_013",
+    "summary": "제주도청 청년 이주 정착지원금 신청 안내. 정착 보조금 조건이랑 서류 목록 정리된 행정 페이지.",
+    "labels": ["제주 이주 지원"],
+    "entities": [{"kind": "location", "value": "제주"}, {"kind": "topic", "value": "정착지원"}],
+    "category": "travel_food",
+    "role": "hard_neg",
+    "for_query": "제주도 여행"
+  },
+  {
+    "id": "d_014",
+    "summary": "'맛집 창업 클래스' 패스트캠퍼스 강의 광고. 외식 메뉴 개발이랑 상권 분석 커리큘럼, 수강료 39만원.",
+    "labels": ["맛집 창업 강의"],
+    "entities": [{"kind": "brand", "value": "패스트캠퍼스"}, {"kind": "topic", "value": "창업강의"}],
+    "category": "travel_food",
+    "role": "hard_neg",
+    "for_query": "맛집"
+  },
+  {
+    "id": "d_015",
+    "summary": "백종원 '맛집' 유튜브 영상 — 골목식당 솔루션 편. 그냥 보다가 저장한 방송 콘텐츠, 갈 가게는 아님.",
+    "labels": ["맛집 방송"],
+    "entities": [{"kind": "person", "value": "백종원"}, {"kind": "platform", "value": "유튜브"}, {"kind": "topic", "value": "방송"}],
+    "category": "travel_food",
+    "role": "hard_neg",
+    "for_query": "맛집"
+  },
+  {
+    "id": "d_016",
+    "summary": "지난 주말 다녀온 마라탕 맛집 영수증 사진. 4만8천원 결제, 가계부 정리하려고 캡처한 이미 다녀온 기록.",
+    "labels": ["다녀온 맛집 영수증"],
+    "entities": [{"kind": "topic", "value": "영수증"}, {"kind": "topic", "value": "가계부"}],
+    "category": "travel_food",
+    "role": "hard_neg",
+    "for_query": "맛집"
+  },
+  {
+    "id": "d_017",
+    "summary": "'전국 맛집 배달 가능' 쿠팡이츠 프로모션 배너. 첫 주문 5천원 할인 쿠폰, 집에서 시켜먹는 배달 광고.",
+    "labels": ["배달 프로모션"],
+    "entities": [{"kind": "brand", "value": "쿠팡이츠"}, {"kind": "topic", "value": "배달"}],
+    "category": "travel_food",
+    "role": "hard_neg",
+    "for_query": "맛집"
+  },
+  {
+    "id": "d_018",
+    "summary": "네이버 '카페' 가입 안내 — 중고거래 동네 카페 등업 규칙. 커뮤니티 카페지 마실 카페 아님. 등업 글 저장.",
+    "labels": ["네이버 카페 커뮤니티"],
+    "entities": [{"kind": "platform", "value": "네이버카페"}, {"kind": "topic", "value": "커뮤니티"}],
+    "category": "travel_food",
+    "role": "hard_neg",
+    "for_query": "카페"
+  },
+  {
+    "id": "d_019",
+    "summary": "카페24 쇼핑몰 창업 호스팅 요금제 비교. 무료 플랜이랑 결제 수수료 정리된 이커머스 플랫폼 페이지.",
+    "labels": ["카페24 쇼핑몰"],
+    "entities": [{"kind": "platform", "value": "카페24"}, {"kind": "topic", "value": "쇼핑몰창업"}],
+    "category": "travel_food",
+    "role": "hard_neg",
+    "for_query": "카페"
+  },
+  {
+    "id": "d_020",
+    "summary": "개인 카페 창업 인테리어 견적 블로그. 10평 기준 에스프레소 머신·바 시공 비용 정리. 가게 차리는 정보라 저장.",
+    "labels": ["카페 창업"],
+    "entities": [{"kind": "topic", "value": "창업"}, {"kind": "topic", "value": "인테리어"}],
+    "category": "travel_food",
+    "role": "hard_neg",
+    "for_query": "카페"
+  },
+  {
+    "id": "d_021",
+    "summary": "지난달 다녀온 망원동 카페 '딥블루레이크' 디저트 사진. 추억용으로 저장한 이미 방문한 카페 인증샷.",
+    "labels": ["다녀온 카페"],
+    "entities": [{"kind": "brand", "value": "딥블루레이크"}, {"kind": "location", "value": "망원동"}, {"kind": "topic", "value": "방문기록"}],
+    "category": "travel_food",
+    "role": "hard_neg",
+    "for_query": "카페"
+  },
+  {
+    "id": "d_022",
+    "summary": "캠핑카 '포레스트 리버' 중고 매물 당근마켓 글. 4인용 모터홈 6천8백만원, 차박 개조 옵션 포함. 구매 고민용 저장.",
+    "labels": ["캠핑카 구매"],
+    "entities": [{"kind": "platform", "value": "당근마켓"}, {"kind": "topic", "value": "캠핑카"}, {"kind": "topic", "value": "중고매물"}],
+    "category": "travel_food",
+    "role": "hard_neg",
+    "for_query": "캠핑"
+  },
+  {
+    "id": "d_023",
+    "summary": "SUV 차박 개조 DIY 유튜브. 트렁크 평탄화 자작 매트랑 도킹텐트 설치 영상. 차량 개조 정보라 저장.",
+    "labels": ["차박 개조"],
+    "entities": [{"kind": "platform", "value": "유튜브"}, {"kind": "topic", "value": "차박"}, {"kind": "topic", "value": "차량개조"}],
+    "category": "travel_food",
+    "role": "hard_neg",
+    "for_query": "캠핑"
+  },
+  {
+    "id": "d_024",
+    "summary": "지난 가을 다녀온 캠핑 사진첩 백업. 불멍·텐트 야경 모음, 추억 정리용으로 저장한 이미 다녀온 기록.",
+    "labels": ["다녀온 캠핑 기록"],
+    "entities": [{"kind": "topic", "value": "캠핑사진"}, {"kind": "topic", "value": "추억"}],
+    "category": "travel_food",
+    "role": "hard_neg",
+    "for_query": "캠핑"
+  },
+  {
+    "id": "d_025",
+    "summary": "감성캠핑 텐트 '코베아 고스트' 쿠팡 최저가 캡처. 2인용 18만9천원, 폴대 스펙 비교. 장비 구매 후보로 저장.",
+    "labels": ["캠핑 장비 구매"],
+    "entities": [{"kind": "brand", "value": "코베아"}, {"kind": "brand", "value": "쿠팡"}, {"kind": "topic", "value": "캠핑장비"}],
+    "category": "travel_food",
+    "role": "hard_neg",
+    "for_query": "캠핑"
+  },
+  {
+    "id": "d_026",
+    "summary": "메리어트 본보이 멤버십 등급 혜택 비교표. 골드 엘리트 객실 업그레이드 조건 정리된 호텔 로열티 안내.",
+    "labels": ["호텔 멤버십"],
+    "entities": [{"kind": "brand", "value": "메리어트"}, {"kind": "topic", "value": "멤버십"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_027",
+    "summary": "대한항공 마일리지 적립·소멸 안내. 스카이패스 보너스 항공권 차감 마일 표 정리된 페이지.",
+    "labels": ["항공 마일리지"],
+    "entities": [{"kind": "brand", "value": "대한항공"}, {"kind": "topic", "value": "마일리지"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_028",
+    "summary": "트래블월렛 환전 수수료 비교 캡처. 달러·엔화 실시간 환율이랑 충전 한도 정리. 환전 앱 정보.",
+    "labels": ["환전"],
+    "entities": [{"kind": "brand", "value": "트래블월렛"}, {"kind": "topic", "value": "환전"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_029",
+    "summary": "기내 반입 캐리어 짐싸기 체크리스트 블로그. 100ml 액체 규정이랑 압축팩 활용 팁 정리.",
+    "labels": ["여행 짐싸기"],
+    "entities": [{"kind": "topic", "value": "짐싸기"}, {"kind": "topic", "value": "여행팁"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_030",
+    "summary": "바스크 치즈케이크 노오븐 레시피. 크림치즈 200g 비율이랑 굽는 온도 정리된 디저트 만들기 글.",
+    "labels": ["디저트 레시피"],
+    "entities": [{"kind": "topic", "value": "레시피"}, {"kind": "topic", "value": "디저트"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_031",
+    "summary": "에어프라이어 닭다리 양념구이 레시피. 간장·물엿 비율이랑 180도 15분 조리법 캡처.",
+    "labels": ["집밥 레시피"],
+    "entities": [{"kind": "topic", "value": "레시피"}, {"kind": "topic", "value": "에어프라이어"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_032",
+    "summary": "내추럴 와인 입문 가이드. 오렌지 와인·펫낫 종류랑 보관 온도 정리된 와인 초보 글.",
+    "labels": ["와인"],
+    "entities": [{"kind": "topic", "value": "와인"}, {"kind": "topic", "value": "주류"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_033",
+    "summary": "자라섬 재즈페스티벌 라인업·티켓 안내. 1일권 8만8천원, 셔틀버스 시간표 포함된 공연 정보.",
+    "labels": ["페스티벌"],
+    "entities": [{"kind": "brand", "value": "자라섬재즈페스티벌"}, {"kind": "topic", "value": "페스티벌"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_034",
+    "summary": "넷플릭스 신작 다큐 '셰프의 테이블' 시즌6 공개 안내. 주말에 볼 영상 위시리스트로 저장.",
+    "labels": ["볼 콘텐츠"],
+    "entities": [{"kind": "brand", "value": "넷플릭스"}, {"kind": "topic", "value": "다큐멘터리"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_035",
+    "summary": "여권 갱신 온라인 신청 절차 안내. 전자여권 발급 수수료 5만3천원이랑 사진 규격 정리.",
+    "labels": ["여권 갱신"],
+    "entities": [{"kind": "topic", "value": "여권"}, {"kind": "topic", "value": "행정"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_036",
+    "summary": "삼성 비스포크 냉장고 김치플러스 성에 제거 방법 블로그. 가전 관리 팁 저장.",
+    "labels": ["가전 관리"],
+    "entities": [{"kind": "brand", "value": "삼성"}, {"kind": "topic", "value": "가전"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_037",
+    "summary": "홈트 하체 루틴 유튜브. 스쿼트 자세 교정이랑 주 3회 프로그램 정리된 운동 영상.",
+    "labels": ["홈트레이닝"],
+    "entities": [{"kind": "platform", "value": "유튜브"}, {"kind": "topic", "value": "운동"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_038",
+    "summary": "월급 통장 쪼개기 가계부 앱 추천 글. 뱅크샐러드·토스 자동 분류 기능 비교.",
+    "labels": ["가계부 앱"],
+    "entities": [{"kind": "brand", "value": "토스"}, {"kind": "topic", "value": "가계부"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_039",
+    "summary": "겨울 패딩 세탁·보관법 블로그. 다운 세제랑 압축팩 사용 시 복원 팁 정리.",
+    "labels": ["의류 관리"],
+    "entities": [{"kind": "topic", "value": "세탁"}, {"kind": "topic", "value": "의류"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_040",
+    "summary": "아이폰 16 프로 사진 야간모드 설정법. 셔터스피드 조정이랑 RAW 촬영 팁 캡처.",
+    "labels": ["사진 촬영 팁"],
+    "entities": [{"kind": "product", "value": "아이폰16프로"}, {"kind": "topic", "value": "사진"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_041",
+    "summary": "회사 연차 사용 촉진제 안내 메일 캡처. 미사용 연차 소멸일이랑 사용 권장 기간 정리.",
+    "labels": ["연차"],
+    "entities": [{"kind": "topic", "value": "연차"}, {"kind": "topic", "value": "회사"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_042",
+    "summary": "면세점 화장품 사전예약 할인 행사. 신라면세 립스틱 1+1 프로모션 캡처.",
+    "labels": ["면세점 쇼핑"],
+    "entities": [{"kind": "brand", "value": "신라면세점"}, {"kind": "topic", "value": "쇼핑"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_043",
+    "summary": "전기장판 안전 사용법 안내. 저온화상 예방이랑 외출 시 전원 차단 팁 정리된 글.",
+    "labels": ["생활 안전"],
+    "entities": [{"kind": "topic", "value": "생활팁"}, {"kind": "topic", "value": "안전"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_044",
+    "summary": "수제맥주 4캔 만원 편의점 행사 캡처. CU 신상 IPA 추천이랑 안주 페어링 글.",
+    "labels": ["주류 행사"],
+    "entities": [{"kind": "brand", "value": "CU"}, {"kind": "topic", "value": "맥주"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_045",
+    "summary": "강아지 동반 가능 펜션 예약 주의사항 블로그. 반려견 추가요금이랑 입실 규칙 정리.",
+    "labels": ["반려견 동반"],
+    "entities": [{"kind": "topic", "value": "반려동물"}, {"kind": "topic", "value": "펜션"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_046",
+    "summary": "토익 스피킹 벼락치기 템플릿 정리 글. 파트별 만능 답변 패턴이랑 점수대 전략.",
+    "labels": ["어학시험"],
+    "entities": [{"kind": "topic", "value": "토익"}, {"kind": "topic", "value": "공부"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_047",
+    "summary": "전월세 계약 전 등기부등본 확인법 블로그. 근저당 보는 법이랑 전세사기 예방 체크리스트.",
+    "labels": ["부동산 계약"],
+    "entities": [{"kind": "topic", "value": "전세"}, {"kind": "topic", "value": "부동산"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_048",
+    "summary": "겨울 제철 과일 한라봉·천혜향 차이 정리 글. 당도랑 보관법 비교한 과일 정보.",
+    "labels": ["제철 식재료"],
+    "entities": [{"kind": "topic", "value": "과일"}, {"kind": "topic", "value": "식재료"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_049",
+    "summary": "넷플릭스 요금제 광고형 베이직 비교 캡처. 월 5500원 화질·동시접속 정리.",
+    "labels": ["구독 서비스"],
+    "entities": [{"kind": "brand", "value": "넷플릭스"}, {"kind": "topic", "value": "구독"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_050",
+    "summary": "겨울철 자동차 배터리 방전 예방 팁 블로그. 블랙박스 상시전원 차단이랑 점프스타트 방법.",
+    "labels": ["차량 관리"],
+    "entities": [{"kind": "topic", "value": "자동차"}, {"kind": "topic", "value": "정비"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_051",
+    "summary": "스타벅스 e프리퀀시 굿즈 교환 안내. 미션음료 17잔 조건이랑 다이어리 종류 캡처.",
+    "labels": ["카페 굿즈 이벤트"],
+    "entities": [{"kind": "brand", "value": "스타벅스"}, {"kind": "topic", "value": "이벤트"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_052",
+    "summary": "전기요금 누진제 계산기 캡처. 여름철 에어컨 사용량별 요금 구간 정리된 글.",
+    "labels": ["공과금"],
+    "entities": [{"kind": "topic", "value": "전기요금"}, {"kind": "topic", "value": "공과금"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_053",
+    "summary": "유럽 인터레일 패스 종류·가격 비교 글. 글로벌 패스 7일권이랑 좌석 예약비 정리.",
+    "labels": ["해외 기차여행"],
+    "entities": [{"kind": "topic", "value": "유럽여행"}, {"kind": "topic", "value": "기차"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_054",
+    "summary": "베트남 다낭 e비자 발급 절차 안내. 신청 수수료 25달러랑 처리 기간 정리된 페이지.",
+    "labels": ["해외여행 비자"],
+    "entities": [{"kind": "location", "value": "다낭"}, {"kind": "topic", "value": "비자"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_055",
+    "summary": "여행자보험 비교 사이트 캡처. 휴대품 손해 보장이랑 항공기 지연 특약 비교한 글.",
+    "labels": ["여행자보험"],
+    "entities": [{"kind": "topic", "value": "보험"}, {"kind": "topic", "value": "여행"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_056",
+    "summary": "공유 모빌리티 따릉이 정기권 안내. 30일권 5천원이랑 대여소 위치 앱 캡처.",
+    "labels": ["대중교통"],
+    "entities": [{"kind": "brand", "value": "따릉이"}, {"kind": "topic", "value": "교통"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_057",
+    "summary": "홈카페 라떼아트 입문 도구 추천 글. 우유 스티밍 피처랑 가정용 머신 가격 비교.",
+    "labels": ["홈카페 도구"],
+    "entities": [{"kind": "topic", "value": "홈카페"}, {"kind": "topic", "value": "커피도구"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_058",
+    "summary": "겨울 등산 초보 장비 리스트 블로그. 아이젠·스패츠 필요성이랑 보온 레이어링 팁 정리.",
+    "labels": ["등산 장비"],
+    "entities": [{"kind": "topic", "value": "등산"}, {"kind": "topic", "value": "아웃도어"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_059",
+    "summary": "에어비앤비 호스트 슈퍼호스트 조건 정리 글. 청소비 설정이랑 응답률 기준 안내한 운영 정보.",
+    "labels": ["숙박 운영"],
+    "entities": [{"kind": "brand", "value": "에어비앤비"}, {"kind": "topic", "value": "호스팅"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_060",
+    "summary": "달고나 커피 만들기 유행 레시피 캡처. 인스턴트 커피·설탕 1:1:1 비율 정리한 홈음료 글.",
+    "labels": ["음료 레시피"],
+    "entities": [{"kind": "topic", "value": "레시피"}, {"kind": "topic", "value": "커피"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_061",
+    "summary": "겨울 캠핑 난방 안전수칙 카드뉴스. 텐트 내 일산화탄소 경보기 필수랑 화로대 사용 주의. 일반 안전상식.",
+    "labels": ["겨울 안전상식"],
+    "entities": [{"kind": "topic", "value": "안전"}, {"kind": "topic", "value": "겨울"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_062",
+    "summary": "지역화폐 온누리상품권 할인 구매 안내. 10% 할인 한도랑 사용처 정리된 캡처.",
+    "labels": ["지역화폐"],
+    "entities": [{"kind": "brand", "value": "온누리상품권"}, {"kind": "topic", "value": "상품권"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_063",
+    "summary": "간헐적 단식 16:8 방법 정리 블로그. 공복 시간대랑 식단 구성 예시 캡처.",
+    "labels": ["식단 관리"],
+    "entities": [{"kind": "topic", "value": "다이어트"}, {"kind": "topic", "value": "식단"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_064",
+    "summary": "캐리어 브랜드 쌤소나이트 vs 샤오미 내구성 비교 글. 28인치 무게랑 보증 기간 정리.",
+    "labels": ["여행 캐리어"],
+    "entities": [{"kind": "brand", "value": "쌤소나이트"}, {"kind": "topic", "value": "캐리어"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  },
+  {
+    "id": "d_065",
+    "summary": "스마트폰 데이터 로밍 vs 유심 비교 글. 해외 통신 옵션별 요금이랑 e심 설정법 정리.",
+    "labels": ["해외 로밍"],
+    "entities": [{"kind": "topic", "value": "로밍"}, {"kind": "topic", "value": "통신"}],
+    "category": "travel_food",
+    "role": "filler",
+    "for_query": ""
+  }
+]
