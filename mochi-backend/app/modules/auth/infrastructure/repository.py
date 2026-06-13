@@ -4,21 +4,31 @@ from datetime import datetime
 from typing import Any, cast
 from uuid import UUID
 
-from sqlalchemy import CursorResult, select, update
+from sqlalchemy import CursorResult, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.auth.domain.entities import (
     AuthAccount,
     AuthProvider,
+    CaptureToken,
+    CaptureTokenRevokedReason,
     RefreshToken,
     RefreshTokenRevokedReason,
     User,
 )
 from app.modules.auth.domain.ports import (
+    CaptureTokenRepository as CaptureTokenRepositoryPort,
+)
+from app.modules.auth.domain.ports import (
     RefreshTokenRepository as RefreshTokenRepositoryPort,
 )
 from app.modules.auth.domain.ports import UserRepository as UserRepositoryPort
-from app.modules.auth.infrastructure.orm import AuthAccountRow, RefreshTokenRow, UserRow
+from app.modules.auth.infrastructure.orm import (
+    AuthAccountRow,
+    CaptureTokenRow,
+    RefreshTokenRow,
+    UserRow,
+)
 from app.shared.ids import UserID
 
 
@@ -43,6 +53,20 @@ def _to_account(row: AuthAccountRow) -> AuthAccount:
         email_at_link=row.email_at_link,
         linked_at=row.linked_at,
         revoked_at=row.revoked_at,
+    )
+
+
+def _to_capture(row: CaptureTokenRow) -> CaptureToken:
+    return CaptureToken(
+        id=row.id,
+        user_id=UserID(row.user_id),
+        token_hash=row.token_hash,
+        device_label=row.device_label,
+        issued_at=row.issued_at,
+        expires_at=row.expires_at,
+        last_used_at=row.last_used_at,
+        revoked_at=row.revoked_at,
+        revoked_reason=CaptureTokenRevokedReason(row.revoked_reason) if row.revoked_reason else None,
     )
 
 
@@ -220,6 +244,105 @@ class PostgresRefreshTokenRepository(RefreshTokenRepositoryPort):
             update(RefreshTokenRow)
             .where(RefreshTokenRow.family_id == family_id)
             .where(RefreshTokenRow.revoked_at.is_(None))
+            .values(revoked_at=revoked_at, revoked_reason=reason.value)
+        )
+        result = cast(CursorResult[Any], await self._session.execute(stmt))
+        return result.rowcount or 0
+
+
+class PostgresCaptureTokenRepository(CaptureTokenRepositoryPort):
+    # pg_advisory_xact_lock 의 classid 식별자 — 다른 advisory lock 사용처와 키 공간 분리.
+    _ISSUE_LOCK_CLASS = 0x6D6374  # 'mct'
+
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    async def acquire_issue_lock(self, *, user_id: UserID) -> None:
+        # (classid, hashtext(uuid)) 2-인자 형 — 트랜잭션 커밋/롤백 시 자동 해제.
+        await self._session.execute(
+            text("SELECT pg_advisory_xact_lock(:classid, hashtext(:uid))"),
+            {"classid": self._ISSUE_LOCK_CLASS, "uid": str(user_id)},
+        )
+
+    async def add(self, token: CaptureToken) -> None:
+        row = CaptureTokenRow(
+            user_id=token.user_id,
+            token_hash=token.token_hash,
+            device_label=token.device_label,
+            issued_at=token.issued_at,
+            expires_at=token.expires_at,
+        )
+        # caller-provided id 유지 (테스트 일관성)
+        row.id = token.id
+        self._session.add(row)
+        await self._session.flush()
+
+    async def find_by_hash(self, *, token_hash: str) -> CaptureToken | None:
+        stmt = select(CaptureTokenRow).where(CaptureTokenRow.token_hash == token_hash).limit(1)
+        result = await self._session.execute(stmt)
+        row = result.scalar_one_or_none()
+        return _to_capture(row) if row else None
+
+    async def list_active_for_user(self, *, user_id: UserID, now: datetime) -> list[CaptureToken]:
+        stmt = (
+            select(CaptureTokenRow)
+            .where(CaptureTokenRow.user_id == user_id)
+            .where(CaptureTokenRow.revoked_at.is_(None))
+            .where(CaptureTokenRow.expires_at > now)
+            .order_by(CaptureTokenRow.issued_at.asc())
+        )
+        result = await self._session.execute(stmt)
+        return [_to_capture(row) for row in result.scalars().all()]
+
+    async def touch(
+        self,
+        *,
+        token_id: UUID,
+        now: datetime,
+        expires_at: datetime,
+        debounce_cutoff: datetime,
+    ) -> bool:
+        # 디바운스 조건을 WHERE 에 내장한 조건부 UPDATE — sliding 연장이 시간당 최대 1회만
+        # write 를 발생시킨다. 활성(미revoke) row 만 대상.
+        stmt = (
+            update(CaptureTokenRow)
+            .where(CaptureTokenRow.id == token_id)
+            .where(CaptureTokenRow.revoked_at.is_(None))
+            .where(
+                (CaptureTokenRow.last_used_at.is_(None))
+                | (CaptureTokenRow.last_used_at < debounce_cutoff)
+            )
+            .values(last_used_at=now, expires_at=expires_at)
+        )
+        result = cast(CursorResult[Any], await self._session.execute(stmt))
+        return (result.rowcount or 0) > 0
+
+    async def revoke(
+        self,
+        *,
+        token_id: UUID,
+        revoked_at: datetime,
+        reason: CaptureTokenRevokedReason,
+    ) -> None:
+        stmt = (
+            update(CaptureTokenRow)
+            .where(CaptureTokenRow.id == token_id)
+            .where(CaptureTokenRow.revoked_at.is_(None))
+            .values(revoked_at=revoked_at, revoked_reason=reason.value)
+        )
+        await self._session.execute(stmt)
+
+    async def revoke_all_for_user(
+        self,
+        *,
+        user_id: UserID,
+        revoked_at: datetime,
+        reason: CaptureTokenRevokedReason,
+    ) -> int:
+        stmt = (
+            update(CaptureTokenRow)
+            .where(CaptureTokenRow.user_id == user_id)
+            .where(CaptureTokenRow.revoked_at.is_(None))
             .values(revoked_at=revoked_at, revoked_reason=reason.value)
         )
         result = cast(CursorResult[Any], await self._session.execute(stmt))

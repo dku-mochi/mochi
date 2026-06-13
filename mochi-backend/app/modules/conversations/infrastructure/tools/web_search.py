@@ -39,9 +39,12 @@ class WebSearchTool:
     name = "web_search"
     label = "웹에서 찾아보고 있어요"
     description = (
-        "Search the public web. Use for recommendations, places, current facts, or anything "
-        "the user's saved records cannot contain. Snippets are short — follow up with "
-        "web_fetch on a result url before relying on its details."
+        "Search the public web for what the user's saved records cannot contain: current "
+        "facts, opening hours, reviews, news, general knowledge. For anything personal — "
+        "tastes, places they marked, plans — their records come first (search_items); use "
+        "this tool to enrich what you found there, or to fill what they never saved. "
+        "Snippets are short — follow up with web_fetch on a result url before relying on "
+        "its details."
     )
     parameters = _PARAMETERS
 

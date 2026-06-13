@@ -14,6 +14,18 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 > 범위는 `ios` / `backend` / `docs` / `infra` 중 하나 이상. "왜" 가 자명하지 않으면 한 줄 이유를 덧붙인다.
 >
 
+## 2026-06-13 — backend, ios
+- **capture-scoped token — ShareExt 직접 전송 실패(주원인: access TTL 30분) 해소.** 진단: ShareExt 는 refresh 불가(단명 프로세스 + single-use 회전이라 회전 유실 → 강제 로그아웃 위험)라 앱을 ~30분 안 연 상태의 공유는 직접 전송이 항상 실패 → 큐 폴백(분석이 앱 열 때까지 지연). 해소: ingest+presign **2개 라우트 한정** `mct_` opaque 토큰(hash-only `capture_tokens`, 마이그레이션 0019) 신설 — sliding 180일(검증 시 연장, 1h 디바운스) + 활성 5개 cap + revoke 연쇄(logout 동봉·refresh reuse 감지 시 사용자 전체·계정삭제 훅). access TTL 연장 대안은 전 API revoke 불능 창 확대라 기각. iOS: 로그인/세션복원 시 발급(`AuthCoordinator.ensureCaptureToken`, 계정 불일치 시 재발급 — cross-account 오염 차단) → 공유 Keychain `capture_token` item → `ShareExtDirectUpload` 가 capture→access 순 선택 + 실패사유 os.Logger 구분 기록. 문서: ARCHITECTURE·DOMAIN_DESIGN·양 README 인증 절의 RS256/JWKS 표기를 as-built(HS256 self-issued)로 정정(JWKS 는 IdP ID token 검증 전용).
+
+## 2026-06-13 — backend
+- **chat@v10 — '검색 먼저'를 ③ 프롬프트에서 ② 기계 강제로 + 프롬프트 재구조화 + 툴 description 교정.** 실기기 패턴: "저거 다하고 뭐할까"에 검색 0회로 범용 제안 + 사용자에게 취향 되묻기. 원인 ① Gemini AUTO 모드의 알려진 툴콜 누락(긴 대화에서 악화) → 턴 첫 라운드 mode=ANY 강제(`force_tool`, 인사에도 검색 1회 나가는 비용 감수) ② 검색 트리거가 캐주얼 발화를 흘려보냄 → '기록이 답을 바꿀 수 있는가 — 거의 항상 yes' 로 재정의 + 섹션 재구조화(The promise 미션 최상단, flash-lite 의 평면 11불릿 추종 한계 대응) ③ web_search description 의 "Use for recommendations, places" 가 개인화 요청을 기록 밖으로 유도 → records-first 보조로 교정, search_items 는 first-resort 로 pushy 하게(Anthropic writing-tools-for-agents·skill-creator undertrigger 처방).
+
+## 2026-06-13 — backend
+- **chat@v9 — 합성(composition) 과제 grounding 보강 + chat thinking_budget 0→512.** 실기기 패턴: "여자친구 생일때 플랜짜줘"에 검색 1회로 회수를 닫고 힌트를 요구, 재촉 후엔 검색에 걸린 기록만 이어붙인 콜라주 플랜(저장된 케이크집 캡처 미회수). Grounding 불릿 3개 추가 — ⑴ 검색 단위는 문장이 아니라 답에 필요한 정보 단위(단위별 검색, 한 라운드 병렬 발행) ⑵ 합성 요청에서 기록은 재료지 경계가 아님(빈 곳은 일반지식·웹, 안 맞는 hit 은 버림) ⑶ 못 찾은 사실이 결과물을 보류시키지 않음. search_items tool description 도 "need 당 1콜" 로 정렬. thinking 토큰이 출력 상한에 포함되므로 max_output_tokens 1024→2048 동반 상향. 같은 라운드의 병렬 function call 을 콜마다 별도 model/user Content 로 쪼개던 것을 라운드당 하나의 turn(다중 part)으로 그룹핑 — thinking 활성 시 thought_signature 가 라운드 첫 fc part 에만 와서, 분해 구조로는 다음 라운드 요청이 Gemini 시그니처 검증(400)에 걸린다(codex 리뷰 P1, v9 이 유도하는 병렬 발행 경로 그 자체).
+
+## 2026-06-13 — ios
+- **채팅 말풍선 블록 마크다운 네이티브 렌더링** — LLM 응답의 `* 불릿`·`1. 번호`·`# 헤딩`·`> 인용`·`---` 구분선이 원문 그대로 노출되던 것을(기존엔 인라인 굵게·표만 해석) `ChatMarkup.blocks` 가 블록 단위로 파싱해 디자인 톤에 맞는 뷰로 렌더링 (퍼플 도트 불릿 + 행잉 인덴트, 자릿수 정렬 번호, 인용 바, 고정폭 룰). 스트리밍 중 텍스트 없는 마커 꼬리(`* `·`1.` 만 도착)는 기존 미완성 citation 마커 트림과 같은 철학으로 숨김. `***` 구분선은 미닫힘 `**` 스트리밍 트림과 충돌해 미지원(`---` 만).
+
 ## 2026-06-12 — infra
 - **voyage retrieval 프로덕션 배포** (PR#31 머지 직후). 런북 §4 절차 — tar/IAP scp → `/opt/mochi` in-place 교체(서버 env 보존) → `uv sync --frozen --no-dev` → **alembic 0017→0018**(embeddings 1024d, 운영 임베딩 행 0건이라 무손실) → restart → health OK. `VOYAGE_API_KEY` 는 Secret Manager `mochi-voyage-api-key` 신설 후 SA metadata 토큰 경유로 svc env 에 주입(키파일 zero 원칙, 값 비노출 파이프 — 사용자 승인). 운영 기존 데이터 **67건 백필 색인** 완료(voyage-3-large@1024). INFRA.md §0/§2.5 동기화.
 

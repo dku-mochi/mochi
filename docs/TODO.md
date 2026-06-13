@@ -149,6 +149,8 @@ snippet 흐름의 `CommitBackTapCaptureIntent` 와 모달의 `BackTapModalFeatur
 AUTH_ACCESS_SECRET=<openssl rand -base64 48>     # 32+ chars 권장
 AUTH_ACCESS_TTL_SECONDS=1800                     # 30분
 AUTH_REFRESH_TTL_SECONDS=2592000                 # 30일
+AUTH_CAPTURE_TTL_SECONDS=15552000                # 180일 (capture token sliding TTL — 기본값 있음, 튜닝 시만)
+AUTH_CAPTURE_MAX_ACTIVE=5                        # 사용자당 capture token 활성 cap — 기본값 있음, 튜닝 시만
 AUTH_JWT_ISSUER=mochi.app
 AUTH_JWT_AUDIENCE=mochi.app
 
@@ -211,9 +213,9 @@ VOYAGE_API_KEY=<dash.voyageai.com 또는 MongoDB Atlas 발급 키>
 
 ## 5. 운영 / 보안 후속
 
-- [ ] **Rate limit**: `/auth/apple`, `/auth/google`, `/auth/refresh` 에 IP + subject 단위 rate limit (slowapi 등). brute force/refresh storm 방어.
+- [ ] **Rate limit**: `/auth/apple`, `/auth/google`, `/auth/refresh`, `/auth/capture-tokens` 에 IP + subject 단위 rate limit (slowapi 등). brute force/refresh storm 방어.
 - [ ] **Audit log**: 로그인 성공/실패, refresh rotation, reuse_detected 이벤트를 structlog 의 `auth.*` 카테고리로 남기고 알람 대상으로 등록.
-- [ ] **계정 삭제 (Right to be Forgotten)**: `users.deleted_at` 세팅 + email 익명화(`deleted+{id}@invalid.local`) + 모든 refresh token revoke + (옵션) Apple `revoke` 엔드포인트 호출.
+- [ ] **계정 삭제 (Right to be Forgotten)**: `users.deleted_at` 세팅 + email 익명화(`deleted+{id}@invalid.local`) + 모든 refresh token revoke + **모든 capture token revoke**(`CaptureTokenRepository.revoke_all_for_user`, reason=`user_account_deleted` — 훅 구현돼 있음) + (옵션) Apple `revoke` 엔드포인트 호출.
 - [ ] **Apple App Store 심사 요구사항**: Sign In with Apple 을 제공하면 다른 third-party 로그인(Google 등) 이 있을 때 **반드시** 함께 제공해야 함 (App Review §4.8). 모찌는 이미 둘 다 제공 ✅.
 - [ ] **로그인 화면 약관/개인정보처리방침 링크**: 실제 URL 로 교체 (현재 placeholder).
 - [ ] **iOS Keychain access control**: `kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly` 로 device-bound + 백업 제외(이미 적용 예정). Face ID gate 는 옵션.
@@ -247,6 +249,8 @@ VOYAGE_API_KEY=<dash.voyageai.com 또는 MongoDB Atlas 발급 키>
 - [ ] Google 로그인 신규/재로그인
 - [ ] 같은 이메일을 Apple + Google 둘 다로 로그인 시 어떻게 묶을지: **이번 마일스톤은 분리 (provider × subject 별 user)**. 향후 계정 통합 UI 가 필요해지면 별도 작업.
 - [ ] access 만료(30분) 자동 갱신 (UI 끊김 없이)
-- [ ] refresh 도난 시뮬레이션: 같은 refresh 두 번 사용 → 두 번째에 401 + family 전체 revoke 확인
+- [ ] refresh 도난 시뮬레이션: 같은 refresh 두 번 사용 → 두 번째에 401 + family 전체 revoke + **같은 사용자 capture token 전체 revoke** 확인
+- [ ] ShareExt 직접 전송: 앱을 30분+ 안 연 상태(access 만료)에서 공유 → Console.app `app.mochi.ShareExtension` 에 `token-source=capture` + `success` 로그, 항목 즉시 서버 분석 시작
+- [ ] 로그아웃 → ShareExt 공유: 직접 전송 skip(no-token) + 큐 폴백 / 재로그인 후 drain 정상
 - [ ] 로그아웃 후 access 즉시 무효? (HS256 short-TTL 이므로 30분 내 재사용 가능 — 의식적 trade-off. blacklist 도입은 후속)
 - [ ] 앱 강제 종료/재시작 시 Keychain 에서 토큰 복구 & 자동 로그인

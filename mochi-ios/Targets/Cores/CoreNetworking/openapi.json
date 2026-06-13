@@ -227,6 +227,50 @@
         }
       }
     },
+    "/api/v1/auth/capture-tokens": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Issue Capture Token",
+        "description": "ShareExtension 직접 전송용 capture-scoped token 발급.\n\naccess JWT 인증 필수 — capture token 으로는 이 라우트를 통과할 수 없다(권한 상승 차단).\nraw secret 은 이 응답으로 1회만 전달되고, ingest + presign 라우트에서만 유효하다.\nsliding TTL: 사용 시 연장 — 캡처를 계속 쓰는 한 만료되지 않는다.",
+        "operationId": "issue_capture_token_api_v1_auth_capture_tokens_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "Authorization",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CaptureTokenRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaptureTokenResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/users/me": {
       "get": {
         "tags": [
@@ -1343,6 +1387,39 @@
         "title": "CalendarDayResponse",
         "description": "월간 캘린더의 하루 셀 — KST 날짜·개수·대표 Intent·대표 썸네일 object_key."
       },
+      "CaptureTokenRequest": {
+        "properties": {
+          "deviceLabel": {
+            "title": "Devicelabel",
+            "type": "string",
+            "maxLength": 128,
+            "nullable": true
+          }
+        },
+        "type": "object",
+        "title": "CaptureTokenRequest",
+        "description": "``POST /auth/capture-tokens`` — ShareExtension 직접 전송용 scoped token 발급."
+      },
+      "CaptureTokenResponse": {
+        "properties": {
+          "captureToken": {
+            "type": "string",
+            "title": "Capturetoken"
+          },
+          "captureTokenExpiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Capturetokenexpiresat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "captureToken",
+          "captureTokenExpiresAt"
+        ],
+        "title": "CaptureTokenResponse",
+        "description": "raw secret 은 이 응답으로 1회만 전달 — 클라이언트가 공유 Keychain 에 보관한다."
+      },
       "CitationDTO": {
         "properties": {
           "mochiItemId": {
@@ -1859,6 +1936,12 @@
             "type": "string",
             "minLength": 10,
             "title": "Refreshtoken"
+          },
+          "captureToken": {
+            "title": "Capturetoken",
+            "type": "string",
+            "minLength": 10,
+            "nullable": true
           }
         },
         "type": "object",

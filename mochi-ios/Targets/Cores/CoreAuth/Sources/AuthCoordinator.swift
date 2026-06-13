@@ -10,6 +10,7 @@ import CoreNetworking
 /// - ``OpenAPIMochiClient`` 의 ``AuthMiddleware`` 가 의존하는 ``AuthTokenProvider`` 도 함께 구현 — 모든 보호 호출이 자동으로 인증 헤더를 받는다.
 public final class AuthCoordinator: AuthTokenProvider, @unchecked Sendable {
     private let store: AuthSessionStore
+    private let captureStore: any CaptureTokenStore
     private let api: any AuthAPIClient
     private let apple: any AppleAuthClient
     private let google: any GoogleAuthClient
@@ -23,12 +24,14 @@ public final class AuthCoordinator: AuthTokenProvider, @unchecked Sendable {
         store: AuthSessionStore,
         api: any AuthAPIClient,
         apple: any AppleAuthClient,
-        google: any GoogleAuthClient
+        google: any GoogleAuthClient,
+        captureStore: any CaptureTokenStore = InMemoryCaptureTokenStore()
     ) {
         self.store = store
         self.api = api
         self.apple = apple
         self.google = google
+        self.captureStore = captureStore
     }
 
     // MARK: - Public API
@@ -49,6 +52,7 @@ public final class AuthCoordinator: AuthTokenProvider, @unchecked Sendable {
             )
         )
         try await store.update(session)
+        scheduleCaptureTokenEnsure()
         return session
     }
 
@@ -62,6 +66,7 @@ public final class AuthCoordinator: AuthTokenProvider, @unchecked Sendable {
             )
         )
         try await store.update(session)
+        scheduleCaptureTokenEnsure()
         return session
     }
 
@@ -79,16 +84,72 @@ public final class AuthCoordinator: AuthTokenProvider, @unchecked Sendable {
             )
         )
         try await store.update(session)
+        scheduleCaptureTokenEnsure()
         return session
     }
 
     public func signOut() async {
+        let captureToken = (try? captureStore.load())?.token
         if let session = await store.current() {
-            // 베스트 에포트 — 네트워크 실패해도 로컬은 비운다.
-            _ = try? await api.logout(LogoutBody(refreshToken: session.tokens.refreshToken))
+            // 베스트 에포트 — 네트워크 실패해도 로컬은 비운다. capture token 을 동봉해
+            // 서버측 revoke (장수명 토큰이라 자연 무효화에 기댈 수 없다).
+            _ = try? await api.logout(
+                LogoutBody(refreshToken: session.tokens.refreshToken, captureToken: captureToken)
+            )
         }
         try? await store.clear()
+        try? captureStore.clear()
     }
+
+    // MARK: - Capture token (ShareExtension 직접 전송용)
+
+    /// capture token 보장 — 부재 · 계정 불일치 · 만료 임박(잔여 < 30일)이면 재발급한다.
+    ///
+    /// best-effort: 실패해도 throw 하지 않는다 (다음 부팅·로그인에서 재시도, 그동안 ShareExt
+    /// 는 access token fallback → 큐 폴백). 계정 불일치 검사가 cross-account 오염을 막는
+    /// 불변식이다 — 로그아웃 없이 다른 계정으로 로그인해도 이전 계정 토큰을 덮어쓴다.
+    /// 서버 만료는 sliding(사용 시 연장)이라 로컬 ``CaptureTokenRecord/expiresAt`` 은 최소
+    /// 보장일 뿐이지만, 재발급 판단엔 보수적 기준으로 충분하다.
+    public func ensureCaptureToken() async {
+        guard let session = await store.current() else { return }
+        let reissueThreshold = Date().addingTimeInterval(Self.captureReissueLeadTime)
+        if let record = try? captureStore.load() {
+            if record.userID == session.user.id, record.expiresAt > reissueThreshold {
+                return
+            }
+            // 다른 계정의 record 는 재발급 *시도 전에* 폐기한다 (codex review P1) —
+            // 발급이 실패(오프라인 등)해도 stale 토큰이 남아 ShareExt 가 이전 계정
+            // 명의로 업로드하는 cross-account 오염을 원천 차단. 같은 계정의 만료 임박
+            // record 는 발급 실패 시 계속 쓸 수 있도록 유지한다.
+            if record.userID != session.user.id {
+                try? captureStore.clear()
+            }
+        }
+        guard let access = await bearerToken() else { return }
+        do {
+            let issued = try await api.issueCaptureToken(
+                CaptureTokenBody(deviceLabel: Self.deviceLabel()),
+                accessToken: access
+            )
+            try captureStore.save(
+                CaptureTokenRecord(
+                    token: issued.captureToken,
+                    expiresAt: issued.captureTokenExpiresAt,
+                    userID: session.user.id
+                )
+            )
+        } catch {
+            // best-effort — 네트워크 실패 등은 조용히 넘긴다 (위 doc comment 참고).
+        }
+    }
+
+    /// 로그인 직후의 fire-and-forget 발급 — 로그인 지연에 1 RTT 를 더하지 않는다.
+    private func scheduleCaptureTokenEnsure() {
+        Task { [weak self] in await self?.ensureCaptureToken() }
+    }
+
+    /// 잔여 수명이 이 값 미만이면 재발급 (30일).
+    private static let captureReissueLeadTime: TimeInterval = 30 * 24 * 3600
 
     // MARK: - AuthTokenProvider
 
@@ -122,7 +183,7 @@ public final class AuthCoordinator: AuthTokenProvider, @unchecked Sendable {
             return inFlight
         }
         let identity = UUID()
-        let task = Task<AuthTokens, Error> { [api, store] in
+        let task = Task<AuthTokens, Error> { [api, store, captureStore] in
             guard let session = await store.current() else {
                 throw AuthError.backendRejected(
                     code: "auth.refresh_not_found",
@@ -140,8 +201,11 @@ public final class AuthCoordinator: AuthTokenProvider, @unchecked Sendable {
                 return tokens
             } catch let error as AuthError {
                 // refresh 실패 = 세션 종료. 로컬 토큰을 비워 다음 호출이 로그인 화면으로 가도록.
+                // capture token 도 함께 비운다 — reuse 감지였다면 서버가 이미 revoke 했고
+                // (도주로 차단), 아니어도 로그아웃 상태에서 ShareExt 업로드를 남기지 않는다.
                 if case .backendRejected = error {
                     try? await store.clear()
+                    try? captureStore.clear()
                 }
                 throw error
             }

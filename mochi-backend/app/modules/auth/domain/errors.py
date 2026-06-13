@@ -49,6 +49,18 @@ class RefreshTokenReuseDetectedError(UnauthorizedError):
     code = "auth.refresh_reuse_detected"
 
 
+class CaptureTokenNotFoundError(UnauthorizedError):
+    code = "auth.capture_token_not_found"
+
+
+class CaptureTokenExpiredError(UnauthorizedError):
+    code = "auth.capture_token_expired"
+
+
+class CaptureTokenRevokedError(UnauthorizedError):
+    code = "auth.capture_token_revoked"
+
+
 class UserDeletedError(UnauthorizedError):
     code = "auth.user_deleted"
 

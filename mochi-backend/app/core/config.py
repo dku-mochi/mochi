@@ -115,6 +115,11 @@ class Settings(BaseSettings):
     auth_access_ttl_seconds: int = 1800             # 30분
     auth_refresh_ttl_seconds: int = 60 * 60 * 24 * 30  # 30일
 
+    # Capture-scoped token — ShareExtension 직접 전송 전용 (ingest+presign 한정 opaque token).
+    # sliding: 검증 시 last_used 기준으로 연장(1h 디바운스) — 캡처를 쓰는 한 만료되지 않는다.
+    auth_capture_ttl_seconds: int = 60 * 60 * 24 * 180  # 180일 (sliding)
+    auth_capture_max_active: int = 5                    # 사용자당 동시 활성 cap (초과 시 oldest evict)
+
     # External IdP — Apple
     auth_apple_audience: str = "app.mochi"
     auth_apple_jwks_url: str = "https://appleid.apple.com/auth/keys"

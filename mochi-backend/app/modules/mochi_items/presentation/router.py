@@ -8,7 +8,7 @@ from sqlalchemy import text
 from app.core.config import get_settings
 from app.core.deps import CaptureImageStorageDep, DBSession
 from app.core.error_envelope import DomainError, FeatureUnavailableError, NotFoundError
-from app.core.security import CurrentUser
+from app.core.security import CurrentCaptureUser, CurrentUser
 from app.modules.mochi_items.application.delete_mochi_item import (
     DeleteMochiItem,
     DeleteMochiItemCommand,
@@ -186,7 +186,7 @@ def _to_response(item: MochiItem) -> MochiItemResponse:
 async def create_mochi_item(
     payload: MochiItemCreateRequest,
     db: DBSession,
-    user: CurrentUser,
+    user: CurrentCaptureUser,
     storage: CaptureImageStorageDep,
     idempotency_key: Annotated[str | None, Header(alias="Idempotency-Key")] = None,
 ) -> MochiItemResponse:
@@ -256,7 +256,7 @@ async def create_mochi_item(
 @router.post("/presign", response_model=PresignResponse)
 async def presign_capture_upload(
     payload: PresignRequest,
-    user: CurrentUser,
+    user: CurrentCaptureUser,
     storage: CaptureImageStorageDep,
 ) -> PresignResponse:
     """캡처 이미지 업로드용 V4 Signed PUT URL 발급.

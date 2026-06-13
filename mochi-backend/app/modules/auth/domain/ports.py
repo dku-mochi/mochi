@@ -11,6 +11,8 @@ from uuid import UUID
 from app.modules.auth.domain.entities import (
     AuthAccount,
     AuthProvider,
+    CaptureToken,
+    CaptureTokenRevokedReason,
     RefreshToken,
     RefreshTokenRevokedReason,
     User,
@@ -110,6 +112,65 @@ class RefreshTokenRepository(ABC):
         """family 안의 ``revoked_at IS NULL`` 인 모든 토큰을 revoke. 영향받은 행 수 반환."""
 
 
+class CaptureTokenRepository(ABC):
+    """``capture_tokens`` 영속화. raw token 은 절대 받지 않으며, 모든 인자는 hash."""
+
+    @abstractmethod
+    async def acquire_issue_lock(self, *, user_id: UserID) -> None:
+        """발급을 사용자 단위로 직렬화한다 (트랜잭션 종료 시 자동 해제).
+
+        cap-eviction(list → revoke → add)이 비원자라, 동시 발급이 같은 active 목록을
+        보면 cap 을 초과할 수 있다 — 발급 진입 시 이 lock 으로 직렬화해 닫는다.
+        """
+
+    @abstractmethod
+    async def add(self, token: CaptureToken) -> None: ...
+
+    @abstractmethod
+    async def find_by_hash(self, *, token_hash: str) -> CaptureToken | None: ...
+
+    @abstractmethod
+    async def list_active_for_user(self, *, user_id: UserID, now: datetime) -> list[CaptureToken]:
+        """revoke/만료되지 않은 토큰을 ``issued_at`` 오래된 순으로 반환 (발급 cap-eviction 용)."""
+
+    @abstractmethod
+    async def touch(
+        self,
+        *,
+        token_id: UUID,
+        now: datetime,
+        expires_at: datetime,
+        debounce_cutoff: datetime,
+    ) -> bool:
+        """sliding 연장 — ``last_used_at``/``expires_at`` 을 조건부 갱신.
+
+        ``last_used_at IS NULL OR last_used_at < debounce_cutoff`` 인 활성 row 만 갱신해
+        매 요청 UPDATE 부하를 디바운스한다. 갱신했으면 ``True``.
+        """
+
+    @abstractmethod
+    async def revoke(
+        self,
+        *,
+        token_id: UUID,
+        revoked_at: datetime,
+        reason: CaptureTokenRevokedReason,
+    ) -> None: ...
+
+    @abstractmethod
+    async def revoke_all_for_user(
+        self,
+        *,
+        user_id: UserID,
+        revoked_at: datetime,
+        reason: CaptureTokenRevokedReason,
+    ) -> int:
+        """해당 사용자의 ``revoked_at IS NULL`` 인 모든 토큰을 revoke. 영향받은 행 수 반환.
+
+        refresh reuse 감지(도난 의심)·계정 탈퇴의 연쇄 revoke 훅이다.
+        """
+
+
 class AccessTokenIssuer(ABC):
     """자체 발행 access JWT 발급/검증 추상화.
 
@@ -130,6 +191,18 @@ class RefreshTokenIssuer(ABC):
 
     secret 의 형식·길이·hash 알고리즘은 단일 구현에서 책임진다.
     """
+
+    @abstractmethod
+    def generate(self, *, now: datetime) -> tuple[str, str, datetime]:
+        """``(raw_secret, sha256_hex, expires_at)`` 반환."""
+
+    @abstractmethod
+    def hash_existing(self, *, raw_secret: str) -> str:
+        """클라이언트가 보낸 raw secret 의 hash 계산 (검증용)."""
+
+
+class CaptureTokenIssuer(ABC):
+    """raw capture token secret 생성 + hash 계산 추상화 (``mct_`` prefix 포함)."""
 
     @abstractmethod
     def generate(self, *, now: datetime) -> tuple[str, str, datetime]:

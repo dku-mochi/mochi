@@ -99,7 +99,30 @@ public struct RefreshBody: Encodable, Sendable {
 
 public struct LogoutBody: Encodable, Sendable {
     public let refreshToken: String
-    public init(refreshToken: String) { self.refreshToken = refreshToken }
+    /// 동봉 시 서버가 해당 capture token 도 revoke 한다 (장수명이라 자연 무효화 불가).
+    public let captureToken: String?
+
+    public init(refreshToken: String, captureToken: String? = nil) {
+        self.refreshToken = refreshToken
+        self.captureToken = captureToken
+    }
+}
+
+/// 백엔드 ``POST /auth/capture-tokens`` 요청 바디.
+public struct CaptureTokenBody: Encodable, Sendable {
+    public let deviceLabel: String?
+    public init(deviceLabel: String?) { self.deviceLabel = deviceLabel }
+}
+
+/// 백엔드 ``POST /auth/capture-tokens`` 응답 — raw secret 은 이 응답으로 1회만 전달된다.
+public struct CaptureTokenIssued: Equatable, Sendable, Codable {
+    public let captureToken: String
+    public let captureTokenExpiresAt: Date
+
+    public init(captureToken: String, captureTokenExpiresAt: Date) {
+        self.captureToken = captureToken
+        self.captureTokenExpiresAt = captureTokenExpiresAt
+    }
 }
 
 /// 백엔드 ``POST /auth/dev`` 의 요청 바디. local 환경 전용 임시 로그인.

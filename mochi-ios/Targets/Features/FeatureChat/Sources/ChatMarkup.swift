@@ -14,10 +14,23 @@ enum ChatMarkup {
         case badge(index: Int)
     }
 
-    /// 표시 블록 — 문단(인라인 마크다운 + citation 뱃지)과 마크다운 표.
+    /// 표시 블록 — 문단·헤딩·리스트·인용·구분선·표. 모든 텍스트는 인라인 마크다운 +
+    /// citation 뱃지를 거친다.
     enum Block: Equatable {
         case paragraph(AttributedString)
+        case heading(level: Int, text: AttributedString)
+        case list(items: [ListItem])
+        case quote(AttributedString)
+        case divider
         case table(header: [AttributedString], rows: [[AttributedString]])
+    }
+
+    /// 리스트 한 항목. `ordinal` 이 nil 이면 불릿(`*`/`-`/`+`), 있으면 번호(`1.`/`1)`).
+    /// depth 는 0/1 두 단계만 — 말풍선 폭에서 더 깊은 중첩은 가독성만 해쳐 1로 접는다.
+    struct ListItem: Equatable {
+        let ordinal: String?
+        let depth: Int
+        let text: AttributedString
     }
 
     private static let marker = #/【item:([0-9a-fA-F-]{36})】/#
@@ -58,7 +71,8 @@ enum ChatMarkup {
     /// 세그먼트 → 본문 AttributedString. 뱃지는 위첨자 숫자(¹²)를 퍼플 헤비로 —
     /// 각주 문법이라 본문 흐름을 끊지 않고, 아래 근거 미니카드의 번호와 짝을 이룬다.
     /// 텍스트는 **인라인** 마크다운만 해석한다 — 굵게·기울임은 스타일로, 헤더·리스트 같은
-    /// 블록 문법은 원문 그대로(말풍선엔 블록 구조가 없고, 개행도 보존해야 하므로).
+    /// 블록 문법은 `blocks()` 가 줄 단위로 가른 뒤 들어오므로 여기선 원문 그대로 둔다
+    /// (개행 보존 필요).
     static func attributedText(raw: String, citations: [ChatCitation], isStreaming: Bool) -> AttributedString {
         var result = AttributedString()
         for segment in segments(raw: raw, citations: citations, isStreaming: isStreaming) {
@@ -75,10 +89,12 @@ enum ChatMarkup {
         return result
     }
 
-    /// raw 본문 → 표시 블록. 표(GFM: 헤더 줄 + `|---|` 구분선 + 행들)는 `.table` 로,
-    /// 나머지는 `.paragraph` 로 — 둘 다 citation 뱃지·인라인 마크다운을 거친다.
+    /// raw 본문 → 표시 블록. 표(GFM: 헤더 줄 + `|---|` 구분선 + 행들)·헤딩·리스트·
+    /// 인용·구분선은 각자의 블록으로, 나머지는 `.paragraph` 로 — 모두 citation 뱃지·
+    /// 인라인 마크다운을 거친다.
     /// 스트리밍 트림은 여기서 전체 raw 에 한 번만 적용하고, 꼬리의 **미확정 표 후보**
-    /// (`|` 로 시작하지만 구분선이 아직 안 온 줄들)도 숨긴다 — 확정되는 순간 표로 나타난다.
+    /// (`|` 로 시작하지만 구분선이 아직 안 온 줄들)와 **텍스트 없는 블록 마커**
+    /// (`* `·`1.`·`#`·`>` 만 도착한 마지막 줄)도 숨긴다 — 확정되는 순간 나타난다.
     static func blocks(raw: String, citations: [ChatCitation], isStreaming: Bool) -> [Block] {
         var text = Substring(raw)
         if isStreaming {
@@ -87,6 +103,8 @@ enum ChatMarkup {
 
         var blocks: [Block] = []
         var pending: [Substring] = []
+        var listItems: [ListItem] = []
+        var quoteLines: [Substring] = []
 
         func flushParagraph() {
             while pending.first?.allSatisfy(\.isWhitespace) == true { pending.removeFirst() }
@@ -97,12 +115,42 @@ enum ChatMarkup {
             blocks.append(.paragraph(attributedText(raw: chunk, citations: citations, isStreaming: false)))
         }
 
-        let lines = text.split(separator: "\n", omittingEmptySubsequences: false)
+        func flushList() {
+            guard !listItems.isEmpty else { return }
+            blocks.append(.list(items: listItems))
+            listItems = []
+        }
+
+        func flushQuote() {
+            while quoteLines.first?.allSatisfy(\.isWhitespace) == true { quoteLines.removeFirst() }
+            while quoteLines.last?.allSatisfy(\.isWhitespace) == true { quoteLines.removeLast() }
+            guard !quoteLines.isEmpty else { return }
+            let chunk = quoteLines.joined(separator: "\n")
+            quoteLines = []
+            blocks.append(.quote(attributedText(raw: chunk, citations: citations, isStreaming: false)))
+        }
+
+        func flushAll() {
+            flushParagraph()
+            flushList()
+            flushQuote()
+        }
+
+        func itemText(_ chunk: Substring) -> AttributedString {
+            attributedText(raw: String(chunk), citations: citations, isStreaming: false)
+        }
+
+        var lines = text.split(separator: "\n", omittingEmptySubsequences: false)
+        if isStreaming, let last = lines.last, last.wholeMatch(of: bareBlockMarker) != nil {
+            lines.removeLast()
+        }
+
         var i = 0
         while i < lines.count {
-            if isTableLine(lines[i]), i + 1 < lines.count, isSeparatorLine(lines[i + 1]) {
-                flushParagraph()
-                let header = cells(of: lines[i])
+            let line = lines[i]
+            if isTableLine(line), i + 1 < lines.count, isSeparatorLine(lines[i + 1]) {
+                flushAll()
+                let header = cells(of: line)
                 var rows: [[Substring]] = []
                 var j = i + 2
                 while j < lines.count, isTableLine(lines[j]) {
@@ -116,15 +164,60 @@ enum ChatMarkup {
                     }
                 ))
                 i = j
-            } else if isStreaming, isTableLine(lines[i]), lines[i...].allSatisfy(isTableLine) {
-                break
-            } else {
-                pending.append(lines[i])
-                i += 1
+                continue
             }
+            if isStreaming, isTableLine(line), lines[i...].allSatisfy(isTableLine) {
+                break
+            }
+            if let match = line.wholeMatch(of: headingLine) {
+                flushAll()
+                blocks.append(.heading(level: match.1.count, text: itemText(match.2)))
+            } else if isDividerLine(line) {
+                flushAll()
+                blocks.append(.divider)
+            } else if let match = line.wholeMatch(of: quoteLine) {
+                flushParagraph()
+                flushList()
+                quoteLines.append(match.1)
+            } else if let match = line.wholeMatch(of: bulletLine) {
+                flushParagraph()
+                flushQuote()
+                listItems.append(ListItem(ordinal: nil, depth: depth(of: match.1), text: itemText(match.2)))
+            } else if let match = line.wholeMatch(of: numberedLine) {
+                flushParagraph()
+                flushQuote()
+                listItems.append(ListItem(ordinal: String(match.2), depth: depth(of: match.1), text: itemText(match.3)))
+            } else {
+                flushList()
+                flushQuote()
+                pending.append(line)
+            }
+            i += 1
         }
-        flushParagraph()
+        flushAll()
         return blocks
+    }
+
+    // MARK: - 블록 줄 패턴
+
+    private static let headingLine = #/^(#{1,6})\s+(\S.*)$/#
+    private static let bulletLine = #/^(\s*)[-*+]\s+(\S.*)$/#
+    private static let numberedLine = #/^(\s*)(\d{1,3})[.)]\s+(\S.*)$/#
+    private static let quoteLine = #/^>\s?(.*)$/#
+    /// 스트리밍 꼬리의 텍스트 없는 마커 — 다음 delta 로 확정되기 전까지 숨긴다.
+    /// 숫자는 구두점(`1.`/`1)`)까지 와야 마커다 — 단독 숫자(`404`)는 정상 본문일 수 있다.
+    private static let bareBlockMarker = #/^\s*(?:[-*+]|\d{1,3}[.)]|#{1,6}|>)\s*$/#
+
+    /// 들여쓰기 → depth. 한 단계만 본다(§Block.ListItem) — 2칸이든 4칸이든 중첩이면 1.
+    private static func depth(of indent: Substring) -> Int {
+        indent.count >= 2 ? 1 : 0
+    }
+
+    /// `---` 단독 줄 (thematic break). `***`/`___` 변형은 지원하지 않는다 —
+    /// LLM 출력은 `---` 가 지배적이고, `***` 는 스트리밍의 미닫힘 `**` 트림과 충돌한다.
+    private static func isDividerLine(_ line: Substring) -> Bool {
+        let trimmed = line.trimmingCharacters(in: .whitespaces)
+        return trimmed.count >= 3 && trimmed.allSatisfy { $0 == "-" }
     }
 
     private static func isTableLine(_ line: Substring) -> Bool {
@@ -165,7 +258,65 @@ enum ChatMarkup {
         return text
     }
 
+    /// 인라인 마크다운 해석. `**…**` 굵게만 직접 파싱한다 — CommonMark flanking 규칙은
+    /// 닫는 `**` 가 문장부호 뒤·글자 앞이면(`**'제목'**이`) 구분자로 인정하지 않아,
+    /// 따옴표+조사 조합이 흔한 한국어에서 `**` 가 원문 그대로 노출된다. 굵게 안쪽과
+    /// 나머지 텍스트는 시스템 파서에 맡긴다 (기울임 등 중첩 문법 유지).
     private static func inlineMarkdown(_ chunk: String) -> AttributedString {
+        var result = AttributedString()
+        var cursor = chunk.startIndex
+        for match in chunk.matches(of: boldSpan) {
+            if cursor < match.range.lowerBound {
+                result += systemInlineMarkdown(String(chunk[cursor..<match.range.lowerBound]))
+            }
+            var bold = systemInlineMarkdown(String(match.1))
+            for (range, intent) in bold.runs.map({ ($0.range, $0.inlinePresentationIntent ?? []) }) {
+                bold[range].inlinePresentationIntent = intent.union(.stronglyEmphasized)
+            }
+            result += bold
+            cursor = match.range.upperBound
+        }
+        if cursor < chunk.endIndex {
+            result += systemInlineMarkdown(String(chunk[cursor...]))
+        }
+        return result
+    }
+
+    /// `**…**` 굵게 구간 — 비탐욕, 가장 가까운 닫는 `**` 와 짝.
+    private static let boldSpan = #/\*\*(.+?)\*\*/#
+
+    /// 길게 눌러 복사용 평문 — citation 마커는 제거하고(위첨자 번호도 평문에선 무의미)
+    /// 인라인 마크다운 기호(`**`)는 해소한다. 블록 기호(`-`·`#`)는 평문에서도 구조로
+    /// 읽히므로 그대로 둔다.
+    static func plainText(raw: String, citations: [ChatCitation]) -> String {
+        var result = ""
+        for segment in segments(raw: raw, citations: citations, isStreaming: false) {
+            if case let .text(chunk) = segment {
+                result += String(inlineMarkdown(chunk).characters)
+            }
+        }
+        return result
+    }
+
+    /// 표시 직전 굵게 해석 — `stronglyEmphasized` intent 런에 명시 bold 폰트를 박는다.
+    /// intent 만 두면 SwiftUI 가 환경 폰트에 bold trait 를 얹는데, medium 베이스의 한글
+    /// 글리프에선 그 대비가 육안으로 거의 없다(ImageRenderer 실측) — 명시 weight 라야
+    /// 굵게 보인다. size 는 콜사이트(블록 종류별 본문 크기)가 안다.
+    static func resolvingBold(_ text: AttributedString, size: CGFloat) -> AttributedString {
+        var result = text
+        let boldRuns: [(Range<AttributedString.Index>, Bool)] = result.runs.compactMap { run in
+            guard let intent = run.inlinePresentationIntent, intent.contains(.stronglyEmphasized) else { return nil }
+            return (run.range, intent.contains(.emphasized))
+        }
+        for (range, isItalic) in boldRuns {
+            var font: Font = .system(size: size, weight: .bold, design: .rounded)
+            if isItalic { font = font.italic() }
+            result[range].font = font
+        }
+        return result
+    }
+
+    private static func systemInlineMarkdown(_ chunk: String) -> AttributedString {
         (try? AttributedString(
             markdown: chunk,
             options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace)

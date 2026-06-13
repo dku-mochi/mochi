@@ -10,6 +10,10 @@ from app.core.config import get_settings
 from app.core.deps import DBSession
 from app.core.error_envelope import FeatureUnavailableError, NotFoundError
 from app.core.security import CurrentUser
+from app.modules.auth.application.capture_tokens import (
+    IssueCaptureToken,
+    IssueCaptureTokenCommand,
+)
 from app.modules.auth.application.dev_sign_in import DevSignIn, DevSignInCommand
 from app.modules.auth.application.logout import Logout, LogoutCommand
 from app.modules.auth.application.refresh import RefreshCommand, RotateRefreshToken
@@ -21,15 +25,19 @@ from app.modules.auth.application.sign_in import (
 )
 from app.modules.auth.infrastructure.providers import (
     get_access_token_issuer,
+    get_capture_token_issuer,
     get_id_token_verifier,
     get_refresh_token_issuer,
 )
 from app.modules.auth.infrastructure.repository import (
+    PostgresCaptureTokenRepository,
     PostgresRefreshTokenRepository,
     PostgresUserRepository,
 )
 from app.modules.auth.presentation.schemas import (
     AppleSignInRequest,
+    CaptureTokenRequest,
+    CaptureTokenResponse,
     DevSignInRequest,
     GoogleSignInRequest,
     LogoutRequest,
@@ -59,6 +67,7 @@ def _build_rotate(db: AsyncSession) -> RotateRefreshToken:
         users=PostgresUserRepository(db),
         access_issuer=get_access_token_issuer(),
         refresh_issuer=get_refresh_token_issuer(),
+        capture_tokens=PostgresCaptureTokenRepository(db),
     )
 
 
@@ -66,6 +75,16 @@ def _build_logout(db: AsyncSession) -> Logout:
     return Logout(
         refresh_tokens=PostgresRefreshTokenRepository(db),
         refresh_issuer=get_refresh_token_issuer(),
+        capture_tokens=PostgresCaptureTokenRepository(db),
+        capture_issuer=get_capture_token_issuer(),
+    )
+
+
+def _build_issue_capture_token(db: AsyncSession) -> IssueCaptureToken:
+    return IssueCaptureToken(
+        capture_tokens=PostgresCaptureTokenRepository(db),
+        issuer=get_capture_token_issuer(),
+        max_active=get_settings().auth_capture_max_active,
     )
 
 
@@ -192,9 +211,37 @@ async def refresh_tokens(
 @auth_router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
 async def logout(payload: LogoutRequest, db: DBSession) -> Response:
     use_case = _build_logout(db)
-    await use_case.execute(LogoutCommand(raw_refresh_token=payload.refresh_token))
+    await use_case.execute(
+        LogoutCommand(
+            raw_refresh_token=payload.refresh_token,
+            raw_capture_token=payload.capture_token,
+        )
+    )
     await db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@auth_router.post("/capture-tokens", response_model=CaptureTokenResponse)
+async def issue_capture_token(
+    payload: CaptureTokenRequest,
+    db: DBSession,
+    user: CurrentUser,
+) -> CaptureTokenResponse:
+    """ShareExtension 직접 전송용 capture-scoped token 발급.
+
+    access JWT 인증 필수 — capture token 으로는 이 라우트를 통과할 수 없다(권한 상승 차단).
+    raw secret 은 이 응답으로 1회만 전달되고, ingest + presign 라우트에서만 유효하다.
+    sliding TTL: 사용 시 연장 — 캡처를 계속 쓰는 한 만료되지 않는다.
+    """
+    use_case = _build_issue_capture_token(db)
+    issued = await use_case.execute(
+        IssueCaptureTokenCommand(user_id=user, device_label=payload.device_label)
+    )
+    await db.commit()
+    return CaptureTokenResponse(
+        capture_token=issued.raw_token,
+        capture_token_expires_at=issued.expires_at,
+    )
 
 
 @users_router.get("/me", response_model=UserResponse)

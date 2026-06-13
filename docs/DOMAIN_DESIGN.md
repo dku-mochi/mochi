@@ -91,6 +91,7 @@ iOS · 백엔드 · 프롬프트 모두 동일 용어를 쓴다.
 erDiagram
     users ||--o{ auth_accounts : has
     users ||--o{ refresh_tokens : has
+    users ||--o{ capture_tokens : "has (ShareExt scoped)"
     users ||--o{ mochi_items : "owns (owner_id, app-level)"
     users ||--o{ device_push_tokens : registers
     user_profiles |o--|| users : "1:1 (owner_id)"
@@ -111,7 +112,7 @@ erDiagram
 
 | 그룹 | 테이블 | 책임 |
 |---|---|---|
-| Identity | `users` · `auth_accounts` · `refresh_tokens` | OAuth 연결, refresh rotation chain, soft delete |
+| Identity | `users` · `auth_accounts` · `refresh_tokens` · `capture_tokens` | OAuth 연결, refresh rotation chain, capture-scoped token(ShareExt 직접 전송 — ingest+presign 한정·sliding 180일·revoke 연쇄), soft delete |
 | Mochi | `mochi_items` · `intent_instances` · `mochi_item_image_refs` · `entities` | aggregate root + 의도 1급 행 + 이미지·추출물 |
 | AI | `embeddings` | 청크 벡터 (voyage-3-large 1024d, HNSW) |
 | Operations | `agent_runs` · `tool_calls` · `mochi_item_outbox` · `idempotency_keys` · `user_profiles` | 처리 로그·큐·멱등성·개인화 |
@@ -264,7 +265,7 @@ instance 전이(from→to)·archive_reason×intent_type 검증은 application �
 
 | Header | 필수 | 의미 |
 |---|---|---|
-| `Authorization: Bearer <token>` | health 제외 전부 | JWT(RS256) |
+| `Authorization: Bearer <token>` | health 제외 전부 | 자체 발행 access JWT(HS256). **예외**: ingest+presign 은 capture token(`mct_…`)도 수용 (§8) |
 | `Idempotency-Key` | `POST /mochi_items*` | owner-scoped |
 | `X-Mochi-Request-ID` | 옵션 | 분산 추적 |
 
@@ -294,7 +295,8 @@ instance 전이(from→to)·archive_reason×intent_type 검증은 application �
 
 | 항목 | 메커니즘 |
 |---|---|
-| 인증 | Apple/Google OAuth → JWT(RS256) + refresh token rotation |
+| 인증 | Apple/Google OAuth(ID token 은 JWKS 검증) → 자체 발행 access JWT(HS256, 30분) + refresh rotation(reuse 감지 → family revoke) |
+| capture token | ShareExt 직접 전송용 `mct_` opaque (hash-only 저장). **scope = ingest+presign 한정**(타 라우트 자동 401), sliding 180일 + 활성 5개 cap. revoke 연쇄: logout·refresh reuse 감지(사용자 전체)·계정 탈퇴 훅 (`ARCHITECTURE.md` §3.5) |
 | 인가 | repository layer 가 `owner_id` 필터 강제 (테스트 검증). DB FK 아닌 **app-level** 격리 |
 | 멱등성 | `Idempotency-Key` → `idempotency_keys` (owner-scoped) |
 | SSRF | WebFetch: 호스트 블록리스트 + A/AAAA IP 검증 + redirect 재검증 + MIME 화이트리스트 |
@@ -314,6 +316,7 @@ instance 전이(from→to)·archive_reason×intent_type 검증은 application �
 | **instance 없으면 memo fallback** (§4.2) | 정책 코드 + test |
 | 입력 1건 = MochiItem 1개 (쪼개지 않는다) | ingest 설계 |
 | `.png`/`.memo` 백탭 잔재는 반드시 폐기·sweep | `UX_SPEC.md` §3.7 invariant |
+| capture token 은 ingest+presign 외 라우트에서 무효 (scope 격리·권한 상승 차단) | unit test (`test_auth_capture_tokens.py`) |
 
 ---
 
@@ -333,7 +336,7 @@ instance 전이(from→to)·archive_reason×intent_type 검증은 application �
 
 ### 10.3 채팅 탭 (RAG 멀티턴 대화) — 게이트 개방, 대부분 구현
 
-설계 확정·전체 플랜: `journal/2026-06-10-chat-tab-design.md`. **구현 완료**(2026-06-10): 테이블 3종 + 세션 CRUD(§3 Conversations 그룹) + 메시지 전송 `POST /conversations/{id}/messages`(POST-as-SSE — agent run 은 detached task 라 클라 이탈에도 완주·단계별 영속) + 툴 10종(read 3 — search_items·get_item_detail·view_item_image(캡처 이미지 직접 보기, 2026-06-12) + **proposal 5 — 전부 read-only**, 확정은 사용자 탭 → REST + web_search·web_fetch — 키/버킷 미설정 시 web_search·view_item_image 각각 제외) + 확정 실행 경로(`PATCH /mochi_items/{id}` 콘텐츠+instance 한 트랜잭션 · `POST /mochi_items` `confirmedInstances` — §5.2 사용자 확정 예외 · DELETE · 알림은 iOS 로컬) + proposal 카드 상태 영속(`PATCH /conversations/{id}/proposals/{id}` → `proposals` jsonb `status` 병합) + `chat@v8` 프롬프트 + citation + iOS live 배선. 잔여(roadmap): 없음 — 실기기 E2E 검증·lab 모델 벤치만.
+설계 확정·전체 플랜: `journal/2026-06-10-chat-tab-design.md`. **구현 완료**(2026-06-10): 테이블 3종 + 세션 CRUD(§3 Conversations 그룹) + 메시지 전송 `POST /conversations/{id}/messages`(POST-as-SSE — agent run 은 detached task 라 클라 이탈에도 완주·단계별 영속) + 툴 10종(read 3 — search_items·get_item_detail·view_item_image(캡처 이미지 직접 보기, 2026-06-12) + **proposal 5 — 전부 read-only**, 확정은 사용자 탭 → REST + web_search·web_fetch — 키/버킷 미설정 시 web_search·view_item_image 각각 제외) + 확정 실행 경로(`PATCH /mochi_items/{id}` 콘텐츠+instance 한 트랜잭션 · `POST /mochi_items` `confirmedInstances` — §5.2 사용자 확정 예외 · DELETE · 알림은 iOS 로컬) + proposal 카드 상태 영속(`PATCH /conversations/{id}/proposals/{id}` → `proposals` jsonb `status` 병합) + `chat@v10` 프롬프트 + citation + iOS live 배선. 잔여(roadmap): 없음 — 실기기 E2E 검증·lab 모델 벤치만.
 
 ### 10.4 기타
 

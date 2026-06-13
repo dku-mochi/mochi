@@ -443,6 +443,81 @@ public struct Client: APIProtocol {
             }
         )
     }
+    /// Issue Capture Token
+    ///
+    /// ShareExtension 직접 전송용 capture-scoped token 발급.
+    ///
+    /// access JWT 인증 필수 — capture token 으로는 이 라우트를 통과할 수 없다(권한 상승 차단).
+    /// raw secret 은 이 응답으로 1회만 전달되고, ingest + presign 라우트에서만 유효하다.
+    /// sliding TTL: 사용 시 연장 — 캡처를 계속 쓰는 한 만료되지 않는다.
+    ///
+    /// - Remark: HTTP `POST /api/v1/auth/capture-tokens`.
+    /// - Remark: Generated from `#/paths//api/v1/auth/capture-tokens/post(issue_capture_token_api_v1_auth_capture_tokens_post)`.
+    public func issue_capture_token_api_v1_auth_capture_tokens_post(_ input: Operations.issue_capture_token_api_v1_auth_capture_tokens_post.Input) async throws -> Operations.issue_capture_token_api_v1_auth_capture_tokens_post.Output {
+        try await client.send(
+            input: input,
+            forOperation: Operations.issue_capture_token_api_v1_auth_capture_tokens_post.id,
+            serializer: { input in
+                let path = try converter.renderedPath(
+                    template: "/api/v1/auth/capture-tokens",
+                    parameters: []
+                )
+                var request: HTTPTypes.HTTPRequest = .init(
+                    soar_path: path,
+                    method: .post
+                )
+                suppressMutabilityWarning(&request)
+                converter.setAcceptHeader(
+                    in: &request.headerFields,
+                    contentTypes: input.headers.accept
+                )
+                let body: OpenAPIRuntime.HTTPBody?
+                switch input.body {
+                case let .json(value):
+                    body = try converter.setRequiredRequestBodyAsJSON(
+                        value,
+                        headerFields: &request.headerFields,
+                        contentType: "application/json; charset=utf-8"
+                    )
+                }
+                return (request, body)
+            },
+            deserializer: { response, responseBody in
+                switch response.status.code {
+                case 200:
+                    let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
+                    let body: Operations.issue_capture_token_api_v1_auth_capture_tokens_post.Output.Ok.Body
+                    let chosenContentType = try converter.bestContentType(
+                        received: contentType,
+                        options: [
+                            "application/json"
+                        ]
+                    )
+                    switch chosenContentType {
+                    case "application/json":
+                        body = try await converter.getResponseBodyAsJSON(
+                            Components.Schemas.CaptureTokenResponse.self,
+                            from: responseBody,
+                            transforming: { value in
+                                .json(value)
+                            }
+                        )
+                    default:
+                        preconditionFailure("bestContentType chose an invalid content type.")
+                    }
+                    return .ok(.init(body: body))
+                default:
+                    return .undocumented(
+                        statusCode: response.status.code,
+                        .init(
+                            headerFields: response.headerFields,
+                            body: responseBody
+                        )
+                    )
+                }
+            }
+        )
+    }
     /// Get Me
     ///
     /// - Remark: HTTP `GET /api/v1/users/me`.

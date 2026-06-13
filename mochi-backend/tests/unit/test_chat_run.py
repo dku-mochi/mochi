@@ -48,10 +48,19 @@ class FakeLLM:
         self.calls: list[dict[str, Any]] = []
 
     def stream(
-        self, *, system_prompt: str, contents: list[dict[str, Any]], tools: list[ChatTool]
+        self,
+        *,
+        system_prompt: str,
+        contents: list[dict[str, Any]],
+        tools: list[ChatTool],
+        force_tool: bool = False,
     ) -> AsyncIterator[ChatLLMChunk]:
         self.calls.append(
-            {"contents": [dict(p) for p in contents], "tool_names": [t.name for t in tools]}
+            {
+                "contents": [dict(p) for p in contents],
+                "tool_names": [t.name for t in tools],
+                "force_tool": force_tool,
+            }
         )
         chunks = self._rounds.pop(0) if self._rounds else []
 
@@ -183,7 +192,62 @@ async def test_full_flow_persists_steps_and_streams_events_in_order() -> None:
     assert assistant.citations[0].citation_index == 1
     assert store.statuses == [(run_id, RunStatus.COMPLETED)]
     # 2라운드째 contents 에 함수호출/응답이 재구성돼 들어갔다
-    assert any("function_response" in p for p in llm.calls[1]["contents"])
+    assert any("function_responses" in p for p in llm.calls[1]["contents"])
+
+
+async def test_first_round_forces_tool_call_then_releases() -> None:
+    # '답하기 전 검색'은 프롬프트(③)가 아니라 기계(②)로 보장한다 — 턴의 첫 라운드만
+    # mode=ANY(force_tool), 이후 라운드와 폴백 라운드는 AUTO 로 풀려 답변이 나올 수 있다.
+    llm = FakeLLM(
+        rounds=[
+            [ChatLLMChunk(tool_call=("search_items", {"query": "카페"}))],
+            [ChatLLMChunk(text_delta="좋은 카페가 있어요")],
+        ]
+    )
+    store = FakeStore()
+    registry = RunRegistry()
+    run_id = uuid4()
+    queue = registry.create(run_id)
+
+    await _runner(llm, store, registry).execute(
+        owner_id=_OWNER, conversation_id=_CONVERSATION, run_id=run_id
+    )
+    await _drain(queue)
+
+    assert [c["force_tool"] for c in llm.calls] == [True, False]
+
+
+async def test_parallel_tool_calls_grouped_into_single_turn_with_signature() -> None:
+    # thinking 활성 시 thought_signature 는 라운드 첫 fc part 에만 온다 — 병렬 콜을
+    # 콜마다 별도 model/user turn 으로 쪼개면 Gemini 시그니처 검증(400)에 걸리므로,
+    # 한 라운드의 fc/fr 는 각각 하나의 entry 에 다중 part 로 묶여야 한다 (리뷰 P1).
+    signature = b"sig-round-1"
+    llm = FakeLLM(
+        rounds=[
+            [
+                ChatLLMChunk(tool_call=("search_items", {"query": "케이크"}), thought_signature=signature),
+                ChatLLMChunk(tool_call=("search_items", {"query": "레스토랑"})),
+            ],
+            [ChatLLMChunk(text_delta="플랜을 짜봤어요")],
+        ]
+    )
+    store = FakeStore()
+    registry = RunRegistry()
+    run_id = uuid4()
+    queue = registry.create(run_id)
+
+    await _runner(llm, store, registry).execute(
+        owner_id=_OWNER, conversation_id=_CONVERSATION, run_id=run_id
+    )
+    await _drain(queue)
+
+    contents = llm.calls[1]["contents"]
+    call_groups = [p["function_calls"] for p in contents if "function_calls" in p]
+    response_groups = [p["function_responses"] for p in contents if "function_responses" in p]
+    assert len(call_groups) == 1 and len(response_groups) == 1
+    assert [fc["name"] for fc in call_groups[0]] == ["search_items", "search_items"]
+    assert [fc.get("thought_signature") for fc in call_groups[0]] == [signature, None]
+    assert len(response_groups[0]) == 2
 
 
 # ---------- ② 한도 초과 → 폴백 답변 (에러 아님) ----------
@@ -283,7 +347,11 @@ async def test_tool_failure_is_fed_back_not_fatal() -> None:
     events = await _drain(queue)
 
     assert events[-1].kind == "done"
-    assert any("error" in p.get("function_response", {}).get("response", {}) for p in llm.calls[1]["contents"])
+    assert any(
+        "error" in fr.get("response", {})
+        for p in llm.calls[1]["contents"]
+        for fr in p.get("function_responses", [])
+    )
     assert store.statuses == [(run_id, RunStatus.COMPLETED)]
 
 
@@ -400,3 +468,44 @@ async def test_begin_rejects_concurrent_run() -> None:
             owner_id=_OWNER, conversation_id=uuid4(), text="질문"
         )
     assert repo.messages == []  # user 행 미영속
+
+
+# ---------- ⑤ Gemini 클라이언트의 force_tool → mode 매핑 (②티어 경계) ----------
+
+
+async def test_gemini_client_maps_force_tool_to_any_mode(monkeypatch: Any) -> None:
+    from app.modules.conversations.infrastructure import gemini_chat_client as mod
+
+    captured: list[Any] = []
+
+    class _FakeModels:
+        async def generate_content_stream(self, *, model: str, contents: Any, config: Any) -> Any:
+            captured.append(config)
+
+            async def _gen() -> AsyncIterator[Any]:
+                return
+                yield  # pragma: no cover — 빈 스트림
+
+            return _gen()
+
+    class _FakeAio:
+        models = _FakeModels()
+
+    class _FakeClient:
+        aio = _FakeAio()
+
+    monkeypatch.setattr(mod, "_shared_client", lambda: _FakeClient())
+    client = mod.GeminiChatClient(model="test-model")
+    kwargs: dict[str, Any] = {
+        "system_prompt": "s",
+        "contents": [{"role": "user", "text": "안녕"}],
+        "tools": [FakeSearchTool()],
+    }
+
+    async for _ in client.stream(**kwargs, force_tool=True):
+        pass
+    async for _ in client.stream(**kwargs):
+        pass
+
+    modes = [c.tool_config.function_calling_config.mode for c in captured]
+    assert "ANY" in str(modes[0]) and "AUTO" in str(modes[1])

@@ -238,7 +238,7 @@ def test_active_chat_prompt_keeps_proposal_web_and_agentic_retrieval_rules() -> 
     # 테스트는 현재 active prompt 의 행동·grounding 규칙을 고정한다.
     import app.modules.conversations.prompts.chat_prompts as chat_prompts
 
-    assert chat_prompts.ACTIVE_CHAT_PROMPT.name == "chat@v8"
+    assert chat_prompts.ACTIVE_CHAT_PROMPT.name == "chat@v10"
     assert not any(name.startswith("CHAT_V") for name in dir(chat_prompts))
 
     active_chat_prompt = chat_prompts.ACTIVE_CHAT_PROMPT
@@ -264,6 +264,15 @@ def test_active_chat_prompt_keeps_proposal_web_and_agentic_retrieval_rules() -> 
     assert "matches by meaning" in active_chat_prompt.body
     assert "vary the vocabulary across separate calls" not in active_chat_prompt.body
     assert "retry once" in active_chat_prompt.body
+    # V9: 합성 과제 — 검색 단위는 답에 필요한 정보 단위 + 기록은 재료지 경계가 아님 +
+    # 빠진 사실이 결과물을 보류시키지 않음.
+    assert "the unit of retrieval is the need" in active_chat_prompt.body
+    assert "ingredients, not the boundary" in active_chat_prompt.body
+    assert "does not gate the deliverable" in active_chat_prompt.body
+    # V10: 검색 트리거 = '기록이 답을 바꿀 수 있는가'(캐주얼 발화 포함) + 사용자에게
+    # 이미 저장한 것(취향·가고싶던 곳)을 되묻지 않는다.
+    assert "could what they saved change this answer" in active_chat_prompt.body
+    assert "what no search of theirs could answer" in active_chat_prompt.body
 
 
 # ---------- ② run 루프의 proposal 이벤트·영속 ----------

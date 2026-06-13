@@ -106,10 +106,15 @@ struct RootFeature: Sendable {
                 guard session != nil else { return .none }
                 // 세션 복원(자동 로그인) 직후 서버→로컬 복구 — 재설치 후 사라진 기록을 끌어온다.
                 let pull = Effect<Action>.run { [syncTrigger] _ in await syncTrigger.pullRemote() }
-                if state.backTapModal == nil, state.onboarding == nil {
-                    return .merge(pull, Self.checkPendingMemo())
+                // ShareExt 직접 전송용 capture token 보장 — 부재·계정 불일치·만료 임박이면
+                // 재발급 (로그인 경로는 coordinator 가 내부에서 처리, 여기는 복원 경로).
+                let ensureCapture = Effect<Action>.run { [authCoordinator] _ in
+                    await authCoordinator.ensureCaptureToken()
                 }
-                return pull
+                if state.backTapModal == nil, state.onboarding == nil {
+                    return .merge(pull, ensureCapture, Self.checkPendingMemo())
+                }
+                return .merge(pull, ensureCapture)
 
             case let .pendingMemoDiscovered(captureID):
                 // 활성 모달이 같은 captureID 면 (concurrent discovery — sessionResolved +

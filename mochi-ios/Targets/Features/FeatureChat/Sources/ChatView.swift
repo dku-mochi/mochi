@@ -14,6 +14,13 @@ public struct ChatView: View {
     @Environment(\.scenePhase) private var scenePhase
     @FocusState private var composerFocused: Bool
 
+    /// 스크롤이 콘텐츠 바닥 근처인가 — 자동 따라가기(스트리밍·키보드 재앵커)의 게이트.
+    /// 위로 올라가 읽는 중인 사용자를 delta 마다 끌어내리지 않기 위한 상태다.
+    @State private var isNearBottom = true
+    @State private var containerHeight: CGFloat = 0
+    /// 전송 햅틱 트리거 — submit 마다 +1.
+    @State private var sendPulse = 0
+
     public init(store: StoreOf<ChatFeature>) {
         self.store = store
     }
@@ -118,14 +125,77 @@ public struct ChatView: View {
                 }
                 .padding(.horizontal, HomeDesign.Spacing.xl)
                 .padding(.top, HomeDesign.Spacing.sm)
+                .background(
+                    // 콘텐츠 바닥 모서리(스크롤 좌표계 maxY) 추적 — "바닥 근처" 판정의 원천.
+                    GeometryReader { geo in
+                        SwiftUI.Color.clear.preference(
+                            key: ContentBottomKey.self,
+                            value: geo.frame(in: .named(Self.scrollSpace)).maxY
+                        )
+                    }
+                )
             }
+            .coordinateSpace(name: Self.scrollSpace)
             .scrollDismissesKeyboard(.interactively)
+            .background(
+                GeometryReader { geo in
+                    SwiftUI.Color.clear
+                        .onAppear { containerHeight = geo.size.height }
+                        .onChange(of: geo.size.height) { oldHeight, newHeight in
+                            containerHeight = newHeight
+                            // 키보드 등장 = 컨테이너 축소. 바닥을 보고 있었다면 바닥을
+                            // 유지하고, 위로 올라가 읽는 중이면 오프셋을 건드리지 않는다
+                            // (메신저 표준 — 키보드가 마지막 메시지를 가리지 않게).
+                            if newHeight < oldHeight, isNearBottom {
+                                withAnimation(.easeOut(duration: 0.2)) {
+                                    proxy.scrollTo(Self.bottomAnchor, anchor: .bottom)
+                                }
+                            }
+                        }
+                }
+            )
+            .onPreferenceChange(ContentBottomKey.self) { contentBottom in
+                let near = contentBottom - containerHeight < 72
+                if near != isNearBottom {
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                        isNearBottom = near
+                    }
+                }
+            }
+            .overlay(alignment: .bottomTrailing) {
+                if !isNearBottom {
+                    ScrollToBottomButton {
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
+                            proxy.scrollTo(Self.bottomAnchor, anchor: .bottom)
+                        }
+                    }
+                    .padding(.trailing, HomeDesign.Spacing.lg)
+                    .padding(.bottom, HomeDesign.Spacing.md)
+                    .transition(.scale(scale: 0.8, anchor: .bottom).combined(with: .opacity))
+                }
+            }
+            .onAppear {
+                // 복원 대화는 마지막 메시지부터 — 메신저는 항상 "지금"에서 시작한다.
+                // (defaultScrollAnchor(.bottom) 은 짧은 대화까지 화면 바닥에 붙여
+                // 위에서 쌓이는 메신저 문법과 어긋나므로 쓰지 않는다.)
+                proxy.scrollTo(Self.bottomAnchor, anchor: .bottom)
+            }
             .onChange(of: store.messages.last?.text) {
+                guard isNearBottom else { return }   // 읽는 중 — delta 가 끌어내리지 않는다
                 withAnimation(.easeOut(duration: 0.15)) {
                     proxy.scrollTo(Self.bottomAnchor, anchor: .bottom)
                 }
             }
             .onChange(of: store.messages.count) {
+                guard isNearBottom else { return }
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
+                    proxy.scrollTo(Self.bottomAnchor, anchor: .bottom)
+                }
+            }
+            // 내가 보낸 메시지는 어디서든 바닥으로 — 전송은 항상 "지금"의 행위.
+            // (messages.count 게이트로는 못 잡는다 — sendTapped 이 user 메시지와
+            // assistant placeholder 를 한 액션에서 같이 붙여 last.role 이 .assistant 다.)
+            .onChange(of: sendPulse) {
                 withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
                     proxy.scrollTo(Self.bottomAnchor, anchor: .bottom)
                 }
@@ -133,6 +203,7 @@ public struct ChatView: View {
             // 출처·proposal 카드와 "과정 보기"는 본문 delta 이후(턴 종료 무렵)에 붙는다 —
             // 위 두 onChange 가 못 잡으므로 구조 변화에도 바닥을 따라간다.
             .onChange(of: lastMessageStructure) {
+                guard isNearBottom else { return }
                 withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
                     proxy.scrollTo(Self.bottomAnchor, anchor: .bottom)
                 }
@@ -141,6 +212,7 @@ public struct ChatView: View {
     }
 
     private static let bottomAnchor = "chat-bottom"
+    private static let scrollSpace = "chat-scroll"
 
     /// 마지막 버블의 구조 스냅샷 — 카드 등장·스트림 종료 시 스크롤 추적용.
     private var lastMessageStructure: [Int] {
@@ -203,6 +275,7 @@ public struct ChatView: View {
         .padding(.horizontal, HomeDesign.Spacing.lg)
         .padding(.top, 10)
         .padding(.bottom, 8)
+        .sensoryFeedback(.impact(weight: .light), trigger: sendPulse)
         .background(
             HomeDesign.Color.surface
                 .overlay(alignment: .top) {
@@ -214,7 +287,35 @@ public struct ChatView: View {
 
     private func submit() {
         guard store.canSubmit else { return }
+        sendPulse += 1
         store.send(.sendTapped, animation: .spring(response: 0.45, dampingFraction: 0.85))
+    }
+}
+
+/// 콘텐츠 바닥 모서리의 스크롤 좌표계 maxY — 컨테이너 높이와 비교해 "바닥 근처"를 판정.
+private struct ContentBottomKey: PreferenceKey {
+    static let defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
+    }
+}
+
+/// 위로 올라가 읽는 중일 때 우하단에 뜨는 복귀 버튼 — 스트리밍 따라가기로 돌아가는 동선.
+private struct ScrollToBottomButton: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: "arrow.down")
+                .font(.system(size: 13, weight: .bold))
+                .foregroundStyle(HomeDesign.Color.purple500)
+                .frame(width: 36, height: 36)
+                .background(Circle().fill(HomeDesign.Color.surface))
+                .overlay(Circle().stroke(HomeDesign.Color.border, lineWidth: 1))
+                .shadow(color: HomeDesign.Color.ink900.opacity(0.1), radius: 10, x: 0, y: 4)
+        }
+        .buttonStyle(PressableStyle())
+        .accessibilityLabel("맨 아래로")
     }
 }
 

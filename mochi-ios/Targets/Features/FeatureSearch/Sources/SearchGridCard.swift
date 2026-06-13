@@ -59,9 +59,9 @@ struct SearchGridCard: View {
     }
 
     /// masonry 분배가 쓰는 카드 예상 높이.
-    /// 스크린샷+썸네일 = 2:3 풀블리드 이미지 (edge-to-edge col 폭 ~194 × 1.5 ≈ 290, 제목은 overlay 라 추가 높이 없음).
+    /// 스크린샷+썸네일 = 2:3 풀블리드 이미지 (col 폭 ~184 × 1.5 ≈ 275, 제목은 overlay 라 추가 높이 없음).
     static func estimatedHeight(for item: MochiItem) -> CGFloat {
-        Self.hasThumbnail(item) ? 290 : 138
+        Self.hasThumbnail(item) ? 275 : 138
     }
 
     private static func hasThumbnail(_ item: MochiItem) -> Bool {
@@ -166,7 +166,7 @@ struct SearchGridCard: View {
         ZStack(alignment: .bottomLeading) {
             LocalThumbnail(
                 relativePath: item.source.imageRefs.first?.relativePath,
-                targetSize: CGSize(width: 196, height: 294),
+                targetSize: CGSize(width: 184, height: 276),
                 alignment: .center,
                 onBottomLuminance: { bottomLuminance = $0 }
             ) {
@@ -267,7 +267,7 @@ struct SearchGridCard: View {
             .tracking(-0.3)
             .foregroundStyle(color ?? (isAnalyzing ? SearchD5.Palette.textSecondary : SearchD5.Palette.textPrimary))
             .lineSpacing(0.5)
-            .lineLimit(2)
+            .lineLimit(3)
             .truncationMode(.tail)
             .multilineTextAlignment(.leading)
             .frame(maxWidth: .infinity, alignment: .leading)

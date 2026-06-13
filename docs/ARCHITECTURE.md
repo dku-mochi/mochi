@@ -59,6 +59,7 @@ description: 시스템 토폴로지·iOS↔Backend 데이터흐름·API 계약�
 │  │  GET  /mochi_items/{id}/stream (SSE)               │               │
 │  │  POST /devices/push-token (APNs, PR-B)             │               │
 │  │  POST /auth/{apple,google,refresh,logout}          │               │
+│  │  POST /auth/capture-tokens (ShareExt 직접전송용)    │               │
 │  │  GET  /users/me     GET /health                    │               │
 │  │  GET  /mochi_items(list)  …/images/download-url    │               │
 │  │  POST /search   /conversations/{id}/messages (SSE) │               │
@@ -79,7 +80,8 @@ description: 시스템 토폴로지·iOS↔Backend 데이터흐름·API 계약�
 │                 (mochi_items, mochi_item_image_refs, entities,        │
 │                  embeddings, idempotency_keys, user_profiles,         │
 │                  mochi_item_outbox, agent_runs, tool_calls,           │
-│                  users, auth_accounts, refresh_tokens)               │
+│                  users, auth_accounts, refresh_tokens,               │
+│                  capture_tokens)                                      │
 │                                                                       │
 │  Mochi Worker  ──►  LISTEN mochi_item_outbox / poll                   │
 │  (FOR UPDATE SKIP LOCKED, AgentRunPersistence, DLQ)                   │
@@ -144,7 +146,7 @@ App  ──► AppIntents/          (QuickCaptureIntent + CaptureScreenshotInten
 >
 > **출처앱 컨텍스트 (자동신호) — sentinel JSON**: 단축어가 출처앱을 평문 대신 sentinel JSON(`{"__mochi_ctx__":{"sourceApp":X}}`)으로 `text` 채널에 실어 보내면 `ShareExtensionPrincipal` 이 `CaptureContextSentinel`(CorePersistence)로 분해한다 — UI 엔 `SourceAppChip`("X에서 캡처"), 백엔드 `text` 엔 정규화 1줄(`[출처앱: X]`)로 합치고, 사용자 입력은 `user_memo` 로 끝까지 격리한다(자동신호 `text` ↔ 사용자의도 `user_memo` 2채널). sentinel 이 아니면 평문을 그대로 `text` 로 흡수(단축어 미재생성 하위호환). **일반 메모 모드**: 백탭 ShareExt 시트에서 스크린샷을 (×) 로 버리면 `imageRefs=[]` + channel `.appDirectInput` 으로 적재되고, 취소·제거 경로의 고아 PNG(`captures/`)는 `ShareExtensionPrincipal` 이 청소한다. sentinel·메모모드 모두 **백엔드/계약/DB 무변경**(출처앱 jsonb 1급화는 보류).
 >
-> **ShareExtension 직접 전송 (best-effort 선반영) + 큐 진실원천**: ShareExt 는 단명 별도 프로세스라 `AppDependencies.bootstrap()` 이 돌지 않아 `mochiAPIClient`·`AuthCoordinator` 가 부재한다. 캡처는 **항상 inbound 큐에 먼저 적재**된다 — 로컬 Realm ingest·동기화·유실 방지의 진실원천(다음 active tick 의 drain → upsert → `MochiItemSyncWorker` 업로드). 그 위에서 **Keychain access group** 으로 access token 을 읽고(`AuthSessionStore.accessTokenIfValid`, refresh 시도 안 함) App Group 공유 baseURL(`AppGroup.sharedAPIBaseURL`, App 부팅 시 `setSharedAPIBaseURL` 로 공유)로 `OpenAPIMochiClient` 를 경량 구성해 `POST /mochi_items` 를 **best-effort 선반영**한다(`ShareExtDirectUpload`, 짧은 timeout) — 서버 분석을 앱 부팅 전 조기 트리거. 이미지가 있으면 App Group 원본을 앱 본체와 같은 JPEG upload variant 로 줄인 뒤 presign → GCS PUT → ingest 를 순차 시도하고, 성공한 `objectKey` 는 큐 JSON 에도 반영해 다음 active tick 의 중복 PUT 을 줄인다. 선반영이 성공해도 큐는 그대로이고, 멱등키(`payload.id`)가 메인 앱 drain·SyncWorker 재전송과 **같은 행을 반환**해 이중 적재가 불가능하다(로컬 누락·유실 0). 백엔드/openapi/DB 무변경(같은 ingest 재사용).
+> **ShareExtension 직접 전송 (best-effort 선반영) + 큐 진실원천**: ShareExt 는 단명 별도 프로세스라 `AppDependencies.bootstrap()` 이 돌지 않아 `mochiAPIClient`·`AuthCoordinator` 가 부재한다. 캡처는 **항상 inbound 큐에 먼저 적재**된다 — 로컬 Realm ingest·동기화·유실 방지의 진실원천(다음 active tick 의 drain → upsert → `MochiItemSyncWorker` 업로드). 그 위에서 **공유 Keychain** 에서 인증 토큰을 ① **capture token**(`KeychainCaptureTokenStore`, 장수명 capture-scoped — §3.5) → ② access token(`AuthSessionStore.accessTokenIfValid`, 만료 60s 여유) 순으로 고르고(refresh 는 어느 쪽도 시도 안 함 — 단명 프로세스의 회전 토큰 유실 위험 회피; capture token 은 서버 sliding 이 정본이라 로컬 만료로 게이트하지 않음) App Group 공유 baseURL(`AppGroup.sharedAPIBaseURL`, App 부팅 시 `setSharedAPIBaseURL` 로 공유)로 `OpenAPIMochiClient` 를 경량 구성해 `POST /mochi_items` 를 **best-effort 선반영**한다(`ShareExtDirectUpload`, 짧은 timeout, 실패 사유는 `app.mochi.ShareExtension` os.Logger 로 구분 기록) — 서버 분석을 앱 부팅 전 조기 트리거. capture token 도입(2026-06-13) 전엔 access token(TTL 30분)만 써서 앱을 ~30분 안 연 상태의 직접 전송이 항상 실패했다 — 이게 주된 실패 원인이었고, capture token 이 "마지막 캡처 후 180일(sliding)" 로 창을 넓힌다. 이미지가 있으면 App Group 원본을 앱 본체와 같은 JPEG upload variant 로 줄인 뒤 presign → GCS PUT → ingest 를 순차 시도하고, 성공한 `objectKey` 는 큐 JSON 에도 반영해 다음 active tick 의 중복 PUT 을 줄인다. 선반영이 성공해도 큐는 그대로이고, 멱등키(`payload.id`)가 메인 앱 drain·SyncWorker 재전송과 **같은 행을 반환**해 이중 적재가 불가능하다(로컬 누락·유실 0). 백엔드/openapi/DB 무변경(같은 ingest 재사용).
 
 `MochiApp.tick()` 이 앱 launch 와 `scenePhase == .active` 시점에:
 1. `InboundQueueConsumer.drain()` → 큐를 비우고 Realm 에 ingest
@@ -191,7 +193,7 @@ App  ──► AppIntents/          (QuickCaptureIntent + CaptureScreenshotInten
 - **DB**: Postgres 16 + pgvector (HNSW + cosine), async SQLAlchemy 2 + asyncpg, Alembic
 - **AI**: Vertex AI · `gemini-3.1-flash-lite` (multimodal function calling, streaming) / Voyage AI · `voyage-3-large@1024` (임베딩) + `rerank-2.5` (리랭커)
 - **관측**: structlog (JSON, contextvars 로 request_id/idempotency_key/path 바인딩)
-- **인증**: PyJWT + PyJWKClient (RS256/ES256/EdDSA), JWKS TTL 캐시; dev mode 는 `Bearer dev:<subject>` (environment=local 한정)
+- **인증**: 자체 발행 access JWT (HS256, TTL 30분, `AUTH_ACCESS_SECRET`) + 회전 refresh token(30일, reuse 감지 시 family revoke) + **capture-scoped token**(`mct_` opaque, sliding 180일, ingest+presign 한정 — ShareExt 직접 전송용). JWKS(PyJWKClient)는 Apple/Google **ID token 검증에만** 사용. dev mode 는 `Bearer dev:<subject>` (environment=local 한정)
 
 ### 3.2 모듈 트리
 
@@ -203,7 +205,7 @@ app/
 │   ├── logging.py                 structlog
 │   ├── middleware.py              X-Mochi-Request-ID + Idempotency-Key 바인딩
 │   ├── error_envelope.py          ErrorEnvelope + Exception handlers
-│   ├── security.py                JWKS-backed CurrentUser (dev vs prod 분리)
+│   ├── security.py                CurrentUser (HS256 JWT·dev) + CurrentCaptureUser (ingest/presign 전용, +mct_)
 │   └── deps.py                    DBSession = Annotated[AsyncSession, Depends(get_session)]
 ├── shared/                        모듈 간 공통 어휘 (Intent, ID newtypes)
 ├── modules/
@@ -238,8 +240,8 @@ app/
 │   └── conversations/                   채팅 탭 — LLM 루프 read-only + proposal (journal 2026-06-10)
 │       ├── domain/                Conversation/Message/MessageCitation, ChatTool·ChatLLMClient·ChatTurnStore ports, run_events
 │       ├── application/           BeginChatTurn(암묵 생성·동시 run 409) · RunChatTurn(detached run 본체) · queries(스냅샷+stale lazy repair)
-│       ├── infrastructure/        ORM·repository · RunRegistry(in-process queue) · GeminiChatClient(AUTO+stream) · turn_store(연산별 자체 세션) · tools/(search_items(hybrid: 키워드+의미→rerank)·get_item_detail·view_item_image(캡처 이미지를 gs:// 로 직접 보기 — 버킷 미설정 시 제외)·propose 5종·web_fetch(agent 가드 재사용)·web_search(Tavily, 키 미설정 시 제외) — 전부 read-only)
-│       ├── prompts/               chat@v8 활성 (PromptVersion 버저닝)
+│       ├── infrastructure/        ORM·repository · RunRegistry(in-process queue) · GeminiChatClient(첫 라운드 ANY→AUTO, stream) · turn_store(연산별 자체 세션) · tools/(search_items(hybrid: 키워드+의미→rerank)·get_item_detail·view_item_image(캡처 이미지를 gs:// 로 직접 보기 — 버킷 미설정 시 제외)·propose 5종·web_fetch(agent 가드 재사용)·web_search(Tavily, 키 미설정 시 제외) — 전부 read-only)
+│       ├── prompts/               chat@v10 활성 (PromptVersion 버저닝)
 │       └── presentation/          POST /{id}/messages(POST-as-SSE) · GET 목록/스냅샷 · DELETE · PATCH proposals/{id}(카드 확정/취소 영속)
 ├── api.py                         /api/v1 라우터 조립
 └── main.py                        FastAPI factory + 미들웨어 + 예외 핸들러
@@ -355,7 +357,8 @@ SearchResponse
 
 | 항목 | 처리 |
 |---|---|
-| 인증 | dev = `Bearer dev:<subject>` (environment=local only) → SHA-256 결정론적 UserID. prod = PyJWT + PyJWKClient, RS256/ES256/EdDSA, iss/aud/exp/iat/sub 검증 |
+| 인증 | dev = `Bearer dev:<subject>` (environment=local only) → SHA-256 결정론적 UserID. prod = **자체 발행 access JWT(HS256**, `AUTH_ACCESS_SECRET`, iss/aud/exp/sub 검증, TTL 30분**)**. JWKS(PyJWKClient)는 Apple/Google ID token 검증(`/auth/{apple,google}`)에만 쓴다 |
+| capture-scoped token | `mct_` prefix opaque(SHA-256 hash 만 DB 보관, `capture_tokens`), **ingest+presign 2개 라우트 한정**(`CurrentCaptureUser` — 그 외 라우트에선 JWT 파싱 실패로 자동 401). sliding 180일(검증 시 연장, 1h 디바운스) + 사용자당 활성 5개 cap(초과 시 oldest evict). revoke 연쇄: logout(동봉 시)·refresh reuse 감지(사용자 전체)·계정 탈퇴(훅). **한계**: 강제 로그아웃(refresh 실패)땐 서버측 revoke 수단이 없어 로컬 삭제 + 만료/reuse 훅이 안전망 |
 | 인가 | 모든 read/write 는 `owner_id` 키워드 인자 강제 — cross-tenant 누설을 컴파일 시점에 차단 |
 | 멱등성 | `Idempotency-Key` 헤더 필수. `mochi_item:{owner_id}:{raw_key}` 의 SHA-256 으로 owner-scoping |
 | 분산 추적 | `X-Mochi-Request-ID` 헤더 echo + structlog contextvars 자동 바인딩 |
@@ -379,7 +382,7 @@ SearchResponse
 
 | 헤더 | 필수 | 의미 |
 |---|---|---|
-| `Authorization: Bearer <token>` | 모든 라우트 (health 제외) | dev 토큰 또는 JWT |
+| `Authorization: Bearer <token>` | 모든 라우트 (health 제외) | dev 토큰 또는 JWT. **예외**: `POST /mochi_items` + `POST /mochi_items/presign` 은 capture token(`mct_…`)도 수용 (§3.5) |
 | `X-Mochi-Request-ID` | 옵션 (없으면 서버가 생성) | 분산 추적 키 |
 | `Idempotency-Key` | `POST /mochi_items` | owner-scoped SHA-256 으로 정규화 |
 

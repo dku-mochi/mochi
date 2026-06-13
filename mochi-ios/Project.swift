@@ -539,6 +539,14 @@ let project = Project(
         unitTests(for: "CorePersistence", layer: .core, dependencies: [.target(name: "CoreDomain"), .target(name: "CoreNetworking")]),
         unitTests(for: "CoreAgentClient", layer: .core, dependencies: [.target(name: "CoreDomain")]),
         unitTests(
+            for: "CoreAuth",
+            layer: .core,
+            dependencies: [
+                .target(name: "CoreNetworking"),
+                .package(product: "Dependencies"),
+            ]
+        ),
+        unitTests(
             for: "FeatureMochiItem",
             layer: .feature,
             dependencies: [
@@ -603,6 +611,7 @@ let project = Project(
                 "CoreDomainTests",
                 "CorePersistenceTests",
                 "CoreAgentClientTests",
+                "CoreAuthTests",
                 "FeatureMochiItemTests",
                 "FeatureInboxTests",
                 "FeatureSearchTests",

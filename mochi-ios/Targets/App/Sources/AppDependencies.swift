@@ -35,7 +35,9 @@ enum AppDependencies {
             store: sessionStore,
             api: authAPI,
             apple: apple,
-            google: google
+            google: google,
+            // ShareExtension 직접 전송용 capture token — 공유 Keychain item (ShareExt 가 읽는다).
+            captureStore: KeychainCaptureTokenStore()
         )
         liveAuthCoordinator = coordinator
 

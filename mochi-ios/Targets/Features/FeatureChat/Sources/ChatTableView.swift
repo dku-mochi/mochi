@@ -35,7 +35,7 @@ struct ChatTableView: View {
     }
 
     private func cell(_ text: AttributedString, isHeader: Bool) -> some View {
-        Text(text)
+        Text(ChatMarkup.resolvingBold(text, size: 13.5))
             .font(.system(size: 13.5, weight: isHeader ? .semibold : .medium, design: .rounded))
             .foregroundStyle(isHeader ? HomeDesign.Color.ink700 : HomeDesign.Color.textPrimary)
             .lineSpacing(3)
