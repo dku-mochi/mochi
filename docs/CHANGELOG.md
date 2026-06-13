@@ -10,6 +10,9 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-06-13 — infra
+- **classify@v17 + 쇼핑 검색 링크 backend prod 배포** (PR#33 브랜치 in-place 재배포). `git archive` 로 PR head tar → IAP scp → `/opt/mochi` overlay 추출(`.env`·`.venv` 보존) → `uv sync --frozen --no-dev` → `alembic upgrade head`(DDL 무변경 → no-op) → `systemctl restart` → health `{"status":"ok"}`. 인프로세스 `ACTIVE_PROMPT.name=classify_and_act@v17` + `shopping_product` 본문 확인. 롤백 tar `/tmp/opt-mochi-prev.tar.gz`(코드+`.env`, venv 제외). ※ develop 미머지 PR 브랜치를 직접 배포 — 출시 전이라 무중단보다 빠른 검증 우선.
+
 ## 2026-06-13 — backend, ios, docs
 - **"비슷한 기록"(similar) 구현 완료 — 같은 날 설계 폭포(아래 docs 항목)의 코드화.** 백엔드: `search` 모듈에 `SimilarItem`/`SimilarReason` 도메인 + `PostgresHybridIndex.similar()`(seed-vector cosine — 대상 item 의 저장 임베딩을 uncorrelated 서브쿼리로 query 벡터화, owner-scope·self 제외·`deleted_at`·임계값 0.6 컷·fanout×4 후 url dedup·민감게이트 자리 주석) + 두 번째 쿼리로 reasons 파생(`sharedSource`/`sameIntent`/`closeInTime`) + `similar_router`(`GET /mochi_items/{id}/similar`, search 모듈 소유·path 만 노출해 헥사고날 경계 보존) + 단위테스트 4(자기제외/임계값/dedup/빈배열). iOS: openapi 폭포(`make openapi`→`generate.sh`) + `OpenAPIMochiClient.similarItems` 어댑터(reason enum unknown 강등) + `DetailFeature`(onAppear fetch — uploaded serverID 가드·서버 id→로컬 매핑·실패/빈 degrade·stale requestID 가드) + `DetailView` GistCard 뒤 가로 캐러셀(자체 `SimilarItemCard` — RecentMochiCard 재사용은 Feature 경계 위반이라 회피·근거 칩·빈 숨김) + `MainTabFeature` openSimilar 2-step(dismiss→재present, `cancellable`+`guard detail==nil` 로 race 차단). code-review(codex) P1 2건(state race) 수정 반영. **잔여(P2)**: HNSW 서브쿼리 ANN 인덱스 `EXPLAIN` 1회 확인, FeatureDetail reducer 테스트 타겟 부재, reason enum 추가 시 iOS 동시배포 필요(strict enum 디코드).
 
