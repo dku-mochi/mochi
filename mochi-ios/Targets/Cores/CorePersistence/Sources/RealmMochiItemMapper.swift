@@ -19,6 +19,7 @@ public enum RealmMochiItemMapper {
         row.userMemo = mochiItem.source.userMemo
         row.summary = mochiItem.analysis?.summary
         row.category = mochiItem.analysis?.category
+        row.shoppingProductQuery = mochiItem.analysis?.shoppingProductQuery
         row.importance = mochiItem.analysis?.importance.rawValue ?? 3
         row.needsReview = mochiItem.analysis?.needsReview ?? false
         row.modelVersion = mochiItem.analysis?.modelVersion
@@ -87,6 +88,7 @@ public enum RealmMochiItemMapper {
             analysis = MochiItemAnalysis(
                 summary: row.summary ?? "",
                 category: row.category,
+                shoppingProductQuery: row.shoppingProductQuery,
                 instances: row.intentInstances.compactMap(decode(intentInstance:)),
                 needsReview: row.needsReview,
                 reviewOptions: row.reviewOptions.compactMap(decode(reviewOption:)),

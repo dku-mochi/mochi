@@ -72,7 +72,7 @@ iOS · 백엔드 · 프롬프트 모두 동일 용어를 쓴다.
 | **memo fallback** | 대상/행동 불분명 시 memo instance 하나로 안전 보관 + needs_review=true (분류 못 해도 안 잃는다) |
 | **Lifecycle Kind** | 상태 enum. **2분할** — item 처리상태와 instance 의미상태가 직교 (§5) |
 | **Channel** | 입력 채널 (`screenshot`/`appDirectInput`/`appShareSheet`/`appIntent`/`chat`/…). `mochi_items.channel` 인라인. `chat` = 채팅 proposal 확정으로 생성 (2026-06-10) |
-| **Entity** | AI 추출 의미 단위 (`entities.kind`/`value`). kind 는 free str — 프롬프트 가이드일 뿐 DB/앱 제약 아님 |
+| **Entity** | AI 추출 의미 단위 (`entities.kind`/`value`). kind 는 free str — 프롬프트 가이드일 뿐 DB/앱 제약 아님. 특수 kind: `deadline`(서버가 due 파싱), `shopping_product`(커머스 검색어 — `MochiItemResponse.shoppingProductQuery` projection, 상세 구매 링크. 2026-06-13 lab shopping-product-link) |
 | **AgentRun** | MochiItem 1건 처리 LLM 오케스트레이션 실행 1회 |
 | **Outbox Message** | mochi_items COMMIT 직후 worker 가 픽업할 행 (`mochi_item_outbox`) |
 | **Idempotency Key** | `POST /mochi_items` 의 owner-scoped 키 |

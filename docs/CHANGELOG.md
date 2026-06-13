@@ -44,6 +44,17 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 ## 2026-06-13 — ios
 - **채팅 말풍선 블록 마크다운 네이티브 렌더링** — LLM 응답의 `* 불릿`·`1. 번호`·`# 헤딩`·`> 인용`·`---` 구분선이 원문 그대로 노출되던 것을(기존엔 인라인 굵게·표만 해석) `ChatMarkup.blocks` 가 블록 단위로 파싱해 디자인 톤에 맞는 뷰로 렌더링 (퍼플 도트 불릿 + 행잉 인덴트, 자릿수 정렬 번호, 인용 바, 고정폭 룰). 스트리밍 중 텍스트 없는 마커 꼬리(`* `·`1.` 만 도착)는 기존 미완성 citation 마커 트림과 같은 철학으로 숨김. `***` 구분선은 미닫힘 `**` 스트리밍 트림과 충돌해 미지원(`---` 만).
+## 2026-06-13 — ios, backend, docs
+- **쇼핑 캡처 카드 상세에 구매 링크** (lab shopping-product-link 반영). 특정 판매자를 정할 수 없으므로 상품명이 *검색된 상태*의 커머스 URL 로 보낸다.
+  - backend: 분석 프롬프트가 쇼핑 캡처 한정 `entities(kind="shopping_product", value=커머스 검색어)` 산출(검색 가능 수준 미달이면 생략 — exp1 의 specificity 게이트를 프롬프트로 내장). 저장 경로는 기존 entities 재사용(DDL 무변경, kind 16자 제한에 정확히 부합). repository 가 도메인 `shopping_product_query` 로 끌어올리고(`selectinload(entities)` 4곳) `MochiItemResponse.shoppingProductQuery` 로 projection.
+  - ios: openapi 재생성 + DTO·분석 도메인·Realm(스키마 v9) 미러. 상세 "지금 할 수 있어요" 섹션에 "쿠팡에서 찾기 · 네이버에서 찾기" 행(기존 `DetailLinkRow` 문법 재사용 — bag 타일 + 상품명 부제, `URLComponents` 인코딩). 모든 진입점(홈/검색/캘린더)이 공용 상세라 한 곳 반영.
+
+## 2026-06-13 — lab
+- `lab/active/shopping-product-link/` 신규 — 쇼핑 캡처 카드 상세에 구매 링크를 달기 위한 2단계 검증. exp1(상품 식별): 30케이스에서 쇼핑 검출 15건·exact 13건·judge match 3.93/5, flash-lite ≈ 3.5-flash 동급이라 프로덕션 agent 분석 확장으로 충분. exp2(검색 상태 링크): 특정 판매자를 정할 수 없으므로 커머스 검색 결과 URL 제공 — 쿠팡 18/20 서버 렌더 확인(1순위), 네이버쇼핑 봇차단(418)으로 서버 검증 불가, 네이버 통합 폴백. 결론·반영 스케치 `FINDINGS.md`.
+
+## 2026-06-13 — ios, docs
+- **검색 focused 화면 제거** (2026-06-13 회의) — 검색바 탭 시 카드 그리드가 통째로 사라지는 단절이 어색 + 마스코트 인사·빠른 검색 거의 미사용 + 빠른 검색은 `.idle` 타입 필터칩과 기능 중복. 포커스는 그리드 유지 + 검색바 아래 최근 검색 칩 한 줄만. `Phase` 4→3, `SearchFocusedView` 삭제, UX_SPEC §3.5 동기화.
+- **링크 카드 멘션 필** — favicon letter 타일 → 실제 파비콘 + 도메인 흰 캡슐. 파비콘은 `https://<host>/favicon.ico` 직접 로드(Google 류 프록시는 저장 링크 도메인을 제3자에 노출해 배제) + 실패 시 글자 폴백. `FaviconTile` (DesignSystem, Kingfisher).
 
 ## 2026-06-12 — infra
 - **voyage retrieval 프로덕션 배포** (PR#31 머지 직후). 런북 §4 절차 — tar/IAP scp → `/opt/mochi` in-place 교체(서버 env 보존) → `uv sync --frozen --no-dev` → **alembic 0017→0018**(embeddings 1024d, 운영 임베딩 행 0건이라 무손실) → restart → health OK. `VOYAGE_API_KEY` 는 Secret Manager `mochi-voyage-api-key` 신설 후 SA metadata 토큰 경유로 svc env 에 주입(키파일 zero 원칙, 값 비노출 파이프 — 사용자 승인). 운영 기존 데이터 **67건 백필 색인** 완료(voyage-3-large@1024). INFRA.md §0/§2.5 동기화.
