@@ -73,7 +73,7 @@ async def _run(by: str) -> None:
             total_cost += cost
             cost_str = f"{cost:.4f}"
         print(
-            f"{r.bucket:<40} {r.source:<8} {r.model:<24} {int(r.calls):>6} "
+            f"{str(r.bucket):<40} {r.source:<8} {r.model:<24} {int(r.calls):>6} "
             f"{int(r.tin or 0):>10} {int(r.tout or 0):>10} {float(r.avg_total or 0):>8.0f} {cost_str:>10}"
         )
     suffix = "" if cost_known else "  (일부 모델 단가 미등록 — app/shared/llm_cost.py 갱신 필요)"
