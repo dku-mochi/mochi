@@ -13,7 +13,7 @@
 
 from collections.abc import AsyncIterator
 from functools import lru_cache
-from typing import Any
+from typing import Any, cast
 
 import structlog
 from google import genai
@@ -116,7 +116,7 @@ class GeminiChatClient(ChatLLMClient):
             ),
         )
         stream = await _shared_client().aio.models.generate_content_stream(
-            model=self._model, contents=_to_contents(contents), config=cfg
+            model=self._model, contents=cast(types.ContentListUnion, _to_contents(contents)), config=cfg
         )
         async for chunk in stream:
             for cand in getattr(chunk, "candidates", None) or []:
