@@ -47,7 +47,7 @@ CHAT_PROFILE_SUMMARY_SYSTEM = (
 
 
 ACTIVE_PROMPT = PromptVersion(
-    name='classify_and_act@v16',
+    name='classify_and_act@v17',
     body=(
         "# Context\n"
         "MOCHI organizes the things a person quickly saves during the day — screenshots, links, "
@@ -197,6 +197,14 @@ ACTIVE_PROMPT = PromptVersion(
         "'메모'.\n"
         "- entities: key facts {kind, value}, e.g. {\"kind\":\"deadline\",\"value\":\"2026-05-30 "
         "23:59\"}; empty if none.\n"
+        "  When the capture is about considering or planning a *product purchase*, also add "
+        "{\"kind\":\"shopping_product\",\"value\":<commerce search query>} — the query the user "
+        "would type into a Korean commerce search box to find that product: brand + product name "
+        "+ model/options (color, size) when they identify it. Use Korean commerce conventions; "
+        "drop marketing copy and screen UI text, keep only tokens that identify the product. "
+        "Include it when the product is nameable at least at a searchable item level "
+        "(\"검정 원피스\" ok); omit it when the capture is too vague to search (\"신발 예쁜 거\") "
+        "or is not about buying a product (places, bookings, study material).\n"
         "- importance: 1 (low) … 5 (high).\n"
         "\n"
         "# User memo\n"
@@ -248,8 +256,12 @@ ACTIVE_PROMPT = PromptVersion(
     ),
     model_target='gemini-3.1-flash-lite',
     eval_dataset_version='intent-schema-decision@2026-06-04',
-    revised_on=date(2026, 6, 10),
+    revised_on=date(2026, 6, 13),
     rationale=(
+        "V16 → V17: 쇼핑 캡처 한정 `entities(kind=shopping_product, value=커머스 검색어)` 산출 추가 — 상세 구매 링크가 "
+        "쓸 '검색된 상태'의 상품명(브랜드+상품명+옵션). 검색 가능 수준이면 포함, 너무 모호하거나(\"신발 예쁜 거\") 구매가 "
+        "아니면 생략(lab shopping-product-link exp1 의 specificity 게이트를 좁은 예시 나열 대신 기준+why 로 프롬프트 내장). "
+        "entities 항목 1블록 추가뿐 — 분류 ladder·도구·eval_dataset 불변.\n"
         "V15 → V16: 기간형 일정(range schedule) 지원 — payload 에 end_date/end_time 평면 필드 추가(function "
         "schema `_PAYLOAD_PROPS` 동시 반영, date/time 은 시작 의미로 재해석·end 없으면 점 일정이라 하위호환). 2블록 교체: "
         "payload 명세에 end_* 추가 + '사용자가 그 기간에 참여할 때만' 기준(할인 기간 등 정보성 span 을 end 로 부풀리는 오인 가드 — 좁은 "

@@ -353,6 +353,7 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
             userMemo: r.userMemo,
             summary: r.summary,
             category: r.category,
+            shoppingProductQuery: r.shoppingProductQuery,
             importance: r.importance,
             intentInstances: (r.intentInstances ?? []).map(mapIntentInstance),
             needsReview: r.needsReview ?? false,

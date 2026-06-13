@@ -165,6 +165,7 @@ def _to_response(item: MochiItem) -> MochiItemResponse:
         ],
         summary=item.summary,
         category=item.category,
+        shopping_product_query=item.shopping_product_query,
         importance=item.importance,
         lifecycle_kind=item.lifecycle.kind.value,
         sync_kind=item.sync.kind,

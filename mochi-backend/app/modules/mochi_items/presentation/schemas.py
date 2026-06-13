@@ -195,6 +195,7 @@ class MochiItemResponse(BaseModel):
     review_options: list[ReviewOptionResponse] = Field(default_factory=list, alias="reviewOptions")
     summary: str | None
     category: str | None = None
+    shopping_product_query: str | None = Field(default=None, alias="shoppingProductQuery")
     importance: int
     lifecycle_kind: str = Field(alias="lifecycleKind")
     sync_kind: str = Field(alias="syncKind")

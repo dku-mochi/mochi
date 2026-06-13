@@ -22,6 +22,9 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 - **채팅 스크롤 근본 재설계 — ChatGPT 식 spacer 를 *고유 높이* 기반으로(피드백 루프·렌더 미완성 스냅샷 제거).** 그간 spacer 를 `naturalContentBottom − lastUserBubbleTop`(둘 다 scrollSpace *위치*)으로 계산했는데, 애니메이션 스크롤 도중 두 preference 가 다른 레이아웃 패스에서 갱신돼 turnHeight 가 출렁이고 spacer→콘텐츠→스크롤 피드백으로 버벅였고, 마크다운 렌더 완료 전 위치를 잡으면 inset 도 틀렸다. → 위치 대신 **버블 고유 높이**(`geo.size.height`)로 전환: `ActiveUserHeightKey`(질문)·`LastAssistantHeightKey`(답변, 마크다운·카드 포함 실제 렌더 높이)를 재고, `spacer = viewport − turnTopInset − 질문높이 − 답변높이 − md×2`. 높이는 스크롤 무관·렌더 완료 시 자동 갱신이라 피드백 없음. 답변이 길어져 합이 viewport 초과 시 spacer=0(자연 스크롤), 짧으면 정확히 한 화면. 답변 등장 시 spacer 가 같은 만큼 줄어 스크롤 오프셋 불변→질문이 top 에 *저절로* 유지(재앵커 스크롤 제거 = 버벅임 해소). **viewport 측정**도 safe area 추측 폐기하고 좌표공간으로 `독 top − (스크롤 top + 상단 safe area)` 직접 측정(navbar/독/홈인디케이터 정확 반영). 마커·별도 anchor 제거해 LazyVStack 간격을 md×2 로 단순화. 스크롤 트리거를 전송 시 단일 앵커로 축소. `tuist build FeatureChat` 통과. (사용자 피드백 + 웹 조사: iOS 스크롤 패턴)
 - **전송 시 질문이 top 에 안 오던 근본 원인(키보드 내림↔스크롤 경합) 해결.** 스크린샷 분석: spacer 는 정상인데 질문이 top 으로 안 올라가 위쪽 이전 콘텐츠가 화면을 차지하고 spacer 가 하단에 남아 "inset 과대"로 보였다. 원인 — `composerFocused=false`(전송 시 키보드 내림)와 16ms 후 `scrollToActiveTurn` 이 *동시에* 진행돼 offset 이 경합(사용자 진단). → `pendingTurnScroll` 플래그를 `submit()`에서 키보드 내림보다 *먼저* 세우고, `keyboardWillHide` 에서 키보드 내림과 *같은 duration* 으로 동기 스크롤(경합 대신 같은 타임라인) + 내림 완료 후 1회 재확인(시스템 inset 보정에 밀렸어도 안착, 이미 top 이면 no-op). 대상은 `lastUserMessageID`(store 직독, willHide 가 runPhase onChange 보다 먼저 와도 정확). 키보드 없는 진입(firstMessage)은 runPhase 16ms 에서 즉시. 수동 dismiss(읽는 중)는 `wasSend` 로 구분해 yank 안 함. `tuist build FeatureChat` 통과. (사용자 스크린샷 진단)
 
+## 2026-06-13 — infra
+- **classify@v17 + 쇼핑 검색 링크 backend prod 배포** (PR#33 브랜치 in-place 재배포). `git archive` 로 PR head tar → IAP scp → `/opt/mochi` overlay 추출(`.env`·`.venv` 보존) → `uv sync --frozen --no-dev` → `alembic upgrade head`(DDL 무변경 → no-op) → `systemctl restart` → health `{"status":"ok"}`. 인프로세스 `ACTIVE_PROMPT.name=classify_and_act@v17` + `shopping_product` 본문 확인. 롤백 tar `/tmp/opt-mochi-prev.tar.gz`(코드+`.env`, venv 제외). ※ develop 미머지 PR 브랜치를 직접 배포 — 출시 전이라 무중단보다 빠른 검증 우선.
+
 ## 2026-06-13 — backend, ios, docs
 - **"비슷한 기록"(similar) 구현 완료 — 같은 날 설계 폭포(아래 docs 항목)의 코드화.** 백엔드: `search` 모듈에 `SimilarItem`/`SimilarReason` 도메인 + `PostgresHybridIndex.similar()`(seed-vector cosine — 대상 item 의 저장 임베딩을 uncorrelated 서브쿼리로 query 벡터화, owner-scope·self 제외·`deleted_at`·임계값 0.6 컷·fanout×4 후 url dedup·민감게이트 자리 주석) + 두 번째 쿼리로 reasons 파생(`sharedSource`/`sameIntent`/`closeInTime`) + `similar_router`(`GET /mochi_items/{id}/similar`, search 모듈 소유·path 만 노출해 헥사고날 경계 보존) + 단위테스트 4(자기제외/임계값/dedup/빈배열). iOS: openapi 폭포(`make openapi`→`generate.sh`) + `OpenAPIMochiClient.similarItems` 어댑터(reason enum unknown 강등) + `DetailFeature`(onAppear fetch — uploaded serverID 가드·서버 id→로컬 매핑·실패/빈 degrade·stale requestID 가드) + `DetailView` GistCard 뒤 가로 캐러셀(자체 `SimilarItemCard` — RecentMochiCard 재사용은 Feature 경계 위반이라 회피·근거 칩·빈 숨김) + `MainTabFeature` openSimilar 2-step(dismiss→재present, `cancellable`+`guard detail==nil` 로 race 차단). code-review(codex) P1 2건(state race) 수정 반영. **잔여(P2)**: HNSW 서브쿼리 ANN 인덱스 `EXPLAIN` 1회 확인, FeatureDetail reducer 테스트 타겟 부재, reason enum 추가 시 iOS 동시배포 필요(strict enum 디코드).
 
@@ -56,6 +59,17 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 ## 2026-06-13 — ios
 - **채팅 말풍선 블록 마크다운 네이티브 렌더링** — LLM 응답의 `* 불릿`·`1. 번호`·`# 헤딩`·`> 인용`·`---` 구분선이 원문 그대로 노출되던 것을(기존엔 인라인 굵게·표만 해석) `ChatMarkup.blocks` 가 블록 단위로 파싱해 디자인 톤에 맞는 뷰로 렌더링 (퍼플 도트 불릿 + 행잉 인덴트, 자릿수 정렬 번호, 인용 바, 고정폭 룰). 스트리밍 중 텍스트 없는 마커 꼬리(`* `·`1.` 만 도착)는 기존 미완성 citation 마커 트림과 같은 철학으로 숨김. `***` 구분선은 미닫힘 `**` 스트리밍 트림과 충돌해 미지원(`---` 만).
+## 2026-06-13 — ios, backend, docs
+- **쇼핑 캡처 카드 상세에 구매 링크** (lab shopping-product-link 반영). 특정 판매자를 정할 수 없으므로 상품명이 *검색된 상태*의 커머스 URL 로 보낸다.
+  - backend: 분석 프롬프트가 쇼핑 캡처 한정 `entities(kind="shopping_product", value=커머스 검색어)` 산출(검색 가능 수준 미달이면 생략 — exp1 의 specificity 게이트를 프롬프트로 내장). 저장 경로는 기존 entities 재사용(DDL 무변경, kind 16자 제한에 정확히 부합). repository 가 도메인 `shopping_product_query` 로 끌어올리고(`selectinload(entities)` 4곳) `MochiItemResponse.shoppingProductQuery` 로 projection.
+  - ios: openapi 재생성 + DTO·분석 도메인·Realm(스키마 v9) 미러. 상세 "지금 할 수 있어요" 섹션에 "쿠팡에서 찾기 · 네이버에서 찾기" 행(기존 `DetailLinkRow` 문법 재사용 — bag 타일 + 상품명 부제, `URLComponents` 인코딩). 모든 진입점(홈/검색/캘린더)이 공용 상세라 한 곳 반영.
+
+## 2026-06-13 — lab
+- `lab/active/shopping-product-link/` 신규 — 쇼핑 캡처 카드 상세에 구매 링크를 달기 위한 2단계 검증. exp1(상품 식별): 30케이스에서 쇼핑 검출 15건·exact 13건·judge match 3.93/5, flash-lite ≈ 3.5-flash 동급이라 프로덕션 agent 분석 확장으로 충분. exp2(검색 상태 링크): 특정 판매자를 정할 수 없으므로 커머스 검색 결과 URL 제공 — 쿠팡 18/20 서버 렌더 확인(1순위), 네이버쇼핑 봇차단(418)으로 서버 검증 불가, 네이버 통합 폴백. 결론·반영 스케치 `FINDINGS.md`.
+
+## 2026-06-13 — ios, docs
+- **검색 focused 화면 제거** (2026-06-13 회의) — 검색바 탭 시 카드 그리드가 통째로 사라지는 단절이 어색 + 마스코트 인사·빠른 검색 거의 미사용 + 빠른 검색은 `.idle` 타입 필터칩과 기능 중복. 포커스는 그리드 유지 + 검색바 아래 최근 검색 칩 한 줄만. `Phase` 4→3, `SearchFocusedView` 삭제, UX_SPEC §3.5 동기화.
+- **링크 카드 멘션 필** — favicon letter 타일 → 실제 파비콘 + 도메인 흰 캡슐. 파비콘은 `https://<host>/favicon.ico` 직접 로드(Google 류 프록시는 저장 링크 도메인을 제3자에 노출해 배제) + 실패 시 글자 폴백. `FaviconTile` (DesignSystem, Kingfisher).
 
 ## 2026-06-12 — infra
 - **voyage retrieval 프로덕션 배포** (PR#31 머지 직후). 런북 §4 절차 — tar/IAP scp → `/opt/mochi` in-place 교체(서버 env 보존) → `uv sync --frozen --no-dev` → **alembic 0017→0018**(embeddings 1024d, 운영 임베딩 행 0건이라 무손실) → restart → health OK. `VOYAGE_API_KEY` 는 Secret Manager `mochi-voyage-api-key` 신설 후 SA metadata 토큰 경유로 svc env 에 주입(키파일 zero 원칙, 값 비노출 파이프 — 사용자 승인). 운영 기존 데이터 **67건 백필 색인** 완료(voyage-3-large@1024). INFRA.md §0/§2.5 동기화.

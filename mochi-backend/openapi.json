@@ -2210,6 +2210,11 @@
             "type": "string",
             "nullable": true
           },
+          "shoppingProductQuery": {
+            "title": "Shoppingproductquery",
+            "type": "string",
+            "nullable": true
+          },
           "importance": {
             "type": "integer",
             "title": "Importance"

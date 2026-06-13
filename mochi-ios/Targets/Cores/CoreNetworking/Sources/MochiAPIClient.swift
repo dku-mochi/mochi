@@ -223,6 +223,8 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
     public let userMemo: String?
     public let summary: String?
     public let category: String?
+    /// 쇼핑 캡처의 커머스 검색어 — entities(kind=shopping_product) 서버 projection. 비쇼핑은 nil.
+    public let shoppingProductQuery: String?
     public let importance: Int
     /// 저장된 의도 instance (저장된 것은 곧 active, 위계 없음). 분석 전엔 빈 배열.
     public let intentInstances: [IntentInstanceDTO]
@@ -240,6 +242,7 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
     private enum CodingKeys: String, CodingKey {
         case id, channel, url, text, summary, category, importance
         case userMemo = "userMemo"
+        case shoppingProductQuery = "shoppingProductQuery"
         case intentInstances = "intentInstances"
         case needsReview = "needsReview"
         case reviewOptions = "reviewOptions"
@@ -258,6 +261,7 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
         userMemo: String?,
         summary: String?,
         category: String?,
+        shoppingProductQuery: String? = nil,
         importance: Int,
         intentInstances: [IntentInstanceDTO],
         needsReview: Bool,
@@ -275,6 +279,7 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
         self.userMemo = userMemo
         self.summary = summary
         self.category = category
+        self.shoppingProductQuery = shoppingProductQuery
         self.importance = importance
         self.intentInstances = intentInstances
         self.needsReview = needsReview
@@ -295,6 +300,7 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
         userMemo = try c.decodeIfPresent(String.self, forKey: .userMemo)
         summary = try c.decodeIfPresent(String.self, forKey: .summary)
         category = try c.decodeIfPresent(String.self, forKey: .category)
+        shoppingProductQuery = try c.decodeIfPresent(String.self, forKey: .shoppingProductQuery)
         importance = try c.decode(Int.self, forKey: .importance)
         intentInstances = try c.decodeIfPresent([IntentInstanceDTO].self, forKey: .intentInstances) ?? []
         needsReview = try c.decodeIfPresent(Bool.self, forKey: .needsReview) ?? false
