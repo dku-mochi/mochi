@@ -97,6 +97,9 @@ class RunChatTurn:
         assistant_text = ""
         proposals: list[dict[str, Any]] = []
         calls = 0
+        llm_tokens_in = 0
+        llm_tokens_out = 0
+        llm_model: str | None = None
         for round_index in range(self.max_rounds):
             final_round = round_index == self.max_rounds - 1 or calls >= self.max_tool_calls
             if final_round and round_index > 0:
@@ -119,6 +122,10 @@ class RunChatTurn:
                 if chunk.tool_call is not None:
                     name, args = chunk.tool_call
                     round_calls.append((name, args, chunk.thought_signature))
+                llm_tokens_in += chunk.tokens_in
+                llm_tokens_out += chunk.tokens_out
+                if chunk.model:
+                    llm_model = chunk.model
 
             if round_text:
                 contents.append({"role": "model", "text": round_text})
@@ -195,6 +202,16 @@ class RunChatTurn:
             text=assistant_text,
             proposals=proposals,
         )
+        try:
+            await self.store.record_usage(
+                owner_id=owner_id,
+                conversation_id=conversation_id,
+                model=llm_model or "unknown",
+                tokens_in=llm_tokens_in,
+                tokens_out=llm_tokens_out,
+            )
+        except Exception as exc:  # noqa: BLE001 — 계측 실패가 답변 완료를 막지 않는다
+            logger.warning("chat.usage_record_failed", run_id=str(run_id), error=str(exc))
         await self.store.set_run_status(owner_id=owner_id, run_id=run_id, status=RunStatus.COMPLETED)
         self._publish(run_id, run_events.DONE, {"message_id": str(message_id)})
 

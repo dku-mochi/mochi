@@ -15,6 +15,10 @@ class LLMResponseChunk(BaseModel):
     # 한다 (thinking_budget=0 이어도 필수). 도구 호출 chunk 가 이를 실어 orchestrator 가
     # 다음 turn 대화에 되돌려준다.
     thought_signature: bytes | None = None
+    # 이 LLM 호출의 토큰 사용량/모델 — orchestrator 가 llm_usage 에 누적·적재한다.
+    tokens_in: int = 0
+    tokens_out: int = 0
+    model: str | None = None
 
 
 class LLMClient(Protocol):

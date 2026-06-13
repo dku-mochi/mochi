@@ -27,6 +27,7 @@ from app.modules.mochi_items.domain.value_objects import (
     IntentPayload,
     ReviewOption,
 )
+from app.shared.llm_usage import record_llm_usage as persist_llm_usage
 from app.shared.voyage import build_embedding_text
 
 log = get_logger("agent")
@@ -188,6 +189,9 @@ class AgentOrchestrator:
             first_user["images"] = list(source.images)
         parts: list[dict[str, Any]] = [first_user]
         final_payload: dict[str, Any] | None = None
+        llm_tokens_in = 0
+        llm_tokens_out = 0
+        llm_model: str | None = None
 
         for step in range(1, self._max_steps + 1):
             log.info(
@@ -215,6 +219,10 @@ class AgentOrchestrator:
                     step=step,
                 )
                 break
+            llm_tokens_in += chunk.tokens_in
+            llm_tokens_out += chunk.tokens_out
+            if chunk.model:
+                llm_model = chunk.model
             if chunk.final_payload is not None:
                 log.info(
                     "agent.final_payload",
@@ -261,6 +269,27 @@ class AgentOrchestrator:
 
         if final_payload is None:
             raise RuntimeError("agent loop exhausted without producing a final analysis")
+
+        if self._persistence is not None:
+            try:
+                await self._persistence.record_llm_usage(
+                    source="capture",
+                    owner_id=owner_id,
+                    mochi_item_id=mochi_item_id,
+                    model=llm_model or "unknown",
+                    tokens_in=llm_tokens_in,
+                    tokens_out=llm_tokens_out,
+                )
+            except Exception as exc:  # noqa: BLE001 — 계측 실패가 분석 run 을 죽여선 안 된다
+                # 분석은 곧 write-back 된다(아래 PERSISTED). 계측 INSERT 실패로 run 을 죽이면
+                # outbox 재시도 = Gemini 재분석 비용. 세션 오염 복구는 INDEXED 와 동형.
+                await self._persistence.rollback()
+                log.warning(
+                    "agent.usage_record_failed",
+                    run_id=str(agent_run.id),
+                    mochi_item_id=str(mochi_item_id),
+                    exception=str(exc),
+                )
 
         analysis = _to_analysis_result(final_payload)
         yield StreamEvent(
@@ -531,6 +560,27 @@ class AgentRunPersistence:
             },
         )
         await self._session.commit()
+
+    async def record_llm_usage(
+        self,
+        *,
+        source: str,
+        owner_id: UUID,
+        mochi_item_id: UUID,
+        model: str,
+        tokens_in: int,
+        tokens_out: int,
+    ) -> None:
+        """이 run 의 agent loop LLM 토큰을 llm_usage 에 1행 적재(비용 분석용)."""
+        await persist_llm_usage(
+            self._session,
+            source=source,
+            owner_id=owner_id,
+            mochi_item_id=mochi_item_id,
+            model=model,
+            tokens_in=tokens_in,
+            tokens_out=tokens_out,
+        )
 
 
 def _profile_preamble(summary: str | None) -> str:

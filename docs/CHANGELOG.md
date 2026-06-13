@@ -10,7 +10,11 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-06-13 — ios
+- **기록 상세 "지금 할 수 있어요"의 쿠팡·네이버 검색 행 아이콘을 단색 `bag.fill`→favicon 으로 교체.** 검색 링크라 OG 이미지는 무의미(검색결과 페이지엔 대표 이미지 없음)하지만, 목적지 브랜드(쿠팡·네이버)는 favicon 이 "어디로 가는지"를 글자보다 빨리 떠올리게 한다. 기존 `FaviconTile`(Kingfisher, `host/favicon.ico` + 보라 첫글자 폴백) 재사용. `DetailLinkRow` 에 `usesFavicon` 플래그 추가, purple50 타일 레이아웃은 보존. `primaryURL` 원본 행은 현행 SF Symbol 유지(scope 한정).
+
 ## 2026-06-13 — backend
+- **LLM 토큰 사용량/비용 계측 추가 — 캡처·채팅.** 기존 `agent_runs.total_tokens`/`tool_calls.tokens_*` 가 항상 0(Gemini `usage_metadata` 미수집)이라 비용 분석이 불가했다. 통합 `llm_usage` 테이블(마이그레이션 0021 — `source=capture\|chat`·owner_id·mochi_item_id?·conversation_id?·model·tokens_in/out·created_at) 신설. **수집**: `app/shared/llm_usage.py` `extract_token_usage`(prompt+candidates+**thoughts** — thinking 토큰도 output 과금, 채팅 budget=512) → 캡처는 `AgentOrchestrator._analyze` 가 turn 누적, 채팅은 `run_chat_turn` 라운드 누적, 둘 다 best-effort 적재(계측 실패가 분석/답변을 안 죽임). 모델명은 행마다 저장(모델 변경에도 비용 정확). **비용**: `app/shared/llm_cost.py` `estimate_cost_usd`(모델별 단가표 — codex 웹조사값, Vertex 공식가 재확인 필요). **조회**: `scripts/llm_usage_report.py`(`make usage-report BY=day\|user\|item`) 일별·사용자별·아이템별 평균 토큰·비용. 응답 스키마 무변경 → `openapi.json` diff 0. code-review(codex) P1 3건(thinking 토큰 누락·단가 부정확·캡처 record 미보호) 수정. `make lint`/`typecheck`/`test`(252 passed) green + 로컬 마이그레이션 round-trip 검증. `gemini_model`(3.5-flash)·`gemini_intent_model` 은 dead config 로 미사용 확인(정리는 별건). (사용자 요청)
 - **google-genai `generate_content(contents=)` typecheck 노이즈 4건 정리.** `google-genai` 2.6.0 의 `ContentListUnion` 시그니처 + `list` invariance 로 `list[str]`/`list[Content]` 가 대입 불가 판정(런타임 무해, 모노레포 통합 시점부터 잠재한 pre-existing mypy 에러). 단일 프롬프트 2곳(`gemini_weekly_digest`·`gemini_profile_summarizer`)은 `contents=[prompt]`→`contents=prompt`, 멀티 Content 2곳(`gemini_agent_client`·`gemini_chat_client`)은 `cast(types.ContentListUnion, ...)`. `make typecheck` 0 에러 복구. 244 tests 무회귀.
 
 ## 2026-06-13 — backend, ios

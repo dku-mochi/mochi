@@ -27,6 +27,7 @@ from google.genai import types
 from app.core.config import get_settings
 from app.modules.agent.domain.ports import LLMClient, LLMResponseChunk
 from app.modules.agent.domain.tools import Tool, ToolName
+from app.shared.llm_usage import extract_token_usage
 
 logger = structlog.get_logger(__name__)
 
@@ -263,11 +264,17 @@ class GeminiAgentClient(LLMClient):
             ),
             timeout=self._timeout,
         )
+        tokens_in, tokens_out = extract_token_usage(resp)
         fc = _extract_function_call(resp)
         if fc is None:
             logger.warning("agent.llm.no_function_call", model=self._model)
             text = getattr(resp, "text", None)
-            yield LLMResponseChunk(text_delta=text or "")
+            yield LLMResponseChunk(
+                text_delta=text or "",
+                tokens_in=tokens_in,
+                tokens_out=tokens_out,
+                model=self._model,
+            )
             return
         name, args, signature = fc
         logger.info(
@@ -279,8 +286,15 @@ class GeminiAgentClient(LLMClient):
         )
         if name == _FINALIZE:
             args["model_version"] = self._model
-            yield LLMResponseChunk(final_payload=args)
+            yield LLMResponseChunk(
+                final_payload=args, tokens_in=tokens_in, tokens_out=tokens_out, model=self._model
+            )
         else:
             yield LLMResponseChunk(
-                tool_to_call=ToolName(name), tool_arguments=args, thought_signature=signature
+                tool_to_call=ToolName(name),
+                tool_arguments=args,
+                thought_signature=signature,
+                tokens_in=tokens_in,
+                tokens_out=tokens_out,
+                model=self._model,
             )

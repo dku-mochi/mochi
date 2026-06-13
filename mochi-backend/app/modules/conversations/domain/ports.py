@@ -110,11 +110,18 @@ class ChatTool(Protocol):
 
 @dataclass(frozen=True, slots=True)
 class ChatLLMChunk:
-    """채팅 LLM 스트림 단위 — 텍스트 델타 또는 함수 호출."""
+    """채팅 LLM 스트림 단위 — 텍스트 델타 또는 함수 호출.
+
+    스트림 종료 시 토큰 사용량만 담은 청크가 마지막에 한 번 더 올 수 있다
+    (``usage_metadata`` 는 마지막 청크에만 실린다) — run 루프가 이를 누적해 llm_usage 에 적재.
+    """
 
     text_delta: str | None = None
     tool_call: tuple[str, dict[str, Any]] | None = None
     thought_signature: bytes | None = None
+    tokens_in: int = 0
+    tokens_out: int = 0
+    model: str | None = None
 
 
 class ChatLLMClient(Protocol):
@@ -161,6 +168,18 @@ class ChatTurnStore(Protocol):
     async def append(self, *, owner_id: UUID, message: Message) -> bool: ...
 
     async def set_run_status(self, *, owner_id: UUID, run_id: UUID, status: RunStatus) -> bool: ...
+
+    async def record_usage(
+        self,
+        *,
+        owner_id: UUID,
+        conversation_id: UUID,
+        model: str,
+        tokens_in: int,
+        tokens_out: int,
+    ) -> None:
+        """이 채팅 run 의 누적 LLM 토큰을 llm_usage 에 1행 적재(비용 분석용)."""
+        ...
 
     async def resolve_citations(
         self, *, owner_id: UUID, mochi_item_ids: list[UUID]
