@@ -1842,6 +1842,8 @@ public enum Components {
             public var summary: Swift.String?
             /// - Remark: Generated from `#/components/schemas/MochiItemResponse/category`.
             public var category: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/MochiItemResponse/shoppingProductQuery`.
+            public var shoppingProductQuery: Swift.String?
             /// - Remark: Generated from `#/components/schemas/MochiItemResponse/importance`.
             public var importance: Swift.Int
             /// - Remark: Generated from `#/components/schemas/MochiItemResponse/lifecycleKind`.
@@ -1867,6 +1869,7 @@ public enum Components {
             ///   - reviewOptions:
             ///   - summary:
             ///   - category:
+            ///   - shoppingProductQuery:
             ///   - importance:
             ///   - lifecycleKind:
             ///   - syncKind:
@@ -1884,6 +1887,7 @@ public enum Components {
                 reviewOptions: [Components.Schemas.ReviewOptionResponse]? = nil,
                 summary: Swift.String? = nil,
                 category: Swift.String? = nil,
+                shoppingProductQuery: Swift.String? = nil,
                 importance: Swift.Int,
                 lifecycleKind: Swift.String,
                 syncKind: Swift.String,
@@ -1901,6 +1905,7 @@ public enum Components {
                 self.reviewOptions = reviewOptions
                 self.summary = summary
                 self.category = category
+                self.shoppingProductQuery = shoppingProductQuery
                 self.importance = importance
                 self.lifecycleKind = lifecycleKind
                 self.syncKind = syncKind
@@ -1919,6 +1924,7 @@ public enum Components {
                 case reviewOptions
                 case summary
                 case category
+                case shoppingProductQuery
                 case importance
                 case lifecycleKind
                 case syncKind

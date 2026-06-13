@@ -17,6 +17,8 @@ public final class RealmMochiItem: Object, Identifiable {
     @Persisted public var userTitle: String?
     @Persisted public var summary: String?
     @Persisted public var category: String?
+    /// 쇼핑 캡처의 커머스 검색어 — 상세 구매 링크용 (서버 분석 미러).
+    @Persisted public var shoppingProductQuery: String?
     @Persisted public var importance: Int = 3
     /// 모찌가 분류를 확신 못 함 — "헷갈려요" 버킷 (서버 boolean 미러).
     @Persisted public var needsReview: Bool = false

@@ -11,6 +11,7 @@ public extension MochiItemDTO {
         MochiItemAnalysis(
             summary: summary ?? "",
             category: category,
+            shoppingProductQuery: shoppingProductQuery,
             instances: intentInstances.map { i in
                 IntentInstance(
                     id: i.id,
