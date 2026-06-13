@@ -445,14 +445,16 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
 /// 백엔드(FastAPI)의 microsecond/naive datetime 변형을 차례로 시도해 디코드한다.
 /// 수기 ``URLSessionMochiAPIClient`` 의 `tryParseDate` 로직을 그대로 이식 — 기본 ISO8601 은
 /// microsecond fractional seconds 를 거부하므로 커스텀 transcoder 가 필수다.
-struct MochiDateTranscoder: DateTranscoder {
-    func encode(_ date: Date) throws -> String {
+public struct MochiDateTranscoder: DateTranscoder {
+    public init() {}
+
+    public func encode(_ date: Date) throws -> String {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         return formatter.string(from: date)
     }
 
-    func decode(_ string: String) throws -> Date {
+    public func decode(_ string: String) throws -> Date {
         for date in Self.candidates(string) { return date }
         throw DateDecodingError(value: string)
     }

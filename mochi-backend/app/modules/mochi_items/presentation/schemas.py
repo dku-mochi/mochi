@@ -1,8 +1,8 @@
-from datetime import datetime
 from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from app.core.schema import UtcDateTime
 from app.modules.mochi_items.domain.entities import IngestChannel
 from app.modules.mochi_items.domain.value_objects import ArchiveReason, InstanceLifecycleKind
 from app.shared.intent import Intent
@@ -200,8 +200,8 @@ class MochiItemResponse(BaseModel):
     lifecycle_kind: str = Field(alias="lifecycleKind")
     sync_kind: str = Field(alias="syncKind")
     image_refs: list[ImageRefResponse] = Field(default_factory=list, alias="imageRefs")
-    captured_at: datetime = Field(alias="capturedAt")
-    created_at: datetime = Field(alias="createdAt")
+    captured_at: UtcDateTime = Field(alias="capturedAt")
+    created_at: UtcDateTime = Field(alias="createdAt")
 
     model_config = {"populate_by_name": True}
 
@@ -239,7 +239,7 @@ class UpcomingTodoResponse(BaseModel):
     """
 
     item: MochiItemResponse
-    due_at: datetime | None = Field(default=None, alias="dueAt")
+    due_at: UtcDateTime | None = Field(default=None, alias="dueAt")
     due_label: str | None = Field(default=None, alias="dueLabel")
 
     model_config = {"populate_by_name": True}
@@ -257,7 +257,7 @@ class UpcomingActionableResponse(BaseModel):
     """
 
     item: MochiItemResponse
-    due_at: datetime | None = Field(default=None, alias="dueAt")
+    due_at: UtcDateTime | None = Field(default=None, alias="dueAt")
     due_label: str | None = Field(default=None, alias="dueLabel")
     is_schedule: bool = Field(alias="isSchedule")
     instance_id: UUID = Field(alias="instanceId")
@@ -305,7 +305,7 @@ class PresignResponse(BaseModel):
 
     object_key: str = Field(alias="objectKey")
     upload_url: str = Field(alias="uploadURL")
-    expires_at: datetime = Field(alias="expiresAt")
+    expires_at: UtcDateTime = Field(alias="expiresAt")
 
     model_config = {"populate_by_name": True}
 
@@ -322,6 +322,6 @@ class DownloadUrlResponse(BaseModel):
     """발급된 V4 Signed GET URL."""
 
     download_url: str = Field(alias="downloadURL")
-    expires_at: datetime = Field(alias="expiresAt")
+    expires_at: UtcDateTime = Field(alias="expiresAt")
 
     model_config = {"populate_by_name": True}

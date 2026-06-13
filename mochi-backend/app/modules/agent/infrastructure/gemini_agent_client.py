@@ -18,7 +18,7 @@ orchestrator 가 turn 단위로 ``stream`` 을 호출하며, 전체 대화(``use
 import asyncio
 from collections.abc import AsyncIterator
 from functools import lru_cache
-from typing import Any
+from typing import Any, cast
 
 import structlog
 from google import genai
@@ -219,7 +219,7 @@ async def _call(
         ),
     )
     return await _shared_client().aio.models.generate_content(
-        model=model, contents=contents, config=cfg
+        model=model, contents=cast(types.ContentListUnion, contents), config=cfg
     )
 
 
