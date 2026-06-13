@@ -4,8 +4,11 @@
 같은 공유 클라이언트 패턴(``genai.Client`` lru_cache)만 가져오고 호출 형태를 채팅용으로 바꾼다:
 
 - ``generate_content_stream`` — 답변 텍스트를 글자 단위로 SSE 에 흘리기 위해.
-- ``tool_config`` mode=AUTO — 모델이 툴을 부를지 답변할지 스스로 결정 (분석 루프의 ANY 와 다름).
+- ``tool_config`` — 턴 첫 라운드는 mode=ANY(함수 호출 강제, ``force_tool``), 이후 라운드는
+  AUTO. AUTO 단독은 긴 대화에서 툴콜을 누락하는 알려진 거동이 있다 (chat@v10).
 - 모델은 ``gemini_chat_model`` (기본 flash-lite — lab 벤치 후 .env 로 상향 가능, 코드 불변).
+- ``thinking_budget=512`` — 분석 루프(0)와 달리 채팅은 정보 단위 분해·툴 선택 판단이 승부처라
+  최소 budget 을 켠다 (chat@v9). thought_signature 는 함수콜 part 에 이미 왕복 배선돼 있다.
 """
 
 from collections.abc import AsyncIterator
@@ -35,26 +38,28 @@ def _shared_client() -> genai.Client:
 def _to_contents(parts: list[dict[str, Any]]) -> list[types.Content]:
     """정규화 대화(list[dict])를 genai Content 로 변환 — agent ``_to_contents`` 와 동형.
 
-    지원 형태: {"role","text"} / {"function_call":{name,args}} / {"function_response":{name,response}}.
+    지원 형태: {"role","text"} / {"function_calls":[{name,args,thought_signature?},...]} /
+    {"function_responses":[{name,response},...]}. 같은 라운드의 병렬 콜은 반드시 하나의
+    model/user Content 에 다중 part 로 담는다 — thinking 활성 시 thought_signature 가
+    라운드 첫 part 에만 와서, 콜 단위로 쪼개면 Gemini 시그니처 검증(400)에 걸린다.
     text part 는 ``images``(gs:// URI, mime) 목록을 동반할 수 있다 — view_item_image 첨부.
     """
     contents: list[types.Content] = []
     for part in parts:
-        if "function_call" in part:
-            fc = part["function_call"]
+        if "function_calls" in part:
             contents.append(
                 types.Content(
                     role="model",
                     parts=[
                         types.Part(
                             function_call=types.FunctionCall(name=fc["name"], args=fc.get("args", {})),
-                            thought_signature=part.get("thought_signature"),
+                            thought_signature=fc.get("thought_signature"),
                         )
+                        for fc in part["function_calls"]
                     ],
                 )
             )
-        elif "function_response" in part:
-            fr = part["function_response"]
+        elif "function_responses" in part:
             contents.append(
                 types.Content(
                     role="user",
@@ -62,6 +67,7 @@ def _to_contents(parts: list[dict[str, Any]]) -> list[types.Content]:
                         types.Part.from_function_response(
                             name=fr["name"], response=fr.get("response", {})
                         )
+                        for fr in part["function_responses"]
                     ],
                 )
             )
@@ -84,6 +90,7 @@ class GeminiChatClient(ChatLLMClient):
         system_prompt: str,
         contents: list[dict[str, Any]],
         tools: list[ChatTool],
+        force_tool: bool = False,
     ) -> AsyncIterator[ChatLLMChunk]:
         decls = [
             types.FunctionDeclaration(name=t.name, description=t.description, parameters=t.parameters)
@@ -92,11 +99,18 @@ class GeminiChatClient(ChatLLMClient):
         cfg = types.GenerateContentConfig(
             system_instruction=system_prompt,
             temperature=0.6,
-            max_output_tokens=1024,
-            thinking_config=types.ThinkingConfig(thinking_budget=0),
+            # thinking 토큰은 max_output_tokens 에 포함되므로 budget 만큼 상한을 같이 올린다.
+            max_output_tokens=2048,
+            thinking_config=types.ThinkingConfig(thinking_budget=512),
             tools=[types.Tool(function_declarations=decls)] if decls else None,
             tool_config=(
-                types.ToolConfig(function_calling_config=types.FunctionCallingConfig(mode="AUTO"))
+                types.ToolConfig(
+                    function_calling_config=types.FunctionCallingConfig(
+                        # ANY = 이 라운드는 함수 호출 강제 — AUTO 의 툴콜 누락(긴 대화에서 악화)을
+                        # 턴 첫 라운드에 한해 기계로 차단한다. ports.ChatLLMClient 참고.
+                        mode="ANY" if force_tool else "AUTO"
+                    )
+                )
                 if decls
                 else None
             ),
@@ -106,6 +120,15 @@ class GeminiChatClient(ChatLLMClient):
         )
         async for chunk in stream:
             for cand in getattr(chunk, "candidates", None) or []:
+                finish = getattr(cand, "finish_reason", None)
+                if finish is not None and "STOP" not in str(finish):
+                    # ANY 라운드가 유효 함수콜 없이 끝나는 실패(MALFORMED_FUNCTION_CALL 등)를
+                    # 식별 가능하게 — generic '빈 답변' 폴백만으로는 실기기 디버깅이 안 된다.
+                    logger.warning(
+                        "chat.llm.abnormal_finish",
+                        model=self._model,
+                        finish_reason=str(finish),
+                    )
                 content = getattr(cand, "content", None)
                 for part in (getattr(content, "parts", None) or []) if content else []:
                     fc = getattr(part, "function_call", None)
@@ -117,5 +140,7 @@ class GeminiChatClient(ChatLLMClient):
                             tool_call=(fc.name, dict(fc.args or {})),
                             thought_signature=getattr(part, "thought_signature", None),
                         )
-                    elif getattr(part, "text", None):
+                    elif getattr(part, "text", None) and not getattr(part, "thought", False):
+                        # thought=True part 는 모델의 reasoning 요약 — include_thoughts 기본
+                        # false 라 현재는 안 오지만, 새면 채팅 버블로 노출되므로 가드.
                         yield ChatLLMChunk(text_delta=part.text)

@@ -1,4 +1,5 @@
 import CoreAgentClient
+import SwiftUI
 import XCTest
 
 @testable import FeatureChat
@@ -49,6 +50,27 @@ final class ChatMarkupTests: XCTestCase {
             $0.inlinePresentationIntent?.contains(.stronglyEmphasized) == true
         })
         XCTAssertEqual(String(attributed.characters[bold.range]), "중요")
+    }
+
+    func test_bold_with_quotes_and_particle_still_renders_bold() throws {
+        // CommonMark flanking 규칙으로는 닫는 `**` 가 따옴표 뒤·글자 앞이라 구분자로
+        // 인정되지 않는 한국어 빈발 패턴(`**'…'**라고`) — 자체 굵게 파싱으로 스타일이
+        // 적용돼야 한다.
+        let attributed = ChatMarkup.attributedText(
+            raw: "그건 **'어쩌고 저쩌고'**라고 했어요", citations: [], isStreaming: false
+        )
+        XCTAssertEqual(String(attributed.characters), "그건 '어쩌고 저쩌고'라고 했어요")
+
+        let bold = try XCTUnwrap(attributed.runs.first {
+            $0.inlinePresentationIntent?.contains(.stronglyEmphasized) == true
+        })
+        XCTAssertEqual(String(attributed.characters[bold.range]), "'어쩌고 저쩌고'")
+    }
+
+    func test_unpaired_bold_marker_stays_literal() {
+        // 짝 없는 `**` 는 자체 파싱 대상이 아니다 — 시스템 파서가 원문으로 둔다.
+        let attributed = ChatMarkup.attributedText(raw: "별표 ** 하나는 그대로", citations: [], isStreaming: false)
+        XCTAssertEqual(String(attributed.characters), "별표 ** 하나는 그대로")
     }
 
     func test_newlines_and_block_syntax_stay_literal() {
@@ -141,8 +163,146 @@ final class ChatMarkupTests: XCTestCase {
         XCTAssertEqual(String(try XCTUnwrap(rows.first?.first).characters), "좋아요¹")
     }
 
+    func test_resolvingBold_sets_explicit_font_only_on_bold_runs() throws {
+        // intent 만으로는 medium 베이스 한글 글리프에서 굵게 대비가 거의 없다(ImageRenderer
+        // 실측, 2026-06-13) — 표시 직전 명시 폰트가 박혀야 한다.
+        let attributed = ChatMarkup.attributedText(raw: "이건 **중요**해요", citations: [], isStreaming: false)
+        let resolved = ChatMarkup.resolvingBold(attributed, size: 14.5)
+
+        let bold = try XCTUnwrap(resolved.runs.first {
+            $0.inlinePresentationIntent?.contains(.stronglyEmphasized) == true
+        })
+        XCTAssertNotNil(bold.font)
+        XCTAssertEqual(String(resolved.characters[bold.range]), "중요")
+
+        let plain = try XCTUnwrap(resolved.runs.first {
+            $0.inlinePresentationIntent?.contains(.stronglyEmphasized) != true
+        })
+        XCTAssertNil(plain.font) // 본문 폰트는 환경(.font modifier)이 계속 소유한다
+    }
+
+    func test_resolvingBold_keeps_citation_badge_font() throws {
+        // 뱃지 런은 자체 폰트(13.5 heavy)를 이미 가진다 — bold 해석이 덮어쓰면 안 된다.
+        let raw = "**중요**【item:\(itemID.uuidString)】"
+        let attributed = ChatMarkup.attributedText(raw: raw, citations: [citation()], isStreaming: false)
+        let resolved = ChatMarkup.resolvingBold(attributed, size: 14.5)
+        let badge = try XCTUnwrap(resolved.runs.first {
+            String(resolved.characters[$0.range]) == "¹"
+        })
+        XCTAssertNotNil(badge.font)
+        XCTAssertNil(badge.inlinePresentationIntent)
+    }
+
+    func test_plainText_strips_markers_and_inline_markdown() {
+        let raw = "**'어쩌고 저쩌고'**라고 했어요【item:\(itemID.uuidString)】. 끝."
+        let plain = ChatMarkup.plainText(raw: raw, citations: [citation()])
+        XCTAssertEqual(plain, "'어쩌고 저쩌고'라고 했어요. 끝.")
+    }
+
     func test_superscript_mapping() {
         XCTAssertEqual(ChatMarkup.superscript(1), "¹")
         XCTAssertEqual(ChatMarkup.superscript(12), "¹²")
+    }
+
+    // MARK: - 블록 마크다운 (리스트·헤딩·인용·구분선)
+
+    func test_bullet_lines_become_list_block_without_raw_asterisks() throws {
+        let raw = "추천드려요.\n*   **카키 코우죠**: 라면집이에요.\n- 쿠촐로 서울\n끝!"
+        let blocks = ChatMarkup.blocks(raw: raw, citations: [], isStreaming: false)
+        XCTAssertEqual(blocks.count, 3)
+
+        guard case let .list(items) = blocks[1] else {
+            return XCTFail("두 번째 블록이 리스트가 아님: \(blocks[1])")
+        }
+        XCTAssertEqual(items.count, 2)
+        XCTAssertNil(items[0].ordinal)
+        // 마커(`*`)는 사라지고 인라인 굵게는 스타일로 해석된다.
+        XCTAssertEqual(String(items[0].text.characters), "카키 코우죠: 라면집이에요.")
+        XCTAssertEqual(String(items[1].text.characters), "쿠촐로 서울")
+    }
+
+    func test_numbered_and_nested_bullet_depth() throws {
+        let raw = "1. 첫째\n2) 둘째\n  - 둘째의 세부"
+        let blocks = ChatMarkup.blocks(raw: raw, citations: [], isStreaming: false)
+        guard case let .list(items) = blocks.first, blocks.count == 1 else {
+            return XCTFail("리스트 1개여야 함: \(blocks)")
+        }
+        XCTAssertEqual(items.map(\.ordinal), ["1", "2", nil])
+        XCTAssertEqual(items.map(\.depth), [0, 0, 1])
+    }
+
+    func test_heading_quote_divider_become_blocks() throws {
+        let raw = "## 정리\n> 메모해 둔 말\n---"
+        let blocks = ChatMarkup.blocks(raw: raw, citations: [], isStreaming: false)
+        XCTAssertEqual(blocks.count, 3)
+
+        guard case let .heading(level, text) = blocks[0] else {
+            return XCTFail("헤딩이 아님: \(blocks[0])")
+        }
+        XCTAssertEqual(level, 2)
+        XCTAssertEqual(String(text.characters), "정리")
+
+        guard case let .quote(quote) = blocks[1] else {
+            return XCTFail("인용이 아님: \(blocks[1])")
+        }
+        XCTAssertEqual(String(quote.characters), "메모해 둔 말")
+
+        XCTAssertEqual(blocks[2], .divider)
+    }
+
+    func test_citation_marker_inside_bullet_becomes_badge() throws {
+        let raw = "* 좋아요【item:\(itemID.uuidString)】"
+        let blocks = ChatMarkup.blocks(raw: raw, citations: [citation()], isStreaming: false)
+        guard case let .list(items) = blocks.first else {
+            return XCTFail("리스트여야 함: \(blocks)")
+        }
+        XCTAssertEqual(String(try XCTUnwrap(items.first).text.characters), "좋아요¹")
+    }
+
+    func test_bold_line_start_is_not_mistaken_for_bullet() {
+        // `**굵게**` 로 시작하는 문단 — `*` 뒤에 공백이 없으니 불릿이 아니다.
+        let raw = "**중요**: 꼭 확인하세요"
+        let blocks = ChatMarkup.blocks(raw: raw, citations: [], isStreaming: false)
+        guard case let .paragraph(text) = blocks.first, blocks.count == 1 else {
+            return XCTFail("문단 1개여야 함: \(blocks)")
+        }
+        XCTAssertEqual(String(text.characters), "중요: 꼭 확인하세요")
+    }
+
+    func test_asterisk_rule_is_not_a_divider() {
+        // `***` 는 divider 로 지원하지 않는다 — 스트리밍의 미닫힘 `**` 트림과 충돌하기
+        // 때문(아래 streaming 케이스). 종료 후엔 문단 원문으로 남는다.
+        let raw = "A\n***\nB"
+        let streaming = ChatMarkup.blocks(raw: raw, citations: [], isStreaming: true)
+        XCTAssertEqual(streaming, [.paragraph(AttributedString("A"))])
+
+        let done = ChatMarkup.blocks(raw: raw, citations: [], isStreaming: false)
+        guard case let .paragraph(text) = done.first, done.count == 1 else {
+            return XCTFail("문단 1개여야 함: \(done)")
+        }
+        XCTAssertEqual(String(text.characters), "A\n***\nB")
+    }
+
+    func test_trailing_number_line_is_not_hidden_while_streaming() {
+        // 단독 숫자는 정상 본문일 수 있다 — 구두점(`1.`)까지 와야 리스트 마커 꼬리다.
+        let raw = "정답은\n404"
+        let blocks = ChatMarkup.blocks(raw: raw, citations: [], isStreaming: true)
+        guard case let .paragraph(text) = blocks.first, blocks.count == 1 else {
+            return XCTFail("문단 1개여야 함: \(blocks)")
+        }
+        XCTAssertEqual(String(text.characters), "정답은\n404")
+    }
+
+    func test_trailing_bare_marker_hidden_only_while_streaming() {
+        // 마커만 도착하고 텍스트가 아직인 꼬리 줄 — 원문 조각을 노출하지 않는다.
+        let raw = "추천드려요.\n*"
+        let streaming = ChatMarkup.blocks(raw: raw, citations: [], isStreaming: true)
+        XCTAssertEqual(streaming, [.paragraph(AttributedString("추천드려요."))])
+
+        let done = ChatMarkup.blocks(raw: raw, citations: [], isStreaming: false)
+        guard case let .paragraph(text) = done.first, done.count == 1 else {
+            return XCTFail("문단 1개여야 함: \(done)")
+        }
+        XCTAssertEqual(String(text.characters), "추천드려요.\n*")
     }
 }

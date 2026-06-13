@@ -46,6 +46,17 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `POST /api/v1/auth/logout`.
     /// - Remark: Generated from `#/paths//api/v1/auth/logout/post(logout_api_v1_auth_logout_post)`.
     func logout_api_v1_auth_logout_post(_ input: Operations.logout_api_v1_auth_logout_post.Input) async throws -> Operations.logout_api_v1_auth_logout_post.Output
+    /// Issue Capture Token
+    ///
+    /// ShareExtension 직접 전송용 capture-scoped token 발급.
+    ///
+    /// access JWT 인증 필수 — capture token 으로는 이 라우트를 통과할 수 없다(권한 상승 차단).
+    /// raw secret 은 이 응답으로 1회만 전달되고, ingest + presign 라우트에서만 유효하다.
+    /// sliding TTL: 사용 시 연장 — 캡처를 계속 쓰는 한 만료되지 않는다.
+    ///
+    /// - Remark: HTTP `POST /api/v1/auth/capture-tokens`.
+    /// - Remark: Generated from `#/paths//api/v1/auth/capture-tokens/post(issue_capture_token_api_v1_auth_capture_tokens_post)`.
+    func issue_capture_token_api_v1_auth_capture_tokens_post(_ input: Operations.issue_capture_token_api_v1_auth_capture_tokens_post.Input) async throws -> Operations.issue_capture_token_api_v1_auth_capture_tokens_post.Output
     /// Get Me
     ///
     /// - Remark: HTTP `GET /api/v1/users/me`.
@@ -353,6 +364,25 @@ extension APIProtocol {
     /// - Remark: Generated from `#/paths//api/v1/auth/logout/post(logout_api_v1_auth_logout_post)`.
     public func logout_api_v1_auth_logout_post(body: Operations.logout_api_v1_auth_logout_post.Input.Body) async throws -> Operations.logout_api_v1_auth_logout_post.Output {
         try await logout_api_v1_auth_logout_post(Operations.logout_api_v1_auth_logout_post.Input(body: body))
+    }
+    /// Issue Capture Token
+    ///
+    /// ShareExtension 직접 전송용 capture-scoped token 발급.
+    ///
+    /// access JWT 인증 필수 — capture token 으로는 이 라우트를 통과할 수 없다(권한 상승 차단).
+    /// raw secret 은 이 응답으로 1회만 전달되고, ingest + presign 라우트에서만 유효하다.
+    /// sliding TTL: 사용 시 연장 — 캡처를 계속 쓰는 한 만료되지 않는다.
+    ///
+    /// - Remark: HTTP `POST /api/v1/auth/capture-tokens`.
+    /// - Remark: Generated from `#/paths//api/v1/auth/capture-tokens/post(issue_capture_token_api_v1_auth_capture_tokens_post)`.
+    public func issue_capture_token_api_v1_auth_capture_tokens_post(
+        headers: Operations.issue_capture_token_api_v1_auth_capture_tokens_post.Input.Headers = .init(),
+        body: Operations.issue_capture_token_api_v1_auth_capture_tokens_post.Input.Body
+    ) async throws -> Operations.issue_capture_token_api_v1_auth_capture_tokens_post.Output {
+        try await issue_capture_token_api_v1_auth_capture_tokens_post(Operations.issue_capture_token_api_v1_auth_capture_tokens_post.Input(
+            headers: headers,
+            body: body
+        ))
     }
     /// Get Me
     ///
@@ -842,6 +872,48 @@ public enum Components {
                 case count
                 case representativeIntent
                 case thumbnailObjectKey
+            }
+        }
+        /// ``POST /auth/capture-tokens`` — ShareExtension 직접 전송용 scoped token 발급.
+        ///
+        /// - Remark: Generated from `#/components/schemas/CaptureTokenRequest`.
+        public struct CaptureTokenRequest: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/CaptureTokenRequest/deviceLabel`.
+            public var deviceLabel: Swift.String?
+            /// Creates a new `CaptureTokenRequest`.
+            ///
+            /// - Parameters:
+            ///   - deviceLabel:
+            public init(deviceLabel: Swift.String? = nil) {
+                self.deviceLabel = deviceLabel
+            }
+            public enum CodingKeys: String, CodingKey {
+                case deviceLabel
+            }
+        }
+        /// raw secret 은 이 응답으로 1회만 전달 — 클라이언트가 공유 Keychain 에 보관한다.
+        ///
+        /// - Remark: Generated from `#/components/schemas/CaptureTokenResponse`.
+        public struct CaptureTokenResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/CaptureTokenResponse/captureToken`.
+            public var captureToken: Swift.String
+            /// - Remark: Generated from `#/components/schemas/CaptureTokenResponse/captureTokenExpiresAt`.
+            public var captureTokenExpiresAt: Foundation.Date
+            /// Creates a new `CaptureTokenResponse`.
+            ///
+            /// - Parameters:
+            ///   - captureToken:
+            ///   - captureTokenExpiresAt:
+            public init(
+                captureToken: Swift.String,
+                captureTokenExpiresAt: Foundation.Date
+            ) {
+                self.captureToken = captureToken
+                self.captureTokenExpiresAt = captureTokenExpiresAt
+            }
+            public enum CodingKeys: String, CodingKey {
+                case captureToken
+                case captureTokenExpiresAt
             }
         }
         /// - Remark: Generated from `#/components/schemas/CitationDTO`.
@@ -1483,15 +1555,23 @@ public enum Components {
         public struct LogoutRequest: Codable, Hashable, Sendable {
             /// - Remark: Generated from `#/components/schemas/LogoutRequest/refreshToken`.
             public var refreshToken: Swift.String
+            /// - Remark: Generated from `#/components/schemas/LogoutRequest/captureToken`.
+            public var captureToken: Swift.String?
             /// Creates a new `LogoutRequest`.
             ///
             /// - Parameters:
             ///   - refreshToken:
-            public init(refreshToken: Swift.String) {
+            ///   - captureToken:
+            public init(
+                refreshToken: Swift.String,
+                captureToken: Swift.String? = nil
+            ) {
                 self.refreshToken = refreshToken
+                self.captureToken = captureToken
             }
             public enum CodingKeys: String, CodingKey {
                 case refreshToken
+                case captureToken
             }
         }
         /// - Remark: Generated from `#/components/schemas/MessageCitationResponse`.
@@ -3259,6 +3339,133 @@ public enum Operations {
             ///
             /// A response with a code that is not documented in the OpenAPI document.
             case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+    }
+    /// Issue Capture Token
+    ///
+    /// ShareExtension 직접 전송용 capture-scoped token 발급.
+    ///
+    /// access JWT 인증 필수 — capture token 으로는 이 라우트를 통과할 수 없다(권한 상승 차단).
+    /// raw secret 은 이 응답으로 1회만 전달되고, ingest + presign 라우트에서만 유효하다.
+    /// sliding TTL: 사용 시 연장 — 캡처를 계속 쓰는 한 만료되지 않는다.
+    ///
+    /// - Remark: HTTP `POST /api/v1/auth/capture-tokens`.
+    /// - Remark: Generated from `#/paths//api/v1/auth/capture-tokens/post(issue_capture_token_api_v1_auth_capture_tokens_post)`.
+    public enum issue_capture_token_api_v1_auth_capture_tokens_post {
+        public static let id: Swift.String = "issue_capture_token_api_v1_auth_capture_tokens_post"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/api/v1/auth/capture-tokens/POST/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.issue_capture_token_api_v1_auth_capture_tokens_post.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.issue_capture_token_api_v1_auth_capture_tokens_post.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.issue_capture_token_api_v1_auth_capture_tokens_post.Input.Headers
+            /// - Remark: Generated from `#/paths/api/v1/auth/capture-tokens/POST/requestBody`.
+            @frozen public enum Body: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/auth/capture-tokens/POST/requestBody/content/application\/json`.
+                case json(Components.Schemas.CaptureTokenRequest)
+            }
+            public var body: Operations.issue_capture_token_api_v1_auth_capture_tokens_post.Input.Body
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - headers:
+            ///   - body:
+            public init(
+                headers: Operations.issue_capture_token_api_v1_auth_capture_tokens_post.Input.Headers = .init(),
+                body: Operations.issue_capture_token_api_v1_auth_capture_tokens_post.Input.Body
+            ) {
+                self.headers = headers
+                self.body = body
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/auth/capture-tokens/POST/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/api/v1/auth/capture-tokens/POST/responses/200/content/application\/json`.
+                    case json(Components.Schemas.CaptureTokenResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.CaptureTokenResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.issue_capture_token_api_v1_auth_capture_tokens_post.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.issue_capture_token_api_v1_auth_capture_tokens_post.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Successful Response
+            ///
+            /// - Remark: Generated from `#/paths//api/v1/auth/capture-tokens/post(issue_capture_token_api_v1_auth_capture_tokens_post)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.issue_capture_token_api_v1_auth_capture_tokens_post.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.issue_capture_token_api_v1_auth_capture_tokens_post.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
         }
     }
     /// Get Me

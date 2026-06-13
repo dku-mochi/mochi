@@ -45,6 +45,24 @@ class AuthAccountRow(Base):
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
 
 
+class CaptureTokenRow(Base):
+    __tablename__ = "capture_tokens"
+
+    id: Mapped[UUID] = mapped_column(
+        PgUUIDColumn(as_uuid=True), primary_key=True, insert_default=uuid4, init=False
+    )
+    user_id: Mapped[UUID] = mapped_column(
+        PgUUIDColumn(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    device_label: Mapped[str | None] = mapped_column(String(128), default=None)
+    issued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default_factory=datetime.utcnow)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default_factory=datetime.utcnow)
+    last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+    revoked_reason: Mapped[str | None] = mapped_column(String(32), default=None)
+
+
 class RefreshTokenRow(Base):
     __tablename__ = "refresh_tokens"
 

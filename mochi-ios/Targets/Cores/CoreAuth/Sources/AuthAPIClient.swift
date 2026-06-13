@@ -14,6 +14,9 @@ public protocol AuthAPIClient: Sendable {
     func refresh(_ body: RefreshBody) async throws -> AuthTokens
     func logout(_ body: LogoutBody) async throws
     func getMe(accessToken: String) async throws -> AuthUser
+    /// 백엔드 ``POST /auth/capture-tokens``. ShareExtension 직접 전송용 scoped token 발급.
+    /// access JWT 인증 필수 — capture token 으로는 발급받을 수 없다 (권한 상승 차단).
+    func issueCaptureToken(_ body: CaptureTokenBody, accessToken: String) async throws -> CaptureTokenIssued
 }
 
 public final class URLSessionAuthAPIClient: AuthAPIClient, @unchecked Sendable {
@@ -63,6 +66,18 @@ public final class URLSessionAuthAPIClient: AuthAPIClient, @unchecked Sendable {
             method: "GET",
             path: "/api/v1/users/me",
             body: Optional<EmptyBody>.none,
+            extraHeaders: ["Authorization": "Bearer \(accessToken)"]
+        )
+    }
+
+    public func issueCaptureToken(
+        _ body: CaptureTokenBody,
+        accessToken: String
+    ) async throws -> CaptureTokenIssued {
+        try await perform(
+            method: "POST",
+            path: "/api/v1/auth/capture-tokens",
+            body: body,
             extraHeaders: ["Authorization": "Bearer \(accessToken)"]
         )
     }

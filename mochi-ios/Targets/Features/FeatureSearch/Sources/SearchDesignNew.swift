@@ -152,8 +152,9 @@ public enum SearchD5 {
         static let searchBarRadius: CGFloat  = 24
         static let filterChipHeight: CGFloat = 32
         static let filterChipRadius: CGFloat = 16
-        // edge-to-edge 모자이크 — 좌우 패딩 없이 셀 간 6pt 이음새, 테두리·그림자 없이 radius 만.
+        // 모자이크 그리드 — 셀 간 6pt 이음새 + 좌우 10pt, 테두리·그림자 없이 radius 만.
         static let gridGap: CGFloat          = 6
+        static let gridPageH: CGFloat        = 10
         static let gridCardRadius: CGFloat   = HomeDesign.Radius.md
         static let gridCardHeight: CGFloat   = 138
         static let ctaButtonHeight: CGFloat  = 56

@@ -90,6 +90,48 @@ class RefreshToken:
         return now >= self.expires_at
 
 
+class CaptureTokenRevokedReason(StrEnum):
+    """``capture_tokens.revoked_reason`` enum. DB CHECK 와 일치."""
+
+    LOGOUT = "logout"
+    EVICTED = "evicted"
+    REUSE_DETECTED = "reuse_detected"
+    USER_ACCOUNT_DELETED = "user_account_deleted"
+    ADMIN = "admin"
+
+
+# raw capture token 의 식별 prefix. JWT 는 '.' 를 포함하고 이 prefix 로 시작할 수 없어
+# 인증 의존성의 디스패치 키로 쓰인다 (``app.core.security.get_current_capture_user``).
+CAPTURE_TOKEN_PREFIX = "mct_"
+
+
+@dataclass(slots=True)
+class CaptureToken:
+    """ShareExtension 직접 전송 전용 capture-scoped opaque token.
+
+    ingest + presign 라우트에서만 유효한 장수명 자격증명. refresh 처럼 raw 는 클라이언트에만
+    존재하고 DB 엔 ``token_hash`` (SHA-256 hex) 만 보관한다. 회전(family) 없이 sliding 만료
+    (사용 시 연장, 디바운스) + revoke 가 수명 통제 수단이다.
+    """
+
+    id: UUID
+    user_id: UserID
+    token_hash: str
+    device_label: str | None
+    issued_at: datetime
+    expires_at: datetime
+    last_used_at: datetime | None = None
+    revoked_at: datetime | None = None
+    revoked_reason: CaptureTokenRevokedReason | None = None
+
+    @property
+    def is_revoked(self) -> bool:
+        return self.revoked_at is not None
+
+    def is_expired(self, now: datetime) -> bool:
+        return now >= self.expires_at
+
+
 @dataclass(frozen=True, slots=True)
 class AuthTokens:
     """클라이언트에 한 번만 전달되는 token pair.
@@ -121,6 +163,10 @@ class VerifiedIdToken:
 
 
 def new_refresh_token_id() -> UUID:
+    return uuid4()
+
+
+def new_capture_token_id() -> UUID:
     return uuid4()
 
 

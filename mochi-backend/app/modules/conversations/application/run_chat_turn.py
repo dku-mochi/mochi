@@ -101,6 +101,9 @@ class RunChatTurn:
                 system_prompt=system_prompt,
                 contents=contents,
                 tools=[] if final_round else self.tools,
+                # 턴의 첫 라운드는 함수 호출 강제(ANY) — '답하기 전 검색'을 프롬프트가 아니라
+                # 기계로 보장한다. 인사 같은 발화에도 검색 1회가 나가는 비용은 회수 누락보다 싸다.
+                force_tool=round_index == 0 and not final_round and bool(self.tools),
             ):
                 if chunk.text_delta:
                     round_text += chunk.text_delta
@@ -121,6 +124,8 @@ class RunChatTurn:
                 self._publish(run_id, run_events.MESSAGE_DELTA, {"text": "\n"})
 
             round_images: list[tuple[str, str]] = []
+            executed_calls: list[dict[str, Any]] = []
+            executed_responses: list[dict[str, Any]] = []
             for name, args, signature in round_calls:
                 if calls >= self.max_tool_calls:
                     # 콜 예산 소진 — 잔여 콜은 미실행·미기록(contents 정합 유지), 다음 라운드 폴백이 답변을 끌어낸다.
@@ -143,11 +148,18 @@ class RunChatTurn:
                             "payload": result.proposal["payload"],
                         },
                     )
-                contents.append(
-                    {"function_call": {"name": name, "args": args}, "thought_signature": signature}
+                executed_calls.append(
+                    {"name": name, "args": args, "thought_signature": signature}
                 )
-                contents.append({"function_response": {"name": name, "response": result.payload}})
+                executed_responses.append({"name": name, "response": result.payload})
                 round_images.extend(result.images)
+            if executed_calls:
+                # 같은 라운드의 병렬 fc/fr 는 각각 **하나의** model/user turn 으로 묶는다.
+                # thinking 활성 시 thought_signature 는 라운드 첫 fc part 에만 오므로,
+                # 콜마다 별도 Content 로 쪼개면 시그니처 없는 model FC step 이 생겨
+                # 다음 라운드 요청이 Gemini 시그니처 검증(400)에 걸린다 (리뷰 P1).
+                contents.append({"function_calls": executed_calls})
+                contents.append({"function_responses": executed_responses})
             if round_images:
                 # 이미지는 function_response(JSON)에 실을 수 없어 별도 user part 로 첨부
                 # (Part 변환은 분석 경로와 동형 — Vertex 직접 read). 라운드의 모든
@@ -299,6 +311,6 @@ def _contents_from_history(history: list[Message]) -> list[dict[str, Any]]:
             response: dict[str, Any] = dict(payload.get("compact") or {})
             if summary := payload.get("summary"):
                 response.setdefault("summary", summary)
-            contents.append({"function_call": {"name": name, "args": payload.get("args", {})}})
-            contents.append({"function_response": {"name": name, "response": response}})
+            contents.append({"function_calls": [{"name": name, "args": payload.get("args", {})}]})
+            contents.append({"function_responses": [{"name": name, "response": response}]})
     return contents

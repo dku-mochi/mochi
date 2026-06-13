@@ -77,6 +77,7 @@ App, ShareExtension 두 타겟이 동일 App Group `group.app.mochi` 에 속한�
 - Pending Back-Tap (snippet 흐름 단명 stash): `<container>/pending-backtap/<captureID>.png` (단축어가 stash, snippet 분기 commit 시 폐기) + `<container>/pending-backtap/<captureID>.memo` (메모 분기 marker, 모달 종료 시 폐기)
 - 백탭 온보딩 검증 핸드셰이크 (1회성): `<container>/pending-backtap/verify.active` (검증 창, TTL 120s) + `<container>/pending-backtap/verify.hit` (백탭 도달 마커) — 온보딩이 폴링, 상세는 [`docs/UX_SPEC.md`](../docs/UX_SPEC.md) §3.7
 - 캡처 이미지: `<container>/captures/...`
+- 공유 Keychain (access group, App ↔ ShareExtension): service `app.mochi.auth` 에 두 item — `session`(`KeychainTokenStore`, access/refresh 토큰) + `capture_token`(`KeychainCaptureTokenStore`, ShareExt 직접 전송용 장수명 capture-scoped 토큰 — 메인 앱이 로그인/부팅 시 발급·갱신, ShareExt 는 읽기만)
 
 ## 시작하기
 

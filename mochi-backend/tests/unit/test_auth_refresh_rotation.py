@@ -25,10 +25,13 @@ from app.modules.auth.application.sign_in import (
 from app.modules.auth.domain.entities import (
     AuthAccount,
     AuthProvider,
+    CaptureToken,
+    CaptureTokenRevokedReason,
     RefreshToken,
     RefreshTokenRevokedReason,
     User,
     VerifiedIdToken,
+    new_capture_token_id,
     new_family_id,
     new_refresh_token_id,
 )
@@ -40,6 +43,8 @@ from app.modules.auth.domain.errors import (
 )
 from app.modules.auth.domain.ports import (
     AccessTokenIssuer,
+    CaptureTokenIssuer,
+    CaptureTokenRepository,
     IdTokenVerifier,
     RefreshTokenIssuer,
     RefreshTokenRepository,
@@ -129,6 +134,77 @@ class _InMemoryRefreshTokens(RefreshTokenRepository):
         return count
 
 
+class _InMemoryCaptureTokens(CaptureTokenRepository):
+    def __init__(self) -> None:
+        self.tokens: dict[UUID, CaptureToken] = {}
+        self.by_hash: dict[str, UUID] = {}
+
+    async def acquire_issue_lock(self, *, user_id):
+        pass  # 단일 스레드 테스트 — 직렬화 불필요
+
+    async def add(self, token):
+        self.tokens[token.id] = token
+        self.by_hash[token.token_hash] = token.id
+
+    async def find_by_hash(self, *, token_hash):
+        tid = self.by_hash.get(token_hash)
+        return self.tokens.get(tid) if tid else None
+
+    async def list_active_for_user(self, *, user_id, now):
+        return sorted(
+            (
+                t
+                for t in self.tokens.values()
+                if t.user_id == user_id and t.revoked_at is None and not t.is_expired(now)
+            ),
+            key=lambda t: t.issued_at,
+        )
+
+    async def touch(self, *, token_id, now, expires_at, debounce_cutoff) -> bool:
+        token = self.tokens[token_id]
+        if token.revoked_at is not None:
+            return False
+        if token.last_used_at is None or token.last_used_at < debounce_cutoff:
+            token.last_used_at = now
+            token.expires_at = expires_at
+            return True
+        return False
+
+    async def revoke(self, *, token_id, revoked_at, reason):
+        token = self.tokens[token_id]
+        if token.revoked_at is None:
+            token.revoked_at = revoked_at
+            token.revoked_reason = reason
+
+    async def revoke_all_for_user(self, *, user_id, revoked_at, reason):
+        count = 0
+        for token in self.tokens.values():
+            if token.user_id == user_id and token.revoked_at is None:
+                token.revoked_at = revoked_at
+                token.revoked_reason = reason
+                count += 1
+        return count
+
+
+class _CounterCaptureIssuer(CaptureTokenIssuer):
+    """결정론적 raw / hash 생성 — 카운터 기반 (refresh 의 _CounterRefreshIssuer 미러)."""
+
+    def __init__(self) -> None:
+        self.counter = 0
+
+    def generate(self, *, now):
+        self.counter += 1
+        raw = f"mct_raw-{self.counter}"
+        return raw, self._hash(raw), now + timedelta(days=180)
+
+    def hash_existing(self, *, raw_secret):
+        return self._hash(raw_secret)
+
+    @staticmethod
+    def _hash(raw: str) -> str:
+        return f"hash::{raw}"
+
+
 class _FakeAccessIssuer(AccessTokenIssuer):
     def __init__(self) -> None:
         self.issued: list[UserID] = []
@@ -177,12 +253,17 @@ class _StubVerifier(IdTokenVerifier):
 # ---------- Helpers ----------
 
 
-def _make_rotate(users: _InMemoryUsers, refresh: _InMemoryRefreshTokens) -> RotateRefreshToken:
+def _make_rotate(
+    users: _InMemoryUsers,
+    refresh: _InMemoryRefreshTokens,
+    capture: _InMemoryCaptureTokens | None = None,
+) -> RotateRefreshToken:
     return RotateRefreshToken(
         refresh_tokens=refresh,
         users=users,
         access_issuer=_FakeAccessIssuer(),
         refresh_issuer=_CounterRefreshIssuer(),
+        capture_tokens=capture or _InMemoryCaptureTokens(),
     )
 
 
@@ -265,8 +346,20 @@ async def test_refresh_unknown_token_returns_401() -> None:
 async def test_refresh_reuse_detected_revokes_whole_family() -> None:
     users = _InMemoryUsers()
     refresh = _InMemoryRefreshTokens()
-    _, old = await _seed_user_and_refresh(users, refresh)
-    use_case = _make_rotate(users, refresh)
+    user_id, old = await _seed_user_and_refresh(users, refresh)
+    capture = _InMemoryCaptureTokens()
+    now = datetime.now(UTC)
+    await capture.add(
+        CaptureToken(
+            id=new_capture_token_id(),
+            user_id=user_id,
+            token_hash="hash::mct_raw-x",
+            device_label=None,
+            issued_at=now,
+            expires_at=now + timedelta(days=180),
+        )
+    )
+    use_case = _make_rotate(users, refresh, capture)
 
     # 첫 회전 → 정상
     await use_case.execute(RefreshCommand(raw_refresh_token="raw-0"))
@@ -279,6 +372,11 @@ async def test_refresh_reuse_detected_revokes_whole_family() -> None:
     for token in refresh.tokens.values():
         assert token.revoked_at is not None
         assert token.revoked_reason == RefreshTokenRevokedReason.REUSE_DETECTED
+
+    # 도난 의심 시 같은 사용자의 장수명 capture token 도 연쇄 revoke — 도주로 차단.
+    for ct in capture.tokens.values():
+        assert ct.revoked_at is not None
+        assert ct.revoked_reason == CaptureTokenRevokedReason.REUSE_DETECTED
 
 
 @pytest.mark.asyncio
@@ -316,7 +414,12 @@ async def test_logout_revokes_token_and_is_idempotent() -> None:
     users = _InMemoryUsers()
     refresh = _InMemoryRefreshTokens()
     _, old = await _seed_user_and_refresh(users, refresh)
-    logout = Logout(refresh_tokens=refresh, refresh_issuer=_CounterRefreshIssuer())
+    logout = Logout(
+        refresh_tokens=refresh,
+        refresh_issuer=_CounterRefreshIssuer(),
+        capture_tokens=_InMemoryCaptureTokens(),
+        capture_issuer=_CounterCaptureIssuer(),
+    )
     await logout.execute(LogoutCommand(raw_refresh_token="raw-0"))
     assert refresh.tokens[old.id].revoked_reason == RefreshTokenRevokedReason.LOGOUT
 

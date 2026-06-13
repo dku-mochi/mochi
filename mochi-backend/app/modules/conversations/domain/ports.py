@@ -130,7 +130,14 @@ class ChatLLMClient(Protocol):
         system_prompt: str,
         contents: list[dict[str, Any]],
         tools: list[ChatTool],
-    ) -> AsyncIterator[ChatLLMChunk]: ...
+        force_tool: bool = False,
+    ) -> AsyncIterator[ChatLLMChunk]:
+        """``force_tool=True`` 면 이 라운드는 반드시 함수를 호출한다 (Gemini mode=ANY).
+
+        AUTO 모드는 대화가 길수록 툴콜을 누락하는 알려진 거동이 있어, '답하기 전 검색'을
+        프롬프트(③)가 아니라 기계(②)로 보장하기 위해 턴의 첫 라운드에 쓴다.
+        """
+        ...
 
 
 @dataclass(frozen=True, slots=True)

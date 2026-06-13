@@ -34,6 +34,25 @@ class RefreshRequest(BaseModel):
 
 class LogoutRequest(BaseModel):
     refresh_token: str = Field(alias="refreshToken", min_length=10)
+    # 동봉 시 해당 capture token 도 revoke (장수명이라 자연 무효화에 기댈 수 없다).
+    capture_token: str | None = Field(default=None, alias="captureToken", min_length=10)
+
+    model_config = {"populate_by_name": True}
+
+
+class CaptureTokenRequest(BaseModel):
+    """``POST /auth/capture-tokens`` — ShareExtension 직접 전송용 scoped token 발급."""
+
+    device_label: str | None = Field(default=None, alias="deviceLabel", max_length=128)
+
+    model_config = {"populate_by_name": True}
+
+
+class CaptureTokenResponse(BaseModel):
+    """raw secret 은 이 응답으로 1회만 전달 — 클라이언트가 공유 Keychain 에 보관한다."""
+
+    capture_token: str = Field(alias="captureToken")
+    capture_token_expires_at: datetime = Field(alias="captureTokenExpiresAt")
 
     model_config = {"populate_by_name": True}
 

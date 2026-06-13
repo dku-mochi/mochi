@@ -37,7 +37,7 @@ app/
 │   ├── logging.py                 structlog 설정
 │   ├── middleware.py              X-Mochi-Request-ID + Idempotency-Key 바인딩
 │   ├── error_envelope.py          통일 에러 응답 + Exception handler
-│   ├── security.py                JWT 의존성 (CurrentUser)
+│   ├── security.py                인증 의존성 — CurrentUser(HS256 JWT·dev) + CurrentCaptureUser(ingest/presign 전용, +capture token)
 │   └── deps.py                    `DBSession = Annotated[AsyncSession, Depends(get_session)]`
 ├── shared/                        모듈 간 공통 enum (Intent, ids)
 ├── modules/
@@ -64,8 +64,8 @@ app/
 │   ├── conversations/             채팅(질문 탭) 멀티턴 대화 — 설계: journal/2026-06-10-chat-tab-design.md
 │   │   ├── domain/                Conversation/Message/MessageCitation + ChatTool·ChatLLMClient·ChatTurnStore ports + run_events
 │   │   ├── application/           BeginChatTurn(암묵 생성·동시 run 409) · RunChatTurn(detached run — 한도 폴백·citation 파싱) · queries
-│   │   ├── infrastructure/        ORM·repository · RunRegistry(in-process queue) · GeminiChatClient(AUTO+stream) · turn_store · tools/(read-only)
-│   │   ├── prompts/               chat@v8 — PromptVersion 버저닝, 기준+why
+│   │   ├── infrastructure/        ORM·repository · RunRegistry(in-process queue) · GeminiChatClient(첫 라운드 ANY→AUTO, stream) · turn_store · tools/(read-only)
+│   │   ├── prompts/               chat@v10 — PromptVersion 버저닝, 기준+why
 │   │   └── presentation/router.py POST /{id}/messages(POST-as-SSE) · GET 목록/스냅샷 · DELETE
 │   └── notifications/
 │       ├── domain/                DevicePushToken, APNsClient port
@@ -149,8 +149,9 @@ gcloud config set project <YOUR_PROJECT_ID>
 
 ### Auth Boundary (dev vs prod)
 - **dev**: `Bearer dev:jun` 같은 토큰 → SHA-256 해시 기반 결정론적 `UserID` 생성, 로컬에서도 멀티-유저 시나리오 테스트 가능
-- **prod**: JWKS 기반 JWT 검증 (TODO 명시) — 미설정 시 `auth.jwt_not_configured` 로 즉시 503
+- **prod**: 자체 발행 access JWT 검증 (HS256, `AUTH_ACCESS_SECRET`, TTL 30분) + 회전 refresh token. JWKS 는 Apple/Google **ID token 검증에만** 사용 (`/auth/{apple,google}`)
 - dev 토큰은 `local` 외 환경에서는 거부되어 prod 누설을 차단
+- **capture token** (`POST /auth/capture-tokens`, access JWT 필수): ShareExtension 직접 전송용 `mct_` opaque 토큰. DB 엔 SHA-256 hash 만(`capture_tokens`, 마이그레이션 0019), **ingest + presign 두 라우트에서만 유효**(`CurrentCaptureUser` — 다른 라우트에선 JWT 파싱 실패로 자동 401, 권한 상승 차단). sliding 180일(검증 시 연장, 1h 디바운스 UPDATE) + 사용자당 활성 5개 cap(oldest evict). logout 바디 `captureToken` 동봉 시 함께 revoke, refresh reuse 감지 시 사용자 전체 연쇄 revoke
 - **`POST /auth/dev`**: Apple/Google 시트 없이 `subject` 만으로 정식 access/refresh JWT 를 발급하는 dogfooding 전용 엔드포인트. `environment != "local"` 이면 503 (`auth.dev_sign_in_disabled`). subject 가 같으면 `_derive_dev_user_id` 와 동일한 UUID 로 `users` 행 멱등 upsert (`auth_accounts` 는 건드리지 않아 provider CHECK 제약 회피). iOS 의 "임시 로그인 (dev)" 버튼이 사용.
 
 ### X-Mochi-Request-ID

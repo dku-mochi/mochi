@@ -16,6 +16,7 @@ from datetime import UTC, datetime
 
 from app.modules.auth.domain.entities import (
     AuthTokens,
+    CaptureTokenRevokedReason,
     RefreshToken,
     RefreshTokenRevokedReason,
     new_refresh_token_id,
@@ -29,6 +30,7 @@ from app.modules.auth.domain.errors import (
 )
 from app.modules.auth.domain.ports import (
     AccessTokenIssuer,
+    CaptureTokenRepository,
     RefreshTokenIssuer,
     RefreshTokenRepository,
     UserRepository,
@@ -50,11 +52,15 @@ class RotateRefreshToken:
         users: UserRepository,
         access_issuer: AccessTokenIssuer,
         refresh_issuer: RefreshTokenIssuer,
+        capture_tokens: CaptureTokenRepository,
     ) -> None:
+        # capture_tokens 는 reuse 감지 시 연쇄 revoke 보안 훅 — optional 로 두면 배선 누락이
+        # 조용히 훅을 무력화하므로 의도적으로 필수 주입이다.
         self._refresh_tokens = refresh_tokens
         self._users = users
         self._access_issuer = access_issuer
         self._refresh_issuer = refresh_issuer
+        self._capture_tokens = capture_tokens
 
     async def execute(self, cmd: RefreshCommand) -> AuthTokens:
         now = datetime.now(UTC)
@@ -74,10 +80,18 @@ class RotateRefreshToken:
 
         if current.is_used:
             # 도난 의심 — family 전체를 revoke 하고 사용자에게 재로그인 강제.
+            # 같은 사용자의 capture token 도 전부 revoke 한다 — 장수명 자격증명을 살려두면
+            # 도난자의 도주로가 된다. 다른 디바이스 ShareExt 는 큐 폴백으로 유실 없이 저하,
+            # 앱 재부팅(재로그인) 시 재발급된다. 보안 > 편의.
             await self._refresh_tokens.revoke_family(
                 family_id=current.family_id,
                 revoked_at=now,
                 reason=RefreshTokenRevokedReason.REUSE_DETECTED,
+            )
+            await self._capture_tokens.revoke_all_for_user(
+                user_id=current.user_id,
+                revoked_at=now,
+                reason=CaptureTokenRevokedReason.REUSE_DETECTED,
             )
             raise RefreshTokenReuseDetectedError(
                 "Refresh token reuse detected; family revoked",
@@ -104,6 +118,11 @@ class RotateRefreshToken:
                 family_id=current.family_id,
                 revoked_at=now,
                 reason=RefreshTokenRevokedReason.REUSE_DETECTED,
+            )
+            await self._capture_tokens.revoke_all_for_user(
+                user_id=current.user_id,
+                revoked_at=now,
+                reason=CaptureTokenRevokedReason.REUSE_DETECTED,
             )
             raise RefreshTokenReuseDetectedError(
                 "Refresh token rotation race detected; family revoked",

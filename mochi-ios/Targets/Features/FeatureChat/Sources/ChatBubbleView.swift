@@ -1,6 +1,7 @@
 import CoreAgentClient
 import DesignSystem
 import SwiftUI
+import UIKit
 
 /// 대화 버블 — user 는 퍼플 그라데이션, assistant 는 화이트 카드.
 /// (미니 모찌 아바타는 26pt 로 뭉개져 보여 제거 — 2026-06-10 피드백.)
@@ -46,6 +47,24 @@ struct ChatBubbleView: View {
                     )
                 )
                 .shadow(color: HomeDesign.Color.purple500.opacity(0.22), radius: 10, x: 0, y: 5)
+                // 프리뷰가 버블 모서리 그대로 들리도록 — 기본 사각 프리뷰는 티가 난다.
+                .contentShape(
+                    .contextMenuPreview,
+                    UnevenRoundedRectangle(
+                        topLeadingRadius: 20,
+                        bottomLeadingRadius: 20,
+                        bottomTrailingRadius: 6,
+                        topTrailingRadius: 20,
+                        style: .continuous
+                    )
+                )
+                .contextMenu {
+                    Button {
+                        UIPasteboard.general.string = message.text
+                    } label: {
+                        Label("복사", systemImage: "doc.on.doc")
+                    }
+                }
         }
         .frame(maxWidth: .infinity, alignment: .trailing)
         .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -80,10 +99,25 @@ struct ChatBubbleView: View {
                     ForEach(Array(blocks.enumerated()), id: \.offset) { _, block in
                         switch block {
                         case let .paragraph(text):
-                            Text(text)
+                            Text(ChatMarkup.resolvingBold(text, size: 14.5))
                                 .font(.system(size: 14.5, weight: .medium, design: .rounded))
                                 .foregroundStyle(HomeDesign.Color.textPrimary)
                                 .lineSpacing(3.5)
+                        case let .heading(level, text):
+                            Text(text)
+                                .font(.system(size: level <= 2 ? 16.5 : 15, weight: .bold, design: .rounded))
+                                .foregroundStyle(HomeDesign.Color.textPrimary)
+                                .padding(.top, 2)
+                        case let .list(items):
+                            ChatListBlockView(items: items)
+                        case let .quote(text):
+                            ChatQuoteBlockView(text: text)
+                        case .divider:
+                            // 짧은 고정폭 룰 — 가변폭이면 구분선 하나로 말풍선이 항상 최대폭이 된다.
+                            Capsule()
+                                .fill(HomeDesign.Color.purple100)
+                                .frame(width: 44, height: 2)
+                                .padding(.vertical, HomeDesign.Spacing.xs)
                         case let .table(header, rows):
                             ChatTableView(header: header, rows: rows)
                         }
@@ -118,6 +152,28 @@ struct ChatBubbleView: View {
                 .fill(HomeDesign.Color.surface)
             )
             .shadow(color: HomeDesign.Color.ink900.opacity(0.05), radius: 12, x: 0, y: 6)
+            .contentShape(
+                .contextMenuPreview,
+                UnevenRoundedRectangle(
+                    topLeadingRadius: 6,
+                    bottomLeadingRadius: 20,
+                    bottomTrailingRadius: 20,
+                    topTrailingRadius: 20,
+                    style: .continuous
+                )
+            )
+            .contextMenu {
+                // 본문이 있을 때만 — 툴 pill·타이핑 점 단계의 빈 버블엔 메뉴가 무의미하다.
+                if !message.text.isEmpty {
+                    Button {
+                        UIPasteboard.general.string = ChatMarkup.plainText(
+                            raw: message.text, citations: message.citations
+                        )
+                    } label: {
+                        Label("복사", systemImage: "doc.on.doc")
+                    }
+                }
+            }
 
             Spacer(minLength: 36)
         }
@@ -146,6 +202,72 @@ struct ChatBubbleView: View {
         let hasText: Bool
         let citationCount: Int
         let proposalCount: Int
+    }
+}
+
+/// 마크다운 리스트 블록 — 불릿은 퍼플 도트, 번호는 퍼플 숫자로. 마커 폭을 고정해
+/// 줄바꿈 시 행잉 인덴트가 잡히고, firstTextBaseline 정렬로 마커가 첫 줄에 붙는다.
+/// (번호를 원형 뱃지로 감싸지 않는 이유: 원 안 숫자는 citation 근거 번호의 시각 언어다.)
+struct ChatListBlockView: View {
+    let items: [ChatMarkup.ListItem]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: HomeDesign.Spacing.xs + 2) {
+            ForEach(Array(items.enumerated()), id: \.offset) { _, item in
+                HStack(alignment: .firstTextBaseline, spacing: HomeDesign.Spacing.sm + 2) {
+                    marker(item)
+                    Text(ChatMarkup.resolvingBold(item.text, size: 14.5))
+                        .font(.system(size: 14.5, weight: .medium, design: .rounded))
+                        .foregroundStyle(HomeDesign.Color.textPrimary)
+                        .lineSpacing(3.5)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .padding(.leading, item.depth == 0 ? 0 : HomeDesign.Spacing.lg)
+            }
+        }
+        .padding(.vertical, 1)
+    }
+
+    /// 번호 마커 공통 폭 — 리스트 안 최장 자릿수(`10.`) 기준으로 모든 항목이 같은 폭을
+    /// 가져야 본문 시작 x 가 흔들리지 않는다.
+    private var ordinalWidth: CGFloat {
+        let maxDigits = items.compactMap { $0.ordinal?.count }.max() ?? 1
+        return CGFloat(maxDigits) * 8 + 6
+    }
+
+    @ViewBuilder
+    private func marker(_ item: ChatMarkup.ListItem) -> some View {
+        if let ordinal = item.ordinal {
+            Text("\(ordinal).")
+                .font(.system(size: 13, weight: .bold, design: .rounded))
+                .foregroundStyle(HomeDesign.Color.purple500)
+                .frame(width: ordinalWidth, alignment: .trailing)
+        } else {
+            Circle()
+                .fill(item.depth == 0 ? HomeDesign.Color.purple400 : HomeDesign.Color.purple200)
+                .frame(width: 5, height: 5)
+                // 도트 중심이 본문 x-height 가운데(베이스라인 위 ~4pt)에 오도록.
+                .alignmentGuide(.firstTextBaseline) { $0[.bottom] + 1.5 }
+                .padding(.leading, item.depth == 0 ? 3 : 0)
+        }
+    }
+}
+
+/// 마크다운 인용 블록 — 퍼플 헤어라인 바 + 차분한 잉크 톤으로 본문과 결을 구분.
+struct ChatQuoteBlockView: View {
+    let text: AttributedString
+
+    var body: some View {
+        HStack(alignment: .top, spacing: HomeDesign.Spacing.sm + 2) {
+            Capsule()
+                .fill(HomeDesign.Color.purple200)
+                .frame(width: 3)
+            Text(ChatMarkup.resolvingBold(text, size: 14))
+                .font(.system(size: 14, weight: .medium, design: .rounded))
+                .foregroundStyle(HomeDesign.Color.textMuted)
+                .lineSpacing(3.5)
+        }
+        .padding(.vertical, 1)
     }
 }
 

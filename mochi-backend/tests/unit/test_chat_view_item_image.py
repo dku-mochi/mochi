@@ -181,7 +181,7 @@ async def test_multi_call_round_appends_images_after_all_call_response_pairs() -
 
     contents = llm.calls[1]["contents"]
     image_indexes = [i for i, p in enumerate(contents) if "images" in p]
-    last_fr_index = max(i for i, p in enumerate(contents) if "function_response" in p)
+    last_fr_index = max(i for i, p in enumerate(contents) if "function_responses" in p)
     assert len(image_indexes) == 1
     assert image_indexes[0] > last_fr_index  # 모든 fc/fr 쌍이 닫힌 뒤
 
@@ -228,7 +228,7 @@ def test_history_reconstruction_never_carries_images() -> None:
     contents = _contents_from_history(history)
 
     assert all("images" not in part for part in contents)
-    response = next(p for p in contents if "function_response" in p)["function_response"]["response"]
+    response = next(p for p in contents if "function_responses" in p)["function_responses"][0]["response"]
     assert "view_item_image again" in response["note"]  # 모델에게 재호출 경로를 남긴다
 
 
@@ -260,14 +260,15 @@ async def test_budget_exhaustion_mid_round_keeps_image_part_after_recorded_pairs
     await _drain(queue)
 
     contents = llm.calls[1]["contents"]
-    fc_indexes = [i for i, p in enumerate(contents) if "function_call" in p]
-    fr_indexes = [i for i, p in enumerate(contents) if "function_response" in p]
-    assert len(fc_indexes) == 1 and len(fr_indexes) == 1  # 스킵된 콜은 미기록 — 쌍 정합
+    fc_groups = [(i, p["function_calls"]) for i, p in enumerate(contents) if "function_calls" in p]
+    fr_groups = [(i, p["function_responses"]) for i, p in enumerate(contents) if "function_responses" in p]
+    assert len(fc_groups) == 1 and len(fr_groups) == 1
+    assert len(fc_groups[0][1]) == 1 and len(fr_groups[0][1]) == 1  # 스킵된 콜은 미기록 — 쌍 정합
     image_index = next(i for i, p in enumerate(contents) if "images" in p)
     fallback_index = next(
         i for i, p in enumerate(contents) if "Tool budget is exhausted" in p.get("text", "")
     )
-    assert fr_indexes[0] < image_index < fallback_index
+    assert fr_groups[0][0] < image_index < fallback_index
 
 
 # ---------- ④ genai 변환 ----------
