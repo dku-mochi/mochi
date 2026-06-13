@@ -52,7 +52,113 @@ exp1 산출 상품명 20건 × 4 제공자, iPhone Safari UA 로 GET:
 - 봇 차단(403/418) ≠ 사용자 브라우저 실패 — 최종 UX 는 `results/exp2_links_*.md` 의
   링크를 실기기에서 탭해 확인 (미수행, 남은 단계).
 
-### 프로덕션 반영 (2026-06-13 완료)
+### exp4 — 범용 라우팅 (2026-06-14, `results/exp4_20260614_001841.json`)
+
+exp3(shop 단일)은 실행 생략하고 exp4 로 일반화해 흡수. 핵심 질문이 "쇼핑 검색어가 잘
+나오나"에서 "**임의 캡처 → 어느 종류 자료가 필요한지 라우팅 → 네이버 검색 단일 백본으로
+실재 URL 이 나오나**"로 바뀜(사용자 비전: 범용 resource finder).
+
+12 합성 케이스(도메인 혼재) — 라우터 flash-lite `{needs_resource, category(shop|local|blog|news|none), query}`
+→ 네이버 검색 엔드포인트별 → judge 3.5-flash:
+
+| 지표 | 값 |
+|---|---|
+| routing_ok_rate | **1.0** (12/12) |
+| none_rate | 0.25 (친구대화·마감일 등 URL 불필요 3건 정확 분리) |
+| found_rate | **1.0** (검색 9건 전부 total>0, 헛검색 0) |
+| avg_usefulness | **4.22 / 5** (judge, 검색한 것만) |
+
+- **네이버 검색 API 단일 키로 shop/local/blog/news 멀티 도메인 전부 커버** — 사이트별 어댑터
+  불필요, 카테고리 라우팅만으로 충분. "범용 백본" 가설 입증.
+- 약점 1: 모호한 쇼핑("엄마 생신 선물 추천")은 generic 결과(top1=용돈박스) → exp1 의
+  specificity 게이트 재확인. 라우터가 exact 수준 미달이면 none 으로 강등 필요.
+- 약점 2: 영상 자체(넷플릭스 작품/유튜브 클립)는 네이버 검색으로 부정확 — 라우터가 blog
+  ("넷플릭스 다큐 추천 글")로 우회. **video 카테고리 + 메타 도구(`PlatformContextTool`) 별도** 필요.
+- 아키텍처: "sub agent" 아니라 **메인 agent loop 의 tool** 로 승격이 정확 — 기존 `Tool[TIn,TOut]`
+  ABC + `StaticToolRegistry` 구조에 `ResourceFinderTool` 추가(메인이 필요 판단→function call→
+  실재 URL 반환, 환각 0). 토큰은 tool 내부 라우터(flash-lite)로 분리.
+
+### exp5 — ResourceFinder loop agent (2026-06-14, `results/exp5_20260614_003612.json`)
+
+exp4(단발 route→search→judge)를 **자체 loop 도는 mini-agent** 로 진화(사용자 방향): route
+(generic 캡처는 검색 가능 키워드로 분해) → search loop(네이버 1차 + Tavily web 폴백, ≤2 iter,
+critique 가 재검색 쿼리 제시) → final judge 게이트(무용하면 빈손). 18 합성 케이스.
+
+| 지표 | Tavily 없이 | **Tavily 폴백** |
+|---|---|---|
+| final_useful_rate | 0.44 | **0.61** |
+| fallback_used | 0 | **3** (web 3건 전부 구제) |
+| suppressed(judge 버림) | 5 | 2 |
+| refine_count | 4 | 1 |
+| avg_iters | 1.31 | 1.08 |
+| avg_usefulness(useful만) | 4.62 | 4.64 |
+| none_rate / rescue_count | 0.28 / 2 | 0.28 / 2 |
+
+- **2-tier 백본 확정**: 네이버(한국 shop/local/blog/news) 1차 + Tavily(범용·해외) 폴백. 네이버
+  사각(영어/해외: React Server Components·Netflix 다큐·mechanical keyboard)을 Tavily 가 전부
+  구제 → useful_rate 0.44→0.61.
+- **loop 3요소 작동**: 키워드 추출(엄마 생신선물 rescue 2) · 폴백(3) · final judge 억제(무용 2 차단).
+  none 5건 정확 분리. 검색 시도 13건 중 11 useful(85%). 전부 실재 검색 → 환각 0.
+- 남은 약점: (a) vague_gift — "엄마 생신선물" top 이 여전히 용돈박스 generic, "여자친구
+  화이트데이"는 judge 가 버림. 키워드 분해가 "여성 귀걸이" 수준 구체까진 못 감. (b) news("금리
+  인하")는 결과 과다·generic 해 특정 기사로 못 좁혀 judge 가 버림. → 프로덕션 specificity 게이트로 흡수.
+- 아키텍처 확정: 프로덕션 `ResourceFinderTool` = 메인 agent loop 의 tool, 내부는 이 loop
+  (route→search(naver/tavily)→critique→judge). env: NAVER_CLIENT_ID/SECRET·TAVILY_API_KEY(.env 보유).
+
+### exp6 — 실데이터 97건 (2026-06-14, `results/exp6_20260614_010146.json`)
+
+exp5(합성 18건) 데이터 부족 지적 → 프로덕션 DB(`mochi-db` VM docker pg, IAP SSH 경유)에서
+실제 mochi_items 97건 추출(텍스트만, 이미지 제외; `lab/data/mochi_items_prod.jsonl`, gitignore).
+loop 구조는 exp5 그대로, **입력만 교체**(route 가 summary 보고 키워드 생성).
+
+| 지표 | 값 |
+|---|---|
+| final_useful_rate | 0.48 (47/97) |
+| none_rate | 0.34 (33건 검색 불필요 판단) |
+| suppressed | 17 (검색했으나 judge 가 무용 판정해 차단) |
+| avg_usefulness(useful만) | 4.64 |
+| fallback_used | 16 (Tavily web) |
+| avg_iters | 1.19 |
+
+- 검색 시도 64건(97−none33) 중 47 useful = **73%**. none+suppressed=50건을 "안 보여줄"
+  결정 → 보여주는 건 확실할 때만(4.64). "혹시 이거?" 신뢰의 핵심.
+- category별: 쇼핑후보 **0.89**(구체 상품명) > 투자 0.67 > 쇼핑 0.53 > 학업 0.50 > 일상 0.43. 구체적일수록 잘됨.
+- route 키워드 품질 양호: 정확 상품명(데이지크 틴트/로지텍 MX/콜게이트), 분해(유니클로 아이템별),
+  해외제품 web+영어(Lofree EDGE), none 정확(카톡대화/계획).
+- 실패 패턴(suppressed): (a) generic 추천 키워드("육아템 추천"·"남성 약산성 세안제 추천"·
+  "보온병 추천")→빈약/무관, (b) 품절·희귀(배스킨 토이스토리컵 검색0), (c) local 약함(동탄 미용실),
+  (d) 브랜드명 일반명사화(LUCIER 안경→무관 뿔테). judge 게이트가 전부 차단(false positive 억제 작동).
+- 결론: 실데이터에서도 ResourceFinder loop 유효. 약점은 generic 키워드 분해 품질 + local 검색.
+  **다음(exp7): 비용 측정(`app.shared.llm_cost`/`llm_usage` 재사용) + generic 키워드 분해 개선.**
+
+### exp7 — 비용+generic개선+티어랭킹, exp6 실패 20건 (2026-06-14, `results/exp7_20260614_013315.json`)
+
+exp6 의 "검색 시도했으나 실패(suppressed)/빗나간(usefulness≤3)" 20건 타겟. ① generic 키워드
+개선(ROUTER_PROMPT) ② 비용 측정(서버 `app.shared.llm_cost`/`llm_usage` 재사용) ③ 액션티어 랭킹.
+
+**개선 효과 net 0** (improved 2 / regressed 2 / still_failing 15, useful_rate_delta 0.0):
+- 살린 것(2): local 류(여의도 베이커리·마을버스 시간표) — 군더더기 제거가 먹힘.
+- 깬 것(2, 부작용): 영어 검색이 나았는데 한글 강제 / 과도한 none 처리.
+- **핵심: 실패 20건은 키워드 문제가 아니라 "검색 대상 부재"** — ROUTER_PROMPT 튜닝으론 못 고침.
+
+**실패 2부류:**
+1. **"영상 속 추천 리스트"(가장 큰 덩어리)** — 애둘맘 잘산템·너드킹 셔츠 리스트(3건)·살림 꿀템·
+   어깨운동 루틴·트럼프 버블. 인스타릴스·유튜브가 추천한 구체 제품을 summary 가 모름 → 텍스트
+   검색 불가. **원본 영상 URL 로 보내야 함**(검색 아니라 `PlatformContextTool` 영역, 사용자 "유튜브→원본" 직관).
+2. **진짜 검색불가** — 품절(배스킨 토이스토리)·일반명사 브랜드(LUCIER 안경)·로컬 소상공인(모프 동탄).
+   judge 가 옳게 버림(게이트 견고).
+→ generic 키워드 개선 ROI 낮음. ROUTER_PROMPT 변경은 부작용 있어 **되돌림 검토**.
+
+**비용(케이스당, 검색 도는 케이스 기준):** $0.001763. 단계별 judge(3.5-flash) 61% / route 25% /
+critique 14%. 모델별 flash-lite $0.0138 + 3.5-flash $0.0215(20건 합 $0.035). 전체 캡처 평균은
+none 34%(route 1회) 포함 시 더 쌈(추정 ~$0.0013/캡처). judge 가 비용 지배 → 비용 줄이려면 judge 모델·빈도.
+
+**티어 랭킹:** useful 3건뿐(tier4 정보2/tier3 오픈마켓1, 원본일치0)이라 검증 빈약 — exp6 성공 47건으로 재검증 필요.
+
+**시사점:** (a) 키워드 개선보다 "영상 캡처→원본 영상 URL 회수"가 실패의 큰 덩어리 해결(`PlatformContextTool`).
+(b) 검색불가 패턴은 judge 가 잘 버리니 무리한 개선 말고 깔끔히 none. (c) 티어 랭킹은 useful 풍부한 셋으로.
+
+### 프로덕션 반영 (2026-06-13 완료, shopping_product 1차)
 
 1. 분석 프롬프트: 쇼핑 캡처 한정 `entities(kind="shopping_product")` 산출 — specificity 는 별도
    필드 대신 프롬프트 게이트("검색 가능 수준 미달이면 생략")로 내장 (`system_prompts.py`).

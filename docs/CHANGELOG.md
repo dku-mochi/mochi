@@ -10,6 +10,9 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-06-14 — backend
+- **"비슷한 기록"(상세 화면 similar) 전 항목에서 안 보이던 버그 수정 — SQLAlchemy 가 SQL 주석 안의 콜론 토큰을 bind param 으로 파싱.** `postgres_index.py` similar 쿼리에 `--   AND c.sensitivity_level < :threshold` 주석(미래 privacy 게이트 자리표시)이 있었는데, SQLAlchemy `text()` 는 `--` 주석 안의 `:threshold` 도 named bind param 으로 파싱한다. `.bindparams()` 에 threshold 가 없어 **모든 `/similar` 요청이 `InvalidRequestError: A value is required for bind parameter 'threshold'` 로 500** → iOS 가 `try?`/`?? []` 로 삼켜 빈 배열 → 어떤 항목 상세를 열어도 섹션이 조용히 숨겨졌다. 운영 로그(`journalctl -u mochi`)의 컴파일된 SQL 에서 주석 줄이 `$4` 로 번호 매겨진 걸 확인해 근본원인 특정. **수정**: 주석에서 콜론 파라미터 표기 제거(자연어로 의도 보존) + 동일 함정 경고 주석. **회귀 테스트**: `test_similar_sql_has_no_unbound_params` — fake 세션은 컴파일을 안 거쳐 못 잡으므로 실제 postgresql dialect 로 `construct_params({})` 해 미충족 bind 를 막는다. 로컬 DB end-to-end 재현·수정 검증(6건 반환, score 0.70~0.75). `make lint`/`typecheck`/`test`(253 passed) green. **운영 재배포 필요**(배포된 코드도 동일 버그). (사용자 리포트: 비슷한 기록이 안 보임)
+
 ## 2026-06-13 — ios
 - **기록 상세 "지금 할 수 있어요"의 쿠팡·네이버 검색 행 아이콘을 단색 `bag.fill`→favicon 으로 교체.** 검색 링크라 OG 이미지는 무의미(검색결과 페이지엔 대표 이미지 없음)하지만, 목적지 브랜드(쿠팡·네이버)는 favicon 이 "어디로 가는지"를 글자보다 빨리 떠올리게 한다. 기존 `FaviconTile`(Kingfisher, `host/favicon.ico` + 보라 첫글자 폴백) 재사용. `DetailLinkRow` 에 `usesFavicon` 플래그 추가, purple50 타일 레이아웃은 보존. `primaryURL` 원본 행은 현행 SF Symbol 유지(scope 한정).
 

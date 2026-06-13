@@ -1,0 +1,426 @@
+{
+  "summary": {
+    "router_model": "gemini-3.1-flash-lite",
+    "judge_model": "gemini-3.5-flash",
+    "cases": 12,
+    "errors": 0,
+    "routing_ok_rate": 1.0,
+    "none_rate": 0.25,
+    "searched": 9,
+    "found_rate": 1.0,
+    "avg_usefulness": 4.22
+  },
+  "results": [
+    {
+      "memo": "친구랑 카톡 캡처: 내일 뭐 먹을지 ㅋㅋ",
+      "expect_category": "none",
+      "routing": {
+        "needs_resource": false,
+        "category": "none",
+        "query": null,
+        "reason": "친구와의 사적인 대화 내용으로 외부 정보 검색이 필요하지 않습니다."
+      },
+      "judge": {
+        "routing_ok": true,
+        "usefulness": 2,
+        "comment": "사적인 대화 내용이므로 외부 검색이 필요 없다고 판단한 라우팅은 적절합니다."
+      }
+    },
+    {
+      "memo": "전세 보증금 안 돌려줌, 소송 절차 알아보기",
+      "expect_category": "blog",
+      "routing": {
+        "needs_resource": true,
+        "category": "blog",
+        "query": "전세 보증금 반환 소송 절차",
+        "reason": "법적 절차에 대한 구체적인 정보와 가이드가 필요하므로 블로그 형태의 정리된 정보가 유용함"
+      },
+      "search": {
+        "total": 409506,
+        "items": [
+          {
+            "title": "전세보증금반환소송 절차 추진은",
+            "link": "https://blog.naver.com/jaryong23/223477265687",
+            "description": "전세보증금반환소송 절차 추진은 전세계약으로 보증금 전액을 지불한 후 퇴거 시 금액 전부를 다시... 정해진 절차와 방법으로 임차권등기명령과 전세보증금반환소송을 진행해야 한다고 했습니다. 여러모로...",
+            "bloggername": "건강정보",
+            "postdate": "20240612"
+          },
+          {
+            "title": "2억 기준 전세보증금반환소송 절차",
+            "link": "https://blog.naver.com/karakoram21/223923892919",
+            "description": "전세보증금반환소송에서 가장 중요한 핵심은 승소한 이후에 어떤 식으로 보증금을 회수하는 강제집행 절차를 변호사가 진행해 주는지 여부 입니다. 소송을 진행해서 승소 판결을 받게 되면 내가 손가락 하나...",
+            "bloggername": "법무법인 한림 교대역 사무소",
+            "postdate": "20250706"
+          },
+          {
+            "title": "방법, 전세보증금반환 청구 소송과 강제집행 절차는 어떻게...",
+            "link": "https://blog.naver.com/5msd/224266701598",
+            "description": "보증금 전액 돌려받는 방법, 전세보증금반환 청구 소송과 강제집행 절차는 어떻게 되나요? 임차인이 임대차 계약 종료 후에도 보증금을 반환받지 못하는 상황은 단순히 경제적인 피해를 넘어 일상생활의 근간을...",
+            "bloggername": "전세보증금반환전문 서초동 변호사",
+            "postdate": "20260427"
+          }
+        ]
+      },
+      "judge": {
+        "routing_ok": true,
+        "usefulness": 4,
+        "comment": "소송 절차에 대한 유용한 블로그 정보가 상위에 노출되어 라우팅과 검색 결과 모두 적절합니다."
+      }
+    },
+    {
+      "memo": "쿠어 스탠드 칼라 넥 다운 푸퍼 검정 살까 말까",
+      "expect_category": "shop",
+      "routing": {
+        "needs_resource": true,
+        "category": "shop",
+        "query": "쿠어 스탠드 칼라 넥 다운 푸퍼",
+        "reason": "구매를 고민 중인 의류 상품이므로 가격과 상세 정보를 확인할 수 있는 쇼핑 검색이 필요합니다."
+      },
+      "search": {
+        "total": 23,
+        "items": [
+          {
+            "title": "쿠어 스탠드 칼라 넥 다운 푸퍼",
+            "link": "https://search.shopping.naver.com/catalog/58192644136",
+            "lprice": "269100",
+            "mallName": "네이버",
+            "brand": "쿠어"
+          },
+          {
+            "title": "쿠어 COOR 스탠드 칼라 넥 다운 푸퍼 올리브카키 S",
+            "link": "https://search.shopping.naver.com/catalog/60360909752",
+            "lprice": "329900",
+            "mallName": "네이버",
+            "brand": "쿠어"
+          },
+          {
+            "title": "쿠어 스탠드 칼라 넥 다운 푸퍼 CXE4JP03V",
+            "link": "https://search.shopping.naver.com/catalog/55417062925",
+            "lprice": "269100",
+            "mallName": "네이버",
+            "brand": "쿠어"
+          }
+        ]
+      },
+      "judge": {
+        "routing_ok": true,
+        "usefulness": 4,
+        "comment": "구매 고민 중인 의류 상품에 대해 정확한 쇼핑 검색 결과를 제공하여 유용합니다."
+      }
+    },
+    {
+      "memo": "성수동 분위기 좋은 파스타집 가보기",
+      "expect_category": "local",
+      "routing": {
+        "needs_resource": true,
+        "category": "local",
+        "query": "성수동 파스타 맛집",
+        "reason": "성수동의 파스타 맛집을 찾기 위해 지도 및 장소 정보가 필요합니다."
+      },
+      "search": {
+        "total": 3,
+        "items": [
+          {
+            "title": "성수다락",
+            "link": "http://www.instagram.com/seongsudarak",
+            "category": "음식점>양식",
+            "address": "서울특별시 성동구 성수동2가 328-15 2층",
+            "roadAddress": "서울특별시 성동구 뚝섬로9길 20 2층"
+          },
+          {
+            "title": "브리비트 성수",
+            "link": "https://catchtable.co.kr/bribeet_official",
+            "category": "음식점>양식",
+            "address": "서울특별시 성동구 성수동1가 13-191 1층",
+            "roadAddress": "서울특별시 성동구 상원6길 5-1 1층"
+          },
+          {
+            "title": "이태리국시 성수",
+            "link": "https://www.instagram.com/italyguksi",
+            "category": "음식점>양식",
+            "address": "서울특별시 성동구 성수동1가 656-1085 3층",
+            "roadAddress": "서울특별시 성동구 왕십리로8길 18-1 3층"
+          }
+        ]
+      },
+      "judge": {
+        "routing_ok": true,
+        "usefulness": 5,
+        "comment": "성수동 파스타 맛집을 찾는 로컬 검색 라우팅이 매우 적절했으며, 검색 결과로 제공된 식당들이 메모의 목적에 잘 부합합니다."
+      }
+    },
+    {
+      "memo": "아이폰 16 프로 256 자급제 최저가",
+      "expect_category": "shop",
+      "routing": {
+        "needs_resource": true,
+        "category": "shop",
+        "query": "아이폰 16 프로 256 자급제",
+        "reason": "구매를 고려 중인 상품의 최저가를 확인하기 위해 쇼핑 검색이 필요합니다."
+      },
+      "search": {
+        "total": 425,
+        "items": [
+          {
+            "title": "아이폰 16프로 256GB Apple 미개봉 새상품",
+            "link": "https://www.lotteon.com/p/product/LO2604555346?sitmNo=LO2604555346_2604555347&ch_no=100065&ch_dtl_no=1000030&entryPoint=pcs&dp_infw_cd=CHT",
+            "lprice": "825380",
+            "mallName": "롯데ON",
+            "brand": ""
+          },
+          {
+            "title": "[Apple]아이폰 16프로맥스 256GB Apple 미개봉 새상품",
+            "link": "https://smartstore.naver.com/main/products/13342176190",
+            "lprice": "890000",
+            "mallName": "전국온라인최저가",
+            "brand": "Apple"
+          },
+          {
+            "title": "애플 아이폰 16 프로 자급제 256 GB 카메라 무음 -색상랜덤",
+            "link": "https://link.gmarket.co.kr/gate/pcs?item-no=4513088985&sub-id=1003&service-code=10000003&lcd=100000056",
+            "lprice": "1204500",
+            "mallName": "G마켓",
+            "brand": ""
+          }
+        ]
+      },
+      "judge": {
+        "routing_ok": true,
+        "usefulness": 4,
+        "comment": "쇼핑 카테고리 라우팅이 적절했으며 검색 결과에 사용자가 찾는 아이폰 16 프로 256GB 자급제 상품이 잘 포함되어 있습니다."
+      }
+    },
+    {
+      "memo": "리액트 서버 컴포넌트 개념 공부하기",
+      "expect_category": "blog",
+      "routing": {
+        "needs_resource": true,
+        "category": "blog",
+        "query": "리액트 서버 컴포넌트 개념",
+        "reason": "리액트 서버 컴포넌트라는 기술적 개념을 학습하기 위해 관련 정리 글을 찾는 것이 도움이 됩니다."
+      },
+      "search": {
+        "total": 1013,
+        "items": [
+          {
+            "title": "리액트 서버 컴포넌트(React Server Components, RSC)",
+            "link": "https://blog.naver.com/kin412/224225782111",
+            "description": "RSC의 핵심 개념 서버에서만 실행: 컴포넌트 코드가 오직 **서버(Node.js)**에서만 돌아갑니다. 0KB... 무거운 리액트 엔진과 컴포넌트 JS 코드를 다 내려받아야 했습니다(하이드레이션). 문제: &quot;서버에서 다...",
+            "bloggername": "잡다한 IT",
+            "postdate": "20260322"
+          },
+          {
+            "title": "리액트(React) 기본 개념과 컴포넌트 개발 시작하기",
+            "link": "https://blog.naver.com/ibaflim0/224194187338",
+            "description": "오늘은 리액트의 기본 개념부터 시작해서 처음 컴포넌트를 만들어 보는 과정까지 차근차근... 기본 리액트 프로젝트를 만들어줍니다. 이후 폴더로 이동해서 서버를 실행하면 바로 웹 브라우저에서...",
+            "bloggername": "ibaflim0님의 블로그",
+            "postdate": "20260224"
+          },
+          {
+            "title": "[Next] 리액트의 서버 컴포넌트 부터 이해하기",
+            "link": "https://blog.naver.com/home124/223238759714",
+            "description": "단축합니다 리액트의 서버 컴포넌트로 db를 불러오는 쿼리도 짤 수 있습니다 주의할 점은 서버... 생소한 개념이지만 저는 아래의 글을 읽으면서 원리를 습득했습니다. https://yozm.wishket.com/magazine/detail...",
+            "bloggername": "개발공부기록",
+            "postdate": "20231017"
+          }
+        ]
+      },
+      "judge": {
+        "routing_ok": true,
+        "usefulness": 5,
+        "comment": "리액트 서버 컴포넌트 개념 학습을 위해 블로그 카테고리로 적절히 라우팅되었으며, 검색 결과에도 관련 개념을 다루는 글이 상위에 노출되어 유용합니다."
+      }
+    },
+    {
+      "memo": "과제 제출 마감 6월 20일 23:59",
+      "expect_category": "none",
+      "routing": {
+        "needs_resource": false,
+        "category": "none",
+        "query": null,
+        "reason": "단순 일정 및 마감일 메모로 외부 자료가 필요하지 않습니다."
+      },
+      "judge": {
+        "routing_ok": true,
+        "usefulness": 2,
+        "comment": "개인 일정 메모이므로 외부 검색이 불필요하다는 라우터의 판단이 적절합니다."
+      }
+    },
+    {
+      "memo": "오늘 뉴스에서 본 금리 인하 기사 다시 찾기",
+      "expect_category": "news",
+      "routing": {
+        "needs_resource": true,
+        "category": "news",
+        "query": "금리 인하",
+        "reason": "뉴스 기사 원문을 다시 확인하고 싶어하는 사용자의 의도를 반영함"
+      },
+      "search": {
+        "total": 915574,
+        "items": [
+          {
+            "title": "美 물가 3년만에 다시 4%대… 금리인하 전망 멀어져",
+            "link": "https://n.news.naver.com/mnews/article/023/0003981275?sid=101",
+            "description": "최근 고용 지표가 예상보다 강한 모습을 보인 데다 물가 상승세까지 재차 확대되면서 연내 금리 인하 기대는 더욱 약해질 전망이다. 다만 이날 시장은 세부 지표에 주목했다. 근원 물가의 월간 상승세가 둔화된 데다...",
+            "pubDate": "Wed, 10 Jun 2026 21:35:00 +0900"
+          },
+          {
+            "title": "유가 급등에 美 CPI 4.2%, 3년 만 최고…금리인하 기대 후퇴",
+            "link": "https://n.news.naver.com/mnews/article/629/0000506659?sid=101",
+            "description": "시장에서는 물가 재상승과 견조한 고용지표가 맞물리면서 미국 연방준비제도(Fed)의 금리 인하 시점이 늦춰질 수 있다는 전망이 나온다. 오는 16~17일 열리는 연방공개시장위원회(FOMC)에서는 기준금리 동결이...",
+            "pubDate": "Thu, 11 Jun 2026 00:01:00 +0900"
+          },
+          {
+            "title": "골드만 &quot;연준 올해 금리인하 없다&quot;…인상 가능성 20%로 상향",
+            "link": "https://n.news.naver.com/mnews/article/421/0008990324?sid=101",
+            "description": "골드만삭스가 미국 노동시장의 예상 밖 강세를 반영해 연방준비제도(Fed)의 올해 금리 인하 전망을 철회했다. 다만 인플레이션이 구조적으로 재가속화할 가능성은 낮다며 금리 인상 가능성은 여전히 제한적이라고...",
+            "pubDate": "Mon, 08 Jun 2026 08:00:00 +0900"
+          }
+        ]
+      },
+      "judge": {
+        "routing_ok": true,
+        "usefulness": 4,
+        "comment": "뉴스 기사를 찾기 위한 라우팅이 적절했으며, 검색 결과도 최근 금리 인하 관련 주요 뉴스를 잘 보여주고 있습니다."
+      }
+    },
+    {
+      "memo": "넷플릭스에서 본 그 요리 다큐 제목 뭐였지",
+      "expect_category": "none/blog",
+      "routing": {
+        "needs_resource": true,
+        "category": "blog",
+        "query": "넷플릭스 요리 다큐멘터리 추천",
+        "reason": "사용자가 기억하지 못하는 다큐멘터리 제목을 찾기 위해 관련 정보가 정리된 블로그 검색이 필요합니다."
+      },
+      "search": {
+        "total": 2808,
+        "items": [
+          {
+            "title": "지식, 감성 충전! 넷플릭스 다큐멘터리 TOP 10 추천",
+            "link": "https://blog.naver.com/winsweet/224286789288",
+            "description": "강력 추천하는 마지막 한 편은 바로 '우리의 지구(OUR PLANET) 1,2편입니다. 지구의 경이로운 자연경관과 기후 변화의 위기를 데이비드 애튼버러의 목소리로 담아냈습니다. 넷플릭스 다큐멘터리의 정수라고 할...",
+            "bloggername": "Play IT",
+            "postdate": "20260515"
+          },
+          {
+            "title": "넷플릭스 오리지널 요리 다큐멘터리 추천 - 소금 산 지방 불",
+            "link": "https://blog.naver.com/lautlesen/221865546919",
+            "description": "가벼운 다큐멘터리이다. #소금산지방불 #넷플릭스 이 다큐는 요리를 만드는데 꼭 필요한 요소인... 각각 Fat, salt, acid, heat 썸네일 #추천평 막 엄청 재밌고 새롭지는 않겠지만 세계테마기행을 좋아하고...",
+            "bloggername": "읽고 일하고 여행하는",
+            "postdate": "20200321"
+          },
+          {
+            "title": "[도젠추천]'독설가 미슐랭... 살아가기 ][ 넷플릭스 다큐멘터리 ]",
+            "link": "https://blog.naver.com/doutzen_/224180265724",
+            "description": "[ 공식 예고편 ] 장르 | 요리 다큐멘터리 연출 | 디온 브롬필드 출연자 | 고든램지 타나램지(아내) 총회차 | 6부작 독점 스트리밍 | 넷플릭스 &lt; 공개일 | 2026년 2월 18일 &gt;",
+            "bloggername": "미지근한,오늘",
+            "postdate": "20260215"
+          }
+        ]
+      },
+      "judge": {
+        "routing_ok": true,
+        "usefulness": 4,
+        "comment": "넷플릭스 요리 다큐를 찾는 질문에 블로그 검색을 적절히 수행했으며, 검색 결과에 대표적인 요리 다큐 정보가 포함되어 유용합니다."
+      }
+    },
+    {
+      "memo": "올리브영에서 본 아비브 어성초 패드 140매",
+      "expect_category": "shop",
+      "routing": {
+        "needs_resource": true,
+        "category": "shop",
+        "query": "아비브 어성초 패드 140매",
+        "reason": "구매를 고려하는 상품 정보이므로 최저가나 상세 정보를 확인할 수 있는 쇼핑 검색이 필요합니다."
+      },
+      "search": {
+        "total": 198,
+        "items": [
+          {
+            "title": "1+1 아비브 어성초 흔적 에센스 패드 클리어터치 140매",
+            "link": "https://smartstore.naver.com/main/products/12158521600",
+            "lprice": "26500",
+            "mallName": "참좋은뷰티",
+            "brand": "아비브"
+          },
+          {
+            "title": "아비브 어성초 스팟 패드 카밍터치 140매, 1개",
+            "link": "https://search.shopping.naver.com/catalog/52924525386",
+            "lprice": "17840",
+            "mallName": "네이버",
+            "brand": "아비브"
+          },
+          {
+            "title": "아비브 어성초 흔적 에센스 패드 클리어 터치 오롤리데이 콜라보 70매 + 70매(리필), 1개",
+            "link": "https://search.shopping.naver.com/catalog/59153378839",
+            "lprice": "25200",
+            "mallName": "네이버",
+            "brand": "아비브"
+          }
+        ]
+      },
+      "judge": {
+        "routing_ok": true,
+        "usefulness": 4,
+        "comment": "쇼핑 카테고리 분류가 적절하며 검색 결과에 사용자가 언급한 아비브 어성초 패드 140매 상품이 정확히 노출되었습니다."
+      }
+    },
+    {
+      "memo": "엄마 생신 선물 뭐 살지 고민 (아직 안 정함)",
+      "expect_category": "none",
+      "routing": {
+        "needs_resource": true,
+        "category": "shop",
+        "query": "엄마 생신 선물 추천",
+        "reason": "선물 후보를 탐색하고 가격과 상품 정보를 확인하기 위해 쇼핑 검색이 필요합니다."
+      },
+      "search": {
+        "total": 79561,
+        "items": [
+          {
+            "title": "용돈박스 돈뽑는 반전 용돈 이벤트 부모님 생신 환갑 칠순 팔순 생신 선물 깜짝 피치10장",
+            "link": "https://smartstore.naver.com/main/products/9184264826",
+            "lprice": "23900",
+            "mallName": "퍼플기프트샵",
+            "brand": ""
+          },
+          {
+            "title": "용돈 이벤트 생신 결혼기념일 부모님 환갑 칠순 팔순 남편 이벤트 선물 감사장",
+            "link": "https://smartstore.naver.com/main/products/9204892861",
+            "lprice": "13700",
+            "mallName": "프렌치로즈",
+            "brand": ""
+          },
+          {
+            "title": "부모님 환갑 생신선물 용돈이벤트 서프라이즈 용돈박스 피치(opp10장) 버건디",
+            "link": "https://smartstore.naver.com/main/products/13380946967",
+            "lprice": "23900",
+            "mallName": "마음담은집",
+            "brand": ""
+          }
+        ]
+      },
+      "judge": {
+        "routing_ok": true,
+        "usefulness": 4,
+        "comment": "선물 고민 단계에서 쇼핑 검색을 통해 인기 있는 부모님 생신 선물(용돈박스 등)을 잘 제안하였습니다."
+      }
+    },
+    {
+      "memo": "헬스장 PT 10회권 다음 주 화요일 결제",
+      "expect_category": "none",
+      "routing": {
+        "needs_resource": false,
+        "category": "none",
+        "query": null,
+        "reason": "개인적인 일정 및 결제 계획에 관한 메모로 외부 자료가 필요하지 않습니다."
+      },
+      "judge": {
+        "routing_ok": true,
+        "usefulness": 2,
+        "comment": "개인적인 결제 일정 및 계획에 관한 메모이므로 외부 검색이 필요 없다고 판단한 라우팅이 적절합니다."
+      }
+    }
+  ]
+}

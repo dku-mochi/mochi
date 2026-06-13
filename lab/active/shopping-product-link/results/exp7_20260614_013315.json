@@ -1,0 +1,2701 @@
+{
+  "summary": {
+    "router_model": "gemini-3.1-flash-lite",
+    "judge_model": "gemini-3.5-flash",
+    "data": "mochi_items_prod.jsonl",
+    "source_exp6": "exp6_20260614_010146.json",
+    "cases": 20,
+    "errors": 0,
+    "final_useful_rate": 0.15,
+    "none_rate": 0.15,
+    "refine_count": 9,
+    "fallback_used": 1,
+    "fallback_skipped": 0,
+    "suppressed": 14,
+    "avg_usefulness": 4.0,
+    "avg_iters": 1.53,
+    "by_category": {
+      "쇼핑": {
+        "cases": 7,
+        "useful": 0,
+        "useful_rate": 0.0
+      },
+      "일상": {
+        "cases": 5,
+        "useful": 2,
+        "useful_rate": 0.4
+      },
+      "None": {
+        "cases": 3,
+        "useful": 1,
+        "useful_rate": 0.33
+      },
+      "취미 및 자기계발": {
+        "cases": 2,
+        "useful": 0,
+        "useful_rate": 0.0
+      },
+      "쇼핑 후보": {
+        "cases": 1,
+        "useful": 0,
+        "useful_rate": 0.0
+      },
+      "자기관리": {
+        "cases": 1,
+        "useful": 0,
+        "useful_rate": 0.0
+      },
+      "투자": {
+        "cases": 1,
+        "useful": 0,
+        "useful_rate": 0.0
+      }
+    },
+    "improved": 2,
+    "regressed": 2,
+    "still_failing": 15,
+    "exp6_useful_rate": 0.15,
+    "useful_rate_delta": 0.0,
+    "total_cost_usd": 0.03525,
+    "avg_cost_per_case_usd": 0.001763,
+    "cost_by_step": {
+      "route": 0.008849,
+      "judge": 0.021458,
+      "critique": 0.004942
+    },
+    "cost_by_model": {
+      "gemini-3.1-flash-lite": 0.013792,
+      "gemini-3.5-flash": 0.021458
+    },
+    "unknown_pricing_calls": {},
+    "tavily_calls": 1,
+    "tier_distribution": {
+      "tier4_info": 2,
+      "tier3_openmarket": 1
+    },
+    "original_match_count": 0
+  },
+  "results": [
+    {
+      "id": "9da353b9",
+      "orig_summary": "배스킨라빈스에서 출시한 토이스토리 플레이컵에 대한 인스타그램 게시물입니다. 사용자가 '무조건 사야 함'이라고 메모를 남겨 구매 의사가 있음을 나타냈습니다.",
+      "orig_category": "쇼핑 후보",
+      "orig_url": null,
+      "before": {
+        "useful": false,
+        "usefulness": 1,
+        "queries": [
+          "배스킨라빈스 토이스토리 플레이컵"
+        ],
+        "route_category": "shop",
+        "comment": "검색 결과가 존재하지 않아 사용자에게 제공할 정보가 없습니다."
+      },
+      "route": {
+        "needs_resource": true,
+        "category": "shop",
+        "queries": [
+          "배스킨라빈스 토이스토리 플레이컵"
+        ],
+        "rationale": "사용자가 구매 의사를 밝힌 특정 상품이므로, 해당 상품의 상세 정보와 구매처를 찾기 위해 shop 카테고리로 분류했습니다."
+      },
+      "iters": [
+        {
+          "queries": [
+            "배스킨라빈스 토이스토리 플레이컵"
+          ],
+          "searches": [
+            {
+              "query": "배스킨라빈스 토이스토리 플레이컵",
+              "total": 0,
+              "items": []
+            }
+          ],
+          "critique": {
+            "sufficient": false,
+            "new_query": "배스킨라빈스 토이스토리 플레이컵 출시 정보"
+          },
+          "critique_usage": {
+            "model": "gemini-3.1-flash-lite",
+            "tokens_in": 329,
+            "tokens_out": 32,
+            "cost_usd": 0.00013025
+          }
+        },
+        {
+          "queries": [
+            "배스킨라빈스 토이스토리 플레이컵 출시 정보"
+          ],
+          "searches": [
+            {
+              "query": "배스킨라빈스 토이스토리 플레이컵 출시 정보",
+              "total": 0,
+              "items": []
+            }
+          ],
+          "critique": {
+            "sufficient": false,
+            "new_query": "배스킨라빈스 토이스토리 플레이컵 출시 정보"
+          },
+          "critique_usage": {
+            "model": "gemini-3.1-flash-lite",
+            "tokens_in": 329,
+            "tokens_out": 32,
+            "cost_usd": 0.00013025
+          }
+        }
+      ],
+      "web_called": false,
+      "web_skipped": false,
+      "searched_results": [],
+      "critique": {
+        "sufficient": false,
+        "new_query": "배스킨라빈스 토이스토리 플레이컵 출시 정보"
+      },
+      "judge": {
+        "useful": false,
+        "usefulness": 1,
+        "picked_urls": [],
+        "comment": "최종 수집 결과가 존재하지 않아 사용자에게 제공할 수 있는 링크가 없습니다."
+      },
+      "ranked_urls": [],
+      "usage": {
+        "route": {
+          "model": "gemini-3.1-flash-lite",
+          "tokens_in": 1277,
+          "tokens_out": 77,
+          "cost_usd": 0.00043475
+        },
+        "critique": {
+          "model": "gemini-3.1-flash-lite",
+          "tokens_in": 329,
+          "tokens_out": 32,
+          "cost_usd": 0.00013025
+        },
+        "judge": {
+          "model": "gemini-3.5-flash",
+          "tokens_in": 478,
+          "tokens_out": 140,
+          "cost_usd": 0.0004934
+        }
+      },
+      "case_cost_usd": 0.0011886499999999999
+    },
+    {
+      "id": "15dccd72",
+      "orig_summary": "미용실(모프 동탄) 방문을 위해 검색한 대중교통 경로입니다. 이동 시 경로를 확인하기 위해 저장했습니다.",
+      "orig_category": "자기관리",
+      "orig_url": null,
+      "before": {
+        "useful": false,
+        "usefulness": 1,
+        "queries": [
+          "동탄 모프 미용실 위치",
+          "동탄 모프 미용실 가는 길"
+        ],
+        "route_category": "local",
+        "comment": "수집된 결과가 없어 사용자에게 제공할 정보가 없습니다."
+      },
+      "route": {
+        "needs_resource": true,
+        "category": "local",
+        "queries": [
+          "모프 동탄"
+        ],
+        "rationale": "사용자가 특정 장소(모프 동탄)의 위치와 정보를 다시 확인하고 싶어 하므로 지도 검색이 가능한 local 카테고리로 분류했습니다."
+      },
+      "iters": [
+        {
+          "queries": [
+            "모프 동탄"
+          ],
+          "searches": [
+            {
+              "query": "모프 동탄",
+              "total": 3,
+              "items": [
+                {
+                  "title": "모프 동탄",
+                  "link": "https://blog.naver.com/rohyj2002",
+                  "category": "미용>미용실",
+                  "address": "경기도 화성시 오산동 978 유림노르웨이숲 201동 205, 206, 207호 모프",
+                  "roadAddress": "경기도 화성시 동탄감배산로 143 유림노르웨이숲 201동 205, 206, 207호 모프"
+                }
+              ]
+            }
+          ],
+          "critique": {
+            "sufficient": false,
+            "new_query": "동탄 모프 미용실 가는 법 대중교통"
+          },
+          "critique_usage": {
+            "model": "gemini-3.1-flash-lite",
+            "tokens_in": 335,
+            "tokens_out": 32,
+            "cost_usd": 0.00013175
+          }
+        },
+        {
+          "queries": [
+            "동탄 모프 미용실 가는 법 대중교통"
+          ],
+          "searches": [
+            {
+              "query": "동탄 모프 미용실 가는 법 대중교통",
+              "total": 3,
+              "items": []
+            }
+          ],
+          "critique": {
+            "sufficient": false,
+            "new_query": "동탄 모프 미용실 대중교통 가는 법"
+          },
+          "critique_usage": {
+            "model": "gemini-3.1-flash-lite",
+            "tokens_in": 318,
+            "tokens_out": 32,
+            "cost_usd": 0.0001275
+          }
+        }
+      ],
+      "web_called": false,
+      "web_skipped": false,
+      "searched_results": [],
+      "critique": {
+        "sufficient": false,
+        "new_query": "동탄 모프 미용실 대중교통 가는 법"
+      },
+      "judge": {
+        "useful": false,
+        "usefulness": 1,
+        "picked_urls": [],
+        "comment": "수집된 결과가 없어 사용자에게 제공할 정보가 없습니다."
+      },
+      "ranked_urls": [],
+      "usage": {
+        "route": {
+          "model": "gemini-3.1-flash-lite",
+          "tokens_in": 1266,
+          "tokens_out": 72,
+          "cost_usd": 0.0004245
+        },
+        "critique": {
+          "model": "gemini-3.1-flash-lite",
+          "tokens_in": 318,
+          "tokens_out": 32,
+          "cost_usd": 0.0001275
+        },
+        "judge": {
+          "model": "gemini-3.5-flash",
+          "tokens_in": 460,
+          "tokens_out": 133,
+          "cost_usd": 0.0004705
+        }
+      },
+      "case_cost_usd": 0.0011542500000000001
+    },
+    {
+      "id": "0f522ed8",
+      "orig_summary": "인스타그램에서 발견한 '애둘맘 귀찮음 해결해준 잘산템 3가지' 영상입니다. 어떤 제품들인지 확인하고 향후 구매를 고려하기 위해 저장했습니다.",
+      "orig_category": "쇼핑",
+      "orig_url": null,
+      "before": {
+        "useful": false,
+        "usefulness": 1,
+        "queries": [
+          "인스타그램 육아템 추천",
+          "애둘맘 잘산템",
+          "육아 필수템 추천"
+        ],
+        "route_category": "shop",
+        "comment": "수집된 검색 결과가 없어 사용자에게 제공할 수 있는 정보가 없습니다."
+      },
+      "route": {
+        "needs_resource": true,
+        "category": "blog",
+        "queries": [
+          "애둘맘 잘산템 추천",
+          "육아맘 살림 꿀템 추천"
+        ],
+        "rationale": "특정 상품명이 명시되지 않은 큐레이션 영상이므로, 유사한 제품군을 정리한 블로그 큐레이션 글을 찾는 것이 사용자에게 더 유용합니다."
+      },
+      "iters": [
+        {
+          "queries": [
+            "애둘맘 잘산템 추천",
+            "육아맘 살림 꿀템 추천"
+          ],
+          "searches": [
+            {
+              "query": "애둘맘 잘산템 추천",
+              "total": 1198864,
+              "items": [
+                {
+                  "title": "4월 내돈내산 잘산템 추천♡ / 살림꿀템, 육아꿀템 추천",
+                  "link": "https://blog.naver.com/princessheo11/224274032832",
+                  "description": "맛있게 잘 먹어요!! 그리고 용량 많은데 가격은 저렴해서 가성비가 진짜 짱짱임 근데 부스러기가 좀... 추천추천 ✨️ 알로토 나일론백팩 기저귀가방 첫째만 있을 때는 외출시에 기저귀가방 공간이 모자라는...",
+                  "bloggername": "❤️감자밤톨이 엄마의 행복한 일상 저장❤️",
+                  "postdate": "20260504"
+                },
+                {
+                  "title": "애둘맘이 뽑은 육아템 추천 BEST5",
+                  "link": "https://blog.naver.com/elaine333/223950475768",
+                  "description": "애 둘을 키우면서 정말 유용하게 사용하고 있는 육아템 추천 베스트5를 뽑아봤어요. 애둘맘이 진짜 잘... 세팅해 둘 수 있어서 편해요 :) 제가 지인들 임신 선물으로도 즐겨하는 육아템 중 하나랍니다. 2....",
+                  "bloggername": "진심이 통하는 시간 ,",
+                  "postdate": "20250728"
+                },
+                {
+                  "title": "애둘맘 육아템추천 베이빗 기저귀가방 추천",
+                  "link": "https://blog.naver.com/younwing0118/223637518533",
+                  "description": "진심으로 육아템추천 ! 지금 주 7회 매고있으니 말 다했죠 ..? 깔끔하게 더스트 백에 담겨오는 베이빗... 보냉도되는데 용량크고 휴대좋고 수납좋고 아묻따 추천이에요 그리고 마무리로 지퍼까지 칭찬 3배...",
+                  "bloggername": "엘리의 관리일상",
+                  "postdate": "20241029"
+                }
+              ]
+            },
+            {
+              "query": "육아맘 살림 꿀템 추천",
+              "total": 63991,
+              "items": [
+                {
+                  "title": "코스트코 살림꿀템 신상 추천!... 냄새 차단 육아맘 반려인 꿀템",
+                  "link": "https://blog.naver.com/volare0328/224233477001",
+                  "description": "코스트코 살림꿀템 신상 추천! 매직캔 히포 27L 쓰레기통 휴지통 리필 가격 화이트 냄새 차단 육아맘 반려인 꿀템 혹시 현관문 열자마자 기저귀나 배변 패드 냄새 때문에 인상 찌푸려진 적 없으신가요? 특히...",
+                  "bloggername": "Volare!",
+                  "postdate": "20260329"
+                },
+                {
+                  "title": "육아맘 살림 꿀템 | 세제 없이 가스레인지 식탁 묵은때 기름때...",
+                  "link": "https://blog.naver.com/yongho_journal/224026772197",
+                  "description": "행주 삶는거? 미안한데 그런거 할 시간도 없어서 한번도 안했다. 그래도 문제없이 사용하고 있다. 진짜 잘닦이고 관리도 쉽다. 나처럼 육아에 살림에 치여 고통받고 있는 엄마들에게 추천하는 꿀템 인정한다.",
+                  "bloggername": "매일 육아 일상",
+                  "postdate": "20250930"
+                },
+                {
+                  "title": "다이소 꿀템 추천 육아맘이 자주쓰는 살림추천템 육아인생템 모음",
+                  "link": "https://blog.naver.com/two2_/224285804051",
+                  "description": "오늘 소개한 5가지 다 합쳐도 2만 원이 안 돼요! 비싼 육아템, 살림템 사기 전에 먼저 다이소에서 대체품 찾아보는 것 강추해요. 여러분의 다이소 인생템은 뭔가요? 저한테도 알려주세요!",
+                  "bloggername": "투이맘의 여행꿀팁 -아이와 국내 해외여행",
+                  "postdate": "20260514"
+                }
+              ]
+            }
+          ],
+          "critique": {
+            "sufficient": false,
+            "new_query": "인스타그램 애둘맘 귀찮음 해결 잘산템 3가지"
+          },
+          "critique_usage": {
+            "model": "gemini-3.1-flash-lite",
+            "tokens_in": 922,
+            "tokens_out": 34,
+            "cost_usd": 0.0002815
+          }
+        },
+        {
+          "queries": [
+            "인스타그램 애둘맘 귀찮음 해결 잘산템 3가지"
+          ],
+          "searches": [
+            {
+              "query": "인스타그램 애둘맘 귀찮음 해결 잘산템 3가지",
+              "total": 95254,
+              "items": [
+                {
+                  "title": "5만원이하 올여름 잘산템! 제니룩 따라잡기(feat. 키작녀...",
+                  "link": "https://blog.naver.com/whdbswl3664/224295922028",
+                  "description": "출처 : 지그재그 제가 산 거 요거에요ㅎㅎ 리얼코코 메이드 제품으로 지금 2만4천원대입니다!! 갓성비죠? 리얼코코에서 예에에전에 화이트 롱팬츠 구매했다가 아직도 잘 입고 있어서 믿고 구매해봤는데 역시.....",
+                  "bloggername": "good taste in",
+                  "postdate": "20260525"
+                },
+                {
+                  "title": "애 둘 맘이 매일 쓰는 육아템 3가지 추천",
+                  "link": "https://blog.naver.com/234485/224296209166",
+                  "description": "훤윤남매맘이에요 애 둘 키우다 보니 육아용품은 진짜 자주 쓰는 것이 최고더라구요- 처음엔 그냥 좋다정도였는데 지금은 없으면 은근 불편한 육아템 3가지 소개해보려 해요! 육아하면서 매일 손 가는 조합이라...",
+                  "bloggername": "사랑스러운 훤ꔛ윤 남매 이야기",
+                  "postdate": "20260525"
+                },
+                {
+                  "title": "애 둘 먹이려고 산 어린이 단백질 쉐이크 리뷰",
+                  "link": "https://blog.naver.com/sk1dnl/224253276472",
+                  "description": "초등학생 애 둘 키우는 엄빠님들 애들 건강 다 망치는 탕후루나 편의점 과자 값에 귀한 돈 줄줄 버리지... 번에 해결할 수 있으니까 부모 입장에서는 이보다 좋을 수가 없습니다 초코맛은 애들이 학원 가기 전에...",
+                  "bloggername": "류원일의 비망록",
+                  "postdate": "20260415"
+                }
+              ]
+            }
+          ],
+          "critique": {
+            "sufficient": false,
+            "new_query": "인스타그램 애둘맘 귀찮음 해결 잘산템 추천"
+          },
+          "critique_usage": {
+            "model": "gemini-3.1-flash-lite",
+            "tokens_in": 609,
+            "tokens_out": 32,
+            "cost_usd": 0.00020025
+          }
+        }
+      ],
+      "web_called": false,
+      "web_skipped": false,
+      "searched_results": [
+        {
+          "title": "5만원이하 올여름 잘산템! 제니룩 따라잡기(feat. 키작녀...",
+          "link": "https://blog.naver.com/whdbswl3664/224295922028"
+        },
+        {
+          "title": "애 둘 맘이 매일 쓰는 육아템 3가지 추천",
+          "link": "https://blog.naver.com/234485/224296209166"
+        },
+        {
+          "title": "애 둘 먹이려고 산 어린이 단백질 쉐이크 리뷰",
+          "link": "https://blog.naver.com/sk1dnl/224253276472"
+        }
+      ],
+      "critique": {
+        "sufficient": false,
+        "new_query": "인스타그램 애둘맘 귀찮음 해결 잘산템 추천"
+      },
+      "judge": {
+        "useful": false,
+        "usefulness": 2,
+        "picked_urls": [],
+        "comment": "사용자가 찾고자 하는 특정 인스타그램 영상 속 '잘산템 3가지' 제품에 대한 정확한 정보가 검색 결과에 포함되어 있지 않습니다."
+      },
+      "ranked_urls": [],
+      "usage": {
+        "route": {
+          "model": "gemini-3.1-flash-lite",
+          "tokens_in": 1265,
+          "tokens_out": 100,
+          "cost_usd": 0.00046625
+        },
+        "critique": {
+          "model": "gemini-3.1-flash-lite",
+          "tokens_in": 609,
+          "tokens_out": 32,
+          "cost_usd": 0.00020025
+        },
+        "judge": {
+          "model": "gemini-3.5-flash",
+          "tokens_in": 765,
+          "tokens_out": 681,
+          "cost_usd": 0.001932
+        }
+      },
+      "case_cost_usd": 0.0028799999999999997
+    },
+    {
+      "id": "f2e4123d",
+      "orig_summary": "인스타그램에서 발견한 남성용 약산성 세안제 영상입니다. 제품이 관리 입문템으로 추천되어 향후 구매를 고려하기 위해 저장했습니다.",
+      "orig_category": "쇼핑",
+      "orig_url": null,
+      "before": {
+        "useful": false,
+        "usefulness": 1,
+        "queries": [
+          "남성 약산성 세안제 추천",
+          "남자 입문용 약산성 클렌징폼"
+        ],
+        "route_category": "shop",
+        "comment": "수집된 결과가 없어 사용자에게 추천할 수 없습니다."
+      },
+      "route": {
+        "needs_resource": true,
+        "category": "blog",
+        "queries": [
+          "남성 약산성 세안제 추천 순위",
+          "남자 약산성 클렌징폼 비교"
+        ],
+        "rationale": "특정 상품명이 명시되지 않은 추천 영상이므로, 사용자가 비교 분석할 수 있도록 정리된 큐레이션 글을 찾는 것이 더 유용하다고 판단하여 blog 카테고리로 분류했습니다."
+      },
+      "iters": [
+        {
+          "queries": [
+            "남성 약산성 세안제 추천 순위",
+            "남자 약산성 클렌징폼 비교"
+          ],
+          "searches": [
+            {
+              "query": "남성 약산성 세안제 추천 순위",
+              "total": 5377,
+              "items": [
+                {
+                  "title": "세라마인 약산성폼클렌징 탄산수버블클렌징폼 저자극세안제",
+                  "link": "https://blog.naver.com/wnaldud3255/224303426115",
+                  "description": "#세라마인 #세라마인약산성폼클렌징 #탄산수버블클렌징폼 #저자극세안제 #폼클렌징 #폼클렌징추천 #약산성클렌징폼추천 #민감성피부세안제 #촉촉한폼클렌징 #폼클렌징순위 #모공세안제 #탄산수클렌징...",
+                  "bloggername": "은서차니맘의 여행육아기록",
+                  "postdate": "20260602"
+                },
+                {
+                  "title": "남자 폼클렌징 추천 약산성 효소세안제로 뽀샤샤 피부관리",
+                  "link": "https://blog.naver.com/exoreju/224087572975",
+                  "description": "효소세안제는 약산성일 때 진짜 빛난다는 걸 확실히 이해하게 될 거예요. 그리고 남성분들이 사용했을 때 만족도도 훨씬 높은 편 같고요. 남자 폼클렌징 추천 기준에 맞는 이유 ● 약산성 포뮬러 당김 없이...",
+                  "bloggername": "예쁜건 다조아",
+                  "postdate": "20251125"
+                },
+                {
+                  "title": "&quot;사춘기 여드름부터 남성 피부까지! 아침세안제는 약산성...",
+                  "link": "https://blog.naver.com/hell_gols/224015344614",
+                  "description": "‘헬골스’ 인스타그램 DM 문의  ‘헬골스’ 유투브 채널 #아침세안제 #약산성세안제 #사춘기폼 #청소년여드름세안제 #남성세안제추천 #약산성버블폼 #천연세안제 #피부과세안제 #여드름완화세안제...",
+                  "bloggername": "헬골스",
+                  "postdate": "20250922"
+                }
+              ]
+            },
+            {
+              "query": "남자 약산성 클렌징폼 비교",
+              "total": 38535,
+              "items": [
+                {
+                  "title": "남자 폼클렌징 추천 약산성 피부관리",
+                  "link": "https://blog.naver.com/sl45tt41t/224119542807",
+                  "description": "그래서 제가 직접 찾아보고, 비교하고, 남자 피부에 맞는 약산성 남자 폼클렌징을 챙겨줬는데 세안제만 바꿨을 뿐인데 얼굴이 부드러워지는 게 보이더라고요. 강하게 뽀득뽀득 씻기는 게 아니라 당김 없이...",
+                  "bloggername": "꽃처럼 아름답게",
+                  "postdate": "20251226"
+                },
+                {
+                  "title": "남자 클렌징폼 약산성 폼클렌징 남자 지성피부 로션 추천",
+                  "link": "https://blog.naver.com/32claudia/224138186027",
+                  "description": "100% 비건으로 된 남자 클렌징폼과 로션이라서 민감한 남자 피부에 정말 잘 맞고 사용감도 만족스러워하더라고요. 예전에는 그냥 마트에 있는 약산성 폼클렌징을 구입할 때가 많았어요 귀찮을 때 인터넷에서...",
+                  "bloggername": "미고의 독서정원",
+                  "postdate": "20260107"
+                },
+                {
+                  "title": "남자 클렌징폼 약산성으로 써야되는 이유",
+                  "link": "https://blog.naver.com/cosreader/223986810967",
+                  "description": "세안제들과 비교해도 강력한 세정력을 가지고 있는데요. 피부과 테스트를 완료한 클렌징폼으로 민감 피부를 포함해 모든 피부 타입에 관계없이 사용하실 수 있어요. 결론 남자 클렌징폼도 약산성을 포기하지...",
+                  "bloggername": "화장품읽어주는남자",
+                  "postdate": "20250828"
+                }
+              ]
+            }
+          ],
+          "critique": {
+            "sufficient": true,
+            "new_query": null
+          },
+          "critique_usage": {
+            "model": "gemini-3.1-flash-lite",
+            "tokens_in": 922,
+            "tokens_out": 18,
+            "cost_usd": 0.0002575
+          }
+        }
+      ],
+      "web_called": false,
+      "web_skipped": false,
+      "searched_results": [
+        {
+          "title": "세라마인 약산성폼클렌징 탄산수버블클렌징폼 저자극세안제",
+          "link": "https://blog.naver.com/wnaldud3255/224303426115"
+        },
+        {
+          "title": "남자 폼클렌징 추천 약산성 효소세안제로 뽀샤샤 피부관리",
+          "link": "https://blog.naver.com/exoreju/224087572975"
+        },
+        {
+          "title": "&quot;사춘기 여드름부터 남성 피부까지! 아침세안제는 약산성...",
+          "link": "https://blog.naver.com/hell_gols/224015344614"
+        },
+        {
+          "title": "남자 폼클렌징 추천 약산성 피부관리",
+          "link": "https://blog.naver.com/sl45tt41t/224119542807"
+        },
+        {
+          "title": "남자 클렌징폼 약산성 폼클렌징 남자 지성피부 로션 추천",
+          "link": "https://blog.naver.com/32claudia/224138186027"
+        },
+        {
+          "title": "남자 클렌징폼 약산성으로 써야되는 이유",
+          "link": "https://blog.naver.com/cosreader/223986810967"
+        }
+      ],
+      "critique": {
+        "sufficient": true,
+        "new_query": null
+      },
+      "judge": {
+        "useful": false,
+        "usefulness": 2,
+        "picked_urls": [],
+        "comment": "사용자가 인스타그램에서 본 특정 제품에 대한 구체적인 단서(브랜드명 등)가 없어 일반적인 추천 글만 수집되었으므로 유용성이 낮습니다."
+      },
+      "ranked_urls": [],
+      "usage": {
+        "route": {
+          "model": "gemini-3.1-flash-lite",
+          "tokens_in": 1260,
+          "tokens_out": 108,
+          "cost_usd": 0.000477
+        },
+        "critique": {
+          "model": "gemini-3.1-flash-lite",
+          "tokens_in": 922,
+          "tokens_out": 18,
+          "cost_usd": 0.0002575
+        },
+        "judge": {
+          "model": "gemini-3.5-flash",
+          "tokens_in": 1082,
+          "tokens_out": 980,
+          "cost_usd": 0.0027746
+        }
+      },
+      "case_cost_usd": 0.0035091
+    },
+    {
+      "id": "0561d383",
+      "orig_summary": "인스타그램에서 발견한 30초 양치 기구 '유클린' 영상입니다. 제품의 기능이 흥미로워 향후 구매를 고려하기 위해 저장했습니다.",
+      "orig_category": "쇼핑",
+      "orig_url": null,
+      "before": {
+        "useful": false,
+        "usefulness": 1,
+        "queries": [
+          "유클린 30초 양치기구",
+          "유클린 칫솔"
+        ],
+        "route_category": "shop",
+        "comment": "검색 결과가 존재하지 않아 사용자에게 제공할 수 있는 링크가 없습니다."
+      },
+      "route": {
+        "needs_resource": true,
+        "category": "shop",
+        "queries": [
+          "유클린 30초 양치기구"
+        ],
+        "rationale": "구매를 고려 중인 특정 상품이 명확하므로, 가격과 상세 정보를 확인할 수 있는 쇼핑 검색으로 라우팅했습니다."
+      },
+      "iters": [
+        {
+          "queries": [
+            "유클린 30초 양치기구"
+          ],
+          "searches": [
+            {
+              "query": "유클린 30초 양치기구",
+              "total": 493,
+              "items": [
+                {
+                  "title": "구강 세척기 휴대용 물치실 USB 양치기구 기계 화이트 관리 건강 F400 전동 WHITE",
+                  "link": "https://smartstore.naver.com/main/products/11716104652",
+                  "lprice": "25130",
+                  "mallName": "진스토어.",
+                  "brand": ""
+                },
+                {
+                  "title": "구강세정기 물치실 양치기구 전기 물 치실 구강 세정기 대용량 치과 위생 치아 클리너 배 팁 포함  영국",
+                  "link": "https://link.coupang.com/re/PCSNAVERPCSDP?pageKey=8565575439&ctag=8565575439&lptag=V95507047498&itemId=24810017625&vendorItemId=95507047498&spec=10305199",
+                  "lprice": "50000",
+                  "mallName": "쿠팡",
+                  "brand": ""
+                },
+                {
+                  "title": "구강세정기 물치실 양치기구 전기 물 치실 구강 세정기 대용량 치과 위생 치아 클리너 배 팁 포함  영국",
+                  "link": "https://link.coupang.com/re/PCSNAVERPCSDP?pageKey=8565575439&ctag=8565575439&lptag=I24810017625&itemId=24810017625&vendorItemId=91817578674&spec=10305199",
+                  "lprice": "40960",
+                  "mallName": "쿠팡",
+                  "brand": ""
+                }
+              ]
+            }
+          ],
+          "critique": {
+            "sufficient": false,
+            "new_query": "유클린 30초 양치기구 후기"
+          },
+          "critique_usage": {
+            "model": "gemini-3.1-flash-lite",
+            "tokens_in": 657,
+            "tokens_out": 32,
+            "cost_usd": 0.00021225
+          }
+        },
+        {
+          "queries": [
+            "유클린 30초 양치기구 후기"
+          ],
+          "searches": [
+            {
+              "query": "유클린 30초 양치기구 후기",
+              "total": 0,
+              "items": []
+            }
+          ],
+          "critique": {
+            "sufficient": false,
+            "new_query": "유클린 30초 양치기구 후기"
+          },
+          "critique_usage": {
+            "model": "gemini-3.1-flash-lite",
+            "tokens_in": 315,
+            "tokens_out": 32,
+            "cost_usd": 0.00012675
+          }
+        }
+      ],
+      "web_called": false,
+      "web_skipped": false,
+      "searched_results": [],
+      "critique": {
+        "sufficient": false,
+        "new_query": "유클린 30초 양치기구 후기"
+      },
+      "judge": {
+        "useful": false,
+        "usefulness": 1,
+        "picked_urls": [],
+        "comment": "수집된 결과가 없어 사용자에게 제공할 수 없습니다."
+      },
+      "ranked_urls": [],
+      "usage": {
+        "route": {
+          "model": "gemini-3.1-flash-lite",
+          "tokens_in": 1263,
+          "tokens_out": 74,
+          "cost_usd": 0.00042675
+        },
+        "critique": {
+          "model": "gemini-3.1-flash-lite",
+          "tokens_in": 315,
+          "tokens_out": 32,
+          "cost_usd": 0.00012675
+        },
+        "judge": {
+          "model": "gemini-3.5-flash",
+          "tokens_in": 464,
+          "tokens_out": 160,
+          "cost_usd": 0.0005392
+        }
+      },
+      "case_cost_usd": 0.00130495
+    },
+    {
+      "id": "039893f3",
+      "orig_summary": "배우 박정민이 착용하여 화제가 된 LUCIER 안경 영상입니다. 디자인과 색감이 매력적이어서 향후 구매를 고려하기 위해 저장했습니다.",
+      "orig_category": "쇼핑",
+      "orig_url": null,
+      "before": {
+        "useful": false,
+        "usefulness": 1,
+        "queries": [
+          "LUCIER 안경",
+          "박정민 안경 루시에"
+        ],
+        "route_category": "shop",
+        "comment": "사용자가 찾는 'LUCIER' 브랜드의 박정민 안경과 무관한 일반 저가 뿔테안경 상품들만 검색되어 추천 가치가 없습니다."
+      },
+      "route": {
+        "needs_resource": true,
+        "category": "shop",
+        "queries": [
+          "LUCIER 박정민 안경"
+        ],
+        "rationale": "브랜드명만으로는 일반 상품이 많이 검색되므로, 배우 이름과 제품군을 조합하여 특정 모델을 찾을 수 있도록 검색어를 구성했습니다."
+      },
+      "iters": [
+        {
+          "queries": [
+            "LUCIER 박정민 안경"
+          ],
+          "searches": [
+            {
+              "query": "LUCIER 박정민 안경",
+              "total": 170,
+              "items": [
+                {
+                  "title": "[박정민 안경] 마수나가 코드C #11 티타늄안경 일본 명품 하우스안경 더에이트쇼",
+                  "link": "https://smartstore.naver.com/main/products/10694354307",
+                  "lprice": "595000",
+                  "mallName": "피트아이 안경",
+                  "brand": "마수나가"
+                },
+                {
+                  "title": "박정민 안경 알펜 안경 AL302 / 알펜 라이프스타일 아이웨어",
+                  "link": "https://smartstore.naver.com/main/products/7058277872",
+                  "lprice": "270000",
+                  "mallName": "알펜서울",
+                  "brand": ""
+                },
+                {
+                  "title": "틈만나면 박정민안경 둥근안경테 8",
+                  "link": "https://www.11st.co.kr/connect/Gateway.tmall?method=Xsite&prdNo=9081845044&tid=1000000061",
+                  "lprice": "38000",
+                  "mallName": "11번가",
+                  "brand": ""
+                }
+              ]
+            }
+          ],
+          "critique": {
+            "sufficient": false,
+            "new_query": "박정민 LUCIER 안경"
+          },
+          "critique_usage": {
+            "model": "gemini-3.1-flash-lite",
+            "tokens_in": 489,
+            "tokens_out": 27,
+            "cost_usd": 0.00016275
+          }
+        },
+        {
+          "queries": [
+            "박정민 LUCIER 안경"
+          ],
+          "searches": [
+            {
+              "query": "박정민 LUCIER 안경",
+              "total": 44,
+              "items": [
+                {
+                  "title": "뿔테안경 근시안경녀 가배도수 판 조망홍색 눈테 안경테 남 민낯 다각형 큰테가 날씬해",
+                  "link": "https://smartstore.naver.com/main/products/6274012266",
+                  "lprice": "239540",
+                  "mallName": "바로ON",
+                  "brand": ""
+                },
+                {
+                  "title": "뿔테안경 블랙테 근시안경테녀 도수사각형 얼굴, 날씬한 맨얼굴, 블루라이트 방지 눈,",
+                  "link": "https://smartstore.naver.com/main/products/6274012275",
+                  "lprice": "212170",
+                  "mallName": "바로ON",
+                  "brand": ""
+                },
+                {
+                  "title": "뿔테안경 초경량 프레임리스 근시안경녀, 도수망인 민낯, 큰 프레임, 작은 눈, 테두리",
+                  "link": "https://smartstore.naver.com/main/products/6274012242",
+                  "lprice": "104070",
+                  "mallName": "바로ON",
+                  "brand": ""
+                }
+              ]
+            }
+          ],
+          "critique": {
+            "sufficient": false,
+            "new_query": "배우 박정민 LUCIER 안경 모델명"
+          },
+          "critique_usage": {
+            "model": "gemini-3.1-flash-lite",
+            "tokens_in": 493,
+            "tokens_out": 31,
+            "cost_usd": 0.00016975
+          }
+        }
+      ],
+      "web_called": false,
+      "web_skipped": false,
+      "searched_results": [
+        {
+          "title": "뿔테안경 근시안경녀 가배도수 판 조망홍색 눈테 안경테 남 민낯 다각형 큰테가 날씬해",
+          "link": "https://smartstore.naver.com/main/products/6274012266"
+        },
+        {
+          "title": "뿔테안경 블랙테 근시안경테녀 도수사각형 얼굴, 날씬한 맨얼굴, 블루라이트 방지 눈,",
+          "link": "https://smartstore.naver.com/main/products/6274012275"
+        },
+        {
+          "title": "뿔테안경 초경량 프레임리스 근시안경녀, 도수망인 민낯, 큰 프레임, 작은 눈, 테두리",
+          "link": "https://smartstore.naver.com/main/products/6274012242"
+        }
+      ],
+      "critique": {
+        "sufficient": false,
+        "new_query": "배우 박정민 LUCIER 안경 모델명"
+      },
+      "judge": {
+        "useful": false,
+        "usefulness": 1,
+        "picked_urls": [],
+        "comment": "수집된 결과들이 'LUCIER' 브랜드나 배우 박정민과 무관한 일반 저가 안경테 상품들로 구성되어 있어 사용자에게 유용하지 않습니다."
+      },
+      "ranked_urls": [],
+      "usage": {
+        "route": {
+          "model": "gemini-3.1-flash-lite",
+          "tokens_in": 1261,
+          "tokens_out": 81,
+          "cost_usd": 0.00043675
+        },
+        "critique": {
+          "model": "gemini-3.1-flash-lite",
+          "tokens_in": 493,
+          "tokens_out": 31,
+          "cost_usd": 0.00016975
+        },
+        "judge": {
+          "model": "gemini-3.5-flash",
+          "tokens_in": 639,
+          "tokens_out": 412,
+          "cost_usd": 0.0012217
+        }
+      },
+      "case_cost_usd": 0.00199095
+    },
+    {
+      "id": "a22d62c3",
+      "orig_summary": "인스타그램에서 발견한 축구 훈련(Lay-Off Game) 영상입니다. 나중에 운동할 때 참고하기 위해 저장했습니다.",
+      "orig_category": "취미 및 자기계발",
+      "orig_url": null,
+      "before": {
+        "useful": false,
+        "usefulness": 1,
+        "queries": [
+          "축구 Lay-Off 훈련 방법",
+          "축구 레이오프 훈련 루틴",
+          "soccer lay-off training drills"
+        ],
+        "route_category": "blog",
+        "comment": "수집된 결과 중 사용자가 찾는 축구 Lay-Off 훈련법에 부합하는 유용한 정보가 없습니다."
+      },
+      "route": {
+        "needs_resource": true,
+        "category": "blog",
+        "queries": [
+          "축구 Lay-Off Game 훈련 방법",
+          "축구 레이오프 훈련 루틴"
+        ],
+        "rationale": "인스타그램 영상은 휘발성이 강하므로, 구체적인 훈련 방법과 루틴을 정리한 블로그 글을 찾아두는 것이 운동 시 참고하기에 더 유용합니다."
+      },
+      "iters": [
+        {
+          "queries": [
+            "축구 Lay-Off Game 훈련 방법",
+            "축구 레이오프 훈련 루틴"
+          ],
+          "searches": [
+            {
+              "query": "축구 Lay-Off Game 훈련 방법",
+              "total": 661,
+              "items": [
+                {
+                  "title": "5월. 초등부 영어축구 이야기 ⚽",
+                  "link": "https://blog.naver.com/ol_fc/224303223966",
+                  "description": "영어축구 수업에서는 Game Awareness(경기 인지 능력) 향상에 중점을 두고 훈련을 진행했습니다.... 막는 방법을 배우며 축구의 기본 전술 개념을 경험했습니다. 게임 속에서는 단순히 공만 따라가는...",
+                  "bloggername": "ol_fc님의 블로그",
+                  "postdate": "20260601"
+                },
+                {
+                  "title": "축구 규칙, 용어 뜻, 영어로?",
+                  "link": "https://blog.naver.com/seer_lee/223539058818",
+                  "description": "경기 규칙 (Rules of the Game) 축구 경기는 여러 규칙에 따라 진행됩니다. 킥오프 (Kickoff): 경기를... 경기 재개 방법 (Restart of Play) 경기 중단 후 경기를 재개하는 다양한 방법을 설명합니다. 드롭볼...",
+                  "bloggername": "연남동 이과장의 주경영독",
+                  "postdate": "20240807"
+                },
+                {
+                  "title": "축구칼럼) 현대축구에서 포메이션이 중요한가?",
+                  "link": "https://blog.naver.com/t_1004_k/223992171066",
+                  "description": "man, Lay-off—Slip—Switch), 4) 전환 방어(Rest defense)입니다. 여기서 포메이션은 원칙을 더 쉽게 실행하게... 그러면 같은 4-3-3이 전혀 다른 축구가 되고, 같은 3-5-2가 전혀 다른 결과를 냅니다. 오늘 훈련장으로...",
+                  "bloggername": "스포버스",
+                  "postdate": "20250904"
+                }
+              ]
+            },
+            {
+              "query": "축구 레이오프 훈련 루틴",
+              "total": 2,
+              "items": [
+                {
+                  "title": "pc서버 ㄷㅏΑ운 다운로드⌒ю",
+                  "link": "https://blog.naver.com/ytzobee/30126717788",
+                  "description": "표준 #1aberration#2애버레이션#3[의학], [천문]#4표준 #1Abkhaz#2압하스#3[언어]#4표준 #1ablation#2애블레이션#3 #4편수일반, 용일 #1Ablaut#2아플라우트#3[언어], 독일어#4표준 #1ABM system...",
+                  "bloggername": "ytzobee님의블로그",
+                  "postdate": "20111203"
+                },
+                {
+                  "title": "프로 코치들이 쓰는 풋살 훈련 루틴, 직접 정리해봤습니다",
+                  "link": "https://blog.naver.com/fustal-place/224025003642",
+                  "description": "파워플레이(플라잉 GK) 훈련법 상황: 경기 막판, GK가 공격에 가담하는 5대4 상황 방법: 측면 오버로드 패턴 → 빠르게 볼을 돌려 백포스트 슛 포인트 사이드 스윙 + 백포스트 침투 루틴 정형화 GK는 터치 후...",
+                  "bloggername": "Futsal Place",
+                  "postdate": "20250928"
+                }
+              ]
+            }
+          ],
+          "critique": {
+            "sufficient": false,
+            "new_query": "축구 레이오프 훈련 방법 lay-off drill soccer"
+          },
+          "critique_usage": {
+            "model": "gemini-3.1-flash-lite",
+            "tokens_in": 732,
+            "tokens_out": 32,
+            "cost_usd": 0.000231
+          }
+        },
+        {
+          "queries": [
+            "축구 레이오프 훈련 방법 lay-off drill soccer"
+          ],
+          "searches": [
+            {
+              "query": "축구 레이오프 훈련 방법 lay-off drill soccer",
+              "total": 518,
+              "items": [
+                {
+                  "title": "일본 축구 기본기 혁명 ⑫... 프로조차 진땀 빼는 가혹한 훈련법",
+                  "link": "https://blog.naver.com/hope_sspace/224249424038",
+                  "description": "2단계 : 토메루(止める)와 케루(蹴る)의 결합 - 5m 대면 패스 훈련 (The 5-Meter Drill) 카자마 야히로 감독의 축구 철학에서 모든 것의 시작이자 끝은 바로 ‘토메루(止める, 멈추기)’입니다. 이 핵심 기술을...",
+                  "bloggername": "잔디 위의 이야기",
+                  "postdate": "20260412"
+                },
+                {
+                  "title": "모바일 축구게임 新 패러다임, mini soccer star: football...",
+                  "link": "https://blog.naver.com/mysecretgames/223415825687",
+                  "description": "그렇게 한 시즌을 진행해 나간다는 모바일 축구게임 mini soccer star football cup를 소개해드린다. 시작부터... 막상 OFF 상태가 되버리니 계속 생각난다. 리그와 플레이어, 튜토리얼 통한 예행 연습까지 첫 시작은...",
+                  "bloggername": "마싯게",
+                  "postdate": "20240415"
+                },
+                {
+                  "title": "제미나이와 알아보는 월드컵...보다도 다음 대표팀 감독은 누가...",
+                  "link": "https://blog.naver.com/superpaul511/224298288392",
+                  "description": "For a top-tier manager coming off a bruising club sack or looking to reignite their career... 벤버지 시절에는 월드클래스 상대와 붙어도 주도적인 축구를 해보는...",
+                  "bloggername": "퍼스트 터치",
+                  "postdate": "20260527"
+                }
+              ]
+            }
+          ],
+          "critique": {
+            "sufficient": false,
+            "new_query": "축구 레이오프 훈련 방법 lay-off soccer drill"
+          },
+          "critique_usage": {
+            "model": "gemini-3.1-flash-lite",
+            "tokens_in": 555,
+            "tokens_out": 32,
+            "cost_usd": 0.00018675
+          }
+        }
+      ],
+      "web_called": false,
+      "web_skipped": false,
+      "searched_results": [
+        {
+          "title": "일본 축구 기본기 혁명 ⑫... 프로조차 진땀 빼는 가혹한 훈련법",
+          "link": "https://blog.naver.com/hope_sspace/224249424038"
+        },
+        {
+          "title": "모바일 축구게임 新 패러다임, mini soccer star: football...",
+          "link": "https://blog.naver.com/mysecretgames/223415825687"
+        },
+        {
+          "title": "제미나이와 알아보는 월드컵...보다도 다음 대표팀 감독은 누가...",
+          "link": "https://blog.naver.com/superpaul511/224298288392"
+        }
+      ],
+      "critique": {
+        "sufficient": false,
+        "new_query": "축구 레이오프 훈련 방법 lay-off soccer drill"
+      },
+      "judge": {
+        "useful": false,
+        "usefulness": 1,
+        "picked_urls": [],
+        "comment": "사용자가 찾는 축구 'Lay-Off Game' 훈련법에 부합하는 유용한 검색 결과가 존재하지 않습니다."
+      },
+      "ranked_urls": [],
+      "usage": {
+        "route": {
+          "model": "gemini-3.1-flash-lite",
+          "tokens_in": 1257,
+          "tokens_out": 95,
+          "cost_usd": 0.00045675
+        },
+        "critique": {
+          "model": "gemini-3.1-flash-lite",
+          "tokens_in": 555,
+          "tokens_out": 32,
+          "cost_usd": 0.00018675
+        },
+        "judge": {
+          "model": "gemini-3.5-flash",
+          "tokens_in": 713,
+          "tokens_out": 334,
+          "cost_usd": 0.0010489
+        }
+      },
+      "case_cost_usd": 0.0019234
+    },
+    {
+      "id": "b8c357c5",
+      "orig_summary": "2026년 개봉 예정인 주요 기대작들의 러닝타임 정보를 정리한 인스타그램 게시물입니다. 향후 영화 관람 계획을 세울 때 참고하기 위해 저장했습니다.",
+      "orig_category": "취미 및 자기계발",
+      "orig_url": null,
+      "before": {
+        "useful": true,
+        "usefulness": 3,
+        "queries": [
+          "2026 highly anticipated movies release schedule runtime",
+          "2026년 개봉 예정 영화 기대작 러닝타임"
+        ],
+        "route_category": "web",
+        "comment": "사용자가 언급한 특정 인스타그램 게시물은 찾지 못했으나, 2026년 개봉 예정작의 러닝타임 정보를 일부 포함하고 있는 국내 블로그 포스팅을 수집했습니다."
+      },
+      "route": {
+        "needs_resource": true,
+        "category": "blog",
+        "queries": [
+          "2026년 개봉 예정 영화 기대작 정리",
+          "2026년 개봉 영화 러닝타임 정보"
+        ],
+        "rationale": "인스타그램 게시물은 휘발성이 강하므로, 2026년 개봉 예정작 정보를 체계적으로 정리한 블로그 포스팅을 찾아두는 것이 향후 관람 계획 수립에 더 유용합니다."
+      },
+      "iters": [
+        {
+          "queries": [
+            "2026년 개봉 예정 영화 기대작 정리",
+            "2026년 개봉 영화 러닝타임 정보"
+          ],
+          "searches": [
+            {
+              "query": "2026년 개봉 예정 영화 기대작 정리",
+              "total": 16486,
+              "items": [
+                {
+                  "title": "2026년 개봉예정영화 '오크... 이완 맥그리거 출연 기대작일까?",
+                  "link": "https://blog.naver.com/hyunjee1110/224253913241",
+                  "description": "2026년 개봉예정영화 '오크 스트리트의 마지막날'은 앤 해서웨이와 이완 맥그리거가 주인공 부부로... 믿고 기다려볼 만한 기대작인지 궁금했다면, 현재까지 공개된 핵심 정보를 정리해봤다. '오크 스트리트의...",
+                  "bloggername": "시네마100",
+                  "postdate": "20260416"
+                },
+                {
+                  "title": "2026년 개봉 예정 영화 기대작 월별 정리(2026년 개봉영화)",
+                  "link": "https://blog.naver.com/silver1ne/224109751754",
+                  "description": "2026년 개봉 예정 영화 기대작 월별 정리 (2026년 개봉영화) 매년 12월이 되면 내년에 개봉하는 개봉 예정 영화들을 월별로 정리하는 시간을 갖는데, 올해도 어김없이 2026년 개봉 예정 영화들을 준비해봤다!...",
+                  "bloggername": "실버린의 실버월드",
+                  "postdate": "20251215"
+                },
+                {
+                  "title": "2026년 1월 개봉 예정 영화/애니/기대작 정보",
+                  "link": "https://blog.naver.com/nyria99/224122353804",
+                  "description": "역대급 기대작 라인업을 자랑하고 있습니다. 전체 라인업은 포스팅 하단에 정리하고, 우선은... 시작을 하게 되려나 봅니다. 2026년 개봉 예정 영화 기대작 순위 TOP 20은 아래 링크에서 확인해주세요.",
+                  "bloggername": "시네마 오마카세",
+                  "postdate": "20251225"
+                }
+              ]
+            },
+            {
+              "query": "2026년 개봉 영화 러닝타임 정보",
+              "total": 169574,
+              "items": [
+                {
+                  "title": "한국 영화 하얀 차를 탄 여자 정보 리뷰 &quot;러닝타임 107분에...",
+                  "link": "https://blog.naver.com/hinesisy/224313550182",
+                  "description": "여자 정보 개봉 2025.10.29 장르 스릴러 평점 7.88 국가 대한민국 하얀 차를 탄 여자 영화 리뷰 소설 원작이... 러닝타임 107분에 반전에 스릴까지? 일관적인 내용을 가지고 있고, 조금의 흐트러짐이 보인다 싶으면...",
+                  "bloggername": "영화처럼 낭만이 있는 삶",
+                  "postdate": "20260612"
+                },
+                {
+                  "title": "SF 영화 호프 나홍진 감독... 손익분기점 2천만명? 러닝타임 정보",
+                  "link": "https://blog.naver.com/ews1016/224293672194",
+                  "description": "외계인 크리처 영화 호프 개봉일, 러닝 타임, 등급 정보 제46회 청룡 영화제 시상식에서 황정민과 정호연 배우가 시상자로 출연하여 말하기를 2026년 여름인 7월 개봉 예정이라는 언급을 하였습니다. 나홍진...",
+                  "bloggername": "처뤼의 아로새기다",
+                  "postdate": "20260523"
+                },
+                {
+                  "title": "영화 백룸 기본 정보 리뷰 러닝타임 무섭나요 스포 총정리",
+                  "link": "https://blog.naver.com/overthesense/224308716439",
+                  "description": "영화 백룸은 기본 정보와 러닝타임, 무섭나요 질문, 그리고 스포 포함 결말 해석까지 함께 찾아보는... 내용 영화 제목 백룸 원제 Backrooms 장르 공포, 스릴러, 미스터리, SF 국내 개봉일 2026년 5월 27일 러닝타임...",
+                  "bloggername": "24시 세상 관찰소",
+                  "postdate": "20260607"
+                }
+              ]
+            }
+          ],
+          "critique": {
+            "sufficient": false,
+            "new_query": "2026년 개봉 예정 영화 러닝타임 정리"
+          },
+          "critique_usage": {
+            "model": "gemini-3.1-flash-lite",
+            "tokens_in": 934,
+            "tokens_out": 33,
+            "cost_usd": 0.000283
+          }
+        },
+        {
+          "queries": [
+            "2026년 개봉 예정 영화 러닝타임 정리"
+          ],
+          "searches": [
+            {
+              "query": "2026년 개봉 예정 영화 러닝타임 정리",
+              "total": 19761,
+              "items": [
+                {
+                  "title": "예고편 보자마자 저장한 2026년 하반기 개봉예정영화 10편",
+                  "link": "https://blog.naver.com/gomsolvie/224309763228",
+                  "description": "2026년 7월부터 12월까지, 개인적으로 가장 기대되는 2026년 하반기 개봉예정영화 10편을 살펴봅니다. 1.... 웅장하고 장엄한 대서사의 마무리를 어떻게 보여줄지, 러닝타임이 벌써부터 걱정되는 연말...",
+                  "bloggername": "곰솔이의 영화연애",
+                  "postdate": "20260608"
+                },
+                {
+                  "title": "2026년 개봉예정영화 '오크 스트리트의 마지막날', 앤 해서웨이...",
+                  "link": "https://blog.naver.com/hyunjee1110/224253913241",
+                  "description": "2026년 개봉예정영화 '오크 스트리트의 마지막날'은 앤 해서웨이와 이완 맥그리거가 주인공 부부로... SF/모험 장르의 미국영화로 러닝타임과 관람등급(연령)은 확정되기 전인데, 아마도 15세이상이 되지 않을까...",
+                  "bloggername": "시네마100",
+                  "postdate": "20260416"
+                },
+                {
+                  "title": "2026년 6월 개봉예정영화 추천, 오랜만에 궁금한 영화가 꽤...",
+                  "link": "https://blog.naver.com/lubkhaki/224304244716",
+                  "description": "2026년 6월 개봉예정영화 VIP 쿠폰 소진을 위하여!! 6월의 첫 영화가 개봉하는 수요일이 되어서야 정리해 보는 6월의 개봉 영화 목록. 근래 볼 영화가 너~무 없었던 데다 본인도 영화에 대한 흥미가 뚝! 떨어져서...",
+                  "bloggername": "럽카키의 수다 공간",
+                  "postdate": "20260603"
+                }
+              ]
+            }
+          ],
+          "critique": {
+            "sufficient": false,
+            "new_query": "2026년 개봉 예정 영화 러닝타임 정보"
+          },
+          "critique_usage": {
+            "model": "gemini-3.1-flash-lite",
+            "tokens_in": 652,
+            "tokens_out": 33,
+            "cost_usd": 0.0002125
+          }
+        }
+      ],
+      "web_called": false,
+      "web_skipped": false,
+      "searched_results": [
+        {
+          "title": "예고편 보자마자 저장한 2026년 하반기 개봉예정영화 10편",
+          "link": "https://blog.naver.com/gomsolvie/224309763228"
+        },
+        {
+          "title": "2026년 개봉예정영화 '오크 스트리트의 마지막날', 앤 해서웨이...",
+          "link": "https://blog.naver.com/hyunjee1110/224253913241"
+        },
+        {
+          "title": "2026년 6월 개봉예정영화 추천, 오랜만에 궁금한 영화가 꽤...",
+          "link": "https://blog.naver.com/lubkhaki/224304244716"
+        }
+      ],
+      "critique": {
+        "sufficient": false,
+        "new_query": "2026년 개봉 예정 영화 러닝타임 정보"
+      },
+      "judge": {
+        "useful": false,
+        "usefulness": 2,
+        "picked_urls": [],
+        "comment": "사용자가 찾는 '2026년 개봉 예정작들의 러닝타임 정보를 정리한 인스타그램 게시물'에 부합하는 구체적인 러닝타임 정리 자료나 인스타그램 링크를 찾지 못했습니다."
+      },
+      "ranked_urls": [],
+      "usage": {
+        "route": {
+          "model": "gemini-3.1-flash-lite",
+          "tokens_in": 1271,
+          "tokens_out": 111,
+          "cost_usd": 0.00048425
+        },
+        "critique": {
+          "model": "gemini-3.1-flash-lite",
+          "tokens_in": 652,
+          "tokens_out": 33,
+          "cost_usd": 0.0002125
+        },
+        "judge": {
+          "model": "gemini-3.5-flash",
+          "tokens_in": 817,
+          "tokens_out": 357,
+          "cost_usd": 0.0011376
+        }
+      },
+      "case_cost_usd": 0.00211735
+    },
+    {
+      "id": "7cc96ceb",
+      "orig_summary": "내일 '엔트리55'를 예약하겠다는 사용자의 계획을 기록했습니다. 예약 실천을 위해 투두로 관리합니다.",
+      "orig_category": "일상",
+      "orig_url": null,
+      "before": {
+        "useful": true,
+        "usefulness": 3,
+        "queries": [
+          "엔트리55 예약",
+          "엔트리55 위치"
+        ],
+        "route_category": "local",
+        "comment": "엔트리55의 공식 인스타그램 링크를 통해 예약 안내 및 관련 정보를 확인할 수 있습니다."
+      },
+      "route": {
+        "needs_resource": true,
+        "category": "local",
+        "queries": [
+          "엔트리55"
+        ],
+        "rationale": "사용자가 예약하려는 장소의 위치와 정보를 확인하기 위해 지도 검색이 필요합니다."
+      },
+      "iters": [
+        {
+          "queries": [
+            "엔트리55"
+          ],
+          "searches": [
+            {
+              "query": "엔트리55",
+              "total": 3,
+              "items": [
+                {
+                  "title": "엔트리55 성수점",
+                  "link": "https://www.instagram.com/entry55_official",
+                  "category": "문화,예술>공연,연극시설",
+                  "address": "서울특별시 성동구 성수동2가 300-39 B101",
+                  "roadAddress": "서울특별시 성동구 성수일로8길 60 B101"
+                },
+                {
+                  "title": "엔트리55 사당점",
+                  "link": "https://www.instagram.com/entry55_official",
+                  "category": "문화,예술>공연,연극시설",
+                  "address": "서울특별시 동작구 사당동 1041-12 B-102",
+                  "roadAddress": "서울특별시 동작구 동작대로1길 18 B-102"
+                }
+              ]
+            }
+          ],
+          "critique": {
+            "sufficient": true,
+            "new_query": null
+          },
+          "critique_usage": {
+            "model": "gemini-3.1-flash-lite",
+            "tokens_in": 352,
+            "tokens_out": 18,
+            "cost_usd": 0.000115
+          }
+        }
+      ],
+      "web_called": false,
+      "web_skipped": false,
+      "searched_results": [
+        {
+          "title": "엔트리55 성수점",
+          "link": "https://www.instagram.com/entry55_official"
+        },
+        {
+          "title": "엔트리55 사당점",
+          "link": "https://www.instagram.com/entry55_official"
+        }
+      ],
+      "critique": {
+        "sufficient": true,
+        "new_query": null
+      },
+      "judge": {
+        "useful": true,
+        "usefulness": 4,
+        "picked_urls": [
+          "https://www.instagram.com/entry55_official"
+        ],
+        "comment": "예약하려는 '엔트리55'의 공식 인스타그램 링크를 찾아내어 예약 정보 확인에 도움이 됩니다."
+      },
+      "ranked_urls": [
+        {
+          "url": "https://www.instagram.com/entry55_official",
+          "title": "엔트리55 성수점",
+          "tier_num": 4.0,
+          "tier_label": "tier4_info",
+          "signal": "default:info"
+        },
+        {
+          "url": "https://www.instagram.com/entry55_official",
+          "title": "엔트리55 사당점",
+          "tier_num": 4.0,
+          "tier_label": "tier4_info",
+          "signal": "default:info"
+        }
+      ],
+      "usage": {
+        "route": {
+          "model": "gemini-3.1-flash-lite",
+          "tokens_in": 1255,
+          "tokens_out": 59,
+          "cost_usd": 0.00040225
+        },
+        "critique": {
+          "model": "gemini-3.1-flash-lite",
+          "tokens_in": 352,
+          "tokens_out": 18,
+          "cost_usd": 0.000115
+        },
+        "judge": {
+          "model": "gemini-3.5-flash",
+          "tokens_in": 495,
+          "tokens_out": 432,
+          "cost_usd": 0.0012285
+        }
+      },
+      "case_cost_usd": 0.00174575
+    },
+    {
+      "id": "980218f6",
+      "orig_summary": "인스타그램에서 발견한 보온병 영상입니다. 나중에 구매를 고려하기 위해 저장했습니다.",
+      "orig_category": "쇼핑",
+      "orig_url": null,
+      "before": {
+        "useful": false,
+        "usefulness": 2,
+        "queries": [
+          "보온병 추천",
+          "인기 보온병 브랜드"
+        ],
+        "route_category": "shop",
+        "comment": "사용자가 인스타그램에서 본 특정 보온병에 대한 구체적인 정보가 없어, 일반적인 보온병 검색 결과는 사용자에게 유용하지 않습니다."
+      },
+      "route": {
+        "needs_resource": false,
+        "category": "none",
+        "queries": [],
+        "rationale": "특정 상품명이나 모델명에 대한 정보가 전혀 없어 검색어를 생성할 수 없으므로 리소스 연결이 불가능합니다."
+      },
+      "none": true,
+      "iters": [],
+      "searched_results": [],
+      "critique": null,
+      "judge": {
+        "useful": false,
+        "usefulness": 1,
+        "picked_urls": [],
+        "comment": "route: needs_resource=false/none"
+      },
+      "ranked_urls": [],
+      "web_called": false,
+      "web_skipped": false,
+      "usage": {
+        "route": {
+          "model": "gemini-3.1-flash-lite",
+          "tokens_in": 1245,
+          "tokens_out": 62,
+          "cost_usd": 0.00040425
+        },
+        "critique": null,
+        "judge": null
+      },
+      "case_cost_usd": 0.00040425
+    },
+    {
+      "id": "d6b8a9fb",
+      "orig_summary": "유튜브 영상 고정 댓글에 공유된 너드킹의 추천 반팔 셔츠 제품 리스트입니다. 추후 쇼핑 시 참고하기 위해 저장했습니다.",
+      "orig_category": "일상",
+      "orig_url": null,
+      "before": {
+        "useful": false,
+        "usefulness": 1,
+        "queries": [
+          "너드킹 추천 반팔 셔츠"
+        ],
+        "route_category": "shop",
+        "comment": "수집된 결과가 없어 사용자에게 추천할 수 없습니다."
+      },
+      "route": {
+        "needs_resource": true,
+        "category": "blog",
+        "queries": [
+          "너드킹 추천 반팔 셔츠 리스트",
+          "너드킹 반팔 셔츠 브랜드"
+        ],
+        "rationale": "특정 상품이 나열된 리스트를 찾고 있으므로, 해당 정보를 정리한 블로그 큐레이션 글을 찾는 것이 사용자에게 더 유용합니다."
+      },
+      "iters": [
+        {
+          "queries": [
+            "너드킹 추천 반팔 셔츠 리스트",
+            "너드킹 반팔 셔츠 브랜드"
+          ],
+          "searches": [
+            {
+              "query": "너드킹 추천 반팔 셔츠 리스트",
+              "total": 37202,
+              "items": [
+                {
+                  "title": "디스커버리 변우석 남자 반팔티 추천 4가지 여름 쿨 티셔츠",
+                  "link": "https://blog.naver.com/hanbitnuri/224308571089",
+                  "description": "유니 프레시벤트 테라스 반팔티셔츠 두 번째 남자반팔티 추천 리스트는 남녀공용으로 착용이 가능해 커플티로 활용하기도 좋은 아이템입니다. 부드럽고 내구성까지 우수한 코튼 &amp; 폴리에스터 혼방 소재를...",
+                  "bloggername": "멜로래빗의 패션뷰티",
+                  "postdate": "20260607"
+                },
+                {
+                  "title": "여름 셔츠 추천, 밀라코드 남자 반팔 셔츠 남성 착용 후기",
+                  "link": "https://blog.naver.com/dudwls8546/224313260892",
+                  "description": "밀라코드 여름 셔츠 후기 반팔 셔츠 추천으로 딱이었던 플라워 패턴 코디 더운 여름이 되면 자연스럽게... 그래서 개인적으로는 이번 시즌 여름 셔츠 추천 리스트에 충분히 넣을 만한 제품이라고 생각해요!...",
+                  "bloggername": "오제이",
+                  "postdate": "20260611"
+                },
+                {
+                  "title": "위시리스트! 세터(SATUR) 반팔 티셔츠 최대 60% 할인 세일 추천",
+                  "link": "https://blog.naver.com/hanstar_94/224303426564",
+                  "description": "데일리룩 추천 아이템이에요~ 최대 할인율이 무려 50%라 반값 득템 찬스에요! 6/1(월) 19:00 ~ 6/2... (SATUR)의 반팔 티셔츠 시리즈! 29CM 이구위크 기획전에서 합리적인 가격으로 위시리스트를...",
+                  "bloggername": "별밤 life",
+                  "postdate": "20260602"
+                }
+              ]
+            },
+            {
+              "query": "너드킹 반팔 셔츠 브랜드",
+              "total": 1,
+              "items": [
+                {
+                  "title": "여름은 린넨의 시즌! 남자 5월 위시리스트 모음.zip",
+                  "link": "https://blog.naver.com/gozimozi/224276496623",
+                  "description": "[수아레x너드킹] 텐셀 린넨 크롭 하프 셔츠 가격 36,900원 (무신사 기준) 수아레는 갓성비로도 너무너무 유명한 대표적인 브랜드 중 하나죠? 널널한 오버핏 셔츠도 좋지만 무더운 날씨에는 이런 반팔 셔츠를 찾는...",
+                  "bloggername": "고지모지 : 옷 기록",
+                  "postdate": "20260507"
+                }
+              ]
+            }
+          ],
+          "critique": {
+            "sufficient": true,
+            "new_query": null
+          },
+          "critique_usage": {
+            "model": "gemini-3.1-flash-lite",
+            "tokens_in": 726,
+            "tokens_out": 18,
+            "cost_usd": 0.0002085
+          }
+        }
+      ],
+      "web_called": false,
+      "web_skipped": false,
+      "searched_results": [
+        {
+          "title": "디스커버리 변우석 남자 반팔티 추천 4가지 여름 쿨 티셔츠",
+          "link": "https://blog.naver.com/hanbitnuri/224308571089"
+        },
+        {
+          "title": "여름 셔츠 추천, 밀라코드 남자 반팔 셔츠 남성 착용 후기",
+          "link": "https://blog.naver.com/dudwls8546/224313260892"
+        },
+        {
+          "title": "위시리스트! 세터(SATUR) 반팔 티셔츠 최대 60% 할인 세일 추천",
+          "link": "https://blog.naver.com/hanstar_94/224303426564"
+        },
+        {
+          "title": "여름은 린넨의 시즌! 남자 5월 위시리스트 모음.zip",
+          "link": "https://blog.naver.com/gozimozi/224276496623"
+        }
+      ],
+      "critique": {
+        "sufficient": true,
+        "new_query": null
+      },
+      "judge": {
+        "useful": false,
+        "usefulness": 2,
+        "picked_urls": [],
+        "comment": "사용자가 찾는 '너드킹 추천 반팔 셔츠 리스트' 전체를 담은 결과가 없으며, 단 하나의 블로그 글에서만 너드킹 협업 제품이 단편적으로 언급되어 유용성이 낮습니다."
+      },
+      "ranked_urls": [],
+      "usage": {
+        "route": {
+          "model": "gemini-3.1-flash-lite",
+          "tokens_in": 1258,
+          "tokens_out": 100,
+          "cost_usd": 0.0004645
+        },
+        "critique": {
+          "model": "gemini-3.1-flash-lite",
+          "tokens_in": 726,
+          "tokens_out": 18,
+          "cost_usd": 0.0002085
+        },
+        "judge": {
+          "model": "gemini-3.5-flash",
+          "tokens_in": 886,
+          "tokens_out": 525,
+          "cost_usd": 0.0015783
+        }
+      },
+      "case_cost_usd": 0.0022513
+    },
+    {
+      "id": "fee7f333",
+      "orig_summary": "유튜브 영상 댓글에 공유된 너드킹의 추천 반팔 셔츠 제품 리스트입니다. 추후 쇼핑 시 참고하기 위해 저장했습니다.",
+      "orig_category": "일상",
+      "orig_url": null,
+      "before": {
+        "useful": false,
+        "usefulness": 1,
+        "queries": [
+          "너드킹 추천 반팔 셔츠"
+        ],
+        "route_category": "shop",
+        "comment": "수집된 결과가 없어 사용자에게 추천할 수 없습니다."
+      },
+      "route": {
+        "needs_resource": true,
+        "category": "blog",
+        "queries": [
+          "너드킹 추천 반팔 셔츠 리스트",
+          "너드킹 반팔 셔츠 브랜드 추천"
+        ],
+        "rationale": "특정 상품명이 명시되지 않은 추천 리스트이므로, 관련 정보를 정리한 블로그 큐레이션 글을 찾는 것이 사용자에게 더 유용합니다."
+      },
+      "iters": [
+        {
+          "queries": [
+            "너드킹 추천 반팔 셔츠 리스트",
+            "너드킹 반팔 셔츠 브랜드 추천"
+          ],
+          "searches": [
+            {
+              "query": "너드킹 추천 반팔 셔츠 리스트",
+              "total": 37202,
+              "items": [
+                {
+                  "title": "디스커버리 변우석 남자 반팔티 추천 4가지 여름 쿨 티셔츠",
+                  "link": "https://blog.naver.com/hanbitnuri/224308571089",
+                  "description": "유니 프레시벤트 테라스 반팔티셔츠 두 번째 남자반팔티 추천 리스트는 남녀공용으로 착용이 가능해 커플티로 활용하기도 좋은 아이템입니다. 부드럽고 내구성까지 우수한 코튼 &amp; 폴리에스터 혼방 소재를...",
+                  "bloggername": "멜로래빗의 패션뷰티",
+                  "postdate": "20260607"
+                },
+                {
+                  "title": "여름 셔츠 추천, 밀라코드 남자 반팔 셔츠 남성 착용 후기",
+                  "link": "https://blog.naver.com/dudwls8546/224313260892",
+                  "description": "밀라코드 여름 셔츠 후기 반팔 셔츠 추천으로 딱이었던 플라워 패턴 코디 더운 여름이 되면 자연스럽게... 그래서 개인적으로는 이번 시즌 여름 셔츠 추천 리스트에 충분히 넣을 만한 제품이라고 생각해요!...",
+                  "bloggername": "오제이",
+                  "postdate": "20260611"
+                },
+                {
+                  "title": "위시리스트! 세터(SATUR) 반팔 티셔츠 최대 60% 할인 세일 추천",
+                  "link": "https://blog.naver.com/hanstar_94/224303426564",
+                  "description": "데일리룩 추천 아이템이에요~ 최대 할인율이 무려 50%라 반값 득템 찬스에요! 6/1(월) 19:00 ~ 6/2... (SATUR)의 반팔 티셔츠 시리즈! 29CM 이구위크 기획전에서 합리적인 가격으로 위시리스트를...",
+                  "bloggername": "별밤 life",
+                  "postdate": "20260602"
+                }
+              ]
+            },
+            {
+              "query": "너드킹 반팔 셔츠 브랜드 추천",
+              "total": 171335,
+              "items": [
+                {
+                  "title": "헬로키티 후기, 29CM 이구위크 여자 여름 티셔츠 반팔 추천",
+                  "link": "https://blog.naver.com/tazsun20/224312329335",
+                  "description": "제가 직접 구매해서 소장 중인 레이브 헬로키티와 이번 프로모션 때 장바구니에 넣으면 좋은 추천템들을 알려드릴께요~! 각 브랜드 출처 레이브 여름 반팔 티셔츠 모아보기 레이브 헬로키티 반팔 티셔츠...",
+                  "bloggername": "꿀리뷰",
+                  "postdate": "20260611"
+                },
+                {
+                  "title": "티셔츠 정보 무신사 블랙프라이데이에서 찾은 여름 반팔 추천템",
+                  "link": "https://blog.naver.com/dohyun0305/224314141501",
+                  "description": "자칫 평범해 보일 수 있는 반팔 티셔츠지만 앞부분 디자인 덕분에 전체적인 분위기가 확 달라 보였어요. 실제로 많은 팬들 사이에서 하음 착용 제품이 어디 브랜드인지 궁금해하는 반응도 많더라구요. 2000년대...",
+                  "bloggername": "Calmness_",
+                  "postdate": "20260613"
+                },
+                {
+                  "title": "여름 셔츠 추천, 밀라코드 남자 반팔 셔츠 남성 착용 후기",
+                  "link": "https://blog.naver.com/dudwls8546/224313260892",
+                  "description": "밀라코드 여름 셔츠 후기 반팔 셔츠 추천으로 딱이었던 플라워 패턴 코디 더운 여름이 되면 자연스럽게... 밀라코드는 어떤 브랜드일까? 밀라코드는 성별, 세대, 장르의 경계를 넘나드는 감성을 코드처럼...",
+                  "bloggername": "오제이",
+                  "postdate": "20260611"
+                }
+              ]
+            }
+          ],
+          "critique": {
+            "sufficient": false,
+            "new_query": "너드킹 추천 반팔 셔츠 리스트"
+          },
+          "critique_usage": {
+            "model": "gemini-3.1-flash-lite",
+            "tokens_in": 912,
+            "tokens_out": 30,
+            "cost_usd": 0.000273
+          }
+        },
+        {
+          "queries": [
+            "너드킹 추천 반팔 셔츠 리스트"
+          ],
+          "searches": [
+            {
+              "query": "너드킹 추천 반팔 셔츠 리스트",
+              "total": 37202,
+              "items": [
+                {
+                  "title": "디스커버리 변우석 남자 반팔티 추천 4가지 여름 쿨 티셔츠",
+                  "link": "https://blog.naver.com/hanbitnuri/224308571089",
+                  "description": "유니 프레시벤트 테라스 반팔티셔츠 두 번째 남자반팔티 추천 리스트는 남녀공용으로 착용이 가능해 커플티로 활용하기도 좋은 아이템입니다. 부드럽고 내구성까지 우수한 코튼 &amp; 폴리에스터 혼방 소재를...",
+                  "bloggername": "멜로래빗의 패션뷰티",
+                  "postdate": "20260607"
+                },
+                {
+                  "title": "여름 셔츠 추천, 밀라코드 남자 반팔 셔츠 남성 착용 후기",
+                  "link": "https://blog.naver.com/dudwls8546/224313260892",
+                  "description": "밀라코드 여름 셔츠 후기 반팔 셔츠 추천으로 딱이었던 플라워 패턴 코디 더운 여름이 되면 자연스럽게... 그래서 개인적으로는 이번 시즌 여름 셔츠 추천 리스트에 충분히 넣을 만한 제품이라고 생각해요!...",
+                  "bloggername": "오제이",
+                  "postdate": "20260611"
+                },
+                {
+                  "title": "위시리스트! 세터(SATUR) 반팔 티셔츠 최대 60% 할인 세일 추천",
+                  "link": "https://blog.naver.com/hanstar_94/224303426564",
+                  "description": "데일리룩 추천 아이템이에요~ 최대 할인율이 무려 50%라 반값 득템 찬스에요! 6/1(월) 19:00 ~ 6/2... (SATUR)의 반팔 티셔츠 시리즈! 29CM 이구위크 기획전에서 합리적인 가격으로 위시리스트를...",
+                  "bloggername": "별밤 life",
+                  "postdate": "20260602"
+                }
+              ]
+            }
+          ],
+          "critique": {
+            "sufficient": false,
+            "new_query": "너드킹 추천 반팔 셔츠 리스트"
+          },
+          "critique_usage": {
+            "model": "gemini-3.1-flash-lite",
+            "tokens_in": 615,
+            "tokens_out": 30,
+            "cost_usd": 0.00019875
+          }
+        }
+      ],
+      "web_called": false,
+      "web_skipped": false,
+      "searched_results": [
+        {
+          "title": "디스커버리 변우석 남자 반팔티 추천 4가지 여름 쿨 티셔츠",
+          "link": "https://blog.naver.com/hanbitnuri/224308571089"
+        },
+        {
+          "title": "여름 셔츠 추천, 밀라코드 남자 반팔 셔츠 남성 착용 후기",
+          "link": "https://blog.naver.com/dudwls8546/224313260892"
+        },
+        {
+          "title": "위시리스트! 세터(SATUR) 반팔 티셔츠 최대 60% 할인 세일 추천",
+          "link": "https://blog.naver.com/hanstar_94/224303426564"
+        }
+      ],
+      "critique": {
+        "sufficient": false,
+        "new_query": "너드킹 추천 반팔 셔츠 리스트"
+      },
+      "judge": {
+        "useful": false,
+        "usefulness": 1,
+        "picked_urls": [],
+        "comment": "사용자가 찾는 패션 크리에이터 '너드킹'의 추천 반팔 셔츠 리스트와 관련 없는 일반 브랜드의 블로그 리뷰 글들만 수집되었습니다."
+      },
+      "ranked_urls": [],
+      "usage": {
+        "route": {
+          "model": "gemini-3.1-flash-lite",
+          "tokens_in": 1256,
+          "tokens_out": 100,
+          "cost_usd": 0.000464
+        },
+        "critique": {
+          "model": "gemini-3.1-flash-lite",
+          "tokens_in": 615,
+          "tokens_out": 30,
+          "cost_usd": 0.00019875
+        },
+        "judge": {
+          "model": "gemini-3.5-flash",
+          "tokens_in": 776,
+          "tokens_out": 312,
+          "cost_usd": 0.0010128
+        }
+      },
+      "case_cost_usd": 0.0019485499999999998
+    },
+    {
+      "id": "9c5062e0",
+      "orig_summary": "유튜브 영상 댓글에 공유된 너드킹의 추천 패션 제품 리스트입니다. 추후 쇼핑 시 참고하기 위해 저장했습니다.",
+      "orig_category": "일상",
+      "orig_url": null,
+      "before": {
+        "useful": false,
+        "usefulness": 1,
+        "queries": [
+          "너드킹 추천 패션 아이템",
+          "너드킹 패션 브랜드 리스트"
+        ],
+        "route_category": "shop",
+        "comment": "수집된 검색 결과가 없어 사용자에게 추천할 만한 링크가 존재하지 않습니다."
+      },
+      "route": {
+        "needs_resource": true,
+        "category": "blog",
+        "queries": [
+          "너드킹 추천 패션 아이템",
+          "너드킹 패션 리스트"
+        ],
+        "rationale": "특정 상품이 나열된 리스트가 아닌 인플루언서의 추천 목록이므로, 이를 정리한 블로그나 커뮤니티 글을 찾는 것이 사용자에게 더 유용합니다."
+      },
+      "iters": [
+        {
+          "queries": [
+            "너드킹 추천 패션 아이템",
+            "너드킹 패션 리스트"
+          ],
+          "searches": [
+            {
+              "query": "너드킹 추천 패션 아이템",
+              "total": 1,
+              "items": [
+                {
+                  "title": "지금 30대 초반 남성들이 가장 많이 사는 하의 5가지 - 무신사...",
+                  "link": "https://blog.naver.com/juni_abeom/224271313401",
+                  "description": "이번 주 무신사 30-34세 남성 하의 랭킹을 통해 지금 가장 인기 있는 아이템들을 정리해 봤습니다.... #무신사랭킹 #남성패션 #30대초반남성패션 #하의추천 #무신사 #패션추천 #남성코디 #30대패션...",
+                  "bloggername": "나이 들수록, 챙겨 입자",
+                  "postdate": "20260501"
+                }
+              ]
+            },
+            {
+              "query": "너드킹 패션 리스트",
+              "total": 1,
+              "items": [
+                {
+                  "title": "2024 Nov (上) | 할 수 있다는 감각을 잃지 않으면 무엇이든...",
+                  "link": "https://blog.naver.com/y00storie/223668402947",
+                  "description": "나 공부 중인데 누가 벌써 크리스마스 분위기 내냐 여름 플레이리스트로 반항 중 정 파이널 개큰만족... 사이드로 주는 김치전이랑 수육이 너무 맛있었어 냐미~~ 구 벌쓰데이걸 너드킹의 생일 뒷풀이(?) 서울 가면...",
+                  "bloggername": "@y00storie",
+                  "postdate": "20241121"
+                }
+              ]
+            }
+          ],
+          "critique": {
+            "sufficient": false,
+            "new_query": "너드킹 추천 패션 아이템 리스트"
+          },
+          "critique_usage": {
+            "model": "gemini-3.1-flash-lite",
+            "tokens_in": 503,
+            "tokens_out": 29,
+            "cost_usd": 0.00016925
+          }
+        },
+        {
+          "queries": [
+            "너드킹 추천 패션 아이템 리스트"
+          ],
+          "searches": [
+            {
+              "query": "너드킹 추천 패션 아이템 리스트",
+              "total": 95625,
+              "items": [
+                {
+                  "title": "여름 패션 아이템 추천 스와로브스키 매트릭스 테니스 팔찌...",
+                  "link": "https://blog.naver.com/south0429/224309673256",
+                  "description": "이렇게 룩의 완성도를 높여주는 주얼리 하나만 잘 골라도 전체적인 실루엣이 확 살아서, 제 주변 지인들에게도 훌륭한 여름패션아이템추천 리스트로 스와로브스키를 꼭 얘기해주고 있어요. 가장 만족스러운...",
+                  "bloggername": "남쪽구슬",
+                  "postdate": "20260608"
+                },
+                {
+                  "title": "2026 남자 패션 위시리스트... 간절기 아우터 부츠 아이템 추천",
+                  "link": "https://blog.naver.com/shoe-re/224166215763",
+                  "description": "&quot;무신사 큐레이터 활동의 일환으로 구매가 발생할 시 일정 수수료를 제공받습니다.&quot; 2026 남자 패션 위시리스트 : 아메카지부터 시크한 스타일 간절기 아우터 부츠 아이템 추천 안녕하세요, 패션 인플루언서...",
+                  "bloggername": "패션 블로그",
+                  "postdate": "20260204"
+                },
+                {
+                  "title": "키링 위시리스트 : 여름 코디 포인트 키링 액세서리 아이템 추천",
+                  "link": "https://blog.naver.com/shoe-re/224295016244",
+                  "description": "3~5만원대 가성비 남자 레더 키링 위시리스트 : 여름 코디 포인트 키링 액세서리 아이템 추천 안녕하세요, 패션 인플루언서 슈리입니다. 평소 옷을 입을 때 큰 비중을 차지하진 않지만, 은근히 디테일에서...",
+                  "bloggername": "패션 블로그",
+                  "postdate": "20260610"
+                }
+              ]
+            }
+          ],
+          "critique": {
+            "sufficient": false,
+            "new_query": "너드킹 패션 추천 리스트"
+          },
+          "critique_usage": {
+            "model": "gemini-3.1-flash-lite",
+            "tokens_in": 597,
+            "tokens_out": 27,
+            "cost_usd": 0.00018975
+          }
+        }
+      ],
+      "web_called": false,
+      "web_skipped": false,
+      "searched_results": [
+        {
+          "title": "여름 패션 아이템 추천 스와로브스키 매트릭스 테니스 팔찌...",
+          "link": "https://blog.naver.com/south0429/224309673256"
+        },
+        {
+          "title": "2026 남자 패션 위시리스트... 간절기 아우터 부츠 아이템 추천",
+          "link": "https://blog.naver.com/shoe-re/224166215763"
+        },
+        {
+          "title": "키링 위시리스트 : 여름 코디 포인트 키링 액세서리 아이템 추천",
+          "link": "https://blog.naver.com/shoe-re/224295016244"
+        }
+      ],
+      "critique": {
+        "sufficient": false,
+        "new_query": "너드킹 패션 추천 리스트"
+      },
+      "judge": {
+        "useful": false,
+        "usefulness": 1,
+        "picked_urls": [],
+        "comment": "사용자가 찾는 '너드킹'의 추천 패션 리스트와 무관한 일반 패션 블로그 글만 검색되었습니다."
+      },
+      "ranked_urls": [],
+      "usage": {
+        "route": {
+          "model": "gemini-3.1-flash-lite",
+          "tokens_in": 1253,
+          "tokens_out": 94,
+          "cost_usd": 0.00045425
+        },
+        "critique": {
+          "model": "gemini-3.1-flash-lite",
+          "tokens_in": 597,
+          "tokens_out": 27,
+          "cost_usd": 0.00018975
+        },
+        "judge": {
+          "model": "gemini-3.5-flash",
+          "tokens_in": 752,
+          "tokens_out": 329,
+          "cost_usd": 0.0010481
+        }
+      },
+      "case_cost_usd": 0.00186135
+    },
+    {
+      "id": "c8d1ef4c",
+      "orig_summary": "트럼프의 경제 정책이 시장에 미칠 영향과 버블 가능성에 대한 분석 내용을 담은 유튜브 영상입니다. 향후 경제 흐름을 파악하기 위한 참고 자료로 저장합니다.",
+      "orig_category": "투자",
+      "orig_url": null,
+      "before": {
+        "useful": false,
+        "usefulness": 2,
+        "queries": [
+          "트럼프 경제 정책 시장 영향 분석",
+          "트럼프 당선 경제 버블 가능성"
+        ],
+        "route_category": "news",
+        "comment": "사용자는 트럼프 경제 정책 및 버블 가능성을 분석한 '유튜브 영상'을 기록했으나, 검색 결과는 일반 뉴스 기사들만 반환되어 사용자가 기록한 대상을 정확히 찾지 못했습니다."
+      },
+      "route": {
+        "needs_resource": true,
+        "category": "news",
+        "queries": [
+          "트럼프 경제 정책 시장 영향 버블 분석"
+        ],
+        "rationale": "트럼프의 경제 정책과 시장 전망에 대한 분석 기사나 전문가 리포트를 다시 확인하는 것이 투자 판단에 도움이 되므로 news 카테고리로 분류했습니다."
+      },
+      "iters": [
+        {
+          "queries": [
+            "트럼프 경제 정책 시장 영향 버블 분석"
+          ],
+          "searches": [
+            {
+              "query": "트럼프 경제 정책 시장 영향 버블 분석",
+              "total": 372,
+              "items": [
+                {
+                  "title": "업비트와 7인의 전문가가 보내는 시그널",
+                  "link": "https://www.gqkorea.co.kr/2026/06/09/%ec%97%85%eb%b9%84%ed%8a%b8%ec%99%80-7%ec%9d%b8%ec%9d%98-%ec%a0%84%eb%ac%b8%ea%b0%80%ea%b0%80-%eb%b3%b4%eb%82%b4%eb%8a%94-%ec%8b%9c%ea%b7%b8%eb%84%90/?utm_source=naver&utm_medium=partnership",
+                  "description": "국제사회가 어떤 철학을 가지고 정책을 취하느냐에 따라 가상자산 시장 전반에 활력이 더 생길 수도 있다고 봐요. GQ 지금 코인을 사도 될까요?JH 저는 사라고 합니다. 코인에 관심을 가져야 할 시점이에요. 앞으로 경제...",
+                  "pubDate": "Tue, 09 Jun 2026 16:59:00 +0900"
+                },
+                {
+                  "title": "트럼프 지지자들, 살림살이 나아졌습니까?",
+                  "link": "https://n.news.naver.com/mnews/article/308/0000037987?sid=101",
+                  "description": "악영향을 미치고 불평등을 심화시킬 것이다. 의회예산국의 분석에 따르면 OBBBA로 인해 2026년에서... 트럼프 정부의 경제정책은 노동시장의 1차 분배와 가처분소득의 2차 분배 모두에서 불평등을 심화시키고 있다....",
+                  "pubDate": "Tue, 10 Mar 2026 06:48:00 +0900"
+                },
+                {
+                  "title": "“美관세, 이미 적법성 문제 아냐…트럼프, 온갖 수단 동원해 유지할 것...",
+                  "link": "https://n.news.naver.com/mnews/article/016/0002588883?sid=104",
+                  "description": "글로벌 경제성장률에 큰 영향을 미칠 것이라 전망했다. 미국의 기준금리 등 통화정책도 AI 거품 붕괴가 몰고 올 경기침체 등에 자연히 따라갈 것이라 내다봤다. -트럼프 대통령 재집권 첫해를 평가한다면. ▶혼란스러운 한...",
+                  "pubDate": "Wed, 21 Jan 2026 11:26:00 +0900"
+                }
+              ]
+            }
+          ],
+          "critique": {
+            "sufficient": true,
+            "new_query": null
+          },
+          "critique_usage": {
+            "model": "gemini-3.1-flash-lite",
+            "tokens_in": 757,
+            "tokens_out": 18,
+            "cost_usd": 0.00021625
+          }
+        }
+      ],
+      "web_called": false,
+      "web_skipped": false,
+      "searched_results": [
+        {
+          "title": "업비트와 7인의 전문가가 보내는 시그널",
+          "link": "https://www.gqkorea.co.kr/2026/06/09/%ec%97%85%eb%b9%84%ed%8a%b8%ec%99%80-7%ec%9d%b8%ec%9d%98-%ec%a0%84%eb%ac%b8%ea%b0%80%ea%b0%80-%eb%b3%b4%eb%82%b4%eb%8a%94-%ec%8b%9c%ea%b7%b8%eb%84%90/?utm_source=naver&utm_medium=partnership"
+        },
+        {
+          "title": "트럼프 지지자들, 살림살이 나아졌습니까?",
+          "link": "https://n.news.naver.com/mnews/article/308/0000037987?sid=101"
+        },
+        {
+          "title": "“美관세, 이미 적법성 문제 아냐…트럼프, 온갖 수단 동원해 유지할 것...",
+          "link": "https://n.news.naver.com/mnews/article/016/0002588883?sid=104"
+        }
+      ],
+      "critique": {
+        "sufficient": true,
+        "new_query": null
+      },
+      "judge": {
+        "useful": false,
+        "usefulness": 2,
+        "picked_urls": [],
+        "comment": "사용자가 찾는 것은 트럼프 경제 정책과 버블 가능성을 다룬 유튜브 영상이나, 수집된 결과는 일반 뉴스 기사 및 칼럼으로 일치하지 않습니다."
+      },
+      "ranked_urls": [],
+      "usage": {
+        "route": {
+          "model": "gemini-3.1-flash-lite",
+          "tokens_in": 1265,
+          "tokens_out": 81,
+          "cost_usd": 0.00043775
+        },
+        "critique": {
+          "model": "gemini-3.1-flash-lite",
+          "tokens_in": 757,
+          "tokens_out": 18,
+          "cost_usd": 0.00021625
+        },
+        "judge": {
+          "model": "gemini-3.5-flash",
+          "tokens_in": 905,
+          "tokens_out": 347,
+          "cost_usd": 0.001139
+        }
+      },
+      "case_cost_usd": 0.001793
+    },
+    {
+      "id": "07c371d1",
+      "orig_summary": "인스타그램에서 추천하는 살림 꿀템 영상으로, 나중에 구매를 고려하기 위해 저장했습니다.",
+      "orig_category": "쇼핑",
+      "orig_url": "https://www.instagram.com/reel/DXMTictEtEn/",
+      "before": {
+        "useful": false,
+        "usefulness": 1,
+        "queries": [
+          "인스타그램 살림 꿀템",
+          "주방 정리 용품 추천",
+          "생활 아이디어 상품"
+        ],
+        "route_category": "shop",
+        "comment": "사용자가 저장한 특정 인스타그램 영상 속 제품이 무엇인지 식별되지 않은 상태에서 일반적인 살림/주방 용품들만 검색되어 추천으로서의 가치가 없습니다."
+      },
+      "route": {
+        "needs_resource": true,
+        "category": "blog",
+        "queries": [
+          "인스타그램 살림 꿀템 추천 리스트",
+          "자취 살림 필수템 추천"
+        ],
+        "rationale": "특정 상품명이 명시되지 않은 일반적인 '살림 꿀템' 추천 영상이므로, 관련 제품을 정리한 큐레이션 블로그 글을 찾는 것이 사용자에게 더 유용합니다."
+      },
+      "iters": [
+        {
+          "queries": [
+            "인스타그램 살림 꿀템 추천 리스트",
+            "자취 살림 필수템 추천"
+          ],
+          "searches": [
+            {
+              "query": "인스타그램 살림 꿀템 추천 리스트",
+              "total": 11079,
+              "items": [
+                {
+                  "title": "우리집 살림 꿀템 추천 I 직접 써보고 정착한 생활용품 리스트",
+                  "link": "https://blog.naver.com/vshdwkdv/224228874777",
+                  "description": "수세미 색감만 바꿔줘도 주방 분위기가 은근 달라져서 기분 좋아지는 포인트 &gt;.&lt; 인스타그램에도... 끝! #살림템추천 #살림꿀템 #생활용품추천 #신혼살림 #집꾸미기 #주방템 #키친템 #내돈내산 #오늘의집",
+                  "bloggername": "그렇다",
+                  "postdate": "20260325"
+                },
+                {
+                  "title": "다이소 추천 꿀템 미국에도 사가는 살림 용품",
+                  "link": "https://blog.naver.com/rolo_ggo/224312353440",
+                  "description": "미국살이 1년 후 이건 한국 다이소에서 꼭 사야 한다고 생각한 제품 리스트 안뇽하세요 바리바리꾼... me 한국에선 당욘 이런 좋은 거 쓰는 게 맞고요 이건 살림꾼 친구의 추천 꿀템인데요!! 다이소...",
+                  "bloggername": "하고 싶은 거 하는 중인 꿀정네",
+                  "postdate": "20260612"
+                },
+                {
+                  "title": "다이소 꿀템 추천 살림 좀 한다는 사람은 아는 추천템 리스트",
+                  "link": "https://blog.naver.com/ysj5327/224031162561",
+                  "description": "다이소 꿀템 추천 템 리스트 쫙 정리해 드렸어요. 살림 좀 한다는 사람은 거의 다 아는 살림템들이라 다이소 가실 때 보이면 눈여겨 보시길 바랄게요. 쉬운 살림은 어느 정도 템발이 있으니까요! ㅎㅎ",
+                  "bloggername": "눈사람씨의 가전 가구 & 살림",
+                  "postdate": "20251004"
+                }
+              ]
+            },
+            {
+              "query": "자취 살림 필수템 추천",
+              "total": 5322,
+              "items": [
+                {
+                  "title": "꿀템 추천, 살림백서 자취 필수템 뿌리는 곰팡이제거제...",
+                  "link": "https://blog.naver.com/jngs10000/223618485859",
+                  "description": "사용해 주세요(사전에 변색 테스트 추천) - 세정 시 냉수를 사용하여 세정해 주세요 이상으로 방 천장 벽지, 욕조 곰팡이 제거 세정제 추천 살림백서 자취 필수템 뿌리는 곰팡이제거제 사용후기 포스팅이었습니다",
+                  "bloggername": "쩌눙갬성",
+                  "postdate": "20241015"
+                },
+                {
+                  "title": "자취 필수템 리스트 이사선물추천 자신있게 하는 이유 있어요",
+                  "link": "https://blog.naver.com/chltndyd8521/224163902008",
+                  "description": "이사선물추천 고민하다가 삶의 질을 수직 상승시켜주는 똑똑한 미니 가전을 발견하게 됐어요 공간은... 확실히 자취 필수템 리스트에 손꼽히는 이유가 있었어요 배터리 용량 또한 8000mAh로 매우 넉넉해 한 번의...",
+                  "bloggername": "소소한 행복",
+                  "postdate": "20260129"
+                },
+                {
+                  "title": "생활 꿀팁, 혼자 사는 꿀팁, 자취생 살림 노하우, 자취 필수템 추천",
+                  "link": "https://blog.naver.com/k3700728/223926999021",
+                  "description": "필요한 필수템과 유용한 꿀팁들을 알려드릴게요. 현명한 소비와 효율적인 살림으로 즐거운 자취 생활을... 단계별로 자취 필수템을 추천해 드릴께요. A. 기본 중의 기본! 없으면 안 될 필수템 가. 주방 용품...",
+                  "bloggername": "작은하늘의 만물상",
+                  "postdate": "20250709"
+                }
+              ]
+            }
+          ],
+          "critique": {
+            "sufficient": true,
+            "new_query": null
+          },
+          "critique_usage": {
+            "model": "gemini-3.1-flash-lite",
+            "tokens_in": 909,
+            "tokens_out": 18,
+            "cost_usd": 0.00025425
+          }
+        }
+      ],
+      "web_called": false,
+      "web_skipped": false,
+      "searched_results": [
+        {
+          "title": "우리집 살림 꿀템 추천 I 직접 써보고 정착한 생활용품 리스트",
+          "link": "https://blog.naver.com/vshdwkdv/224228874777"
+        },
+        {
+          "title": "다이소 추천 꿀템 미국에도 사가는 살림 용품",
+          "link": "https://blog.naver.com/rolo_ggo/224312353440"
+        },
+        {
+          "title": "다이소 꿀템 추천 살림 좀 한다는 사람은 아는 추천템 리스트",
+          "link": "https://blog.naver.com/ysj5327/224031162561"
+        },
+        {
+          "title": "꿀템 추천, 살림백서 자취 필수템 뿌리는 곰팡이제거제...",
+          "link": "https://blog.naver.com/jngs10000/223618485859"
+        },
+        {
+          "title": "자취 필수템 리스트 이사선물추천 자신있게 하는 이유 있어요",
+          "link": "https://blog.naver.com/chltndyd8521/224163902008"
+        },
+        {
+          "title": "생활 꿀팁, 혼자 사는 꿀팁, 자취생 살림 노하우, 자취 필수템 추천",
+          "link": "https://blog.naver.com/k3700728/223926999021"
+        }
+      ],
+      "critique": {
+        "sufficient": true,
+        "new_query": null
+      },
+      "judge": {
+        "useful": false,
+        "usefulness": 1,
+        "picked_urls": [],
+        "comment": "사용자가 저장한 특정 인스타그램 릴스 영상 속 제품에 대한 구체적인 정보가 없으며, 검색 결과는 일반적인 살림/자취 추천템 블로그 글들로 사용자가 찾던 대상과 일치하지 않습니다."
+      },
+      "ranked_urls": [],
+      "usage": {
+        "route": {
+          "model": "gemini-3.1-flash-lite",
+          "tokens_in": 1268,
+          "tokens_out": 106,
+          "cost_usd": 0.000476
+        },
+        "critique": {
+          "model": "gemini-3.1-flash-lite",
+          "tokens_in": 909,
+          "tokens_out": 18,
+          "cost_usd": 0.00025425
+        },
+        "judge": {
+          "model": "gemini-3.5-flash",
+          "tokens_in": 1066,
+          "tokens_out": 391,
+          "cost_usd": 0.0012973
+        }
+      },
+      "case_cost_usd": 0.00202755
+    },
+    {
+      "id": "641c6c82",
+      "orig_summary": "쿠팡 장바구니에 담긴 키보드 3종과 휴대용 모니터 1종입니다. 구매를 고려 중인 상품들을 나중에 다시 확인하기 위해 저장했습니다.",
+      "orig_category": "쇼핑",
+      "orig_url": null,
+      "before": {
+        "useful": false,
+        "usefulness": 2,
+        "queries": [
+          "키보드 추천",
+          "휴대용 모니터 추천"
+        ],
+        "route_category": "shop",
+        "comment": "사용자가 쿠팡 장바구니에 담아둔 특정 상품들을 찾는 기록이나, 수집된 결과는 일반적인 네이버 쇼핑 추천 상품들이므로 일치하지 않습니다."
+      },
+      "route": {
+        "needs_resource": false,
+        "category": "none",
+        "queries": [],
+        "rationale": "사용자가 이미 쿠팡 장바구니에 상품을 담아두었으므로, 별도의 외부 검색 없이 쿠팡 앱이나 웹사이트의 장바구니를 확인하는 것이 가장 정확합니다."
+      },
+      "none": true,
+      "iters": [],
+      "searched_results": [],
+      "critique": null,
+      "judge": {
+        "useful": false,
+        "usefulness": 1,
+        "picked_urls": [],
+        "comment": "route: needs_resource=false/none"
+      },
+      "ranked_urls": [],
+      "web_called": false,
+      "web_skipped": false,
+      "usage": {
+        "route": {
+          "model": "gemini-3.1-flash-lite",
+          "tokens_in": 1266,
+          "tokens_out": 76,
+          "cost_usd": 0.0004305
+        },
+        "critique": null,
+        "judge": null
+      },
+      "case_cost_usd": 0.0004305
+    },
+    {
+      "id": "ba6ec44a",
+      "orig_summary": "여의도에 위치한 베이커리 '브로트아트'의 네이버지도 정보입니다. 추후 방문을 고려하여 장소 정보를 저장했습니다.",
+      "orig_category": "일상",
+      "orig_url": null,
+      "before": {
+        "useful": false,
+        "usefulness": 2,
+        "queries": [
+          "여의도 브로트아트"
+        ],
+        "route_category": "local",
+        "comment": "사용자는 오프라인 방문을 위한 지도 정보를 원했으나, 수집된 결과는 동일한 스마트스토어 링크뿐이므로 장소 정보로서 유용하지 않습니다."
+      },
+      "route": {
+        "needs_resource": true,
+        "category": "local",
+        "queries": [
+          "여의도 브로트아트"
+        ],
+        "rationale": "사용자가 방문을 고려하여 저장한 장소 정보이므로, 네이버 지도에서 정확한 위치와 정보를 다시 확인할 수 있도록 라우팅함."
+      },
+      "iters": [
+        {
+          "queries": [
+            "여의도 브로트아트"
+          ],
+          "searches": [
+            {
+              "query": "여의도 브로트아트",
+              "total": 3,
+              "items": [
+                {
+                  "title": "브로트아트 여의도 본점",
+                  "link": "https://smartstore.naver.com/brotart",
+                  "category": "카페,디저트>베이커리",
+                  "address": "서울특별시 영등포구 여의도동 32-1 수정상가 1층",
+                  "roadAddress": "서울특별시 영등포구 국제금융로7길 3 수정상가 1층"
+                },
+                {
+                  "title": "브로트아트 여의도역 2호점",
+                  "link": "https://smartstore.naver.com/brotart",
+                  "category": "카페,디저트>베이커리",
+                  "address": "서울특별시 영등포구 여의도동 35-5 1층 105호",
+                  "roadAddress": "서울특별시 영등포구 여의나루로 42 1층 105호"
+                }
+              ]
+            }
+          ],
+          "critique": {
+            "sufficient": true,
+            "new_query": null
+          },
+          "critique_usage": {
+            "model": "gemini-3.1-flash-lite",
+            "tokens_in": 360,
+            "tokens_out": 18,
+            "cost_usd": 0.000117
+          }
+        }
+      ],
+      "web_called": false,
+      "web_skipped": false,
+      "searched_results": [
+        {
+          "title": "브로트아트 여의도 본점",
+          "link": "https://smartstore.naver.com/brotart"
+        },
+        {
+          "title": "브로트아트 여의도역 2호점",
+          "link": "https://smartstore.naver.com/brotart"
+        }
+      ],
+      "critique": {
+        "sufficient": true,
+        "new_query": null
+      },
+      "judge": {
+        "useful": true,
+        "usefulness": 3,
+        "picked_urls": [
+          "https://smartstore.naver.com/brotart"
+        ],
+        "comment": "사용자가 찾는 여의도 브로트아트 매장의 공식 스마트스토어 링크로, 지도 링크는 아니지만 브랜드가 정확히 일치하여 유용합니다."
+      },
+      "ranked_urls": [
+        {
+          "url": "https://smartstore.naver.com/brotart",
+          "title": "브로트아트 여의도 본점",
+          "tier_num": 3.0,
+          "tier_label": "tier3_openmarket",
+          "signal": "domain:smartstore.naver.com"
+        },
+        {
+          "url": "https://smartstore.naver.com/brotart",
+          "title": "브로트아트 여의도역 2호점",
+          "tier_num": 3.0,
+          "tier_label": "tier3_openmarket",
+          "signal": "domain:smartstore.naver.com"
+        }
+      ],
+      "usage": {
+        "route": {
+          "model": "gemini-3.1-flash-lite",
+          "tokens_in": 1260,
+          "tokens_out": 73,
+          "cost_usd": 0.0004245
+        },
+        "critique": {
+          "model": "gemini-3.1-flash-lite",
+          "tokens_in": 360,
+          "tokens_out": 18,
+          "cost_usd": 0.000117
+        },
+        "judge": {
+          "model": "gemini-3.5-flash",
+          "tokens_in": 505,
+          "tokens_out": 550,
+          "cost_usd": 0.0015265
+        }
+      },
+      "case_cost_usd": 0.002068
+    },
+    {
+      "id": "9d19a3cd",
+      "orig_summary": "구성역 3번 출구에서 운행하는 마을버스 502번의 과거 시간표 정보입니다. 운행 패턴을 확인하거나 참고하기 위해 저장한 것으로 보입니다.",
+      "orig_category": null,
+      "orig_url": null,
+      "before": {
+        "useful": false,
+        "usefulness": 1,
+        "queries": [
+          "구성역 502번 마을버스 시간표"
+        ],
+        "route_category": "local",
+        "comment": "수집된 결과가 없어 사용자에게 제공할 정보가 없습니다."
+      },
+      "route": {
+        "needs_resource": true,
+        "category": "web",
+        "queries": [
+          "구성역 502번 마을버스 시간표"
+        ],
+        "rationale": "마을버스 시간표는 지자체나 교통 정보 사이트 등 웹 검색을 통해 최신 정보를 확인하는 것이 가장 정확하므로 web으로 분류했습니다."
+      },
+      "iters": [
+        {
+          "queries": [
+            "구성역 502번 마을버스 시간표"
+          ],
+          "searches": [
+            {
+              "query": "구성역 502번 마을버스 시간표",
+              "items": [
+                {
+                  "title": "용인 502번 마을버스(단국대 죽전캠퍼스-마북동-교동마을A/칼빈대",
+                  "link": "https://nwcjking.tistory.com/3466",
+                  "description": "* 지하철역 · [안내 및 주의사항] · 1) · [지하철역 연계] · * 수도권지하철 수인-분당선 : 구성역 · * 시간표는 2026년 기준입니다."
+                },
+                {
+                  "title": "용인 마북동~구성역 502번 마을버스 3월 4일 개통 - YouTube",
+                  "link": "https://www.youtube.com/watch?v=5Boi4zc3N4A",
+                  "description": "[앵커멘트] 다음 달 4일부터 용인시 마북동과 구성역 사이 마을버스 노선이 운행됩니다. 용인시는 마북동 주민들의 교통편의를 위해 마북동 현대"
+                },
+                {
+                  "title": "용인시 내년 초 마북동 마을버스 502번 노선 단국대 정문 앞까지 연장",
+                  "link": "https://www.kihoilbo.co.kr/news/articleView.html?idxno=3005538",
+                  "description": "502번은 마북동 주민들이 편리하게 구성역을 이용하도록 시가 3월 4일부터 신설해 운영하는 노선이다. 현재 마북동 현대연수원에서 마북동 행정복지센터와"
+                }
+              ]
+            }
+          ],
+          "critique": {
+            "sufficient": true,
+            "new_query": null
+          },
+          "critique_usage": {
+            "model": "gemini-3.1-flash-lite",
+            "tokens_in": 622,
+            "tokens_out": 18,
+            "cost_usd": 0.0001825
+          }
+        }
+      ],
+      "web_called": true,
+      "web_skipped": false,
+      "searched_results": [
+        {
+          "title": "용인 502번 마을버스(단국대 죽전캠퍼스-마북동-교동마을A/칼빈대",
+          "link": "https://nwcjking.tistory.com/3466"
+        },
+        {
+          "title": "용인 마북동~구성역 502번 마을버스 3월 4일 개통 - YouTube",
+          "link": "https://www.youtube.com/watch?v=5Boi4zc3N4A"
+        },
+        {
+          "title": "용인시 내년 초 마북동 마을버스 502번 노선 단국대 정문 앞까지 연장",
+          "link": "https://www.kihoilbo.co.kr/news/articleView.html?idxno=3005538"
+        }
+      ],
+      "critique": {
+        "sufficient": true,
+        "new_query": null
+      },
+      "judge": {
+        "useful": true,
+        "usefulness": 5,
+        "picked_urls": [
+          "https://nwcjking.tistory.com/3466"
+        ],
+        "comment": "구성역을 경유하는 용인 502번 마을버스의 상세 노선 및 시간표 정보를 담은 링크를 확보했습니다."
+      },
+      "ranked_urls": [
+        {
+          "url": "https://nwcjking.tistory.com/3466",
+          "title": "용인 502번 마을버스(단국대 죽전캠퍼스-마북동-교동마을A/칼빈대",
+          "tier_num": 4.0,
+          "tier_label": "tier4_info",
+          "signal": "domain:tistory.com"
+        }
+      ],
+      "usage": {
+        "route": {
+          "model": "gemini-3.1-flash-lite",
+          "tokens_in": 1257,
+          "tokens_out": 79,
+          "cost_usd": 0.00043275
+        },
+        "critique": {
+          "model": "gemini-3.1-flash-lite",
+          "tokens_in": 622,
+          "tokens_out": 18,
+          "cost_usd": 0.0001825
+        },
+        "judge": {
+          "model": "gemini-3.5-flash",
+          "tokens_in": 771,
+          "tokens_out": 489,
+          "cost_usd": 0.0014538
+        }
+      },
+      "case_cost_usd": 0.0020690500000000002
+    },
+    {
+      "id": "e4218b9a",
+      "orig_summary": "어깨 근육 발달을 위한 운동 루틴을 담은 유튜브 영상입니다. 사용자가 운동 시 참고하기 위해 저장했습니다.",
+      "orig_category": null,
+      "orig_url": null,
+      "before": {
+        "useful": false,
+        "usefulness": 2,
+        "queries": [
+          "어깨 근육 발달 운동 루틴",
+          "어깨 넓어지는 운동법"
+        ],
+        "route_category": "blog",
+        "comment": "사용자가 저장한 특정 유튜브 영상을 찾는 맥락이나, 수집된 결과는 일반적인 헬스장 홍보용 블로그 글들이라 유용하지 않습니다."
+      },
+      "route": {
+        "needs_resource": true,
+        "category": "blog",
+        "queries": [
+          "어깨 근육 발달 운동 루틴 추천"
+        ],
+        "rationale": "유튜브 영상의 내용을 텍스트로 정리된 블로그 포스팅을 통해 다시 확인하는 것이 운동 루틴을 따라 할 때 더 효율적입니다."
+      },
+      "iters": [
+        {
+          "queries": [
+            "어깨 근육 발달 운동 루틴 추천"
+          ],
+          "searches": [
+            {
+              "query": "어깨 근육 발달 운동 루틴 추천",
+              "total": 291498,
+              "items": [
+                {
+                  "title": "간석동헬스 리뉴핏 어깨근육 제대로 발달시킬수 있는 운동 루틴",
+                  "link": "https://blog.naver.com/renewfit/224285077086",
+                  "description": "자료는 어깨근육을 제대로 발달 시킬수 있는 운동 루틴을 제 운동 영상을 통해서 공유해 보는 시간을... 하며 운동 초보자 분들일 수록 첫종목으로 바벨을 이용한 프레스 운동을 가장 먼저 하는걸 추천합니다....",
+                  "bloggername": "리뉴핏PT,헬스 간석점",
+                  "postdate": "20260516"
+                },
+                {
+                  "title": "아크짐 추천 어깨운동! 삼각근 발달을 위한 최고의 루틴",
+                  "link": "https://blog.naver.com/arkgymjj/224304104218",
+                  "description": "부위만 발달하여 균형이 무너지는 경우가 많습니다. 어깨는 단순히 한 개의 근육이 아니라 여러 근육이... 아크짐 추천 어깨운동 루틴 3 프론트 레이즈 전면 삼각근 발달에 도움을 주는 운동입니다. 숄더...",
+                  "bloggername": "작전동 24시 헬스장 PT 아크짐",
+                  "postdate": "20260604"
+                },
+                {
+                  "title": "가슴·어깨 근육 운동 루틴| 벤치프레스 인클라인프레스...",
+                  "link": "https://blog.naver.com/vippsh/223967821373",
+                  "description": "메인 운동 루틴 1. 벤치프레스 가슴 근육의 기초 공사 가슴 전체를 폭발적으로 키우는 최고의 운동입니다. - 7세트의 고볼륨으로 근비대 자극 극대화 - 가슴, 어깨 전면, 삼두근을 동시에 발달 - 점진적 과부하로...",
+                  "bloggername": "모델 박상호 : 웰니스라이프",
+                  "postdate": "20250812"
+                }
+              ]
+            }
+          ],
+          "critique": {
+            "sufficient": true,
+            "new_query": null
+          },
+          "critique_usage": {
+            "model": "gemini-3.1-flash-lite",
+            "tokens_in": 589,
+            "tokens_out": 18,
+            "cost_usd": 0.00017425
+          }
+        }
+      ],
+      "web_called": false,
+      "web_skipped": false,
+      "searched_results": [
+        {
+          "title": "간석동헬스 리뉴핏 어깨근육 제대로 발달시킬수 있는 운동 루틴",
+          "link": "https://blog.naver.com/renewfit/224285077086"
+        },
+        {
+          "title": "아크짐 추천 어깨운동! 삼각근 발달을 위한 최고의 루틴",
+          "link": "https://blog.naver.com/arkgymjj/224304104218"
+        },
+        {
+          "title": "가슴·어깨 근육 운동 루틴| 벤치프레스 인클라인프레스...",
+          "link": "https://blog.naver.com/vippsh/223967821373"
+        }
+      ],
+      "critique": {
+        "sufficient": true,
+        "new_query": null
+      },
+      "judge": {
+        "useful": false,
+        "usefulness": 2,
+        "picked_urls": [],
+        "comment": "사용자가 저장한 대상은 유튜브 영상이나, 수집된 결과는 헬스장 홍보용 블로그 글 위주여서 일치하지 않습니다."
+      },
+      "ranked_urls": [],
+      "usage": {
+        "route": {
+          "model": "gemini-3.1-flash-lite",
+          "tokens_in": 1255,
+          "tokens_out": 83,
+          "cost_usd": 0.00043825
+        },
+        "critique": {
+          "model": "gemini-3.1-flash-lite",
+          "tokens_in": 589,
+          "tokens_out": 18,
+          "cost_usd": 0.00017425
+        },
+        "judge": {
+          "model": "gemini-3.5-flash",
+          "tokens_in": 737,
+          "tokens_out": 534,
+          "cost_usd": 0.0015561
+        }
+      },
+      "case_cost_usd": 0.0021686
+    },
+    {
+      "id": "a97bdb1c",
+      "orig_summary": "박세현 님이 보낸 'SW중심대학 디지털 경진대회' 관련 카카오톡 알림입니다. 화면이 잘린다는 내용에 대해 확인이 필요해 보입니다.",
+      "orig_category": null,
+      "orig_url": null,
+      "before": {
+        "useful": true,
+        "usefulness": 3,
+        "queries": [
+          "SW중심대학 디지털 경진대회 화면 잘림",
+          "SW중심대학 디지털 경진대회 고객센터",
+          "SW중심대학 디지털 경진대회 공지사항"
+        ],
+        "route_category": "web",
+        "comment": "화면 잘림 현상에 대한 직접적인 해결 정보는 없으나, 대회가 진행되는 데이콘 플랫폼 및 주관 협의회 공식 사이트를 통해 문의할 수 있도록 링크를 제공합니다."
+      },
+      "route": {
+        "needs_resource": false,
+        "category": "none",
+        "queries": [],
+        "rationale": "개인 간의 카카오톡 대화 내용으로, 외부 검색을 통해 얻을 수 있는 정보가 아닌 내부 확인이 필요한 업무성 알림입니다."
+      },
+      "none": true,
+      "iters": [],
+      "searched_results": [],
+      "critique": null,
+      "judge": {
+        "useful": false,
+        "usefulness": 1,
+        "picked_urls": [],
+        "comment": "route: needs_resource=false/none"
+      },
+      "ranked_urls": [],
+      "web_called": false,
+      "web_skipped": false,
+      "usage": {
+        "route": {
+          "model": "gemini-3.1-flash-lite",
+          "tokens_in": 1258,
+          "tokens_out": 66,
+          "cost_usd": 0.0004135
+        },
+        "critique": null,
+        "judge": null
+      },
+      "case_cost_usd": 0.0004135
+    }
+  ]
+}
