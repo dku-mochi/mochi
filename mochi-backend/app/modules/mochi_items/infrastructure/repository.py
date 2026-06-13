@@ -98,6 +98,9 @@ def _row_to_entity(row: MochiItemRow) -> MochiItem:
         ),
         summary=row.summary,
         category=row.category,
+        shopping_product_query=next(
+            (e.value for e in row.entities if e.kind == "shopping_product"), None
+        ),
         importance=row.importance,
         model_version=row.model_version,
         lifecycle=LifecycleState(
@@ -180,6 +183,7 @@ class PostgresMochiItemRepository(MochiItemRepository):
             .options(
                 selectinload(MochiItemRow.image_refs),
                 selectinload(MochiItemRow.intent_instances),
+                selectinload(MochiItemRow.entities),
             )
         )
         row = (await self._session.scalars(stmt)).one_or_none()
@@ -192,6 +196,7 @@ class PostgresMochiItemRepository(MochiItemRepository):
             .options(
                 selectinload(MochiItemRow.image_refs),
                 selectinload(MochiItemRow.intent_instances),
+                selectinload(MochiItemRow.entities),
             )
             .order_by(MochiItemRow.created_at.desc())
             .limit(limit)
@@ -210,6 +215,7 @@ class PostgresMochiItemRepository(MochiItemRepository):
             .options(
                 selectinload(MochiItemRow.image_refs),
                 selectinload(MochiItemRow.intent_instances),
+                selectinload(MochiItemRow.entities),
             )
             .order_by(MochiItemRow.created_at.desc())
             .limit(limit)
@@ -248,6 +254,7 @@ class PostgresMochiItemRepository(MochiItemRepository):
             .options(
                 selectinload(MochiItemRow.image_refs),
                 selectinload(MochiItemRow.intent_instances),
+                selectinload(MochiItemRow.entities),
             )
         )
         if captured_from is not None:

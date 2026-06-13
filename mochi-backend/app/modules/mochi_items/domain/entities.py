@@ -107,6 +107,7 @@ class MochiItem:
     review_options: tuple[ReviewOption, ...] = ()
     summary: str | None = None
     category: str | None = None
+    shopping_product_query: str | None = None
     importance: int = 3
     model_version: str | None = None
     lifecycle: LifecycleState = field(default_factory=LifecycleState.ingested)
