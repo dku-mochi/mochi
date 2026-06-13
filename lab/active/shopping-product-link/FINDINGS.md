@@ -190,6 +190,26 @@ PR#34 `recover_url` 정본) ② `findReferenceUrls`(exp5~7 loop: search(naver/ta
 
 **불변식:** harness 프롬프트/스키마 리터럴 0(grep PASS). lint/typecheck green.
 
+### v19 — codex 평가 반영 개선 + 재측정 (2026-06-14, `results/baseline_20260614_032128.json`)
+
+v18 baseline + codex consult(IMPROVEMENT_PLAN.md) → 5개 수정: ① platformContext/webFetch 를
+"실제 capture URL 있을 때만" 게이트 ② recoverYoutubeUrl channel_hint + 후보 oembed 채널 매칭 재랭킹
+③ 댓글창 상품링크→finder·인스타 행사→finder 분기(프롬프트) ④ **critique loop 제거**(codex 가 잡은
+"iter2 가 collected 덮어써 judge 가 마지막 검색만 보던 버그") ⑤ 입력 bound. + orchestrator 가
+ValidationError 를 모델에 되먹임(malformed args 가 run 죽이던 것).
+
+**v18 → v19 (Claude judge 비교, 바뀐 10건 이미지 재채점): improved 7 / regressed 2-3 / neutral 1**
+- **개선**: 유튜브 댓글창 4건(11·13·3·35) recover 오호출(엉뚱 채널)→finder 상품검색(usefulness 5).
+  인스타 platformContext 과호출 3건(19·26·32) 제거 — 26 none 정답, 32 남산 행사→finder(예약 의도 부합).
+  tool_choice correct 30→**33** 추정.
+- **새 회귀**: (a) **recover 채널 매칭 과엄격** — 15(따라cook/따라쿡)·16(codingapple/코딩애플) **한↔영 표기
+  불일치로 recovered=false**, v18 맞던 게 깨짐. recover 정확 3/8 → **1/4**. → 다음: title 토큰 fallback
+  또는 로마자 퍼지 매칭. (b) 0-카톡 webFetch — 화면 속 세션 url 로 호출(게이트가 프롬프트뿐이라 못 막음).
+  (c) 4-야후 SOXL finder→none — 주가 화면 공식링크가 유용했는데 탈락.
+
+**결론**: tool 선택 정확도는 순개선(correct +3), recover 호출은 8→4(댓글창이 finder 로 이동). 단 recover
+채널 rerank 가 한/영 표기차에 과민 → 정확도 자체는 회귀. **다음 1순위: channel_hint 매칭 완화(title fallback).**
+
 ### 프로덕션 반영 (2026-06-13 완료, shopping_product 1차)
 
 1. 분석 프롬프트: 쇼핑 캡처 한정 `entities(kind="shopping_product")` 산출 — specificity 는 별도

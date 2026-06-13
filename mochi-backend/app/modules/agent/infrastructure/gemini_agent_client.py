@@ -116,7 +116,10 @@ _PLATFORM_CONTEXT_PARAMS: dict[str, Any] = {
 
 _RECOVER_YOUTUBE_PARAMS: dict[str, Any] = {
     "type": "object",
-    "properties": {"query": {"type": "string"}},
+    "properties": {
+        "query": {"type": "string"},
+        "channel_hint": {"type": "string"},
+    },
     "required": ["query"],
 }
 
@@ -177,8 +180,10 @@ def _function_declarations(tools: list[Tool[Any, Any]]) -> list[types.FunctionDe
                         "Recover the original YouTube watch URL from on-screen clues when the "
                         "capture is a YouTube video/shorts/comments screen with no URL, and the "
                         "thing worth keeping (a recommended item/list, the source video) can only "
-                        "be reached by going to the original video. Pass the channel + title "
-                        "keywords you read from the image as 'query'."
+                        "be reached by going to the original video. Pass the video title keywords "
+                        "you read from the image as 'query', and the channel name (@handle or "
+                        "channel title) as 'channel_hint' — it disambiguates videos with similar "
+                        "titles to the right channel."
                     ),
                     parameters=_RECOVER_YOUTUBE_PARAMS,
                 )

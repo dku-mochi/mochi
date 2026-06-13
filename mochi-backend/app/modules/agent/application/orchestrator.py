@@ -9,6 +9,7 @@ from typing import Any
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
+from pydantic import ValidationError
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -408,9 +409,12 @@ class AgentOrchestrator:
                 latency_ms=int((perf_counter() - started) * 1000),
                 response_keys=sorted(response.keys()),
             )
-        except ToolExecutionError as exc:
+        except (ToolExecutionError, ValidationError) as exc:
+            # ValidationError = 모델이 스키마에 안 맞는 args 를 냄(예: 빈 list, 누락 필드).
+            # ToolExecutionError 와 같은 경로로 에러를 모델에 되먹여 recover/finalize 를
+            # 유도한다 — 안 잡으면 run 전체가 죽는다.
             usage = ToolUsage()
-            response = {"error": str(exc)}        # 에러를 모델에 되먹여 recover/finalize 유도
+            response = {"error": str(exc)[:500]}
             succeeded = False
             log.warning(
                 "agent.tool_failed",
@@ -418,8 +422,8 @@ class AgentOrchestrator:
                 tool=tool_name.value,
                 input_digest=input_digest,
                 latency_ms=int((perf_counter() - started) * 1000),
-                transient=exc.transient,
-                error=str(exc),
+                transient=getattr(exc, "transient", False),
+                error=str(exc)[:300],
             )
         parts.append(
             {"role": "user", "function_response": {"name": tool_name.value, "response": response}}

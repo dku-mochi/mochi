@@ -8,11 +8,15 @@
 exp 와의 차이 — 키워드 추출은 이 tool 이 아니라 **메인 에이전트(이미지를 봄)** 가 한다:
   exp6~7 의 generic 실패 근본원인이 "미니가 빈약한 summary 로 키워드 생성"이었다. 이미지를
   보는 메인이 queries+category 를 결정해 넘기면 그 원인이 제거된다(라이브 테스트 가설1).
-  따라서 이 tool 은 route 단계 없이 search→critique→judge→액션티어 랭킹만 수행한다.
+  따라서 이 tool 은 route 단계 없이 search→judge 게이트→액션티어 랭킹만 수행한다.
 
-내부 LLM(critique=flash-lite, judge=3.5-flash)은 ``_shared_client`` 를 재사용하고 토큰을
-``ToolUsage`` 로 반환해 orchestrator 가 비용에 집계한다. 외부 검색은 고정 호스트
-(openapi.naver.com / api.tavily.com)라 가변 URL SSRF 면이 아니다(web_search 선례와 동일).
+  exp5~7 의 self-critique loop 는 제거했다 — baseline 에서 refine 기여가 낮았고(대부분 1-iter),
+  무엇보다 loop 가 매 iter `collected` 를 덮어써 judge 가 마지막 검색만 보던 버그가 있었다
+  (codex 리뷰 2026-06-14). 메인이 좋은 키워드를 주므로 검색 1회 + judge 게이트로 충분하다.
+
+내부 LLM(judge=3.5-flash)은 ``_shared_client`` 를 재사용하고 토큰을 ``ToolUsage`` 로 반환해
+orchestrator 가 비용에 집계한다. 외부 검색은 고정 호스트(openapi.naver.com / api.tavily.com)라
+가변 URL SSRF 면이 아니다(web_search 선례와 동일).
 """
 
 import re
@@ -37,22 +41,12 @@ _NAVER_SEARCH_URL = "https://openapi.naver.com/v1/search/{category}.json"
 _TAVILY_SEARCH_URL = "https://api.tavily.com/search"
 _DISPLAY = 3
 _SORT = "sim"
-_MAX_ITERS = 2
-_MAX_QUERIES = 5   # 메인이 분해한 키워드 검색 상한 — 영상 추천 리스트 등 과다 분해 시 비용 bound
+_MAX_QUERIES = 5      # 메인이 분해한 키워드 검색 상한 — 영상 추천 리스트 등 과다 분해 시 비용 bound
+_MAX_QUERY_LEN = 100  # 검색어 1개 길이 상한 — 외부 API 전 bound (너드킹 셔츠 전체나열 같은 폭주 방지)
 _TAG_RE = re.compile(r"<[^>]+>")
 
 
-# ── critique / judge 프롬프트 (lab exp5~7 정본) ────────────────────────────────
-_CRITIQUE_PROMPT = (
-    "너는 모찌 자료탐색기의 self-critique 단계다. 사용자 기록과, 지금까지 검색으로 모은 결과 "
-    "상위 항목들(제목/링크/요약)을 보고, 이 결과가 기록에 충분히 관련되고 유용한지 평가하라.\n"
-    "- sufficient: 모은 결과가 '사용자가 이 기록을 다시 볼 때 도움이 될 자료' 로 충분한가. "
-    "기록이 가리킨 대상에 잘 맞는 결과가 이미 있으면 true.\n"
-    "- new_query: 결과가 부족하지만 검색어를 바꾸면 더 나아질 여지가 있으면, 더 나은 검색어 1개. "
-    "이미 충분하거나(sufficient=true), 검색어를 바꿔도 나아질 가망이 없으면 null.\n"
-    "검색어를 바꿔도 본질적으로 찾을 게 없으면 무리해서 new_query 를 만들지 말고 null 을 반환하라."
-)
-
+# ── judge 프롬프트 (lab exp5~7 정본) ──────────────────────────────────────────
 _JUDGE_PROMPT = (
     "너는 최종 평가자이자 게이트다. 모찌(개인 기억 비서)가 사용자 기록을 보고 자료를 탐색한 뒤 모은 "
     "최종 결과(제목/링크/요약)를 보고, 이걸 사용자에게 '혹시 이거 찾으세요?' 라며 실제로 보여줄 "
@@ -66,11 +60,6 @@ _JUDGE_PROMPT = (
     "useful=false 면 반드시 빈 리스트 [] 로 둔다.\n"
     "- comment: 한 줄 근거."
 )
-
-
-class _Critique(BaseModel):
-    sufficient: bool
-    new_query: str | None = None
 
 
 class _FinalJudge(BaseModel):
@@ -156,23 +145,12 @@ class ResourceFinderTool(Tool[ResourceFinderInput, ResourceFinderOutput]):
             "X-Naver-Client-Secret": settings.naver_client_secret or "",
         }
         async with httpx.AsyncClient(headers=naver_headers, timeout=20) as http:
-            queries = list(payload.queries)[:_MAX_QUERIES]
-            collected: list[dict[str, Any]] = []
-            for _ in range(_MAX_ITERS):
-                searches = [
-                    await self._run_query(
-                        http, payload.category, q, settings.tavily_api_key
-                    )
-                    for q in queries
-                ]
-                collected = _collect_items(searches)
-                crit, tin, tout = await self._critique(payload, collected)
-                tin_total += tin
-                tout_total += tout
-                if crit.sufficient or not crit.new_query:
-                    break
-                queries = [crit.new_query]
-
+            queries = [q[:_MAX_QUERY_LEN] for q in payload.queries[:_MAX_QUERIES]]
+            searches = [
+                await self._run_query(http, payload.category, q, settings.tavily_api_key)
+                for q in queries
+            ]
+            collected = _collect_items(searches)
             judge, tin, tout = await self._judge(payload, collected)
             tin_total += tin
             tout_total += tout
@@ -203,18 +181,6 @@ class ResourceFinderTool(Tool[ResourceFinderInput, ResourceFinderOutput]):
         else:
             res = await _search_naver(http, category, query)
         return {"query": query, **res}
-
-    async def _critique(
-        self, payload: ResourceFinderInput, collected: list[dict[str, Any]]
-    ) -> tuple[_Critique, int, int]:
-        resp = await _generate(
-            get_settings().gemini_agent_model,
-            _CRITIQUE_PROMPT,
-            _render(payload, collected),
-            _Critique,
-        )
-        tin, tout = extract_token_usage(resp)
-        return _Critique.model_validate_json(resp.text), tin, tout
 
     async def _judge(
         self, payload: ResourceFinderInput, collected: list[dict[str, Any]]
