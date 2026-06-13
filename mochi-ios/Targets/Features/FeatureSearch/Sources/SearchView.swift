@@ -14,28 +14,15 @@ public struct SearchView: View {
 
     public init(store: StoreOf<SearchFeature>) { self.store = store }
 
-    /// 화면이 그리는 phase — 포커스 진입은 store 왕복을 기다리지 않고 FocusState 로 즉시 전환.
-    /// (탭 → focused 화면 전환이 reducer 응답 대기로 늦어 두 번 탭하게 되던 문제)
-    private var displayPhase: SearchFeature.State.Phase {
-        if isSearchFocused && queryText.isEmpty && store.query.isEmpty { return .focused }
-        return store.phase
+    /// 최근 검색 칩 row 표시 조건 — 포커스 + query 빈 상태 + 검색어 있음.
+    /// 포커스가 별도 화면으로 전환하지 않으므로(그리드 유지) 이 한 줄이 포커스 UI 의 전부다.
+    private var showsRecentChips: Bool {
+        isSearchFocused && queryText.isEmpty && !store.recentSearches.isEmpty
     }
 
     public var body: some View {
         ZStack(alignment: .top) {
             SearchD5.Palette.bgCream.ignoresSafeArea()
-
-            // 포커스 화면에만 워시 깔기
-            if displayPhase == .focused {
-                VStack(spacing: 0) {
-                    SearchD5.Palette.headerWash
-                        .frame(height: 360)
-                        .opacity(0.55)
-                    Spacer()
-                }
-                .ignoresSafeArea()
-                .allowsHitTesting(false)
-            }
 
             VStack(spacing: 0) {
                 searchBar
@@ -43,8 +30,15 @@ public struct SearchView: View {
                     .padding(.top, 16)
                     .padding(.bottom, 14)
 
+                if showsRecentChips {
+                    recentChipsRow
+                        .padding(.bottom, 10)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                }
+
                 phaseBody
             }
+            .animation(.easeInOut(duration: 0.18), value: showsRecentChips)
         }
         .toolbar(.hidden, for: .navigationBar)
         .preferredColorScheme(.light)
@@ -66,15 +60,13 @@ public struct SearchView: View {
             }
         }
         .onChange(of: isSearchFocused) { _, newValue in
-            // 키보드 띄울 때만 focused phase 진입.
-            // ✓ 또는 스와이프로 키보드만 dismiss 될 때는 state.isFocused 유지 → focused 화면 그대로.
-            // .idle 복귀는 명시 action (quickFilter / recentSearch / clearFilters / 탭 reselect) 으로만.
-            if newValue {
-                store.send(.searchBarFocused(true))
+            // 포커스가 별도 화면이 아니므로 키보드 dismiss = 포커스 해제로 단순 동기화.
+            if store.isFocused != newValue {
+                store.send(.searchBarFocused(newValue))
             }
         }
         .onChange(of: store.isFocused) { _, newValue in
-            // reducer 가 isFocused 를 false 로 바꿀 때(빠른검색 칩 등) FocusState 도 sync.
+            // reducer 가 isFocused 를 false 로 바꿀 때(최근 검색 탭·submit 등) FocusState 도 sync.
             if newValue != isSearchFocused {
                 isSearchFocused = newValue
             }
@@ -172,8 +164,8 @@ public struct SearchView: View {
                     }
             }
 
-            // query 가 있거나 focused 상태일 때 X 활성 — focused 에서 .idle 그리드로 돌아가는 affordance.
-            if !queryText.isEmpty || isSearchFocused || store.isFocused {
+            // query 가 있을 때만 X — 빈 상태의 키보드 dismiss 는 ✓ 바가 담당.
+            if !queryText.isEmpty {
                 Button {
                     queryText = ""
                     store.send(.clearFiltersTapped)
@@ -203,12 +195,42 @@ public struct SearchView: View {
         .animation(.easeInOut(duration: 0.18), value: isSearchFocused)
     }
 
-    // MARK: - Body (phase 4 분기)
+    // MARK: - 최근 검색 칩 row (포커스 + query 빈 상태 — 그리드 위에 한 줄만)
+
+    private var recentChipsRow: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(store.recentSearches, id: \.self) { term in
+                    RecentChip(term: term) { store.send(.recentSearchTapped(term)) }
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                store.send(.removeRecentSearchTapped(term))
+                            } label: {
+                                Label("이 검색어 지우기", systemImage: "trash")
+                            }
+                        }
+                }
+                Button {
+                    store.send(.clearRecentSearchesTapped)
+                } label: {
+                    Text("모두 지우기")
+                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                        .tracking(-0.2)
+                        .foregroundStyle(SearchD5.Palette.primary)
+                        .padding(.horizontal, 6)
+                }
+            }
+            .padding(.horizontal, SearchD5.Sizes.pageH)
+            .padding(.vertical, 2)
+        }
+    }
+
+    // MARK: - Body (phase 3 분기)
 
     @ViewBuilder
     private var phaseBody: some View {
         Group {
-            switch displayPhase {
+            switch store.phase {
             case .idle:
                 SearchDefaultView(
                     items: store.filteredItems,
@@ -217,15 +239,6 @@ public struct SearchView: View {
                     onCardTap:    { id, hero in store.send(.recentTapped(id, hero)) },
                     onCardDelete: { store.send(.deleteTapped($0)) },
                     onRefresh:    { await store.send(.refreshPulled).finish() }
-                )
-
-            case .focused:
-                SearchFocusedView(
-                    recentSearches: store.recentSearches,
-                    onRecent:       { store.send(.recentSearchTapped($0)) },
-                    onRemoveRecent: { store.send(.removeRecentSearchTapped($0)) },
-                    onClearRecents: { store.send(.clearRecentSearchesTapped) },
-                    onQuickFilter:  { store.send(.quickFilterTapped($0)) }
                 )
 
             case .results:
@@ -249,5 +262,27 @@ public struct SearchView: View {
             }
         }
         .riseIn(hasEntered, index: 0)
+    }
+}
+
+// MARK: - Recent chip (최근 검색어 칩 — 검색바 아래 한 줄용 컴팩트)
+
+private struct RecentChip: View {
+    let term: String
+    let onTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
+            Text(term)
+                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                .tracking(-0.2)
+                .foregroundStyle(SearchD5.Palette.textPrimary.opacity(0.84))
+                .padding(.horizontal, 16)
+                .frame(height: 38)
+                .background(Capsule().fill(SearchD5.Palette.card))
+                .overlay(Capsule().stroke(SearchD5.Palette.cardBorder, lineWidth: 1))
+                .shadow(color: SearchD5.Palette.cardShadow, radius: 6, x: 0, y: 3)
+        }
+        .buttonStyle(.plain)
     }
 }
