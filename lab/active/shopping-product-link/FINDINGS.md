@@ -219,6 +219,21 @@ ValidationError 를 모델에 되먹임(malformed args 가 run 죽이던 것).
   (시청자)을 영상 업로더 채널로 오인**한 것(사용자 지적). system_prompt + function declaration 에 "channel_hint
   는 영상을 올린 업로더 채널이지 본인 로그인 프로필이 아니다" 가드 추가. (프롬프트 개선 — 효과는 다음 측정에서)
 
+### recover 3단계 — 무키 → YouTube Data API → 채널주소 fallback (2026-06-14)
+
+`lab/data/screenshot/youtube` 12장(URL 없는 순수 유튜브 스크린샷)으로 검증. 출처앱 신호 `[출처앱: YouTube]`를
+넣으니 recover 호출 10/12→**12/12**, 성공 4→7(신호가 유튜브 인식 강화). **실패 5건을 직접 추적**(WebSearch +
+채널 RSS + YouTube Data API)한 결과 — "무키 검색 인덱스 지연"이 아니라 (a) **코드팩토리 멤버십/비공개 영상**
+(search·uploads 둘 다 없음) (b) **두두두리 자동생성 핸들(b9u)로 채널 식별 모호**. **누구도 텍스트로 못 찾는
+영상**이라 `recovered=false`가 정답이었다(나도 WebSearch·RSS·API 다 실패). 단 공개 영상엔 **API uploads 직접
+조회(인덱스 무관)가 무키 검색보다 우월**.
+
+→ recover 를 **3단계**로 재구성(사용자 요청): ① 무키 검색(무료, 빠름) ② confidence 낮으면(못 찾음)
+**YouTube Data API** — 채널 식별(forHandle/search)→uploads playlist 직접조회(1 unit, 인덱스 우회)→search.list
+(100 unit) ③ 영상 끝내 못 찾으면 **채널 주소라도** 반환(멤버십 영상도 채널은 안다). 검증: 따라쿡=`keyless`
+즉시 회수, 코드팩토리 멤버십=`channel_only`(채널 URL fallback), 두두두리=채널 URL. 키: config `youtube_api_key`
++ Secret `mochi-youtube-api-key`. output 에 `channel_url`/`source` 필드 추가.
+
 ### 프로덕션 반영 (2026-06-13 완료, shopping_product 1차)
 
 1. 분석 프롬프트: 쇼핑 캡처 한정 `entities(kind="shopping_product")` 산출 — specificity 는 별도
