@@ -5,7 +5,10 @@ import CoreNetworking
 import CorePersistence
 import DesignSystem
 
-/// 검색 탭 reducer — 4 phase 구조 (idle / focused / results / empty).
+/// 검색 탭 reducer — 3 phase 구조 (idle / results / empty).
+///
+/// 검색바 포커스는 별도 화면으로 전환하지 않는다 — idle 그리드 위에 키보드 +
+/// 최근 검색 칩 한 줄만 얹힌다 (카드가 갑자기 사라지는 단절 제거, 2026-06-13 회의).
 ///
 /// 검색 2단: 키 입력 중엔 로컬 token 매칭(즉답), return 제출 시 서버 의미 검색
 /// (`POST /search` RAG citations)으로 보강 — literal 결과 우선 + semantic 추가.
@@ -28,16 +31,13 @@ public struct SearchFeature: Sendable {
         public init() {}
 
         public enum Phase: Equatable, Sendable {
-            case idle      // 기본 그리드 — 검색바 빈 상태 + 포커스 X
-            case focused   // 검색바 포커스 + query 빈 상태 — 모찌(♥) + 최근/빠른 검색
+            case idle      // 기본 그리드 — query 빈 상태 (포커스 여부 무관, 그리드 유지)
             case results   // query 있음 + 결과 ≥ 1 — 2col 그리드 + intent 필터
             case empty     // query 있음 + 결과 0 — 모찌(?) + CTA
         }
 
         public var phase: Phase {
-            if query.isEmpty {
-                return isFocused ? .focused : .idle
-            }
+            if query.isEmpty { return .idle }
             // 로컬 or 서버 검색이 도는 동안엔 빈 결과를 단정하지 않는다.
             if (isSearching || isSemanticSearching) && results.isEmpty { return .results }
             return results.isEmpty ? .empty : .results
@@ -61,11 +61,10 @@ public struct SearchFeature: Sendable {
         case typeFilterTapped(SearchD5.TypeFilter)
         case intentChipTapped(Intent?)
 
-        // 시작 / 포커스 화면
+        // 최근 검색 칩 row (포커스 + query 빈 상태에서 검색바 아래 한 줄)
         case recentSearchTapped(String)        // 최근 검색 칩
         case removeRecentSearchTapped(String)  // 칩 long-press → 개별 삭제
         case clearRecentSearchesTapped         // "모두 지우기"
-        case quickFilterTapped(SearchD5.TypeFilter)  // 빠른 검색 칩 → typeFilter 적용 + 포커스 해제
 
         // 그리드 pull-to-refresh — 백엔드 sync 1회 트리거 (반영은 observeChanges 가)
         case refreshPulled
@@ -173,11 +172,6 @@ public struct SearchFeature: Sendable {
                 return .run { [syncTrigger] _ in
                     await syncTrigger.runOnce()
                 }
-
-            case let .quickFilterTapped(filter):
-                state.typeFilter = filter
-                state.isFocused = false
-                return .none
 
             case .recentTapped:
                 // MainTabFeature 가 hero present (state.detail).
