@@ -57,6 +57,7 @@ class FakeLLM:
     ) -> AsyncIterator[ChatLLMChunk]:
         self.calls.append(
             {
+                "system_prompt": system_prompt,
                 "contents": [dict(p) for p in contents],
                 "tool_names": [t.name for t in tools],
                 "force_tool": force_tool,
@@ -248,6 +249,80 @@ async def test_parallel_tool_calls_grouped_into_single_turn_with_signature() -> 
     assert [fc["name"] for fc in call_groups[0]] == ["search_items", "search_items"]
     assert [fc.get("thought_signature") for fc in call_groups[0]] == [signature, None]
     assert len(response_groups[0]) == 2
+
+
+# ---------- 채팅용 페르소나 프로필 주입 ----------
+
+
+def _one_shot_llm() -> FakeLLM:
+    return FakeLLM(
+        rounds=[
+            [ChatLLMChunk(tool_call=("search_items", {}))],
+            [ChatLLMChunk(text_delta="답해요")],
+        ]
+    )
+
+
+async def test_chat_profile_injected_into_system_prompt() -> None:
+    llm = _one_shot_llm()
+    store = FakeStore()
+    registry = RunRegistry()
+    run_id = uuid4()
+    queue = registry.create(run_id)
+
+    async def _loader(owner_id: UUID) -> str | None:
+        return "요즘 AI 공부에 빠진 개발자."
+
+    await _runner(llm, store, registry, profile_loader=_loader).execute(
+        owner_id=_OWNER, conversation_id=_CONVERSATION, run_id=run_id
+    )
+    await _drain(queue)
+
+    system_prompt = llm.calls[0]["system_prompt"]
+    assert "요즘 AI 공부에 빠진 개발자." in system_prompt
+    assert "Who you're speaking with" in system_prompt
+    assert "{profile}" not in system_prompt  # 슬롯이 치환됨
+    # 배경·톤 전용 가드(검색 회귀 방지) — 프로필이 사실 출처로 오용되지 않게 못박는 문구.
+    assert "never a source for what you claim" in system_prompt
+
+
+async def test_no_profile_loader_leaves_slot_empty() -> None:
+    # 신규 유저(또는 loader 미주입) — 슬롯이 빈 문자열로 사라지고 V10 거동과 동일.
+    llm = _one_shot_llm()
+    store = FakeStore()
+    registry = RunRegistry()
+    run_id = uuid4()
+    queue = registry.create(run_id)
+
+    await _runner(llm, store, registry).execute(
+        owner_id=_OWNER, conversation_id=_CONVERSATION, run_id=run_id
+    )
+    await _drain(queue)
+
+    system_prompt = llm.calls[0]["system_prompt"]
+    assert "{profile}" not in system_prompt
+    assert "Who you're speaking with" not in system_prompt
+
+
+async def test_profile_loader_failure_does_not_break_chat() -> None:
+    # 프로필은 부가 — 로딩 실패가 답변을 막지 않는다(슬롯만 비고 정상 완료).
+    llm = _one_shot_llm()
+    store = FakeStore()
+    registry = RunRegistry()
+    run_id = uuid4()
+    queue = registry.create(run_id)
+
+    async def _boom(owner_id: UUID) -> str | None:
+        raise RuntimeError("profile store down")
+
+    await _runner(llm, store, registry, profile_loader=_boom).execute(
+        owner_id=_OWNER, conversation_id=_CONVERSATION, run_id=run_id
+    )
+    events = await _drain(queue)
+
+    assert events[-1].kind == "done"
+    assert "{profile}" not in llm.calls[0]["system_prompt"]
+    assert store.statuses == [(run_id, RunStatus.COMPLETED)]
 
 
 # ---------- ② 한도 초과 → 폴백 답변 (에러 아님) ----------

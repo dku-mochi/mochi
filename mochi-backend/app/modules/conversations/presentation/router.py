@@ -21,6 +21,7 @@ from app.core.db import get_session_factory
 from app.core.deps import DBSession, get_chat_llm, get_voyage_client
 from app.core.error_envelope import ConflictError, DomainError, NotFoundError
 from app.core.security import CurrentUser
+from app.modules.agent.application.profile_queries import load_chat_profile
 from app.modules.agent.application.tool_factories import make_web_fetch_tool
 from app.modules.conversations.application.begin_chat_turn import (
     BeginChatTurn,
@@ -161,6 +162,13 @@ async def send_message(
     assert run_id is not None  # BeginChatTurn 이 항상 채운다
     queue = registry.create(run_id)
 
+    # 채팅용 페르소나 프로필 로더 — detached run 이 자체 세션을 매 호출 연다(요청 세션 db 와 분리).
+    profile_factory = get_session_factory()
+
+    async def _load_chat_profile(owner_id: UUID) -> str | None:
+        async with profile_factory() as session:
+            return await load_chat_profile(session, owner_id)
+
     runner = RunChatTurn(
         llm=get_chat_llm(),
         tools=list(_chat_tools()),
@@ -168,6 +176,7 @@ async def send_message(
         registry=registry,
         prompt=ACTIVE_CHAT_PROMPT,
         timeout_seconds=get_settings().chat_run_timeout_seconds,
+        profile_loader=_load_chat_profile,
     )
     task = asyncio.create_task(
         runner.execute(owner_id=user, conversation_id=conversation_id, run_id=run_id)

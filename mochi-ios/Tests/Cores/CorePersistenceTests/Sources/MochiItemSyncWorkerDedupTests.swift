@@ -126,6 +126,9 @@ private actor StubSyncAPIClient: MochiAPIClient {
     func search(query: String, scope: SearchScope) async throws -> SearchResponse {
         try await unimplemented.search(query: query, scope: scope)
     }
+    func similarItems(serverID: UUID, limit: Int) async throws -> [SimilarItemRef] {
+        try await unimplemented.similarItems(serverID: serverID, limit: limit)
+    }
     func registerPushToken(token: String, kind: PushTokenKind, environment: PushEnvironment, mochiItemID: UUID?) async throws {
         try await unimplemented.registerPushToken(token: token, kind: kind, environment: environment, mochiItemID: mochiItemID)
     }

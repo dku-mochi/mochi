@@ -10,6 +10,7 @@
 
 import asyncio
 import re
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
@@ -40,6 +41,8 @@ logger = structlog.get_logger(__name__)
 MAX_ROUNDS = 5
 MAX_TOOL_CALLS = 8
 _TIMEZONE = "Asia/Seoul"
+#: 프로필 로드 상한 — 프로필은 부가라, DB 가 막혀도 전체 run timeout 을 태우지 않고 빨리 포기한다.
+_PROFILE_LOAD_TIMEOUT = 3.0
 
 _CITATION_PATTERN = re.compile(r"【item:([0-9a-fA-F-]{36})】")
 
@@ -60,6 +63,9 @@ class RunChatTurn:
     timeout_seconds: float = 60.0
     max_rounds: int = MAX_ROUNDS
     max_tool_calls: int = MAX_TOOL_CALLS
+    #: owner_id → 채팅용 페르소나 프로필(없으면 None). 세션-독립 콜백을 composition root 가
+    #: 주입한다(detached run 이라 자체 세션을 매 호출 연다). None 이면 프로필 주입 없이 동작.
+    profile_loader: Callable[[UUID], Awaitable[str | None]] | None = None
     _tool_by_name: dict[str, ChatTool] = field(init=False, default_factory=dict)
 
     def __post_init__(self) -> None:
@@ -85,7 +91,8 @@ class RunChatTurn:
     async def _run(self, *, owner_id: UUID, conversation_id: UUID, run_id: UUID) -> None:
         history = await self.store.load_history(owner_id=owner_id, conversation_id=conversation_id)
         contents = _contents_from_history(history)
-        system_prompt = self._system_prompt()
+        profile = await self._load_profile(owner_id, run_id)
+        system_prompt = self._system_prompt(profile=profile)
 
         assistant_text = ""
         proposals: list[dict[str, Any]] = []
@@ -279,11 +286,25 @@ class RunChatTurn:
 
     # MARK: helpers
 
-    def _system_prompt(self) -> str:
+    async def _load_profile(self, owner_id: UUID, run_id: UUID) -> str | None:
+        """채팅용 페르소나 프로필 로드 — best-effort. 로딩 실패가 채팅을 막지 않는다."""
+        if self.profile_loader is None:
+            return None
+        try:
+            return await asyncio.wait_for(
+                self.profile_loader(owner_id), timeout=_PROFILE_LOAD_TIMEOUT
+            )
+        except Exception as exc:  # noqa: BLE001 — 프로필은 부가, 실패·지연해도 답변은 진행
+            logger.warning("chat.profile_load_failed", run_id=str(run_id), error=str(exc))
+            return None
+
+    def _system_prompt(self, *, profile: str | None = None) -> str:
         now = datetime.now(ZoneInfo(_TIMEZONE))
         # str.format 은 본문의 다른 중괄호와 충돌할 수 있어 명시 replace.
-        return self.prompt.body.replace("{now}", now.strftime("%Y-%m-%d %A %H:%M")).replace(
-            "{timezone}", _TIMEZONE
+        return (
+            self.prompt.body.replace("{profile}", _profile_block(profile))
+            .replace("{now}", now.strftime("%Y-%m-%d %A %H:%M"))
+            .replace("{timezone}", _TIMEZONE)
         )
 
     def _publish(self, run_id: UUID, kind: str, payload: dict[str, Any]) -> None:
@@ -294,6 +315,26 @@ class RunChatTurn:
             await self.store.set_run_status(owner_id=owner_id, run_id=run_id, status=RunStatus.FAILED)
         finally:
             self._publish(run_id, run_events.ERROR, {"code": code, "message": message})
+
+
+def _profile_block(profile: str | None) -> str:
+    """채팅 system prompt 의 ``{profile}`` 슬롯 본문. 프로필이 없으면 빈 문자열 — 신규 유저는
+    V10 거동과 동일하게 슬롯이 사라진다. 문구가 역할을 못박는다: 배경·톤 전용, 사실 출처 아님
+    (검색 회귀 방지 — doc-guardian 이 짚은 V10 '되묻지 말고 검색' 규칙과의 충돌 가드)."""
+    if not profile or not profile.strip():
+        return ""
+    return (
+        "\n# Who you're speaking with\n"
+        "- A short portrait of this user, distilled from everything they've saved — their "
+        "interests, tastes, and the texture of their life right now. Let it set your tone and "
+        "help you read what they're really after, so you speak like someone who already knows "
+        "them.\n"
+        "- But this is who they are, not a record of what they saved: never cite it with an "
+        "【item】 marker, never state it back as a fact they stored, and still recover every "
+        "concrete detail (plans, to-dos, specific items, dates) by searching. Background for "
+        "how you speak — never a source for what you claim.\n"
+        f"- {profile.strip()}\n"
+    )
 
 
 def _contents_from_history(history: list[Message]) -> list[dict[str, Any]]:

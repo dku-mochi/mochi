@@ -146,6 +146,32 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
         }
     }
 
+    public func similarItems(serverID: UUID, limit: Int) async throws -> [SimilarItemRef] {
+        let output = try await client.get_similar_items_api_v1_mochi_items__mochi_item_id__similar_get(
+            path: .init(mochi_item_id: serverID.uuidString),
+            query: .init(limit: limit)
+        )
+        switch output {
+        case let .ok(response):
+            let dto = try response.body.json
+            return dto.items.compactMap(Self.mapSimilarItem)
+        case let .undocumented(status, payload): throw await Self.error(status: status, payload: payload)
+        }
+    }
+
+    /// 생성 `SimilarItemDTO` → ``SimilarItemRef``. id 파싱 실패 항목·미지의 reason kind 는 버린다
+    /// (정상 경로에선 서버가 유효 UUID·알려진 enum 만 보낸다).
+    private static func mapSimilarItem(_ s: Components.Schemas.SimilarItemDTO) -> SimilarItemRef? {
+        guard let id = UUID(uuidString: s.mochiItemId) else { return nil }
+        return SimilarItemRef(
+            mochiItemID: id,
+            score: s.score,
+            reasons: s.reasons.compactMap { r in
+                SimilarReason.Kind(rawValue: r.kind.rawValue).map { SimilarReason(kind: $0, value: r.value) }
+            }
+        )
+    }
+
     public func registerPushToken(
         token: String,
         kind: PushTokenKind,

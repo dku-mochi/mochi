@@ -66,13 +66,19 @@ public struct WeeklyDigestFeature: Sendable {
 
     public enum Action: Sendable {
         case onAppear
-        case loaded(
+        /// 1단계 — 로컬만으로 즉시 그릴 수 있는 전부. `needsGreeting` 이면 말풍선만 서버 보강 대기.
+        case localLoaded(
             greeting: String,
+            needsGreeting: Bool,
             upcoming: [UpcomingItem],
             duplicateUpcoming: [UUID: [UpcomingItem]],
             groups: [DigestGroup],
             all: [MochiItem]
         )
+        /// 2단계 — 서버 digest(LLM) 도착. greeting 과, 카테고리 정규화로 바뀐 groups/all(없으면 nil) 반영.
+        case greetingResolved(greeting: String, groups: [DigestGroup]?, all: [MochiItem]?)
+        /// 2단계 — 서버 upcoming(임박순) 도착. 1단계 로컬 폴백을 교체.
+        case upcomingResolved(upcoming: [UpcomingItem], duplicateUpcoming: [UUID: [UpcomingItem]])
         case loadFailed(String)
         case todoCompleteTapped(localID: UUID, instanceID: UUID)
         case todoCompleted(localID: UUID)
@@ -97,13 +103,26 @@ public struct WeeklyDigestFeature: Sendable {
                 state.isLoading = true
                 return .run { send in await load(send: send) }
 
-            case let .loaded(greeting, upcoming, duplicateUpcoming, groups, all):
-                state.isLoading = false
+            case let .localLoaded(greeting, needsGreeting, upcoming, duplicateUpcoming, groups, all):
+                // 로컬로 즉시 채운다. greeting 보강이 남았으면 isLoading 유지 → 말풍선만 skeleton.
+                state.isLoading = needsGreeting
                 state.greeting = greeting
                 state.upcoming = IdentifiedArray(uniqueElements: upcoming)
                 state.duplicateUpcoming = duplicateUpcoming
                 state.groups = groups
                 state.allWeekItems = IdentifiedArray(uniqueElements: all)
+                return .none
+
+            case let .greetingResolved(greeting, groups, all):
+                state.isLoading = false
+                state.greeting = greeting
+                if let groups { state.groups = groups }
+                if let all { state.allWeekItems = IdentifiedArray(uniqueElements: all) }
+                return .none
+
+            case let .upcomingResolved(upcoming, duplicateUpcoming):
+                state.upcoming = IdentifiedArray(uniqueElements: upcoming)
+                state.duplicateUpcoming = duplicateUpcoming
                 return .none
 
             case let .loadFailed(message):
@@ -163,6 +182,9 @@ public struct WeeklyDigestFeature: Sendable {
 
     // MARK: - 로드
 
+    /// local-first 단계 로드 — 로컬로 즉시 그린 뒤(1단계), 서버 digest·upcoming 을 병렬로 보강한다(2단계).
+    /// 이전엔 가장 느린 LLM 호출이 끝나야 모든 섹션이 한꺼번에 떴으나(체감 1~3초), 이제 LLM 에
+    /// 실제로 의존하는 건 말풍선뿐이고 나머지는 ~로컬 조회 시간 내 뜬다.
     private func load(send: Send<Action>) async {
         let now = date.now
         let interval = Self.currentWeekInterval(now: now)
@@ -173,48 +195,52 @@ public struct WeeklyDigestFeature: Sendable {
         let recentLocal = (try? await repository.listRecent(limit: 300)) ?? []
         let serverToLocal = Self.serverToLocalMap(recentLocal + weekItems)
 
-        // ① 모찌의 한마디 + 카테고리 정규화(필요 시 서버 호출).
-        let greeting = await resolveGreeting(
-            weekStart: interval.start,
+        // 1단계 — 즉시: 로컬만으로 그릴 수 있는 전부 + LLM 없이 확정되는 greeting(캐시/정적).
+        let cache = WeeklyDigestCache.load()
+        let immediate = Self.immediateGreeting(cache: cache, weekKey: weekKey, count: weekItems.count)
+        let localTodos = (try? await repository.listActiveTodos(limit: 20)) ?? []
+        let (localUpcoming, localDuplicates) = Self.localUpcoming(localTodos)
+        await send(.localLoaded(
+            greeting: immediate ?? "",
+            needsGreeting: immediate == nil,
+            upcoming: localUpcoming,
+            duplicateUpcoming: localDuplicates,
+            groups: Self.makeGroups(weekItems),
+            all: weekItems
+        ))
+
+        // 2단계 — 병렬 보강: greeting(LLM)과 서버 upcoming 은 서로 기다리지 않는다.
+        async let greeting: Void = resolveGreetingRemote(
+            send: send,
+            interval: interval,
             weekKey: weekKey,
             count: weekItems.count,
-            serverToLocal: serverToLocal
+            cache: cache,
+            serverToLocal: serverToLocal,
+            needed: immediate == nil
         )
-
-        // 정규화 반영 후 그 주를 다시 읽어 카테고리별로 묶는다.
-        let refreshed = (try? await repository.listCaptured(in: interval, limit: 500)) ?? weekItems
-        let groups = Self.makeGroups(refreshed)
-        let (upcoming, duplicateUpcoming) = await loadUpcoming(serverToLocal: serverToLocal)
-
-        await send(.loaded(
-            greeting: greeting,
-            upcoming: upcoming,
-            duplicateUpcoming: duplicateUpcoming,
-            groups: groups,
-            all: refreshed
-        ))
+        async let upcoming: Void = resolveUpcomingRemote(send: send, serverToLocal: serverToLocal)
+        _ = await (greeting, upcoming)
     }
 
-    /// 캐시 트리거(+3) 판정 후 필요하면 서버 digest 를 호출하고 category 를 로컬에 반영한다.
-    private func resolveGreeting(
-        weekStart: Date,
+    /// 2단계 greeting 보강 — 1단계에서 확정 못한 경우(`needed`)에만 서버 digest 를 호출한다.
+    /// 서버가 정규화한 category 를 로컬에 반영하고, 바뀐 묶음을 다시 그린다.
+    private func resolveGreetingRemote(
+        send: Send<Action>,
+        interval: DateInterval,
         weekKey: String,
         count: Int,
-        serverToLocal: [UUID: MochiItem]
-    ) async -> String {
-        guard count >= 3 else { return WeeklyDigestCache.staticGreeting }
-        let cache = WeeklyDigestCache.load()
-        let shouldCall =
-            cache == nil
-            || cache?.weekKey != weekKey
-            || count >= (cache?.itemCount ?? 0) + 3
-        if !shouldCall, let cache, cache.weekKey == weekKey {
-            return cache.greeting
-        }
-        guard let digest = try? await apiClient.weeklyDigest(weekStart: weekStart) else {
-            // 호출 실패 — 같은 주 캐시가 있으면 재사용, 없으면 정적.
-            if let cache, cache.weekKey == weekKey { return cache.greeting }
-            return WeeklyDigestCache.staticGreeting
+        cache: WeeklyDigestCache.Entry?,
+        serverToLocal: [UUID: MochiItem],
+        needed: Bool
+    ) async {
+        guard needed else { return }
+        guard let digest = try? await apiClient.weeklyDigest(weekStart: interval.start) else {
+            // 호출 실패 — 같은 주 캐시가 있으면 재사용, 없으면 정적. groups/all 은 1단계 값 유지.
+            let fallback = (cache?.weekKey == weekKey ? cache?.greeting : nil)
+                ?? WeeklyDigestCache.staticGreeting
+            await send(.greetingResolved(greeting: fallback, groups: nil, all: nil))
+            return
         }
         let greeting = digest.generated ? digest.greeting : WeeklyDigestCache.staticGreeting
 
@@ -226,43 +252,69 @@ public struct WeeklyDigestFeature: Sendable {
             }
         }
         try? await repository.updateCategories(updates)
-
         WeeklyDigestCache.save(.init(weekKey: weekKey, itemCount: count, greeting: greeting))
-        return greeting
+
+        // 정규화 반영 후 그 주를 다시 읽어 카테고리별로 다시 묶는다(실패하면 1단계 묶음 유지).
+        if let refreshed = try? await repository.listCaptured(in: interval, limit: 500) {
+            await send(.greetingResolved(
+                greeting: greeting,
+                groups: Self.makeGroups(refreshed),
+                all: refreshed
+            ))
+        } else {
+            await send(.greetingResolved(greeting: greeting, groups: nil, all: nil))
+        }
     }
 
-    /// ② 아직 안 끝났어요 — 서버 upcoming(todo+일정, 임박순)을 로컬 item 으로 역매핑.
-    /// 서버 실패 시 로컬 미완료 todo 로 폴백한다(오프라인 안전망).
-    /// 같은 화면 중복 캡처(같은 제목·종류·마감)는 표시에서 하나로 합치고 쌍둥이는 따로 돌려준다.
-    private func loadUpcoming(
+    /// 2단계 upcoming 보강 — 서버 upcoming(todo+일정, 임박순)을 로컬 item 으로 역매핑해 1단계 폴백을 교체.
+    /// 실패하면 1단계 로컬 폴백을 그대로 둔다(오프라인 안전망).
+    private func resolveUpcomingRemote(
+        send: Send<Action>,
         serverToLocal: [UUID: MochiItem]
-    ) async -> (display: [UpcomingItem], duplicates: [UUID: [UpcomingItem]]) {
-        let items: [UpcomingItem]
-        if let dtos = try? await apiClient.upcomingActionables() {
-            items = dtos.compactMap { dto in
-                guard let local = serverToLocal[dto.item.id] else { return nil }
-                return UpcomingItem(
-                    mochiItem: local,
-                    dueLabel: dto.dueLabel,
-                    isSchedule: dto.isSchedule,
-                    instanceID: dto.instanceID
-                )
-            }
-        } else {
-            let todos = (try? await repository.listActiveTodos(limit: 20)) ?? []
-            items = todos.compactMap { item in
-                guard let inst = item.instances.first(where: {
-                    $0.intentType == .todo && $0.lifecycle == .active
-                }) else { return nil }
-                return UpcomingItem(
-                    mochiItem: item,
-                    dueLabel: inst.payload.deadline ?? inst.payload.date,
-                    isSchedule: false,
-                    instanceID: inst.id
-                )
-            }
+    ) async {
+        guard let dtos = try? await apiClient.upcomingActionables() else { return }
+        let items = dtos.compactMap { dto -> UpcomingItem? in
+            guard let local = serverToLocal[dto.item.id] else { return nil }
+            return UpcomingItem(
+                mochiItem: local,
+                dueLabel: dto.dueLabel,
+                isSchedule: dto.isSchedule,
+                instanceID: dto.instanceID
+            )
         }
-        return Self.dedupForDisplay(items)
+        let (display, duplicates) = Self.dedupForDisplay(items)
+        await send(.upcomingResolved(upcoming: display, duplicateUpcoming: duplicates))
+    }
+
+    /// 1단계용 — LLM 없이 즉시 결정되는 greeting. nil 이면 서버 보강이 필요하다.
+    /// 트리거는 기존 `resolveGreeting` 의 `shouldCall` 과 동일(주 미만 3건 정적 / 캐시 히트 / 주변경·+3 갱신).
+    static func immediateGreeting(
+        cache: WeeklyDigestCache.Entry?,
+        weekKey: String,
+        count: Int
+    ) -> String? {
+        guard count >= 3 else { return WeeklyDigestCache.staticGreeting }
+        guard let cache, cache.weekKey == weekKey else { return nil }
+        if count >= cache.itemCount + 3 { return nil }
+        return cache.greeting
+    }
+
+    /// 1단계용 로컬 upcoming — 서버 응답 전 즉시 표시(서버 실패 시 폴백과 동일 로직).
+    static func localUpcoming(
+        _ todos: [MochiItem]
+    ) -> (display: [UpcomingItem], duplicates: [UUID: [UpcomingItem]]) {
+        let items = todos.compactMap { item -> UpcomingItem? in
+            guard let inst = item.instances.first(where: {
+                $0.intentType == .todo && $0.lifecycle == .active
+            }) else { return nil }
+            return UpcomingItem(
+                mochiItem: item,
+                dueLabel: inst.payload.deadline ?? inst.payload.date,
+                isSchedule: false,
+                instanceID: inst.id
+            )
+        }
+        return dedupForDisplay(items)
     }
 
     /// 표시용 dedup — 캘린더 탭 `CalendarTodoSorter.dedupForDisplay` 와 같은 취지(같은 화면 중복 캡처 합치기).

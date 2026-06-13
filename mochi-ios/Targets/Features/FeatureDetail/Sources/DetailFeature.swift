@@ -10,6 +10,8 @@ public struct DetailFeature: Sendable {
     public struct State: Equatable, Sendable {
         public var mochiItemID: UUID
         public var mochiItem: MochiItem?
+        /// "비슷한 기록" — 서버 cosine 이웃 중 로컬에 있는 항목만(카드 렌더용). 빈 배열이면 섹션 숨김.
+        public var similar: [SimilarItemPreview] = []
         /// 제목 인라인 교정 중 여부 — RecallHeader 가 Text ↔ TextField 전환.
         public var isEditingTitle: Bool = false
         public var titleDraft: String = ""
@@ -29,6 +31,12 @@ public struct DetailFeature: Sendable {
     public enum Action: Sendable {
         case onAppear
         case loaded(MochiItem?)
+        /// 비슷한 기록 로드 완료 — 빈 배열이면 뷰가 섹션을 렌더하지 않는다.
+        /// 첫 인자는 요청 시점의 mochiItemID — 같은 present 슬롯이 다른 항목으로 갈아끼워졌을 때
+        /// stale 결과가 적용되지 않게 가드한다.
+        case similarLoaded(UUID, [SimilarItemPreview])
+        /// 비슷한 기록 카드 탭 — 그 항목의 상세로 이동(부모가 present 소유라 위임).
+        case similarItemTapped(UUID)
         /// 할 일 완료↔미완료 토글 — 캘린더 탭과 같은 경로(낙관적 로컬 + 서버 push + 치유/롤백).
         case todoToggled(IntentInstance)
         // 제목 인라인 교정 — 로컬 userTitle 오버라이드 (백엔드 재추론 아님).
@@ -52,6 +60,8 @@ public struct DetailFeature: Sendable {
         public enum Delegate: Equatable, Sendable {
             case deleted
             case closeRequested
+            /// 비슷한 기록 카드 탭 → 부모가 그 항목으로 새 상세를 present (재귀 present 회피).
+            case openSimilar(UUID)
         }
     }
 
@@ -67,11 +77,37 @@ public struct DetailFeature: Sendable {
                 return .run { [id = state.mochiItemID] send in
                     let mochiItem = try await repository.find(id: id)
                     await send(.loaded(mochiItem))
+
+                    // 비슷한 기록 — 업로드된(서버 id 있는) 항목만 조회한다. 미업로드 로컬 항목은
+                    // 서버 embedding 이 없어 호출을 생략한다. 실패·빈 결과 → 섹션 숨김(no-op).
+                    guard let mochiItem, case let .uploaded(serverID, _) = mochiItem.syncState else { return }
+                    let refs = (try? await apiClient.similarItems(serverID: serverID, limit: 6)) ?? []
+                    guard !refs.isEmpty else { return }
+                    // 서버 id → 로컬 MochiItem 매핑(로컬에 있는 항목만 카드로 렌더 — 응답은 id+score+reasons
+                    // 만 주므로). 다른 기기에서만 만든 항목은 로컬에 없어 스킵된다.
+                    let locals = (try? await repository.listRecent(limit: 2000)) ?? []
+                    var byServer: [UUID: MochiItem] = [:]
+                    for local in locals {
+                        if case let .uploaded(sid, _) = local.syncState { byServer[sid] = local }
+                    }
+                    let previews = refs.compactMap { ref -> SimilarItemPreview? in
+                        byServer[ref.mochiItemID].map { SimilarItemPreview(item: $0, reasons: ref.reasons) }
+                    }
+                    await send(.similarLoaded(id, previews))
                 }
 
             case let .loaded(mochiItem):
                 state.mochiItem = mochiItem
                 return .none
+
+            case let .similarLoaded(requestID, previews):
+                // stale 가드 — 요청 후 슬롯이 다른 항목으로 갈아끼워졌으면 버린다.
+                guard requestID == state.mochiItemID else { return .none }
+                state.similar = previews
+                return .none
+
+            case let .similarItemTapped(localID):
+                return .send(.delegate(.openSimilar(localID)))
 
             case let .todoToggled(instance):
                 guard let item = state.mochiItem else { return .none }
@@ -197,5 +233,18 @@ public struct DetailFeature: Sendable {
             }
         }
         .ifLet(\.$deleteAlert, action: \.deleteAlert)
+    }
+}
+
+/// "비슷한 기록" 카드 1건 — 서버가 고른 이웃의 로컬 MochiItem + 왜 비슷한지 근거.
+/// 카드는 로컬 항목으로 렌더하고(썸네일·형태·제목), 근거 칩만 서버 신호를 쓴다.
+public struct SimilarItemPreview: Equatable, Sendable, Identifiable {
+    public let item: MochiItem
+    public let reasons: [SimilarReason]
+    public var id: UUID { item.id }
+
+    public init(item: MochiItem, reasons: [SimilarReason]) {
+        self.item = item
+        self.reasons = reasons
     }
 }
