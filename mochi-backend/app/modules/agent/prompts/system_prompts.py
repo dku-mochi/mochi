@@ -47,7 +47,7 @@ CHAT_PROFILE_SUMMARY_SYSTEM = (
 
 
 ACTIVE_PROMPT = PromptVersion(
-    name='classify_and_act@v17',
+    name='classify_and_act@v18',
     body=(
         "# Context\n"
         "MOCHI organizes the things a person quickly saves during the day — screenshots, links, "
@@ -232,10 +232,30 @@ ACTIVE_PROMPT = PromptVersion(
         "high-signal values the on-screen evidence supports.\n"
         "\n"
         "# Tools\n"
-        "For YouTube, X/Twitter, and Instagram URLs, call platformContext first. For other URLs, "
-        "call webFetch only when the page body is needed to ground the intent. At most two "
-        "context-tool calls before finalizing. Call nothing other than platformContext / webFetch "
-        "/ finalizeAnalysis.\n"
+        "You have four context tools. Choose by what the capture needs, spend them sparingly (at "
+        "most two or three calls before finalizing), and skip a tool when the capture already "
+        "gives you enough.\n"
+        "- platformContext — for YouTube, X/Twitter, or Instagram URLs: official "
+        "title/author/description. Prefer it over webFetch for those platforms.\n"
+        "- webFetch — for other URLs whose page body must be read to ground the intent.\n"
+        "- recoverYoutubeUrl — when the capture is a YouTube screen (video/shorts/comments, often "
+        "marked '[출처앱: YouTube]') that carries NO URL, and what the user wants to keep — a "
+        "recommended item or list shown in the video, or the source video itself — can only be "
+        "reached by returning to the original video. The screenshot's text alone can't name those "
+        "items, so recover the original watch URL: pass the channel + title keywords you read from "
+        "the image as 'query'. Skip it when the screen's own text already captures the point.\n"
+        "- findReferenceUrls — when, on re-seeing this capture, the user would want to jump to an "
+        "external source (buy / book / read / reference) for a target you can name as searchable "
+        "keywords. YOU read the image and decide 'queries' (the search terms) and 'category' "
+        "(shop=Korean commerce, local=place/map, blog=how-to/review/curation incl. 'best-of' "
+        "lists, news=articles, web=overseas/English/general). Make the keywords specific: a named "
+        "product/place/work searches well, a vague category (\"육아템 추천\") does not — for "
+        "\"best-of / recommendation\" captures with no specific item, search blog for the curated "
+        "list instead of shop; drop promotion tokens (1+1, 2입 기획) and screen UI noise; for a "
+        "brand that reads as a common noun, add the product type and an identifier. It returns "
+        "ranked URLs gated by a relevance judge (empty when nothing fits), so it is safe to try "
+        "when a target is nameable — and you must not invent links yourself.\n"
+        "Call nothing other than these four context tools / finalizeAnalysis.\n"
         "\n"
         "# Personalization and recent-record consistency\n"
         "If a '# 사용자 컨텍스트' section is present, it is WEAK evidence: it may choose among readings "
@@ -256,8 +276,13 @@ ACTIVE_PROMPT = PromptVersion(
     ),
     model_target='gemini-3.1-flash-lite',
     eval_dataset_version='intent-schema-decision@2026-06-04',
-    revised_on=date(2026, 6, 13),
+    revised_on=date(2026, 6, 14),
     rationale=(
+        "V17 → V18: 이미지에서 '참고 가능한 실재 URL' 을 능동 회수하는 두 tool 추가 — recoverYoutubeUrl(영상 속 "
+        "추천/리스트는 텍스트검색 불가 → 원본 영상 URL 회수, 결정적 함수) + findReferenceUrls(네이버+Tavily 백본, judge "
+        "게이트). 핵심: 키워드 추출을 이미지를 보는 메인이 맡는다(queries+category 를 직접 결정) — exp6~7 의 generic 실패 "
+        "근본원인(미니가 빈약한 summary 로 키워드 생성)을 제거. # Tools 블록 1개 교체(기준+why, 좁은 예시 나열 대신) — "
+        "분류 ladder·payload·eval_dataset 불변. (lab shopping-product-link exp4~7 + journal 2026-06-14 라이브 테스트)\n"
         "V16 → V17: 쇼핑 캡처 한정 `entities(kind=shopping_product, value=커머스 검색어)` 산출 추가 — 상세 구매 링크가 "
         "쓸 '검색된 상태'의 상품명(브랜드+상품명+옵션). 검색 가능 수준이면 포함, 너무 모호하거나(\"신발 예쁜 거\") 구매가 "
         "아니면 생략(lab shopping-product-link exp1 의 specificity 게이트를 좁은 예시 나열 대신 기준+why 로 프롬프트 내장). "

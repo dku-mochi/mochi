@@ -158,6 +158,38 @@ none 34%(route 1회) 포함 시 더 쌈(추정 ~$0.0013/캡처). judge 가 비�
 **시사점:** (a) 키워드 개선보다 "영상 캡처→원본 영상 URL 회수"가 실패의 큰 덩어리 해결(`PlatformContextTool`).
 (b) 검색불가 패턴은 judge 가 잘 버리니 무리한 개선 말고 깔끔히 none. (c) 티어 랭킹은 useful 풍부한 셋으로.
 
+### 라이브 baseline — app 정본 tool 2개 + 실스크린샷 39건 (2026-06-14, `agent-loop-resource-eval/results/baseline_20260614_025147.json`)
+
+exp4~7(lab 자작 프롬프트, divergent)을 졸업하고 **app/ 정본에 tool 2개를 구현**해 메인 orchestrator 가
+실제 스크린샷을 보고 부르는지 측정. divergence 0(프로덕션 `AgentOrchestrator`+`GeminiAgentClient`를
+import only, 로컬 이미지 inline 주입). 데이터: 본인 계정 실스크린샷 39건(`lab/data/screenshot_prod/`).
+
+**구현(브랜치 `feat/resource-finder-tool`):** ① `recoverYoutubeUrl`(결정적, 무키 youtube 검색→videoId→oEmbed,
+PR#34 `recover_url` 정본) ② `findReferenceUrls`(exp5~7 loop: search(naver/tavily)→critique→judge→티어랭킹,
+**키워드는 메인이 제공**). 배선: tools enum·registry(조건부)·gemini_agent_client·`system_prompts.py` v17→**v18**(# Tools 4-tool).
+
+**baseline 수치(메인 자발 호출, 강제 안 함):**
+| 지표 | 값 |
+|---|---|
+| finder 호출 | 16/39 (0.41), judge result_quality useful셋 **4.6**/5 |
+| recover 호출 | 8/39 (0.21) — **유튜브 8건 전부 호출** |
+| tool_choice (Claude judge, 이미지 보고) | correct 30 / miss 4 / wrong_tool 3 / unneeded 2 |
+| recover 정확도 | 정확 3 / 빗나감·불확실 5 (평균 2.8) |
+| none(tool 안 부름) | 카톡8·문자·일정·모찌 등 일관 — 과호출 거의 0 |
+
+**검증된 것:** (가설1) 메인이 이미지 보고 두 tool 을 키워드/category 와 함께 자발 호출 ✅. (가설2) finder
+반환 URL 품질 높음(상품명 명시 케이스 5점 반복). **none 게이트 견고**(외부자료 불필요 캡처 일관 분리).
+
+**약점(다음 개선):**
+1. **유튜브 댓글창에서 recover vs finder 혼동** — 댓글에 상품 링크(vo.la 등) 보이면 finder 가 맞는데
+   recover 가 엉뚱한 채널 영상 반환(11·3·13). 채널명 명확해도 무키 검색이 빗나감. → "영상 본체 회수" vs
+   "영상 속 상품 링크 회수" 명시 분기 + 댓글창 판단 로직.
+2. **인스타 정보성에 platformContext 과호출**(19·26·32) — 32(남산 페스티벌 예약)는 finder("행사명+예약")가
+   유용했을 케이스. 인스타=platformContext 단순패턴이 action-link 필요 사례를 놓침.
+3. **finder local(장소) 커버리지 불안정** — 꽃집(27) useful=false, 맛집이 공식 SNS 만 반환(21). exp6 local 약점 재확인.
+
+**불변식:** harness 프롬프트/스키마 리터럴 0(grep PASS). lint/typecheck green.
+
 ### 프로덕션 반영 (2026-06-13 완료, shopping_product 1차)
 
 1. 분석 프롬프트: 쇼핑 캡처 한정 `entities(kind="shopping_product")` 산출 — specificity 는 별도

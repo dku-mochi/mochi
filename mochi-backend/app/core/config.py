@@ -91,7 +91,13 @@ class Settings(BaseSettings):
 
     # 채팅 web_search — Tavily (journal 2026-06-10 PR-4). 미설정 시 web_search 툴만
     # 레지스트리에서 제외되고 서버는 정상 기동한다 (키 발급이 머지를 블록하지 않게).
+    # ResourceFinder tool 의 web(해외/일반) 폴백 검색도 같은 키를 쓴다.
     tavily_api_key: str | None = None
+
+    # ResourceFinder tool — 네이버 검색 API(shop/local/blog/news 단일 백본, lab exp4~7).
+    # 미설정 시 findReferenceUrls 툴만 레지스트리에서 제외되고 서버는 정상 기동한다.
+    naver_client_id: str | None = None
+    naver_client_secret: str | None = None
 
     # PlatformContext tool — Instagram 공식 oEmbed 는 Meta app token + review 가 필요하다.
     instagram_oembed_access_token: str | None = None
