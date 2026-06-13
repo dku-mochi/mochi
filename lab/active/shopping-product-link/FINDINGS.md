@@ -210,6 +210,15 @@ ValidationError 를 모델에 되먹임(malformed args 가 run 죽이던 것).
 **결론**: tool 선택 정확도는 순개선(correct +3), recover 호출은 8→4(댓글창이 finder 로 이동). 단 recover
 채널 rerank 가 한/영 표기차에 과민 → 정확도 자체는 회귀. **다음 1순위: channel_hint 매칭 완화(title fallback).**
 
+**후속 수정 (같은 세션):**
+- **title-fallback 적용** — channel_hint 매칭 실패 시 query 토큰 50%+ 가 후보 제목에 겹치면 채택(채널·제목 둘
+  다 다른 진짜 빗나감은 계속 거름). 동일 입력 결정적 재실행: 15(따라cook→따라쿡)·16(codingapple→코딩애플)
+  **recovered=false→true 해소**. 27은 유지(불가), 28은 youtube 무키 검색이 "우연 WOOYEON" 영상을 top5 에서
+  안 줘서 흔들림(검색 비결정성, fallback 무관 — query 가 generic 하면 같은 주제 영상에 밀린다).
+- **channel_hint 프로필 오인 가드** — 27 의 channel_hint="준서"는 메인이 **유튜브 화면의 로그인 본인 프로필
+  (시청자)을 영상 업로더 채널로 오인**한 것(사용자 지적). system_prompt + function declaration 에 "channel_hint
+  는 영상을 올린 업로더 채널이지 본인 로그인 프로필이 아니다" 가드 추가. (프롬프트 개선 — 효과는 다음 측정에서)
+
 ### 프로덕션 반영 (2026-06-13 완료, shopping_product 1차)
 
 1. 분석 프롬프트: 쇼핑 캡처 한정 `entities(kind="shopping_product")` 산출 — specificity 는 별도
