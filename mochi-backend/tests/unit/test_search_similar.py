@@ -67,6 +67,20 @@ async def test_similar_query_is_owner_scoped_and_excludes_self() -> None:
     assert binds["fanout"].value == 24  # limit(6) * _SIMILAR_CANDIDATE_FANOUT(4)
 
 
+async def test_similar_sql_has_no_unbound_params() -> None:
+    # regression(2026-06-14): 주석(--) 안의 `:threshold` 콜론 토큰을 SQLAlchemy text() 가
+    # bind param 으로 파싱해, bindparams 에 없는 threshold 때문에 매 similar 쿼리가 500 으로
+    # 깨졌다. fake 세션은 컴파일을 안 거쳐 못 잡았다 — 실제 dialect 컴파일로 미충족 bind 를 막는다.
+    from sqlalchemy.dialects import postgresql
+
+    sess = _FakeSession([[], []])
+    index = PostgresHybridIndex(sess, query_embedding_provider=_noop_embed)
+    await index.similar(owner_id=uuid4(), mochi_item_id=uuid4(), limit=6, min_score=0.6)
+
+    compiled = sess.captured[0].compile(dialect=postgresql.dialect())
+    compiled.construct_params({})  # 미충족 bind 가 있으면 InvalidRequestError
+
+
 async def test_similar_empty_when_target_has_no_embedding() -> None:
     # 메인 쿼리 0행 = 대상에 embedding 없음(미색인·VOYAGE 미설정) → 빈 배열, intent 쿼리 미실행.
     index = _index([[]])

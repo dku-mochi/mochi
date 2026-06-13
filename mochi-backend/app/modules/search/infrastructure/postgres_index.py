@@ -132,7 +132,9 @@ class PostgresHybridIndex(RetrievalIndex):
               AND (SELECT emb FROM target) IS NOT NULL
               AND 1.0 - (e.embedding <=> (SELECT emb FROM target)) >= :min_score
               -- 민감 게이트 자리(privacy 필드 도입 시 한 줄 추가, TODO §5.1 / PRIVACY §9):
-              --   AND c.sensitivity_level < :threshold
+              --   AND c.sensitivity_level < (threshold 바인드 추가)
+              -- ⚠️ 주석이라도 콜론 파라미터(콜론+이름)는 쓰지 말 것 — SQLAlchemy text() 가
+              --    주석 안의 콜론 토큰도 bind param 으로 파싱해 매 쿼리가 깨진다(2026-06-14).
             ORDER BY e.embedding <=> (SELECT emb FROM target)
             LIMIT :fanout
             """
