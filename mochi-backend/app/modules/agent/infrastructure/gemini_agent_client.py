@@ -114,6 +114,25 @@ _PLATFORM_CONTEXT_PARAMS: dict[str, Any] = {
     "required": ["url"],
 }
 
+_RECOVER_YOUTUBE_PARAMS: dict[str, Any] = {
+    "type": "object",
+    "properties": {"query": {"type": "string"}},
+    "required": ["query"],
+}
+
+_RESOURCE_FINDER_PARAMS: dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "queries": {"type": "array", "items": {"type": "string"}},
+        "category": {
+            "type": "string",
+            "enum": ["shop", "local", "blog", "news", "web"],
+        },
+        "original_url": {"type": "string"},
+    },
+    "required": ["queries", "category"],
+}
+
 
 @lru_cache(maxsize=1)
 def _shared_client() -> genai.Client:
@@ -148,6 +167,36 @@ def _function_declarations(tools: list[Tool[Any, Any]]) -> list[types.FunctionDe
                         "Call only when a URL is present and its content must be read."
                     ),
                     parameters=_WEBFETCH_PARAMS,
+                )
+            )
+        if tool.name is ToolName.RECOVER_YOUTUBE_URL:
+            decls.append(
+                types.FunctionDeclaration(
+                    name=ToolName.RECOVER_YOUTUBE_URL.value,
+                    description=(
+                        "Recover the original YouTube watch URL from on-screen clues when the "
+                        "capture is a YouTube video/shorts/comments screen with no URL, and the "
+                        "thing worth keeping (a recommended item/list, the source video) can only "
+                        "be reached by going to the original video. Pass the channel + title "
+                        "keywords you read from the image as 'query'."
+                    ),
+                    parameters=_RECOVER_YOUTUBE_PARAMS,
+                )
+            )
+        if tool.name is ToolName.RESOURCE_FINDER:
+            decls.append(
+                types.FunctionDeclaration(
+                    name=ToolName.RESOURCE_FINDER.value,
+                    description=(
+                        "Find real reference URLs to attach to a capture (product/place/info/news) "
+                        "when the user would later want to jump to an external source, and you can "
+                        "name the target as searchable keywords. YOU extract the keywords from the "
+                        "image into 'queries' and choose 'category' (shop=Korean commerce, "
+                        "local=place/map, blog=how-to/review/curation incl. 'best-of' lists, "
+                        "news=articles, web=overseas/English/general). Returns ranked URLs gated by "
+                        "a relevance judge — empty when nothing useful is found."
+                    ),
+                    parameters=_RESOURCE_FINDER_PARAMS,
                 )
             )
     decls.append(
