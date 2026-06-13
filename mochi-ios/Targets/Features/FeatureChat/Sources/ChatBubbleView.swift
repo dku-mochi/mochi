@@ -122,7 +122,9 @@ struct ChatBubbleView: View {
                             ChatTableView(header: header, rows: rows)
                         }
                     }
-                    .transition(.opacity)
+                    // 합쳐진 답변이 한 번에 뜰 때 살짝 떠오르며 페이드인 — structure 스프링이
+                    // 트랜잭션을 공급한다(hasText false→true 가 단 한 번 일어남).
+                    .transition(.opacity.combined(with: .offset(y: 6)))
                 }
 
                 if !message.citations.isEmpty {

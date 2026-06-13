@@ -2,7 +2,7 @@ import XCTest
 
 @testable import CoreAgentClient
 
-/// 타자기 스무딩 — 블록 delta 를 글자 단위로 풀되 비-텍스트 이벤트의 순서를 보존한다.
+/// 텍스트 합치기 — 블록 delta 를 한 덩어리로 모으되 비-텍스트 이벤트의 순서를 보존한다.
 final class ChatStreamSmoothingTests: XCTestCase {
     private func upstream(_ events: [ChatStreamEvent]) -> AsyncThrowingStream<ChatStreamEvent, Error> {
         AsyncThrowingStream { continuation in
@@ -13,11 +13,13 @@ final class ChatStreamSmoothingTests: XCTestCase {
         }
     }
 
-    func test_block_delta_is_split_into_characters_preserving_event_order() async throws {
+    func test_text_blocks_are_coalesced_into_single_delta_preserving_event_order() async throws {
         let doneID = UUID()
         let events: [ChatStreamEvent] = [
             .toolStarted(name: "search_items", label: "찾는 중"),
-            .messageDelta("안녕하세요"),
+            .messageDelta("안녕"),
+            .messageDelta("하세요"),
+            .messageDelta(" 반가워요"),
             .done(messageID: doneID),
         ]
 
@@ -26,23 +28,34 @@ final class ChatStreamSmoothingTests: XCTestCase {
             collected.append(event)
         }
 
-        // 블록 1개 → 글자 5개. tool 은 앞, done 은 텍스트가 모두 풀린 뒤 — 순서 보존.
+        // tool 은 텍스트 앞(버퍼 비어 그대로 통과), 여러 텍스트 블록은 done 직전에 단일
+        // messageDelta 로 합쳐져 나온다 — 순서 보존.
         XCTAssertEqual(collected.first, .toolStarted(name: "search_items", label: "찾는 중"))
         let deltas = collected.compactMap { event -> String? in
             if case let .messageDelta(text) = event { return text }
             return nil
         }
-        XCTAssertEqual(deltas, ["안", "녕", "하", "세", "요"])
+        XCTAssertEqual(deltas, ["안녕하세요 반가워요"])
         XCTAssertEqual(collected.last, .done(messageID: doneID))
     }
 
-    func test_delay_accelerates_with_backlog_but_never_below_minimum() {
-        let base = ChatStreamSmoothing.delay(backlog: 0)
-        let mid = ChatStreamSmoothing.delay(backlog: 160)
-        let deep = ChatStreamSmoothing.delay(backlog: 10_000)
-        XCTAssertEqual(base, .milliseconds(ChatStreamSmoothing.baseDelayMilliseconds))
-        XCTAssertLessThan(mid, base)
-        XCTAssertEqual(deep, .milliseconds(ChatStreamSmoothing.minDelayMilliseconds))
-        XCTAssertGreaterThan(deep, .zero)
+    func test_text_is_flushed_before_each_non_text_event() async throws {
+        let itemID = UUID()
+        let events: [ChatStreamEvent] = [
+            .messageDelta("본문"),
+            .citation(ChatCitation(index: 1, mochiItemID: itemID, title: nil, snippet: nil)),
+        ]
+
+        var collected: [ChatStreamEvent] = []
+        for try await event in ChatStreamSmoothing.smoothed(upstream(events)) {
+            collected.append(event)
+        }
+
+        // 텍스트는 citation 보다 먼저 — 본문이 출처 카드 뒤로 밀리지 않는다.
+        XCTAssertEqual(collected.count, 2)
+        XCTAssertEqual(collected.first, .messageDelta("본문"))
+        if case .citation = collected.last {} else {
+            XCTFail("citation 이 텍스트 다음에 와야 한다")
+        }
     }
 }
