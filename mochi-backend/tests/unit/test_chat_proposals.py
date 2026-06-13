@@ -238,7 +238,7 @@ def test_active_chat_prompt_keeps_proposal_web_and_agentic_retrieval_rules() -> 
     # 테스트는 현재 active prompt 의 행동·grounding 규칙을 고정한다.
     import app.modules.conversations.prompts.chat_prompts as chat_prompts
 
-    assert chat_prompts.ACTIVE_CHAT_PROMPT.name == "chat@v10"
+    assert chat_prompts.ACTIVE_CHAT_PROMPT.name == "chat@v11"
     assert not any(name.startswith("CHAT_V") for name in dir(chat_prompts))
 
     active_chat_prompt = chat_prompts.ACTIVE_CHAT_PROMPT
@@ -273,6 +273,9 @@ def test_active_chat_prompt_keeps_proposal_web_and_agentic_retrieval_rules() -> 
     # 이미 저장한 것(취향·가고싶던 곳)을 되묻지 않는다.
     assert "could what they saved change this answer" in active_chat_prompt.body
     assert "what no search of theirs could answer" in active_chat_prompt.body
+    # V11: 채팅용 페르소나 프로필 주입 슬롯(런타임에 chat_summary 로 치환·신규 유저는 빈 문자열).
+    # 배경·톤 전용 가드 문구는 주입 시점(_profile_block)에서 test_chat_run 이 고정한다.
+    assert "{profile}" in active_chat_prompt.body
 
 
 # ---------- ② run 루프의 proposal 이벤트·영속 ----------

@@ -21,6 +21,14 @@ public struct ChatView: View {
     /// 전송 햅틱 트리거 — submit 마다 +1.
     @State private var sendPulse = 0
 
+    /// 방금 전송한 turn 의 user 메시지 — 화면 top 에 고정할 대상(ChatGPT/Claude 식).
+    /// nil 이면 spacer 없음(복원·전환 직후엔 기존처럼 바닥에서 시작).
+    @State private var activeUserTurnID: UUID?
+    /// 마지막 user 버블 top · 자연 콘텐츠(바닥 spacer 제외) 끝 — 둘 다 ``scrollSpace`` 좌표.
+    /// 같은 좌표계라 둘의 *차이* = "질문 top→답변 끝" 높이가 스크롤에 불변이다.
+    @State private var lastUserBubbleTop: CGFloat = 0
+    @State private var naturalContentBottom: CGFloat = 0
+
     public init(store: StoreOf<ChatFeature>) {
         self.store = store
     }
@@ -35,7 +43,6 @@ public struct ChatView: View {
         }
         .background(HomeDesign.Color.bg.ignoresSafeArea())
         .safeAreaInset(edge: .bottom, spacing: 0) { inputDock }
-        .navigationTitle("모찌와 대화")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
@@ -115,11 +122,36 @@ public struct ChatView: View {
                                 )
                             }
                         )
+                        .background {
+                            // 상단 고정 중인 user 버블의 top 만 추적(활성 턴 1개 → 측정뷰 1개).
+                            if message.id == activeUserTurnID {
+                                GeometryReader { geo in
+                                    SwiftUI.Color.clear.preference(
+                                        key: LastUserTopKey.self,
+                                        value: geo.frame(in: .named(Self.scrollSpace)).minY
+                                    )
+                                }
+                            }
+                        }
+                        // 상단 고정 대상 위 숨 쉴 여백 — nav 바에 딱 붙지 않게.
+                        // `.id` 를 inset 바깥에 둬 scrollTo(.top) 이 이 여백 위에 정렬되게 한다.
+                        .padding(.top, message.id == activeUserTurnID ? Self.turnTopInset : 0)
                         .id(message.id)
                     }
                     if case let .failed(reason) = store.runPhase {
                         ChatErrorBanner(reason: reason)
                     }
+                    // 자연 콘텐츠 끝(아래 spacer 제외) — "질문 top→답변 끝" 높이의 기준점.
+                    SwiftUI.Color.clear.frame(height: 0).background(
+                        GeometryReader { geo in
+                            SwiftUI.Color.clear.preference(
+                                key: NaturalContentBottomKey.self,
+                                value: geo.frame(in: .named(Self.scrollSpace)).maxY
+                            )
+                        }
+                    )
+                    // 마지막 질문을 화면 top 까지 올리기 위한 동적 여백(ChatGPT/Claude 식).
+                    Color.clear.frame(height: bottomSpacerHeight)
                     // 키보드/입력바 위 여백 + 스크롤 anchor.
                     Color.clear.frame(height: 4).id(Self.bottomAnchor)
                 }
@@ -146,6 +178,9 @@ public struct ChatView: View {
                             // 키보드 등장 = 컨테이너 축소. 바닥을 보고 있었다면 바닥을
                             // 유지하고, 위로 올라가 읽는 중이면 오프셋을 건드리지 않는다
                             // (메신저 표준 — 키보드가 마지막 메시지를 가리지 않게).
+                            // 바닥을 보고 있었으면 키보드 높이만큼 따라 올리고, 위로 올라가
+                            // 읽는 중이면 오프셋을 건드리지 않는다(상단 고정 중엔 near=false 라
+                            // 자연히 그대로 — 질문이 top 에 유지된다).
                             if newHeight < oldHeight, isNearBottom {
                                 withAnimation(.easeOut(duration: 0.2)) {
                                     proxy.scrollTo(Self.bottomAnchor, anchor: .bottom)
@@ -162,8 +197,12 @@ public struct ChatView: View {
                     }
                 }
             }
+            .onPreferenceChange(LastUserTopKey.self) { lastUserBubbleTop = $0 }
+            .onPreferenceChange(NaturalContentBottomKey.self) { naturalContentBottom = $0 }
             .overlay(alignment: .bottomTrailing) {
-                if !isNearBottom {
+                // 생성 중엔 spacer 로 near=false 가 되고 "맨 아래"도 빈 캔버스라 버튼이
+                // 무의미 — 깜빡임만 생기므로 숨긴다. 완료 후엔 정상 동작.
+                if !isNearBottom, !store.isStreaming {
                     ScrollToBottomButton {
                         withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
                             proxy.scrollTo(Self.bottomAnchor, anchor: .bottom)
@@ -175,35 +214,71 @@ public struct ChatView: View {
                 }
             }
             .onAppear {
-                // 복원 대화는 마지막 메시지부터 — 메신저는 항상 "지금"에서 시작한다.
-                // (defaultScrollAnchor(.bottom) 은 짧은 대화까지 화면 바닥에 붙여
-                // 위에서 쌓이는 메신저 문법과 어긋나므로 쓰지 않는다.)
-                proxy.scrollTo(Self.bottomAnchor, anchor: .bottom)
+                // 첫 마운트가 곧 첫 전송이면(idle→streaming 직후 messageList 가 처음 뜸)
+                // 내 질문을 top 에 고정하고, 아니면(복원·전환) 기존처럼 바닥에서 시작한다.
+                // (트리거를 onAppear 에 두는 이유: 빈 상태→messageList 첫 마운트 시점에는
+                //  onChange 가 발화하지 못한다 — 마운트 전의 상태 전이를 못 보기 때문.)
+                if store.runPhase == .streaming, let id = lastUserMessageID {
+                    activeUserTurnID = id
+                    scrollToActiveTurn(proxy)
+                } else {
+                    activeUserTurnID = nil
+                    proxy.scrollTo(Self.bottomAnchor, anchor: .bottom)
+                }
             }
             .onChange(of: store.messages.last?.text) {
-                guard isNearBottom else { return }   // 읽는 중 — delta 가 끌어내리지 않는다
+                // 상단 고정 중엔 답변 delta 를 따라 내려가지 않는다 — 질문을 top 에 유지.
+                guard isNearBottom, activeUserTurnID == nil else { return }
                 withAnimation(.easeOut(duration: 0.15)) {
                     proxy.scrollTo(Self.bottomAnchor, anchor: .bottom)
                 }
             }
             .onChange(of: store.messages.count) {
-                guard isNearBottom else { return }
+                guard isNearBottom, activeUserTurnID == nil else { return }
                 withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
                     proxy.scrollTo(Self.bottomAnchor, anchor: .bottom)
                 }
             }
-            // 내가 보낸 메시지는 어디서든 바닥으로 — 전송은 항상 "지금"의 행위.
-            // (messages.count 게이트로는 못 잡는다 — sendTapped 이 user 메시지와
-            // assistant placeholder 를 한 액션에서 같이 붙여 last.role 이 .assistant 다.)
-            .onChange(of: sendPulse) {
-                withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
+            // 전송 = runPhase idle→streaming. 내 질문을 화면 top 으로(그 아래 빈 캔버스에
+            // 답변이 펼쳐진다). runPhase 트리거라 submit()·firstMessage 두 진입을 다 잡고,
+            // 복원 awaitingRemote 와도 구별된다.
+            .onChange(of: store.runPhase) { _, phase in
+                guard phase == .streaming, let id = lastUserMessageID else { return }
+                activeUserTurnID = id
+                scrollToActiveTurn(proxy)
+                // spacer 확장은 다음 레이아웃 패스에 반영된다 — 짧은 대화에서 질문을
+                // top 까지 올리려면 그 다음 프레임에 한 번 더 앵커한다(1 프레임 ≈ 16ms,
+                // 사실상 즉시 — 버블 등장과 이어져 보인다).
+                Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(16))
+                    scrollToActiveTurn(proxy)
+                }
+            }
+            // 키보드 등장 시 바닥을 보고 있었으면 키보드 높이만큼 따라 올린다.
+            // (ScrollView+safeAreaInset 조합은 키보드를 contentInset 으로만 흡수해
+            //  컨테이너 높이 onChange 가 안 터지므로, 포커스 변화로 직접 잡는다.
+            //  생성 중엔 spacer 로 near=false 라 자연히 스킵 — 질문 top 이 유지된다.)
+            .onChange(of: composerFocused) { _, focused in
+                guard focused, isNearBottom else { return }
+                Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(50))
+                    withAnimation(.easeOut(duration: 0.25)) {
+                        proxy.scrollTo(Self.bottomAnchor, anchor: .bottom)
+                    }
+                }
+            }
+            // 대화 전환(history 열기·새 대화)에선 spacer 회수 후 바닥에서 시작 —
+            // 첫 전송(nil→값)은 건드리지 않는다.
+            .onChange(of: store.conversationID) { old, new in
+                if old != nil, old != new {
+                    activeUserTurnID = nil
                     proxy.scrollTo(Self.bottomAnchor, anchor: .bottom)
                 }
             }
             // 출처·proposal 카드와 "과정 보기"는 본문 delta 이후(턴 종료 무렵)에 붙는다 —
-            // 위 두 onChange 가 못 잡으므로 구조 변화에도 바닥을 따라간다.
+            // 위 두 onChange 가 못 잡으므로 구조 변화에도 바닥을 따라간다(상단 고정 중엔 제외).
             .onChange(of: lastMessageStructure) {
-                guard isNearBottom else { return }
+                guard isNearBottom, activeUserTurnID == nil else { return }
                 withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
                     proxy.scrollTo(Self.bottomAnchor, anchor: .bottom)
                 }
@@ -213,11 +288,38 @@ public struct ChatView: View {
 
     private static let bottomAnchor = "chat-bottom"
     private static let scrollSpace = "chat-scroll"
+    /// 상단 고정된 질문과 nav 바 사이 여백.
+    private static let turnTopInset = HomeDesign.Spacing.md
 
     /// 마지막 버블의 구조 스냅샷 — 카드 등장·스트림 종료 시 스크롤 추적용.
     private var lastMessageStructure: [Int] {
         guard let last = store.messages.last else { return [] }
         return [last.citations.count, last.proposals.count, last.isStreaming ? 1 : 0]
+    }
+
+    /// 상단 고정 대상 — 가장 최근 user 메시지(assistant placeholder 보다 위).
+    private var lastUserMessageID: UUID? {
+        store.messages.last(where: { $0.role == .user })?.id
+    }
+
+    /// 마지막 질문을 화면 top 까지 올리기 위해 채워야 할 바닥 여백.
+    /// `naturalContentBottom - lastUserBubbleTop` = 질문 top→답변 끝 높이(스크롤 불변).
+    /// 그 높이가 한 화면보다 작은 만큼만 채운다 — 답변이 길어지면 0 으로 수렴.
+    ///
+    /// **생성 중에만** 존재한다 — 답변이 끝나면(`isStreaming=false`) 0 으로 회수해
+    /// 바닥에 빈 공간이 남지 않게 한다(질문은 이미 top 에 있어 점프는 없다).
+    private var bottomSpacerHeight: CGFloat {
+        guard activeUserTurnID != nil, store.isStreaming else { return 0 }
+        let turnHeight = naturalContentBottom - lastUserBubbleTop
+        // 질문 위 여백(turnTopInset)도 viewport 를 차지하므로 함께 차감 — 바닥이 정확히 맞는다.
+        return max(0, containerHeight - turnHeight - Self.turnTopInset)
+    }
+
+    private func scrollToActiveTurn(_ proxy: ScrollViewProxy) {
+        guard let id = activeUserTurnID else { return }
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
+            proxy.scrollTo(id, anchor: .top)
+        }
     }
 
     // MARK: - 입력 독
@@ -294,6 +396,22 @@ public struct ChatView: View {
 
 /// 콘텐츠 바닥 모서리의 스크롤 좌표계 maxY — 컨테이너 높이와 비교해 "바닥 근처"를 판정.
 private struct ContentBottomKey: PreferenceKey {
+    static let defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
+    }
+}
+
+/// 마지막 user 버블 top(scrollSpace minY) — 상단 고정 spacer 계산의 한 축.
+private struct LastUserTopKey: PreferenceKey {
+    static let defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+    }
+}
+
+/// 바닥 spacer 를 뺀 자연 콘텐츠 끝(scrollSpace maxY) — 상단 고정 spacer 계산의 다른 축.
+private struct NaturalContentBottomKey: PreferenceKey {
     static let defaultValue: CGFloat = 0
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
         value = max(value, nextValue())

@@ -177,7 +177,11 @@ private struct ZoomDetailPresenter: UIViewControllerRepresentable {
             if let thumbFrame, let flightImage {
                 let imageView = UIImageView(image: flightImage)
                 imageView.frame = thumbFrame
-                imageView.contentMode = .scaleAspectFill
+                // 가로 캡처는 fit + 흰 레터박스 — 카드·상세 헤더(가로=fit)와 모양을 맞춰 비행 중 튐 제거.
+                // 0.55s 빠른 확대라 레터박스 블러는 생략(카드·상세 정지 화면만 블러).
+                let isLandscape = flightImage.size.width > flightImage.size.height
+                imageView.contentMode = isLandscape ? .scaleAspectFit : .scaleAspectFill
+                imageView.backgroundColor = isLandscape ? .white : .clear
                 imageView.clipsToBounds = true
                 imageView.layer.cornerRadius = cardRadius
                 imageView.layer.cornerCurve = .continuous
@@ -312,7 +316,10 @@ private struct ZoomDetailPresenter: UIViewControllerRepresentable {
 
             let snap = UIImageView(image: image)
             snap.frame = source
-            snap.contentMode = .scaleAspectFill
+            // present 비행체와 동일 정책 — 가로 캡처는 fit + 흰 레터박스로 돌려보낸다.
+            let isLandscape = image.size.width > image.size.height
+            snap.contentMode = isLandscape ? .scaleAspectFit : .scaleAspectFill
+            snap.backgroundColor = isLandscape ? .white : .clear
             snap.clipsToBounds = true
             snap.layer.cornerRadius = detailHeaderRadius
             snap.layer.cornerCurve = .continuous

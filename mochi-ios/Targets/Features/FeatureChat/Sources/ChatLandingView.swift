@@ -47,14 +47,6 @@ public struct ChatLandingView: View {
 
     private var header: some View {
         HStack(alignment: .center) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text("모찌와 대화")
-                    .font(.system(size: 22, weight: .heavy, design: .rounded))
-                    .foregroundStyle(HomeDesign.Color.textPrimary)
-                Text("남겨둔 기억으로 답해드려요")
-                    .font(.system(size: 12.5, weight: .medium, design: .rounded))
-                    .foregroundStyle(HomeDesign.Color.textMuted)
-            }
             Spacer()
             Button {
                 store.send(.historyButtonTapped)

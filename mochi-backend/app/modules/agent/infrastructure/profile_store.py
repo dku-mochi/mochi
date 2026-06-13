@@ -22,8 +22,8 @@ class PostgresUserProfileStore(UserProfileStore):
         row = (
             await self._session.execute(
                 text(
-                    "SELECT owner_id, summary, model_version, items_covered, refreshed_at "
-                    "FROM user_profiles WHERE owner_id = :owner_id"
+                    "SELECT owner_id, summary, model_version, items_covered, refreshed_at, "
+                    "chat_summary FROM user_profiles WHERE owner_id = :owner_id"
                 ),
                 {"owner_id": owner_id},
             )
@@ -36,6 +36,7 @@ class PostgresUserProfileStore(UserProfileStore):
             model_version=row.model_version,
             items_covered=row.items_covered,
             refreshed_at=row.refreshed_at,
+            chat_summary=row.chat_summary,
         )
 
     async def upsert(self, profile: UserProfile) -> None:
@@ -44,13 +45,16 @@ class PostgresUserProfileStore(UserProfileStore):
             text(
                 """
                 INSERT INTO user_profiles
-                    (owner_id, summary, model_version, items_covered, refreshed_at)
-                VALUES (:owner_id, :summary, :model_version, :items_covered, :refreshed_at)
+                    (owner_id, summary, model_version, items_covered, refreshed_at, chat_summary)
+                VALUES (:owner_id, :summary, :model_version, :items_covered, :refreshed_at,
+                    :chat_summary)
                 ON CONFLICT (owner_id) DO UPDATE SET
                     summary = EXCLUDED.summary,
                     model_version = EXCLUDED.model_version,
                     items_covered = EXCLUDED.items_covered,
-                    refreshed_at = EXCLUDED.refreshed_at
+                    refreshed_at = EXCLUDED.refreshed_at,
+                    -- 새 chat distill 이 비면(실패) 이전 값 유지 — 동시 refresh 가 성공본을 None 으로 덮지 않게.
+                    chat_summary = COALESCE(EXCLUDED.chat_summary, user_profiles.chat_summary)
                 """
             ),
             {
@@ -59,5 +63,6 @@ class PostgresUserProfileStore(UserProfileStore):
                 "model_version": profile.model_version,
                 "items_covered": profile.items_covered,
                 "refreshed_at": profile.refreshed_at or datetime.utcnow(),
+                "chat_summary": profile.chat_summary,
             },
         )

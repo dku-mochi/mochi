@@ -37,6 +37,11 @@ public protocol MochiAPIClient: Sendable {
     /// `POST /api/v1/search` — 자연어 질의 → Hybrid Search RAG.
     func search(query: String, scope: SearchScope) async throws -> SearchResponse
 
+    /// `GET /api/v1/mochi_items/{id}/similar` — 상세 "비슷한 기록"(cosine 이웃 top-k).
+    /// 자기 제외·임계값 미달 빈 배열·출처 dedup 은 서버가 처리한다. 빈 배열이면 뷰가 섹션을 숨긴다.
+    /// `serverID` 는 업로드된 서버 id 여야 한다(미업로드 로컬 항목엔 호출하지 않는다).
+    func similarItems(serverID: UUID, limit: Int) async throws -> [SimilarItemRef]
+
     /// `POST /api/v1/devices/push-token` — APNs 단말/Live Activity push-to-start 토큰 등록 (owner-scoped upsert).
     /// `apnsDevice`·`laStart` 모두 owner 단위라 `mochiItemID` 없이 등록한다.
     func registerPushToken(
@@ -417,6 +422,40 @@ public struct SearchResponse: Equatable, Sendable, Hashable, Codable {
         case answer, citations
         case totalTokens = "totalTokens"
         case agentRunID = "agentRunId"
+    }
+}
+
+// MARK: - 비슷한 기록 (similar)
+
+/// 상세 "비슷한 기록" 1건 — 서버가 계산한 cosine 이웃 ref. 카드 렌더는 로컬 MochiItem lookup.
+public struct SimilarItemRef: Equatable, Sendable, Hashable, Codable, Identifiable {
+    public let mochiItemID: UUID
+    public let score: Double
+    public let reasons: [SimilarReason]
+    public var id: UUID { mochiItemID }
+
+    public init(mochiItemID: UUID, score: Double, reasons: [SimilarReason]) {
+        self.mochiItemID = mochiItemID
+        self.score = score
+        self.reasons = reasons
+    }
+}
+
+/// "왜 비슷한지" 연결 이유 — 서버 enum. 한국어 카피는 뷰가 매핑한다(카피 변경이 ⓪ 폭포를 안 타도록).
+public struct SimilarReason: Equatable, Sendable, Hashable, Codable {
+    public let kind: Kind
+    /// 보조값 — sameIntent 의 교집합 intent_type, sharedSource 의 url 등 (없으면 nil).
+    public let value: String?
+
+    public enum Kind: String, Sendable, Codable {
+        case sharedSource   // 같은 출처
+        case sameIntent     // 같은 의도
+        case closeInTime    // 비슷한 시기
+    }
+
+    public init(kind: Kind, value: String?) {
+        self.kind = kind
+        self.value = value
     }
 }
 

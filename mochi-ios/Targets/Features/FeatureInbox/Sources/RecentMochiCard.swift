@@ -81,23 +81,20 @@ struct RecentMochiCard: View {
     private var media: some View {
         switch mochiItem.viewKind {
         case .screenshot:
-            ZStack(alignment: .topLeading) {
-                LocalThumbnail(
-                    relativePath: mochiItem.source.imageRefs.first?.relativePath,
-                    targetSize: CGSize(width: 178, height: 134)
-                ) {
-                    ZStack {
-                        LinearGradient(
-                            colors: screenshotGradient,
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                        Image(systemName: "photo.on.rectangle.angled")
-                            .font(.system(size: 28, weight: .light))
-                            .foregroundStyle(.white.opacity(0.85))
-                    }
+            LocalThumbnail(
+                relativePath: mochiItem.source.imageRefs.first?.relativePath,
+                targetSize: CGSize(width: 178, height: 134)
+            ) {
+                ZStack {
+                    LinearGradient(
+                        colors: screenshotGradient,
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                    Image(systemName: "photo.on.rectangle.angled")
+                        .font(.system(size: 28, weight: .light))
+                        .foregroundStyle(.white.opacity(0.85))
                 }
-                tag(MochiItemKind.screenshot)
             }
             .frame(height: 134)
             .clipped()
@@ -123,8 +120,7 @@ struct RecentMochiCard: View {
                     .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, HomeDesign.Spacing.md)
-                    .padding(.top, 34)
-                tag(MochiItemKind.memo)
+                    .padding(.top, HomeDesign.Spacing.md)
             }
             .frame(height: 134)
 
@@ -137,17 +133,10 @@ struct RecentMochiCard: View {
                     faviconLetter: String(mochiItem.source.url?.host?.prefix(1).uppercased() ?? "L")
                 )
                 .padding(.horizontal, HomeDesign.Spacing.md)
-                .padding(.top, 34)
-                tag(MochiItemKind.url)
+                .padding(.top, HomeDesign.Spacing.md)
             }
             .frame(height: 134)
         }
-    }
-
-    private func tag(_ kind: MochiItemKind) -> some View {
-        MochiItemKindTag(kind: kind)
-            .background(.ultraThinMaterial, in: Capsule())
-            .padding(HomeDesign.Spacing.sm)
     }
 
     // MARK: Body (text)
@@ -163,16 +152,11 @@ struct RecentMochiCard: View {
                 .multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            HStack(spacing: HomeDesign.Spacing.sm) {
-                if let intent = mochiItem.representativeIntent {
-                    IntentChip(intent: MochiViewIntent(intent))
-                }
-                Text(mochiItem.displaySubtitle)
-                    .font(.system(size: 10.5, weight: .medium, design: .rounded))
-                    .foregroundStyle(HomeDesign.Color.textMuted)
-                    .lineLimit(1)
-                    .truncationMode(.tail)
-            }
+            Text(mochiItem.displaySubtitle)
+                .font(.system(size: 10.5, weight: .medium, design: .rounded))
+                .foregroundStyle(HomeDesign.Color.textMuted)
+                .lineLimit(1)
+                .truncationMode(.tail)
         }
         .padding(HomeDesign.Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)

@@ -38,6 +38,9 @@ public struct NotConfiguredAPIClient: MochiAPIClient {
     public func search(query: String, scope: SearchScope) async throws -> SearchResponse {
         throw Self.error
     }
+    public func similarItems(serverID: UUID, limit: Int) async throws -> [SimilarItemRef] {
+        throw Self.error
+    }
     public func registerPushToken(token: String, kind: PushTokenKind, environment: PushEnvironment, mochiItemID: UUID?) async throws {
         throw Self.error
     }

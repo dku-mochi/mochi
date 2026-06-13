@@ -56,6 +56,20 @@ class RefreshUserProfile:
         if not summary:
             return False
 
+        # 채팅용 페르소나도 같은 window 로 distill (LLM 1콜 추가). 부가 산출물이라 실패해도
+        # 분류 프로필 저장을 막지 않고, 결과가 비면 이전 값을 유지한다.
+        chat_summary = profile.chat_summary if profile else None
+        try:
+            new_chat = await self._summarizer.summarize_chat(
+                window=window, previous=chat_summary
+            )
+            if new_chat:
+                chat_summary = new_chat
+        except Exception as exc:  # noqa: BLE001
+            log.warning(
+                "profile.chat_summary_failed", owner_id=str(owner_id), exception=str(exc)
+            )
+
         await self._store.upsert(
             UserProfile(
                 owner_id=owner_id,
@@ -63,6 +77,7 @@ class RefreshUserProfile:
                 model_version=self._model_version,
                 items_covered=total,
                 refreshed_at=datetime.utcnow(),
+                chat_summary=chat_summary,
             )
         )
         log.info("profile.refreshed", owner_id=str(owner_id), items_covered=total)

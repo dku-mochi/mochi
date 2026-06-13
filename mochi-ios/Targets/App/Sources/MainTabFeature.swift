@@ -1,5 +1,6 @@
 import ComposableArchitecture
 import DesignSystem
+import Foundation
 import FeatureChat
 import FeatureMochiItem
 import FeatureDetail
@@ -65,6 +66,8 @@ struct MainTabFeature: Sendable {
         case path(StackActionOf<Path>)
         case mochiItem(PresentationAction<MochiItemFeature.Action>)
         case detail(PresentationAction<DetailFeature.Action>)
+        /// "비슷한 기록" 탭 → 현재 상세를 닫은 뒤 그 항목 상세를 다시 연다(같은 present 슬롯 재사용).
+        case presentSimilarDetail(UUID)
         case debugInboxChanged(Bool)
         case delegate(Delegate)
 
@@ -73,6 +76,8 @@ struct MainTabFeature: Sendable {
             case onboardingRequested
         }
     }
+
+    private enum CancelID: Hashable { case similarReopen }
 
     var body: some ReducerOf<Self> {
         Scope(state: \.home,     action: \.home)     { HomeFeature() }
@@ -186,6 +191,23 @@ struct MainTabFeature: Sendable {
                  .detail(.presented(.delegate(.closeRequested))):
                 // 상세에서 삭제 완료 / 닫기 → custom present 를 닫는다 (state nil → presenter dismiss).
                 state.detail = nil
+                return .none
+
+            case let .detail(.presented(.delegate(.openSimilar(localID)))):
+                // 비슷한 기록 탭 → 현재 상세를 먼저 닫고(presenter 는 hosting!=nil 이면 재present 를
+                // 막으므로), dismiss 애니메이션이 끝난 뒤 그 항목 상세를 연다. hero 비행 없는 fade 진입.
+                // cancelInFlight — 연속 탭 시 이전 재open 슬립을 취소해 마지막 것만 연다.
+                state.detail = nil
+                return .run { send in
+                    try? await Task.sleep(for: .milliseconds(360))
+                    await send(.presentSimilarDetail(localID))
+                }
+                .cancellable(id: CancelID.similarReopen, cancelInFlight: true)
+
+            case let .presentSimilarDetail(localID):
+                // 슬립 사이에 다른 상세가 이미 열렸으면(다른 카드 탭 등) 덮어쓰지 않는다.
+                guard state.detail == nil else { return .none }
+                state.detail = DetailFeature.State(mochiItemID: localID)
                 return .none
 
             case .home, .inbox, .chatLanding, .mochiCalendar, .search, .path, .mochiItem, .detail, .delegate:

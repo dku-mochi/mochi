@@ -30,6 +30,22 @@ PROFILE_SUMMARY_SYSTEM = (
 )
 
 
+# 채팅용 페르소나 요약기 system prompt. PROFILE_SUMMARY_SYSTEM 과 같은 입력(summary/user_memo)을
+# 받지만 관점이 다르다 — "어떻게 분류하나"(성향)가 아니라 "이 사람이 누구인가"를 뽑는다. 채팅
+# system prompt 에 배경/톤으로 주입돼, 모찌가 사용자를 이미 아는 친구처럼 말하게 한다.
+# 근거: lab/active/chat-memory-injection 실험에서 이 관점(A2)이 분류성향(A1)보다 답 품질 우위.
+CHAT_PROFILE_SUMMARY_SYSTEM = (
+    "From a MOCHI user's recently saved items, write a short profile a conversational assistant "
+    "needs to think and speak as if it already knows this person. In 3-5 concise Korean "
+    "sentences, capture who they are — recurring interests, tastes, what they're currently "
+    "absorbed in, their life context, and themes that repeat — NOT how they file things "
+    "(memo/todo/etc are irrelevant here). Describe enduring traits and current focus, not "
+    "individual records; capture patterns, never verbatim or sensitive raw content. If a "
+    "previous profile is given, refine it with the newer items rather than discarding it. "
+    "Output only the profile text, no preamble."
+)
+
+
 ACTIVE_PROMPT = PromptVersion(
     name='classify_and_act@v16',
     body=(
