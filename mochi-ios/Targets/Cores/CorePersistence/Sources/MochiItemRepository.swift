@@ -47,6 +47,9 @@ public protocol MochiItemRepository: Sendable {
     /// 사용자가 기록상세에서 제목을 직접 교정 — 로컬 오버라이드(`MochiItem.userTitle`)를 저장한다.
     /// `title == nil`이면 오버라이드 해제 → AI 추출 제목으로 복귀. (빈 문자열→nil 변환은 호출자 책임.)
     func setUserTitle(mochiItemID: UUID, title: String?) async throws
+    /// 사용자가 검색 카드·상세에서 즐겨찾기 토글 — 로컬 `MochiItem.isFavorite` 를 저장한다(낙관적).
+    /// 서버 push 는 `FavoriteSync` 가 별도로 수행한다(이 메서드는 로컬 전이만).
+    func setFavorite(mochiItemID: UUID, isFavorite: Bool) async throws
     /// "모찌에게 다시 맡기기" — 분석 실패/강등된 항목을 다시 "분석 중"으로 되돌린다.
     /// analysis 를 비우고(→ `listAnalyzing` 대상), 업로드 타임스탬프를 갱신해 폴링 deadline 을 재시작한다.
     /// 이미 업로드된(`.uploaded`) 항목만 대상 — serverID 가 있어야 재폴링이 가능하기 때문.
@@ -306,6 +309,16 @@ public actor InMemoryMochiItemRepository: MochiItemRepository {
             throw DomainError.notFound(entity: "MochiItem", id: mochiItemID.uuidString)
         }
         mochiItem.userTitle = title
+        mochiItem.updatedAt = .init()
+        storage[mochiItemID] = mochiItem
+        notifyChange()
+    }
+
+    public func setFavorite(mochiItemID: UUID, isFavorite: Bool) async throws {
+        guard var mochiItem = storage[mochiItemID] else {
+            throw DomainError.notFound(entity: "MochiItem", id: mochiItemID.uuidString)
+        }
+        mochiItem.isFavorite = isFavorite
         mochiItem.updatedAt = .init()
         storage[mochiItemID] = mochiItem
         notifyChange()

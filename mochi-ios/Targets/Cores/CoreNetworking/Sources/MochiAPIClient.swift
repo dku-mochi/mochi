@@ -70,6 +70,12 @@ public protocol MochiAPIClient: Sendable {
     /// 없는/이미 삭제된 항목은 404 throw.
     func deleteMochiItem(mochiServerID: UUID) async throws
 
+    /// `POST /api/v1/mochi_items/{id}/favorite` — 즐겨찾기 신호 set-state 토글. 갱신된 item 을 반환한다.
+    /// set-state 멱등(같은 값 재전송 no-op 200) — 빠른 더블탭·재시도가 낙관적 업데이트를 오롤백하지 않게.
+    /// `mochiServerID` 는 로컬 id 가 아니라 업로드된 서버 id(`syncState.uploaded`)여야 한다. 없으면 404 throw.
+    @discardableResult
+    func setFavorite(mochiServerID: UUID, isFavorite: Bool) async throws -> MochiItemDTO
+
     /// `PATCH /api/v1/mochi_items/{id}` — 콘텐츠(text/userMemo/summary) + instance 변경
     /// (payload 병합·label·lifecycle 전이)을 **한 트랜잭션**으로. 채팅 수정 proposal 확정 경로.
     /// 404(`*.not_found`) = 카드 만료, 409 = 불법 lifecycle 전이.
@@ -226,6 +232,8 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
     /// 쇼핑 캡처의 커머스 검색어 — entities(kind=shopping_product) 서버 projection. 비쇼핑은 nil.
     public let shoppingProductQuery: String?
     public let importance: Int
+    /// 사용자가 준 "중요" 즐겨찾기 신호 — 서버 동기화 상태. 기본 false.
+    public let isFavorite: Bool
     /// 저장된 의도 instance (저장된 것은 곧 active, 위계 없음). 분석 전엔 빈 배열.
     public let intentInstances: [IntentInstanceDTO]
     /// 모찌가 분류를 확신 못 함 — "헷갈려요" 버킷.
@@ -243,6 +251,7 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
         case id, channel, url, text, summary, category, importance
         case userMemo = "userMemo"
         case shoppingProductQuery = "shoppingProductQuery"
+        case isFavorite = "isFavorite"
         case intentInstances = "intentInstances"
         case needsReview = "needsReview"
         case reviewOptions = "reviewOptions"
@@ -263,6 +272,7 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
         category: String?,
         shoppingProductQuery: String? = nil,
         importance: Int,
+        isFavorite: Bool = false,
         intentInstances: [IntentInstanceDTO],
         needsReview: Bool,
         reviewOptions: [ReviewOptionDTO],
@@ -281,6 +291,7 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
         self.category = category
         self.shoppingProductQuery = shoppingProductQuery
         self.importance = importance
+        self.isFavorite = isFavorite
         self.intentInstances = intentInstances
         self.needsReview = needsReview
         self.reviewOptions = reviewOptions
@@ -302,6 +313,7 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
         category = try c.decodeIfPresent(String.self, forKey: .category)
         shoppingProductQuery = try c.decodeIfPresent(String.self, forKey: .shoppingProductQuery)
         importance = try c.decode(Int.self, forKey: .importance)
+        isFavorite = try c.decodeIfPresent(Bool.self, forKey: .isFavorite) ?? false
         intentInstances = try c.decodeIfPresent([IntentInstanceDTO].self, forKey: .intentInstances) ?? []
         needsReview = try c.decodeIfPresent(Bool.self, forKey: .needsReview) ?? false
         reviewOptions = try c.decodeIfPresent([ReviewOptionDTO].self, forKey: .reviewOptions) ?? []

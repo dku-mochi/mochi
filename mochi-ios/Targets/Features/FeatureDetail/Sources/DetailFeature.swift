@@ -16,6 +16,8 @@ public struct DetailFeature: Sendable {
         public var isEditingTitle: Bool = false
         public var titleDraft: String = ""
         public var lastError: String?
+        /// 이미지 저장 성공 후 잠깐 보이는 확인 메시지 — 2초 뒤 자동 사라짐.
+        public var saveToast: String?
         /// 삭제 확인 alert — confirm 시 서버 soft delete + 로컬 hard delete 후 화면 pop.
         @Presents public var deleteAlert: AlertState<Action.Alert>?
         /// hero 전환 중 상세 hero 이미지를 숨긴다 — 비행 중인 스냅샷과 이중으로 겹쳐 보이지 않게.
@@ -39,12 +41,18 @@ public struct DetailFeature: Sendable {
         case similarItemTapped(UUID)
         /// 할 일 완료↔미완료 토글 — 캘린더 탭과 같은 경로(낙관적 로컬 + 서버 push + 치유/롤백).
         case todoToggled(IntentInstance)
+        /// 즐겨찾기 토글 — 낙관적 로컬 전이 + 서버 push(실패 시 롤백). 완료 토글과 같은 경로.
+        case favoriteToggled
         // 제목 인라인 교정 — 로컬 userTitle 오버라이드 (백엔드 재추론 아님).
         case titleTapped
         case titleDraftChanged(String)
         case titleCommitted
         case titleEditCancelled
         case operationFailed(String)
+        // 이미지 저장 — 더보기 메뉴 → 사진 앱에 원본 풀해상도 저장(권한 거부·소스 없음은 operationFailed).
+        case saveImageButtonTapped
+        case imageSaved
+        case dismissSaveToast
         // 삭제 — 더보기 메뉴 → 확인 alert → 서버 soft delete + 로컬 hard delete → 화면 닫힘.
         case deleteButtonTapped
         case deleteAlert(PresentationAction<Alert>)
@@ -67,6 +75,8 @@ public struct DetailFeature: Sendable {
 
     @Dependency(\.mochiItemRepository) var repository
     @Dependency(\.mochiAPIClient) var apiClient
+
+    private enum CancelID: Hashable { case favorite(UUID) }
 
     public init() {}
 
@@ -130,6 +140,26 @@ public struct DetailFeature: Sendable {
                     if let failure { await send(.operationFailed(failure)) }
                 }
 
+            case .favoriteToggled:
+                guard let item = state.mochiItem else { return .none }
+                let target = !item.isFavorite
+                // 동기 낙관 반영 — 연타 시 다음 탭이 갱신된 값 기준으로 target 을 잡아 on/off 가 어긋나지 않는다.
+                state.mochiItem?.isFavorite = target
+                return .run { send in
+                    try? await repository.setFavorite(mochiItemID: item.id, isFavorite: target)
+                    // 서버 push(실패 시 FavoriteSync 가 로컬 롤백) — 검색 카드와 공용 경로.
+                    let failure = await FavoriteSync.pushToggle(
+                        item: item, isFavorite: target, repository: repository, apiClient: apiClient
+                    )
+                    if let failure {
+                        await send(.loaded(try? await repository.find(id: item.id)))  // 롤백 반영
+                        await send(.operationFailed(failure))
+                    }
+                }
+                // 연타 시 직전 in-flight push 를 취소(cancelInFlight) → 최신 토글만 살아 last-write-wins.
+                // 취소된 오래된 요청의 롤백이 최신 의도를 덮어쓰지 않는다.
+                .cancellable(id: CancelID.favorite(item.id), cancelInFlight: true)
+
             case .titleTapped:
                 state.titleDraft = state.mochiItem?.displayHeadline ?? ""
                 state.isEditingTitle = true
@@ -169,6 +199,31 @@ public struct DetailFeature: Sendable {
             case .titleEditCancelled:
                 state.isEditingTitle = false
                 state.titleDraft = ""
+                return .none
+
+            case .saveImageButtonTapped:
+                guard let ref = state.mochiItem?.source.imageRefs.first else {
+                    return .send(.operationFailed(ScreenshotSaver.SaveError.noImage.localizedDescription))
+                }
+                return .run { send in
+                    do {
+                        try await ScreenshotSaver.saveToPhotos(ref: ref, apiClient: apiClient)
+                        await send(.imageSaved)
+                    } catch {
+                        await send(.operationFailed((error as? LocalizedError)?.errorDescription ?? String(describing: error)))
+                    }
+                }
+
+            case .imageSaved:
+                state.lastError = nil
+                state.saveToast = "사진에 저장했어요"
+                return .run { send in
+                    try? await Task.sleep(for: .seconds(2))
+                    await send(.dismissSaveToast)
+                }
+
+            case .dismissSaveToast:
+                state.saveToast = nil
                 return .none
 
             case let .operationFailed(message):

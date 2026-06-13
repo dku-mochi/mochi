@@ -36,6 +36,8 @@ class MochiItemRow(Base):
     # digest 의 known_categories(연쇄 톤앤매너) 컨텍스트에서 제외해, 정규화된 라벨만 다음 주로 잇는다.
     category_normalized_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
     importance: Mapped[int] = mapped_column(Integer, default=3)
+    # 사용자가 준 "중요" 신호 — 분석결과가 아니라 사용자 가변 상태. reanalyze(apply_analysis)는 건드리지 않는다.
+    is_favorite: Mapped[bool] = mapped_column(Boolean, default=False)
     model_version: Mapped[str | None] = mapped_column(String(64), default=None)
 
     # 처리상태(ingested/analyzing/analyzed/failed) — 의미 lifecycle(archive_reason)은 intent_instances 로 이동.

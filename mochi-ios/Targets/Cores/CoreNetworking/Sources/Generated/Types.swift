@@ -193,6 +193,16 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `POST /api/v1/mochi_items/{mochi_item_id}/instances/{instance_id}/lifecycle`.
     /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/instances/{instance_id}/lifecycle/post(update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post)`.
     func update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post(_ input: Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Input) async throws -> Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Output
+    /// Set Mochi Item Favorite
+    ///
+    /// 즐겨찾기 신호 set-state 토글 — 사용자가 검색 카드·상세에서 "중요"로 표시/해제한다.
+    ///
+    /// set-state 멱등(``isFavorite`` 같은 값 재전송은 no-op 200) — 응답 유실 재시도·빠른 더블탭이
+    /// iOS 낙관적 업데이트를 오롤백하지 않게 한다. owner-scoped, 없는/다른 owner 항목은 404.
+    ///
+    /// - Remark: HTTP `POST /api/v1/mochi_items/{mochi_item_id}/favorite`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/favorite/post(set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post)`.
+    func set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post(_ input: Operations.set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post.Input) async throws -> Operations.set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post.Output
     /// Get Conversation Snapshot
     ///
     /// 대화 메시지 전체 스냅샷 — iOS 포그라운드 복귀·히스토리 재진입용.
@@ -632,6 +642,26 @@ extension APIProtocol {
         body: Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Input.Body
     ) async throws -> Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Output {
         try await update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post(Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Input(
+            path: path,
+            headers: headers,
+            body: body
+        ))
+    }
+    /// Set Mochi Item Favorite
+    ///
+    /// 즐겨찾기 신호 set-state 토글 — 사용자가 검색 카드·상세에서 "중요"로 표시/해제한다.
+    ///
+    /// set-state 멱등(``isFavorite`` 같은 값 재전송은 no-op 200) — 응답 유실 재시도·빠른 더블탭이
+    /// iOS 낙관적 업데이트를 오롤백하지 않게 한다. owner-scoped, 없는/다른 owner 항목은 404.
+    ///
+    /// - Remark: HTTP `POST /api/v1/mochi_items/{mochi_item_id}/favorite`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/favorite/post(set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post)`.
+    public func set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post(
+        path: Operations.set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post.Input.Path,
+        headers: Operations.set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post.Input.Headers = .init(),
+        body: Operations.set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post.Input.Body
+    ) async throws -> Operations.set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post.Output {
+        try await set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post(Operations.set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post.Input(
             path: path,
             headers: headers,
             body: body
@@ -1157,6 +1187,24 @@ public enum Components {
             public enum CodingKeys: String, CodingKey {
                 case downloadURL
                 case expiresAt
+            }
+        }
+        /// 즐겨찾기 신호 set-state 요청. ``isFavorite=true`` 즐겨찾기 추가, ``false`` 해제.
+        /// 같은 값 재전송은 멱등 no-op(완료 토글과 동일 규약).
+        ///
+        /// - Remark: Generated from `#/components/schemas/FavoriteUpdateRequest`.
+        public struct FavoriteUpdateRequest: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/FavoriteUpdateRequest/isFavorite`.
+            public var isFavorite: Swift.Bool
+            /// Creates a new `FavoriteUpdateRequest`.
+            ///
+            /// - Parameters:
+            ///   - isFavorite:
+            public init(isFavorite: Swift.Bool) {
+                self.isFavorite = isFavorite
+            }
+            public enum CodingKeys: String, CodingKey {
+                case isFavorite
             }
         }
         /// - Remark: Generated from `#/components/schemas/GoogleSignInRequest`.
@@ -1846,6 +1894,8 @@ public enum Components {
             public var shoppingProductQuery: Swift.String?
             /// - Remark: Generated from `#/components/schemas/MochiItemResponse/importance`.
             public var importance: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/MochiItemResponse/isFavorite`.
+            public var isFavorite: Swift.Bool?
             /// - Remark: Generated from `#/components/schemas/MochiItemResponse/lifecycleKind`.
             public var lifecycleKind: Swift.String
             /// - Remark: Generated from `#/components/schemas/MochiItemResponse/syncKind`.
@@ -1871,6 +1921,7 @@ public enum Components {
             ///   - category:
             ///   - shoppingProductQuery:
             ///   - importance:
+            ///   - isFavorite:
             ///   - lifecycleKind:
             ///   - syncKind:
             ///   - imageRefs:
@@ -1889,6 +1940,7 @@ public enum Components {
                 category: Swift.String? = nil,
                 shoppingProductQuery: Swift.String? = nil,
                 importance: Swift.Int,
+                isFavorite: Swift.Bool? = nil,
                 lifecycleKind: Swift.String,
                 syncKind: Swift.String,
                 imageRefs: [Components.Schemas.ImageRefResponse]? = nil,
@@ -1907,6 +1959,7 @@ public enum Components {
                 self.category = category
                 self.shoppingProductQuery = shoppingProductQuery
                 self.importance = importance
+                self.isFavorite = isFavorite
                 self.lifecycleKind = lifecycleKind
                 self.syncKind = syncKind
                 self.imageRefs = imageRefs
@@ -1926,6 +1979,7 @@ public enum Components {
                 case category
                 case shoppingProductQuery
                 case importance
+                case isFavorite
                 case lifecycleKind
                 case syncKind
                 case imageRefs
@@ -5366,6 +5420,148 @@ public enum Operations {
             /// - Throws: An error if `self` is not `.ok`.
             /// - SeeAlso: `.ok`.
             public var ok: Operations.update_instance_lifecycle_api_v1_mochi_items__mochi_item_id__instances__instance_id__lifecycle_post.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Set Mochi Item Favorite
+    ///
+    /// 즐겨찾기 신호 set-state 토글 — 사용자가 검색 카드·상세에서 "중요"로 표시/해제한다.
+    ///
+    /// set-state 멱등(``isFavorite`` 같은 값 재전송은 no-op 200) — 응답 유실 재시도·빠른 더블탭이
+    /// iOS 낙관적 업데이트를 오롤백하지 않게 한다. owner-scoped, 없는/다른 owner 항목은 404.
+    ///
+    /// - Remark: HTTP `POST /api/v1/mochi_items/{mochi_item_id}/favorite`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/favorite/post(set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post)`.
+    public enum set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post {
+        public static let id: Swift.String = "set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/favorite/POST/path`.
+            public struct Path: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/favorite/POST/path/mochi_item_id`.
+                public var mochi_item_id: Swift.String
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - mochi_item_id:
+                public init(mochi_item_id: Swift.String) {
+                    self.mochi_item_id = mochi_item_id
+                }
+            }
+            public var path: Operations.set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post.Input.Path
+            /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/favorite/POST/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post.Input.Headers
+            /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/favorite/POST/requestBody`.
+            @frozen public enum Body: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/favorite/POST/requestBody/content/application\/json`.
+                case json(Components.Schemas.FavoriteUpdateRequest)
+            }
+            public var body: Operations.set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post.Input.Body
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            ///   - headers:
+            ///   - body:
+            public init(
+                path: Operations.set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post.Input.Path,
+                headers: Operations.set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post.Input.Headers = .init(),
+                body: Operations.set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post.Input.Body
+            ) {
+                self.path = path
+                self.headers = headers
+                self.body = body
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/favorite/POST/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/favorite/POST/responses/200/content/application\/json`.
+                    case json(Components.Schemas.MochiItemResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.MochiItemResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Successful Response
+            ///
+            /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/favorite/post(set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post.Output.Ok {
                 get throws {
                     switch self {
                     case let .ok(response):

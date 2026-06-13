@@ -10,6 +10,12 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-06-14 — backend, ios, docs
+- **카드 즐겨찾기(서버 동기화) + 이미지 사진앱 저장.** 즐겨찾기는 "사용자가 모찌에게 준 중요 신호"로 재프레이밍 — 사용자가 검색 카드·상세 ⋯ 메뉴에서 토글하면 모찌가 홈 헤더 별 → 즐겨찾기 화면에서 다시 꺼내 보여준다(능동 회수, PRODUCT §1.5 정합). 사용자-주도 큐레이션이 미션 리트머스에 걸리는 충돌은 "수동 폴더(상설 브라우징)"가 아니라 "신호 + 모찌 회수"로 좁혀 해소(팀 경량 합의 필요 — L1 PRODUCT 터치).
+- backend: `mochi_items.is_favorite` 컬럼(alembic `0021`, item 레벨 인라인 — 분석결과 아닌 사용자 가변 상태, reanalyze 가 안 건드림) + `POST /mochi_items/{id}/favorite` set-state 멱등 라우트(`SetFavorite` use case, owner-scoped, 같은 값 no-op) + `MochiItemResponse.isFavorite` projection + 단위테스트 4(set/unset/멱등/404). ⓪계약 폭포(`make openapi`→generate.sh) 통과.
+- ios: openapi 재생성 + DTO/도메인 `MochiItem.isFavorite`/Realm(스키마 v10) 미러 — **서버 동기화**(userTitle 로컬전용과 반대, `toMochiItem` 에서 pull 보존). `FavoriteSync`(낙관적 토글 + 실패 롤백) + 상세 ⋯ 메뉴·검색 카드 컨텍스트 메뉴 토글 + 홈 헤더 별 → `FavoritesFeature`/`FavoritesView`(path push, WeeklyDigest 패턴 · RecentMochiCard 재사용 · 로컬 Realm `isFavorite` 필터, 서버 list 라우트 없음). 알려진 한계: pull 은 기존 로컬 항목 skip 이라 기기 간 실시간 양방향 아님 — "재설치 복구 시 보존"까지 보장.
+- ios: 상세 ⋯ 메뉴 "이미지 저장" — 원본 풀해상도(로컬 캐시 `captures/<sha256>` 우선, 없으면 presign GCS 다운로드)를 `PHPhotoLibrary` 저장(`ScreenshotSaver`). `NSPhotoLibraryAddUsageDescription` + Photos SDK 의존 추가. **ungated**(sensitivity 필드 미구현이라 판별 근거 없음) — 단 사진앱은 앱 경계 밖 반출 표면이라 privacy 필드 도입 시 게이트 대상(PRIVACY §9, TODO §5.1 후속).
+
 ## 2026-06-13 — backend, ios, docs
 - **"비슷한 기록"(similar) 구현 완료 — 같은 날 설계 폭포(아래 docs 항목)의 코드화.** 백엔드: `search` 모듈에 `SimilarItem`/`SimilarReason` 도메인 + `PostgresHybridIndex.similar()`(seed-vector cosine — 대상 item 의 저장 임베딩을 uncorrelated 서브쿼리로 query 벡터화, owner-scope·self 제외·`deleted_at`·임계값 0.6 컷·fanout×4 후 url dedup·민감게이트 자리 주석) + 두 번째 쿼리로 reasons 파생(`sharedSource`/`sameIntent`/`closeInTime`) + `similar_router`(`GET /mochi_items/{id}/similar`, search 모듈 소유·path 만 노출해 헥사고날 경계 보존) + 단위테스트 4(자기제외/임계값/dedup/빈배열). iOS: openapi 폭포(`make openapi`→`generate.sh`) + `OpenAPIMochiClient.similarItems` 어댑터(reason enum unknown 강등) + `DetailFeature`(onAppear fetch — uploaded serverID 가드·서버 id→로컬 매핑·실패/빈 degrade·stale requestID 가드) + `DetailView` GistCard 뒤 가로 캐러셀(자체 `SimilarItemCard` — RecentMochiCard 재사용은 Feature 경계 위반이라 회피·근거 칩·빈 숨김) + `MainTabFeature` openSimilar 2-step(dismiss→재present, `cancellable`+`guard detail==nil` 로 race 차단). code-review(codex) P1 2건(state race) 수정 반영. **잔여(P2)**: HNSW 서브쿼리 ANN 인덱스 `EXPLAIN` 1회 확인, FeatureDetail reducer 테스트 타겟 부재, reason enum 추가 시 iOS 동시배포 필요(strict enum 디코드).
 

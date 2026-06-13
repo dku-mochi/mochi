@@ -13,6 +13,7 @@ struct SearchResultsView: View {
     let onIntent: (Intent?) -> Void
     let onCardTap: (MochiItem.ID, HeroSourceFrames) -> Void
     let onCardDelete: (MochiItem.ID) -> Void
+    let onCardToggleFavorite: (MochiItem.ID) -> Void
 
     var body: some View {
         VStack(spacing: 0) {
@@ -50,7 +51,8 @@ struct SearchResultsView: View {
                     summaryHighlights: result.summaryHighlights,
                     isSemantic: result.isSemantic,
                     onTap: { hero in onCardTap(result.item.id, hero) },
-                    onDelete: { onCardDelete(result.item.id) }
+                    onDelete: { onCardDelete(result.item.id) },
+                    onToggleFavorite: { onCardToggleFavorite(result.item.id) }
                 )
                 .scrollTransition(.animated(.easeOut(duration: 0.25))) { content, phase in
                     content

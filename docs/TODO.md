@@ -240,6 +240,10 @@ VOYAGE_API_KEY=<dash.voyageai.com 또는 MongoDB Atlas 발급 키>
 - [ ] privacy 필드 도입 시 `GET /mochi_items/{id}/similar`("비슷한 기록" 자동 회수)도 게이트 대상에
       포함 — 상세를 열기만 해도 cosine 이웃을 끌어오므로 누락 시 민감 항목이 회수로 우회 노출된다.
       쿼리 WHERE 에 `AND c.sensitivity_level < :threshold` 자리를 구현 시 주석으로 못박을 것
+- [x] `NSPhotoLibraryAddUsageDescription` Info.plist 추가 (2026-06-14, 상세 ⋯ "이미지 저장" — 사진앱 add-only 권한).
+- [ ] privacy 필드 도입 시 **이미지 사진앱 저장**(상세 ⋯ "이미지 저장")에 민감도 게이트 추가 —
+      사진앱은 앱 경계 밖(iCloud·타 앱) 반출 표면이라 `view_item_image`/similar 보다 위험(PRIVACY §9).
+      현재는 판별 메타데이터 부재로 ungated. 민감 캡처는 저장 차단/경고로 막을 것. 팀 결정 필요.
       (제안 계약 DOMAIN_DESIGN §10.5, 노출 논리 PRIVACY §9·§10).
 
 ---

@@ -181,6 +181,7 @@ App  ──► AppIntents/          (QuickCaptureIntent + CaptureScreenshotInten
 - `attachments` (sha256 + objectKey 포함)
 - `SyncState` 세부 (uploaded serverID + 시각, syncFailed retryAfter)
 - `LifecycleState` (archived reason, failed reason)
+- `isFavorite` (즐겨찾기 신호 — **서버 동기화** 필드라 pull 복구 시 `toMochiItem` 에서 반드시 보존. userTitle 의 로컬전용과 반대)
 
 ---
 

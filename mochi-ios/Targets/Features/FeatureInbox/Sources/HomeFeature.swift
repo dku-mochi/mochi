@@ -77,6 +77,7 @@ public struct HomeFeature: Sendable {
         case deleteMochiItemTapped(MochiItem.ID)
         case deleteAlert(PresentationAction<Alert>)
         case openSettingsTapped
+        case favoritesTapped
         case replayOnboardingTapped
         case weeklyDigestTapped
         case seeAllRecentTapped
@@ -92,6 +93,8 @@ public struct HomeFeature: Sendable {
             case chatRequested(String)
             /// "최근에 보낸 것들 > 전체 보기" — 상위가 캘린더 탭(전체 기록 브라우징)으로 전환한다.
             case seeAllRecentRequested
+            /// 헤더 별 → 상위가 즐겨찾기 화면을 push 한다.
+            case favoritesRequested
         }
     }
 
@@ -295,6 +298,9 @@ public struct HomeFeature: Sendable {
             case .mochiItemTapped, .openSettingsTapped:
                 // 상위 Feature 가 처리 (탭 이동·모달·navigation).
                 return .none
+
+            case .favoritesTapped:
+                return .send(.delegate(.favoritesRequested))
 
             case let .deleteMochiItemTapped(id):
                 state.deleteAlert = AlertState {
