@@ -99,6 +99,11 @@ class Settings(BaseSettings):
     naver_client_id: str | None = None
     naver_client_secret: str | None = None
 
+    # recoverYoutubeUrl tool — YouTube Data API v3 (Secret: mochi-youtube-api-key).
+    # 무키 youtube 검색의 confidence 가 낮을 때(인덱스 지연·봇차단) 폴백: 채널 식별→uploads
+    # playlist 직접 조회(인덱스 무관)→search.list. 미설정 시 무키 검색만 동작(폴백·채널주소 비활성).
+    youtube_api_key: str | None = None
+
     # PlatformContext tool — Instagram 공식 oEmbed 는 Meta app token + review 가 필요하다.
     instagram_oembed_access_token: str | None = None
     instagram_oembed_api_version: str = "v20.0"
