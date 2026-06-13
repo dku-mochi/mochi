@@ -109,6 +109,9 @@ class MochiItem:
     category: str | None = None
     shopping_product_query: str | None = None
     importance: int = 3
+    # 사용자가 "중요"라고 모찌에게 준 신호(분석결과 아님) — 모찌가 능동 회수에 활용한다.
+    # 서버 동기화(userTitle 의 로컬전용과 반대). reanalyze 가 건드리지 않는 item 레벨 속성.
+    is_favorite: bool = False
     model_version: str | None = None
     lifecycle: LifecycleState = field(default_factory=LifecycleState.ingested)
     sync: SyncState = field(default_factory=lambda: SyncState(kind="pending"))

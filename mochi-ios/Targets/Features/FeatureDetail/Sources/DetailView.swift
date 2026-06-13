@@ -28,6 +28,12 @@ public struct DetailView: View {
 
     public init(store: StoreOf<DetailFeature>) { self.store = store }
 
+    /// 사진 앱에 저장할 원본이 있나 — 로컬 캐시(relativePath) 또는 GCS 원본(objectKey) 중 하나라도 있으면 true.
+    private var hasSavableImage: Bool {
+        guard let ref = store.mochiItem?.source.imageRefs.first else { return false }
+        return !ref.relativePath.isEmpty || (ref.objectKey?.isEmpty == false)
+    }
+
     public var body: some View {
         ScrollView {
             Group {
@@ -58,6 +64,19 @@ public struct DetailView: View {
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
+                    if let item = store.mochiItem {
+                        Button { store.send(.favoriteToggled) } label: {
+                            Label(
+                                item.isFavorite ? "즐겨찾기 해제" : "즐겨찾기 추가",
+                                systemImage: item.isFavorite ? "star.fill" : "star"
+                            )
+                        }
+                    }
+                    if hasSavableImage {
+                        Button { store.send(.saveImageButtonTapped) } label: {
+                            Label("이미지 저장", systemImage: "square.and.arrow.down")
+                        }
+                    }
                     Button("삭제", role: .destructive) { store.send(.deleteButtonTapped) }
                 } label: {
                     toolbarIcon("ellipsis")
@@ -65,6 +84,19 @@ public struct DetailView: View {
             }
         }
         .alert($store.scope(state: \.deleteAlert, action: \.deleteAlert))
+        .overlay(alignment: .bottom) {
+            if let toast = store.saveToast {
+                Label(toast, systemImage: "checkmark.circle.fill")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(Capsule().fill(HomeDesign.Color.ink900.opacity(0.9)))
+                    .padding(.bottom, HomeDesign.Spacing.xl)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+        .animation(.easeInOut(duration: 0.2), value: store.saveToast)
         .task { store.send(.onAppear) }
     }
 

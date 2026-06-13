@@ -950,6 +950,60 @@
         }
       }
     },
+    "/api/v1/mochi_items/{mochi_item_id}/favorite": {
+      "post": {
+        "tags": [
+          "mochi_items"
+        ],
+        "summary": "Set Mochi Item Favorite",
+        "description": "즐겨찾기 신호 set-state 토글 — 사용자가 검색 카드·상세에서 \"중요\"로 표시/해제한다.\n\nset-state 멱등(``isFavorite`` 같은 값 재전송은 no-op 200) — 응답 유실 재시도·빠른 더블탭이\niOS 낙관적 업데이트를 오롤백하지 않게 한다. owner-scoped, 없는/다른 owner 항목은 404.",
+        "operationId": "set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post",
+        "parameters": [
+          {
+            "name": "mochi_item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Mochi Item Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "Authorization",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FavoriteUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MochiItemResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/conversations/{conversation_id}/messages": {
       "post": {
         "tags": [
@@ -1646,6 +1700,20 @@
         "title": "DownloadUrlResponse",
         "description": "발급된 V4 Signed GET URL."
       },
+      "FavoriteUpdateRequest": {
+        "properties": {
+          "isFavorite": {
+            "type": "boolean",
+            "title": "Isfavorite"
+          }
+        },
+        "type": "object",
+        "required": [
+          "isFavorite"
+        ],
+        "title": "FavoriteUpdateRequest",
+        "description": "즐겨찾기 신호 set-state 요청. ``isFavorite=true`` 즐겨찾기 추가, ``false`` 해제.\n같은 값 재전송은 멱등 no-op(완료 토글과 동일 규약)."
+      },
       "GoogleSignInRequest": {
         "properties": {
           "idToken": {
@@ -2218,6 +2286,11 @@
           "importance": {
             "type": "integer",
             "title": "Importance"
+          },
+          "isFavorite": {
+            "type": "boolean",
+            "title": "Isfavorite",
+            "default": false
           },
           "lifecycleKind": {
             "type": "string",

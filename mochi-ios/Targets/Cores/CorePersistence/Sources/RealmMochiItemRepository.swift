@@ -211,6 +211,16 @@ public actor RealmMochiItemRepository: MochiItemRepository {
         }
     }
 
+    public func setFavorite(mochiItemID: UUID, isFavorite: Bool) async throws {
+        try await write { realm in
+            guard let row = realm.object(ofType: RealmMochiItem.self, forPrimaryKey: mochiItemID.uuidString) else {
+                throw DomainError.notFound(entity: "MochiItem", id: mochiItemID.uuidString)
+            }
+            row.isFavorite = isFavorite
+            row.updatedAt = .init()
+        }
+    }
+
     public func requeueForAnalysis(mochiItemID: UUID) async throws {
         // serverID 보존을 위해 먼저 도메인 객체로 읽어 syncState 를 확인.
         guard let item = try await find(id: mochiItemID),

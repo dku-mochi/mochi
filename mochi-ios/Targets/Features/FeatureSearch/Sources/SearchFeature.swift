@@ -72,6 +72,7 @@ public struct SearchFeature: Sendable {
         // 카드
         case recentTapped(MochiItem.ID, HeroSourceFrames?)  // 카드 탭 → 상세 hero present (MainTabFeature)
         case deleteTapped(MochiItem.ID)        // contextMenu/⋯ 삭제
+        case favoriteToggled(MochiItem.ID)     // contextMenu 즐겨찾기 추가/해제
 
         // 빈 결과 CTA
         case askMochiTapped                    // "모찌에게 물어보기" — 채팅으로 query 넘김
@@ -190,6 +191,21 @@ public struct SearchFeature: Sendable {
                     try? await repository.delete(id: id)
                 }
 
+            case let .favoriteToggled(id):
+                // 즐겨찾기 토글 — 카드엔 시각 표시가 없어(요구사항 밖) 낙관적 state 변경 불필요.
+                // 로컬 write → observeChanges 가 items 재로드, 서버 push(실패 시 FavoriteSync 가 롤백).
+                // 실패 메시지는 surface 하지 않는다 — 카드엔 표시가 없고 롤백 후 observe 가 재로드하므로
+                // 무음 처리. 연타는 cancelInFlight 로 최신 토글만 살려 server↔local 불일치를 막는다.
+                return .run { [repository, apiClient] _ in
+                    guard let item = try? await repository.find(id: id) else { return }
+                    let target = !item.isFavorite
+                    try? await repository.setFavorite(mochiItemID: id, isFavorite: target)
+                    _ = await FavoriteSync.pushToggle(
+                        item: item, isFavorite: target, repository: repository, apiClient: apiClient
+                    )
+                }
+                .cancellable(id: CancelID.favorite(id), cancelInFlight: true)
+
             case .askMochiTapped:
                 return .send(.delegate(.askChatRequested(state.query)))
 
@@ -241,7 +257,7 @@ public struct SearchFeature: Sendable {
 
     // MARK: - Helpers
 
-    private enum CancelID { case search, observe, semantic }
+    private enum CancelID: Hashable { case search, observe, semantic, favorite(MochiItem.ID) }
 
     private func updateSearch(_ state: inout State) -> Effect<Action> {
         if state.query.isEmpty {

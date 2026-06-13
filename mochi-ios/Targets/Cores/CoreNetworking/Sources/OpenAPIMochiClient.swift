@@ -280,6 +280,19 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
         }
     }
 
+    @discardableResult
+    public func setFavorite(mochiServerID: UUID, isFavorite: Bool) async throws -> MochiItemDTO {
+        let body = Components.Schemas.FavoriteUpdateRequest(isFavorite: isFavorite)
+        let output = try await client
+            .set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post(
+                .init(path: .init(mochi_item_id: mochiServerID.uuidString), body: .json(body))
+            )
+        switch output {
+        case let .ok(response): return try Self.mapMochiItem(try response.body.json)
+        case let .undocumented(status, payload): throw await Self.error(status: status, payload: payload)
+        }
+    }
+
     public func upcomingActionables() async throws -> [UpcomingActionableDTO] {
         let output = try await client.get_upcoming_actionables_api_v1_mochi_items_upcoming_get()
         switch output {
@@ -355,6 +368,7 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
             category: r.category,
             shoppingProductQuery: r.shoppingProductQuery,
             importance: r.importance,
+            isFavorite: r.isFavorite ?? false,
             intentInstances: (r.intentInstances ?? []).map(mapIntentInstance),
             needsReview: r.needsReview ?? false,
             reviewOptions: (r.reviewOptions ?? []).map(mapReviewOption),

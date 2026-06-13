@@ -20,6 +20,10 @@ from app.modules.mochi_items.application.queries import (
     ListUpcomingActionables,
     ListUpcomingTodos,
 )
+from app.modules.mochi_items.application.set_favorite import (
+    SetFavorite,
+    SetFavoriteCommand,
+)
 from app.modules.mochi_items.application.update_instance_lifecycle import (
     UpdateInstanceLifecycle,
     UpdateInstanceLifecycleCommand,
@@ -45,6 +49,7 @@ from app.modules.mochi_items.presentation.schemas import (
     CalendarDayResponse,
     DownloadUrlRequest,
     DownloadUrlResponse,
+    FavoriteUpdateRequest,
     ImageRefResponse,
     InstanceLifecycleUpdateRequest,
     IntentInstanceResponse,
@@ -167,6 +172,7 @@ def _to_response(item: MochiItem) -> MochiItemResponse:
         category=item.category,
         shopping_product_query=item.shopping_product_query,
         importance=item.importance,
+        is_favorite=item.is_favorite,
         lifecycle_kind=item.lifecycle.kind.value,
         sync_kind=item.sync.kind,
         image_refs=[
@@ -564,6 +570,28 @@ async def update_instance_lifecycle(
                 kind=payload.lifecycle_kind,
                 archive_reason=payload.archive_reason,
             ),
+        )
+    )
+    await db.commit()
+    return _to_response(item)
+
+
+@router.post("/{mochi_item_id}/favorite", response_model=MochiItemResponse)
+async def set_mochi_item_favorite(
+    mochi_item_id: UUID,
+    payload: FavoriteUpdateRequest,
+    db: DBSession,
+    user: CurrentUser,
+) -> MochiItemResponse:
+    """즐겨찾기 신호 set-state 토글 — 사용자가 검색 카드·상세에서 "중요"로 표시/해제한다.
+
+    set-state 멱등(``isFavorite`` 같은 값 재전송은 no-op 200) — 응답 유실 재시도·빠른 더블탭이
+    iOS 낙관적 업데이트를 오롤백하지 않게 한다. owner-scoped, 없는/다른 owner 항목은 404.
+    """
+    use_case = SetFavorite(repository=PostgresMochiItemRepository(db))
+    item = await use_case.execute(
+        SetFavoriteCommand(
+            owner_id=user, mochi_item_id=mochi_item_id, is_favorite=payload.is_favorite
         )
     )
     await db.commit()
