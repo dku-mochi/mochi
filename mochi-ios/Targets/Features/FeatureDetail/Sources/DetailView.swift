@@ -386,7 +386,7 @@ private struct IntentActionsSection: View {
                                     url: url,
                                     label: provider.label,
                                     subtitle: query,
-                                    icon: "bag.fill"
+                                    usesFavicon: true
                                 ) { openURL(url) }
                             }
                         }
@@ -440,12 +440,15 @@ private enum ShoppingSearchProvider: CaseIterable, Identifiable {
 /// 이전의 그라데이션 CTA 는 체크 행·날짜 타일 사이에서 혼자 다른 종이라 폐기(2026-06-11) —
 /// ② 섹션의 모든 행이 단일 시각 언어를 공유해야 어떤 의도 조합이든 화면이 같게 읽힌다.
 /// 브랜드 보라는 타일·부제 틴트로 남겨 "원본으로 가는 행동"의 무게를 유지한다.
-/// 쇼핑 검색 행도 같은 문법을 공유한다 — subtitle 은 host 대신 상품명(회수 단서), icon 은 bag.
+/// 쇼핑 검색 행도 같은 문법을 공유한다 — subtitle 은 host 대신 상품명(회수 단서).
+/// 쿠팡·네이버처럼 목적지 브랜드가 분명한 행은 단색 아이콘 대신 favicon 으로 "어디로 가는지"를
+/// 글자보다 빨리 떠올리게 한다(usesFavicon). 로드 전·실패 시엔 FaviconTile 의 보라 첫글자 타일 폴백.
 private struct DetailLinkRow: View {
     let url: URL
     let label: String
     var subtitle: String?
     var icon: String = "arrow.up.right"
+    var usesFavicon: Bool = false
     let action: () -> Void
 
     var body: some View {
@@ -454,9 +457,13 @@ private struct DetailLinkRow: View {
                 ZStack {
                     RoundedRectangle(cornerRadius: HomeDesign.Radius.sm, style: .continuous)
                         .fill(HomeDesign.Color.purple50)
-                    Image(systemName: icon)
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundStyle(HomeDesign.Color.purple600)
+                    if usesFavicon {
+                        FaviconTile(host: url.host, size: 24)
+                    } else {
+                        Image(systemName: icon)
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundStyle(HomeDesign.Color.purple600)
+                    }
                 }
                 .frame(width: 46, height: 48)
                 VStack(alignment: .leading, spacing: 3) {
