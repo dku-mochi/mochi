@@ -181,9 +181,10 @@ def _function_declarations(tools: list[Tool[Any, Any]]) -> list[types.FunctionDe
                         "capture is a YouTube video/shorts/comments screen with no URL, and the "
                         "thing worth keeping (a recommended item/list, the source video) can only "
                         "be reached by going to the original video. Pass the video title keywords "
-                        "you read from the image as 'query', and the channel name (@handle or "
-                        "channel title) as 'channel_hint' — it disambiguates videos with similar "
-                        "titles to the right channel."
+                        "you read from the image as 'query', and the video's uploader channel "
+                        "(@handle or channel title) as 'channel_hint' — the account that posted the "
+                        "video, NOT the viewer's own logged-in profile shown in the UI. It "
+                        "disambiguates videos with similar titles to the right channel."
                     ),
                     parameters=_RECOVER_YOUTUBE_PARAMS,
                 )

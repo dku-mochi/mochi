@@ -32,6 +32,7 @@ _OEMBED_URL = "https://www.youtube.com/oembed"
 _MAX_QUERY_LEN = 120     # 검색어 길이 상한 — 외부 검색 전 bound
 _TOP_K = 5               # oembed 로 검증·재랭킹할 후보 수
 _CHANNEL_MATCH_MIN = 0.34  # 채널명 토큰 자카드 임계
+_TITLE_MATCH_MIN = 0.5     # 채널 표기차 fallback — query 토큰의 절반 이상이 후보 제목에 등장
 
 
 class YoutubeRecoverInput(BaseModel):
@@ -91,7 +92,9 @@ class RecoverYoutubeUrlTool(Tool[YoutubeRecoverInput, YoutubeRecoverOutput]):
                 # (baseline recover 정확 3/8). channel_hint 가 있으면 author_name 이 맞는
                 # 후보를 고르고, 맞는 게 없으면 빗나간 영상 대신 recovered=False 를 반환한다.
                 oembeds = await asyncio.gather(*(self._oembed(hc, v) for v in ids))
-                chosen = _choose_candidate(list(zip(ids, oembeds, strict=True)), channel_hint)
+                chosen = _choose_candidate(
+                    list(zip(ids, oembeds, strict=True)), channel_hint, query
+                )
                 if chosen is None:
                     return YoutubeRecoverOutput(recovered=False, candidates=ids)
                 vid, o = chosen
@@ -129,6 +132,10 @@ def _norm(s: str | None) -> str:
     return re.sub(r"[^0-9a-z가-힣]", "", (s or "").lower())
 
 
+def _word_tokens(s: str | None) -> set[str]:
+    return {t for t in re.sub(r"[^0-9a-z가-힣 ]", " ", (s or "").lower()).split() if len(t) > 1}
+
+
 def _channel_match(author: str | None, hint: str) -> bool:
     """oEmbed author_name 이 화면 channel_hint 와 같은 채널인가(표기 차이 허용)."""
     a, h = _norm(author), _norm(hint)
@@ -136,20 +143,32 @@ def _channel_match(author: str | None, hint: str) -> bool:
         return False
     if a in h or h in a:  # "너드킹" ⊂ "너드킹 NEP" 같은 부분 포함
         return True
-    at = {t for t in re.sub(r"[^0-9a-z가-힣 ]", " ", (author or "").lower()).split() if len(t) > 1}
-    ht = {t for t in re.sub(r"[^0-9a-z가-힣 ]", " ", (hint or "").lower()).split() if len(t) > 1}
+    at, ht = _word_tokens(author), _word_tokens(hint)
     if not at or not ht:
         return False
     return len(at & ht) / len(at | ht) >= _CHANNEL_MATCH_MIN
 
 
+def _title_match(title: str | None, query: str) -> bool:
+    """후보 제목이 검색 query 와 강하게 겹치는가 — query 토큰의 절반 이상이 제목에 등장.
+
+    채널 표기차(한↔영: 따라cook/따라쿡, codingapple/코딩애플)로 채널 매칭이 빗나갈 때의
+    fallback. 제목까지 안 겹치면(채널·제목 둘 다 다름 = 진짜 빗나감) 채택하지 않는다.
+    """
+    tt, qt = _word_tokens(title), _word_tokens(query)
+    if not tt or not qt:
+        return False
+    return len(qt & tt) / len(qt) >= _TITLE_MATCH_MIN
+
+
 def _choose_candidate(
-    pairs: list[tuple[str, dict[str, Any] | None]], channel_hint: str | None
+    pairs: list[tuple[str, dict[str, Any] | None]], channel_hint: str | None, query: str
 ) -> tuple[str, dict[str, Any]] | None:
     """후보 (video_id, oEmbed) 들에서 채택할 1개. 없으면 None(→ recovered=False).
 
-    channel_hint 가 있으면 author_name 이 맞는 첫 후보, 없으면(빗나간 영상 방지) None.
-    channel_hint 가 없으면 oEmbed 검증된 첫 후보(기존 동작).
+    channel_hint 가 있으면 (1) author_name 매칭 후보, (2) 표기차 fallback 으로 제목이
+    강하게 겹치는 후보 순. 둘 다 없으면 None(빗나간 영상 반환 방지). channel_hint 가
+    없으면 제목 매칭 후보, 없으면 oEmbed 검증된 첫 후보(기존 동작).
     """
     valid = [(vid, o) for vid, o in pairs if o]
     if not valid:
@@ -158,5 +177,11 @@ def _choose_candidate(
         for vid, o in valid:
             if _channel_match(o.get("author_name"), channel_hint):
                 return vid, o
+        for vid, o in valid:
+            if _title_match(o.get("title"), query):
+                return vid, o
         return None
+    for vid, o in valid:
+        if _title_match(o.get("title"), query):
+            return vid, o
     return valid[0]
