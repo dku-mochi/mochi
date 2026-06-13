@@ -2,85 +2,205 @@
   {
     "query": "화장품",
     "type": "exact_keyword",
-    "expected_ids": ["cosmetics-buy-1", "cosmetics-buy-2"],
-    "note": "핵심 검증 케이스 — 단어 그대로 포함 여부"
+    "expected_ids": ["memo_나중에살화장품", "memo_화장품나중에살거", "memo_화장품살때참고하려고"],
+    "note": "상품 카테고리 직접 검색"
   },
   {
-    "query": "공차",
+    "query": "상하이",
     "type": "exact_keyword",
-    "expected_ids": ["gongcha-sale"],
-    "note": "브랜드명 직접 검색"
+    "expected_ids": ["memo_상하이갈곳들", "memo_상하이정보"],
+    "note": "여행지 엔티티 직접 검색"
   },
   {
     "query": "넷플릭스",
     "type": "exact_keyword",
-    "expected_ids": ["netflix-watch-later"],
-    "note": "브랜드명 직접 검색"
+    "expected_ids": ["memo_넷플릭스에서볼것들"],
+    "note": "서비스명 직접 검색"
   },
   {
-    "query": "부동산",
+    "query": "공차 할인",
     "type": "exact_keyword",
-    "expected_ids": ["real-estate-info"],
-    "note": "단일 키워드 — 정확히 맞아야 함"
+    "expected_ids": ["schedule_공차할인날짜시간"],
+    "note": "브랜드 + 이벤트 직접 검색"
   },
   {
-    "query": "내가 사려고 했던 뷰티 제품",
+    "query": "기프티콘",
+    "type": "exact_keyword",
+    "expected_ids": ["memo_기프티콘나중에꼭써야지"],
+    "note": "쿠폰/기프티콘 직접 검색"
+  },
+  {
+    "query": "시험 공부 자료",
     "type": "semantic_paraphrase",
-    "expected_ids": ["cosmetics-buy-1", "cosmetics-buy-2"],
-    "note": "화장품을 뷰티로 바꿔 표현 — semantic 능력 평가"
+    "expected_ids": ["knowledge_시험공부할때보려고"],
+    "note": "학습 목적 재표현"
   },
   {
-    "query": "나중에 써보고 싶었던 제품",
+    "query": "식단 짤 때 참고할 것",
     "type": "semantic_paraphrase",
-    "expected_ids": ["cosmetics-buy-1", "cosmetics-buy-2", "shoes-buy", "want-to-buy", "try-later"],
-    "note": "todo intent 아이템 전반 — 느슨한 paraphrase"
+    "expected_ids": ["memo_knowledge_식단짤때참고하려고"],
+    "note": "활용 목적 기반 검색"
   },
   {
-    "query": "여행 계획",
+    "query": "나중에 사려고 저장한 물건",
     "type": "intent_based",
-    "expected_ids": ["flight-schedule", "shanghai-travel-1", "shanghai-info-2", "china-travel-info"],
-    "note": "schedule/knowledge intent 중 여행 관련"
+    "expected_ids": [
+      "memo_나중에살신발",
+      "memo_나중에살화장품",
+      "memo_나중에흰티살때비교",
+      "memo_좋아보여서나중에사려고",
+      "memo_화장품나중에살거",
+      "memo_화장품살때참고하려고",
+      "memo_케이크살때참고"
+    ],
+    "note": "구매 의도 전반"
   },
   {
-    "query": "마감 일정",
+    "query": "가격 비교하려고 저장한 것",
     "type": "intent_based",
-    "expected_ids": ["course-enroll", "submission-deadline", "schedule-general"],
-    "note": "deadline 포함 schedule intent"
+    "expected_ids": ["memo_나중에가격비교", "memo_나중에흰티살때비교"],
+    "note": "비교 목적 검색"
   },
   {
-    "query": "상하이 여행",
+    "query": "나중에 가보려고 저장한 장소",
+    "type": "intent_based",
+    "expected_ids": [
+      "memo_나중에가보려고",
+      "memo_나중에가보려고저장",
+      "memo_이뻐서나중에가보려고",
+      "schedule_나중에가야함"
+    ],
+    "note": "방문 후보 검색"
+  },
+  {
+    "query": "여행 갈 때 참고할 것",
+    "type": "semantic_paraphrase",
+    "expected_ids": [
+      "memo_나중에여행갈때참고하려고",
+      "memo_상하이갈곳들",
+      "memo_상하이정보",
+      "memo_중국갈때설치할거"
+    ],
+    "note": "여행 준비/참고 자료"
+  },
+  {
+    "query": "중국 여행 준비",
     "type": "entity_based",
-    "expected_ids": ["shanghai-travel-1", "shanghai-info-2", "china-travel-info"],
-    "note": "엔티티 '상하이' 기반 — 중국 여행도 포함"
+    "expected_ids": ["memo_중국갈때설치할거", "memo_상하이갈곳들", "memo_상하이정보"],
+    "note": "국가/도시 엔티티 기반"
+  },
+  {
+    "query": "비행기 스케줄",
+    "type": "entity_based",
+    "expected_ids": ["schedule_todo_비행기스케줄"],
+    "note": "항공 일정 정보"
+  },
+  {
+    "query": "수강신청",
+    "type": "exact_keyword",
+    "expected_ids": ["schedule_todo_수강신청꼭해야지"],
+    "note": "신청 행동 직접 검색"
+  },
+  {
+    "query": "제출 마감",
+    "type": "intent_based",
+    "expected_ids": ["schedule_제출날짜"],
+    "note": "마감/제출 일정 검색"
+  },
+  {
+    "query": "등록해야 하는 것",
+    "type": "intent_based",
+    "expected_ids": ["memo_todo_해당날짜전까지등록하려고"],
+    "note": "등록 행동 검색"
+  },
+  {
+    "query": "친구 공연 장소",
+    "type": "entity_based",
+    "expected_ids": ["schedule_todo_친구공연장장소와시간"],
+    "note": "사람 + 이벤트 장소"
+  },
+  {
+    "query": "축구 일정",
+    "type": "exact_keyword",
+    "expected_ids": ["schedule_축구일정"],
+    "note": "스포츠 일정 직접 검색"
+  },
+  {
+    "query": "버스 타야 하는 시간",
+    "type": "semantic_paraphrase",
+    "expected_ids": ["schedule_버스탈거기억"],
+    "note": "이동 일정 재표현"
+  },
+  {
+    "query": "집 비워야 하는 날",
+    "type": "semantic_paraphrase",
+    "expected_ids": ["schedule_이때집비워야함"],
+    "note": "행동 + 날짜 기억"
+  },
+  {
+    "query": "운동할 때 참고",
+    "type": "semantic_paraphrase",
+    "expected_ids": ["memo_다음운동때참고하려고"],
+    "note": "운동 루틴 참고"
+  },
+  {
+    "query": "머리 자를 때 참고",
+    "type": "semantic_paraphrase",
+    "expected_ids": ["memo_머리자를때참고하려고"],
+    "note": "헤어스타일 참고"
+  },
+  {
+    "query": "부동산 정보",
+    "type": "exact_keyword",
+    "expected_ids": ["memo_부동산정보"],
+    "note": "정보성 기록 직접 검색"
+  },
+  {
+    "query": "납부 금액",
+    "type": "exact_keyword",
+    "expected_ids": ["memo_납부금액확인"],
+    "note": "금액 확인 기록"
+  },
+  {
+    "query": "환급금",
+    "type": "exact_keyword",
+    "expected_ids": ["memo_환급금기억"],
+    "note": "금전 관련 기록"
+  },
+  {
+    "query": "강의 공지",
+    "type": "exact_keyword",
+    "expected_ids": ["memo_강의공지확인"],
+    "note": "공지 확인"
+  },
+  {
+    "query": "접수 내역",
+    "type": "exact_keyword",
+    "expected_ids": ["memo_접수내역기록"],
+    "note": "신청/접수 기록"
+  },
+  {
+    "query": "나중에 봐야지",
+    "type": "colloquial",
+    "expected_ids": ["memo_저장해두고나중에봐야지", "memo_넷플릭스에서볼것들"],
+    "note": "구어체 회상 검색"
   },
   {
     "query": "사고싶었던거",
     "type": "colloquial",
-    "expected_ids": ["cosmetics-buy-1", "cosmetics-buy-2", "shoes-buy", "want-to-buy"],
-    "note": "구어체·오타 스타일 — 띄어쓰기 없음"
+    "expected_ids": [
+      "memo_사고싶다",
+      "memo_나중에살신발",
+      "memo_나중에살화장품",
+      "memo_좋아보여서나중에사려고",
+      "memo_화장품나중에살거"
+    ],
+    "note": "띄어쓰기 없는 구어체 구매 검색"
   },
   {
-    "query": "할인 이벤트 챙겨야 할 것",
+    "query": "먹어보고 싶었던 것",
     "type": "colloquial",
-    "expected_ids": ["gongcha-sale"],
-    "note": "구어체 표현"
-  },
-  {
-    "query": "신발 사야하는데",
-    "type": "colloquial",
-    "expected_ids": ["shoes-buy", "want-to-buy"],
-    "note": "구어체 + 명시적 아이템"
-  },
-  {
-    "query": "중요한 기프티콘",
-    "type": "semantic_paraphrase",
-    "expected_ids": ["gifticon-use"],
-    "note": "기프티콘 + 중요도 힌트"
-  },
-  {
-    "query": "친구 만날 약속",
-    "type": "intent_based",
-    "expected_ids": ["friend-concert"],
-    "note": "공연 일정을 약속으로 paraphrase"
+    "expected_ids": ["memo_나중에먹어보려고", "memo_나중에사먹으려고", "memo_케이크살때참고"],
+    "note": "음식/구매 의도 검색"
   }
 ]

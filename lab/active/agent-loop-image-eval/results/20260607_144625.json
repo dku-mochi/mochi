@@ -1,0 +1,1880 @@
+{
+  "summary": {
+    "total": 34,
+    "valid": 34,
+    "skipped": 0,
+    "avg_intent_recall": 0.676,
+    "avg_intent_precision": 0.735,
+    "exact_set_match_rate": 0.618,
+    "avg_alignment_score": 3.76,
+    "contradiction_rate": 0.176
+  },
+  "cases": [
+    {
+      "file": "knowledge_시험공부할때보려고.jpg",
+      "actual_intention": "시험공부할때보려고",
+      "expected_intents": [
+        "knowledge"
+      ],
+      "predicted_intents": [
+        "knowledge"
+      ],
+      "tool_eval": {
+        "tools_called": []
+      },
+      "intent_eval": {
+        "recall": 1.0,
+        "precision": 1.0,
+        "exact_match": true,
+        "needs_review": false
+      },
+      "predicted_analysis": {
+        "summary": "오토인코더의 응용 분야와 VAE(Variational Autoencoder)의 작동 원리, 잠재 공간(latent space)의 특성에 대해 정리한 학습 자료입니다. 딥러닝 모델의 구조와 학습 방식을 복습하기 위해 저장했습니다.",
+        "intents": [
+          {
+            "intent_type": "knowledge",
+            "label": "오토인코더 및 VAE 학습 정리",
+            "reasoning": "오토인코더와 VAE의 원리, 특징, 활용 사례가 상세히 기술된 학습 노트입니다. 딥러닝 개념을 이해하고 나중에 다시 찾아볼 수 있는 지식 자산으로 판단됩니다.",
+            "payload": {
+              "title": "오토인코더(Autoencoder) 및 VAE 개념 정리",
+              "topic": null,
+              "note": null
+            }
+          }
+        ]
+      },
+      "intention_judge": {
+        "alignment_score": 4,
+        "captures_core_intention": true,
+        "contradicts_intention": false,
+        "missing_points": [
+          "시험 대비라는 구체적인 맥락 명시 부족"
+        ],
+        "reasoning": "학습 자료라는 점은 정확히 파악했으나, 사용자의 구체적인 목적이 '시험 공부'임을 명시적으로 언급하지 않아 약간의 정보 누락이 있습니다."
+      },
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "intent_count": 1
+    },
+    {
+      "file": "memo_knowledge_식단짤때참고하려고.png",
+      "actual_intention": "식단짤때참고하려고",
+      "expected_intents": [
+        "memo",
+        "knowledge"
+      ],
+      "predicted_intents": [
+        "memo"
+      ],
+      "tool_eval": {
+        "tools_called": []
+      },
+      "intent_eval": {
+        "recall": 0.5,
+        "precision": 1.0,
+        "exact_match": false,
+        "needs_review": false
+      },
+      "predicted_analysis": {
+        "summary": "운동 영상에서 소개된 '올라잇 식단 예시'를 나중에 식단 구성 시 참고하기 위해 저장했습니다.",
+        "intents": [
+          {
+            "intent_type": "memo",
+            "label": "식단 참고",
+            "reasoning": "영상에 나온 식단 예시를 나중에 참고하기 위해 저장한 것으로 보입니다. 이는 사용자의 개인적인 식단 관리 맥락이므로 지식보다는 메모로 분류하는 것이 적절합니다.",
+            "payload": {
+              "title": "올라잇 식단 예시",
+              "topic": null,
+              "note": "영상에서 소개된 '올라잇 식단 예시' (Meal 1~3 구성)를 저장하여 나중에 식단 관리 시 참고하고자 함."
+            }
+          }
+        ]
+      },
+      "intention_judge": {
+        "alignment_score": 5,
+        "captures_core_intention": true,
+        "contradicts_intention": false,
+        "missing_points": [],
+        "reasoning": "사용자가 밝힌 '식단 구성 시 참고'라는 목적을 정확히 파악하여 메모로 분류하고 구체적인 내용을 요약하였습니다."
+      },
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "intent_count": 2
+    },
+    {
+      "file": "memo_todo_저날이후로보러가려고 (2).png",
+      "actual_intention": "저날이후로보러가려고 (2)",
+      "expected_intents": [
+        "memo",
+        "todo"
+      ],
+      "predicted_intents": [
+        "memo"
+      ],
+      "tool_eval": {
+        "tools_called": []
+      },
+      "intent_eval": {
+        "recall": 0.5,
+        "precision": 1.0,
+        "exact_match": false,
+        "needs_review": false
+      },
+      "predicted_analysis": {
+        "summary": "영화 <노트북>이 6월 4일에 재개봉했다는 인스타그램 게시물입니다. 나중에 영화를 볼 때 참고하기 위해 저장합니다.",
+        "intents": [
+          {
+            "intent_type": "memo",
+            "label": "영화 관람 고려",
+            "reasoning": "영화 <노트북>이 6월 4일에 재개봉했다는 소식입니다. 사용자가 이 영화를 보고 싶어 할 가능성이 높아 나중에 영화를 선택할 때 참고할 수 있도록 메모로 저장합니다. 현재 날짜(6월 7일) 기준으로 이미 개봉한 상태이므로, 별도의 일정이나 할 일로 등록하기보다는 관심 영화로 분류하는 것이 적절합니다.",
+            "payload": {
+              "title": "영화 <노트북> 재개봉 정보",
+              "topic": null,
+              "note": null
+            }
+          }
+        ]
+      },
+      "intention_judge": {
+        "alignment_score": 3,
+        "captures_core_intention": true,
+        "contradicts_intention": false,
+        "missing_points": [
+          "사용자가 '저 날 이후로 보러 가겠다'는 구체적인 행동 계획(시점 설정)을 명시했으나, 분석 결과는 단순 관심 영화 메모로만 분류함"
+        ],
+        "reasoning": "영화 관람 의도는 정확히 파악했으나, 사용자가 언급한 '저 날 이후'라는 구체적인 시점 정보를 반영하지 못하고 단순 관심 메모로 처리하여 능동적인 계획 의도를 누락했습니다."
+      },
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "intent_count": 2
+    },
+    {
+      "file": "memo_todo_저날이후로보러가려고.png",
+      "actual_intention": "저날이후로보러가려고",
+      "expected_intents": [
+        "memo",
+        "todo"
+      ],
+      "predicted_intents": [
+        "memo"
+      ],
+      "tool_eval": {
+        "tools_called": []
+      },
+      "intent_eval": {
+        "recall": 0.5,
+        "precision": 1.0,
+        "exact_match": false,
+        "needs_review": true
+      },
+      "predicted_analysis": {
+        "summary": "6월 18일 CGV에서 재개봉하는 영화 '비포 선라이즈' 소식입니다. 재개봉 일정을 확인하고 관람을 고려하기 위해 저장했습니다.",
+        "intents": [
+          {
+            "intent_type": "memo",
+            "label": "영화 관람 고려",
+            "reasoning": "6월 18일에 재개봉하는 영화 '비포 선라이즈' 정보를 저장하여 나중에 관람 여부를 결정하거나 일정을 확인하기 위해 저장했습니다. 현재 시점에서 예매 등 구체적인 행동이 확인되지 않으므로 메모로 분류합니다.",
+            "payload": {
+              "title": "비포 선라이즈 CGV 재개봉",
+              "topic": null,
+              "note": null
+            }
+          }
+        ]
+      },
+      "intention_judge": {
+        "alignment_score": 3,
+        "captures_core_intention": true,
+        "contradicts_intention": false,
+        "missing_points": [
+          "사용자가 '그날 이후'라는 특정 시점을 기준으로 관람을 계획하고 있다는 구체적인 실행 의지"
+        ],
+        "reasoning": "사용자의 '보러 가려고'라는 구체적인 실행 의지를 단순한 '관람 고려' 수준의 메모로 축소하여 해석했습니다."
+      },
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "intent_count": 2
+    },
+    {
+      "file": "memo_todo_해당날짜전까지등록하려고.png",
+      "actual_intention": "해당날짜전까지등록하려고",
+      "expected_intents": [
+        "memo",
+        "todo"
+      ],
+      "predicted_intents": [
+        "todo"
+      ],
+      "tool_eval": {
+        "tools_called": []
+      },
+      "intent_eval": {
+        "recall": 0.5,
+        "precision": 1.0,
+        "exact_match": false,
+        "needs_review": false
+      },
+      "predicted_analysis": {
+        "summary": "K-패스 기존 회원은 2026년 7월 7일까지 카드번호를 재등록해야 5월 시스템 오류로 중단된 환급금을 복구받을 수 있습니다. 이를 놓치지 않고 처리하기 위해 저장합니다.",
+        "intents": [
+          {
+            "intent_type": "todo",
+            "label": "K-패스 카드 재등록",
+            "reasoning": "사용자가 환급을 받기 위해 반드시 수행해야 하는 명확한 기한이 있는 작업입니다. 7월 7일까지 재등록을 완료해야 한다는 명시적인 지침이 있으므로 todo로 분류합니다.",
+            "payload": {
+              "title": "K-패스 카드 재등록 완료하기",
+              "topic": null,
+              "note": "K-패스 기존 회원인 경우 7/7까지 카드번호 재등록을 완료해야 5월 중단된 환급금을 복구받을 수 있음."
+            }
+          }
+        ]
+      },
+      "intention_judge": {
+        "alignment_score": 5,
+        "captures_core_intention": true,
+        "contradicts_intention": false,
+        "missing_points": [],
+        "reasoning": "사용자의 의도인 '해당 날짜 전까지 등록'이라는 기한 준수 목적을 '7월 7일까지 완료'라는 구체적인 할 일로 정확하게 포착하였습니다."
+      },
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "intent_count": 2
+    },
+    {
+      "file": "memo_기프티콘나중에꼭써야지.jpeg",
+      "actual_intention": "기프티콘나중에꼭써야지",
+      "expected_intents": [
+        "memo"
+      ],
+      "predicted_intents": [
+        "memo"
+      ],
+      "tool_eval": {
+        "tools_called": []
+      },
+      "intent_eval": {
+        "recall": 1.0,
+        "precision": 1.0,
+        "exact_match": true,
+        "needs_review": false
+      },
+      "predicted_analysis": {
+        "summary": "유효기간이 지난 메가MGC커피 모바일 금액권입니다. 이미 사용할 수 없는 쿠폰이므로 참고용으로 보관합니다.",
+        "intents": [
+          {
+            "intent_type": "memo",
+            "label": "사용할 금액권 보관",
+            "reasoning": "이미 유효기간(2025.10.28)이 지난 모바일 금액권입니다. 사용할 수 없는 상태이므로, 추후 사용을 위한 todo나 schedule로 분류할 수 없으며, 단순히 과거의 기록으로 보관합니다.",
+            "payload": {
+              "title": "메가MGC커피 모바일 금액권 5천원권",
+              "topic": null,
+              "note": null
+            }
+          }
+        ]
+      },
+      "intention_judge": {
+        "alignment_score": 1,
+        "captures_core_intention": false,
+        "contradicts_intention": true,
+        "missing_points": [
+          "사용자의 '나중에 꼭 써야지'라는 의지를 반영하지 않음",
+          "유효기간이 지났다는 이유로 사용자의 의도를 임의로 판단하여 배제함"
+        ],
+        "reasoning": "사용자는 기프티콘을 나중에 사용하겠다는 의지를 명확히 밝혔으나, 에이전트는 유효기간이 지났다는 이유로 이를 단순 기록으로 치부하여 사용자의 핵심 의도를 정면으로 부정했습니다."
+      },
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "intent_count": 1
+    },
+    {
+      "file": "memo_나중에가보려고.png",
+      "actual_intention": "나중에가보려고",
+      "expected_intents": [
+        "memo"
+      ],
+      "predicted_intents": [
+        "memo"
+      ],
+      "tool_eval": {
+        "tools_called": []
+      },
+      "intent_eval": {
+        "recall": 1.0,
+        "precision": 1.0,
+        "exact_match": true,
+        "needs_review": false
+      },
+      "predicted_analysis": {
+        "summary": "서울 송파구에 위치한 북카페 '그래픽 바이 대신'의 정보입니다. 나중에 방문하기 위해 저장해둔 것으로 보입니다.",
+        "intents": [
+          {
+            "intent_type": "memo",
+            "label": "가보고 싶은 카페",
+            "reasoning": "사용자가 방문하고 싶은 장소에 대한 정보를 저장하는 것이므로 'memo'로 분류했습니다. 구체적인 방문 일정이 정해진 것은 아니므로 'schedule'이나 'todo'는 아닙니다.",
+            "payload": {
+              "title": "그래픽 바이 대신",
+              "topic": null,
+              "note": "서울 송파구 위례순환로 387에 위치한 북카페 '그래픽 바이 대신'. 입장료 15,000원에 음료 및 간식 무제한 이용 가능."
+            }
+          }
+        ]
+      },
+      "intention_judge": {
+        "alignment_score": 5,
+        "captures_core_intention": true,
+        "contradicts_intention": false,
+        "missing_points": [],
+        "reasoning": "사용자의 '나중에 가보려고'라는 의도를 정확히 파악하여 메모 형태로 적절하게 분류하고 정보를 정리하였습니다."
+      },
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "intent_count": 1
+    },
+    {
+      "file": "memo_나중에가보려고저장.png",
+      "actual_intention": "나중에가보려고저장",
+      "expected_intents": [
+        "memo"
+      ],
+      "predicted_intents": [
+        "memo"
+      ],
+      "tool_eval": {
+        "tools_called": []
+      },
+      "intent_eval": {
+        "recall": 1.0,
+        "precision": 1.0,
+        "exact_match": true,
+        "needs_review": false
+      },
+      "predicted_analysis": {
+        "summary": "장마철과 더위를 대비해 방문하기 좋은 경기도 내 실내 데이트 장소(명필름아트센터, 바운스 슈퍼파크, 글로우사파리, 미리내힐링클럽)를 정리한 콘텐츠입니다. 나중에 데이트 계획을 세울 때 참고하기 위해 저장했습니다.",
+        "intents": [
+          {
+            "intent_type": "memo",
+            "label": "데이트 장소 후보",
+            "reasoning": "사용자가 장마철이나 더위를 피해 방문할 수 있는 실내 데이트 장소들을 저장해두었습니다. 구체적인 방문 계획이 확정된 것은 아니므로 후보군으로서 메모로 저장합니다.",
+            "payload": {
+              "title": "경기 실내 데이트 장소 추천",
+              "topic": null,
+              "note": "비 오는 날이나 더운 날 방문하기 좋은 경기 지역 실내 데이트 장소들입니다."
+            }
+          }
+        ]
+      },
+      "intention_judge": {
+        "alignment_score": 5,
+        "captures_core_intention": true,
+        "contradicts_intention": false,
+        "missing_points": [],
+        "reasoning": "사용자의 '나중에 가보려고 저장'이라는 의도를 '데이트 장소 후보'라는 메모 형태로 정확하게 파악하였으며, 저장 목적과 일치하는 분석을 제공했습니다."
+      },
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "intent_count": 1
+    },
+    {
+      "file": "memo_나중에먹어보려고.png",
+      "actual_intention": "나중에먹어보려고",
+      "expected_intents": [
+        "memo"
+      ],
+      "predicted_intents": [
+        "memo"
+      ],
+      "tool_eval": {
+        "tools_called": []
+      },
+      "intent_eval": {
+        "recall": 1.0,
+        "precision": 1.0,
+        "exact_match": true,
+        "needs_review": false
+      },
+      "predicted_analysis": {
+        "summary": "용인 보정동의 퓨전 한식 맛집 '정희'에 대한 소개입니다. 나중에 방문할 후보지로 저장해 둡니다.",
+        "intents": [
+          {
+            "intent_type": "memo",
+            "label": "맛집 방문 후보",
+            "reasoning": "사용자가 맛집 정보를 저장한 것으로, 방문을 확정하거나 예약한 상태가 아니므로 나중에 방문을 고려할 수 있도록 메모로 저장합니다.",
+            "payload": {
+              "title": "정희 용인보정점",
+              "topic": null,
+              "note": "용인 보정동에 위치한 퓨전 한식 맛집 '정희'. 고사리 크림수제비, 새우감자전, 깻잎고등어지짐밥 등이 추천 메뉴로 언급됨. 데이트나 가족 외식 장소로 고려 중."
+            }
+          }
+        ]
+      },
+      "intention_judge": {
+        "alignment_score": 5,
+        "captures_core_intention": true,
+        "contradicts_intention": false,
+        "missing_points": [],
+        "reasoning": "사용자의 '나중에 먹어보려고'라는 의도를 '방문 후보지 저장'으로 정확히 해석하였으며, 메모 내용 또한 해당 의도에 부합하게 작성되었습니다."
+      },
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "intent_count": 1
+    },
+    {
+      "file": "memo_나중에사먹으려고.jpg",
+      "actual_intention": "나중에사먹으려고",
+      "expected_intents": [
+        "memo"
+      ],
+      "predicted_intents": [
+        "memo"
+      ],
+      "tool_eval": {
+        "tools_called": []
+      },
+      "intent_eval": {
+        "recall": 1.0,
+        "precision": 1.0,
+        "exact_match": true,
+        "needs_review": false
+      },
+      "predicted_analysis": {
+        "summary": "영상에 노출된 '고려은단 비타민C 1000' 제품을 나중에 구매하거나 찾아보기 위해 저장했습니다.",
+        "intents": [
+          {
+            "intent_type": "memo",
+            "label": "비타민 구매 고려",
+            "reasoning": "영상에 등장한 제품을 보고 나중에 구매를 고려하기 위해 저장한 것으로 보입니다. 현재 구매를 확정하거나 행동을 개시했다는 증거는 없으므로 메모로 분류합니다.",
+            "payload": {
+              "title": "고려은단 비타민C 1000",
+              "topic": null,
+              "note": null
+            }
+          }
+        ]
+      },
+      "intention_judge": {
+        "alignment_score": 5,
+        "captures_core_intention": true,
+        "contradicts_intention": false,
+        "missing_points": [],
+        "reasoning": "사용자의 '나중에 사 먹으려고'라는 의도를 '구매 고려'라는 메모 목적과 정확하게 연결하여 분석했습니다."
+      },
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "intent_count": 1
+    },
+    {
+      "file": "memo_나중에살신발.png",
+      "actual_intention": "나중에살신발",
+      "expected_intents": [
+        "memo"
+      ],
+      "predicted_intents": [
+        "memo"
+      ],
+      "tool_eval": {
+        "tools_called": []
+      },
+      "intent_eval": {
+        "recall": 1.0,
+        "precision": 1.0,
+        "exact_match": true,
+        "needs_review": false
+      },
+      "predicted_analysis": {
+        "summary": "로제니크의 '세릭 스틸레토 스트랩 슬링백힐' 상품 페이지입니다. 구매를 고민 중인 상품으로 보여 나중에 다시 확인하기 위해 저장했습니다.",
+        "intents": [
+          {
+            "intent_type": "memo",
+            "label": "구매 고민",
+            "reasoning": "사용자가 쇼핑몰 상품 페이지를 캡처하여 저장했습니다. 구매를 확정했다는 명시적인 행동(결제, 장바구니 담기 등)이 보이지 않으므로, 나중에 다시 확인하고 구매를 고려하기 위한 메모로 분류합니다.",
+            "payload": {
+              "title": "세릭 스틸레토 스트랩 슬링백힐",
+              "topic": null,
+              "note": null
+            }
+          }
+        ]
+      },
+      "intention_judge": {
+        "alignment_score": 5,
+        "captures_core_intention": true,
+        "contradicts_intention": false,
+        "missing_points": [],
+        "reasoning": "사용자의 '나중에 살 신발'이라는 의도를 '구매 고민' 및 '나중에 다시 확인하기 위한 메모'로 정확하게 해석하였습니다."
+      },
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "intent_count": 1
+    },
+    {
+      "file": "memo_나중에살화장품.png",
+      "actual_intention": "나중에살화장품",
+      "expected_intents": [
+        "memo"
+      ],
+      "predicted_intents": [
+        "memo"
+      ],
+      "tool_eval": {
+        "tools_called": []
+      },
+      "intent_eval": {
+        "recall": 1.0,
+        "precision": 1.0,
+        "exact_match": true,
+        "needs_review": false
+      },
+      "predicted_analysis": {
+        "summary": "영상 댓글에서 추천받은 Bath and Body Works의 'warm vanilla sugar' 라인 제품들에 대한 정보입니다. 나중에 바닐라 향 제품을 구매할 때 참고하기 위해 저장했습니다.",
+        "intents": [
+          {
+            "intent_type": "memo",
+            "label": "바닐라 향 제품 추천 참고",
+            "reasoning": "영상 댓글에서 특정 브랜드의 바닐라 향 제품 라인을 추천받았으며, 나중에 제품을 구매하거나 향을 확인해보고 싶을 때 참고하기 위해 저장함. 구매가 확정된 것은 아니므로 메모로 분류함.",
+            "payload": {
+              "title": "Bath and Body Works 바닐라 향 제품 추천",
+              "topic": null,
+              "note": "영상 댓글에서 추천받은 Bath and Body Works의 'warm vanilla sugar' 라인 제품들(바디로션, 바디워시, 바디미스트)을 나중에 확인해보고 싶음."
+            }
+          }
+        ]
+      },
+      "intention_judge": {
+        "alignment_score": 4,
+        "captures_core_intention": true,
+        "contradicts_intention": false,
+        "missing_points": [
+          "사용자가 '화장품'이라는 카테고리로 명확히 인지하고 있는 점이 구체적으로 명시되지 않음"
+        ],
+        "reasoning": "사용자의 '나중에 살 화장품'이라는 핵심 의도를 잘 파악했으나, 메모의 범주를 조금 더 넓게 해석하여 화장품 구매 의도임을 명확히 강조할 여지가 있음."
+      },
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "intent_count": 1
+    },
+    {
+      "file": "memo_나중에써봐야지.PNG",
+      "actual_intention": "나중에써봐야지",
+      "expected_intents": [
+        "memo"
+      ],
+      "predicted_intents": [
+        "knowledge"
+      ],
+      "tool_eval": {
+        "tools_called": []
+      },
+      "intent_eval": {
+        "recall": 0.0,
+        "precision": 0.0,
+        "exact_match": false,
+        "needs_review": false
+      },
+      "predicted_analysis": {
+        "summary": "유튜버 퓨디파이가 공개한 로컬 AI 워크스페이스 '오디세우스'에 관한 정보입니다. 데이터 보안과 로컬 환경에서의 AI 구동에 관심이 있어 나중에 관련 내용을 다시 확인하거나 활용하기 위해 저장했습니다.",
+        "intents": [
+          {
+            "intent_type": "knowledge",
+            "label": "AI 도구 정보 확인",
+            "reasoning": "로컬 환경에서 구동되는 AI 워크스페이스에 대한 기술적 정보와 특징을 담고 있어, 향후 관련 도구를 도입하거나 참고할 때 유용한 지식 자산으로 판단됨.",
+            "payload": {
+              "title": "오디세우스 AI 워크스페이스 소개",
+              "topic": null,
+              "note": "퓨디파이가 개발한 로컬 AI 워크스페이스 '오디세우스'에 대한 소개 정보. 로컬 환경에서 실행 가능하며 데이터 주권을 중시함."
+            }
+          }
+        ]
+      },
+      "intention_judge": {
+        "alignment_score": 3,
+        "captures_core_intention": false,
+        "contradicts_intention": false,
+        "missing_points": [
+          "사용자의 단순하고 즉각적인 '나중에 써봐야지'라는 가벼운 저장 의도를 지나치게 분석하여 학술적/기술적 지식 자산으로 격상함"
+        ],
+        "reasoning": "사용자의 의도는 단순한 보관 및 추후 활용이었으나, 에이전트가 이를 과도하게 분석하여 정보의 성격을 지나치게 무겁게 정의했습니다."
+      },
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "intent_count": 1
+    },
+    {
+      "file": "memo_나중에여행갈때참고하려고.png",
+      "actual_intention": "나중에여행갈때참고하려고",
+      "expected_intents": [
+        "memo"
+      ],
+      "predicted_intents": [
+        "memo"
+      ],
+      "tool_eval": {
+        "tools_called": []
+      },
+      "intent_eval": {
+        "recall": 1.0,
+        "precision": 1.0,
+        "exact_match": true,
+        "needs_review": false
+      },
+      "predicted_analysis": {
+        "summary": "2026년 7월 1일부터 일본 출국세가 3배 인상된다는 정보입니다. 인상 전에 항공권을 구매하는 것이 유리할 수 있다는 내용을 참고하기 위해 저장했습니다.",
+        "intents": [
+          {
+            "intent_type": "memo",
+            "label": "일본 여행 계획 참고",
+            "reasoning": "일본 출국세 인상이라는 정보를 통해 향후 일본 여행 시 항공권 구매 시점을 고려하기 위해 저장한 것으로 보입니다. 구체적인 여행 일정이 확정된 상태가 아니므로, 여행 계획 수립 시 참고할 수 있도록 메모로 저장합니다.",
+            "payload": {
+              "title": "일본 출국세 인상 정보",
+              "topic": null,
+              "note": "2026년 7월 1일부터 일본 출국세가 1,000엔에서 3,000엔으로 인상됨. 인상 전 항공권 구매 고려 필요."
+            }
+          }
+        ]
+      },
+      "intention_judge": {
+        "alignment_score": 5,
+        "captures_core_intention": true,
+        "contradicts_intention": false,
+        "missing_points": [],
+        "reasoning": "사용자의 '나중에 여행 갈 때 참고'라는 의도를 정확히 파악하여, 해당 정보를 메모 형태로 적절히 구조화하고 활용 방안까지 제시하였습니다."
+      },
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "intent_count": 1
+    },
+    {
+      "file": "memo_넷플릭스에서볼것들.png",
+      "actual_intention": "넷플릭스에서볼것들",
+      "expected_intents": [
+        "memo"
+      ],
+      "predicted_intents": [
+        "memo",
+        "memo"
+      ],
+      "tool_eval": {
+        "tools_called": []
+      },
+      "intent_eval": {
+        "recall": 1.0,
+        "precision": 1.0,
+        "exact_match": true,
+        "needs_review": false
+      },
+      "predicted_analysis": {
+        "summary": "스레드에서 공유된 이케가와 아키라 선생님의 추천 도서 목록과 전생을 다룬 넷플릭스 다큐멘터리 '서바이빙 데스'에 대한 정보입니다. 나중에 책을 찾아보거나 다큐멘터리를 시청하기 위해 저장했습니다.",
+        "intents": [
+          {
+            "intent_type": "memo",
+            "label": "책 추천 확인",
+            "reasoning": "사용자가 '리스트 딱 만들어야겠다'고 언급하며 책 추천 정보를 저장했으므로, 나중에 관련 도서를 찾아보고 대출 여부를 결정하기 위한 메모로 분류함.",
+            "payload": {
+              "title": "이케가와 아키라 선생님 추천 도서",
+              "topic": null,
+              "note": "이케가와 아키라 선생님의 책을 찾아보고 도서관에서 빌려볼지 결정하기 위해 저장함."
+            }
+          },
+          {
+            "intent_type": "memo",
+            "label": "다큐멘터리 시청 고려",
+            "reasoning": "전생을 기억하는 아이들에 관한 다큐멘터리 정보로, 나중에 시청할지 고려하기 위해 저장한 것으로 판단됨.",
+            "payload": {
+              "title": "넷플릭스 다큐멘터리 '서바이빙 데스'",
+              "topic": null,
+              "note": "넷플릭스 다큐멘터리 '서바이빙 데스' 6화(환생 관련) 시청 고려."
+            }
+          }
+        ]
+      },
+      "intention_judge": {
+        "alignment_score": 2,
+        "captures_core_intention": false,
+        "contradicts_intention": false,
+        "missing_points": [
+          "사용자의 핵심 의도인 '넷플릭스에서 볼 것들'이라는 카테고리화가 누락됨",
+          "책 추천 정보는 사용자의 핵심 의도와 무관한 정보임"
+        ],
+        "reasoning": "사용자는 넷플릭스 시청 목록을 저장하려 했으나, 에이전트는 책 추천 정보를 포함한 불필요한 메모를 생성하여 핵심 의도를 제대로 포착하지 못했습니다."
+      },
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "intent_count": 1
+    },
+    {
+      "file": "memo_다음운동때참고하려고.png",
+      "actual_intention": "다음운동때참고하려고",
+      "expected_intents": [
+        "memo"
+      ],
+      "predicted_intents": [
+        "memo"
+      ],
+      "tool_eval": {
+        "tools_called": []
+      },
+      "intent_eval": {
+        "recall": 1.0,
+        "precision": 1.0,
+        "exact_match": true,
+        "needs_review": false
+      },
+      "predicted_analysis": {
+        "summary": "6월 6일 토요일에 수행한 운동 기록(운동 시간, 볼륨, 칼로리 등)을 캡처한 이미지입니다. 개인적인 운동 성과를 기록하고 보관하기 위해 저장했습니다.",
+        "intents": [
+          {
+            "intent_type": "memo",
+            "label": "운동 기록 보관",
+            "reasoning": "사용자의 개인적인 운동 활동 기록입니다. 이는 일반적인 지식 정보가 아니라 사용자의 사적인 기록이므로 메모로 분류하여 보관합니다.",
+            "payload": {
+              "title": "6월 6일 운동 기록",
+              "topic": null,
+              "note": "6월 6일 토요일 운동 요약 (덤벨 풀오버, 벤치프레스 등)"
+            }
+          }
+        ]
+      },
+      "intention_judge": {
+        "alignment_score": 4,
+        "captures_core_intention": true,
+        "contradicts_intention": false,
+        "missing_points": [
+          "다음 운동 시 참고하겠다는 구체적인 활용 목적이 명시되지 않음"
+        ],
+        "reasoning": "운동 기록을 저장한다는 핵심 의도는 정확히 파악했으나, 사용자가 언급한 '다음 운동 시 참고'라는 구체적인 활용 의도가 분석 결과에는 반영되지 않았습니다."
+      },
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "intent_count": 1
+    },
+    {
+      "file": "memo_머리자를때참고하려고.png",
+      "actual_intention": "머리자를때참고하려고",
+      "expected_intents": [
+        "memo"
+      ],
+      "predicted_intents": [
+        "memo"
+      ],
+      "tool_eval": {
+        "tools_called": []
+      },
+      "intent_eval": {
+        "recall": 1.0,
+        "precision": 1.0,
+        "exact_match": true,
+        "needs_review": false
+      },
+      "predicted_analysis": {
+        "summary": "여름에 어울리는 댄디컷과 리프컷 스타일을 제안하는 영상입니다. 나중에 미용실에서 머리를 할 때 참고하려고 저장한 것으로 보입니다.",
+        "intents": [
+          {
+            "intent_type": "memo",
+            "label": "미용실 스타일 참고",
+            "reasoning": "사용자가 나중에 미용실에 방문할 때 참고하기 위해 저장한 헤어 스타일 정보입니다. 현재 구체적인 예약이나 행동 계획이 확인되지 않으므로 메모로 분류합니다.",
+            "payload": {
+              "title": "여름 버전 댄디컷 리프컷 스타일",
+              "topic": null,
+              "note": null
+            }
+          }
+        ]
+      },
+      "intention_judge": {
+        "alignment_score": 5,
+        "captures_core_intention": true,
+        "contradicts_intention": false,
+        "missing_points": [],
+        "reasoning": "사용자의 저장 의도인 '머리 자를 때 참고'를 정확히 파악하였으며, 이를 미용실 스타일 참고용 메모로 적절하게 분류하였습니다."
+      },
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "intent_count": 1
+    },
+    {
+      "file": "memo_부동산정보.png",
+      "actual_intention": "부동산정보",
+      "expected_intents": [
+        "memo"
+      ],
+      "predicted_intents": [
+        "memo"
+      ],
+      "tool_eval": {
+        "tools_called": []
+      },
+      "intent_eval": {
+        "recall": 1.0,
+        "precision": 1.0,
+        "exact_match": true,
+        "needs_review": false
+      },
+      "predicted_analysis": {
+        "summary": "인스타그램 DM으로 받은 신림동 다올626 신축 2룸 매물 정보입니다. 추후 부동산 매물 비교나 검토를 위해 저장합니다.",
+        "intents": [
+          {
+            "intent_type": "memo",
+            "label": "부동산 매물 정보 확인",
+            "reasoning": "부동산 매물에 대한 정보를 전달받은 상태로, 당장 방문 예약이나 계약 등의 구체적인 행동이 확정된 것은 아니므로 추후 검토를 위해 보관합니다.",
+            "payload": {
+              "title": "신림동 다올626 매물 정보",
+              "topic": null,
+              "note": "신림동 법원단지 다올626 신축 2룸 매물 정보입니다. 분양가 3억 3500만원."
+            }
+          }
+        ]
+      },
+      "intention_judge": {
+        "alignment_score": 5,
+        "captures_core_intention": true,
+        "contradicts_intention": false,
+        "missing_points": [],
+        "reasoning": "사용자가 의도한 부동산 정보 저장 목적을 정확히 파악하였으며, 매물명과 가격 등 핵심 정보를 메모에 충실히 반영하였습니다."
+      },
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "intent_count": 1
+    },
+    {
+      "file": "memo_사고싶다.PNG",
+      "actual_intention": "사고싶다",
+      "expected_intents": [
+        "memo"
+      ],
+      "predicted_intents": [
+        "memo"
+      ],
+      "tool_eval": {
+        "tools_called": []
+      },
+      "intent_eval": {
+        "recall": 1.0,
+        "precision": 1.0,
+        "exact_match": true,
+        "needs_review": false
+      },
+      "predicted_analysis": {
+        "summary": "레이밴 메타 헤드라이너 제품에 대한 정보를 담은 인스타그램 게시물입니다. 제품의 디자인과 기능에 관심이 있어 나중에 다시 확인하기 위해 저장했습니다.",
+        "intents": [
+          {
+            "intent_type": "memo",
+            "label": "구매 고민",
+            "reasoning": "스마트 기능을 갖춘 안경 제품에 관심을 보이고 있으며, 나중에 다시 확인하거나 구매를 고려하기 위해 저장한 것으로 보입니다. 현재 구매가 확정된 상태는 아니므로 메모로 분류합니다.",
+            "payload": {
+              "title": "레이밴 메타 헤드라이너",
+              "topic": null,
+              "note": null
+            }
+          }
+        ]
+      },
+      "intention_judge": {
+        "alignment_score": 4,
+        "captures_core_intention": true,
+        "contradicts_intention": false,
+        "missing_points": [
+          "구매 의사가 명확함에도 불구하고 '구매 고민'이라는 다소 소극적인 라벨로 분류됨"
+        ],
+        "reasoning": "사용자의 '사고싶다'는 구매 의도를 잘 파악했으나, 분석 결과에서 이를 '구매 고민'이라는 메모 단계로 한정 지어 실제 의도의 적극성을 완전히 반영하지 못했습니다."
+      },
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "intent_count": 1
+    },
+    {
+      "file": "memo_상하이갈곳들.jpeg",
+      "actual_intention": "상하이갈곳들",
+      "expected_intents": [
+        "memo"
+      ],
+      "predicted_intents": [
+        "memo"
+      ],
+      "tool_eval": {
+        "tools_called": []
+      },
+      "intent_eval": {
+        "recall": 1.0,
+        "precision": 1.0,
+        "exact_match": true,
+        "needs_review": false
+      },
+      "predicted_analysis": {
+        "summary": "상하이 여행지(우캉루, 디즈니랜드, 동방명주, 와이탄, 예원, 난징루)가 언급된 영상입니다. 나중에 여행 계획을 세울 때 참고하기 위해 저장했습니다.",
+        "intents": [
+          {
+            "intent_type": "memo",
+            "label": "여행지 후보",
+            "reasoning": "영상에서 언급된 상하이의 주요 명소들을 나중에 여행 계획을 세울 때 참고할 후보지로 저장하려는 의도로 보입니다. 구체적인 예약이나 확정된 일정이 아니므로 메모로 분류합니다.",
+            "payload": {
+              "title": null,
+              "topic": "상하이 여행지",
+              "note": "영상에 언급된 여행지들(우캉루, 디즈니랜드, 동방명주, 와이탄, 예원, 난징루)을 나중에 여행 계획 세울 때 참고하기 위해 저장함."
+            }
+          }
+        ]
+      },
+      "intention_judge": {
+        "alignment_score": 5,
+        "captures_core_intention": true,
+        "contradicts_intention": false,
+        "missing_points": [],
+        "reasoning": "사용자의 짧은 의도인 '상하이갈곳들'을 분석 결과가 구체적인 명소 리스트와 함께 여행 계획 참고용 메모로 정확하게 해석하였습니다."
+      },
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "intent_count": 1
+    },
+    {
+      "file": "memo_상하이정보.jpeg",
+      "actual_intention": "상하이정보",
+      "expected_intents": [
+        "memo"
+      ],
+      "predicted_intents": [
+        "memo"
+      ],
+      "tool_eval": {
+        "tools_called": []
+      },
+      "intent_eval": {
+        "recall": 1.0,
+        "precision": 1.0,
+        "exact_match": true,
+        "needs_review": false
+      },
+      "predicted_analysis": {
+        "summary": "상하이 푸동공항에서 마그레브 열차를 이용해 시내로 빠르게 이동하는 방법에 대한 정보입니다. 향후 상하이 여행 시 참고하기 위해 저장했습니다.",
+        "intents": [
+          {
+            "intent_type": "memo",
+            "label": "상하이 여행 정보",
+            "reasoning": "상하이 여행 시 공항에서 시내로 이동하는 유용한 교통 정보를 나중에 참고하기 위해 저장한 것으로 보입니다. 실제 여행 계획이 확정된 상태는 아니므로 메모로 분류합니다.",
+            "payload": {
+              "title": "상하이 푸동공항에서 시내 가는 법",
+              "topic": null,
+              "note": "푸동공항에서 마그레브 열차를 타고 롱양루를 거쳐 시내로 이동하는 방법 (약 30-40분 소요)"
+            }
+          }
+        ]
+      },
+      "intention_judge": {
+        "alignment_score": 4,
+        "captures_core_intention": true,
+        "contradicts_intention": false,
+        "missing_points": [
+          "사용자의 의도가 단순 정보 수집인지, 실제 여행 준비인지에 대한 구체적인 맥락 부족"
+        ],
+        "reasoning": "사용자의 의도인 '상하이 정보'를 구체적인 교통 정보로 잘 해석했으나, 사용자의 입력이 매우 짧아 분석 결과가 다소 과하게 구체화된 측면이 있습니다."
+      },
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "intent_count": 1
+    },
+    {
+      "file": "memo_옷살때참고하려고.png",
+      "actual_intention": "옷살때참고하려고",
+      "expected_intents": [
+        "memo"
+      ],
+      "predicted_intents": [
+        "memo"
+      ],
+      "tool_eval": {
+        "tools_called": []
+      },
+      "intent_eval": {
+        "recall": 1.0,
+        "precision": 1.0,
+        "exact_match": true,
+        "needs_review": false
+      },
+      "predicted_analysis": {
+        "summary": "여름 코디 영상에 소개된 제품 정보들을 나중에 참고하려고 저장했습니다.",
+        "intents": [
+          {
+            "intent_type": "memo",
+            "label": "여름 코디 참고",
+            "reasoning": "영상 속 코디와 제품 정보를 나중에 참고하기 위해 저장한 것으로 보입니다. 구매를 확정하거나 구체적인 행동 계획이 보이지 않으므로 메모로 분류합니다.",
+            "payload": {
+              "title": "여름 코디 3가지 제품 정보",
+              "topic": null,
+              "note": "영상 속 코디에 사용된 제품 정보 (신치백 다트 데님 팬츠, 스터드 커브드 코튼 팬츠, 아일렛 반팔 티셔츠 등)"
+            }
+          }
+        ]
+      },
+      "intention_judge": {
+        "alignment_score": 5,
+        "captures_core_intention": true,
+        "contradicts_intention": false,
+        "missing_points": [],
+        "reasoning": "사용자의 '옷 살 때 참고'라는 의도를 '여름 코디 참고' 및 '제품 정보 저장'으로 정확하게 파악하여 메모로 분류하였습니다."
+      },
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "intent_count": 1
+    },
+    {
+      "file": "memo_이뻐서나중에가보려고.png",
+      "actual_intention": "이뻐서나중에가보려고",
+      "expected_intents": [
+        "memo"
+      ],
+      "predicted_intents": [
+        "memo"
+      ],
+      "tool_eval": {
+        "tools_called": []
+      },
+      "intent_eval": {
+        "recall": 1.0,
+        "precision": 1.0,
+        "exact_match": true,
+        "needs_review": false
+      },
+      "predicted_analysis": {
+        "summary": "서울 종로구에 위치한 흥인지문공원에 대한 소개입니다. 노을 질 무렵 방문하기 좋은 산책 코스로, 나중에 가볼 만한 곳으로 저장해 두었습니다.",
+        "intents": [
+          {
+            "intent_type": "memo",
+            "label": "가볼 곳",
+            "reasoning": "사용자가 서울의 예쁜 공원으로 소개된 흥인지문공원을 나중에 방문하거나 참고하기 위해 저장한 것으로 보입니다. 구체적인 방문 일정이 확정된 것은 아니므로 메모로 분류합니다.",
+            "payload": {
+              "title": "흥인지문공원",
+              "topic": null,
+              "note": "동대문역 1,10번 출구와 가깝고, 19시쯤 노을 질 때 방문하기 좋은 공원."
+            }
+          }
+        ]
+      },
+      "intention_judge": {
+        "alignment_score": 5,
+        "captures_core_intention": true,
+        "contradicts_intention": false,
+        "missing_points": [],
+        "reasoning": "사용자의 '이뻐서 나중에 가보려고'라는 의도를 정확히 파악하여 '가볼 곳' 메모로 분류하고 적절한 정보를 요약하였습니다."
+      },
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "intent_count": 1
+    },
+    {
+      "file": "memo_저장해두고나중에봐야지.PNG",
+      "actual_intention": "저장해두고나중에봐야지",
+      "expected_intents": [
+        "memo"
+      ],
+      "predicted_intents": [
+        "memo"
+      ],
+      "tool_eval": {
+        "tools_called": []
+      },
+      "intent_eval": {
+        "recall": 1.0,
+        "precision": 1.0,
+        "exact_match": true,
+        "needs_review": false
+      },
+      "predicted_analysis": {
+        "summary": "HWPX 파일을 클로드(Claude) 스킬을 활용해 쉽게 편집하는 방법을 소개하는 인스타그램 게시물입니다. 나중에 한글 파일 작업이 필요할 때 참고하기 위해 저장했습니다.",
+        "intents": [
+          {
+            "intent_type": "memo",
+            "label": "AI 활용 팁 확인",
+            "reasoning": "사용자가 나중에 다시 확인하고 싶어 하는 유용한 AI 활용 정보입니다. 현재 시점에서 즉각적인 액션(댓글 작성 등)을 강제하는 것은 아니며, 추후 필요할 때 참고하기 위해 저장한 것으로 판단됩니다.",
+            "payload": {
+              "title": "한글(HWPX) 파일 클로드 편집 팁",
+              "topic": null,
+              "note": "HWPX 파일을 클로드(Claude) 스킬로 쉽게 편집하는 방법 안내. 좋아요와 댓글을 남기면 스킬 파일과 가이드를 받을 수 있음."
+            }
+          }
+        ]
+      },
+      "intention_judge": {
+        "alignment_score": 5,
+        "captures_core_intention": true,
+        "contradicts_intention": false,
+        "missing_points": [],
+        "reasoning": "사용자의 '나중에 봐야지'라는 저장 의도를 정확히 파악하였으며, 해당 콘텐츠의 성격과 저장 목적을 논리적으로 잘 연결하였습니다."
+      },
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "intent_count": 1
+    },
+    {
+      "file": "memo_중국갈때설치할거.jpeg",
+      "actual_intention": "중국갈때설치할거",
+      "expected_intents": [
+        "memo"
+      ],
+      "predicted_intents": [
+        "todo"
+      ],
+      "tool_eval": {
+        "tools_called": []
+      },
+      "intent_eval": {
+        "recall": 0.0,
+        "precision": 0.0,
+        "exact_match": false,
+        "needs_review": false
+      },
+      "predicted_analysis": {
+        "summary": "중국 여행 시 필요한 필수 앱(샤오홍슈, 메이투안, 알리페이, 위챗, 바이두지도) 목록을 정리한 스크린샷입니다. 여행 준비를 위해 해당 앱들을 설치해야 합니다.",
+        "intents": [
+          {
+            "intent_type": "todo",
+            "label": "중국 여행 앱 설치",
+            "reasoning": "사용자가 '걍 여깃는것만 다 깔면 됨'이라고 명확한 행동 지침을 남겼으므로, 앱 설치를 완료해야 하는 할 일(todo)로 분류합니다.",
+            "payload": {
+              "title": "중국 여행 필수 앱 설치",
+              "topic": null,
+              "note": "샤오홍슈, 메이투안, 알리페이, 위챗, 바이두지도 설치 필요"
+            }
+          }
+        ]
+      },
+      "intention_judge": {
+        "alignment_score": 5,
+        "captures_core_intention": true,
+        "contradicts_intention": false,
+        "missing_points": [],
+        "reasoning": "사용자의 의도인 '중국 갈 때 설치할 것'을 정확히 파악하여 필요한 앱 목록을 할 일로 명확하게 정리하였습니다."
+      },
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "intent_count": 1
+    },
+    {
+      "file": "memo_화장품나중에살거.png",
+      "actual_intention": "화장품나중에살거",
+      "expected_intents": [
+        "memo"
+      ],
+      "predicted_intents": [
+        "memo"
+      ],
+      "tool_eval": {
+        "tools_called": []
+      },
+      "intent_eval": {
+        "recall": 1.0,
+        "precision": 1.0,
+        "exact_match": true,
+        "needs_review": false
+      },
+      "predicted_analysis": {
+        "summary": "인스타그램에서 발견한 오렌지 색상 틴트 제품 정보입니다. 나중에 구매를 고려하거나 제품 정보를 다시 확인하기 위해 저장했습니다.",
+        "intents": [
+          {
+            "intent_type": "memo",
+            "label": "구매 고민 제품",
+            "reasoning": "사용자가 인스타그램 릴스에서 본 오렌지 색상 틴트 제품에 관심을 보이고 있습니다. 구매를 결정한 상태는 아니므로, 나중에 다시 확인해볼 수 있도록 메모로 저장합니다.",
+            "payload": {
+              "title": "디어달리아 틴트 제품 정보",
+              "topic": null,
+              "note": "디어달리아 틴트 (오렌지 색상)"
+            }
+          }
+        ]
+      },
+      "intention_judge": {
+        "alignment_score": 5,
+        "captures_core_intention": true,
+        "contradicts_intention": false,
+        "missing_points": [],
+        "reasoning": "사용자의 '나중에 살 것'이라는 의도를 '구매 고민 제품'이라는 메모 유형으로 정확하게 분류하고 적절한 정보를 저장했습니다."
+      },
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "intent_count": 1
+    },
+    {
+      "file": "memo_화장품살때참고하려고.jpg",
+      "actual_intention": "화장품살때참고하려고",
+      "expected_intents": [
+        "memo"
+      ],
+      "predicted_intents": [
+        "memo"
+      ],
+      "tool_eval": {
+        "tools_called": []
+      },
+      "intent_eval": {
+        "recall": 1.0,
+        "precision": 1.0,
+        "exact_match": true,
+        "needs_review": false
+      },
+      "predicted_analysis": {
+        "summary": "올리브영 세일 중인 디오프러스 선스크린 광고를 캡처했습니다. 제품에 관심이 있어 나중에 다시 확인해 보려는 의도로 보입니다.",
+        "intents": [
+          {
+            "intent_type": "memo",
+            "label": "구매 고민",
+            "reasoning": "올리브영 세일 광고를 보고 제품에 관심을 느껴 저장한 것으로 보입니다. 구매를 확정하거나 행동을 약속한 증거가 없으므로 메모로 분류합니다. 광고에 기재된 세일 기간(5/31~6/6)은 현재 시점(6/7) 기준으로 이미 종료되었으므로, 해당 기간을 활용한 구매 계획은 성립하지 않습니다.",
+            "payload": {
+              "title": "디오프러스 블루 페더 톤업 선스크린 광고",
+              "topic": null,
+              "note": null
+            }
+          }
+        ]
+      },
+      "intention_judge": {
+        "alignment_score": 4,
+        "captures_core_intention": true,
+        "contradicts_intention": false,
+        "missing_points": [
+          "사용자가 '화장품 구매 시 참고'라는 구체적인 활용 목적을 명시했으나, 분석 결과는 단순히 '관심' 정도로만 해석함"
+        ],
+        "reasoning": "사용자의 저장 의도를 정확히 파악했으나, 구매 시 참고하겠다는 구체적인 활용 계획까지는 반영하지 못하고 단순 관심으로 축소 해석함."
+      },
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "intent_count": 1
+    },
+    {
+      "file": "schedule_todo_비행기스케줄.jpeg",
+      "actual_intention": "비행기스케줄",
+      "expected_intents": [
+        "schedule",
+        "todo"
+      ],
+      "predicted_intents": [
+        "memo"
+      ],
+      "tool_eval": {
+        "tools_called": []
+      },
+      "intent_eval": {
+        "recall": 0.0,
+        "precision": 0.0,
+        "exact_match": false,
+        "needs_review": false
+      },
+      "predicted_analysis": {
+        "summary": "2026년 1월에 다녀온 서울-상하이 왕복 항공권 예약 정보입니다. 이미 종료된 일정이므로 여행 기록 보관을 위해 메모로 저장합니다.",
+        "intents": [
+          {
+            "intent_type": "memo",
+            "label": "상하이 여행 예약 정보",
+            "reasoning": "현재 시각(2026년 6월) 기준으로 1월에 이미 종료된 여행의 예약 정보입니다. 향후 일정이 아니므로 스케줄이나 투두로 분류할 수 없으며, 여행 기록을 보관하기 위한 메모로 저장합니다.",
+            "payload": {
+              "title": "서울-상하이 항공권 예약 정보",
+              "topic": null,
+              "note": "이미 지난 날짜의 예약 정보입니다. 여행 기록 보관용으로 저장합니다."
+            }
+          }
+        ]
+      },
+      "intention_judge": {
+        "alignment_score": 2,
+        "captures_core_intention": false,
+        "contradicts_intention": true,
+        "missing_points": [
+          "비행기 스케줄이라는 명확한 의도를 무시하고 메모로 분류함",
+          "데이터의 구조적 활용 가능성 배제"
+        ],
+        "reasoning": "사용자는 비행기 스케줄로 저장하길 원했으나, 에이전트가 임의로 과거 일정이라 판단하여 메모로 분류함으로써 데이터의 본래 목적을 훼손했습니다."
+      },
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "intent_count": 2
+    },
+    {
+      "file": "schedule_todo_수강신청꼭해야지.jpeg",
+      "actual_intention": "수강신청꼭해야지",
+      "expected_intents": [
+        "schedule",
+        "todo"
+      ],
+      "predicted_intents": [
+        "memo"
+      ],
+      "tool_eval": {
+        "tools_called": []
+      },
+      "intent_eval": {
+        "recall": 0.0,
+        "precision": 0.0,
+        "exact_match": false,
+        "needs_review": false
+      },
+      "predicted_analysis": {
+        "summary": "고려대학교 학생을 대상으로 한 '해양환경 시민과학자 양성 과정' 모집 공고입니다. 신청 마감일이 이미 지난 과거의 정보이므로 참고용으로 보관합니다.",
+        "intents": [
+          {
+            "intent_type": "memo",
+            "label": "프로그램 지원 고민",
+            "reasoning": "사용자가 이 공고를 저장했으나, 신청 마감일(2024년 9월 8일)이 현재 시점(2026년 6월 7일)보다 훨씬 이전이므로 더 이상 지원이나 일정 관리가 불가능합니다. 따라서 정보 보관 차원의 메모로 분류합니다.",
+            "payload": {
+              "title": "Sustainable Development Goals Academy 모집 안내",
+              "topic": null,
+              "note": "고려대학교 학생 대상 해양환경 시민과학자 양성 과정 모집 안내입니다. 신청 마감일이 2024년 9월 8일로 이미 지난 과거의 공고입니다."
+            }
+          }
+        ]
+      },
+      "intention_judge": {
+        "alignment_score": 1,
+        "captures_core_intention": false,
+        "contradicts_intention": true,
+        "missing_points": [
+          "사용자의 능동적인 수강신청 의지",
+          "미래 지향적인 행동 계획"
+        ],
+        "reasoning": "사용자는 수강신청을 하겠다는 강한 의지를 보였으나, 에이전트는 단순히 과거의 공고로 치부하여 사용자의 능동적인 목적을 완전히 무시하고 메모로 분류했습니다."
+      },
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "intent_count": 2
+    },
+    {
+      "file": "schedule_todo_친구공연장장소와시간.jpeg",
+      "actual_intention": "친구공연장장소와시간",
+      "expected_intents": [
+        "schedule",
+        "todo"
+      ],
+      "predicted_intents": [
+        "memo"
+      ],
+      "tool_eval": {
+        "tools_called": []
+      },
+      "intent_eval": {
+        "recall": 0.0,
+        "precision": 0.0,
+        "exact_match": false,
+        "needs_review": false
+      },
+      "predicted_analysis": {
+        "summary": "2024년 12월 1일에 열렸던 '너와나' 정기공연 안내 게시물입니다. 이미 종료된 행사 정보이므로 참고용으로 보관합니다.",
+        "intents": [
+          {
+            "intent_type": "memo",
+            "label": "공연 정보 보관",
+            "reasoning": "공연 일시가 2024년 12월 1일로, 현재 시점(2026년 6월)에서 이미 종료된 과거의 행사입니다. 따라서 스케줄이나 할 일로 등록할 수 없으며, 단순 정보 확인용으로 보관합니다.",
+            "payload": {
+              "title": "너와나 2024년 겨울 정기공연 안내",
+              "topic": null,
+              "note": "2024년 12월 1일에 이미 종료된 '너와나' 정기공연 안내 게시물입니다."
+            }
+          }
+        ]
+      },
+      "intention_judge": {
+        "alignment_score": 1,
+        "captures_core_intention": false,
+        "contradicts_intention": true,
+        "missing_points": [
+          "친구 공연 장소",
+          "친구 공연 시간"
+        ],
+        "reasoning": "사용자는 친구 공연의 장소와 시간을 저장하려 했으나, 에이전트는 이를 과거의 행사로 판단하여 단순 메모로 처리하고 핵심 정보인 장소와 시간을 모두 누락했습니다."
+      },
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "intent_count": 2
+    },
+    {
+      "file": "schedule_공차할인날짜시간.jpeg",
+      "actual_intention": "공차할인날짜시간",
+      "expected_intents": [
+        "schedule"
+      ],
+      "predicted_intents": [
+        "memo"
+      ],
+      "tool_eval": {
+        "tools_called": []
+      },
+      "intent_eval": {
+        "recall": 0.0,
+        "precision": 0.0,
+        "exact_match": false,
+        "needs_review": false
+      },
+      "predicted_analysis": {
+        "summary": "2023년 8월 22일에 진행되었던 공차 900호점 기념 해피아워 이벤트 게시물입니다. 이미 종료된 이벤트이므로 정보 확인을 위해 메모로 저장합니다.",
+        "intents": [
+          {
+            "intent_type": "memo",
+            "label": "공차 이벤트 확인",
+            "reasoning": "이미 2023년 8월에 종료된 과거 이벤트이므로 스케줄이나 투두로 분류할 수 없습니다. 단순히 어떤 이벤트였는지 기록하기 위해 메모로 저장합니다.",
+            "payload": {
+              "title": "공차 900호점 기념 해피아워 이벤트",
+              "topic": null,
+              "note": "2023년 8월 22일에 종료된 공차 900호점 기념 해피아워 이벤트 게시물입니다. 이미 지난 이벤트이므로 참고용으로 저장합니다."
+            }
+          }
+        ]
+      },
+      "intention_judge": {
+        "alignment_score": 2,
+        "captures_core_intention": false,
+        "contradicts_intention": false,
+        "missing_points": [
+          "할인 날짜 및 시간 정보",
+          "이벤트의 구체적인 혜택 정보"
+        ],
+        "reasoning": "사용자는 할인 날짜와 시간을 저장하고자 했으나, 에이전트는 이를 단순한 과거 이벤트 기록으로 간주하여 핵심 정보인 날짜와 시간 데이터를 구조화하지 않고 메모로만 처리했습니다."
+      },
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "intent_count": 1
+    },
+    {
+      "file": "schedule_이때집비워야함.png",
+      "actual_intention": "이때집비워야함",
+      "expected_intents": [
+        "schedule"
+      ],
+      "predicted_intents": [
+        "memo"
+      ],
+      "tool_eval": {
+        "tools_called": []
+      },
+      "intent_eval": {
+        "recall": 0.0,
+        "precision": 0.0,
+        "exact_match": false,
+        "needs_review": false
+      },
+      "predicted_analysis": {
+        "summary": "삼성디스플레이 아름타운 기숙사의 생활 안내 및 과거 비데 정기점검 공지 내용입니다. 이미 지난 정보이므로 추후 참고용으로 저장합니다.",
+        "intents": [
+          {
+            "intent_type": "memo",
+            "label": "기숙사 생활 정보 확인",
+            "reasoning": "이미 지난 날짜(2026년 3월 6일)의 공지사항으로, 현재 시점에서 수행해야 할 일정이나 할 일이 포함되어 있지 않습니다. 기숙사 생활 관련 정보성 내용을 나중에 참고할 수 있도록 메모로 저장합니다.",
+            "payload": {
+              "title": "아름타운 기숙사 생활 안내",
+              "topic": null,
+              "note": "아름타운 기숙사 이용 안내(휴게실, 인터넷 신청 등) 및 비데 정기점검 공지 내용입니다. 2026년 3월 6일의 과거 공지사항입니다."
+            }
+          }
+        ]
+      },
+      "intention_judge": {
+        "alignment_score": 1,
+        "captures_core_intention": false,
+        "contradicts_intention": true,
+        "missing_points": [
+          "사용자의 핵심 의도인 '집을 비워야 하는 일정'에 대한 인지",
+          "해당 공지사항이 단순 과거 정보가 아닌 퇴거 관련 필수 정보라는 점"
+        ],
+        "reasoning": "사용자는 퇴거를 위해 집을 비워야 한다는 구체적인 행동 의도를 밝혔으나, 에이전트는 이를 단순한 과거 정보성 메모로 오판하여 핵심 의도를 완전히 놓쳤습니다."
+      },
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "intent_count": 1
+    },
+    {
+      "file": "schedule_제출날짜.jpeg",
+      "actual_intention": "제출날짜",
+      "expected_intents": [
+        "schedule"
+      ],
+      "predicted_intents": [
+        "todo"
+      ],
+      "tool_eval": {
+        "tools_called": []
+      },
+      "intent_eval": {
+        "recall": 0.0,
+        "precision": 0.0,
+        "exact_match": false,
+        "needs_review": false
+      },
+      "predicted_analysis": {
+        "summary": "PT 발표 자료 제출 기한(11월 17일 오전 10시)을 확인하고 잊지 않기 위해 저장했습니다. 제출처 이메일 주소도 포함되어 있습니다.",
+        "intents": [
+          {
+            "intent_type": "todo",
+            "label": "PT 발표 자료 제출",
+            "reasoning": "PT 발표 자료 제출 기한이 명시되어 있으며, 이는 사용자가 반드시 수행해야 할 과업입니다. 2026년 11월 17일은 현재 시점(2026년 6월) 이후이므로 유효한 todo입니다.",
+            "payload": {
+              "title": "PT 발표 자료 제출",
+              "topic": null,
+              "note": "이메일: rowoon.lee@qcells.com"
+            }
+          }
+        ]
+      },
+      "intention_judge": {
+        "alignment_score": 4,
+        "captures_core_intention": true,
+        "contradicts_intention": false,
+        "missing_points": [
+          "제출 날짜 및 시간 정보가 payload에 명시되지 않음"
+        ],
+        "reasoning": "제출 과업 자체는 잘 포착했으나, 사용자가 강조한 핵심 정보인 '제출 날짜'가 payload 내에 누락되어 있습니다."
+      },
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "intent_count": 1
+    },
+    {
+      "file": "todo_schedule_날짜맞춰서가려고.jpg",
+      "actual_intention": "날짜맞춰서가려고",
+      "expected_intents": [
+        "todo",
+        "schedule"
+      ],
+      "predicted_intents": [
+        "memo"
+      ],
+      "tool_eval": {
+        "tools_called": []
+      },
+      "intent_eval": {
+        "recall": 0.0,
+        "precision": 0.0,
+        "exact_match": false,
+        "needs_review": false
+      },
+      "predicted_analysis": {
+        "summary": "2025년 8월 3일에 진행된 '그룹사운드 잔나비 앵콜 콘서트'의 예매 완료 알림톡 캡처입니다. 이미 종료된 과거의 공연 정보이므로 기록용으로 보관합니다.",
+        "intents": [
+          {
+            "intent_type": "memo",
+            "label": "콘서트 예매 내역 보관",
+            "reasoning": "이미 2025년 8월 3일에 종료된 공연의 예매 완료 알림톡입니다. 현재 시점(2026년 6월)에서는 이미 지난 일정이므로 별도의 스케줄이나 할 일로 등록할 필요가 없으며, 과거의 기록을 확인하기 위한 메모로 저장합니다.",
+            "payload": {
+              "title": "그룹사운드 잔나비 앵콜 콘서트 예매 내역",
+              "topic": null,
+              "note": "2025년 8월 3일 공연 예매 완료 내역입니다. 이미 지난 날짜의 공연 정보이므로 기록용으로 보관합니다."
+            }
+          }
+        ]
+      },
+      "intention_judge": {
+        "alignment_score": 1,
+        "captures_core_intention": false,
+        "contradicts_intention": true,
+        "missing_points": [
+          "사용자의 '날짜 맞춰서 가려고'라는 미래 지향적 의도",
+          "일정 관리 및 알림 필요성"
+        ],
+        "reasoning": "사용자는 해당 날짜에 맞춰 가기 위해 저장하려 했으나, 에이전트는 과거의 공연으로 오판하여 단순 기록용 메모로 처리함으로써 사용자의 핵심 의도와 정반대로 분석했습니다."
+      },
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "intent_count": 2
+    }
+  ],
+  "skipped_cases": []
+}

@@ -15,7 +15,18 @@ MODELS: list[tuple[str, int | None]] = [
     ("gemini-embedding-001", 256),
     ("gemini-embedding-001", 768),
     ("gemini-embedding-001", 1536),
+    ("voyage-4", 256),
+    ("voyage-4", 512),
+    ("voyage-4", 1024),
+    ("voyage-4-large", 256),
+    ("voyage-4-large", 512),
+    ("voyage-4-large", 1024),
 ]
+
+EXPANSION_STRATEGIES: frozenset[str] = frozenset({
+    "summary+semantic_expansion",
+    "summary+labels+semantic_expansion",
+})
 
 # embed.py STRATEGIES dict 의 키와 반드시 일치해야 함
 STRATEGY_NAMES: list[str] = [
@@ -24,6 +35,13 @@ STRATEGY_NAMES: list[str] = [
     "summary+labels+payload",
     "summary+labels+payload+entities",
     "structured_fields",
+    "summary+semantic_expansion",
+    "summary+labels+semantic_expansion",
+    "summary+category",
+    "summary+labels+category",
+    "summary+labels+payload+category",
+    "summary+labels+payload+entities+category",
+    "structured_fields+category",
 ]
 
 
@@ -38,7 +56,7 @@ def analysis_hash(items: list[dict[str, Any]]) -> str:
 
 
 def expected_embed_names() -> set[str]:
-    """embed.py 가 생성해야 하는 파일명 집합 (25개 = 5모델×차원 × 5전략)."""
+    """embed.py 가 생성해야 하는 파일명 집합 (132개 = 11모델×차원 × 12전략)."""
     names: set[str] = set()
     for model, dim in MODELS:
         dim_tag = str(dim) if dim is not None else "default"
