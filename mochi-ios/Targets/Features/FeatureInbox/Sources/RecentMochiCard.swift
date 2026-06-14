@@ -83,6 +83,9 @@ struct RecentMochiCard: View {
         case .screenshot:
             LocalThumbnail(
                 relativePath: mochiItem.source.imageRefs.first?.relativePath,
+                objectKey: mochiItem.source.imageRefs.first?.objectKey,
+                sha256: mochiItem.source.imageRefs.first?.sha256,
+                mimeType: mochiItem.source.imageRefs.first?.mimeType,
                 targetSize: CGSize(width: 178, height: 134)
             ) {
                 ZStack {

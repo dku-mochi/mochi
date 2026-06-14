@@ -341,6 +341,8 @@ public struct ReferenceLinkDTO: Sendable, Hashable, Codable {
     public let rankProfile: String
     public let source: String?
     public let usefulness: Int?
+    public let subtitle: String?
+    public let priceText: String?
 
     public init(
         url: String,
@@ -350,7 +352,9 @@ public struct ReferenceLinkDTO: Sendable, Hashable, Codable {
         provider: String,
         rankProfile: String,
         source: String? = nil,
-        usefulness: Int? = nil
+        usefulness: Int? = nil,
+        subtitle: String? = nil,
+        priceText: String? = nil
     ) {
         self.url = url
         self.title = title
@@ -360,10 +364,12 @@ public struct ReferenceLinkDTO: Sendable, Hashable, Codable {
         self.rankProfile = rankProfile
         self.source = source
         self.usefulness = usefulness
+        self.subtitle = subtitle
+        self.priceText = priceText
     }
 
     private enum CodingKeys: String, CodingKey {
-        case url, title, label, role, provider, source, usefulness
+        case url, title, label, role, provider, source, usefulness, subtitle, priceText
         case rankProfile = "rankProfile"
     }
 }

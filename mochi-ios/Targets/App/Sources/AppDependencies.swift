@@ -1,5 +1,6 @@
 import Dependencies
 import Foundation
+import UIKit
 import CoreDomain
 import CoreAuth
 import CorePersistence
@@ -45,6 +46,23 @@ enum AppDependencies {
         //    openapi.json 단일 계약에서 생성한 클라이언트(`OpenAPIMochiClient`) 가 라이브 구현.
         let liveAPI = OpenAPIMochiClient(baseURL: baseURL, tokenProvider: coordinator)
 
+        // 캡처 이미지 렌더 폴백 — 로컬에 없는 이미지를 GCS presign 으로 받아 captures/ 에 캐시한다
+        //   (LocalThumbnail 렌더 시점 + SyncWorker.pullRemote 공용). 부팅 시 1회 주입.
+        Task {
+            await CaptureImageStore.shared.configure { objectKey in
+                let url = try await liveAPI.presignCaptureDownload(objectKey: objectKey)
+                let (data, response) = try await URLSession.shared.data(from: url)
+                // 만료 signed URL·403/404 는 XML 에러 본문을 비-200 으로 준다 — 디코드 안 되는 본문을
+                // captures/ 에 캐시하면 영구 오염(파일 존재→재다운로드 안 함)되므로 status·디코드 확인 후
+                // 실패면 throw(캐시 안 됨, 다음 렌더에 재시도). ScreenshotSaver 와 동일 가드.
+                let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+                guard status == 200, UIImage(data: data) != nil else {
+                    throw URLError(.cannotDecodeContentData)
+                }
+                return data
+            }
+        }
+
         // 3) SSE 라이브 스트림 — foreground 분석 완료를 즉시 받는다(폴링 대체, 끊김 시 폴링 fallback).
         //    인증은 coordinator(AuthTokenProvider) Bearer 재사용, `final` 시 liveAPI 로 GET 재조회.
         let liveStream = LiveAgentStreamClient(
@@ -65,8 +83,8 @@ enum AppDependencies {
     }
 
     private static func resolveBaseURL() -> URL {
-//        return URL(string: "https://34-64-104-136.nip.io")!
-        return URL(string: "http://192.168.35.189:8000")!
+        return URL(string: "https://34-64-104-136.nip.io")!
+//        return URL(string: "http://192.168.35.189:8000")!
         // 1) 명시적 override — Xcode scheme 환경변수. 시뮬레이터만 적용됨(실기기는 호스트 env 미전달).
         if let env = ProcessInfo.processInfo.environment["MOCHI_API_BASE_URL"],
            let url = URL(string: env) {

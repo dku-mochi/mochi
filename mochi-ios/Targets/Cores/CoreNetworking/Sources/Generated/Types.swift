@@ -2195,6 +2195,10 @@ public enum Components {
             public var source: Swift.String?
             /// - Remark: Generated from `#/components/schemas/ReferenceLinkResponse/usefulness`.
             public var usefulness: Swift.Int?
+            /// - Remark: Generated from `#/components/schemas/ReferenceLinkResponse/subtitle`.
+            public var subtitle: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/ReferenceLinkResponse/priceText`.
+            public var priceText: Swift.String?
             /// Creates a new `ReferenceLinkResponse`.
             ///
             /// - Parameters:
@@ -2206,6 +2210,8 @@ public enum Components {
             ///   - rankProfile:
             ///   - source:
             ///   - usefulness:
+            ///   - subtitle:
+            ///   - priceText:
             public init(
                 url: Swift.String,
                 title: Swift.String,
@@ -2214,7 +2220,9 @@ public enum Components {
                 provider: Swift.String,
                 rankProfile: Swift.String,
                 source: Swift.String? = nil,
-                usefulness: Swift.Int? = nil
+                usefulness: Swift.Int? = nil,
+                subtitle: Swift.String? = nil,
+                priceText: Swift.String? = nil
             ) {
                 self.url = url
                 self.title = title
@@ -2224,6 +2232,8 @@ public enum Components {
                 self.rankProfile = rankProfile
                 self.source = source
                 self.usefulness = usefulness
+                self.subtitle = subtitle
+                self.priceText = priceText
             }
             public enum CodingKeys: String, CodingKey {
                 case url
@@ -2234,6 +2244,8 @@ public enum Components {
                 case rankProfile
                 case source
                 case usefulness
+                case subtitle
+                case priceText
             }
         }
         /// - Remark: Generated from `#/components/schemas/RefreshRequest`.

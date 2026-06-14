@@ -92,6 +92,17 @@ public actor RealmMochiItemRepository: MochiItemRepository {
         }
     }
 
+    public func find(serverID: UUID) async throws -> MochiItem? {
+        // syncState 는 "uploaded:<serverID>:<ts>" 로 직렬화되므로 prefix 매칭으로 역매핑한다
+        // (RealmMochiItemMapper.syncStateRaw 포맷). pull 복제·직접 업로드 행 모두 이 값으로 잡힌다.
+        try await read { realm in
+            realm.objects(RealmMochiItem.self)
+                .filter("syncStateRawValue BEGINSWITH %@", "uploaded:\(serverID.uuidString):")
+                .first
+                .map(RealmMochiItemMapper.toDomain(_:))
+        }
+    }
+
     public func listRecent(limit: Int) async throws -> [MochiItem] {
         try await read { realm in
             realm.objects(RealmMochiItem.self).sorted(byKeyPath: "createdAt", ascending: false)

@@ -287,10 +287,167 @@ struct ReferenceCarouselTile: View {
     }
 }
 
-// MARK: - 비교용 컨테이너 (3종 동시 렌더 — 결정 후 둘 제거)
+// MARK: - 변형 D · 메타 행카드 (favicon + 부제·가격 한 줄)
 
-/// 세 변형을 한 화면에 쌓아 실제 데이터로 비교한다. 작은 캡션으로 A/B/C 를 표시.
-/// **임시** — 사용자가 하나를 고르면 나머지 둘과 이 컨테이너를 걷어내고 승자만 ② 섹션에 합친다.
+/// 행카드(B)에 검색 메타를 한 줄 보탠다 — 제목 아래 "업종·지역 / 요약문 / 브랜드" 부제와
+/// 쇼핑 가격을 인라인으로. 누르기 전에 "어디·무슨 글·얼마"를 한눈에 읽게 하는 게 목적.
+/// 메타가 없는 링크(원본·화면 속)는 호스트로 폴백해 빈 줄을 만들지 않는다.
+struct ReferenceMetaRowCard: View {
+    let link: ReferenceLink
+    let action: () -> Void
+
+    private var style: ReferenceBrandStyle {
+        ReferenceBrandStyle(provider: link.provider, role: link.role)
+    }
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: HomeDesign.Spacing.md) {
+                ReferenceBrandTile(host: link.url.host, style: style, size: 50)
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack(spacing: 6) {
+                        Text(style.name)
+                            .font(.system(size: 11, weight: .bold, design: .rounded))
+                            .foregroundStyle(style.accent)
+                        if link.isExactMatch { MatchBadge(accent: style.accent) }
+                        Spacer(minLength: 0)
+                    }
+                    Text(link.title.isEmpty ? link.label : link.title)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(HomeDesign.Color.textPrimary)
+                        .lineLimit(1)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    metaLine
+                }
+                Image(systemName: "arrow.up.right")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(HomeDesign.Color.textFaint)
+            }
+            .padding(HomeDesign.Spacing.md)
+            .background(
+                RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
+                    .fill(HomeDesign.Color.surface)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
+                    .stroke(HomeDesign.Color.border, lineWidth: 1)
+            )
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(PressableStyle())
+    }
+
+    /// 부제 + 가격 한 줄. subtitle 없으면 호스트 폴백(흐리게), 가격은 있을 때만 accent 강조.
+    @ViewBuilder
+    private var metaLine: some View {
+        HStack(spacing: 6) {
+            Text(link.subtitle ?? (link.url.host ?? ""))
+                .font(.system(size: 11.5, weight: .medium))
+                .foregroundStyle(link.subtitle != nil
+                                 ? HomeDesign.Color.textMuted : HomeDesign.Color.textFaint)
+                .lineLimit(1)
+            if let price = link.priceText {
+                Text(price)
+                    .font(.system(size: 11.5, weight: .heavy, design: .rounded))
+                    .foregroundStyle(style.accent)
+                    .layoutPriority(1)
+            }
+            Spacer(minLength: 0)
+        }
+    }
+}
+
+// MARK: - 변형 E · 메타 매거진 카드 (요약문·가격을 살린 풀카드)
+
+/// 풀카드(A)에 요약문(subtitle)을 2줄까지 본문처럼 싣고, 쇼핑 가격은 상단 우측 pill 로 강조한다.
+/// 정보가 풍부한 링크(블로그 후기·상품)를 "미리 읽고" 누르게 하는 editorial 변형.
+struct ReferenceMetaCard: View {
+    let link: ReferenceLink
+    let isPrimary: Bool
+    let action: () -> Void
+
+    private var style: ReferenceBrandStyle {
+        ReferenceBrandStyle(provider: link.provider, role: link.role)
+    }
+
+    var body: some View {
+        Button(action: action) {
+            HStack(alignment: .top, spacing: HomeDesign.Spacing.md) {
+                RoundedRectangle(cornerRadius: 2, style: .continuous)
+                    .fill(style.accent)
+                    .frame(width: 3.5)
+                    .frame(maxHeight: .infinity)
+                ReferenceBrandTile(host: link.url.host, style: style, size: 54)
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(spacing: 6) {
+                        Text(style.name)
+                            .font(.system(size: 11, weight: .bold, design: .rounded))
+                            .foregroundStyle(style.accent)
+                        if link.isExactMatch { MatchBadge(accent: style.accent) }
+                        Spacer(minLength: 0)
+                        // 가격은 상단 우측 soft pill — 커머스 링크에서 "얼마"를 먼저 잡게 한다.
+                        if let price = link.priceText {
+                            Text(price)
+                                .font(.system(size: 12.5, weight: .heavy, design: .rounded))
+                                .foregroundStyle(style.accent)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 3)
+                                .background(Capsule().fill(style.soft))
+                        }
+                    }
+                    Text(link.title.isEmpty ? link.label : link.title)
+                        .font(.system(size: 14.5, weight: .semibold))
+                        .foregroundStyle(HomeDesign.Color.textPrimary)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    if let subtitle = link.subtitle {
+                        Text(subtitle)
+                            .font(.system(size: 12.5))
+                            .foregroundStyle(HomeDesign.Color.textMuted)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    HStack(spacing: 4) {
+                        Image(systemName: style.roleIcon)
+                            .font(.system(size: 10, weight: .bold))
+                        Text(link.label)
+                            .font(.system(size: 12, weight: .bold, design: .rounded))
+                        Image(systemName: "arrow.up.right")
+                            .font(.system(size: 9, weight: .bold))
+                    }
+                    .foregroundStyle(style.accent)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(Capsule().fill(style.soft))
+                    .padding(.top, 1)
+                }
+            }
+            .padding(HomeDesign.Spacing.md)
+            .frame(maxWidth: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous)
+                    .fill(HomeDesign.Color.surface)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous)
+                    .stroke(isPrimary ? style.accent.opacity(0.45) : HomeDesign.Color.border,
+                            lineWidth: isPrimary ? 1.5 : 1)
+            )
+            .shadow(color: HomeDesign.Color.ink900.opacity(isPrimary ? 0.08 : 0.05),
+                    radius: isPrimary ? 14 : 8, x: 0, y: isPrimary ? 6 : 3)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(PressableStyle())
+    }
+}
+
+// MARK: - 비교용 컨테이너 (5종 동시 렌더 — 결정 후 나머지 제거)
+
+/// 다섯 변형을 한 화면에 쌓아 실제 데이터로 비교한다. 작은 캡션으로 A~E 를 표시.
+/// A·B·C 는 favicon 중심, D·E 는 검색 메타(부제·가격) 중심.
+/// **임시** — 사용자가 하나를 고르면 나머지와 이 컨테이너를 걷어내고 승자만 ② 섹션에 합친다.
 struct ReferenceLinksComparison: View {
     let links: [ReferenceLink]
     @Environment(\.openURL) private var openURL
@@ -326,6 +483,22 @@ struct ReferenceLinksComparison: View {
                     // 카드 그림자가 잘리지 않게 음수 패딩으로 가장자리 숨통.
                     .padding(.horizontal, -HomeDesign.Spacing.xs)
                 }
+                variant("D · 메타 행카드") {
+                    VStack(spacing: HomeDesign.Spacing.sm) {
+                        ForEach(links) { link in
+                            ReferenceMetaRowCard(link: link) { openURL(link.url) }
+                        }
+                    }
+                }
+                variant("E · 메타 매거진") {
+                    VStack(spacing: HomeDesign.Spacing.sm) {
+                        ForEach(Array(links.enumerated()), id: \.element.id) { index, link in
+                            ReferenceMetaCard(link: link, isPrimary: index == 0) {
+                                openURL(link.url)
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -360,17 +533,20 @@ struct ReferenceLinksComparison: View {
             url: URL(string: "https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do")!,
             title: "토리든 다이브인 저분자 히알루론산 세럼 50ml",
             label: "올리브영에서 보기", role: "buy", provider: "oliveyoung",
-            rankProfile: "cosmetics", source: nil, usefulness: 5
+            rankProfile: "cosmetics", source: nil, usefulness: 5,
+            subtitle: "토리든", priceText: "18,900원"
         ),
         ReferenceLink(
             url: URL(string: "https://www.coupang.com/np/search?q=토리든+세럼")!,
             title: "토리든 다이브인 세럼", label: "쿠팡에서 보기", role: "buy",
-            provider: "coupang", rankProfile: "cosmetics", source: nil, usefulness: 3
+            provider: "coupang", rankProfile: "cosmetics", source: nil, usefulness: 3,
+            subtitle: "토리든", priceText: "16,500원"
         ),
         ReferenceLink(
             url: URL(string: "https://blog.naver.com/review/torriden")!,
             title: "토리든 세럼 성분·발림성 솔직 리뷰", label: "관련 글 보기",
-            role: "read", provider: "info", rankProfile: "general", source: nil, usefulness: 4
+            role: "read", provider: "info", rankProfile: "general", source: nil, usefulness: 4,
+            subtitle: "성분·발림성·3주 사용 후기 — 끈적임 없이 흡수 빠르고 속건조까지 잡아줌"
         ),
     ]
     return ScrollView {

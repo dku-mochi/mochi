@@ -156,6 +156,9 @@ class RankedUrl(BaseModel):
     role: str
     source: str
     rank_profile: str
+    # 누르기 전 "어디서/얼마/무슨 글인지" 식별 단서 — 검색 시점에 이미 받은 메타를 흘린다(추가 fetch 0).
+    subtitle: str = ""    # 카테고리별 부제: local="업종 · 지역" / blog·web=요약문 / shop=브랜드.
+    price_text: str = ""  # shop lprice 가 있을 때만 "18,900원". provider 브랜드와 겹치는 몰名은 안 쓴다.
 
 
 class ResourceFinderOutput(BaseModel):
@@ -929,13 +932,44 @@ def _rank_results(
         label = "관련 링크 보기" if c.demoted else _label(c.provider, role)
         tier_num = 4.0 if c.demoted else c.tier_num
         tier_label = _TIER_LABEL[4.0] if c.demoted else c.tier_label
+        subtitle, price_text = _display_meta(c.item)
         results.append(RankedUrl(
             url=c.item.get("link", ""), title=c.item.get("title", ""),
             tier_num=tier_num, tier_label=tier_label, label=label,
             provider=c.provider, role=role,
             source=c.item.get("source", ""), rank_profile=profile,
+            subtitle=subtitle, price_text=price_text,
         ))
     return results
+
+
+def _short_region(addr: str) -> str:
+    """도로명/지번 주소에서 시·구만 — 카드 한 줄에 들어갈 지역 식별자(앞 2토큰)."""
+    parts = addr.split()
+    return " ".join(parts[:2]) if parts else ""
+
+
+def _display_meta(item: dict[str, Any]) -> tuple[str, str]:
+    """검색 메타를 카드 표시용 (subtitle, price_text)로 환원한다 — 없으면 빈 문자열.
+
+    카드는 이미 provider 로 브랜드 타일·이름을 그리므로 그와 겹치는 mallName 은 쓰지 않고,
+    "무슨 글 / 어디 / 얼마"만 보탠다. subtitle 우선순위: local(업종·지역) > 요약문 > 브랜드.
+    """
+    price_text = ""
+    lprice = str(item.get("lprice") or "").strip()
+    if lprice.isdigit():
+        price_text = f"{int(lprice):,}원"
+
+    subtitle = ""
+    category = str(item.get("category") or "").strip()
+    region = _short_region(str(item.get("roadAddress") or item.get("address") or "").strip())
+    if category or region:                                  # local: "양식점 · 서울 강남구"
+        subtitle = " · ".join(p for p in (category, region) if p)
+    elif (desc := str(item.get("description") or "").strip()):  # blog/news/web: 요약문
+        subtitle = desc[:80]
+    elif (brand := str(item.get("brand") or "").strip()):       # shop: 브랜드
+        subtitle = brand
+    return subtitle, price_text
 
 
 def _reference_entity_value(row: RankedUrl, usefulness: int | None) -> str:
@@ -948,7 +982,12 @@ def _reference_entity_value(row: RankedUrl, usefulness: int | None) -> str:
         "rankProfile": row.rank_profile,
         "source": row.source,
     }
-    # pick 된 링크만 usefulness 를 싣는다 — 없으면 키 자체를 빼서 iOS 가 None(뱃지 OFF)으로 읽는다.
+    # subtitle·priceText·usefulness 는 값이 있을 때만 싣는다 — 빈 키를 빼서 iOS 가 None 으로 읽고
+    # (부제·가격 pill 미표시, 뱃지 OFF), 메타 없는 링크(visible/original/synthetic)는 폴백한다.
+    if row.subtitle:
+        payload["subtitle"] = row.subtitle
+    if row.price_text:
+        payload["priceText"] = row.price_text
     if usefulness is not None:
         payload["usefulness"] = usefulness
     return json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
