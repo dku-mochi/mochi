@@ -11,6 +11,9 @@ public protocol SyncTrigger: Sendable {
     /// 서버→로컬 복구 — 재설치 후 서버의 owner 항목 전체를 로컬 Realm 으로 끌어온다.
     /// 로그인 직후·홈 빈 상태·설정 "전체 동기화" 버튼이 호출한다.
     func pullRemote() async
+    /// 단건 reconcile — foreground 완료 푸시 수신 즉시 해당 항목(server PK)을 재조회해 분석을 반영한다.
+    /// 폴링 tick 대기 없이 가져오는 경로. 결과는 `observeChanges` 로 열린 상세·홈에 전파된다.
+    func reconcile(serverID: UUID) async
 }
 
 public enum SyncTriggerKey: DependencyKey {
@@ -30,6 +33,7 @@ public struct NotConfiguredSyncTrigger: SyncTrigger {
     public init() {}
     public func runOnce() async {}
     public func pullRemote() async {}
+    public func reconcile(serverID: UUID) async {}
 }
 
 /// ``MochiItemSyncWorker`` 가 그대로 ``SyncTrigger`` 역할 — actor 이므로 자동 Sendable.

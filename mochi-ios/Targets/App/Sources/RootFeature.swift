@@ -66,6 +66,9 @@ struct RootFeature: Sendable {
         case pendingMemoDiscovered(UUID)
         /// 분석완료 알림 탭 — 해당 항목 상세를 연다. 인자는 server PK(server→local 역매핑은 MainTab 이 수행).
         case notificationTapped(UUID)
+        /// foreground 완료 푸시 수신(탭 아님) — 폴링 tick 을 기다리지 않고 그 항목을 즉시 reconcile 한다.
+        /// 인자는 server PK. 반영은 observeChanges 로 열린 상세·홈에 전파(별도 화면 전환 없음).
+        case analysisPushReceived(UUID)
         case login(LoginFeature.Action)
         case main(MainTabFeature.Action)
         case requestSignOut
@@ -133,6 +136,11 @@ struct RootFeature: Sendable {
                 // 콜드 스타트에도 안전). 항목 최신화는 scenePhase active reconcile(폴링/SSE 재구독).
                 state.main.selectedTab = .home
                 return .send(.main(.openDetailFromNotification(serverID: serverID)))
+
+            case let .analysisPushReceived(serverID):
+                // foreground 완료 푸시 — 화면 전환 없이 그 항목만 즉시 가져온다. 열린 상세(observeChanges)
+                // 와 홈/검색이 따라서 갱신된다. 폴링은 fallback 으로 그대로 둔다(항목별 폴링은 반영되면 자동 종료).
+                return .run { [syncTrigger] _ in await syncTrigger.reconcile(serverID: serverID) }
 
             case .backTapModal(.presented(.delegate(.dismiss))):
                 state.backTapModal = nil

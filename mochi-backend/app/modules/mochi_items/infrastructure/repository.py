@@ -1,6 +1,7 @@
 import hashlib
 import json
 from datetime import datetime
+from urllib.parse import parse_qs, urlparse
 from uuid import UUID
 
 from sqlalchemy import ColumnElement, delete, func, select, update
@@ -66,7 +67,58 @@ def _row_to_instance(row: IntentInstanceRow) -> IntentInstance:
     )
 
 
+def _canonical_link_key(url: str) -> str:
+    """관련 링크 dedup 키 — 원본/intent URL 과 같은 자료를 가려낸다.
+
+    youtu.be · watch?v= · shorts/ · embed/ 는 같은 영상으로 환원(쇼츠↔watch 동일시 — youtu.be 의
+    `?si=` 공유 파라미터·watch 의 `&list=`/`&t=` 는 무시), 그 외는 ``resource_finder._dedupe_key`` 와
+    같은 규칙(host[www./m. 제거]+path+원본 query). query 값은 대소문자를 구분(토큰·ID 식별)하므로
+    host·path 와 달리 소문자화하지 않는다.
+
+    iOS ``URLCanonical`` 과 같은 규칙이나, 둘은 ⓪ 계약이 아닌 ③(주석) 단일기준이라 정상 URL
+    (http/https, 비-percent-encoded path)에 한해 동등하다 — percent-encoded path·hostless 등 비정상
+    입력은 파서 차이로 키가 갈릴 수 있으나 dedup 은 백엔드(주)+iOS(안전망) 2중이라 무해.
+    """
+    try:
+        p = urlparse(url)
+    except ValueError:
+        return ""
+    host = (p.netloc or "").lower()
+    if host.startswith("www."):
+        host = host[4:]
+    if host.startswith("m."):
+        host = host[2:]
+    path = (p.path or "").rstrip("/")
+    if host == "youtu.be":
+        vid = path.lstrip("/").split("/")[0]
+        if vid:
+            return f"youtube:{vid}"
+    elif host == "youtube.com":
+        if path == "/watch":
+            vid = (parse_qs(p.query).get("v") or [""])[0]
+            if vid:
+                return f"youtube:{vid}"
+        elif path.startswith(("/shorts/", "/embed/", "/v/")):
+            segs = path.split("/")
+            vid = segs[2] if len(segs) > 2 else ""
+            if vid:
+                return f"youtube:{vid}"
+    key = host + path.lower()
+    return f"{key}?{p.query}" if p.query else key
+
+
 def _reference_links(row: MochiItemRow) -> tuple[ReferenceLink, ...]:
+    # 원본(source.url)·의도(payload.url)와 같은 자료는 관련 링크에서 제외한다 — 회수>확장
+    # 우선순위라 원본 링크의 자리는 "지금 할 수 있어요"이고, 관련 링크엔 원본과 다른 확장 자료만 남긴다.
+    # (유튜브 쇼츠 캡처에서 recoverYoutubeUrl 이 복원한 원본 영상이 reference 와 payload.url 양쪽에
+    #  중복으로 들어가 상세 화면 두 섹션에 같은 링크가 뜨던 문제, 2026-06-15.)
+    excluded: set[str] = set()
+    if row.url and (key := _canonical_link_key(row.url)):
+        excluded.add(key)
+    for inst in row.intent_instances:
+        payload_url = (inst.payload or {}).get("url")
+        if isinstance(payload_url, str) and payload_url and (key := _canonical_link_key(payload_url)):
+            excluded.add(key)
     links: list[ReferenceLink] = []
     seen: set[str] = set()
     for entity in row.entities:
@@ -88,6 +140,8 @@ def _reference_links(row: MochiItemRow) -> tuple[ReferenceLink, ...]:
         if not isinstance(url, str) or not url.startswith(("http://", "https://")):
             continue
         if url in seen:
+            continue
+        if _canonical_link_key(url) in excluded:
             continue
         seen.add(url)
         links.append(
