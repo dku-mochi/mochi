@@ -1,4 +1,4 @@
-.PHONY: install dev test lint typecheck format migrate revision db-up db-down clean openapi
+.PHONY: install dev test lint typecheck format migrate revision db-up db-down clean openapi usage-report
 
 UV ?= uv
 
@@ -22,6 +22,10 @@ format:
 typecheck:
 	# `mochi-backend` 디렉토리 자체는 PyPI 패키지명이 아니므로 mypy에는 explicit packages 옵션이 필요.
 	$(UV) run mypy --explicit-package-bases app
+
+# LLM 토큰/비용 사용량 리포트. BY=day|user|item (기본 day).
+usage-report:
+	PYTHONPATH=. $(UV) run python scripts/llm_usage_report.py --by $(or $(BY),day)
 
 db-up:
 	docker compose up -d db

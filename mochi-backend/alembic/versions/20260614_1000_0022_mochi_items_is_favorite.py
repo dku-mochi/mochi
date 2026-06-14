@@ -4,8 +4,8 @@
 상세에서 토글하면 모찌가 능동 회수(홈 즐겨찾기 시트)에 활용한다. reanalyze 는 건드리지 않는다.
 NOT NULL DEFAULT false — 기존 행은 전부 비즐겨찾기로 백필.
 
-Revision ID: 0021
-Revises: 0020
+Revision ID: 0022
+Revises: 0021
 Create Date: 2026-06-14 10:00:00.000000
 """
 
@@ -15,8 +15,8 @@ import sqlalchemy as sa
 
 from alembic import op
 
-revision: str = "0021"
-down_revision: str | None = "0020"
+revision: str = "0022"
+down_revision: str | None = "0021"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

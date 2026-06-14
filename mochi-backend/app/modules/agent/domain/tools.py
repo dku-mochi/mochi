@@ -11,6 +11,8 @@ class ToolName(StrEnum):
     OCR_FALLBACK = "ocrFallback"
     WEB_FETCH = "webFetch"
     PLATFORM_CONTEXT = "platformContext"
+    RESOURCE_FINDER = "findReferenceUrls"
+    RECOVER_YOUTUBE_URL = "recoverYoutubeUrl"
     EMBED = "embed"
     HYBRID_SEARCH = "hybridSearch"
     CALENDAR_SYNC = "calendarSync"

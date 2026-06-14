@@ -32,7 +32,14 @@ public final class URLSessionAuthAPIClient: AuthAPIClient, @unchecked Sendable {
         e.dateEncodingStrategy = .iso8601
         self.encoder = e
         let d = JSONDecoder()
-        d.dateDecodingStrategy = .iso8601
+        // 백엔드(Pydantic v2)는 microsecond≠0 일 때만 fractional seconds 를 포함시켜
+        // ISO8601 을 들쭉날쭉하게 내려준다. 기본 `.iso8601` 은 소수점 초를 거부하므로,
+        // generated 클라이언트와 동일한 ``MochiDateTranscoder`` 로 양쪽을 모두 수용한다.
+        let transcoder = MochiDateTranscoder()
+        d.dateDecodingStrategy = .custom { decoder in
+            let string = try decoder.singleValueContainer().decode(String.self)
+            return try transcoder.decode(string)
+        }
         self.decoder = d
     }
 

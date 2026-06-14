@@ -2283,6 +2283,13 @@
             "type": "string",
             "nullable": true
           },
+          "referenceLinks": {
+            "items": {
+              "$ref": "#/components/schemas/ReferenceLinkResponse"
+            },
+            "type": "array",
+            "title": "Referencelinks"
+          },
           "importance": {
             "type": "integer",
             "title": "Importance"
@@ -2476,6 +2483,55 @@
         ],
         "title": "ReanalyzeRequest",
         "description": "needs_review 항목 재분석 요청 — 사용자가 \"다른 의도\"를 고르며 자연어로 적은 의도 힌트.\n\n힌트는 분석 프롬프트 context 에만 합류하고 **outbox 행에만 일시 적재**된다.\n`mochi_items`·`user_memo` 에는 저장하지 않는다(사용자가 직접 쓴 메모로 오해하는 것을 막는다)."
+      },
+      "ReferenceLinkResponse": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "rankProfile": {
+            "type": "string",
+            "title": "Rankprofile"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string",
+            "nullable": true
+          },
+          "usefulness": {
+            "title": "Usefulness",
+            "type": "integer",
+            "nullable": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "url",
+          "title",
+          "label",
+          "role",
+          "provider",
+          "rankProfile"
+        ],
+        "title": "ReferenceLinkResponse",
+        "description": "상세 화면 \"지금 할 수 있어요\" 에 붙일 참고 URL."
       },
       "RefreshRequest": {
         "properties": {

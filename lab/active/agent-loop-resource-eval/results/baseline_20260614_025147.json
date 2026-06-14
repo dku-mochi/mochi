@@ -1,0 +1,2304 @@
+{
+  "summary": {
+    "cases": 39,
+    "errors": 0,
+    "finder_call_rate": 0.41,
+    "finder_useful": 14,
+    "recover_call_rate": 0.21,
+    "recover_ok": 8,
+    "youtube_cases": 8,
+    "youtube_recover_called": 8
+  },
+  "results": [
+    {
+      "file": "0-카카오톡.jpg",
+      "source_app": "카카오톡",
+      "label_ko": "카카오톡",
+      "gt_summary": "Claude 모델 관련 정보와 InSeoul.ai를 통한 입시 상담 대화 내용입니다. 추후 관련 정보를 참고하기 위해 저장했습니다.",
+      "gt_category": "학업",
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [],
+      "analysis": {
+        "summary": "Claude 모델 정보와 AI 입시 상담 서비스(InSeoul.ai) 링크를 공유받은 대화 내용입니다. 정보성 내용과 상담 기록을 각각 저장합니다.",
+        "category": "AI 서비스",
+        "needs_review": false,
+        "intents": [
+          "knowledge",
+          "memo"
+        ],
+        "entities": [
+          {
+            "kind": "knowledge",
+            "value": "Claude 모델 정보"
+          },
+          {
+            "kind": "knowledge",
+            "value": "InSeoul.ai 입시 상담 서비스"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "file": "1-인스타.jpg",
+      "source_app": "Instagram",
+      "label_ko": "인스타",
+      "gt_summary": "인스타그램 광고로 확인한 로프리(Lofree) EDGE 키보드 20% 할인 정보입니다. 디자인이 매력적이라 향후 구매를 고려하기 위해 저장했습니다.",
+      "gt_category": "쇼핑 후보",
+      "events": [
+        "node",
+        "node",
+        "node",
+        "tool_started",
+        "tool_finished",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [
+        {
+          "tool": "findReferenceUrls",
+          "input": {
+            "queries": [
+              "lofree edge keyboard"
+            ],
+            "category": "shop",
+            "original_url": null
+          },
+          "output": {
+            "useful": true,
+            "usefulness": 5,
+            "ranked_urls": [
+              {
+                "url": "https://smartstore.naver.com/main/products/12409737910",
+                "title": "로프리 EDGE84 블루투스 키보드 초경량 초박형 기계식 블랙, EDGE축",
+                "tier_num": 3.0,
+                "tier_label": "tier3_openmarket"
+              },
+              {
+                "url": "https://smartstore.naver.com/main/products/12409737911",
+                "title": "로프리 EDGE84 블루투스 키보드 초경량 초박형 기계식 그레이, EDGE축",
+                "tier_num": 3.0,
+                "tier_label": "tier3_openmarket"
+              },
+              {
+                "url": "https://smartstore.naver.com/main/products/11364304294",
+                "title": "LOFREE Edge 로프리 엣지 키보드 1000Hz 84키 블루투스 그레이",
+                "tier_num": 3.0,
+                "tier_label": "tier3_openmarket"
+              }
+            ],
+            "comment": "사용자가 찾고 있는 로프리 엣지(Lofree Edge) 키보드 상품 페이지가 정확하게 검색되었습니다."
+          }
+        }
+      ],
+      "analysis": {
+        "summary": "인스타그램 광고에서 본 로프리 엣지(Lofree Edge) 키보드입니다. 20% 할인 중이라 구매를 고민하며 저장했습니다.",
+        "category": "쇼핑 후보",
+        "needs_review": false,
+        "intents": [
+          "memo"
+        ],
+        "entities": [
+          {
+            "kind": "shopping_product",
+            "value": "로프리 엣지 키보드"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "file": "10-카카오톡.jpg",
+      "source_app": "카카오톡",
+      "label_ko": "카카오톡",
+      "gt_summary": "DNS의 정의, 계층적 구조, 질의 과정 및 리소스 레코드 형식 등 기술적 작동 원리를 설명하는 내용입니다. 추후 기술적 참고를 위해 저장했습니다.",
+      "gt_category": "학업",
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [],
+      "analysis": {
+        "summary": "DNS의 정의, 계층적 구조, 동작 원리 및 메시지 구성에 대한 기술적 설명입니다. 나중에 DNS 관련 개념을 참고하거나 학습하기 위해 저장합니다.",
+        "category": "IT 학습",
+        "needs_review": false,
+        "intents": [
+          "knowledge"
+        ],
+        "entities": []
+      },
+      "error": null
+    },
+    {
+      "file": "11-유튜브.jpg",
+      "source_app": "YouTube",
+      "label_ko": "유튜브",
+      "gt_summary": "유튜브 영상 댓글에 공유된 너드킹의 추천 반팔 셔츠 제품 리스트입니다. 추후 쇼핑 시 참고하기 위해 저장했습니다.",
+      "gt_category": "일상",
+      "events": [
+        "node",
+        "node",
+        "node",
+        "tool_started",
+        "tool_finished",
+        "tool_started",
+        "tool_finished",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [
+        {
+          "tool": "recoverYoutubeUrl",
+          "input": {
+            "query": "유튜브 반팔 셔츠 추천 코디 영상 댓글 링크"
+          },
+          "output": {
+            "recovered": true,
+            "url": "https://www.youtube.com/watch?v=aR8vTpNB9zk",
+            "video_id": "aR8vTpNB9zk",
+            "candidates": [
+              "aR8vTpNB9zk",
+              "HgDKlo3JB3g",
+              "jPTQF9LFsTc",
+              "_SVBcmG6xu0",
+              "2uQxxiZ5hHY"
+            ],
+            "recovered_title": "담백한 반팔셔츠 코디 [3가지]",
+            "recovered_channel": "현영현영해 패션유튜브"
+          }
+        },
+        {
+          "tool": "findReferenceUrls",
+          "input": {
+            "queries": [
+              "파브레가 로렌 스트라이프 크롭 하프 셔츠",
+              "알리스 린넨 데님 투 포켓 롤 업 크롭 하프 셔츠",
+              "애습 엠보 체크 반팔 셔츠",
+              "데꼬로소 링클 텍스처 반팔 롤업 셔츠",
+              "드로우핏 루체 스트라이프 하프 웨스턴 셔츠",
+              "수아레 텐셀 린넨 크롭 하프 셔츠"
+            ],
+            "category": "shop",
+            "original_url": null
+          },
+          "output": {
+            "useful": true,
+            "usefulness": 5,
+            "ranked_urls": [
+              {
+                "url": "https://search.shopping.naver.com/catalog/60098566465",
+                "title": "파브레가 FABREGAT 로렌 스트라이프 크롭 하프 셔츠 스카이 985736",
+                "tier_num": 3.6,
+                "tier_label": "tier3_pricecompare"
+              },
+              {
+                "url": "https://search.shopping.naver.com/catalog/60345867603",
+                "title": "알리스 린넨 데님 투 포켓 롤 업 크롭 하프 셔츠 ALSSH6223WB",
+                "tier_num": 3.6,
+                "tier_label": "tier3_pricecompare"
+              },
+              {
+                "url": "https://search.shopping.naver.com/catalog/60085547011",
+                "title": "애습 엠보 체크 반팔 셔츠",
+                "tier_num": 3.6,
+                "tier_label": "tier3_pricecompare"
+              }
+            ],
+            "comment": "사용자가 검색한 파브레가, 알리스, 애습 등의 셔츠 상품 정보와 정확히 일치하는 쇼핑 링크들이 다수 포함되어 있어 매우 유용합니다."
+          }
+        }
+      ],
+      "analysis": {
+        "summary": "유튜브 '현영현영해' 채널의 반팔 셔츠 코디 영상에서 추천된 셔츠 제품 리스트입니다. 나중에 스타일을 비교하고 구매를 고려하기 위해 저장했습니다.",
+        "category": "쇼핑 후보",
+        "needs_review": false,
+        "intents": [
+          "memo"
+        ],
+        "entities": [
+          {
+            "kind": "shopping_product",
+            "value": "파브레가 로렌 스트라이프 크롭 하프 셔츠"
+          },
+          {
+            "kind": "shopping_product",
+            "value": "알리스 린넨 데님 투 포켓 롤 업 크롭 하프 셔츠"
+          },
+          {
+            "kind": "shopping_product",
+            "value": "애습 엠보 체크 반팔 셔츠"
+          },
+          {
+            "kind": "shopping_product",
+            "value": "데꼬로소 링클 텍스처 반팔 롤업 셔츠"
+          },
+          {
+            "kind": "shopping_product",
+            "value": "드로우핏 루체 스트라이프 하프 웨스턴 셔츠"
+          },
+          {
+            "kind": "shopping_product",
+            "value": "수아레 텐셀 린넨 크롭 하프 셔츠"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "file": "12-인스타.jpg",
+      "source_app": "Instagram",
+      "label_ko": "인스타",
+      "gt_summary": "인스타그램에서 발견한 SOTSU 포터블 모니터(FlipAction TOUCH 14, GO 14) 제품 정보입니다. 디자인과 터치 기능이 매력적이라 향후 구매를 고려하기 위해 저장했습니다.",
+      "gt_category": "쇼핑 후보",
+      "events": [
+        "node",
+        "node",
+        "node",
+        "tool_started",
+        "tool_finished",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [
+        {
+          "tool": "findReferenceUrls",
+          "input": {
+            "queries": [
+              "SOTSU 포터블 모니터 FlipAction TOUCH 14",
+              "XTUFF SOTSU 포터블 모니터"
+            ],
+            "category": "shop",
+            "original_url": null
+          },
+          "output": {
+            "useful": true,
+            "usefulness": 5,
+            "ranked_urls": [
+              {
+                "url": "https://smartstore.naver.com/main/products/11629673013",
+                "title": "SOTSU FlipAction Go 14 플립액션 고 터치 휴대용 모니터 14인치 라일락",
+                "tier_num": 3.0,
+                "tier_label": "tier3_openmarket"
+              },
+              {
+                "url": "https://smartstore.naver.com/main/products/11668657065",
+                "title": "SOTSU FlipAction Go 14 플립액션 고 터치 휴대용 모니터 14인치 메탈릭",
+                "tier_num": 3.0,
+                "tier_label": "tier3_openmarket"
+              },
+              {
+                "url": "https://smartstore.naver.com/main/products/11629678940",
+                "title": "SOTSU FlipAction Go 14 플립액션 고 터치 휴대용 모니터 14인치 메탈릭",
+                "tier_num": 3.0,
+                "tier_label": "tier3_openmarket"
+              }
+            ],
+            "comment": "사용자가 찾고 있는 SOTSU FlipAction 14인치 터치 휴대용 모니터 상품 페이지와 정확히 일치합니다."
+          }
+        }
+      ],
+      "analysis": {
+        "summary": "인스타그램에서 발견한 SOTSU의 14인치 터치 포터블 모니터입니다. 우아한 디자인과 편리한 터치 기능에 관심이 생겨 나중에 다시 살펴보고 구매를 고민하기 위해 저장했습니다.",
+        "category": "쇼핑 후보",
+        "needs_review": false,
+        "intents": [
+          "memo"
+        ],
+        "entities": [
+          {
+            "kind": "shopping_product",
+            "value": "SOTSU FlipAction 14인치 포터블 모니터"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "file": "13-유튜브.jpg",
+      "source_app": "YouTube",
+      "label_ko": "유튜브",
+      "gt_summary": "유튜브 영상 댓글에 공유된 유니클로 추천 아이템(유틸리티 셔츠, 스웨트 풀파카, 스웨트 와이드 팬츠) 정보입니다. 제품명과 사이즈 팁을 참고하여 향후 구매를 고려하기 위해 저장했습니다.",
+      "gt_category": "쇼핑 후보",
+      "events": [
+        "node",
+        "node",
+        "node",
+        "tool_started",
+        "tool_finished",
+        "tool_started",
+        "tool_finished",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [
+        {
+          "tool": "recoverYoutubeUrl",
+          "input": {
+            "query": "유니클로U 유틸리티셔츠 유니클로C 스웨트오버사이즈풀파카 스웨트와이드팬츠"
+          },
+          "output": {
+            "recovered": true,
+            "url": "https://www.youtube.com/watch?v=mTB7vJbqHGs",
+            "video_id": "mTB7vJbqHGs",
+            "candidates": [
+              "mTB7vJbqHGs",
+              "67bLoVPT1jk",
+              "kAg3J5AhiEM",
+              "8qYpw9lCkBA",
+              "fp0dd9RfVmo"
+            ],
+            "recovered_title": "새로운 컬러와 함께 돌아온 UNIQLO:C 스웨트 와이드 팬츠!",
+            "recovered_channel": "유니클로 UNIQLO"
+          }
+        },
+        {
+          "tool": "findReferenceUrls",
+          "input": {
+            "queries": [
+              "유니클로 유틸리티셔츠 긴팔 다크브라운",
+              "유니클로 스웨트오버사이즈풀파카 그레이",
+              "유니클로 스웨트와이드팬츠 그레이"
+            ],
+            "category": "shop",
+            "original_url": null
+          },
+          "output": {
+            "useful": true,
+            "usefulness": 5,
+            "ranked_urls": [
+              {
+                "url": "https://www.uniqlo.com/kr/ko/products/E471808-000/00?colorDisplayCode=03&sizeDisplayCode=006&utm_source=naver&utm_medium=organic&utm_campaign=freelisting&utm_content_universallink&nodeeplink=1",
+                "title": "[유니클로] 스웨트오버사이즈풀파카 | Gray | XL",
+                "tier_num": 3.0,
+                "tier_label": "tier3_openmarket"
+              },
+              {
+                "url": "https://search.shopping.naver.com/catalog/50400147596",
+                "title": "유니클로 유틸리티 긴팔 셔츠 471784",
+                "tier_num": 3.6,
+                "tier_label": "tier3_pricecompare"
+              },
+              {
+                "url": "https://search.shopping.naver.com/catalog/57727638159",
+                "title": "유니클로 스웨트 와이드 팬츠 482314",
+                "tier_num": 3.6,
+                "tier_label": "tier3_pricecompare"
+              }
+            ],
+            "comment": "사용자가 찾고 있는 유니클로 스웨트오버사이즈풀파카 그레이 제품의 공식 홈페이지 링크와 스웨트 와이드 팬츠, 유틸리티 셔츠의 쇼핑 링크가 정확하게 매칭되어 유용합니다."
+          }
+        }
+      ],
+      "analysis": {
+        "summary": "유튜브 영상에서 추천된 유니클로 제품(유틸리티 셔츠, 스웨트 오버사이즈 풀파카, 스웨트 와이드 팬츠)의 정보와 가격을 기록했습니다. 나중에 쇼핑 시 참고하기 위해 저장합니다.",
+        "category": "쇼핑 후보",
+        "needs_review": false,
+        "intents": [
+          "memo"
+        ],
+        "entities": [
+          {
+            "kind": "shopping_product",
+            "value": "유니클로 유틸리티 셔츠 긴팔 다크브라운"
+          },
+          {
+            "kind": "shopping_product",
+            "value": "유니클로 스웨트 오버사이즈 풀파카 그레이"
+          },
+          {
+            "kind": "shopping_product",
+            "value": "유니클로 스웨트 와이드 팬츠 그레이"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "file": "14-네이버지도.jpg",
+      "source_app": "네이버지도",
+      "label_ko": "네이버지도",
+      "gt_summary": "여의도에 위치한 베이커리 '브로트아트'의 네이버지도 정보입니다. 추후 방문을 고려하여 장소 정보를 저장했습니다.",
+      "gt_category": "일상",
+      "events": [
+        "node",
+        "node",
+        "node",
+        "tool_started",
+        "tool_finished",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [
+        {
+          "tool": "findReferenceUrls",
+          "input": {
+            "queries": [
+              "브로트아트 여의도 본점"
+            ],
+            "category": "local",
+            "original_url": null
+          },
+          "output": {
+            "useful": true,
+            "usefulness": 5,
+            "ranked_urls": [
+              {
+                "url": "https://smartstore.naver.com/brotart",
+                "title": "브로트아트 여의도 본점",
+                "tier_num": 3.0,
+                "tier_label": "tier3_openmarket"
+              }
+            ],
+            "comment": "사용자가 검색한 '브로트아트 여의도 본점'의 공식 스마트스토어 링크로 매우 유용합니다."
+          }
+        }
+      ],
+      "analysis": {
+        "summary": "생활의달인에 소개된 '브로트아트 여의도 본점'입니다. 딸기 케이크가 인상적이라 나중에 방문하거나 구매할 목적으로 저장했습니다.",
+        "category": "맛집 탐방",
+        "needs_review": false,
+        "intents": [
+          "memo"
+        ],
+        "entities": [
+          {
+            "kind": "place",
+            "value": "브로트아트 여의도 본점"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "file": "15-유튜브.jpg",
+      "source_app": "YouTube",
+      "label_ko": "유튜브",
+      "gt_summary": "정재형 마제소바 레시피를 다룬 따라쿡 유튜브 영상입니다. 나중에 요리할 때 참고하기 위해 저장했습니다.",
+      "gt_category": "요리 레시피",
+      "events": [
+        "node",
+        "node",
+        "node",
+        "tool_started",
+        "tool_finished",
+        "tool_started",
+        "tool_finished",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [
+        {
+          "tool": "recoverYoutubeUrl",
+          "input": {
+            "query": "따라cook 정재형 마제소바 라오깐마"
+          },
+          "output": {
+            "recovered": true,
+            "url": "https://www.youtube.com/watch?v=tDHB5QwHgwY",
+            "video_id": "tDHB5QwHgwY",
+            "candidates": [
+              "tDHB5QwHgwY",
+              "tqcsjw8pgVQ",
+              "iTKVr-O832g",
+              "zltoDFB-v7Y",
+              "2BC51FL9dKM"
+            ],
+            "recovered_title": "정재형 마제소바 #라오깐마",
+            "recovered_channel": "따라쿡"
+          }
+        },
+        {
+          "tool": "findReferenceUrls",
+          "input": {
+            "queries": [
+              "라오깐마 마제소바 재료",
+              "라오깐마 고추기름",
+              "왕치화 땅콩소스"
+            ],
+            "category": "shop",
+            "original_url": null
+          },
+          "output": {
+            "useful": true,
+            "usefulness": 5,
+            "ranked_urls": [
+              {
+                "url": "https://smartstore.naver.com/main/products/7356641706",
+                "title": "라오깐마 라조장 중국 고추기름 유라죠우 소스 양념 라개장 라오간마 로깐마",
+                "tier_num": 3.0,
+                "tier_label": "tier3_openmarket"
+              },
+              {
+                "url": "https://smartstore.naver.com/main/products/495142163",
+                "title": "라오간마 라조장 고추 유라죠우 275g 외 3종 라오깐마 중국 고추 기름 두반장 소스",
+                "tier_num": 3.0,
+                "tier_label": "tier3_openmarket"
+              },
+              {
+                "url": "https://search.shopping.naver.com/catalog/56987563785",
+                "title": "우리가스토리 왕즈허 즈마장 땅콩 참깨 소스 225g, 1개",
+                "tier_num": 3.6,
+                "tier_label": "tier3_pricecompare"
+              }
+            ],
+            "comment": "사용자가 찾던 라오깐마 고추기름과 왕치화(왕즈허) 땅콩소스 상품이 정확하게 매칭되어 포함되어 있습니다."
+          }
+        }
+      ],
+      "analysis": {
+        "summary": "정재형이 소개하는 라오깐마를 활용한 마제소바 레시피 영상입니다. 요리법을 참고하거나 관련 재료를 확인하기 위해 저장했습니다.",
+        "category": "요리 레시피",
+        "needs_review": false,
+        "intents": [
+          "memo"
+        ],
+        "entities": [
+          {
+            "kind": "shopping_product",
+            "value": "라오깐마 라조장 고추기름"
+          },
+          {
+            "kind": "shopping_product",
+            "value": "왕즈허 즈마장 땅콩소스"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "file": "16-유튜브.jpg",
+      "source_app": "YouTube",
+      "label_ko": "유튜브",
+      "gt_summary": "코딩애플 채널의 '요즘 판교사투리 1. \"하네스 엔지니어링\"' 영상을 나중에 시청하기 위해 저장했습니다.",
+      "gt_category": "일상",
+      "events": [
+        "node",
+        "node",
+        "node",
+        "tool_started",
+        "tool_finished",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [
+        {
+          "tool": "recoverYoutubeUrl",
+          "input": {
+            "query": "codingapple 요즘 판교사투리 1. \"하네스 엔지니어링\""
+          },
+          "output": {
+            "recovered": true,
+            "url": "https://www.youtube.com/watch?v=q1v1_btl19w",
+            "video_id": "q1v1_btl19w",
+            "candidates": [
+              "q1v1_btl19w"
+            ],
+            "recovered_title": "요즘 판교사투리 1. \"하네스 엔지니어링\"",
+            "recovered_channel": "코딩애플"
+          }
+        }
+      ],
+      "analysis": {
+        "summary": "코딩애플의 '요즘 판교사투리 1. \"하네스 엔지니어링\"' 영상을 나중에 다시 보기 위해 저장했습니다.",
+        "category": "영상 시청",
+        "needs_review": false,
+        "intents": [
+          "memo"
+        ],
+        "entities": [
+          {
+            "kind": "url",
+            "value": "https://www.youtube.com/watch?v=q1v1_btl19w"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "file": "17-카카오톡.jpg",
+      "source_app": "카카오톡",
+      "label_ko": "카카오톡",
+      "gt_summary": "더프리그 배송 지연 및 사은품 선출고 안내 메시지입니다. 배송 상태 확인을 위해 저장했습니다.",
+      "gt_category": "일상",
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [],
+      "analysis": {
+        "summary": "더프리그 배송 지연에 따른 사은품 선출고 안내 및 송장 번호(6902-9403-9465)가 포함된 메시지입니다. 배송 상태 확인을 위해 저장합니다.",
+        "category": "쇼핑 관리",
+        "needs_review": false,
+        "intents": [
+          "memo"
+        ],
+        "entities": [
+          {
+            "kind": "tracking_number",
+            "value": "6902-9403-9465"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "file": "18-네이버지도.jpg",
+      "source_app": "네이버지도",
+      "label_ko": "네이버지도",
+      "gt_summary": "해방촌에 위치한 카페 '널담은공간'의 네이버지도 정보입니다. 실링 왁스 체험 등 특별한 컨셉을 가진 곳으로, 추후 방문을 고려하여 저장했습니다.",
+      "gt_category": "일상",
+      "events": [
+        "node",
+        "node",
+        "node",
+        "tool_started",
+        "tool_finished",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [
+        {
+          "tool": "findReferenceUrls",
+          "input": {
+            "queries": [
+              "널담은공간 해방촌점"
+            ],
+            "category": "local",
+            "original_url": null
+          },
+          "output": {
+            "useful": true,
+            "usefulness": 5,
+            "ranked_urls": [
+              {
+                "url": "http://www.nuldam.com",
+                "title": "널담은공간 해방촌점",
+                "tier_num": 4.0,
+                "tier_label": "tier4_info"
+              }
+            ],
+            "comment": "사용자가 찾던 '널담은공간 해방촌점'의 공식 웹사이트 링크를 정확히 찾았습니다."
+          }
+        }
+      ],
+      "analysis": {
+        "summary": "실링 왁스 편지 쓰기 체험이 가능한 '널담은공간 해방촌점'입니다. 추후 방문을 위해 저장해 두었습니다.",
+        "category": "데이트 코스",
+        "needs_review": false,
+        "intents": [
+          "memo"
+        ],
+        "entities": [
+          {
+            "kind": "place",
+            "value": "널담은공간 해방촌점"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "file": "19-인스타.jpg",
+      "source_app": "Instagram",
+      "label_ko": "인스타",
+      "gt_summary": "Claude를 활용하여 모션 그래픽 제작의 효율성을 높이는 방법에 관한 인스타그램 릴스 영상입니다. 향후 관련 작업 시 참고하기 위해 저장했습니다.",
+      "gt_category": "학업",
+      "events": [
+        "node",
+        "node",
+        "node",
+        "tool_started",
+        "tool_finished",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [
+        {
+          "tool": "platformContext",
+          "input": {
+            "url": "https://www.instagram.com/reels/C8Kq6W8v-0-/",
+            "platform": "instagram"
+          },
+          "output": {
+            "platform": "instagram",
+            "final_url": "https://www.instagram.com/accounts/login/?next=https%3A%2F%2Fwww.instagram.com%2Freels%2FC8Kq6W8v-0-%2F%3F__coig_login%3D1",
+            "status_code": 200,
+            "title": "Instagram",
+            "author": null,
+            "description": "Create an account or log in to Instagram - Share what you're into with the people who get you.",
+            "duration_seconds": null,
+            "thumbnail_url": "https://static.cdninstagram.com/rsrc.php/v4/yD/r/R0fBIMurK8v.png",
+            "canonical_url": "https://instagram.com/",
+            "source": "instagram_og_fallback",
+            "sufficient": true,
+            "confidence": 0.58,
+            "text": "platform: Instagram\ntitle: Instagram\ndescription: Create an account or log in to Instagram - Share what you're into with the people who get you.\nnote: Instagram image/post meaning often depends on the screenshot image itself."
+          }
+        }
+      ],
+      "analysis": {
+        "summary": "Claude AI를 활용해 모션 그래픽 제작을 효율화하는 방법에 대한 인스타그램 릴스 영상입니다. 나중에 관련 내용을 확인하기 위해 저장했습니다.",
+        "category": "AI 도구 학습",
+        "needs_review": false,
+        "intents": [
+          "memo"
+        ],
+        "entities": [
+          {
+            "kind": "topic",
+            "value": "Claude AI motion graphics"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "file": "2-.jpg",
+      "source_app": null,
+      "label_ko": "(없음)",
+      "gt_summary": "대회 예선 및 본선 진행에 관한 주요 마감 기한이 포함된 일정표입니다. 향후 대회 준비를 위해 참고하고자 저장했습니다.",
+      "gt_category": "학업",
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [],
+      "analysis": {
+        "summary": "대회 예선 아이디어 기획서 및 최종 산출물 제출 마감 일정입니다. 기한 내 제출을 위해 저장했습니다.",
+        "category": "대회 일정",
+        "needs_review": false,
+        "intents": [
+          "todo",
+          "todo"
+        ],
+        "entities": [
+          {
+            "kind": "deadline",
+            "value": "2026-07-07 10:00"
+          },
+          {
+            "kind": "deadline",
+            "value": "2026-07-15 10:00"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "file": "20-네이버.jpg",
+      "source_app": "NAVER",
+      "label_ko": "네이버",
+      "gt_summary": "올리브영에서 할인 판매 중인 '아누아 피디알엔 히알루론산 수분 캡슐 미스트 100ml 2입 기획' 상품 페이지입니다. 구매를 고려하기 위해 저장했습니다.",
+      "gt_category": "쇼핑 후보",
+      "events": [
+        "node",
+        "node",
+        "node",
+        "tool_started",
+        "tool_finished",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [
+        {
+          "tool": "findReferenceUrls",
+          "input": {
+            "queries": [
+              "아누아 피디알엔 히알루론산 수분 캡슐 미스트 100ml 2입 기획"
+            ],
+            "category": "shop",
+            "original_url": null
+          },
+          "output": {
+            "useful": true,
+            "usefulness": 5,
+            "ranked_urls": [
+              {
+                "url": "https://smartstore.naver.com/main/products/13522991001",
+                "title": "아누아 피디알엔 히알루론산 수분 캡슐 미스트 100ml 2입 기획",
+                "tier_num": 3.0,
+                "tier_label": "tier3_openmarket"
+              },
+              {
+                "url": "https://link.gmarket.co.kr/gate/pcs?item-no=4728665747&sub-id=1003&service-code=10000003&lcd=100000005",
+                "title": "아누아 아누아 피디알엔 히알루론산 수분 캡슐 미스트 100ml 2입 기획",
+                "tier_num": 3.6,
+                "tier_label": "tier3_pricecompare"
+              },
+              {
+                "url": "https://link.auction.co.kr/gate/pcs?item-no=F536114969&sub-id=1&service-code=10000003",
+                "title": "아누아 아누아 피디알엔 히알루론산 수분 캡슐 미스트 100ml 2입 기획",
+                "tier_num": 3.6,
+                "tier_label": "tier3_pricecompare"
+              }
+            ],
+            "comment": "사용자가 찾던 '아누아 피디알엔 히알루론산 수분 캡슐 미스트 100ml 2입 기획' 상품과 정확히 일치하는 쇼핑 링크들을 찾았습니다."
+          }
+        }
+      ],
+      "analysis": {
+        "summary": "올리브영에서 6월 올영픽 한정기획으로 57% 할인 중인 '아누아 피디알엔 히알루론산 수분 캡슐 미스트 2입 기획' 상품입니다. 구매를 고려하기 위해 저장했습니다.",
+        "category": "쇼핑 후보",
+        "needs_review": false,
+        "intents": [
+          "memo"
+        ],
+        "entities": [
+          {
+            "kind": "shopping_product",
+            "value": "아누아 피디알엔 히알루론산 수분 캡슐 미스트 100ml 2입 기획"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "file": "21-네이버지도.jpg",
+      "source_app": "네이버지도",
+      "label_ko": "네이버지도",
+      "gt_summary": "사용자가 데이트 장소로 고려 중인 일본식 라면 전문점 '카키 코우죠'의 네이버지도 정보입니다. 추후 데이트 계획 시 참고하기 위해 저장했습니다.",
+      "gt_category": "일상",
+      "events": [
+        "node",
+        "node",
+        "node",
+        "tool_started",
+        "tool_finished",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [
+        {
+          "tool": "findReferenceUrls",
+          "input": {
+            "queries": [
+              "여의도 카키코우죠"
+            ],
+            "category": "local",
+            "original_url": null
+          },
+          "output": {
+            "useful": true,
+            "usefulness": 5,
+            "ranked_urls": [
+              {
+                "url": "https://www.instagram.com/kakikojo_official",
+                "title": "카키 코우죠",
+                "tier_num": 4.0,
+                "tier_label": "tier4_info"
+              }
+            ],
+            "comment": "여의도에 위치한 굴 요리 전문점 '카키코우죠'의 공식 인스타그램 계정으로, 사용자가 찾는 대상과 정확히 일치합니다."
+          }
+        }
+      ],
+      "analysis": {
+        "summary": "여의도에 위치한 일본식 라멘 전문점 '카키 코우죠'입니다. 데이트 장소 후보로 저장했습니다.",
+        "category": "데이트 코스",
+        "needs_review": false,
+        "intents": [
+          "memo"
+        ],
+        "entities": [
+          {
+            "kind": "place",
+            "value": "카키 코우죠"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "file": "22-Xlearning.jpg",
+      "source_app": "LearningX Student",
+      "label_ko": "Xlearning",
+      "gt_summary": "LearningX 앱의 '할 일' 목록에 등록된 4개의 학업 과제 마감 기한을 확인하고 관리하기 위해 저장했습니다. 각 과제별 마감 일자에 맞춰 제출을 완료해야 합니다.",
+      "gt_category": "학업",
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [],
+      "analysis": {
+        "summary": "LearningX 플랫폼에 등록된 4개의 학업 과제 마감일입니다. 각 과제별로 마감 기한에 맞춰 제출을 완료해야 합니다.",
+        "category": "학업 과제",
+        "needs_review": false,
+        "intents": [
+          "todo",
+          "todo",
+          "todo",
+          "todo"
+        ],
+        "entities": [
+          {
+            "kind": "deadline",
+            "value": "2026-06-14 23:59"
+          },
+          {
+            "kind": "deadline",
+            "value": "2026-06-14 23:59"
+          },
+          {
+            "kind": "deadline",
+            "value": "2026-06-15 23:59"
+          },
+          {
+            "kind": "deadline",
+            "value": "2026-06-16 23:59"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "file": "23-카카오톡.jpg",
+      "source_app": "카카오톡",
+      "label_ko": "카카오톡",
+      "gt_summary": "카카오톡 대화 중 공유된 경로 정보로, 목적지까지 예상 소요 시간이 50분 정도 걸린다는 내용을 확인하고 참고하기 위해 저장했습니다.",
+      "gt_category": "일상",
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [],
+      "analysis": {
+        "summary": "카카오톡 대화 중 공유된 지도 경로와 예상 도착 시간입니다. 사용자가 'eta'라고 메모를 남겨 현재 이동 상황을 기록하고자 했습니다.",
+        "category": "이동 계획",
+        "needs_review": false,
+        "intents": [
+          "memo"
+        ],
+        "entities": []
+      },
+      "error": null
+    },
+    {
+      "file": "24-모찌.jpg",
+      "source_app": "모찌",
+      "label_ko": "모찌",
+      "gt_summary": "모찌 앱의 대화형 인터페이스와 사용 가능한 기능 예시를 보여주는 화면입니다. 앱의 기능을 파악하고 참고하기 위해 저장했습니다.",
+      "gt_category": "모찌 활용",
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [],
+      "analysis": {
+        "summary": "모찌 앱의 대화형 인터페이스 화면으로, 사용자가 앱의 기능을 확인하고 활용하기 위해 저장했습니다.",
+        "category": "서비스 안내",
+        "needs_review": false,
+        "intents": [
+          "memo"
+        ],
+        "entities": []
+      },
+      "error": null
+    },
+    {
+      "file": "25-카카오페이.jpg",
+      "source_app": "카카오페이",
+      "label_ko": "카카오페이",
+      "gt_summary": "서울시 희망두배 청년통장 신청 안내입니다. 6월 19일 오후 6시까지 신청해야 하므로 마감 기한을 확인하고 신청하기 위해 저장했습니다.",
+      "gt_category": "투자",
+      "events": [
+        "node",
+        "node",
+        "node",
+        "tool_started",
+        "tool_finished",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [
+        {
+          "tool": "findReferenceUrls",
+          "input": {
+            "queries": [
+              "서울시 희망두배 청년통장 신청 홈페이지"
+            ],
+            "category": "web",
+            "original_url": null
+          },
+          "output": {
+            "useful": true,
+            "usefulness": 5,
+            "ranked_urls": [
+              {
+                "url": "https://mcfamily.or.kr/posts/info/13062",
+                "title": "[서울시] 2025년 서울시 희망두배 청년통장 신규 참가자 모집 - 한울타리",
+                "tier_num": 4.0,
+                "tier_label": "tier4_info"
+              },
+              {
+                "url": "https://youth.seoul.go.kr/infoData/plcyInfo/view.do?sprtInfoId=&plcyBizId=20250519005400210852&key=2309150002",
+                "title": "청년정책 > 청년정책검색 > 서울시 정책 > 상세 : 희망두배 청년통장",
+                "tier_num": 4.0,
+                "tier_label": "tier4_info"
+              }
+            ],
+            "comment": "서울시 희망두배 청년통장의 공식 신청 사이트 정보와 상세 안내 페이지를 정확히 포함하고 있어 유용합니다."
+          }
+        }
+      ],
+      "analysis": {
+        "summary": "서울시 희망두배 청년통장 신청 안내입니다. 6월 19일 오후 6시까지 신청해야 하므로 기한을 챙겨야 합니다.",
+        "category": "금융 지원 정책",
+        "needs_review": false,
+        "intents": [
+          "todo"
+        ],
+        "entities": [
+          {
+            "kind": "deadline",
+            "value": "2026-06-19 18:00:00"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "file": "26-인스타.jpg",
+      "source_app": "Instagram",
+      "label_ko": "인스타",
+      "gt_summary": "2026 아이치-나고야 아시안게임 야구 국가대표팀 선수 명단입니다. 향후 경기 시청이나 관련 소식을 접할 때 참고하기 위해 저장했습니다.",
+      "gt_category": "일상",
+      "events": [
+        "node",
+        "node",
+        "node",
+        "tool_started",
+        "tool_finished",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [
+        {
+          "tool": "platformContext",
+          "input": {
+            "url": "https://www.instagram.com/p/C8J_example/",
+            "platform": "instagram"
+          },
+          "output": {
+            "platform": "instagram",
+            "final_url": "https://www.instagram.com/p/C8J_example/",
+            "status_code": 200,
+            "title": "Instagram",
+            "author": null,
+            "description": null,
+            "duration_seconds": null,
+            "thumbnail_url": null,
+            "canonical_url": "https://www.instagram.com/p/C8J_example/",
+            "source": "instagram_og_fallback",
+            "sufficient": true,
+            "confidence": 0.58,
+            "text": "platform: Instagram\ntitle: Instagram\ndescription: \nnote: Instagram image/post meaning often depends on the screenshot image itself."
+          }
+        }
+      ],
+      "analysis": {
+        "summary": "2026 아이치-나고야 아시안게임 야구 국가대표팀 선수 명단입니다. 추후 경기 시 선수 구성을 확인하기 위해 저장합니다.",
+        "category": "스포츠 정보",
+        "needs_review": false,
+        "intents": [
+          "knowledge"
+        ],
+        "entities": [
+          {
+            "kind": "event",
+            "value": "2026 아이치-나고야 아시안게임 야구"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "file": "26-카카오톡.jpg",
+      "source_app": "카카오톡",
+      "label_ko": "카카오톡",
+      "gt_summary": "친구들과의 카카오톡 대화 내용으로, 4~5시경 김포 쪽에서 모이기로 한 계획에 대한 기록입니다. 추후 모임 상세 내용을 확인하고 합류 여부를 결정하기 위해 저장합니다.",
+      "gt_category": null,
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [],
+      "analysis": {
+        "summary": "친구들과 김포에서 오후 4~5시쯤 만나기로 한 대화 내용입니다. 모임 계획을 잊지 않도록 메모합니다.",
+        "category": "약속 및 모임",
+        "needs_review": false,
+        "intents": [
+          "memo"
+        ],
+        "entities": [
+          {
+            "kind": "location",
+            "value": "김포"
+          },
+          {
+            "kind": "time",
+            "value": "16:00-17:00"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "file": "27-네이버지도.jpg",
+      "source_app": "네이버지도",
+      "label_ko": "네이버지도",
+      "gt_summary": "서울역 인근의 꽃집 '필로시코스 서울역점'에 대한 네이버지도 정보입니다. 추후 꽃이 필요할 때 방문하거나 이용하기 위해 장소 정보를 저장했습니다.",
+      "gt_category": "일상",
+      "events": [
+        "node",
+        "node",
+        "node",
+        "tool_started",
+        "tool_finished",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [
+        {
+          "tool": "findReferenceUrls",
+          "input": {
+            "queries": [
+              "필로시코스 서울역점"
+            ],
+            "category": "local",
+            "original_url": null
+          },
+          "output": {
+            "useful": false,
+            "usefulness": 2,
+            "ranked_urls": [],
+            "comment": "사용자는 오프라인 매장 정보를 찾고 있으나 수집된 결과는 온라인 스마트스토어 링크로 정보가 불일치합니다."
+          }
+        }
+      ],
+      "analysis": {
+        "summary": "서울역 근처의 '필로시코스 서울역점' 꽃집 정보를 저장했습니다. 나중에 꽃이 필요할 때 방문하거나 이용하기 위해 기록해 둡니다.",
+        "category": "꽃집 탐색",
+        "needs_review": false,
+        "intents": [
+          "memo"
+        ],
+        "entities": [
+          {
+            "kind": "place",
+            "value": "필로시코스 서울역점"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "file": "27-유튜브.jpg",
+      "source_app": "YouTube",
+      "label_ko": "유튜브",
+      "gt_summary": "트럼프의 경제 정책이 시장에 미칠 영향과 버블 가능성에 대한 분석 내용을 담은 유튜브 영상입니다. 향후 경제 흐름을 파악하기 위한 참고 자료로 저장합니다.",
+      "gt_category": "투자",
+      "events": [
+        "node",
+        "node",
+        "node",
+        "tool_started",
+        "tool_finished",
+        "tool_started",
+        "tool_finished",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [
+        {
+          "tool": "recoverYoutubeUrl",
+          "input": {
+            "query": "트럼프가 그리고 있는 큰 그림으로 버블의 끝을 예상할 수 있다"
+          },
+          "output": {
+            "recovered": true,
+            "url": "https://www.youtube.com/watch?v=n7Dun2o7uDE",
+            "video_id": "n7Dun2o7uDE",
+            "candidates": [
+              "n7Dun2o7uDE",
+              "hYIMFlIXggA",
+              "BKloCVZlWv8",
+              "riVkgVleTvQ",
+              "ra2L3ymQgGo"
+            ],
+            "recovered_title": "트럼프 대통령의 큰 그림, 비트코인 '이렇게' 됩니다 (삼프로TV 이진우 기자) #shorts",
+            "recovered_channel": "김작가 TV"
+          }
+        },
+        {
+          "tool": "platformContext",
+          "input": {
+            "url": "https://www.youtube.com/watch?v=n7Dun2o7uDE",
+            "platform": "youtube"
+          },
+          "output": {
+            "platform": "youtube",
+            "final_url": "https://www.youtube.com/watch?v=n7Dun2o7uDE",
+            "status_code": 200,
+            "title": "트럼프 대통령의 큰 그림, 비트코인 '이렇게' 됩니다 (삼프로TV 이진우 기자) #shorts",
+            "author": "김작가 TV",
+            "description": "트럼프 대통령의 큰 그림, 비트코인 '이렇게' 됩니다 (삼프로TV 이진우 기자) #shorts 📚 김작가 신간 『머니 트렌드 2025』 도서 구매 ✔ 출연 신청/광고 문의: smilekdy7@naver.com ✔ 김작가 인스타그램: https://www.instagram.com/smilekdy7",
+            "duration_seconds": 97,
+            "thumbnail_url": "https://i.ytimg.com/vi/n7Dun2o7uDE/hqdefault.jpg",
+            "canonical_url": "https://www.youtube.com/watch?v=n7Dun2o7uDE",
+            "source": "youtube_oembed+watch_page",
+            "sufficient": true,
+            "confidence": 0.9,
+            "text": "platform: YouTube\ntitle: 트럼프 대통령의 큰 그림, 비트코인 '이렇게' 됩니다 (삼프로TV 이진우 기자) #shorts\nchannel: 김작가 TV\ndescription: 트럼프 대통령의 큰 그림, 비트코인 '이렇게' 됩니다 (삼프로TV 이진우 기자) #shorts 📚 김작가 신간 『머니 트렌드 2025』 도서 구매 ✔ 출연 신청/광고 문의: smilekdy7@naver.com ✔ 김작가 인스타그램: https://www.instagram.com/smilekdy7\nduration_seconds: 97"
+          }
+        }
+      ],
+      "analysis": {
+        "summary": "트럼프의 경제 정책이 시장 버블과 인플레이션에 미칠 영향에 대한 분석을 담은 영상입니다. 경제 흐름을 파악하고 향후 시장 대응 전략을 참고하기 위해 저장했습니다.",
+        "category": "경제 분석",
+        "needs_review": false,
+        "intents": [
+          "knowledge"
+        ],
+        "entities": [
+          {
+            "kind": "topic",
+            "value": "트럼프 경제 정책 및 시장 전망"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "file": "28-유튜브.jpg",
+      "source_app": "YouTube",
+      "label_ko": "유튜브",
+      "gt_summary": "유튜브 영상 댓글에 공유된 유니클로 추천 아이템(옥스퍼드 셔츠, 와이드 스트레이트 진) 정보입니다. 제품명과 사이즈 팁을 참고하여 향후 구매를 고려하기 위해 저장했습니다.",
+      "gt_category": "쇼핑 후보",
+      "events": [
+        "node",
+        "node",
+        "node",
+        "tool_started",
+        "tool_finished",
+        "tool_started",
+        "tool_finished",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [
+        {
+          "tool": "recoverYoutubeUrl",
+          "input": {
+            "query": "우연w 유니클로 추석 세일 및 콜라보 꿀템 6가지 추천"
+          },
+          "output": {
+            "recovered": true,
+            "url": "https://www.youtube.com/watch?v=ZPlI_PJ90bE",
+            "video_id": "ZPlI_PJ90bE",
+            "candidates": [
+              "ZPlI_PJ90bE",
+              "B1qE5BGYeJY",
+              "ZLt3jGWMZws",
+              "rcsPEwLRdwA",
+              "9U1bbgcldxs"
+            ],
+            "recovered_title": "유니클로 가을 꿀템 6개 추천!(유니클로u, 유니클로c, 세일템)",
+            "recovered_channel": "우연 WOOYEON"
+          }
+        },
+        {
+          "tool": "findReferenceUrls",
+          "input": {
+            "queries": [
+              "유니클로 옥스퍼드 셔츠 스트라이프 그레이",
+              "유니클로 와이드 스트레이트 진 오프화이트"
+            ],
+            "category": "shop",
+            "original_url": null
+          },
+          "output": {
+            "useful": false,
+            "usefulness": 1,
+            "ranked_urls": [],
+            "comment": "사용자가 찾던 '유니클로' 브랜드의 '오프화이트 색상' 청바지가 아닌, 명품 브랜드 '오프화이트'의 제품들이 검색되어 유용하지 않습니다."
+          }
+        }
+      ],
+      "analysis": {
+        "summary": "유튜브 '우연 WOOYEON' 채널에서 추천한 유니클로 옥스퍼드 셔츠와 와이드 스트레이트 진 정보입니다. 나중에 쇼핑할 때 참고하기 위해 저장했습니다.",
+        "category": "쇼핑 후보",
+        "needs_review": false,
+        "intents": [
+          "memo"
+        ],
+        "entities": [
+          {
+            "kind": "shopping_product",
+            "value": "유니클로 옥스퍼드 셔츠 스트라이프 그레이"
+          },
+          {
+            "kind": "shopping_product",
+            "value": "유니클로 와이드 스트레이트 진 오프화이트"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "file": "29-네이버지도.jpg",
+      "source_app": "네이버지도",
+      "label_ko": "네이버지도",
+      "gt_summary": "용산구 아모레퍼시픽 빌딩에 위치한 이탈리아 음식점 '쿠촐로 서울'의 네이버지도 정보입니다. 추후 방문을 고려하여 장소 정보를 저장했습니다.",
+      "gt_category": "일상",
+      "events": [
+        "node",
+        "node",
+        "node",
+        "tool_started",
+        "tool_finished",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [
+        {
+          "tool": "findReferenceUrls",
+          "input": {
+            "queries": [
+              "쿠촐로 서울"
+            ],
+            "category": "local",
+            "original_url": null
+          },
+          "output": {
+            "useful": true,
+            "usefulness": 5,
+            "ranked_urls": [
+              {
+                "url": "https://app.catchtable.co.kr/ct/shop/cucciolo_seoul",
+                "title": "쿠촐로 서울",
+                "tier_num": 1.0,
+                "tier_label": "tier1_official"
+              },
+              {
+                "url": "https://app.catchtable.co.kr/ct/shop/cuccioloterrazza",
+                "title": "쿠촐로 테라짜",
+                "tier_num": 1.0,
+                "tier_label": "tier1_official"
+              }
+            ],
+            "comment": "사용자가 검색한 '쿠촐로 서울'의 정확한 예약 페이지와 관련 매장 링크를 확보하였습니다."
+          }
+        }
+      ],
+      "analysis": {
+        "summary": "용산구 아모레퍼시픽 빌딩에 위치한 이탈리아 음식점 '쿠촐로 서울'입니다. 나중에 방문하기 위해 저장해 둔 장소입니다.",
+        "category": "맛집 탐방",
+        "needs_review": false,
+        "intents": [
+          "memo"
+        ],
+        "entities": [
+          {
+            "kind": "place",
+            "value": "쿠촐로 서울"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "file": "29-문자.jpg",
+      "source_app": "메시지",
+      "label_ko": "문자",
+      "gt_summary": "네이버 클라우드 플랫폼에서 발송한 Maps API 서비스 점검 안내 이메일을 확인하기 위해 저장했습니다. 6월 22일 예정된 점검 내용을 파악하기 위한 후속 조치입니다.",
+      "gt_category": "학업",
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [],
+      "analysis": {
+        "summary": "네이버 클라우드 플랫폼에서 발송한 Maps API 서비스 점검 안내 이메일을 확인해야 합니다.",
+        "category": "서비스 관리",
+        "needs_review": false,
+        "intents": [
+          "todo"
+        ],
+        "entities": [
+          {
+            "kind": "service",
+            "value": "네이버 클라우드 플랫폼 Maps API"
+          },
+          {
+            "kind": "date",
+            "value": "2026-06-22"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "file": "3-유튜브.jpg",
+      "source_app": "YouTube",
+      "label_ko": "유튜브",
+      "gt_summary": "유튜브 영상 고정 댓글에 공유된 너드킹의 추천 반팔 셔츠 제품 리스트입니다. 추후 쇼핑 시 참고하기 위해 저장했습니다.",
+      "gt_category": "일상",
+      "events": [
+        "node",
+        "node",
+        "node",
+        "tool_started",
+        "tool_finished",
+        "tool_started",
+        "tool_finished",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [
+        {
+          "tool": "recoverYoutubeUrl",
+          "input": {
+            "query": "너드킹 추천 제품 무신사 큐레이터"
+          },
+          "output": {
+            "recovered": true,
+            "url": "https://www.youtube.com/watch?v=eRQ7zy7QR_U",
+            "video_id": "eRQ7zy7QR_U",
+            "candidates": [
+              "eRQ7zy7QR_U",
+              "QqsqK-S4LR8",
+              "gzL1Kkuyce8",
+              "6g0Pt6jF2kc",
+              "niWGbI3eiwA"
+            ],
+            "recovered_title": "26 무신사 블프 추천템 총정리🔥",
+            "recovered_channel": "호패션 Ho Fashion"
+          }
+        },
+        {
+          "tool": "platformContext",
+          "input": {
+            "url": "https://www.youtube.com/watch?v=eRQ7zy7QR_U",
+            "platform": "youtube"
+          },
+          "output": {
+            "platform": "youtube",
+            "final_url": "https://www.youtube.com/watch?v=eRQ7zy7QR_U",
+            "status_code": 200,
+            "title": "26 무신사 블프 추천템 총정리🔥",
+            "author": "호패션 Ho Fashion",
+            "description": null,
+            "duration_seconds": 38,
+            "thumbnail_url": "https://i.ytimg.com/vi/eRQ7zy7QR_U/hqdefault.jpg",
+            "canonical_url": "https://www.youtube.com/watch?v=eRQ7zy7QR_U",
+            "source": "youtube_oembed+watch_page",
+            "sufficient": true,
+            "confidence": 0.9,
+            "text": "platform: YouTube\ntitle: 26 무신사 블프 추천템 총정리🔥\nchannel: 호패션 Ho Fashion\ndescription: \nduration_seconds: 38"
+          }
+        }
+      ],
+      "analysis": {
+        "summary": "유튜브 '호패션' 채널에서 추천한 무신사 패션 아이템 리스트입니다. 나중에 쇼핑할 때 참고하기 위해 저장했습니다.",
+        "category": "쇼핑 후보",
+        "needs_review": false,
+        "intents": [
+          "memo"
+        ],
+        "entities": [
+          {
+            "kind": "shopping_product",
+            "value": "파브레가 로렌 스트라이프 크롭 하프 셔츠"
+          },
+          {
+            "kind": "shopping_product",
+            "value": "알리스 린넨 데님 투 포켓 롤 업 크롭 하프 셔츠"
+          },
+          {
+            "kind": "shopping_product",
+            "value": "애습 엠보 체크 반팔 셔츠"
+          },
+          {
+            "kind": "shopping_product",
+            "value": "데꼬로소 링클 텍스처 반팔 롤업 셔츠"
+          },
+          {
+            "kind": "shopping_product",
+            "value": "드로우핏 루체 스트라이프 하프 웨스턴 셔츠"
+          },
+          {
+            "kind": "shopping_product",
+            "value": "수아레 텐셀 린넨 크롭 하프 셔츠"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "file": "30-네이버.jpg",
+      "source_app": "NAVER",
+      "label_ko": "네이버",
+      "gt_summary": "클레이모어의 '브로드윙X 베이스 멜라토닌 LED 와이드 스탠드(LSP-9700)' 상품 페이지입니다. 구매를 고려하기 위해 저장했습니다.",
+      "gt_category": "쇼핑 후보",
+      "events": [
+        "node",
+        "node",
+        "node",
+        "tool_started",
+        "tool_finished",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [
+        {
+          "tool": "findReferenceUrls",
+          "input": {
+            "queries": [
+              "크레모아 브로드윙X 베이스 멜라토닌 LED 와이드 스탠드 LSP-9700"
+            ],
+            "category": "shop",
+            "original_url": null
+          },
+          "output": {
+            "useful": true,
+            "usefulness": 5,
+            "ranked_urls": [
+              {
+                "url": "https://smartstore.naver.com/main/products/8810719383",
+                "title": "브로드윙X 베이스 멜라토닌 LED 와이드 스탠드 LSP-9700 책상 조명",
+                "tier_num": 3.0,
+                "tier_label": "tier3_openmarket"
+              }
+            ],
+            "comment": "사용자가 찾는 '크레모아 브로드윙X 베이스 멜라토닌 LED 와이드 스탠드 LSP-9700' 제품과 정확히 일치하는 쇼핑 링크입니다."
+          }
+        }
+      ],
+      "analysis": {
+        "summary": "책상 조명으로 고려 중인 '크레모아 브로드윙X LSP-9700' 제품 상세 페이지입니다. 나중에 다시 확인하기 위해 저장했습니다.",
+        "category": "쇼핑 후보",
+        "needs_review": false,
+        "intents": [
+          "memo"
+        ],
+        "entities": [
+          {
+            "kind": "shopping_product",
+            "value": "크레모아 브로드윙X LSP-9700 스탠드"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "file": "31-인스타.jpg",
+      "source_app": "Instagram",
+      "label_ko": "인스타",
+      "gt_summary": "쿠엔틴 타란티노가 최근 할리우드 영화 산업을 비판하며 언급한 내용과 그가 극찬한 영화 '더 립'에 대한 게시물입니다. 사용자가 나중에 참고하기 위해 저장했습니다.",
+      "gt_category": "일상",
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [],
+      "analysis": {
+        "summary": "쿠엔틴 타란티노 감독이 최근 할리우드 영화 산업을 비판하며 높게 평가한 영화 3편(웨스트 사이드 스토리, 호라이즌: 아메리칸 사가, 더 립)을 나중에 보기 위해 저장했습니다.",
+        "category": "영화 추천",
+        "needs_review": false,
+        "intents": [
+          "memo"
+        ],
+        "entities": [
+          {
+            "kind": "movie",
+            "value": "웨스트 사이드 스토리"
+          },
+          {
+            "kind": "movie",
+            "value": "호라이즌: 아메리칸 사가"
+          },
+          {
+            "kind": "movie",
+            "value": "더 립"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "file": "32-인스타.jpg",
+      "source_app": "Instagram",
+      "label_ko": "인스타",
+      "gt_summary": "2026 남산 서머 페스티벌 'Summer Night' 공연 정보를 저장했습니다. 6월 12일 오전 10시부터 시작되는 선착순 무료 예약 신청을 위해 투두로 관리합니다.",
+      "gt_category": "일상",
+      "events": [
+        "node",
+        "node",
+        "node",
+        "tool_started",
+        "tool_finished",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [
+        {
+          "tool": "platformContext",
+          "input": {
+            "url": "https://www.instagram.com/p/C8O-example/",
+            "platform": "instagram"
+          },
+          "output": {
+            "platform": "instagram",
+            "final_url": "https://www.instagram.com/p/C8O-example/",
+            "status_code": 200,
+            "title": "Instagram",
+            "author": null,
+            "description": null,
+            "duration_seconds": null,
+            "thumbnail_url": null,
+            "canonical_url": "https://www.instagram.com/p/C8O-example/",
+            "source": "instagram_og_fallback",
+            "sufficient": true,
+            "confidence": 0.58,
+            "text": "platform: Instagram\ntitle: Instagram\ndescription: \nnote: Instagram image/post meaning often depends on the screenshot image itself."
+          }
+        }
+      ],
+      "analysis": {
+        "summary": "2026 남산 서머 페스티벌 'Summer Night' 공연 안내입니다. 6월 27일 백범광장에서 진행되는 무료 공연으로, 관심 있는 행사 정보를 기록해둡니다.",
+        "category": "공연/행사",
+        "needs_review": false,
+        "intents": [
+          "memo"
+        ],
+        "entities": [
+          {
+            "kind": "date",
+            "value": "2026-06-27 19:00:00"
+          },
+          {
+            "kind": "location",
+            "value": "백범광장"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "file": "33-문자.jpg",
+      "source_app": null,
+      "label_ko": "문자",
+      "gt_summary": "기사 2회 필기시험 응시자격 서류 미제출 안내 문자로, 합격 유지를 위해 6월 19일 18시까지 관련 서류를 제출해야 합니다.",
+      "gt_category": "학업",
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [],
+      "analysis": {
+        "summary": "기사 2회 필기시험 합격 유지를 위해 6월 19일 18시까지 응시자격 서류를 제출해야 합니다. 미제출 시 합격이 취소되므로 기한 내 처리가 필요합니다.",
+        "category": "자격증 관리",
+        "needs_review": false,
+        "intents": [
+          "todo"
+        ],
+        "entities": [
+          {
+            "kind": "deadline",
+            "value": "2026-06-19 18:00"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "file": "34-카카오톡.jpg",
+      "source_app": "카카오톡",
+      "label_ko": "카카오톡",
+      "gt_summary": "2026년 6월 28일 오전 9시 20분에 서울 대방중학교에서 치러지는 토익 시험 접수 완료 안내입니다. 시험 당일 신분증과 필기구 지참 등 준비 사항을 확인하기 위해 저장했습니다.",
+      "gt_category": "학업",
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [],
+      "analysis": {
+        "summary": "2026년 6월 28일 오전 9시 20분에 예정된 토익 시험 접수 완료 안내입니다. 고사장 정보와 시험 당일 준비물을 확인하기 위해 저장합니다.",
+        "category": "시험 일정",
+        "needs_review": false,
+        "intents": [
+          "schedule"
+        ],
+        "entities": [
+          {
+            "kind": "date",
+            "value": "2026-06-28"
+          },
+          {
+            "kind": "time",
+            "value": "09:20"
+          },
+          {
+            "kind": "location",
+            "value": "서울 대방중학교"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "file": "35-유튜브.jpg",
+      "source_app": "YouTube",
+      "label_ko": "유튜브",
+      "gt_summary": "유튜브 영상 댓글에 공유된 너드킹의 추천 패션 제품 리스트입니다. 추후 쇼핑 시 참고하기 위해 저장했습니다.",
+      "gt_category": "일상",
+      "events": [
+        "node",
+        "node",
+        "node",
+        "tool_started",
+        "tool_finished",
+        "tool_started",
+        "tool_finished",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [
+        {
+          "tool": "recoverYoutubeUrl",
+          "input": {
+            "query": "Nerdking_NEP 티셔츠 추천"
+          },
+          "output": {
+            "recovered": true,
+            "url": "https://www.youtube.com/watch?v=dj_oSoAuNW4",
+            "video_id": "dj_oSoAuNW4",
+            "candidates": [
+              "dj_oSoAuNW4",
+              "MC0_A8dDmVc",
+              "zFqro55WZrY",
+              "YPLj8Of6EIo",
+              "pZTGmUxenC8"
+            ],
+            "recovered_title": "반팔티 모르겠다면 그냥 이거 사면 됩니다. ⭐무한으로 돌려 입을 기본 티 총정리!",
+            "recovered_channel": "너드킹 Nerd King"
+          }
+        },
+        {
+          "tool": "platformContext",
+          "input": {
+            "url": "https://www.youtube.com/watch?v=dj_oSoAuNW4",
+            "platform": "youtube"
+          },
+          "output": {
+            "platform": "youtube",
+            "final_url": "https://www.youtube.com/watch?v=dj_oSoAuNW4",
+            "status_code": 200,
+            "title": "반팔티 모르겠다면 그냥 이거 사면 됩니다. ⭐무한으로 돌려 입을 기본 티 총정리!",
+            "author": "너드킹 Nerd King",
+            "description": "#반팔티 #여름코디 #남자코디 ❗본 링크는 무신사 큐레이터 활동의 일환으로 구매가 발생할 시 일정 수수료를 제공받습니다 (⚠️브랜디드 광고,PPL이 포함된 컨텐츠가 아닌 직접 고른 제품입니다!⚠️) 페린이 분들에게 여름 코디가 유독 어렵고 후줄근하게 느껴지는 건 여름 기본 템이 충분히 갖춰지지 않기 때문인 경우가 많더라고요? 흔히 \"여름에 무슨 기본 템?\"이라 할 수 있잖아요. 그래서 이번 영상에는 남자들이 여름에 꼭 가지고 있으면 좋을 기본 템 총정리해 봤습니다! ✅신체 스펙! 178cm 68kg 265mm✅ ⭐너드킹의 추천 제품 한눈에 보기 https://www.musinsa.com/curator/shop/RDr6JM 📍기본 티 (레귤러) 무신사스탠다드 - 릴렉스 핏 크루 넥 티셔츠 2팩 / L https://vo.la/SF98MTr 쿠어 - [2PACK] 수피마 코튼 티셔츠 / L https://vo.la/0HZ1Nld 📍크롭티 트릴리온 - [기획](건조기가능) 에센셜 CP 이중지 크롭 반팔티_6color / L https://vo.la/j9rJBpj 📍U넥 알리스 - 플루이드 U넥 크롭 하프 티셔츠 [3COLOR] / L https://vo.la/wrU6wd2 📍슬리브리스 다이브인 - UNIFORM SLEEVELESS (6COLOR) / 2size https://vo.la/vB8lTs1 📍언더셔츠 무신사스탠다드 - [쿨탠다드] 메시 프리컷 브이 넥 슬리브리스 언더셔츠 / L https://www.musinsa.com/curator/goods/dcSUxk ⚠️품절 이슈 대체 품 스파오 - [COMFORT] 남성 심리스 브이넥 민소매_SPMRGA9A12 https://www.musinsa.com/curator/goods/AD1p2bIh 0:00 오프닝 0:37 기본티 고르는 법 1:53 기본티 3:35 크롭티 4:47 유넥티 5:59 슬리브리스 7:07 언더셔츠",
+            "duration_seconds": 575,
+            "thumbnail_url": "https://i.ytimg.com/vi/dj_oSoAuNW4/hqdefault.jpg",
+            "canonical_url": "https://www.youtube.com/watch?v=dj_oSoAuNW4",
+            "source": "youtube_oembed+watch_page",
+            "sufficient": true,
+            "confidence": 0.9,
+            "text": "platform: YouTube\ntitle: 반팔티 모르겠다면 그냥 이거 사면 됩니다. ⭐무한으로 돌려 입을 기본 티 총정리!\nchannel: 너드킹 Nerd King\ndescription: #반팔티 #여름코디 #남자코디 ❗본 링크는 무신사 큐레이터 활동의 일환으로 구매가 발생할 시 일정 수수료를 제공받습니다 (⚠️브랜디드 광고,PPL이 포함된 컨텐츠가 아닌 직접 고른 제품입니다!⚠️) 페린이 분들에게 여름 코디가 유독 어렵고 후줄근하게 느껴지는 건 여름 기본 템이 충분히 갖춰지지 않기 때문인 경우가 많더라고요? 흔히 \"여름에 무슨 기본 템?\"이라 할 수 있잖아요. 그래서 이번 영상에는 남자들이 여름에 꼭 가지고 있으면 좋을 기본 템 총정리해 봤습니다! ✅신체 스펙! 178cm 68kg 265mm✅ ⭐너드킹의 추천 제품 한눈에 보기 https://www.musinsa.com/curator/shop/RDr6JM 📍기본 티 (레귤러) 무신사스탠다드 - 릴렉스 핏 크루 넥 티셔츠 2팩 / L https://vo.la/SF98MTr 쿠어 - [2PACK] 수피마 코튼 티셔츠 / L https://vo.la/0HZ1Nld 📍크롭티 트릴리온 - [기획](건조기가능) 에센셜 CP 이중지 크롭 반팔티_6color / L https://vo.la/j9rJBpj 📍U넥 알리스 - 플루이드 U넥 크롭 하프 티셔츠 [3COLOR] / L https://vo.la/wrU6wd2 📍슬리브리스 다이브인 - UNIFORM SLEEVELESS (6COLOR) / 2size https://vo.la/vB8lTs1 📍언더셔츠 무신사스탠다드 - [쿨탠다드] 메시 프리컷 브이 넥 슬리브리스 언더셔츠 / L https://www.musinsa.com/curator/goods/dcSUxk ⚠️품절 이슈 대체 품 스파오 - [COMFORT] 남성 심리스 브이넥 민소매_SPMRGA9A12 https://www.musinsa.com/curator/goods/AD1p2bIh 0:00 오프닝 0:37 기본티 고르는 법 1:53 기본티 3:35 크롭티 4:47 유넥티 5:59 슬리브리스 7:07 언더셔츠\nduration_seconds: 575"
+          }
+        }
+      ],
+      "analysis": {
+        "summary": "너드킹의 '반팔티 총정리' 영상에서 추천된 셔츠 제품들입니다. 여름 코디를 위해 나중에 참고하여 구매를 고려할 예정입니다.",
+        "category": "쇼핑 후보",
+        "needs_review": false,
+        "intents": [
+          "memo"
+        ],
+        "entities": [
+          {
+            "kind": "shopping_product",
+            "value": "파브레가 로렌 스트라이프 크롭 하프 셔츠"
+          },
+          {
+            "kind": "shopping_product",
+            "value": "알리스 린넨 데님 투 포켓 롤 업 크롭 하프 셔츠"
+          },
+          {
+            "kind": "shopping_product",
+            "value": "애습 엠보 체크 반팔 셔츠"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "file": "4-야후 파이낸스.jpg",
+      "source_app": "Finance",
+      "label_ko": "야후 파이낸스",
+      "gt_summary": "Finance 앱에서 SOXL 종목의 현재 시세와 차트를 확인하고 저장했습니다. 향후 시장 흐름을 파악하기 위한 참고 자료로 활용할 예정입니다.",
+      "gt_category": "투자",
+      "events": [
+        "node",
+        "node",
+        "node",
+        "tool_started",
+        "tool_finished",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [
+        {
+          "tool": "findReferenceUrls",
+          "input": {
+            "queries": [
+              "Direxion Daily Semiconductor Bull 3X Shares SOXL"
+            ],
+            "category": "web",
+            "original_url": null
+          },
+          "output": {
+            "useful": true,
+            "usefulness": 5,
+            "ranked_urls": [
+              {
+                "url": "https://robinhood.com/us/en/stocks/SOXL",
+                "title": "Direxion Daily Semiconduc…: SOXL Stock Price Quote & News",
+                "tier_num": 4.0,
+                "tier_label": "tier4_info"
+              },
+              {
+                "url": "https://finance.yahoo.com/quote/SOXL",
+                "title": "Direxion Daily Semiconductor Bull 3X Shares (SOXL) - Yahoo Finance",
+                "tier_num": 4.0,
+                "tier_label": "tier4_info"
+              },
+              {
+                "url": "https://digital.fidelity.com/prgw/digital/research/quote/dashboard/summary?symbol=SOXL",
+                "title": "SOXL - DIREXION DAILY SEMICONDUCTOR BULL 3X ETF",
+                "tier_num": 4.0,
+                "tier_label": "tier4_info"
+              }
+            ],
+            "comment": "사용자가 검색한 SOXL ETF의 상세 정보 및 주가 시세를 확인할 수 있는 신뢰도 높은 금융 플랫폼 링크들을 정확하게 매칭하여 제공합니다."
+          }
+        }
+      ],
+      "analysis": {
+        "summary": "반도체 3배 레버리지 ETF인 SOXL의 주가 시세 화면입니다. 향후 주가 변동을 추적하기 위해 관심 종목으로 저장합니다.",
+        "category": "투자 관리",
+        "needs_review": false,
+        "intents": [
+          "memo"
+        ],
+        "entities": [
+          {
+            "kind": "ticker",
+            "value": "SOXL"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "file": "5-야후파이낸스.jpg",
+      "source_app": "Finance",
+      "label_ko": "야후파이낸스",
+      "gt_summary": "Finance 앱에서 현재 관심 종목(SOXL, DELL, INTC, CRSP)의 시세 현황을 확인하기 위해 저장했습니다. 추후 시장 흐름을 파악하기 위한 참고용 기록입니다.",
+      "gt_category": "투자",
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [],
+      "analysis": {
+        "summary": "Finance 앱에서 확인한 현재 시장 상황과 관심 종목(SOXL, DELL, INTC, CRSP) 리스트입니다.",
+        "category": "투자 관리",
+        "needs_review": false,
+        "intents": [
+          "memo"
+        ],
+        "entities": []
+      },
+      "error": null
+    },
+    {
+      "file": "6-야후파이낸스.jpg",
+      "source_app": "Finance",
+      "label_ko": "야후파이낸스",
+      "gt_summary": "Finance 앱에서 현재 관심 종목들의 시세 현황을 확인하기 위해 저장했습니다. 추후 시장 흐름을 파악하기 위한 참고용 기록입니다.",
+      "gt_category": "투자",
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [],
+      "analysis": {
+        "summary": "Finance 앱에서 확인한 주요 관심 종목들의 현재 주가와 등락률을 기록했습니다. 향후 시장 흐름을 파악하기 위한 참고용으로 저장했습니다.",
+        "category": "주식 관찰",
+        "needs_review": false,
+        "intents": [
+          "memo"
+        ],
+        "entities": [
+          {
+            "kind": "stock_ticker",
+            "value": "AVAV"
+          },
+          {
+            "kind": "stock_ticker",
+            "value": "QS"
+          },
+          {
+            "kind": "stock_ticker,value:",
+            "value": "META"
+          },
+          {
+            "kind": "stock_ticker,value:",
+            "value": "TSLA"
+          },
+          {
+            "kind": "stock_ticker,value:",
+            "value": "GOOG"
+          },
+          {
+            "kind": "stock_ticker,value:",
+            "value": "PLTR"
+          },
+          {
+            "kind": "stock_ticker,value:",
+            "value": "NVDL"
+          },
+          {
+            "kind": "stock_ticker,value:",
+            "value": "IBB"
+          },
+          {
+            "kind": "stock_ticker,value:",
+            "value": "ARM"
+          },
+          {
+            "kind": "stock_ticker,value:",
+            "value": "AAPL"
+          },
+          {
+            "kind": "stock_ticker,value:",
+            "value": "CLRB"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "file": "7-카카오톡.jpg",
+      "source_app": "카카오톡",
+      "label_ko": "카카오톡",
+      "gt_summary": "특전부사관 신체검사 일정에 참석이 어려워 담당자에게 연락을 취해야 하는 상황입니다. 사용자 메모에 따라 불참 사실을 알리는 행동을 투두로 관리합니다.",
+      "gt_category": "일상",
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [],
+      "analysis": {
+        "summary": "특전부사관 신체검사 불참 사실을 담당자(상사 김태윤)에게 연락해야 합니다.",
+        "category": "일정 관리",
+        "needs_review": false,
+        "intents": [
+          "todo"
+        ],
+        "entities": [
+          {
+            "kind": "person",
+            "value": "상사 김태윤"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "file": "8-쿠팡.jpg",
+      "source_app": "쿠팡",
+      "label_ko": "쿠팡",
+      "gt_summary": "쿠팡에서 확인한 '위칙 소독 섬유유연제 본품 2L 2개' 상품 정보입니다. 구매를 고려하기 위해 저장했습니다.",
+      "gt_category": "쇼핑 후보",
+      "events": [
+        "node",
+        "node",
+        "node",
+        "tool_started",
+        "tool_finished",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [
+        {
+          "tool": "findReferenceUrls",
+          "input": {
+            "queries": [
+              "위칙 소독 섬유유연제 2L 2개"
+            ],
+            "category": "shop",
+            "original_url": null
+          },
+          "output": {
+            "useful": true,
+            "usefulness": 5,
+            "ranked_urls": [
+              {
+                "url": "https://search.shopping.naver.com/catalog/53735795533",
+                "title": "지엔디 위칙지엔디 고농축 대용량 소독 섬유유연제 무향, 2L, 2개",
+                "tier_num": 3.6,
+                "tier_label": "tier3_pricecompare"
+              }
+            ],
+            "comment": "사용자가 요청한 '위칙 소독 섬유유연제 2L 2개' 상품과 정확히 일치하는 상품 정보를 찾았습니다."
+          }
+        }
+      ],
+      "analysis": {
+        "summary": "위칙 소독 섬유유연제 2L 2개 상품입니다. 구매를 고려 중인 상품으로 나중에 다시 확인하기 위해 저장합니다.",
+        "category": "쇼핑 후보",
+        "needs_review": false,
+        "intents": [
+          "memo"
+        ],
+        "entities": [
+          {
+            "kind": "shopping_product",
+            "value": "위칙 소독 섬유유연제 2L 2개"
+          }
+        ]
+      },
+      "error": null
+    },
+    {
+      "file": "9-카카오톡.jpg",
+      "source_app": "카카오톡",
+      "label_ko": "카카오톡",
+      "gt_summary": "지윤과의 대화에서 이번 주말 중 하루 저녁 식사를 하기로 약속했습니다. 구체적인 날짜와 장소를 정하기 위해 이 약속을 투두로 관리합니다.",
+      "gt_category": "일상",
+      "events": [
+        "node",
+        "node",
+        "node",
+        "partial",
+        "node",
+        "node",
+        "node",
+        "node",
+        "final"
+      ],
+      "tool_calls": [],
+      "analysis": {
+        "summary": "지윤이와 이번 주말에 저녁 식사를 하기로 대화했습니다. 구체적인 약속 일시와 장소는 아직 정해지지 않았습니다.",
+        "category": "데이트 계획",
+        "needs_review": false,
+        "intents": [
+          "memo"
+        ],
+        "entities": []
+      },
+      "error": null
+    }
+  ]
+}

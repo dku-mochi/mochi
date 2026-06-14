@@ -62,6 +62,7 @@ from app.modules.mochi_items.presentation.schemas import (
     PresignRequest,
     PresignResponse,
     ReanalyzeRequest,
+    ReferenceLinkResponse,
     ReviewOptionResponse,
     UpcomingActionableListResponse,
     UpcomingActionableResponse,
@@ -171,6 +172,19 @@ def _to_response(item: MochiItem) -> MochiItemResponse:
         summary=item.summary,
         category=item.category,
         shopping_product_query=item.shopping_product_query,
+        reference_links=[
+            ReferenceLinkResponse(
+                url=link.url,
+                title=link.title,
+                label=link.label,
+                role=link.role,
+                provider=link.provider,
+                rank_profile=link.rank_profile,
+                source=link.source,
+                usefulness=link.usefulness,
+            )
+            for link in item.reference_links
+        ],
         importance=item.importance,
         is_favorite=item.is_favorite,
         lifecycle_kind=item.lifecycle.kind.value,

@@ -1,0 +1,942 @@
+[
+  {
+    "label": "두툼 강남 (맛집)",
+    "input": {
+      "queries": [
+        "두툼 강남"
+      ],
+      "category": "local",
+      "rank_profile": "local",
+      "source_app": "naver_map"
+    },
+    "useful": true,
+    "usefulness": 5,
+    "badge_count": 0,
+    "comment": "사용자가 찾으시는 '두툼 강남점'의 예약 및 위치 정보를 바로 확인할 수 있는 링크들을 선정했습니다.",
+    "ranked": [
+      {
+        "rank": 1,
+        "provider": "naver_map",
+        "bucket": "primary_action",
+        "role": "reserve",
+        "label": "네이버 지도에서 보기",
+        "title": "두툼 강남 - 네이버 지도 검색",
+        "url": "https://map.naver.com/p/search/%EB%91%90%ED%88%BC%20%EA%B0%95%EB%82%A8",
+        "usefulness": 4
+      },
+      {
+        "rank": 2,
+        "provider": "catchtable",
+        "bucket": "primary_action",
+        "role": "reference",
+        "label": "관련 링크 보기",
+        "title": "강남/역삼 | 캐치테이블",
+        "url": "https://app.catchtable.co.kr/ct/exhibition/gangnam",
+        "usefulness": null
+      },
+      {
+        "rank": 3,
+        "provider": "social",
+        "bucket": "reference",
+        "role": "read",
+        "label": "SNS에서 보기",
+        "title": "두툼 강남점",
+        "url": "https://www.instagram.com/dootoom_gn",
+        "usefulness": null
+      }
+    ]
+  },
+  {
+    "label": "차경 해방촌 (와인바)",
+    "input": {
+      "queries": [
+        "차경 해방촌"
+      ],
+      "category": "local",
+      "rank_profile": "local",
+      "source_app": "naver_map"
+    },
+    "useful": true,
+    "usefulness": 5,
+    "badge_count": 2,
+    "comment": "해방촌 '차경'의 공식 예약처와 인스타그램, 지도 정보를 확인했습니다.",
+    "ranked": [
+      {
+        "rank": 1,
+        "provider": "naver_map",
+        "bucket": "primary_action",
+        "role": "reserve",
+        "label": "네이버 지도에서 보기",
+        "title": "차경 해방촌 - 네이버 지도 검색",
+        "url": "https://map.naver.com/p/search/%EC%B0%A8%EA%B2%BD%20%ED%95%B4%EB%B0%A9%EC%B4%8C",
+        "usefulness": 4
+      },
+      {
+        "rank": 2,
+        "provider": "catchtable",
+        "bucket": "primary_action",
+        "role": "reserve",
+        "label": "캐치테이블에서 예약",
+        "title": "차경",
+        "url": "https://app.catchtable.co.kr/ct/shop/chakyung_hbc",
+        "usefulness": 5
+      },
+      {
+        "rank": 3,
+        "provider": "social",
+        "bucket": "reference",
+        "role": "read",
+        "label": "SNS에서 보기",
+        "title": "차경: 경치를 빌려오다 (@chakyung_hbc) - Instagram",
+        "url": "https://www.instagram.com/chakyung_hbc?hl=ko",
+        "usefulness": 5
+      }
+    ]
+  },
+  {
+    "label": "파스타타타 을지로 (맛집)",
+    "input": {
+      "queries": [
+        "파스타타타 을지로"
+      ],
+      "category": "local",
+      "rank_profile": "local",
+      "source_app": "naver_map"
+    },
+    "useful": true,
+    "usefulness": 5,
+    "badge_count": 1,
+    "comment": "요청하신 '파스타타타 을지로'의 예약 페이지와 지도 정보, 공식 인스타그램을 찾았습니다.",
+    "ranked": [
+      {
+        "rank": 1,
+        "provider": "naver_map",
+        "bucket": "primary_action",
+        "role": "reserve",
+        "label": "네이버 지도에서 보기",
+        "title": "파스타타타 을지로 - 네이버 지도 검색",
+        "url": "https://map.naver.com/p/search/%ED%8C%8C%EC%8A%A4%ED%83%80%ED%83%80%ED%83%80%20%EC%9D%84%EC%A7%80%EB%A1%9C",
+        "usefulness": 5
+      },
+      {
+        "rank": 2,
+        "provider": "catchtable",
+        "bucket": "primary_action",
+        "role": "reference",
+        "label": "관련 링크 보기",
+        "title": "명동/을지로 | 캐치테이블",
+        "url": "https://app.catchtable.co.kr/ct/exhibition/euljiro",
+        "usefulness": null
+      },
+      {
+        "rank": 3,
+        "provider": "social",
+        "bucket": "reference",
+        "role": "read",
+        "label": "SNS에서 보기",
+        "title": "pásta ta-tá 파스타 타타 (@pasta.ta.ta) · Seoul - Instagram",
+        "url": "https://www.instagram.com/pasta.ta.ta?hl=ko",
+        "usefulness": 4
+      }
+    ]
+  },
+  {
+    "label": "양은이네 신대방삼거리역직영점",
+    "input": {
+      "queries": [
+        "양은이네 신대방삼거리역직영점"
+      ],
+      "category": "local",
+      "rank_profile": "local",
+      "source_app": "naver_map"
+    },
+    "useful": true,
+    "usefulness": 5,
+    "badge_count": 1,
+    "comment": "요청하신 '양은이네 신대방삼거리역직영점'의 네이버 지도 정보와 상세 후기를 찾았습니다.",
+    "ranked": [
+      {
+        "rank": 1,
+        "provider": "naver_map",
+        "bucket": "primary_action",
+        "role": "reserve",
+        "label": "네이버 지도에서 보기",
+        "title": "양은이네 신대방삼거리역직영점 - 네이버 지도 검색",
+        "url": "https://map.naver.com/p/search/%EC%96%91%EC%9D%80%EC%9D%B4%EB%84%A4%20%EC%8B%A0%EB%8C%80%EB%B0%A9%EC%82%BC%EA%B1%B0%EB%A6%AC%EC%97%AD%EC%A7%81%EC%98%81%EC%A0%90",
+        "usefulness": 5
+      },
+      {
+        "rank": 2,
+        "provider": "social",
+        "bucket": "reference",
+        "role": "read",
+        "label": "SNS에서 보기",
+        "title": "16:30 전화번호 02-834-8295 양은이네 영등포구청직영점 위치: 서울 ...",
+        "url": "https://www.instagram.com/p/DEmH8qFStrn",
+        "usefulness": null
+      },
+      {
+        "rank": 3,
+        "provider": "site",
+        "bucket": "reference",
+        "role": "reference",
+        "label": "관련 사이트 보기",
+        "title": "양은이네 신대방삼거리역직영점 | 서울특별시 동작구 신대방동 | 백반/한정식 | 당근 동네 업체",
+        "url": "https://www.daangn.com/kr/local-profile/%EC%96%91%EC%9D%80%EC%9D%B4%EB%84%A4-%EC%8B%A0%EB%8C%80%EB%B0%A9%EC%82%BC%EA%B1%B0%EB%A6%AC%EC%97%AD%EC%A7%81%EC%98%81%EC%A0%90-3ku3wvvgwnop",
+        "usefulness": 4
+      }
+    ]
+  },
+  {
+    "label": "런던베이글뮤지엄 안국 (카페)",
+    "input": {
+      "queries": [
+        "런던베이글뮤지엄 안국"
+      ],
+      "category": "local",
+      "rank_profile": "local",
+      "source_app": "naver_map"
+    },
+    "useful": true,
+    "usefulness": 5,
+    "badge_count": 2,
+    "comment": "런던베이글뮤지엄 안국점의 예약 및 위치 정보를 바로 확인할 수 있는 공식 채널과 지도 링크를 선정했습니다.",
+    "ranked": [
+      {
+        "rank": 1,
+        "provider": "naver_map",
+        "bucket": "primary_action",
+        "role": "reserve",
+        "label": "네이버 지도에서 보기",
+        "title": "런던베이글뮤지엄 안국 - 네이버 지도 검색",
+        "url": "https://map.naver.com/p/search/%EB%9F%B0%EB%8D%98%EB%B2%A0%EC%9D%B4%EA%B8%80%EB%AE%A4%EC%A7%80%EC%97%84%20%EC%95%88%EA%B5%AD",
+        "usefulness": 5
+      },
+      {
+        "rank": 2,
+        "provider": "catchtable",
+        "bucket": "primary_action",
+        "role": "reserve",
+        "label": "캐치테이블에서 예약",
+        "title": "런던베이글뮤지엄 안국",
+        "url": "https://app.catchtable.co.kr/ct/shop/london_bagel_museum_anguk",
+        "usefulness": 5
+      },
+      {
+        "rank": 3,
+        "provider": "social",
+        "bucket": "reference",
+        "role": "read",
+        "label": "SNS에서 보기",
+        "title": "런던 베이글 뮤지엄 (@london.bagel.museum) - Instagram",
+        "url": "https://www.instagram.com/london.bagel.museum",
+        "usefulness": 4
+      }
+    ]
+  },
+  {
+    "label": "노티드 청담 (디저트)",
+    "input": {
+      "queries": [
+        "노티드 청담"
+      ],
+      "category": "local",
+      "rank_profile": "local",
+      "source_app": "naver_map"
+    },
+    "useful": true,
+    "usefulness": 5,
+    "badge_count": 1,
+    "comment": "노티드 청담점의 위치 정보와 매장 상세 정보를 확인할 수 있는 링크들을 선정했습니다.",
+    "ranked": [
+      {
+        "rank": 1,
+        "provider": "naver_map",
+        "bucket": "primary_action",
+        "role": "reserve",
+        "label": "네이버 지도에서 보기",
+        "title": "노티드 청담 - 네이버 지도 검색",
+        "url": "https://map.naver.com/p/search/%EB%85%B8%ED%8B%B0%EB%93%9C%20%EC%B2%AD%EB%8B%B4",
+        "usefulness": 5
+      },
+      {
+        "rank": 2,
+        "provider": "catchtable",
+        "bucket": "primary_action",
+        "role": "reference",
+        "label": "관련 링크 보기",
+        "title": "스케줄 청담 - 캐치테이블",
+        "url": "https://app.catchtable.co.kr/ct/shop/schedule_cheongdam",
+        "usefulness": null
+      },
+      {
+        "rank": 3,
+        "provider": "social",
+        "bucket": "reference",
+        "role": "read",
+        "label": "SNS에서 보기",
+        "title": "KNOTTED STUDIO D-2 9월 12일, 드디어 노티드 청담이 ...",
+        "url": "https://www.instagram.com/reel/C_usBYsJP6h",
+        "usefulness": null
+      }
+    ]
+  },
+  {
+    "label": "토리든 다이브인 세럼 (화장품)",
+    "input": {
+      "queries": [
+        "토리든 다이브인 세럼"
+      ],
+      "category": "shop",
+      "rank_profile": "cosmetics",
+      "source_app": "oliveyoung"
+    },
+    "useful": true,
+    "usefulness": 5,
+    "badge_count": 2,
+    "comment": "사용자가 찾는 토리든 다이브인 세럼의 공식몰 제품 페이지와 주요 쇼핑몰 링크를 우선적으로 선정했습니다.",
+    "ranked": [
+      {
+        "rank": 1,
+        "provider": "official",
+        "bucket": "official",
+        "role": "reference",
+        "label": "공식 사이트에서 보기",
+        "title": "[NEW] 토리든 다이브인 저분자 히알루론산 세럼 50ml",
+        "url": "https://www.torriden.com/goods/goods_view.php?goodsNo=2268",
+        "usefulness": 5
+      },
+      {
+        "rank": 2,
+        "provider": "smartstore",
+        "bucket": "primary_action",
+        "role": "reference",
+        "label": "관련 링크 보기",
+        "title": "토리든 다이브인 세럼 히알루론산 100ml+40ml 저분자 수분 앰플 코스트코",
+        "url": "https://smartstore.naver.com/main/products/11150288248",
+        "usefulness": null
+      },
+      {
+        "rank": 3,
+        "provider": "naver_shopping",
+        "bucket": "primary_action",
+        "role": "buy",
+        "label": "네이버쇼핑에서 보기",
+        "title": "토리든 다이브인 저분자 히알루론산 세럼 50ml, 1개",
+        "url": "https://search.shopping.naver.com/catalog/51929268310",
+        "usefulness": 5
+      }
+    ]
+  },
+  {
+    "label": "라운드랩 자작나무 토너",
+    "input": {
+      "queries": [
+        "라운드랩 자작나무 수분 토너"
+      ],
+      "category": "shop",
+      "rank_profile": "cosmetics",
+      "source_app": "unknown"
+    },
+    "useful": true,
+    "usefulness": 5,
+    "badge_count": 1,
+    "comment": "사용자가 찾는 라운드랩 자작나무 수분 토너의 공식 판매처 및 주요 쇼핑몰 상품 페이지를 찾았습니다.",
+    "ranked": [
+      {
+        "rank": 1,
+        "provider": "oliveyoung",
+        "bucket": "primary_action",
+        "role": "buy",
+        "label": "올리브영에서 보기",
+        "title": "[수분생기] 라운드랩 자작나무 수분 토너 1+1 기획 (300ml+300ml)",
+        "url": "https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000157178",
+        "usefulness": 5
+      },
+      {
+        "rank": 2,
+        "provider": "oliveyoung",
+        "bucket": "primary_action",
+        "role": "reference",
+        "label": "관련 링크 보기",
+        "title": "[수분생기] 라운드랩 자작나무 수분 토너 1+1 기획 (300ml+300ml)",
+        "url": "https://www.oliveyoung.co.kr/store/common/partner.do?chlNo=1&chlDtlNo=1&utm_source=naver&utm_medium=shopping_ep&utm_campaign=onpro_ep_product_0101_1231&utm_content=pc_price&sndType=goods&sndVal=A000000157178",
+        "usefulness": null
+      },
+      {
+        "rank": 3,
+        "provider": "official",
+        "bucket": "official",
+        "role": "reference",
+        "label": "공식 사이트에서 보기",
+        "title": "라운드랩",
+        "url": "https://roundlab.co.kr/product/%EC%9E%90%EC%9E%91%EB%82%98%EB%AC%B4-%EC%88%98%EB%B6%84-%ED%86%A0%EB%84%88-300ml/90",
+        "usefulness": null
+      }
+    ]
+  },
+  {
+    "label": "마뗑킴 가디건 (패션)",
+    "input": {
+      "queries": [
+        "마뗑킴 라운드 가디건"
+      ],
+      "category": "web",
+      "rank_profile": "fashion",
+      "source_app": "unknown"
+    },
+    "useful": true,
+    "usefulness": 5,
+    "badge_count": 0,
+    "comment": "사용자가 찾으시는 마뗑킴 라운드 가디건의 대표적인 모델인 타이포 패치 라운드 가디건 상품 페이지를 찾았습니다.",
+    "ranked": [
+      {
+        "rank": 1,
+        "provider": "official",
+        "bucket": "official",
+        "role": "reference",
+        "label": "공식 사이트에서 보기",
+        "title": "MADELEINE ROUND BAG IN BLACK - MATINKIM",
+        "url": "https://m.matinkim.com/product/madeleine-round-bag-in-black/4626",
+        "usefulness": null
+      },
+      {
+        "rank": 2,
+        "provider": "29cm",
+        "bucket": "primary_action",
+        "role": "reference",
+        "label": "관련 링크 보기",
+        "title": "[마뗑킴] THREE QUARTER SLEEVE ROUND CARDIGAN IN SKY",
+        "url": "https://product.29cm.co.kr/catalog/2673136?BSCCN1=2673136&BSCPN=CMCOM&utm_campaign=conversion_navershopping&utm_source=growth_naver&utm_term=2673136&naver_code=naver_ep&utm_content=conversion_navershopping&BSPRG=NAVERSH&utm_medium=display",
+        "usefulness": null
+      },
+      {
+        "rank": 3,
+        "provider": "wconcept",
+        "bucket": "primary_action",
+        "role": "reference",
+        "label": "관련 링크 보기",
+        "title": "[마뗑킴] 쓰리 쿼터 슬리브 라운드 가디건 레드",
+        "url": "http://www.wconcept.co.kr/Product/305896933?adfrom=naver_ep&utm_source=naver&utm_medium=pcs&utm_campaign=WCONCEPT&utm_content=none&utm_term=none",
+        "usefulness": null
+      }
+    ]
+  },
+  {
+    "label": "무신사 스탠다드 옥스포드 셔츠",
+    "input": {
+      "queries": [
+        "무신사 스탠다드 옥스포드 셔츠"
+      ],
+      "category": "shop",
+      "rank_profile": "fashion",
+      "source_app": "musinsa"
+    },
+    "useful": true,
+    "usefulness": 5,
+    "badge_count": 1,
+    "comment": "무신사 스탠다드 옥스포드 셔츠의 대표적인 베이식 및 릴렉스 핏 제품 페이지를 찾았습니다.",
+    "ranked": [
+      {
+        "rank": 1,
+        "provider": "musinsa",
+        "bucket": "primary_action",
+        "role": "buy",
+        "label": "무신사에서 보기",
+        "title": "무신사 스탠다드(MUSINSA STANDARD) 베이식 옥스포드 셔츠 [블루]",
+        "url": "https://www.musinsa.com/products/728001",
+        "usefulness": 5
+      },
+      {
+        "rank": 2,
+        "provider": "musinsa",
+        "bucket": "primary_action",
+        "role": "reference",
+        "label": "관련 링크 보기",
+        "title": "무신사 스탠다드(MUSINSA STANDARD) 릴렉스 핏 옥스포드 셔츠 ...",
+        "url": "https://www.musinsa.com/products/854337",
+        "usefulness": null
+      },
+      {
+        "rank": 3,
+        "provider": "naver_shopping",
+        "bucket": "primary_action",
+        "role": "reference",
+        "label": "관련 링크 보기",
+        "title": "무신사스탠다드 오버사이즈 옥스포드 셔츠 MMASLAZ09",
+        "url": "https://search.shopping.naver.com/catalog/58479699550",
+        "usefulness": null
+      }
+    ]
+  },
+  {
+    "label": "탐사수 2L 12개 (쿠팡)",
+    "input": {
+      "queries": [
+        "탐사수 2L 12개"
+      ],
+      "category": "shop",
+      "rank_profile": "coupang",
+      "source_app": "coupang"
+    },
+    "useful": true,
+    "usefulness": 5,
+    "badge_count": 0,
+    "comment": "사용자가 찾던 탐사수 2L 12개 제품의 쿠팡 상세 페이지와 브랜드 샵을 확인했습니다.",
+    "ranked": [
+      {
+        "rank": 1,
+        "provider": "coupang",
+        "bucket": "primary_action",
+        "role": "buy",
+        "label": "쿠팡에서 보기",
+        "title": "탐사 | 쿠팡이 추천하는 브랜드의 혜택과 특가",
+        "url": "https://www.coupang.com/np/products/brand-shop?brandName=%ED%83%90%EC%82%AC",
+        "usefulness": 4
+      },
+      {
+        "rank": 2,
+        "provider": "coupang",
+        "bucket": "primary_action",
+        "role": "reference",
+        "label": "관련 링크 보기",
+        "title": "쿠팡이 추천하는 물 2리터 12개 관련 혜택과 특가",
+        "url": "https://www.coupang.com/np/search?q=%EB%AC%BC+2%EB%A6%AC%ED%84%B0+12%EA%B0%9C",
+        "usefulness": null
+      },
+      {
+        "rank": 3,
+        "provider": "smartstore",
+        "bucket": "primary_action",
+        "role": "reference",
+        "label": "관련 링크 보기",
+        "title": "[탐사] 미네랄 워터 탐사수 2리터(12개) 무라벨",
+        "url": "https://smartstore.naver.com/main/products/8819114798",
+        "usefulness": null
+      }
+    ]
+  },
+  {
+    "label": "다우니 실내건조 섬유유연제",
+    "input": {
+      "queries": [
+        "다우니 실내건조 섬유유연제"
+      ],
+      "category": "shop",
+      "rank_profile": "coupang",
+      "source_app": "coupang"
+    },
+    "useful": true,
+    "usefulness": 5,
+    "badge_count": 1,
+    "comment": "사용자가 찾으시는 다우니 실내건조 섬유유연제 본품 상품들을 정확히 확인하여 추천해 드립니다.",
+    "ranked": [
+      {
+        "rank": 1,
+        "provider": "coupang",
+        "bucket": "primary_action",
+        "role": "buy",
+        "label": "쿠팡에서 보기",
+        "title": "다우니 실내건조 초고농축 섬유유연제 프레시 클린 본품, 1.05L, 3개",
+        "url": "https://www.coupang.com/vp/products/4563539498",
+        "usefulness": 5
+      },
+      {
+        "rank": 2,
+        "provider": "coupang",
+        "bucket": "primary_action",
+        "role": "reference",
+        "label": "관련 링크 보기",
+        "title": "쿠팡이 추천하는 섬유 유연제 실내건조 관련 혜택과 특가",
+        "url": "https://www.coupang.com/np/search?q=%EC%84%AC%EC%9C%A0+%EC%9C%A0%EC%97%B0%EC%A0%9C+%EC%8B%A4%EB%82%B4%EA%B1%B4%EC%A1%B0",
+        "usefulness": null
+      },
+      {
+        "rank": 3,
+        "provider": "smartstore",
+        "bucket": "primary_action",
+        "role": "reference",
+        "label": "관련 링크 보기",
+        "title": "다우니 실내건조 섬유유연제 엑스퍼트 초고농축 4L 코스트코 대용량 플러스 향좋은 향기좋은",
+        "url": "https://smartstore.naver.com/main/products/5204078443",
+        "usefulness": null
+      }
+    ]
+  },
+  {
+    "label": "로지텍 MX 마스터 3S",
+    "input": {
+      "queries": [
+        "로지텍 MX 마스터 3S"
+      ],
+      "category": "shop",
+      "rank_profile": "electronics",
+      "source_app": "unknown"
+    },
+    "useful": true,
+    "usefulness": 5,
+    "badge_count": 1,
+    "comment": "요청하신 로지텍 MX 마스터 3S의 구매 가능한 정품 페이지와 상세 정보를 찾았습니다.",
+    "ranked": [
+      {
+        "rank": 1,
+        "provider": "official",
+        "bucket": "official",
+        "role": "reference",
+        "label": "공식 사이트에서 보기",
+        "title": "MX Master 3s Wireless Mouse - 8K Optical Sensor | Logitech",
+        "url": "https://www.logitech.com/en-us/shop/p/mx-master-3s",
+        "usefulness": 4
+      },
+      {
+        "rank": 2,
+        "provider": "smartstore",
+        "bucket": "primary_action",
+        "role": "reference",
+        "label": "관련 링크 보기",
+        "title": "로지텍 MX MASTER 3S 마우스 그립 전신 보호 스킨 스티커 민트 그레이",
+        "url": "https://smartstore.naver.com/main/products/7608290414",
+        "usefulness": null
+      },
+      {
+        "rank": 3,
+        "provider": "naver_shopping",
+        "bucket": "primary_action",
+        "role": "buy",
+        "label": "네이버쇼핑에서 보기",
+        "title": "로지텍 MX MASTER 3S 정품, 그래파이트",
+        "url": "https://search.shopping.naver.com/catalog/55594320931",
+        "usefulness": 5
+      }
+    ]
+  },
+  {
+    "label": "소니 WH-1000XM5 헤드폰",
+    "input": {
+      "queries": [
+        "소니 WH-1000XM5"
+      ],
+      "category": "web",
+      "rank_profile": "electronics",
+      "source_app": "unknown"
+    },
+    "useful": true,
+    "usefulness": 5,
+    "badge_count": 1,
+    "comment": "소니 공식 제품 페이지와 가격 비교 사이트 등 사용자가 제품 정보를 확인하기에 가장 적합한 링크를 선정했습니다.",
+    "ranked": [
+      {
+        "rank": 1,
+        "provider": "openmarket",
+        "bucket": "primary_action",
+        "role": "buy",
+        "label": "관련 링크 열기",
+        "title": "SONY WH-1000XM5 (정품) : 다나와 가격비교",
+        "url": "https://prod.danawa.com/info?pcode=17229284",
+        "usefulness": 4
+      },
+      {
+        "rank": 2,
+        "provider": "site",
+        "bucket": "reference",
+        "role": "reference",
+        "label": "관련 사이트 보기",
+        "title": "WH-1000XM5 무선 노이즈 캔슬링 헤드폰 | LDAC 하이레졸루션 | Sony Korea",
+        "url": "https://www.sony.co.kr/electronics/headband-headphones/wh-1000xm5",
+        "usefulness": 5
+      },
+      {
+        "rank": 3,
+        "provider": "info",
+        "bucket": "reference",
+        "role": "read",
+        "label": "관련 글 보기",
+        "title": "윤피티연구소 : 네이버 블로그",
+        "url": "https://blog.naver.com/rimiy/223762628418",
+        "usefulness": null
+      }
+    ]
+  },
+  {
+    "label": "데이비드 호크니 전시 서울",
+    "input": {
+      "queries": [
+        "데이비드 호크니 전시 서울"
+      ],
+      "category": "web",
+      "rank_profile": "event_booking",
+      "source_app": "unknown"
+    },
+    "useful": true,
+    "usefulness": 4,
+    "badge_count": 0,
+    "comment": "서울에서 열렸던 주요 데이비드 호크니 전시(서울시립미술관 회고전 및 라이트룸 서울 몰입형 전시) 정보를 찾으시는 것으로 판단됩니다.",
+    "ranked": [
+      {
+        "rank": 1,
+        "provider": "official",
+        "bucket": "official",
+        "role": "reference",
+        "label": "공식 사이트에서 보기",
+        "title": "SeMA - 전시 상세 - 데이비드 호크니",
+        "url": "https://sema.seoul.go.kr/kr/whatson/exhibition/detail?exNo=316623",
+        "usefulness": 4
+      },
+      {
+        "rank": 2,
+        "provider": "social",
+        "bucket": "reference",
+        "role": "read",
+        "label": "SNS에서 보기",
+        "title": "데이비드 호크니 전시보러 파리에 갈 수 없다면.. . . @seoulauction ...",
+        "url": "https://www.instagram.com/p/DOI-7mWEvsB",
+        "usefulness": null
+      },
+      {
+        "rank": 3,
+        "provider": "site",
+        "bucket": "reference",
+        "role": "reference",
+        "label": "관련 사이트 보기",
+        "title": "서울에서 만나는 데이비드 호크니 몰입형 전시, 라이트룸 서울 | Design＋",
+        "url": "https://design.co.kr/article/4611",
+        "usefulness": 4
+      }
+    ]
+  },
+  {
+    "label": "서울재즈페스티벌 2025",
+    "input": {
+      "queries": [
+        "서울재즈페스티벌 2025"
+      ],
+      "category": "web",
+      "rank_profile": "event_booking",
+      "source_app": "unknown"
+    },
+    "useful": true,
+    "usefulness": 5,
+    "badge_count": 0,
+    "comment": "서울재즈페스티벌 2025 공식 홈페이지와 공연 정보, 예매 관련 링크를 정리했습니다.",
+    "ranked": [
+      {
+        "rank": 1,
+        "provider": "official",
+        "bucket": "official",
+        "role": "reference",
+        "label": "공식 사이트에서 보기",
+        "title": "2025 서울숲 재즈 페스티벌",
+        "url": "https://culture.seoul.go.kr/culture/festival/borough/view.do?festivalId=324&menuNo=200029",
+        "usefulness": null
+      },
+      {
+        "rank": 2,
+        "provider": "social",
+        "bucket": "reference",
+        "role": "read",
+        "label": "SNS에서 보기",
+        "title": "서울재즈페스티벌 Seoul Jazz Festival (@seouljazzfestival) - Instagram",
+        "url": "https://www.instagram.com/seouljazzfestival?hl=ko",
+        "usefulness": null
+      },
+      {
+        "rank": 3,
+        "provider": "site",
+        "bucket": "reference",
+        "role": "reference",
+        "label": "관련 사이트 보기",
+        "title": "제17회 서울재즈페스티벌 2025",
+        "url": "https://www.ksponco.or.kr/olympicpark/eventInfo/eventInfoView.es?mid=a20301010100&evtSeq=4959",
+        "usefulness": 4
+      }
+    ]
+  },
+  {
+    "label": "제주도 가볼만한 곳 추천 (큐레이션)",
+    "input": {
+      "queries": [
+        "제주도 가볼만한 곳 추천"
+      ],
+      "category": "blog",
+      "rank_profile": "general",
+      "source_app": "unknown"
+    },
+    "useful": true,
+    "usefulness": 5,
+    "badge_count": 0,
+    "comment": "제주도 가볼만한 곳을 찾는 사용자에게 공식 관광 정보 사이트와 신뢰도 높은 여행 플랫폼의 명소 리스트를 우선 추천합니다.",
+    "ranked": [
+      {
+        "rank": 1,
+        "provider": "site",
+        "bucket": "reference",
+        "role": "reference",
+        "label": "관련 사이트 보기",
+        "title": "제주도 관광지 (2026년 업데이트) | Trip.com 추천",
+        "url": "https://kr.trip.com/travel-guide/attraction/jeju-island-297/tourist-attractions",
+        "usefulness": 4
+      },
+      {
+        "rank": 2,
+        "provider": "site",
+        "bucket": "reference",
+        "role": "reference",
+        "label": "관련 사이트 보기",
+        "title": "제주도 관광명소 BEST 10 - Tripadvisor - 트립어드바이저",
+        "url": "https://www.tripadvisor.co.kr/Attractions-g983296-Activities-Jeju_Island.html",
+        "usefulness": 4
+      },
+      {
+        "rank": 3,
+        "provider": "info",
+        "bucket": "reference",
+        "role": "read",
+        "label": "관련 글 보기",
+        "title": "6월 제주 여행 추천 라프 제주도 가볼만한곳",
+        "url": "https://blog.naver.com/sin961027/224293806106",
+        "usefulness": null
+      }
+    ]
+  },
+  {
+    "label": "2025 가성비 게이밍 노트북 추천",
+    "input": {
+      "queries": [
+        "2025 가성비 게이밍 노트북 추천"
+      ],
+      "category": "blog",
+      "rank_profile": "general",
+      "source_app": "unknown"
+    },
+    "useful": true,
+    "usefulness": 4,
+    "badge_count": 0,
+    "comment": "2025년 가성비 게이밍 노트북 추천 정보를 다루는 블로그 및 영상 자료 중 구체적인 모델명과 비교 분석이 포함된 유용한 콘텐츠를 선정했습니다.",
+    "ranked": [
+      {
+        "rank": 1,
+        "provider": "site",
+        "bucket": "reference",
+        "role": "reference",
+        "label": "관련 사이트 보기",
+        "title": "2025 현시점 미친 가성비 게이밍 노트북 추천 TOP5 [노트북추천, 게이밍노트북, 가성비노트북, HP, 에이수스, 레노버]",
+        "url": "https://www.youtube.com/watch?v=akON-9aygIQ",
+        "usefulness": 4
+      },
+      {
+        "rank": 2,
+        "provider": "info",
+        "bucket": "reference",
+        "role": "read",
+        "label": "관련 글 보기",
+        "title": "게이밍 노트북 추천 뛰어난 성능과 가성비 2025 HP 빅터스 15",
+        "url": "https://blog.naver.com/supapa13/223778026531",
+        "usefulness": 4
+      },
+      {
+        "rank": 3,
+        "provider": "info",
+        "bucket": "reference",
+        "role": "read",
+        "label": "관련 글 보기",
+        "title": "83JG0021KR 게이밍노트북 추천! RTX5060 탑재 가성비...",
+        "url": "https://blog.naver.com/tintorera/224307728845",
+        "usefulness": 4
+      }
+    ]
+  },
+  {
+    "label": "발더스게이트3 공략 (정보)",
+    "input": {
+      "queries": [
+        "발더스게이트3 공략"
+      ],
+      "category": "web",
+      "rank_profile": "web",
+      "source_app": "unknown"
+    },
+    "useful": true,
+    "usefulness": 5,
+    "badge_count": 1,
+    "comment": "발더스 게이트 3의 전체적인 흐름을 파악할 수 있는 통합 가이드와 커뮤니티 공략 모음을 우선적으로 선정했습니다.",
+    "ranked": [
+      {
+        "rank": 1,
+        "provider": "site",
+        "bucket": "reference",
+        "role": "reference",
+        "label": "관련 사이트 보기",
+        "title": "(초보자 필독) 발더스 게이트 3 통합 가이드 - 발더스 게이트 3 마이너 갤러리",
+        "url": "https://m.dcinside.com/board/bg3/179061",
+        "usefulness": 4
+      },
+      {
+        "rank": 2,
+        "provider": "site",
+        "bucket": "reference",
+        "role": "reference",
+        "label": "관련 사이트 보기",
+        "title": "발더스 게이트3 전체 진행순서 총정리 (1막~3막 완벽 공략) | Arcory",
+        "url": "https://blog.arcory.app/game/baldurs-gate-3-guide",
+        "usefulness": 5
+      },
+      {
+        "rank": 3,
+        "provider": "info",
+        "bucket": "reference",
+        "role": "read",
+        "label": "관련 글 보기",
+        "title": "발더스 게이트3 위더스 공략",
+        "url": "https://golden-game.tistory.com/907",
+        "usefulness": null
+      }
+    ]
+  },
+  {
+    "label": "리치몬드호텔 야마가타 (해외호텔)",
+    "input": {
+      "queries": [
+        "리치몬드호텔 야마가타 에키마에"
+      ],
+      "category": "web",
+      "rank_profile": "event_booking",
+      "source_app": "unknown"
+    },
+    "useful": true,
+    "usefulness": 5,
+    "badge_count": 0,
+    "comment": "요청하신 리치몬드 호텔 야마가타 에키마에의 공식 홈페이지와 주요 예약 플랫폼 링크를 정리했습니다.",
+    "ranked": [
+      {
+        "rank": 1,
+        "provider": "site",
+        "bucket": "reference",
+        "role": "reference",
+        "label": "관련 사이트 보기",
+        "title": "리치몬드 호텔 야마가타-에키매 (Richmond Hotel Yamagata-ekimae) 실제 이용후기 및 할인 특가",
+        "url": "https://www.agoda.com/ko-kr/richmond-hotel-yamagata-ekimae/hotel/yamagata-jp.html",
+        "usefulness": 4
+      },
+      {
+        "rank": 2,
+        "provider": "site",
+        "bucket": "reference",
+        "role": "reference",
+        "label": "관련 사이트 보기",
+        "title": "Richmond Hotel Yamagata Ekimae, 야마가타 (2026년 최신 요금)",
+        "url": "https://www.booking.com/hotel/jp/richmond-yamagataekimae.ko.html",
+        "usefulness": 4
+      },
+      {
+        "rank": 3,
+        "provider": "info",
+        "bucket": "reference",
+        "role": "read",
+        "label": "관련 글 보기",
+        "title": "리치몬드 호텔 야마가타 에키매 후기 안마의자와 넓은 객실이 매력적인 야마가타 숙소 추천",
+        "url": "https://hotelmileage.tistory.com/357",
+        "usefulness": null
+      }
+    ]
+  }
+]
