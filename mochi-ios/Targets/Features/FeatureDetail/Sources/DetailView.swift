@@ -89,15 +89,22 @@ public struct DetailView: View {
                 }
                 .riseIn(sectionsAppeared, index: bump)
 
+                // 관련 링크(Agent ResourceFinder) — 3종 카드 비교용. 결정 후 승자만 ② 섹션에 합친다.
+                let ref = analysis.referenceLinks.isEmpty ? 0 : 1
+                if !analysis.referenceLinks.isEmpty {
+                    ReferenceLinksComparison(links: analysis.referenceLinks)
+                        .riseIn(sectionsAppeared, index: bump + 1)
+                }
+
                 GistCard(mochiItem: mochiItem, analysis: analysis)
-                    .riseIn(sectionsAppeared, index: bump + 1)
+                    .riseIn(sectionsAppeared, index: bump + ref + 1)
 
                 // ⑤ 비슷한 기록 — 결과 없으면(임계값 미달·미색인) 섹션 자체를 렌더하지 않는다.
                 if !store.similar.isEmpty {
                     SimilarSection(items: store.similar) { preview in
                         store.send(.similarItemTapped(preview.id))
                     }
-                    .riseIn(sectionsAppeared, index: bump + 2)
+                    .riseIn(sectionsAppeared, index: bump + ref + 2)
                 }
 
                 if let error = store.lastError {

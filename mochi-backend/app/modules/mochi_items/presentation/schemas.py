@@ -184,6 +184,21 @@ class ReviewOptionResponse(BaseModel):
     model_config = {"populate_by_name": True}
 
 
+class ReferenceLinkResponse(BaseModel):
+    """상세 화면 "지금 할 수 있어요" 에 붙일 참고 URL."""
+
+    url: str
+    title: str
+    label: str
+    role: str
+    provider: str
+    rank_profile: str = Field(alias="rankProfile")
+    source: str | None = None
+    usefulness: int | None = None
+
+    model_config = {"populate_by_name": True}
+
+
 class MochiItemResponse(BaseModel):
     id: UUID
     channel: IngestChannel
@@ -196,6 +211,7 @@ class MochiItemResponse(BaseModel):
     summary: str | None
     category: str | None = None
     shopping_product_query: str | None = Field(default=None, alias="shoppingProductQuery")
+    reference_links: list[ReferenceLinkResponse] = Field(default_factory=list, alias="referenceLinks")
     importance: int
     lifecycle_kind: str = Field(alias="lifecycleKind")
     sync_kind: str = Field(alias="syncKind")

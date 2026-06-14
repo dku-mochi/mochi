@@ -219,6 +219,44 @@ ValidationError 를 모델에 되먹임(malformed args 가 run 죽이던 것).
   (시청자)을 영상 업로더 채널로 오인**한 것(사용자 지적). system_prompt + function declaration 에 "channel_hint
   는 영상을 올린 업로더 채널이지 본인 로그인 프로필이 아니다" 가드 추가. (프롬프트 개선 — 효과는 다음 측정에서)
 
+### exp8 — Naver API vs Tavily 백본 비교, 라벨 22건 (2026-06-14, `results/exp8_backbone_compare_20260614_041513.json`)
+
+사용자 피드백(쿠팡 이미지 약함, 네이버 지도 캡처, 화장품/패션/예약의 신뢰도 순서)을 반영해
+화장품4·패션5·쿠팡3·local6·event2·web2 = 22개 라벨 query 를 만들고, 같은 query 를 Naver
+Search API(`shop/local/webkr/blog/news`, display=10)와 Tavily(`max_results=10`)에 동시에 던졌다.
+LLM judge 없이 preferred/acceptable domain 패턴으로 hit@3/10 을 계산했다.
+
+**결론 요약:**
+- **화장품:** Naver shop 이 강함(preferred@3 4/4). 단 top 이 `smartstore/search.shopping` 으로 기울고,
+  올리브영/공홈은 뒤에 나오는 경우가 있어 vertical rank policy 로 올려야 한다. Tavily 는 공홈/올영을
+  잘 찾지만 블로그·리뷰가 top 에 섞인다.
+- **패션:** Tavily 압승(preferred@3 5/5 vs Naver 1/5). 무신사·29CM·W컨셉·공홈 같은 앱/편집샵
+  페이지는 Naver shop top3 에 잘 안 뜨고 가격비교/스마트스토어가 앞선다. 패션은 Tavily-first 또는
+  Naver webkr 보조가 맞다.
+- **쿠팡:** 상품명만 검색하면 쿠팡이 잘 안 뜬다. `source_app=coupang` 일 때 query 에 `쿠팡` 힌트를 붙이면
+  Naver/Tavily 둘 다 쿠팡을 잘 띄운다. 쿠팡 캡처는 정확 상세 URL 보다 쿠팡 검색 상태 URL fallback 이
+  제품적으로 안정적이다.
+- **local/예약:** Naver local 이 장소 식별은 강하지만 API `link` 가 네이버 지도 URL 이 아니라
+  공식홈/캐치테이블/인스타/블로그로 오는 경우가 많다. 지도 링크는 결과 link 를 믿지 말고
+  `map.naver.com/p/search/<query>` 를 직접 생성해 1순위로 보여주고, 캐치테이블이 잡히면 2순위로 붙인다.
+  Local 예약 신뢰도는 **네이버 지도 > 캐치테이블**.
+- **event/공식 신청:** Naver webkr/news 가 공공·행사 공식 페이지에 강했다. Tavily 는 기사/블로그가 먼저
+  나올 수 있다.
+- **영문 일반 web:** 양쪽 모두 가능했지만, 제품화 기준은 Tavily-first 가 자연스럽다(공식문서/일반 웹
+  검색 API 역할이 명확).
+
+**백본 선택 규칙 초안:**
+1. `source_app=naver_map` 또는 category=`local` → Naver local first + `map.naver.com/p/search/<query>`
+   synthetic link always, Catchtable 후보 있으면 second.
+2. `source_app=coupang` → query 에 `쿠팡` 힌트 추가, Tavily+Naver 둘 다 검색, 실패해도
+   `coupang.com/np/search?q=<product>` synthetic fallback.
+3. `rank_profile=fashion` → Tavily first, Naver shop/webkr 보조. 무신사/29CM/W컨셉/공홈을
+   스마트스토어·쿠팡·네이버쇼핑보다 강하게 올린다.
+4. `rank_profile=cosmetics` → Naver shop + Tavily 병렬. 올리브영/공홈/공식 스마트스토어를
+   가격비교·쿠팡보다 올린다.
+5. `event_booking`/공공 신청 → Naver webkr/news first, Tavily fallback.
+6. `web`/영문 일반 → Tavily first.
+
 ### recover 3단계 — 무키 → YouTube Data API → 채널주소 fallback (2026-06-14)
 
 `lab/data/screenshot/youtube` 12장(URL 없는 순수 유튜브 스크린샷)으로 검증. 출처앱 신호 `[출처앱: YouTube]`를
