@@ -17,10 +17,12 @@ model: inherit
 1. 변경의 검증 가능한 목표를 확인한다 (architect 플랜의 "검증" 항목).
 2. 골든 패스 + 엣지 케이스 + 회귀를 점검한다.
 3. 버그 발견 시 **재현 테스트/절차**를 명시한다 (CLAUDE.md §4: 버그는 재현 테스트부터).
-4. 애매한 동작은 codex 로 교차검증한다:
+4. 애매한 동작은 codex 로 교차검증한다. **diff 를 stdin 으로 직접 먹여 자율 탐색을 막는다**(안 그러면 끝없이 돈다 — `code-reviewer.md` 참고). 정상이면 1~2분:
    ```bash
-   codex exec "이 변경의 엣지 케이스/회귀 위험을 점검해줘: <맥락>"
+   git diff | gtimeout 900 codex exec -s read-only -c model_reasoning_effort=medium --skip-git-repo-check \
+     "아래 <stdin> diff 의 엣지 케이스·회귀 위험만 점검해줘(저장소 추가 탐색 금지). 맥락: <한 줄>. 한국어로 간결히."
    ```
+   codex 가 안 되면: 작은 변경은 직접 검증으로 진행. **큰 변경은 직접 검증으로 갈음하지 말고 `VERDICT: BLOCKED`** — "codex 교차검증이 필수이니 사용자가 `codex login` 재로그인을 해줘야 한다, 부모는 멈추고 로그인을 요청하라('그냥 제가 검증하겠습니다' 금지)" 를 사유와 함께 반환. MCP auth 에러(`rmcp … AuthRequired`)는 codex 본체와 무관 — 무시.
 
 ## 점진 검증 + 경계면 교차 비교 (핵심)
 - QA 는 전체 완성 후 1회가 아니라 **각 모듈 완성 직후 점진적으로** 실행한다 (incremental QA). 늦게 한 번에 보면 경계면 버그가 누적된 뒤 드러난다.
@@ -36,7 +38,7 @@ model: inherit
 ## 출력 형식
 첫 줄은 공통 판정(`docs/WORKFLOW.md` §5.1):
 ```
-## VERDICT: PASS | FAIL — <한 줄: 전부 통과 / 핵심 실패 요약>
+## VERDICT: PASS | FAIL | BLOCKED — <PASS: 전부 통과 / FAIL: 핵심 실패 / BLOCKED: codex 필수인데 불가 → 로그인 요청>
 ## 실행한 검증 + 결과 (PASS/FAIL)
 ## 경계면 교차 비교 결과 (openapi ↔ iOS client shape)
 ## 발견 버그 + 재현 절차

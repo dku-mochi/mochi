@@ -2,11 +2,10 @@
 
 similar 는 "비슷한 기록"(상세 화면, DOMAIN_DESIGN §10.5)을 위한 seed-vector 이웃 조회다.
 실DB 없이 단위로 검증하는 항목 — (a) 자기 제외·owner-scope SQL 구조, (b) 임계값/fanout 바인드,
-(c) 같은 출처 URL dedup, (d) reasons(sharedSource/sameIntent/closeInTime) 파생, (e) 대상에
+(c) 같은 출처 URL dedup, (d) reasons(sharedSource/sameIntent) 파생, (e) 대상에
 embedding 이 없을 때(메인 쿼리 0행) 빈 배열 degrade — 두 번째 intent 쿼리도 생략.
 """
 
-from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 from uuid import uuid4
 
@@ -16,8 +15,6 @@ from app.modules.search.domain.entities import SimilarReasonKind
 from app.modules.search.infrastructure.postgres_index import PostgresHybridIndex
 
 pytestmark = pytest.mark.anyio
-
-_NOW = datetime(2026, 6, 13, tzinfo=UTC)
 
 
 async def _noop_embed(_: str) -> list[float] | None:
@@ -93,12 +90,10 @@ async def test_similar_derives_reasons() -> None:
     near, far = uuid4(), uuid4()
     main_rows = [
         SimpleNamespace(
-            mochi_item_id=near, score=0.92, url="https://toss.im/a",
-            captured_at=_NOW, target_url="https://toss.im/a", target_captured_at=_NOW,
+            mochi_item_id=near, score=0.92, url="https://toss.im/a", target_url="https://toss.im/a",
         ),
         SimpleNamespace(
-            mochi_item_id=far, score=0.71, url=None,
-            captured_at=_NOW - timedelta(days=10), target_url="https://toss.im/a", target_captured_at=_NOW,
+            mochi_item_id=far, score=0.71, url=None, target_url="https://toss.im/a",
         ),
     ]
     intent_rows = [
@@ -114,11 +109,10 @@ async def test_similar_derives_reasons() -> None:
     assert {r.kind for r in items[0].reasons} == {
         SimilarReasonKind.SHARED_SOURCE,
         SimilarReasonKind.SAME_INTENT,
-        SimilarReasonKind.CLOSE_IN_TIME,
     }
     same_intent = next(r for r in items[0].reasons if r.kind is SimilarReasonKind.SAME_INTENT)
     assert same_intent.value == "todo"
-    # far: url None(공유 출처 X) · intent memo≠todo(같은 의도 X) · 10일 차이(근접 X) → 근거 없음
+    # far: url None(공유 출처 X) · intent memo≠todo(비슷한 종류 X) → 근거 없음
     assert items[1].reasons == []
 
 
@@ -126,12 +120,9 @@ async def test_similar_dedups_same_source_url() -> None:
     target, owner = uuid4(), uuid4()
     first, dup, other = uuid4(), uuid4(), uuid4()
     main_rows = [
-        SimpleNamespace(mochi_item_id=first, score=0.90, url="https://x.com/p",
-                        captured_at=_NOW, target_url=None, target_captured_at=_NOW),
-        SimpleNamespace(mochi_item_id=dup, score=0.85, url="https://x.com/p",
-                        captured_at=_NOW, target_url=None, target_captured_at=_NOW),
-        SimpleNamespace(mochi_item_id=other, score=0.80, url="https://y.com",
-                        captured_at=_NOW, target_url=None, target_captured_at=_NOW),
+        SimpleNamespace(mochi_item_id=first, score=0.90, url="https://x.com/p", target_url=None),
+        SimpleNamespace(mochi_item_id=dup, score=0.85, url="https://x.com/p", target_url=None),
+        SimpleNamespace(mochi_item_id=other, score=0.80, url="https://y.com", target_url=None),
     ]
     items = await _index([main_rows, []]).similar(
         owner_id=owner, mochi_item_id=target, limit=6, min_score=0.6

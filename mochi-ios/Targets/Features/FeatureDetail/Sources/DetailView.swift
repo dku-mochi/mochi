@@ -116,15 +116,21 @@ public struct DetailView: View {
                         .riseIn(sectionsAppeared, index: 0)
                 }
 
-                IntentActionsSection(mochiItem: mochiItem, analysis: analysis) { instance in
+                IntentActionsSection(mochiItem: mochiItem) { instance in
                     store.send(.todoToggled(instance))
                 }
                 .riseIn(sectionsAppeared, index: bump)
 
-                // 관련 링크(Agent ResourceFinder) — 메타 행카드.
-                let ref = analysis.referenceLinks.isEmpty ? 0 : 1
-                if !analysis.referenceLinks.isEmpty {
-                    ReferenceLinksSection(links: analysis.referenceLinks)
+                // 관련 링크(Agent ResourceFinder) — 메타 행카드. 위 "지금 할 수 있어요"의 원본
+                // 링크(primaryActionURL)와 같은 자료(같은 영상/URL)는 중복이라 숨긴다(백엔드 dedup 의
+                // 표시단 안전망 — 정규화 규칙은 URLCanonical 단일 기준). 회수>확장 우선이라 원본은 위에 남긴다.
+                let primaryKey = mochiItem.primaryActionURL.map(URLCanonical.key)
+                let visibleRefs = analysis.referenceLinks.filter {
+                    primaryKey == nil || URLCanonical.key($0.url) != primaryKey
+                }
+                let ref = visibleRefs.isEmpty ? 0 : 1
+                if !visibleRefs.isEmpty {
+                    ReferenceLinksSection(links: visibleRefs)
                         .riseIn(sectionsAppeared, index: bump + 1)
                 }
 
@@ -189,9 +195,12 @@ private struct RecallHeader: View {
         // 이미지 카드 — 스크린샷은 카드 상단을 edge-to-edge 로 꽉 채우고(카드 clip 이 상단 모서리를
         // 둥글게 잘라줌), 제목·출처만 하단 padding. 단일 요소(이미지)를 안쪽 카드로 또 감싸지 않는다.
         VStack(alignment: .leading, spacing: 0) {
-            if let path = mochiItem.source.imageRefs.first?.relativePath {
+            if let ref = mochiItem.source.imageRefs.first {
                 ScreenshotPreviewImage(
-                    relativePath: path,
+                    relativePath: ref.relativePath,
+                    objectKey: ref.objectKey,
+                    sha256: ref.sha256,
+                    mimeType: ref.mimeType,
                     targetSize: CGSize(width: 320, height: 240),
                     handle: previewHandle
                 )
@@ -216,6 +225,10 @@ private struct RecallHeader: View {
                 .opacity((sourceImageHidden || store.heroImageHidden) ? 0 : 1)
                 .contentShape(Rectangle())
                 .onTapGesture { onTapImage(previewHandle.image, previewHandle.imageView) }
+            } else {
+                // 스크린샷이 없는 기록(메모·URL) — 빈 흰 헤더 대신 정체성 hero 밴드로 카드 상단을
+                // 풀폭으로 채운다(좌우 흰 여백 제거 + "메모/링크" 정체성 표시). 분석중과 같은 밴드라 튀지 않는다.
+                DetailIdentityHero(kind: mochiItem.viewKind)
             }
 
             VStack(alignment: .leading, spacing: HomeDesign.Spacing.sm) {
@@ -355,7 +368,6 @@ private struct NeedsReviewBanner: View {
 
 private struct IntentActionsSection: View {
     let mochiItem: MochiItem
-    let analysis: MochiItemAnalysis
     let onToggle: (IntentInstance) -> Void
     @Environment(\.openURL) private var openURL
 
@@ -382,17 +394,8 @@ private struct IntentActionsSection: View {
     private var hasConfirmedSchedule: Bool {
         !mochiItem.needsReview && !activeSchedules.isEmpty
     }
-    private var primaryURL: URL? {
-        if let url = mochiItem.source.url { return url }
-        // 분석이 화면(스크린샷)에서 그라운딩한 원본 소스 URL — payload.url (platformContext/webFetch 경유).
-        for inst in mochiItem.instances {
-            if let raw = inst.payload.url, let url = URL(string: raw) { return url }
-        }
-        for candidate in analysis.actionCandidates {
-            if case let .openURL(url) = candidate { return url }
-        }
-        return nil
-    }
+    /// 원본 링크 행 — "지금 할 수 있어요"와 관련 링크 중복 제거가 같은 값을 보도록 도메인 단일 원천을 쓴다.
+    private var primaryURL: URL? { mochiItem.primaryActionURL }
     private var hasAnyAction: Bool {
         !todoRows.isEmpty || hasConfirmedSchedule || primaryURL != nil
     }
@@ -686,9 +689,11 @@ private struct SimilarSection: View {
                         SimilarItemCard(preview: preview) { onTap(preview) }
                     }
                 }
-                .padding(.horizontal, 2)  // 카드 그림자가 ScrollView 클립에 잘리지 않게
-                .padding(.bottom, 4)
+                .padding(.horizontal, HomeDesign.Spacing.lg)  // 첫·마지막 카드를 본문 좌우 여백에 맞춤
+                .padding(.vertical, 4)  // 카드 그림자가 ScrollView 클립에 잘리지 않게
             }
+            // 부모 본문 패딩(lg)을 음수로 상쇄 → 캐러셀만 화면 좌우 끝까지 이어진다(헤더는 본문 정렬 유지).
+            .padding(.horizontal, -HomeDesign.Spacing.lg)
         }
     }
 }
@@ -785,8 +790,8 @@ private struct SimilarItemCard: View {
     private static func label(for reason: SimilarReason) -> String {
         switch reason.kind {
         case .sharedSource: return "같은 출처"
-        case .sameIntent:   return "같은 의도"
-        case .closeInTime:  return "비슷한 시기"
+        case .sameIntent:   return "비슷한 종류"
+        case .closeInTime:  return "비슷한 시기"  // reserved — 서버가 더 이상 파생하지 않아 실제로는 안 뜬다
         }
     }
 }
@@ -811,42 +816,112 @@ private struct SectionHeader: View {
     }
 }
 
-private enum DetailStateView {
-    static var loading: some View {
-        ProgressView()
-            .frame(maxWidth: .infinity)
-            .padding(.top, 80)
-    }
+/// 스크린샷이 없는 기록(메모·URL)의 hero 밴드 — 카드 상단을 정체성 색으로 **풀폭**으로 채운다.
+/// 홈·비슷한 기록 카드의 미디어 자리(`SimilarItemCard.media`)와 같은 시각 언어(메모=버터/크림, URL=보라)라
+/// 화면 전반에서 "이건 메모/링크"가 일관되게 읽히고, 빈 흰 헤더로 인한 좌우 흰 여백을 없앤다.
+private struct DetailIdentityHero: View {
+    let kind: MochiItemKind
 
-    @ViewBuilder
-    static func processing(_ mochiItem: MochiItem) -> some View {
-        VStack(spacing: HomeDesign.Spacing.lg) {
-            if let path = mochiItem.source.imageRefs.first?.relativePath {
-                LocalThumbnail(
-                    relativePath: path,
-                    objectKey: mochiItem.source.imageRefs.first?.objectKey,
-                    sha256: mochiItem.source.imageRefs.first?.sha256,
-                    mimeType: mochiItem.source.imageRefs.first?.mimeType,
-                    targetSize: CGSize(width: 320, height: 240),
-                    alignment: .top
-                ) {
-                    RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous)
-                        .fill(HomeDesign.Color.purple50)
-                }
-                // 분석 완료 후 헤더와 같은 4:3 — 분석이 끝나도 이미지가 튀지 않는다.
-                .aspectRatio(4.0 / 3.0, contentMode: .fit)
-                .frame(maxWidth: .infinity)
-                .clipShape(RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous))
-                .cardShadow()
-            }
-            HStack(spacing: HomeDesign.Spacing.sm) {
-                ProgressView().controlSize(.small)
-                Text("모찌가 정리하고 있어요…")
-                    .font(.system(size: 14, weight: .medium, design: .rounded))
-                    .foregroundStyle(HomeDesign.Color.textMuted)
+    var body: some View {
+        ZStack {
+            switch kind {
+            case .memo:
+                LinearGradient(
+                    colors: [HomeDesign.Color.butter50, HomeDesign.Color.cream100],
+                    startPoint: .top, endPoint: .bottom
+                )
+                Image(systemName: "quote.closing")
+                    .font(.system(size: 40, weight: .bold))
+                    .foregroundStyle(HomeDesign.Color.butter400.opacity(0.35))
+            case .url:
+                LinearGradient(
+                    colors: [HomeDesign.Color.purple50, HomeDesign.Color.purple100],
+                    startPoint: .top, endPoint: .bottom
+                )
+                Image(systemName: "link")
+                    .font(.system(size: 34, weight: .semibold))
+                    .foregroundStyle(HomeDesign.Color.purple600)
+            case .screenshot:
+                // 도달하지 않는다(스크린샷은 이미지 렌더 경로) — 안전 폴백.
+                HomeDesign.Color.purple50
             }
         }
-        .padding(.top, HomeDesign.Spacing.sm)
+        .frame(maxWidth: .infinity)
+        .frame(height: 132)
+    }
+}
+
+private enum DetailStateView {
+    /// 항목 자체를 아직 못 읽은 짧은 순간(로컬 DB 조회 중) — kind 를 모르므로 중립 스켈레톤 카드.
+    static var loading: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            ZStack {
+                HomeDesign.Color.purple50
+                ProgressView().controlSize(.small)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 132)
+            VStack(alignment: .leading, spacing: HomeDesign.Spacing.sm) {
+                skeletonLine(width: 180, height: 18)
+                skeletonLine(width: 240, height: 14)
+            }
+            .padding(HomeDesign.Spacing.lg)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .background(HomeDesign.Color.surface)
+        .clipShape(RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous))
+        .cardShadow()
+    }
+
+    /// 분석중 — 분석완료 헤더(RecallHeader)와 **같은 카드 골격**(hero 상단 + 본문)으로 그린다. hero 가
+    /// 같은 렌더러·같은 자리라, 분석이 끝나 본문이 채워질 때 이미지가 튀지 않는다(content-mode·풀폭 통일).
+    @ViewBuilder
+    static func processing(_ mochiItem: MochiItem) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            heroMedia(mochiItem)
+            VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
+                HStack(spacing: HomeDesign.Spacing.sm) {
+                    ProgressView().controlSize(.small)
+                    Text("모찌가 정리하고 있어요…")
+                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .foregroundStyle(HomeDesign.Color.textMuted)
+                }
+                // 제목 자리 스켈레톤 — 곧 차오를 콘텐츠를 암시한다.
+                skeletonLine(width: 220, height: 18)
+            }
+            .padding(HomeDesign.Spacing.lg)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .background(HomeDesign.Color.surface)
+        .clipShape(RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous))
+        .cardShadow()
+    }
+
+    /// 분석중·완료 공용 hero — 스크린샷이면 단일 렌더러(`ScreenshotPreviewImage`), 메모/URL 이면 정체성 밴드.
+    /// RecallHeader 의 hero 분기와 같은 규칙이라 두 상태가 동일하게 보인다.
+    @ViewBuilder
+    private static func heroMedia(_ mochiItem: MochiItem) -> some View {
+        if let ref = mochiItem.source.imageRefs.first {
+            ScreenshotPreviewImage(
+                relativePath: ref.relativePath,
+                objectKey: ref.objectKey,
+                sha256: ref.sha256,
+                mimeType: ref.mimeType,
+                targetSize: CGSize(width: 320, height: 240)
+            )
+            .frame(maxWidth: .infinity)
+            .background(Rectangle().fill(HomeDesign.Color.purple50))
+        } else {
+            DetailIdentityHero(kind: mochiItem.viewKind)
+        }
+    }
+
+    /// 스켈레톤 한 줄 — bg 톤 블록으로 "곧 채워질 자리"를 암시한다.
+    private static func skeletonLine(width: CGFloat, height: CGFloat) -> some View {
+        RoundedRectangle(cornerRadius: 7, style: .continuous)
+            .fill(HomeDesign.Color.bg)
+            .frame(maxWidth: width)
+            .frame(height: height)
     }
 
     static var failed: some View {
@@ -939,10 +1014,19 @@ private final class ScreenshotImageViewHandle: ObservableObject {
     var image: UIImage?
 }
 
+/// 기록 상세 hero 이미지 — **분석중·분석완료 공용** 단일 렌더러. 4:3 박스를 항상 컨테이너 폭으로 채우고
+/// (세로=center fill / 가로=fit+블러 확대 배경), 비어 있는 `relativePath` 는 GCS 폴백으로 자가 치유한다.
+/// 분석중/완료가 같은 렌더러를 써서 분석이 끝나도 content-mode·크롭이 튀지 않는다(이전엔 분석중이 다른
+/// 컴포넌트 + `.aspectRatio` 라 ScrollView 협상이 깨져 세로 좁은 띠 + 좌우 흰 여백으로 렌더됐다).
+/// `handle` 은 헤더(완료)가 탭→확대 + hero 비행에 쓰는 UIImageView 핸들 — 분석중은 nil(표시 전용).
 private struct ScreenshotPreviewImage: View {
-    let relativePath: String
+    let relativePath: String?
+    /// 렌더 시점 GCS 폴백용(로컬 파일이 없을 때) — 셋이 다 있으면 `CaptureImageStore` 가 받아 캐시한다.
+    var objectKey: String? = nil
+    var sha256: String? = nil
+    var mimeType: String? = nil
     let targetSize: CGSize
-    @ObservedObject var handle: ScreenshotImageViewHandle
+    var handle: ScreenshotImageViewHandle? = nil
     @State private var image: UIImage?
 
     var body: some View {
@@ -965,9 +1049,23 @@ private struct ScreenshotPreviewImage: View {
                 }
         }
         .clipped()
-        .task(id: relativePath) {
+        // 빈 문자열 relativePath 는 non-nil 이라 `relativePath ?? objectKey` 로는 id 가 늘 "" 로 고정돼
+        // objectKey 만 다른 항목으로 슬롯이 갈아끼워져도 재로드가 안 된다 — 로컬 경로가 비면 objectKey 로 식별.
+        .task(id: relativePath?.isEmpty == false ? relativePath : objectKey) {
+            image = nil  // 슬롯 교체 시 이전 항목 잔상 제거(첫 등장은 이미 nil 이라 무해).
             let maxPixel = Int(max(targetSize.width, targetSize.height) * 3)
-            image = await loadDownsampledDetailImage(relativePath: relativePath, maxPixel: maxPixel)
+            // 로컬 파일이 없고(빈 relativePath) GCS 단서가 다 있으면 렌더 시점에 받아 채운다
+            // (재설치·타기기 생성·pull 직후 objectKey 만 있는 항목 자가 치유) — 카드 LocalThumbnail 과 동일.
+            var path = relativePath
+            if (path?.isEmpty ?? true), let objectKey, let sha256, let mimeType {
+                path = await CaptureImageStore.shared.ensureLocalPath(
+                    sha256: sha256, mimeType: mimeType, objectKey: objectKey
+                )
+            }
+            guard let path, !path.isEmpty else { return }
+            let loaded = await loadDownsampledDetailImage(relativePath: path, maxPixel: maxPixel)
+            guard !Task.isCancelled else { return }  // await 사이 슬롯이 바뀌었으면 stale 대입 버림.
+            image = loaded
         }
     }
 
@@ -1006,7 +1104,8 @@ private struct FixedRatioBox: Layout {
 private struct UIKitImageView: UIViewRepresentable {
     let image: UIImage?
     let contentMode: UIView.ContentMode
-    let handle: ScreenshotImageViewHandle
+    /// 헤더(완료)만 JXPhotoBrowser 확대·hero 비행을 위해 핸들을 넘긴다. 분석중(표시 전용)은 nil.
+    var handle: ScreenshotImageViewHandle? = nil
 
     func makeUIView(context: Context) -> UIImageView {
         let imageView = LayoutNeutralImageView()
@@ -1017,15 +1116,15 @@ private struct UIKitImageView: UIViewRepresentable {
         imageView.setContentHuggingPriority(.defaultLow, for: .vertical)
         imageView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         imageView.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
-        handle.imageView = imageView
+        handle?.imageView = imageView
         return imageView
     }
 
     func updateUIView(_ imageView: UIImageView, context: Context) {
         imageView.image = image
         imageView.contentMode = contentMode
-        handle.image = image
-        handle.imageView = imageView
+        handle?.image = image
+        handle?.imageView = imageView
     }
 
     /// 이미지 원본 비율과 무관하게 SwiftUI 가 제안한 영역을 그대로 채운다.
