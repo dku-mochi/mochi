@@ -225,6 +225,8 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
     public let category: String?
     /// 쇼핑 캡처의 커머스 검색어 — entities(kind=shopping_product) 서버 projection. 비쇼핑은 nil.
     public let shoppingProductQuery: String?
+    /// Agent 가 찾아준 참고 링크 — entities(kind=reference_url) 서버 projection. 없으면 빈 배열.
+    public let referenceLinks: [ReferenceLinkDTO]
     public let importance: Int
     /// 저장된 의도 instance (저장된 것은 곧 active, 위계 없음). 분석 전엔 빈 배열.
     public let intentInstances: [IntentInstanceDTO]
@@ -243,6 +245,7 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
         case id, channel, url, text, summary, category, importance
         case userMemo = "userMemo"
         case shoppingProductQuery = "shoppingProductQuery"
+        case referenceLinks = "referenceLinks"
         case intentInstances = "intentInstances"
         case needsReview = "needsReview"
         case reviewOptions = "reviewOptions"
@@ -262,6 +265,7 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
         summary: String?,
         category: String?,
         shoppingProductQuery: String? = nil,
+        referenceLinks: [ReferenceLinkDTO] = [],
         importance: Int,
         intentInstances: [IntentInstanceDTO],
         needsReview: Bool,
@@ -280,6 +284,7 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
         self.summary = summary
         self.category = category
         self.shoppingProductQuery = shoppingProductQuery
+        self.referenceLinks = referenceLinks
         self.importance = importance
         self.intentInstances = intentInstances
         self.needsReview = needsReview
@@ -301,6 +306,7 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
         summary = try c.decodeIfPresent(String.self, forKey: .summary)
         category = try c.decodeIfPresent(String.self, forKey: .category)
         shoppingProductQuery = try c.decodeIfPresent(String.self, forKey: .shoppingProductQuery)
+        referenceLinks = try c.decodeIfPresent([ReferenceLinkDTO].self, forKey: .referenceLinks) ?? []
         importance = try c.decode(Int.self, forKey: .importance)
         intentInstances = try c.decodeIfPresent([IntentInstanceDTO].self, forKey: .intentInstances) ?? []
         needsReview = try c.decodeIfPresent(Bool.self, forKey: .needsReview) ?? false
@@ -310,6 +316,43 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
         imageRefs = try c.decodeIfPresent([ImageRefDTO].self, forKey: .imageRefs) ?? []
         capturedAt = try c.decode(Date.self, forKey: .capturedAt)
         createdAt = try c.decode(Date.self, forKey: .createdAt)
+    }
+}
+
+/// 참고 링크 응답 — `referenceLinks` 배열 원소. 서버 ReferenceLinkResponse 미러.
+public struct ReferenceLinkDTO: Sendable, Hashable, Codable {
+    public let url: String
+    public let title: String
+    public let label: String
+    public let role: String
+    public let provider: String
+    public let rankProfile: String
+    public let source: String?
+    public let usefulness: Int?
+
+    public init(
+        url: String,
+        title: String,
+        label: String,
+        role: String,
+        provider: String,
+        rankProfile: String,
+        source: String? = nil,
+        usefulness: Int? = nil
+    ) {
+        self.url = url
+        self.title = title
+        self.label = label
+        self.role = role
+        self.provider = provider
+        self.rankProfile = rankProfile
+        self.source = source
+        self.usefulness = usefulness
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case url, title, label, role, provider, source, usefulness
+        case rankProfile = "rankProfile"
     }
 }
 

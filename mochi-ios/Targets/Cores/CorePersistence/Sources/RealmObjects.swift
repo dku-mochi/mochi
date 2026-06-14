@@ -19,6 +19,8 @@ public final class RealmMochiItem: Object, Identifiable {
     @Persisted public var category: String?
     /// 쇼핑 캡처의 커머스 검색어 — 상세 구매 링크용 (서버 분석 미러).
     @Persisted public var shoppingProductQuery: String?
+    /// Agent 가 찾아준 참고 링크 — 상세 URL 카드용 (서버 분석 미러, 아이템당 최대 3개).
+    @Persisted public var referenceLinks: List<RealmReferenceLink>
     @Persisted public var importance: Int = 3
     /// 모찌가 분류를 확신 못 함 — "헷갈려요" 버킷 (서버 boolean 미러).
     @Persisted public var needsReview: Bool = false
@@ -62,6 +64,17 @@ public final class RealmIntentInstance: EmbeddedObject {
     @Persisted public var payloadTopic: String?
     @Persisted public var payloadURL: String?
     @Persisted public var payloadNote: String?
+}
+
+public final class RealmReferenceLink: EmbeddedObject {
+    @Persisted public var urlString: String
+    @Persisted public var title: String
+    @Persisted public var label: String
+    @Persisted public var role: String
+    @Persisted public var provider: String
+    @Persisted public var rankProfile: String
+    @Persisted public var source: String?
+    @Persisted public var usefulness: Int?
 }
 
 public final class RealmReviewOption: EmbeddedObject {

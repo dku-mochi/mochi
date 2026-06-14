@@ -12,6 +12,20 @@ public extension MochiItemDTO {
             summary: summary ?? "",
             category: category,
             shoppingProductQuery: shoppingProductQuery,
+            referenceLinks: referenceLinks.compactMap { dto in
+                URL(string: dto.url).map {
+                    ReferenceLink(
+                        url: $0,
+                        title: dto.title,
+                        label: dto.label,
+                        role: dto.role,
+                        provider: dto.provider,
+                        rankProfile: dto.rankProfile,
+                        source: dto.source,
+                        usefulness: dto.usefulness
+                    )
+                }
+            },
             instances: intentInstances.map { i in
                 IntentInstance(
                     id: i.id,

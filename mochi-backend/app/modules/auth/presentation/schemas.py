@@ -3,10 +3,11 @@
 iOS DTO 와 1:1. camelCase alias 유지.
 """
 
-from datetime import datetime
 from uuid import UUID
 
 from pydantic import BaseModel, Field
+
+from app.core.schema import UtcDateTime
 
 
 class AppleSignInRequest(BaseModel):
@@ -52,7 +53,7 @@ class CaptureTokenResponse(BaseModel):
     """raw secret 은 이 응답으로 1회만 전달 — 클라이언트가 공유 Keychain 에 보관한다."""
 
     capture_token: str = Field(alias="captureToken")
-    capture_token_expires_at: datetime = Field(alias="captureTokenExpiresAt")
+    capture_token_expires_at: UtcDateTime = Field(alias="captureTokenExpiresAt")
 
     model_config = {"populate_by_name": True}
 
@@ -72,16 +73,16 @@ class UserResponse(BaseModel):
     email: str
     display_name: str = Field(alias="displayName")
     locale: str
-    onboarding_completed_at: datetime | None = Field(default=None, alias="onboardingCompletedAt")
+    onboarding_completed_at: UtcDateTime | None = Field(default=None, alias="onboardingCompletedAt")
 
     model_config = {"populate_by_name": True}
 
 
 class TokensResponse(BaseModel):
     access_token: str = Field(alias="accessToken")
-    access_token_expires_at: datetime = Field(alias="accessTokenExpiresAt")
+    access_token_expires_at: UtcDateTime = Field(alias="accessTokenExpiresAt")
     refresh_token: str = Field(alias="refreshToken")
-    refresh_token_expires_at: datetime = Field(alias="refreshTokenExpiresAt")
+    refresh_token_expires_at: UtcDateTime = Field(alias="refreshTokenExpiresAt")
     token_type: str = Field(default="Bearer", alias="tokenType")
 
     model_config = {"populate_by_name": True}
