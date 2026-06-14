@@ -132,6 +132,21 @@ _RESOURCE_FINDER_PARAMS: dict[str, Any] = {
             "enum": ["shop", "local", "blog", "news", "web"],
         },
         "original_url": {"type": "string"},
+        "visible_urls": {"type": "array", "items": {"type": "string"}},
+        "rank_profile": {
+            "type": "string",
+            "enum": [
+                "auto", "general", "cosmetics", "fashion", "electronics", "local",
+                "event_booking", "coupang", "web",
+            ],
+        },
+        "source_app": {
+            "type": "string",
+            "enum": [
+                "unknown", "coupang", "naver_map", "naver_shopping", "oliveyoung",
+                "musinsa", "instagram", "youtube", "safari", "browser",
+            ],
+        },
     },
     "required": ["queries", "category"],
 }
@@ -194,13 +209,26 @@ def _function_declarations(tools: list[Tool[Any, Any]]) -> list[types.FunctionDe
                 types.FunctionDeclaration(
                     name=ToolName.RESOURCE_FINDER.value,
                     description=(
-                        "Find real reference URLs to attach to a capture (product/place/info/news) "
-                        "when the user would later want to jump to an external source, and you can "
-                        "name the target as searchable keywords. YOU extract the keywords from the "
+                        "Find real reference URLs to attach to a capture so the user can reopen the "
+                        "target later. Default to calling this on almost any capture: nearly every "
+                        "screenshot points at some real thing (product/place/restaurant/video/brand/"
+                        "event/public notice/application/recipe/article) the user might want to "
+                        "revisit, and a relevance judge drops weak results, so the safe default is to "
+                        "call it. Don't gate on intent_type — todo/schedule/memo/knowledge captures "
+                        "need the link too. Call it even when the screenshot is already inside that "
+                        "app (Naver Map / Coupang / OliveYoung): the saved memory still needs a link "
+                        "to reopen later. Skip only when there is genuinely nothing to look up — a "
+                        "private chat, a receipt/confirmation already done, the user's own note, a "
+                        "banking/credentials screen, or a personal photo/mood image with nothing "
+                        "nameable. YOU extract the keywords from the "
                         "image into 'queries' and choose 'category' (shop=Korean commerce, "
                         "local=place/map, blog=how-to/review/curation incl. 'best-of' lists, "
-                        "news=articles, web=overseas/English/general). Returns ranked URLs gated by "
-                        "a relevance judge — empty when nothing useful is found."
+                        "news=articles, web=overseas/English/general). Also pass rank_profile "
+                        "(cosmetics/fashion/local/event_booking/coupang/electronics/web/general) "
+                        "and source_app when the screenshot clearly comes from an app. If OCR or "
+                        "the screen shows literal URLs, pass them as visible_urls. Returns ranked "
+                        "URLs plus reference_entities strings that should be copied into "
+                        "entities(kind='reference_url') when useful."
                     ),
                     parameters=_RESOURCE_FINDER_PARAMS,
                 )

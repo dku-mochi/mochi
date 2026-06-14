@@ -354,6 +354,7 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
             summary: r.summary,
             category: r.category,
             shoppingProductQuery: r.shoppingProductQuery,
+            referenceLinks: (r.referenceLinks ?? []).map(mapReferenceLink),
             importance: r.importance,
             intentInstances: (r.intentInstances ?? []).map(mapIntentInstance),
             needsReview: r.needsReview ?? false,
@@ -363,6 +364,19 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
             imageRefs: (r.imageRefs ?? []).map(mapImageRefFromResponse),
             capturedAt: r.capturedAt,
             createdAt: r.createdAt
+        )
+    }
+
+    private static func mapReferenceLink(_ l: Components.Schemas.ReferenceLinkResponse) -> ReferenceLinkDTO {
+        ReferenceLinkDTO(
+            url: l.url,
+            title: l.title,
+            label: l.label,
+            role: l.role,
+            provider: l.provider,
+            rankProfile: l.rankProfile,
+            source: l.source,
+            usefulness: l.usefulness
         )
     }
 
