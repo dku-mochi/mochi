@@ -2519,6 +2519,16 @@
             "title": "Usefulness",
             "type": "integer",
             "nullable": true
+          },
+          "subtitle": {
+            "title": "Subtitle",
+            "type": "string",
+            "nullable": true
+          },
+          "priceText": {
+            "title": "Pricetext",
+            "type": "string",
+            "nullable": true
           }
         },
         "type": "object",

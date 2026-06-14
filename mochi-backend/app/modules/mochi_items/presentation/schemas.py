@@ -204,6 +204,8 @@ class ReferenceLinkResponse(BaseModel):
     rank_profile: str = Field(alias="rankProfile")
     source: str | None = None
     usefulness: int | None = None
+    subtitle: str | None = None
+    price_text: str | None = Field(default=None, alias="priceText")
 
     model_config = {"populate_by_name": True}
 

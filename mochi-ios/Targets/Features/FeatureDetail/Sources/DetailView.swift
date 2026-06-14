@@ -121,7 +121,7 @@ public struct DetailView: View {
                 }
                 .riseIn(sectionsAppeared, index: bump)
 
-                // 관련 링크(Agent ResourceFinder) — 3종 카드 비교용. 결정 후 승자만 ② 섹션에 합친다.
+                // 관련 링크(Agent ResourceFinder) — 5종(A~E) 카드 비교용. 결정 후 승자만 ② 섹션에 합친다.
                 let ref = analysis.referenceLinks.isEmpty ? 0 : 1
                 if !analysis.referenceLinks.isEmpty {
                     ReferenceLinksComparison(links: analysis.referenceLinks)
@@ -787,6 +787,9 @@ private struct SimilarItemCard: View {
         case .screenshot:
             LocalThumbnail(
                 relativePath: item.source.imageRefs.first?.relativePath,
+                objectKey: item.source.imageRefs.first?.objectKey,
+                sha256: item.source.imageRefs.first?.sha256,
+                mimeType: item.source.imageRefs.first?.mimeType,
                 targetSize: CGSize(width: 150, height: 96)
             ) {
                 ZStack {
@@ -872,6 +875,9 @@ private enum DetailStateView {
             if let path = mochiItem.source.imageRefs.first?.relativePath {
                 LocalThumbnail(
                     relativePath: path,
+                    objectKey: mochiItem.source.imageRefs.first?.objectKey,
+                    sha256: mochiItem.source.imageRefs.first?.sha256,
+                    mimeType: mochiItem.source.imageRefs.first?.mimeType,
                     targetSize: CGSize(width: 320, height: 240),
                     alignment: .top
                 ) {

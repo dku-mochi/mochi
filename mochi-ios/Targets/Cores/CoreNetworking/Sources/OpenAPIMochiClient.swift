@@ -390,7 +390,9 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
             provider: l.provider,
             rankProfile: l.rankProfile,
             source: l.source,
-            usefulness: l.usefulness
+            usefulness: l.usefulness,
+            subtitle: l.subtitle,
+            priceText: l.priceText
         )
     }
 

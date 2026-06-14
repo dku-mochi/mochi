@@ -768,6 +768,9 @@ private struct DayMochiRow: View {
         if item.viewKind == .screenshot {
             LocalThumbnail(
                 relativePath: item.source.imageRefs.first?.relativePath,
+                objectKey: item.source.imageRefs.first?.objectKey,
+                sha256: item.source.imageRefs.first?.sha256,
+                mimeType: item.source.imageRefs.first?.mimeType,
                 targetSize: CGSize(width: 48, height: 48)
             ) {
                 placeholderIcon

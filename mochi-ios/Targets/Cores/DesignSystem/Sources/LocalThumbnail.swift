@@ -13,6 +13,12 @@ import CorePersistence
 /// `SharePreviewImage` 에도 있다 (App Group container + `ImageRef.relativePath`).
 public struct LocalThumbnail<Placeholder: View>: View {
     let relativePath: String?
+    /// 렌더 시점 GCS 폴백용 — `relativePath` 로컬 파일이 없을 때 이 셋이 다 있으면 `CaptureImageStore`
+    /// 가 GCS 에서 받아 `captures/` 에 캐시한다(재설치·Realm 와이프 후 빈 relativePath 자가 치유).
+    /// 셋 중 하나라도 nil 이면 폴백 없이 기존 동작(로컬 없으면 placeholder).
+    var objectKey: String?
+    var sha256: String?
+    var mimeType: String?
     let targetSize: CGSize
     /// `.fill` 로 채운 이미지가 프레임을 넘칠 때 어느 쪽을 보여줄지. 스크린샷(세로 비율)은
     /// `.top` 으로 상단(상태바·제목)을 보여주는 게 알아보기 쉽다. 기본 `.center`.
@@ -28,12 +34,18 @@ public struct LocalThumbnail<Placeholder: View>: View {
 
     public init(
         relativePath: String?,
+        objectKey: String? = nil,
+        sha256: String? = nil,
+        mimeType: String? = nil,
         targetSize: CGSize,
         alignment: Alignment = .center,
         onBottomLuminance: ((CGFloat) -> Void)? = nil,
         @ViewBuilder placeholder: @escaping () -> Placeholder
     ) {
         self.relativePath = relativePath
+        self.objectKey = objectKey
+        self.sha256 = sha256
+        self.mimeType = mimeType
         self.targetSize = targetSize
         self.alignment = alignment
         self.onBottomLuminance = onBottomLuminance
@@ -44,11 +56,18 @@ public struct LocalThumbnail<Placeholder: View>: View {
         GeometryReader { geo in
             content(geo.size)
         }
-        .task(id: relativePath) {
+        .task(id: relativePath ?? objectKey) {
             // @3x 까지 커버하도록 셀 변 길이의 3배를 상한 픽셀로 둔다.
             let maxPixel = Int(max(targetSize.width, targetSize.height) * 3)
+            // 로컬 파일이 없고(빈 relativePath) GCS 단서가 다 있으면 렌더 시점에 받아 채운다.
+            var path = relativePath
+            if (path?.isEmpty ?? true), let objectKey, let sha256, let mimeType {
+                path = await CaptureImageStore.shared.ensureLocalPath(
+                    sha256: sha256, mimeType: mimeType, objectKey: objectKey
+                )
+            }
             let loaded = await loadDownsampledContainerImage(
-                relativePath: relativePath,
+                relativePath: path,
                 maxPixel: maxPixel,
                 visibleAspectForLuminance: onBottomLuminance != nil && targetSize.height > 0
                     ? targetSize.width / targetSize.height
@@ -101,7 +120,8 @@ public struct LocalThumbnail<Placeholder: View>: View {
 /// App Group 컨테이너의 캡처를 **동기**로 다운샘플 로드한다 (배지·테두리 없는 순수 스크린샷).
 /// hero 전환처럼 탭 직후 한 장만 즉시 필요한 경우용 — 여러 셀 동시 로드는 `LocalThumbnail`(비동기) 사용.
 public func loadContainerThumbnailSync(relativePath: String?, maxPixel: Int) -> UIImage? {
-    guard let relativePath else { return nil }
+    // 빈 문자열은 nil 과 동일 취급 — 안 그러면 컨테이너 루트를 이미지로 열려다 IIOImageSource 에러.
+    guard let relativePath, !relativePath.isEmpty else { return nil }
     let url = AppGroup.containerURL.appendingPathComponent(relativePath)
     guard let source = CGImageSourceCreateWithURL(url as CFURL, nil) else { return nil }
     let options: [CFString: Any] = [
@@ -129,7 +149,8 @@ private func loadDownsampledContainerImage(
     /// non-nil 이면 이 비율(w/h)의 프레임에 center fill 했을 때 보이는 하단 영역의 휘도를 계산.
     visibleAspectForLuminance: CGFloat? = nil
 ) async -> LoadedThumbnail? {
-    guard let relativePath else { return nil }
+    // 빈 문자열은 nil 과 동일 취급 — 안 그러면 컨테이너 루트를 이미지로 열려다 IIOImageSource 에러.
+    guard let relativePath, !relativePath.isEmpty else { return nil }
     let url = AppGroup.containerURL.appendingPathComponent(relativePath)
     return await Task.detached(priority: .userInitiated) {
         guard let source = CGImageSourceCreateWithURL(url as CFURL, nil) else { return nil }

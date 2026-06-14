@@ -24,7 +24,7 @@ public enum FavoriteSync {
             return nil
         } catch {
             try? await repository.setFavorite(mochiItemID: item.id, isFavorite: !isFavorite)
-            return String(describing: error)
+            return "즐겨찾기를 저장하지 못했어요. 잠시 후 다시 시도해 주세요."
         }
     }
 }

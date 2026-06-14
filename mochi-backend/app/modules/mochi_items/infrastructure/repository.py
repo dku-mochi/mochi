@@ -100,6 +100,9 @@ def _reference_links(row: MochiItemRow) -> tuple[ReferenceLink, ...]:
                 rank_profile=str(raw.get("rankProfile") or raw.get("rank_profile") or "general"),
                 source=str(raw["source"]) if raw.get("source") is not None else None,
                 usefulness=raw.get("usefulness") if isinstance(raw.get("usefulness"), int) else None,
+                # 메타는 tool 이 값 있을 때만 실으므로 키 부재 = None(구 데이터·메타없는 링크 안전 폴백).
+                subtitle=str(raw["subtitle"]) if raw.get("subtitle") else None,
+                price_text=str(raw["priceText"]) if raw.get("priceText") else None,
             )
         )
     return tuple(links)

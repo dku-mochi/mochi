@@ -134,3 +134,51 @@ def test_to_response_exposes_reference_links_alias() -> None:
 
     assert dumped["referenceLinks"][0]["label"] == "캐치테이블에서 예약"
     assert dumped["referenceLinks"][0]["rankProfile"] == "local"
+
+
+def test_row_to_entity_extracts_reference_metadata() -> None:
+    """subtitle·priceText 가 있으면 도메인으로 복원, 없는 구 JSON 은 None(하위호환)."""
+    with_meta = json.dumps(
+        {"url": "https://www.oliveyoung.co.kr/goods/1", "title": "토리든 세럼",
+         "label": "올리브영에서 보기", "role": "buy", "provider": "oliveyoung",
+         "rankProfile": "cosmetics", "subtitle": "토리든", "priceText": "18,900원"},
+        ensure_ascii=False,
+    )
+    legacy = json.dumps(
+        {"url": "https://blog.naver.com/x", "title": "후기", "label": "관련 글 보기",
+         "role": "read", "provider": "info", "rankProfile": "general"},
+        ensure_ascii=False,
+    )
+    row = _row(entities=[("reference_url", with_meta), ("reference_url", legacy)])
+
+    links = _row_to_entity(row).reference_links
+
+    assert len(links) == 2
+    assert links[0].subtitle == "토리든"
+    assert links[0].price_text == "18,900원"
+    assert links[1].subtitle is None    # 구 데이터·메타없는 링크 하위호환
+    assert links[1].price_text is None
+
+
+def test_to_response_exposes_reference_metadata_alias() -> None:
+    item = MochiItem(
+        id=uuid4(),
+        source=IngestSource(channel=IngestChannel.SCREENSHOT, captured_at=datetime.now(UTC)),
+        reference_links=(
+            ReferenceLink(
+                url="https://www.oliveyoung.co.kr/goods/1",
+                title="토리든 세럼",
+                label="올리브영에서 보기",
+                role="buy",
+                provider="oliveyoung",
+                rank_profile="cosmetics",
+                subtitle="토리든",
+                price_text="18,900원",
+            ),
+        ),
+    )
+
+    dumped = _to_response(item).model_dump(by_alias=True)
+
+    assert dumped["referenceLinks"][0]["subtitle"] == "토리든"
+    assert dumped["referenceLinks"][0]["priceText"] == "18,900원"
