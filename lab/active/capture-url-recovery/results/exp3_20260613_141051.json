@@ -1,0 +1,44 @@
+{
+  "mode": "self_consistency",
+  "results": [
+    {
+      "handle": "elonmusk",
+      "status": 200,
+      "count": 100,
+      "newest": "Tue Jun 09 03:25:26 +0000 2026",
+      "oldest": "Wed Jun 11 07:04:46 +0000 2025",
+      "match_eval": {
+        "sampled": 11,
+        "top1_correct": 11,
+        "top1_accuracy": 1.0,
+        "avg_score": 0.96
+      }
+    },
+    {
+      "handle": "nasa",
+      "status": 200,
+      "count": 18,
+      "newest": "Tue Jun 09 18:59:19 +0000 2026",
+      "oldest": "Tue Jun 09 16:35:45 +0000 2026",
+      "match_eval": {
+        "sampled": 12,
+        "top1_correct": 11,
+        "top1_accuracy": 0.92,
+        "avg_score": 0.478
+      }
+    },
+    {
+      "handle": "naval",
+      "status": 200,
+      "count": 99,
+      "newest": "Thu May 31 08:23:54 +0000 2018",
+      "oldest": "Fri Apr 25 06:45:30 +0000 2025",
+      "match_eval": {
+        "sampled": 12,
+        "top1_correct": 10,
+        "top1_accuracy": 0.83,
+        "avg_score": 0.654
+      }
+    }
+  ]
+}

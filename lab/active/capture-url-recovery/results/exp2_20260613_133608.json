@@ -1,0 +1,106 @@
+{
+  "summary": {
+    "by_level": {
+      "post": 1,
+      "profile": 2
+    },
+    "by_platform_level": {
+      "youtube": {
+        "post": 1
+      },
+      "x": {
+        "profile": 1
+      },
+      "threads": {
+        "profile": 1
+      }
+    }
+  },
+  "results": [
+    {
+      "platform": "youtube",
+      "handle": null,
+      "author": "HYBE LABELS",
+      "title": "NewJeans (뉴진스) 'Hype Boy' Official MV",
+      "post_text": null,
+      "search_query": "뉴진스 Hype Boy official MV HYBE LABELS",
+      "recovery": {
+        "tier_attempts": [
+          {
+            "tier": "search",
+            "url": "https://www.youtube.com/results?search_query=%EB%89%B4%EC%A7%84%EC%8A%A4%20Hype%20Boy%20official%20MV%20HYBE%20LABELS",
+            "status": 200,
+            "final_url": "https://www.youtube.com/results?search_query=%EB%89%B4%EC%A7%84%EC%8A%A4%20Hype%20Boy%20official%20MV%20HYBE%20LABELS",
+            "body_bytes": 1217366
+          }
+        ],
+        "video_id": "9wUKhEgnllc",
+        "watch_url": "https://www.youtube.com/watch?v=9wUKhEgnllc",
+        "oembed": {
+          "url": "https://www.youtube.com/oembed?format=json&url=https%3A//www.youtube.com/watch%3Fv%3D9wUKhEgnllc",
+          "status": 200,
+          "final_url": "https://www.youtube.com/oembed?format=json&url=https%3A//www.youtube.com/watch%3Fv%3D9wUKhEgnllc",
+          "body_bytes": 922
+        },
+        "recover_level": "post",
+        "best_url": "https://www.youtube.com/watch?v=9wUKhEgnllc"
+      }
+    },
+    {
+      "platform": "x",
+      "handle": "@elonmusk",
+      "author": "Elon Musk",
+      "title": null,
+      "post_text": "Starship test flight update",
+      "search_query": "Elon Musk Starship test flight",
+      "recovery": {
+        "tier_attempts": [
+          {
+            "tier": "profile",
+            "url": "https://x.com/elonmusk",
+            "status": 200,
+            "final_url": "https://x.com/elonmusk",
+            "body_bytes": 1045515
+          },
+          {
+            "tier": "search",
+            "url": "https://www.google.com/search?q=Elon%20Musk%20Starship%20test%20flight",
+            "status": 200,
+            "final_url": "https://www.google.com/search?q=Elon%20Musk%20Starship%20test%20flight",
+            "body_bytes": 91218
+          }
+        ],
+        "recover_level": "profile",
+        "best_url": "https://x.com/elonmusk"
+      }
+    },
+    {
+      "platform": "threads",
+      "handle": "@zuck",
+      "author": "Mark Zuckerberg",
+      "title": null,
+      "post_text": "new feature rollout",
+      "search_query": "zuck threads new feature",
+      "recovery": {
+        "tier_attempts": [
+          {
+            "tier": "profile",
+            "url": "https://www.threads.net/@zuck",
+            "status": 200,
+            "final_url": "https://www.threads.com/@zuck",
+            "body_bytes": 550158
+          },
+          {
+            "tier": "search",
+            "url": "https://www.google.com/search?q=zuck%20threads%20new%20feature",
+            "status": 200,
+            "final_url": "https://www.google.com/search?q=zuck%20threads%20new%20feature",
+            "body_bytes": 90885
+          }
+        ],
+        "recover_level": "profile",
+        "best_url": "https://www.threads.net/@zuck"
+      }
+    }
+  ]
+}
