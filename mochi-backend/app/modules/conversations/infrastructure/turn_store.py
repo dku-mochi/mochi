@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from app.modules.conversations.domain.entities import Message, RunStatus
 from app.modules.conversations.domain.ports import ChatTurnStore, ResolvedCitation
 from app.modules.conversations.infrastructure.repository import PostgresConversationRepository
+from app.shared.llm_usage import record_llm_usage
 
 #: 컨텍스트 윈도우 — 최근 N messages (세션 자동분리 설계라 초과가 드묾, 요약 압축 생략).
 HISTORY_MESSAGES = 20
@@ -43,6 +44,26 @@ class SessionChatTurnStore(ChatTurnStore):
             )
             await session.commit()
         return updated
+
+    async def record_usage(
+        self,
+        *,
+        owner_id: UUID,
+        conversation_id: UUID,
+        model: str,
+        tokens_in: int,
+        tokens_out: int,
+    ) -> None:
+        async with self._session_factory() as session:
+            await record_llm_usage(
+                session,
+                source="chat",
+                owner_id=owner_id,
+                conversation_id=conversation_id,
+                model=model,
+                tokens_in=tokens_in,
+                tokens_out=tokens_out,
+            )
 
     async def resolve_citations(
         self, *, owner_id: UUID, mochi_item_ids: list[UUID]

@@ -52,6 +52,20 @@ class IngestSource:
         return bool(self.user_memo)
 
 
+@dataclass(frozen=True, slots=True)
+class ReferenceLink:
+    """Agent 가 entities(kind='reference_url') JSON 으로 저장한 사용자-facing 링크."""
+
+    url: str
+    title: str
+    label: str
+    role: str
+    provider: str
+    rank_profile: str
+    source: str | None = None
+    usefulness: int | None = None
+
+
 # ---------- Lifecycle (처리상태 — item 단위 분석 파이프라인) ----------
 # 의미 lifecycle(완료/만료/decay)은 intent instance 단위로 이동했다(2026-06-04 빅뱅).
 # 여기 LifecycleState 는 "분석 파이프라인이 어디까지 진행됐나"만 표현한다. archive_reason 없음.
@@ -108,6 +122,7 @@ class MochiItem:
     summary: str | None = None
     category: str | None = None
     shopping_product_query: str | None = None
+    reference_links: tuple[ReferenceLink, ...] = ()
     importance: int = 3
     # 사용자가 "중요"라고 모찌에게 준 신호(분석결과 아님) — 모찌가 능동 회수에 활용한다.
     # 서버 동기화(userTitle 의 로컬전용과 반대). reanalyze 가 건드리지 않는 item 레벨 속성.
