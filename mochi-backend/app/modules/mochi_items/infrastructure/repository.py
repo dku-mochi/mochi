@@ -1,4 +1,5 @@
 import hashlib
+import json
 from datetime import datetime
 from uuid import UUID
 
@@ -13,6 +14,7 @@ from app.modules.mochi_items.domain.entities import (
     LifecycleState,
     LifecycleStateKind,
     MochiItem,
+    ReferenceLink,
     SyncState,
 )
 from app.modules.mochi_items.domain.ports import MochiItemRepository
@@ -64,6 +66,45 @@ def _row_to_instance(row: IntentInstanceRow) -> IntentInstance:
     )
 
 
+def _reference_links(row: MochiItemRow) -> tuple[ReferenceLink, ...]:
+    links: list[ReferenceLink] = []
+    seen: set[str] = set()
+    for entity in row.entities:
+        if entity.kind != "reference_url":
+            continue
+        try:
+            raw = json.loads(entity.value)
+        except (TypeError, ValueError):
+            raw = None
+        # 정상은 tool 이 만든 JSON(provider/role/usefulness 포함). 단 메인이 지시를 어기고 URL
+        # 문자열만 저장하면(flash-lite 불준수 관측) json.loads 가 실패하는데, 그때 링크가 조용히
+        # 사라지지 않도록 {"url": <그 URL>} 기본값으로 살린다(메타는 비고 링크 자체는 보존).
+        if not isinstance(raw, dict):
+            if isinstance(entity.value, str) and entity.value.startswith(("http://", "https://")):
+                raw = {"url": entity.value}
+            else:
+                continue
+        url = raw.get("url")
+        if not isinstance(url, str) or not url.startswith(("http://", "https://")):
+            continue
+        if url in seen:
+            continue
+        seen.add(url)
+        links.append(
+            ReferenceLink(
+                url=url,
+                title=str(raw.get("title") or ""),
+                label=str(raw.get("label") or "관련 링크 열기"),
+                role=str(raw.get("role") or "reference"),
+                provider=str(raw.get("provider") or "unknown"),
+                rank_profile=str(raw.get("rankProfile") or raw.get("rank_profile") or "general"),
+                source=str(raw["source"]) if raw.get("source") is not None else None,
+                usefulness=raw.get("usefulness") if isinstance(raw.get("usefulness"), int) else None,
+            )
+        )
+    return tuple(links)
+
+
 def _row_to_entity(row: MochiItemRow) -> MochiItem:
     image_refs = tuple(
         ImageRef(
@@ -98,6 +139,10 @@ def _row_to_entity(row: MochiItemRow) -> MochiItem:
         ),
         summary=row.summary,
         category=row.category,
+        shopping_product_query=next(
+            (e.value for e in row.entities if e.kind == "shopping_product"), None
+        ),
+        reference_links=_reference_links(row),
         importance=row.importance,
         model_version=row.model_version,
         lifecycle=LifecycleState(
@@ -180,6 +225,7 @@ class PostgresMochiItemRepository(MochiItemRepository):
             .options(
                 selectinload(MochiItemRow.image_refs),
                 selectinload(MochiItemRow.intent_instances),
+                selectinload(MochiItemRow.entities),
             )
         )
         row = (await self._session.scalars(stmt)).one_or_none()
@@ -192,6 +238,7 @@ class PostgresMochiItemRepository(MochiItemRepository):
             .options(
                 selectinload(MochiItemRow.image_refs),
                 selectinload(MochiItemRow.intent_instances),
+                selectinload(MochiItemRow.entities),
             )
             .order_by(MochiItemRow.created_at.desc())
             .limit(limit)
@@ -210,6 +257,7 @@ class PostgresMochiItemRepository(MochiItemRepository):
             .options(
                 selectinload(MochiItemRow.image_refs),
                 selectinload(MochiItemRow.intent_instances),
+                selectinload(MochiItemRow.entities),
             )
             .order_by(MochiItemRow.created_at.desc())
             .limit(limit)
@@ -248,6 +296,7 @@ class PostgresMochiItemRepository(MochiItemRepository):
             .options(
                 selectinload(MochiItemRow.image_refs),
                 selectinload(MochiItemRow.intent_instances),
+                selectinload(MochiItemRow.entities),
             )
         )
         if captured_from is not None:

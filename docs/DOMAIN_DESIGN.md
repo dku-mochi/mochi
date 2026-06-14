@@ -72,14 +72,14 @@ iOS · 백엔드 · 프롬프트 모두 동일 용어를 쓴다.
 | **memo fallback** | 대상/행동 불분명 시 memo instance 하나로 안전 보관 + needs_review=true (분류 못 해도 안 잃는다) |
 | **Lifecycle Kind** | 상태 enum. **2분할** — item 처리상태와 instance 의미상태가 직교 (§5) |
 | **Channel** | 입력 채널 (`screenshot`/`appDirectInput`/`appShareSheet`/`appIntent`/`chat`/…). `mochi_items.channel` 인라인. `chat` = 채팅 proposal 확정으로 생성 (2026-06-10) |
-| **Entity** | AI 추출 의미 단위 (`entities.kind`/`value`). kind 는 free str — 프롬프트 가이드일 뿐 DB/앱 제약 아님 |
+| **Entity** | AI 추출 의미 단위 (`entities.kind`/`value`). kind 는 free str — 프롬프트 가이드일 뿐 DB/앱 제약 아님. 특수 kind: `deadline`(서버가 due 파싱), `shopping_product`(커머스 검색어 — `MochiItemResponse.shoppingProductQuery` projection, 상세 구매 링크. 2026-06-13 lab shopping-product-link) |
 | **AgentRun** | MochiItem 1건 처리 LLM 오케스트레이션 실행 1회 |
 | **Outbox Message** | mochi_items COMMIT 직후 worker 가 픽업할 행 (`mochi_item_outbox`) |
 | **Idempotency Key** | `POST /mochi_items` 의 owner-scoped 키 |
 | **Embedding** | voyage-3-large (1024d) chunk 벡터 — input = summary + intent labels, INDEXED 노드가 색인 |
 | **Category** | LLM 이 뽑는 자유 카테고리 라벨. 주간 정리가 coarse 정규화 write (§4.4) |
 
-> design-ahead 용어(ActionCandidate · Citation · Tag · Conversation 등)는 §10 에서 정의. 본문은 as-built 만.
+> design-ahead 용어(ActionCandidate · Citation · Tag · Conversation · Similar 등)는 §10 에서 정의. 본문은 as-built 만.
 
 ---
 
@@ -104,6 +104,7 @@ erDiagram
     mochi_items ||--o{ agent_runs : "processed by"
     agent_runs  ||--o{ tool_calls : invokes
     mochi_items ||--o| idempotency_keys : "create dedup"
+    users ||--o{ llm_usage : "LLM 토큰/비용 계측"
 
     users ||--o{ conversations : "owns (owner_id, app-level)"
     conversations ||--o{ messages : "1:N turns"
@@ -115,7 +116,7 @@ erDiagram
 | Identity | `users` · `auth_accounts` · `refresh_tokens` · `capture_tokens` | OAuth 연결, refresh rotation chain, capture-scoped token(ShareExt 직접 전송 — ingest+presign 한정·sliding 180일·revoke 연쇄), soft delete |
 | Mochi | `mochi_items` · `intent_instances` · `mochi_item_image_refs` · `entities` | aggregate root + 의도 1급 행 + 이미지·추출물 |
 | AI | `embeddings` | 청크 벡터 (voyage-3-large 1024d, HNSW) |
-| Operations | `agent_runs` · `tool_calls` · `mochi_item_outbox` · `idempotency_keys` · `user_profiles` | 처리 로그·큐·멱등성·개인화 |
+| Operations | `agent_runs` · `tool_calls` · `mochi_item_outbox` · `idempotency_keys` · `user_profiles` · `llm_usage` | 처리 로그·큐·멱등성·개인화·**LLM 토큰/비용 계측**(관측 전용 — `source=capture\|chat`, 모델명·tokens_in/out 행마다. lifecycle 불변식 무관) |
 | Notifications | `device_push_tokens` | APNs 토큰 (§6.4) |
 | Conversations | `conversations` · `messages` · `message_citations` | 채팅(질문 탭) 멀티턴 대화 — **서버 단일원천, iOS Realm 미러 없음** (§6 미러 규약은 MochiItem 소관). run 영속은 별도 테이블 없이 user message 행의 `run_id/run_status/run_started_at`(stale 은 스냅샷 읽기 시점 lazy repair). citation 은 item FK 없는 스냅샷 — item 삭제 후에도 "그때의 근거" 보존 |
 
@@ -124,7 +125,7 @@ erDiagram
 - `mochi_items.deleted_at` soft delete — 행 보존(되돌릴 수 있게), 모든 조회가 `deleted_at IS NULL` 로 가림.
 - `mochi_items.user_memo` — 사용자 메모는 분류 시 **화면보다 우선하는 1차 의도 증거** (휴리스틱 본문은 프롬프트가 단일원천, §0).
 - `device_push_tokens.token` 은 **globally unique** — 폰 단위라 계정 전환 시 owner 를 갱신해 cross-account push 유출을 막는다.
-- `user_profiles` 는 ORM 모델 없이 raw SQL(`profile_store.py`) 접근.
+- `user_profiles` 는 ORM 모델 없이 raw SQL(`profile_store.py`) 접근. owner 1행에 두 관점을 둔다 — `summary`(분류 성향: "어떻게 4-intent 로 나누나" → agent loop 분석에 주입)와 `chat_summary`(페르소나: "이 사람이 누구인지" 관심사·취향·맥락 → 채팅 system prompt 에 **배경·톤**으로 주입, 사실 출처 아님). 둘 다 `RefreshUserProfile`(§7.2)이 같은 sliding-window 로 디바운스 갱신하고, 입력은 `summary`/`user_memo` 만(raw 캡처 text 제외 — 최소전송, `PRIVACY_SENSITIVE_CAPTURE.md §2.1`). `chat_summary` 의 채팅 소비는 `conversations` 가 `agent.application.load_chat_profile` 로만 읽는다(모듈 경계).
 
 ---
 
@@ -283,11 +284,11 @@ instance 전이(from→to)·archive_reason×intent_type 검증은 application �
 
 분석 산출: `intent_instances` + `needs_review` + `review_options` + `summary` + `importance` + `entities` + `category`. write-back 은 **instance delete-reinsert (멱등)** + lifecycle `INGESTED→ANALYZING→ANALYZED` + 개인화 프로필 디바운스 갱신(best-effort).
 
-> 현재 wire: text+URL+이미지 분석 · write-back · 개인화 = 실연결. **임베딩 적재 = no-op** (gateway 미주입 시 skip), actions 파생 = design-ahead (§10).
+> 현재 wire: text+URL+이미지 분석 · write-back · 개인화 = 실연결. **임베딩 적재 = 실배선**(`VOYAGE_API_KEY` 설정 시 INDEXED 노드가 best-effort 색인, 미설정 시 skip→BM25 degrade — 2026-06-12, `ARCHITECTURE.md` §3.4), actions 파생 = design-ahead (§10).
 
 ### 7.3 Hybrid Search
 
-`mochi_items` FTS GIN(tsvector) BM25 + `embeddings` HNSW 벡터 → RRF 융합 → RAG 답변. ※ embedding 적재·query embedding 품질은 아직 약함 (known drift).
+`mochi_items` FTS GIN(tsvector) BM25 + `embeddings` HNSW 벡터 → RRF 융합 → RAG 답변. **유사 회수**(§10.5 Similar): 한 item 의 저장된 embedding 을 seed 로 cosine 이웃 top-k 를 찾는 read-time projection — query 텍스트가 아니라 기존 벡터가 입력이다(상세 화면 "비슷한 기록"). 둘 다 `embeddings` 실적재에 의존하므로 `VOYAGE_API_KEY` 필요(미설정 시 빈 결과·degrade). ※ query embedding 품질 튜닝은 진행 중 (`lab/active/rag-rerank-eval`).
 
 ---
 
@@ -340,6 +341,19 @@ instance 전이(from→to)·archive_reason×intent_type 검증은 application �
 
 ### 10.4 기타
 
-`tags`/`mochi_item_tags` · `dead_letters`(현재는 outbox 인라인) · `owner_id` DB FK 승격 · intent/lifecycle DB CHECK 승격(현재 app-level) · 임베딩 적재 실배선 · 재분석 시 instance 완료상태 보존(§6.3 known-drift). 전부 별도 축 — 필요 시 개별 큐.
+`tags`/`mochi_item_tags` · `dead_letters`(현재는 outbox 인라인) · `owner_id` DB FK 승격 · intent/lifecycle DB CHECK 승격(현재 app-level) · 재분석 시 instance 완료상태 보존(§6.3 known-drift). 전부 별도 축 — 필요 시 개별 큐.
+
+### 10.5 Similar — "비슷한 기록" 회수 (구현 완료 2026-06-13)
+
+**개념**: 한 MochiItem 과 의미가 가까운 다른 MochiItem 들. **MochiItem↔MochiItem 관계를 1급 테이블로 두지 않는다** — `embeddings` cosine 이웃을 read 시 계산하는 projection(§4.3 파생과 동류, `/search` 와 같은 비저장 read). 상세 화면 "비슷한 기록" 섹션(`UX_SPEC.md` §3.8)이 소비한다. 계약 정본은 `openapi.json`(⓪), 구현은 `search` 모듈(`postgres_index.similar`).
+
+**엔드포인트** (openapi 단일원천):
+- `GET /mochi_items/{id}/similar?limit=k` — owner-scoped + `deleted_at IS NULL` + **자기 자신 제외** + **유사도 임계값(`min_score`=0.6) 미달이면 빈 배열** + **같은 출처 URL dedup**(fanout=limit×4 후 앱단 접기). 대상 item 에 embedding 이 없으면(`VOYAGE_API_KEY` 미설정·미색인) 빈 배열로 degrade.
+- 응답 `SimilarItemsResponse { items: [{ mochiItemId, score, reasons: [{ kind, value? }] }] }`. 카드 렌더는 iOS 가 로컬 Realm 의 MochiItem 을 lookup(페이로드 최소화) — 응답은 id·score·reasons 만. **로컬에 없는 이웃(타 기기 전용)은 카드에서 스킵**된다(known 한계).
+- **연결 이유(`reasons`)** = "왜 비슷한지" 신호. 서버 계산 enum(한국어 카피는 iOS 매핑 → 카피 변경이 ⓪ openapi 폭포를 안 탄다): `sharedSource`(같은 출처 URL/앱) · `sameIntent`(intentType 교집합) · `closeInTime`(captured_at 근접). **엔티티 겹침**(`entities` self-join)은 가장 설득력 있으나 비싸 후속 — 1차는 위 3종(전부 기본 컬럼, 추가 쿼리 0).
+
+**모듈 경계**: 벡터 retrieval 책임은 `search` 모듈(`PostgresHybridIndex` 의 cosine 쿼리 `1.0 - (e.embedding <=> :vec)` 재사용 — seed 는 query 텍스트 대신 대상 item 의 저장된 벡터). 라우트만 `/mochi_items/{id}/...` 로 노출(라우트 위치 ≠ 모듈 소속). 단 search 의 `RetrievalIndex.vector(query)` 는 텍스트 기반이라 **seed-item 이웃탐색용 새 포트/메서드가 필요**(단순 재사용 불가).
+
+**민감 게이트 (MVP ungated, 자리 명시)**: similar 는 "상세를 열기만 해도 다른 항목이 *자동으로* 떠오르는" 새 회수 표면이다. 현재 `sensitivity_level` 필드 미구현(`PRIVACY_SENSITIVE_CAPTURE.md` §9)이라 분석 경로(`view_item_image`)와 **동일하게 ungated** — 노출 표면이 분석 경로보다 넓어지지 않는다(같은 논리: `PRIVACY` §10). privacy 필드 도입 시 **이 엔드포인트를 게이트 대상에 반드시 포함**(누락하면 회수로 우회) — `TODO.md` §5.1 후속. 쿼리 WHERE 절에 `AND c.sensitivity_level < :threshold` 한 줄이 들어갈 자리를 구현 시 주석으로 못박는다.
 
 — 끝 —

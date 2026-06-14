@@ -146,6 +146,32 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
         }
     }
 
+    public func similarItems(serverID: UUID, limit: Int) async throws -> [SimilarItemRef] {
+        let output = try await client.get_similar_items_api_v1_mochi_items__mochi_item_id__similar_get(
+            path: .init(mochi_item_id: serverID.uuidString),
+            query: .init(limit: limit)
+        )
+        switch output {
+        case let .ok(response):
+            let dto = try response.body.json
+            return dto.items.compactMap(Self.mapSimilarItem)
+        case let .undocumented(status, payload): throw await Self.error(status: status, payload: payload)
+        }
+    }
+
+    /// 생성 `SimilarItemDTO` → ``SimilarItemRef``. id 파싱 실패 항목·미지의 reason kind 는 버린다
+    /// (정상 경로에선 서버가 유효 UUID·알려진 enum 만 보낸다).
+    private static func mapSimilarItem(_ s: Components.Schemas.SimilarItemDTO) -> SimilarItemRef? {
+        guard let id = UUID(uuidString: s.mochiItemId) else { return nil }
+        return SimilarItemRef(
+            mochiItemID: id,
+            score: s.score,
+            reasons: s.reasons.compactMap { r in
+                SimilarReason.Kind(rawValue: r.kind.rawValue).map { SimilarReason(kind: $0, value: r.value) }
+            }
+        )
+    }
+
     public func registerPushToken(
         token: String,
         kind: PushTokenKind,
@@ -327,6 +353,8 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
             userMemo: r.userMemo,
             summary: r.summary,
             category: r.category,
+            shoppingProductQuery: r.shoppingProductQuery,
+            referenceLinks: (r.referenceLinks ?? []).map(mapReferenceLink),
             importance: r.importance,
             intentInstances: (r.intentInstances ?? []).map(mapIntentInstance),
             needsReview: r.needsReview ?? false,
@@ -336,6 +364,19 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
             imageRefs: (r.imageRefs ?? []).map(mapImageRefFromResponse),
             capturedAt: r.capturedAt,
             createdAt: r.createdAt
+        )
+    }
+
+    private static func mapReferenceLink(_ l: Components.Schemas.ReferenceLinkResponse) -> ReferenceLinkDTO {
+        ReferenceLinkDTO(
+            url: l.url,
+            title: l.title,
+            label: l.label,
+            role: l.role,
+            provider: l.provider,
+            rankProfile: l.rankProfile,
+            source: l.source,
+            usefulness: l.usefulness
         )
     }
 
@@ -418,14 +459,16 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
 /// 백엔드(FastAPI)의 microsecond/naive datetime 변형을 차례로 시도해 디코드한다.
 /// 수기 ``URLSessionMochiAPIClient`` 의 `tryParseDate` 로직을 그대로 이식 — 기본 ISO8601 은
 /// microsecond fractional seconds 를 거부하므로 커스텀 transcoder 가 필수다.
-struct MochiDateTranscoder: DateTranscoder {
-    func encode(_ date: Date) throws -> String {
+public struct MochiDateTranscoder: DateTranscoder {
+    public init() {}
+
+    public func encode(_ date: Date) throws -> String {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         return formatter.string(from: date)
     }
 
-    func decode(_ string: String) throws -> Date {
+    public func decode(_ string: String) throws -> Date {
         for date in Self.candidates(string) { return date }
         throw DateDecodingError(value: string)
     }

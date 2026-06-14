@@ -37,6 +37,11 @@ public protocol MochiAPIClient: Sendable {
     /// `POST /api/v1/search` — 자연어 질의 → Hybrid Search RAG.
     func search(query: String, scope: SearchScope) async throws -> SearchResponse
 
+    /// `GET /api/v1/mochi_items/{id}/similar` — 상세 "비슷한 기록"(cosine 이웃 top-k).
+    /// 자기 제외·임계값 미달 빈 배열·출처 dedup 은 서버가 처리한다. 빈 배열이면 뷰가 섹션을 숨긴다.
+    /// `serverID` 는 업로드된 서버 id 여야 한다(미업로드 로컬 항목엔 호출하지 않는다).
+    func similarItems(serverID: UUID, limit: Int) async throws -> [SimilarItemRef]
+
     /// `POST /api/v1/devices/push-token` — APNs 단말/Live Activity push-to-start 토큰 등록 (owner-scoped upsert).
     /// `apnsDevice`·`laStart` 모두 owner 단위라 `mochiItemID` 없이 등록한다.
     func registerPushToken(
@@ -218,6 +223,10 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
     public let userMemo: String?
     public let summary: String?
     public let category: String?
+    /// 쇼핑 캡처의 커머스 검색어 — entities(kind=shopping_product) 서버 projection. 비쇼핑은 nil.
+    public let shoppingProductQuery: String?
+    /// Agent 가 찾아준 참고 링크 — entities(kind=reference_url) 서버 projection. 없으면 빈 배열.
+    public let referenceLinks: [ReferenceLinkDTO]
     public let importance: Int
     /// 저장된 의도 instance (저장된 것은 곧 active, 위계 없음). 분석 전엔 빈 배열.
     public let intentInstances: [IntentInstanceDTO]
@@ -235,6 +244,8 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
     private enum CodingKeys: String, CodingKey {
         case id, channel, url, text, summary, category, importance
         case userMemo = "userMemo"
+        case shoppingProductQuery = "shoppingProductQuery"
+        case referenceLinks = "referenceLinks"
         case intentInstances = "intentInstances"
         case needsReview = "needsReview"
         case reviewOptions = "reviewOptions"
@@ -253,6 +264,8 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
         userMemo: String?,
         summary: String?,
         category: String?,
+        shoppingProductQuery: String? = nil,
+        referenceLinks: [ReferenceLinkDTO] = [],
         importance: Int,
         intentInstances: [IntentInstanceDTO],
         needsReview: Bool,
@@ -270,6 +283,8 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
         self.userMemo = userMemo
         self.summary = summary
         self.category = category
+        self.shoppingProductQuery = shoppingProductQuery
+        self.referenceLinks = referenceLinks
         self.importance = importance
         self.intentInstances = intentInstances
         self.needsReview = needsReview
@@ -290,6 +305,8 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
         userMemo = try c.decodeIfPresent(String.self, forKey: .userMemo)
         summary = try c.decodeIfPresent(String.self, forKey: .summary)
         category = try c.decodeIfPresent(String.self, forKey: .category)
+        shoppingProductQuery = try c.decodeIfPresent(String.self, forKey: .shoppingProductQuery)
+        referenceLinks = try c.decodeIfPresent([ReferenceLinkDTO].self, forKey: .referenceLinks) ?? []
         importance = try c.decode(Int.self, forKey: .importance)
         intentInstances = try c.decodeIfPresent([IntentInstanceDTO].self, forKey: .intentInstances) ?? []
         needsReview = try c.decodeIfPresent(Bool.self, forKey: .needsReview) ?? false
@@ -299,6 +316,43 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
         imageRefs = try c.decodeIfPresent([ImageRefDTO].self, forKey: .imageRefs) ?? []
         capturedAt = try c.decode(Date.self, forKey: .capturedAt)
         createdAt = try c.decode(Date.self, forKey: .createdAt)
+    }
+}
+
+/// 참고 링크 응답 — `referenceLinks` 배열 원소. 서버 ReferenceLinkResponse 미러.
+public struct ReferenceLinkDTO: Sendable, Hashable, Codable {
+    public let url: String
+    public let title: String
+    public let label: String
+    public let role: String
+    public let provider: String
+    public let rankProfile: String
+    public let source: String?
+    public let usefulness: Int?
+
+    public init(
+        url: String,
+        title: String,
+        label: String,
+        role: String,
+        provider: String,
+        rankProfile: String,
+        source: String? = nil,
+        usefulness: Int? = nil
+    ) {
+        self.url = url
+        self.title = title
+        self.label = label
+        self.role = role
+        self.provider = provider
+        self.rankProfile = rankProfile
+        self.source = source
+        self.usefulness = usefulness
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case url, title, label, role, provider, source, usefulness
+        case rankProfile = "rankProfile"
     }
 }
 
@@ -417,6 +471,40 @@ public struct SearchResponse: Equatable, Sendable, Hashable, Codable {
         case answer, citations
         case totalTokens = "totalTokens"
         case agentRunID = "agentRunId"
+    }
+}
+
+// MARK: - 비슷한 기록 (similar)
+
+/// 상세 "비슷한 기록" 1건 — 서버가 계산한 cosine 이웃 ref. 카드 렌더는 로컬 MochiItem lookup.
+public struct SimilarItemRef: Equatable, Sendable, Hashable, Codable, Identifiable {
+    public let mochiItemID: UUID
+    public let score: Double
+    public let reasons: [SimilarReason]
+    public var id: UUID { mochiItemID }
+
+    public init(mochiItemID: UUID, score: Double, reasons: [SimilarReason]) {
+        self.mochiItemID = mochiItemID
+        self.score = score
+        self.reasons = reasons
+    }
+}
+
+/// "왜 비슷한지" 연결 이유 — 서버 enum. 한국어 카피는 뷰가 매핑한다(카피 변경이 ⓪ 폭포를 안 타도록).
+public struct SimilarReason: Equatable, Sendable, Hashable, Codable {
+    public let kind: Kind
+    /// 보조값 — sameIntent 의 교집합 intent_type, sharedSource 의 url 등 (없으면 nil).
+    public let value: String?
+
+    public enum Kind: String, Sendable, Codable {
+        case sharedSource   // 같은 출처
+        case sameIntent     // 같은 의도
+        case closeInTime    // 비슷한 시기
+    }
+
+    public init(kind: Kind, value: String?) {
+        self.kind = kind
+        self.value = value
     }
 }
 

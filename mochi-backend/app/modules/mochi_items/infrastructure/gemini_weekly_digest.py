@@ -102,7 +102,7 @@ async def _call(*, prompt: str, model: str) -> str:
         response_mime_type="application/json",
         response_schema=_RESPONSE_SCHEMA,
     )
-    resp = await _shared_client().aio.models.generate_content(model=model, contents=[prompt], config=cfg)
+    resp = await _shared_client().aio.models.generate_content(model=model, contents=prompt, config=cfg)
     return resp.text or ""
 
 

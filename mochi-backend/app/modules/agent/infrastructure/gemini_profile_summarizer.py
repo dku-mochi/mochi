@@ -13,7 +13,10 @@ from google.genai import types
 
 from app.core.config import get_settings
 from app.modules.agent.domain.profile import ProfileWindowItem, UserProfileSummarizer
-from app.modules.agent.prompts.system_prompts import PROFILE_SUMMARY_SYSTEM
+from app.modules.agent.prompts.system_prompts import (
+    CHAT_PROFILE_SUMMARY_SYSTEM,
+    PROFILE_SUMMARY_SYSTEM,
+)
 
 logger = structlog.get_logger(__name__)
 
@@ -42,15 +45,15 @@ def _format_window(window: list[ProfileWindowItem], previous: str | None) -> str
     return "\n".join(lines)
 
 
-async def _call(*, prompt: str, model: str) -> str:
+async def _call(*, prompt: str, model: str, system: str) -> str:
     cfg = types.GenerateContentConfig(
-        system_instruction=PROFILE_SUMMARY_SYSTEM,
+        system_instruction=system,
         temperature=0.4,
         max_output_tokens=512,
         thinking_config=types.ThinkingConfig(thinking_budget=0),
     )
     resp = await _shared_client().aio.models.generate_content(
-        model=model, contents=[prompt], config=cfg
+        model=model, contents=prompt, config=cfg
     )
     return resp.text or ""
 
@@ -61,14 +64,28 @@ class GeminiProfileSummarizer(UserProfileSummarizer):
         self._model = model or settings.gemini_agent_model
         self._timeout = timeout_seconds or settings.agent_step_timeout_seconds
 
-    async def summarize(
-        self, *, window: list[ProfileWindowItem], previous: str | None
+    async def _summarize_with(
+        self, *, window: list[ProfileWindowItem], previous: str | None, system: str
     ) -> str:
         if not window:
             return previous or ""
         prompt = _format_window(window, previous)
         raw = await asyncio.wait_for(
-            _call(prompt=prompt, model=self._model),
+            _call(prompt=prompt, model=self._model, system=system),
             timeout=self._timeout,
         )
         return raw.strip()
+
+    async def summarize(
+        self, *, window: list[ProfileWindowItem], previous: str | None
+    ) -> str:
+        return await self._summarize_with(
+            window=window, previous=previous, system=PROFILE_SUMMARY_SYSTEM
+        )
+
+    async def summarize_chat(
+        self, *, window: list[ProfileWindowItem], previous: str | None
+    ) -> str:
+        return await self._summarize_with(
+            window=window, previous=previous, system=CHAT_PROFILE_SUMMARY_SYSTEM
+        )

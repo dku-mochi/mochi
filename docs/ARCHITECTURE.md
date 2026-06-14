@@ -353,6 +353,13 @@ SearchResponse
 채팅 `search_items` 도 같은 인프라를 쓴다: 키워드(ILIKE AND) + 의미(vector) 두 갈래 후보를
 구조화 필터(intent·시간 2축) 공통 적용으로 모은 뒤 rerank-2.5 가 최종 순위 (갈래당 후보 24).
 
+**유사 회수 (similar, 2026-06-13)**: 같은 `embeddings` HNSW 인프라를 **seed-vector** 로 재사용한다 —
+대상 item 의 저장된 벡터로 cosine 이웃 top-k(자기 제외·owner-scoped·임계값 미달 시 빈 배열).
+`/search`(query→RAG 답변)와 달리 답변 없는 이웃 조회이고, 입력이 query 텍스트가 아니라 기존 벡터다.
+retrieval 책임은 search 모듈(새 seed-item 포트 필요 — 기존 `RetrievalIndex.vector(query)` 는 텍스트
+기반이라 재사용 불가), 라우트만 `/mochi_items/{id}/similar`. 계약·응답 스키마·연결 이유(reasons)·
+민감 게이트 자리는 [`DOMAIN_DESIGN.md`](DOMAIN_DESIGN.md) §10.5 가 단일 기록(구현 시 openapi 로 승격).
+
 ### 3.5 보안
 
 | 항목 | 처리 |
@@ -424,7 +431,7 @@ iOS `CoreNetworking.MochiAPIClient` 의 DTO 가 backend `openapi.json` 의 스�
 ### 5.5 Agent loop & 개인화 (Arch2 — LLM = 분석가)
 
 - **`GeminiAgentClient(LLMClient)`** (`gemini-3.1-flash-lite`/global) — function-calling 루프. LLM 이 분석가: `finalizeAnalysis`(V7, boolean instances) 로 가변 개수 `intent_instances`(`intent_type`·`payload`(typed)·`label`·`reasoning`) + `needs_review` + `review_options` + summary·entities 를 직접 저술한다. **서버 derive 없음**(점수·대표·위계 폐기 — `_to_analysis_result` 가 DTO→instance 1:1 분해). `platformContext`/`webFetch` 로 URL 그라운딩. `AgentOrchestrator` 가 첫 user turn 에 `# 시간 컨텍스트`(Asia/Seoul 현재시각)를 주입한다. orchestrator 의 `ANALYZED` 노드가 루프를, `PERSISTED` 노드가 `MochiItemGateway.apply_analysis` write-back(intent_instances delete-reinsert + 처리상태 `→analyzed`)을 담당.
-- **개인화**: `user_profiles` 에 유저 특성 요약(관심사·평소 분류 성향)을 sliding-window 로 적립(`RefreshUserProfile`, 디바운스), 분석 시 system prompt 에 주입 → 쓸수록 정확 (도메인 위치: `DOMAIN_DESIGN.md` §7.2).
+- **개인화**: `user_profiles` 에 유저 특성 요약을 sliding-window 로 적립(`RefreshUserProfile`, 디바운스) → 쓸수록 정확. 두 관점 — `summary`(분류 성향)는 **분석** system prompt 에, `chat_summary`(페르소나)는 **채팅** system prompt 에 배경·톤으로 주입(`conversations` → `agent.application.load_chat_profile`, chat@v11). 도메인 위치: `DOMAIN_DESIGN.md` §3, 최소전송 `PRIVACY_SENSITIVE_CAPTURE.md` §2.1.
 - text+URL+이미지(gs:// 첨부 — Vertex 직접 read) = 실연결. 임베딩 적재(INDEXED)는 design-ahead.
 
 ---

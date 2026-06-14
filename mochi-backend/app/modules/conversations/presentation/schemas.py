@@ -1,11 +1,11 @@
 """/conversations DTO — iOS 채팅 탭(히스토리 시트·스냅샷 재조회)과 1:1."""
 
-from datetime import datetime
 from typing import Any, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from app.core.schema import UtcDateTime
 from app.modules.conversations.domain.entities import (
     Conversation,
     Message,
@@ -29,8 +29,8 @@ class ProposalStatusUpdateRequest(BaseModel):
 class ConversationResponse(BaseModel):
     id: UUID
     title: str | None = None
-    created_at: datetime = Field(alias="createdAt")
-    updated_at: datetime = Field(alias="updatedAt")
+    created_at: UtcDateTime = Field(alias="createdAt")
+    updated_at: UtcDateTime = Field(alias="updatedAt")
 
     model_config = {"populate_by_name": True}
 
@@ -77,7 +77,7 @@ class MessageResponse(BaseModel):
     run_id: UUID | None = Field(default=None, alias="runId")
     run_status: str | None = Field(default=None, alias="runStatus")
     citations: list[MessageCitationResponse] = Field(default_factory=list)
-    created_at: datetime = Field(alias="createdAt")
+    created_at: UtcDateTime = Field(alias="createdAt")
 
     model_config = {"populate_by_name": True}
 

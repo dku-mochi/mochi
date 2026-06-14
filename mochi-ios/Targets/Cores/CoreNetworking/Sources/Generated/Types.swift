@@ -280,6 +280,17 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `POST /api/v1/search`.
     /// - Remark: Generated from `#/paths//api/v1/search/post(search_api_v1_search_post)`.
     func search_api_v1_search_post(_ input: Operations.search_api_v1_search_post.Input) async throws -> Operations.search_api_v1_search_post.Output
+    /// Get Similar Items
+    ///
+    /// 상세 화면 "비슷한 기록" — 대상 item 의 cosine 이웃 top-k (DOMAIN_DESIGN §10.5).
+    ///
+    /// 자기 제외 + owner-scoped + 임계값(`_SIMILAR_MIN_SCORE`) 미달이면 빈 배열 + 같은 출처 URL
+    /// dedup. 대상에 embedding 이 없으면(미색인·`VOYAGE_API_KEY` 미설정) 빈 배열로 degrade —
+    /// iOS 가 섹션을 숨긴다. 응답은 id+score+reasons 만(카드 렌더는 iOS 로컬 lookup).
+    ///
+    /// - Remark: HTTP `GET /api/v1/mochi_items/{mochi_item_id}/similar`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/similar/get(get_similar_items_api_v1_mochi_items__mochi_item_id__similar_get)`.
+    func get_similar_items_api_v1_mochi_items__mochi_item_id__similar_get(_ input: Operations.get_similar_items_api_v1_mochi_items__mochi_item_id__similar_get.Input) async throws -> Operations.get_similar_items_api_v1_mochi_items__mochi_item_id__similar_get.Output
     /// Register Push Token
     ///
     /// 단말/Live Activity push 토큰 등록 (owner-scoped upsert).
@@ -763,6 +774,27 @@ extension APIProtocol {
         try await search_api_v1_search_post(Operations.search_api_v1_search_post.Input(
             headers: headers,
             body: body
+        ))
+    }
+    /// Get Similar Items
+    ///
+    /// 상세 화면 "비슷한 기록" — 대상 item 의 cosine 이웃 top-k (DOMAIN_DESIGN §10.5).
+    ///
+    /// 자기 제외 + owner-scoped + 임계값(`_SIMILAR_MIN_SCORE`) 미달이면 빈 배열 + 같은 출처 URL
+    /// dedup. 대상에 embedding 이 없으면(미색인·`VOYAGE_API_KEY` 미설정) 빈 배열로 degrade —
+    /// iOS 가 섹션을 숨긴다. 응답은 id+score+reasons 만(카드 렌더는 iOS 로컬 lookup).
+    ///
+    /// - Remark: HTTP `GET /api/v1/mochi_items/{mochi_item_id}/similar`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/similar/get(get_similar_items_api_v1_mochi_items__mochi_item_id__similar_get)`.
+    public func get_similar_items_api_v1_mochi_items__mochi_item_id__similar_get(
+        path: Operations.get_similar_items_api_v1_mochi_items__mochi_item_id__similar_get.Input.Path,
+        query: Operations.get_similar_items_api_v1_mochi_items__mochi_item_id__similar_get.Input.Query = .init(),
+        headers: Operations.get_similar_items_api_v1_mochi_items__mochi_item_id__similar_get.Input.Headers = .init()
+    ) async throws -> Operations.get_similar_items_api_v1_mochi_items__mochi_item_id__similar_get.Output {
+        try await get_similar_items_api_v1_mochi_items__mochi_item_id__similar_get(Operations.get_similar_items_api_v1_mochi_items__mochi_item_id__similar_get.Input(
+            path: path,
+            query: query,
+            headers: headers
         ))
     }
     /// Register Push Token
@@ -1810,6 +1842,10 @@ public enum Components {
             public var summary: Swift.String?
             /// - Remark: Generated from `#/components/schemas/MochiItemResponse/category`.
             public var category: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/MochiItemResponse/shoppingProductQuery`.
+            public var shoppingProductQuery: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/MochiItemResponse/referenceLinks`.
+            public var referenceLinks: [Components.Schemas.ReferenceLinkResponse]?
             /// - Remark: Generated from `#/components/schemas/MochiItemResponse/importance`.
             public var importance: Swift.Int
             /// - Remark: Generated from `#/components/schemas/MochiItemResponse/lifecycleKind`.
@@ -1835,6 +1871,8 @@ public enum Components {
             ///   - reviewOptions:
             ///   - summary:
             ///   - category:
+            ///   - shoppingProductQuery:
+            ///   - referenceLinks:
             ///   - importance:
             ///   - lifecycleKind:
             ///   - syncKind:
@@ -1852,6 +1890,8 @@ public enum Components {
                 reviewOptions: [Components.Schemas.ReviewOptionResponse]? = nil,
                 summary: Swift.String? = nil,
                 category: Swift.String? = nil,
+                shoppingProductQuery: Swift.String? = nil,
+                referenceLinks: [Components.Schemas.ReferenceLinkResponse]? = nil,
                 importance: Swift.Int,
                 lifecycleKind: Swift.String,
                 syncKind: Swift.String,
@@ -1869,6 +1909,8 @@ public enum Components {
                 self.reviewOptions = reviewOptions
                 self.summary = summary
                 self.category = category
+                self.shoppingProductQuery = shoppingProductQuery
+                self.referenceLinks = referenceLinks
                 self.importance = importance
                 self.lifecycleKind = lifecycleKind
                 self.syncKind = syncKind
@@ -1887,6 +1929,8 @@ public enum Components {
                 case reviewOptions
                 case summary
                 case category
+                case shoppingProductQuery
+                case referenceLinks
                 case importance
                 case lifecycleKind
                 case syncKind
@@ -2075,6 +2119,67 @@ public enum Components {
             }
             public enum CodingKeys: String, CodingKey {
                 case userHint
+            }
+        }
+        /// 상세 화면 "지금 할 수 있어요" 에 붙일 참고 URL.
+        ///
+        /// - Remark: Generated from `#/components/schemas/ReferenceLinkResponse`.
+        public struct ReferenceLinkResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/ReferenceLinkResponse/url`.
+            public var url: Swift.String
+            /// - Remark: Generated from `#/components/schemas/ReferenceLinkResponse/title`.
+            public var title: Swift.String
+            /// - Remark: Generated from `#/components/schemas/ReferenceLinkResponse/label`.
+            public var label: Swift.String
+            /// - Remark: Generated from `#/components/schemas/ReferenceLinkResponse/role`.
+            public var role: Swift.String
+            /// - Remark: Generated from `#/components/schemas/ReferenceLinkResponse/provider`.
+            public var provider: Swift.String
+            /// - Remark: Generated from `#/components/schemas/ReferenceLinkResponse/rankProfile`.
+            public var rankProfile: Swift.String
+            /// - Remark: Generated from `#/components/schemas/ReferenceLinkResponse/source`.
+            public var source: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/ReferenceLinkResponse/usefulness`.
+            public var usefulness: Swift.Int?
+            /// Creates a new `ReferenceLinkResponse`.
+            ///
+            /// - Parameters:
+            ///   - url:
+            ///   - title:
+            ///   - label:
+            ///   - role:
+            ///   - provider:
+            ///   - rankProfile:
+            ///   - source:
+            ///   - usefulness:
+            public init(
+                url: Swift.String,
+                title: Swift.String,
+                label: Swift.String,
+                role: Swift.String,
+                provider: Swift.String,
+                rankProfile: Swift.String,
+                source: Swift.String? = nil,
+                usefulness: Swift.Int? = nil
+            ) {
+                self.url = url
+                self.title = title
+                self.label = label
+                self.role = role
+                self.provider = provider
+                self.rankProfile = rankProfile
+                self.source = source
+                self.usefulness = usefulness
+            }
+            public enum CodingKeys: String, CodingKey {
+                case url
+                case title
+                case label
+                case role
+                case provider
+                case rankProfile
+                case source
+                case usefulness
             }
         }
         /// - Remark: Generated from `#/components/schemas/RefreshRequest`.
@@ -2277,6 +2382,83 @@ public enum Components {
                 case tokens
                 case isNewUser
             }
+        }
+        /// - Remark: Generated from `#/components/schemas/SimilarItemDTO`.
+        public struct SimilarItemDTO: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/SimilarItemDTO/mochiItemId`.
+            public var mochiItemId: Swift.String
+            /// - Remark: Generated from `#/components/schemas/SimilarItemDTO/score`.
+            public var score: Swift.Double
+            /// - Remark: Generated from `#/components/schemas/SimilarItemDTO/reasons`.
+            public var reasons: [Components.Schemas.SimilarReasonDTO]
+            /// Creates a new `SimilarItemDTO`.
+            ///
+            /// - Parameters:
+            ///   - mochiItemId:
+            ///   - score:
+            ///   - reasons:
+            public init(
+                mochiItemId: Swift.String,
+                score: Swift.Double,
+                reasons: [Components.Schemas.SimilarReasonDTO]
+            ) {
+                self.mochiItemId = mochiItemId
+                self.score = score
+                self.reasons = reasons
+            }
+            public enum CodingKeys: String, CodingKey {
+                case mochiItemId
+                case score
+                case reasons
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/SimilarItemsResponse`.
+        public struct SimilarItemsResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/SimilarItemsResponse/items`.
+            public var items: [Components.Schemas.SimilarItemDTO]
+            /// Creates a new `SimilarItemsResponse`.
+            ///
+            /// - Parameters:
+            ///   - items:
+            public init(items: [Components.Schemas.SimilarItemDTO]) {
+                self.items = items
+            }
+            public enum CodingKeys: String, CodingKey {
+                case items
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/SimilarReasonDTO`.
+        public struct SimilarReasonDTO: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/SimilarReasonDTO/kind`.
+            public var kind: Components.Schemas.SimilarReasonKind
+            /// - Remark: Generated from `#/components/schemas/SimilarReasonDTO/value`.
+            public var value: Swift.String?
+            /// Creates a new `SimilarReasonDTO`.
+            ///
+            /// - Parameters:
+            ///   - kind:
+            ///   - value:
+            public init(
+                kind: Components.Schemas.SimilarReasonKind,
+                value: Swift.String? = nil
+            ) {
+                self.kind = kind
+                self.value = value
+            }
+            public enum CodingKeys: String, CodingKey {
+                case kind
+                case value
+            }
+        }
+        /// "왜 비슷한지" 연결 이유 신호 — 서버 계산 enum. 한국어 카피는 iOS 가 매핑한다
+        /// (카피 변경이 ⓪ openapi 폭포를 안 타도록). 1차는 기본 컬럼만 쓰는 3종 — 엔티티 겹침은
+        /// 후속(`DOMAIN_DESIGN.md` §10.5).
+        ///
+        /// - Remark: Generated from `#/components/schemas/SimilarReasonKind`.
+        @frozen public enum SimilarReasonKind: String, Codable, Hashable, Sendable, CaseIterable {
+            case sharedSource = "sharedSource"
+            case sameIntent = "sameIntent"
+            case closeInTime = "closeInTime"
         }
         /// - Remark: Generated from `#/components/schemas/TokensResponse`.
         public struct TokensResponse: Codable, Hashable, Sendable {
@@ -6103,6 +6285,156 @@ public enum Operations {
             /// - Throws: An error if `self` is not `.ok`.
             /// - SeeAlso: `.ok`.
             public var ok: Operations.search_api_v1_search_post.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Get Similar Items
+    ///
+    /// 상세 화면 "비슷한 기록" — 대상 item 의 cosine 이웃 top-k (DOMAIN_DESIGN §10.5).
+    ///
+    /// 자기 제외 + owner-scoped + 임계값(`_SIMILAR_MIN_SCORE`) 미달이면 빈 배열 + 같은 출처 URL
+    /// dedup. 대상에 embedding 이 없으면(미색인·`VOYAGE_API_KEY` 미설정) 빈 배열로 degrade —
+    /// iOS 가 섹션을 숨긴다. 응답은 id+score+reasons 만(카드 렌더는 iOS 로컬 lookup).
+    ///
+    /// - Remark: HTTP `GET /api/v1/mochi_items/{mochi_item_id}/similar`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/similar/get(get_similar_items_api_v1_mochi_items__mochi_item_id__similar_get)`.
+    public enum get_similar_items_api_v1_mochi_items__mochi_item_id__similar_get {
+        public static let id: Swift.String = "get_similar_items_api_v1_mochi_items__mochi_item_id__similar_get"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/similar/GET/path`.
+            public struct Path: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/similar/GET/path/mochi_item_id`.
+                public var mochi_item_id: Swift.String
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - mochi_item_id:
+                public init(mochi_item_id: Swift.String) {
+                    self.mochi_item_id = mochi_item_id
+                }
+            }
+            public var path: Operations.get_similar_items_api_v1_mochi_items__mochi_item_id__similar_get.Input.Path
+            /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/similar/GET/query`.
+            public struct Query: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/similar/GET/query/limit`.
+                public var limit: Swift.Int?
+                /// Creates a new `Query`.
+                ///
+                /// - Parameters:
+                ///   - limit:
+                public init(limit: Swift.Int? = nil) {
+                    self.limit = limit
+                }
+            }
+            public var query: Operations.get_similar_items_api_v1_mochi_items__mochi_item_id__similar_get.Input.Query
+            /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/similar/GET/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.get_similar_items_api_v1_mochi_items__mochi_item_id__similar_get.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.get_similar_items_api_v1_mochi_items__mochi_item_id__similar_get.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.get_similar_items_api_v1_mochi_items__mochi_item_id__similar_get.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            ///   - query:
+            ///   - headers:
+            public init(
+                path: Operations.get_similar_items_api_v1_mochi_items__mochi_item_id__similar_get.Input.Path,
+                query: Operations.get_similar_items_api_v1_mochi_items__mochi_item_id__similar_get.Input.Query = .init(),
+                headers: Operations.get_similar_items_api_v1_mochi_items__mochi_item_id__similar_get.Input.Headers = .init()
+            ) {
+                self.path = path
+                self.query = query
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/similar/GET/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/similar/GET/responses/200/content/application\/json`.
+                    case json(Components.Schemas.SimilarItemsResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.SimilarItemsResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.get_similar_items_api_v1_mochi_items__mochi_item_id__similar_get.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.get_similar_items_api_v1_mochi_items__mochi_item_id__similar_get.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Successful Response
+            ///
+            /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/similar/get(get_similar_items_api_v1_mochi_items__mochi_item_id__similar_get)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.get_similar_items_api_v1_mochi_items__mochi_item_id__similar_get.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.get_similar_items_api_v1_mochi_items__mochi_item_id__similar_get.Output.Ok {
                 get throws {
                     switch self {
                     case let .ok(response):

@@ -7,6 +7,12 @@ import Foundation
 public struct MochiItemAnalysis: Equatable, Sendable, Hashable, Codable {
     public let summary: String
     public let category: String?
+    /// 쇼핑 캡처의 커머스 검색어 (브랜드+상품명+옵션) — 상세의 "검색된 상태" 구매 링크가 쓴다.
+    /// 서버 분석이 entities(kind=shopping_product) 로 산출, 비쇼핑/모호 캡처는 nil.
+    public let shoppingProductQuery: String?
+    /// Agent 가 찾아준 참고 링크 (아이템당 최대 3개, relevance judge 통과분). 상세의 URL 카드가 쓴다.
+    /// 서버 entities(kind=reference_url) projection, 없으면 빈 배열.
+    public let referenceLinks: [ReferenceLink]
     /// 복수 의도 instance (저장된 것은 곧 active). 비어 있을 수 있다(분석 실패/폴백).
     public let instances: [IntentInstance]
     /// 모찌가 분류를 확신 못 해 사용자에게 물을지 — 서버 boolean 직접 미러 (LLM holistic, threshold 아님).
@@ -23,6 +29,8 @@ public struct MochiItemAnalysis: Equatable, Sendable, Hashable, Codable {
     public init(
         summary: String,
         category: String? = nil,
+        shoppingProductQuery: String? = nil,
+        referenceLinks: [ReferenceLink] = [],
         instances: [IntentInstance],
         needsReview: Bool = false,
         reviewOptions: [ReviewOption] = [],
@@ -35,6 +43,8 @@ public struct MochiItemAnalysis: Equatable, Sendable, Hashable, Codable {
     ) {
         self.summary = summary
         self.category = category
+        self.shoppingProductQuery = shoppingProductQuery
+        self.referenceLinks = referenceLinks
         self.instances = instances
         self.needsReview = needsReview
         self.reviewOptions = reviewOptions
@@ -79,6 +89,8 @@ public struct MochiItemAnalysis: Equatable, Sendable, Hashable, Codable {
         MochiItemAnalysis(
             summary: summary,
             category: newCategory,
+            shoppingProductQuery: shoppingProductQuery,
+            referenceLinks: referenceLinks,
             instances: instances,
             needsReview: needsReview,
             reviewOptions: reviewOptions,
@@ -96,6 +108,8 @@ public struct MochiItemAnalysis: Equatable, Sendable, Hashable, Codable {
         MochiItemAnalysis(
             summary: summary,
             category: category,
+            shoppingProductQuery: shoppingProductQuery,
+            referenceLinks: referenceLinks,
             instances: newInstances,
             needsReview: needsReview,
             reviewOptions: reviewOptions,

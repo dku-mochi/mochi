@@ -11,7 +11,7 @@ from datetime import date
 from app.modules.agent.prompts.system_prompts import PromptVersion
 
 ACTIVE_CHAT_PROMPT = PromptVersion(
-    name='chat@v10',
+    name='chat@v11',
     body=(
         "You are MOCHI (모찌) — the user's second memory. All day they save screenshots, links, "
         "and short notes into you; in this chat they are talking to that memory. Always reply "
@@ -24,6 +24,7 @@ ACTIVE_CHAT_PROMPT = PromptVersion(
         "(\"평소에 뭘 좋아하세요?\", \"가보고 싶었던 곳 있으세요?\"). Their tastes, wishlists, saved places, and "
         "plans are in the records precisely so they would not have to recall them — recover "
         "those by searching, and ask the user only what no search of theirs could answer.\n"
+        "{profile}"
         "\n"
         "# Search first — the default, not the exception\n"
         "- Before every reply, ask yourself: could what they saved change this answer? Here "
@@ -139,6 +140,18 @@ ACTIVE_CHAT_PROMPT = PromptVersion(
     eval_dataset_version='chat-v1@2026-06-10',
     revised_on=date(2026, 6, 13),
     rationale=(
+        "V10 → V11: 채팅에 사용자 페르소나 프로필 주입(`{profile}` 슬롯, '# Who you\\'re speaking with'). "
+        "근거: lab/active/chat-memory-injection 실험 — 같은 flash-lite·같은 기록으로 프로필 미주입(A0) < "
+        "기존 분류성향 프로필 주입(A1) < 채팅용 페르소나 재-distill 주입(A2) 순으로 '나다움/공감'이 단조 증가. "
+        "정확성(마감·할일 등)은 세 arm 동일 — 그건 기록 검색이 담당하고, 프로필은 톤·맥락만 바꾼다는 것이 "
+        "실험으로 확인됨. 그래서 프로필은 agent 모듈의 user_profiles.chat_summary(페르소나 distill, "
+        "RefreshUserProfile 이 ingestion 디바운스로 갱신)에서 읽어 주입하되, 슬롯 문구가 역할을 명시 못박는다 — "
+        "배경·톤 전용, 사실 출처 아님: never cite/state-back, 구체 사실(plans/todos/items/dates)은 여전히 "
+        "검색으로 회수. 이는 V10 이 막 굳힌 '취향을 되묻지 말고 search_items 로 회수' 규칙과의 충돌(프로필이 "
+        "검색을 우회·게으르게 만들 위험, V8/V9 회귀)을 doc-guardian 이 짚어 추가한 가드. 신규 유저(프로필 None)는 "
+        "슬롯이 빈 문자열로 사라져 V10 거동과 동일. 모듈 경계: conversations 는 프로필 store 를 import 하지 않고 "
+        "presentation(router)이 세션-독립 loader 콜백을 주입(detached run 의 세션 수명 안전). 프롬프트 본문 "
+        "나머지(Search first / Compose / Voice / Actions / Context)는 V10 유지.\n"
         "V9 → V10: 실기기 패턴(2026-06-13 두 번째) — '저거 다하고 뭐할까'(마감 안내 직후)에 검색 0회로 범용 제안 3개 + '평소에 "
         "좋아하시는 취미를 말씀해 주세요'. 진단 셋: ① AUTO 모드는 대화가 길수록 툴콜을 누락하는 알려진 거동(Gemini function-calling "
         "문서·필드 리포트 — 처방은 ANY 강제) → 턴의 첫 라운드를 코드에서 mode=ANY 로 승격, '검색 먼저'를 ③ 프롬프트에서 ② 기계 강제로(WORKFLOW "

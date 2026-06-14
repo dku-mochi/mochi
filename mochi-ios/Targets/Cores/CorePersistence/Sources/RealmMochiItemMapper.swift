@@ -19,6 +19,7 @@ public enum RealmMochiItemMapper {
         row.userMemo = mochiItem.source.userMemo
         row.summary = mochiItem.analysis?.summary
         row.category = mochiItem.analysis?.category
+        row.shoppingProductQuery = mochiItem.analysis?.shoppingProductQuery
         row.importance = mochiItem.analysis?.importance.rawValue ?? 3
         row.needsReview = mochiItem.analysis?.needsReview ?? false
         row.modelVersion = mochiItem.analysis?.modelVersion
@@ -66,6 +67,11 @@ public enum RealmMochiItemMapper {
         for option in mochiItem.analysis?.reviewOptions ?? [] {
             row.reviewOptions.append(encode(reviewOption: option))
         }
+
+        row.referenceLinks.removeAll()
+        for link in mochiItem.analysis?.referenceLinks ?? [] {
+            row.referenceLinks.append(encode(referenceLink: link))
+        }
         return row
     }
 
@@ -87,6 +93,8 @@ public enum RealmMochiItemMapper {
             analysis = MochiItemAnalysis(
                 summary: row.summary ?? "",
                 category: row.category,
+                shoppingProductQuery: row.shoppingProductQuery,
+                referenceLinks: row.referenceLinks.compactMap(decode(referenceLink:)),
                 instances: row.intentInstances.compactMap(decode(intentInstance:)),
                 needsReview: row.needsReview,
                 reviewOptions: row.reviewOptions.compactMap(decode(reviewOption:)),
@@ -283,6 +291,35 @@ public enum RealmMochiItemMapper {
     private static func decode(reviewOption row: RealmReviewOption) -> ReviewOption? {
         guard let intent = Intent(rawValue: row.intentRawValue) else { return nil }
         return ReviewOption(intentType: intent, label: row.label, reasoning: row.reasoning)
+    }
+
+    // MARK: - ReferenceLink encoding
+
+    private static func encode(referenceLink link: ReferenceLink) -> RealmReferenceLink {
+        let row = RealmReferenceLink()
+        row.urlString = link.url.absoluteString
+        row.title = link.title
+        row.label = link.label
+        row.role = link.role
+        row.provider = link.provider
+        row.rankProfile = link.rankProfile
+        row.source = link.source
+        row.usefulness = link.usefulness
+        return row
+    }
+
+    private static func decode(referenceLink row: RealmReferenceLink) -> ReferenceLink? {
+        guard let url = URL(string: row.urlString) else { return nil }
+        return ReferenceLink(
+            url: url,
+            title: row.title,
+            label: row.label,
+            role: row.role,
+            provider: row.provider,
+            rankProfile: row.rankProfile,
+            source: row.source,
+            usefulness: row.usefulness
+        )
     }
 
     private static func encodeInstanceLifecycle(_ lifecycle: InstanceLifecycle) -> (kind: String, reason: String?) {

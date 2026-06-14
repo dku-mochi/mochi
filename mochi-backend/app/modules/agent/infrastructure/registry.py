@@ -1,9 +1,12 @@
 from typing import Any
 
+from app.core.config import get_settings
 from app.modules.agent.domain.ports import ToolRegistry
 from app.modules.agent.domain.tools import Tool, ToolName
 from app.modules.agent.infrastructure.tools.platform_context import PlatformContextTool
+from app.modules.agent.infrastructure.tools.resource_finder import ResourceFinderTool
 from app.modules.agent.infrastructure.tools.web_fetch import WebFetchTool
+from app.modules.agent.infrastructure.tools.youtube_recover import RecoverYoutubeUrlTool
 
 
 class StaticToolRegistry(ToolRegistry):
@@ -20,7 +23,13 @@ class StaticToolRegistry(ToolRegistry):
         self._tools: dict[ToolName, Tool[Any, Any]] = {
             ToolName.PLATFORM_CONTEXT: PlatformContextTool(),
             ToolName.WEB_FETCH: WebFetchTool(),
+            # recoverYoutubeUrl 은 무키(공개 youtube 검색)라 항상 노출.
+            ToolName.RECOVER_YOUTUBE_URL: RecoverYoutubeUrlTool(),
         }
+        # findReferenceUrls 는 네이버 검색 키가 있을 때만 노출(키 발급이 머지를 블록하지
+        # 않게 — web_search/Tavily 선례와 동일 패턴).
+        if get_settings().naver_client_id:
+            self._tools[ToolName.RESOURCE_FINDER] = ResourceFinderTool()
 
     def get(self, name: ToolName) -> Tool[Any, Any]:
         return self._tools[name]

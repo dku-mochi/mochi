@@ -13,7 +13,7 @@
 
 from collections.abc import AsyncIterator
 from functools import lru_cache
-from typing import Any
+from typing import Any, cast
 
 import structlog
 from google import genai
@@ -21,6 +21,7 @@ from google.genai import types
 
 from app.core.config import get_settings
 from app.modules.conversations.domain.ports import ChatLLMChunk, ChatLLMClient, ChatTool
+from app.shared.llm_usage import extract_token_usage
 
 logger = structlog.get_logger(__name__)
 
@@ -116,9 +117,15 @@ class GeminiChatClient(ChatLLMClient):
             ),
         )
         stream = await _shared_client().aio.models.generate_content_stream(
-            model=self._model, contents=_to_contents(contents), config=cfg
+            model=self._model, contents=cast(types.ContentListUnion, _to_contents(contents)), config=cfg
         )
+        tokens_in = 0
+        tokens_out = 0
         async for chunk in stream:
+            chunk_in, chunk_out = extract_token_usage(chunk)
+            # usage_metadata 는 마지막 청크에 누적 총합으로 실린다 — non-zero 면 갱신(덮어쓰기).
+            if chunk_in or chunk_out:
+                tokens_in, tokens_out = chunk_in, chunk_out
             for cand in getattr(chunk, "candidates", None) or []:
                 finish = getattr(cand, "finish_reason", None)
                 if finish is not None and "STOP" not in str(finish):
@@ -144,3 +151,6 @@ class GeminiChatClient(ChatLLMClient):
                         # thought=True part 는 모델의 reasoning 요약 — include_thoughts 기본
                         # false 라 현재는 안 오지만, 새면 채팅 버블로 노출되므로 가드.
                         yield ChatLLMChunk(text_delta=part.text)
+        # 스트림 종료 — 이 라운드의 토큰 사용량만 담은 청크를 마지막에 한 번 흘린다(run 루프가 누적).
+        if tokens_in or tokens_out:
+            yield ChatLLMChunk(tokens_in=tokens_in, tokens_out=tokens_out, model=self._model)

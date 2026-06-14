@@ -26,13 +26,23 @@ class _FakeStore:
 
 
 class _FakeSummarizer:
-    def __init__(self, text="관심사: AI. 마감 있는 과제는 할 일로 분류."):
+    def __init__(
+        self,
+        text="관심사: AI. 마감 있는 과제는 할 일로 분류.",
+        chat_text="요즘 AI 공부와 개발에 푹 빠진 사람.",
+    ):
         self.text = text
+        self.chat_text = chat_text
         self.calls = 0
+        self.chat_calls = 0
 
     async def summarize(self, *, window, previous):
         self.calls += 1
         return self.text
+
+    async def summarize_chat(self, *, window, previous):
+        self.chat_calls += 1
+        return self.chat_text
 
 
 class _FakeGateway:
@@ -121,3 +131,34 @@ async def test_no_items_skips():
     did = await _refresh(gw, store, summ).run(owner_id=uuid4())
     assert did is False
     assert summ.calls == 0
+
+
+@pytest.mark.asyncio
+async def test_chat_summary_distilled_alongside_classification():
+    """갱신 시 분류 프로필(summary)과 채팅 페르소나(chat_summary)가 함께 distill·upsert 된다."""
+    store = _FakeStore(profile=None)
+    summ = _FakeSummarizer()
+    gw = _FakeGateway(count=3, window=_win(3))
+    did = await _refresh(gw, store, summ).run(owner_id=uuid4())
+    assert did is True
+    assert summ.calls == 1
+    assert summ.chat_calls == 1
+    assert store.profile.summary == summ.text
+    assert store.profile.chat_summary == summ.chat_text
+
+
+@pytest.mark.asyncio
+async def test_chat_summary_failure_keeps_classification_profile():
+    """채팅 distill 이 실패해도(부가 산출물) 분류 프로필 저장은 막히지 않는다."""
+
+    class _ChatFails(_FakeSummarizer):
+        async def summarize_chat(self, *, window, previous):
+            raise RuntimeError("chat distill boom")
+
+    store = _FakeStore(profile=None)
+    summ = _ChatFails()
+    gw = _FakeGateway(count=3, window=_win(3))
+    did = await _refresh(gw, store, summ).run(owner_id=uuid4())
+    assert did is True
+    assert store.profile.summary == summ.text
+    assert store.profile.chat_summary is None  # 이전 값 없음 + 실패 → None

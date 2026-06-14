@@ -2002,6 +2002,81 @@ public struct Client: APIProtocol {
             }
         )
     }
+    /// Get Similar Items
+    ///
+    /// 상세 화면 "비슷한 기록" — 대상 item 의 cosine 이웃 top-k (DOMAIN_DESIGN §10.5).
+    ///
+    /// 자기 제외 + owner-scoped + 임계값(`_SIMILAR_MIN_SCORE`) 미달이면 빈 배열 + 같은 출처 URL
+    /// dedup. 대상에 embedding 이 없으면(미색인·`VOYAGE_API_KEY` 미설정) 빈 배열로 degrade —
+    /// iOS 가 섹션을 숨긴다. 응답은 id+score+reasons 만(카드 렌더는 iOS 로컬 lookup).
+    ///
+    /// - Remark: HTTP `GET /api/v1/mochi_items/{mochi_item_id}/similar`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/similar/get(get_similar_items_api_v1_mochi_items__mochi_item_id__similar_get)`.
+    public func get_similar_items_api_v1_mochi_items__mochi_item_id__similar_get(_ input: Operations.get_similar_items_api_v1_mochi_items__mochi_item_id__similar_get.Input) async throws -> Operations.get_similar_items_api_v1_mochi_items__mochi_item_id__similar_get.Output {
+        try await client.send(
+            input: input,
+            forOperation: Operations.get_similar_items_api_v1_mochi_items__mochi_item_id__similar_get.id,
+            serializer: { input in
+                let path = try converter.renderedPath(
+                    template: "/api/v1/mochi_items/{}/similar",
+                    parameters: [
+                        input.path.mochi_item_id
+                    ]
+                )
+                var request: HTTPTypes.HTTPRequest = .init(
+                    soar_path: path,
+                    method: .get
+                )
+                suppressMutabilityWarning(&request)
+                try converter.setQueryItemAsURI(
+                    in: &request,
+                    style: .form,
+                    explode: true,
+                    name: "limit",
+                    value: input.query.limit
+                )
+                converter.setAcceptHeader(
+                    in: &request.headerFields,
+                    contentTypes: input.headers.accept
+                )
+                return (request, nil)
+            },
+            deserializer: { response, responseBody in
+                switch response.status.code {
+                case 200:
+                    let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
+                    let body: Operations.get_similar_items_api_v1_mochi_items__mochi_item_id__similar_get.Output.Ok.Body
+                    let chosenContentType = try converter.bestContentType(
+                        received: contentType,
+                        options: [
+                            "application/json"
+                        ]
+                    )
+                    switch chosenContentType {
+                    case "application/json":
+                        body = try await converter.getResponseBodyAsJSON(
+                            Components.Schemas.SimilarItemsResponse.self,
+                            from: responseBody,
+                            transforming: { value in
+                                .json(value)
+                            }
+                        )
+                    default:
+                        preconditionFailure("bestContentType chose an invalid content type.")
+                    }
+                    return .ok(.init(body: body))
+                default:
+                    return .undocumented(
+                        statusCode: response.status.code,
+                        .init(
+                            headerFields: response.headerFields,
+                            body: responseBody
+                        )
+                    )
+                }
+            }
+        )
+    }
     /// Register Push Token
     ///
     /// 단말/Live Activity push 토큰 등록 (owner-scoped upsert).

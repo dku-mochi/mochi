@@ -1269,6 +1269,60 @@
         }
       }
     },
+    "/api/v1/mochi_items/{mochi_item_id}/similar": {
+      "get": {
+        "tags": [
+          "search"
+        ],
+        "summary": "Get Similar Items",
+        "description": "상세 화면 \"비슷한 기록\" — 대상 item 의 cosine 이웃 top-k (DOMAIN_DESIGN §10.5).\n\n자기 제외 + owner-scoped + 임계값(`_SIMILAR_MIN_SCORE`) 미달이면 빈 배열 + 같은 출처 URL\ndedup. 대상에 embedding 이 없으면(미색인·`VOYAGE_API_KEY` 미설정) 빈 배열로 degrade —\niOS 가 섹션을 숨긴다. 응답은 id+score+reasons 만(카드 렌더는 iOS 로컬 lookup).",
+        "operationId": "get_similar_items_api_v1_mochi_items__mochi_item_id__similar_get",
+        "parameters": [
+          {
+            "name": "mochi_item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Mochi Item Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 6,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "Authorization",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimilarItemsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/devices/push-token": {
       "post": {
         "tags": [
@@ -2156,6 +2210,18 @@
             "type": "string",
             "nullable": true
           },
+          "shoppingProductQuery": {
+            "title": "Shoppingproductquery",
+            "type": "string",
+            "nullable": true
+          },
+          "referenceLinks": {
+            "items": {
+              "$ref": "#/components/schemas/ReferenceLinkResponse"
+            },
+            "type": "array",
+            "title": "Referencelinks"
+          },
           "importance": {
             "type": "integer",
             "title": "Importance"
@@ -2345,6 +2411,55 @@
         "title": "ReanalyzeRequest",
         "description": "needs_review 항목 재분석 요청 — 사용자가 \"다른 의도\"를 고르며 자연어로 적은 의도 힌트.\n\n힌트는 분석 프롬프트 context 에만 합류하고 **outbox 행에만 일시 적재**된다.\n`mochi_items`·`user_memo` 에는 저장하지 않는다(사용자가 직접 쓴 메모로 오해하는 것을 막는다)."
       },
+      "ReferenceLinkResponse": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "provider": {
+            "type": "string",
+            "title": "Provider"
+          },
+          "rankProfile": {
+            "type": "string",
+            "title": "Rankprofile"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string",
+            "nullable": true
+          },
+          "usefulness": {
+            "title": "Usefulness",
+            "type": "integer",
+            "nullable": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "url",
+          "title",
+          "label",
+          "role",
+          "provider",
+          "rankProfile"
+        ],
+        "title": "ReferenceLinkResponse",
+        "description": "상세 화면 \"지금 할 수 있어요\" 에 붙일 참고 URL."
+      },
       "RefreshRequest": {
         "properties": {
           "refreshToken": {
@@ -2515,6 +2630,76 @@
           "isNewUser"
         ],
         "title": "SignInResponse"
+      },
+      "SimilarItemDTO": {
+        "properties": {
+          "mochiItemId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Mochiitemid"
+          },
+          "score": {
+            "type": "number",
+            "title": "Score"
+          },
+          "reasons": {
+            "items": {
+              "$ref": "#/components/schemas/SimilarReasonDTO"
+            },
+            "type": "array",
+            "title": "Reasons"
+          }
+        },
+        "type": "object",
+        "required": [
+          "mochiItemId",
+          "score",
+          "reasons"
+        ],
+        "title": "SimilarItemDTO"
+      },
+      "SimilarItemsResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SimilarItemDTO"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "SimilarItemsResponse"
+      },
+      "SimilarReasonDTO": {
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/SimilarReasonKind"
+          },
+          "value": {
+            "title": "Value",
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind"
+        ],
+        "title": "SimilarReasonDTO"
+      },
+      "SimilarReasonKind": {
+        "type": "string",
+        "enum": [
+          "sharedSource",
+          "sameIntent",
+          "closeInTime"
+        ],
+        "title": "SimilarReasonKind",
+        "description": "\"왜 비슷한지\" 연결 이유 신호 — 서버 계산 enum. 한국어 카피는 iOS 가 매핑한다\n(카피 변경이 ⓪ openapi 폭포를 안 타도록). 1차는 기본 컬럼만 쓰는 3종 — 엔티티 겹침은\n후속(`DOMAIN_DESIGN.md` §10.5)."
       },
       "TokensResponse": {
         "properties": {

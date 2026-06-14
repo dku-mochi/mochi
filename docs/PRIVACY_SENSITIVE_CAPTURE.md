@@ -52,9 +52,12 @@ description: 민감 캡처 보호 설계(on-device 감지·마스킹·최소전�
 
 서버는 전체 카드번호를 보지 못하지만, 검색과 요약에 필요한 결제 맥락은 유지한다.
 
-> **개인화 프로필도 같은 원칙을 따른다.** agent loop 가 분석에 주입하는 사용자 특성 요약
-> (`user_profiles`, `DOMAIN_DESIGN.md §7.2`)은 최근 입력의 raw 내용이 아니라 "관심사·평소 분류
-> 성향" 추상 요약만 저장하며, `owner_id` 로 격리되어 cross-tenant 누설을 차단한다.
+> **개인화 프로필도 같은 원칙을 따른다.** `user_profiles`(`DOMAIN_DESIGN.md §3`)는 최근 입력의
+> raw 내용이 아니라 추상 요약만 저장하며, `owner_id` 로 격리되어 cross-tenant 누설을 차단한다.
+> 두 관점 모두 같다 — agent loop 분석에 주입하는 `summary`("관심사·평소 분류 성향")도, 채팅에
+> 배경·톤으로 주입하는 `chat_summary`("이 사람이 누구인지" 페르소나)도 **입력은 `summary`/
+> `user_memo` 만**(raw 캡처 text 제외, `RefreshUserProfile`). 채팅 주입은 패턴 추상이지 저장 원문이
+> 아니므로, 모델은 이를 외부 web 쿼리에 원문째 재표현하지 않는다(§10).
 
 ### 2.2 위험도 기반 정책
 
@@ -353,6 +356,7 @@ agent/application
 - embedding 을 민감도 6 이상에도 생성할지 여부
 - 로컬 전용 캡처를 자연어 검색에 포함하려면 온디바이스 검색 인덱스를 둘지 여부
 - 마스킹 이미지 생성 시 blur, solid fill, semantic overlay 중 어떤 방식을 기본으로 할지 여부
+- **유사 회수(similar)가 민감 캡처를 무관 항목 상세에서 자동 노출할지** — 상세 화면 "비슷한 기록"(`DOMAIN_DESIGN.md` §10.5)은 사용자 질의 없이 상세를 열기만 해도 cosine 이웃을 끌어오는 **새 회수 표면**이다(검색탭과 달리 능동 질의 불필요). 현재 `sensitivity_level` 필드 미구현이라 분석 경로(`view_item_image`)와 **동일하게 ungated** — 노출 표면이 분석 경로보다 넓어지지 않는다(§10 동일 논리). privacy 필드 도입 시 **이 엔드포인트를 게이트 대상에 반드시 포함**(누락하면 민감 항목이 회수로 우회 노출) — `TODO.md` §5.1 후속
 
 ---
 
@@ -366,6 +370,10 @@ agent/application
   chat@v1 부터 선제 명시). 툴 파라미터 설명에도 동일 규칙을 중복 명시 — 일반화된 쿼리로
   재표현(rephrase)하게 한다. 프롬프트 기반 가드(③티어)라는 한계는 인지 — 기계 강제가
   필요해지면 쿼리 PII 필터를 후속으로 검토.
+- **주입된 페르소나 프로필(chat@v11)도 같은 경계** — `chat_summary` 가 system prompt 에
+  배경·톤으로 들어가지만(§2.1), 이는 "기록 원문"과 같은 데이터라 위 규칙이 그대로 적용된다.
+  주입 슬롯 문구(`_profile_block`)가 "사실 출처 아님·【item】 인용 금지·구체 사실은 검색으로
+  회수"를 못박아, 모델이 프로필 내용을 web 쿼리로 반출하거나 근거로 단정하지 않게 한다.
 - **web_fetch 는 기존 SSRF 가드 무수정 재사용** — agent `WebFetchTool`(호스트 블록리스트·
   사설/링크로컬 IP 차단·redirect 마다 재검증·사이즈/MIME 상한)을
   `agent.application.tool_factories` 경유로 그대로 쓴다. 채팅 쪽 래퍼는 텍스트화·truncation 만.

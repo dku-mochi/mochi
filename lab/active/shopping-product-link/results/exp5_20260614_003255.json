@@ -1,0 +1,1198 @@
+{
+  "summary": {
+    "router_model": "gemini-3.1-flash-lite",
+    "judge_model": "gemini-3.5-flash",
+    "cases": 18,
+    "errors": 0,
+    "final_useful_rate": 0.44,
+    "none_rate": 0.28,
+    "rescue_count": 2,
+    "refine_count": 4,
+    "fallback_used": 0,
+    "fallback_skipped": 3,
+    "suppressed": 5,
+    "avg_usefulness": 4.62,
+    "avg_iters": 1.31
+  },
+  "results": [
+    {
+      "memo": "친구랑 카톡 캡처: 내일 뭐 먹을지 ㅋㅋ",
+      "expect_kind": "none",
+      "routing": {
+        "needs_resource": false,
+        "category": "none",
+        "queries": [],
+        "rationale": "친구와의 사적인 대화 내용으로 외부 자료를 연결할 필요가 없는 단순한 일상 기록입니다."
+      },
+      "none": true,
+      "iters": [],
+      "final": {
+        "useful": false,
+        "usefulness": 1,
+        "picked_urls": [],
+        "comment": "route: needs_resource=false/none"
+      }
+    },
+    {
+      "memo": "전세 보증금 안 돌려줌, 소송 절차 알아보기",
+      "expect_kind": "clear",
+      "routing": {
+        "needs_resource": true,
+        "category": "blog",
+        "queries": [
+          "전세 보증금 반환 소송 절차",
+          "전세금 반환 소송 준비 서류"
+        ],
+        "rationale": "법적 절차에 대한 구체적인 정보와 후기가 필요한 상황이므로 관련 블로그 정보를 찾는 것이 가장 적합합니다."
+      },
+      "iters": [
+        {
+          "queries": [
+            "전세 보증금 반환 소송 절차",
+            "전세금 반환 소송 준비 서류"
+          ],
+          "searches": [
+            {
+              "query": "전세 보증금 반환 소송 절차",
+              "total": 409507,
+              "items": [
+                {
+                  "title": "전세보증금반환소송 절차 추진은",
+                  "link": "https://blog.naver.com/jaryong23/223477265687",
+                  "description": "전세보증금반환소송 절차 추진은 전세계약으로 보증금 전액을 지불한 후 퇴거 시 금액 전부를 다시... 정해진 절차와 방법으로 임차권등기명령과 전세보증금반환소송을 진행해야 한다고 했습니다. 여러모로...",
+                  "bloggername": "건강정보",
+                  "postdate": "20240612"
+                },
+                {
+                  "title": "2억 기준 전세보증금반환소송 절차",
+                  "link": "https://blog.naver.com/karakoram21/223923892919",
+                  "description": "전세보증금반환소송에서 가장 중요한 핵심은 승소한 이후에 어떤 식으로 보증금을 회수하는 강제집행 절차를 변호사가 진행해 주는지 여부 입니다. 소송을 진행해서 승소 판결을 받게 되면 내가 손가락 하나...",
+                  "bloggername": "법무법인 한림 교대역 사무소",
+                  "postdate": "20250706"
+                },
+                {
+                  "title": "방법, 전세보증금반환 청구 소송과 강제집행 절차는 어떻게...",
+                  "link": "https://blog.naver.com/5msd/224266701598",
+                  "description": "보증금 전액 돌려받는 방법, 전세보증금반환 청구 소송과 강제집행 절차는 어떻게 되나요? 임차인이 임대차 계약 종료 후에도 보증금을 반환받지 못하는 상황은 단순히 경제적인 피해를 넘어 일상생활의 근간을...",
+                  "bloggername": "전세보증금반환전문 서초동 변호사",
+                  "postdate": "20260427"
+                }
+              ]
+            },
+            {
+              "query": "전세금 반환 소송 준비 서류",
+              "total": 190155,
+              "items": [
+                {
+                  "title": "전세금 반환 소송 비용·기간·서류 한눈에",
+                  "link": "https://blog.naver.com/csj_0064/224035492115",
+                  "description": "[8] 신속하고 안전한 해결을 위한 전세금 반환 소송 전략 마지막으로 전세금 반환 소송은 감정보다는 절차 중심으로 접근해야 합니다. 비용·기간·서류를 명확히 파악하고, 각 단계별로 꼼꼼히 준비하시면 불리한...",
+                  "bloggername": "ROOM",
+                  "postdate": "20251009"
+                },
+                {
+                  "title": "오산부동산변호사 전세금반환소송 준비서류",
+                  "link": "https://blog.naver.com/woonyul77/223878508436",
+                  "description": "하지만 법적 절차인 만큼 소장을 작성하고 서류를 갖추는 준비, 또한 판결 이후 실제 회수까지 이어지는 전략이 중요합니다. 따라서 오늘은 전세금 반환소송에 필요한 서류 목록, 그리고 오산부동산변호사의...",
+                  "bloggername": "법무법인 운율 K2",
+                  "postdate": "20250526"
+                },
+                {
+                  "title": "전세금반환소송 조건과 절차, 준비서류",
+                  "link": "https://blog.naver.com/ssorieco/223995706576",
+                  "description": "전세금반환소송 준비 서류 소송을 위해서는 증빙 서류를 철저히 준비해야 해요. 임대차계약서 원본 전세금 송금 내역 (계좌이체 내역, 영수증 등) 계약 종료 및 퇴거 의사 통지 자료 집주인의 반환 거부 사실을...",
+                  "bloggername": "쏘리의 경제이야기",
+                  "postdate": "20250905"
+                }
+              ]
+            }
+          ],
+          "critique": {
+            "sufficient": true,
+            "new_query": null
+          }
+        }
+      ],
+      "web_called": false,
+      "web_skipped": false,
+      "final": {
+        "useful": true,
+        "usefulness": 5,
+        "picked_urls": [
+          "https://blog.naver.com/csj_0064/224035492115",
+          "https://blog.naver.com/ssorieco/223995706576",
+          "https://blog.naver.com/5msd/224266701598"
+        ],
+        "comment": "전세보증금 반환 소송의 구체적인 절차, 준비 서류, 비용 및 강제집행 방법까지 상세히 안내하는 유용한 정보입니다."
+      }
+    },
+    {
+      "memo": "쿠어 스탠드 칼라 넥 다운 푸퍼 검정 살까 말까",
+      "expect_kind": "clear",
+      "routing": {
+        "needs_resource": true,
+        "category": "shop",
+        "queries": [
+          "쿠어 스탠드 칼라 넥 다운 푸퍼 블랙"
+        ],
+        "rationale": "구매를 고민 중인 특정 의류 상품이므로 가격과 상세 정보를 확인할 수 있는 쇼핑 검색이 필요합니다."
+      },
+      "iters": [
+        {
+          "queries": [
+            "쿠어 스탠드 칼라 넥 다운 푸퍼 블랙"
+          ],
+          "searches": [
+            {
+              "query": "쿠어 스탠드 칼라 넥 다운 푸퍼 블랙",
+              "total": 5,
+              "items": [
+                {
+                  "title": "쿠어 COOR 스탠드 칼라 넥 다운 푸퍼 (블랙)",
+                  "link": "https://smartstore.naver.com/main/products/12960202226",
+                  "lprice": "316400",
+                  "mallName": "이글인터내셔널",
+                  "brand": ""
+                },
+                {
+                  "title": "[쿠어] 스탠드 칼라 넥 다운 푸퍼 (블랙) CXE4JP03V-BLK",
+                  "link": "https://link.musinsa.com/app/goods/4452115?utm_source=naver_jisicshopping&utm_medium=sh&source=NVSH&utm_term={keyword}&utm_content={ad_group}",
+                  "lprice": "269100",
+                  "mallName": "무신사",
+                  "brand": "쿠어"
+                },
+                {
+                  "title": "[쿠어] 스탠드 칼라 넥 다운 푸퍼 (블랙)",
+                  "link": "https://product.29cm.co.kr/catalog/2851719?BSCCN1=2851719&BSCPN=CMCOM&utm_campaign=conversion_navershopping&utm_source=growth_naver&utm_term=2851719&naver_code=naver_ep&utm_content=conversion_navershopping&BSPRG=NAVERSH&utm_medium=display",
+                  "lprice": "269100",
+                  "mallName": "29CM",
+                  "brand": "쿠어"
+                }
+              ]
+            }
+          ],
+          "critique": {
+            "sufficient": true,
+            "new_query": null
+          }
+        }
+      ],
+      "web_called": false,
+      "web_skipped": false,
+      "final": {
+        "useful": true,
+        "usefulness": 5,
+        "picked_urls": [
+          "https://smartstore.naver.com/main/products/12960202226",
+          "https://link.musinsa.com/app/goods/4452115?utm_source=naver_jisicshopping&utm_medium=sh&source=NVSH&utm_term={keyword}&utm_content={ad_group}",
+          "https://product.29cm.co.kr/catalog/2851719?BSCCN1=2851719&BSCPN=CMCOM&utm_campaign=conversion_navershopping&utm_source=growth_naver&utm_term=2851719&naver_code=naver_ep&utm_content=conversion_navershopping&BSPRG=NAVERSH&utm_medium=display"
+        ],
+        "comment": "사용자가 고민 중인 쿠어 스탠드 칼라 넥 다운 푸퍼 블랙 제품의 정확한 판매처 링크들을 수집하여 구매 결정에 직접적인 도움이 됩니다."
+      }
+    },
+    {
+      "memo": "성수동 분위기 좋은 파스타집 가보기",
+      "expect_kind": "clear",
+      "routing": {
+        "needs_resource": true,
+        "category": "local",
+        "queries": [
+          "성수동 분위기 좋은 파스타 맛집"
+        ],
+        "rationale": "성수동 지역의 파스타 맛집 정보를 찾기 위해 지도 및 리뷰 기반의 검색이 필요합니다."
+      },
+      "iters": [
+        {
+          "queries": [
+            "성수동 분위기 좋은 파스타 맛집"
+          ],
+          "searches": [
+            {
+              "query": "성수동 분위기 좋은 파스타 맛집",
+              "total": 3,
+              "items": [
+                {
+                  "title": "라노마드",
+                  "link": "https://app.catchtable.co.kr/ct/shop/casadufftown",
+                  "category": "음식점>양식",
+                  "address": "서울특별시 광진구 화양동 47-6 지하1층",
+                  "roadAddress": "서울특별시 광진구 아차산로29길 29-1 지하1층"
+                },
+                {
+                  "title": "그룬트",
+                  "link": "https://go.catchtable.co.kr/fitdw1",
+                  "category": "술집>와인",
+                  "address": "서울특별시 성동구 성수동2가 269-113 2층",
+                  "roadAddress": "서울특별시 성동구 성수이로12길 13 2층"
+                },
+                {
+                  "title": "블러프 bluff Dine &amp; Bar",
+                  "link": "https://app.catchtable.co.kr/ct/shop/bluff",
+                  "category": "음식점>양식",
+                  "address": "서울특별시 강남구 논현동 94-25 삼원빌딩 지하1층",
+                  "roadAddress": "서울특별시 강남구 도산대로54길 17 삼원빌딩 지하1층"
+                }
+              ]
+            }
+          ],
+          "critique": {
+            "sufficient": true,
+            "new_query": null
+          }
+        }
+      ],
+      "web_called": false,
+      "web_skipped": false,
+      "final": {
+        "useful": true,
+        "usefulness": 5,
+        "picked_urls": [
+          "https://app.catchtable.co.kr/ct/shop/casadufftown",
+          "https://go.catchtable.co.kr/fitdw1",
+          "https://app.catchtable.co.kr/ct/shop/bluff"
+        ],
+        "comment": "성수동에서 분위기 좋은 파스타와 다이닝을 즐길 수 있는 인기 매장들의 예약 링크를 정확하게 수집했습니다."
+      }
+    },
+    {
+      "memo": "아이폰 16 프로 256 자급제 최저가",
+      "expect_kind": "clear",
+      "routing": {
+        "needs_resource": true,
+        "category": "shop",
+        "queries": [
+          "아이폰 16 프로 256 자급제 최저가"
+        ],
+        "rationale": "사용자가 특정 모델의 최저가 정보를 확인하고 구매를 고려하고 있으므로 쇼핑 검색이 필요합니다."
+      },
+      "iters": [
+        {
+          "queries": [
+            "아이폰 16 프로 256 자급제 최저가"
+          ],
+          "searches": [
+            {
+              "query": "아이폰 16 프로 256 자급제 최저가",
+              "total": 425,
+              "items": [
+                {
+                  "title": "아이폰 16프로 256GB Apple 미개봉 새상품",
+                  "link": "https://www.lotteon.com/p/product/LO2604555346?sitmNo=LO2604555346_2604555347&ch_no=100065&ch_dtl_no=1000030&entryPoint=pcs&dp_infw_cd=CHT",
+                  "lprice": "825380",
+                  "mallName": "롯데ON",
+                  "brand": ""
+                },
+                {
+                  "title": "[Apple]아이폰 16프로맥스 256GB Apple 미개봉 새상품",
+                  "link": "https://smartstore.naver.com/main/products/13342176190",
+                  "lprice": "890000",
+                  "mallName": "전국온라인최저가",
+                  "brand": "Apple"
+                },
+                {
+                  "title": "Apple 아이폰 16프로 256GB Apple 미개봉 새상품",
+                  "link": "https://smartstore.naver.com/main/products/13521740860",
+                  "lprice": "690000",
+                  "mallName": "전국온라인최저가",
+                  "brand": "Apple"
+                }
+              ]
+            }
+          ],
+          "critique": {
+            "sufficient": true,
+            "new_query": null
+          }
+        }
+      ],
+      "web_called": false,
+      "web_skipped": false,
+      "final": {
+        "useful": true,
+        "usefulness": 4,
+        "picked_urls": [
+          "https://www.lotteon.com/p/product/LO2604555346?sitmNo=LO2604555346_2604555347&ch_no=100065&ch_dtl_no=1000030&entryPoint=pcs&dp_infw_cd=CHT",
+          "https://smartstore.naver.com/main/products/13521740860"
+        ],
+        "comment": "요청하신 아이폰 16 프로 256GB 자급제 사양에 부합하는 미개봉 상품 링크를 선별했습니다."
+      }
+    },
+    {
+      "memo": "리액트 서버 컴포넌트 개념 공부하기",
+      "expect_kind": "clear",
+      "routing": {
+        "needs_resource": true,
+        "category": "web",
+        "queries": [
+          "React Server Components explained",
+          "리액트 서버 컴포넌트 개념"
+        ],
+        "rationale": "리액트 서버 컴포넌트는 최신 기술 개념으로, 공식 문서나 기술 블로그 등 전문적인 웹 자료를 찾는 것이 학습에 가장 효과적입니다."
+      },
+      "iters": [
+        {
+          "queries": [
+            "React Server Components explained",
+            "리액트 서버 컴포넌트 개념"
+          ],
+          "searches": [
+            {
+              "query": "React Server Components explained",
+              "_skipped": "no TAVILY_API_KEY"
+            },
+            {
+              "query": "리액트 서버 컴포넌트 개념",
+              "_skipped": "no TAVILY_API_KEY"
+            }
+          ],
+          "critique": {
+            "sufficient": false,
+            "new_query": "리액트 서버 컴포넌트 개념 정리"
+          }
+        },
+        {
+          "queries": [
+            "리액트 서버 컴포넌트 개념 정리"
+          ],
+          "searches": [
+            {
+              "query": "리액트 서버 컴포넌트 개념 정리",
+              "_skipped": "no TAVILY_API_KEY"
+            }
+          ],
+          "critique": {
+            "sufficient": false,
+            "new_query": "리액트 서버 컴포넌트 개념 정리"
+          }
+        }
+      ],
+      "web_called": false,
+      "web_skipped": true,
+      "final": {
+        "useful": false,
+        "usefulness": 1,
+        "picked_urls": [],
+        "comment": "검색 결과가 존재하지 않아 사용자에게 제공할 수 있는 정보가 없습니다."
+      }
+    },
+    {
+      "memo": "과제 제출 마감 6월 20일 23:59",
+      "expect_kind": "none",
+      "routing": {
+        "needs_resource": false,
+        "category": "none",
+        "queries": [],
+        "rationale": "단순한 개인 일정 및 마감일 메모로 외부 자료 검색이 필요하지 않습니다."
+      },
+      "none": true,
+      "iters": [],
+      "final": {
+        "useful": false,
+        "usefulness": 1,
+        "picked_urls": [],
+        "comment": "route: needs_resource=false/none"
+      }
+    },
+    {
+      "memo": "오늘 뉴스에서 본 금리 인하 기사 다시 찾기",
+      "expect_kind": "clear",
+      "routing": {
+        "needs_resource": true,
+        "category": "news",
+        "queries": [
+          "금리 인하 뉴스",
+          "한국은행 기준금리 인하"
+        ],
+        "rationale": "사용자가 뉴스 기사를 다시 찾고 싶어 하므로 관련 보도 자료를 검색할 수 있도록 라우팅함."
+      },
+      "iters": [
+        {
+          "queries": [
+            "금리 인하 뉴스",
+            "한국은행 기준금리 인하"
+          ],
+          "searches": [
+            {
+              "query": "금리 인하 뉴스",
+              "total": 170349,
+              "items": [
+                {
+                  "title": "튀르키예, 기준금리 37% 3연속 동결…&quot;이란전쟁발 인플레 대응&quot;",
+                  "link": "https://n.news.naver.com/mnews/article/003/0014002917?sid=104",
+                  "description": "기준금리를 현행 37.0%로 동결했다고 마켓워치와 RTT 뉴스 등이 12일 보도했다. 매체에 따르면 튀르키예... 기준금리 인하 사이클을 멈춘 이래 동결은 3회의 연속이다. 물가 상황은 여전히 중앙은행의 부담 요인이다....",
+                  "pubDate": "Fri, 12 Jun 2026 11:24:00 +0900"
+                },
+                {
+                  "title": "ECB, 예금금리 2.25%로 인상…2년 9개월 만",
+                  "link": "https://daily.hankooki.com/news/articleView.html?idxno=1375858",
+                  "description": "사진=AFP/연합뉴스 유럽중앙은행(ECB)이 2년 9개월 만에 금리 인상에 나섰다. ECB는 11일(현지시간) 공식... 앞서 ECB는 인플레이션 둔화 흐름에 맞춰 금리 인하와 동결 기조를 이어왔으나, 중동 전쟁에 따른 에너지 가격...",
+                  "pubDate": "Thu, 11 Jun 2026 21:44:00 +0900"
+                },
+                {
+                  "title": "허준영 &quot;하반기 환율 약 1450원까지 떨어질 것…연준 금리 쉽게 인상 못...",
+                  "link": "https://n.news.naver.com/mnews/article/079/0004156877?sid=100",
+                  "description": "핵심요약 ■ 방송 : CBS 라디오 &lt;박성태의 뉴스쇼&gt; FM 98.1 (07:10~09:00) ■ 진행 : 박성태 앵커 ■ 대담 : 허준영... 예를 들어서 최근 들어서 미국에서 나오고 있는 얘기는 노동시장 지표 좋고 하다 보니까 연준의 금리 인하는 물...",
+                  "pubDate": "Thu, 11 Jun 2026 15:10:00 +0900"
+                }
+              ]
+            },
+            {
+              "query": "한국은행 기준금리 인하",
+              "total": 203008,
+              "items": [
+                {
+                  "title": "긴축 들어가기 전인데…은행 대출금리 4년래 최고치",
+                  "link": "https://n.news.naver.com/mnews/article/003/0014002257?sid=101",
+                  "description": "한국은행의 기준금리 인상기 전환이 예고되면서 긴축이 시작되기 전부터 대출금리는 가파르게 뛰는... 변동금리 상단은 8%를 넘기도 했다. 이후 기준금리는 3.5%로 유지되다가 2024년 10월 3.25%로 내려오면서 인하가...",
+                  "pubDate": "Fri, 12 Jun 2026 07:00:00 +0900"
+                },
+                {
+                  "title": "금리 인상 공포 무색…‘사고 파는’ 눈치싸움 더 뜨거워졌다",
+                  "link": "https://n.news.naver.com/mnews/article/018/0006305027?sid=101",
+                  "description": "은행(ECB)은 지난 11일(현지시간) 중동발 지정학적 위기로 인한 물가 불안에 대응하기 위해 기준금리를 0.25... 한국은행 역시 신현송 총재가 지난 12일 간담회에서 “물가안정에 중점을 두고 금리를 인상해 나갈 필요가...",
+                  "pubDate": "Sat, 13 Jun 2026 09:32:00 +0900"
+                },
+                {
+                  "title": "기준금리 연속 인상?…대출금리 한달새 0.33%p↑ '빚투족' 패닉",
+                  "link": "https://n.news.naver.com/mnews/article/001/0016123375?sid=101",
+                  "description": "기자 = 한국은행이 통화긴축 기조 전환을 예고하자 시장금리를 반영한 은행권 대출금리도 하루가 다르게 뛰고 있다. 한은이 오는 7월과 8월 연속으로 기준금리를 인상할 수 있다는 전망까지 나오는 가운데 코스피...",
+                  "pubDate": "Sun, 07 Jun 2026 05:45:00 +0900"
+                }
+              ]
+            }
+          ],
+          "critique": {
+            "sufficient": false,
+            "new_query": "오늘 기준금리 인하 뉴스"
+          }
+        },
+        {
+          "queries": [
+            "오늘 기준금리 인하 뉴스"
+          ],
+          "searches": [
+            {
+              "query": "오늘 기준금리 인하 뉴스",
+              "total": 13136,
+              "items": [
+                {
+                  "title": "허준영 &quot;하반기 환율 약 1450원까지 떨어질 것…연준 금리 쉽게 인상 못...",
+                  "link": "https://n.news.naver.com/mnews/article/079/0004156877?sid=100",
+                  "description": "연준의 금리 인하는 물 건너 갔구나. 글로벌 달러 강세 같은 것도 생기는 부분도 있는 거고 그다음에 미국하고 이란하고 전쟁하는데 이거 끝날 듯 끝날 듯 왜 안 끝나. 오늘 아침에 또 보니까 트럼프가 세게 때릴 거라는...",
+                  "pubDate": "Thu, 11 Jun 2026 15:10:00 +0900"
+                },
+                {
+                  "title": "나스닥 4.2% 폭락, 금리인상 공포 덮친 월가 [월스트리트in]",
+                  "link": "https://n.news.naver.com/mnews/article/018/0006299026?sid=101",
+                  "description": "오후 4시20분 기준 2년 만기 국채금리는 10.8bp(1bp=0.01%포인트) 상승한 4.157%를 기록하고 있다. 10년 만기... 나쁜 뉴스(Good News is Bad News)’ 장세를 연출했다. 경제가 강하다는 사실 자체는 긍정적이지만 그것이 금리 인하...",
+                  "pubDate": "Sat, 06 Jun 2026 05:32:00 +0900"
+                },
+                {
+                  "title": "'검은 금요일' 뉴욕증시... 美연준 금리인상 가능성 확대에 급락",
+                  "link": "https://www.getnews.co.kr/news/articleView.html?idxno=871737",
+                  "description": "집계 기준)를 크게 웃돈 수치다. 이에 연준이 연내 금리인상을 단행할 수 있다는 예상이 확대되면서 투자심리를 급속하게 악화시켰다는 설명이다. 모건 스탠리 자산 관리의 엘렌 젠트너는 WSJ에 &quot;오늘 발표된 고용...",
+                  "pubDate": "Sat, 06 Jun 2026 07:16:00 +0900"
+                }
+              ]
+            }
+          ],
+          "critique": {
+            "sufficient": false,
+            "new_query": "최근 금리 인하 뉴스 2024"
+          }
+        }
+      ],
+      "web_called": false,
+      "web_skipped": false,
+      "final": {
+        "useful": false,
+        "usefulness": 2,
+        "picked_urls": [],
+        "comment": "사용자는 금리 인하 기사를 찾고 있으나 수집된 결과는 금리 인상 우려 및 환율 관련 기사들로 사용자의 의도와 맞지 않습니다."
+      }
+    },
+    {
+      "memo": "넷플릭스에서 본 그 요리 다큐 제목 뭐였지",
+      "expect_kind": "none",
+      "routing": {
+        "needs_resource": true,
+        "category": "web",
+        "queries": [
+          "Netflix cooking documentary list",
+          "넷플릭스 요리 다큐멘터리 추천"
+        ],
+        "rationale": "사용자가 기억하지 못하는 넷플릭스 요리 다큐멘터리 제목을 찾기 위해 관련 리스트를 검색할 필요가 있습니다."
+      },
+      "iters": [
+        {
+          "queries": [
+            "Netflix cooking documentary list",
+            "넷플릭스 요리 다큐멘터리 추천"
+          ],
+          "searches": [
+            {
+              "query": "Netflix cooking documentary list",
+              "_skipped": "no TAVILY_API_KEY"
+            },
+            {
+              "query": "넷플릭스 요리 다큐멘터리 추천",
+              "_skipped": "no TAVILY_API_KEY"
+            }
+          ],
+          "critique": {
+            "sufficient": false,
+            "new_query": "넷플릭스 요리 다큐멘터리 추천 목록"
+          }
+        },
+        {
+          "queries": [
+            "넷플릭스 요리 다큐멘터리 추천 목록"
+          ],
+          "searches": [
+            {
+              "query": "넷플릭스 요리 다큐멘터리 추천 목록",
+              "_skipped": "no TAVILY_API_KEY"
+            }
+          ],
+          "critique": {
+            "sufficient": false,
+            "new_query": "넷플릭스 요리 다큐멘터리 추천 목록"
+          }
+        }
+      ],
+      "web_called": false,
+      "web_skipped": true,
+      "final": {
+        "useful": false,
+        "usefulness": 1,
+        "picked_urls": [],
+        "comment": "수집된 검색 결과가 없어 사용자에게 제공할 정보가 없습니다."
+      }
+    },
+    {
+      "memo": "올리브영에서 본 아비브 어성초 패드 140매",
+      "expect_kind": "clear",
+      "routing": {
+        "needs_resource": true,
+        "category": "shop",
+        "queries": [
+          "아비브 어성초 패드 140매"
+        ],
+        "rationale": "올리브영에서 본 특정 상품의 구매 정보나 상세 페이지를 다시 확인하기 위해 검색이 필요합니다."
+      },
+      "iters": [
+        {
+          "queries": [
+            "아비브 어성초 패드 140매"
+          ],
+          "searches": [
+            {
+              "query": "아비브 어성초 패드 140매",
+              "total": 198,
+              "items": [
+                {
+                  "title": "1+1 아비브 어성초 흔적 에센스 패드 클리어터치 140매",
+                  "link": "https://smartstore.naver.com/main/products/12158521600",
+                  "lprice": "26500",
+                  "mallName": "참좋은뷰티",
+                  "brand": "아비브"
+                },
+                {
+                  "title": "아비브 어성초 스팟 패드 카밍터치 140매, 1개",
+                  "link": "https://search.shopping.naver.com/catalog/52924525386",
+                  "lprice": "17840",
+                  "mallName": "네이버",
+                  "brand": "아비브"
+                },
+                {
+                  "title": "아비브 어성초 흔적 에센스 패드 클리어 터치 오롤리데이 콜라보 70매 + 70매(리필), 1개",
+                  "link": "https://search.shopping.naver.com/catalog/59153378839",
+                  "lprice": "25200",
+                  "mallName": "네이버",
+                  "brand": "아비브"
+                }
+              ]
+            }
+          ],
+          "critique": {
+            "sufficient": true,
+            "new_query": null
+          }
+        }
+      ],
+      "web_called": false,
+      "web_skipped": false,
+      "final": {
+        "useful": true,
+        "usefulness": 5,
+        "picked_urls": [
+          "https://smartstore.naver.com/main/products/12158521600",
+          "https://search.shopping.naver.com/catalog/52924525386",
+          "https://search.shopping.naver.com/catalog/59153378839"
+        ],
+        "comment": "사용자가 찾던 아비브 어성초 패드 140매 제품의 판매처 및 상세 정보를 정확하게 찾았습니다."
+      }
+    },
+    {
+      "memo": "엄마 생신 선물 뭐 살지 고민 (아직 안 정함)",
+      "expect_kind": "vague_gift",
+      "routing": {
+        "needs_resource": true,
+        "category": "shop",
+        "queries": [
+          "50대 엄마 생신 선물 추천",
+          "60대 엄마 생신 선물 추천",
+          "엄마 생신 선물 인기 순위"
+        ],
+        "rationale": "선물 대상이 명확하지 않아 연령대별 인기 선물군을 확인할 수 있는 검색어들로 분해했습니다."
+      },
+      "iters": [
+        {
+          "queries": [
+            "50대 엄마 생신 선물 추천",
+            "60대 엄마 생신 선물 추천",
+            "엄마 생신 선물 인기 순위"
+          ],
+          "searches": [
+            {
+              "query": "50대 엄마 생신 선물 추천",
+              "total": 37317,
+              "items": [
+                {
+                  "title": "치킨 반전 용돈박스 10마리 부모님 남편 생일 이벤트 생신 현금 선물",
+                  "link": "https://smartstore.naver.com/main/products/6514719685",
+                  "lprice": "15800",
+                  "mallName": "수상한잡화점 컴퍼니",
+                  "brand": ""
+                },
+                {
+                  "title": "50대 엄마 갱년기 선물 세트 달고리 완경박스",
+                  "link": "https://smartstore.naver.com/main/products/2723456759",
+                  "lprice": "49500",
+                  "mallName": "달고리",
+                  "brand": "달고리"
+                },
+                {
+                  "title": "50대 엄마 생신 선물 자동 롤링 마사지 접이식 족욕기",
+                  "link": "https://search.shopping.naver.com/catalog/59378809642",
+                  "lprice": "44720",
+                  "mallName": "네이버",
+                  "brand": ""
+                }
+              ]
+            },
+            {
+              "query": "60대 엄마 생신 선물 추천",
+              "total": 26218,
+              "items": [
+                {
+                  "title": "엄마 생신 케이크 토퍼 아빠 부모님 칠순 환갑 이벤트 플라워 축하 선물 60대",
+                  "link": "https://smartstore.naver.com/main/products/12416889589",
+                  "lprice": "12500",
+                  "mallName": "소랑토퍼",
+                  "brand": ""
+                },
+                {
+                  "title": "플라워 용돈박스 환갑 이벤트 칠순 부모님 생신 돈 현금 팔순 머니박스",
+                  "link": "https://smartstore.naver.com/main/products/9149205000",
+                  "lprice": "19400",
+                  "mallName": "오토펀",
+                  "brand": ""
+                },
+                {
+                  "title": "돈케이크 환갑 선물 60대 엄마 생신 어버이날 이벤트 부모님 현금 돈 선물",
+                  "link": "https://smartstore.naver.com/main/products/5546363061",
+                  "lprice": "32800",
+                  "mallName": "티에스스토어",
+                  "brand": "인크리코"
+                }
+              ]
+            },
+            {
+              "query": "엄마 생신 선물 인기 순위",
+              "total": 79561,
+              "items": [
+                {
+                  "title": "용돈박스 돈뽑는 반전 용돈 이벤트 부모님 생신 환갑 칠순 팔순 생신 선물 깜짝 피치10장",
+                  "link": "https://smartstore.naver.com/main/products/9184264826",
+                  "lprice": "23900",
+                  "mallName": "퍼플기프트샵",
+                  "brand": ""
+                },
+                {
+                  "title": "용돈 이벤트 생신 결혼기념일 부모님 환갑 칠순 팔순 남편 이벤트 선물 감사장",
+                  "link": "https://smartstore.naver.com/main/products/9204892861",
+                  "lprice": "13700",
+                  "mallName": "프렌치로즈",
+                  "brand": ""
+                },
+                {
+                  "title": "부모님 환갑 생신선물 용돈이벤트 서프라이즈 용돈박스 피치(opp10장) 버건디",
+                  "link": "https://smartstore.naver.com/main/products/13380946967",
+                  "lprice": "23900",
+                  "mallName": "마음담은집",
+                  "brand": ""
+                }
+              ]
+            }
+          ],
+          "critique": {
+            "sufficient": true,
+            "new_query": null
+          }
+        }
+      ],
+      "web_called": false,
+      "web_skipped": false,
+      "final": {
+        "useful": true,
+        "usefulness": 4,
+        "picked_urls": [
+          "https://search.shopping.naver.com/catalog/59378809642",
+          "https://smartstore.naver.com/main/products/2723456759",
+          "https://smartstore.naver.com/main/products/9184264826"
+        ],
+        "comment": "엄마 생신 선물을 고민 중인 사용자에게 용돈박스, 족욕기, 갱년기 선물세트 등 인기 있는 선물 후보군을 다양하게 제안하여 유용합니다."
+      }
+    },
+    {
+      "memo": "헬스장 PT 10회권 다음 주 화요일 결제",
+      "expect_kind": "none",
+      "routing": {
+        "needs_resource": false,
+        "category": "none",
+        "queries": [],
+        "rationale": "개인적인 일정 및 결제 계획에 관한 메모로, 외부 검색 자료가 필요하지 않습니다."
+      },
+      "none": true,
+      "iters": [],
+      "final": {
+        "useful": false,
+        "usefulness": 1,
+        "picked_urls": [],
+        "comment": "route: needs_resource=false/none"
+      }
+    },
+    {
+      "memo": "엄마 생신 선물 추천",
+      "expect_kind": "vague_gift",
+      "routing": {
+        "needs_resource": true,
+        "category": "shop",
+        "queries": [
+          "50대 엄마 생신 선물 추천",
+          "엄마 생일 선물 인기 순위",
+          "어머니 선물 브랜드 추천"
+        ],
+        "rationale": "사용자가 구체적인 상품을 정하지 못했으므로, 연령대와 인기 순위를 확인할 수 있는 검색어들로 분해하여 추천 리스트를 제공하고자 함."
+      },
+      "iters": [
+        {
+          "queries": [
+            "50대 엄마 생신 선물 추천",
+            "엄마 생일 선물 인기 순위",
+            "어머니 선물 브랜드 추천"
+          ],
+          "searches": [
+            {
+              "query": "50대 엄마 생신 선물 추천",
+              "total": 37317,
+              "items": [
+                {
+                  "title": "치킨 반전 용돈박스 10마리 부모님 남편 생일 이벤트 생신 현금 선물",
+                  "link": "https://smartstore.naver.com/main/products/6514719685",
+                  "lprice": "15800",
+                  "mallName": "수상한잡화점 컴퍼니",
+                  "brand": ""
+                },
+                {
+                  "title": "50대 엄마 갱년기 선물 세트 달고리 완경박스",
+                  "link": "https://smartstore.naver.com/main/products/2723456759",
+                  "lprice": "49500",
+                  "mallName": "달고리",
+                  "brand": "달고리"
+                },
+                {
+                  "title": "50대 엄마 생신 선물 자동 롤링 마사지 접이식 족욕기",
+                  "link": "https://search.shopping.naver.com/catalog/59378809642",
+                  "lprice": "44720",
+                  "mallName": "네이버",
+                  "brand": ""
+                }
+              ]
+            },
+            {
+              "query": "엄마 생일 선물 인기 순위",
+              "total": 136064,
+              "items": [
+                {
+                  "title": "용돈 이벤트 생신 결혼기념일 부모님 환갑 칠순 팔순 남편 이벤트 선물 감사장",
+                  "link": "https://smartstore.naver.com/main/products/9204892861",
+                  "lprice": "13700",
+                  "mallName": "프렌치로즈",
+                  "brand": ""
+                },
+                {
+                  "title": "용돈박스 돈뽑는 반전 용돈 이벤트 부모님 생신 환갑 칠순 팔순 생신 선물 깜짝 피치10장",
+                  "link": "https://smartstore.naver.com/main/products/9184264826",
+                  "lprice": "23900",
+                  "mallName": "퍼플기프트샵",
+                  "brand": ""
+                },
+                {
+                  "title": "돈케이크 용돈박스 반전이벤트 환갑 칠순케익 돈나오는 뽑는현금 부모님생일 팔순생신2단코랄",
+                  "link": "https://smartstore.naver.com/main/products/7101694319",
+                  "lprice": "28700",
+                  "mallName": "초코향기",
+                  "brand": ""
+                }
+              ]
+            },
+            {
+              "query": "어머니 선물 브랜드 추천",
+              "total": 185,
+              "items": [
+                {
+                  "title": "여자목걸이브랜드 WGLILO 엄마를 위한 선물 어머니 목걸이 펜던트 스털링 실버 여성용 러브 하트",
+                  "link": "https://smartstore.naver.com/main/products/10194265671",
+                  "lprice": "32000",
+                  "mallName": "COSTANZA",
+                  "brand": ""
+                },
+                {
+                  "title": "케이스 보석 상자 제안 반지 보관 귀걸이 여행 여자 사랑스러운 선물 어머니 W",
+                  "link": "https://smartstore.naver.com/main/products/9050096101",
+                  "lprice": "20160",
+                  "mallName": "브랜드뉴쇼퍼",
+                  "brand": ""
+                },
+                {
+                  "title": "다층 쥬얼리 케이스 박스 방진 미니 대용량 보관함 공간 절약 생일 어머니날 선물",
+                  "link": "https://smartstore.naver.com/main/products/9051638328",
+                  "lprice": "23830",
+                  "mallName": "브랜드뉴쇼퍼",
+                  "brand": ""
+                }
+              ]
+            }
+          ],
+          "critique": {
+            "sufficient": true,
+            "new_query": null
+          }
+        }
+      ],
+      "web_called": false,
+      "web_skipped": false,
+      "final": {
+        "useful": true,
+        "usefulness": 4,
+        "picked_urls": [
+          "https://search.shopping.naver.com/catalog/59378809642",
+          "https://smartstore.naver.com/main/products/2723456759",
+          "https://smartstore.naver.com/main/products/9184264826"
+        ],
+        "comment": "50대 어머니 생신 선물로 인기 있는 족욕기, 갱년기 선물세트, 반전 용돈박스 등 실용적이고 센스 있는 추천 상품들을 엄선했습니다."
+      }
+    },
+    {
+      "memo": "여자친구 화이트데이 선물 뭐 사지",
+      "expect_kind": "vague_gift",
+      "routing": {
+        "needs_resource": true,
+        "category": "shop",
+        "queries": [
+          "20대 여자친구 화이트데이 선물 추천",
+          "여자친구 명품 목걸이",
+          "여자친구 향수 브랜드 추천"
+        ],
+        "rationale": "선물 고민을 구체적인 상품군으로 분해하여 검색 효율을 높였습니다."
+      },
+      "iters": [
+        {
+          "queries": [
+            "20대 여자친구 화이트데이 선물 추천",
+            "여자친구 명품 목걸이",
+            "여자친구 향수 브랜드 추천"
+          ],
+          "searches": [
+            {
+              "query": "20대 여자친구 화이트데이 선물 추천",
+              "total": 195,
+              "items": [
+                {
+                  "title": "14k 18k 고양이 화이트데이 여자친구 와이프 목걸이 선물",
+                  "link": "https://smartstore.naver.com/main/products/5412400924",
+                  "lprice": "443000",
+                  "mallName": "틱톡쥬얼리",
+                  "brand": ""
+                },
+                {
+                  "title": "14K 큐빅링 원형 링 여자목걸이 데일리 여친 아내 엄마 기념일 화이트데이 선물",
+                  "link": "https://smartstore.naver.com/main/products/13550916131",
+                  "lprice": "410000",
+                  "mallName": "온스타일79",
+                  "brand": ""
+                },
+                {
+                  "title": "14k 18k 6월탄생석 원석 꽃 산호 천연석 문스톤 여자친구 목걸이 화이트데이 선물",
+                  "link": "https://smartstore.naver.com/main/products/5410735622",
+                  "lprice": "320000",
+                  "mallName": "짱쥬얼리",
+                  "brand": "짱쥬얼리"
+                }
+              ]
+            },
+            {
+              "query": "여자친구 명품 목걸이",
+              "total": 284579,
+              "items": [
+                {
+                  "title": "14k 18k 콤비 클립 체인 볼드 명품 금 목걸이",
+                  "link": "https://smartstore.naver.com/main/products/8252199193",
+                  "lprice": "1218000",
+                  "mallName": "메리유J",
+                  "brand": ""
+                },
+                {
+                  "title": "14k 18k 초커 데일리 명품 여자 금 목걸이 줄",
+                  "link": "https://smartstore.naver.com/main/products/5577511247",
+                  "lprice": "288000",
+                  "mallName": "짱쥬얼리",
+                  "brand": "짱쥬얼리"
+                },
+                {
+                  "title": "14k 18k 큐빅 클로버 명품 레이어드 데일리 목걸이 펜던트",
+                  "link": "https://smartstore.naver.com/main/products/10133807944",
+                  "lprice": "231000",
+                  "mallName": "윗치비쥬",
+                  "brand": "윗치비쥬"
+                }
+              ]
+            },
+            {
+              "query": "여자친구 향수 브랜드 추천",
+              "total": 49379,
+              "items": [
+                {
+                  "title": "아리아나그란데 향수 아리 바이 오드퍼퓸 EDP 100ml",
+                  "link": "https://smartstore.naver.com/main/products/6307022739",
+                  "lprice": "76500",
+                  "mallName": "퍼퓸하우스S",
+                  "brand": "아리아나그란데"
+                },
+                {
+                  "title": "아리아나그란데 땡큐넥스트 향수 오드퍼퓸 EDP 100ml",
+                  "link": "https://smartstore.naver.com/main/products/11488054430",
+                  "lprice": "69500",
+                  "mallName": "퍼퓸하우스S",
+                  "brand": "아리아나그란데"
+                },
+                {
+                  "title": "아리아나그란데 클라우드 우먼 오 드 퍼퓸 프루티플로럴향, 100ml, 1개",
+                  "link": "https://search.shopping.naver.com/catalog/53072453417",
+                  "lprice": "64000",
+                  "mallName": "네이버",
+                  "brand": "아리아나그란데"
+                }
+              ]
+            }
+          ],
+          "critique": {
+            "sufficient": true,
+            "new_query": null
+          }
+        }
+      ],
+      "web_called": false,
+      "web_skipped": false,
+      "final": {
+        "useful": false,
+        "usefulness": 2,
+        "picked_urls": [],
+        "comment": "사용자의 광범위한 선물 탐색 의도에 비해 특정 개인 쇼핑몰의 목걸이 및 특정 브랜드 향수 상품 위주로 수집되어 추천하기에 부적절합니다."
+      }
+    },
+    {
+      "memo": "신발 예쁜 거 봐둠",
+      "expect_kind": "vague_gift",
+      "routing": {
+        "needs_resource": false,
+        "category": "none",
+        "queries": [],
+        "rationale": "단순한 감상 메모이며, 구체적인 상품명이나 브랜드 정보가 없어 검색할 대상이 특정되지 않습니다."
+      },
+      "none": true,
+      "iters": [],
+      "final": {
+        "useful": false,
+        "usefulness": 1,
+        "picked_urls": [],
+        "comment": "route: needs_resource=false/none"
+      }
+    },
+    {
+      "memo": "best mechanical keyboard for programming 2026",
+      "expect_kind": "web",
+      "routing": {
+        "needs_resource": true,
+        "category": "web",
+        "queries": [
+          "best mechanical keyboard for programming 2026"
+        ],
+        "rationale": "사용자가 2026년 기준 프로그래밍용 기계식 키보드 추천 정보를 찾고 있으므로, 해외 IT 리뷰 사이트 검색이 가능한 web 카테고리로 분류함."
+      },
+      "iters": [
+        {
+          "queries": [
+            "best mechanical keyboard for programming 2026"
+          ],
+          "searches": [
+            {
+              "query": "best mechanical keyboard for programming 2026",
+              "_skipped": "no TAVILY_API_KEY"
+            }
+          ],
+          "critique": {
+            "sufficient": false,
+            "new_query": "best mechanical keyboards for programming 2026 reviews"
+          }
+        },
+        {
+          "queries": [
+            "best mechanical keyboards for programming 2026 reviews"
+          ],
+          "searches": [
+            {
+              "query": "best mechanical keyboards for programming 2026 reviews",
+              "_skipped": "no TAVILY_API_KEY"
+            }
+          ],
+          "critique": {
+            "sufficient": false,
+            "new_query": "best mechanical keyboards for programming 2026 reviews"
+          }
+        }
+      ],
+      "web_called": false,
+      "web_skipped": true,
+      "final": {
+        "useful": false,
+        "usefulness": 1,
+        "picked_urls": [],
+        "comment": "수집된 결과가 없어 사용자에게 제공할 정보가 없습니다."
+      }
+    },
+    {
+      "memo": "방콕 자유여행 3박4일 추천 코스",
+      "expect_kind": "web",
+      "routing": {
+        "needs_resource": true,
+        "category": "blog",
+        "queries": [
+          "방콕 3박4일 자유여행 추천 코스",
+          "방콕 여행 일정 추천"
+        ],
+        "rationale": "방콕 여행 계획을 위한 구체적인 일정과 코스 정보를 얻기 위해 블로그 후기 검색이 적합합니다."
+      },
+      "iters": [
+        {
+          "queries": [
+            "방콕 3박4일 자유여행 추천 코스",
+            "방콕 여행 일정 추천"
+          ],
+          "searches": [
+            {
+              "query": "방콕 3박4일 자유여행 추천 코스",
+              "total": 504010,
+              "items": [
+                {
+                  "title": "태국 방콕 3박4일 자유여행 코스 추천 :: 공항픽업, 패스트트입...",
+                  "link": "https://blog.naver.com/waugmagazine/224300051408",
+                  "description": "방콕은 자유여행자들의 영원한 파라다이스인데요. 오늘은 방콕 여행을 계획 중인 분들을 위해 &quot;3박 4일 동안 이거 안 하면 무조건 후회한다!&quot;고 자부하는 핵심 필수 코스와 액티비티 5가지를 싹 모아 정리해...",
+                  "bloggername": "와그 공식 블로그",
+                  "postdate": "20260529"
+                },
+                {
+                  "title": "방콕 자유여행 코스 추천 3박4일 일정",
+                  "link": "https://blog.naver.com/nookytory/223870453262",
+                  "description": "아이와 함께하는 가족여행 3박4일 방콕 자유여행 코스 추천 아이와 함께 갈만한 가족여행지를 고민하다가 선택한 곳은 태국 방콕이었어요. 방콕은 생각보다 가족 여행자들을 위한 볼거리와 먹거리, 교통편까지...",
+                  "bloggername": "눅키",
+                  "postdate": "20250519"
+                },
+                {
+                  "title": "태국 자유여행 방콕 3박4일 여행일정 코스추천",
+                  "link": "https://blog.naver.com/miffy6686/223629905803",
+                  "description": "Levels Club, Sugar Club Above Eleven 루프탑 등을 추천드려요! 방콕 3박 4일 자유여행 : 4일차 방콕 여행일정 코스 안내 태국여행의 마지막 날이자 다시 공항으로 돌아가야하는 4일차 태국 미슐랭맛집으로 유명한...",
+                  "bloggername": "쏘잉의 트래블 레코드",
+                  "postdate": "20241023"
+                }
+              ]
+            },
+            {
+              "query": "방콕 여행 일정 추천",
+              "total": 150300,
+              "items": [
+                {
+                  "title": "방콕 파타야 여행 일정 추천 태국 자유여행 준비",
+                  "link": "https://blog.naver.com/daisy1505/224283266026",
+                  "description": "방콕 파타야 여행 일정 추천 태국 자유여행 준비 요즘 태국 자유여행 준비하면서 방콕만 갈지 아니면 파타야까지 함께 넣을지 고민하는 분들 계실 텐데요 저도 처음에는 방콕 여행만 생각했는데 막상 다녀와...",
+                  "bloggername": "슬기로운 제주도민생활",
+                  "postdate": "20260512"
+                },
+                {
+                  "title": "방콕 여행 추천 3박 5일 가족여행 일정",
+                  "link": "https://blog.naver.com/4bubuss/224268745083",
+                  "description": "방콕 여행 추천 3박 5일 가족여행 일정 글, 사진 ⓒ 깔깔부부 이번에는 4살 아이가 있는 지인 가족과 함께... 근교 일정이 함께 구성된 팩도 있어서 취향에 맞게 선택할 수 있었어요. 3박 5일 방콕 여행 일정 추천...",
+                  "bloggername": "깔깔부부의 여행블로그",
+                  "postdate": "20260429"
+                },
+                {
+                  "title": "방콕 패키지여행 후기 파타야 일정 비용 2월 해외여행지 추천",
+                  "link": "https://blog.naver.com/dongi0508/224151938651",
+                  "description": "태국 방콕 패키지여행 후기 파타야 일정 비용 2월 해외여행지 추천 요즘 친한 친구들과 해외여행 같이... 방콕 여행 일정 추천할만한 코스 중 하나인 아이콘시암 들리기. 이곳에서 식사도 할 예정이다. 상점을...",
+                  "bloggername": "Der Sinn des Lebens",
+                  "postdate": "20260119"
+                }
+              ]
+            }
+          ],
+          "critique": {
+            "sufficient": true,
+            "new_query": null
+          }
+        }
+      ],
+      "web_called": false,
+      "web_skipped": false,
+      "final": {
+        "useful": true,
+        "usefulness": 5,
+        "picked_urls": [
+          "https://blog.naver.com/waugmagazine/224300051408",
+          "https://blog.naver.com/nookytory/223870453262",
+          "https://blog.naver.com/miffy6686/223629905803"
+        ],
+        "comment": "사용자가 요청한 방콕 3박 4일 자유여행 코스에 정확히 부합하는 블로그 글들을 수집하여 유용합니다."
+      }
+    },
+    {
+      "memo": "친구가 추천한 그 영화 (제목 기억 안 남)",
+      "expect_kind": "none",
+      "routing": {
+        "needs_resource": false,
+        "category": "none",
+        "queries": [],
+        "rationale": "영화 제목에 대한 구체적인 정보가 전혀 없어 검색어를 생성할 수 없으며, 친구와의 대화 맥락이므로 외부 자료 연결이 불가능합니다."
+      },
+      "none": true,
+      "iters": [],
+      "final": {
+        "useful": false,
+        "usefulness": 1,
+        "picked_urls": [],
+        "comment": "route: needs_resource=false/none"
+      }
+    }
+  ]
+}

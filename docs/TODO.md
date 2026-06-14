@@ -237,6 +237,10 @@ VOYAGE_API_KEY=<dash.voyageai.com 또는 MongoDB Atlas 발급 키>
 - [ ] 민감 캡처 embedding 생성/삭제 정책 결정 및 계정 삭제 플로우에 반영.
 - [ ] privacy 필드 도입 시 채팅 `view_item_image` 에 민감도 게이트 추가 — 현재는 판별
       메타데이터 부재로 ungated 진행(2026-06-12 결정, 분석 경로와 동일 노출 — PRIVACY §10).
+- [ ] privacy 필드 도입 시 `GET /mochi_items/{id}/similar`("비슷한 기록" 자동 회수)도 게이트 대상에
+      포함 — 상세를 열기만 해도 cosine 이웃을 끌어오므로 누락 시 민감 항목이 회수로 우회 노출된다.
+      쿼리 WHERE 에 `AND c.sensitivity_level < :threshold` 자리를 구현 시 주석으로 못박을 것
+      (제안 계약 DOMAIN_DESIGN §10.5, 노출 논리 PRIVACY §9·§10).
 
 ---
 

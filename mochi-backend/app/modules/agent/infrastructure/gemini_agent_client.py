@@ -18,7 +18,7 @@ orchestrator 가 turn 단위로 ``stream`` 을 호출하며, 전체 대화(``use
 import asyncio
 from collections.abc import AsyncIterator
 from functools import lru_cache
-from typing import Any
+from typing import Any, cast
 
 import structlog
 from google import genai
@@ -27,6 +27,7 @@ from google.genai import types
 from app.core.config import get_settings
 from app.modules.agent.domain.ports import LLMClient, LLMResponseChunk
 from app.modules.agent.domain.tools import Tool, ToolName
+from app.shared.llm_usage import extract_token_usage
 
 logger = structlog.get_logger(__name__)
 
@@ -113,6 +114,43 @@ _PLATFORM_CONTEXT_PARAMS: dict[str, Any] = {
     "required": ["url"],
 }
 
+_RECOVER_YOUTUBE_PARAMS: dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "query": {"type": "string"},
+        "channel_hint": {"type": "string"},
+    },
+    "required": ["query"],
+}
+
+_RESOURCE_FINDER_PARAMS: dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "queries": {"type": "array", "items": {"type": "string"}},
+        "category": {
+            "type": "string",
+            "enum": ["shop", "local", "blog", "news", "web"],
+        },
+        "original_url": {"type": "string"},
+        "visible_urls": {"type": "array", "items": {"type": "string"}},
+        "rank_profile": {
+            "type": "string",
+            "enum": [
+                "auto", "general", "cosmetics", "fashion", "electronics", "local",
+                "event_booking", "coupang", "web",
+            ],
+        },
+        "source_app": {
+            "type": "string",
+            "enum": [
+                "unknown", "coupang", "naver_map", "naver_shopping", "oliveyoung",
+                "musinsa", "instagram", "youtube", "safari", "browser",
+            ],
+        },
+    },
+    "required": ["queries", "category"],
+}
+
 
 @lru_cache(maxsize=1)
 def _shared_client() -> genai.Client:
@@ -147,6 +185,52 @@ def _function_declarations(tools: list[Tool[Any, Any]]) -> list[types.FunctionDe
                         "Call only when a URL is present and its content must be read."
                     ),
                     parameters=_WEBFETCH_PARAMS,
+                )
+            )
+        if tool.name is ToolName.RECOVER_YOUTUBE_URL:
+            decls.append(
+                types.FunctionDeclaration(
+                    name=ToolName.RECOVER_YOUTUBE_URL.value,
+                    description=(
+                        "Recover the original YouTube watch URL from on-screen clues when the "
+                        "capture is a YouTube video/shorts/comments screen with no URL, and the "
+                        "thing worth keeping (a recommended item/list, the source video) can only "
+                        "be reached by going to the original video. Pass the video title keywords "
+                        "you read from the image as 'query', and the video's uploader channel "
+                        "(@handle or channel title) as 'channel_hint' — the account that posted the "
+                        "video, NOT the viewer's own logged-in profile shown in the UI. It "
+                        "disambiguates videos with similar titles to the right channel."
+                    ),
+                    parameters=_RECOVER_YOUTUBE_PARAMS,
+                )
+            )
+        if tool.name is ToolName.RESOURCE_FINDER:
+            decls.append(
+                types.FunctionDeclaration(
+                    name=ToolName.RESOURCE_FINDER.value,
+                    description=(
+                        "Find real reference URLs to attach to a capture so the user can reopen the "
+                        "target later. Default to calling this on almost any capture: nearly every "
+                        "screenshot points at some real thing (product/place/restaurant/video/brand/"
+                        "event/public notice/application/recipe/article) the user might want to "
+                        "revisit, and a relevance judge drops weak results, so the safe default is to "
+                        "call it. Don't gate on intent_type — todo/schedule/memo/knowledge captures "
+                        "need the link too. Call it even when the screenshot is already inside that "
+                        "app (Naver Map / Coupang / OliveYoung): the saved memory still needs a link "
+                        "to reopen later. Skip only when there is genuinely nothing to look up — a "
+                        "private chat, a receipt/confirmation already done, the user's own note, a "
+                        "banking/credentials screen, or a personal photo/mood image with nothing "
+                        "nameable. YOU extract the keywords from the "
+                        "image into 'queries' and choose 'category' (shop=Korean commerce, "
+                        "local=place/map, blog=how-to/review/curation incl. 'best-of' lists, "
+                        "news=articles, web=overseas/English/general). Also pass rank_profile "
+                        "(cosmetics/fashion/local/event_booking/coupang/electronics/web/general) "
+                        "and source_app when the screenshot clearly comes from an app. If OCR or "
+                        "the screen shows literal URLs, pass them as visible_urls. Returns ranked "
+                        "URLs plus reference_entities strings that should be copied into "
+                        "entities(kind='reference_url') when useful."
+                    ),
+                    parameters=_RESOURCE_FINDER_PARAMS,
                 )
             )
     decls.append(
@@ -219,7 +303,7 @@ async def _call(
         ),
     )
     return await _shared_client().aio.models.generate_content(
-        model=model, contents=contents, config=cfg
+        model=model, contents=cast(types.ContentListUnion, contents), config=cfg
     )
 
 
@@ -263,11 +347,17 @@ class GeminiAgentClient(LLMClient):
             ),
             timeout=self._timeout,
         )
+        tokens_in, tokens_out = extract_token_usage(resp)
         fc = _extract_function_call(resp)
         if fc is None:
             logger.warning("agent.llm.no_function_call", model=self._model)
             text = getattr(resp, "text", None)
-            yield LLMResponseChunk(text_delta=text or "")
+            yield LLMResponseChunk(
+                text_delta=text or "",
+                tokens_in=tokens_in,
+                tokens_out=tokens_out,
+                model=self._model,
+            )
             return
         name, args, signature = fc
         logger.info(
@@ -279,8 +369,15 @@ class GeminiAgentClient(LLMClient):
         )
         if name == _FINALIZE:
             args["model_version"] = self._model
-            yield LLMResponseChunk(final_payload=args)
+            yield LLMResponseChunk(
+                final_payload=args, tokens_in=tokens_in, tokens_out=tokens_out, model=self._model
+            )
         else:
             yield LLMResponseChunk(
-                tool_to_call=ToolName(name), tool_arguments=args, thought_signature=signature
+                tool_to_call=ToolName(name),
+                tool_arguments=args,
+                thought_signature=signature,
+                tokens_in=tokens_in,
+                tokens_out=tokens_out,
+                model=self._model,
             )

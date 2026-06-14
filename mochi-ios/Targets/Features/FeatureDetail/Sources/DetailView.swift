@@ -1,6 +1,7 @@
 import SwiftUI
 import ComposableArchitecture
 import CoreDomain
+import CoreNetworking
 import CorePersistence
 import DesignSystem
 import ImageIO
@@ -88,8 +89,23 @@ public struct DetailView: View {
                 }
                 .riseIn(sectionsAppeared, index: bump)
 
+                // 관련 링크(Agent ResourceFinder) — 3종 카드 비교용. 결정 후 승자만 ② 섹션에 합친다.
+                let ref = analysis.referenceLinks.isEmpty ? 0 : 1
+                if !analysis.referenceLinks.isEmpty {
+                    ReferenceLinksComparison(links: analysis.referenceLinks)
+                        .riseIn(sectionsAppeared, index: bump + 1)
+                }
+
                 GistCard(mochiItem: mochiItem, analysis: analysis)
-                    .riseIn(sectionsAppeared, index: bump + 1)
+                    .riseIn(sectionsAppeared, index: bump + ref + 1)
+
+                // ⑤ 비슷한 기록 — 결과 없으면(임계값 미달·미색인) 섹션 자체를 렌더하지 않는다.
+                if !store.similar.isEmpty {
+                    SimilarSection(items: store.similar) { preview in
+                        store.send(.similarItemTapped(preview.id))
+                    }
+                    .riseIn(sectionsAppeared, index: bump + ref + 2)
+                }
 
                 if let error = store.lastError {
                     Text(error)
@@ -145,12 +161,11 @@ private struct RecallHeader: View {
                 ScreenshotPreviewImage(
                     relativePath: path,
                     targetSize: CGSize(width: 320, height: 240),
-                    contentMode: .scaleAspectFill,
                     handle: previewHandle
                 )
-                // 카드 미디어와 같은 4:3·중앙 크롭으로 통일 — hero cross-fade 시 같은 이미지가
-                // 다른 비율로 튀지 않게 한다(카드: 178×134). 비율은 ScreenshotPreviewImage 가 직접
-                // 잡는다(targetSize 4:3). 전체 보기는 탭 시 JXPhotoBrowser.
+                // 카드 미디어와 같은 4:3 프레임 + 같은 렌더 정책(세로=fill 크롭 / 가로=fit+블러)으로
+                // 통일 — hero cross-fade 시 같은 이미지가 다른 모양으로 튀지 않게 한다(카드: 178×134).
+                // 비율·정책은 ScreenshotPreviewImage 가 직접 잡는다. 전체 보기는 탭 시 JXPhotoBrowser.
                 .frame(maxWidth: .infinity)
                 .background(Rectangle().fill(HomeDesign.Color.purple50))
                 // 하단 페이드 — 이미지가 카드 본문(surface)으로 부드럽게 녹아들게 한다. 밝은 배경
@@ -348,6 +363,7 @@ private struct IntentActionsSection: View {
     }
     private var hasAnyAction: Bool {
         !todoRows.isEmpty || hasConfirmedSchedule || primaryURL != nil
+            || analysis.shoppingProductQuery != nil
     }
     var body: some View {
         if hasAnyAction {
@@ -370,6 +386,18 @@ private struct IntentActionsSection: View {
                     if let url = primaryURL {
                         DetailLinkRow(url: url, label: sourceLabel(url)) { openURL(url) }
                     }
+                    if let query = analysis.shoppingProductQuery {
+                        ForEach(ShoppingSearchProvider.allCases) { provider in
+                            if let url = provider.searchURL(for: query) {
+                                DetailLinkRow(
+                                    url: url,
+                                    label: provider.label,
+                                    subtitle: query,
+                                    usesFavicon: true
+                                ) { openURL(url) }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -386,13 +414,48 @@ private struct IntentActionsSection: View {
     }
 }
 
+/// 쇼핑 캡처의 커머스 "검색된 상태" 링크 — 같은 상품을 여러 판매자가 팔아 특정 상품 상세를
+/// 정할 수 없으므로, 상품명이 검색된 결과 화면으로 보낸다 (lab/active/shopping-product-link exp2
+/// 에서 쿠팡·네이버 통합검색 조합의 URL 유효성 검증).
+private enum ShoppingSearchProvider: CaseIterable, Identifiable {
+    case coupang, naver
+
+    var id: Self { self }
+
+    var label: String {
+        switch self {
+        case .coupang: return "쿠팡에서 찾기"
+        case .naver:   return "네이버에서 찾기"
+        }
+    }
+
+    func searchURL(for query: String) -> URL? {
+        var components: URLComponents?
+        switch self {
+        case .coupang:
+            components = URLComponents(string: "https://www.coupang.com/np/search")
+            components?.queryItems = [URLQueryItem(name: "q", value: query)]
+        case .naver:
+            components = URLComponents(string: "https://search.naver.com/search.naver")
+            components?.queryItems = [URLQueryItem(name: "query", value: query)]
+        }
+        return components?.url
+    }
+}
+
 /// 링크 행 — 할 일·일정 행과 같은 문법(leading 타일 + 제목·부제 + 흰 카드).
 /// 이전의 그라데이션 CTA 는 체크 행·날짜 타일 사이에서 혼자 다른 종이라 폐기(2026-06-11) —
 /// ② 섹션의 모든 행이 단일 시각 언어를 공유해야 어떤 의도 조합이든 화면이 같게 읽힌다.
 /// 브랜드 보라는 타일·부제 틴트로 남겨 "원본으로 가는 행동"의 무게를 유지한다.
+/// 쇼핑 검색 행도 같은 문법을 공유한다 — subtitle 은 host 대신 상품명(회수 단서).
+/// 쿠팡·네이버처럼 목적지 브랜드가 분명한 행은 단색 아이콘 대신 favicon 으로 "어디로 가는지"를
+/// 글자보다 빨리 떠올리게 한다(usesFavicon). 로드 전·실패 시엔 FaviconTile 의 보라 첫글자 타일 폴백.
 private struct DetailLinkRow: View {
     let url: URL
     let label: String
+    var subtitle: String?
+    var icon: String = "arrow.up.right"
+    var usesFavicon: Bool = false
     let action: () -> Void
 
     var body: some View {
@@ -401,9 +464,13 @@ private struct DetailLinkRow: View {
                 ZStack {
                     RoundedRectangle(cornerRadius: HomeDesign.Radius.sm, style: .continuous)
                         .fill(HomeDesign.Color.purple50)
-                    Image(systemName: "arrow.up.right")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundStyle(HomeDesign.Color.purple600)
+                    if usesFavicon {
+                        FaviconTile(host: url.host, size: 24)
+                    } else {
+                        Image(systemName: icon)
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundStyle(HomeDesign.Color.purple600)
+                    }
                 }
                 .frame(width: 46, height: 48)
                 VStack(alignment: .leading, spacing: 3) {
@@ -411,7 +478,7 @@ private struct DetailLinkRow: View {
                         .font(.system(size: 13.5, weight: .semibold))
                         .foregroundStyle(HomeDesign.Color.textPrimary)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                    Text(url.host ?? url.absoluteString)
+                    Text(subtitle ?? url.host ?? url.absoluteString)
                         .font(.system(size: 11, weight: .medium))
                         .foregroundStyle(HomeDesign.Color.purple500)
                         .lineLimit(1)
@@ -621,6 +688,125 @@ private struct GistCard: View {
     }
 }
 
+// MARK: - ⑤ 비슷한 기록 (similar)
+
+/// 의미가 가까운 다른 기록을 가로 캐러셀로 — 회수의 능동 주체는 모찌(PRODUCT §1.5).
+/// 카드는 로컬 MochiItem 으로 렌더하고, "왜 비슷한지" 근거 칩만 서버 신호를 쓴다.
+private struct SimilarSection: View {
+    let items: [SimilarItemPreview]
+    let onTap: (SimilarItemPreview) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
+            SectionHeader(title: "비슷한 기록", icon: "rectangle.stack")
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: HomeDesign.Spacing.md) {
+                    ForEach(items) { preview in
+                        SimilarItemCard(preview: preview) { onTap(preview) }
+                    }
+                }
+                .padding(.horizontal, 2)  // 카드 그림자가 ScrollView 클립에 잘리지 않게
+                .padding(.bottom, 4)
+            }
+        }
+    }
+}
+
+private struct SimilarItemCard: View {
+    let preview: SimilarItemPreview
+    let onTap: () -> Void
+
+    private var item: MochiItem { preview.item }
+
+    var body: some View {
+        Button(action: onTap) {
+            VStack(alignment: .leading, spacing: HomeDesign.Spacing.sm) {
+                media
+                    .frame(width: 150, height: 96)
+                    .clipShape(RoundedRectangle(cornerRadius: HomeDesign.Radius.sm, style: .continuous))
+                Text(item.displayTitle)
+                    .font(.system(size: 12.5, weight: .semibold, design: .rounded))
+                    .foregroundStyle(HomeDesign.Color.textPrimary)
+                    .lineLimit(2, reservesSpace: true)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                if !preview.reasons.isEmpty {
+                    reasonChips
+                }
+            }
+            .frame(width: 150)
+            .padding(HomeDesign.Spacing.sm)
+            .background(
+                RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
+                    .fill(HomeDesign.Color.surface)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
+                    .stroke(HomeDesign.Color.border, lineWidth: 1)
+            )
+            .shadow(color: HomeDesign.Color.ink900.opacity(0.05), radius: 8, x: 0, y: 2)
+        }
+        .buttonStyle(PressableStyle())
+    }
+
+    @ViewBuilder
+    private var media: some View {
+        switch item.viewKind {
+        case .screenshot:
+            LocalThumbnail(
+                relativePath: item.source.imageRefs.first?.relativePath,
+                targetSize: CGSize(width: 150, height: 96)
+            ) {
+                ZStack {
+                    HomeDesign.Color.purple100
+                    Image(systemName: "photo")
+                        .font(.system(size: 22, weight: .light))
+                        .foregroundStyle(.white.opacity(0.85))
+                }
+            }
+        case .memo:
+            ZStack {
+                LinearGradient(
+                    colors: [HomeDesign.Color.butter50, HomeDesign.Color.cream100],
+                    startPoint: .top, endPoint: .bottom
+                )
+                Image(systemName: "quote.closing")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundStyle(HomeDesign.Color.butter400.opacity(0.3))
+            }
+        case .url:
+            ZStack {
+                HomeDesign.Color.purple50
+                Image(systemName: "link")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundStyle(HomeDesign.Color.purple600)
+            }
+        }
+    }
+
+    private var reasonChips: some View {
+        HStack(spacing: 4) {
+            ForEach(Array(preview.reasons.prefix(2).enumerated()), id: \.offset) { _, reason in
+                Text(Self.label(for: reason))
+                    .font(.system(size: 9.5, weight: .semibold, design: .rounded))
+                    .foregroundStyle(HomeDesign.Color.purple600)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Capsule().fill(HomeDesign.Color.purple50))
+            }
+        }
+    }
+
+    /// 서버 enum → 한국어 칩 카피 (카피는 클라 소유 — ⓪ 폭포를 안 탄다).
+    private static func label(for reason: SimilarReason) -> String {
+        switch reason.kind {
+        case .sharedSource: return "같은 출처"
+        case .sameIntent:   return "같은 의도"
+        case .closeInTime:  return "비슷한 시기"
+        }
+    }
+}
+
 // MARK: - Shared bits
 
 private struct SectionHeader: View {
@@ -725,7 +911,13 @@ private final class ScreenshotPhotoBrowserPresenter: NSObject, JXPhotoBrowserDel
     func photoBrowser(_ browser: JXPhotoBrowserViewController, willDisplay cell: JXPhotoBrowserAnyCell, at index: Int) {
         guard let photoCell = cell as? JXZoomImageCell else { return }
         photoCell.imageView.image = image
-        photoCell.imageView.contentMode = .scaleAspectFill
+        // 풀스크린 표시는 imageView.frame 이 이미지 비율로 정확히 잡혀(JXZoomImageCell.adjustImageViewFrame)
+        // contentMode 와 무관하다. 하지만 dismiss zoom 전환의 임시 뷰가 이 셀 imageView 의
+        // contentMode·backgroundColor 를 복제하므로(JXZoomDismissAnimator), 가로 캡처를 fit+흰배경으로
+        // 두면 풀스크린→상세 복귀 시 상세 헤더(가로=fit)와 모양이 맞아 fill→fit 점프가 사라진다.
+        let isLandscape = image.size.width > image.size.height
+        photoCell.imageView.contentMode = isLandscape ? .scaleAspectFit : .scaleAspectFill
+        photoCell.imageView.backgroundColor = isLandscape ? .white : .clear
         photoCell.setNeedsLayout()
     }
 
@@ -763,7 +955,6 @@ private final class ScreenshotImageViewHandle: ObservableObject {
 private struct ScreenshotPreviewImage: View {
     let relativePath: String
     let targetSize: CGSize
-    let contentMode: UIView.ContentMode
     @ObservedObject var handle: ScreenshotImageViewHandle
     @State private var image: UIImage?
 
@@ -773,13 +964,31 @@ private struct ScreenshotPreviewImage: View {
         // 박스가 이미지 크기로 쪼그라들고 양옆에 배경이 비쳤다. FixedRatioBox 는 "제안된 너비 ÷ 비율
         // = 높이"만 답하므로 이미지 크기가 레이아웃에 개입할 경로가 없다.
         FixedRatioBox(ratio: targetSize.width / targetSize.height, fallbackWidth: targetSize.width) {
-            UIKitImageView(image: image, contentMode: contentMode, handle: handle)
+            UIKitImageView(image: image, contentMode: foregroundContentMode, handle: handle)
+                .background {
+                    // 가로 캡처는 fit 으로 좌우 끝까지 보여주고, 남는 레터박스를 같은 이미지의 블러
+                    // 확대본으로 채운다 — 카드 `LocalThumbnail`(가로=fit+블러)과 동일 정책이라
+                    // 카드→상세 hero 비행에서 모양이 튀지 않는다.
+                    if let image, image.size.width > image.size.height {
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFill()
+                            .blur(radius: 12)
+                    }
+                }
         }
         .clipped()
         .task(id: relativePath) {
             let maxPixel = Int(max(targetSize.width, targetSize.height) * 3)
             image = await loadDownsampledDetailImage(relativePath: relativePath, maxPixel: maxPixel)
         }
+    }
+
+    /// 세로 캡처는 `fill` 크롭(메인 콘텐츠가 중앙에 있을 확률이 높다), 가로 캡처는 `fit`(좌우
+    /// 끝의 정보도 중요) — 카드와 통일. 로드 전(nil)엔 fill 기본.
+    private var foregroundContentMode: UIView.ContentMode {
+        guard let image, image.size.width > image.size.height else { return .scaleAspectFill }
+        return .scaleAspectFit
     }
 }
 
