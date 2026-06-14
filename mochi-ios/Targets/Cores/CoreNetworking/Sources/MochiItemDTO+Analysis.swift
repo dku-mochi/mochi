@@ -22,7 +22,9 @@ public extension MochiItemDTO {
                         provider: dto.provider,
                         rankProfile: dto.rankProfile,
                         source: dto.source,
-                        usefulness: dto.usefulness
+                        usefulness: dto.usefulness,
+                        subtitle: dto.subtitle,
+                        priceText: dto.priceText
                     )
                 }
             },

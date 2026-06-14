@@ -525,6 +525,9 @@ private struct HarvestGroupCard: View {
             case .screenshot:
                 LocalThumbnail(
                     relativePath: item.source.imageRefs.first?.relativePath,
+                    objectKey: item.source.imageRefs.first?.objectKey,
+                    sha256: item.source.imageRefs.first?.sha256,
+                    mimeType: item.source.imageRefs.first?.mimeType,
                     targetSize: CGSize(width: size, height: size)
                 ) {
                     Rectangle().fill(HomeDesign.Color.purple100)

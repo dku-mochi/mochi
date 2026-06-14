@@ -182,6 +182,8 @@ def _to_response(item: MochiItem) -> MochiItemResponse:
                 rank_profile=link.rank_profile,
                 source=link.source,
                 usefulness=link.usefulness,
+                subtitle=link.subtitle,
+                price_text=link.price_text,
             )
             for link in item.reference_links
         ],

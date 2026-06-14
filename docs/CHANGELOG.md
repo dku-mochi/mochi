@@ -10,6 +10,10 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-06-15 — ios, docs
+- **홈 "전체 보기" 행선지 캘린더 탭 → 검색 탭으로.** "최근에 보낸 것들" 헤더의 "전체 보기"는 전체 기록을 훑는 진입인데 캘린더(날짜 집계)보다 검색·필터가 그 의도에 맞는다. `MainTabFeature.seeAllRecentRequested` 핸들러 `.mochis`→`.search` (+ `HomeFeature` delegate 주석·UX_SPEC §3.4 동기화).
+- **분석완료 알림 탭 → 해당 기록 상세로 딥링크 진입 (기존 "홈 버킷 라우팅"에서 승격).** 알림 페이로드의 server PK 를 로컬 id 로 역매핑(`MochiItemRepository.find(serverID:)` 신설 — Realm 은 `syncStateRawValue BEGINSWITH "uploaded:<serverID>:"`, InMemory 는 syncState 스캔)해 `MainTabFeature` 가 상세를 present. 다른 상세가 떠 있으면 닫고 그 항목으로 재open(openSimilar 와 동일 슬롯·취소), 같은 항목이면 유지(중복 present 회피). 재설치 직후·타기기 생성 항목이라 로컬에 아직 없으면 RootFeature 의 pullRemote 도착까지 짧게(~2.5s) 재시도하고, 끝내 없으면 홈 버킷 fallback. 알림 연속 탭은 cancelInFlight 로 마지막만. 콜드 스타트(phase resolving)에도 effect 가 phase 와 무관하게 즉시 시작해 안전. (MochiAppDelegate 의 "상세 딥링크는 후속" TODO 해소 — 코드 주석도 동기화.)
+
 ## 2026-06-15 — ios
 - **즐겨찾기 push 실패 메시지를 raw error → 사용자용 한국어로.** `FavoriteSync.pushToggle` 이 실패 시 `String(describing: error)`(예: `URLError(...Code=-1009)`)를 반환해 `DetailView` 의 `lastError` 배너에 기술적 영문이 그대로 노출되던 것을 "즐겨찾기를 저장하지 못했어요. 잠시 후 다시 시도해 주세요."로 교체 — 이미지 저장 실패(localizedDescription)·앱 전체 한국어 톤과 정합. (형제 `TodoLifecycleSync` 도 동일 raw-error 패턴이나 기존 코드라 scope 밖.) (PR #35 코드리뷰 P2)
 

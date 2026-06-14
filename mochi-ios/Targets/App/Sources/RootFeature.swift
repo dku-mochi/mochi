@@ -64,7 +64,7 @@ struct RootFeature: Sendable {
         case appBecameActive
         case sessionResolved(AuthSession?)
         case pendingMemoDiscovered(UUID)
-        /// 분석완료 알림 탭 — 홈 버킷으로 라우팅(상세 딥링크는 server→local id 매핑 필요, 후속).
+        /// 분석완료 알림 탭 — 해당 항목 상세를 연다. 인자는 server PK(server→local 역매핑은 MainTab 이 수행).
         case notificationTapped(UUID)
         case login(LoginFeature.Action)
         case main(MainTabFeature.Action)
@@ -127,10 +127,12 @@ struct RootFeature: Sendable {
                 state.backTapModal = .init(captureID: captureID)
                 return .none
 
-            case .notificationTapped:
-                // 알림 탭 → 홈 탭으로. 항목 최신화는 scenePhase active reconcile(폴링/SSE 재구독)이 맡는다.
+            case let .notificationTapped(serverID):
+                // 알림 탭 → 홈 탭 + 해당 항목 상세 present. server→local 역매핑과 "로컬 도착까지
+                // 짧게 재시도"는 MainTab 이 effect 로 맡는다(phase 와 무관하게 즉시 시작하므로
+                // 콜드 스타트에도 안전). 항목 최신화는 scenePhase active reconcile(폴링/SSE 재구독).
                 state.main.selectedTab = .home
-                return .none
+                return .send(.main(.openDetailFromNotification(serverID: serverID)))
 
             case .backTapModal(.presented(.delegate(.dismiss))):
                 state.backTapModal = nil

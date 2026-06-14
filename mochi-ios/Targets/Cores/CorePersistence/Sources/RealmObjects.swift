@@ -77,6 +77,8 @@ public final class RealmReferenceLink: EmbeddedObject {
     @Persisted public var rankProfile: String
     @Persisted public var source: String?
     @Persisted public var usefulness: Int?
+    @Persisted public var subtitle: String?
+    @Persisted public var priceText: String?
 }
 
 public final class RealmReviewOption: EmbeddedObject {

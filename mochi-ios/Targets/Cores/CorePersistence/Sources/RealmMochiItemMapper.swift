@@ -307,6 +307,8 @@ public enum RealmMochiItemMapper {
         row.rankProfile = link.rankProfile
         row.source = link.source
         row.usefulness = link.usefulness
+        row.subtitle = link.subtitle
+        row.priceText = link.priceText
         return row
     }
 
@@ -320,7 +322,9 @@ public enum RealmMochiItemMapper {
             provider: row.provider,
             rankProfile: row.rankProfile,
             source: row.source,
-            usefulness: row.usefulness
+            usefulness: row.usefulness,
+            subtitle: row.subtitle,
+            priceText: row.priceText
         )
     }
 

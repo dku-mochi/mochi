@@ -64,6 +64,8 @@ class ReferenceLink:
     rank_profile: str
     source: str | None = None
     usefulness: int | None = None
+    subtitle: str | None = None    # 누르기 전 부제(업종·지역 / 요약문 / 브랜드). 없으면 None.
+    price_text: str | None = None  # shop 가격("18,900원"). shop 외엔 None.
 
 
 # ---------- Lifecycle (처리상태 — item 단위 분석 파이프라인) ----------

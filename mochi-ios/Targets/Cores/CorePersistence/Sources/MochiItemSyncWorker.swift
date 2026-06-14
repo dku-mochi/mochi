@@ -122,7 +122,7 @@ public actor MochiItemSyncWorker {
 
         var refs: [ImageRef] = []
         for ref in item.source.imageRefs {
-            refs.append(await ensureLocalImage(for: ref))
+            refs.append(await CaptureImageStore.shared.ensureLocalRef(for: ref))
         }
         let source = IngestSource(
             id: item.source.id,
@@ -144,47 +144,6 @@ public actor MochiItemSyncWorker {
         )
     }
 
-    /// 복구 항목의 GCS 원본 이미지를 받아 App Group `captures/<sha256>.<ext>` 에 저장하고 `relativePath`
-    /// 를 채운 ref 를 돌려준다. content-addressed(sha256 파일명)라 멱등 — 이미 있으면 다운로드를 건너뛴다.
-    /// 실패하면 relativePath 빈 채로 남겨 카드가 placeholder 를 보이고, 다음 pull 에서 재시도한다.
-    private func ensureLocalImage(for ref: ImageRef) async -> ImageRef {
-        guard let objectKey = ref.objectKey, !objectKey.isEmpty, ref.relativePath.isEmpty else {
-            return ref
-        }
-        let filename = "\(ref.sha256).\(Self.imageExtension(for: ref.mimeType))"
-        let relativePath = "captures/\(filename)"
-        let fileURL = AppGroup.capturedImagesDirectoryURL.appendingPathComponent(filename)
-        if FileManager.default.fileExists(atPath: fileURL.path) {
-            return Self.ref(ref, withRelativePath: relativePath)
-        }
-        do {
-            let url = try await apiClient.presignCaptureDownload(objectKey: objectKey)
-            let (data, _) = try await URLSession.shared.data(from: url)
-            try data.write(to: fileURL, options: .atomic)
-            return Self.ref(ref, withRelativePath: relativePath)
-        } catch {
-            return ref
-        }
-    }
-
-    private static func ref(_ ref: ImageRef, withRelativePath relativePath: String) -> ImageRef {
-        ImageRef(
-            id: ref.id,
-            relativePath: relativePath,
-            mimeType: ref.mimeType,
-            byteSize: ref.byteSize,
-            sha256: ref.sha256,
-            objectKey: ref.objectKey
-        )
-    }
-
-    private static func imageExtension(for mimeType: String) -> String {
-        switch mimeType {
-        case "image/png":  return "png"
-        case "image/jpeg": return "jpg"
-        default:           return "bin"
-        }
-    }
 
     private func uploadOne(_ mochiItem: MochiItem) async {
         do {
