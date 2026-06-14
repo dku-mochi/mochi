@@ -10,6 +10,18 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-06-15 — ios, docs
+- **홈 "전체 보기" 행선지 캘린더 탭 → 검색 탭으로.** "최근에 보낸 것들" 헤더의 "전체 보기"는 전체 기록을 훑는 진입인데 캘린더(날짜 집계)보다 검색·필터가 그 의도에 맞는다. `MainTabFeature.seeAllRecentRequested` 핸들러 `.mochis`→`.search` (+ `HomeFeature` delegate 주석·UX_SPEC §3.4 동기화).
+- **분석완료 알림 탭 → 해당 기록 상세로 딥링크 진입 (기존 "홈 버킷 라우팅"에서 승격).** 알림 페이로드의 server PK 를 로컬 id 로 역매핑(`MochiItemRepository.find(serverID:)` 신설 — Realm 은 `syncStateRawValue BEGINSWITH "uploaded:<serverID>:"`, InMemory 는 syncState 스캔)해 `MainTabFeature` 가 상세를 present. 다른 상세가 떠 있으면 닫고 그 항목으로 재open(openSimilar 와 동일 슬롯·취소), 같은 항목이면 유지(중복 present 회피). 재설치 직후·타기기 생성 항목이라 로컬에 아직 없으면 RootFeature 의 pullRemote 도착까지 짧게(~2.5s) 재시도하고, 끝내 없으면 홈 버킷 fallback. 알림 연속 탭은 cancelInFlight 로 마지막만. 콜드 스타트(phase resolving)에도 effect 가 phase 와 무관하게 즉시 시작해 안전. (MochiAppDelegate 의 "상세 딥링크는 후속" TODO 해소 — 코드 주석도 동기화.)
+
+## 2026-06-15 — ios
+- **즐겨찾기 push 실패 메시지를 raw error → 사용자용 한국어로.** `FavoriteSync.pushToggle` 이 실패 시 `String(describing: error)`(예: `URLError(...Code=-1009)`)를 반환해 `DetailView` 의 `lastError` 배너에 기술적 영문이 그대로 노출되던 것을 "즐겨찾기를 저장하지 못했어요. 잠시 후 다시 시도해 주세요."로 교체 — 이미지 저장 실패(localizedDescription)·앱 전체 한국어 톤과 정합. (형제 `TodoLifecycleSync` 도 동일 raw-error 패턴이나 기존 코드라 scope 밖.) (PR #35 코드리뷰 P2)
+
+## 2026-06-15 — backend, ios, docs
+- **참고 링크 카드에 메타(부제·가격) 추가 — 누르기 전 "어디·무슨 글·얼마" 식별.** favicon 폴백 타일만으론 어떤 사이트인지 모르던 문제. OG 클라 fetch(느림·프라이버시) 대신 ResourceFinder 가 **검색 시점에 이미 받아두고 버리던** 메타(네이버/Tavily 의 가격·몰·브랜드·업종·주소·요약문)를 흘려보낸다(추가 fetch 0). judge 는 이미 이 메타를 보고 picks 를 결정하므로(`_render`) "judge 가 본 근거를 사용자도 본다"는 신뢰 일관성도 확보.
+- backend: `RankedUrl`+entity JSON 에 `subtitle`(local=업종·지역 / blog·web=요약문 / shop=브랜드)·`priceText`(shop 가격) 합성(`_display_meta`, 값 있을 때만 직렬화) → `ReferenceLink` 도메인 → `repository._reference_links` 파싱(구 데이터 None 폴백) → `ReferenceLinkResponse` 옵셔널 2필드. ⓪계약 폭포(`make openapi`→generate.sh) 통과. 단위테스트 9(메타 합성·직렬화·라운드트립·judge 노출 회귀).
+- ios: `ReferenceLinkDTO`/`CoreDomain.ReferenceLink`/`RealmReferenceLink`(schemaVersion 11→12) 에 옵셔널 필드 전파. 상세 "관련 링크" 비교 화면에 메타 활용 후보 **D(메타 행카드)·E(메타 매거진 카드)** 추가 — 기존 A·B·C(favicon 중심)와 비교해 승자 결정 예정(임시).
+
 ## 2026-06-14 — backend, ios, docs
 - **카드 즐겨찾기(서버 동기화) + 이미지 사진앱 저장.** 즐겨찾기는 "사용자가 모찌에게 준 중요 신호"로 재프레이밍 — 사용자가 검색 카드·상세 ⋯ 메뉴에서 토글하면 모찌가 홈 헤더 별 → 즐겨찾기 화면에서 다시 꺼내 보여준다(능동 회수, PRODUCT §1.5 정합). 사용자-주도 큐레이션이 미션 리트머스에 걸리는 충돌은 "수동 폴더(상설 브라우징)"가 아니라 "신호 + 모찌 회수"로 좁혀 해소(팀 경량 합의 필요 — L1 PRODUCT 터치).
 - backend: `mochi_items.is_favorite` 컬럼(alembic `0022` — develop 의 `0021`(llm_usage) 뒤로 리베이스, item 레벨 인라인 — 분석결과 아닌 사용자 가변 상태, reanalyze 가 안 건드림) + `POST /mochi_items/{id}/favorite` set-state 멱등 라우트(`SetFavorite` use case, owner-scoped, 같은 값 no-op) + `MochiItemResponse.isFavorite` projection + 단위테스트 4(set/unset/멱등/404). ⓪계약 폭포(`make openapi`→generate.sh) 통과.

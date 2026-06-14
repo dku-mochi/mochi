@@ -79,9 +79,9 @@ public final class MochiAppDelegate: NSObject, UIApplicationDelegate, UNUserNoti
         completionHandler([.banner, .sound, .badge])
     }
 
-    /// 알림 탭 → 앱 진입 + 홈 버킷으로 라우팅. 후보 선택 action 은 없다(선택은 LA / 앱 내 버킷).
-    /// `userInfo["mochiItemID"]` 는 server PK — 복귀 시 scenePhase active reconcile 이 해당 항목을
-    /// 최신화해 홈 버킷에 띄운다. (상세 딥링크는 server→local id 매핑이 필요해 후속.)
+    /// 알림 탭 → 앱 진입 + 해당 항목 상세 진입. `userInfo["mochiItemID"]` 는 server PK —
+    /// RootFeature→MainTabFeature 가 server→local 역매핑(repository.find(serverID:))해 상세를 present한다
+    /// (로컬에 아직 없으면 짧게 재시도, 끝내 없으면 홈 버킷 fallback). 후보 선택 action 은 없다(선택은 LA / 앱 내 버킷).
     public func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse,

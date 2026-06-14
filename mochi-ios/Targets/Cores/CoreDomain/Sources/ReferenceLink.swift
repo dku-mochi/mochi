@@ -22,6 +22,11 @@ public struct ReferenceLink: Equatable, Sendable, Hashable, Codable, Identifiabl
     public let source: String?
     /// 유용도 1–5 (5 = 기록이 가리킨 바로 그 자료가 상위). 대표 링크 강조에 쓴다. 없을 수 있다.
     public let usefulness: Int?
+    /// 누르기 전 부제 — "어디/무슨 글"의 한 줄 단서. local="업종 · 지역" / 블로그·아티클=요약문 /
+    /// 쇼핑=브랜드. 서버가 검색 메타로 합성해 보낸다. 메타 없는 링크(원본·화면 속)는 nil → 미표시.
+    public let subtitle: String?
+    /// 쇼핑 가격 ("18,900원"). 쇼핑 결과에만 있고 그 외엔 nil. 카드에서 강조 표시용.
+    public let priceText: String?
 
     public var id: String { url.absoluteString }
 
@@ -33,7 +38,9 @@ public struct ReferenceLink: Equatable, Sendable, Hashable, Codable, Identifiabl
         provider: String,
         rankProfile: String,
         source: String? = nil,
-        usefulness: Int? = nil
+        usefulness: Int? = nil,
+        subtitle: String? = nil,
+        priceText: String? = nil
     ) {
         self.url = url
         self.title = title
@@ -43,5 +50,7 @@ public struct ReferenceLink: Equatable, Sendable, Hashable, Codable, Identifiabl
         self.rankProfile = rankProfile
         self.source = source
         self.usefulness = usefulness
+        self.subtitle = subtitle
+        self.priceText = priceText
     }
 }

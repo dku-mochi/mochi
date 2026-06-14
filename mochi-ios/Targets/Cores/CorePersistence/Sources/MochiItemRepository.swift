@@ -24,6 +24,10 @@ public protocol MochiItemRepository: Sendable {
         objectKey: String
     ) async throws
     func find(id: UUID) async throws -> MochiItem?
+    /// 서버 PK 로 로컬 항목을 찾는다 — 분석완료 알림 탭(딥링크)이 server→local id 를 역매핑할 때 사용.
+    /// pull 복제 행(PK == serverID)·직접 업로드 행(PK == local id) 모두 `syncState == .uploaded(serverID:)`
+    /// 를 가지므로 그 값으로 매칭한다. 미업로드(아직 매핑 불가) 항목은 nil.
+    func find(serverID: UUID) async throws -> MochiItem?
     func listRecent(limit: Int) async throws -> [MochiItem]
     func listByIntent(_ intent: Intent, limit: Int) async throws -> [MochiItem]
     /// 분석 응답을 아직 못 받은 (analysis 미수신) 항목. 홈 "모찌가 분석 중이에요" 섹션의 원본.
@@ -190,6 +194,13 @@ public actor InMemoryMochiItemRepository: MochiItemRepository {
     }
 
     public func find(id: UUID) async throws -> MochiItem? { storage[id] }
+
+    public func find(serverID: UUID) async throws -> MochiItem? {
+        storage.values.first {
+            if case let .uploaded(sid, _) = $0.syncState { return sid == serverID }
+            return false
+        }
+    }
 
     public func listRecent(limit: Int) async throws -> [MochiItem] {
         Array(storage.values.sorted { $0.createdAt > $1.createdAt }.prefix(limit))

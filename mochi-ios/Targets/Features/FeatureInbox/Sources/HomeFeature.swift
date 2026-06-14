@@ -91,7 +91,7 @@ public struct HomeFeature: Sendable {
             case weeklyDigestRequested
             /// 홈 질문 입력바·추천 칩 제출 — 상위가 채팅 탭 새 대화의 첫 메시지로 전환한다.
             case chatRequested(String)
-            /// "최근에 보낸 것들 > 전체 보기" — 상위가 캘린더 탭(전체 기록 브라우징)으로 전환한다.
+            /// "최근에 보낸 것들 > 전체 보기" — 상위가 검색 탭(전체 기록 브라우징)으로 전환한다.
             case seeAllRecentRequested
             /// 헤더 별 → 상위가 즐겨찾기 화면을 push 한다.
             case favoritesRequested

@@ -175,6 +175,9 @@ struct SearchGridCard: View {
         ZStack(alignment: .bottomLeading) {
             LocalThumbnail(
                 relativePath: item.source.imageRefs.first?.relativePath,
+                objectKey: item.source.imageRefs.first?.objectKey,
+                sha256: item.source.imageRefs.first?.sha256,
+                mimeType: item.source.imageRefs.first?.mimeType,
                 targetSize: CGSize(width: 184, height: 276),
                 alignment: .center,
                 onBottomLuminance: { bottomLuminance = $0 }
@@ -378,6 +381,9 @@ private struct SearchCardPreview: View {
             if let path = item.source.imageRefs.first?.relativePath {
                 LocalThumbnail(
                     relativePath: path,
+                    objectKey: item.source.imageRefs.first?.objectKey,
+                    sha256: item.source.imageRefs.first?.sha256,
+                    mimeType: item.source.imageRefs.first?.mimeType,
                     targetSize: CGSize(width: 320, height: 240),
                     alignment: .top
                 ) {

@@ -127,6 +127,9 @@ private struct AmbiguousBody: View {
                 // 크롭(상태바·제목이 보이도록)하고, 프레임 안에서 잘라 헤드라인과 겹치지 않게 한다.
                 LocalThumbnail(
                     relativePath: mochiItem.source.imageRefs.first?.relativePath,
+                    objectKey: mochiItem.source.imageRefs.first?.objectKey,
+                    sha256: mochiItem.source.imageRefs.first?.sha256,
+                    mimeType: mochiItem.source.imageRefs.first?.mimeType,
                     targetSize: CGSize(width: 96, height: 192),
                     alignment: .top
                 ) {
@@ -375,6 +378,9 @@ private struct AnalyzingRow: View {
         case .screenshot:
             LocalThumbnail(
                 relativePath: mochiItem.source.imageRefs.first?.relativePath,
+                objectKey: mochiItem.source.imageRefs.first?.objectKey,
+                sha256: mochiItem.source.imageRefs.first?.sha256,
+                mimeType: mochiItem.source.imageRefs.first?.mimeType,
                 targetSize: CGSize(width: 44, height: 44)
             ) {
                 Rectangle().fill(HomeDesign.Color.purple100)

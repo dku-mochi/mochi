@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import CorePersistence
 import DesignSystem
 import Foundation
 import FeatureChat
@@ -68,6 +69,10 @@ struct MainTabFeature: Sendable {
         case detail(PresentationAction<DetailFeature.Action>)
         /// "비슷한 기록" 탭 → 현재 상세를 닫은 뒤 그 항목 상세를 다시 연다(같은 present 슬롯 재사용).
         case presentSimilarDetail(UUID)
+        /// 분석완료 알림 탭 → server PK 를 로컬 id 로 역매핑(effect, RootFeature 가 위임).
+        case openDetailFromNotification(serverID: UUID)
+        /// 역매핑된 로컬 id 로 상세 present — 같은 항목이면 무시, 다른 상세가 떠 있으면 닫고 재open.
+        case presentDetailFromNotification(localID: UUID)
         case debugInboxChanged(Bool)
         case delegate(Delegate)
 
@@ -77,7 +82,9 @@ struct MainTabFeature: Sendable {
         }
     }
 
-    private enum CancelID: Hashable { case similarReopen }
+    @Dependency(\.mochiItemRepository) var repository
+
+    private enum CancelID: Hashable { case similarReopen, notificationOpen }
 
     var body: some ReducerOf<Self> {
         Scope(state: \.home,     action: \.home)     { HomeFeature() }
@@ -132,8 +139,8 @@ struct MainTabFeature: Sendable {
                 return .none
 
             case .home(.delegate(.seeAllRecentRequested)):
-                // "전체 보기" — 전체 기록을 날짜로 훑을 수 있는 캘린더 탭으로.
-                state.selectedTab = .mochis
+                // "전체 보기" — 전체 기록을 검색·필터로 훑을 수 있는 검색 탭으로.
+                state.selectedTab = .search
                 return .none
 
             case let .path(.element(id: _, action: .weeklyDigest(.delegate(.mochiItemTapped(mochiItemID, hero))))):
@@ -221,6 +228,43 @@ struct MainTabFeature: Sendable {
             case let .presentSimilarDetail(localID):
                 // 슬립 사이에 다른 상세가 이미 열렸으면(다른 카드 탭 등) 덮어쓰지 않는다.
                 guard state.detail == nil else { return .none }
+                state.detail = DetailFeature.State(mochiItemID: localID)
+                return .none
+
+            case let .openDetailFromNotification(serverID):
+                // 알림 페이로드는 server PK — 로컬 행으로 역매핑한 뒤 present 한다. 보통 로컬에 이미
+                // 있어 즉시 열리지만, 재설치 직후·타기기 생성 항목이면 RootFeature 의 pullRemote 가
+                // 항목을 끌어올 때까지 짧게(최대 ~2.5s) 재시도한다. 끝내 없으면 조용히 포기 —
+                // 홈 버킷이 always-on fallback. 연속 탭은 cancelInFlight 로 마지막 탭만 연다.
+                return .run { send in
+                    for attempt in 0..<6 {
+                        if let item = try? await repository.find(serverID: serverID) {
+                            await send(.presentDetailFromNotification(localID: item.id))
+                            return
+                        }
+                        if attempt < 5 { try? await Task.sleep(for: .milliseconds(500)) }
+                    }
+                }
+                .cancellable(id: CancelID.notificationOpen, cancelInFlight: true)
+
+            case let .presentDetailFromNotification(localID):
+                // 같은 항목 상세가 이미 떠 있으면 그대로 둔다(재present 시 화면 깜빡임만 생긴다).
+                if state.detail?.mochiItemID == localID { return .none }
+                // 다른 상세가 떠 있으면 닫고, dismiss 애니메이션이 끝난 뒤 그 항목을 연다
+                // (openSimilar 와 동일 슬롯·동일 취소 — 마지막 네비게이션만 살아남는다). 360ms 슬립
+                // 사이 사용자가 또 다른 카드를 열면 그 탭을 존중해 알림 항목은 양보한다(알림 직후 앱
+                // 전환 중이라 현실적으로 드문 경합).
+                if state.detail != nil {
+                    state.detail = nil
+                    state.detailHero = nil
+                    return .run { send in
+                        try? await Task.sleep(for: .milliseconds(360))
+                        await send(.presentSimilarDetail(localID))
+                    }
+                    .cancellable(id: CancelID.similarReopen, cancelInFlight: true)
+                }
+                // 아무 상세도 없으면 바로 연다 — 알림 진입은 hero 없는 중앙 scale 폴백.
+                state.detailHero = nil
                 state.detail = DetailFeature.State(mochiItemID: localID)
                 return .none
 
