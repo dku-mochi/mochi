@@ -121,10 +121,10 @@ public struct DetailView: View {
                 }
                 .riseIn(sectionsAppeared, index: bump)
 
-                // 관련 링크(Agent ResourceFinder) — 5종(A~E) 카드 비교용. 결정 후 승자만 ② 섹션에 합친다.
+                // 관련 링크(Agent ResourceFinder) — 메타 행카드.
                 let ref = analysis.referenceLinks.isEmpty ? 0 : 1
                 if !analysis.referenceLinks.isEmpty {
-                    ReferenceLinksComparison(links: analysis.referenceLinks)
+                    ReferenceLinksSection(links: analysis.referenceLinks)
                         .riseIn(sectionsAppeared, index: bump + 1)
                 }
 
@@ -395,7 +395,6 @@ private struct IntentActionsSection: View {
     }
     private var hasAnyAction: Bool {
         !todoRows.isEmpty || hasConfirmedSchedule || primaryURL != nil
-            || analysis.shoppingProductQuery != nil
     }
     var body: some View {
         if hasAnyAction {
@@ -418,18 +417,6 @@ private struct IntentActionsSection: View {
                     if let url = primaryURL {
                         DetailLinkRow(url: url, label: sourceLabel(url)) { openURL(url) }
                     }
-                    if let query = analysis.shoppingProductQuery {
-                        ForEach(ShoppingSearchProvider.allCases) { provider in
-                            if let url = provider.searchURL(for: query) {
-                                DetailLinkRow(
-                                    url: url,
-                                    label: provider.label,
-                                    subtitle: query,
-                                    usesFavicon: true
-                                ) { openURL(url) }
-                            }
-                        }
-                    }
                 }
             }
         }
@@ -446,48 +433,14 @@ private struct IntentActionsSection: View {
     }
 }
 
-/// 쇼핑 캡처의 커머스 "검색된 상태" 링크 — 같은 상품을 여러 판매자가 팔아 특정 상품 상세를
-/// 정할 수 없으므로, 상품명이 검색된 결과 화면으로 보낸다 (lab/active/shopping-product-link exp2
-/// 에서 쿠팡·네이버 통합검색 조합의 URL 유효성 검증).
-private enum ShoppingSearchProvider: CaseIterable, Identifiable {
-    case coupang, naver
-
-    var id: Self { self }
-
-    var label: String {
-        switch self {
-        case .coupang: return "쿠팡에서 찾기"
-        case .naver:   return "네이버에서 찾기"
-        }
-    }
-
-    func searchURL(for query: String) -> URL? {
-        var components: URLComponents?
-        switch self {
-        case .coupang:
-            components = URLComponents(string: "https://www.coupang.com/np/search")
-            components?.queryItems = [URLQueryItem(name: "q", value: query)]
-        case .naver:
-            components = URLComponents(string: "https://search.naver.com/search.naver")
-            components?.queryItems = [URLQueryItem(name: "query", value: query)]
-        }
-        return components?.url
-    }
-}
-
 /// 링크 행 — 할 일·일정 행과 같은 문법(leading 타일 + 제목·부제 + 흰 카드).
 /// 이전의 그라데이션 CTA 는 체크 행·날짜 타일 사이에서 혼자 다른 종이라 폐기(2026-06-11) —
 /// ② 섹션의 모든 행이 단일 시각 언어를 공유해야 어떤 의도 조합이든 화면이 같게 읽힌다.
-/// 브랜드 보라는 타일·부제 틴트로 남겨 "원본으로 가는 행동"의 무게를 유지한다.
-/// 쇼핑 검색 행도 같은 문법을 공유한다 — subtitle 은 host 대신 상품명(회수 단서).
-/// 쿠팡·네이버처럼 목적지 브랜드가 분명한 행은 단색 아이콘 대신 favicon 으로 "어디로 가는지"를
-/// 글자보다 빨리 떠올리게 한다(usesFavicon). 로드 전·실패 시엔 FaviconTile 의 보라 첫글자 타일 폴백.
+/// 브랜드 보라는 타일 틴트로 남겨 "원본으로 가는 행동"의 무게를 유지한다.
 private struct DetailLinkRow: View {
     let url: URL
     let label: String
-    var subtitle: String?
     var icon: String = "arrow.up.right"
-    var usesFavicon: Bool = false
     let action: () -> Void
 
     var body: some View {
@@ -496,13 +449,9 @@ private struct DetailLinkRow: View {
                 ZStack {
                     RoundedRectangle(cornerRadius: HomeDesign.Radius.sm, style: .continuous)
                         .fill(HomeDesign.Color.purple50)
-                    if usesFavicon {
-                        FaviconTile(host: url.host, size: 24)
-                    } else {
-                        Image(systemName: icon)
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundStyle(HomeDesign.Color.purple600)
-                    }
+                    Image(systemName: icon)
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundStyle(HomeDesign.Color.purple600)
                 }
                 .frame(width: 46, height: 48)
                 VStack(alignment: .leading, spacing: 3) {
@@ -510,7 +459,7 @@ private struct DetailLinkRow: View {
                         .font(.system(size: 13.5, weight: .semibold))
                         .foregroundStyle(HomeDesign.Color.textPrimary)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                    Text(subtitle ?? url.host ?? url.absoluteString)
+                    Text(url.host ?? url.absoluteString)
                         .font(.system(size: 11, weight: .medium))
                         .foregroundStyle(HomeDesign.Color.purple500)
                         .lineLimit(1)
