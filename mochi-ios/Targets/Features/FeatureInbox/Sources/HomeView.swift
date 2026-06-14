@@ -60,8 +60,11 @@ public struct HomeView: View {
                 }
                 .padding(.horizontal, HomeDesign.Spacing.xl)
                 .padding(.top, HomeDesign.Spacing.md)
-                // 우하단 플로팅 버튼에 마지막 섹션이 가리지 않도록 하단 여백 확보.
-                .padding(.bottom, 88)
+                // 탭바 위 여백은 네이티브 TabView 의 bottom safe-area inset 이 담당한다 — 검색 탭처럼
+                // 마지막 섹션이 탭바 바로 위에 붙게 둔다(과거 88pt full-width 패딩은 탭바 inset 과 겹쳐
+                // 바닥에 큰 빈 공간을 남겼다). 우하단 + 버튼은 마지막 가로 카드 행 모서리에 떠서 겹치는
+                // 표준 FAB 동작 — 카드 본문(중앙 제목)은 가리지 않는다.
+                .padding(.bottom, HomeDesign.Spacing.xxl)
             }
             .refreshable {
                 await store.send(.refresh).finish()
