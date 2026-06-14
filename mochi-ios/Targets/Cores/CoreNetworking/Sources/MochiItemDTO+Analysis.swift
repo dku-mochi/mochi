@@ -86,6 +86,7 @@ public extension MochiItemDTO {
             lifecycleState: Self.processingState(from: lifecycleKind),
             syncState: .uploaded(serverID: id, at: createdAt),
             userTitle: nil,           // userTitle 은 로컬 오버라이드 — 서버 미보관, 대표 제목으로 폴백.
+            isFavorite: isFavorite,   // 즐겨찾기는 서버 정본 — 복구/pull 시 반드시 보존(userTitle 과 반대).
             createdAt: createdAt,
             updatedAt: createdAt
         )

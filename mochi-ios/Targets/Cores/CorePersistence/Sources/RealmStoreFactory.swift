@@ -6,7 +6,7 @@ import RealmSwift
 /// - App Group 컨테이너에 파일을 두고
 /// - schemaVersion·migrationBlock을 중앙에서 한 곳에 정의해 모든 프로세스가 동일 스키마 가정으로 열도록 한다.
 public enum RealmStoreFactory {
-    public static let currentSchemaVersion: UInt64 = 10
+    public static let currentSchemaVersion: UInt64 = 11
 
     public static func makeConfiguration() -> Realm.Configuration {
         let config = Realm.Configuration(
@@ -19,6 +19,7 @@ public enum RealmStoreFactory {
             // v7 → v8: RealmIntentInstance.payloadEndDate/payloadEndTime 추가 (기간형 일정).
             // v8 → v9: RealmMochiItem.shoppingProductQuery 추가 (상세 구매 링크 — 쇼핑 검색어).
             // v9 → v10: RealmMochiItem.referenceLinks(RealmReferenceLink) 추가 (상세 URL 카드 — Agent 참고 링크).
+            // v10 → v11: RealmMochiItem.isFavorite 추가 (즐겨찾기 신호 — 서버 동기화).
             // prod 아님 — 실데이터 폐기 허용이라 점진 migration 대신 파일을 재생성한다.
             deleteRealmIfMigrationNeeded: true,
             objectTypes: [

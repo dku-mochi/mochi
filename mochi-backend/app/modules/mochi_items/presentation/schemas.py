@@ -139,6 +139,15 @@ class InstanceLifecycleUpdateRequest(BaseModel):
     model_config = {"populate_by_name": True}
 
 
+class FavoriteUpdateRequest(BaseModel):
+    """즐겨찾기 신호 set-state 요청. ``isFavorite=true`` 즐겨찾기 추가, ``false`` 해제.
+    같은 값 재전송은 멱등 no-op(완료 토글과 동일 규약)."""
+
+    is_favorite: bool = Field(alias="isFavorite")
+
+    model_config = {"populate_by_name": True}
+
+
 class IntentPayloadResponse(BaseModel):
     """instance 의 구조화 속성 (전부 optional). date/time 은 시작, endDate/endTime 은 기간형 일정의 끝."""
 
@@ -213,6 +222,7 @@ class MochiItemResponse(BaseModel):
     shopping_product_query: str | None = Field(default=None, alias="shoppingProductQuery")
     reference_links: list[ReferenceLinkResponse] = Field(default_factory=list, alias="referenceLinks")
     importance: int
+    is_favorite: bool = Field(default=False, alias="isFavorite")
     lifecycle_kind: str = Field(alias="lifecycleKind")
     sync_kind: str = Field(alias="syncKind")
     image_refs: list[ImageRefResponse] = Field(default_factory=list, alias="imageRefs")

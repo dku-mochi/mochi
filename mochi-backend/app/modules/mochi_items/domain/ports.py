@@ -153,6 +153,13 @@ class MochiItemRepository(Protocol):
         owner+item+instance 3중 scoped, 없으면 False (→ 404, reanalyze known-drift 만료 신호)."""
         ...
 
+    async def set_favorite(
+        self, *, owner_id: UUID, mochi_item_id: UUID, is_favorite: bool
+    ) -> bool:
+        """즐겨찾기 신호 set-state — owner-scoped UPDATE. 없거나 다른 owner 면 ``False``(→ 404).
+        같은 값 재설정도 성공(멱등) — 존재/소유 검증은 application(`SetFavorite`)이 선행한다."""
+        ...
+
     async def soft_delete(self, *, owner_id: UUID, mochi_item_id: UUID) -> None:
         """mochi_item 을 soft delete (deleted_at 마킹, 행 보존). owner-scoped — 다른 owner 면 no-op.
 

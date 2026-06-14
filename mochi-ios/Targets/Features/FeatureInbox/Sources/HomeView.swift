@@ -1020,7 +1020,10 @@ public struct HomeView: View {
     }
     
     private var settingsFooter: some View {
-        HStack {
+        HStack(spacing: HomeDesign.Spacing.sm) {
+            CircleIconButton(systemName: "star") {
+                store.send(.favoritesTapped)
+            }
             CircleIconButton(systemName: "gearshape") {
                 store.send(.openSettingsTapped)
             }

@@ -214,6 +214,12 @@ public actor MochiItemSyncWorker {
                 mochiItemID: mochiItem.id,
                 to: .uploaded(serverID: dto.id, at: Date())
             )
+            // 즐겨찾기 재조정 — ingest create payload 엔 isFavorite 가 없어(서버 기본 false) 업로드 전
+            // 즐겨찾기한 항목은 서버가 false 로 적재된다. serverID 가 잡힌 지금 서버에 한 번 반영해
+            // "재설치 복구 시 보존" 보장의 구멍(업로드 전 즐겨찾기)을 막는다. best-effort.
+            if mochiItem.isFavorite {
+                _ = try? await apiClient.setFavorite(mochiServerID: dto.id, isFavorite: true)
+            }
         } catch let envelope as APIErrorEnvelope {
             try? await repository.updateSync(
                 mochiItemID: mochiItem.id,

@@ -1533,6 +1533,82 @@ public struct Client: APIProtocol {
             }
         )
     }
+    /// Set Mochi Item Favorite
+    ///
+    /// 즐겨찾기 신호 set-state 토글 — 사용자가 검색 카드·상세에서 "중요"로 표시/해제한다.
+    ///
+    /// set-state 멱등(``isFavorite`` 같은 값 재전송은 no-op 200) — 응답 유실 재시도·빠른 더블탭이
+    /// iOS 낙관적 업데이트를 오롤백하지 않게 한다. owner-scoped, 없는/다른 owner 항목은 404.
+    ///
+    /// - Remark: HTTP `POST /api/v1/mochi_items/{mochi_item_id}/favorite`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/favorite/post(set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post)`.
+    public func set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post(_ input: Operations.set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post.Input) async throws -> Operations.set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post.Output {
+        try await client.send(
+            input: input,
+            forOperation: Operations.set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post.id,
+            serializer: { input in
+                let path = try converter.renderedPath(
+                    template: "/api/v1/mochi_items/{}/favorite",
+                    parameters: [
+                        input.path.mochi_item_id
+                    ]
+                )
+                var request: HTTPTypes.HTTPRequest = .init(
+                    soar_path: path,
+                    method: .post
+                )
+                suppressMutabilityWarning(&request)
+                converter.setAcceptHeader(
+                    in: &request.headerFields,
+                    contentTypes: input.headers.accept
+                )
+                let body: OpenAPIRuntime.HTTPBody?
+                switch input.body {
+                case let .json(value):
+                    body = try converter.setRequiredRequestBodyAsJSON(
+                        value,
+                        headerFields: &request.headerFields,
+                        contentType: "application/json; charset=utf-8"
+                    )
+                }
+                return (request, body)
+            },
+            deserializer: { response, responseBody in
+                switch response.status.code {
+                case 200:
+                    let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
+                    let body: Operations.set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post.Output.Ok.Body
+                    let chosenContentType = try converter.bestContentType(
+                        received: contentType,
+                        options: [
+                            "application/json"
+                        ]
+                    )
+                    switch chosenContentType {
+                    case "application/json":
+                        body = try await converter.getResponseBodyAsJSON(
+                            Components.Schemas.MochiItemResponse.self,
+                            from: responseBody,
+                            transforming: { value in
+                                .json(value)
+                            }
+                        )
+                    default:
+                        preconditionFailure("bestContentType chose an invalid content type.")
+                    }
+                    return .ok(.init(body: body))
+                default:
+                    return .undocumented(
+                        statusCode: response.status.code,
+                        .init(
+                            headerFields: response.headerFields,
+                            body: responseBody
+                        )
+                    )
+                }
+            }
+        )
+    }
     /// Get Conversation Snapshot
     ///
     /// 대화 메시지 전체 스냅샷 — iOS 포그라운드 복귀·히스토리 재진입용.

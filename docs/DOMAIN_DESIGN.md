@@ -72,6 +72,7 @@ iOS · 백엔드 · 프롬프트 모두 동일 용어를 쓴다.
 | **memo fallback** | 대상/행동 불분명 시 memo instance 하나로 안전 보관 + needs_review=true (분류 못 해도 안 잃는다) |
 | **Lifecycle Kind** | 상태 enum. **2분할** — item 처리상태와 instance 의미상태가 직교 (§5) |
 | **Channel** | 입력 채널 (`screenshot`/`appDirectInput`/`appShareSheet`/`appIntent`/`chat`/…). `mochi_items.channel` 인라인. `chat` = 채팅 proposal 확정으로 생성 (2026-06-10) |
+| **Favorite** | 사용자가 "중요"라고 모찌에게 준 신호 (`mochi_items.is_favorite` boolean 인라인). 분석결과가 아닌 **사용자 가변 상태** — reanalyze(`apply_analysis`)가 안 건드린다. 모찌가 능동 회수(홈 즐겨찾기 화면)에 활용 (2026-06-14, PRODUCT §1.5 정합). `POST /mochi_items/{id}/favorite` set-state 멱등 토글 |
 | **Entity** | AI 추출 의미 단위 (`entities.kind`/`value`). kind 는 free str — 프롬프트 가이드일 뿐 DB/앱 제약 아님. 특수 kind: `deadline`(서버가 due 파싱), `shopping_product`(커머스 검색어 — `MochiItemResponse.shoppingProductQuery` projection, 상세 구매 링크. 2026-06-13 lab shopping-product-link) |
 | **AgentRun** | MochiItem 1건 처리 LLM 오케스트레이션 실행 1회 |
 | **Outbox Message** | mochi_items COMMIT 직후 worker 가 픽업할 행 (`mochi_item_outbox`) |
@@ -236,6 +237,7 @@ instance 전이(from→to)·archive_reason×intent_type 검증은 application �
 
 - `RealmMochiItem.intentInstances` = `intent_instances` 미러 (List, 빈 List = "분석 중" 버킷). `needsReview` = 서버 boolean 직접 미러(client-derive 폐기).
 - `RealmMochiItem.userTitle` = 사용자가 기록상세에서 교정한 제목 — **서버 미동기화, 로컬 전용** (재동기화로 instances 가 delete-reinsert 돼도 보존).
+- `RealmMochiItem.isFavorite` = 즐겨찾기 신호 — **서버 동기화**(userTitle 과 반대 방향). `MochiItemResponse.isFavorite` 가 정본이라 `toMochiItem()`(pull)이 반드시 보존한다(누락하면 pull 마다 false 초기화). 토글은 낙관적 로컬 전이 + `POST /mochi_items/{id}/favorite` push(실패 시 `FavoriteSync` 가 롤백). **한계**: pull 은 "이미 있는 로컬 항목 skip"(아래)이라 *다른 기기*에서 바뀐 favorite 은 재pull 로 안 들어온다 — "재설치 복구 시 보존"까지만 보장(기기 간 실시간 양방향은 향후).
 - `embeddings`/`agent_runs`/`tool_calls`/`outbox`/`idempotency_keys`/`user_profiles` 는 서버 only.
 
 ### 6.2 식별성 규약 — 로컬 id ≠ 서버 PK

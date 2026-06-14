@@ -16,6 +16,9 @@ public struct MochiItem: Equatable, Sendable, Identifiable, Hashable {
     /// 사용자가 직접 교정한 제목 (로컬 오버라이드). nil 이면 AI 추출 제목(대표 payload.title)을 쓴다.
     /// 분석 재동기화로 instances 가 delete-reinsert 돼도 보존된다 — payload.title 과 분리한 이유.
     public var userTitle: String?
+    /// 사용자가 준 "중요" 즐겨찾기 신호 — 모찌가 능동 회수(홈 즐겨찾기 시트)에 활용한다.
+    /// userTitle 과 달리 **서버 동기화** 상태다(서버 정본 → pull 시 보존해야 함, toMochiItem 매핑).
+    public var isFavorite: Bool
     public let createdAt: Date
     public var updatedAt: Date
 
@@ -25,6 +28,7 @@ public struct MochiItem: Equatable, Sendable, Identifiable, Hashable {
         lifecycleState: ProcessingState = .ingested,
         syncState: SyncState = .pendingUpload,
         userTitle: String? = nil,
+        isFavorite: Bool = false,
         createdAt: Date = .init(),
         updatedAt: Date = .init()
     ) {
@@ -33,6 +37,7 @@ public struct MochiItem: Equatable, Sendable, Identifiable, Hashable {
         self.lifecycleState = lifecycleState
         self.syncState = syncState
         self.userTitle = userTitle
+        self.isFavorite = isFavorite
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
