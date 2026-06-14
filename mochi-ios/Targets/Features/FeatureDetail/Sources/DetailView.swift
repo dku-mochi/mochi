@@ -61,6 +61,7 @@ public struct DetailView: View {
                 Button { store.send(.closeButtonTapped) } label: {
                     toolbarIcon("xmark")
                 }
+                .accessibilityLabel("닫기")
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
@@ -81,6 +82,7 @@ public struct DetailView: View {
                 } label: {
                     toolbarIcon("ellipsis")
                 }
+                .accessibilityLabel("더보기")
             }
         }
         .alert($store.scope(state: \.deleteAlert, action: \.deleteAlert))
@@ -216,6 +218,9 @@ private struct RecallHeader: View {
                 .opacity((sourceImageHidden || store.heroImageHidden) ? 0 : 1)
                 .contentShape(Rectangle())
                 .onTapGesture { onTapImage(previewHandle.image, previewHandle.imageView) }
+                // onTapGesture 는 VoiceOver 가 버튼으로 못 읽으므로 트레잇·라벨을 직접 부여한다.
+                .accessibilityAddTraits(.isButton)
+                .accessibilityLabel("이미지 크게 보기")
             }
 
             VStack(alignment: .leading, spacing: HomeDesign.Spacing.sm) {
