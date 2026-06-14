@@ -1844,6 +1844,8 @@ public enum Components {
             public var category: Swift.String?
             /// - Remark: Generated from `#/components/schemas/MochiItemResponse/shoppingProductQuery`.
             public var shoppingProductQuery: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/MochiItemResponse/referenceLinks`.
+            public var referenceLinks: [Components.Schemas.ReferenceLinkResponse]?
             /// - Remark: Generated from `#/components/schemas/MochiItemResponse/importance`.
             public var importance: Swift.Int
             /// - Remark: Generated from `#/components/schemas/MochiItemResponse/lifecycleKind`.
@@ -1870,6 +1872,7 @@ public enum Components {
             ///   - summary:
             ///   - category:
             ///   - shoppingProductQuery:
+            ///   - referenceLinks:
             ///   - importance:
             ///   - lifecycleKind:
             ///   - syncKind:
@@ -1888,6 +1891,7 @@ public enum Components {
                 summary: Swift.String? = nil,
                 category: Swift.String? = nil,
                 shoppingProductQuery: Swift.String? = nil,
+                referenceLinks: [Components.Schemas.ReferenceLinkResponse]? = nil,
                 importance: Swift.Int,
                 lifecycleKind: Swift.String,
                 syncKind: Swift.String,
@@ -1906,6 +1910,7 @@ public enum Components {
                 self.summary = summary
                 self.category = category
                 self.shoppingProductQuery = shoppingProductQuery
+                self.referenceLinks = referenceLinks
                 self.importance = importance
                 self.lifecycleKind = lifecycleKind
                 self.syncKind = syncKind
@@ -1925,6 +1930,7 @@ public enum Components {
                 case summary
                 case category
                 case shoppingProductQuery
+                case referenceLinks
                 case importance
                 case lifecycleKind
                 case syncKind
@@ -2113,6 +2119,67 @@ public enum Components {
             }
             public enum CodingKeys: String, CodingKey {
                 case userHint
+            }
+        }
+        /// 상세 화면 "지금 할 수 있어요" 에 붙일 참고 URL.
+        ///
+        /// - Remark: Generated from `#/components/schemas/ReferenceLinkResponse`.
+        public struct ReferenceLinkResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/ReferenceLinkResponse/url`.
+            public var url: Swift.String
+            /// - Remark: Generated from `#/components/schemas/ReferenceLinkResponse/title`.
+            public var title: Swift.String
+            /// - Remark: Generated from `#/components/schemas/ReferenceLinkResponse/label`.
+            public var label: Swift.String
+            /// - Remark: Generated from `#/components/schemas/ReferenceLinkResponse/role`.
+            public var role: Swift.String
+            /// - Remark: Generated from `#/components/schemas/ReferenceLinkResponse/provider`.
+            public var provider: Swift.String
+            /// - Remark: Generated from `#/components/schemas/ReferenceLinkResponse/rankProfile`.
+            public var rankProfile: Swift.String
+            /// - Remark: Generated from `#/components/schemas/ReferenceLinkResponse/source`.
+            public var source: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/ReferenceLinkResponse/usefulness`.
+            public var usefulness: Swift.Int?
+            /// Creates a new `ReferenceLinkResponse`.
+            ///
+            /// - Parameters:
+            ///   - url:
+            ///   - title:
+            ///   - label:
+            ///   - role:
+            ///   - provider:
+            ///   - rankProfile:
+            ///   - source:
+            ///   - usefulness:
+            public init(
+                url: Swift.String,
+                title: Swift.String,
+                label: Swift.String,
+                role: Swift.String,
+                provider: Swift.String,
+                rankProfile: Swift.String,
+                source: Swift.String? = nil,
+                usefulness: Swift.Int? = nil
+            ) {
+                self.url = url
+                self.title = title
+                self.label = label
+                self.role = role
+                self.provider = provider
+                self.rankProfile = rankProfile
+                self.source = source
+                self.usefulness = usefulness
+            }
+            public enum CodingKeys: String, CodingKey {
+                case url
+                case title
+                case label
+                case role
+                case provider
+                case rankProfile
+                case source
+                case usefulness
             }
         }
         /// - Remark: Generated from `#/components/schemas/RefreshRequest`.

@@ -1,0 +1,3785 @@
+{
+  "created_at": "20260614_041513",
+  "display": 10,
+  "summary": {
+    "overall": {
+      "cases": 22,
+      "naver": {
+        "preferred_hit3": 0.7272727272727273,
+        "preferred_hit10": 0.8181818181818182,
+        "acceptable_hit3": 0.9545454545454546,
+        "acceptable_hit10": 1.0
+      },
+      "tavily": {
+        "preferred_hit3": 0.7272727272727273,
+        "preferred_hit10": 0.9090909090909091,
+        "acceptable_hit3": 0.9090909090909091,
+        "acceptable_hit10": 1.0
+      }
+    },
+    "by_vertical": {
+      "cosmetics": {
+        "cases": 4,
+        "naver": {
+          "preferred_hit3": 1.0,
+          "preferred_hit10": 1.0,
+          "acceptable_hit3": 1.0,
+          "acceptable_hit10": 1.0
+        },
+        "tavily": {
+          "preferred_hit3": 0.75,
+          "preferred_hit10": 1.0,
+          "acceptable_hit3": 1.0,
+          "acceptable_hit10": 1.0
+        }
+      },
+      "coupang": {
+        "cases": 3,
+        "naver": {
+          "preferred_hit3": 1.0,
+          "preferred_hit10": 1.0,
+          "acceptable_hit3": 1.0,
+          "acceptable_hit10": 1.0
+        },
+        "tavily": {
+          "preferred_hit3": 1.0,
+          "preferred_hit10": 1.0,
+          "acceptable_hit3": 1.0,
+          "acceptable_hit10": 1.0
+        }
+      },
+      "event": {
+        "cases": 2,
+        "naver": {
+          "preferred_hit3": 1.0,
+          "preferred_hit10": 1.0,
+          "acceptable_hit3": 1.0,
+          "acceptable_hit10": 1.0
+        },
+        "tavily": {
+          "preferred_hit3": 0.5,
+          "preferred_hit10": 1.0,
+          "acceptable_hit3": 0.5,
+          "acceptable_hit10": 1.0
+        }
+      },
+      "fashion": {
+        "cases": 5,
+        "naver": {
+          "preferred_hit3": 0.2,
+          "preferred_hit10": 0.6,
+          "acceptable_hit3": 0.8,
+          "acceptable_hit10": 1.0
+        },
+        "tavily": {
+          "preferred_hit3": 1.0,
+          "preferred_hit10": 1.0,
+          "acceptable_hit3": 1.0,
+          "acceptable_hit10": 1.0
+        }
+      },
+      "local": {
+        "cases": 6,
+        "naver": {
+          "preferred_hit3": 0.6666666666666666,
+          "preferred_hit10": 0.6666666666666666,
+          "acceptable_hit3": 1.0,
+          "acceptable_hit10": 1.0
+        },
+        "tavily": {
+          "preferred_hit3": 0.3333333333333333,
+          "preferred_hit10": 0.6666666666666666,
+          "acceptable_hit3": 0.8333333333333334,
+          "acceptable_hit10": 1.0
+        }
+      },
+      "web": {
+        "cases": 2,
+        "naver": {
+          "preferred_hit3": 1.0,
+          "preferred_hit10": 1.0,
+          "acceptable_hit3": 1.0,
+          "acceptable_hit10": 1.0
+        },
+        "tavily": {
+          "preferred_hit3": 1.0,
+          "preferred_hit10": 1.0,
+          "acceptable_hit3": 1.0,
+          "acceptable_hit10": 1.0
+        }
+      }
+    }
+  },
+  "rows": [
+    {
+      "id": "cos_01",
+      "vertical": "cosmetics",
+      "query": "롬앤 글래스팅 멜팅 밤",
+      "note": "올영/공홈/공식스토어 우선",
+      "preferred": [
+        "oliveyoung",
+        "romand",
+        "smartstore.naver.com"
+      ],
+      "acceptable": [
+        "coupang",
+        "search.shopping.naver.com",
+        "naver.com"
+      ],
+      "naver_categories": [
+        "shop",
+        "webkr"
+      ],
+      "naver_score": {
+        "preferred_at": 1,
+        "acceptable_at": 1,
+        "preferred_hit3": true,
+        "preferred_hit10": true,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "tavily_score": {
+        "preferred_at": 3,
+        "acceptable_at": 1,
+        "preferred_hit3": true,
+        "preferred_hit10": true,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "naver_top": [
+        {
+          "title": "롬앤 글래스팅 멜팅 밤 3.5g",
+          "url": "https://smartstore.naver.com/main/products/7783529108",
+          "source": "naver:shop",
+          "mallName": "롬앤",
+          "brand": "롬앤",
+          "lprice": "9900"
+        },
+        {
+          "title": "[재고정리]롬앤 글래스팅 멜팅 밤 3.5g",
+          "url": "https://smartstore.naver.com/main/products/10032504305",
+          "source": "naver:shop",
+          "mallName": "여우화장",
+          "brand": "롬앤",
+          "lprice": "2000"
+        },
+        {
+          "title": "롬앤 글래스팅 멜팅 밤 3.5g",
+          "url": "https://smartstore.naver.com/main/products/10190286589",
+          "source": "naver:shop",
+          "mallName": "유엔에이치",
+          "brand": "롬앤",
+          "lprice": "8600"
+        },
+        {
+          "title": "[롬앤] 글래스팅 멜팅 밤 M",
+          "url": "https://link.musinsa.com/app/goods/2982925?utm_source=naver_jisicshopping&utm_medium=sh&source=NVSH&utm_term={keyword}&utm_content={ad_group}&ad_coupon_no=299899",
+          "source": "naver:shop",
+          "mallName": "무신사",
+          "brand": "롬앤",
+          "lprice": "7920"
+        },
+        {
+          "title": "[NEW][투톤멜팅밤] 롬앤 글래스팅 멜팅 밤",
+          "url": "https://www.oliveyoung.co.kr/store/common/partner.do?chlNo=1&chlDtlNo=1&utm_source=naver&utm_medium=shopping_ep&utm_campaign=onpro_ep_product_0101_1231&utm_content=pc_price&sndType=goods&sndVal=A000000175795",
+          "source": "naver:shop",
+          "mallName": "올리브영",
+          "brand": "롬앤",
+          "lprice": "13000"
+        },
+        {
+          "title": "롬앤 글래스팅 멜팅 밤  카야  피그",
+          "url": "https://search.shopping.naver.com/catalog/56925728441",
+          "source": "naver:shop",
+          "mallName": "네이버",
+          "brand": "롬앤",
+          "lprice": "8610"
+        },
+        {
+          "title": "롬앤 (2개) 롬앤 글래스팅 멜팅 밤 / 쥬시올리브영 립밤 립스틱 립글로스 틴트",
+          "url": "https://link.gmarket.co.kr/gate/pcs?item-no=3982848648&sub-id=1003&service-code=10000003&lcd=100000005",
+          "source": "naver:shop",
+          "mallName": "G마켓",
+          "brand": "롬앤",
+          "lprice": "15760"
+        },
+        {
+          "title": "롬앤 글래스팅 멜팅 밤 3.5g 4개  06 카야 피그  고보습 비건 립밤",
+          "url": "https://link.coupang.com/re/PCSNAVERPCSDP?pageKey=7283963511&ctag=7283963511&lptag=I19171717381&itemId=19171717381&vendorItemId=86289905467&spec=10305197",
+          "source": "naver:shop",
+          "mallName": "쿠팡",
+          "brand": "롬앤",
+          "lprice": "23100"
+        },
+        {
+          "title": "[롬앤] [2PACK] 글래스팅 멜팅 밤 M",
+          "url": "https://link.musinsa.com/app/goods/3681307?utm_source=naver_jisicshopping&utm_medium=sh&source=NVSH&utm_term={keyword}&utm_content={ad_group}",
+          "source": "naver:shop",
+          "mallName": "무신사",
+          "brand": "롬앤",
+          "lprice": "19900"
+        },
+        {
+          "title": "[롬앤] 글래스팅 멜팅 밤",
+          "url": "http://www.wconcept.co.kr/Product/302200940?adfrom=naver_ep&utm_source=naver&utm_medium=pcs&utm_campaign=WCONCEPT&utm_content=none&utm_term=none",
+          "source": "naver:shop",
+          "mallName": "더블유컨셉",
+          "brand": "",
+          "lprice": "9900"
+        }
+      ],
+      "tavily_top": [
+        {
+          "title": "롬앤 글래스팅 멜팅 밤 전색상 발색, 촉촉광택 롬앤립밤",
+          "url": "https://m.blog.naver.com/30364/222935992990",
+          "source": "tavily",
+          "description": "롬앤 글래스팅 멜팅 밤은 식물성 보습 오일로 마를 틈 없이 쫀쫀한 보습 비건 립밤이에요 ! 라도 쫀쫀 촉촉하고 편안하면서 보습력이 오래 유지돼요."
+        },
+        {
+          "title": "롬앤(ROM&ND) 글래스팅 멜팅 밤 - 후기",
+          "url": "https://www.musinsa.com/products/2982925",
+          "source": "tavily",
+          "description": "제품분류 :뷰티 > 립메이크업 브랜드 : 롬앤(ROM&ND) 제품번호 : M 제품 : 글래스팅 멜팅 밤 - 13000."
+        },
+        {
+          "title": "롬앤x조앤프렌즈 글래스팅 멜팅 밤 - rom&nd",
+          "url": "https://romand.co.kr/product/%EB%A1%AC%EC%95%A4x%EC%A1%B0%EC%95%A4%ED%94%84%EB%A0%8C%EC%A6%88-%EA%B8%80%EB%9E%98%EC%8A%A4%ED%8C%85-%EB%A9%9C%ED%8C%85-%EB%B0%A4/1048",
+          "source": "tavily",
+          "description": "롬앤x조앤프렌즈 글래스팅 멜팅 밤. 좋아요 0. 상품 정보. 소비자가, 13,000원. 판매가, 9,900원 재입고 알림 SMS 재입고 알림 메일 ( 24% ↓ )."
+        },
+        {
+          "title": "[NEW][투톤멜팅밤] 롬앤 글래스팅 멜팅 밤",
+          "url": "https://m.oliveyoung.co.kr/m/G.do?goodsNo=A000000175795",
+          "source": "tavily",
+          "description": "롬앤 글래스팅 멜팅 밤 오늘드림 2,500원 또는 5,000원 (3만원이상 무료) 매장 픽업 가능!"
+        },
+        {
+          "title": "롬앤 글래스팅 멜팅 밤 #오리지널 - rom&nd",
+          "url": "https://romand.co.kr/product/%EB%A1%AC%EC%95%A4-%EA%B8%80%EB%9E%98%EC%8A%A4%ED%8C%85-%EB%A9%9C%ED%8C%85-%EB%B0%A4-%EC%98%A4%EB%A6%AC%EC%A7%80%EB%84%90/655",
+          "source": "tavily",
+          "description": "롬앤 글래스팅 멜팅 밤 #오리지널 · 좋아요 0. 상품 정보. 소비자가, 13,000원. 판매가, 9,900원 재입고 알림 SMS 재입고 알림 메일 ( 24% ↓ ). 할인"
+        },
+        {
+          "title": "[리뷰] 롬앤 글래스팅 멜팅 밤 05 누가가 샌드 : r/AsianBeauty",
+          "url": "https://www.reddit.com/r/AsianBeauty/comments/13jcbvx/review_romand_glasting_melting_balm_in_05_nougat?tl=ko",
+          "source": "tavily",
+          "description": "텍스처는 엄청 부드럽고 밤 타입인데, 여름 되면 탈수 같은 건강 문제일 수도 있고. 이 밤은 너무 끈적거리지 않으면서 보습력 짱이야."
+        },
+        {
+          "title": "롬앤 글래스팅 멜팅 밤 #블랙스펙트럼 - rom&nd",
+          "url": "https://romand.co.kr/product/%EB%A1%AC%EC%95%A4-%EA%B8%80%EB%9E%98%EC%8A%A4%ED%8C%85-%EB%A9%9C%ED%8C%85-%EB%B0%A4-%EB%B8%94%EB%9E%99%EC%8A%A4%ED%8E%99%ED%8A%B8%EB%9F%BC/902",
+          "source": "tavily",
+          "description": "많은 고객님들에게 혜택이 돌아갈 수 있도록 ID당 3개로 구매를 제한합니다. 상품 정보. 소비자가, 13,000원. 판매가, 9,900원 재입고 알림 SMS"
+        },
+        {
+          "title": "롬앤 글래스팅 멜팅 밤 : r/MakeupAddiction",
+          "url": "https://www.reddit.com/r/MakeupAddiction/comments/177ioeh/romand_glasting_melting_balm?tl=ko",
+          "source": "tavily",
+          "description": "롬앤 글래스팅 멜팅 밤. Question. 안녕! 디올 어딕트 립 글로우 01 핑크색이랑 비슷한 색깔 찾고 있는데. 롬앤 밤 색깔은 먹고 마셔도 입술에 남아있어?"
+        },
+        {
+          "title": "롬앤 글래스팅 멜팅밤 쿨톤&웜톤 컬러 틴트립밤 추천",
+          "url": "https://blog.naver.com/sooy110/223597300072",
+          "source": "tavily",
+          "description": "01 코코 누드. 부드러우면서 혈색이 느껴지는 살구 베이지 · 02 러비 핑크. 사랑스럽게 통통 튀는 라이트 핑크 · 03 소르베 밤. 갓 따낸 신선한 자몽같은"
+        },
+        {
+          "title": "롬앤 글래스팅 멜팅 밤 💄 전색상 여쿨라 리뷰! 립밤이 ...",
+          "url": "https://www.youtube.com/watch?v=tZ60xcECxE0",
+          "source": "tavily",
+          "description": "00:00 영상시작 ; 00:16 제품 살펴보기 ; 00:35 제형감은요? ; 00:55 전컬러 팔뚝 발색 비교 ; 01:12 1호 코코누드"
+        }
+      ],
+      "naver_errors": [],
+      "tavily_error": null
+    },
+    {
+      "id": "cos_02",
+      "vertical": "cosmetics",
+      "query": "아비브 어성초 패드 140매",
+      "note": "올영 강한 제품",
+      "preferred": [
+        "oliveyoung",
+        "abib",
+        "smartstore.naver.com"
+      ],
+      "acceptable": [
+        "coupang",
+        "search.shopping.naver.com",
+        "naver.com"
+      ],
+      "naver_categories": [
+        "shop",
+        "webkr"
+      ],
+      "naver_score": {
+        "preferred_at": 1,
+        "acceptable_at": 1,
+        "preferred_hit3": true,
+        "preferred_hit10": true,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "tavily_score": {
+        "preferred_at": 7,
+        "acceptable_at": 2,
+        "preferred_hit3": false,
+        "preferred_hit10": true,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "naver_top": [
+        {
+          "title": "1+1 아비브 어성초 흔적 에센스 패드 클리어터치 140매",
+          "url": "https://smartstore.naver.com/main/products/12158521600",
+          "source": "naver:shop",
+          "mallName": "참좋은뷰티",
+          "brand": "아비브",
+          "lprice": "26500"
+        },
+        {
+          "title": "아비브 어성초 스팟 패드 카밍터치 140매, 1개",
+          "url": "https://search.shopping.naver.com/catalog/52924525386",
+          "source": "naver:shop",
+          "mallName": "네이버",
+          "brand": "아비브",
+          "lprice": "17840"
+        },
+        {
+          "title": "아비브 어성초 흔적 에센스 패드 클리어 터치 오롤리데이 콜라보 70매 + 70매(리필), 1개",
+          "url": "https://search.shopping.naver.com/catalog/59153378839",
+          "source": "naver:shop",
+          "mallName": "네이버",
+          "brand": "아비브",
+          "lprice": "25200"
+        },
+        {
+          "title": "아비브 어성초 흔적 에센스 토너패드 클리어터치 140매(본품 70매+리필 70매)",
+          "url": "https://smartstore.naver.com/main/products/13244964137",
+          "source": "naver:shop",
+          "mallName": "이룽이",
+          "brand": "아비브",
+          "lprice": "40000"
+        },
+        {
+          "title": "아비브 어성초 스팟 패드 카밍터치 140매 대용량",
+          "url": "https://smartstore.naver.com/main/products/9212962540",
+          "source": "naver:shop",
+          "mallName": "블랙 올리브",
+          "brand": "아비브",
+          "lprice": "38500"
+        },
+        {
+          "title": "아비브 어성초 흔적 에센스 패드 클리어터치 70매+70매 리필 기획",
+          "url": "https://smartstore.naver.com/main/products/12544045768",
+          "source": "naver:shop",
+          "mallName": "더담다101",
+          "brand": "아비브",
+          "lprice": "24500"
+        },
+        {
+          "title": "아비브 아비브 어성초 스팟 패드 카밍터치 (140매) 250ML",
+          "url": "https://link.gmarket.co.kr/gate/pcs?item-no=4309449925&sub-id=1003&service-code=10000003&lcd=100000005",
+          "source": "naver:shop",
+          "mallName": "G마켓",
+          "brand": "아비브",
+          "lprice": "17280"
+        },
+        {
+          "title": "아비브 어성초 패드 140매 진정 토너패드 트러블케어 피부진정 스킨패드",
+          "url": "https://smartstore.naver.com/main/products/13450060258",
+          "source": "naver:shop",
+          "mallName": "윈윈즈",
+          "brand": "아비브",
+          "lprice": "23850"
+        },
+        {
+          "title": "아비브 어성초 패드 140매 진정 토너패드 트러블케어 피부진정 스킨패드 2개",
+          "url": "https://smartstore.naver.com/main/products/13450064428",
+          "source": "naver:shop",
+          "mallName": "윈윈즈",
+          "brand": "아비브",
+          "lprice": "39790"
+        },
+        {
+          "title": "아비브 어성초 흔적 에센스 패드 클리어터치 70매 2개",
+          "url": "https://smartstore.naver.com/main/products/13314600342",
+          "source": "naver:shop",
+          "mallName": "골든바닐라",
+          "brand": "아비브",
+          "lprice": "29090"
+        }
+      ],
+      "tavily_top": [
+        {
+          "title": "아비브 어성초 스팟 패드 카밍터치 140매 - Funch Reward",
+          "url": "https://funchreward.com/product/%EC%95%84%EB%B9%84%EB%B8%8C-%EC%96%B4%EC%84%B1%EC%B4%88-%EC%8A%A4%ED%8C%9F-%ED%8C%A8%EB%93%9C-%EC%B9%B4%EB%B0%8D%ED%84%B0%EC%B9%98-140%EB%A7%A4/833",
+          "source": "tavily",
+          "description": "상품명, 아비브 어성초 스팟 패드 카밍터치 140매. 내용물의 용량 또는 중량, 250ml/140pads. 사용기한(또는 개봉 후 사용기간), 제조일로부터 36개월, 개봉후 9개월."
+        },
+        {
+          "title": "쿠팡이 추천하는 아비브어성초패드 관련 혜택과 특가",
+          "url": "https://www.coupang.com/np/search?q=%EC%95%84%EB%B9%84%EB%B8%8C%EC%96%B4%EC%84%B1%EC%B4%88%ED%8C%A8%EB%93%9C",
+          "source": "tavily",
+          "description": "아비브 어성초 스팟 패드 카밍터치 (140매) 250ML, 140매입, 1개. 62,020원. 49%. 31,260원. (1개당 31,260"
+        },
+        {
+          "title": "아비브 어성초 스팟 패드 카밍터치(140매) - SSG.COM",
+          "url": "https://www.ssg.com/item/itemView.ssg?itemId=1000647335238",
+          "source": "tavily",
+          "description": "... 아비브 어성초 스팟 패드 카밍터치(140매). 정상가격22,190원. 판매가격 22,150원. 가격 자세히보기. 쓱7클럽 시작하기. 무이자 할부: 카드사별 무이자 혜택. 쇼핑혜택"
+        },
+        {
+          "title": "어성초 패드 - 검색결과 - 쇼핑하우",
+          "url": "https://shoppinghow.kakao.com/m/search/q/%EC%96%B4%EC%84%B1%EC%B4%88%20%ED%8C%A8%EB%93%9C",
+          "source": "tavily",
+          "description": "아비브 아비브 어성초 스팟 패드 카밍터치 (140매) 250ML 찜하기. 아비브 아비브 어성초 스팟 패드 카밍터치 (140매) 250ML. 18,200원. 배송비 별도 배송비 안내 정보"
+        },
+        {
+          "title": "아비브 어성초 스팟 패드 카밍터치 140매 (1개) : 다나와 가격비교",
+          "url": "https://prod.danawa.com/info?pcode=120820112",
+          "source": "tavily",
+          "description": "아비브 어성초 스팟 패드 카밍터치 140매 (1개). 1개옵션선택. 11번가. 빠른배송3,000원. 최저17,390원. 가격비교 71 최저가 구매"
+        },
+        {
+          "title": "아비브 어성초 스팟패드 내돈내산 후기 - 언니의파우치 커뮤니티",
+          "url": "https://unpa.me/community/toner/121895361",
+          "source": "tavily",
+          "description": "기존 어성초패드는 70매인데,. PX 상품은 140매라 PX에서 사는게 무조건 이득입니다. 가격도 만원 중~후반대였던거 같아요. 주변에 예비군 가는 친구가"
+        },
+        {
+          "title": "아비브 어성초 진정 패드 검색 - 올리브영",
+          "url": "https://www.oliveyoung.co.kr/store/search/getSearchMain.do?query=%EC%95%84%EB%B9%84%EB%B8%8C+%EC%96%B4%EC%84%B1%EC%B4%88+%EC%A7%84%EC%A0%95+%ED%8C%A8%EB%93%9C&giftYn=N&t_page=%5B%EB%8B%A8%ED%92%88%2F%EA%B8%B0%ED%9A%8D%5D%5B10ml%EC%B6%94%EA%B0%80%EC%A6%9D%EC%A0%95%5D%ED%97%89%EC%8A%AC%EB%A6%AC%ED%95%B8%EB%93%9C%ED%81%AC%EB%A6%BC30ml6%EC%A2%85%ED%83%9D1&t_click=%EA%B2%80%EC%83%89%EC%B0%BD&t_search_name=%EC%95%84%EB%B9%84%EB%B8%8C+%EC%96%B4%EC%84%B1%EC%B4%88+%EC%A7%84%EC%A0%95+%ED%8C%A8%EB%93%9C",
+          "source": "tavily",
+          "description": "[대용량140매] 넘버즈인 토너패드 리필 기획(1번, 3번, 5번). 할인율35%현재 ... [어워즈한정기획/150매] 아비브 어성초 흔적 에센스 패드 클리어터치 70매 어워즈"
+        },
+        {
+          "title": "올영세일기념 토너 패드 추천  아비브 어성초 패드 1위? - YouTube",
+          "url": "https://www.youtube.com/watch?v=KF7WfYZWL88",
+          "source": "tavily",
+          "description": "... 아비브 어성초 패드 어워즈 한.정.기.획 아비브 어성초 패드 총 150매 구성 40000원➡️25900원 지금 놓치면 완전 손해 ⇨⇨⇨ https://bit.ly/allact1"
+        },
+        {
+          "title": "https://abib.com/product/어성초-스팟-패드-카밍-터치/226/categ...",
+          "url": "https://abib.com/product/%EC%96%B4%EC%84%B1%EC%B4%88-%EC%8A%A4%ED%8C%9F-%ED%8C%A8%EB%93%9C-%EC%B9%B4%EB%B0%8D-%ED%84%B0%EC%B9%98/226/category/72/display/1?page_4=4",
+          "source": "tavily",
+          "description": "No information is available for this page. · Learn why"
+        },
+        {
+          "title": "아비브 어성초 패드 아침마다 팩 하기 딱 좋아서 쓰는 리뷰",
+          "url": "https://m.blog.naver.com/1suhyeon/223063302885",
+          "source": "tavily",
+          "description": "- 피부 본연의 아름다움을 추구한다. - 안정성이 입증된 원료만을 사용한다. - 최고의 전문가와 제품을 개발한다. - 가장 높은"
+        }
+      ],
+      "naver_errors": [],
+      "tavily_error": null
+    },
+    {
+      "id": "cos_03",
+      "vertical": "cosmetics",
+      "query": "토리든 다이브인 세럼",
+      "note": "공홈/올영 모두 가능",
+      "preferred": [
+        "oliveyoung",
+        "torriden",
+        "smartstore.naver.com"
+      ],
+      "acceptable": [
+        "coupang",
+        "search.shopping.naver.com",
+        "naver.com"
+      ],
+      "naver_categories": [
+        "shop",
+        "webkr"
+      ],
+      "naver_score": {
+        "preferred_at": 1,
+        "acceptable_at": 1,
+        "preferred_hit3": true,
+        "preferred_hit10": true,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "tavily_score": {
+        "preferred_at": 2,
+        "acceptable_at": 1,
+        "preferred_hit3": true,
+        "preferred_hit10": true,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "naver_top": [
+        {
+          "title": "토리든 다이브인 세럼 히알루론산 100ml+40ml 저분자 수분 앰플 코스트코",
+          "url": "https://smartstore.naver.com/main/products/11150288248",
+          "source": "naver:shop",
+          "mallName": "티에스shop",
+          "brand": "토리든",
+          "lprice": "31400"
+        },
+        {
+          "title": "토리든 다이브인 저분자 히알루론산 세럼 50ml, 1개",
+          "url": "https://search.shopping.naver.com/catalog/51929268310",
+          "source": "naver:shop",
+          "mallName": "네이버",
+          "brand": "토리든",
+          "lprice": "12990"
+        },
+        {
+          "title": "토리든 다이브인 저분자 히알루론산 세럼 50ml+40ml, 1개",
+          "url": "https://search.shopping.naver.com/catalog/56457467417",
+          "source": "naver:shop",
+          "mallName": "네이버",
+          "brand": "토리든",
+          "lprice": "25300"
+        },
+        {
+          "title": "토리든 다이브인 세럼 50ml + 50ml(리필), 1개",
+          "url": "https://search.shopping.naver.com/catalog/56467278987",
+          "source": "naver:shop",
+          "mallName": "네이버",
+          "brand": "토리든",
+          "lprice": "23950"
+        },
+        {
+          "title": "토리든 다이브인 세럼 저분자 히알루론산 수분 앰플 100ml + 20ml x 2개, 1개",
+          "url": "https://search.shopping.naver.com/catalog/58440146642",
+          "source": "naver:shop",
+          "mallName": "네이버",
+          "brand": "토리든",
+          "lprice": "29950"
+        },
+        {
+          "title": "토리든 다이브인 히알루론산 세럼 저분자 앰플 100ml+40ml 코스트코",
+          "url": "https://smartstore.naver.com/main/products/10729652620",
+          "source": "naver:shop",
+          "mallName": "올댓픽",
+          "brand": "",
+          "lprice": "30590"
+        },
+        {
+          "title": "토리든 다이브인 프로 저분자 히알루론산 앰플 6병+세럼미스트 1병",
+          "url": "https://display.cjonstyle.com/p/item/2083431786?infl_cd=I0696&utm_medium=pcs&utm_source=naver",
+          "source": "naver:shop",
+          "mallName": "CJ온스타일",
+          "brand": "토리든",
+          "lprice": "141550"
+        },
+        {
+          "title": "토리든 다이브인 저분자 히알루론산 세럼 50ml(신형), 1개",
+          "url": "https://search.shopping.naver.com/catalog/60302134032",
+          "source": "naver:shop",
+          "mallName": "네이버",
+          "brand": "토리든",
+          "lprice": "17500"
+        },
+        {
+          "title": "토리든 다이브인 히알루론산 세럼 140ml 코스트코",
+          "url": "https://smartstore.naver.com/main/products/11067999862",
+          "source": "naver:shop",
+          "mallName": "jbmall",
+          "brand": "토리든",
+          "lprice": "30600"
+        },
+        {
+          "title": "토리든 다이브인 저분자 히알루론산 세럼 본품+리필 150ml 대용량 기획세트",
+          "url": "https://smartstore.naver.com/main/products/11288318619",
+          "source": "naver:shop",
+          "mallName": "콩심샵",
+          "brand": "토리든",
+          "lprice": "31500"
+        }
+      ],
+      "tavily_top": [
+        {
+          "title": "매 순간을 아름답게 : 네이버 블로그",
+          "url": "https://blog.naver.com/momentofmiracle1017/223128198569",
+          "source": "tavily",
+          "description": "| 토리든 다이브인 세럼 내돈내산 솔직후기  프로파일 빛나그랑   *・*  2023. 성대했던 지난 올리브영 세일 기간에  내돈내산으로 구매한  토리든 다이브인 세럼 솔직후기로 찾아왔어요. ​  이를 중심으로 함께 사용하면  피부 진정에 도움을 주는  판테놀과 알란토인이 함유되어 있어  ​  수분 충전과 피부 진정에  함께 도움을 받을 수 있습니다. ​  원료적 특성에 한함    ​  평소에 항상  피부 속건조에 시달리는 저는"
+        },
+        {
+          "title": "토리든 Torriden",
+          "url": "https://www.torriden.com",
+          "source": "tavily",
+          "description": "## THE NEW CHAPTER 공식몰 리뉴얼 오픈! * [![[2개묶음] 밸런스풀 시카 컨트롤 세럼 50ml](https://godomall-storage.cdn-nhncommerce.com/4d7876b81b0d37f8a7cfa4d402d68be4/goods/273/image/main/273_main_069.png \"[2개묶음] 밸런스풀 시카 컨트롤 세럼 50ml\")](../goods/goods_view.php? good"
+        },
+        {
+          "title": "다이브인 저분자 히알루론산 세럼 40ml - 토리든 Torriden",
+          "url": "https://www.torriden.com/goods/goods_view.php?goodsNo=181",
+          "source": "tavily",
+          "description": "DEEP DIVE INTO YOUR SKIN 성분을 중심으로, 흡수까지 설계하는 스킨케어 토리든."
+        },
+        {
+          "title": "토리든 다이브인 저분자 히알루론산 세럼, 100ml, 1개 - 쿠팡",
+          "url": "https://www.coupang.com/vp/products/6685577070",
+          "source": "tavily",
+          "description": "현재 별점 4.7점, 리뷰 8112개를 가진 토리든 다이브인 저분자 히알루론산 세럼, 100ml, 1개! 지금 쿠팡에서 더 저렴하고 다양한 에센스/세럼/앰플 제품들을 확인해"
+        },
+        {
+          "title": "[리뷰] 숨겨진 꿀템 세럼: 토리든 다이브인 세럼 : r/AsianBeauty - Reddit",
+          "url": "https://www.reddit.com/r/AsianBeauty/comments/i2ulys/review_an_underated_serum_torriden_dive_in_serum?tl=ko",
+          "source": "tavily",
+          "description": "Bring Green 세럼은 제가 써본 세럼 중에 붉은 기와 자극에 눈에 띄는 변화를 준 유일한 세럼이에요. 쑥, 병풀 유효 성분, 판테놀 조합이 최고예요. 거의"
+        },
+        {
+          "title": "가볍고 산뜻하고 촉촉하게! #다이브인 으로 산뜻한 하루를 시작해 ...",
+          "url": "https://www.instagram.com/reel/DIknHVaMhXP",
+          "source": "tavily",
+          "description": "UPGRADE DIVE IN SERUM Previewer Event OPEN .✧ 수많은 연구와 테스트 끝에 더 깊고, 더 촘촘해진 수분으로 돌아온 UPGRADE 다이브인 세럼! 토리든의"
+        },
+        {
+          "title": "토리든 다이브인 저분자 히알루론산 세럼 50ml (+다이브인 멀티 ... - 화해",
+          "url": "https://www.hwahae.co.kr/goods/35118",
+          "source": "tavily",
+          "description": "토리든 다이브인 저분자 히알루론산 세럼 50ml (+다이브인 멀티패드 10매입 1개) 상품의 정보 및 후기/리뷰, 성분 그리고 가격, 랭킹, 할인 혜택을 확인하고 구매해"
+        },
+        {
+          "title": "토리든 다이브인 저분자 히알루론산 세럼 솔직 리뷰 & 성분 분석ㅣ화해 ...",
+          "url": "https://www.youtube.com/watch?v=qL7ONGezLCY",
+          "source": "tavily",
+          "description": "안녕하세요! 오늘 리뷰 할 제품은 바로! 화해 어플 2년 연속 에센스/앰플/세럼 부문 1위를 수상하며 속보습에 좋다고 소문난 토리든 다이브인 히알루론산"
+        },
+        {
+          "title": "[스킨] Torriden dive in serum - 172.--.185.250 - 2024-6-7 15:04:35",
+          "url": "https://mobile.missyusa.com/mainpage/boards/board_read.asp?id=healthy1&page=1&category=0&key_field=&mypost=0&key_word=&idx=998928&ref=190390&step=1&level=0",
+          "source": "tavily",
+          "description": "저 이거 네통째 쓰는데 비릿내 난적 한번도 없어요. 그리고 뭐랄까 이제품이 기능성 제품이 아니라 그냥 스킨과 세럼의 중간정도 되는 용도로 저는 쓰고"
+        }
+      ],
+      "naver_errors": [],
+      "tavily_error": null
+    },
+    {
+      "id": "cos_04",
+      "vertical": "cosmetics",
+      "query": "라운드랩 독도 토너",
+      "note": "화장품 범용",
+      "preferred": [
+        "oliveyoung",
+        "roundlab",
+        "smartstore.naver.com"
+      ],
+      "acceptable": [
+        "coupang",
+        "search.shopping.naver.com",
+        "naver.com"
+      ],
+      "naver_categories": [
+        "shop",
+        "webkr"
+      ],
+      "naver_score": {
+        "preferred_at": 3,
+        "acceptable_at": 1,
+        "preferred_hit3": true,
+        "preferred_hit10": true,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "tavily_score": {
+        "preferred_at": 1,
+        "acceptable_at": 1,
+        "preferred_hit3": true,
+        "preferred_hit10": true,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "naver_top": [
+        {
+          "title": "라운드랩 1025 독도 토너 500ml, 1개",
+          "url": "https://search.shopping.naver.com/catalog/51929211751",
+          "source": "naver:shop",
+          "mallName": "네이버",
+          "brand": "라운드랩",
+          "lprice": "13450"
+        },
+        {
+          "title": "라운드랩 라운드랩 1025 독도 토너 대용량 500ml+100ml",
+          "url": "https://link.auction.co.kr/gate/pcs?item-no=E515261875&sub-id=1&service-code=10000003",
+          "source": "naver:shop",
+          "mallName": "옥션",
+          "brand": "라운드랩",
+          "lprice": "15570"
+        },
+        {
+          "title": "라운드랩 1025 독도토너/로션 2종[저자극/세트]",
+          "url": "https://smartstore.naver.com/main/products/11411850378",
+          "source": "naver:shop",
+          "mallName": "옴니코스",
+          "brand": "라운드랩",
+          "lprice": "23900"
+        },
+        {
+          "title": "라운드랩 1025 독도 토너 200ml, 1개",
+          "url": "https://search.shopping.naver.com/catalog/51929486617",
+          "source": "naver:shop",
+          "mallName": "네이버",
+          "brand": "라운드랩",
+          "lprice": "9790"
+        },
+        {
+          "title": "라운드랩 1025 독도 토너 500ml 진정 수분 닦토 대용량 스킨",
+          "url": "https://smartstore.naver.com/main/products/4783688711",
+          "source": "naver:shop",
+          "mallName": "옴니코스",
+          "brand": "라운드랩",
+          "lprice": "18500"
+        },
+        {
+          "title": "라운드랩 독도 토너 500ml + 로션 200ml 세트",
+          "url": "https://link.coupang.com/re/PCSNAVERPCSDP?pageKey=0550662167&ctag=0550662167&lptag=l12625849586&itemId=8566428159&vendorItemId=74138477804&spec=10305197",
+          "source": "naver:shop",
+          "mallName": "쿠팡",
+          "brand": "",
+          "lprice": "31100"
+        },
+        {
+          "title": "[1등토너/리필] 라운드랩 1025 독도 토너 200ml 리필팩",
+          "url": "https://www.oliveyoung.co.kr/store/common/partner.do?chlNo=1&chlDtlNo=1&utm_source=naver&utm_medium=shopping_ep&utm_campaign=onpro_ep_product_0101_1231&utm_content=pc_price&sndType=goods&sndVal=A000000214992",
+          "source": "naver:shop",
+          "mallName": "올리브영",
+          "brand": "라운드랩",
+          "lprice": "10900"
+        },
+        {
+          "title": "라운드랩 1025 독도 로션 400ml+독도 토너 500ml",
+          "url": "https://smartstore.naver.com/main/products/11874613815",
+          "source": "naver:shop",
+          "mallName": "파파건강",
+          "brand": "라운드랩",
+          "lprice": "39880"
+        },
+        {
+          "title": "라운드랩 1025 독도 토너 350ml, 2개",
+          "url": "https://search.shopping.naver.com/catalog/51929348537",
+          "source": "naver:shop",
+          "mallName": "네이버",
+          "brand": "라운드랩",
+          "lprice": "22290"
+        },
+        {
+          "title": "라운드랩 1025 독도 토너 500ml X 로션 200ml 2종 세트",
+          "url": "https://roundlab.co.kr/product/%EB%9D%BC%EC%9A%B4%EB%93%9C%EB%9E%A9-1025-%EB%8F%85%EB%8F%84-%ED%86%A0%EB%84%88-500ml-x-%EB%A1%9C%EC%85%98-200ml-2%EC%A2%85-%EC%84%B8%ED%8A%B8/222/",
+          "source": "naver:webkr",
+          "description": "소비자가 ; 판매가 : 36,000원, 배송방법 : 택배, 배송비 : 2,500원 (15,000원 이상 구매 시 무료)"
+        }
+      ],
+      "tavily_top": [
+        {
+          "title": "1025 독도 - 라운드랩",
+          "url": "https://roundlab.co.kr/category/1025-%EB%8F%85%EB%8F%84/100",
+          "source": "tavily",
+          "description": "라운드랩 1025 독도 토너 500ml X 로션 200ml 2종 세트. 45,000원 36,000원. 25%. 포 맨 1025 독도 올인원 플루이드 200ml. 24,000원 18,000원."
+        },
+        {
+          "title": "Brand-Round Lab - ODKSHOP",
+          "url": "https://www.odkshop.com/collections/brand-round-lab",
+          "source": "tavily",
+          "description": "[라운드랩] 1025 독도 토너 200ml + 1025 독도 크림 80ml 세트 1025 Dokdo Toner ... [라운드랩] 1025 독도 토너 + 1025 독도 로션 200ml 세트 1025 Dokdo Toner + Lotion"
+        },
+        {
+          "title": "라운드랩",
+          "url": "https://roundlab.co.kr",
+          "source": "tavily",
+          "description": "피부와 세상을 변화시키는 매일의 힘, 라운드랩 · 1025 독도 토너 대용량 500ml · 1025 독도 토너 200ml + 독도 로션 200ml 2종 세트."
+        },
+        {
+          "title": "[1등토너] 라운드랩 1025 독도 토너 500ml 기획 (+100ml) | 올리브영",
+          "url": "https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000137180",
+          "source": "tavily",
+          "description": "[1등토너] 라운드랩 1025 독도 토너 500ml 기획 (+100ml) · 판매가30,000원 · 세일 (26.05.31 ~ 26.06.30)-3,000원 · 최적가27,000원."
+        },
+        {
+          "title": "라운드랩 1025 독도 토너 500ml (1개) : 다나와 가격비교",
+          "url": "https://prod.danawa.com/info?pcode=5568067",
+          "source": "tavily",
+          "description": "독도토너 사용하고 부터는 다른거 사용 못하겠어요~ 부드럽고 촉촉하고 자극없이 무향이며 물같은 제형인데도 신기하게도 엄청 부두럽고 촉촉~세수하고나서 화장솜에"
+        },
+        {
+          "title": "라운드랩 독도 토너, 500ml, 2개 - 스킨케어 | 쿠팡",
+          "url": "https://www.coupang.com/vp/products/1414809213",
+          "source": "tavily",
+          "description": "한 달간 2,000명 이상 구매했어요. 라운드랩. 브랜드샵. 라운드랩 독도 토너, 500ml, 2개. 60,608 개 상품평. 한 달간 2,000명 이상 구매했어요. 45%. 32,600원. (10ml당"
+        },
+        {
+          "title": "올리브영추천템 라운드랩 1025 독도토너 사용 팁 및 후기",
+          "url": "https://m.blog.naver.com/PostView.naver?blogId=sumnino_&logNo=223499270213",
+          "source": "tavily",
+          "description": "용량은 500ml라는 대용량을 자랑하기 때문에 아낌없이 팍팍 사용이 가능하답니다. ​. 저는 주로 드라이기로 머리 말릴 때, 화장솜을 넉넉하게"
+        },
+        {
+          "title": "라운드랩 - 나무위키",
+          "url": "https://namu.wiki/w/%EB%9D%BC%EC%9A%B4%EB%93%9C%EB%9E%A9",
+          "source": "tavily",
+          "description": "자연 그대로의 깨끗한 원료를 사용하여 따스한 토닥임을 선사한다는 가치관을 내걸고 있다. 3. 제품 목록[편집]. 1025 독도 라인. 자작나무 수분 라인."
+        },
+        {
+          "title": "라운드랩 독도 라인 진짜 좋을까? (비트체크 Ep.2) - YouTube",
+          "url": "https://www.youtube.com/watch?v=mwZJ8FVsfGQ",
+          "source": "tavily",
+          "description": "라운드랩 1025 독도 로션 02:50 라운드랩 1025 독도 토너 04:05 라운드랩 1025 독도 클렌저 05:12 라운드랩 1025 독도 클렌징 오일 06:37 오늘 이것만"
+        }
+      ],
+      "naver_errors": [],
+      "tavily_error": null
+    },
+    {
+      "id": "fas_01",
+      "vertical": "fashion",
+      "query": "쿠어 스탠드 칼라 넥 다운 푸퍼",
+      "note": "브랜드/무신사 우선",
+      "preferred": [
+        "musinsa",
+        "coor",
+        "29cm"
+      ],
+      "acceptable": [
+        "smartstore.naver.com",
+        "coupang",
+        "search.shopping.naver.com"
+      ],
+      "naver_categories": [
+        "shop",
+        "webkr"
+      ],
+      "naver_score": {
+        "preferred_at": 4,
+        "acceptable_at": 1,
+        "preferred_hit3": false,
+        "preferred_hit10": true,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "tavily_score": {
+        "preferred_at": 1,
+        "acceptable_at": 1,
+        "preferred_hit3": true,
+        "preferred_hit10": true,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "naver_top": [
+        {
+          "title": "쿠어 스탠드 칼라 넥 다운 푸퍼",
+          "url": "https://search.shopping.naver.com/catalog/58192644136",
+          "source": "naver:shop",
+          "mallName": "네이버",
+          "brand": "쿠어",
+          "lprice": "269100"
+        },
+        {
+          "title": "쿠어 COOR 스탠드 칼라 넥 다운 푸퍼 올리브카키 S",
+          "url": "https://search.shopping.naver.com/catalog/60360909752",
+          "source": "naver:shop",
+          "mallName": "네이버",
+          "brand": "쿠어",
+          "lprice": "329900"
+        },
+        {
+          "title": "쿠어 스탠드 칼라 넥 다운 푸퍼 CXE4JP03V",
+          "url": "https://search.shopping.naver.com/catalog/55417062925",
+          "source": "naver:shop",
+          "mallName": "네이버",
+          "brand": "쿠어",
+          "lprice": "269100"
+        },
+        {
+          "title": "[쿠어] 스탠드 칼라 넥 다운 푸퍼 (블랙) CXE4JP03V-BLK",
+          "url": "https://link.musinsa.com/app/goods/4452115?utm_source=naver_jisicshopping&utm_medium=sh&source=NVSH&utm_term={keyword}&utm_content={ad_group}",
+          "source": "naver:shop",
+          "mallName": "무신사",
+          "brand": "쿠어",
+          "lprice": "269100"
+        },
+        {
+          "title": "쿠어 COOR 스탠드 칼라 넥 다운 푸퍼 (블랙)",
+          "url": "https://smartstore.naver.com/main/products/12960202226",
+          "source": "naver:shop",
+          "mallName": "이글인터내셔널",
+          "brand": "",
+          "lprice": "316400"
+        },
+        {
+          "title": "국내정품 쿠어 숏패딩 점퍼 스탠드 칼라 넥 다운 푸퍼 올리브카키 241025",
+          "url": "https://search.shopping.naver.com/catalog/59473991126",
+          "source": "naver:shop",
+          "mallName": "네이버",
+          "brand": "",
+          "lprice": "315200"
+        },
+        {
+          "title": "[쿠어] 스탠드 칼라 넥 다운 푸퍼 (올리브카키) CXE4JP03V-OKI",
+          "url": "https://link.musinsa.com/app/goods/5515311?utm_source=naver_jisicshopping&utm_medium=sh&source=NVSH&utm_term={keyword}&utm_content={ad_group}",
+          "source": "naver:shop",
+          "mallName": "무신사",
+          "brand": "쿠어",
+          "lprice": "269100"
+        },
+        {
+          "title": "[쿠어] 스탠드 칼라 넥 다운 푸퍼 (블랙)",
+          "url": "https://product.29cm.co.kr/catalog/2851719?BSCCN1=2851719&BSCPN=CMCOM&utm_campaign=conversion_navershopping&utm_source=growth_naver&utm_term=2851719&naver_code=naver_ep&utm_content=conversion_navershopping&BSPRG=NAVERSH&utm_medium=display",
+          "source": "naver:shop",
+          "mallName": "29CM",
+          "brand": "쿠어",
+          "lprice": "269100"
+        },
+        {
+          "title": "COOR 스탠드 칼라 넥 다운 푸퍼 (올리브카키) 182489",
+          "url": "https://smartstore.naver.com/main/products/13526622429",
+          "source": "naver:shop",
+          "mallName": "제이케이인터내셔널6970",
+          "brand": "쿠어",
+          "lprice": "315200"
+        },
+        {
+          "title": "쿠어 스탠드 칼라 넥 다운 푸퍼 (블랙)",
+          "url": "https://www.lotteon.com/p/product/LO2693440210?sitmNo=LO2693440210_2693440211&ch_no=100065&ch_dtl_no=1000030&entryPoint=pcs&dp_infw_cd=CHT",
+          "source": "naver:shop",
+          "mallName": "롯데ON",
+          "brand": "",
+          "lprice": "317920"
+        }
+      ],
+      "tavily_top": [
+        {
+          "title": "쿠어(COOR) 스탠드 칼라 넥 다운 푸퍼 (블랙) - 사이즈 & 후기 | 무신사",
+          "url": "https://www.musinsa.com/products/4452115",
+          "source": "tavily",
+          "description": "제품분류 :아우터 > 숏패딩/헤비 아우터 브랜드 : 쿠어(COOR) 제품번호 : CXE4JP03V-BLK 제품 : 스탠드 칼라 넥 다운 푸퍼 (블랙) - 269100."
+        },
+        {
+          "title": "쿠어 스탠드 칼라 넥 다운 푸퍼 | 브랜드 중고거래 플랫폼, 번개장터",
+          "url": "https://m.bunjang.co.kr/products/378793193?ref=%EC%83%81%EC%A0%90%EC%83%81%ED%92%88",
+          "source": "tavily",
+          "description": "쿠어 스탠드 칼라 넥 다운 푸퍼 가격: 219000원 쿠어 스탠드 칼라 넥 다운 푸퍼 블랙 색상입니다. 스탠드 칼라 디자인으로 목까지 따뜻하게 감싸줘요."
+        },
+        {
+          "title": "스탠드 칼라 넥 다운 푸퍼 (블랙) - COOR",
+          "url": "https://coor.kr/product/%EC%8A%A4%ED%83%A0%EB%93%9C-%EC%B9%BC%EB%9D%BC-%EB%84%A5-%EB%8B%A4%EC%9A%B4-%ED%91%B8%ED%8D%BC-%EB%B8%94%EB%9E%99/2536",
+          "source": "tavily",
+          "description": "KRW 269,100 ( KRW 29,900 할인) · 크롭 한 기장감의 오버사이즈핏 다운 푸퍼 내부 충전재 덕다운 사용 밀도감이 있는 부드러운 터치감의 MA-1 원단 사용 스탠드 칼라 형태"
+        },
+        {
+          "title": "쿠어/스탠드 칼라 넥 다운 푸퍼 (블랙)/무신사/ 160,820 ... - 어미새",
+          "url": "https://eomisae.co.kr/gl/169954362",
+          "source": "tavily",
+          "description": "Extra Form. 주문 날짜, 2025-11-27. 쇼핑몰, 무신사. 브랜드, 쿠어. 상품명, 스탠드 칼라 넥 다운 푸퍼 (블랙). 사이즈, L. 가격, ￦ 160,820"
+        },
+        {
+          "title": "스탠드 칼라 넥 다운 푸퍼 (블랙) - 감도 깊은 취향 셀렉트샵 29CM",
+          "url": "https://www.29cm.co.kr/products/2851719",
+          "source": "tavily",
+          "description": "쿠어(COOR) 스탠드 칼라 넥 다운 푸퍼 (블랙)"
+        },
+        {
+          "title": "175/73 .OUTER [쿠어] 스탠드카라넥 다운푸퍼(M) - Threads",
+          "url": "https://www.threads.com/@maximal_fairy/post/DSTgB_1k2MM/outer-%EC%BF%A0%EC%96%B4-%EC%8A%A4%ED%83%A0%EB%93%9C%EC%B9%B4%EB%9D%BC%EB%84%A5-%EB%8B%A4%EC%9A%B4%ED%91%B8%ED%8D%BCm-httpswwwmusinsacomcuratorgoodstu5wontop-%EB%B8%8C%EB%A1%A0%EC%8A%A8-%EB%B9%88%ED%8B%B0%EC%A7%80-%ED%97%A8%EB%A6%AC%EB%84%A5-%EB%A1%B1%EC%8A%AC%EB%A6%AC%EB%B8%8Cht",
+          "source": "tavily",
+          "description": "용돈 30만원으로 패션생활하기 - 40대필독. 키/몸무게 - 175/73 .OUTER [쿠어] 스탠드카라넥 다운푸퍼(M)- 230,000원 . ... 에크루 컬러와 더불어 리스탁된"
+        },
+        {
+          "title": "쿠어 스탠드 칼라 넥 다운 푸퍼 CXE4JP03V : 다나와 가격비교",
+          "url": "https://prod.danawa.com/info?pcode=100681595",
+          "source": "tavily",
+          "description": "쿠어 스탠드 칼라 넥 다운 푸퍼 CXE4JP03V ... 일시품절 된 상품입니다. 멤버십/카드결제 최대 혜택가. 자세히. 카드"
+        },
+        {
+          "title": "예쁜거 6개 입어봤어요 스펙 : 177cm 73kg 1. 스탠드 칼라 넥 다운 푸퍼",
+          "url": "https://www.instagram.com/reel/DRKIkxriSrk",
+          "source": "tavily",
+          "description": "스펙 : 177cm 73kg 1. 스탠드 칼라 넥 다운 푸퍼 - L size 2. 워시드 엔지니어드 데님 팬츠 - M size 3. 라이트 웨이트 쉘 패디드 후드 점퍼 - L size 4."
+        },
+        {
+          "title": "쿠어 스탠드 칼라넥 다운 푸퍼 S - 후루츠패밀리",
+          "url": "https://fruitsfamily.com/product/49teq/%EC%BF%A0%EC%96%B4-%EC%8A%A4%ED%83%A0%EB%93%9C-%EC%B9%BC%EB%9D%BC%EB%84%A5-%EB%8B%A4%EC%9A%B4-%ED%91%B8%ED%8D%BC-s",
+          "source": "tavily",
+          "description": "쿠어 스탠드 칼라넥 다운 푸퍼 S. 5회 미만착 비흡연자 원하는 느낌이 아니라 판매 ... 쿠어 스탠드 칼라넥 다운 푸퍼 S. 199,999원. 66. 2. 쿠어 스탠드 카라넥 다운"
+        }
+      ],
+      "naver_errors": [],
+      "tavily_error": null
+    },
+    {
+      "id": "fas_02",
+      "vertical": "fashion",
+      "query": "마뗑킴 카드지갑",
+      "note": "앱 기반 패션몰",
+      "preferred": [
+        "matinkim",
+        "musinsa",
+        "29cm",
+        "wconcept"
+      ],
+      "acceptable": [
+        "smartstore.naver.com",
+        "search.shopping.naver.com",
+        "coupang"
+      ],
+      "naver_categories": [
+        "shop",
+        "webkr"
+      ],
+      "naver_score": {
+        "preferred_at": 18,
+        "acceptable_at": 1,
+        "preferred_hit3": false,
+        "preferred_hit10": false,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "tavily_score": {
+        "preferred_at": 1,
+        "acceptable_at": 1,
+        "preferred_hit3": true,
+        "preferred_hit10": true,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "naver_top": [
+        {
+          "title": "[국내백화점] 마뗑킴 카드지갑 아코디언 월렛 마땡킴 마틴킴",
+          "url": "https://smartstore.naver.com/main/products/10463950586",
+          "source": "naver:shop",
+          "mallName": "KODE",
+          "brand": "마뗑킴",
+          "lprice": "76800"
+        },
+        {
+          "title": "국내매장판 마뗑킴 맥세이프 마그네틱 카드 케이스 아이폰 블랙 실버 화이트 MK259OAC005M",
+          "url": "https://smartstore.naver.com/main/products/12742030628",
+          "source": "naver:shop",
+          "mallName": "STOCK TAKER",
+          "brand": "마뗑킴",
+          "lprice": "34500"
+        },
+        {
+          "title": "국내매장판 마뗑킴 글로시 슬림 메탈 카드 홀더 카드지갑 명함지갑 빈티지",
+          "url": "https://smartstore.naver.com/main/products/12048812162",
+          "source": "naver:shop",
+          "mallName": "센세이슈널",
+          "brand": "마뗑킴",
+          "lprice": "36000"
+        },
+        {
+          "title": "MATIN KIM 마뗑킴 마틴킴 빈티지 카드지갑 블랙 실버 브라운 엠보스드 월렛",
+          "url": "https://smartstore.naver.com/main/products/11843804359",
+          "source": "naver:shop",
+          "mallName": "슈즈밍",
+          "brand": "마뗑킴",
+          "lprice": "33900"
+        },
+        {
+          "title": "마뗑킴 지갑 마땡킴 카드지갑 마틴킴 아코디언 블랙 화이트 실버",
+          "url": "https://smartstore.naver.com/main/products/12690424227",
+          "source": "naver:shop",
+          "mallName": "라플마켓",
+          "brand": "마뗑킴",
+          "lprice": "74200"
+        },
+        {
+          "title": "마뗑킴 LEOPARD VINTAGE CARD WALLET MK2600WL010V",
+          "url": "https://search.shopping.naver.com/catalog/59052121360",
+          "source": "naver:shop",
+          "mallName": "네이버",
+          "brand": "마뗑킴",
+          "lprice": "34200"
+        },
+        {
+          "title": "마뗑킴 카드지갑 마땡킴 명함지갑 맥세이프 마틴킴 마그네틱 카드 월렛",
+          "url": "https://smartstore.naver.com/main/products/13260634802",
+          "source": "naver:shop",
+          "mallName": "라플마켓",
+          "brand": "마뗑킴",
+          "lprice": "34900"
+        },
+        {
+          "title": "마뗑킴 빈티지 카드 월렛 MK2500WL009V",
+          "url": "https://search.shopping.naver.com/catalog/46701515871",
+          "source": "naver:shop",
+          "mallName": "네이버",
+          "brand": "마뗑킴",
+          "lprice": "30400"
+        },
+        {
+          "title": "마뗑킴 MATIN MAGNETIC CARD WALLET MK2600AC005V",
+          "url": "https://search.shopping.naver.com/catalog/58395499221",
+          "source": "naver:shop",
+          "mallName": "네이버",
+          "brand": "마뗑킴",
+          "lprice": "32300"
+        },
+        {
+          "title": "마뗑킴 빈티지 카드지갑 글로시 여성지갑 학생 선물 마땡킴 마틴킴",
+          "url": "https://smartstore.naver.com/main/products/13054759265",
+          "source": "naver:shop",
+          "mallName": "마음의선물",
+          "brand": "마뗑킴",
+          "lprice": "36900"
+        }
+      ],
+      "tavily_top": [
+        {
+          "title": "마뗑킴(MATIN KIM) VINTAGE CARD WALLET IN BLACK",
+          "url": "https://www.musinsa.com/products/3641799",
+          "source": "tavily",
+          "description": "제품분류 :가방 > 지갑/머니클립 브랜드 : 마뗑킴(MATIN KIM) 제품번호 : MK2500WL009VBB 제품 : VINTAGE CARD WALLET IN BLACK - 38000."
+        },
+        {
+          "title": "마뗑킴 지갑 검색결과",
+          "url": "https://m.gmarket.co.kr/n/search?keyword=%EB%A7%88%EB%97%91%ED%82%B4+%EC%A7%80%EA%B0%91",
+          "source": "tavily",
+          "description": "상품명 국내매장판 마뗑킴 지갑 카드지갑 마틴킴 MATINKIM 아코디언 블랙 화이트 실버. 87,900원. 꼭멤버 최대 4,395원 적립. 무료배송. 평점4.5후기(3)건구매 4건."
+        },
+        {
+          "title": "마뗑킴지갑 - 11번가 추천",
+          "url": "https://search.11st.co.kr/pc/total-search?kwd=%EB%A7%88%EB%97%91%ED%82%B4%EC%A7%80%EA%B0%91",
+          "source": "tavily",
+          "description": "상품명: [국내매장판] 15컬러 택1 마뗑킴 아코디언 지갑 MATIN KIM ACCORDION WALLET 15COLORS + GRAD 정품보증택. 가격정보: 283,520원: 배송비5,000원."
+        },
+        {
+          "title": "마틴킴 카드지갑 | 검색 - 선물하기",
+          "url": "https://gift.kakao.com/search/result?query=%EB%A7%88%ED%8B%B4%ED%82%B4+%EC%B9%B4%EB%93%9C%EC%A7%80%EA%B0%91&searchType=search_related_keyword_search_box",
+          "source": "tavily",
+          "description": "마뗑킴 마뗑킴가방 상품 8,136. GLOSSY CARD WALLET + VINTAGE CARD WALLET/ 글로시 카드 지갑 7종 택1 , 할인율 :10%, 판매가 :48,000원"
+        },
+        {
+          "title": "마뗑킴 지갑 | 브랜드 중고거래 플랫폼 ...",
+          "url": "https://m.bunjang.co.kr/keywords/%EB%A7%88%EB%97%91%ED%82%B4%20%EC%A7%80%EA%B0%91",
+          "source": "tavily",
+          "description": "마뗑킴 개봉만 하고 안 쓴 카드지갑 팝니다:) 택배비포함 55000원 · 마뗑킴 지갑 [사용X] 상품 이미지. 마뗑킴 지갑 [사용X] 20000원 · 마뗑킴 레오파드 카드지갑 상품"
+        },
+        {
+          "title": "마뗑킴 카드지갑 홀더, Matin Kim 마뗑킴 시그니처 메탈 ...",
+          "url": "https://m.blog.naver.com/gofls94/223689110889",
+          "source": "tavily",
+          "description": "카드 마뗑킴 메탈 카드지갑은 카카오톡 선물하기로 받았고, 정가 25,000원 이게"
+        },
+        {
+          "title": "여자 카드지갑 선물 추천, 가성비 대박인 \"마뗑킴 아코디언 지갑 ...",
+          "url": "https://m.blog.naver.com/ekd486/223334404093",
+          "source": "tavily",
+          "description": "카테고리 이동 소소愛 지니지 · 아코디언형식으로 되어 있는 마뗑킴지갑!! · 카드가 생각보다 많이 들어가요 · 세겹으로 나눠져 있는데 · 가운데 수납이"
+        },
+        {
+          "title": "GLOSSY CARD WALLET IN SKY",
+          "url": "https://m.matinkim.com/product/glossy-card-wallet-in-sky/5807",
+          "source": "tavily",
+          "description": "GLOSSY CARD WALLET IN SKY. MK2600WL709VSK. MATIN KIM 메탈 로고가 포인트인 글로시 소가죽 카드지갑. 38,000 38,000. ONE SIZE. FREE. Quantity. up down. BUY IT NOW"
+        },
+        {
+          "title": "MATINKIM - Wallets",
+          "url": "https://m.matinkim.com/product/list.html?cate_no=167",
+          "source": "tavily",
+          "description": "Wallets. Bags Wallets Hats & Caps Accessories Shoes. LEOPARD VINTAGE CARD WALLET IN BROWN. PUFF QUILT CARD WALLET IN BLACK PUFF QUILT CARD WALLET )마뗑킴 전화"
+        },
+        {
+          "title": "VINTAGE CARD WALLET IN BLACK",
+          "url": "https://m.matinkim.com/product/vintage-card-wallet-in-black/4637",
+          "source": "tavily",
+          "description": "VINTAGE CARD WALLET IN BLACK. MK2500WL009VBB. MATIN KIM 메탈 로고가 포인트인 빈티지한 무드의 카드지갑. 38,000 38,000."
+        }
+      ],
+      "naver_errors": [],
+      "tavily_error": null
+    },
+    {
+      "id": "fas_03",
+      "vertical": "fashion",
+      "query": "드파운드 가방",
+      "note": "공홈/편집샵 우선",
+      "preferred": [
+        "depound",
+        "29cm",
+        "wconcept"
+      ],
+      "acceptable": [
+        "smartstore.naver.com",
+        "search.shopping.naver.com",
+        "coupang"
+      ],
+      "naver_categories": [
+        "shop",
+        "webkr"
+      ],
+      "naver_score": {
+        "preferred_at": 2,
+        "acceptable_at": 1,
+        "preferred_hit3": true,
+        "preferred_hit10": true,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "tavily_score": {
+        "preferred_at": 3,
+        "acceptable_at": 3,
+        "preferred_hit3": true,
+        "preferred_hit10": true,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "naver_top": [
+        {
+          "title": "드파운드 피노 백 호보 M",
+          "url": "https://search.shopping.naver.com/catalog/57842844933",
+          "source": "naver:shop",
+          "mallName": "네이버",
+          "brand": "드파운드",
+          "lprice": "98000"
+        },
+        {
+          "title": "[드파운드] 핸드크래프트 위빙 백- M (3 컬러)",
+          "url": "http://www.wconcept.co.kr/Product/308499825?adfrom=naver_ep&utm_source=naver&utm_medium=pcs&utm_campaign=WCONCEPT&utm_content=none&utm_term=none",
+          "source": "naver:shop",
+          "mallName": "더블유컨셉",
+          "brand": "드파운드",
+          "lprice": "150100"
+        },
+        {
+          "title": "[드파운드] pino bag (hobo)",
+          "url": "https://smartstore.naver.com/main/products/10212061267",
+          "source": "naver:shop",
+          "mallName": "드파운드",
+          "brand": "드파운드",
+          "lprice": "98000"
+        },
+        {
+          "title": "[드파운드] [단독] 핸드크래프트 위빙 백 (숄더) - S (3컬러)",
+          "url": "http://www.wconcept.co.kr/Product/308493963?adfrom=naver_ep&utm_source=naver&utm_medium=pcs&utm_campaign=WCONCEPT&utm_content=none&utm_term=none",
+          "source": "naver:shop",
+          "mallName": "더블유컨셉",
+          "brand": "드파운드",
+          "lprice": "138000"
+        },
+        {
+          "title": "[드파운드] 피노 호보백 토트 [아이보리]",
+          "url": "http://www.wconcept.co.kr/Product/308492323?adfrom=naver_ep&utm_source=naver&utm_medium=pcs&utm_campaign=WCONCEPT&utm_content=none&utm_term=none",
+          "source": "naver:shop",
+          "mallName": "더블유컨셉",
+          "brand": "드파운드",
+          "lprice": "98000"
+        },
+        {
+          "title": "[드파운드] 데이백 쇼퍼백 카멜 스몰",
+          "url": "http://www.wconcept.co.kr/Product/308491353?adfrom=naver_ep&utm_source=naver&utm_medium=pcs&utm_campaign=WCONCEPT&utm_content=none&utm_term=none",
+          "source": "naver:shop",
+          "mallName": "더블유컨셉",
+          "brand": "드파운드",
+          "lprice": "109000"
+        },
+        {
+          "title": "[드파운드] 피노 호보백 토트 [블랙]",
+          "url": "http://www.wconcept.co.kr/Product/308492322?adfrom=naver_ep&utm_source=naver&utm_medium=pcs&utm_campaign=WCONCEPT&utm_content=none&utm_term=none",
+          "source": "naver:shop",
+          "mallName": "더블유컨셉",
+          "brand": "드파운드",
+          "lprice": "98000"
+        },
+        {
+          "title": "[드파운드] latte bag - black (S)",
+          "url": "https://smartstore.naver.com/main/products/13258582896",
+          "source": "naver:shop",
+          "mallName": "드파운드",
+          "brand": "드파운드",
+          "lprice": "131100"
+        },
+        {
+          "title": "[드파운드] 타운백 버킷백 숄더백 헤링본 아이보리",
+          "url": "http://www.wconcept.co.kr/Product/308491312?adfrom=naver_ep&utm_source=naver&utm_medium=pcs&utm_campaign=WCONCEPT&utm_content=none&utm_term=none",
+          "source": "naver:shop",
+          "mallName": "더블유컨셉",
+          "brand": "드파운드",
+          "lprice": "169100"
+        },
+        {
+          "title": "[예약배송][드파운드] handcrafted weaving bag (shoulder) - brown (S)",
+          "url": "https://smartstore.naver.com/main/products/13447429688",
+          "source": "naver:shop",
+          "mallName": "드파운드",
+          "brand": "드파운드",
+          "lprice": "138000"
+        }
+      ],
+      "tavily_top": [
+        {
+          "title": "DEPOUND 가방 | 무신사 추천 상품",
+          "url": "https://www.musinsa.com/search/snap?keyword=DEPOUND+%EA%B0%80%EB%B0%A9",
+          "source": "tavily",
+          "description": "드파운드라피아 백 미니 토트 [브라운]. 118,000원. 1.1천. 5.0(5). 아울렛. 옵션. 여성. 라떼 백 M [블랙] · 드파운드라떼 백 M [블랙]. 158,000원."
+        },
+        {
+          "title": "드파운드(depound)ㅣ백팩 'Travel backpack'ㅣBlackㅣ&베니 키링 ...",
+          "url": "https://blog.naver.com/choipepper/223152351162",
+          "source": "tavily",
+          "description": "소재가 살짝 바스락(?)거리는 아주 가볍고 얇은 천이라서 가벼운 느낌의 경쾌한 블랙이다. ​. 정면에 큰 주머니 하나와 양옆의 작은"
+        },
+        {
+          "title": "드파운드(DEPOUND) - 29CM",
+          "url": "https://shop.29cm.co.kr/brand/2155",
+          "source": "tavily",
+          "description": "2016년 서울에서 론칭한 드파운드는 자주 사용하는 제품에 자연스러운 아름다움을 담아 감성 있는 라이프스타일을 제안합니다. 더보기. 0. 정렬. 현재 브랜드에 등록된"
+        },
+        {
+          "title": "드파운드 | Mapo District",
+          "url": "https://www.facebook.com/depound",
+          "source": "tavily",
+          "description": "Pack Your Summer with depound 컨베이어 벨트 위를 지나가는 여행 가방들, 여러분의 여름은 어디로 향하고 있나요? · What's in my handcrafted weaving bag ? · 짙은 바다"
+        },
+        {
+          "title": "드파운드 | W컨셉(W CONCEPT)",
+          "url": "https://display.wconcept.co.kr/search?collection=item&keyword=%EB%93%9C%ED%8C%8C%EC%9A%B4%EB%93%9C",
+          "source": "tavily",
+          "description": "12733개의 드파운드 검색결과 입니다. 다양한 상품리스트와 프로모션, 브랜드 정보를 확인하세요. 연관 검색어 : 드파운드 반팔티, 드파운드 가방, 드파운드 나시,"
+        },
+        {
+          "title": "depound 드파운드 (@depound) • Instagram photos and videos",
+          "url": "https://www.instagram.com/depound",
+          "source": "tavily",
+          "description": "SUMMER SALE UP TO 40% OFF 드파운드의 썸머 세일이 시작되었습니다 출근룩부터 바캉스 룩까지, 활용도 높은 아이템들을 지금 공식 홈페이지에서 좋은 혜택으로 만나"
+        },
+        {
+          "title": "[드파운드] 일상에 감성을 더하다",
+          "url": "https://depound.com",
+          "source": "tavily",
+          "description": "일상 생활의 자연스러운 아름다움을 담은 감성 라이프를 제안하는 depound 입니다."
+        }
+      ],
+      "naver_errors": [],
+      "tavily_error": null
+    },
+    {
+      "id": "fas_04",
+      "vertical": "fashion",
+      "query": "시에 SIE 원피스",
+      "note": "브랜드명 짧음",
+      "preferred": [
+        "sie",
+        "29cm",
+        "wconcept"
+      ],
+      "acceptable": [
+        "smartstore.naver.com",
+        "search.shopping.naver.com"
+      ],
+      "naver_categories": [
+        "shop",
+        "webkr"
+      ],
+      "naver_score": {
+        "preferred_at": 8,
+        "acceptable_at": 8,
+        "preferred_hit3": false,
+        "preferred_hit10": true,
+        "acceptable_hit3": false,
+        "acceptable_hit10": true
+      },
+      "tavily_score": {
+        "preferred_at": 1,
+        "acceptable_at": 1,
+        "preferred_hit3": true,
+        "preferred_hit10": true,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "naver_top": [
+        {
+          "title": "시에 SIE 21SS B윈 커프스 디테일 셔츠 드레스 원피스",
+          "url": "https://newoff.cafe24.com/product/detail.html?product_no=93453&cate_no=43&display_group=1&utm_source=naver&utm_medium=shopping&utm_campaign=knowledge_shopping&mkt_in=Y&ghost_mall_id=naver&ref=naver_open",
+          "source": "naver:shop",
+          "mallName": "뉴오프",
+          "brand": "",
+          "lprice": "61000"
+        },
+        {
+          "title": "SIE 시에ㅣ에이프런 랩 니트 드레스 네이비 착용후기 (유교vs핫걸 비교 , 사이즈 tip ) 5월 위시리스트 원피스 추....",
+          "url": "https://blog.naver.com/copip2004/223872209653",
+          "source": "naver:webkr",
+          "description": "시에 sie 에이프런 랩 니트 드레스 네이비 착용후기 / 사이즈 tip, 장단점까지 5월 위시리스트 원피스 추천템 안녕하세요 , 패션블로거 진주입니다 오늘은 시에 sie 시그니처 원피스 에이프런 랩 니트 드레스 등..."
+        },
+        {
+          "title": "시에sie 8월의 드레스 실착후기 (사이즈 tip, 장단점) 6월 위시리스트 여름 원피스 추천",
+          "url": "https://blog.naver.com/copip2004/223892224508",
+          "source": "naver:webkr",
+          "description": "매 시즌 꾸준히 사랑받고 있는 시에sie 시그니처 원피스 8월의 드레스 실착후기 가져왔어요. 올해로 10년째라는 8월의 드레스 ! 8개월 동안 착용이 가능한 원피스라서 이름이 이렇게 지어졌다고 하는데 12개월 중..."
+        },
+        {
+          "title": "시에 sie 디아나 벨티드 셔링 나시 원피스, 맥시 스탠다드 기장 비교",
+          "url": "https://blog.naver.com/jell__ly/223503913102",
+          "source": "naver:webkr",
+          "description": "☁️ 벨티드 원피스 이지만 허리끈 부분을 완전히 빼서 입을 수도 있는 디자인 - 컬러도 실물 컬러가 훨씬 예쁜 페일 민트 컬러라.. 고민하신다면 당장 사시는 것 추천,, #시에디아나 #시에나시원피스 #sie원피스"
+        },
+        {
+          "title": "시에 sie 원피스 니트 반팔 Lhou 카밀라 구두 미아 제니 더현대서울 착샷",
+          "url": "https://blog.naver.com/chois909/223108177912",
+          "source": "naver:webkr",
+          "description": "찍어왔어요 시에 sie 트위드 나시 원피스 먼저 저는 연노랑의 귀여운 시에 나시 원피스를 입어보기도 했는데요 시에 제품들이 전부 디테일을 잘 살려서 뒤쪽에 후크가 있는 것도 마음에 들더라구요 백화점 제품들..."
+        },
+        {
+          "title": "새상품)시에sie 수아 슬리브리스 드레스 ㅡS 네이비",
+          "url": "https://m.bunjang.co.kr/products/314548946",
+          "source": "naver:webkr",
+          "description": "새상품)시에sie 수아 슬리브리스 드레스 ㅡS 네이비 가격: 178,000원 구매가 202,000원 옷너어무 예쁜데 살이 쪄서ㅠ 올리게 되었습니다 소장시에 후회하지 않을 만한 원피스에요:) 부유방 안전하게 잘 가"
+        },
+        {
+          "title": "여름 원피스 추천, SIE 시에 이클립스 하프 슬리브 드레스 후기",
+          "url": "https://blog.naver.com/serrri/223139623963",
+          "source": "naver:webkr",
+          "description": "여름 원피스 추천 이클립스 SIE 시에 이클립스 하프 슬리브 드레스 네이버 인플루언서 @콩토루 시에에서 꼭 사고 싶었던 원피스가 두 가지였는데 하나는 8월 드레스, 나머지 하나는 이클립스였어요 이클립스..."
+        },
+        {
+          "title": "시에(SIE)",
+          "url": "https://sie-official.kr/",
+          "source": "naver:webkr",
+          "description": "일상의 특별한 순간을 함께하는 실용적인 의류 브랜드로 다양한 스타일을 제안합니다."
+        },
+        {
+          "title": "SIE 시에 더 실루엣 니트 원피스",
+          "url": "https://www.daangn.com/kr/buy-sell/sie-%EC%8B%9C%EC%97%90-%EB%8D%94-%EC%8B%A4%EB%A3%A8%EC%97%A3-%EB%8B%88%ED%8A%B8-%EC%9B%90%ED%94%BC%EC%8A%A4-6trkd1rcqwnb/",
+          "source": "naver:webkr",
+          "description": "SIE 시에 더 실루엣 니트 원피스 브라운 모 , 캐시미어 소재 프리사이즈 160기준 발목 뒷트임 있음 상태 깨끗 12만 반품불가"
+        },
+        {
+          "title": "네이비 맛집 시에 sie 블라우스&amp;원피스",
+          "url": "https://in.naver.com/my_joo_/topic/732935476589920",
+          "source": "naver:webkr",
+          "description": "고급스러운 네이비 색상 잘 뽑는 시에 sie의 네이비 블라우스와 네이비 원피스 추천해요! 시에 리안 블라우스 네이비와 에이프런 오픈 랩 원피스 네이비💙 디자인도 예쁜데 고급스러운 색감까지 더해져 두고두고 잘 샀다고 생각하는 아이템들입니다😆"
+        }
+      ],
+      "tavily_top": [
+        {
+          "title": "SIE 시에 수아 라인 원피스 - 빈티지앤뉴",
+          "url": "https://vintageandnew.kr/product/sie-%EC%8B%9C%EC%97%90-%EC%88%98%EC%95%84-%EB%9D%BC%EC%9D%B8-%EC%9B%90%ED%94%BC%EC%8A%A4/81565",
+          "source": "tavily",
+          "description": "상품명, SIE 시에 수아 라인 원피스 ; 판매가, 80,000원 ; 할인판매가, 72,000원 ( 8,000원 할인) ; 배송비, 3,000원 (50,000원 이상 구매 시 무료) ; 대표전화 · 01024816606"
+        },
+        {
+          "title": "시에sie원피스 | 브랜드 중고거래 플랫폼, 번개장터",
+          "url": "https://m.bunjang.co.kr/keywords/%EC%8B%9C%EC%97%90sie%EC%9B%90%ED%94%BC%EC%8A%A4",
+          "source": "tavily",
+          "description": "시에sie원피스의 검색결과 (146개) ; 시에(SIE) 바스락 반팔원피스 상품 이미지. 시에(SIE) 바스락 반팔원피스 70000원 ; 시에 SIE 21년 썸머 트위드 민소매 슬리브리스 레몬"
+        },
+        {
+          "title": "시에 SIE 원피스 입어보기 & 7월 소비 리스트_2탄 : 네이버 블로그",
+          "url": "https://blog.naver.com/hwanhee-nding/223153385879?viewType=pc",
+          "source": "tavily",
+          "description": "면 혼방 소재의 원피스인데요. 뒷 슬릿 포인트라 활동하는데. 전혀 불편하지 않고요. 또 허리 끈이 허리라인을 슬림 하게 잡아줘요."
+        },
+        {
+          "title": "시에에서 처음 구입한 원피스인데 마음에 들어요. 소재도 탄탄하고 ...",
+          "url": "https://sie-official.kr/article/review/4/947433",
+          "source": "tavily",
+          "description": "소재도 탄탄하고 두께감이 있어 간절기 때도 잘 입을 거 같아요. 구김이 가지 않아 좋고 셔츠 타입이라 입기도 편하고 포멀한 느낌도 들어 자주 손이 갈"
+        },
+        {
+          "title": "시에(SIE)가 배우 신세경과 함께한 2026 봄·여름 컬렉션을 공개 ...",
+          "url": "https://www.threads.com/@peoplegate/post/DXVOKMekvO_/%EC%8B%9C%EC%97%90sie%EA%B0%80-%EB%B0%B0%EC%9A%B0-%EC%8B%A0%EC%84%B8%EA%B2%BD%EA%B3%BC-%ED%95%A8%EA%BB%98%ED%95%9C-2026-%EB%B4%84%EC%97%AC%EB%A6%84-%EC%BB%AC%EB%A0%89%EC%85%98%EC%9D%84-%EA%B3%B5%EA%B0%9C%ED%96%88%EC%8A%B5%EB%8B%88%EB%8B%A4-%EB%AF%B8%EB%8B%88%EB%A9%80%ED%95%9C-%EA%B3%B5%EA%B0%84%EA%B3%BC-%EC%9E%90%EC%97%B0%EA%B4%91%EC%9D%84-%ED%99%9C%EC%9A%A9%ED%95%9C-%ED%99%94%EB%B3%B4%EB%A1%9C-%EC%A0%88%EC%A0%9C%EB%90%9C-%EC%9A%B0%EC%95%84%ED%95%A8%EC%9D%84-%EA%B0%95%EC%A1%B0-%EB%B8%94%EB%9D%BC%EC%9A%B0%EC%8A%A4%EC%99%80-",
+          "source": "tavily",
+          "description": "화이트와 레드의 선명한 컬러 대비를 활용해, 화이트 레이스 원피스 아래로 레드 와이드 팬츠를 레이어드한 감각적인 서머 룩을 선보였습니다. 원피스에"
+        },
+        {
+          "title": "SIE 시에  삼성물산 패션몰 SSF SHOP",
+          "url": "https://www.ssfshop.com/search/result?keyword=SIE+%EC%8B%9C%EC%97%90",
+          "source": "tavily",
+          "description": "SSF SHOP에서 감도 높은 큐레이션의 SIE 시에 만나 ... SIE 시에 원피스. 1개 브랜드. SIE. 상품; 기획전; 이벤트; 리뷰. 386개 상품. 정확도순."
+        },
+        {
+          "title": "정말 예쁜 원피스에요 두 컬러 다 만족해요! 두고두고 잘 입어질 ... - SIE",
+          "url": "https://sie-official.kr/article/review/4/1301411",
+          "source": "tavily",
+          "description": "정말 예쁜 원피스에요 두 컬러 다 만족해요! 두고두고 잘 입어질 것 같아요~! · 25.09.09 · 신수**** (ip:) · 평점 5점 · 추천 추천하기 · 조회 976."
+        },
+        {
+          "title": "시에(SIE)",
+          "url": "https://sie-official.kr",
+          "source": "tavily",
+          "description": "일상의 특별한 순간을 함께하는 실용적인 의류 브랜드로 다양한 스타일을 제안합니다."
+        },
+        {
+          "title": "시에(SIE)",
+          "url": "https://m.sie-official.kr/product/list.html?cate_no=57",
+          "source": "tavily",
+          "description": "## **The Elevated Basics**. 편안함과 단정한 감각을 담아 여름에 가장 자주 입게 되는 티셔츠. 2개 이상 구매시, 최대 15% 혜택으로 만나보실 수 있습니다. * 사용 기간 : 05.12(화) 10:00 ~ 06.14(일) 23:59. * 횟수 제한 없이 다운로드 가능한 쿠폰으로 다양한 실루엣을 경험해 보세요. 5% + 10% 추가 쿠폰 혜택과 함께 만나보세요. # DRESSES. 에이프런 오픈 랩 니트 "
+        },
+        {
+          "title": "SIE (@sie___official) · Seoul - Instagram",
+          "url": "https://www.instagram.com/sie___official",
+          "source": "tavily",
+          "description": "New In ✔️ 산뜻한 계절에 함께하기 좋은 신제품이 오프라인 매장에 먼저 입고됩니다. 온라인 스토어 출시일은 4.7(화) 10:00 입니다. 4.2 Stockists • 시에 서울 플래그십"
+        }
+      ],
+      "naver_errors": [],
+      "tavily_error": null
+    },
+    {
+      "id": "fas_05",
+      "vertical": "fashion",
+      "query": "이미스 emis 볼캡",
+      "note": "앱/공홈 우선",
+      "preferred": [
+        "emis",
+        "29cm",
+        "musinsa",
+        "wconcept"
+      ],
+      "acceptable": [
+        "smartstore.naver.com",
+        "search.shopping.naver.com",
+        "coupang"
+      ],
+      "naver_categories": [
+        "shop",
+        "webkr"
+      ],
+      "naver_score": {
+        "preferred_at": 11,
+        "acceptable_at": 1,
+        "preferred_hit3": false,
+        "preferred_hit10": false,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "tavily_score": {
+        "preferred_at": 1,
+        "acceptable_at": 1,
+        "preferred_hit3": true,
+        "preferred_hit10": true,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "naver_top": [
+        {
+          "title": "이미스 뉴 로고 믹스 볼 캡 리뉴얼 E243U1107 네이비",
+          "url": "https://search.shopping.naver.com/catalog/60127533030",
+          "source": "naver:shop",
+          "mallName": "네이버",
+          "brand": "이미스",
+          "lprice": "22580"
+        },
+        {
+          "title": "[국내매장판] EMIS 이미스 모자 뉴로고 톤온톤 와펜 투톤믹스 EP13 볼캡",
+          "url": "https://smartstore.naver.com/main/products/10319594225",
+          "source": "naver:shop",
+          "mallName": "모던마스터",
+          "brand": "이미스",
+          "lprice": "49000"
+        },
+        {
+          "title": "이미스 톤 온 톤 와펜 볼캡",
+          "url": "https://search.shopping.naver.com/catalog/56631105120",
+          "source": "naver:shop",
+          "mallName": "네이버",
+          "brand": "이미스",
+          "lprice": "44700"
+        },
+        {
+          "title": "이미스 모자 뉴로고 와펜 EMIS 대두 볼캡 연예인 야구 빅사이즈 남자",
+          "url": "https://smartstore.naver.com/main/products/10174539841",
+          "source": "naver:shop",
+          "mallName": "어센시아",
+          "brand": "이미스",
+          "lprice": "49900"
+        },
+        {
+          "title": "이미스 TONE ON WEN BALL CAP m1037133424",
+          "url": "https://search.shopping.naver.com/catalog/56945453625",
+          "source": "naver:shop",
+          "mallName": "네이버",
+          "brand": "이미스",
+          "lprice": "41920"
+        },
+        {
+          "title": "이미스 아플리케 코듀로이 볼 캡 블루그린",
+          "url": "https://search.shopping.naver.com/catalog/60129201260",
+          "source": "naver:shop",
+          "mallName": "네이버",
+          "brand": "이미스",
+          "lprice": "47240"
+        },
+        {
+          "title": "이미스 빈티지 피그먼트 볼 캡",
+          "url": "https://search.shopping.naver.com/catalog/51905855621",
+          "source": "naver:shop",
+          "mallName": "네이버",
+          "brand": "이미스",
+          "lprice": "42990"
+        },
+        {
+          "title": "[EMIS 공식] EMIS BEST BALL CAP",
+          "url": "https://smartstore.naver.com/main/products/11107799831",
+          "source": "naver:shop",
+          "mallName": "이미스",
+          "brand": "이미스",
+          "lprice": "49000"
+        },
+        {
+          "title": "EMIS 이미스 26SS 뉴로고 와펜 볼캡 모자(그린/네이비/브라운/블루/베이지/블랙)",
+          "url": "https://smartstore.naver.com/main/products/8342409117",
+          "source": "naver:shop",
+          "mallName": "포니베어.",
+          "brand": "이미스",
+          "lprice": "49000"
+        },
+        {
+          "title": "이미스 HEART WAPPEN BALL CAP-CREAM m1037133243",
+          "url": "https://search.shopping.naver.com/catalog/58307143978",
+          "source": "naver:shop",
+          "mallName": "네이버",
+          "brand": "이미스",
+          "lprice": "35540"
+        }
+      ],
+      "tavily_top": [
+        {
+          "title": "이미스 모자 | W컨셉(W CONCEPT)",
+          "url": "https://display.wconcept.co.kr/search?keyword=%EC%9D%B4%EB%AF%B8%EC%8A%A4+%EB%AA%A8%EC%9E%90&type=popular",
+          "source": "tavily",
+          "description": "모자 - 이미스(EMIS) - NEW LOGO EMIS CAP(RENEWAL)-. 이미스NEW LOGO EMIS CAP ... LOVE 로고 피그먼트 배색 볼캡. 16%49,324. 두 번째 제품 이미지. 세 번째 제품"
+        },
+        {
+          "title": "이미스(EMIS) NEW LOGO EMIS CAP(RENEWAL)-BURGUNDY",
+          "url": "https://www.musinsa.com/products/4473931",
+          "source": "tavily",
+          "description": "제품분류 :소품 > 모자 브랜드 : 이미스(EMIS) 제품번호 : m1037_1334812 제품 : NEW LOGO EMIS CAP(RENEWAL)-BURGUNDY - 49000."
+        },
+        {
+          "title": "여자 캡모자 추천 이미스 emis 모자 한남 쇼룸에서 써봤어요",
+          "url": "https://blog.naver.com/usual_ly/223357291394",
+          "source": "tavily",
+          "description": "상대적으로 이미스 볼캡은 챙부분이 조금 더 양옆으로 좁은 느낌에 앞으로 내려오면서도 좁아지는 느낌이에요. 머리 핏을 비교해보시면 딱 다르죠"
+        },
+        {
+          "title": "이미스 - EMIS",
+          "url": "https://emis.kr/product/search.html?banner_action=&keyword=%EB%AA%A8%EC%9E%90",
+          "source": "tavily",
+          "description": "WASHED DENIM BALL CAP-LIGHT BLUE DENIM/NAVY. 판매가 49,000 KRW; 재고 수량 자세히. LIGHT BLUE DENIM_NAVY. LIGHT BLUE DENIM_NAVY. CHAIN STITCH BALL CAP-OLIVE."
+        },
+        {
+          "title": "수지도 반했다는 연예인 볼캡 브랜드 이미스(emis)! 모자 정보 및 ...",
+          "url": "https://m.blog.naver.com/gozimozi/223491998198",
+          "source": "tavily",
+          "description": "카테고리 이동 고지모지 : 옷 기록 · 보통 볼캡들은 앞에 자수를 넣는 경우가 많은데 · 수지 님이 착용하신 이미스(emis) 볼캡 · 같은 경우 아플리케 기법"
+        },
+        {
+          "title": "캡모자 이미스 | 검색 - 선물하기",
+          "url": "https://gift.kakao.com/search/result?query=%EC%BA%A1%EB%AA%A8%EC%9E%90+%EC%9D%B4%EB%AF%B8%EC%8A%A4&searchType=search_related_keyword_search_box",
+          "source": "tavily",
+          "description": "브랜드명 : 이미스, 상품명 :\"BEST\" [선물추천] 이미스 EMIS TONE ON TONE WAPPEN BALL CAP 11종 택1 , 판매가 :49,000원 후기408. 장바구니 담기 위시, 담은 수4.9만."
+        },
+        {
+          "title": "HAT - EMIS",
+          "url": "https://emis.kr/category/hat/49",
+          "source": "tavily",
+          "description": "# OUTDATED BROWSER FOR A BETTER EXPERIENCE, KEEP YOUR BROWSER UP TO DATE. OUTDATED BROWSER ウェブページが正しく表示するためにも、最新版のブラウザをお使いください。 OUTDATED BROWSER 为了更佳的浏览体验，将您的浏览器保持最新。在这里您可以获得最新的版本。 OUTDATED BROWSER Để có kinh nghiệm trình duyệt tốt nhất, hã"
+        },
+        {
+          "title": "NEW LOGO EMIS CAP(RENEWAL)-BLACK - EMIS",
+          "url": "https://emis.kr/product/new-logo-emis-caprenewal-black/1983",
+          "source": "tavily",
+          "description": "# OUTDATED BROWSER FOR A BETTER EXPERIENCE, KEEP YOUR BROWSER UP TO DATE. OUTDATED BROWSER 현재 사용중인 브라우저가 오래되었습니다! OUTDATED BROWSER ウェブページが正しく表示するためにも、最新版のブラウザをお使いください。 OUTDATED BROWSER 为了更佳的浏览体验，将您的浏览器保持最新。在这里您可以获得最新的版本。 OUTDATED BROWSER Để"
+        },
+        {
+          "title": "이미스 패딩, 플리스집업, 모자, 머리띠 구입 및 착용샷 - YouTube",
+          "url": "https://www.youtube.com/watch?v=rL9hdRDCTLM",
+          "source": "tavily",
+          "description": "Vlog | emis 이미스 쇼핑 | 이미스 패딩, 집업, 모자, 머리띠 구입 및 착용샷 안녕하세요, 메이 ... Go to channel 한콩순 · 꾸안꾸엔 볼캡 필수 절대 후회"
+        },
+        {
+          "title": "이미스(EMIS) | 무신사 추천 브랜드",
+          "url": "https://www.musinsa.com/brand/emis",
+          "source": "tavily",
+          "description": "무신사에서 이미스(EMIS) 상품 리스트와 스타일, 룩북, 매거진 등 다양한 정보를 확인하세요."
+        }
+      ],
+      "naver_errors": [],
+      "tavily_error": null
+    },
+    {
+      "id": "cou_01",
+      "vertical": "coupang",
+      "query": "탐사수 2L 12개 쿠팡",
+      "note": "쿠팡 화면/생필품",
+      "preferred": [
+        "coupang.com"
+      ],
+      "acceptable": [
+        "naver.com",
+        "search.shopping.naver.com"
+      ],
+      "naver_categories": [
+        "shop",
+        "webkr"
+      ],
+      "naver_score": {
+        "preferred_at": 1,
+        "acceptable_at": 1,
+        "preferred_hit3": true,
+        "preferred_hit10": true,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "tavily_score": {
+        "preferred_at": 1,
+        "acceptable_at": 1,
+        "preferred_hit3": true,
+        "preferred_hit10": true,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "naver_top": [
+        {
+          "title": "탐사수 - 국산생수",
+          "url": "https://www.coupang.com/vp/products/27613130",
+          "source": "naver:webkr",
+          "description": "함께 비교하면 좋을 상품 ; 제주 삼다수, 500ml, 220개 ; 유니온천년알카리수, 500ml, 120개 ; 탐사수 무라벨, 2L, 36개 ; 평창수 무라벨 생수, 2L, 36개 ; 풀무원샘물 생수 무라벨, 1L, 36개 ; 백산수 무라벨 생수, 500ml, 40개 ; 백산수, 2L, 12개 ; 석수 무라벨, 500ml, 100개 ; 코카콜라 오리지널, 350ml, 72개"
+        },
+        {
+          "title": "탐사 샘물, 2L, 12개 - 국산생수",
+          "url": "https://www.coupang.com/vp/products/7689270513",
+          "source": "naver:webkr",
+          "description": "현재 별점 4.9점, 리뷰 370479개를 가진 탐사 샘물, 2L, 12개! 지금 쿠팡에서 더 저렴하고 다양한 국산생수 제품들을 확인해보세요."
+        },
+        {
+          "title": "탐사수 무라벨, 500ml, 40개 - 국산생수",
+          "url": "https://www.coupang.com/vp/products/5625704601",
+          "source": "naver:webkr",
+          "description": "소비기한(또는 유통기한) : 2026년 08월 01일 이거나 그 이후인 상품 제조년월일 : 2026년 02월 03일 이후인 제조상품"
+        },
+        {
+          "title": "생수무료배송 쿠팡 탐사수 무라벨 2L 12개 가격 맛 구매 후기",
+          "url": "https://blog.naver.com/forvill33/223542563083",
+          "source": "naver:webkr",
+          "description": "삼다수 2L 12병의 가격 12,053원에 비교해 볼 때, 쿠팡 자체브랜드인 탐사수는 6,790원으로 거의 절반... 쿠팡탐사수무라벨구매후기#탐사수주문#탐사수후기#탐사수가격#탐사수배송#탐사수무라벨2L12개가격..."
+        },
+        {
+          "title": "제주 탐사수 - 기타생수",
+          "url": "https://www.coupang.com/vp/products/1254071808",
+          "source": "naver:webkr",
+          "description": "함께 비교하면 좋을 상품광고 ; 몽베스트 위드어스 무라벨 먹는샘물, 1L, 48개 · 25,800원 ; [오늘출발] 삼다수 무라벨, 12개, 2L · 17,430원 ; 코카콜라 오리지널, 300ml, 24개 · 20,170원"
+        },
+        {
+          "title": "탐사 탐사수 2L (12개)",
+          "url": "https://m.danawa.com/product/product.html?code=15086669",
+          "source": "naver:webkr",
+          "description": ", 탐사 탐사수 2L (12개), 요약정보 : 생수 / 포장형태: 페트 / 수원지: 경남 산청,충북 청주,세종 전의,경기 남양주,울산 울주,경기 가평 / 2L"
+        },
+        {
+          "title": "[쿠팡] 탐사수 2L*12개 (1,790원와우전용) (무료) - 핫딜",
+          "url": "https://www.fmkorea.com/4153443843",
+          "source": "naver:webkr",
+          "description": "lptag=CFM97889146&amp;pageKey=27613130&amp;itemId=109846121&amp;vendorItemId=3213757282 100ml/7원 여태 탐사수 사면서 젤 싼듯? +글올리고 보니깐 쿠팡브랜드 대부분 할인하는듯 보고..."
+        },
+        {
+          "title": "[쿠팡] 탐사수 2L 12개 (5,970원) (무료(쿠팡와우)) - 핫딜",
+          "url": "https://www.fmkorea.com/6297006325",
+          "source": "naver:webkr",
+          "description": "골드박스 탐사수 2리터 개당 497원 원래도 싸서 엄청싼건 아닌데 걍 물떨어져서 주문함"
+        },
+        {
+          "title": "탐사수 2L 12개는 그닥 싼게아냐 24개 시켜야 엄청싼거임 - 쿠팡 마이너 갤러리",
+          "url": "https://gall.dcinside.com/mgallery/board/view/?id=cp&no=37023",
+          "source": "naver:webkr",
+          "description": "보통 제일 싼물이 2L 6입에 3천~3500원임 쿠팡탐사수 12개 시키는 게이들은 호구임 6천후반이던데 탐사수2L 24개를 시켜야 엄청 싸게 사는거다 쿠팡 자주 이용하자 ㅇㅇ"
+        },
+        {
+          "title": "탐사수 무라벨 2L [12개]",
+          "url": "https://www.enuri.com/detail.jsp?modelno=71317014",
+          "source": "naver:webkr",
+          "description": "생수, 탐사수 무라벨 2L [12개] | 인기 쇼핑몰별 최저가 한 눈에 비교하고 최저가로 구매하세요! 최저가 알림 신청하면 원하는 가격에 알려드려요."
+        }
+      ],
+      "tavily_top": [
+        {
+          "title": "탐사 | 쿠팡이 추천하는 브랜드의 혜택과 특가",
+          "url": "https://www.coupang.com/np/products/brand-shop?brandName=%ED%83%90%EC%82%AC",
+          "source": "tavily",
+          "description": "탐사수 무라벨, 2L, 12개. 33% 9,980원. 6,590원. (100ml당 27원). 내일(금) 도착 보장. 5. (1609175). 최대 325원 적립."
+        },
+        {
+          "title": "쿠팡이 추천하는 물 2리터 12개 관련 혜택과 특가",
+          "url": "https://www.coupang.com/np/search?q=%EB%AC%BC+2%EB%A6%AC%ED%84%B0+12%EA%B0%9C",
+          "source": "tavily",
+          "description": "... 최대 300원 적립 · 탐사수 무라벨, 2L, 12개. 9,980원. 33%. 6,590원. (100ml당 27원). 내일(일) 도착 보장. 와우는 무료배송 ∙ 무료반품."
+        },
+        {
+          "title": "탐사 샘물, 2L, 12개 - 국산생수 | 쿠팡",
+          "url": "https://www.coupang.com/vp/products/7689270513",
+          "source": "tavily",
+          "description": "현재 별점 4.9점, 리뷰 381358개를 가진 탐사 샘물, 2L, 12개! 지금 쿠팡에서 더 저렴하고 다양한 국산생수 제품들을 확인해보세요."
+        },
+        {
+          "title": "탐사 샘물, 2L, 12개 - 국산생수 | 쿠팡 - Threads",
+          "url": "https://www.threads.com/@joshuageneration312/post/DW2i-PvmZ49/httpslinkcoupangcomaekoq5yabtestinfo100412_group_d%ED%83%90%EC%82%AC-%EC%83%98%EB%AC%BC-2l-12%EA%B0%9C%EA%B5%AD%EC%82%B0%EC%83%9D%EC%88%98-%EA%B5%AC%EB%A7%A4-3%EC%9C%84-39-5990",
+          "source": "tavily",
+          "description": "쿠팡 로켓배송으로 내일 도착! 지금 클릭 . 탐사수 무라벨, 2L, 12개 - 국산생수 | 쿠팡. coupang.com. 탐사수 무라벨, 2L, 12개 - 국산생수 | 쿠팡."
+        },
+        {
+          "title": "탐사 샘물 무라벨 2L 12개 리뷰&스펙분석 - 생수 - 노써치",
+          "url": "https://nosearch.com/product/living_etc/bottled_water/detail/%ED%83%90%EC%82%AC%20%EC%83%98%EB%AC%BC%20%EB%AC%B4%EB%9D%BC%EB%B2%A8%202L%2012%EA%B0%9C",
+          "source": "tavily",
+          "description": "탐사 샘물은 쿠팡에서 기존 탐사수를 리브랜딩 한 제품으로 무라벨을 기본으로 적용했습니다. 또한 5~6곳 이상의 수원지를 사용하던 탐사수와 달리, 그간 수질 위반"
+        },
+        {
+          "title": "탐사수 무라벨, 2L, 12개 구매 후기 - 네이버 블로그",
+          "url": "https://m.blog.naver.com/tissueblog/223404828869",
+          "source": "tavily",
+          "description": "야외에서 쌓아놓고 파는탓에 먼지도 많이 쌓이고 직사광선에도 고스란히 노출되는 편이라 안심하고 먹을 수 있는 쿠팡 탐사수를 애용하고 있어요."
+        },
+        {
+          "title": "6890원 ㆍ 탐사수, 2L, 12개 ㆍ #탐사수생수 #탐사수수원지",
+          "url": "https://kr.pinterest.com/pin/727964727271497381",
+          "source": "tavily",
+          "description": "2021-05-29 ㆍ 현재 가격 6890원 ㆍ 탐사수, 2L, 12개 ㆍ 로켓 배송 ㆍ 생수 상품 \" 1위 \" ㆍ #제주탐사수 ㆍ #동원생수2l ㆍ #탐사수수원지 ㆍ #탐사수생수 ㆍ"
+        },
+        {
+          "title": "쿠팡 탐사 탐사수 2L (24개) : 다나와 가격비교",
+          "url": "https://prod.danawa.com/info?pcode=15087302",
+          "source": "tavily",
+          "description": "쿠팡 탐사 탐사수 2L (24개). (24개)옵션선택. G마켓. 무료배송. 최저21,200원. 가격 ... 12개월; 24개월. 의견/리뷰. 더보기. 다나와 상품의견; 쇼핑몰 상품리뷰. 소모품"
+        },
+        {
+          "title": "쿠팡 '탐사수'서 발암물질 … 생수 브랜드 '3곳 중 1곳' 수질기준 위반",
+          "url": "https://www.safetimes.co.kr/news/articleView.html?idxno=111843",
+          "source": "tavily",
+          "description": "소비자들이 마시고 있는 주요 생수 브랜드의 수질기준 위반이 심각한 것으로 밝혀졌다. 심지어 일부 생수에서는 발암물질이 발견돼 환경부에 적발된"
+        }
+      ],
+      "naver_errors": [],
+      "tavily_error": null
+    },
+    {
+      "id": "cou_02",
+      "vertical": "coupang",
+      "query": "로지텍 MX Master 3S 펄화이트 쿠팡",
+      "note": "쿠팡 캡처지만 공식도 유효",
+      "preferred": [
+        "coupang.com",
+        "logitech"
+      ],
+      "acceptable": [
+        "smartstore.naver.com",
+        "search.shopping.naver.com",
+        "naver.com"
+      ],
+      "naver_categories": [
+        "shop",
+        "webkr"
+      ],
+      "naver_score": {
+        "preferred_at": 2,
+        "acceptable_at": 1,
+        "preferred_hit3": true,
+        "preferred_hit10": true,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "tavily_score": {
+        "preferred_at": 1,
+        "acceptable_at": 1,
+        "preferred_hit3": true,
+        "preferred_hit10": true,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "naver_top": [
+        {
+          "title": "내돈내산 | 로지텍 마우스 MX Master 3S 페일그레이 후기(feat. 언박싱, 구매 좌표, MX Master 3)",
+          "url": "https://blog.naver.com/loveau/223210032632",
+          "source": "naver:webkr",
+          "description": "집에 쿠팡 택배가 왔길래 뜯어보니 로지텍 마우스 MX Master 3S 페일그레이 검은 마우스 살 줄 알았더니... 마우스는 화이트에 가깝지만 케이블 색은 블랙으로 동일한 것 같다. 짜잔! 키보드와 나란히 놓고..."
+        },
+        {
+          "title": "로지텍 MX MASTER 3S 무선 마우스 - 무선마우스",
+          "url": "https://www.coupang.com/vp/products/8490386666",
+          "source": "naver:webkr",
+          "description": "현재 별점 4.8점, 리뷰 1586개를 가진 로지텍 MX MASTER 3S 무선 마우스! 지금 쿠팡에서 더 저렴하고 다양한 무선마우스 제품들을 확인해보세요."
+        },
+        {
+          "title": "로지텍 MX 마스터 3S 무선마우스 - 무선마우스",
+          "url": "https://www.coupang.com/vp/products/7242698793",
+          "source": "naver:webkr",
+          "description": "로이체 프리미엄 오피스 마스터 스마트 스크롤 멀티페어링 충전식 블루투스 무선 마우스 RX-900S PK, 핑크36%50,900"
+        },
+        {
+          "title": "로지텍 MX 마스터 3S 무선 마우스 - 무선마우스",
+          "url": "https://www.coupang.com/vp/products/8933607323",
+          "source": "naver:webkr",
+          "description": "함께 비교하면 좋을 상품 ; 로지텍 MX 마스터 3S 무선 마우스, 블랙 ; 로지텍 LIFT 버티컬 에르고노믹 무선 마우스, 펄화이트 ; 로이체 프리미엄 오피스 마스터 스마트 스크롤 멀티페어링 충전식 블루투스 무선 마우스 RX-900S PK, 핑크쿠폰할인37%49,900"
+        },
+        {
+          "title": "로지텍 MX 마스터 3S 무선 마우스 - 무선마우스",
+          "url": "https://www.coupang.com/vp/products/8933609439",
+          "source": "naver:webkr",
+          "description": "함께 비교하면 좋을 상품 ; 로이체 프리미엄 오피스 마스터 스마트 스크롤 멀티페어링 충전식 블루투스 무선 마우스 RX-900S PK, 핑크쿠폰할인37%49,900 ; 로지텍 코리아 지슈라 2 G PRO X SUPERLIGHT 2 게이밍 무선 마우스, 지슈라 2 블랙8%219,000 ; 아이리버 Air Lift 50 충전식 멀티페어링 세미 버티컬 블루투스 무소음 무선 마우스, BLACK"
+        },
+        {
+          "title": "MX Master 3s Wireless Mouse - 8K Optical Sensor",
+          "url": "https://www.logitech.com/en-us/shop/p/mx-master-3s",
+          "source": "naver:webkr",
+          "description": "Claim a complimentary 6-month Perplexity Pro membership ($120 value) with qualifying items. Select in cart. Learn More"
+        },
+        {
+          "title": "MX Master 3S Business Wireless Mouse",
+          "url": "https://www.logitech.com/en-us/products/mice/mx-master-3s-business-wireless-mouse.html",
+          "source": "naver:webkr",
+          "description": "MX MASTER 3S FOR BUSINESS ; Our iconic mouse, now upgraded. Quiet Click technology, 8000 DPI tracking for high-resolution monitors and MagSpeed scrolling."
+        },
+        {
+          "title": "로지텍 MX Master 3S 무선마우스 직구 후기 / 가격 배송 정품등록 사용후기 / 사무실 무소음 마우스 추천",
+          "url": "https://blog.naver.com/21startlife/223840374520",
+          "source": "naver:webkr",
+          "description": "후 ㅠ 그래서 큰 마음 먹고 사무실 마우스로 최고라는 로지텍 MX Master 3s 마우스 구매 ! ~ 내돈내산... com/a/cpukXA &quot;이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.&quot;"
+        },
+        {
+          "title": "로지텍MX master 3S와 유사 제품 실사용 후기(로이체, 지클릭커)",
+          "url": "https://blog.naver.com/koreakhan624/223717933066",
+          "source": "naver:webkr",
+          "description": "가기-알리익스프레스 로지텍 MX master 3S 보러 가기-쿠팡(직구)-9만 원 대 MX master 3S MX master 3S 무한 휠은 신세계였습니다. 특히 블로그 글쓰기, 쇼핑 등 PC 사용 시 너무 편할 것 같더군요. 가로 휠도 끌렸는데..."
+        },
+        {
+          "title": "로지텍 MX MASTER 3S 무선 마우스 - 무선마우스",
+          "url": "https://www.coupang.com/vp/products/8481545676",
+          "source": "naver:webkr",
+          "description": "쿠팡에서 로지텍 MX MASTER 3S 무선 마우스 구매하고 더 많은 혜택을 받으세요! 지금 할인중인 다른 무선마우스 제품도 바로 쿠팡에서 확인할 수 있습니다."
+        }
+      ],
+      "tavily_top": [
+        {
+          "title": "쿠팡이 추천하는 MX Master 3S 관련 혜택과 특가",
+          "url": "https://www.coupang.com/np/search?q=MX+Master+3S",
+          "source": "tavily",
+          "description": "로지텍 MX 마스터 3S 무선 마우스, 펄화이트. 로지텍 MX 마스터 3S 무선 마우스, 펄화이트. 할인 111,860원. 11%. 99,170원. 홍콩. 6/16(화) 도착 예정. 무료배송."
+        },
+        {
+          "title": "쿠팡이 추천하는 로켓직구 전자제품 BEST - 로지텍 관련 혜택과 특가",
+          "url": "https://pages.coupang.com/p/170043",
+          "source": "tavily",
+          "description": "로지텍 MX 마스터 3S 무선마우스, MX Master 3S, 블랙. 33% 156,780원 ... 로지텍 MX 애니웨어 3S 무선 마우스, 펄화이트. 할인. 14% 89,490원. 76,400원."
+        },
+        {
+          "title": "알리익스프레스에서 구매한 로지텍 \"MX MASTER 3S\" / 구매후기 ...",
+          "url": "https://blog.naver.com/instar360/223677647861?viewType=pc",
+          "source": "tavily",
+          "description": "... MX master3s 화이트컬러\". 로지텍 MX 마스터 3S 무선마우스 - 무선마우스 | 쿠팡. 현재 별점 4.8점, 리뷰 1178개를 가진 로지텍 MX 마스터 3S 무선마우스!"
+        },
+        {
+          "title": "로지텍 MX MASTER 3S 무선 마우스 - 쿠팡",
+          "url": "https://www.coupang.com/vp/products/8490386666",
+          "source": "tavily",
+          "description": "현재 별점 4.8점, 리뷰 1676개를 가진 로지텍 MX MASTER 3S 무선 마우스! 지금 쿠팡에서 더 저렴하고 다양한 무선마우스 제품들을 확인해보세요."
+        },
+        {
+          "title": "쿠팡에서 주문한 mx 마스터3s를 받았는데 박스가 > 키보드/마우스",
+          "url": "https://coolenjoy.net/bbs/34/2488454",
+          "source": "tavily",
+          "description": "MX MASTER 3S는 짭이라는 게 없습니다. 비슷한 모조품이 존재할 뿐이죠. 문제는 정발 여부인데 정발품이어야지만 국내에서 AS를 받을 수 있습니다."
+        },
+        {
+          "title": "로지텍 MX 마스터4 하이 퍼포먼스 무선 마우스 - 쿠팡",
+          "url": "https://www.coupang.com/vp/products/9178886834",
+          "source": "tavily",
+          "description": "조용한 클릭감: 3S의 무소음 클릭을 그대로 계승하면서도, 구분감은 조금 더 명확해졌습니다. 조용한 밤에 집중해서 차트를 볼 때 거슬리지 않아 좋습니다. 무게감: 전작"
+        },
+        {
+          "title": "쿠팡 mx마스터3s 84870 로켓직구 - 루리웹",
+          "url": "https://m.ruliweb.com/market/board/1020/read/96511",
+          "source": "tavily",
+          "description": "이 제품은 직구 하지 마세요... 스위치도 기계식이고 고무도 맨날 박살나고 코팅도 문제 있어서 정발로 사도 피똥 싸면서 쓰는 제품임."
+        },
+        {
+          "title": "로지텍 MX 마스터 3S 무선마우스 - 폴센트",
+          "url": "https://fallcent.com/product/LUHrO0JlEZ2yRkO9xowKg57CGI8YsNur",
+          "source": "tavily",
+          "description": "로지텍 MX 마스터 3S 무선마우스 ; 현재가 103,770원 ; 역대급최저가 95,500원 ; 최저가 대비 8,270원 더 비싸요."
+        },
+        {
+          "title": "로지텍 MX MASTER 4 FOR MAC 무선마우스 - 쿠팡",
+          "url": "https://www.coupang.com/vp/products/9102036529",
+          "source": "tavily",
+          "description": "감도(dpi): 8000dpi; 연결방식: 무선; 미니사이즈 여부: 일반형; 백라이트 기능여부: 백라이트 기능 없음; 손구분: 오른손용; 쿠팡상품번호: 9102036529 - 26757939451."
+        }
+      ],
+      "naver_errors": [],
+      "tavily_error": null
+    },
+    {
+      "id": "cou_03",
+      "vertical": "coupang",
+      "query": "락앤락 메트로 머그 475 쿠팡",
+      "note": "쿠팡 상품 링크 선호",
+      "preferred": [
+        "coupang.com",
+        "locknlock"
+      ],
+      "acceptable": [
+        "smartstore.naver.com",
+        "search.shopping.naver.com"
+      ],
+      "naver_categories": [
+        "shop",
+        "webkr"
+      ],
+      "naver_score": {
+        "preferred_at": 1,
+        "acceptable_at": 1,
+        "preferred_hit3": true,
+        "preferred_hit10": true,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "tavily_score": {
+        "preferred_at": 1,
+        "acceptable_at": 1,
+        "preferred_hit3": true,
+        "preferred_hit10": true,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "naver_top": [
+        {
+          "title": "락앤락 메트로 머그 텀블러  시티나잇퍼플  475ml  1개",
+          "url": "https://link.coupang.com/re/PCSNAVERPCSDP?pageKey=1806706132&ctag=1806706132&lptag=I20053545330&itemId=20053545330&vendorItemId=87149716506&spec=10305197",
+          "source": "naver:shop",
+          "mallName": "쿠팡",
+          "brand": "락앤락",
+          "lprice": "20650"
+        },
+        {
+          "title": "【락앤락 메트로 머그 475】 테이블 머그 중에서는 락앤락 메트로 머그가 최고!!",
+          "url": "https://blog.naver.com/cmhs82/222576118625",
+          "source": "naver:webkr",
+          "description": "오늘 내돈내산 애정템은 락앤락 메트로 투웨이 텀블러와 함께 구입한 락앤락 메트로 머그예요! 한달... 저는 475ml를 선택했어요~ 밀폐형이 아니기 때문에, 작은 용량에 음료를 가득 채워 담으면 살짝만 기울여도..."
+        },
+        {
+          "title": "[스텐 머그] 락앤락 메트로 머그 475 좋구만~!",
+          "url": "https://blog.naver.com/sk4597/222192030149",
+          "source": "naver:webkr",
+          "description": "스텐머그잔 사이즈가 크면 한손으로 잡을때 손목에 부담이 갈 수도 있는데, 락앤락 메트로머그 475 제품은 넉넉한 사이즈에도 가볍고 그립감이 좋아요! 바닥에도 락앤락의 세심한 배려? 실리콘 소재의 사일런스..."
+        },
+        {
+          "title": "락앤락 메트로 머그 보온 텀블러 475 ml 굿굿",
+          "url": "https://blog.naver.com/chunjy3049/222142229647",
+          "source": "naver:webkr",
+          "description": "락앤락 메트로 머그 색상이 네가지인가 있는데 남녀 커플로 써도 좋을듯 !!! 나는 민트색으로 구매하고 오빠껀 남색으로 샀찌요 용량도 475면... 끝났고 쿠팡 로켓배송이 가장 저렴! 언제 바뀔지 모르니 검색하셔서..."
+        },
+        {
+          "title": "내돈내산) 락앤락 메트로 투웨이 텀블러 237, 355ml 핑크 , 민트 구매",
+          "url": "https://blog.naver.com/yulbri/223122982486",
+          "source": "naver:webkr",
+          "description": "ㅎㅎ 쿠팡에서 락앤락 메트로 텀블러를 구매했다 사이즈가 237ml / 355 ml / 475 ml 그중 237. 355로 사이즈 두 개 구매 237ml 커피머신... 집에서 머그컵 대용으로 쓰려고 산 거라.. 그냥 도자기 컵보다 보온..."
+        },
+        {
+          "title": "쿠팡이 추천하는 락앤락 메트로 머그 텀블러 475ml 관련 혜택과 특가",
+          "url": "https://www.coupang.com/np/search?q=%EB%9D%BD%EC%95%A4%EB%9D%BD+%EB%A9%94%ED%8A%B8%EB%A1%9C+%EB%A8%B8%EA%B7%B8+%ED%85%80%EB%B8%94%EB%9F%AC+475ml",
+          "source": "naver:webkr",
+          "description": "쿠팡이 추천하는 락앤락 메트로 머그 텀블러 475ml 특가를 만나보세요. 로켓 와우회원은 다양한 할인과 무료 배송 및 반품 혜택도 누릴 수 있어요."
+        },
+        {
+          "title": "락앤락 메트로 보온보냉 머그 - 텀블러/쉐이커",
+          "url": "https://www.coupang.com/vp/products/1806706132",
+          "source": "naver:webkr",
+          "description": "현재 별점 4.8점, 리뷰 27194개를 가진 락앤락 메트로 보온보냉 머그! 지금 쿠팡에서 더 저렴하고 다양한 텀블러/쉐이커 제품들을 확인해보세요."
+        },
+        {
+          "title": "락앤락 메트로 밀폐 머그 텀블러 - 머그컵",
+          "url": "https://www.coupang.com/vp/products/6945944175",
+          "source": "naver:webkr",
+          "description": "쿠팡에서 락앤락 메트로 밀폐 머그 텀블러 구매하고 더 많은 혜택을 받으세요! 지금 할인중인 다른 머그컵 제품도 바로 쿠팡에서 확인할 수 있습니다."
+        },
+        {
+          "title": "락앤락 메트로 머그 475ml [1개]",
+          "url": "https://www.enuri.com/detail.jsp?modelno=53063143",
+          "source": "naver:webkr",
+          "description": "텀블러/물병/주전자 &gt; 텀블러/콜드컵, 락앤락 메트로 머그 475ml [1개] | 인기 쇼핑몰별 최저가 한 눈에 비교하고 최저가로 구매하세요! 최저가 알림 신청하면 원하는 가격에 알려드려요."
+        },
+        {
+          "title": "락앤락 머그컵 / 메트로 머그 텀블러 475ml 후기",
+          "url": "https://blog.naver.com/minipony777/223698648242",
+          "source": "naver:webkr",
+          "description": "이 머그컵 사이즈는 총 3가지 이다. 355ml 475ml 600ml 크기를 보아하니 내가 받은건 475ml로 추정 110*91... #락앤락 #락앤락머그컵 #락앤락텀블러 #메트로머그텀블러 #머그텀블러 #텀블러 #스텐머그컵 #보온보냉..."
+        }
+      ],
+      "tavily_top": [
+        {
+          "title": "쿠팡이 추천하는 락앤락텀블러뚜껑 관련 혜택과 특가",
+          "url": "https://www.coupang.com/np/search?q=%EB%9D%BD%EC%95%A4%EB%9D%BD%ED%85%80%EB%B8%94%EB%9F%AC%EB%9A%9C%EA%BB%91",
+          "source": "tavily",
+          "description": "최대 475원 적립 ・ 메트로 머그 텀블러, 모닝세룰리안블루, 475ml, 1개 ・ 33,600원 47% 17,650원 (1개당 17,650원)"
+        },
+        {
+          "title": "락앤락 메트로 머그 475ml (1개) : 다나와 가격비교",
+          "url": "https://prod.danawa.com/info?pcode=11796427",
+          "source": "tavily",
+          "description": "쇼핑몰별 최저가 ; G마켓. 18,630 · 5,000원 ; 쿠팡. 20,020 · 빠른배송 ; 11번가. 20,520 · 3,000원 ; 옥션. 22,020 · 3,000원 ; SSG.COM. 22,347 · 무료배송."
+        },
+        {
+          "title": "락앤락 메트로 머그컵 475 - 검색결과 - 쇼핑하우",
+          "url": "https://shoppinghow.kakao.com/m/search/q/%EB%9D%BD%EC%95%A4%EB%9D%BD%20%EB%A9%94%ED%8A%B8%EB%A1%9C%20%EB%A8%B8%EA%B7%B8%EC%BB%B5%20475",
+          "source": "tavily",
+          "description": "락앤락 메트로 머그 [LHC4219] 475ml 찜하기. 락앤락 메트로 머그 [LHC4219] 475ml. 최저가 22,340원. 배송비 :3,000. 평점4.7리뷰 108 · 락앤락 리뉴얼 메트로 머그 475ML"
+        },
+        {
+          "title": "락앤락 메트로 보온보냉 머그 - 텀블러/쉐이커 | 쿠팡",
+          "url": "https://www.coupang.com/vp/products/1806706132",
+          "source": "tavily",
+          "description": "현재 별점 4.8점, 리뷰 27458개를 가진 락앤락 메트로 보온보냉 머그! 지금 쿠팡에서 더 저렴하고 다양한 텀블러/쉐이커 제품들을 확인해보세요."
+        },
+        {
+          "title": "락앤락머그475 - 추천•인기 상품, SSG.COM",
+          "url": "https://www.ssg.com/search.ssg?query=%EB%9D%BD%EC%95%A4%EB%9D%BD%EB%A8%B8%EA%B7%B8475",
+          "source": "tavily",
+          "description": "배송비 3,500원·조건부. 락앤락 락앤락 메트로 머그 475ml. 판매가격33,120원. 3% 카드할인. 무료배송."
+        },
+        {
+          "title": "락앤락 메트로 머그 475 > 텀블러머그 | 1개부터 제작하는 ... - 브랜드리",
+          "url": "https://briendly.com/shop/%EB%9D%BD%EC%95%A4%EB%9D%BD-%EB%A9%94%ED%8A%B8%EB%A1%9C-%EB%A8%B8%EA%B7%B8-475",
+          "source": "tavily",
+          "description": "텀블러머그. 락앤락 메트로 머그 475. 상품 선택옵션 0 개, 추가옵션 0 개. 가격(VAT-), 25,000원. 배송비결제, 주문시 결제. 견적 요청 추가 추천하기. 공유. SNS공유."
+        },
+        {
+          "title": "[락앤락] NEW 메트로 밀폐머그 475ml 3종 (택1) - 마켓컬리",
+          "url": "https://www.kurly.com/goods/1001085183",
+          "source": "tavily",
+          "description": "[락앤락] NEW 메트로 밀폐머그 475ml 3종 (택1) ; 배송. 판매자배송. 2~5일 내 도착 (단, 배송사·판매자 상황에 따라 변동 가능) ; 배송비. 무료배송 ; 판매자. 주식회사"
+        },
+        {
+          "title": "락앤락 뉴 메트로 머그 475ml - 고려기프트 판촉물",
+          "url": "https://adpanchok.co.kr/ez/mall.php?cat=013003002&query=view&no=135361&ZG=11&ZT=%EF%BF%BD%EF%BF%BD%EF%BF%BD%EF%BF%BD%C6%AE100",
+          "source": "tavily",
+          "description": "구성, 본품 1 EA. 규격, 91*139mm, 재질, 몸체 : 스테인리스 스틸 304 / 캡 : 폴리프로필렌, 아크릴로니트릴-스티렌 공중합체(AS) / 패킹 : 고무제(실리콘고무), 색상"
+        },
+        {
+          "title": "락앤락 메트로 머그 475ml 모닝 세룰리안블루 후기, 크기 비교, 사이즈 ...",
+          "url": "https://blog.naver.com/decyeon/223423149859",
+          "source": "tavily",
+          "description": "흰색 데스크 테리어와 완전 찰떡궁합이다. 파란색 좋아하시는 분들은 락앤락 메트로 머그 모닝 세룰리안블루 컬러 구매하시고 손해 보는 일 없으시길... ​."
+        }
+      ],
+      "naver_errors": [],
+      "tavily_error": null
+    },
+    {
+      "id": "loc_01",
+      "vertical": "local",
+      "query": "런던베이글뮤지엄 안국",
+      "note": "네이버 지도 우선",
+      "preferred": [
+        "map.naver.com",
+        "place.naver.com"
+      ],
+      "acceptable": [
+        "catchtable",
+        "naver.com"
+      ],
+      "naver_categories": [
+        "local",
+        "webkr"
+      ],
+      "naver_score": {
+        "preferred_at": null,
+        "acceptable_at": 1,
+        "preferred_hit3": false,
+        "preferred_hit10": false,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "tavily_score": {
+        "preferred_at": null,
+        "acceptable_at": 3,
+        "preferred_hit3": false,
+        "preferred_hit10": false,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "naver_top": [
+        {
+          "title": "런던베이글뮤지엄 안국",
+          "url": "https://app.catchtable.co.kr/ct/shop/london_bagel_museum_anguk",
+          "source": "naver:local",
+          "category": "카페,디저트>베이커리",
+          "address": "서울특별시 종로구 북촌로4길 20",
+          "mapx": "1269862130",
+          "mapy": "375792099"
+        },
+        {
+          "title": "런던베이글뮤지엄 - Instagram",
+          "url": "https://www.instagram.com/london.bagel.museum/",
+          "source": "naver:webkr",
+          "description": "@london.bagel.museum의 최신 포스트를 확인하세요."
+        },
+        {
+          "title": "런던베이글뮤지엄 안국 &gt; 여행지",
+          "url": "https://korean.visitkorea.or.kr/detail/ms_detail.do?cotid=75033c80-2754-416e-a199-186819c1402e",
+          "source": "naver:webkr",
+          "description": "런던베이글뮤지엄은 베이글 전문점으로 안국역 근처에 있으며 멀리서도 긴 웨이팅으로 한눈에 찾기 쉽다. 아침 8시 오픈임에도 불구하고 오픈 시간부터 웨이팅이 있는 맛집이다. 베이컨 포테이토 샌드위치는 이곳의..."
+        },
+        {
+          "title": "런던베이글뮤지엄 안국 2026년 기업정보 - 직원수, 근무환경, 복리후생 등",
+          "url": "https://www.jobkorea.co.kr/Recruit/Co_Read/C/35258444",
+          "source": "naver:webkr",
+          "description": "런던베이글뮤지엄 안국의 최신 소식 및 기업문화, 근무환경, 고용현황, 직원수 등의 기업정보를 확인해보세요."
+        },
+        {
+          "title": "[런던베이글뮤지엄 안국] 브랜드 디자이너 채용 공고",
+          "url": "https://www.wanted.co.kr/wd/275952",
+          "source": "naver:webkr",
+          "description": "런던베이글뮤지엄 안국의 브랜드 디자이너 포지션을 확인해 보세요. 취업·이직에 성공하면, 합격보상금 50만원을 드립니다. 포지션: 브랜드 디자이너 회사 위치: 서울 종로구 자격 요건: ㆍ디자인 툴 Adobe Creative Cloud(PhotoShop, Illustrator, InDesign 등) 사용에 능숙하신 분 ㆍ패키지 및 굿즈 디자인 작업 및 제..."
+        },
+        {
+          "title": "런던베이글뮤지엄 - 위키백과 한국어",
+          "url": "https://ko.wikipedia.org/wiki/%EB%9F%B0%EB%8D%98%EB%B2%A0%EC%9D%B4%EA%B8%80%EB%AE%A4%EC%A7%80%EC%97%84",
+          "source": "naver:webkr",
+          "description": "이후 2022년 2월, ‘런던베이글뮤지엄 안국’이라는 상호로 법인이 정식 설립되었다. 2025년에는 사모펀드 운용사인 JKL파트너스가 런던베이글뮤지엄의 지분 100%를 2,000억 원에 인수하였다. 지점 여의도점 안국점..."
+        },
+        {
+          "title": "런던베이글뮤지엄 안국점 방문 후기 | 김군의 여행스케치",
+          "url": "https://view.mk.co.kr/trip-food/article/174718/",
+          "source": "naver:webkr",
+          "description": "서울에서 ‘베이글’이라는 단어만 들어도 많은 분들이 가장 먼저 떠올리는 곳이 바로 런던베이글뮤지엄 안국점이죠. 워낙 인기도 높고 웨이팅도 유명한 곳이라 쉽게 방문하기가 어려운데, 최근 안국 근처에서 일정이 있어 오랜만에 들러보았습니다. 이번 포스팅에서는 웨이팅 팁, 추천 메뉴, 실제 베이글 맛, 분위기, 구성, 장단점, 방문자의 관점에서 느낀 점을 정..."
+        },
+        {
+          "title": "“런던베이글뮤지엄서 주 80시간 일하던 20대, 심정지로 숨져”",
+          "url": "https://www.chosun.com/economy/economy_general/2025/10/27/LMC2IOBWEFD5REP2VWAMPS733M/",
+          "source": "naver:webkr",
+          "description": "런던베이글뮤지엄서 주 80시간 일하던 20대, 심정지로 숨져 유명 베이커리 런던베이글뮤지엄런베뮤에서 일하던 20대 청년이 주 80시간에 가까운 과로에 시달리다가 지난 7월 사망했다는 의혹이 제기됐다. 정의당은 27일 런던베이글뮤지엄은 청년 노동자의 죽음에 대한 책임"
+        },
+        {
+          "title": "런던 베이글 뮤지엄 안국점 주말 테이블링 예약 구매 후기",
+          "url": "https://tofu-unni.tistory.com/490",
+          "source": "naver:webkr",
+          "description": "런던 베이글 뮤지엄 안국점 주말 점심시간에 방문하여 테이블링 (테이크아웃) 예약하고 구매한 후기 종로구 북촌로4길 20 *설날 정상오픈 한다고 합니다 드디어 방문해보게 된 런던 베이글 뮤지엄. 숱한 후기들과 주변 지인들의 극찬으로 궁금하긴 했으나, 워낙 줄서서 먹는 걸 좋아하지 않습니다. 🙄 솔직히 내 입엔 기본 이상만 하면 다 맛있는데 줄을 몇 시..."
+        },
+        {
+          "title": "안국역 카페 런던베이글뮤지엄 평일 웨이팅과 추천 메뉴",
+          "url": "https://blog.naver.com/mjda20/222694635011",
+          "source": "naver:webkr",
+          "description": "사람이 많아서 웨이팅이 길다 안국역 카페 런던베이글뮤지엄 빈티지하면서도 예쁘게 꾸며 놓았어요. 코로나로 인해서 여행에 대한 욕구로 목말라 있는 것 같아요. 작년 가을엔 한남동에 아스티에 드 빌라트..."
+        }
+      ],
+      "tavily_top": [
+        {
+          "title": "런던베이글뮤지엄 안국점 London Bagel Museum Anguk - Facebook",
+          "url": "https://www.facebook.com/london.bagel.museum",
+          "source": "tavily",
+          "description": ". 안녕하세요 여러분! 런던베이글뮤지엄 안국점의 영업시간은 기존보다 1시간 앞당겨진 “오전 7시부터 오후 6시”로 연중무휴 영업중입니다. 이름 아침부터 매장에서 생산한"
+        },
+        {
+          "title": "런던 베이글 뮤지엄 안국점 - 북촌 베이커리카페 | 뽈레 Polle",
+          "url": "https://polle.com/place/16D13W/%EB%9F%B0%EB%8D%98%20%EB%B2%A0%EC%9D%B4%EA%B8%80%20%EB%AE%A4%EC%A7%80%EC%97%84",
+          "source": "tavily",
+          "description": "런던 베이글 뮤지엄 안국점. LONDON BAGEL MUSEUM. 3.5. 추천 48 좋음 78 보통 16 별로 21. 베이커리카페. 서울 종로구 북촌로4길 20 연화빌딩 1층. 지도앱 열기."
+        },
+        {
+          "title": "[안국맛집] 런던베이글뮤지엄 안국점(본점) 웨이팅, 솔직후기 등",
+          "url": "https://blog.naver.com/oktaeng92/223746571344?viewType=pc",
+          "source": "tavily",
+          "description": "안국역 2번 출구로 나와서 쭉 직진하다가 재동초등학교가 보일때쯤 오른쪽 방향으로 꺾어 직진하면 \"런던베이글\"이 보인다. (304m, 도보로 10분이내 거리."
+        },
+        {
+          "title": "런던베이글뮤지엄 안국",
+          "url": "https://app.catchtable.co.kr/ct/shop/london_bagel_museum_anguk",
+          "source": "tavily",
+          "description": "•입장 시 솔드아웃 된 베이글이 있을 수 있는 점 양해부탁드립니다. •현장 접수 웨이팅은 '오전 06:30' 입니다. •원격줄서기는 매일 오전 08:30부터 오후 18:00까지 가능"
+        },
+        {
+          "title": "런던베이글뮤지엄 안국점 London Bagel Museum Anguk on Reels",
+          "url": "https://www.facebook.com/london.bagel.museum/videos/1499917801006021",
+          "source": "tavily",
+          "description": "More videos you may like. 00:03. May 26, 2026 · 6 views. 00:07. May 26, 2026 · 61 views. 00:01. Apr 2, 2026 · 15 views. 00:08"
+        },
+        {
+          "title": "런던 베이글 뮤지엄 (@london.bagel.museum) - Instagram",
+          "url": "https://www.instagram.com/london.bagel.museum",
+          "source": "tavily",
+          "description": "[매장별 영업시간] 안국점 08:00~18:00 도산점 08:00~18:00 제주점 08:00~18:00 잠실점 16일,18일 정상영업(10:30~22:00) / 17일(12:00~22:00) 수원점 16일,18일 정상영업("
+        },
+        {
+          "title": "안국역 베이글 맛집 Top16 - 다이닝코드",
+          "url": "https://www.diningcode.com/list.dc?query=%EC%95%88%EA%B5%AD%EC%97%AD++%EB%B2%A0%EC%9D%B4%EA%B8%80",
+          "source": "tavily",
+          "description": "안국역 베이글맛집 순위 (16곳) ; 1. 코끼리베이글 인사동 ; 2. 런던 베이글 뮤지엄 안국 ; 3. 아티스트 베이커리 안국 ; 4. 아티스트컴플렉스 안국역 ; 5. 엘스 커피 안국역."
+        },
+        {
+          "title": "[런던 베이글 뮤지엄] 안국점 방문 & 포장 후기 | 길지 않았던 웨이팅 후기",
+          "url": "https://blog.naver.com/PostView.nhn?blogId=cholangii83&logNo=224140026922&redirect=Dlog&widgetTypeCall=true",
+          "source": "tavily",
+          "description": "가격은 비쌌습니다. 쪽파크림치즈 베이글이 8,500원, 치즈허니 베이글 5,300원, 블랙올리브 베이글이 4,700원이었어요. ​. ​. 쪽파"
+        },
+        {
+          "title": "[맛집탐방] 서울 안국역 런던베이글뮤지엄 솔직후기 - 지니의 일상",
+          "url": "https://jinii-life.tistory.com/entry/%EB%A7%9B%EC%A7%91%ED%83%90%EB%B0%A9-%EC%84%9C%EC%9A%B8-%EC%95%88%EA%B5%AD%EC%97%AD-%EB%9F%B0%EB%8D%98%EB%B2%A0%EC%9D%B4%EA%B8%80%EB%AE%A4%EC%A7%80%EC%97%84-%EC%86%94%EC%A7%81%ED%9B%84%EA%B8%B0",
+          "source": "tavily",
+          "description": "그리고 제일 맛있었던 당근라페 베이글~! ... 당근라페 베이글은 당근에 홀그레인머스타드?! ... 담백하고 깔끔한 맛 좋아하는 분들에게 강추합니다!"
+        },
+        {
+          "title": "런던베이글뮤지엄 안국점 # 3시간 웨이팅의 특별함? - 네이버 블로그",
+          "url": "https://m.blog.naver.com/happy-luna/223202512032",
+          "source": "tavily",
+          "description": "평균값은 5000원 정도 되는 것 같다. 결코 저렴하지 않은 가격의 베이글이다. 욕심 같아서는 하나씩 다 먹어보고 싶지만ㅋ 취향 따라 몇 가지만 담아보았다"
+        }
+      ],
+      "naver_errors": [],
+      "tavily_error": null
+    },
+    {
+      "id": "loc_02",
+      "vertical": "local",
+      "query": "몽탄 예약",
+      "note": "지도+캐치테이블 둘 다 좋음",
+      "preferred": [
+        "map.naver.com",
+        "place.naver.com",
+        "catchtable"
+      ],
+      "acceptable": [
+        "naver.com"
+      ],
+      "naver_categories": [
+        "local",
+        "webkr"
+      ],
+      "naver_score": {
+        "preferred_at": 2,
+        "acceptable_at": 2,
+        "preferred_hit3": true,
+        "preferred_hit10": true,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "tavily_score": {
+        "preferred_at": 4,
+        "acceptable_at": 4,
+        "preferred_hit3": false,
+        "preferred_hit10": true,
+        "acceptable_hit3": false,
+        "acceptable_hit10": true
+      },
+      "naver_top": [
+        {
+          "title": "몽탄",
+          "url": "http://www.mongtan.co.kr",
+          "source": "naver:local",
+          "category": "한식>육류,고기요리",
+          "address": "서울특별시 용산구 백범로99길 50",
+          "mapx": "1269722500",
+          "mapy": "375360103"
+        },
+        {
+          "title": "몽탄 제주점",
+          "url": "https://app.catchtable.co.kr/ct/shop/mongtan_jeju",
+          "source": "naver:local",
+          "category": "음식점>한식",
+          "address": "제주특별자치도 제주시 구좌읍 동복로 83 1층",
+          "mapx": "1267150643",
+          "mapy": "335536656"
+        },
+        {
+          "title": "몽탄 애월",
+          "url": "https://www.instagram.com/mongtan_aewol",
+          "source": "naver:local",
+          "category": "음식점>한식",
+          "address": "제주특별자치도 제주시 애월읍 애월북서길 56-4 몽탄",
+          "mapx": "1263094786",
+          "mapy": "334633425"
+        },
+        {
+          "title": "@mongtan_official - Instagram",
+          "url": "https://www.instagram.com/mongtan_official/",
+          "source": "naver:webkr",
+          "description": "@mongtan_official의 최신 포스트를 확인하세요."
+        },
+        {
+          "title": "몽탄 - 캐치테이블",
+          "url": "https://app.catchtable.co.kr/ct/shop/mongtan_yongsan",
+          "source": "naver:webkr",
+          "description": "전남 무안군 몽탄면의 전통 방식을 재해석하여 짚불에 훈연한 고기 요리를 선보이는 곳이에요. 짚불 향이 진하게 밴 우대갈비가 대표 메뉴이며, 고소한 항정살도 함께 많이 찾는 메뉴예요. 직원이 고기를 직접 구워주어 편하게 식사할 수 있으며, 뼈에 붙은 살을 넣은 볶음밥을 추천해요."
+        },
+        {
+          "title": "몽탄 제주 예약 웨이팅 주차 우대갈비 메뉴 구좌고기집",
+          "url": "https://blog.naver.com/younyoun07/224028980408",
+          "source": "naver:webkr",
+          "description": "Start 구좌 가볼만한 곳 몽탄 제주점 1. 예약과 현장 웨이팅 ⏰ 몽탄 영업시간 - 매일 11:30 - 21:00 - 라스트 오더 20:00 예약 방법 캐치테이블로 미리 예약이 가능한데요. 방문일 2주 전, 오전 9시에 예약창이 열려요. 제가..."
+        },
+        {
+          "title": "몽탄 제주 우대갈비 웨이팅 없이 당일 예약 주차장 정보",
+          "url": "https://blog.naver.com/unique1028/224307330372",
+          "source": "naver:webkr",
+          "description": "제가 방문했을 땐 현장 웨이팅도 있긴하더라구요 저희는 제주 몽탄 당일 예약으로 진행했고 운좋게 딱 토욜 3시 타임에 자리가 있어서 1시간전 급으로 예약해서 다녀왔습니다 포인트는 웨이팅 접수도 조기 마감될..."
+        },
+        {
+          "title": "삼각지 몽탄 예약없이 성공, 웨이팅은 기본인 짚불구이/우대갈비 맛집!",
+          "url": "https://tikntok.tistory.com/796",
+          "source": "naver:webkr",
+          "description": "뭐 개인적인 입맛차이일 수 있어서 더 이상의 말은 삼가토록 하겠습니다 몽탄 예약은 주중으로 6인이상 10명이하 단체 예약만 받고있습니다. 단 16시~18시 사이에만 예약 가능하며 하루에 2팀만 가능하니 단체..."
+        },
+        {
+          "title": "몽탄 - 서울, 용산구, 한강로1가",
+          "url": "https://www.siksinhot.com/P/1092489",
+          "source": "naver:webkr",
+          "description": "몽탄입니다. 짚불 향 가득 나는 맛있는 소갈비입니다. 서울, 용산구, 한강로1가에 위치하고 있습니다. 영업시간은 매일 12:00 ~ 22:00입니다. 대표메뉴는 우대갈비, 짚불항정살입니다."
+        },
+        {
+          "title": "[삼각지 맛집] 몽탄 예약 방법, 대기시간, 주차 정보",
+          "url": "https://blog.naver.com/inner_beauty_101/222449376613",
+          "source": "naver:webkr",
+          "description": "몽탄 예약 방법 1. 평일 오전 11시 공략 2. 걸어서 1분 거리에 있는 파스쿠찌에 가서 웨이팅 3. 몽탄에서 전화오면 가서 맛있게 먹기 주말은 3~4시간 웨이팅이 있기 때문에 슬기롭게 평일에 휴가쓰고 갈 것을..."
+        }
+      ],
+      "tavily_top": [
+        {
+          "title": "안녕하세요. 몽탄입니다. 저희 서울본점에서는 다음주 월요일부터 ...",
+          "url": "https://www.instagram.com/p/C3sJm4CJseE",
+          "source": "tavily",
+          "description": "#몽탄 잠시 후 1시에 몽탄 예약이 시작됩니다. 예약 타임은 4시 2인-4인 손님만 예약 가능하시며 에그다이닝 어플 통해서 가능합니다. 감사합니다"
+        },
+        {
+          "title": "몽탄 온라인몰 | 짚불구이 우대갈비를 집에서",
+          "url": "https://mongtan.co.kr",
+          "source": "tavily",
+          "description": "몽탄만의 짚불향의 맛과 멋을 그대로! 삼각지 맛집 몽탄의 시그니처 우대갈비 등 ... 050-7990-6000. email : md@igoodgn.com. ※ 몽탄 예약 접수 및 문의 처리 불가."
+        },
+        {
+          "title": "안녕하세요 몽탄입니다. 최근 홈페이지 예약과 관련한 문의가 많아져 ...",
+          "url": "https://www.instagram.com/p/CZvUg9TJQlL",
+          "source": "tavily",
+          "description": "현재 홈페이지 예약은 이번달 예약 마감되었으며, 평일 12시 1시 5시 타임 1팀씩 예약을 받고있습니다. 그외의 테이블은 예전과 동일하게 현장웨이팅"
+        },
+        {
+          "title": "몽탄 제주(구좌점)",
+          "url": "https://app.catchtable.co.kr/ct/shop/mongtan_jeju",
+          "source": "tavily",
+          "description": "예약 오픈 일정. 매일 오전 9:00: 14일간 예약이 가능합니다."
+        },
+        {
+          "title": "[용산구/삼각지] 몽탄 : 우대갈비, 양파볶음밥 / 웨이팅, 예약, 주차",
+          "url": "https://ccaboonda.tistory.com/489",
+          "source": "tavily",
+          "description": "몽탄 웨이팅 예약 및 영업시간 ... 별도의 정기휴무일도 없습니다. 예약은 캐치테이블을 이용하여 현장에서만 가능합니다. 캐치테이블 예약 오픈 시간은 11"
+        },
+        {
+          "title": "몽탄 - 캐치테이블",
+          "url": "https://app.catchtable.co.kr/ct/shop/mongtan_yongsan",
+          "source": "tavily",
+          "description": "웨이팅은 11시부터 매장에 비치된 캐치테이블머신을 이용하여 작성하시는 순서대로만 입장이 가능합니다. * 예약 및 시간지정 불가능합니다. 매장정보 전체보기"
+        },
+        {
+          "title": "삼각지 우대갈비 맛집 몽탄 주말 웨이팅 시간 + 내돈내산 후기",
+          "url": "https://honeyssolt.tistory.com/1",
+          "source": "tavily",
+          "description": "(핸드폰 어플로 예약하는 거 아님!) 6월 1일 대기 시작 시간 : 오전 10시 34분; 캐치테이블 예약 완료 시간 : 오전 11시 21분 _ 웨이팅 번호 46번; 오후"
+        },
+        {
+          "title": "몽탄 짚불구이 - 웨이팅,예약부터 주문팁까지 상세한 후기",
+          "url": "https://m.blog.naver.com/bbosil/223068218585",
+          "source": "tavily",
+          "description": "순서대로 12시부터 입장이 가능하다. 시간 지정 예약은 불가능하고,. 예약 인원 전원이 시간내 도착해야 착석할 수 있다."
+        },
+        {
+          "title": "용산 몽탄 우대갈비 캐치테이블 예약 웨이팅 팁",
+          "url": "https://smile2mh.tistory.com/entry/%EC%9A%A9%EC%82%B0-%EB%AA%BD%ED%83%84-%EC%9A%B0%EB%8C%80%EA%B0%88%EB%B9%84-%EC%BA%90%EC%B9%98%ED%85%8C%EC%9D%B4%EB%B8%94-%EC%98%88%EC%95%BD-%EC%9B%A8%EC%9D%B4%ED%8C%85-%ED%8C%81",
+          "source": "tavily",
+          "description": "# 용산 몽탄 우대갈비 캐치테이블 예약 웨이팅 팁. '그녀'도 캐치테이블에 알람이 와서 완전 기대하면서 웨이팅 걸 수 있는 건가? 캐치테이블 앱에 들어갈 때마다 \"지금은 웨이팅이 어려워요\", \"카운터에 문의하세요\", \"오늘 모든 웨이팅 마감입니다\", \"현장 웨이팅만 가능해요\" 등의 문구만 볼 수 있었다는 슬픈 소식 😭😭. 그래도 캐치테이블 방식으로 바뀌고 좋은 점은 **현재 웨이팅 현황을 핸드폰으로 확인할 수 있다는 점**이에"
+        },
+        {
+          "title": "삼각지 몽탄 웨이팅 예약이 까다롭지만 또 가고 싶은 곳 - 네이버 블로그",
+          "url": "https://m.blog.naver.com/matalmott/223344147798",
+          "source": "tavily",
+          "description": "주말 기준으로 점심을 원하시면 오픈런, 저녁을 원하시면 12시 이후에 여유롭게 웨이팅 작성하러 오시는 걸 추천드립니다. 저는 조금 더 기다리다가 5시"
+        }
+      ],
+      "naver_errors": [],
+      "tavily_error": null
+    },
+    {
+      "id": "loc_03",
+      "vertical": "local",
+      "query": "금돼지식당 예약",
+      "note": "예약형 맛집",
+      "preferred": [
+        "map.naver.com",
+        "place.naver.com",
+        "catchtable"
+      ],
+      "acceptable": [
+        "naver.com"
+      ],
+      "naver_categories": [
+        "local",
+        "webkr"
+      ],
+      "naver_score": {
+        "preferred_at": 3,
+        "acceptable_at": 3,
+        "preferred_hit3": true,
+        "preferred_hit10": true,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "tavily_score": {
+        "preferred_at": 4,
+        "acceptable_at": 2,
+        "preferred_hit3": false,
+        "preferred_hit10": true,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "naver_top": [
+        {
+          "title": "금돼지식당",
+          "url": "https://gold-pig.com/",
+          "source": "naver:local",
+          "category": "한식>돼지고기구이",
+          "address": "서울특별시 중구 다산로 149 1층",
+          "mapx": "1270116976",
+          "mapy": "375570932"
+        },
+        {
+          "title": "신도세기 종로구청점",
+          "url": "http://신도세기.com",
+          "source": "naver:local",
+          "category": "음식점>한식>육류,고기요리>돼지고기구이",
+          "address": "서울특별시 종로구 삼봉로 86",
+          "mapx": "1269818224",
+          "mapy": "375720177"
+        },
+        {
+          "title": "금뚜껑",
+          "url": "https://app.catchtable.co.kr/ct/shop/goldttukkeong",
+          "source": "naver:local",
+          "category": "한식>육류,고기요리",
+          "address": "서울특별시 성북구 동소문로22길 64 1층",
+          "mapx": "1270186056",
+          "mapy": "375902558"
+        },
+        {
+          "title": "금돼지식당 - 캐치테이블",
+          "url": "https://app.catchtable.co.kr/ct/shop/Goldpig",
+          "source": "naver:webkr",
+          "description": "미쉐린 빕구르망에 선정된 곳으로, 국내외 셀럽들이 즐겨 찾는 돼지고기구이 전문점이에요. 직접 구워주는 삼겹살과 눈꽃목살이 대표적이며, 진한 국물의 김치찌개도 많이 찾는 메뉴예요. 고기에 바질쌈을 곁들여 먹는 독특한 조합이 인기니, 방문 시 꼭 추가해서 드셔보세요."
+        },
+        {
+          "title": "금돼지식당 예약 웨이팅 메뉴 추천 꿀팁 후기",
+          "url": "https://blog.naver.com/supia2728/223776933113",
+          "source": "naver:webkr",
+          "description": "식당인 금돼지식당 예약 알아보고 방문을 하려고 했는데요 예약 방법 또한 피켓팅 수준이더라고요... 감칠맛 돼지를 사용한다고 해요 그리고 함께 먹는 소금은 영국 이스트 해안가의 말돈 지방에서 생산되는 120년..."
+        },
+        {
+          "title": "서울 금돼지식당 예약 웨이팅 주차 약수역 3대삼겹살 맛집",
+          "url": "https://blog.naver.com/paperplate/223582818884",
+          "source": "naver:webkr",
+          "description": "통돼지 김치찌개 8,000 금돼지식당 예약 주차 콜키지 웨이팅 캐치테이블 예약 예약금 1인 30,000원 1일 전 취소 시 100% 환불 / 방문 후 100% 환불 (매달 말 다음 달 예약을 받긴 함. 자리 거의 없음) 콜키지 평일 6시..."
+        },
+        {
+          "title": "금돼지식당 – Seoul - 의 미쉐린 가이드 레스토랑",
+          "url": "https://guide.michelin.com/kr/ko/seoul-capital-area/kr-seoul/restaurant/geumdwaeji-sikdang",
+          "source": "naver:webkr",
+          "description": "금돼지식당 – 빕 구르망; 합리적 가격에 훌륭한 음식 미쉐린 가이드 한국 2026 - 레스토랑의 정보, 가격 및 음식의 스타일, 오픈 시간 등을 미쉐린 가이드 공식 웹사이트에서 찾아보세요."
+        },
+        {
+          "title": "[미트러버 맛집] 7년 연속 미슐랭 가이드, 금돼지 식당",
+          "url": "https://www.meatlovernews.co.kr/news/articleView.html?idxno=10323",
+          "source": "naver:webkr",
+          "description": "7년 연속 미슐랭 가이드에 이름을 올리며 명성을 입증한 이곳 금돼지식당은 연일 길게 늘어선 대기 줄이 말해주듯 국내외 미식가들의 발길"
+        },
+        {
+          "title": "약수 금돼지식당 웨이팅, 평일 예약 오픈런 후기",
+          "url": "https://blog.naver.com/guswl9783/223733040832",
+          "source": "naver:webkr",
+          "description": "금돼지식당 평일 오픈런 예약한 덕분에 대기 없이 바로! 들어갔습니다. 금돼지식당 평일 그것도 가장 좋아하는 구석 창가자리로 세팅이 되어 있어서 더 좋았어요. 귀여운 돼지가 그려져 있는 앞치마도 착용해주고..."
+        },
+        {
+          "title": "서울 금돼지식당 주말 웨이팅 후기 / 예약 / 주차 정보 + 솔직 후기",
+          "url": "https://blog.naver.com/achellnet/223490980745",
+          "source": "naver:webkr",
+          "description": "참고로 금돼지식당 예약은 점심시간대에만 한정적으로 가능한데요. 캐치테이블 앱에서 예약하실 수... 눈꽃목살(150g) 19,000원 본삼겹(150g) 19,000원 등목살(150g) 21,000원 껍데기(120g) 14,000원 통돼지김치찌개 8,000원..."
+        }
+      ],
+      "tavily_top": [
+        {
+          "title": "서울 3대 고기집 줄서는식당 미슐랭가이드 맛집 예약 오픈런!",
+          "url": "https://wirbel.tistory.com/934",
+          "source": "tavily",
+          "description": "캐치테이블 금돼지식당 예약 시간은 매일 11:30으로 아주 조금만 받고 있어서 빡센 편입니다. 금돼지식당 캐치테이블 예약: https://app.catchtable.co.kr"
+        },
+        {
+          "title": "[금돼지식당] 캐치테이블 예약, 웨이팅, 메뉴추천 - Naver Blog",
+          "url": "https://blog.naver.com/sungkuk0911/223524157293",
+          "source": "tavily",
+          "description": "금돼지식당 웨이팅은 현장 키오스크 (캐치테이블)로 예약가능합니다. 캐치테이블에서 예약 가능한데 7월 29일 오픈예정이라고 합니다."
+        },
+        {
+          "title": "서울 삼겹살 맛집 금돼지식당 평일 오픈런 웨이팅 / 예약 / 메뉴추천 ...",
+          "url": "https://blog.naver.com/alsl_mini/223500448424",
+          "source": "tavily",
+          "description": "✅️ 금돼지식당 예약 방법은 캐치테이블을 이용하는 방법이 있다 ! 7월 예약은 이미 꽉찼고, 빈자리 알림신청 마저 마감!!"
+        },
+        {
+          "title": "금돼지식당 - 캐치테이블",
+          "url": "https://app.catchtable.co.kr/ct/shop/Goldpig",
+          "source": "tavily",
+          "description": "저장 Top 30. 종로/중구 돼지고기구이. 예약 오픈 일정. 5월 25일 오후 5:00: 6월 1일 ~ 30일 예약이 가능합니다. 예약 오픈 알림 받기. 편의시설."
+        },
+        {
+          "title": "[서울/약수] '금돼지식당' 이게 미슐랭? 캐치테이블 예약 방문기.",
+          "url": "https://didit-review.tistory.com/entry/%EA%B8%88%EB%8F%BC%EC%A7%80%EC%8B%9D%EB%8B%B9-%EC%9D%B4%EA%B2%8C-%EB%AF%B8%EC%8A%90%EB%9E%AD-%EC%BA%90%EC%B9%98%ED%85%8C%EC%9D%B4%EB%B8%94-%EC%98%88%EC%95%BD-%EB%B0%A9%EB%AC%B8%EA%B8%B0",
+          "source": "tavily",
+          "description": "금돼지식당 캐치테이블 예약 방법. 금돼지식당 예약 방법은 여러 가지가 있는데요,. '에그다이닝'이라는 앱을 통해 예약할 수 있는 걸로 많이 알려져"
+        },
+        {
+          "title": "금돼지식당 – Seoul - 의 미쉐린 가이드 레스토랑 - MICHELIN Guide",
+          "url": "https://guide.michelin.com/kr/ko/seoul-capital-area/kr-seoul/restaurant/geumdwaeji-sikdang",
+          "source": "tavily",
+          "description": "금돼지식당 – 빕 구르망; 합리적 가격에 훌륭한 음식 미쉐린 가이드 한국 2026 ... 예약은 받지 않는다. 시설 및 서비스 +82 10-4484-8750. 위치. 근처 레스토랑."
+        },
+        {
+          "title": "[약수, 금호] 금돼지 식당 - 투덜이의 리얼 블로그",
+          "url": "https://tourspace.tistory.com/615",
+          "source": "tavily",
+          "description": "금돼지 식당에 예약하고 갔었는데, 워낙 유명한 곳이라 하기도 하고 줄서서 먹는 집이라기에 기대반 의심반? 찾아가 봤습니다. 웨이팅이좀 있더군요.. 총 3층으로 되어"
+        },
+        {
+          "title": "Geumdwaeji Sikdang (Gold Pig) - Sindang-dong, Jung-gu, Seoul ...",
+          "url": "https://www.catchtable.net/shop/Goldpig",
+          "source": "tavily",
+          "description": "금돼지식당 A go-to restaurant for celebrities at home and abroad. 4.3(3,942) ₩10,000~₩20,000 Open• Only on-site waitlist is available at the moment. Please"
+        },
+        {
+          "title": "금돼지식당 (@gold_pig1982) · Seoul - Instagram",
+          "url": "https://www.instagram.com/gold_pig1982",
+          "source": "tavily",
+          "description": "명품돼지 연탄구이 전문점 서울 중구 신당동 370-69 ( 약수역2번출구, 청구역 사이) 서울 약수역 인근 *1곳만있습니다* · #코로나19물러가라 #고기먹고힘내자 우리 다 같이"
+        }
+      ],
+      "naver_errors": [],
+      "tavily_error": null
+    },
+    {
+      "id": "loc_04",
+      "vertical": "local",
+      "query": "스시소라 광화문 예약",
+      "note": "캐치테이블 가능성",
+      "preferred": [
+        "map.naver.com",
+        "place.naver.com",
+        "catchtable"
+      ],
+      "acceptable": [
+        "naver.com"
+      ],
+      "naver_categories": [
+        "local",
+        "webkr"
+      ],
+      "naver_score": {
+        "preferred_at": 2,
+        "acceptable_at": 2,
+        "preferred_hit3": true,
+        "preferred_hit10": true,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "tavily_score": {
+        "preferred_at": 1,
+        "acceptable_at": 1,
+        "preferred_hit3": true,
+        "preferred_hit10": true,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "naver_top": [
+        {
+          "title": "스시소라 광화문점",
+          "url": "http://www.sushisora.co.kr",
+          "source": "naver:local",
+          "category": "음식점>일식>일식당",
+          "address": "서울특별시 종로구 종로 19 르메이에르 지하1층 116호",
+          "mapx": "1269799653",
+          "mapy": "375710310"
+        },
+        {
+          "title": "스시소라 광화문점",
+          "url": "https://app.catchtable.co.kr/ct/shop/sushisoraghm",
+          "source": "naver:webkr",
+          "description": "예약 ; 오늘 (금) : 10% 할인, 내일 (토) : 예약 가능, 5.31 (일) : 예약 가능, 6.01 (월) : 예약 가능, 6.02 (화) : 예약 가능, 6.03 (수) : 예약 가능"
+        },
+        {
+          "title": "스시 소라 광화문점",
+          "url": "https://www.tabling.co.kr/place/677ccbf766de5f06987e3209",
+          "source": "naver:webkr",
+          "description": "운영시간 : 오늘 11:30 ~ 21:30, 브레이크 타임 : 오늘 14:30 ~ 17:30, 전화번호 : 02-733-8400"
+        },
+        {
+          "title": "스시소라 종로점 - 캐치테이블",
+          "url": "https://app.catchtable.co.kr/ct/shop/SushisoraJongno",
+          "source": "naver:webkr",
+          "description": "예약 ; 오늘 (화) : 10% 할인, 내일 (수) : 10% 할인, 5.21 (목) : 예약 가능, 5.22 (금) : 예약 가능, 5.23 (토) : 예약 가능, 5.24 (일) : 예약 가능"
+        },
+        {
+          "title": "스시소라, 가성비 좋은 오마카세의 성지 - AI 딩코의 맛집 공략",
+          "url": "https://www.diningcode.com/dingco/Hf4u4IatFPa9",
+          "source": "naver:webkr",
+          "description": "장점 ; 스시소라는 가성비가 좋은 초밥집입니다. ; 신선하고 맛있는 스시를 제공합니다. ; 셰프님들이 친절하고 유쾌한 분위기를 연출합니다."
+        },
+        {
+          "title": "스시소라 광화문점 예약 | 종로구, 서울특별시 | 일식",
+          "url": "https://autoreserve.com/ko/restaurants/kvG838uif4187djAPppN",
+          "source": "naver:webkr",
+          "description": "스시소라 광화문점 예약 - 일식/종로구, 서울특별시일본 맛집 예약은 AutoReserve. 가게정보와 리뷰 부터 예약까지 한번에."
+        },
+        {
+          "title": "광화문 오마카세 디너코스, 스시소라",
+          "url": "https://blog.naver.com/jgj93152/224185446650",
+          "source": "naver:webkr",
+          "description": "스시소라 광화문점 안녕하세요 여러분- 오늘은 광화문에 있는 오마카세 집, 스시소라 광화문점에 다녀왔어요- 디너코스 예약하고 오마카세를 즐기고 왔는데요- 디너코스 요리 순서부터 설명까지 지금부터 바로..."
+        },
+        {
+          "title": "광화문 오마카세 &quot;스시소라 광화문점&quot; 런치 솔직후기(예약방법, 가는법, 주차)",
+          "url": "https://blog.naver.com/ruwiy113/223976586984",
+          "source": "naver:webkr",
+          "description": "스시소라 ✅스시소라 광화문점 예약방법 매월 1일 오전 10시에 캐치테이블에서 다음달 1일~말일까지의 예약이 오픈돼요! Ex) 9월 1일 오전 10시에 10월 1일~31일 까지의 예약 오픈 스시소라 광화문점 당일예약은..."
+        },
+        {
+          "title": "스시소라 - 광화문 스시오마카세 맛집",
+          "url": "https://www.diningcode.com/profile.php?rid=Hf4u4IatFPa9",
+          "source": "naver:webkr",
+          "description": "맛4.8, 가격4.6, 친절4.6 스시 부드럽고 맛있었어요 구성도 좋고 샤베트도 맛있었음 셰프님도 친절하세요 06.11 (목) 영업시간: 11:30 - 22:00 오마카세, 런치 카운터 오마카세(60,000원), 디너 카운터..."
+        },
+        {
+          "title": "내돈내산 종로 오마카세 스시소라 광화문점 런치 후기, 예약, 메뉴",
+          "url": "https://blog.naver.com/soomni960601/223938526771",
+          "source": "naver:webkr",
+          "description": "스시소라 광화문점 위치, 영업시간, 예약 위치는 서울 종로구 종로 19 르메이에르 지하 1층에 위치해 있어요 광화문역 4번 출구에서 도보 4분 거리! 영업시간은 2부제로 나눠서 진행하는데 런치 - 11:30 / 13:00 평일..."
+        }
+      ],
+      "tavily_top": [
+        {
+          "title": "스시소라 광화문점",
+          "url": "https://app.catchtable.co.kr/ct/shop/sushisoraghm",
+          "source": "tavily",
+          "description": "예약. 날짜 · 인원 · 시간. 오늘 (금). 10% 할인. 내일 (토). 예약 가능. 5.31 (일). 예약 가능. 6.01 (월). 예약 가능. 6.02 (화). 예약 가능. 6.03 (수). 예약 가능."
+        },
+        {
+          "title": "스시소라 광화문점 예약 | 종로구, 서울특별시 | 일식 - AutoReserve",
+          "url": "https://autoreserve.com/ko/restaurants/kvG838uif4187djAPppN",
+          "source": "tavily",
+          "description": "1. 당일 런치 예약은 11시까지 가게로 전화추시면 잔여석 확인 후 예약이 가능합니다. 2. 주차는 상가건물 주차장 이용가능하며, 2시간 무료지원 됩니다. 3. 하루 전 또는"
+        },
+        {
+          "title": "[서울] 이번에는 런치 오마카세 코스 먹으러 <스시소라 광화문점>",
+          "url": "https://nan72.tistory.com/67",
+          "source": "tavily",
+          "description": "사전예약 필수. 전 캐치테이블로 오전 11시 30분 타임으로 예약했어요. 런치 오마카세는 인당 6만 원입니다. 예전 디너 오마카세 코스 먹었던 기록은"
+        },
+        {
+          "title": "스시 소라 광화문점 - 광화문 오마카세 | 뽈레 Polle",
+          "url": "https://polle.com/place/4NXEP0/%EC%8A%A4%EC%8B%9C%20%EC%86%8C%EB%9D%BC",
+          "source": "tavily",
+          "description": "4.3 | '광화문 스시소라 가성비 좋은 스시 오마카세 점심이 6만원이니 오마 ... 예약가능. 주차가능. 룸있음. 콜키지유료. 메뉴. 런치 카운터 오마카세 60,000. 디너"
+        },
+        {
+          "title": "#스시소라판교점 #가오픈 #예약 #시작합니다 #런치5만원 #디너10 ...",
+          "url": "https://www.instagram.com/reel/DNU2Nj1xzAJ",
+          "source": "tavily",
+          "description": "6월 1일부터 점심 오마카세에 단새우와 우니가 새롭게 추가되었습니다. 더 풍성해진 바다의 맛을 스시소라 광화문점에서 만나보시기 바랍니다."
+        },
+        {
+          "title": "스시소라 광화문점 디너 코스 솔직후기 (여자친구 생일 기념)",
+          "url": "https://diostory.tistory.com/entry/%EC%8A%A4%EC%8B%9C%EC%86%8C%EB%9D%BC-%EA%B4%91%ED%99%94%EB%AC%B8%EC%A0%90-%EB%94%94%EB%84%88-%EC%BD%94%EC%8A%A4-%EC%86%94%EC%A7%81%ED%9B%84%EA%B8%B0-%EC%97%AC%EC%9E%90%EC%B9%9C%EA%B5%AC-%EC%83%9D%EC%9D%BC-%EA%B8%B0%EB%85%90",
+          "source": "tavily",
+          "description": "(캐치테이블 예약) 결제금액: 200000원 2025년 01월 12일 기준으로 디너 오마카세 1만 원 인상된 것으로 확인됩니다. (1인 11만 원) 찾아가는 길스시소라"
+        },
+        {
+          "title": "#스시소라판교점 #가오픈 #예약 #시작 #스시소라 #스시코우지",
+          "url": "https://www.instagram.com/reel/DNWyhr3BlUs",
+          "source": "tavily",
+          "description": "6월 1일부터 점심 오마카세에 단새우와 우니가 새롭게 추가되었습니다. 더 풍성해진 바다의 맛을 스시소라 광화문점에서 만나보시기 바랍니다."
+        },
+        {
+          "title": "스시소라 광화문점 디너 솔직후기 : 네이버 블로그",
+          "url": "https://blog.naver.com/vvip1206/223744955577?viewType=pc",
+          "source": "tavily",
+          "description": "디너는 110,000원이고 런치는 60,000원이에요! · 오랜만에 간 만큼 많이 먹고싶었기에 디너 방문! · 그리고 캐치테이블 앱을 통해 남아있는 자리 · 겨우 예약"
+        },
+        {
+          "title": "8만원대 디너 오마카세. 못 먹겠다 진짜..(스시소라 광화문점) - YouTube",
+          "url": "https://www.youtube.com/watch?v=g2QJ6DJ2DMU",
+          "source": "tavily",
+          "description": "안녕하십니까 코요미 여러분들! 오늘은 스시소라 광화문점 손종은 셰프님 디너 오마카세를 진행하고 왔습니다~ 가격 대비 정말 배부르게 먹고 왔구요"
+        },
+        {
+          "title": "예약 BEST 100 - 캐치테이블",
+          "url": "https://app.catchtable.co.kr/ct/exhibition/2024_yearend_reservation",
+          "source": "tavily",
+          "description": "예약 가능. 6.16 (화). 예약 가능. 6.17 (수). 예약 가능. 6.18 (목). 예약 가능. 6.19 (금). 예약 가능. 6.20 (토). 예약 가능. 6.21 (일). 예약 가능. 6.22 (월). 예약"
+        }
+      ],
+      "naver_errors": [],
+      "tavily_error": null
+    },
+    {
+      "id": "loc_05",
+      "vertical": "local",
+      "query": "모프 동탄 미용실",
+      "note": "소상공인 local 약점",
+      "preferred": [
+        "map.naver.com",
+        "place.naver.com"
+      ],
+      "acceptable": [
+        "instagram.com",
+        "naver.com"
+      ],
+      "naver_categories": [
+        "local",
+        "webkr"
+      ],
+      "naver_score": {
+        "preferred_at": null,
+        "acceptable_at": 1,
+        "preferred_hit3": false,
+        "preferred_hit10": false,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "tavily_score": {
+        "preferred_at": null,
+        "acceptable_at": 1,
+        "preferred_hit3": false,
+        "preferred_hit10": false,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "naver_top": [
+        {
+          "title": "모프 동탄",
+          "url": "https://blog.naver.com/rohyj2002",
+          "source": "naver:local",
+          "category": "미용>미용실",
+          "address": "경기도 화성시 동탄감배산로 143 유림노르웨이숲 201동 205, 206, 207호 모프",
+          "mapx": "1270895355",
+          "mapy": "371994410"
+        },
+        {
+          "title": "동탄역 미용실 모프 채은쌤 레이어드컷 망한머리 복구받은 후기",
+          "url": "https://blog.naver.com/rkdus0388/223483210765",
+          "source": "naver:webkr",
+          "description": "ㅠㅠㅠㅠ 동탄 모프 미용실 채은쌤은 제 얼굴에 잘 어울리는 머리 스타일을 추천해주셨는데, 제가 이목구비가 크고 뚜렷한 편이라 머리까지 펌으로 화려하면 너무 과한 느낌이 들 수 있어서 펌보다는 매직이 더 잘..."
+        },
+        {
+          "title": "[동탄 미용실] 동탄 모프 펌 내돈내산후기",
+          "url": "https://blog.naver.com/0julie/223894996089",
+          "source": "naver:webkr",
+          "description": "모프 동탄 위치 : 경기도 화성시 동탄감배산로 143 유림노르웨이숲 201동 영업시간 : 화요일 휴무, 매일 10:00... 미용실 머리 감는곳 불편한데 여기는 진짜 자도 될거같아요 움냠냠 여기서 중화도 했아요! (실제로 제..."
+        },
+        {
+          "title": "2동탄 미용실 모프헤어 트렌디한 단발 레이어드컷 by 연지원장쌤",
+          "url": "https://blog.naver.com/sasb0330/223249714784",
+          "source": "naver:webkr",
+          "description": "오늘의 내돈내산 포스팅은 바로 2동탄 미용실 모프헤어에서 단발 레이어드컷을 받아본 재방문 후기를 자세하게 적어볼까 합니당 우선 매장 위치부터 알려드릴게요~ 여울공원 바로 앞에 위치해있어용 급하신 분들..."
+        },
+        {
+          "title": "모프헤어 동탄 윤서 실장님 * ˚ ⊹ ꒱·˚ 동탄 미용실 레이어드컷 매트브라운 염색 맛집",
+          "url": "https://blog.naver.com/kt4727/223954904744",
+          "source": "naver:webkr",
+          "description": "머리가 너무 붉은기가 돋보이는게 싫어서 윤서쌤께 요청하여,, 모프헤어 동탄점을 방문하였다 * ˚ ⊹ ꒱·˚ 지하주차장도 너무 잘 되어있어서 편하게 주차 완료! 나는 샵을 두 곳 정착했는데, 그 중 한 샵인 윤서쌤..."
+        },
+        {
+          "title": "동탄미용실 동탄 남자머리 모프 연수 (@morph_yeonsu): ⚡️안녕하세요. 모프헤어 부원 instagram post download",
+          "url": "https://imginn.com/p/DQozSsbE2Ln/",
+          "source": "naver:webkr",
+          "description": "@morph_binho )원장님들 덕분에 NEW 프로필촬영을 하였습니다! ; 좋은 기회 만들어주셔서 감사합니다 원장님들❤️ 그리고 저를 여기까지 올라오는데 항상 믿고 끌어주셔서 감사합니다!🫡 현재 예약 캔슬건으로 가장 빠른 예약 11월6일(목) 12:30/14:00 11월7일(금)13:00/13:30 예약가능하십니다🫡. 그 다음 빠른 예약날짜는 11월12일입니다! 항상 저를 기다려주시고 믿고 찾아주셔서 감사합니다..."
+        },
+        {
+          "title": "동탄미용실 모프 유빈",
+          "url": "https://blog.naver.com/binny0307",
+          "source": "naver:webkr",
+          "description": "약 20 명의 구독자를 보유한 동탄미용실 모프 유빈(binny0307)의 블로그"
+        },
+        {
+          "title": "동탄미용실 동탄남자머리 모프헤어 빈호원장 (@morph_binho): #슬릭댄디컷 #볼륨매직 # instagram post download",
+          "url": "https://imginn.com/p/DSezgs2kzu3/",
+          "source": "naver:webkr",
+          "description": "- 구레나룻 없는분들 주목!!🔥 - 디자인은 볼륨매직을 통해 슬릭하게, 컴플렉스인 구레나룻과 관자놀이라인은 구레나룻매직 + 세미다운펌으로 커버👍 좋은 디자인에 더해 완벽한 컴플렉스커버로 고객님의 만족감을 최고치로 만들어드립니다!"
+        },
+        {
+          "title": "모프morph - 헤어링크",
+          "url": "https://hairlink.kr/user/company_view.php?idx=24754",
+          "source": "naver:webkr",
+          "description": "모프morph | 헤어링크에서 미용실 네일샵 뷰티샵 정보를 거리순으로 제공 합니다."
+        },
+        {
+          "title": "화성시 미용실 헤어샵 추천 좋아요 7곳",
+          "url": "https://fcji4r99yz.tistory.com/entry/%ED%99%94%EC%84%B1%EC%8B%9C-%EB%AF%B8%EC%9A%A9%EC%8B%A4-%ED%97%A4%EC%96%B4%EC%83%B5-%EC%B6%94%EC%B2%9C-%EC%A2%8B%EC%95%84%EC%9A%94-7%EA%B3%B3",
+          "source": "naver:webkr",
+          "description": "모프헤어 소개 주소 : 경기 화성시 동탄감배산로 143 유림노르웨이숲 201동 205,206,207호 모프헤어 미용실 화성시에 위치한 미용실인 모프헤어에 대해 자세히 알아보겠습니다. 모프헤어는 경기 화성시..."
+        }
+      ],
+      "tavily_top": [
+        {
+          "title": "동탄미용실 트렌디한 스타일은 역시 모프헤어 : 네이버 블로그",
+          "url": "https://blog.naver.com/byki2013/223226306444",
+          "source": "tavily",
+          "description": "위치는 여울공원 바로 앞에 위치하고 있어요. 모프헤어. 경기도 화성시 동탄감배산로 143 유림노르웨이숲 201동 205,206,207호 모프헤어. 저장. 예약."
+        },
+        {
+          "title": "동탄미용실 #모프 - Threads",
+          "url": "https://www.threads.com/@morph_yeonzi/post/DCq_OSjPrd6",
+          "source": "tavily",
+          "description": "모프는 걍 손질쉬운 펌만 해드려요. 네이버예약은 프로필상단에 자세한문의는 DM. #동탄미용실 #레이어드컷"
+        },
+        {
+          "title": "동탄미용실 모프 노 연지 / 퍼스널헤어성형 (@morph_yeonzi)",
+          "url": "https://www.instagram.com/morph_yeonzi",
+          "source": "tavily",
+          "description": "Slay, morph 빠져든다 모프 ~ ~!! • 요기는 여자머리 • • 맨즈가 궁금하면 @morph_binho • 네이버예약은 요기 · #동탄미용실 #모프 #헤어컨설팅 #윤곽성형 #헤어성형 은"
+        },
+        {
+          "title": "동탄미용실 모프 유빈 퍼스널 염색 / 레이어드펌 / on Instagram",
+          "url": "https://www.instagram.com/reel/DOkVof0ksH5",
+          "source": "tavily",
+          "description": "#동탄미용실_모프헤어 안녕하세요 모프헤어 유빈 입니다 옆볼륨 팡팡 여성스러운 무드 가득한 #레이어드펌 기르는 과정에서도 손질이 쉬운 스타일 툴툴"
+        },
+        {
+          "title": "동탄미용실 모프 유빈 퍼스널 염색 / 레이어드펌 / on Instagram",
+          "url": "https://www.instagram.com/p/DOAtZ4rkmAI",
+          "source": "tavily",
+          "description": "#동탄미용실_모프헤어 안녕하세요 모프헤어 유빈 입니다 #플럼레드 + #슬릭펌 #슬릭컷 힙하면서 여성스러운 무드 가닥 가닥 떨어지는 #슬릭펌"
+        },
+        {
+          "title": "동탄미용실 동탄남자머리 모프헤어 정원디자이너[빈티지펌 텍스쳐컷]",
+          "url": "https://www.threads.com/@morph_jeongwon?hl=ko",
+          "source": "tavily",
+          "description": "궁금한점 편하게문의주세요!! morph_jeongwon's profile picture. 동탄미용실 동탄남자머리 모프헤어 정원디자이너[빈티지펌 텍스쳐컷] (@morph_jeongwon) · May"
+        },
+        {
+          "title": "#동탄미용실 #모프 퍼스널상담을 통한 #헤어컨설팅 염색도 모프 펌도 ...",
+          "url": "https://www.instagram.com/reel/DDof6QrPdyz",
+          "source": "tavily",
+          "description": "동탄미용실 #모프 퍼스널상담을 통한 #헤어컨설팅 염색도 모프 펌도 모프 히히 * 유빈디자이너, 조윤서 디자이너 전체시술 30 %이벤트중"
+        },
+        {
+          "title": "경기도 화성시 동탄구 동탄2동 이웃들이 자주 가는 미용실 - 당근마켓",
+          "url": "https://www.daangn.com/kr/local-profile?in=%EB%8F%99%ED%83%842%EB%8F%99-1787&search=%EB%AF%B8%EC%9A%A9%EC%8B%A4",
+          "source": "tavily",
+          "description": "반송동미용실 중에서도 저희는 최신 트렌드와 개성을 조화롭게 반영한 스타일링을 제공합니다. 동탄 염색, 컷트, 히피펌, 레이어드컷 등 다양한 시술을 전문적으로 진행"
+        },
+        {
+          "title": "#동탄미용실 #모프헤어다연 부담스럽지 않은 굵은 히피펌 개인의 모발 ...",
+          "url": "https://www.instagram.com/p/DOfcnGiiW1U",
+          "source": "tavily",
+          "description": "3회 펌 이력에 매직 이력까지 있었던 얇은 모발이라 컬감이 더 탄력 있게 살아날 수 있도록 작업했어요 묶어도 예쁘고 풀어도 자연스럽게 볼륨 살아나는"
+        },
+        {
+          "title": "동탄 미용실 베스트 추천 top 10",
+          "url": "https://hotel-iu.tistory.com/6118",
+          "source": "tavily",
+          "description": "동탄역미용실을 찾으시는 고객님들께도 동탄 미용실 준오헤어 동탄호수점은 편리한 접근성과 최상의 서비스를 자랑합니다. 동탄역에서 가까운 거리에"
+        }
+      ],
+      "naver_errors": [],
+      "tavily_error": null
+    },
+    {
+      "id": "loc_06",
+      "vertical": "local",
+      "query": "을지로 보석 예약",
+      "note": "예약/지도",
+      "preferred": [
+        "map.naver.com",
+        "place.naver.com",
+        "catchtable"
+      ],
+      "acceptable": [
+        "naver.com"
+      ],
+      "naver_categories": [
+        "local",
+        "webkr"
+      ],
+      "naver_score": {
+        "preferred_at": 2,
+        "acceptable_at": 2,
+        "preferred_hit3": true,
+        "preferred_hit10": true,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "tavily_score": {
+        "preferred_at": 2,
+        "acceptable_at": 1,
+        "preferred_hit3": true,
+        "preferred_hit10": true,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "naver_top": [
+        {
+          "title": "로이드현대아울렛동대문점",
+          "url": "http://www.lloydgift.com/",
+          "source": "naver:local",
+          "category": "쇼핑,유통>귀금속,시계",
+          "address": "서울특별시 중구 장충단로13길 20",
+          "mapx": "1270076520",
+          "mapy": "375686919"
+        },
+        {
+          "title": "을지로보석 - 캐치테이블",
+          "url": "https://app.catchtable.co.kr/ct/shop/euljiloboseog",
+          "source": "naver:webkr",
+          "description": "흑백요리사 장사천재 조사장의 익숙하고 편안한 맛을 추구하는 술집"
+        },
+        {
+          "title": "을지로 보석 예약 가격 솔직후기 흠.. (ft.장사천재 조사장)",
+          "url": "https://blog.naver.com/lsy3225/223599825372",
+          "source": "naver:webkr",
+          "description": "을지로 보석 예약 솔직후기 흠.. (ft.장사천재 조사장) 을지로 보석 (ft.장사천재조사장) 위치 을지로 3가역 도보 5분 가격 1인 5만 5천원 ✅️예약 필수, 주류주문 필수 흑백요리사 장사천재 조사장이 운영하는..."
+        },
+        {
+          "title": "흑백요리사 식당 장사천재 조사장 을지로 보석 예약 메뉴 주류 가격 비빔밥 후기",
+          "url": "https://blog.naver.com/halosoy/223745654366",
+          "source": "naver:webkr",
+          "description": "8만원대~) 을지로 보석 캐치테이블 예약 캐치테이블과 조사장님 인스타에 예약 오픈 일정이 뜨는데요! 한달 동안의 예약이 하루에 꽉 차는 마법을 경험할 수 있습니다.. 12시 땡 하자마자 날짜 클릭하고 예약..."
+        },
+        {
+          "title": "을지로보석, 한식 오마카세 레스토랑 - AI 딩코의 맛집 공략",
+          "url": "https://www.diningcode.com/dingco/2IYLFd1tWM9K",
+          "source": "naver:webkr",
+          "description": "서울 중구 마른내로에 위치한 을지로보석은 한식 오마카세 레스토랑입니다. 분위기는 조용하고 아늑하며, 오픈 키친에서 조리과정을 볼 수 있어 재미도 있습니다. 대표 메뉴는 오늘의 코스요리(1인당 55,000원)이며, 인기 메뉴는 단새우와 우니입니다. 서비스는 친절하고, 블루리본을 받은 곳으로 인테리어는 벽면에 다양한 사인들이"
+        },
+        {
+          "title": "을지로 보석 - 나를 아는 여행 앱, 트리플",
+          "url": "https://triple.guide/restaurants/a3d75cf5-7901-47cc-8a0e-8e804a4c646a",
+          "source": "naver:webkr",
+          "description": "생활의 달인에 소개된 을지로 보석은 바삭한 보리새우 미나리전과 신선한 제철 해산물 오마카세를 즐길 수 있는 요리 주점입니다. 을지로3가역 인근에 위치하여 와인과 함께 정갈한 한국 요리를 선보이며, 사전 예약제로 운영되어 특별한 미식 경험을 제공합니다."
+        },
+        {
+          "title": "을지로보석 가격 예약 주류 추천 캐치테이블 예약 아쉬운 점 솔직후기",
+          "url": "https://blog.naver.com/damdamss/224099616977",
+          "source": "naver:webkr",
+          "description": "한식 오마카세 을지로보석 을지로보석 가격 을지로보석 예약 을지로보석 주류 내돈내산 후기입니다옹~ 한식 오마카세 을지로보석, 주류, 예약, 가격 등 총정리! 먼저 바로 음식 사진 들어갑니다. 저희가 갔을 때는..."
+        },
+        {
+          "title": "2025년 을지로 보석 예약 방법과 58000원 코스 후기 | 뉴스",
+          "url": "https://gazet.ai/news/3713",
+          "source": "naver:webkr",
+          "description": "서울 맛집 중에서도 꼭 가봐야 하는 을지로 보석, 요즘 예약하기가 하늘의 별 따기라는데요. 2025년 기준으로 58,000원으로 오른 코스 가격에도 예약 전쟁은 여전해요. 넷플릭스 흑백요리사로 유명해진 조서형 셰프의 한식 오마카세를 예약하는 방법부터 실제 방문 후기까지 모두 알려드릴게요. 을지로 보석이란? 예약 전쟁의 시작 을지로 보석은 조서형 셰프..."
+        },
+        {
+          "title": "을지로보석 예약 주류 흑백요리사 식당",
+          "url": "https://blog.naver.com/hllove8523/224032139515",
+          "source": "naver:webkr",
+          "description": "불렀어요 #을지로보석 #을지로보석주류 #을지로보석예약 #흑백요리사식당 예약이 굉장히 빡센 서울 흑백요리사 식당 을지로보석 주류 보틀 주문 필수 ! 신선한 재료로 즉석 만드는 오픈 주방 인스타그램..."
+        },
+        {
+          "title": "[서울/을지로]을지로의 보석 '을지로보석'에 다녀온 솔직후기(캐치테이블 예약방법, 을지로맛집)",
+          "url": "https://blog.naver.com/lhnhanaing/223969700924",
+          "source": "naver:webkr",
+          "description": "을지로보석은 매월 1일 12시 정각에 캐치테이블 어플로 예약받는 시스템이었다. 내가 원하는 날에 1부 17시로 예약을 성공해서 더 기분좋게 다녀올 수 있었다! 1부: 17:00~19:00 2부: 19:30~22:00 (21시 라스트오더)..."
+        }
+      ],
+      "tavily_top": [
+        {
+          "title": "[흑백요리사 투어] 장사천재 조사장 을지로 보석 예약 가격 및 솔직 후기",
+          "url": "https://blog.naver.com/hyesu9514/223663943849?viewType=pc",
+          "source": "tavily",
+          "description": "을지로 보석 예약은 캐치테이블로 가능한데,. 월말 오후 12시에 다음 달 예약 오픈이 열립니다. ​. 위치는 을지로3가역 12번 출구"
+        },
+        {
+          "title": "을지로보석",
+          "url": "https://app.catchtable.co.kr/ct/shop/euljiloboseog",
+          "source": "tavily",
+          "description": "예약 오픈 일정. 5월 29일 오후 12:00: 6월 1일 ~ 6월 30일 예약이 가능합니다."
+        },
+        {
+          "title": "보석같은 사람과 보석같은 시간 : 을지로 보석 - 메티즌",
+          "url": "https://metizen.co.kr/%EB%B3%B4%EC%84%9D%EA%B0%99%EC%9D%80-%EC%82%AC%EB%9E%8C%EA%B3%BC-%EB%B3%B4%EC%84%9D%EA%B0%99%EC%9D%80-%EC%8B%9C%EA%B0%84-%EC%9D%84%EC%A7%80%EB%A1%9C-%EB%B3%B4%EC%84%9D",
+          "source": "tavily",
+          "description": "다행스러운 소식은 인별그램 DM을 통한 예약이 2024년 9월부로 종료되고, 2024년 10월부터는 캐치테이블로 예약할 수 있다. 주소 : 서울시 중구 마른내로 11-10 3층. 주소"
+        },
+        {
+          "title": "을지로보석 (@euljiro_boseok) • Instagram photos and videos",
+          "url": "https://www.instagram.com/euljiro_boseok",
+          "source": "tavily",
+          "description": "모든 예약은 캐치테이블 어플을 통해 가능합니다. 당일 여분의 좌석은 매일 점심 스토리로 공지합니다! 국산주류가 없는 내추럴와인 그리고 사케바입니다. 주류주문이 필수"
+        },
+        {
+          "title": "을지로 보석 예약 가격 솔직후기 흠.. (ft.장사천재 조사장) : 네이버 블로그",
+          "url": "https://blog.naver.com/lsy3225/223599825372",
+          "source": "tavily",
+          "description": "5월 기준, 1인 4만 8천원이었는데요. 지금은 1인당 5만 5천원 정도로 가격 인상이 좀 된거같아요. 식사시 테이블장 주류 바틀 주문 필수라는점 미리 알고"
+        },
+        {
+          "title": "을지로보석, 예약 난이도 더 올랐다  ｜'흑백요리사' 흑수저 장사천재 ...",
+          "url": "https://www.youtube.com/watch?v=wnzUb8srrZI",
+          "source": "tavily",
+          "description": "을지로보석, 예약 난이도 더 올랐다 ｜'흑백요리사' 흑수저 장사천재 조사장 인터뷰｜Netflix 'Culinary Class Wars'. 72K views · 1 year ago."
+        },
+        {
+          "title": "을지로보석 - 을지로3가 한식오마카세, 사케 맛집 - 다이닝코드",
+          "url": "https://www.diningcode.com/profile.php?rid=2IYLFd1tWM9K",
+          "source": "tavily",
+          "description": "내 주변 맛집을 빠르게 찾을 수 있습니다. # 을지로보석. 저녁식사 **5**데이트 **5**술모임 **4**식사모임 **2**기념일 **2**회식 **1** 더보기 더보기. ![을지로보석 리뷰 사진 [1/5] - 망망주 님, 4월 20일](https://d12zq4w4guyljn.cloudfront.net/300_300_20260420104813_photo1_c95006c5ac92.webp). ![을지로보석 리뷰 사진 [5/"
+        },
+        {
+          "title": "을지로 보석 비추 후기 -원가절감과 인스타감성의 향연🫠 feat. 흑백요리사 장사천재",
+          "url": "https://dooroomina.tistory.com/89",
+          "source": "tavily",
+          "description": "## 을지로 보석 비추 후기 -원가절감과 인스타감성의 향연🫠 feat. 주류 리스트가 없으면 보통은 와인셀러같은데서 손님이 직접 고르게라도 해주는데, 뭐가 있는지도 모르는 상태에서 추천만 받을 수 있다니; 블로그 후기로 대충 가늠해봤을때는 최소 8-9만원대부터 시작인 비싼 와인과 사케만 있다고 했다. 이거야 뭐 업장 정책이니 우선 그러려니 함. 본격적인 메뉴 전에 속을 달래려고(?) 먹는 차원의 아뮤즈부쉬같은 역할이라고 생각했"
+        },
+        {
+          "title": "꺄르르M의 맛있는 여행 : 네이버 블로그",
+          "url": "https://blog.naver.com/ally0411/223434663488",
+          "source": "tavily",
+          "description": "| 이 블로그  **서울,경기** 카테고리 글전체글 보기  서울,경기글 목록      | 글 제목 | 작성일 |  화면 최상단으로 이동 |. 이 포스트는 네이버 블로그에서 작성된 게시글입니다. 2009년 6월 30일 네이버 여행 서비스가 종료되었습니다. 네이버 여행 서비스를 이용해 주신 여러분께 감사드리며,. 더 좋은 서비스로 보답할 수 있도록 노력하겠습니다. 네이버는 블로그를 통해 저작물이 무단으로 공유되는 것을 막기 위해,"
+        }
+      ],
+      "naver_errors": [],
+      "tavily_error": null
+    },
+    {
+      "id": "evt_01",
+      "vertical": "event",
+      "query": "남산 페스티벌 예약",
+      "note": "행사 예약/신청",
+      "preferred": [
+        "reservation",
+        "booking",
+        "naver.com",
+        "seoul"
+      ],
+      "acceptable": [
+        "blog.naver.com",
+        "instagram.com"
+      ],
+      "naver_categories": [
+        "webkr",
+        "blog",
+        "news"
+      ],
+      "naver_score": {
+        "preferred_at": 1,
+        "acceptable_at": 1,
+        "preferred_hit3": true,
+        "preferred_hit10": true,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "tavily_score": {
+        "preferred_at": 5,
+        "acceptable_at": 5,
+        "preferred_hit3": false,
+        "preferred_hit10": true,
+        "acceptable_hit3": false,
+        "acceptable_hit10": true
+      },
+      "naver_top": [
+        {
+          "title": "2026 남산 서머 페스티벌 - 공원소식 &gt; 새소식 &gt; 상세화면",
+          "url": "https://parks.seoul.go.kr/story/news/detailView.do?bIdx=3748",
+          "source": "naver:webkr",
+          "description": "도심 속 자연과 문화가 어우러진 2026 남산 서머 페스티벌이 찾아옵니다. ♣ Fun &amp; Walk 남산의... 사전예약 여부 확인 ♣ 예약 오픈 : 2026. 6. 12.(금) 가족, 친구, 연인과 함께 남산에서 잊지 못할 여름의..."
+        },
+        {
+          "title": "2026 남산 서머 페스티벌 걷기 공연 정원 체험 축제",
+          "url": "https://korean.visitseoul.net/eventsx/2026namsansummerfestival/KOPhhpmd3",
+          "source": "naver:webkr",
+          "description": "2026 남산 서머 페스티벌에서 미션형 걷기, 정원 도슨트 프로그램, 야외 공연을 즐겨보세요. 남산공원에서 여름을 만끽하는 특별한 문화 축제입니다."
+        },
+        {
+          "title": "2026 남산서머페스티벌 일정 라인업 예약방법 티켓팅 출연진 누군가요??? - 자유게시판",
+          "url": "https://www.gpsports.or.kr/ksc/community/boards/details?id=862",
+          "source": "naver:webkr",
+          "description": "2026 남산서머페스티벌 일정과 라인업, 예약방법, 티켓팅, 출연진 정보를 한 번에 정리했습니다. 예매 전 공식 공지를 꼭 확인하세요. 남산서머페스티벌 예매 정보 확인 2026 남산서머페스티벌 일정 2026..."
+        },
+        {
+          "title": "2026 남산서머페스티벌 일정 총정리 예약방법 로이킴 존박 무료공연까지",
+          "url": "https://blog.naver.com/pjihye4728/224312491129",
+          "source": "naver:webkr",
+          "description": "남산서머페스티벌 예약방법 현재 공개된 내용에 따르면 Summer Garden 프로그램은 사전예약 후 참여가 가능합니다. 예약은 서울시 공원여가센터 및 관련 안내 페이지를 통해 진행될 예정입니다. 예약 시작일..."
+        },
+        {
+          "title": "남산 서머 페스티벌…로이킴·존박 공연, 걷기행사 신청 | 서울시",
+          "url": "https://mediahub.seoul.go.kr/archives/2018443",
+          "source": "naver:webkr",
+          "description": "☞ ‘남산 서머 페스티벌’ 사전예약 이색 걷기 행사 ‘펀앤워크’ 참여자 1,000명을 모집한다. 다양한 미션 수행하며 걷는 ‘펀앤워크’ 남산길을 시원하고 재미있게 걸어보는 ‘펀앤워크’(9:00~11:00)는..."
+        },
+        {
+          "title": "2026 남산 서머 페스티벌(6월 27일, 남산에서 놀자!) &lt; 환경",
+          "url": "https://news.seoul.go.kr/env/archives/569684",
+          "source": "naver:webkr",
+          "description": "2026년 6월 27일, 남산 백범광장·팔각광장 일대에서 ‘남산 서머 페스티벌’이 열립니다. 오전 9시 미션형 걷기를 시작으로 정원도슨트와 다양한 체험이 오후까지 진행됩니다. 6월 12일(금)부터 네이버 예약 통해 걷기 1,000명, 공연 1,000명, 도슨트 120명을 선착순 모집합니다."
+        },
+        {
+          "title": "걷고 놀고 공연 본다…남산 서머 페스티벌 12일 예약 시작",
+          "url": "https://www.kizmom.com/news/articleView.html?idxno=110887",
+          "source": "naver:webkr",
+          "description": "서울 남산의 여름을 특별하게 즐길 수 있는 ‘2026 남산 서머 페스티벌’이 오는 6월 27일 열린다. 서울시는 걷기 행사와 음악 공연, 다양한 체험 프로그램에"
+        },
+        {
+          "title": "남산서머페스티벌 예약·예매 완벽 가이드",
+          "url": "https://blog.naver.com/serenity_87/224314556863",
+          "source": "naver:webkr",
+          "description": "네이버 메인에서 &quot;남산서머페스티벌 예약&quot; 검색 2. 상단 공식 링크 또는 네이버 예약 &gt; 문화/행사 &gt; 축제·공연 카테고리에서 찾기 3. 서울시 공식 안내 페이지에서 연결된 예약 버튼 클릭 4. 원하는 프로그램 선택..."
+        },
+        {
+          "title": "남산서머페스티벌 2026 일정 예약방법 주차 로이킴 존박 무료공연까지 즐기는 서울 여름축제",
+          "url": "https://blog.naver.com/dhej0212/224314697102",
+          "source": "naver:webkr",
+          "description": "2026남산서머페스티벌 일정 예약방법 주차 로이킴 존박 무료공연까지 즐기는 서울 여름축제 여름이 되면 서울 안에서도 가볍게 다녀올 수 있는 축제나 주말 나들이 장소를 찾게 되는데요. 멀리 떠나지 않아도..."
+        },
+        {
+          "title": "2026 남산 서머 페스티벌 예약방법 로이킴 존박 공연 총정리!",
+          "url": "https://blog.naver.com/jang62799/224312474823",
+          "source": "naver:webkr",
+          "description": "2026 남산 서머 페스티벌 예약방법 로이킴 존박 공연 총정리! 안녕하세요 해삐지닝이에요 이번에 남산에서 남산 서머 페스티벌이 열린다고해서 정보 호다닥 가저왔어용 서울에서 로이킴 존박 공연을 즐길 수..."
+        }
+      ],
+      "tavily_top": [
+        {
+          "title": "걷고 놀고 공연 본다…남산 서머 페스티벌 12일 예약 시작 - Daum",
+          "url": "https://v.daum.net/v/20260611180501126",
+          "source": "tavily",
+          "description": "스티벌'이 오는 6월 27일 열린다. 사전 예약을 통해 총 1,000명을 모집하며, 좌석 지정도 가능하다. 남산 수 있는 프로그램도 운영된다."
+        },
+        {
+          "title": "남산에서 즐기는 특별한 하루! 6월 27일 '남산 서머 페스티벌' |",
+          "url": "http://www.kmkj.kr/news/articleViewAmp.html?idxno=119336",
+          "source": "tavily",
+          "description": "네이버 예약 통해 걷기 1,000명, 공연 1,000명, 남산 곳곳의 '2026 남산 서머 페스티벌'이 6월 27일(토) 개최된다. 사전 예약으로 참여할 수 있으며 총 1"
+        },
+        {
+          "title": "한여름 밤의 남산, 걷고 즐기는 '남산 서머 페스티벌' 개최 - 매일일보",
+          "url": "https://www.m-i.kr/news/articleView.html?idxno=1380828",
+          "source": "tavily",
+          "description": "참가 신청은 '정원도시 서울' 누리집, 공식 SNS, 손목닥터 앱 등을 통해 연계된 예약 페이지에서 진행된다. 걷기 참가자에게는 기념 티셔츠와 완보 메달,"
+        },
+        {
+          "title": "남산 서머 페스티벌 예약 오픈 임박! 6월 12일(금)부터 선착순 접수 ...",
+          "url": "https://x.com/Aurora_5100/status/2064671418155970595/photo/2",
+          "source": "tavily",
+          "description": "남산 서머 페스티벌 예약 오픈 임박! 6월 12일(금)부터 선착순 접수 시작 미션 걷기, 정원 체험, 그리고 로이킴·존박의 야외 공연까지"
+        },
+        {
+          "title": "이색 걷기 체험부터 로이킴·존박 무료 공연까지! 2026 남산 서머 ...",
+          "url": "https://blog.naver.com/haechiseoul/224312862782",
+          "source": "tavily",
+          "description": "2026 남산 서머 페스티벌 참여자 모집 (6/12 선착순 예약 오픈). 프로필 ... 2026 남산 서머 페스티벌. 🗓️일정. 6월 27일(토). 장소. 남산공원"
+        },
+        {
+          "title": "120명 ▪️도슨트 사전예약: 6.12.(금) 14:00부터 선착순 접수 ※ 체험 ...",
+          "url": "https://www.instagram.com/p/DZdr2c9kmOJ",
+          "source": "tavily",
+          "description": "6월 27일 '2026 남산 서머 페스티벌'이 열려요. 남산 숲길 걷기행사, 정원 도슨트 해설, 그리고 로이킴·존박의 라이브 공연까지 하루 종일 즐길 수 있어요"
+        },
+        {
+          "title": "서울시 (Seoul) - 🌿✨ 올여름, 남산에서 특별한 하루! 걷고, 체험하고, 공연까지 즐기는...",
+          "url": "https://www.facebook.com/seoul.kr/posts/-%EC%98%AC%EC%97%AC%EB%A6%84-%EB%82%A8%EC%82%B0%EC%97%90%EC%84%9C-%ED%8A%B9%EB%B3%84%ED%95%9C-%ED%95%98%EB%A3%A8%EA%B1%B7%EA%B3%A0-%EC%B2%B4%ED%97%98%ED%95%98%EA%B3%A0-%EA%B3%B5%EC%97%B0%EA%B9%8C%EC%A7%80-%EC%A6%90%EA%B8%B0%EB%8A%942026%EB%82%A8%EC%82%B0%EC%84%9C%EB%A8%B8%ED%8E%98%EC%8A%A4%ED%8B%B0%EB%B2%8C-%EC%9D%B4-%EC%B0%BE%EC%95%84%EC%98%B5%EB%8B%88%EB%8B%A4%EA%B0%80%EC%A1%B1-%EC%B9%9C%EA%B5%AC-%EC%97%B0%EC%9D%B8%EA%B3%BC-%ED%95%A8%EA%BB%98%EB%82%A8%EC%82%B0%EC%97%90%EC%84%9C-%EC%9E%8A%EC%A7%80-%EB%AA%BB%ED%95%A0-%EC%97%AC%EB%A6%84%EC%9D%98-%EC%B6%94/1433333962170643",
+          "source": "tavily",
+          "description": "## 서울시 (Seoul)'s post. ### **서울시 (Seoul)**. : 워터포그·대형 얼음존·버스킹·댄스 구간 등을 즐기는 약 6km 미션형 걷기 프로그램. ▪️사전예약: 6.12.(금) 14:00부터 선착순 접수. : 한국숲정원 도슨트, 전통 부채·책갈피 만들기, 포토부스 등 체험 프로그램. ▪️도슨트 사전예약: 6.12.(금) 14:00부터 선착순 접수. ※ 체험 프로그램은 현장 참여 가능. ▪️‘정원도시 서울’"
+        },
+        {
+          "title": "(구해요)2026 남산 서머 페스티벌 티켓 | 취미/게임/음반 | 당근 중고거래",
+          "url": "https://www.daangn.com/kr/buy-sell/%EA%B5%AC%ED%95%B4%EC%9A%94-2026-%EB%82%A8%EC%82%B0-%EC%84%9C%EB%A8%B8-%ED%8E%98%EC%8A%A4%ED%8B%B0%EB%B2%8C-%ED%8B%B0%EC%BC%93-97nwiqu1m5xo",
+          "source": "tavily",
+          "description": "2026 남산 서머 페스티벌 티켓 구합니다! 당일날 가서 대기가능하고 2-4매원해요. 채팅 0·관심 0·조회 12. 당근 앱에서 보기"
+        },
+        {
+          "title": "글로컬 문화 in(人) 남산 페스티벌 | 지역축제 - 대한민국 구석구석",
+          "url": "https://korean.visitkorea.or.kr/kfes/detail/fstvlDetail.do?fstvlCntntsId=604be331-7126-4482-a9f5-7c93ac132b5f",
+          "source": "tavily",
+          "description": "- 글로컬 문화 in(人) 남산 페스티벌 문의처 : 051-714-4674. * 최종 업데이트 : 2025.10.21. 길찾기. 글로컬 문화 in(人) 남산 페스티벌 카카오 맵. 길찾기. 축제와 함께"
+        },
+        {
+          "title": "제2회 남산 한국의 맛 축제 - 티켓링크",
+          "url": "https://www.ticketlink.co.kr/product/20899",
+          "source": "tavily",
+          "description": "셰프 40명이 펼치는 '한식의 도발'"
+        }
+      ],
+      "naver_errors": [],
+      "tavily_error": null
+    },
+    {
+      "id": "evt_02",
+      "vertical": "event",
+      "query": "서울시 청년문화패스 신청",
+      "note": "공식 신청 페이지",
+      "preferred": [
+        "youthcultureseoul",
+        "seoul.go.kr"
+      ],
+      "acceptable": [
+        "blog.naver.com",
+        "news.naver.com"
+      ],
+      "naver_categories": [
+        "webkr",
+        "news",
+        "blog"
+      ],
+      "naver_score": {
+        "preferred_at": 1,
+        "acceptable_at": 1,
+        "preferred_hit3": true,
+        "preferred_hit10": true,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "tavily_score": {
+        "preferred_at": 1,
+        "acceptable_at": 1,
+        "preferred_hit3": true,
+        "preferred_hit10": true,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "naver_top": [
+        {
+          "title": "‘서울청년문화패스’, 청년 눈높이로 대폭 개선…2026년 참여자 조기 모집 &lt; 문화",
+          "url": "https://news.seoul.go.kr/culture/archives/531194",
+          "source": "naver:webkr",
+          "description": "'서울청년문화패스', 청년 눈높이로 대폭 개선…2026년 참여자 조기 모집 - 정부의 청년문화예술패스와 지원 겹치지 않도록 지원 연령 21~23세로 조정 - 상시 모집, 사용기한 연장, 제공 작품 및 인원 확대 등 수요자 중심 지원 강화 - 22일(월)부터 청년몽땅정보통 누리집서 조기 모집…최대 20만 원 문화관람비 지원"
+        },
+        {
+          "title": "서울청년문화패스 28일부터 접수…문화비 연 20만원 지원 - 복지로",
+          "url": "https://m.bokjiro.go.kr/ssis-tem/cms/mob/news/news/1306352_1122.html",
+          "source": "naver:webkr",
+          "description": "등록일 : 2024-03-18, 정보제공처 : 연합뉴스 ; (서울=연합뉴스) 최윤선 기자 = 서울시는 20∼23세 청년에게 연 20만원의 문화 관람비를 지원하는 '서울청년문화패스' 신청을 이달 28일부터 다음 달 17일까지 받는다고 17일 밝혔다. 신청은 서울시 '청년몽땅정보통' 홈페이지(youth.seoul.go.kr)에서 접수한다. 올해 신청 대상은 2001∼2004년에 태어난 서울 거주 청년 중 가구소득이 중위소득의 15..."
+        },
+        {
+          "title": "[서울시] 2026년 서울청년문화패스 신청자 모집",
+          "url": "https://culture.seoul.go.kr/culture/culture/cultureEvent/view.do?cultcode=156277&menuNo=200008",
+          "source": "naver:webkr",
+          "description": "서울시 문화분야 종합 정보 제공 사이트 서울문화포털, [서울시] 2026년 서울청년문화패스 신청자 모집, 2025-12-22~2026-12-31, 온라인 접수, 무료"
+        },
+        {
+          "title": "서울청년문화패스 &lt; 문화나눔 &lt; 문화정책",
+          "url": "https://culture.seoul.go.kr/culture/main/contents.do?menuNo=200134",
+          "source": "naver:webkr",
+          "description": "사업소개 ; 사회에 첫발을 내딛는 21~23세 청년들에게 연극, 뮤지컬, 클래식, 국악 등 공연과 전시 관람 기회를 제공하고 문화예술분야 활성화를 위해 1인당 연간 최대 20만원의 문화이용권(바우처)을 지원하는 사업입니다."
+        },
+        {
+          "title": "서울청년문화패스 - 청년몽땅정보통",
+          "url": "https://youth.seoul.go.kr/infoData/plcyInfo/view.do?plcyBizId=20250227005400210572&key=2309150002",
+          "source": "naver:webkr",
+          "description": "사업개요 · 정책 유형 · 복지.문화 · 주관 기관 · 서울특별시 · 정책 소개 · 청년들의 문화권을 향상하고, 청년들의 문화향유 기회 확 ... ; 신청자격 · 연령 · 만 20세 ~ 만 23세 · 학력 · 전공요건 · 취업상태 · 특화분야 요건 · 추가단서 사항 ... ; 신청방법 · 신청절차 · 신청(온라인) → 자격확인·선정 → 카드발급(비대면) → 사용(결제) ※ 장애인 등 온라인 신청이 어려운 취약계 ..."
+        },
+        {
+          "title": "2024년 서울청년문화패스 신청자를 모집합니다! &gt; 새소식 &gt; 열린마당",
+          "url": "https://seoulcitywall.seoul.go.kr/board/B0001.do?act=read&bpoId=4854",
+          "source": "naver:webkr",
+          "description": "2024년 서울청년문화패스 신청자를 모집합니다! 서울청년문화패스는 20세부터 23세 청년들에게... 𝗸𝗿 [태그] #서울청년문화패스 #서울시청년정책 #문화플렉스 첨부파일 서울청년문화패스_리플렛..."
+        },
+        {
+          "title": "2026 서울청년문화패스 신청자 모집중! (feat. 21~23세 서울 청년)",
+          "url": "https://culture.seoul.go.kr/culture/culture/cultureImage/view.do?youtubeId=16564&menuNo=200014",
+          "source": "naver:webkr",
+          "description": "서울시 문화분야 종합 정보 제공 사이트 서울문화포털, 2026 서울청년문화패스 신청자 모집중! (feat. 21~23세 서울 청년)"
+        },
+        {
+          "title": "[서울시] 2026년 서울청년문화패스 신청자 모집 공고 &lt; 공지사항(상세) &lt; 새소식",
+          "url": "https://culture.seoul.go.kr/culture/bbs/B0000000/view.do?nttId=15607&menuNo=200050",
+          "source": "naver:webkr",
+          "description": "서울시 문화분야 종합 정보 제공 사이트 서울문화포털, [서울시] 2026년 서울청년문화패스 신청자 모집 공고"
+        },
+        {
+          "title": "공연·전시 티켓 20만원 지원…서울청년문화패스 모집 | 서울시",
+          "url": "https://mediahub.seoul.go.kr/archives/2016502",
+          "source": "naver:webkr",
+          "description": "'21~23세' 연령 조정, 상시 접수 등 개편…22일 신청 시작 2026년 서울청년문화패스 신청자를 12월... 서울시는 “그간 서울청년문화패스는 청년들의 문화향유 기회 제공과 공연예술계 활성화를 위한 단초를..."
+        },
+        {
+          "title": "청년엔 20만원 청소년은 무료… “연극-클래식 부담없이 보세요”",
+          "url": "https://n.news.naver.com/mnews/article/020/0003725382?sid=102",
+          "source": "naver:news",
+          "description": "본격적인 여름 문화 관람 시즌을 앞두고 서울시가 청년, 청소년이 작품성 있는 공연을 부담 없이 만날 수... 서울청년문화패스 참여 신청은 ‘청년몽땅정보통’ 누리집에서 가능하며 선정 후 공연·전시 예매는..."
+        }
+      ],
+      "tavily_top": [
+        {
+          "title": "청년문화패스 발급방법",
+          "url": "https://www.youthcultureseoul.kr/youthCultureSeoul/youthIssuing",
+          "source": "tavily",
+          "description": "서울청년문화패스 신청 및 이용자격 문의 1533-3427, 계좌개설 02-6023-8530, 카드발급 1544-7000, 홈페이지 사용 관련 문의 1661-4892. 자주묻는질문; 1:1문의; 사업자"
+        },
+        {
+          "title": "교육문화 > 청년예술지원 > 서울청년문화패스 신청자격 확인",
+          "url": "https://youth.seoul.go.kr/cltrPass/step1.do?key=2310200023",
+          "source": "tavily",
+          "description": "서울청년문화패스 · 21~23세(2003-01-01 ~ 2005-12-31)까지 신청 가능합니다. · 신청일 기준 서울에 거주(주민등록상, 외국인등록상, 국내거소신고상)하고 있나요? · 신청"
+        },
+        {
+          "title": "문화행사 > 기타(상세) > [서울시] 2026년 서울청년문화패스 신청자 모집",
+          "url": "https://culture.seoul.go.kr/culture/culture/cultureEvent/view.do?cultcode=156277&menuNo=200013",
+          "source": "tavily",
+          "description": "[서울시] 2026년 서울청년문화패스 신청자 모집 ; 장소. 온라인 접수 ; 기간. 2025-12-22 ~ 2026-12-31 ; 시간. 상시모집 ※ 단, 예산 소진시 마감 ; 대상. 21~23세 청년 ("
+        },
+        {
+          "title": "서울문화재단>재단사업>문화향유>서울청년문화패스",
+          "url": "https://www.sfac.or.kr/site/SFAC_KOR/12/11204032400002023032404.jsp",
+          "source": "tavily",
+          "description": "* K-Art 청년 창작자 지원;). ### 서울청년문화패스. * 서울청년문화패스는 사회에 첫 발을 내딛는 청년들에게 연극, 뮤지컬, 클래식·오페라, 발레·무용, 국악 등 공연 관람 기회를 제공하고 문화 예술 분야 활성화를 위해 최대 20만원 상당의 문화관람비를 지원하는 사업입니다. * **1인당 최대 20만 원 상당의 문화관람비 지급** (\\*신한은행 계좌 개설 및 체크카드 발급 필수). 서울청년문화패스 홈페이지에서 제공하는"
+        },
+        {
+          "title": "서울청년문화패스 (@youthcultureseoul) - Instagram",
+          "url": "https://www.instagram.com/youthcultureseoul",
+          "source": "tavily",
+          "description": "2. 24.(월) 9시 ~3. 18.(화) 18시 신청방법: 청년몽땅정보통(youth.seoul.go.kr)에서 온라인 신청 서울청년문화패스 콜센터 1533-3427 서울청년문화패스"
+        },
+        {
+          "title": "(~3/18) 서울시<2025년 서울청년문화패스>신청 모집 - 청년몽땅정보통",
+          "url": "https://youth.seoul.go.kr/infoData/sprtInfo/view.do?sprtInfoId=58450&key=2309130006&pageIndex=2&orderBy=regYmd+desc&recordCountPerPage=8&sc_ctgry=PDS_12_YC&sw=&sc_rcritCurentSitu=%EB%AA%A8%EC%A7%91%EC%A4%91&viewType=on&sc_aplyPrdEndYmdUseYn=&cntrLa=37.566761128870546&cntrLo=126.97862963872868&neLat=37.566761128870546&neLng=126.97862963872868&swLat=37.566761128870546&swLng=126.97862963872868&mapLvl=6&sarea=",
+          "source": "tavily",
+          "description": "서울시가 '20세 ~ 23세' 청년들에게 문화관람비 20만 원을 지원합니다. 2025년 서울청년문화패스 신청자를 모집"
+        },
+        {
+          "title": "서울청년문화패스",
+          "url": "https://www.youthcultureseoul.kr",
+          "source": "tavily",
+          "description": "2026년 서울청년문화패스 9회차 선정결과 및 이의신청 안내2026-04-30[필독] ... 서울청년문화패스 신청 및 이용자격 문의 1533-3427, 계좌개설 02-6023-8530"
+        },
+        {
+          "title": "발급|신청안내 - 청년문화예술패스",
+          "url": "https://youthculturepass.or.kr/kr/subPage.do?menuSn=204972",
+          "source": "tavily",
+          "description": "신청안내 · 로그인 아이콘: 청년문화예술패스 누리집 회원가입 및 로그인 · 신청서 작성(온라인) 아이콘: 본인인증 및 신청 · 심사 및 자격검증 아이콘: 신청자격 검증."
+        },
+        {
+          "title": "회원가입 - 청년문화예술패스",
+          "url": "https://youthculturepass.or.kr/kr/member/join01.do?menuSn=205016",
+          "source": "tavily",
+          "description": "이용자가 회원가입을 신청하려면 약관의 내용에 대하여 동의를 한 다음 회원가입 신청을 하고, 당 사이트는 이러한 신청에 대하여 승낙함으로써 회원가입이 됩니다. 제"
+        },
+        {
+          "title": "청년문화예술패스",
+          "url": "https://youthculturepass.or.kr",
+          "source": "tavily",
+          "description": "청년문화예술패스란? 사업소개 · 사용안내 · 신청·발급 · 신청안내 · 신청하기 · 공연·전시 정보 · NOL 티켓 · YES24 티켓 · 티켓링크 · 멜론티켓."
+        }
+      ],
+      "naver_errors": [],
+      "tavily_error": null
+    },
+    {
+      "id": "web_01",
+      "vertical": "web",
+      "query": "React Server Components official docs",
+      "note": "영문 공식문서",
+      "preferred": [
+        "react.dev"
+      ],
+      "acceptable": [
+        "nextjs.org",
+        "vercel.com"
+      ],
+      "naver_categories": [
+        "webkr",
+        "blog"
+      ],
+      "naver_score": {
+        "preferred_at": 1,
+        "acceptable_at": 1,
+        "preferred_hit3": true,
+        "preferred_hit10": true,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "tavily_score": {
+        "preferred_at": 2,
+        "acceptable_at": 2,
+        "preferred_hit3": true,
+        "preferred_hit10": true,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "naver_top": [
+        {
+          "title": "Server Components – React",
+          "url": "https://react.dev/reference/rsc/server-components",
+          "source": "naver:webkr",
+          "description": "Server Components are a new type of Component that renders ahead of time, before bundling, in an environment separate from your client app or SSR server. This separate environment is the “server” in React Server Components. Server Components can run once at build time on your CI server, or they can be run for each request using a web server. Server components can run at build time to read from the filesystem or fetch static content, so a web server is not required. For example, you may want ..."
+        },
+        {
+          "title": "React Foundations: Server and Client Components",
+          "url": "https://nextjs.org/learn/react-foundations/server-and-client-components",
+          "source": "naver:webkr",
+          "description": "In React, you choose where to place the network boundary in your component tree. For example... Here are some additional resources: Server Components Docs Client Component Docs Composition..."
+        },
+        {
+          "title": "Critical Security Vulnerability in React Server Components – React",
+          "url": "https://react.dev/blog/2025/12/03/critical-security-vulnerability-in-react-server-components",
+          "source": "naver:webkr",
+          "description": "There is an unauthenticated remote code execution vulnerability in React Server Components. We recommend upgrading immediately."
+        },
+        {
+          "title": "Advanced Server Rendering | TanStack Query React Docs",
+          "url": "https://tanstack.com/query/v5/docs/framework/react/guides/advanced-ssr",
+          "source": "naver:webkr",
+          "description": "Welcome to the Advanced Server Rendering guide, where you will learn all about using React Query with streaming, Server Components and the Next.js app router. You might want to read the before this..."
+        },
+        {
+          "title": "The Current State of React Server Components: A Guide for the Perplexed",
+          "url": "https://www.telerik.com/blogs/current-state-react-server-components-guide-perplexed",
+          "source": "naver:webkr",
+          "description": "The Current State of React Server Components: A Guide for the Perplexed"
+        },
+        {
+          "title": "Next.js Docs: App Router",
+          "url": "https://nextjs.org/docs/app",
+          "source": "naver:webkr",
+          "description": "The App Router is a file-system based router that uses React's latest features such as Server Components, Suspense, Server Functions, and more."
+        },
+        {
+          "title": "React Server Components | React Router",
+          "url": "https://reactrouter.com/how-to/react-server-components",
+          "source": "naver:webkr",
+          "description": "If you're unfamiliar with these React features, we recommend reading the official Server Components documentation before using React Router's RSC APIs. RSC support is available in both Framework and Data Modes. For more information on the conceptual difference between these, see &quot;Picking a Mode&quot; . However, note that the APIs and features differ between RSC and non-RSC modes in ways that this guide will cover in more detail. The quickest way to get started is with one of our templates. These temp..."
+        },
+        {
+          "title": "GitHub - livekit/components-js: Official open source React components and examples for building with Live....",
+          "url": "https://github.com/livekit/components-js",
+          "source": "naver:webkr",
+          "description": "Official open source React components and examples for building with LiveKit. - livekit/components-js"
+        },
+        {
+          "title": "Set up with React Server Components | tRPC",
+          "url": "https://trpc.io/docs/client/react/server-components",
+          "source": "naver:webkr",
+          "description": "These are the docs for our 'Classic' React Query integration, which (while still supported) is not the recommended way to start new tRPC projects with TanStack React Query. We recommend using the new TanStack React Query Integration instead."
+        },
+        {
+          "title": "Next.js Docs",
+          "url": "https://nextjs.org/docs",
+          "source": "naver:webkr",
+          "description": "Next.js Docs Welcome to the Next.js documentation! What is Next.js? Next.js is a React... new React features like Server Components. Pages Router: The original router, still supported and..."
+        }
+      ],
+      "tavily_top": [
+        {
+          "title": "React Server Components | React Router",
+          "url": "https://reactrouter.com/how-to/react-server-components",
+          "source": "tavily",
+          "description": "* New React Router RSC Vite Plugin. # React Server Components. > Server Components are a new type of Component that renders ahead of time, before bundling, in an environment separate from your client app or SSR server. React Router provides"
+        },
+        {
+          "title": "Server Components – React",
+          "url": "https://react.dev/reference/rsc/server-components",
+          "source": "tavily",
+          "description": "### React Server Components. # Server Components. Server Components are a new type of Component that renders ahead of time, before bundling, in an environment separate from your client app or SSR server. This separate environment is the “se"
+        },
+        {
+          "title": "An Introduction to React Server Components | DebugBear",
+          "url": "https://www.debugbear.com/blog/react-server-components",
+          "source": "tavily",
+          "description": "# An Introduction to React Server Components. React Server Components (RSCs) introduce a server-first execution model where components that don't need interactivity are rendered exclusively on the server, while interactive parts remain Clie"
+        },
+        {
+          "title": "React Server Components: A comprehensive guide - LogRocket Blog",
+          "url": "https://blog.logrocket.com/react-server-components-comprehensive-guide",
+          "source": "tavily",
+          "description": "***Editor’s note**: This article was updated on 26 July 2024 by Isaac Okoro to include information about concurrent rendering and RSCs in React 18, enhancements to RSC integration in Next 14 and 15 RC, and more.*. A traditional single-page "
+        },
+        {
+          "title": "Master React server components | Upsun",
+          "url": "https://upsun.com/blog/react-server-components",
+          "source": "tavily",
+          "description": "In the traditional methods of rendering on the client side, you depend on the browser to run JavaScript for showing the initial user interface. Server components offer a solution to these obstacles by enabling the rendering of components on"
+        },
+        {
+          "title": "Getting Started: Server and Client Components - Next.js",
+          "url": "https://nextjs.org/docs/app/getting-started/server-and-client-components",
+          "source": "tavily",
+          "description": "*   [use client](https://nextjs.org/docs/app/api-reference/directives/use-client). *   [use server](https://nextjs.org/docs/app/api-reference/directives/use-server). *   [Components](https://nextjs.org/docs/app/api-reference/components). * "
+        },
+        {
+          "title": "Understanding React Server Components | Tony Alicea",
+          "url": "https://tonyalicea.dev/blog/understanding-react-server-components",
+          "source": "tavily",
+          "description": "# Understanding React Server Components. React Server Components have lifted server-rendering to be a truly first-class citizen of the React ecosystem. They allow developers to render some components on the server, while attempting to abstr"
+        },
+        {
+          "title": "Demo app of React Server Components. - GitHub",
+          "url": "https://github.com/reactjs/server-components-demo",
+          "source": "tavily",
+          "description": "Renders Server Components into a special format that we can read on the client. A React app containing Server and Client components used to build React Notes."
+        },
+        {
+          "title": "Making Sense of React Server Components • Josh W. Comeau",
+          "url": "https://www.joshwcomeau.com/react/server-components",
+          "source": "tavily",
+          "description": "The React team has not been shy when it comes to radical changes: if they discover a better solution to a problem, they'll run with it. For the first time ever, React components can run exclusively on the server. Lots of folks have lots of "
+        },
+        {
+          "title": "Introducing Zero-Bundle-Size React Server Components",
+          "url": "https://legacy.reactjs.org/blog/2020/12/21/data-fetching-with-react-server-components.html",
+          "source": "tavily",
+          "description": "Watch the talk to learn about React Server Components and see the demo. Clone the demo to play with React Server Components on your computer."
+        }
+      ],
+      "naver_errors": [],
+      "tavily_error": null
+    },
+    {
+      "id": "web_02",
+      "vertical": "web",
+      "query": "best mechanical keyboard for programming",
+      "note": "영문 일반 웹",
+      "preferred": [
+        "reddit.com",
+        "rtings.com",
+        "wirecutter",
+        "tomsguide"
+      ],
+      "acceptable": [
+        "youtube.com",
+        "medium.com"
+      ],
+      "naver_categories": [
+        "webkr",
+        "blog"
+      ],
+      "naver_score": {
+        "preferred_at": 1,
+        "acceptable_at": 1,
+        "preferred_hit3": true,
+        "preferred_hit10": true,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "tavily_score": {
+        "preferred_at": 1,
+        "acceptable_at": 1,
+        "preferred_hit3": true,
+        "preferred_hit10": true,
+        "acceptable_hit3": true,
+        "acceptable_hit10": true
+      },
+      "naver_top": [
+        {
+          "title": "The 5 Best Keyboards For Programming of 2026 - RTINGS.com",
+          "url": "https://www.rtings.com/keyboard/reviews/best/by-usage/programming",
+          "source": "naver:webkr",
+          "description": "The best keyboard for programming we've tested is the Keychron Q5 Max, a compact (96%) model in Keychron's wider Q Max lineup. This wireless keyboard has outstanding build quality and looks, feels,..."
+        },
+        {
+          "title": "The 5 Best Keyboards for Programming of 2025 From Keychron",
+          "url": "https://www.keychron.com/blogs/news/best-keyboard-for-programming",
+          "source": "naver:webkr",
+          "description": "Discover the best keyboard for programming in 2025! Explore ergonomic, mechanical, and budget-friendly keyboards designed to boost your coding productivity."
+        },
+        {
+          "title": "Best Mechanical Keyboard For Programming",
+          "url": "https://www.bestbuy.com/site/shop/best-mechanical-keyboard-for-programming",
+          "source": "naver:webkr",
+          "description": "Mechanical keyboards are a popular choice for gamers and typists alike. They offer a superior and more comfortable typing experience. If you're looking for a new keyboard for your programming needs, mechanicals are great choices. Browse the top-ranked list of best mechanical keyboards for programming below along with associated reviews and opinions."
+        },
+        {
+          "title": "Best mechanical keyboards: Top picks for every need",
+          "url": "https://www.pcworld.com/article/1966306/best-mechanical-keyboards.html",
+          "source": "naver:webkr",
+          "description": "The world of mechanical keyboards is wide and deep, with an incredible variety of options. Here are the best of the best."
+        },
+        {
+          "title": "Everything About Mechanical Switch Keyboards: Best Types and Colors for Gaming",
+          "url": "https://www.melgeek.com/blogs/melgeek-lab/everything-about-mechanical-switch-keyboards-best-types-and-colors-for-gaming",
+          "source": "naver:webkr",
+          "description": "Find the best mechanical switch keyboard for gaming with our guide on key switch types, color options, and top picks for enhanced gaming experience."
+        },
+        {
+          "title": "Best Mechanical Keyboards for Programming in 2026 | AI Lab at Home",
+          "url": "https://bric.pe.kr/blog/best-mechanical-keyboards-for-programming",
+          "source": "naver:webkr",
+          "description": "Find the best mechanical keyboards for programming in 2026. Compare switches, layouts, and features for developers who type all day. Expert picks for every budget."
+        },
+        {
+          "title": "The Ultimate Guide to the Best Keyboards for Programming",
+          "url": "https://hhkeyboard.us/guide/best-keyboard-for-programming",
+          "source": "naver:webkr",
+          "description": "Comfort and customizability are key considerations when looking for the best keyboard for programming. Read our ultimate guide to find the right one for you."
+        },
+        {
+          "title": "The 5 best mechanical keyboards for 2025",
+          "url": "https://www.engadget.com/computing/accessories/best-mechanical-keyboard-120050723.html",
+          "source": "naver:webkr",
+          "description": "Here's everything you need to know before buying a mechanical keyboard, plus the best mechanical keyboards you can get right now."
+        },
+        {
+          "title": "Best 60% Mechanical Keyboards: Compact and Powerful",
+          "url": "https://www.melgeek.com/blogs/melgeek-lab/best-60-mechanical-keyboards-compact-and-powerful",
+          "source": "naver:webkr",
+          "description": "The Ultimate Guide to 60% Mechanical Keyboards Compact 60% keyboard without a number pad, function keys and arrow keys, just 60 % of the full-size keyboard. It is stand out for portability and mini..."
+        },
+        {
+          "title": "Best 75% mechanical keyboards for gaming and typing 2025",
+          "url": "https://www.eurogamer.net/digitalfoundry-best-75-percent-keyboards",
+          "source": "naver:webkr",
+          "description": "75% keyboards have the key count of TKL boards in a much smaller footprint. Here are our favourites for gaming, typing and programming."
+        }
+      ],
+      "tavily_top": [
+        {
+          "title": "The 6 Best Mechanical Keyboards of 2026 | Reviews by Wirecutter",
+          "url": "https://www.nytimes.com/wirecutter/reviews/our-favorite-mechanical-keyboards",
+          "source": "tavily",
+          "description": "# The Best Mechanical Keyboards. If you spend most of your day typing, coding, or gaming, a mechanical keyboard can be a comfortable, customizable upgrade over the shallow, drab keyboard that came with your computer. After spending months t"
+        },
+        {
+          "title": "The 5 Best Keyboards For Programming of 2026 - RTINGS.com",
+          "url": "https://www.rtings.com/keyboard/reviews/best/by-usage/programming",
+          "source": "tavily",
+          "description": "Gaming   Keyboards   Mechanical   Wireless   Ergonomic   Budget Gaming   Mac   Office   Typing   iPad   Budget And Cheap   Programming   Logitech   Budget Mechanical   Keychron   Low-Profile   Razer   Quiet   60%   TKL. Compare   Results Ta"
+        },
+        {
+          "title": "Mechanical Keyboards for Programming - HHKB",
+          "url": "https://hhkeyboard.us/resources/features/mechanical-keyboards-for-programming",
+          "source": "tavily",
+          "description": "Boost your coding productivity with HHKB mechanical keyboards for programming. Compact, reliable, and customizable for the ultimate developer experience."
+        },
+        {
+          "title": "What Is The Best Keyboard For Programmers? A Beginner-Friendly Guide ( – RK Royal Kludge",
+          "url": "https://rkgamingstore.com/blogs/community/what-is-the-best-keyboard-for-programmers",
+          "source": "tavily",
+          "description": "# What Is The Best Keyboard For Programmers? And if you’re looking for practical options, we’ve also included **keyboard recommendations at the end of this article**, covering everything from **budget-friendly picks** to **compact boards fo"
+        },
+        {
+          "title": "What are good mechanical keyboards for both programming and ...",
+          "url": "https://www.quora.com/What-are-good-mechanical-keyboards-for-both-programming-and-gaming",
+          "source": "tavily",
+          "description": "I love my Logitech G915 (aka G913 in some countries). It's a low profile keyboard, so typing is super fast and ergonomic even without a wrist rest."
+        },
+        {
+          "title": "Are Mechanical Keyboards Better for Programming? - Kinetic Labs",
+          "url": "https://kineticlabs.com/blog/can-mechanical-keyboards-make-you-a-better-programmer",
+          "source": "tavily",
+          "description": "Mechanical keyboards are ideal for programming as they let you customize every aspect of your keyboard: the look, sound, feel, layout, and programmable keys"
+        },
+        {
+          "title": "My favorite keyboard for programming and writing - YouTube",
+          "url": "https://www.youtube.com/watch?v=gaHH5R7REuQ",
+          "source": "tavily",
+          "description": "... Programming Setup: ⬇️ ============================= ▸ My Ergonomic Mechanical Keyboard: http://dygma.com/AIVARS_MEIJERS ▸ NuPhy Mechanical"
+        },
+        {
+          "title": "Keyboards that you recommend for programming? : r/webdev - Reddit",
+          "url": "https://www.reddit.com/r/webdev/comments/18g0wcw/keyboards_that_you_recommend_for_programming",
+          "source": "tavily",
+          "description": "# Keyboards that you recommend for programming? Skip to main contentKeyboards that you recommend for programming? Sign UpSign up for RedditLog InLog in to Reddit. Just that, I have a 100% keyboard and never try anything else but I saw a lot"
+        },
+        {
+          "title": "Coding Keyboard - Amazon.com",
+          "url": "https://www.amazon.com/coding-keyboard/s?k=coding+keyboard",
+          "source": "tavily",
+          "description": "Discover keyboards for coders featuring customizable keys, comfortable typing, and reliable performance for long sessions."
+        },
+        {
+          "title": "MX for Coders",
+          "url": "https://www.logitech.com/en-us/discover/c/mx-coders",
+          "source": "tavily",
+          "description": "# Master every line of code. Master your workflow until your last line of code is written and compiled. MX Master SeriesMX Master 4. MX Master 4MX Anywhere 3S. MX Anywhere 3SMX Keys S. Discover a suite of products with features crafted to e"
+        }
+      ],
+      "naver_errors": [],
+      "tavily_error": null
+    }
+  ]
+}

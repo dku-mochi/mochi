@@ -53,7 +53,7 @@ async def _call(*, prompt: str, model: str, system: str) -> str:
         thinking_config=types.ThinkingConfig(thinking_budget=0),
     )
     resp = await _shared_client().aio.models.generate_content(
-        model=model, contents=[prompt], config=cfg
+        model=model, contents=prompt, config=cfg
     )
     return resp.text or ""
 
