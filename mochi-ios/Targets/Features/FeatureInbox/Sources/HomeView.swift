@@ -1024,10 +1024,10 @@ public struct HomeView: View {
     
     private var settingsFooter: some View {
         HStack(spacing: HomeDesign.Spacing.sm) {
-            CircleIconButton(systemName: "star") {
+            CircleIconButton(systemName: "star", accessibilityLabel: "즐겨찾기") {
                 store.send(.favoritesTapped)
             }
-            CircleIconButton(systemName: "gearshape") {
+            CircleIconButton(systemName: "gearshape", accessibilityLabel: "설정") {
                 store.send(.openSettingsTapped)
             }
         }
@@ -1099,8 +1099,10 @@ private struct SectionHeader: View {
 
 private struct CircleIconButton: View {
     let systemName: String
+    /// VoiceOver 가 읽을 라벨 — 아이콘만 있는 버튼이라 없으면 "버튼"으로만 읽혀 용도를 알 수 없다.
+    let accessibilityLabel: String
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             Image(systemName: systemName)
@@ -1115,6 +1117,7 @@ private struct CircleIconButton: View {
                 .overlay(Circle().stroke(HomeDesign.Color.border, lineWidth: 1))
         }
         .buttonStyle(PressableStyle())
+        .accessibilityLabel(accessibilityLabel)
     }
 }
 
