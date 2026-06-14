@@ -48,6 +48,8 @@
 	<string>현장에서 자료를 즉시 캡처하기 위해 사용합니다.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>스크린샷에서 URL·제목 등 정보를 추출하기 위해 사용합니다.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>기록에 저장된 이미지를 사진 앱에 저장하기 위해 사용합니다.</string>
 	<key>NSRemindersFullAccessUsageDescription</key>
 	<string>할일 Intent로 분류된 기록을 미리알림에 등록·동기화하기 위해 사용합니다.</string>
 	<!-- Google OAuth (CFBundleURLTypes 의 reversed client ID URL scheme + GIDClientID) 는

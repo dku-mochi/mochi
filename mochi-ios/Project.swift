@@ -275,6 +275,7 @@ let project = Project(
                 .package(product: "Perception"),
                 .package(product: "PerceptionCore"),
                 .package(product: "SwiftNavigation"),
+                .sdk(name: "Photos", type: .framework),
             ]
         ),
         module(

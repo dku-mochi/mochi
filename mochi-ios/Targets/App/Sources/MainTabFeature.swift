@@ -116,6 +116,10 @@ struct MainTabFeature: Sendable {
                 state.path.append(.weeklyDigest(WeeklyDigestFeature.State()))
                 return .none
 
+            case .home(.delegate(.favoritesRequested)):
+                state.path.append(.favorites(FavoritesFeature.State()))
+                return .none
+
             case let .home(.delegate(.chatRequested(query))):
                 // 홈 질문 입력바 → 대화 풀스크린 push, 첫 메시지로 전송 (2026-06-10 push 전환).
                 // 탭은 바꾸지 않는다 — back 으로 홈에 그대로 돌아온다.
@@ -137,6 +141,16 @@ struct MainTabFeature: Sendable {
                 guard state.detail == nil else { return .none }
                 state.detailHero = hero
                 state.detail = DetailFeature.State(mochiItemID: mochiItemID)
+                return .none
+
+            case let .path(.element(id: _, action: .favorites(.delegate(.mochiItemTapped(mochiItemID, hero))))):
+                // 즐겨찾기 화면의 항목 탭 → 상세 present (정리 화면과 같은 경로).
+                guard state.detail == nil else { return .none }
+                state.detailHero = hero
+                state.detail = DetailFeature.State(
+                    mochiItemID: mochiItemID,
+                    heroImageHidden: hero?.cardImage != nil
+                )
                 return .none
 
             case .inbox(.mochiItemTapped):
@@ -232,6 +246,7 @@ extension MainTabFeature {
     enum Path {
         case settings(SettingsFeature)
         case weeklyDigest(WeeklyDigestFeature)
+        case favorites(FavoritesFeature)
         /// 대화 풀스크린 — 탭바를 덮는 push (랜딩·홈 입력바가 Entry 를 들고 연다).
         case chat(ChatFeature)
     }

@@ -25,6 +25,7 @@ struct SearchGridCard: View {
     /// 탭 시 카드 frame 묶음을 넘긴다 — 홈 카드와 동일한 hero 확대 전환의 시작점.
     let onTap: (HeroSourceFrames) -> Void
     let onDelete: () -> Void
+    let onToggleFavorite: () -> Void
 
     /// hero 비행 시작 frame 저장소 — *비관찰* class box.
     /// @State CGRect 로 두면 스크롤·키보드 애니메이션 중 global frame 이 매 틱 바뀌며
@@ -48,7 +49,8 @@ struct SearchGridCard: View {
         summaryHighlights: [HighlightRange] = [],
         isSemantic: Bool = false,
         onTap: @escaping (HeroSourceFrames) -> Void,
-        onDelete: @escaping () -> Void
+        onDelete: @escaping () -> Void,
+        onToggleFavorite: @escaping () -> Void
     ) {
         self.item = item
         self.titleHighlights = titleHighlights
@@ -56,6 +58,7 @@ struct SearchGridCard: View {
         self.isSemantic = isSemantic
         self.onTap = onTap
         self.onDelete = onDelete
+        self.onToggleFavorite = onToggleFavorite
     }
 
     /// masonry 분배가 쓰는 카드 예상 높이.
@@ -106,6 +109,12 @@ struct SearchGridCard: View {
             }
         )
         .contextMenu {
+            Button(action: onToggleFavorite) {
+                Label(
+                    item.isFavorite ? "즐겨찾기 해제" : "즐겨찾기 추가",
+                    systemImage: item.isFavorite ? "star.fill" : "star"
+                )
+            }
             ShareLink(item: shareText) {
                 Label("공유", systemImage: "square.and.arrow.up")
             }

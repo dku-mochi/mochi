@@ -238,6 +238,7 @@ public struct SearchView: View {
                     onTypeFilter: { store.send(.typeFilterTapped($0)) },
                     onCardTap:    { id, hero in store.send(.recentTapped(id, hero)) },
                     onCardDelete: { store.send(.deleteTapped($0)) },
+                    onCardToggleFavorite: { store.send(.favoriteToggled($0)) },
                     onRefresh:    { await store.send(.refreshPulled).finish() }
                 )
 
@@ -249,7 +250,8 @@ public struct SearchView: View {
                     isSemanticSearching: store.isSemanticSearching,
                     onIntent:     { store.send(.intentChipTapped($0)) },
                     onCardTap:    { id, hero in store.send(.recentTapped(id, hero)) },
-                    onCardDelete: { store.send(.deleteTapped($0)) }
+                    onCardDelete: { store.send(.deleteTapped($0)) },
+                    onCardToggleFavorite: { store.send(.favoriteToggled($0)) }
                 )
 
             case .empty:

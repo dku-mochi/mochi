@@ -11,6 +11,7 @@ struct SearchDefaultView: View {
     let onTypeFilter: (SearchD5.TypeFilter) -> Void
     let onCardTap: (MochiItem.ID, HeroSourceFrames) -> Void
     let onCardDelete: (MochiItem.ID) -> Void
+    let onCardToggleFavorite: (MochiItem.ID) -> Void
     let onRefresh: () async -> Void
 
     var body: some View {
@@ -47,7 +48,8 @@ struct SearchDefaultView: View {
                 SearchGridCard(
                     item: item,
                     onTap: { hero in onCardTap(item.id, hero) },
-                    onDelete: { onCardDelete(item.id) }
+                    onDelete: { onCardDelete(item.id) },
+                    onToggleFavorite: { onCardToggleFavorite(item.id) }
                 )
                 .scrollTransition(.animated(.easeOut(duration: 0.25))) { content, phase in
                     content

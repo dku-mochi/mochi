@@ -135,6 +135,10 @@ struct MainTabView: View {
                 // 이번주 정리 — 설정과 동일하게 push. 항목 탭은 delegate 로 상세 present.
                 WeeklyDigestView(store: digestStore)
 
+            case let .favorites(favoritesStore):
+                // 즐겨찾기 — 홈 헤더 별로 진입. 항목 탭은 delegate 로 상세 present.
+                FavoritesView(store: favoritesStore)
+
             case let .chat(chatStore):
                 // 대화 풀스크린 — 탭바를 덮는 push 라 입력 독이 키보드에 정확히 붙는다
                 // (TabView 안 safeAreaInset 키보드 inset 버그·이중 바 회피, 2026-06-10).

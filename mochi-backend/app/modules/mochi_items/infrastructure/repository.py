@@ -144,6 +144,7 @@ def _row_to_entity(row: MochiItemRow) -> MochiItem:
         ),
         reference_links=_reference_links(row),
         importance=row.importance,
+        is_favorite=row.is_favorite,
         model_version=row.model_version,
         lifecycle=LifecycleState(
             kind=LifecycleStateKind(row.lifecycle_kind),
@@ -539,6 +540,23 @@ class PostgresMochiItemRepository(MochiItemRepository):
                 MochiItemRow.deleted_at.is_(None),
             )
             .values(**values)
+        )
+        await self._session.flush()
+        return bool(getattr(result, "rowcount", 0))
+
+    async def set_favorite(
+        self, *, owner_id: UUID, mochi_item_id: UUID, is_favorite: bool
+    ) -> bool:
+        # owner-scoped set-state UPDATE — 다른 owner 항목은 대상에서 빠진다(rowcount 0 → False).
+        # 존재/소유 검증은 application(SetFavorite)이 find_by_id 로 선행해 없는 항목을 404 로 끊는다.
+        result = await self._session.execute(
+            update(MochiItemRow)
+            .where(
+                MochiItemRow.id == mochi_item_id,
+                MochiItemRow.owner_id == owner_id,
+                MochiItemRow.deleted_at.is_(None),
+            )
+            .values(is_favorite=is_favorite, updated_at=datetime.utcnow())
         )
         await self._session.flush()
         return bool(getattr(result, "rowcount", 0))
