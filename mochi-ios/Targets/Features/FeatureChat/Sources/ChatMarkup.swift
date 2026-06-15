@@ -33,7 +33,10 @@ enum ChatMarkup {
         let text: AttributedString
     }
 
-    private static let marker = #/【item:([0-9a-fA-F-]{36})】/#
+    /// citation 마커. 전각 「【item:id】」 이 canonical 이지만, 작은 모델(flash-lite)이 반각
+    /// 「[item:id]」 으로 흘리는 경우가 잦아 양쪽 괄호를 모두 받는다(백엔드 `_CITATION_PATTERN`
+    /// 과 동일 정책). UUID 36자 제약이라 일반 본문 대괄호와의 오탐은 사실상 없다.
+    private static let marker = #/[【\[]item:([0-9a-fA-F-]{36})[】\]]/#
 
     /// raw 본문 → 표시 세그먼트.
     /// - 마커는 매칭 citation 의 index 뱃지로 치환, 매칭 없으면(스트리밍 중·미실재 id) 숨김.
@@ -249,7 +252,7 @@ enum ChatMarkup {
     /// 짝이 안 맞는 마지막 `**` 이후를 잘라 원문 조각 노출을 막는다.
     private static func trimStreamingTail(_ input: Substring) -> Substring {
         var text = input
-        if let open = text.lastIndex(of: "【"), !text[open...].contains("】") {
+        if let open = lastUnclosedMarkerOpen(in: text) {
             text = text[..<open]
         }
         if let open = lastUnmatchedBoldOpen(in: text) {
@@ -257,6 +260,22 @@ enum ChatMarkup {
         }
         return text
     }
+
+    /// 글자 단위 delta 로 쪼개져 도착 중인 미완성 citation 마커의 시작 위치.
+    /// 전각 「【」 은 본문에 거의 없어 닫는 「】」 가 없으면 통째로 숨기고, 반각 「[」 은
+    /// 본문에 흔하므로(`배열[0]`) 「[item:」 으로 시작하는 미완성형만 숨긴다.
+    private static func lastUnclosedMarkerOpen(in text: Substring) -> Substring.Index? {
+        if let open = text.lastIndex(of: "【"), !text[open...].contains("】") {
+            return open
+        }
+        if let match = text.firstMatch(of: asciiPartialMarker) {
+            return match.range.lowerBound
+        }
+        return nil
+    }
+
+    /// 반각 미완성 마커 꼬리 — `[item:` + UUID 일부이고 닫는 `]` 가 아직 안 온 끝부분.
+    private static let asciiPartialMarker = #/\[item:[0-9a-fA-F-]*$/#
 
     /// 인라인 마크다운 해석. `**…**` 굵게만 직접 파싱한다 — CommonMark flanking 규칙은
     /// 닫는 `**` 가 문장부호 뒤·글자 앞이면(`**'제목'**이`) 구분자로 인정하지 않아,

@@ -17,7 +17,10 @@ from app.modules.conversations.application.begin_chat_turn import (
     BeginChatTurn,
     RunInProgressError,
 )
-from app.modules.conversations.application.run_chat_turn import RunChatTurn
+from app.modules.conversations.application.run_chat_turn import (
+    _CITATION_PATTERN,
+    RunChatTurn,
+)
 from app.modules.conversations.domain.entities import (
     Conversation,
     Message,
@@ -194,6 +197,16 @@ async def test_full_flow_persists_steps_and_streams_events_in_order() -> None:
     assert store.statuses == [(run_id, RunStatus.COMPLETED)]
     # 2라운드째 contents 에 함수호출/응답이 재구성돼 들어갔다
     assert any("function_responses" in p for p in llm.calls[1]["contents"])
+
+
+def test_citation_pattern_accepts_fullwidth_and_ascii_brackets() -> None:
+    # flash-lite 가 canonical 전각 「【】」 대신 반각 「[]」 으로 마커를 흘려도 citation 을
+    # 잡아야 한다 — 안 잡으면 본문에 마커 원문이 그대로 노출된다(실기기 리포트 2026-06-15).
+    fid = "b63546c1-1d56-4882-94ba-6cc035dcf680"
+    assert _CITATION_PATTERN.findall(f"과제【item:{fid}】 챙겨요") == [fid]
+    assert _CITATION_PATTERN.findall(f"과제[item:{fid}] 챙겨요") == [fid]
+    # 일반 본문 대괄호는 오탐하지 않는다(UUID 36자 제약).
+    assert _CITATION_PATTERN.findall("배열[0] 과 [item:not-a-uuid] 는 무시") == []
 
 
 async def test_first_round_forces_tool_call_then_releases() -> None:
