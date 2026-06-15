@@ -1332,6 +1332,7 @@ public enum Components {
             case appShareSheet = "appShareSheet"
             case appDirectInput = "appDirectInput"
             case chat = "chat"
+            case appCalendar = "appCalendar"
             case unknown = "unknown"
         }
         /// PATCH 의 instance 단위 변경 — payload 는 제공 필드만 병합, lifecycle 은 정책 검증.

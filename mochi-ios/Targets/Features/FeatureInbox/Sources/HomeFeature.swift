@@ -30,6 +30,8 @@ public struct HomeFeature: Sendable {
         public var needsReview: IdentifiedArrayOf<MochiItem> = []
         public var weeklyRecordCount: Int = 0
         public var weeklyTopCategories: [WeeklyCategoryStat] = []
+        /// 채팅 입력바 밑 추천 칩 — 최근 기록의 intent/카테고리로 사용자화(로컬 규칙). 신규 유저는 evergreen.
+        public var suggestions: [HomeSuggestion] = HomeFeature.evergreenSuggestions
         public var chatDraft: String = ""
         public var quickMemoText: String = ""
         /// 플로팅 버튼 → 입력 시트 표시 여부 (메모·링크 통합 창구).
@@ -146,6 +148,9 @@ public struct HomeFeature: Sendable {
                 state.needsReview = IdentifiedArray(uniqueElements: needsReview)
                 state.weeklyRecordCount = weeklyItems.count
                 state.weeklyTopCategories = Self.weeklyCategoryStats(from: weeklyItems)
+                state.suggestions = Self.makeSuggestions(
+                    recent: recent, categories: state.weeklyTopCategories
+                )
                 if state.needsReviewPage >= needsReview.count {
                     state.needsReviewPage = max(0, needsReview.count - 1)
                 }
@@ -410,6 +415,54 @@ public struct HomeFeature: Sendable {
         if host.contains("apple.com") || host.contains("safari") { return .safari }
         return .appShareSheet
     }
+
+    // MARK: - 추천 칩 사용자화 (로컬 규칙)
+
+    /// 최근 기록의 intent·상위 카테고리로 채팅 추천 칩을 만든다(서버/LLM 없이 로컬 규칙).
+    /// 개인화 후보를 우선 채우고, 모자라면 evergreen 으로 4개까지 채운다(신규·기록 적은 유저 안전).
+    /// 칩 문구는 그대로 채팅 첫 질문으로 전송되므로, 모찌가 답할 수 있는 회수형 질문으로 쓴다.
+    static func makeSuggestions(
+        recent: [MochiItem], categories: [WeeklyCategoryStat]
+    ) -> [HomeSuggestion] {
+        let intents = Set(recent.compactMap { $0.representativeIntent })
+        var candidates: [HomeSuggestion] = []
+
+        if let top = categories.first {
+            candidates.append(.init(icon: "sparkles", text: "\(top.name) 기록 모아줘"))
+        }
+        if intents.contains(.todo) {
+            candidates.append(.init(icon: "checkmark.circle.fill", text: "안 끝난 할 일 정리해줘"))
+        }
+        if intents.contains(.schedule) {
+            candidates.append(.init(icon: "calendar", text: "다가오는 일정 알려줘"))
+        }
+        if categories.count > 1 {
+            candidates.append(.init(icon: "square.grid.2x2.fill", text: "\(categories[1].name) 기록 모아줘"))
+        }
+        if intents.contains(.knowledge) {
+            candidates.append(.init(icon: "book.fill", text: "저장해둔 자료 요약해줘"))
+        }
+
+        // 4개까지 evergreen 으로 채움(중복 제거).
+        for ever in evergreenSuggestions where candidates.count < 4 {
+            if !candidates.contains(where: { $0.text == ever.text }) { candidates.append(ever) }
+        }
+        return Array(candidates.prefix(4))
+    }
+
+    /// 기록이 없거나 적은 유저를 위한 기본 칩 — 모찌의 회수 능력 폭을 보여준다.
+    static let evergreenSuggestions: [HomeSuggestion] = [
+        .init(icon: "magnifyingglass", text: "이번주에 뭐 저장했지?"),
+        .init(icon: "sparkles", text: "요즘 내 관심사 정리해줘"),
+        .init(icon: "clock.arrow.circlepath", text: "최근에 남긴 거 보여줘"),
+        .init(icon: "lightbulb.fill", text: "뭐부터 보면 좋을까?"),
+    ]
+}
+
+public struct HomeSuggestion: Equatable, Sendable, Hashable, Identifiable {
+    public var id: String { text }
+    public let icon: String
+    public let text: String
 }
 
 public struct WeeklyCategoryStat: Equatable, Sendable, Hashable, Identifiable {

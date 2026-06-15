@@ -183,6 +183,7 @@ extension IngestChannel {
         case .appShareSheet:    return "공유"
         case .appDirectInput:   return "직접 입력"
         case .chat:             return "대화"
+        case .appCalendar:      return "캘린더"
         case .unknown:          return "기록"
         }
     }

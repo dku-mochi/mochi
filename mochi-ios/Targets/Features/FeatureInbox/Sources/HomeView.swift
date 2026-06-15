@@ -479,11 +479,10 @@ public struct HomeView: View {
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: HomeDesign.Spacing.sm) {
-                    // 찾기·추천·요약·수정 — 검색을 넘어서는 대화 능력이 칩에서 드러나게 한다.
-                    suggestionChip(icon: "heart.fill", text: "오늘 데이트 어디서 갈까?")
-                    suggestionChip(icon: "book.fill", text: "이번주 공부하려고 남긴 기록 알려줘")
-                    suggestionChip(icon: "calendar", text: "민수랑 언제 만나기로 했지?")
-                    suggestionChip(icon: "pencil.line", text: "방금 남긴 메모 수정해줘")
+                    // 최근 기록의 intent·카테고리로 사용자화된 추천(로컬 규칙, HomeFeature.makeSuggestions).
+                    ForEach(store.suggestions) { chip in
+                        suggestionChip(icon: chip.icon, text: chip.text)
+                    }
                 }
                 .padding(.horizontal, HomeDesign.Spacing.xl)
             }
