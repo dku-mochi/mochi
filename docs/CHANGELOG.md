@@ -12,13 +12,60 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 ## 2026-06-15 — ios, backend, docs (UX 배치: 캘린더·채팅·홈)
 - **[1a] 캘린더 날짜 sheet 수정 즉시 반영** — DaySheet 가 observeChanges 미구독이라 상세 수정/완료 후 재탭 전까지 stale 했다. `loaded` 시 선택 날짜가 있으면 그 날짜 목록도 재조회(`SelectedDay.id==date` 라 sheet 재present 없음).
-- **[2a] 채팅 바닥 과스크롤 제거** — `bottomSpacerHeight` 의 pinSlack 초과분 제거. spacer 를 "질문+답변이 딱 한 화면" 양으로만 둬 짧은 턴에서 콘텐츠가 화면 밖으로 사라지는 과스크롤 제거 + 한 화면 채우면 0(최근 답변이 입력바 위에 붙음).
+- **[2a] 채팅 바닥 과스크롤 제거** — `bottomSpacerHeight` 의 pinSlack 초과분 제거. spacer 를 "질문+답변이 딱 한 화면" 양으로만 둬 짧은 턴에서 콘텐츠가 화면 밖으로 사라지는 과스크롤 제거 + 한 화면 채우면 0(최근 답변이 입력바 위에 붙음). (develop 머지 시 `bf69a40` 의 iOS18/17 `bottomSpacerHeight` 분기 재작성과 충돌 — pinSlack 제거를 양 분기에 반영해 해소: iOS17 은 PR 원본과 동일, iOS18 은 develop anchor-흡수 구조 보존 + pinSlack 제거. `pinSlack` 상수 삭제.)
 - **[2b] 채팅 랜딩 "이어서 대화하기" 카드** — 탭 재진입 시 진행 중 대화가 랜딩으로 리셋돼 보이던 문제. `ChatFeature.sessionMaxIdleSeconds`(30분) 윈도우 안 활성 세션이 있으면 랜딩에 카드 노출 → `.resume(id)`. 디자인 스킬: 칩 문법 + 퍼플 틴트 단일 액센트.
 - **[3] 홈 추천 칩 사용자화(로컬 규칙)** — 하드코딩 4개를 최근 기록 intent·상위 카테고리 기반 생성(`HomeFeature.makeSuggestions`), 모자라면 evergreen. 서버/LLM 없음.
 - **[1b] 캘린더 날짜에서 일정 직접 추가** — DaySheet "+ 일정 추가" → 간단 폼(제목+선택시간, 날짜 고정) → `appCalendar` channel 로 confirmedInstances schedule 직행 생성(채팅 일정 확정과 같은 §5.2 예외) + 시스템 캘린더 등록. 폼 idempotencyKey=폼 1개당 UUID(더블탭 멱등). 디자인 스킬 + HomeDesign 토큰.
 - **EventKit 등록 공용 추출** — `ChatFeature` private `registerToSystemCalendar`+`scheduleStart/End` 를 `CoreIntegrations.SystemCalendarRegistrar` 로 추출(로직 1:1, 채팅 회귀 0 — FeatureChat 59 테스트 green). 채팅 일정 확정과 캘린더 일정 추가가 공유.
 - **새 채널 `appCalendar`** — 백엔드 `IngestChannel` + ⓪openapi 폭포(make openapi→generate) + CoreDomain 수기 enum + HomeViewMapping shortLabel. DOMAIN_DESIGN Channel/§5.2, ARCHITECTURE §2.3, UX_SPEC §3.6/§1.5 동기화.
 - 테스트 스텁 보완: `MochiAPIClient` 스텁 2곳(ChatProposalTests·MochiItemSyncWorkerDedupTests)에 setFavorite 추가(#35 누락). `schedulePayload` 단위테스트.
+
+## 2026-06-15 — backend, ios
+- **채팅 citation 마커가 raw 로 노출되던 버그 수정** (사용자 리포트: 응답에 `[item:b63546c1-…]` UUID 가 그대로 보임). 근본 원인 — 시스템 전체가 canonical 전각 마커 `【item:id】` 만 인식하는데 `gemini-3.1-flash-lite` 가 더 흔한 반각 ASCII `[item:id]` 로 흘려, 백엔드 추출(citation 미생성·근거 데이터 유실)과 iOS 렌더(마커 원문 노출)가 둘 다 매칭 실패. 해결책 A — canonical 은 전각 유지하되 양쪽 정규식이 전각/반각 괄호를 모두 받게 관대화: 백엔드 `run_chat_turn.py` `_CITATION_PATTERN`, iOS `ChatMarkup.swift` `marker`(공유표면, 동일 정책으로 함께 변경·상호 주석). iOS `trimStreamingTail` 은 반각 `[` 가 본문에 흔하므로(`배열[0]`) `[item:` prefix 미완성형만 트림하는 `lastUnclosedMarkerOpen`/`asciiPartialMarker` 로 분리(전각 `【` 는 기존대로 통째 트림). 가짜 36자 hex 는 양쪽 다 UUID 재파싱 + owner resolve/indexByID 매칭의 2차 방어로 무해. 검증: 백엔드 패턴 단위 테스트·iOS `ChatMarkupTests` 3종 추가, `make test` 291 + `tuist test FeatureChat` 통과. 곁들여 `FeatureChatTests` 의 기존 빌드 깨짐(테스트 더블 `SpySyncTrigger.reconcile`/`StubAPIClient.setFavorite` conformance 누락) 복구 — 같은 타겟이라 빌드 차단 해소 목적.
+
+## 2026-06-15 — docs
+- **능동 회수 기능 제품 기획서 추가** (`PROPOSAL_PROACTIVE_RECALL.md`, INDEX 등록) — 팀·외부 공유용, 내부 용어(트랙·코드네임) 없는 버전. "모찌가 먼저 떠올려준다"는 세 기능(지식 다시 떠올리기 / 일정·할일 알림 / 관련 기억 소환)을 제품 언어로 정의. 미승인 proposal. 상세 토론·기술설계는 journal 2건(`2026-06-15-proactive-recall-design.md`, `-tech-design.md`).
+
+## 2026-06-15 — ios
+- **홈/검색 UI 폴리시 + 접근성 머지** (develop): 탭타겟 44pt·즐겨찾기 배지·즐겨찾기 로딩상태(홈·즐겨찾기·검색 카드), 홈 스크롤 바닥 여백 과다 제거(검색 탭과 동일 동작), 아이콘 버튼 VoiceOver 라벨 추가. 머지 통합 중 `DetailView` `body` type-check timeout 회피 위해 toolbar 를 `@ToolbarContentBuilder` 로 분리하고, "닫기" `accessibilityLabel` 을 `ToolbarItem`→내부 `Button` 으로 이동(`ToolbarItem` 엔 직접 못 붙음). `FeatureDetail`·`FeatureInbox` `tuist build` 통과.
+
+## 2026-06-15 — ios, docs
+- **기록 상세 종료 먹통 수정 + "비슷한 기록" 교체→push 전환** (사용자 리포트: 알림·비슷한 기록으로 들어온 상세가 가끔 투명해지지만 뒤 화면이 먹통). ① 근본 원인 — 교체 진입(`detail=nil`→sleep→`detail=새것`)이 `ZoomDetailPresentation` 의 비동기 dismiss(0.45s)와 present 를 경합시켜, dismiss completion 이 `self.detailStore`/`onDismiss` 공유 상태를 건드려 끼어든 새 상세를 오염시키고 죽어가는 VC 위에 새 VC 가 쌓였다. → dismiss 가 책임질 자원을 로컬 캡처만 정리하게 바꾸고, present 진입 시 진행 중 dismiss 를 즉시 끝내는 `finishPendingDismiss` 직렬화 추가(teardown one-shot 가드). ② "비슷한 기록"은 닫고-다시-열기(검은 화면·튐) 대신 `DetailFeature` 재귀 `StackState` + `DetailRootView`(NavigationStack(path:))로 **앞으로 push** — A→B→C 재귀, 시스템 back·엣지 스와이프 복귀. 자식은 X 대신 시스템 back(tint=모찌 퍼플). `MainTabFeature` 의 sleep 기반 `presentSimilarDetail`·`CancelID.similarReopen` 제거. ③ 깊은 push 에서 '한 번에 닫기' — 닫기 동작을 방향으로 분리: 가로 엣지 스와이프/back=한 칸 뒤로, **세로 아래 드래그=깊이 무관 스택 전체 종료**(자식 위에선 hero 없이 fade), 자식 ⋯ 메뉴 '닫기'가 명시적 보조. 드래그 판정용 ScrollView 를 현재 보이는 화면 것으로 동적 추적. (`DetailFeature.swift`, `DetailView.swift`, `ZoomDetailPresentation.swift`, `MainTabFeature.swift`, `UX_SPEC.md §3.8`)
+
+## 2026-06-15 — docs
+- TODO.md 정리(코드 대조 + 외부 설정 확인): Apple App ID capability 3종(Sign In·Keychain Sharing·Push)+provisioning 재발급 완료 반영(§1.1·§1.1b·§1.2·§1.4). APNs `aps-environment` 는 이미 `App.entitlements` 에 있는데 "현재 없음" 으로 outdated 였어 정정. 백탭 단축어 iCloud URL/파일경로를 실제 코드값(`BackTapPage.swift:15`, `e24ac8bf…`)으로 갱신. §3.1 Google URL scheme 은 `[x]` 였으나 App Store validation 회피로 실제 비워둔 상태라 `[ ]` 로 되돌리고 설명 정정. Google OAuth 외부 설정(§2.x·§3.1·§3.3)은 미완료로 보류 유지.
+
+## 2026-06-15 — ios
+- 앱 타겟 identity 를 `Project.swift` 단일 원천으로 고정 (generate 시 초기화 방지): App Category(라이프스타일) `INFOPLIST_KEY_LSApplicationCategoryType` 추가, build 번호를 generate 시점 KST `yyMMddHHmm` 자동 생성으로 전환. marketing version 은 상수 직접 편집(0.3.6). DisplayName(모찌)을 `Info.plist` 직접 키에서 `INFOPLIST_KEY_CFBundleDisplayName` + `GENERATE_INFOPLIST_FILE=YES` 로 이전해 Xcode General 탭에 노출(빌드 산출물 plist 머지 실측 검증 완료).
+
+## 2026-06-15 — ios, docs, infra
+- **홈 "확인이 필요해요" 후보 칩 = 로컬 즉시확정 → 재분석** (사용자 리포트: 의도를 골라도 Realm 라벨만 박히고 재분석·캘린더 등록이 안 됨). 칩 탭이 `classifyTapped`/`setIntent`(로컬 instance 즉시확정) 대신 고른 의도 `label` 을 hint 로 `reanalyzeTapped`→`POST /reanalyze` 를 타게 변경 — intent 라벨만으론 payload·날짜가 비어 캘린더/할일로 못 쓰던 문제를 재분석 payload 보강으로 해결 (`HomeFeature.swift`, `NeedsReviewCard.swift`, `HomeView.swift`, `DOMAIN_DESIGN.md §6.3`). `setIntent` repository 메서드는 미사용으로 잔존(제거는 별도 판단).
+- **홈 "확인이 필요해요" 섹션·시트·NeedsReviewCard 디자인 재구성** — 알림 카드(겹친 미니 카드 스택으로 "쌓인 기억" 은유), 카드 덱(ZStack 3장 peek + 드래그 건너뛰기), intent 색 후보 행(아이콘+라벨+모찌 근거). 크림/파스텔 `HomeDesign` 토큰 유지, 캐릭터 이미지 미사용 (`tuist build FeatureInbox` 통과, 실기기 QA 미검증).
+  - 카드 덱 스와이프 ↔ 후보 버튼 탭 충돌 수정 — `simultaneousGesture` + `minimumDistance 16` + 가로 우세 판별 + `didSwipe` 가드. 버튼 위에서 스와이프하다 손 떼는 순간 재분석이 오발동하던 문제 해결(순수 탭·세로 스크롤은 보존).
+- **하네스: code-reviewer/qa-validator codex 위임 레시피 정밀화** — diff 를 stdin 으로 직접 공급(자율 repo 탐색 차단 = 과거 1시간+ 폭주의 원인)·`-s read-only`·`reasoning=medium`·`gtimeout 900`. 실측 medium 35s/high 82s(발견 사실상 동등). codex 불가 시 작은 변경은 직접 리뷰, 큰 변경은 `VERDICT: BLOCKED` 로 부모 우회 방지 + 사용자 재로그인 요청 (`.claude/agents/code-reviewer.md`, `qa-validator.md`).
+
+## 2026-06-15 — ios
+- **채팅 화면 스크롤·키보드 처리 근본 재구성** (사용자 리포트: 키보드 등장·전송 직후 질문 핀·offset 0 drag dismiss 가 부자연). 같은 일(키보드에 viewport 맞추기)을 SwiftUI 자동 키보드 회피와 수동 NotificationCenter 추적이 *이중*으로 하던 경합이 근원이었다 — 후자를 전부 걷어냈다 (`ChatView.swift`).
+  - 제거: `keyboardWillShow/Hide` 노티 핸들러 2개 + 세대 토큰(`keyboardEventGen`)·`keyboardUp`·`pendingTurnPin` + 좌표 직접측정(`scrollTopY`/`dockTopLive`/`keyboardDownDockTopY`) + `chat-root` 좌표계 + 입력독 GeometryReader. `@State` 12→6, 고아 `import UIKit` 정리.
+  - viewport 단일화: 스크롤 컨테이너 **실측 높이**(`containerHeight`)가 곧 viewport — `safeAreaInset(.bottom)` 독이 키보드 위로 붙어 컨테이너가 자동으로 줄므로 키보드를 이미 반영(추측으로 inset 빼던 방식 폐기). 전송 후 질문 top-pin: 첫 핀은 spring(`response 0.55` — 0.4 는 "슉" 하고 너무 빨랐다)로 부드럽게 올리고, 키보드 내림으로 *커지는* viewport 는 `onChange(containerHeight)`가 따라 재정렬한다 — `isNearBottom` 가드로 위로 읽는 중엔 yank 하지 않고, 비애니메이션으로 앵커해 키보드 자체 transaction 에 묻어간다(이중 spring jitter 방지). `coordinateSpace(name:)`→`.coordinateSpace(.named())` 최신형.
+  - 표면 동작(push 구조·키보드에 독이 붙음·질문 top-pin)은 불변이라 UX_SPEC 갱신 없음.
+  - **content size↔offset 경합 근본 차단(iOS 18+ 게이팅)**: 사용자 추가 진단(전송 후 위치가 실행마다 다르고 "확 올라왔다 돌아옴" — spacer(content size)와 scrollTo(offset)를 *동시에* 조절하는 게 원인)에 대응. `defaultScrollAnchor` role 분리(`.initialOffset=.bottom` + `.sizeChanges=.top`, `AdaptiveScrollAnchor` ViewModifier)로 답변 자람·키보드 변화 시 위치 유지를 **네이티브화** → iOS 18+ 에선 spacer 답변높이 연동 OFF(content size 고정) + resize-follow scrollTo 제거(offset 직접제어는 전송 시 1회만). 배포 타깃은 17 유지, iOS 17 은 기존 흉내 경로 그대로(회귀 0). 근거: web 조사(iOS 18 scroll role API — fatbobman/theswift.dev/Apple forum). **잔여: iOS 18 실기기 QA + iOS 17 세 증상 미세조정.**
+- **기록 상세 "비슷한 기록" 섹션 정돈** (사용자 리포트: 관련 없는 항목이 섞이고 칩 문구가 어색, 가로 스크롤이 가장자리에 잘림).
+  - 유사도 임계값 `min_score` 0.6→0.7 상향 — 의미상 약하게 가까운 항목이 통과하던 걸 컷 (`search/presentation/router.py`).
+  - `closeInTime`("비슷한 시기", captured_at ±3일) 근거 **파생 중단** — 시각 근접은 의미 신호가 아니라 노이즈. enum 은 ⓪ openapi 계약상 reserved 로 유지(서버가 안 보냄)해 폭포 0 (`postgres_index.py`, `entities.py`).
+  - iOS 근거 칩 카피 "같은 의도"→**"비슷한 종류"** ("같은"이 '진짜 같나?' 의심을 부름) (`DetailView.swift`).
+  - iOS 캐러셀 **edge-to-edge** — 부모 본문 패딩(lg)을 음수로 상쇄해 화면 좌우 끝까지 스크롤(헤더는 본문 정렬 유지) (`DetailView.swift`).
+  - **백엔드 prod 재배포 완료** (tar overlay, 백업 `app.bak-20260614-171743`) — prod `min_score=0.7` 반영·`CLOSE_IN_TIME` 참조 0 확인, health 200, worker 2. 스키마 변경 0이라 alembic no-op·무중단. (iOS/docs 는 코드만 — iOS 빌드는 별도.)
+- **기록 상세 분석중·메모/URL 헤더 재정비 + 완료 즉시 반영** (사용자 리포트: 분석중 이미지가 세로 좁은 띠+좌우 흰 여백, 메모/URL 헤더가 빈 흰칸, 완료돼도 열어둔 상세가 안 바뀜).
+  - **hero 렌더러 단일화** — 분석중이 쓰던 `LocalThumbnail + .aspectRatio`(ScrollView 높이 협상이 깨져 세로 좁은 띠로 렌더)를 분석완료 헤더와 같은 `ScreenshotPreviewImage`(`FixedRatioBox` 풀폭, 세로=center fill / 가로=fit+blur)로 통일 — 완료 순간 content-mode 점프 제거. `ScreenshotPreviewImage` 에 옵셔널 handle + GCS 폴백(objectKey/sha256/mimeType) 추가, `UIKitImageView.handle` 옵셔널화 (`DetailView.swift`).
+  - **메모/URL 정체성 hero** — 빈 흰 헤더 → `DetailIdentityHero` 풀폭 밴드(메모=버터/크림, URL=보라, `SimilarItemCard.media`와 같은 시각 언어). processing/loading 도 풀폭 카드(hero + 스켈레톤)로 재설계 (`DetailView.swift`).
+  - **완료 푸시(앱 active) 즉시 reconcile** — `MochiItemSyncWorker.reconcile(serverID:)` 신규(폴링 단건 로직 재사용), `MochiAppDelegate.willPresent`→`RootFeature.analysisPushReceived`→`syncTrigger.reconcile`. 3초 폴링은 fallback 유지(항목별 폴링은 분석 반영 시 자동 종료) (`MochiItemSyncWorker.swift`, `MochiItemSyncWorkerDI.swift`, `RootFeature.swift`, `MochiAppDelegate.swift`).
+  - **로딩 중 상세 자동 전환** — `DetailFeature` 가 `repository.observeChanges()` 구독(분석완료 전 `analysis==nil` 구간 한정 — 완료 후 낙관 토글 경합 회피). 폴링/SSE/푸시 어느 경로로 완료돼도 열어둔 상세가 자동 갱신 (`DetailFeature.swift`).
+  - **잔여(기존 결함, 미수정)**: `MochiItemSyncWorker.applyAnalysis` 의 read-guard-upsert 가 비원자라 분석중 즐겨찾기 토글과 sub-ms 윈도우에서 경합 시 덮어쓸 수 있음(폴링·SSE 가 공유하던 결함, reconcile 추가로 노출 빈도↑). 영속 계층 CAS 로 원자화 — **별도 작업 단위 권장**. 실기기 QA 미검증(`tuist build` 컴파일만 확인).
+
+## 2026-06-15 — infra, backend
+- **백엔드 prod 서버를 develop HEAD(0f4c2ee)로 업데이트.** 직전 prod 는 코드 0021(LLM usage 계측, 06-13 16:04 UTC 기동)인데 DB 는 0022 까지 적용돼 있어 alembic 이 `Can't locate revision 0022` 로 깨진 drift 상태였다. develop overlay 후 `alembic upgrade head`→`current=0022 (head)` 로 코드↔DB 정합 회복. import 스모크 OK, health 200, worker 2. **기존 사용자 무중단** — develop 마지막 마이그레이션이 0022(이미 DB 반영)라 추가 스키마 변경 0건이고, 신규 응답 필드(`isFavorite`/`referenceLinks`)는 전부 additive+default 라 구버전(이미 신구조 intent_instances) 앱과 하위호환. 롤백 백업 `~/mochi.bak-*`(코드+.env) 보존.
+- **prod `.env` 키 주입: `YOUTUBE_API_KEY`(Secret `mochi-youtube-api-key`) + `NAVER_CLIENT_ID`/`NAVER_CLIENT_SECRET`.** prod .env 가 06-12 시점이라 06-13 이후 추가된 키가 비어 있었다(YOUTUBE Secret 은 있었으나 .env 미반영, NAVER 는 Secret 자체 부재). NAVER 는 새 Secret `mochi-naver-client-id`/`mochi-naver-client-secret` 생성(§INFRA §0) 후 주입 → `findReferenceUrls` tool 활성. 로컬 `.env` 도 NAVER 동기화. (키 없을 때도 graceful: `registry.py:31` 미등록 가드라 무중단이었음.)
 
 ## 2026-06-15 — ios, docs
 - **기록 상세 "관련 링크" 카드 변형 확정 — 5종(A~E) 비교 + "쿠팡·네이버 검색" 후보 중 메타 행카드(D)로.** `ReferenceLinksComparison`(A~E 동시 렌더 임시 컨테이너)·미선택 변형(`ReferenceBrandCard`/`ReferenceRowCard`/`ReferenceCarouselTile`/`ReferenceMetaCard`) 제거, 승자 `ReferenceMetaRowCard`(D, favicon 타일 + provider + 제목 + 부제·가격 한 줄)만 `ReferenceLinksSection`(② 섹션 문법 공유)으로 합침. 함께 후보였던 `shoppingProductQuery` 기반 "쿠팡에서 찾기·네이버에서 찾기" 행(`ShoppingSearchProvider`)도 제거 — ResourceFinder `referenceLinks` 가 쇼핑 검색 URL 까지 생성하므로 일원화. 내가 만든 고아 정리: `DetailLinkRow` 의 `subtitle`/`usesFavicon`(쇼핑 행 전용 파라미터) 제거. ⚠️ `shoppingProductQuery` projection 필드(도메인/Realm v9/openapi 계약)는 유지 — 앱 미사용이 됐으나 계약 제거는 별도 폭포라 폐기 후보로만 표기(DOMAIN_DESIGN §Entity). UX_SPEC §3.8 상세 섹션 구성에 "관련 링크" 항목 추가. (직전 handoff `2026-06-14-resource-finder-ranking-redesign-handoff.md` §6-5 "iOS 카드 1종 확정" 해소.) `tuist build FeatureDetail` green.

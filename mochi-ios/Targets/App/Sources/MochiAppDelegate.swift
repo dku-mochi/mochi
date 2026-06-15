@@ -70,12 +70,19 @@ public final class MochiAppDelegate: NSObject, UIApplicationDelegate, UNUserNoti
 
     // MARK: - 알림 핸들러
 
-    /// foreground 수신 — 분석 완료 alert 를 배너로 노출(앱이 켜져 있어도 보이게).
+    /// foreground 수신 — 분석 완료 alert 를 배너로 노출(앱이 켜져 있어도 보이게)하고, 동시에 해당 항목을
+    /// 즉시 reconcile 한다(폴링 tick 대기 제거). `userInfo["mochiItemID"]` 는 server PK —
+    /// RootFeature 가 `syncTrigger.reconcile(serverID:)` 로 가져오고, 반영은 observeChanges 로 열린
+    /// 상세(로딩 중이면 완료 화면으로 전환)·홈에 전파된다. 탭과 달리 화면 전환은 없다.
     public func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         willPresent notification: UNNotification,
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
     ) {
+        let userInfo = notification.request.content.userInfo
+        if let raw = userInfo["mochiItemID"] as? String, let id = UUID(uuidString: raw) {
+            Task { @MainActor in MochiApp.rootStore.send(.analysisPushReceived(id)) }
+        }
         completionHandler([.banner, .sound, .badge])
     }
 

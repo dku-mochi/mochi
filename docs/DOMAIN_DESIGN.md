@@ -73,7 +73,7 @@ iOS · 백엔드 · 프롬프트 모두 동일 용어를 쓴다.
 | **Lifecycle Kind** | 상태 enum. **2분할** — item 처리상태와 instance 의미상태가 직교 (§5) |
 | **Channel** | 입력 채널 (`screenshot`/`appDirectInput`/`appShareSheet`/`appIntent`/`chat`/`appCalendar`/…). `mochi_items.channel` 인라인. `chat` = 채팅 proposal 확정으로 생성 (2026-06-10). `appCalendar` = 캘린더 탭 날짜에서 사용자가 직접 만든 일정 (confirmedInstances schedule, 2026-06-15) |
 | **Favorite** | 사용자가 "중요"라고 모찌에게 준 신호 (`mochi_items.is_favorite` boolean 인라인). 분석결과가 아닌 **사용자 가변 상태** — reanalyze(`apply_analysis`)가 안 건드린다. 모찌가 능동 회수(홈 즐겨찾기 화면)에 활용 (2026-06-14, PRODUCT §1.5 정합). `POST /mochi_items/{id}/favorite` set-state 멱등 토글 |
-| **Entity** | AI 추출 의미 단위 (`entities.kind`/`value`). kind 는 free str — 프롬프트 가이드일 뿐 DB/앱 제약 아님. 특수 kind: `deadline`(서버가 due 파싱), `shopping_product`(커머스 검색어 — `MochiItemResponse.shoppingProductQuery` projection, 상세 구매 링크. 2026-06-13 lab shopping-product-link; 2026-06-15 iOS 상세 렌더는 `referenceLinks` 로 일원화 — 이 projection 은 현재 앱 미사용·폐기 후보), `reference_url`(ResourceFinder 가 찾은 참고 URL — `MochiItemResponse.referenceLinks` projection. value JSON: url·title·label·role·provider·rankProfile·usefulness + 표시 메타 `subtitle`(업종·지역/요약문/브랜드)·`priceText`(쇼핑 가격), 둘 다 값 있을 때만 직렬화) |
+| **Entity** | AI 추출 의미 단위 (`entities.kind`/`value`). kind 는 free str — 프롬프트 가이드일 뿐 DB/앱 제약 아님. 특수 kind: `deadline`(서버가 due 파싱), `shopping_product`(커머스 검색어 — `MochiItemResponse.shoppingProductQuery` projection, 상세 구매 링크. 2026-06-13 lab shopping-product-link; 2026-06-15 iOS 상세 렌더는 `referenceLinks` 로 일원화 — 이 projection 은 현재 앱 미사용·폐기 후보), `reference_url`(ResourceFinder 가 찾은 참고 URL — `MochiItemResponse.referenceLinks` projection. value JSON: url·title·label·role·provider·rankProfile·usefulness + 표시 메타 `subtitle`(업종·지역/요약문/브랜드)·`priceText`(쇼핑 가격), 둘 다 값 있을 때만 직렬화. **응답 조립 시 그 item 의 `source.url`·intent `payload.url` 과 같은 URL 은 관련 링크에서 제외** — 원본과 같으면 관련 링크가 아니라 중복이므로. 회수>확장 우선이라 원본 링크는 "지금 할 수 있어요"(②)에 남기고 관련 링크엔 다른 확장 자료만. youtube 영상은 표기 무관 동일시(youtu.be·watch?v=·shorts/·embed/). repository `_canonical_link_key` 정본, iOS `URLCanonical` 표시단 안전망 동일 규칙. 2026-06-15) |
 | **AgentRun** | MochiItem 1건 처리 LLM 오케스트레이션 실행 1회 |
 | **Outbox Message** | mochi_items COMMIT 직후 worker 가 픽업할 행 (`mochi_item_outbox`) |
 | **Idempotency Key** | `POST /mochi_items` 의 owner-scoped 키 |
@@ -251,7 +251,7 @@ instance 전이(from→to)·archive_reason×intent_type 검증은 application �
 - **iOS → Backend (업로드)**: `syncState=pendingUpload` 항목을 `MochiItemSyncWorker` 가 업로드. 이미지는 원본 PNG → 업로드용 JPEG(긴 변 ≤1920px, q60) 파생 → `POST /mochi_items/presign` → Signed URL 로 GCS 직접 PUT → `objectKey` 만 전달.
 - **Backend → iOS (복구 pull)**: 재로그인 시 `pullRemote()` 가 `GET /mochi_items` 로 서버 항목을 Realm 에 upsert. **이미 로컬에 있는 항목은 건너뛴다** — ① `MochiItem.id`(이전 pull 복구분) ② `syncState.uploaded(serverID:)`(로컬 origin 업로드분, 로컬 UUID PK 라 server-id 로는 못 찾음) 두 키로 식별. ②를 빼면 로컬 origin 항목이 매 pull 마다 중복 insert 된다. skip 으로 중복 방지 + 로컬 전용 수정(userTitle·수동 분류) 보존. 이미지는 `objectKey` 만 있고 로컬 파일이 없으면 `POST /mochi_items/images/download-url`(Signed GET)로 받아 `captures/<sha256>.<ext>` 복원(content-addressed 멱등).
 - **Backend → iOS (실시간, 3분담)**: foreground = **SSE** `/mochi_items/{id}/stream` 구독(`final` 수신 → GET 재조회). background/종료 = **APNs** push. SSE 실패/끊김 = **3초 폴링 fallback** (제거 금지). scenePhase active 복귀 시 reconcile. 분석 `failed`/90s 초과 시 iOS 는 `demoteToManual` 로 폴링을 끊고 수동 분류로 강등 (`UX_SPEC.md` §3.10).
-- **분류 확정 / 재분석**: `reviewOptions` 후보 칩 선택은 로컬 instance 즉시확정(서버 미동기화). **단 instance 완료/완료취소는 `POST /mochi_items/{id}/instances/{instanceId}/lifecycle` 로 서버 동기화** (낙관적 로컬 전이 + 서버 push, 실패 시 롤백 — 캘린더 체크박스). **"다른 의도" 자연어 재분석**은 `POST /mochi_items/{id}/reanalyze` — 사용자 힌트를 받아 기존 outbox→`AgentOrchestrator` 파이프라인 재실행(같은 item, 중복 캡처 없음). 힌트는 분석 프롬프트에만 합류하고 **outbox 행에만 일시 적재** — `user_memo` 에 저장하지 않는다(사용자가 직접 쓴 메모로 오해 방지).
+- **분류 확정 / 재분석**: `reviewOptions` 후보 칩 선택과 "다른 의도" 자연어 입력은 **모두 `POST /mochi_items/{id}/reanalyze` 재분석**으로 통일한다(2026-06-15) — 후보 칩은 고른 의도 `label` 을, "다른 의도"는 사용자 자연어를 hint 로 보낸다. 기존 후보 칩의 로컬 instance 즉시확정(`setIntent`)은 폐기: intent 라벨만 박혀 `payload`(날짜·deadline·title)가 비어 캘린더/할일로 못 쓰던 문제를, 재분석으로 payload 를 채워 해결한다(칩이 곧 사용자 확정 hint 라 LLM 이 의도를 뒤집을 위험은 실무상 무시 가능 — 팀 결정 2026-06-15). 재분석은 기존 outbox→`AgentOrchestrator` 파이프라인 재실행(같은 item, 중복 캡처 없음), 힌트는 분석 프롬프트에만 합류하고 **outbox 행에만 일시 적재** — `user_memo` 에 저장하지 않는다(사용자가 직접 쓴 메모로 오해 방지). **단 instance 완료/완료취소는 `POST /mochi_items/{id}/instances/{instanceId}/lifecycle` 로 서버 동기화** (낙관적 로컬 전이 + 서버 push, 실패 시 롤백 — 캘린더 체크박스).
 - **충돌/Catch-up**: backend master 원칙. 양방향 충돌 해소·cold-start catch-up(`/sync`)은 미구현.
 
 > ⚠️ **known-drift**: 재분석(`reanalyze`)이 `intent_instances` 를 delete-reinsert 하여 사용자 완료상태를 리셋한다(`apply_analysis`). payload 기반 instance 보존은 후속 — 재분석은 사용자 명시 트리거라 영향 제한적.
@@ -345,14 +345,14 @@ instance 전이(from→to)·archive_reason×intent_type 검증은 application �
 
 `tags`/`mochi_item_tags` · `dead_letters`(현재는 outbox 인라인) · `owner_id` DB FK 승격 · intent/lifecycle DB CHECK 승격(현재 app-level) · 재분석 시 instance 완료상태 보존(§6.3 known-drift). 전부 별도 축 — 필요 시 개별 큐.
 
-### 10.5 Similar — "비슷한 기록" 회수 (구현 완료 2026-06-13)
+### 10.5 Similar — "비슷한 기록" 회수 (구현 완료 2026-06-13, 튜닝 2026-06-15)
 
 **개념**: 한 MochiItem 과 의미가 가까운 다른 MochiItem 들. **MochiItem↔MochiItem 관계를 1급 테이블로 두지 않는다** — `embeddings` cosine 이웃을 read 시 계산하는 projection(§4.3 파생과 동류, `/search` 와 같은 비저장 read). 상세 화면 "비슷한 기록" 섹션(`UX_SPEC.md` §3.8)이 소비한다. 계약 정본은 `openapi.json`(⓪), 구현은 `search` 모듈(`postgres_index.similar`).
 
 **엔드포인트** (openapi 단일원천):
-- `GET /mochi_items/{id}/similar?limit=k` — owner-scoped + `deleted_at IS NULL` + **자기 자신 제외** + **유사도 임계값(`min_score`=0.6) 미달이면 빈 배열** + **같은 출처 URL dedup**(fanout=limit×4 후 앱단 접기). 대상 item 에 embedding 이 없으면(`VOYAGE_API_KEY` 미설정·미색인) 빈 배열로 degrade.
+- `GET /mochi_items/{id}/similar?limit=k` — owner-scoped + `deleted_at IS NULL` + **자기 자신 제외** + **유사도 임계값(`min_score`=0.7) 미달이면 빈 배열** + **같은 출처 URL dedup**(fanout=limit×4 후 앱단 접기). 대상 item 에 embedding 이 없으면(`VOYAGE_API_KEY` 미설정·미색인) 빈 배열로 degrade. (0.6→0.7: 의미상 약하게 가까운 항목까지 통과해 "관련 없는 기록"이 섞였다 — 2026-06-15 사용자 리포트.)
 - 응답 `SimilarItemsResponse { items: [{ mochiItemId, score, reasons: [{ kind, value? }] }] }`. 카드 렌더는 iOS 가 로컬 Realm 의 MochiItem 을 lookup(페이로드 최소화) — 응답은 id·score·reasons 만. **로컬에 없는 이웃(타 기기 전용)은 카드에서 스킵**된다(known 한계).
-- **연결 이유(`reasons`)** = "왜 비슷한지" 신호. 서버 계산 enum(한국어 카피는 iOS 매핑 → 카피 변경이 ⓪ openapi 폭포를 안 탄다): `sharedSource`(같은 출처 URL/앱) · `sameIntent`(intentType 교집합) · `closeInTime`(captured_at 근접). **엔티티 겹침**(`entities` self-join)은 가장 설득력 있으나 비싸 후속 — 1차는 위 3종(전부 기본 컬럼, 추가 쿼리 0).
+- **연결 이유(`reasons`)** = "왜 비슷한지" 신호. 서버 계산 enum(한국어 카피는 iOS 매핑 → 카피 변경이 ⓪ openapi 폭포를 안 탄다): `sharedSource`(같은 출처 URL/앱) · `sameIntent`(intentType 교집합, iOS 카피 "비슷한 종류"). `closeInTime`(captured_at 근접)은 **reserved** — 시각 근접은 의미 신호가 아니라 노이즈여서 파생 중단(2026-06-15 사용자 리포트). enum 은 ⓪ 계약상 유지하되 서버가 절대 보내지 않는다. **엔티티 겹침**(`entities` self-join)은 가장 설득력 있으나 비싸 후속.
 
 **모듈 경계**: 벡터 retrieval 책임은 `search` 모듈(`PostgresHybridIndex` 의 cosine 쿼리 `1.0 - (e.embedding <=> :vec)` 재사용 — seed 는 query 텍스트 대신 대상 item 의 저장된 벡터). 라우트만 `/mochi_items/{id}/...` 로 노출(라우트 위치 ≠ 모듈 소속). 단 search 의 `RetrievalIndex.vector(query)` 는 텍스트 기반이라 **seed-item 이웃탐색용 새 포트/메서드가 필요**(단순 재사용 불가).
 

@@ -18,6 +18,7 @@ description: 모찌 docs/ 의 path-first 길잡이. AI 가 파일을 열기 전 
 |---|---|---|
 | `docs/WORKFLOW.md` | L1 운영 매뉴얼 (단일 원천) | **모든 작업 시작 전** — 티어·폭포·공유표면 확인 |
 | `docs/PRODUCT.md` | L1 제품 정의 — 미션·문제·4-Intent 컨셉·MVP (화면 기획은 UX_SPEC) | "이 기능이 미션에 맞나"·scope-cut 판단 시 |
+| `docs/PROPOSAL_PROACTIVE_RECALL.md` | L2 reference (proposal, 미승인) — 능동 회수 기능 기획서 (외부 공유용, 내부 용어 없음) | 능동 회수·리마인더·관련 기억 기능 논의·우선순위 결정 시 |
 | `docs/UX_SPEC.md` | L3 committed — 화면·시나리오·IA·디자인 톤·데모 | 화면 구성/플로우/UI 변경 시 (자유 수정) |
 | `docs/HARNESS_GUIDE.md` | L1 reference — 친절한 입문서 | 새 팀원/세션이 합류했을 때만 |
 | `docs/ARCHITECTURE.md` | L2 committed — 시스템 토폴로지·API 계약 | 두 프로젝트에 걸친 변경 시 |

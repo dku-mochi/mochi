@@ -117,7 +117,7 @@ struct SearchDefaultView: View {
                 }
             }
             .padding(.horizontal, SearchD5.Sizes.pageH)
-            .padding(.vertical, 4)
+            // 칩 탭영역이 44 로 커져 세로 여백을 칩이 머금는다 — strip 높이는 거의 그대로(과거 4pt 패딩 제거).
         }
     }
 }
@@ -151,6 +151,9 @@ struct TypeFilterChip: View {
                 )
             )
             .animation(.easeInOut(duration: 0.18), value: isActive)
+            // 캡슐(32)은 그대로, 세로 터치 영역만 44 로 — 가로는 칩 간격이 6pt 로 좁아 확장 안 함(인접 충돌 회피).
+            .frame(height: 44)
+            .contentShape(Rectangle())
         }
         .buttonStyle(TypeChipPress())
         .accessibilityLabel("\(filter.label) 필터")

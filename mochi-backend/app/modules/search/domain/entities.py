@@ -43,7 +43,9 @@ class SimilarReasonKind(StrEnum):
 
     SHARED_SOURCE = "sharedSource"  # 같은 출처 URL
     SAME_INTENT = "sameIntent"  # intent_type 교집합
-    CLOSE_IN_TIME = "closeInTime"  # captured_at 근접
+    # captured_at 근접. reserved — 시각 근접은 의미 신호가 아니라 노이즈여서 더 이상 파생하지 않는다
+    # (2026-06-15, 사용자 리포트). enum 은 ⓪ openapi 계약이라 유지하되 서버가 절대 보내지 않는다.
+    CLOSE_IN_TIME = "closeInTime"
 
 
 @dataclass(slots=True)
