@@ -10,6 +10,9 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-06-15 — docs
+- **능동 회수 기능 제품 기획서 추가** (`PROPOSAL_PROACTIVE_RECALL.md`, INDEX 등록) — 팀·외부 공유용, 내부 용어(트랙·코드네임) 없는 버전. "모찌가 먼저 떠올려준다"는 세 기능(지식 다시 떠올리기 / 일정·할일 알림 / 관련 기억 소환)을 제품 언어로 정의. 미승인 proposal. 상세 토론·기술설계는 journal 2건(`2026-06-15-proactive-recall-design.md`, `-tech-design.md`).
+
 ## 2026-06-15 — ios
 - **홈/검색 UI 폴리시 + 접근성 머지** (develop): 탭타겟 44pt·즐겨찾기 배지·즐겨찾기 로딩상태(홈·즐겨찾기·검색 카드), 홈 스크롤 바닥 여백 과다 제거(검색 탭과 동일 동작), 아이콘 버튼 VoiceOver 라벨 추가. 머지 통합 중 `DetailView` `body` type-check timeout 회피 위해 toolbar 를 `@ToolbarContentBuilder` 로 분리하고, "닫기" `accessibilityLabel` 을 `ToolbarItem`→내부 `Button` 으로 이동(`ToolbarItem` 엔 직접 못 붙음). `FeatureDetail`·`FeatureInbox` `tuist build` 통과.
 
