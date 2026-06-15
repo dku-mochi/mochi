@@ -42,6 +42,30 @@ final class ChatMarkupTests: XCTestCase {
         XCTAssertEqual(segments, [.text("근거"), .badge(index: 2)])
     }
 
+    func test_ascii_bracket_marker_also_becomes_badge() {
+        // flash-lite 가 canonical 전각 「【】」 대신 반각 「[]」 으로 흘려도 뱃지로 치환된다.
+        let raw = "여기가 좋아요[item:\(itemID.uuidString.lowercased())]. 가보세요."
+        let segments = ChatMarkup.segments(raw: raw, citations: [citation()], isStreaming: false)
+        XCTAssertEqual(segments, [.text("여기가 좋아요"), .badge(index: 1), .text(". 가보세요.")])
+    }
+
+    func test_ascii_trailing_partial_marker_is_trimmed_only_while_streaming() {
+        let raw = "여기가 좋아요[item:1111"
+        let streaming = ChatMarkup.segments(raw: raw, citations: [], isStreaming: true)
+        XCTAssertEqual(streaming, [.text("여기가 좋아요")])
+
+        // 스트림 종료 후엔 자르지 않는다.
+        let done = ChatMarkup.segments(raw: raw, citations: [], isStreaming: false)
+        XCTAssertEqual(done, [.text("여기가 좋아요[item:1111")])
+    }
+
+    func test_plain_ascii_bracket_is_not_trimmed_while_streaming() {
+        // 본문의 흔한 대괄호(`배열[0]`)는 「[item:」 가 아니므로 스트리밍 중에도 보존된다.
+        let raw = "배열[0"
+        let streaming = ChatMarkup.segments(raw: raw, citations: [], isStreaming: true)
+        XCTAssertEqual(streaming, [.text("배열[0")])
+    }
+
     func test_bold_markdown_renders_as_style_not_raw_asterisks() throws {
         let attributed = ChatMarkup.attributedText(raw: "이건 **중요**해요", citations: [], isStreaming: false)
         XCTAssertEqual(String(attributed.characters), "이건 중요해요")

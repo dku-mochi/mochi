@@ -44,7 +44,11 @@ _TIMEZONE = "Asia/Seoul"
 #: 프로필 로드 상한 — 프로필은 부가라, DB 가 막혀도 전체 run timeout 을 태우지 않고 빨리 포기한다.
 _PROFILE_LOAD_TIMEOUT = 3.0
 
-_CITATION_PATTERN = re.compile(r"【item:([0-9a-fA-F-]{36})】")
+# 전각 「【item:id】」 이 canonical 이지만, 작은 모델(flash-lite)이 더 흔한 반각 「[item:id]」 으로
+# 흘리는 경우가 잦아 양쪽 괄호를 모두 받는다 — 안 받으면 citation 미생성 + 본문에 마커 원문이
+# 그대로 노출된다(iOS ChatMarkup.marker 와 동일 정책). UUID 36자 제약이라 일반 본문 대괄호와의
+# 오탐은 사실상 없다.
+_CITATION_PATTERN = re.compile(r"[【\[]item:([0-9a-fA-F-]{36})[】\]]")
 
 #: 한도 도달 시 마지막 라운드에 주입 — 에러 대신 폴백 답변을 끌어낸다.
 _FALLBACK_INSTRUCTION = (

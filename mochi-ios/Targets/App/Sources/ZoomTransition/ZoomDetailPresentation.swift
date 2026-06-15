@@ -44,6 +44,11 @@ private struct ZoomDetailPresenter: UIViewControllerRepresentable {
         private var cardThumbImage: UIImage?
         /// 홈 위에 까는 dim — 떠난 카드의 잔상을 가리고 모달 깊이를 만든다. 모든 종료 경로에서 제거.
         private weak var dimView: UIView?
+        /// 진행 중인 dismiss 비행을 즉시 끝내는 클로저 — present(알림 등 교체 진입)가 끼어들 때 호출해
+        /// 죽어가는 VC 를 UIKit 계층에서 곧바로 떼어낸다. 안 그러면 dismiss 비행(최대 0.45s) 동안 VC 가
+        /// 남아 presenter 탐색에 잡혀 그 위에 새 VC 가 쌓이고, 이전 dismiss 의 completion 이 새 상세를
+        /// 오염시켜 '투명한데 뒤가 먹통'이 된다. dismiss 정상 완료 시 nil 로 비운다.
+        private var finishPendingDismiss: (() -> Void)?
 
         private let cardRadius = HomeDesign.Radius.md
         private let detailHeaderRadius = HomeDesign.Radius.lg
@@ -101,6 +106,9 @@ private struct ZoomDetailPresenter: UIViewControllerRepresentable {
             host: UIViewController
         ) {
             guard let window = host.view.window else { return }
+            // 진행 중이던 dismiss 가 있으면 즉시 끝낸다 — 죽어가는 VC 가 계층에 남아 아래 presenter
+            // 탐색에 잡혀 그 위에 새 VC 가 쌓이는 교체 진입 경합('투명 먹통')을 차단한다.
+            finishPendingDismiss?()
             self.detailStore = store
 
             // present 할 곳 — sheet(캘린더 DaySheet 등)가 떠 있으면 최상단 presented VC.
@@ -124,7 +132,7 @@ private struct ZoomDetailPresenter: UIViewControllerRepresentable {
             self.hero = hero
 
             let hosting = UIHostingController(
-                rootView: NavigationStack { DetailView(store: store) }
+                rootView: DetailRootView(store: store)
             )
             hosting.modalPresentationStyle = .overFullScreen
             hosting.view.alpha = 0
@@ -288,31 +296,52 @@ private struct ZoomDetailPresenter: UIViewControllerRepresentable {
         }
 
         private func runDismissTransition(_ hosting: UIViewController) {
+            // 이 dismiss 가 책임질 자원을 로컬로 캡처하고, Coordinator 의 '현재 상세' 참조는 즉시 비운다.
+            // dismiss 비행(최대 0.45s) 도중 새 present 가 끼어들어 self 를 자기 상세로 채워도, 이 dismiss 의
+            // 정리(completion)는 캡처한 로컬만 건드려 새 상세를 오염시키지 않는다(교체 진입 '투명 먹통' 방지).
             let dim = dimView
+            let onDismiss = self.onDismiss
+            let store = self.detailStore
+            self.dimView = nil
+            self.onDismiss = nil
+            self.detailStore = nil
 
             guard let window = hosting.view.window,
+                  store?.path.isEmpty ?? true,   // 자식 push 중 닫기(드래그/메뉴)는 hero 비행 스킵 → fade. 스택 전체 종료.
                   let thumb = hero?.cardImage,
                   let image = cardThumbImage,
                   let source = visibleDetailImageFrame(of: hosting, in: window) else {
-                // 공유 이미지 없음(memo/url·hero 없음) 또는 hero 이미지가 스크롤로 화면 밖 —
+                // 공유 이미지 없음(memo/url·hero 없음)·hero 이미지가 스크롤로 화면 밖·자식 상세 위에서 닫음 —
                 // 살짝 줄어들며 fade-out (이미지 비행 없이도 "제자리로 돌아가는" 뉘앙스).
                 let animator = UIViewPropertyAnimator(duration: 0.30, dampingRatio: 1) {
                     hosting.view.alpha = 0
                     hosting.view.transform = hosting.view.transform.scaledBy(x: 0.96, y: 0.96)
                     dim?.alpha = 0
                 }
-                animator.addCompletion { _ in
+                var didTearDown = false
+                let teardown: () -> Void = {
+                    guard !didTearDown else { return }   // 정상 완료와 가로채기 finalize 가 겹쳐도 1회만.
+                    didTearDown = true
                     dim?.removeFromSuperview()
-                    self.detailStore = nil
                     hosting.dismiss(animated: false)
-                    self.onDismiss?()
+                }
+                animator.addCompletion { [weak self] _ in
+                    self?.finishPendingDismiss = nil
+                    teardown()
+                    onDismiss?()   // 정상 종료 — 슬롯(state.detail) 비우기
+                }
+                self.finishPendingDismiss = { [weak self] in
+                    self?.finishPendingDismiss = nil
+                    animator.stopAnimation(true)
+                    teardown()
+                    // onDismiss 는 호출하지 않는다 — 끼어든 present 가 이미 슬롯을 차지했으므로 비우면 안 된다.
                 }
                 animator.startAnimation()
                 return
             }
 
             // 목업(스냅샷)을 화면에 올리는 순간 상세 hero 이미지를 숨겨, 둘이 겹쳐 보이지 않게 한다.
-            detailStore?.send(.setHeroImageHidden(true))
+            store?.send(.setHeroImageHidden(true))
 
             let snap = UIImageView(image: image)
             snap.frame = source
@@ -337,12 +366,24 @@ private struct ZoomDetailPresenter: UIViewControllerRepresentable {
                 snap.layer.cornerRadius = self.cardRadius
                 dim?.alpha = 0
             }
-            flight.addCompletion { _ in
+            var didTearDown = false
+            let teardown: () -> Void = {
+                guard !didTearDown else { return }   // 정상 완료와 가로채기 finalize 가 겹쳐도 1회만.
+                didTearDown = true
                 snap.removeFromSuperview()
                 dim?.removeFromSuperview()
-                self.detailStore = nil
                 hosting.dismiss(animated: false)
-                self.onDismiss?()
+            }
+            flight.addCompletion { [weak self] _ in
+                self?.finishPendingDismiss = nil
+                teardown()
+                onDismiss?()   // 정상 종료 — 슬롯(state.detail) 비우기
+            }
+            self.finishPendingDismiss = { [weak self] in
+                self?.finishPendingDismiss = nil
+                flight.stopAnimation(true)
+                teardown()
+                // onDismiss 는 호출하지 않는다 — 끼어든 present 가 이미 슬롯을 차지했으므로 비우면 안 된다.
             }
             flight.startAnimation()
         }
@@ -408,13 +449,21 @@ private struct ZoomDetailPresenter: UIViewControllerRepresentable {
             }
         }
 
-        // 아래 방향 + 내부 ScrollView 가 최상단일 때만 드래그 dismiss 시작
+        // 아래 방향 + 내부 ScrollView 가 최상단일 때 드래그 dismiss 시작.
+        // root·자식(비슷한 기록 push) 어느 화면에서든 아래로 끌면 스택 전체를 한 번에 닫는다(→ 홈).
+        // 가로 엣지 스와이프(시스템 back, 한 칸 뒤로)와는 velocity 방향으로 분리된다.
         func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
             guard let pan = gestureRecognizer as? UIPanGestureRecognizer, let view = pan.view else { return false }
             let velocity = pan.velocity(in: view)
-            guard velocity.y > abs(velocity.x) else { return false }
-            if let scrollView {
-                return scrollView.contentOffset.y <= -scrollView.adjustedContentInset.top + 0.5
+            guard velocity.y > abs(velocity.x) else { return false }   // 세로 우세만(가로 엣지 pop 과 분리)
+            // 현재 화면(root 또는 push 된 자식)의 ScrollView 를 그때그때 잡는다 — push 가 끝나면
+            // hosting.view 트리의 첫 ScrollView 가 보통 현재 화면 것이다(전환 애니메이션 중 짧게 root·자식
+            // ScrollView 가 공존할 수 있으나, 제스처는 손가락이 멈춘 화면에서 시작되므로 현재 화면을 잡는다).
+            // dismiss 는 자식 위에선 hero 없이 fade(runDismissTransition 의 path 가드).
+            let sv = hosting?.view.firstScrollView()
+            scrollView = sv
+            if let sv {
+                return sv.contentOffset.y <= -sv.adjustedContentInset.top + 0.5
             }
             return true
         }

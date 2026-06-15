@@ -24,6 +24,12 @@ public struct DetailFeature: Sendable {
         /// 비행이 있는 진입은 true 로 시작 → 비행 스냅샷이 사라질 때 App 이 false 로 켠다.
         public var heroImageHidden: Bool = false
 
+        /// "비슷한 기록" push 스택 — 카드 탭 시 그 항목 상세를 앞으로 쌓는다(재귀 DetailFeature).
+        /// root 상세만 `NavigationStack(path:)`(DetailRootView)에 이 path 를 바인딩하고, 모든 push 는
+        /// root 의 path 로 모인다 — 자손이 또 비슷한 기록을 탭하면 그 openSimilar delegate 를 root 가
+        /// 흡수해 같은 스택에 append 한다(자식 인스턴스의 path 는 렌더되지 않아 미사용).
+        public var path = StackState<DetailFeature.State>()
+
         public init(mochiItemID: UUID, heroImageHidden: Bool = false) {
             self.mochiItemID = mochiItemID
             self.heroImageHidden = heroImageHidden
@@ -33,6 +39,9 @@ public struct DetailFeature: Sendable {
     public enum Action: Sendable {
         case onAppear
         case loaded(MochiItem?)
+        /// 로컬 저장소(Realm) 변경 신호 — 폴링/SSE/완료 푸시가 분석을 반영하면 로딩 중 상세가
+        /// 자동으로 완료 화면으로 전환되게 한다(홈/검색/캘린더와 같은 observeChanges 패턴).
+        case repositoryChanged
         /// 비슷한 기록 로드 완료 — 빈 배열이면 뷰가 섹션을 렌더하지 않는다.
         /// 첫 인자는 요청 시점의 mochiItemID — 같은 present 슬롯이 다른 항목으로 갈아끼워졌을 때
         /// stale 결과가 적용되지 않게 가드한다.
@@ -60,6 +69,8 @@ public struct DetailFeature: Sendable {
         case closeButtonTapped
         // hero 전환 중 상세 이미지 표시/숨김 — App(ZoomDetailPresentation)이 비행 타이밍에 맞춰 토글.
         case setHeroImageHidden(Bool)
+        /// "비슷한 기록" push 스택(재귀 자식 상세). 자손의 openSimilar/deleted delegate 를 root 가 흡수.
+        case path(StackActionOf<DetailFeature>)
         case delegate(Delegate)
 
         public enum Alert: Equatable, Sendable {
@@ -76,7 +87,7 @@ public struct DetailFeature: Sendable {
     @Dependency(\.mochiItemRepository) var repository
     @Dependency(\.mochiAPIClient) var apiClient
 
-    private enum CancelID: Hashable { case favorite(UUID) }
+    private enum CancelID: Hashable { case favorite(UUID), observe, reload }
 
     public init() {}
 
@@ -84,31 +95,53 @@ public struct DetailFeature: Sendable {
         Reduce { state, action in
             switch action {
             case .onAppear:
-                return .run { [id = state.mochiItemID] send in
-                    let mochiItem = try await repository.find(id: id)
-                    await send(.loaded(mochiItem))
+                return .merge(
+                    .run { [id = state.mochiItemID] send in
+                        let mochiItem = try await repository.find(id: id)
+                        await send(.loaded(mochiItem))
 
-                    // 비슷한 기록 — 업로드된(서버 id 있는) 항목만 조회한다. 미업로드 로컬 항목은
-                    // 서버 embedding 이 없어 호출을 생략한다. 실패·빈 결과 → 섹션 숨김(no-op).
-                    guard let mochiItem, case let .uploaded(serverID, _) = mochiItem.syncState else { return }
-                    let refs = (try? await apiClient.similarItems(serverID: serverID, limit: 6)) ?? []
-                    guard !refs.isEmpty else { return }
-                    // 서버 id → 로컬 MochiItem 매핑(로컬에 있는 항목만 카드로 렌더 — 응답은 id+score+reasons
-                    // 만 주므로). 다른 기기에서만 만든 항목은 로컬에 없어 스킵된다.
-                    let locals = (try? await repository.listRecent(limit: 2000)) ?? []
-                    var byServer: [UUID: MochiItem] = [:]
-                    for local in locals {
-                        if case let .uploaded(sid, _) = local.syncState { byServer[sid] = local }
+                        // 비슷한 기록 — 업로드된(서버 id 있는) 항목만 조회한다. 미업로드 로컬 항목은
+                        // 서버 embedding 이 없어 호출을 생략한다. 실패·빈 결과 → 섹션 숨김(no-op).
+                        guard let mochiItem, case let .uploaded(serverID, _) = mochiItem.syncState else { return }
+                        let refs = (try? await apiClient.similarItems(serverID: serverID, limit: 6)) ?? []
+                        guard !refs.isEmpty else { return }
+                        // 서버 id → 로컬 MochiItem 매핑(로컬에 있는 항목만 카드로 렌더 — 응답은 id+score+reasons
+                        // 만 주므로). 다른 기기에서만 만든 항목은 로컬에 없어 스킵된다.
+                        let locals = (try? await repository.listRecent(limit: 2000)) ?? []
+                        var byServer: [UUID: MochiItem] = [:]
+                        for local in locals {
+                            if case let .uploaded(sid, _) = local.syncState { byServer[sid] = local }
+                        }
+                        let previews = refs.compactMap { ref -> SimilarItemPreview? in
+                            byServer[ref.mochiItemID].map { SimilarItemPreview(item: $0, reasons: ref.reasons) }
+                        }
+                        await send(.similarLoaded(id, previews))
+                    },
+                    // 분석중 상세를 열어둔 동안 폴링/SSE/완료 푸시가 분석을 반영하면 자동으로 완료 화면으로
+                    // 전환되게 저장소 변경을 구독한다. 상세 dismiss 시 effect 가 자동 취소된다(.ifLet).
+                    .run { send in
+                        for await _ in repository.observeChanges() {
+                            await send(.repositoryChanged)
+                        }
                     }
-                    let previews = refs.compactMap { ref -> SimilarItemPreview? in
-                        byServer[ref.mochiItemID].map { SimilarItemPreview(item: $0, reasons: ref.reasons) }
-                    }
-                    await send(.similarLoaded(id, previews))
-                }
+                    .cancellable(id: CancelID.observe, cancelInFlight: true)
+                )
 
             case let .loaded(mochiItem):
                 state.mochiItem = mochiItem
                 return .none
+
+            case .repositoryChanged:
+                // 이 구독의 목적은 "분석중 상세를 열어둔 채 분석이 끝나면 자동 전환"(이슈4)뿐이다.
+                // 분석이 붙은(analysis != nil) 뒤엔 reload 하지 않는다 — 즐겨찾기·할 일 토글은 낙관적
+                // 로컬 반영 + 명시적 reload 로 직접 관리하므로, 무관한 항목의 쓰기가 observeChanges 를
+                // 울려 그 낙관 윈도우를 덮어 한 프레임 되돌리는 경합을 피한다. (제목 편집은 분석완료
+                // 헤더에서만 가능하므로 analysis==nil 게이트가 편집 보호도 자연히 함께 한다.)
+                guard state.mochiItem?.analysis == nil else { return .none }
+                return .run { [id = state.mochiItemID] send in
+                    await send(.loaded(try? await repository.find(id: id)))
+                }
+                .cancellable(id: CancelID.reload, cancelInFlight: true)
 
             case let .similarLoaded(requestID, previews):
                 // stale 가드 — 요청 후 슬롯이 다른 항목으로 갈아끼워졌으면 버린다.
@@ -124,8 +157,8 @@ public struct DetailFeature: Sendable {
                 let isCompleted = instance.lifecycle.kind == .archived
                 let target: InstanceLifecycle = isCompleted ? .active : .archived(reason: .todoCompleted)
                 return .run { send in
-                    // 낙관적 로컬 전이 + 즉시 reload — 상세는 observeChanges 미구독이라
-                    // state.mochiItem 을 직접 갱신해야 토글이 화면에 보인다.
+                    // 낙관적 로컬 전이 + 즉시 reload — 상세의 observeChanges 구독은 분석완료 전
+                    // (analysis==nil)에만 동작하므로, 완료 후 토글은 직접 reload 해야 화면에 보인다.
                     try? await repository.updateInstanceLifecycle(
                         mochiItemID: item.id, instanceID: instance.id, to: target
                     )
@@ -185,12 +218,12 @@ public struct DetailFeature: Sendable {
                 let trimmed = state.titleDraft.trimmingCharacters(in: .whitespacesAndNewlines)
                 let newTitle = trimmed.isEmpty ? nil : trimmed
                 state.isEditingTitle = false
-                state.mochiItem?.userTitle = newTitle   // 낙관적 로컬 반영 (상세는 observe 미구독)
+                state.mochiItem?.userTitle = newTitle   // 낙관적 로컬 반영 (완료 후엔 observe 게이트 오프라 직접 반영)
                 return .run { send in
                     do {
                         try await repository.setUserTitle(mochiItemID: id, title: newTitle)
                     } catch {
-                        // 저장 실패 시 낙관 반영을 DB 진실로 되돌린다 (상세는 observe 미구독이라 자동 복구 안 됨).
+                        // 저장 실패 시 낙관 반영을 DB 진실로 되돌린다 (완료 후엔 observe 게이트 오프라 자동 복구 안 됨).
                         await send(.loaded(try? await repository.find(id: id)))
                         await send(.operationFailed(String(describing: error)))
                     }
@@ -283,11 +316,33 @@ public struct DetailFeature: Sendable {
                 state.heroImageHidden = hidden
                 return .none
 
+            case let .path(.element(id: _, action: .delegate(.openSimilar(localID)))):
+                // 자손 상세(B,C…)에서 비슷한 기록 탭 → root 의 push 스택에 쌓는다(flat: 모든 push 가
+                // root path 로 모인다). root 자신의 openSimilar 는 부모 MainTabFeature 가 흡수한다.
+                state.path.append(DetailFeature.State(mochiItemID: localID))
+                return .none
+
+            case let .path(.element(id: id, action: .delegate(.deleted))):
+                // 자손 상세 삭제 → 그 자손을 스택에서 pop. pop(from:) 은 'id 이후 전부' 제거지만, 삭제는
+                // 항상 스택 최상단(현재 보이는 자식)에서만 발생하므로 결과적으로 그 한 화면만 닫힌다.
+                // root·형제 상세는 유지(root 삭제는 MainTabFeature 가 detail=nil 로 전체 닫음).
+                state.path.pop(from: id)
+                return .none
+
+            case .path(.element(id: _, action: .delegate(.closeRequested))):
+                // 자손 상세의 "닫기"(⋯ 메뉴) → 한 칸 back 이 아니라 스택 전체 종료를 부모(MainTabFeature)에
+                // 위임한다. 깊이 들어간 뒤 back 반복 없이 한 번에 홈으로 빠져나오는 경로.
+                return .send(.delegate(.closeRequested))
+
+            case .path:
+                return .none
+
             case .delegate:
                 return .none
             }
         }
         .ifLet(\.$deleteAlert, action: \.deleteAlert)
+        .forEach(\.path, action: \.path) { DetailFeature() }
     }
 }
 

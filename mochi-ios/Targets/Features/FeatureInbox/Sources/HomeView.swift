@@ -60,8 +60,11 @@ public struct HomeView: View {
                 }
                 .padding(.horizontal, HomeDesign.Spacing.xl)
                 .padding(.top, HomeDesign.Spacing.md)
-                // 우하단 플로팅 버튼에 마지막 섹션이 가리지 않도록 하단 여백 확보.
-                .padding(.bottom, 88)
+                // 탭바 위 여백은 네이티브 TabView 의 bottom safe-area inset 이 담당한다 — 검색 탭처럼
+                // 마지막 섹션이 탭바 바로 위에 붙게 둔다(과거 88pt full-width 패딩은 탭바 inset 과 겹쳐
+                // 바닥에 큰 빈 공간을 남겼다). 우하단 + 버튼은 마지막 가로 카드 행 모서리에 떠서 겹치는
+                // 표준 FAB 동작 — 카드 본문(중앙 제목)은 가리지 않는다.
+                .padding(.bottom, HomeDesign.Spacing.xxl)
             }
             .refreshable {
                 await store.send(.refresh).finish()
@@ -450,6 +453,11 @@ public struct HomeView: View {
                                 )
                         )
                         .shadow(color: HomeDesign.Color.purple500.opacity(0.32), radius: 12, x: 0, y: 7)
+                        // 보라 원(32)은 그대로, 터치 영역만 가로 44 로 확장(엄지 빗나감↓).
+                        // 세로는 32 유지 — 키우면 입력 pill(minHeight 48)이 함께 커진다. pill 높이(48)가
+                        // 세로 여유를 이미 준다. 인접 TextField 는 flexible 이라 hit area 겹침 없음.
+                        .frame(width: 44, height: 32)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(PressableStyle())
                 .disabled(store.chatDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
@@ -732,7 +740,6 @@ public struct HomeView: View {
                 NeedsReviewCard(
                     mochiItems: Array(store.needsReview),
                     page: $store.needsReviewPage,
-                    onClassify: { id, intent in store.send(.classifyTapped(mochiItemID: id, intent: intent)) },
                     onReanalyze: { id, hint in store.send(.reanalyzeTapped(mochiItemID: id, hint: hint)) },
                     onRetry: { id in store.send(.retryAnalysisTapped(id)) }
                 )
@@ -742,105 +749,141 @@ public struct HomeView: View {
     
     /// ① 확인 필요 알림 카드 — needsReview 가 *있을 때만* 노출 (없으면 섹션 자체가 사라진다).
     /// UX_SPEC.md §3.10: 푸시를 놓쳐도 이 버킷이 진실원천이라 앱 안에서 언제든 처리 가능해야 한다.
+    /// 겹친 미니 카드로 "정리 안 된 기억이 쌓였다"를 물리적으로 은유한다 — 탭하면 정리 시트.
     @ViewBuilder
     private var needsReviewPrompt: some View {
         if !store.needsReview.isEmpty {
             Button {
                 store.send(.reviewSummaryTapped)
             } label: {
-                VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
-                    Text("모찌가 확인이 필요해요")
-                        .font(.system(size: 15, weight: .bold, design: .rounded))
-                        .foregroundStyle(HomeDesign.Color.textPrimary)
-                    VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
-                        HStack(alignment: .top, spacing: HomeDesign.Spacing.lg) {
-                            ZStack {
-                                Circle().fill(HomeDesign.Color.butter50)
-                                Image(systemName: "lightbulb.fill")
-                                    .font(.system(size: 12, weight: .semibold))
-                                    .foregroundStyle(HomeDesign.Color.peach400)
-                            }
-                            .frame(width: 24, height: 24)
+                HStack(spacing: HomeDesign.Spacing.lg) {
+                    needsReviewMiniStack
 
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text("\(store.needsReview.count)개")
-                                    .font(.system(size: 13, weight: .bold, design: .rounded))
-                                    .foregroundStyle(HomeDesign.Color.peach400)
-                                    .padding(.horizontal, 9)
-                                    .padding(.vertical, 4)
-                                    .background(Capsule().fill(HomeDesign.Color.cream100))
-                                Text("일정인지 할 일인지 애매한 기억이 있어요.\n10초만에 정리할 수 있어요!")
-                                    .font(.system(size: 13, weight: .medium, design: .rounded))
-                                    .foregroundStyle(HomeDesign.Color.ink700)
-                                    .lineSpacing(3)
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
-                            Spacer(minLength: 0)
+                    VStack(alignment: .leading, spacing: 5) {
+                        HStack(spacing: HomeDesign.Spacing.sm) {
+                            Text("확인이 필요해요")
+                                .font(.system(size: 16, weight: .heavy, design: .rounded))
+                                .foregroundStyle(HomeDesign.Color.textPrimary)
+                            Text("\(store.needsReview.count)")
+                                .font(.system(size: 12, weight: .heavy, design: .rounded))
+                                .foregroundStyle(.white)
+                                .frame(minWidth: 17)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Capsule().fill(HomeDesign.Color.peach400))
                         }
-
-                        HStack(spacing: 0) {
-                            Spacer()
-                            HStack(spacing: HomeDesign.Spacing.sm) {
-                                Text("확인하기")
-                                    .font(.system(size: 11, weight: .heavy, design: .rounded))
-                                Image(systemName: "chevron.right")
-                                    .font(.system(size: 9, weight: .bold))
-                            }
-                            .foregroundStyle(HomeDesign.Color.peach400)
-                            .padding(.horizontal, HomeDesign.Spacing.md)
-                            .padding(.vertical, HomeDesign.Spacing.md)
-                            .background(
-                                Capsule(style: .continuous)
-                                    .fill(HomeDesign.Color.surface.opacity(0.92))
-                            )
-                            .overlay(
-                                Capsule(style: .continuous)
-                                    .stroke(HomeDesign.Color.cream200, lineWidth: 1.3)
-                            )
-                        }
+                        Text("모찌 혼자 정하기 애매한 기억이에요.\n잠깐 봐주면 바로 정리할게요.")
+                            .font(.system(size: 12.5, weight: .medium, design: .rounded))
+                            .foregroundStyle(HomeDesign.Color.ink700)
+                            .lineSpacing(2)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .multilineTextAlignment(.leading)
                     }
-                    .padding(HomeDesign.Spacing.md)
-                    .background(
-                        RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous)
-                            .fill(HomeDesign.Color.cream50)
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous)
-                            .stroke(HomeDesign.Color.cream200, lineWidth: 1)
-                    )
-                    .cardShadow()
+
+                    Spacer(minLength: 0)
+
+                    ZStack {
+                        Circle().fill(HomeDesign.Color.surface.opacity(0.9))
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(HomeDesign.Color.peach400)
+                    }
+                    .frame(width: 30, height: 30)
                 }
+                .padding(HomeDesign.Spacing.lg)
+                .background(
+                    RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: [HomeDesign.Color.cream50, HomeDesign.Color.butter50],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous)
+                        .stroke(HomeDesign.Color.cream200, lineWidth: 1)
+                )
+                .cardShadow()
             }
             .buttonStyle(PressableStyle())
         }
+    }
+
+    /// 겹쳐 쌓인 미니 카드(최대 3) — 앞장이 위, 뒷장은 좌측 부채꼴로 비친다.
+    private var needsReviewMiniStack: some View {
+        let items = Array(store.needsReview.prefix(3))
+        return ZStack {
+            ForEach(Array(items.enumerated()).reversed(), id: \.element.id) { idx, item in
+                RoundedRectangle(cornerRadius: 9, style: .continuous)
+                    .fill(HomeDesign.Color.surface)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 9, style: .continuous)
+                            .stroke(HomeDesign.Color.cream200, lineWidth: 1)
+                    )
+                    .overlay(
+                        Image(systemName: item.viewKind.icon)
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(item.viewKind.tint.opacity(0.7))
+                    )
+                    .frame(width: 40, height: 50)
+                    .shadow(color: HomeDesign.Color.ink900.opacity(0.06), radius: 3, x: 0, y: 1)
+                    .rotationEffect(.degrees(Double(idx) * -8 + 4), anchor: .bottom)
+                    .offset(x: CGFloat(idx) * -3)
+            }
+        }
+        .frame(width: 56, height: 58)
     }
     
     private var needsReviewSheet: some View {
         NavigationStack {
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: HomeDesign.Spacing.lg) {
-                    Text("모찌가 확인이 필요해요")
-                        .font(.system(size: 22, weight: .heavy, design: .rounded))
-                        .foregroundStyle(HomeDesign.Color.textPrimary)
-                    Text("모찌가 헷갈린 기억만 빠르게 확인해 주세요.")
-                        .font(.system(size: 14, weight: .medium, design: .rounded))
-                        .foregroundStyle(HomeDesign.Color.textMuted)
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack(spacing: HomeDesign.Spacing.sm) {
+                            Text("확인이 필요해요")
+                                .font(.system(size: 24, weight: .heavy, design: .rounded))
+                                .foregroundStyle(HomeDesign.Color.textPrimary)
+                            if !store.needsReview.isEmpty {
+                                Text("\(store.needsReview.count)")
+                                    .font(.system(size: 13, weight: .heavy, design: .rounded))
+                                    .foregroundStyle(.white)
+                                    .frame(minWidth: 20)
+                                    .padding(.horizontal, 7)
+                                    .padding(.vertical, 3)
+                                    .background(Capsule().fill(HomeDesign.Color.peach400))
+                            }
+                        }
+                        Text("모찌가 헷갈린 기억만 빠르게 정리해 주세요.")
+                            .font(.system(size: 14, weight: .medium, design: .rounded))
+                            .foregroundStyle(HomeDesign.Color.textMuted)
+                    }
                     NeedsReviewCard(
                         mochiItems: Array(store.needsReview),
                         page: $store.needsReviewPage,
-                        onClassify: { id, intent in store.send(.classifyTapped(mochiItemID: id, intent: intent)) },
                         onReanalyze: { id, hint in store.send(.reanalyzeTapped(mochiItemID: id, hint: hint)) },
                         onRetry: { id in store.send(.retryAnalysisTapped(id)) }
                     )
                 }
                 .padding(HomeDesign.Spacing.xl)
             }
-            .background(HomeDesign.Color.bg.ignoresSafeArea())
+            .background(
+                LinearGradient(
+                    colors: [HomeDesign.Color.cream50, HomeDesign.Color.bg],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
+            )
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("닫기") { store.isNeedsReviewModalPresented = false }
                 }
             }
+            // nav bar 를 그라데이션 시작색(cream50)으로 고정 — 시스템 기본 불투명 바와 배경이 갈라지는 이음새 제거.
+            .toolbarBackground(HomeDesign.Color.cream50, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
         }
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
@@ -1020,10 +1063,10 @@ public struct HomeView: View {
     
     private var settingsFooter: some View {
         HStack(spacing: HomeDesign.Spacing.sm) {
-            CircleIconButton(systemName: "star") {
+            CircleIconButton(systemName: "star", accessibilityLabel: "즐겨찾기") {
                 store.send(.favoritesTapped)
             }
-            CircleIconButton(systemName: "gearshape") {
+            CircleIconButton(systemName: "gearshape", accessibilityLabel: "설정") {
                 store.send(.openSettingsTapped)
             }
         }
@@ -1095,8 +1138,10 @@ private struct SectionHeader: View {
 
 private struct CircleIconButton: View {
     let systemName: String
+    /// VoiceOver 가 읽을 라벨 — 아이콘만 있는 버튼이라 없으면 "버튼"으로만 읽혀 용도를 알 수 없다.
+    let accessibilityLabel: String
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             Image(systemName: systemName)
@@ -1111,6 +1156,7 @@ private struct CircleIconButton: View {
                 .overlay(Circle().stroke(HomeDesign.Color.border, lineWidth: 1))
         }
         .buttonStyle(PressableStyle())
+        .accessibilityLabel(accessibilityLabel)
     }
 }
 

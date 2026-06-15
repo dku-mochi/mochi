@@ -2,7 +2,6 @@ import ComposableArchitecture
 import CoreAgentClient
 import DesignSystem
 import SwiftUI
-import UIKit
 
 /// 대화 풀스크린 — 모찌에게 묻는 메신저형 화면. NavigationStack push 로 열린다.
 ///
@@ -15,31 +14,16 @@ public struct ChatView: View {
     @Environment(\.scenePhase) private var scenePhase
     @FocusState private var composerFocused: Bool
 
-    /// 스크롤이 콘텐츠 바닥 근처인가 — 자동 따라가기(스트리밍·키보드 재앵커)의 게이트.
+    /// 스크롤이 콘텐츠 바닥 근처인가 — 자동 따라가기(스트리밍 재앵커)의 게이트.
     /// 위로 올라가 읽는 중인 사용자를 delta 마다 끌어내리지 않기 위한 상태다.
     @State private var isNearBottom = true
+    /// 스크롤 컨테이너의 *실측* 높이 = 보이는 콘텐츠 영역(viewport). `safeAreaInset(.bottom)` 의
+    /// 입력 독은 SwiftUI 자동 키보드 회피로 키보드 위에 붙으므로, 키보드가 올라오면 이 높이가
+    /// 그만큼 자동으로 줄어든다 — 즉 키보드를 이미 반영한 값이다. NotificationCenter·좌표 측정
+    /// 없이 이 한 값이 viewport 의 단일 진실(spacer 기준 + near-bottom 판정 겸용).
     @State private var containerHeight: CGFloat = 0
-    /// 키보드가 올라와 있는가 — spacer 기준(독 top)을 동결할지 판정.
-    @State private var keyboardUp = false
-    /// 키보드 show/hide 세대 토큰 — willHide 의 지연 Task 가, 그새 뒤바뀐 키보드 상태를
-    /// 덮어쓰지 않게 한다(늦게 깬 내림 Task 가 viewport 를 키보드-*올림* 값으로 오염시키던 race).
-    @State private var keyboardEventGen = 0
-    /// 스크롤 영역 top 의 root 좌표 Y(navbar 바로 아래). 키보드와 무관하게 거의 고정.
-    @State private var scrollTopY: CGFloat = 0
-    /// 입력 독 top 의 root 좌표 Y — 키보드 위치와 무관하게 *항상* 갱신한다. 키보드 내림
-    /// 애니메이션이 끝나는 순간 dock 의 onChange 가 다시 안 터져도 이 값으로 viewport 를
-    /// 확정할 수 있게 하는 보강용(아래 ``keyboardDownDockTopY`` 의 settle 갱신 참고).
-    @State private var dockTopLive: CGFloat = 0
-    /// *키보드 내려간 상태*의 입력 독 top 의 root 좌표 Y. `독 top − scrollTopY` = 실제 보이는
-    /// 콘텐츠 영역 높이 = spacer 기준 viewport. safe area 인셋을 추측으로 빼지 않고 렌더된
-    /// 위치를 직접 재므로 정확하다(추측 기반 size−inset 은 over/under 로 매번 틀렸다).
-    /// 키보드 내림 동안엔 동결(reflow·스크롤 경합 방지), 내림 종료 시 `dockTopLive` 로 확정한다.
-    @State private var keyboardDownDockTopY: CGFloat = 0
     /// 전송 햅틱 트리거 — submit 마다 +1.
     @State private var sendPulse = 0
-    /// 전송으로 키보드가 내려가는 중 — 내림이 *끝난 뒤*(viewport 안정) 질문을 top 으로 앵커할지
-    /// 예약. 수동 dismiss(읽는 중)와 구분해, 읽던 위치를 함부로 yank 하지 않게 한다.
-    @State private var pendingTurnPin = false
 
     /// 방금 전송한 turn 의 user 메시지 — 화면 top 에 고정할 대상(ChatGPT/Claude 식).
     /// nil 이면 spacer 없음(복원·전환 직후엔 기존처럼 바닥에서 시작).
@@ -65,9 +49,6 @@ public struct ChatView: View {
         }
         .background(HomeDesign.Color.bg.ignoresSafeArea())
         .safeAreaInset(edge: .bottom, spacing: 0) { inputDock }
-        // 스크롤 영역과 입력 독을 같은 좌표계에 둬, spacer 기준 viewport 를 "독 top − 스크롤
-        // top" 으로 *실제 렌더 위치*에서 측정한다 — safe area 보고 방식 추측 없이 정확.
-        .coordinateSpace(name: Self.rootSpace)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
@@ -190,34 +171,25 @@ public struct ChatView: View {
                     }
                 )
             }
-            // 키보드를 콘텐츠가 *반응형으로* 따라가게 한다(iOS17): 키보드로 컨테이너가 줄면
-            // 바닥을 계속 보이게 유지 → 콘텐츠가 키보드 애니메이션과 함께 올라간다(수동 scrollTo
-            // 의 딜레이·경합 없이). 초기 위치도 바닥(복원 대화는 최신이 바닥). 질문 top-pin 은
-            // 명시 scrollTo 로 덮어쓰고, 스트리밍 중엔 spacer 가 콘텐츠 크기를 한 화면으로 고정해
-            // (크기 불변→재앵커 없음) 질문이 top 에 머문다.
-            .defaultScrollAnchor(.bottom)
-            .coordinateSpace(name: Self.scrollSpace)
+            // 스크롤 anchor — OS 버전별 분리(아래 ``AdaptiveScrollAnchor``):
+            // - iOS 18+: `.initialOffset=.bottom`(복원 대화는 최신이 바닥) + `.sizeChanges=.top`.
+            //   답변 스트리밍·키보드로 content/viewport 가 변해도 SwiftUI 가 *네이티브로* top 위치를
+            //   유지한다 → spacer 를 답변높이에 연동(매 프레임 변동)하거나 매번 scrollTo 할 필요가
+            //   없어, "content size 와 offset 동시 조절" 경합이 원천 사라진다.
+            // - iOS 17: role 분리가 없어 `.bottom` 단일 + spacer 보정 + 명시 scrollTo 로 흉내낸다.
+            .modifier(AdaptiveScrollAnchor(pinnedToTop: activeUserTurnID != nil))
+            .coordinateSpace(.named(Self.scrollSpace))
             .scrollDismissesKeyboard(.interactively)
             // 메시지 영역 탭 = 키보드 내림(ChatGPT 식). simultaneous 라 버블 내부 버튼
             // (출처·proposal)도 그대로 동작한다.
             .simultaneousGesture(TapGesture().onEnded { composerFocused = false })
+            // 스크롤 컨테이너 실측 높이 = viewport. 키보드가 safeAreaInset 독을 밀어올리면 이
+            // 높이가 자동으로 줄어 키보드를 반영한다(추측으로 inset 을 빼지 않으니 정확).
             .background(
                 GeometryReader { geo in
                     SwiftUI.Color.clear
-                        .onAppear {
-                            containerHeight = geo.size.height
-                            scrollTopY = geo.frame(in: .named(Self.rootSpace)).minY
-                        }
-                        .onChange(of: geo.size.height) { _, newHeight in
-                            containerHeight = newHeight   // 바닥 근처 판정용(프레임 높이)
-                        }
-                        // 스크롤 영역 top 의 root 좌표 Y. rootSpace 원점이 이미 navbar 아래라
-                        // (NavigationStack 콘텐츠 영역) minY 가 곧 보이는 top — 여기에 safeAreaInsets.top
-                        // 을 또 더하면 navbar 를 *이중* 차감해 viewport(=bottom inset)가 navbar 만큼
-                        // 작아져 질문이 top 까지 못 올라왔다(사용자 진단: bottomInset 이 적게 들어감).
-                        .onChange(of: geo.frame(in: .named(Self.rootSpace)).minY) { _, y in
-                            scrollTopY = y
-                        }
+                        .onAppear { containerHeight = geo.size.height }
+                        .onChange(of: geo.size.height) { _, h in containerHeight = h }
                 }
             )
             .onPreferenceChange(ContentBottomKey.self) { contentBottom in
@@ -283,56 +255,26 @@ public struct ChatView: View {
             .onChange(of: store.runPhase) { _, phase in
                 guard phase == .streaming, let id = lastUserMessageID else { return }
                 activeUserTurnID = id
-                // 키보드가 *이미 내려가* 있으면(칩·홈 입력 등 firstMessage 진입) 다음 프레임에
-                // 바로 앵커한다. 키보드가 떠 있으면(전송으로 막 내려가는 중) viewport 가 변동
-                // 중이라, 키보드가 *완전히 내려간 뒤* keyboardWillHide 에서 앵커하도록 예약만
-                // 한다 — 움직이는 viewport 위에서 앵커하면 질문 위치가 어긋난다(사용자 진단).
-                if keyboardUp {
-                    pendingTurnPin = true
-                } else {
-                    Task { @MainActor in
-                        try? await Task.sleep(for: .milliseconds(16))
-                        scrollToActiveTurn(proxy)
-                    }
-                }
-            }
-            // 키보드 등장: viewport 기준(독 top)만 동결한다. 콘텐츠가 키보드를 *반응형으로* 따라
-            // 올라가는 건 위 `.defaultScrollAnchor(.bottom)` 이 담당 — 노티 기반 수동 scrollTo 는
-            // 타깃(키보드 반영 전 bottom)이 어긋나 딜레이/덜컹였다(사용자 진단).
-            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
-                keyboardUp = true
-                keyboardEventGen += 1   // 진행 중이던 willHide 지연 Task 무효화
-            }
-            // 키보드 내림: 내려가는 애니메이션이 *끝난 뒤*(viewport 안정) ① 동결을 풀고 그 순간의
-            // 실제 독 top 으로 viewport 를 확정하고(dock onChange 가 그 순간 다시 안 터져도 첫 측정이
-            // 살아남게) ② 전송으로 내려간 키보드면 그제서야 질문을 top 으로 앵커한다 — 움직이는
-            // viewport 위가 아니라 안정된 뒤라 경합·어긋남이 없다(사용자 진단: 내림 중 앵커는 경합).
-            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { note in
-                let duration = (note.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double) ?? 0.25
-                keyboardEventGen += 1
-                let gen = keyboardEventGen   // 이 내림의 세대
+                // activeUserTurnID 반영으로 spacer 가 확장된 *다음* 레이아웃에서 앵커해야 질문이
+                // top 까지 올라간다 — 한 프레임 양보. (키보드가 떠 있다 전송으로 내려가는 중이면
+                // viewport 가 계속 커지는데, 그 추적은 아래 onChange(containerHeight) 가 맡는다.)
                 Task { @MainActor in
-                    try? await Task.sleep(for: .seconds(duration))
-                    // 내림 도중 키보드가 다시 올라오거나(willShow) 또 내려가면 세대가 바뀐다 —
-                    // 그때 이 늦은 Task 는 폐기(키보드-올림 dock 으로 viewport 오염 방지).
-                    guard gen == keyboardEventGen else { return }
-                    keyboardUp = false
-                    keyboardDownDockTopY = dockTopLive
-                    // 전송으로 내려간 키보드면(pendingTurnPin), 이제 viewport 가 안정됐으니 질문을
-                    // 앵커한다 — 움직이는 viewport 위가 아니라 *안정된 뒤*라 경합·어긋남이 없다.
-                    // (수동 dismiss 는 pendingTurnPin=false 라 읽던 위치를 yank 하지 않는다.)
-                    if pendingTurnPin, activeUserTurnID != nil {
-                        pendingTurnPin = false
-                        scrollToActiveTurn(proxy)
-                    }
+                    try? await Task.sleep(for: .milliseconds(16))
+                    scrollToActiveTurn(proxy)
                 }
             }
-            // viewport(키보드-내림 독 top)가 활성 턴보다 늦게 처음 측정되면(복원 진입 등 onAppear
-            // pin 이 spacer 0 위에서 헛돈 경우) 그 첫 측정에서 한 번 더 앵커한다. 값이 0→유효로
-            // 바뀌는 최초 1회만 — 이후 미세 변동엔 관여하지 않아(작성 중 등) 스크롤이 안 튄다.
-            .onChange(of: keyboardDownDockTopY) { old, new in
-                guard old <= 0, new > 0, activeUserTurnID != nil, !keyboardUp else { return }
-                scrollToActiveTurn(proxy)
+            // [iOS 17 전용] 키보드가 내려가는 동안 viewport(containerHeight)가 단계적으로 커진다 —
+            // 활성 턴이 있으면 그 변화를 따라 질문을 top 에 다시 정렬해 *움직이는 viewport* 위에서도
+            // 안착시킨다. iOS 18+ 은 `.sizeChanges` anchor 가 이 위치 유지를 네이티브로 하므로 수동
+            // follow 가 불필요하고, 겹치면 오히려 경합·점프가 난다 → 게이트로 막는다.
+            // - `isNearBottom` 가드: 위로 올라가 읽는 중(near=false)이면 따라가지 않는다 — 키보드를
+            //   다시 올리거나 drag dismiss 해도 질문으로 yank 하지 않게(전송 직후 정착은 near=true 통과).
+            // - `animated: false`: 키보드 inset 변화는 SwiftUI 자체 transaction 에 묻어가게 둔다.
+            //   여기서 또 spring 을 두르면 매 resize 틱마다 새 애니메이션이 쌓여 jitter 가 난다.
+            .onChange(of: containerHeight) { _, _ in
+                if #available(iOS 18, *) { return }
+                guard activeUserTurnID != nil, store.isStreaming, isNearBottom else { return }
+                scrollToActiveTurn(proxy, animated: false)
             }
             // 대화 전환(history 열기·새 대화)에선 spacer 회수 후 바닥에서 시작 —
             // 첫 전송(nil→값)은 건드리지 않는다.
@@ -356,9 +298,8 @@ public struct ChatView: View {
     }
 
     private static let bottomAnchor = "chat-bottom"
+    /// 콘텐츠 바닥 모서리(maxY)를 재는 좌표계 — near-bottom 판정의 기준.
     private static let scrollSpace = "chat-scroll"
-    /// 스크롤 영역 + 입력 독을 함께 담는 좌표계 — viewport 를 렌더 위치에서 직접 재기 위함.
-    private static let rootSpace = "chat-root"
     /// 상단 고정된 질문과 nav 바 사이 여백.
     private static let turnTopInset = HomeDesign.Spacing.md
 
@@ -373,11 +314,9 @@ public struct ChatView: View {
         store.messages.last(where: { $0.role == .user })?.id
     }
 
-    /// 보이는 콘텐츠 영역 높이 = `독 top − 스크롤 top`(렌더 위치 직접 측정). 키보드 올라온
-    /// 동안엔 `keyboardDownDockTopY` 가 동결돼 viewport 도 안정.
-    private var spacerViewport: CGFloat {
-        max(0, keyboardDownDockTopY - scrollTopY)
-    }
+    /// 보이는 콘텐츠 영역 높이 = 스크롤 컨테이너 실측 높이(``containerHeight``). safeAreaInset
+    /// 독이 키보드 위로 붙으므로 키보드를 이미 반영한 값이라, 별도 보정 없이 그대로 viewport 다.
+    private var spacerViewport: CGFloat { containerHeight }
 
     /// 활성 턴의 질문을 top 에 두고 `질문 + 답변 + spacer = 한 화면(spacerViewport)` 이 되게
     /// 채우는 바닥 여백(ChatGPT 식).
@@ -393,12 +332,20 @@ public struct ChatView: View {
     /// 측정 전(높이 0)엔 자연히 큰 spacer 가 되어 첫 scrollTo 가 질문을 top 까지 올릴 수 있다.
     private var bottomSpacerHeight: CGFloat {
         guard activeUserTurnID != nil, spacerViewport > 0 else { return 0 }
+        if #available(iOS 18, *) {
+            // iOS 18+: `.sizeChanges=.top` anchor 가 답변 자람을 흡수해 질문 top 을 유지하므로,
+            // spacer 를 답변높이에 *연동하지 않는다*(content size 가 매 프레임 흔들리던 원인 제거).
+            // 질문 위로 한 화면(여백)만 확보해 질문이 top 까지 갈 스크롤 여지를 준다 — 답변이 이
+            // 여백을 넘으면 자연 스크롤된다(ChatGPT 동일). gap 1개(질문↔답변)만 차감.
+            return max(0, spacerViewport - Self.turnTopInset - activeUserHeight - HomeDesign.Spacing.md)
+        }
+        // iOS 17: 답변높이까지 빼 content 총합을 "질문+답변이 딱 한 화면" 양으로 고정한다(크기
+        // 불변→offset 불변). 정지 위치에서 콘텐츠 하단이 화면 바닥에 맞아 그 아래로 더 스크롤되지
+        // 않는다(질문·답변이 화면 밖으로 사라지는 과스크롤 제거). 답변이 길어 합이 viewport 이상이면
+        // 0 → 최근 답변이 입력바 바로 위에 붙는다(메신저식). (이전 pinSlack 여유분은 질문을 top 에
+        // 붙이려는 의도적 초과였으나 빈 공간 과스크롤의 원인이라 제거 — 질문이 top 에서 몇 px 아래
+        // 머무는 edge case 를 감수한다.)
         let gaps = HomeDesign.Spacing.md * 2   // 질문↔답변, 답변↔spacer (LazyVStack spacing)
-        // spacer 를 "질문+답변이 딱 한 화면을 채우는 양"으로만 둔다 — 정지 위치에서 콘텐츠 하단이
-        // 화면 바닥에 맞아 *그 아래로 더 스크롤되지 않는다*(질문·답변이 화면 밖으로 사라지는 과스크롤
-        // 제거). 답변이 길어 합이 viewport 이상이면 0 → 최근 답변이 입력바 바로 위에 붙는다(메신저식).
-        // (이전 pinSlack 여유분은 질문을 top 에 확실히 붙이려는 의도적 초과였으나, 그게 빈 공간
-        // 과스크롤의 원인이라 제거 — 질문이 top 에서 몇 px 아래 머무는 edge case 를 감수한다.)
         return max(0, spacerViewport - Self.turnTopInset - activeUserHeight - lastAssistantHeight - gaps)
     }
 
@@ -406,9 +353,17 @@ public struct ChatView: View {
     /// 앵커가 질문을 viewport 최상단(navbar 아래)에 정렬한다. (바닥 anchor 도 썼으나 viewport
     /// 측정이 정확해야만 질문이 정확히 top 에 와, 측정이 조금만 작아도 질문이 top 에 못 닿았다
     /// — `.top` 은 아래 공간만 충분하면 앵커가 위치를 직접 맞춰 더 견고하다.)
-    private func scrollToActiveTurn(_ proxy: ScrollViewProxy) {
+    ///
+    /// `animated`: 전송 직후 첫 핀은 spring 으로 부드럽게 올린다(response 0.55 — 0.4 는 "슉"
+    /// 하고 너무 빨랐다). 키보드 resize 추적(`onChange(containerHeight)`)은 false 로 호출해
+    /// 키보드 자체 애니메이션에 묻어가게 한다(이중 spring jitter 방지).
+    private func scrollToActiveTurn(_ proxy: ScrollViewProxy, animated: Bool = true) {
         guard let id = activeUserTurnID else { return }
-        withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
+        guard animated else {
+            proxy.scrollTo(id, anchor: .top)
+            return
+        }
+        withAnimation(.spring(response: 0.55, dampingFraction: 0.86)) {
             proxy.scrollTo(id, anchor: .top)
         }
     }
@@ -468,21 +423,6 @@ public struct ChatView: View {
         .padding(.horizontal, HomeDesign.Spacing.lg)
         .padding(.top, 10)
         .padding(.bottom, 8)
-        // 독 top(헤어라인)의 root 좌표 Y = 보이는 콘텐츠 영역의 바닥. spacer viewport 의 기준.
-        // 키보드 내려간 동안에만 갱신해 무오염, 올라온 동안엔 동결(reflow·스크롤 경합 방지).
-        .background(
-            GeometryReader { g in
-                SwiftUI.Color.clear
-                    .onAppear {
-                        dockTopLive = g.frame(in: .named(Self.rootSpace)).minY
-                        if !keyboardUp { keyboardDownDockTopY = dockTopLive }
-                    }
-                    .onChange(of: g.frame(in: .named(Self.rootSpace)).minY) { _, y in
-                        dockTopLive = y
-                        if !keyboardUp { keyboardDownDockTopY = y }
-                    }
-            }
-        )
         .sensoryFeedback(.impact(weight: .light), trigger: sendPulse)
         .background(
             HomeDesign.Color.surface
@@ -496,11 +436,34 @@ public struct ChatView: View {
     private func submit() {
         guard store.canSubmit else { return }
         sendPulse += 1
-        // 전송 시 키보드를 내린다. pendingTurnPin 을 *먼저* 세워, 키보드 내림이 끝난 뒤
-        // (viewport 안정) keyboardWillHide 가 질문을 top 으로 앵커하게 예약한다.
-        pendingTurnPin = true
+        // 전송 시 키보드를 내린다 — 내려가며 *커지는* viewport(containerHeight)를
+        // onChange(containerHeight)가 따라가 질문을 top 에 부드럽게 안착시킨다. 핀 대상은
+        // runPhase 의 idle→streaming 전이가 정한다(submit·firstMessage 두 진입을 다 포착).
         composerFocused = false
         store.send(.sendTapped, animation: .spring(response: 0.45, dampingFraction: 0.85))
+    }
+}
+
+/// 스크롤 anchor 를 OS 버전별로 분리한다.
+/// - iOS 18+: `.initialOffset=.bottom`(첫 진입은 바닥) + `.sizeChanges`(크기 변화 시 anchor).
+///   **함정**: `.sizeChanges` 는 container 축소(키보드 등장)와 content 증가(답변 스트리밍)를
+///   *구분하지 못한다* — 둘 다 "size change". 그래서 정적 `.top` 으로 두면 키보드 등장에도 top 을
+///   유지해 콘텐츠가 키보드 위로 안 밀리고 가려진다. 의도를 `pinnedToTop` 으로 나눈다:
+///   - 핀 중(전송 후 질문 top-pin): `.top` → 답변이 자라도 질문 top 유지.
+///   - 평소: `.bottom` → 키보드 등장 시 콘텐츠가 키보드 위로 밀려 올라간다(메신저 기본 동작).
+/// - iOS 17: role 분리 API 가 없어 `.bottom` 단일(위치 유지는 spacer 보정 + 명시 scrollTo 가 흉내).
+private struct AdaptiveScrollAnchor: ViewModifier {
+    let pinnedToTop: Bool
+
+    func body(content: Content) -> some View {
+        if #available(iOS 18, *) {
+            content
+                .defaultScrollAnchor(.bottom, for: .initialOffset)
+                .defaultScrollAnchor(pinnedToTop ? .top : .bottom, for: .sizeChanges)
+        } else {
+            content
+                .defaultScrollAnchor(.bottom)
+        }
     }
 }
 

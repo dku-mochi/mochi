@@ -65,6 +65,20 @@ public struct MochiItem: Equatable, Sendable, Identifiable, Hashable {
         if let userTitle, !userTitle.isEmpty { return userTitle }
         return representativeTitle
     }
+
+    /// 기록이 가리키는 "원본으로 가기" URL — 상세 "지금 할 수 있어요"의 링크 행이 쓰고,
+    /// 관련 링크 중복 제거(같은 원본이 관련 링크에도 뜨면 숨김)가 공유하는 **단일 원천**.
+    /// 우선순위: ``source.url`` → instance ``payload.url`` → ``actionCandidates`` 의 openURL.
+    public var primaryActionURL: URL? {
+        if let url = source.url { return url }
+        for inst in instances {
+            if let raw = inst.payload.url, let url = URL(string: raw) { return url }
+        }
+        for candidate in analysis?.actionCandidates ?? [] {
+            if case let .openURL(url) = candidate { return url }
+        }
+        return nil
+    }
 }
 
 /// 백엔드 / 시스템 캘린더와의 동기화 상태.
