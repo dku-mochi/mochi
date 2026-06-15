@@ -1,5 +1,4 @@
 from collections.abc import Awaitable, Callable
-from datetime import timedelta
 from uuid import UUID
 
 from sqlalchemy import bindparam, text
@@ -16,8 +15,6 @@ from app.modules.search.domain.ports import RetrievalIndex
 
 # 같은 출처 URL 이 여러 번 저장된 중복을 접고도 limit 을 채우도록 넉넉히 후보를 뽑는다.
 _SIMILAR_CANDIDATE_FANOUT = 4
-# "비슷한 시기" 근거 칩 임계 — captured_at 차이가 이 안이면 closeInTime.
-_CLOSE_IN_TIME = timedelta(days=3)
 
 
 class PostgresHybridIndex(RetrievalIndex):
@@ -112,7 +109,7 @@ class PostgresHybridIndex(RetrievalIndex):
         sql = text(
             """
             WITH target AS (
-                SELECT e.embedding AS emb, c.url AS url, c.captured_at AS captured_at
+                SELECT e.embedding AS emb, c.url AS url
                 FROM embeddings e
                 JOIN mochi_items c ON c.id = e.mochi_item_id
                 WHERE c.id = :target_id AND c.owner_id = :owner_id AND c.deleted_at IS NULL
@@ -121,9 +118,7 @@ class PostgresHybridIndex(RetrievalIndex):
             SELECT c.id AS mochi_item_id,
                    1.0 - (e.embedding <=> (SELECT emb FROM target)) AS score,
                    c.url AS url,
-                   c.captured_at AS captured_at,
-                   (SELECT url FROM target) AS target_url,
-                   (SELECT captured_at FROM target) AS target_captured_at
+                   (SELECT url FROM target) AS target_url
             FROM embeddings e
             JOIN mochi_items c ON c.id = e.mochi_item_id
             WHERE c.owner_id = :owner_id
@@ -161,7 +156,6 @@ class PostgresHybridIndex(RetrievalIndex):
                 break
 
         target_url = rows[0].target_url
-        target_captured_at = rows[0].target_captured_at
 
         # sameIntent 근거 — 대상 + 후보들의 intent_type 을 한 번에 조회(후보 소수에만).
         ids = [mochi_item_id, *(row.mochi_item_id for row in deduped)]
@@ -185,12 +179,6 @@ class PostgresHybridIndex(RetrievalIndex):
             shared_intent = sorted(intents_by_item.get(row.mochi_item_id, set()) & target_intents)
             if shared_intent:
                 reasons.append(SimilarReason(kind=SimilarReasonKind.SAME_INTENT, value=shared_intent[0]))
-            if (
-                target_captured_at is not None
-                and row.captured_at is not None
-                and abs(row.captured_at - target_captured_at) <= _CLOSE_IN_TIME
-            ):
-                reasons.append(SimilarReason(kind=SimilarReasonKind.CLOSE_IN_TIME))
             results.append(
                 SimilarItem(mochi_item_id=row.mochi_item_id, score=float(row.score), reasons=reasons)
             )

@@ -306,6 +306,33 @@ public actor MochiItemSyncWorker {
         streamTasks[serverID] = nil
     }
 
+    // MARK: - 단건 reconcile (완료 푸시 즉시 반영)
+
+    /// foreground 완료 푸시(`analysis_ready`)를 받은 즉시 그 항목 하나를 재조회해 분석을 반영한다 —
+    /// 3초 폴링 tick 을 기다리지 않고 바로 가져오는 경로(`MochiAppDelegate.willPresent` → RootFeature).
+    /// `pollAnalysisOnce` 의 단건 로직과 동일하다: serverID 로 GET → analyzed 면 `applyAnalysis`.
+    /// 반영 결과는 `repository.upsert` → `observeChanges` 로 열린 상세·홈·검색에 전파된다.
+    /// 폴링은 그대로 두는 fallback — 푸시 미수신(권한 거부·드롭) 항목은 다음 폴링 tick 이 메운다.
+    public func reconcile(serverID: UUID) async {
+        guard await tokenProvider.bearerToken() != nil else { return }
+        // server PK → 로컬 항목. 아직 로컬에 없으면(타기기 생성·미도착) 폴링/pull 이 맡는다.
+        guard let item = try? await repository.find(serverID: serverID) else { return }
+        guard item.analysis == nil else { return }  // 이미 반영됨(폴링/SSE 경합) — no-op.
+        guard let dto = try? await apiClient.getMochiItem(id: serverID) else { return }
+        switch dto.lifecycleKind {
+        case "analyzed":
+            await applyAnalysis(
+                to: item.id,
+                analysis: dto.toMochiItemAnalysis(),
+                expectedUpdatedAt: item.updatedAt
+            )
+        case "failed":
+            await demoteToManual(item)
+        default:
+            break  // ingested/analyzing: 푸시가 앞섰을 뿐 — 폴링 fallback 이 곧 메운다.
+        }
+    }
+
     // MARK: - 분석 폴링 (foreground 한정) — 백탭·metadata-only 공통
 
     /// foreground 동안 `interval` 초마다 metadata-only 항목의 분석 상태를 백엔드에서 재조회한다.
