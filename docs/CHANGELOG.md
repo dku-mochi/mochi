@@ -10,6 +10,9 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-06-15 — ios
+- **홈/검색 UI 폴리시 + 접근성 머지** (develop): 탭타겟 44pt·즐겨찾기 배지·즐겨찾기 로딩상태(홈·즐겨찾기·검색 카드), 홈 스크롤 바닥 여백 과다 제거(검색 탭과 동일 동작), 아이콘 버튼 VoiceOver 라벨 추가. 머지 통합 중 `DetailView` `body` type-check timeout 회피 위해 toolbar 를 `@ToolbarContentBuilder` 로 분리하고, "닫기" `accessibilityLabel` 을 `ToolbarItem`→내부 `Button` 으로 이동(`ToolbarItem` 엔 직접 못 붙음). `FeatureDetail`·`FeatureInbox` `tuist build` 통과.
+
 ## 2026-06-15 — ios, docs
 - **기록 상세 종료 먹통 수정 + "비슷한 기록" 교체→push 전환** (사용자 리포트: 알림·비슷한 기록으로 들어온 상세가 가끔 투명해지지만 뒤 화면이 먹통). ① 근본 원인 — 교체 진입(`detail=nil`→sleep→`detail=새것`)이 `ZoomDetailPresentation` 의 비동기 dismiss(0.45s)와 present 를 경합시켜, dismiss completion 이 `self.detailStore`/`onDismiss` 공유 상태를 건드려 끼어든 새 상세를 오염시키고 죽어가는 VC 위에 새 VC 가 쌓였다. → dismiss 가 책임질 자원을 로컬 캡처만 정리하게 바꾸고, present 진입 시 진행 중 dismiss 를 즉시 끝내는 `finishPendingDismiss` 직렬화 추가(teardown one-shot 가드). ② "비슷한 기록"은 닫고-다시-열기(검은 화면·튐) 대신 `DetailFeature` 재귀 `StackState` + `DetailRootView`(NavigationStack(path:))로 **앞으로 push** — A→B→C 재귀, 시스템 back·엣지 스와이프 복귀. 자식은 X 대신 시스템 back(tint=모찌 퍼플). `MainTabFeature` 의 sleep 기반 `presentSimilarDetail`·`CancelID.similarReopen` 제거. ③ 깊은 push 에서 '한 번에 닫기' — 닫기 동작을 방향으로 분리: 가로 엣지 스와이프/back=한 칸 뒤로, **세로 아래 드래그=깊이 무관 스택 전체 종료**(자식 위에선 hero 없이 fade), 자식 ⋯ 메뉴 '닫기'가 명시적 보조. 드래그 판정용 ScrollView 를 현재 보이는 화면 것으로 동적 추적. (`DetailFeature.swift`, `DetailView.swift`, `ZoomDetailPresentation.swift`, `MainTabFeature.swift`, `UX_SPEC.md §3.8`)
 
