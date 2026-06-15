@@ -18,6 +18,8 @@ public enum IngestChannel: String, Codable, Sendable, CaseIterable {
     /// 채팅 proposal 확정으로 생성된 항목 (create_memo·create_schedule) — 채팅도 캡처 표면이다.
     /// 백엔드 channel enum 과 1:1 (팀 합의 2026-06-10).
     case chat
+    /// 캘린더 탭 날짜에서 사용자가 직접 만든 일정 (confirmedInstances schedule — 2026-06-15).
+    case appCalendar
     case unknown
 }
 

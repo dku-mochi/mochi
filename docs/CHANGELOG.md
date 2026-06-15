@@ -10,6 +10,16 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-06-15 — ios, backend, docs (UX 배치: 캘린더·채팅·홈)
+- **[1a] 캘린더 날짜 sheet 수정 즉시 반영** — DaySheet 가 observeChanges 미구독이라 상세 수정/완료 후 재탭 전까지 stale 했다. `loaded` 시 선택 날짜가 있으면 그 날짜 목록도 재조회(`SelectedDay.id==date` 라 sheet 재present 없음).
+- **[2a] 채팅 바닥 과스크롤 제거** — `bottomSpacerHeight` 의 pinSlack 초과분 제거. spacer 를 "질문+답변이 딱 한 화면" 양으로만 둬 짧은 턴에서 콘텐츠가 화면 밖으로 사라지는 과스크롤 제거 + 한 화면 채우면 0(최근 답변이 입력바 위에 붙음). (develop 머지 시 `bf69a40` 의 iOS18/17 `bottomSpacerHeight` 분기 재작성과 충돌 — pinSlack 제거를 양 분기에 반영해 해소: iOS17 은 PR 원본과 동일, iOS18 은 develop anchor-흡수 구조 보존 + pinSlack 제거. `pinSlack` 상수 삭제.)
+- **[2b] 채팅 랜딩 "이어서 대화하기" 카드** — 탭 재진입 시 진행 중 대화가 랜딩으로 리셋돼 보이던 문제. `ChatFeature.sessionMaxIdleSeconds`(30분) 윈도우 안 활성 세션이 있으면 랜딩에 카드 노출 → `.resume(id)`. 디자인 스킬: 칩 문법 + 퍼플 틴트 단일 액센트.
+- **[3] 홈 추천 칩 사용자화(로컬 규칙)** — 하드코딩 4개를 최근 기록 intent·상위 카테고리 기반 생성(`HomeFeature.makeSuggestions`), 모자라면 evergreen. 서버/LLM 없음.
+- **[1b] 캘린더 날짜에서 일정 직접 추가** — DaySheet "+ 일정 추가" → 간단 폼(제목+선택시간, 날짜 고정) → `appCalendar` channel 로 confirmedInstances schedule 직행 생성(채팅 일정 확정과 같은 §5.2 예외) + 시스템 캘린더 등록. 폼 idempotencyKey=폼 1개당 UUID(더블탭 멱등). 디자인 스킬 + HomeDesign 토큰.
+- **EventKit 등록 공용 추출** — `ChatFeature` private `registerToSystemCalendar`+`scheduleStart/End` 를 `CoreIntegrations.SystemCalendarRegistrar` 로 추출(로직 1:1, 채팅 회귀 0 — FeatureChat 59 테스트 green). 채팅 일정 확정과 캘린더 일정 추가가 공유.
+- **새 채널 `appCalendar`** — 백엔드 `IngestChannel` + ⓪openapi 폭포(make openapi→generate) + CoreDomain 수기 enum + HomeViewMapping shortLabel. DOMAIN_DESIGN Channel/§5.2, ARCHITECTURE §2.3, UX_SPEC §3.6/§1.5 동기화.
+- 테스트 스텁 보완: `MochiAPIClient` 스텁 2곳(ChatProposalTests·MochiItemSyncWorkerDedupTests)에 setFavorite 추가(#35 누락). `schedulePayload` 단위테스트.
+
 ## 2026-06-15 — backend, ios
 - **채팅 citation 마커가 raw 로 노출되던 버그 수정** (사용자 리포트: 응답에 `[item:b63546c1-…]` UUID 가 그대로 보임). 근본 원인 — 시스템 전체가 canonical 전각 마커 `【item:id】` 만 인식하는데 `gemini-3.1-flash-lite` 가 더 흔한 반각 ASCII `[item:id]` 로 흘려, 백엔드 추출(citation 미생성·근거 데이터 유실)과 iOS 렌더(마커 원문 노출)가 둘 다 매칭 실패. 해결책 A — canonical 은 전각 유지하되 양쪽 정규식이 전각/반각 괄호를 모두 받게 관대화: 백엔드 `run_chat_turn.py` `_CITATION_PATTERN`, iOS `ChatMarkup.swift` `marker`(공유표면, 동일 정책으로 함께 변경·상호 주석). iOS `trimStreamingTail` 은 반각 `[` 가 본문에 흔하므로(`배열[0]`) `[item:` prefix 미완성형만 트림하는 `lastUnclosedMarkerOpen`/`asciiPartialMarker` 로 분리(전각 `【` 는 기존대로 통째 트림). 가짜 36자 hex 는 양쪽 다 UUID 재파싱 + owner resolve/indexByID 매칭의 2차 방어로 무해. 검증: 백엔드 패턴 단위 테스트·iOS `ChatMarkupTests` 3종 추가, `make test` 291 + `tuist test FeatureChat` 통과. 곁들여 `FeatureChatTests` 의 기존 빌드 깨짐(테스트 더블 `SpySyncTrigger.reconcile`/`StubAPIClient.setFavorite` conformance 누락) 복구 — 같은 타겟이라 빌드 차단 해소 목적.
 

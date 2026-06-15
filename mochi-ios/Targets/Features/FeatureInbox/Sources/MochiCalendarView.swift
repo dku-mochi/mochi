@@ -51,12 +51,28 @@ public struct MochiCalendarView: View {
             DaySheet(
                 date: day.date,
                 items: Array(store.selectedDayItems),
-                onTap: { id, hero in store.send(.mochiItemTapped(id, hero: hero)) }
+                onTap: { id, hero in store.send(.mochiItemTapped(id, hero: hero)) },
+                onAddSchedule: { store.send(.addScheduleTapped) }
             )
             .presentationDetents([.medium, .large])
             .presentationDragIndicator(.visible)
             .presentationCornerRadius(28)
+            // 일정 추가 폼 — DaySheet 위에 sheet-over-sheet 로 띄운다(여기서 store 접근 가능).
+            .sheet(item: addScheduleBinding) { draft in
+                AddScheduleForm(store: store, date: draft.date)
+                    .presentationDetents([.height(360)])
+                    .presentationDragIndicator(.visible)
+                    .presentationCornerRadius(28)
+            }
         }
+    }
+
+    /// 일정 추가 폼 sheet 바인딩 — dismiss(set nil) 시 dismissDraft.
+    private var addScheduleBinding: Binding<MochiCalendarFeature.ScheduleDraft?> {
+        Binding(
+            get: { store.addScheduleDraft },
+            set: { if $0 == nil { store.send(.dismissDraft) } }
+        )
     }
 
     /// `.sheet(item:)` 바인딩 — dismiss(set nil) 시 daySelected(nil) 로 상태 정리.
@@ -597,6 +613,7 @@ private struct DaySheet: View {
     let date: Date
     let items: [MochiItem]
     let onTap: (MochiItem.ID, HeroSourceFrames?) -> Void
+    let onAddSchedule: () -> Void
 
     /// 그날 마감(todo)·일정(schedule)인 항목과 그 외(그날 저장한 기억) 분리.
     /// 기간 일정은 시작~끝에 걸친 모든 날의 「일정·마감」에 포함된다.
@@ -645,16 +662,38 @@ private struct DaySheet: View {
     }
 
     private func header(dueCount: Int, capturedCount: Int) -> some View {
-        VStack(alignment: .leading, spacing: 3) {
-            Text(DateFormatter.mochiSeoul("M월 d일 EEEE").string(from: date))
-                .font(.system(size: 19, weight: .bold, design: .rounded))
-                .foregroundStyle(HomeDesign.Color.textPrimary)
-            if dueCount + capturedCount > 0 {
-                Text(countLabel(dueCount: dueCount, capturedCount: capturedCount))
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(HomeDesign.Color.textMuted)
+        HStack(alignment: .firstTextBaseline) {
+            VStack(alignment: .leading, spacing: 3) {
+                Text(DateFormatter.mochiSeoul("M월 d일 EEEE").string(from: date))
+                    .font(.system(size: 19, weight: .bold, design: .rounded))
+                    .foregroundStyle(HomeDesign.Color.textPrimary)
+                if dueCount + capturedCount > 0 {
+                    Text(countLabel(dueCount: dueCount, capturedCount: capturedCount))
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(HomeDesign.Color.textMuted)
+                }
             }
+            Spacer(minLength: HomeDesign.Spacing.md)
+            addScheduleButton
         }
+    }
+
+    /// 이 날짜로 바로 일정 추가 — 칩 문법(퍼플 캡슐)으로 DaySheet 의 회수형 톤과 어울리게.
+    private var addScheduleButton: some View {
+        Button(action: onAddSchedule) {
+            HStack(spacing: 4) {
+                Image(systemName: "plus")
+                    .font(.system(size: 11, weight: .bold))
+                Text("일정 추가")
+                    .font(.system(size: 12.5, weight: .bold, design: .rounded))
+            }
+            .foregroundStyle(HomeDesign.Color.purple600)
+            .padding(.horizontal, HomeDesign.Spacing.md)
+            .frame(height: 34)
+            .background(Capsule().fill(HomeDesign.Color.purple100.opacity(0.7)))
+        }
+        .buttonStyle(PressableStyle())
+        .accessibilityLabel("이 날짜에 일정 추가")
     }
 
     private func countLabel(dueCount: Int, capturedCount: Int) -> String {
@@ -791,5 +830,141 @@ private struct DayMochiRow: View {
                 .foregroundStyle(item.viewKind.tint)
         }
         .frame(width: 48, height: 48)
+    }
+}
+
+// MARK: - 일정 추가 폼
+
+/// 캘린더 날짜에서 일정을 직접 만드는 폼 — 제목 + (선택)시간, 날짜는 선택일 고정.
+/// 저장 시 confirmedInstances ingest(채팅 일정 확정과 같은 경로) + 시스템 캘린더 등록.
+/// 디자인: HomeDesign 토큰·둥근 surface 카드·퍼플 액센트로 캘린더 톤과 일치.
+private struct AddScheduleForm: View {
+    let store: StoreOf<MochiCalendarFeature>
+    let date: Date
+
+    @FocusState private var titleFocused: Bool
+
+    private var draft: MochiCalendarFeature.ScheduleDraft? { store.addScheduleDraft }
+
+    private var title: Binding<String> {
+        Binding(get: { draft?.title ?? "" }, set: { store.send(.draftTitleChanged($0)) })
+    }
+    private var hasTime: Binding<Bool> {
+        Binding(
+            get: { draft?.time != nil },
+            set: { store.send(.draftTimeChanged($0 ? Self.defaultTime(on: date) : nil)) }
+        )
+    }
+    private var time: Binding<Date> {
+        Binding(
+            get: { draft?.time ?? Self.defaultTime(on: date) },
+            set: { store.send(.draftTimeChanged($0)) }
+        )
+    }
+    private var canSave: Bool {
+        let empty = draft?.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true
+        return !empty && !(draft?.isSaving ?? false)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: HomeDesign.Spacing.lg) {
+            HStack {
+                Text("일정 추가")
+                    .font(.system(size: 18, weight: .heavy, design: .rounded))
+                    .foregroundStyle(HomeDesign.Color.textPrimary)
+                Spacer()
+                Text(DateFormatter.mochiSeoul("M월 d일 EEE").string(from: date))
+                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .foregroundStyle(HomeDesign.Color.purple600)
+                    .padding(.horizontal, HomeDesign.Spacing.sm)
+                    .padding(.vertical, 5)
+                    .background(Capsule().fill(HomeDesign.Color.purple100.opacity(0.7)))
+            }
+
+            TextField("무슨 일정인가요?", text: title)
+                .font(.system(size: 15, weight: .medium, design: .rounded))
+                .focused($titleFocused)
+                .submitLabel(.done)
+                .onSubmit { if canSave { titleFocused = false; store.send(.saveDraftTapped) } }
+                .padding(HomeDesign.Spacing.md)
+                .background(
+                    RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
+                        .fill(HomeDesign.Color.surface)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
+                        .stroke(HomeDesign.Color.border, lineWidth: 1)
+                )
+
+            HStack(spacing: HomeDesign.Spacing.sm) {
+                Image(systemName: "clock")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(HomeDesign.Color.purple500)
+                Text(hasTime.wrappedValue ? "시간" : "종일")
+                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .foregroundStyle(HomeDesign.Color.textPrimary)
+                Spacer()
+                if hasTime.wrappedValue {
+                    DatePicker("", selection: time, displayedComponents: .hourAndMinute)
+                        .labelsHidden()
+                }
+                Toggle("", isOn: hasTime)
+                    .labelsHidden()
+                    .tint(HomeDesign.Color.purple500)
+            }
+            .padding(.horizontal, HomeDesign.Spacing.md)
+            .padding(.vertical, HomeDesign.Spacing.sm)
+            .background(
+                RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
+                    .fill(HomeDesign.Color.surface)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
+                    .stroke(HomeDesign.Color.border, lineWidth: 1)
+            )
+
+            if let error = draft?.error {
+                Text(error)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(HomeDesign.Color.blush400)
+            }
+
+            Spacer(minLength: 0)
+
+            Button {
+                titleFocused = false
+                store.send(.saveDraftTapped)
+            } label: {
+                Group {
+                    if draft?.isSaving == true {
+                        ProgressView().tint(.white)
+                    } else {
+                        Text("저장").font(.system(size: 15, weight: .bold, design: .rounded))
+                    }
+                }
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .frame(height: 50)
+                .background(
+                    Capsule().fill(
+                        LinearGradient(
+                            colors: [HomeDesign.Color.purple400, HomeDesign.Color.purple600],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                )
+                .opacity(canSave ? 1 : 0.5)
+            }
+            .buttonStyle(PressableStyle())
+            .disabled(!canSave)
+        }
+        .padding(HomeDesign.Spacing.xl)
+        .background(HomeDesign.Color.bg.ignoresSafeArea())
+        .onAppear { titleFocused = true }
+    }
+
+    static func defaultTime(on date: Date) -> Date {
+        Calendar.mochiSeoul.date(bySettingHour: 9, minute: 0, second: 0, of: date) ?? date
     }
 }

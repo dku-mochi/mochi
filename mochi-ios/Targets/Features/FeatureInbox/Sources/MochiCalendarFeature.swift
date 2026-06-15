@@ -3,6 +3,7 @@ import ComposableArchitecture
 import CoreDomain
 import CorePersistence
 import CoreNetworking
+import CoreIntegrations
 import DesignSystem
 
 /// 캘린더 탭 reducer.
@@ -31,10 +32,23 @@ public struct MochiCalendarFeature: Sendable {
         public var selectedDay: SelectedDay?
         public var selectedDayItems: IdentifiedArrayOf<MochiItem> = []
         public var isLoading: Bool = false
+        /// 날짜에서 "일정 추가" 폼 — 있으면 폼 sheet 노출. nil = 닫힘.
+        public var addScheduleDraft: ScheduleDraft?
 
         public init(monthAnchor: Date = Date()) {
             self.monthAnchor = monthAnchor
         }
+    }
+
+    /// 캘린더 날짜에서 직접 만드는 일정 폼 상태. `id` 는 ingest Idempotency-Key 로도 쓴다
+    /// (폼 열 때 1회 생성 → 더블탭 저장이 같은 키라 중복 일정이 안 생긴다).
+    public struct ScheduleDraft: Equatable, Sendable, Identifiable {
+        public let id: UUID
+        public let date: Date     // 선택일 고정(비편집)
+        public var title: String = ""
+        public var time: Date?    // nil = 종일
+        public var isSaving: Bool = false
+        public var error: String?
     }
 
     public enum Action: Sendable {
@@ -57,10 +71,20 @@ public struct MochiCalendarFeature: Sendable {
         /// 할 일 체크박스 탭 — 그 todo instance 를 완료↔미완료 토글(로컬 낙관적 + 서버 push, 실패 시 롤백).
         case todoCompletionToggled(TodoRowItem)
         case operationFailed(String)
+        // 날짜에서 일정 직접 추가 폼.
+        case addScheduleTapped
+        case draftTitleChanged(String)
+        case draftTimeChanged(Date?)
+        case saveDraftTapped
+        case draftSaveFinished(String?)   // nil = 성공(폼 닫기), 값 = 저장 실패(폼 유지 + 메시지)
+        case dismissDraft
     }
 
     @Dependency(\.mochiItemRepository) var repository
     @Dependency(\.mochiAPIClient) var apiClient
+    @Dependency(\.syncTrigger) var syncTrigger
+    @Dependency(\.calendarSyncer) var calendarSyncer
+    @Dependency(\.uuid) var uuid
 
     private enum CancelID { case observe, load }
 
@@ -120,6 +144,12 @@ public struct MochiCalendarFeature: Sendable {
                 state.duplicateTodos = duplicateTodos
                 state.upcomingSchedules = IdentifiedArray(uniqueElements: schedules)
                 state.dueItems = dueItems
+                // 날짜 sheet 가 열려 있으면 그 날짜 목록도 같이 갱신한다 — 상세에서 수정/완료 후
+                // repositoryChanged → loadMonth → loaded 흐름에서 sheet 가 stale 로 남던 것을 막는다
+                // (재탭 불필요). SelectedDay.id == date 라 같은 날짜 재설정은 sheet 를 재present 하지 않는다.
+                if let selected = state.selectedDay {
+                    return .send(.daySelected(selected.date))
+                }
                 return .none
 
             case let .daySelected(date):
@@ -165,6 +195,72 @@ public struct MochiCalendarFeature: Sendable {
             case .operationFailed:
                 // 롤백은 이미 수행됨 — 현재는 silent(추후 토스트). observeChanges 가 최신 상태로 복구.
                 return .none
+
+            case .addScheduleTapped:
+                guard let day = state.selectedDay?.date else { return .none }
+                // id = 폼 1개당 1 UUID → ingest Idempotency-Key 로 재사용(더블탭 중복 방지).
+                state.addScheduleDraft = ScheduleDraft(id: uuid(), date: day)
+                return .none
+
+            case let .draftTitleChanged(title):
+                state.addScheduleDraft?.title = title
+                return .none
+
+            case let .draftTimeChanged(time):
+                state.addScheduleDraft?.time = time
+                return .none
+
+            case .saveDraftTapped:
+                // 저장 중 재탭 차단 — ingest 는 idempotencyKey 로 멱등이나 EventKit save 는 비멱등이라
+                // 더블탭 시 시스템 캘린더에 같은 일정이 중복 등록된다(SystemCalendarRegistrar 주석 경고).
+                guard let draft = state.addScheduleDraft, !draft.isSaving else { return .none }
+                let title = draft.title.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !title.isEmpty else { return .none }   // 폼 버튼도 비활성 병행
+                state.addScheduleDraft?.isSaving = true
+                state.addScheduleDraft?.error = nil
+                let payload = Self.schedulePayload(date: draft.date, time: draft.time, title: title)
+                let idempotencyKey = draft.id.uuidString
+                return .run { [apiClient, syncTrigger, calendarSyncer] send in
+                    do {
+                        // 채팅 createSchedule 과 같은 경로 — confirmedInstances 직행(분석 생략, analyzed).
+                        _ = try await apiClient.ingestMochiItem(
+                            MochiItemIngestRequest(
+                                channel: .appCalendar,
+                                text: title,   // 검색·카드 제목 일관(propose.py 선례)
+                                confirmedInstances: [
+                                    ConfirmedInstanceIngestDTO(intentType: "schedule", payload: payload)
+                                ]
+                            ),
+                            idempotencyKey: idempotencyKey
+                        )
+                    } catch {
+                        // ingest 실패(네트워크 등) — 아무것도 안 생김. 폼 유지 + 재시도(같은 키라 멱등).
+                        await send(.draftSaveFinished("저장에 실패했어요. 잠시 후 다시 시도해 주세요"))
+                        return
+                    }
+                    await syncTrigger.pullRemote()   // 캘린더 점·DaySheet 즉시 반영(1a 가 sheet 갱신)
+                    // 시스템 캘린더 등록은 best-effort — iOS 권한 프롬프트가 동의를 받고, 거부 시 모찌
+                    // 기록은 이미 저장됐으므로 조용히 건너뛴다(채팅 createEvent 의 try? 규약과 동일).
+                    try? await SystemCalendarRegistrar.register(
+                        instances: [.init(intentType: "schedule", payload: payload)],
+                        fallbackTitle: title,
+                        using: calendarSyncer
+                    )
+                    await send(.draftSaveFinished(nil))
+                }
+
+            case let .draftSaveFinished(error):
+                if let error {
+                    state.addScheduleDraft?.isSaving = false
+                    state.addScheduleDraft?.error = error
+                } else {
+                    state.addScheduleDraft = nil   // 성공 → 폼 닫기(목록은 pullRemote→observeChanges→1a 갱신)
+                }
+                return .none
+
+            case .dismissDraft:
+                state.addScheduleDraft = nil
+                return .none
             }
         }
     }
@@ -186,6 +282,27 @@ public struct MochiCalendarFeature: Sendable {
                 await send(.operationFailed(failure))
             }
         }
+    }
+
+    // MARK: - 일정 추가 폼
+
+    /// 폼 입력 → confirmedInstances schedule payload(키는 백엔드/EventKit 규약과 1:1).
+    /// date 는 항상 채운다(캘린더 점·시스템 등록의 소스). time 없으면 종일.
+    static func schedulePayload(date: Date, time: Date?, title: String) -> [String: String] {
+        let calendar = Calendar.mochiSeoul
+        func formatter(_ format: String) -> DateFormatter {
+            let f = DateFormatter()
+            f.calendar = calendar
+            f.locale = Locale(identifier: "en_US_POSIX")
+            f.timeZone = calendar.timeZone
+            f.dateFormat = format
+            return f
+        }
+        var payload = ["title": title, "date": formatter("yyyy-MM-dd").string(from: date)]
+        if let time {
+            payload["time"] = formatter("HH:mm").string(from: time)
+        }
+        return payload
     }
 
     // MARK: - Loading

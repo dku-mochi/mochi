@@ -71,7 +71,7 @@ iOS · 백엔드 · 프롬프트 모두 동일 용어를 쓴다.
 | **review_options** | needs_review=true 일 때 제시할 미확정 후보 `[{intent_type, label, reasoning}]`. instance 아님 — 사용자가 고르면 그때 instance 생성 |
 | **memo fallback** | 대상/행동 불분명 시 memo instance 하나로 안전 보관 + needs_review=true (분류 못 해도 안 잃는다) |
 | **Lifecycle Kind** | 상태 enum. **2분할** — item 처리상태와 instance 의미상태가 직교 (§5) |
-| **Channel** | 입력 채널 (`screenshot`/`appDirectInput`/`appShareSheet`/`appIntent`/`chat`/…). `mochi_items.channel` 인라인. `chat` = 채팅 proposal 확정으로 생성 (2026-06-10) |
+| **Channel** | 입력 채널 (`screenshot`/`appDirectInput`/`appShareSheet`/`appIntent`/`chat`/`appCalendar`/…). `mochi_items.channel` 인라인. `chat` = 채팅 proposal 확정으로 생성 (2026-06-10). `appCalendar` = 캘린더 탭 날짜에서 사용자가 직접 만든 일정 (confirmedInstances schedule, 2026-06-15) |
 | **Favorite** | 사용자가 "중요"라고 모찌에게 준 신호 (`mochi_items.is_favorite` boolean 인라인). 분석결과가 아닌 **사용자 가변 상태** — reanalyze(`apply_analysis`)가 안 건드린다. 모찌가 능동 회수(홈 즐겨찾기 화면)에 활용 (2026-06-14, PRODUCT §1.5 정합). `POST /mochi_items/{id}/favorite` set-state 멱등 토글 |
 | **Entity** | AI 추출 의미 단위 (`entities.kind`/`value`). kind 는 free str — 프롬프트 가이드일 뿐 DB/앱 제약 아님. 특수 kind: `deadline`(서버가 due 파싱), `shopping_product`(커머스 검색어 — `MochiItemResponse.shoppingProductQuery` projection, 상세 구매 링크. 2026-06-13 lab shopping-product-link; 2026-06-15 iOS 상세 렌더는 `referenceLinks` 로 일원화 — 이 projection 은 현재 앱 미사용·폐기 후보), `reference_url`(ResourceFinder 가 찾은 참고 URL — `MochiItemResponse.referenceLinks` projection. value JSON: url·title·label·role·provider·rankProfile·usefulness + 표시 메타 `subtitle`(업종·지역/요약문/브랜드)·`priceText`(쇼핑 가격), 둘 다 값 있을 때만 직렬화. **응답 조립 시 그 item 의 `source.url`·intent `payload.url` 과 같은 URL 은 관련 링크에서 제외** — 원본과 같으면 관련 링크가 아니라 중복이므로. 회수>확장 우선이라 원본 링크는 "지금 할 수 있어요"(②)에 남기고 관련 링크엔 다른 확장 자료만. youtube 영상은 표기 무관 동일시(youtu.be·watch?v=·shorts/·embed/). repository `_canonical_link_key` 정본, iOS `URLCanonical` 표시단 안전망 동일 규칙. 2026-06-15) |
 | **AgentRun** | MochiItem 1건 처리 LLM 오케스트레이션 실행 1회 |
@@ -187,7 +187,7 @@ ingested → analyzing → analyzed
 
 각 intent instance 의 완료/만료/decay. instance 는 **분석 성공 시 또는 사용자 확정 시** 생성되며 항상 `active` 로 태어난다. intent_type 별 차등 전이 (`active`/`decaying`/`reviewRequested`/`archived`):
 
-> **사용자 확정 예외 (2026-06-10, 팀 합의)**: 채팅 proposal 카드를 사용자가 확정하면(`POST /mochi_items` + `confirmedInstances`) 분석 파이프라인(outbox)을 **생략**하고 확정 instance 를 직접 생성한다 — item 은 곧바로 `lifecycle_kind='analyzed'`. 근거: 사용자 확정은 LLM 추론보다 상위 신뢰 — 확정한 구조를 재분석이 다른 intent/needs_review 로 덮으면 "확정했는데 모찌가 되묻는" 미션 위반. 자유 텍스트(`create_memo` 확정)는 구조 미확정이므로 기존대로 분석을 탄다.
+> **사용자 확정 예외 (2026-06-10, 팀 합의)**: 채팅 proposal 카드를 사용자가 확정하면(`POST /mochi_items` + `confirmedInstances`) 분석 파이프라인(outbox)을 **생략**하고 확정 instance 를 직접 생성한다 — item 은 곧바로 `lifecycle_kind='analyzed'`. **캘린더 탭 "일정 추가"(2026-06-15, `channel=appCalendar`)도 같은 경로** — 사용자가 폼으로 구조를 확정하므로 같은 예외에 해당한다(채팅에 한정되지 않음). 근거: 사용자 확정은 LLM 추론보다 상위 신뢰 — 확정한 구조를 재분석이 다른 intent/needs_review 로 덮으면 "확정했는데 모찌가 되묻는" 미션 위반. 자유 텍스트(`create_memo` 확정)는 구조 미확정이므로 기존대로 분석을 탄다.
 
 | intent_type | 허용 전이 |
 |---|---|

@@ -1821,6 +1821,7 @@
           "appShareSheet",
           "appDirectInput",
           "chat",
+          "appCalendar",
           "unknown"
         ],
         "title": "IngestChannel"

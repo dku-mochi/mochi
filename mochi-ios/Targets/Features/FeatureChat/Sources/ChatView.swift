@@ -302,9 +302,6 @@ public struct ChatView: View {
     private static let scrollSpace = "chat-scroll"
     /// 상단 고정된 질문과 nav 바 사이 여백.
     private static let turnTopInset = HomeDesign.Spacing.md
-    /// `.top` 앵커의 zero-margin 회피 여유 — content-below-question 을 viewport 보다 살짝 크게 둬
-    /// 서브픽셀·측정오차에도 질문이 확실히 top 까지 닿게 한다.
-    private static let pinSlack = HomeDesign.Spacing.sm
 
     /// 마지막 버블의 구조 스냅샷 — 카드 등장·스트림 종료 시 스크롤 추적용.
     private var lastMessageStructure: [Int] {
@@ -340,13 +337,16 @@ public struct ChatView: View {
             // spacer 를 답변높이에 *연동하지 않는다*(content size 가 매 프레임 흔들리던 원인 제거).
             // 질문 위로 한 화면(여백)만 확보해 질문이 top 까지 갈 스크롤 여지를 준다 — 답변이 이
             // 여백을 넘으면 자연 스크롤된다(ChatGPT 동일). gap 1개(질문↔답변)만 차감.
-            return max(0, spacerViewport + Self.pinSlack - Self.turnTopInset - activeUserHeight - HomeDesign.Spacing.md)
+            return max(0, spacerViewport - Self.turnTopInset - activeUserHeight - HomeDesign.Spacing.md)
         }
-        // iOS 17: 답변높이까지 빼 content 총합을 한 화면으로 고정(크기 불변→offset 불변)해 질문
-        // top 을 흉내낸다. `.top` 앵커가 질문을 정렬하려면 *아래 공간 ≥ viewport* 여야 하므로
-        // pinSlack 을 더해 측정오차에도 질문이 확실히 top 까지 닿게 한다.
+        // iOS 17: 답변높이까지 빼 content 총합을 "질문+답변이 딱 한 화면" 양으로 고정한다(크기
+        // 불변→offset 불변). 정지 위치에서 콘텐츠 하단이 화면 바닥에 맞아 그 아래로 더 스크롤되지
+        // 않는다(질문·답변이 화면 밖으로 사라지는 과스크롤 제거). 답변이 길어 합이 viewport 이상이면
+        // 0 → 최근 답변이 입력바 바로 위에 붙는다(메신저식). (이전 pinSlack 여유분은 질문을 top 에
+        // 붙이려는 의도적 초과였으나 빈 공간 과스크롤의 원인이라 제거 — 질문이 top 에서 몇 px 아래
+        // 머무는 edge case 를 감수한다.)
         let gaps = HomeDesign.Spacing.md * 2   // 질문↔답변, 답변↔spacer (LazyVStack spacing)
-        return max(0, spacerViewport + Self.pinSlack - Self.turnTopInset - activeUserHeight - lastAssistantHeight - gaps)
+        return max(0, spacerViewport - Self.turnTopInset - activeUserHeight - lastAssistantHeight - gaps)
     }
 
     /// 활성 턴 질문을 화면 top 으로 올린다. spacer 가 `질문 아래로 한 화면`을 확보하므로 `.top`

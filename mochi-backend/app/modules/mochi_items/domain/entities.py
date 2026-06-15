@@ -19,6 +19,8 @@ class IngestChannel(StrEnum):
     APP_DIRECT_INPUT = "appDirectInput"
     # 채팅 proposal 확정으로 생성된 기록 (propose_create_memo/schedule — journal 2026-06-10).
     CHAT = "chat"
+    # 캘린더 탭 날짜에서 사용자가 직접 만든 일정 (confirmedInstances schedule — 2026-06-15).
+    APP_CALENDAR = "appCalendar"
     UNKNOWN = "unknown"
 
 
