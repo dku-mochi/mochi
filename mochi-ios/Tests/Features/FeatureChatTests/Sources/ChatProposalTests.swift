@@ -470,6 +470,9 @@ private actor StubAPIClient: MochiAPIClient {
     func weeklyDigest(weekStart: Date) async throws -> WeeklyDigestDTO {
         try await unimplemented.weeklyDigest(weekStart: weekStart)
     }
+    func setFavorite(mochiServerID: UUID, isFavorite: Bool) async throws -> MochiItemDTO {
+        try await unimplemented.setFavorite(mochiServerID: mochiServerID, isFavorite: isFavorite)
+    }
 }
 
 private struct DenyingReminderScheduler: ReminderScheduler {
@@ -483,6 +486,7 @@ private actor SpySyncTrigger: SyncTrigger {
     var pullRemoteCount = 0
     func runOnce() async { runOnceCount += 1 }
     func pullRemote() async { pullRemoteCount += 1 }
+    func reconcile(serverID: UUID) async {}
 }
 
 /// 시스템 캘린더·미리알림 등록 기록 스파이 — EventKit 은 절대 부르지 않는다.

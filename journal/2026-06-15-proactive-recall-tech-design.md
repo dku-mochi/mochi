@@ -58,6 +58,12 @@ description: 능동 정보 회수의 구현 기술 설계. 코드 변경 없음(
 - 조건형(트랙 A decay) → 미리 박으면 stale → 워커가 **주기 재평가**.
 - 트랙 C는 둘 다 아님 — **이벤트 도착 시 즉시 materialize**(`recall_candidates`).
 
+### 2.4 재방문(access) 로그 — MVP 포함 (송준서 결정)
+codex는 "재방문 로그 없음 → v2"로 미뤘으나, **prod 마이그레이션 부담이 없는 초기라 지금 제대로 넣는다**(품질 우선). `item_access_log`(append-only: owner, item, accessed_at, source). 활용:
+- **트랙 A spaced**: "마지막 접근"의 진실원천(`recall_log.opened` 근사 불필요). 30/180 적응형의 기준 신호.
+- **트랙 C**: "최근 열어본 item은 이미 안 잊음 → 소환 억제"(prior_interest 신호).
+- 빠른 조회용 `mochi_items.last_accessed_at` 캐시 컬럼은 필요해지면 도입(로그에서 파생 가능).
+
 ---
 
 ## 3. 트랙 C MVP 최종 스펙 (Claude×codex 합의)
@@ -79,6 +85,7 @@ description: 능동 정보 회수의 구현 기술 설계. 코드 변경 없음(
 - **민감**: MVP는 **channel allowlist**(safari/youtube/instagram 등 공개출처만). screenshot/kakaoTalk 등 보류.
   - ⚠️ **트레이드오프(codex 지적)**: "혹시몰라" 저장의 핵심이 screenshot일 가능성이 큼 → allowlist는 트랙 C 가치를 깎는 *임시 안전장치*. **screenshot 회수 개방은 sensitivity 필드 구현을 blocker로 명시**(§7 선결 의존성).
 - **suppression**(shown 기준만): `blocked`=영구 / `shown` 7일내 same(item, surface_family) / `dismissed` 7일내 same(item, trigger_type). **candidate는 suppression에 안 씀.**
+- **access 억제**(§2.4): 최근 N일 내 사용자가 직접 열어본(`item_access_log`) item은 소환 가치↓(이미 인지 중) — 약한 억제 신호.
 
 ### 3.4 저장 모델 (신규 2 테이블 — 책임 분리)
 - **recall_candidates**: materialize된 후보(미노출 포함). `status[pending/consumed/expired]`, `expires_at`. suppression 미사용.
@@ -128,7 +135,7 @@ description: 능동 정보 회수의 구현 기술 설계. 코드 변경 없음(
 ## 6. 트랙 A/B 기술 메모 (요약 — 상세는 후속)
 
 - **트랙 B 스케줄러**: 기존 outbox 폴링 패턴 확장한 경량 cron 루프(main.py lifespan에 worker 추가). `scheduled_recall(owner, mochi_item_id, kind, fire_at, status, payload)` materialize. 무거운 schedule(대회)은 D-30/14/7/3 다단 row.
-- **트랙 A spaced**: knowledge lifecycle(이미 구현된 active/decaying/reviewRequested)에 **발송 경로 연결** + 30/180 상수를 적응형 간격으로. **선결: 재방문 로그**(없음) — 최소 `recall_log`의 opened event로 근사 가능(접근=소환카드 오픈). 본격 access 로그는 v2.
+- **트랙 A spaced**: knowledge lifecycle(이미 구현된 active/decaying/reviewRequested)에 **발송 경로 연결** + 30/180 상수를 적응형 간격으로. **마지막 접근 신호 = `item_access_log`**(§2.4, MVP 포함 — 근사 아님).
 - **트랙 A 사전정리(A-3)**: 기존 `summary` 추출을 지식 한정 심화. 저장 시 얕게/회수 시 깊게.
 
 ---
@@ -168,6 +175,12 @@ CREATE INDEX ON entities(owner... kind, value)  -- 현재 mochi_item_id만 index
 
 -- 트랙 B (시각형)
 scheduled_recall(owner_id, mochi_item_id, kind, fire_at, status, payload, created_at)
+
+-- 재방문 로그 (트랙 A·C 공통, MVP 포함 — §2.4)
+item_access_log(id, owner_id, mochi_item_id, accessed_at, source)
+  -- source: detail | recall_card | search | chat | notification
+  -- 파생: last_accessed = MAX(accessed_at), access_count = COUNT(*)
+  -- 캐시 컬럼 mochi_items.last_accessed_at 은 빠른 조회 필요해지면
 ```
 
 ---
@@ -198,13 +211,14 @@ P4 decision_compare: shopping_product entity 재활용 비교카드 (스키마 0
   6. decision_compare = "비교 후보 소환"(상태추적 없음, 새 스키마 0).
   7. candidate freshness 24h + pending dedup unique 제약.
 - **codex가 추가로 잡은 것**: decision snapshot 필드(재현성), entity canonicalization 위험, allowlist의 screenshot 가치 손실 트레이드오프, best-chunk 쓰레기 guard, dismiss scope, candidate 만료·중복.
-- **양측 "이 이상은 과설계" 합의** — MVP 스펙은 여기서 동결.
+- **사용자 결정으로 codex의 v2 제안 1건 뒤집음**: 재방문(access) 로그 `item_access_log`를 MVP에 포함 — prod 아닌 초기라 지금 제대로(§2.4).
+- **양측 "이 이상은 과설계" 합의** — 그 외 MVP 스펙은 동결.
 
 ---
 
 ## 10. 열린 기술 질문 (다음 토론)
 
-1. **재방문 로그**: 트랙 A spaced의 "마지막 접근"을 `recall_log.opened`로 근사할지, 본격 access 로그를 별도로 둘지.
+1. ✅ **재방문 로그** — 해결: `item_access_log` MVP 포함(§2.4). 남은 건 source 분류 세분도·캐시 컬럼 도입 시점뿐.
 2. **sensitivity 필드 스키마 확정** — `PRIVACY_SENSITIVE_CAPTURE.md §6.2` 설계를 어디까지 DB로 내릴지(트랙 C screenshot 개방 + 민감 캡처 전반 공용).
 3. **채팅 RAG의 실제 구현 확인** — conversations 모듈 retrieval이 "현재 대화 맥락"용인지, archive 전용 필터를 따로 둘지(재사용 가정 검증 필요).
 4. **best_chunk_sim 임계 0.78/0.65 실측 튜닝** — 실제 임베딩 분포로 보정(현재는 similar 기본 0.7 참고한 추정치).
