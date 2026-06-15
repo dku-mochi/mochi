@@ -224,3 +224,21 @@ final class MochiCalendarFeatureTests: XCTestCase {
         XCTAssertNil(CalendarDueDate.parse(nil))
     }
 }
+
+extension MochiCalendarFeatureTests {
+    /// 폼 입력 → confirmedInstances payload 키 포맷(백엔드·EventKit 규약과 1:1). 날짜는 KST yyyy-MM-dd,
+    /// 시간 없으면 종일(time 키 없음), 있으면 HH:mm.
+    func test_schedulePayload_formats_date_and_optional_time() {
+        let day = Calendar.mochiSeoul.date(
+            from: DateComponents(year: 2026, month: 6, day: 15, hour: 9, minute: 30)
+        )!
+        let allDay = MochiCalendarFeature.schedulePayload(date: day, time: nil, title: "치과 예약")
+        XCTAssertEqual(allDay["title"], "치과 예약")
+        XCTAssertEqual(allDay["date"], "2026-06-15")
+        XCTAssertNil(allDay["time"])
+
+        let timed = MochiCalendarFeature.schedulePayload(date: day, time: day, title: "치과 예약")
+        XCTAssertEqual(timed["date"], "2026-06-15")
+        XCTAssertEqual(timed["time"], "09:30")
+    }
+}

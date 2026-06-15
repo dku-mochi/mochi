@@ -10,6 +10,16 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-06-15 — ios, backend, docs (UX 배치: 캘린더·채팅·홈)
+- **[1a] 캘린더 날짜 sheet 수정 즉시 반영** — DaySheet 가 observeChanges 미구독이라 상세 수정/완료 후 재탭 전까지 stale 했다. `loaded` 시 선택 날짜가 있으면 그 날짜 목록도 재조회(`SelectedDay.id==date` 라 sheet 재present 없음).
+- **[2a] 채팅 바닥 과스크롤 제거** — `bottomSpacerHeight` 의 pinSlack 초과분 제거. spacer 를 "질문+답변이 딱 한 화면" 양으로만 둬 짧은 턴에서 콘텐츠가 화면 밖으로 사라지는 과스크롤 제거 + 한 화면 채우면 0(최근 답변이 입력바 위에 붙음).
+- **[2b] 채팅 랜딩 "이어서 대화하기" 카드** — 탭 재진입 시 진행 중 대화가 랜딩으로 리셋돼 보이던 문제. `ChatFeature.sessionMaxIdleSeconds`(30분) 윈도우 안 활성 세션이 있으면 랜딩에 카드 노출 → `.resume(id)`. 디자인 스킬: 칩 문법 + 퍼플 틴트 단일 액센트.
+- **[3] 홈 추천 칩 사용자화(로컬 규칙)** — 하드코딩 4개를 최근 기록 intent·상위 카테고리 기반 생성(`HomeFeature.makeSuggestions`), 모자라면 evergreen. 서버/LLM 없음.
+- **[1b] 캘린더 날짜에서 일정 직접 추가** — DaySheet "+ 일정 추가" → 간단 폼(제목+선택시간, 날짜 고정) → `appCalendar` channel 로 confirmedInstances schedule 직행 생성(채팅 일정 확정과 같은 §5.2 예외) + 시스템 캘린더 등록. 폼 idempotencyKey=폼 1개당 UUID(더블탭 멱등). 디자인 스킬 + HomeDesign 토큰.
+- **EventKit 등록 공용 추출** — `ChatFeature` private `registerToSystemCalendar`+`scheduleStart/End` 를 `CoreIntegrations.SystemCalendarRegistrar` 로 추출(로직 1:1, 채팅 회귀 0 — FeatureChat 59 테스트 green). 채팅 일정 확정과 캘린더 일정 추가가 공유.
+- **새 채널 `appCalendar`** — 백엔드 `IngestChannel` + ⓪openapi 폭포(make openapi→generate) + CoreDomain 수기 enum + HomeViewMapping shortLabel. DOMAIN_DESIGN Channel/§5.2, ARCHITECTURE §2.3, UX_SPEC §3.6/§1.5 동기화.
+- 테스트 스텁 보완: `MochiAPIClient` 스텁 2곳(ChatProposalTests·MochiItemSyncWorkerDedupTests)에 setFavorite 추가(#35 누락). `schedulePayload` 단위테스트.
+
 ## 2026-06-15 — ios, docs
 - **기록 상세 "관련 링크" 카드 변형 확정 — 5종(A~E) 비교 + "쿠팡·네이버 검색" 후보 중 메타 행카드(D)로.** `ReferenceLinksComparison`(A~E 동시 렌더 임시 컨테이너)·미선택 변형(`ReferenceBrandCard`/`ReferenceRowCard`/`ReferenceCarouselTile`/`ReferenceMetaCard`) 제거, 승자 `ReferenceMetaRowCard`(D, favicon 타일 + provider + 제목 + 부제·가격 한 줄)만 `ReferenceLinksSection`(② 섹션 문법 공유)으로 합침. 함께 후보였던 `shoppingProductQuery` 기반 "쿠팡에서 찾기·네이버에서 찾기" 행(`ShoppingSearchProvider`)도 제거 — ResourceFinder `referenceLinks` 가 쇼핑 검색 URL 까지 생성하므로 일원화. 내가 만든 고아 정리: `DetailLinkRow` 의 `subtitle`/`usesFavicon`(쇼핑 행 전용 파라미터) 제거. ⚠️ `shoppingProductQuery` projection 필드(도메인/Realm v9/openapi 계약)는 유지 — 앱 미사용이 됐으나 계약 제거는 별도 폭포라 폐기 후보로만 표기(DOMAIN_DESIGN §Entity). UX_SPEC §3.8 상세 섹션 구성에 "관련 링크" 항목 추가. (직전 handoff `2026-06-14-resource-finder-ranking-redesign-handoff.md` §6-5 "iOS 카드 1종 확정" 해소.) `tuist build FeatureDetail` green.
 - **홈 "전체 보기" 행선지 캘린더 탭 → 검색 탭으로.** "최근에 보낸 것들" 헤더의 "전체 보기"는 전체 기록을 훑는 진입인데 캘린더(날짜 집계)보다 검색·필터가 그 의도에 맞는다. `MainTabFeature.seeAllRecentRequested` 핸들러 `.mochis`→`.search` (+ `HomeFeature` delegate 주석·UX_SPEC §3.4 동기화).
