@@ -494,7 +494,14 @@ public struct ChatFeature: Sendable {
                 await syncTrigger.pullRemote()   // 캘린더·검색에 바로 보이게 로컬 미러 채움
                 // 시스템 캘린더(schedule→EKEvent)·미리알림(todo→EKReminder) 등록 (2026-06-10 요청).
                 // 권한 거부 시 failed 카드 — ingest 가 멱등이라 권한 허용 후 재확정해도 안전.
-                try await registerToSystemCalendar(payload)
+                // 등록 로직은 CoreIntegrations 공용(캘린더 탭 일정 추가와 공유, 2026-06-15 추출).
+                try await SystemCalendarRegistrar.register(
+                    instances: payload.instances.map {
+                        .init(intentType: $0.intentType, payload: $0.payload)
+                    },
+                    fallbackTitle: payload.text,
+                    using: calendarSyncer
+                )
 
             case let .createMemo(text):
                 // 일반 캡처와 동일 경로: 로컬 upsert(.pendingUpload) → worker 가 ingest(분석 경유).
@@ -523,67 +530,6 @@ public struct ChatFeature: Sendable {
         } catch {
             return .failed(reason: "잠시 후 다시 시도해주세요", needsNotificationPermission: false)
         }
-    }
-
-    // MARK: - 시스템 캘린더·미리알림 등록 (createSchedule 확정)
-
-    /// 확정된 instance 를 실제 iOS 캘린더(schedule→EKEvent)·미리알림(todo→EKReminder)에 등록한다 —
-    /// 일정·할 일이 모찌 안에만 머물지 않게(미션: "필요한 기억은 쉽게 떠오른다").
-    ///
-    /// **권한을 전부 먼저 확보**하고 나서 생성한다 — 일부만 만들어진 채 권한으로 실패하면
-    /// 재확정 시 EK 항목이 중복 등록된다(EventKit save 는 멱등이 아님).
-    private func registerToSystemCalendar(_ payload: ChatProposal.CreateSchedulePayload) async throws {
-        let schedules = payload.instances.filter {
-            $0.intentType == "schedule" && Self.scheduleStart(from: $0.payload) != nil
-        }
-        let todos = payload.instances.filter { $0.intentType == "todo" }
-        if !schedules.isEmpty { try await calendarSyncer.requestEventAccess() }
-        if !todos.isEmpty { try await calendarSyncer.requestReminderAccess() }
-
-        // 권한 확보 후의 save 실패(기본 캘린더 부재 등)는 best-effort 로 삼킨다 — 모찌 기록은
-        // 이미 생성됐고(확정의 본질), failed 카드로 재확정을 유도하면 앞서 만든 EK 항목만
-        // 중복된다(EventKit save 는 멱등이 아님) (리뷰 P2).
-        for instance in schedules {
-            guard let (start, allDay) = Self.scheduleStart(from: instance.payload) else { continue }
-            _ = try? await calendarSyncer.createEvent(
-                title: instance.payload["title"] ?? payload.text ?? "모찌 일정",
-                start: start,
-                end: Self.scheduleEnd(from: instance.payload, start: start),
-                allDay: allDay
-            )
-        }
-        for instance in todos {
-            _ = try? await calendarSyncer.createReminder(
-                title: instance.payload["title"] ?? payload.text ?? "모찌 할 일",
-                due: PayloadDate.parse(instance.payload["deadline"])
-            )
-        }
-    }
-
-    /// payload end_date(+end_time) → 기간 일정의 이벤트 종료 시각.
-    /// 없거나 파싱 불가·시작 이전이면 nil — 점 일정으로 기존 기본값(종일=start, 시각=+1h)을 따른다.
-    /// 종일 기간 일정의 end(그날 00:00)는 시작과 같은 규약이라 그대로 둔다(EKEvent 종일 관례와 일치).
-    static func scheduleEnd(from payload: [String: String], start: Date) -> Date? {
-        guard let rawEndDate = payload["end_date"], !rawEndDate.isEmpty else { return nil }
-        let rawEndTime = payload["end_time"] ?? ""
-        let parsed = rawEndTime.isEmpty
-            ? PayloadDate.parse(rawEndDate)
-            : PayloadDate.parse("\(rawEndDate) \(rawEndTime)") ?? PayloadDate.parse(rawEndDate)
-        guard let end = parsed, end > start else { return nil }
-        return end
-    }
-
-    /// payload date(+time) → 이벤트 시작 시각. time 이 없으면 종일 일정.
-    /// 날짜 파싱 불가(자연어 등)면 nil — 시스템 등록은 건너뛴다(모찌 기록 자체는 이미 생성됨).
-    static func scheduleStart(from payload: [String: String]) -> (start: Date, allDay: Bool)? {
-        let rawDate = payload["date"]
-        if let rawDate, let rawTime = payload["time"], !rawTime.isEmpty,
-           let combined = PayloadDate.parse("\(rawDate) \(rawTime)") {
-            return (combined, false)
-        }
-        guard let date = PayloadDate.parse(rawDate) else { return nil }
-        // date 문자열 자체에 시간이 포함된 경우(ISO datetime, 10자 초과)는 시각 일정으로.
-        return (date, (rawDate?.count ?? 0) <= 10)
     }
 
     /// PATCH 응답(갱신된 서버 항목)을 로컬 Realm 미러에 merge 한다.
