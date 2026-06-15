@@ -10,6 +10,15 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-06-15 — ios, docs
+- **기록 상세 종료 먹통 수정 + "비슷한 기록" 교체→push 전환** (사용자 리포트: 알림·비슷한 기록으로 들어온 상세가 가끔 투명해지지만 뒤 화면이 먹통). ① 근본 원인 — 교체 진입(`detail=nil`→sleep→`detail=새것`)이 `ZoomDetailPresentation` 의 비동기 dismiss(0.45s)와 present 를 경합시켜, dismiss completion 이 `self.detailStore`/`onDismiss` 공유 상태를 건드려 끼어든 새 상세를 오염시키고 죽어가는 VC 위에 새 VC 가 쌓였다. → dismiss 가 책임질 자원을 로컬 캡처만 정리하게 바꾸고, present 진입 시 진행 중 dismiss 를 즉시 끝내는 `finishPendingDismiss` 직렬화 추가(teardown one-shot 가드). ② "비슷한 기록"은 닫고-다시-열기(검은 화면·튐) 대신 `DetailFeature` 재귀 `StackState` + `DetailRootView`(NavigationStack(path:))로 **앞으로 push** — A→B→C 재귀, 시스템 back·엣지 스와이프 복귀. 자식은 X 대신 시스템 back(tint=모찌 퍼플). `MainTabFeature` 의 sleep 기반 `presentSimilarDetail`·`CancelID.similarReopen` 제거. ③ 깊은 push 에서 '한 번에 닫기' — 닫기 동작을 방향으로 분리: 가로 엣지 스와이프/back=한 칸 뒤로, **세로 아래 드래그=깊이 무관 스택 전체 종료**(자식 위에선 hero 없이 fade), 자식 ⋯ 메뉴 '닫기'가 명시적 보조. 드래그 판정용 ScrollView 를 현재 보이는 화면 것으로 동적 추적. (`DetailFeature.swift`, `DetailView.swift`, `ZoomDetailPresentation.swift`, `MainTabFeature.swift`, `UX_SPEC.md §3.8`)
+
+## 2026-06-15 — docs
+- TODO.md 정리(코드 대조 + 외부 설정 확인): Apple App ID capability 3종(Sign In·Keychain Sharing·Push)+provisioning 재발급 완료 반영(§1.1·§1.1b·§1.2·§1.4). APNs `aps-environment` 는 이미 `App.entitlements` 에 있는데 "현재 없음" 으로 outdated 였어 정정. 백탭 단축어 iCloud URL/파일경로를 실제 코드값(`BackTapPage.swift:15`, `e24ac8bf…`)으로 갱신. §3.1 Google URL scheme 은 `[x]` 였으나 App Store validation 회피로 실제 비워둔 상태라 `[ ]` 로 되돌리고 설명 정정. Google OAuth 외부 설정(§2.x·§3.1·§3.3)은 미완료로 보류 유지.
+
+## 2026-06-15 — ios
+- 앱 타겟 identity 를 `Project.swift` 단일 원천으로 고정 (generate 시 초기화 방지): App Category(라이프스타일) `INFOPLIST_KEY_LSApplicationCategoryType` 추가, build 번호를 generate 시점 KST `yyMMddHHmm` 자동 생성으로 전환. marketing version 은 상수 직접 편집(0.3.6). DisplayName(모찌)을 `Info.plist` 직접 키에서 `INFOPLIST_KEY_CFBundleDisplayName` + `GENERATE_INFOPLIST_FILE=YES` 로 이전해 Xcode General 탭에 노출(빌드 산출물 plist 머지 실측 검증 완료).
+
 ## 2026-06-15 — ios, docs, infra
 - **홈 "확인이 필요해요" 후보 칩 = 로컬 즉시확정 → 재분석** (사용자 리포트: 의도를 골라도 Realm 라벨만 박히고 재분석·캘린더 등록이 안 됨). 칩 탭이 `classifyTapped`/`setIntent`(로컬 instance 즉시확정) 대신 고른 의도 `label` 을 hint 로 `reanalyzeTapped`→`POST /reanalyze` 를 타게 변경 — intent 라벨만으론 payload·날짜가 비어 캘린더/할일로 못 쓰던 문제를 재분석 payload 보강으로 해결 (`HomeFeature.swift`, `NeedsReviewCard.swift`, `HomeView.swift`, `DOMAIN_DESIGN.md §6.3`). `setIntent` repository 메서드는 미사용으로 잔존(제거는 별도 판단).
 - **홈 "확인이 필요해요" 섹션·시트·NeedsReviewCard 디자인 재구성** — 알림 카드(겹친 미니 카드 스택으로 "쌓인 기억" 은유), 카드 덱(ZStack 3장 peek + 드래그 건너뛰기), intent 색 후보 행(아이콘+라벨+모찌 근거). 크림/파스텔 `HomeDesign` 토큰 유지, 캐릭터 이미지 미사용 (`tuist build FeatureInbox` 통과, 실기기 QA 미검증).
