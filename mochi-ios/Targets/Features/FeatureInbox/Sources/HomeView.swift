@@ -450,6 +450,11 @@ public struct HomeView: View {
                                 )
                         )
                         .shadow(color: HomeDesign.Color.purple500.opacity(0.32), radius: 12, x: 0, y: 7)
+                        // 보라 원(32)은 그대로, 터치 영역만 가로 44 로 확장(엄지 빗나감↓).
+                        // 세로는 32 유지 — 키우면 입력 pill(minHeight 48)이 함께 커진다. pill 높이(48)가
+                        // 세로 여유를 이미 준다. 인접 TextField 는 flexible 이라 hit area 겹침 없음.
+                        .frame(width: 44, height: 32)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(PressableStyle())
                 .disabled(store.chatDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
