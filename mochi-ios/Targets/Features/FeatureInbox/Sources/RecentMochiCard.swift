@@ -12,6 +12,8 @@ struct RecentMochiCard: View {
     let onTap: (HeroSourceFrames) -> Void
     /// 롱프레스 메뉴의 삭제 — soft delete 를 상위(HomeFeature)로 위임.
     let onDelete: () -> Void
+    /// 즐겨찾기 카드에 우상단 별 배지 표시. 즐겨찾기 화면처럼 전부 favorite 인 곳에선 false 로 끈다(중복 노출 회피).
+    var showsFavoriteBadge: Bool = true
     @State private var cardFrame: CGRect = .zero
     /// 카드 미디어(썸네일) 영역의 글로벌 frame — 스크린샷 hero 가 상세 이미지로 자라는 시작점.
     @State private var mediaFrame: CGRect = .zero
@@ -51,6 +53,12 @@ struct RecentMochiCard: View {
                     .stroke(HomeDesign.Color.border, lineWidth: 1)
             )
             .clipShape(RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous))
+            // 즐겨찾기 상태 표시(토글 아님) — "별 눌렀는데 어디 보이지?" 루프를 닫는다.
+            .overlay(alignment: .topTrailing) {
+                if showsFavoriteBadge && mochiItem.isFavorite {
+                    favoriteBadge.padding(HomeDesign.Spacing.sm)
+                }
+            }
             // 최근 항목은 홈의 보조 영역 — 그림자를 낮춰 확인/입력 영역보다 뒤로 물러나게 한다.
             .shadow(color: HomeDesign.Color.ink900.opacity(0.05), radius: 8, x: 0, y: 2)
         }
@@ -73,6 +81,15 @@ struct RecentMochiCard: View {
                 Label("삭제", systemImage: "trash")
             }
         }
+    }
+
+    private var favoriteBadge: some View {
+        Image(systemName: "star.fill")
+            .font(.system(size: 10, weight: .bold))
+            .foregroundStyle(HomeDesign.Color.purple500)
+            .padding(5)
+            .background(.ultraThinMaterial, in: Circle())
+            .overlay(Circle().stroke(HomeDesign.Color.border, lineWidth: 0.5))
     }
 
     // MARK: Media
