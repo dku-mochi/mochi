@@ -60,8 +60,11 @@ public struct HomeView: View {
                 }
                 .padding(.horizontal, HomeDesign.Spacing.xl)
                 .padding(.top, HomeDesign.Spacing.md)
-                // 우하단 플로팅 버튼에 마지막 섹션이 가리지 않도록 하단 여백 확보.
-                .padding(.bottom, 88)
+                // 탭바 위 여백은 네이티브 TabView 의 bottom safe-area inset 이 담당한다 — 검색 탭처럼
+                // 마지막 섹션이 탭바 바로 위에 붙게 둔다(과거 88pt full-width 패딩은 탭바 inset 과 겹쳐
+                // 바닥에 큰 빈 공간을 남겼다). 우하단 + 버튼은 마지막 가로 카드 행 모서리에 떠서 겹치는
+                // 표준 FAB 동작 — 카드 본문(중앙 제목)은 가리지 않는다.
+                .padding(.bottom, HomeDesign.Spacing.xxl)
             }
             .refreshable {
                 await store.send(.refresh).finish()
@@ -1061,10 +1064,10 @@ public struct HomeView: View {
     
     private var settingsFooter: some View {
         HStack(spacing: HomeDesign.Spacing.sm) {
-            CircleIconButton(systemName: "star") {
+            CircleIconButton(systemName: "star", accessibilityLabel: "즐겨찾기") {
                 store.send(.favoritesTapped)
             }
-            CircleIconButton(systemName: "gearshape") {
+            CircleIconButton(systemName: "gearshape", accessibilityLabel: "설정") {
                 store.send(.openSettingsTapped)
             }
         }
@@ -1136,8 +1139,10 @@ private struct SectionHeader: View {
 
 private struct CircleIconButton: View {
     let systemName: String
+    /// VoiceOver 가 읽을 라벨 — 아이콘만 있는 버튼이라 없으면 "버튼"으로만 읽혀 용도를 알 수 없다.
+    let accessibilityLabel: String
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             Image(systemName: systemName)
@@ -1152,6 +1157,7 @@ private struct CircleIconButton: View {
                 .overlay(Circle().stroke(HomeDesign.Color.border, lineWidth: 1))
         }
         .buttonStyle(PressableStyle())
+        .accessibilityLabel(accessibilityLabel)
     }
 }
 
