@@ -144,6 +144,9 @@ private actor StubSyncAPIClient: MochiAPIClient {
     func deleteMochiItem(mochiServerID: UUID) async throws {
         try await unimplemented.deleteMochiItem(mochiServerID: mochiServerID)
     }
+    func setFavorite(mochiServerID: UUID, isFavorite: Bool) async throws -> MochiItemDTO {
+        try await unimplemented.setFavorite(mochiServerID: mochiServerID, isFavorite: isFavorite)
+    }
     func upcomingActionables() async throws -> [UpcomingActionableDTO] {
         try await unimplemented.upcomingActionables()
     }

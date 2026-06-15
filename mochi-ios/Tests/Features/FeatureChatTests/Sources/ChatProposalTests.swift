@@ -420,6 +420,9 @@ private actor StubAPIClient: MochiAPIClient {
 
     // 미사용 표면 — 호출되면 테스트가 즉시 드러나게 NotConfigured 에 위임.
     private let unimplemented = NotConfiguredAPIClient()
+    func setFavorite(mochiServerID: UUID, isFavorite: Bool) async throws -> MochiItemDTO {
+        try await unimplemented.setFavorite(mochiServerID: mochiServerID, isFavorite: isFavorite)
+    }
     func ingestMochiItem(_ request: MochiItemIngestRequest, idempotencyKey: String) async throws -> MochiItemDTO {
         guard let ingestResult else {
             return try await unimplemented.ingestMochiItem(request, idempotencyKey: idempotencyKey)
