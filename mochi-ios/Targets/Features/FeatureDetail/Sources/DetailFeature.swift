@@ -24,6 +24,12 @@ public struct DetailFeature: Sendable {
         /// 비행이 있는 진입은 true 로 시작 → 비행 스냅샷이 사라질 때 App 이 false 로 켠다.
         public var heroImageHidden: Bool = false
 
+        /// "비슷한 기록" push 스택 — 카드 탭 시 그 항목 상세를 앞으로 쌓는다(재귀 DetailFeature).
+        /// root 상세만 `NavigationStack(path:)`(DetailRootView)에 이 path 를 바인딩하고, 모든 push 는
+        /// root 의 path 로 모인다 — 자손이 또 비슷한 기록을 탭하면 그 openSimilar delegate 를 root 가
+        /// 흡수해 같은 스택에 append 한다(자식 인스턴스의 path 는 렌더되지 않아 미사용).
+        public var path = StackState<DetailFeature.State>()
+
         public init(mochiItemID: UUID, heroImageHidden: Bool = false) {
             self.mochiItemID = mochiItemID
             self.heroImageHidden = heroImageHidden
@@ -63,6 +69,8 @@ public struct DetailFeature: Sendable {
         case closeButtonTapped
         // hero 전환 중 상세 이미지 표시/숨김 — App(ZoomDetailPresentation)이 비행 타이밍에 맞춰 토글.
         case setHeroImageHidden(Bool)
+        /// "비슷한 기록" push 스택(재귀 자식 상세). 자손의 openSimilar/deleted delegate 를 root 가 흡수.
+        case path(StackActionOf<DetailFeature>)
         case delegate(Delegate)
 
         public enum Alert: Equatable, Sendable {
@@ -308,11 +316,33 @@ public struct DetailFeature: Sendable {
                 state.heroImageHidden = hidden
                 return .none
 
+            case let .path(.element(id: _, action: .delegate(.openSimilar(localID)))):
+                // 자손 상세(B,C…)에서 비슷한 기록 탭 → root 의 push 스택에 쌓는다(flat: 모든 push 가
+                // root path 로 모인다). root 자신의 openSimilar 는 부모 MainTabFeature 가 흡수한다.
+                state.path.append(DetailFeature.State(mochiItemID: localID))
+                return .none
+
+            case let .path(.element(id: id, action: .delegate(.deleted))):
+                // 자손 상세 삭제 → 그 자손을 스택에서 pop. pop(from:) 은 'id 이후 전부' 제거지만, 삭제는
+                // 항상 스택 최상단(현재 보이는 자식)에서만 발생하므로 결과적으로 그 한 화면만 닫힌다.
+                // root·형제 상세는 유지(root 삭제는 MainTabFeature 가 detail=nil 로 전체 닫음).
+                state.path.pop(from: id)
+                return .none
+
+            case .path(.element(id: _, action: .delegate(.closeRequested))):
+                // 자손 상세의 "닫기"(⋯ 메뉴) → 한 칸 back 이 아니라 스택 전체 종료를 부모(MainTabFeature)에
+                // 위임한다. 깊이 들어간 뒤 back 반복 없이 한 번에 홈으로 빠져나오는 경로.
+                return .send(.delegate(.closeRequested))
+
+            case .path:
+                return .none
+
             case .delegate:
                 return .none
             }
         }
         .ifLet(\.$deleteAlert, action: \.deleteAlert)
+        .forEach(\.path, action: \.path) { DetailFeature() }
     }
 }
 

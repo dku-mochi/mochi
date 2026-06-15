@@ -19,6 +19,9 @@ import UIKit
 /// ("더 자세히" 접힘 섹션은 2026-06-10 제거 — 추출정보·태그·근거는 회수에 기여하지 않는 내부 디테일.)
 public struct DetailView: View {
     @Bindable public var store: StoreOf<DetailFeature>
+    /// root 상세(카드 탭으로 hero 진입한 첫 화면)면 좌상단 닫기(X)를 노출한다. "비슷한 기록"으로
+    /// push 된 자식 상세는 NavigationStack 시스템 back(< 뒤로·엣지 스와이프)으로 이전 상세에 복귀한다.
+    let isRoot: Bool
     @State private var presentationAnchor: UIViewController?
     @State private var photoBrowserPresenter: ScreenshotPhotoBrowserPresenter?
     @State private var sourceImageHidden = false
@@ -26,7 +29,10 @@ public struct DetailView: View {
     /// 헤더는 비행 착지 지점이라 제외(움직이면 `detailImageFrame` 예측이 깨진다).
     @State private var sectionsAppeared = false
 
-    public init(store: StoreOf<DetailFeature>) { self.store = store }
+    public init(store: StoreOf<DetailFeature>, isRoot: Bool = true) {
+        self.store = store
+        self.isRoot = isRoot
+    }
 
     /// 사진 앱에 저장할 원본이 있나 — 로컬 캐시(relativePath) 또는 GCS 원본(objectKey) 중 하나라도 있으면 true.
     private var hasSavableImage: Bool {
@@ -56,14 +62,25 @@ public struct DetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .background(PresentationAnchor(viewController: $presentationAnchor).frame(width: 0, height: 0))
         .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                // custom present 라 back 이 없다 — 닫기(X)로 dismiss. 아래로 드래그해도 닫힌다.
-                Button { store.send(.closeButtonTapped) } label: {
-                    toolbarIcon("xmark")
+            if isRoot {
+                ToolbarItem(placement: .topBarLeading) {
+                    // root 는 custom present 라 back 이 없다 — 닫기(X)로 dismiss. 아래로 드래그해도 닫힌다.
+                    // (자식 상세는 X 대신 NavigationStack 시스템 back 으로 이전 상세에 복귀.)
+                    Button { store.send(.closeButtonTapped) } label: {
+                        toolbarIcon("xmark")
+                    }
                 }
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
+                    if !isRoot {
+                        // push 된 자식 상세 — back 은 한 칸씩이라, 깊이 들어간 뒤 한 번에 빠져나오는
+                        // 명시적 출구. 아래로 드래그(전체 닫기)의 발견성 보조.
+                        Button { store.send(.closeButtonTapped) } label: {
+                            Label("닫기", systemImage: "xmark")
+                        }
+                        Divider()
+                    }
                     if let item = store.mochiItem {
                         Button { store.send(.favoriteToggled) } label: {
                             Label(
@@ -177,6 +194,28 @@ public struct DetailView: View {
         }
         photoBrowserPresenter = presenter
         presenter.present(from: presentationAnchor)
+    }
+}
+
+/// 기록 상세 root — "비슷한 기록" push 스택을 소유하는 `NavigationStack(path:)`.
+/// App(`ZoomDetailPresentation`)이 hosting rootView 로 이걸 띄운다. 카드 탭으로 hero 진입한 첫 상세가
+/// root(`isRoot: true`)이고, 비슷한 기록으로 쌓이는 항목들이 자식(destination, `isRoot: false`)이다.
+/// hero zoom 비행은 root 진입에만 입혀지고, 자식은 표준 push 슬라이드로 오른쪽에서 밀려 들어온다.
+/// 모든 push 는 root 의 `path` 한 곳에 모인다(`DetailFeature.State.path` 주석 참고).
+public struct DetailRootView: View {
+    @Bindable public var store: StoreOf<DetailFeature>
+
+    public init(store: StoreOf<DetailFeature>) { self.store = store }
+
+    public var body: some View {
+        NavigationStack(path: $store.scope(state: \.path, action: \.path)) {
+            DetailView(store: store, isRoot: true)
+        } destination: { store in
+            DetailView(store: store, isRoot: false)
+        }
+        // push 된 자식 상세의 back 버튼·바 버튼 tint = 모찌 퍼플(메인 NavigationStack 과 동일 처리).
+        // .tint 를 안 걸면 시스템 기본색으로 빠지므로 명시한다.
+        .tint(MochiTheme.Palette.primary)
     }
 }
 
