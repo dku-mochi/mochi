@@ -97,6 +97,17 @@ struct SearchGridCard: View {
                     .fill(tileBackground)
             )
             .clipShape(RoundedRectangle(cornerRadius: SearchD5.Sizes.gridCardRadius, style: .continuous))
+            // 즐겨찾기 상태 표시(토글은 컨텍스트 메뉴) — 풀블리드 이미지 위라 material 로 가독성 확보.
+            .overlay(alignment: .topTrailing) {
+                if item.isFavorite {
+                    Image(systemName: "star.fill")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(SearchD5.Palette.primary)
+                        .padding(5)
+                        .background(.ultraThinMaterial, in: Circle())
+                        .padding(8)
+                }
+            }
         }
         .buttonStyle(PressableStyle())
         .background(
