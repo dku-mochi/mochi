@@ -211,7 +211,9 @@ public struct MochiCalendarFeature: Sendable {
                 return .none
 
             case .saveDraftTapped:
-                guard let draft = state.addScheduleDraft else { return .none }
+                // 저장 중 재탭 차단 — ingest 는 idempotencyKey 로 멱등이나 EventKit save 는 비멱등이라
+                // 더블탭 시 시스템 캘린더에 같은 일정이 중복 등록된다(SystemCalendarRegistrar 주석 경고).
+                guard let draft = state.addScheduleDraft, !draft.isSaving else { return .none }
                 let title = draft.title.trimmingCharacters(in: .whitespacesAndNewlines)
                 guard !title.isEmpty else { return .none }   // 폼 버튼도 비활성 병행
                 state.addScheduleDraft?.isSaving = true
