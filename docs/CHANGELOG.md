@@ -10,6 +10,9 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-06-15 — backend, ios
+- **채팅 citation 마커가 raw 로 노출되던 버그 수정** (사용자 리포트: 응답에 `[item:b63546c1-…]` UUID 가 그대로 보임). 근본 원인 — 시스템 전체가 canonical 전각 마커 `【item:id】` 만 인식하는데 `gemini-3.1-flash-lite` 가 더 흔한 반각 ASCII `[item:id]` 로 흘려, 백엔드 추출(citation 미생성·근거 데이터 유실)과 iOS 렌더(마커 원문 노출)가 둘 다 매칭 실패. 해결책 A — canonical 은 전각 유지하되 양쪽 정규식이 전각/반각 괄호를 모두 받게 관대화: 백엔드 `run_chat_turn.py` `_CITATION_PATTERN`, iOS `ChatMarkup.swift` `marker`(공유표면, 동일 정책으로 함께 변경·상호 주석). iOS `trimStreamingTail` 은 반각 `[` 가 본문에 흔하므로(`배열[0]`) `[item:` prefix 미완성형만 트림하는 `lastUnclosedMarkerOpen`/`asciiPartialMarker` 로 분리(전각 `【` 는 기존대로 통째 트림). 가짜 36자 hex 는 양쪽 다 UUID 재파싱 + owner resolve/indexByID 매칭의 2차 방어로 무해. 검증: 백엔드 패턴 단위 테스트·iOS `ChatMarkupTests` 3종 추가, `make test` 291 + `tuist test FeatureChat` 통과. 곁들여 `FeatureChatTests` 의 기존 빌드 깨짐(테스트 더블 `SpySyncTrigger.reconcile`/`StubAPIClient.setFavorite` conformance 누락) 복구 — 같은 타겟이라 빌드 차단 해소 목적.
+
 ## 2026-06-15 — docs
 - **능동 회수 기능 제품 기획서 추가** (`PROPOSAL_PROACTIVE_RECALL.md`, INDEX 등록) — 팀·외부 공유용, 내부 용어(트랙·코드네임) 없는 버전. "모찌가 먼저 떠올려준다"는 세 기능(지식 다시 떠올리기 / 일정·할일 알림 / 관련 기억 소환)을 제품 언어로 정의. 미승인 proposal. 상세 토론·기술설계는 journal 2건(`2026-06-15-proactive-recall-design.md`, `-tech-design.md`).
 
