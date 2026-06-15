@@ -2,7 +2,7 @@
 level: 3
 mode: log
 status: active
-last_verified: 2026-06-10
+last_verified: 2026-06-15
 confidence: 0.9
 owners: [송준서, 이용찬, 박세현]
 description: 외부 설정·비밀값 체크리스트 + 활성 작업·다음 sprint 목표. 다음 중 하나라도 손대기 전 읽어라 — 인증·외부 통합, sprint 작업 분배, /sprint-end 직후. 자주 바뀜 · `/sprint-end` 가 done 항목을 docs/archive/ 로 이관.
@@ -18,19 +18,19 @@ description: 외부 설정·비밀값 체크리스트 + 활성 작업·다음 sp
 ## 1. Apple Developer Portal
 
 ### 1.1 App ID — Sign In with Apple capability
-- [ ] developer.apple.com → Identifiers → 모찌 App ID 선택
-- [ ] **Sign In with Apple** capability 체크 → Save
-- [ ] Bundle ID: `app.mochi` (Project.swift `bundleIdPrefix`)
+- [x] developer.apple.com → Identifiers → 모찌 App ID 선택
+- [x] **Sign In with Apple** capability 체크 → Save
+- [x] Bundle ID: `app.mochi` (Project.swift `bundleIdPrefix`)
 - 결과: Xcode 빌드 시 `App.entitlements` 의 `com.apple.developer.applesignin` 권한이 매칭되어 빌드 가능
 
 ### 1.1b Keychain Sharing capability (ShareExt 직접 전송 — PR-A)
-- [ ] developer.apple.com → Identifiers → `app.mochi` + `app.mochi.ShareExtension` 둘 다 **Keychain Sharing** capability 체크 → Save
-- [ ] keychain access group `$(AppIdentifierPrefix)app.mochi` (App·ShareExtension entitlements 에 박힘 — 코드는 kSecAttrAccessGroup 생략, entitlement 첫 그룹 자동 공유)
+- [x] developer.apple.com → Identifiers → `app.mochi` + `app.mochi.ShareExtension` 둘 다 **Keychain Sharing** capability 체크 → Save
+- [x] keychain access group `$(AppIdentifierPrefix)app.mochi` (App·ShareExtension entitlements 에 박힘 — 코드는 kSecAttrAccessGroup 생략, entitlement 첫 그룹 자동 공유)
 - 결과: ShareExtension 이 메인 앱 Keychain 의 access token 을 읽어 URL/텍스트/이미지 캡처를 서버에 best-effort 선반영(큐는 항상 적재 — 로컬·동기화·유실방지의 진실원천). **dev 재로그인 1회 필요**(entitlement 변경으로 기존 keychain 그룹 전환 — 자동 마이그레이션 안 함). 시뮬레이터는 자동 서명이라 무관, 실기기 빌드는 §1.2 재발급 선행.
 
 ### 1.2 Provisioning Profile 재발급
-- [ ] App ID 변경(Sign In with Apple·**Keychain Sharing**) 후 development / distribution provisioning profile 재발급
-- [ ] Xcode → Signing & Capabilities → 새 profile 자동 선택 확인
+- [x] App ID 변경(Sign In with Apple·**Keychain Sharing**) 후 development / distribution provisioning profile 재발급
+- [x] Xcode → Signing & Capabilities → 새 profile 자동 선택 확인
 
 ### 1.3 (옵션) 백엔드 → Apple revocation 연동
 백엔드에서 사용자 계정 삭제 시 Apple 측의 refresh token 도 revoke 하려면:
@@ -41,10 +41,10 @@ description: 외부 설정·비밀값 체크리스트 + 활성 작업·다음 sp
 
 ### 1.4 APNs — Apple Push (PR-B, Live Activity·background 알림)
 - [x] APNs Auth Key(.p8) 발급 — `AuthKey_CA6C3JCHW3.p8`(Key ID `CA6C3JCHW3`), Team `U9SLX327XS` (2026-06-05). **절대 git 커밋 금지.**
-- [ ] App ID `app.mochi` 에 **Push Notifications capability** 활성
-- [ ] `Targets/App/Support/App.entitlements` 에 `aps-environment` 추가 (현재 없음 — development/production)
-- [ ] provisioning profile 재발급 (§1.2 와 함께 — Push capability 포함)
-- [ ] Info.plist `NSSupportsLiveActivities=true` 확인(이미 있음) / 필요 시 `NSSupportsLiveActivitiesFrequentUpdates`
+- [x] App ID `app.mochi` 에 **Push Notifications capability** 활성
+- [x] `Targets/App/Support/App.entitlements` 에 `aps-environment` 추가됨 (현재 `development` — distribution 빌드 시 `production` 으로)
+- [x] provisioning profile 재발급 (§1.2 와 함께 — Push capability 포함)
+- [x] Info.plist `NSSupportsLiveActivities=true` 확인(있음) / 필요 시 `NSSupportsLiveActivitiesFrequentUpdates`
 - 환경 주의: device token 은 환경에 묶임 — **TestFlight/App Store=production, Xcode 직접빌드=sandbox**. iOS 가 등록 시 environment 를 명시(`POST /devices/push-token`), 잘못 매칭 시 `BadDeviceToken`.
 
 ---
@@ -100,15 +100,15 @@ description: 외부 설정·비밀값 체크리스트 + 활성 작업·다음 sp
   - [ ] (대조군) Safari → 공유시트 → 모찌 → `ShareEntryView` 메모/저장 → Inbox. 백탭과 다른 surface 임을 확인.
 - [x] **iCloud 공유 URL 발급** (2026-05-29 dev 머지로 반영)
   - [x] 단축어 길게 누름 → 공유 → `iCloud 링크 복사`. 결과 형태: `https://www.icloud.com/shortcuts/<hash>`
-  - [x] 발급된 URL 을 `BackTapPage` "단축어 등록하기" CTA 가 여는 값으로 교체. 현재 적용된 URL: `https://www.icloud.com/shortcuts/ff449fd3fe924e81bb0e7e931360701b` (`OnboardingView.swift` 의 `handlePrimaryTap()`).
+  - [x] 발급된 URL 을 `BackTapPage` "단축어 등록하기" CTA 가 여는 값으로 교체. 현재 적용된 URL: `https://www.icloud.com/shortcuts/e24ac8bf17ef45a088e4b3cdc76aa44b` (`BackTapPage.swift:15` 의 `shortcutURL`).
 - [ ] **버전 관리**: 단축어 정의나 `CaptureScreenshotIntent` 시그니처가 바뀌면 iCloud URL 도 함께 갱신. CHANGELOG 의 `ios` 범위로 한 줄 남길 것.
 
 ⚠️ `Show Preview ON` 또는 `이미지 변환` 액션 누락은 자동화를 깬다. 온보딩 가이드에서 두 가지 다 명시.
 
 ### 3.1 Info.plist URL Scheme (Google)
-- [x] `Targets/App/Support/Info.plist` 에 `CFBundleURLTypes` 등록 (Reversed client ID)
+- [ ] `Targets/App/Support/Info.plist` 에 `CFBundleURLTypes` 등록 (Reversed client ID)
 - 실제 값은 §2.1 의 Reversed client ID 로 치환되어야 함.
-- ⚠️ 현재는 `PLACEHOLDER_REVERSED_CLIENT_ID` 로 들어가 있음. 콘솔에서 값 받은 뒤 교체.
+- ⚠️ 현재는 **비워 둠**(주석만 — Info.plist L55~59). 플레이스홀더를 박으면 App Store Connect 업로드 validation 이 "URL scheme not in correct format" 으로 실패하므로 §2.1 iOS client 값 확보 후 추가한다. Google 미설정이라 현재 TestFlight 는 Apple 로그인만 동작.
 
 ### 3.2 Entitlements — Sign In with Apple
 - [x] `Targets/App/Support/App.entitlements` 에 `com.apple.developer.applesignin = ["Default"]` 추가됨

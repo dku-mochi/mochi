@@ -174,6 +174,10 @@ public struct SearchView: View {
                     Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 18))
                         .foregroundStyle(SearchD5.Palette.textTertiary)
+                        // 아이콘(18)은 그대로, 터치 영역만 44 — 바 높이(48 고정)라 바는 안 커지고,
+                        // 인접 TextField 는 flexible 이라 겹침 없음.
+                        .frame(width: 44, height: 44)
+                        .contentShape(Circle())
                 }
             }
         }

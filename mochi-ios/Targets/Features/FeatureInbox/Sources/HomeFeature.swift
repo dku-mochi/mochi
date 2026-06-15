@@ -12,7 +12,7 @@ import DesignSystem
 /// - 빠른 입력(우하단 플로팅 버튼): 텍스트(메모/URL 자동 판별)·사진(`screenshot`)을 한 버튼에
 ///   모은다. 텍스트는 한 입력창에서 받아 URL 이면 `url` 채널로, 아니면 `appDirectInput` 으로
 ///   흘려보낸다 — 사용자는 링크·메모를 구분해 적을 필요가 없다. 어느 경로든 upsert + sync trigger.
-/// - ① 지금 확인해 주세요(`listNeedsReview`): 모찌가 확신 못 한 것만. 분류 버튼 = `setIntent`.
+/// - ① 지금 확인해 주세요(`listNeedsReview`): 모찌가 확신 못 한 것만. 후보 칩 = 고른 의도를 hint 로 `reanalyze`(재분석 — intent 라벨만 박지 않고 payload·날짜를 보강해 캘린더/할일로 쓸 수 있게).
 /// - ③ 최근에 보낸 것들(`listRecent`): 정리 대상이 아닌 안전망(원본 확인·되돌리기).
 /// - ② 모찌가 정리하고 있어요(`listAnalyzing`): 분석 응답 대기. 사용자 행동 불필요, 화면 맨 하단·기본 접힘.
 /// 자연어 회수(질문): 홈 입력바는 진입점만 — 제출 시 `delegate(.chatRequested)` 로
@@ -66,8 +66,6 @@ public struct HomeFeature: Sendable {
         case quickMemoSaved
         /// 사진(라이브러리/카메라) 선택 결과 — JPEG 데이터 + 사용자 메모(선택)를 캡처로 ingest.
         case imagePicked(data: Data, memo: String)
-        case classifyTapped(mochiItemID: MochiItem.ID, intent: Intent)
-        case classifyFinished
         case retryAnalysisTapped(MochiItem.ID)
         case reanalyzeTapped(mochiItemID: MochiItem.ID, hint: String)
         case toggleProcessing
@@ -247,22 +245,6 @@ public struct HomeFeature: Sendable {
                     }
                 }
 
-            case let .classifyTapped(mochiItemID, intent):
-                return .run { send in
-                    do {
-                        try await repository.setIntent(mochiItemID: mochiItemID, intent: intent)
-                        await send(.classifyFinished)
-                        await loadAll(send: send)
-                    } catch {
-                        await send(.loadFailed(String(describing: error)))
-                    }
-                }
-
-            case .classifyFinished:
-                // 분류된 항목은 needsReview 리스트에서 빠지므로 page 0 = 다음 미확정 항목.
-                state.needsReviewPage = 0
-                return .none
-
             case let .retryAnalysisTapped(mochiItemID):
                 // "모찌에게 다시 맡기기" — 분석으로 되돌리고 foreground 폴링이 다시 집어가게 한다.
                 return .run { send in
@@ -275,7 +257,7 @@ public struct HomeFeature: Sendable {
                 }
 
             case let .reanalyzeTapped(mochiItemID, hint):
-                // "다른 의도" — 사용자가 적은 의도 힌트로 서버 재분석을 요청한다.
+                // 후보 칩(고른 의도 라벨) · "다른 의도"(자연어) 모두 이 경로 — 힌트로 서버 재분석을 요청한다.
                 // 서버 PK 는 로컬 id 와 달라 uploaded 의 serverID 로 요청한다(로컬 id 로 보내면 404).
                 // 서버 emit 성공 후 로컬을 analyzing 으로 되돌린다 — emit 실패 시 영영 analyzing 에
                 // 멈추는 것을 막기 위해 순서를 지킨다. hint 는 서버 outbox 에만 일시 적재된다.

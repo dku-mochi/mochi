@@ -1,3 +1,4 @@
+import Foundation
 import ProjectDescription
 
 // MARK: - Constants
@@ -6,8 +7,18 @@ private let bundleIdPrefix = "app.mochi"
 private let deploymentTarget = "17.0"
 private let swiftVersion = "5.0"
 private let developmentTeam = "U9SLX327XS"
-private let marketingVersion = "0.1.5"
-private let currentProjectVersion = "5"
+// API 추가 등 의미 있는 변경 시 직접 한 줄만 올린다 (minor/patch 판단은 사람이). 단일 원천.
+private let marketingVersion = "0.3.6"
+// 빌드 번호 = generate 시점의 한국 시각 yyMMddHHmm (예: 2606151430). 항상 단조 증가·유니크.
+// archive 직전 `tuist generate` 를 다시 돌리면 그 순간 시각이 박혀 매 아카이빙이 새 번호가 된다.
+// baseSettings 를 통해 App·ShareExtension·Widgets 가 같은 값을 공급받아 확장 CFBundleVersion 누락을 막는다.
+private let currentProjectVersion: String = {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyMMddHHmm"
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    formatter.timeZone = TimeZone(identifier: "Asia/Seoul")
+    return formatter.string(from: Date())
+}()
 private let appGroup = "group.app.mochi"
 
 private let baseSettings: SettingsDictionary = [
@@ -467,6 +478,14 @@ let project = Project(
                     // (DerivedData) 에 접근하려면 user script sandbox 를 꺼야 한다. baseSettings
                     // 는 보안 목적으로 YES 를 유지하고 App 타겟에서만 override.
                     "ENABLE_USER_SCRIPT_SANDBOXING": "NO",
+                    // Xcode General 탭 / App Store Connect 의 App Category. 매니페스트에 없으면
+                    // generate 시 None 으로 초기화되므로 여기서 고정한다(라이프스타일).
+                    "INFOPLIST_KEY_LSApplicationCategoryType": "public.app-category.lifestyle",
+                    // 표시 이름을 Info.plist 직접 키 대신 build setting 으로 옮겨 Xcode General 탭에
+                    // 노출. INFOPLIST_KEY_* 가 .file Info.plist 위에 머지되려면 아래 GENERATE 가 필요.
+                    "INFOPLIST_KEY_CFBundleDisplayName": "모찌",
+                    // .file Info.plist 를 베이스로 INFOPLIST_KEY_* 를 머지하도록 명시(미지정 시 머지 안 됨).
+                    "GENERATE_INFOPLIST_FILE": "YES",
                 ])
             )
         ),
