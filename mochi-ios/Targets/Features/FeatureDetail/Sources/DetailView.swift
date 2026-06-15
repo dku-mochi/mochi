@@ -61,45 +61,7 @@ public struct DetailView: View {
         .navigationTitle("기록 상세")
         .navigationBarTitleDisplayMode(.inline)
         .background(PresentationAnchor(viewController: $presentationAnchor).frame(width: 0, height: 0))
-        .toolbar {
-            if isRoot {
-                ToolbarItem(placement: .topBarLeading) {
-                    // root 는 custom present 라 back 이 없다 — 닫기(X)로 dismiss. 아래로 드래그해도 닫힌다.
-                    // (자식 상세는 X 대신 NavigationStack 시스템 back 으로 이전 상세에 복귀.)
-                    Button { store.send(.closeButtonTapped) } label: {
-                        toolbarIcon("xmark")
-                    }
-                }
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                Menu {
-                    if !isRoot {
-                        // push 된 자식 상세 — back 은 한 칸씩이라, 깊이 들어간 뒤 한 번에 빠져나오는
-                        // 명시적 출구. 아래로 드래그(전체 닫기)의 발견성 보조.
-                        Button { store.send(.closeButtonTapped) } label: {
-                            Label("닫기", systemImage: "xmark")
-                        }
-                        Divider()
-                    }
-                    if let item = store.mochiItem {
-                        Button { store.send(.favoriteToggled) } label: {
-                            Label(
-                                item.isFavorite ? "즐겨찾기 해제" : "즐겨찾기 추가",
-                                systemImage: item.isFavorite ? "star.fill" : "star"
-                            )
-                        }
-                    }
-                    if hasSavableImage {
-                        Button { store.send(.saveImageButtonTapped) } label: {
-                            Label("이미지 저장", systemImage: "square.and.arrow.down")
-                        }
-                    }
-                    Button("삭제", role: .destructive) { store.send(.deleteButtonTapped) }
-                } label: {
-                    toolbarIcon("ellipsis")
-                }
-            }
-        }
+        .toolbar { detailToolbar }
         .alert($store.scope(state: \.deleteAlert, action: \.deleteAlert))
         .overlay(alignment: .bottom) {
             if let toast = store.saveToast {
@@ -115,6 +77,49 @@ public struct DetailView: View {
         }
         .animation(.easeInOut(duration: 0.2), value: store.saveToast)
         .task { store.send(.onAppear) }
+    }
+
+    @ToolbarContentBuilder
+    private var detailToolbar: some ToolbarContent {
+        if isRoot {
+            ToolbarItem(placement: .topBarLeading) {
+                // root 는 custom present 라 back 이 없다 — 닫기(X)로 dismiss. 아래로 드래그해도 닫힌다.
+                // (자식 상세는 X 대신 NavigationStack 시스템 back 으로 이전 상세에 복귀.)
+                Button { store.send(.closeButtonTapped) } label: {
+                    toolbarIcon("xmark")
+                }
+                .accessibilityLabel("닫기")
+            }
+        }
+        ToolbarItem(placement: .topBarTrailing) {
+            Menu {
+                if !isRoot {
+                    // push 된 자식 상세 — back 은 한 칸씩이라, 깊이 들어간 뒤 한 번에 빠져나오는
+                    // 명시적 출구. 아래로 드래그(전체 닫기)의 발견성 보조.
+                    Button { store.send(.closeButtonTapped) } label: {
+                        Label("닫기", systemImage: "xmark")
+                    }
+                    Divider()
+                }
+                if let item = store.mochiItem {
+                    Button { store.send(.favoriteToggled) } label: {
+                        Label(
+                            item.isFavorite ? "즐겨찾기 해제" : "즐겨찾기 추가",
+                            systemImage: item.isFavorite ? "star.fill" : "star"
+                        )
+                    }
+                }
+                if hasSavableImage {
+                    Button { store.send(.saveImageButtonTapped) } label: {
+                        Label("이미지 저장", systemImage: "square.and.arrow.down")
+                    }
+                }
+                Button("삭제", role: .destructive) { store.send(.deleteButtonTapped) }
+            } label: {
+                toolbarIcon("ellipsis")
+            }
+            .accessibilityLabel("더보기")
+        }
     }
 
     @ViewBuilder
@@ -264,6 +269,9 @@ private struct RecallHeader: View {
                 .opacity((sourceImageHidden || store.heroImageHidden) ? 0 : 1)
                 .contentShape(Rectangle())
                 .onTapGesture { onTapImage(previewHandle.image, previewHandle.imageView) }
+                // onTapGesture 는 VoiceOver 가 버튼으로 못 읽으므로 트레잇·라벨을 직접 부여한다.
+                .accessibilityAddTraits(.isButton)
+                .accessibilityLabel("이미지 크게 보기")
             } else {
                 // 스크린샷이 없는 기록(메모·URL) — 빈 흰 헤더 대신 정체성 hero 밴드로 카드 상단을
                 // 풀폭으로 채운다(좌우 흰 여백 제거 + "메모/링크" 정체성 표시). 분석중과 같은 밴드라 튀지 않는다.
