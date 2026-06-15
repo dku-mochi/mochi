@@ -25,6 +25,9 @@ public struct ChatLandingView: View {
             Spacer(minLength: HomeDesign.Spacing.lg)
 
             VStack(spacing: HomeDesign.Spacing.sm) {
+                if store.resumable != nil {
+                    resumeCard
+                }
                 ForEach(Array(Self.suggestions.enumerated()), id: \.offset) { _, chip in
                     suggestionRow(icon: chip.icon, tint: chip.tint, text: chip.text)
                 }
@@ -38,9 +41,64 @@ public struct ChatLandingView: View {
                 .padding(.bottom, HomeDesign.Spacing.md)
         }
         .background(HomeDesign.Color.bg.ignoresSafeArea())
+        .onAppear { store.send(.onAppear) }
         .sheet(item: $store.scope(state: \.history, action: \.history)) { historyStore in
             ChatHistoryView(store: historyStore)
         }
+    }
+
+    // MARK: - 이어하기 카드
+
+    /// 30분 내 진행 중이던 대화로 돌아가는 카드 — 칩과 같은 문법(RoundedRect 18·tint 원·PressableStyle)을
+    /// 따르되, "지금 이어갈 대화"라는 우선 행동이라 유일하게 퍼플 틴트로 강조한다(랜딩의 단일 액센트 모멘트).
+    private var resumeCard: some View {
+        Button {
+            store.send(.resumeTapped)
+        } label: {
+            HStack(spacing: HomeDesign.Spacing.md) {
+                ZStack {
+                    Circle().fill(HomeDesign.Color.purple100.opacity(0.7))
+                    Image(systemName: "bubble.left.and.bubble.right.fill")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(HomeDesign.Color.purple500)
+                }
+                .frame(width: 30, height: 30)
+
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("이어서 대화하기")
+                        .font(.system(size: 14, weight: .bold, design: .rounded))
+                        .foregroundStyle(HomeDesign.Color.textPrimary)
+                    Text("\(relativeActivity) 나눈 대화로 돌아가요")
+                        .font(.system(size: 11.5, weight: .medium, design: .rounded))
+                        .foregroundStyle(HomeDesign.Color.purple500)
+                        .lineLimit(1)
+                }
+                Spacer()
+                Image(systemName: "arrow.right")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(HomeDesign.Color.purple400)
+            }
+            .padding(.horizontal, HomeDesign.Spacing.lg)
+            .padding(.vertical, HomeDesign.Spacing.md)
+            .background(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(HomeDesign.Color.purple50)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .stroke(HomeDesign.Color.purple200, lineWidth: 1)
+            )
+        }
+        .buttonStyle(PressableStyle())
+        .accessibilityLabel("지난 대화 이어하기")
+    }
+
+    /// 마지막 활동 상대 시각 — 30분 윈도우 안이라 "방금" 또는 "N분 전".
+    private var relativeActivity: String {
+        guard let at = store.resumable?.lastActivityAt else { return "" }
+        let secs = Date().timeIntervalSince(at)
+        if secs < 60 { return "방금" }
+        return "\(Int(secs / 60))분 전"
     }
 
     // MARK: - 헤더
