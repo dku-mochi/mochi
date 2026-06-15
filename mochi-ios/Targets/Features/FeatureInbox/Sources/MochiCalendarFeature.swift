@@ -120,6 +120,12 @@ public struct MochiCalendarFeature: Sendable {
                 state.duplicateTodos = duplicateTodos
                 state.upcomingSchedules = IdentifiedArray(uniqueElements: schedules)
                 state.dueItems = dueItems
+                // 날짜 sheet 가 열려 있으면 그 날짜 목록도 같이 갱신한다 — 상세에서 수정/완료 후
+                // repositoryChanged → loadMonth → loaded 흐름에서 sheet 가 stale 로 남던 것을 막는다
+                // (재탭 불필요). SelectedDay.id == date 라 같은 날짜 재설정은 sheet 를 재present 하지 않는다.
+                if let selected = state.selectedDay {
+                    return .send(.daySelected(selected.date))
+                }
                 return .none
 
             case let .daySelected(date):
