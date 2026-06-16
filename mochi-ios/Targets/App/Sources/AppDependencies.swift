@@ -83,7 +83,7 @@ enum AppDependencies {
     }
 
     private static func resolveBaseURL() -> URL {
-//        return URL(string: "https://34-64-104-136.nip.io")!
+        return URL(string: "https://34-64-104-136.nip.io")!
         if let env = ProcessInfo.processInfo.environment["MOCHI_API_BASE_URL"],
            let url = URL(string: env) {
             return url

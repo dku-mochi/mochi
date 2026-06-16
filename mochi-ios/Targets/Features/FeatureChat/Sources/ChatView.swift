@@ -153,11 +153,16 @@ public struct ChatView: View {
                 }
             )
             .onPreferenceChange(ContentBottomKey.self) { contentBottom in
+                // iOS 18 은 ChatGeometryFollow(onScrollGeometryChange) 가 near-bottom 을 전담한다.
+                // preference 기반 판정은 iOS 18 에서 named-coordinate-space 회귀로 어긋나므로 끈다.
+                guard !usesGeometryFollow else { return }
                 // withAnimation 으로 감싸지 않는다 — 스크롤 도중 near 가 바뀌면 그 전역
                 // transaction 이 진행 중인 scrollTo settle 에 끼어들어 마지막에 미세하게
                 // 버벅인다. 버튼 등장만 애니메이션하면 되므로 overlay 의 .animation 으로 격리.
                 isNearBottom = contentBottom - containerHeight < 72
             }
+            // iOS 18 전용: ScrollGeometry 단일 원천으로 near-bottom·스트리밍 따라가기를 처리.
+            .modifier(ChatGeometryFollow(isNearBottom: $isNearBottom, proxy: proxy, anchorID: Self.bottomAnchor))
             .overlay(alignment: .bottomTrailing) {
                 if !isNearBottom {
                     ScrollToBottomButton {
@@ -178,18 +183,27 @@ public struct ChatView: View {
                 }
             }
             .onChange(of: store.messages.last?.text) {
-                guard isNearBottom else { return }
+                guard !usesGeometryFollow, isNearBottom else { return }
                 withAnimation(.easeOut(duration: 0.15)) {
                     proxy.scrollTo(Self.bottomAnchor, anchor: .bottom)
                 }
             }
             .onChange(of: store.messages.count) {
-                guard isNearBottom else { return }
+                guard !usesGeometryFollow, isNearBottom else { return }
                 withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
                     proxy.scrollTo(Self.bottomAnchor, anchor: .bottom)
                 }
             }
             .onChange(of: store.runPhase) { _, phase in
+                // iOS 18: 따라가기는 ChatGeometryFollow 가 콘텐츠 성장으로 처리한다. 여기선 새 턴
+                // 시작 시 따라가기 의사만 켜준다 — 작성 중 위로 올라가 있었어도 전송하면 바닥으로 복귀.
+                // 불변식: `.streaming` 전이는 사용자 전송(ChatFeature.sendMessage) 단일 경로뿐이다.
+                // 비전송 진입점에서 streaming 으로 가게 되면 이 강제 복귀는 회수 능동 주체 원칙과
+                // 충돌하므로 그땐 조건을 좁혀야 한다.
+                if usesGeometryFollow {
+                    if phase == .streaming { isNearBottom = true }
+                    return
+                }
                 guard isNearBottom || phase == .streaming else { return }
                 Task { @MainActor in
                     try? await Task.sleep(for: .milliseconds(16))
@@ -199,16 +213,16 @@ public struct ChatView: View {
                 }
             }
             .onChange(of: containerHeight) { _, _ in
-                guard isNearBottom else { return }
+                guard !usesGeometryFollow, isNearBottom else { return }
                 proxy.scrollTo(Self.bottomAnchor, anchor: .bottom)
             }
             .onChange(of: store.conversationID) { old, new in
-                if old != nil, old != new {
-                    proxy.scrollTo(Self.bottomAnchor, anchor: .bottom)
-                }
+                guard old != nil, old != new else { return }
+                isNearBottom = true   // 새 대화 로드 — 바닥부터 보여주고 따라가기 재개
+                proxy.scrollTo(Self.bottomAnchor, anchor: .bottom)
             }
             .onChange(of: lastMessageStructure) {
-                guard isNearBottom else { return }
+                guard !usesGeometryFollow, isNearBottom else { return }
                 withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
                     proxy.scrollTo(Self.bottomAnchor, anchor: .bottom)
                 }
@@ -219,6 +233,12 @@ public struct ChatView: View {
     private static let bottomAnchor = "chat-bottom"
     /// 콘텐츠 바닥 모서리(maxY)를 재는 좌표계 — near-bottom 판정의 기준.
     private static let scrollSpace = "chat-scroll"
+
+    /// iOS 18+ 에서는 ``ChatGeometryFollow`` 가 near-bottom 판정과 스트리밍 따라가기를 전담한다.
+    /// preference 기반 판정·onChange→scrollTo 따라가기(iOS 17 경로)는 그때 비활성화해 이중 추종을 막는다.
+    private var usesGeometryFollow: Bool {
+        if #available(iOS 18.0, *) { true } else { false }
+    }
 
     /// 마지막 버블의 구조 스냅샷 — 카드 등장·스트림 종료 시 스크롤 추적용.
     private var lastMessageStructure: [Int] {
@@ -305,6 +325,55 @@ private struct ContentBottomKey: PreferenceKey {
     static let defaultValue: CGFloat = 0
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
         value = max(value, nextValue())
+    }
+}
+
+/// iOS 18 전용 견고 스크롤 추종 — `ScrollGeometry` 단일 원천.
+///
+/// iOS 18(Xcode 16 빌드)에서 named-coordinate-space `GeometryReader` preference 기반 near-bottom
+/// 판정과 `ScrollViewReader.scrollTo` 가 스트리밍 중 불안정해, LLM 응답이 와도 자동 따라가기가
+/// 멈추는 회귀가 있다. `onScrollGeometryChange`(WWDC24)로 콘텐츠 성장·입력독/키보드 inset 증가를
+/// 직접 감지해 바닥 근처일 때만 바닥 앵커로 즉시 따라간다 — 위로 올라가 읽는 중이면 끌어내리지 않는다.
+/// iOS 17 에서는 아무 것도 하지 않고 기존(preference + onChange) 경로가 그대로 동작한다.
+private struct ChatGeometryFollow: ViewModifier {
+    @Binding var isNearBottom: Bool
+    let proxy: ScrollViewProxy
+    let anchorID: String
+
+    /// "바닥 근처" 임계값(pt) — 기존 preference 경로와 동일.
+    private static let nearBottomThreshold: CGFloat = 72
+    /// 부동소수 노이즈를 성장으로 오인하지 않기 위한 최소 증가폭(pt).
+    private static let growEpsilon: CGFloat = 0.5
+
+    func body(content: Content) -> some View {
+        if #available(iOS 18.0, *) {
+            content.onScrollGeometryChange(for: Snapshot.self) { geo in
+                Snapshot(
+                    contentHeight: geo.contentSize.height,
+                    bottomInset: geo.contentInsets.bottom,
+                    // visibleRect 는 inset/offset 을 반영한 실제 가시 영역 — 바닥까지 남은 거리.
+                    distanceFromBottom: geo.contentSize.height - geo.visibleRect.maxY
+                )
+            } action: { old, new in
+                let contentGrew = new.contentHeight > old.contentHeight + Self.growEpsilon
+                let insetGrew = new.bottomInset > old.bottomInset + Self.growEpsilon   // 키보드·입력독 등장
+                if (contentGrew || insetGrew) && isNearBottom {
+                    // 스트리밍 델타·키보드 — 바닥 추종. 빠른 델타에 애니메이션이 쌓이지 않도록 즉시 이동.
+                    proxy.scrollTo(anchorID, anchor: .bottom)
+                } else if !contentGrew && !insetGrew {
+                    // 사용자 스크롤(또는 추종 settle) — 콘텐츠는 그대로, 위치만 바뀐 경우에만 갱신.
+                    isNearBottom = new.distanceFromBottom < Self.nearBottomThreshold
+                }
+            }
+        } else {
+            content
+        }
+    }
+
+    private struct Snapshot: Equatable {
+        var contentHeight: CGFloat
+        var bottomInset: CGFloat
+        var distanceFromBottom: CGFloat
     }
 }
 
