@@ -434,7 +434,8 @@ private struct DayCell: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(PressableStyle())
-        .disabled(summary == nil)
+        // 빈 날(summary == nil)도 탭 가능해야 한다 — DaySheet 가 빈 상태로 열려 "+ 일정 추가"로
+        // 일정을 만들 수 있다(2026-06-15 일정 추가 도입 후 빈 날 비활성은 추가 진입을 막던 버그).
     }
 
     /// 기간 일정 막대 — 이어지는 쪽은 그리드 간격(4pt)을 음수 패딩으로 메워 연속된 막대로 보인다.

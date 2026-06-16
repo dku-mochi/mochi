@@ -10,6 +10,9 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-06-17 — ios (캘린더 빈 날짜 일정 추가 회귀 수정)
+- **캘린더에서 내용 없는 날짜를 탭해도 아무 반응 없어 일정 추가 불가하던 회귀 수정.** `DayCell` 에 `.disabled(summary == nil)` 가 남아 있어 마커(일정/할일/저장)가 하나도 없는 날은 버튼이 비활성 → `daySelected` 미발화 → DaySheet 가 안 열려 "+ 일정 추가" 진입 불가. 1b(2026-06-15 날짜에서 일정 추가) 도입 전엔 "빈 날은 보여줄 게 없으니 비활성"이 맞았으나 추가 진입을 막는 회귀가 됨. `.disabled` 제거 → 빈 날 탭 시 빈 상태 DaySheet(헤더 "+ 일정 추가" 포함) 열림. 표시/도메인 무변경.
+
 ## 2026-06-16 — ios (마감/일정 시각 표시 + 기간 라벨 혼동 수정 — DueDisplay 단일화)
 - **표시 책임을 프론트 단일 소스(`DueDisplay`)로 통일** (사용자 지시: 시각 표시는 프론트가 결정·일관 처리, 포맷 다양성이 흩어지면 곤란). schedule/todo 의 시각·마감 라벨은 이미 `DueDisplay`(`deadlineLabel`/`scheduleLabel`/`scheduleRangeLabel`) 한 곳에 모여 있고 Detail/Calendar/WeeklyDigest 가 위임만 함을 확인 — 시각 포맷을 새 private `timeSuffix(_:)` 한 함수로 모아(단일 원천) 다양성 차단. ① **todo 마감 라벨에 시각 표시** — `deadlineLabel` 이 "오늘 마감"/"D-3" 일 단위만 그려 deadline 안에 든 시각(알람형 할 일, '10분 뒤')이 안 보이던 것을 "오늘 마감 · 오후 9:00"처럼 시각 있을 때 덧붙임(자정=시각 없음 → 미표시, 하루 단위 마감 그대로). ② **기간 일정 라벨 "D-10 ~ 6월 27일 (토)" 양끝 포맷 불일치 수정** — 시작은 상대(`scheduleLabel`=D-10), 끝은 절대("M월 d일 (E)")로 **양끝 포맷이 달라** 읽기 나쁘던 것을 `rangeEndpoint` 로 **양끝 동일 절대 포맷**("M월 d일 (E)" + 시각, 상대 표현 없음)으로 통일. 백엔드/계약/도메인 무변경(표시 전용) — payload 의 ISO date/time/deadline 추출은 v22 가 담당, 포맷팅은 프론트. `tuist build DesignSystem/FeatureInbox/FeatureDetail` 성공. UX_SPEC §3.6/§3.8 동기화.
 
