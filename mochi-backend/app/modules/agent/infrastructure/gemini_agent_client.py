@@ -36,11 +36,29 @@ _INTENT_ENUM = ["schedule", "todo", "knowledge", "memo"]
 
 _PAYLOAD_PROPS: dict[str, Any] = {
     "title": {"type": "string"},
-    "date": {"type": "string"},
-    "time": {"type": "string"},
-    "end_date": {"type": "string"},
-    "end_time": {"type": "string"},
-    "deadline": {"type": "string"},
+    "date": {
+        "type": "string",
+        "description": (
+            "Event start date, ISO `YYYY-MM-DD` (e.g. 2026-06-26). Resolve a partial or relative "
+            "date (bare month/day, weekday, '다음 주') against the current time in the user message "
+            "and infer the year — that resolution is required, not invention. Fill it whenever the "
+            "capture identifies a day."
+        ),
+    },
+    "time": {"type": "string", "description": "Start time, 24-hour `HH:MM` (e.g. 14:30). Omit if no clock time is given."},
+    "end_date": {
+        "type": "string",
+        "description": "End date of a multi-day event, ISO `YYYY-MM-DD` (date is the start). Omit for a single day.",
+    },
+    "end_time": {"type": "string", "description": "End time, 24-hour `HH:MM`. Omit if not shown."},
+    "deadline": {
+        "type": "string",
+        "description": (
+            "Todo due moment, ISO `YYYY-MM-DD` or `YYYY-MM-DD HH:MM`. Compute a relative deadline "
+            "('10분 뒤', '내일까지', '이번 주말') from the current time in the user message — that "
+            "computation is required, not invention."
+        ),
+    },
     "person": {"type": "string"},
     "topic": {"type": "string"},
     "url": {"type": "string"},
