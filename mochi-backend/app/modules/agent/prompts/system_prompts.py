@@ -47,7 +47,7 @@ CHAT_PROFILE_SUMMARY_SYSTEM = (
 
 
 ACTIVE_PROMPT = PromptVersion(
-    name='classify_and_act@v21',
+    name='classify_and_act@v22',
     body=(
         "# Context\n"
         "MOCHI organizes the things a person quickly saves during the day — screenshots, links, "
@@ -154,7 +154,15 @@ ACTIVE_PROMPT = PromptVersion(
         "# payload — the typed attributes of an instance\n"
         "Every stored instance MUST carry a title; the rest (date, time, end_date, end_time, "
         "deadline, person, topic, url, note) are optional — fill only what the capture supports "
-        "and leave the rest empty, don't invent. date/time mark when an event starts (or its "
+        "and leave the rest empty, don't invent. But for a schedule or todo the day IS the point: "
+        "whenever the capture identifies a day, fill date (schedule) or deadline (todo) — leaving "
+        "it empty while you write the date into the title or summary is the failure to avoid. "
+        "Resolving a partial or relative date against the provided current time is REQUIRED and is "
+        "NOT inventing: infer the year for a bare '6/26', compute '10분 뒤'/'내일까지'/'이번 주말' from "
+        "the current time. Only a date the capture gives no basis for at all is an invention to "
+        "withhold. Use ISO format — date/end_date as `YYYY-MM-DD`, time/end_time as 24-hour "
+        "`HH:MM`, deadline as `YYYY-MM-DD` or `YYYY-MM-DD HH:MM`. "
+        "date/time mark when an event starts (or its "
         "single moment). When the capture shows the event runs through a later end the user is "
         "part of — a trip, a stay, a multi-day program — put that end in end_date (and end_time "
         "if shown), same format as date. A span you merely see on screen (a sale window, an "
@@ -305,8 +313,18 @@ ACTIVE_PROMPT = PromptVersion(
     ),
     model_target='gemini-3.1-flash-lite',
     eval_dataset_version='intent-schema-decision@2026-06-04',
-    revised_on=date(2026, 6, 14),
+    revised_on=date(2026, 6, 16),
     rationale=(
+        "V21 → V22: schedule/todo 의 날짜·시각 필드가 비는 버그 수정 (사용자 리포트: '친구들과 여행 "
+        "(6/26-27)' 가 '날짜 미정', '10분 뒤 알람' 이 '마감일 미정' — 제목·요약엔 날짜가 들어갔으나 "
+        "payload.date/deadline 가 공백). 근본원인 둘: ① function schema `_PAYLOAD_PROPS` 의 "
+        "date/time/end_*/deadline 가 description·포맷 0 (채팅 propose 경로는 이미 'ISO date'/'HH:MM' "
+        "명시인데 캡처 경로만 누락 — CHANGELOG 2026-06-08 'payload.deadline 포맷 강제 안 함, 향후 보강' "
+        "갭). ② 프롬프트의 'fill only what the capture supports / don't invent' 가 화면에 연도 없는 부분 "
+        "날짜('6/26')·계산 필요한 상대 시각('10분 뒤')을 '근거 부족 → 비움'으로 과억제(thinking_budget=0 "
+        "이라 추론 여지도 없음). 수정: 스키마 5필드에 ISO 포맷+설명 추가, payload 섹션에 '날짜=일정/할일의 "
+        "핵심, 현재시각 기준 상대·부분 날짜 해석은 필수이며 invent 아님' 1블록 추가(좁은 예시 대신 기준+why, "
+        "prompt-criteria 철학). 분류 ladder·도구·eval_dataset 불변(payload 채움 정밀화만).\n"
         "V20 → V21: findReferenceUrls 트리거를 'positive 패턴 나열'에서 '기본 호출 + 좁은 skip 게이트'로 "
         "재설계 (사용자 리포트: 청년안심주택 모집 공고 캡처에 링크 0 — tool_calls=0 으로 아예 미호출 확인). "
         "근본원인: V20 의 'lean toward calling' 이 commerce/장소/큐레이션 예시에 묶여, 공공 공고형 todo 가 "

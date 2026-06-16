@@ -10,6 +10,9 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-06-16 — backend (캡처 분석 날짜/시각 누락 수정 — 분류 프롬프트 v22)
+- **schedule/todo 의 `payload.date`·`deadline` 가 비던 버그 수정** (사용자 리포트: '친구들과 여행 (6/26-27)' → "날짜 미정", '10분 뒤 알람' → "마감일 미정" — 제목·요약엔 날짜가 들어갔으나 typed 필드는 공백). 다운스트림(영속→`IntentPayloadResponse` projection→iOS `PayloadDate`)은 `date/time/deadline` 을 `str|None` 로 1:1 보존하므로 유실 지점 아님 — 원인은 캡처 분석 LLM 출력 자체. 근본원인 둘: ① function schema `_PAYLOAD_PROPS`(`gemini_agent_client.py`)의 date/time/end_*/deadline 가 description·포맷 0 — 채팅 propose 경로(`propose.py`)는 이미 'ISO date, e.g. ...'/'HH:MM' 명시인데 캡처 경로만 누락(이 파일 478 의 "프롬프트가 payload.deadline 포맷 강제 안 함, 향후 ISO 보강 여지" 갭). ② 분류 프롬프트의 'fill only what the capture supports / don't invent' 가 화면에 연도 없는 부분 날짜('6/26')·계산 필요한 상대 시각('10분 뒤')을 '근거 부족 → 비움'으로 과억제(`thinking_budget=0` 이라 추론 여지도 없음). **수정**: 스키마 5필드에 ISO 포맷+설명 추가(채팅 경로와 정합), 프롬프트 v21→v22 — payload 섹션에 "날짜=일정/할일의 핵심, 현재시각 기준 상대·부분 날짜 해석은 필수이며 invent 아님(연도 추론·'10분 뒤' 계산), ISO 포맷" 1블록 추가. 분류 ladder·도구·eval_dataset 불변(payload 채움 정밀화만). 검증: lint/typecheck clean.
+
 ## 2026-06-16 — backend (재분석 needs_review 해제 + push 토큰 410 무효화 + 회수 dry-run off)
 - **재분석 시 `needs_review` 강제 해제** — `reanalyze`(hint 필수)는 사용자가 의도를 확정한 행위인데, flash-lite 가 재분석마다 `needs_review=true` 로 되돌려 "확정했는데 모찌가 또 되묻는" 미션 위반이 발생. orchestrator 가 `reanalysis_hint` 있을 때 결과의 `needs_review=false` + `review_options=()` 로 강제(사용자 확정 > LLM 추론). 첫 분석(hint 없음)은 LLM 판단 그대로 존중. `DOMAIN_DESIGN.md` 재분석 규약 보강.
 - **분석완료 push(`send_notification.py`) 410 토큰 무효화** — alert/la_start 발송이 410/Unregistered 를 받아도 토큰을 지우지 않아, 앱 재설치로 죽은 토큰(특히 la_start)이 누적돼 매번 재발송되던 버그 수정. 회수 발송 경로(`send_recall_notification`)와 동일하게 `_is_invalid_token` → `tokens.delete`. 5xx/timeout 은 일시실패라 무효화 안 함.
