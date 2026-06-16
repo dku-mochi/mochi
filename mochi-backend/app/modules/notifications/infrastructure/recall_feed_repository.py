@@ -10,7 +10,7 @@ P5 reaction repo(쓰기)와 별개 파일 — 읽기 전용 단순 SELECT. 이 �
 
 from uuid import UUID
 
-from sqlalchemy import desc, func, select
+from sqlalchemy import bindparam, desc, func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.notifications.domain.recall_feed import (
@@ -28,6 +28,25 @@ class PostgresRecallFeedRepository(RecallFeedRepositoryPort):
         self._session = session
 
     async def list_candidates(
+        self, *, owner_id: UUID, limit: int
+    ) -> list[RecallFeedCandidate]:
+        # 트랙 C(recall outbox) 를 먼저(지금 맥락이라 신선) + 트랙 A(spaced knowledge) 합류,
+        # 같은 item 은 dedup(recall 우선), recency 순. 랭킹 공식(ux-ui §7)은 후속 — 현재 recency.
+        merged: list[RecallFeedCandidate] = []
+        seen: set[UUID] = set()
+        for cand in [
+            *await self._recall_candidates(owner_id=owner_id, limit=limit),
+            *await self._spaced_candidates(owner_id=owner_id, limit=limit),
+        ]:
+            if cand.item_id in seen:
+                continue
+            seen.add(cand.item_id)
+            merged.append(cand)
+            if len(merged) >= limit:
+                break
+        return merged
+
+    async def _spaced_candidates(
         self, *, owner_id: UUID, limit: int
     ) -> list[RecallFeedCandidate]:
         # active spaced plan → source_item_id. 같은 item 에 plan 이 여럿이어도 1행만(group by item),
@@ -55,19 +74,50 @@ class PostgresRecallFeedRepository(RecallFeedRepositoryPort):
                 recall_event_id=await self._latest_sent_event(
                     owner_id=owner_id, item_id=row.item_id
                 ),
+                source_kind="spaced",
+            )
+            for row in rows
+        ]
+
+    async def _recall_candidates(
+        self, *, owner_id: UUID, limit: int
+    ) -> list[RecallFeedCandidate]:
+        # kind=recall outbox(pending/sent) → source_item_id 별 최신 event, fire_at desc. 직행이라 plan 없음.
+        sql = text(
+            """
+            SELECT source_item_id AS item_id, event_id FROM (
+              SELECT DISTINCT ON (source_item_id) source_item_id, event_id, fire_at
+              FROM notification_outbox
+              WHERE owner_id = :owner AND kind = 'recall'
+                AND status IN ('pending','sent') AND source_item_id IS NOT NULL
+              ORDER BY source_item_id, fire_at DESC
+            ) x
+            ORDER BY x.fire_at DESC
+            LIMIT :limit
+            """
+        ).bindparams(bindparam("owner", owner_id), bindparam("limit", limit))
+        rows = (await self._session.execute(sql)).all()
+        return [
+            RecallFeedCandidate(
+                item_id=row.item_id, recall_event_id=row.event_id, source_kind="recall"
             )
             for row in rows
         ]
 
     async def resolve_landing(
         self, *, owner_id: UUID, event_id: UUID
-    ) -> UUID | None:
-        # event → source item id. status 무관(sent 후 탭 OK), owner 스코프 필수.
-        stmt = select(NotificationOutboxRow.source_item_id).where(
+    ) -> tuple[UUID, str] | None:
+        # event → (source item id, kind). status 무관(sent 후 탭 OK), owner 스코프 필수.
+        stmt = select(
+            NotificationOutboxRow.source_item_id, NotificationOutboxRow.kind
+        ).where(
             NotificationOutboxRow.event_id == event_id,
             NotificationOutboxRow.owner_id == owner_id,
         )
-        return (await self._session.execute(stmt)).scalar_one_or_none()
+        row = (await self._session.execute(stmt)).first()
+        if row is None or row.source_item_id is None:
+            return None
+        return row.source_item_id, row.kind
 
     async def _latest_sent_event(
         self, *, owner_id: UUID, item_id: UUID

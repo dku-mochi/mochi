@@ -134,8 +134,8 @@ public struct RecallFeedEntryDTO: Sendable, Hashable, Codable, Identifiable {
     public let savedAt: Date
     /// 모찌가 정리한 핵심 줄들(원본 안 봐도 떠올림). 없으면 빈 배열.
     public let gist: [String]
-    /// 관련 기억(트랙 C 후속 — 지금 빈 배열).
-    public let related: [String]
+    /// 관련 기억(트랙 C) — 탭 시 그 항목 상세로. 없으면 빈 배열.
+    public let related: [RelatedItemDTO]
     public let relatedCount: Int
     /// 최근 sent 알림의 event_id(반응 추적·landing fallback 키). 없으면 nil.
     public let recallEventID: UUID?
@@ -151,7 +151,7 @@ public struct RecallFeedEntryDTO: Sendable, Hashable, Codable, Identifiable {
         source: String,
         savedAt: Date,
         gist: [String] = [],
-        related: [String] = [],
+        related: [RelatedItemDTO] = [],
         relatedCount: Int,
         recallEventID: UUID? = nil
     ) {
@@ -175,6 +175,26 @@ public struct RecallFeedEntryDTO: Sendable, Hashable, Codable, Identifiable {
         case gist, related
         case relatedCount = "relatedCount"
         case recallEventID = "recallEventID"
+    }
+}
+
+/// 관련 기억 1건(트랙 C "관련 N개") — 백엔드 `RelatedItem` 미러. 탭 시 `itemID` 상세로 push.
+public struct RelatedItemDTO: Sendable, Hashable, Codable, Identifiable {
+    public let itemID: UUID
+    public let title: String
+    public let oneline: String
+
+    public var id: UUID { itemID }
+
+    public init(itemID: UUID, title: String, oneline: String) {
+        self.itemID = itemID
+        self.title = title
+        self.oneline = oneline
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case itemID = "itemId"
+        case title, oneline
     }
 }
 

@@ -167,6 +167,11 @@ class Settings(BaseSettings):
     recall_quiet_start_hour_kst: int = 21     # 야간 무음 시작 (KST)
     recall_quiet_end_hour_kst: int = 8        # 야간 무음 종료 (KST)
     recall_dismiss_cooldown_days: int = 7     # dismiss 후 같은 intent 재알림 쿨다운 (plan 경계 넘음)
+    # 트랙 C(관련/맥락 회수) — 새 저장 시 임베딩 ANN 후보 생성·발송 게이트(P7~P9).
+    recall_candidate_min_score: float = 0.6   # cosine 유사도 임계 (미만이면 회수 안 함, dry-run 튜닝)
+    recall_candidate_limit: int = 10          # ANN 후보 조회 상한 (best 1건이 회수 앵커)
+    recall_dedup_cooldown_days: int = 7       # 같은 item 재회수 방지 윈도우 (재스팸 dedup)
+    recall_expires_days: int = 14             # 회수 outbox expires (지나면 stale skip)
 
     @property
     def auth_google_client_id_list(self) -> tuple[str, ...]:

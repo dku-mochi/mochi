@@ -28,6 +28,7 @@ from app.modules.agent.infrastructure.profile_store import PostgresUserProfileSt
 from app.modules.agent.infrastructure.registry import StaticToolRegistry
 from app.modules.mochi_items.application.queries import GetMochiItemForOwner, make_mochi_item_repository
 from app.modules.notifications.application.recall_planning_factory import (
+    make_generate_recall_candidates,
     make_plan_recall_notifications,
 )
 from app.modules.notifications.application.repositories import make_push_token_repository
@@ -215,6 +216,10 @@ class MochiItemWorker:
         # 분석을 롤백/되돌리지 않고, 실패해도 worker 루프를 죽이지 않는다(push 와 동일 격리 계약).
         await self._plan_recall_notifications(claimed.owner_id, claimed.mochi_item_id)
 
+        # 능동 회수 트랙 C 후보 생성 (P7~P9) — 새 item 의 임베딩 ANN 으로 유사 과거 기록을 찾아
+        # kind=recall 로 outbox 직행. P2 와 동일한 best-effort 격리(독립 세션, 실패해도 분석 done 유지).
+        await self._generate_recall_candidates(claimed.owner_id, claimed.mochi_item_id)
+
     async def _notify_analysis_complete(self, owner_id: UUID, mochi_item_id: UUID) -> None:
         # get_apns_client() 도 try 안 — p8 misconfig(base64/PEM/non-EC) 예외가 worker 루프를
         # 죽이지 않게(격리 계약). best-effort, 재시도 없음.
@@ -298,6 +303,30 @@ class MochiItemWorker:
         except Exception as exc:  # noqa: BLE001
             log.warning(
                 "recall.plan_run_failed",
+                owner_id=str(owner_id),
+                mochi_item_id=str(mochi_item_id),
+                exception=str(exc),
+                exc_info=True,
+            )
+
+    async def _generate_recall_candidates(self, owner_id: UUID, mochi_item_id: UUID) -> None:
+        # 능동 회수 트랙 C(P7~P9). 새 item 임베딩 ANN → 게이트 → kind=recall outbox 직행.
+        # best-effort, 재시도 없음 — 실패해도 분석은 이미 done 커밋이고 worker 루프를 죽이지 않는다.
+        try:
+            async with get_session_factory()() as recall_session:
+                created = await make_generate_recall_candidates(recall_session).run(
+                    owner_id=owner_id, mochi_item_id=mochi_item_id
+                )
+                await recall_session.commit()
+                log.info(
+                    "recall.candidate_run_finished",
+                    owner_id=str(owner_id),
+                    mochi_item_id=str(mochi_item_id),
+                    created=created,
+                )
+        except Exception as exc:  # noqa: BLE001
+            log.warning(
+                "recall.candidate_run_failed",
                 owner_id=str(owner_id),
                 mochi_item_id=str(mochi_item_id),
                 exception=str(exc),

@@ -29,6 +29,7 @@ from app.modules.notifications.application.get_recall_feed import (
     GetRecallLanding,
     _split_summary,
 )
+from app.modules.notifications.domain.recall_candidate import RecallCandidate
 from app.modules.notifications.domain.recall_feed import RecallFeedCandidate
 from app.modules.notifications.presentation.schemas import RecallFeedEntry
 from app.shared.intent import Intent
@@ -44,15 +45,19 @@ class _FeedRepo:
         *,
         candidates: list[RecallFeedCandidate] | None = None,
         landing_item_id=None,  # type: ignore[no-untyped-def]
+        landing_kind: str = "spaced",
     ) -> None:
         self._candidates = candidates or []
         self._landing_item_id = landing_item_id
+        self._landing_kind = landing_kind
 
     async def list_candidates(self, *, owner_id, limit):  # type: ignore[no-untyped-def]
         return self._candidates[:limit]
 
     async def resolve_landing(self, *, owner_id, event_id):  # type: ignore[no-untyped-def]
-        return self._landing_item_id
+        if self._landing_item_id is None:
+            return None
+        return self._landing_item_id, self._landing_kind
 
 
 class _MochiRepo:
@@ -63,6 +68,16 @@ class _MochiRepo:
 
     async def find_by_id(self, *, owner_id, mochi_item_id):  # type: ignore[no-untyped-def]
         return self._items.get(mochi_item_id)
+
+
+class _CandidatesRepo:
+    """find_similar 만 — 고정 ANN 이웃 반환(related 채움 테스트용)."""
+
+    def __init__(self, neighbors: list[RecallCandidate] | None = None) -> None:
+        self._neighbors = neighbors or []
+
+    async def find_similar(self, *, owner_id, source_item_id, min_score, limit):  # type: ignore[no-untyped-def]
+        return self._neighbors[:limit]
 
 
 def _knowledge_item(
@@ -177,6 +192,82 @@ async def test_feed_empty_when_no_candidates() -> None:
         owner_id=_OWNER, limit=20
     )
     assert entries == []
+
+
+# ---------- 트랙 C(recall): kind/reason 분기 + related 채움 ----------
+
+
+async def test_feed_recall_entry_populates_related() -> None:
+    # source_kind="recall" → kind="recall"/reason="linkedToRecent", related 는 ANN 이웃으로 채움.
+    anchor = _knowledge_item(title="무선 마우스 A")
+    related_item = _knowledge_item(title="무선 마우스 B", summary="저소음 비교 메모")
+    event_id = uuid4()
+    feed = _FeedRepo(
+        candidates=[
+            RecallFeedCandidate(
+                item_id=anchor.id, recall_event_id=event_id, source_kind="recall"
+            )
+        ]
+    )
+    cand_repo = _CandidatesRepo(
+        neighbors=[
+            RecallCandidate(
+                item_id=related_item.id, score=0.82,
+                summary=related_item.summary, category=None, channel=None,
+            )
+        ]
+    )
+    entries = await GetRecallFeed(
+        feed=feed,
+        mochi_items=_MochiRepo({anchor.id: anchor, related_item.id: related_item}),
+        candidates=cand_repo,
+    ).execute(owner_id=_OWNER, limit=20)
+    assert len(entries) == 1
+    e = entries[0]
+    assert e.kind == "recall"
+    assert e.reason == "linkedToRecent"
+    assert e.recall_event_id == event_id
+    assert e.related_count == 1
+    assert e.related[0].item_id == related_item.id
+    assert e.related[0].title == "무선 마우스 B"
+
+
+async def test_feed_recall_entry_not_knowledge_filtered() -> None:
+    # recall 은 kind 무관 — todo-only item 도(spaced 와 달리) live-knowledge 필터에 안 걸린다.
+    anchor = _knowledge_item(title="todo 캡처", intent=Intent.TODO)
+    feed = _FeedRepo(
+        candidates=[
+            RecallFeedCandidate(item_id=anchor.id, recall_event_id=uuid4(), source_kind="recall")
+        ]
+    )
+    entries = await GetRecallFeed(
+        feed=feed, mochi_items=_MochiRepo({anchor.id: anchor}), candidates=_CandidatesRepo()
+    ).execute(owner_id=_OWNER, limit=20)
+    assert len(entries) == 1
+    assert entries[0].kind == "recall"
+    assert entries[0].related == []  # 이웃 없음 → 빈 관련
+
+
+async def test_landing_recall_populates_related() -> None:
+    anchor = _knowledge_item(title="무선 마우스 A")
+    related_item = _knowledge_item(title="무선 마우스 B", summary="저소음 비교 메모")
+    feed = _FeedRepo(landing_item_id=anchor.id, landing_kind="recall")
+    cand_repo = _CandidatesRepo(
+        neighbors=[
+            RecallCandidate(
+                item_id=related_item.id, score=0.82, summary="저소음 비교 메모",
+                category=None, channel=None,
+            )
+        ]
+    )
+    entry = await GetRecallLanding(
+        feed=feed,
+        mochi_items=_MochiRepo({anchor.id: anchor, related_item.id: related_item}),
+        candidates=cand_repo,
+    ).execute(owner_id=_OWNER, event_id=uuid4())
+    assert entry.kind == "recall"
+    assert entry.reason == "linkedToRecent"
+    assert entry.related[0].item_id == related_item.id
 
 
 # ---------- landing: event → entry / 404 ----------

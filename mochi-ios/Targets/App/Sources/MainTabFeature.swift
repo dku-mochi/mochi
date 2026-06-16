@@ -162,6 +162,10 @@ struct MainTabFeature: Sendable {
                 // 회수 상세 "원본 보기" → 원본 mochiItem 상세 present(server PK 역매핑은 기존 경로 재사용).
                 return .send(.openDetailFromNotification(serverID: itemID))
 
+            case let .path(.element(id: _, action: .recallDetail(.delegate(.openRelated(itemID))))):
+                // 회수 상세 "관련 기억" 카드 탭 → 그 항목 상세 present(원본 보기와 같은 server PK 역매핑 경로).
+                return .send(.openDetailFromNotification(serverID: itemID))
+
             case let .path(.element(id: _, action: .weeklyDigest(.delegate(.mochiItemTapped(mochiItemID, hero))))):
                 // 정리 화면의 항목 탭 → 상세 present (캘린더처럼 hero 없으면 중앙 scale 폴백).
                 guard state.detail == nil else { return .none }

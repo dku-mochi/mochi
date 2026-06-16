@@ -2671,7 +2671,7 @@
           },
           "related": {
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/RelatedItem"
             },
             "type": "array",
             "title": "Related"
@@ -2699,7 +2699,7 @@
           "relatedCount"
         ],
         "title": "RecallFeedEntry",
-        "description": "능동 회수 1건 — iOS ``RecallEntry`` 표시모델 매핑(P5b). 홈 한 칸·자세히 목록·알림 landing 공용.\n\nUI 전용(color/symbol/grad)은 제외 — iOS 가 ``reason`` → 색/아이콘 매핑. 트랙 A/B 에선 피드가\n\"다시 볼 지식\"(active spaced plan knowledge)뿐이라 ``kind``=\"knowledge\", ``reason``=\"fadingValue\",\n``related``=[]·``relatedCount``=1(트랙 C 관련/맥락 후속). ``oneline``/``gist`` 는 summary 분할."
+        "description": "능동 회수 1건 — iOS ``RecallEntry`` 표시모델 매핑(P5b). 홈 한 칸·자세히 목록·알림 landing 공용.\n\nUI 전용(color/symbol/grad)은 제외 — iOS 가 ``reason`` → 색/아이콘 매핑. 트랙 A(spaced)는\n``kind``=\"knowledge\"/``reason``=\"fadingValue\"/``related``=[]/``relatedCount``=1, 트랙 C(recall)는\n``kind``=\"recall\"/``reason``=\"linkedToRecent\"/``related``=관련 기억 N개. ``oneline``/``gist`` 는\nsummary 분할."
       },
       "RecallFeedResponse": {
         "properties": {
@@ -2836,6 +2836,31 @@
         ],
         "title": "RegisterPushTokenRequest",
         "description": "단말(apns_device) 또는 Live Activity push-to-start(la_start) push 토큰 등록 요청."
+      },
+      "RelatedItem": {
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Itemid"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "oneline": {
+            "type": "string",
+            "title": "Oneline"
+          }
+        },
+        "type": "object",
+        "required": [
+          "itemId",
+          "title",
+          "oneline"
+        ],
+        "title": "RelatedItem",
+        "description": "관련 기억 1건(트랙 C 상세 \"관련 N개\"). 탭 시 그 항목 상세로 — ``itemId`` 운반."
       },
       "ReviewOptionResponse": {
         "properties": {
