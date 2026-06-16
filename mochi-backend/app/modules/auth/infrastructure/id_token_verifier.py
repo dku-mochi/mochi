@@ -33,6 +33,9 @@ from app.modules.auth.domain.ports import IdTokenVerifier
 
 _ALLOWED_ALGS = ("RS256", "ES256")
 _JWKS_CACHE_TTL = 600  # 10분
+# iat/nbf/exp 클럭 스큐 허용 — 서버 시계가 Apple/Google 발급 시각보다 수 초 느리면
+# 방금 발급된 토큰의 iat 이 미래가 돼 "not yet valid" 로 거부된다(ID token 검증 표준 관행).
+_CLOCK_SKEW_LEEWAY = 60  # 초
 
 
 class _JwksCache:
@@ -196,6 +199,7 @@ class HttpxIdTokenVerifier(IdTokenVerifier):
                 signing_key,
                 algorithms=list(_ALLOWED_ALGS),
                 audience=list(expected_audiences),
+                leeway=_CLOCK_SKEW_LEEWAY,
                 # PyJWT 는 iss 의 list 비교를 직접 지원하지 않으므로 수동 검증.
                 options={"require": ["exp", "iat", "sub"], "verify_iss": False},
             )
