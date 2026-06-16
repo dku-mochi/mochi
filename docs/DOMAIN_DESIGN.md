@@ -107,6 +107,10 @@ erDiagram
     mochi_items ||--o| idempotency_keys : "create dedup"
     users ||--o{ llm_usage : "LLM 토큰/비용 계측"
 
+    users ||--o{ notification_plan : "owns recall plans (A/B)"
+    intent_instances ||--o{ notification_plan : "source intent"
+    notification_plan ||--o{ notification_outbox : "1:N occurrences (lazy)"
+
     users ||--o{ conversations : "owns (owner_id, app-level)"
     conversations ||--o{ messages : "1:N turns"
     messages ||--o{ message_citations : "출처 스냅샷 (item FK 없음)"
@@ -118,7 +122,7 @@ erDiagram
 | Mochi | `mochi_items` · `intent_instances` · `mochi_item_image_refs` · `entities` | aggregate root + 의도 1급 행 + 이미지·추출물 |
 | AI | `embeddings` | 청크 벡터 (voyage-3-large 1024d, HNSW) |
 | Operations | `agent_runs` · `tool_calls` · `mochi_item_outbox` · `idempotency_keys` · `user_profiles` · `llm_usage` | 처리 로그·큐·멱등성·개인화·**LLM 토큰/비용 계측**(관측 전용 — `source=capture\|chat`, 모델명·tokens_in/out 행마다. lifecycle 불변식 무관) |
-| Notifications | `device_push_tokens` | APNs 토큰 (§6.4) |
+| Notifications | `device_push_tokens` · `notification_plan` · `notification_outbox` | APNs 토큰 (§6.4) + **능동 회수 알림**(트랙 A/B/C): plan=계획(A/B만, plan_kind + stages JSONB DSL, "생성 분리"), outbox=발송+반응 큐(A/B/C 공용, occurrence lazy materialize, "발송 통합", sent/opened/dismissed = recall_log 흡수; 트랙 C 는 plan 없이 `kind=recall` 직행). 정본 `journal/proactive-recall/schema.md` |
 | Conversations | `conversations` · `messages` · `message_citations` | 채팅(질문 탭) 멀티턴 대화 — **서버 단일원천, iOS Realm 미러 없음** (§6 미러 규약은 MochiItem 소관). run 영속은 별도 테이블 없이 user message 행의 `run_id/run_status/run_started_at`(stale 은 스냅샷 읽기 시점 lazy repair). citation 은 item FK 없는 스냅샷 — item 삭제 후에도 "그때의 근거" 보존 |
 
 **구조적 결정 (DDL 에 안 보이는 why):**
@@ -126,6 +130,7 @@ erDiagram
 - `mochi_items.deleted_at` soft delete — 행 보존(되돌릴 수 있게), 모든 조회가 `deleted_at IS NULL` 로 가림.
 - `mochi_items.user_memo` — 사용자 메모는 분류 시 **화면보다 우선하는 1차 의도 증거** (휴리스틱 본문은 프롬프트가 단일원천, §0).
 - `device_push_tokens.token` 은 **globally unique** — 폰 단위라 계정 전환 시 owner 를 갱신해 cross-account push 유출을 막는다.
+- **능동 회수 알림(트랙 A/B/C)**: `notification_plan` 은 메인 분석 후단 best-effort hook(eligibility 게이트 통과분)이 LLM 플래너로 1행 생성하고, cron 워커(`NotificationWorker`, lifespan)가 `next_eligible_at` 도달분을 스캔→occurrence 계산→하드 가드(cap·야간·dismiss cooldown·트랙B 양보, per-owner advisory lock, KST)→`notification_outbox` lazy materialize→APNs 발송한다. anchor(마감·일정일)는 캐시하지 않고 심볼 참조 — 발송 시 `intent_instances.payload` 최신 조회(사용자 수정 자동 추종). 같은 `source_intent_id` 에 active plan 1개(부분 UNIQUE). dry-run 기본 True(발송 0 튜닝). 트랙 C(관련·맥락 회수)는 범위 내 — plan 없이 `notification_outbox` 직행(`kind=recall`), 후보 생성/게이트는 A/B 다음 단계(`tech-plan.md` §8 P7–P9). 민감 캡처는 회수 후보/발송 시점 필터(후보 제외·본문 마스킹)로 처리 — `sensitivity_level` 전체 구현 비의존.
 - `user_profiles` 는 ORM 모델 없이 raw SQL(`profile_store.py`) 접근. owner 1행에 두 관점을 둔다 — `summary`(분류 성향: "어떻게 4-intent 로 나누나" → agent loop 분석에 주입)와 `chat_summary`(페르소나: "이 사람이 누구인지" 관심사·취향·맥락 → 채팅 system prompt 에 **배경·톤**으로 주입, 사실 출처 아님). 둘 다 `RefreshUserProfile`(§7.2)이 같은 sliding-window 로 디바운스 갱신하고, 입력은 `summary`/`user_memo` 만(raw 캡처 text 제외 — 최소전송, `PRIVACY_SENSITIVE_CAPTURE.md §2.1`). `chat_summary` 의 채팅 소비는 `conversations` 가 `agent.application.load_chat_profile` 로만 읽는다(모듈 경계).
 
 ---
@@ -196,6 +201,8 @@ ingested → analyzing → analyzed
 | `knowledge` | `active ↔ decaying`, `decaying → reviewRequested`, `reviewRequested → active`(회수로 소생), `reviewRequested → archived` |
 | `memo` | `active → archived` |
 
+> **`reviewRequested → active`(회수로 소생) 트리거**: 능동 회수 알림 트랙 A(`spaced`) 의 알림을 사용자가 **열면**(`opened` 반응, `POST /recall/events/{id}/reaction`) 그 knowledge instance 가 `decaying`/`reviewRequested` 상태면 `active` 로 소생한다(`lifecycle_policy.is_allowed` 통과 — 이미 합법 전이). "안 누름 ≠ negative"(무페널티). 상세 `journal/proactive-recall/notification-agent.md` §6.
+
 ### 5.3 archive_reason × intent_type
 
 | intent_type | 허용 archive_reason |
@@ -216,6 +223,7 @@ archive 전이는 instance 의 `intent_type` 으로 검증한다. 한 캡쳐의 
 | `knowledge` instance `active` 이고 마지막 회수 후 `KNOWLEDGE_ACTIVE_DAYS=30`일 경과 | → `decaying` |
 | `knowledge` instance `decaying` 진입 후 `KNOWLEDGE_DECAY_DAYS=180`일 경과 | → `reviewRequested` |
 | item dead-letter (outbox `attempts > max`) | item `lifecycle_kind` → `failed` |
+| intent instance `archived` 진입(완료/만료) + 연결된 active `notification_plan` 존재 | → 능동 회수 cron 이 plan 을 `cancelled(intent_archived)` + 그 plan 의 pending/deferred `notification_outbox` `skipped(cancelled)` (§3 Notifications). plan.status 는 intent `lifecycle_kind` 와 **별개 enum**(active/superseded/done/cancelled) |
 
 > **일정 종료 시각** = `payload.end_date`(+`end_time`), 없으면 `date`(+`time`) — 점 일정은 시작=종료, 기간형 일정은 끝이 지나야 종료(§4.2 기간형 일정). 일정/할일 종료 판정의 실제 소스(종료시각·완료여부)는 typed 테이블(§10) 구현 후 정밀화 — 현재는 entity/payload 기반.
 

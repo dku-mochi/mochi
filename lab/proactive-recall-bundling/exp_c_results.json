@@ -1,0 +1,54 @@
+{
+  "window_M": 10,
+  "ann_theta": 0.62,
+  "note": "오라클 묶음(theme 일치)으로 전략만 비교. 라벨 중복 생성 수 측정.",
+  "per_theme": [
+    {
+      "theme": "무신사여름프로모션",
+      "gt_members": 2,
+      "avg_position_gap": 51.0,
+      "window_only_labels": 2,
+      "label_ann_labels": 1
+    },
+    {
+      "theme": "유니클로",
+      "gt_members": 2,
+      "avg_position_gap": 53.0,
+      "window_only_labels": 2,
+      "label_ann_labels": 1
+    },
+    {
+      "theme": "주거정보",
+      "gt_members": 4,
+      "avg_position_gap": 25.0,
+      "window_only_labels": 4,
+      "label_ann_labels": 1
+    },
+    {
+      "theme": "추출실패더미",
+      "gt_members": 5,
+      "avg_position_gap": 19.8,
+      "window_only_labels": 5,
+      "label_ann_labels": 1
+    },
+    {
+      "theme": "투자종목",
+      "gt_members": 4,
+      "avg_position_gap": 25.0,
+      "window_only_labels": 4,
+      "label_ann_labels": 1
+    },
+    {
+      "theme": "헨리넥티셔츠",
+      "gt_members": 4,
+      "avg_position_gap": 25.0,
+      "window_only_labels": 4,
+      "label_ann_labels": 1
+    }
+  ],
+  "totals": {
+    "window_only_total_labels": 21,
+    "label_ann_total_labels": 6,
+    "ideal_total_labels": 6
+  }
+}

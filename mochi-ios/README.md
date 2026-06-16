@@ -2,7 +2,7 @@
 level: 2
 mode: reference
 status: active
-last_verified: 2026-05-29
+last_verified: 2026-06-16
 confidence: 0.9
 owners: [송준서, 이용찬, 박세현]
 description: iOS 클라이언트 진입점·빌드 가이드·모듈 구조. iOS 코드를 처음 보거나 Tuist generate/test/빌드 명령이 필요할 때 읽어라. App Group, Cores/Features/App 레이어 규칙, App Intents 배치, swift-openapi-runtime 의존성 포함.
@@ -39,7 +39,7 @@ mochi-ios/
 └── Targets/
     ├── App/                   메인 앱 셸 + @main
     │   ├── Sources/
-    │   │   ├── MochiApp.swift, RootFeature.swift, RootView.swift, AppDependencies.swift, ...
+    │   │   ├── MochiApp.swift, RootFeature.swift, RootView.swift, MainTabFeature.swift, MochiAppDelegate.swift, AppDependencies.swift, ...   (능동 회수 알림 landing: MochiAppDelegate 가 routeType="detail"+recallEventID 푸시를 받아 RootFeature → MainTabFeature 가 ③ 회수 상세 직행)
     │   │   └── AppIntents/    QuickCaptureIntent (텍스트/URL · Siri/Spotlight) + CaptureScreenshotIntent (이미지 · 백탭 단축어가 PNG stash + snippet 카드 표시, `openAppWhenRun = false`) + BackTapResultSnippet (외부 앱 위 시스템 카드 wrapper: 캡처 BackTapSnippetView / 온보딩 검증 BackTapVerifiedSnippetView) + CommitBackTapCaptureIntent (snippet 캡쳐 분기 background commit) + OpenBackTapMemoIntent (snippet 메모 분기 → 모찌 foreground 진입) + MochiShortcuts (AppShortcutsProvider)
     │   ├── Resources/Assets.xcassets
     │   └── Support/Info.plist, App.entitlements
@@ -51,7 +51,7 @@ mochi-ios/
     │   ├── CoreIntegrations/  CalendarSyncing (EventKit/Reminders)
     │   └── DesignSystem/      MochiTheme, IntentBadge, HomeDesign(토큰), LocalThumbnail, IntentChip, MochiItemKindTag ...
     ├── Features/
-    │   ├── FeatureInbox/      받은 기록 목록 (필터 + 라우팅)
+    │   ├── FeatureInbox/      홈·캘린더·검색·받은 기록 + 능동 회수 (RecallFeature: ② 자세히 RecallListFeature / ③ 상세 RecallDetailFeature, RecallView · 홈 "회수 한 칸" slice = HomeFeature)
     │   ├── FeatureMochiItem/    Agent loop stream UI
     │   ├── FeatureSearch/     자연어 질의
     │   ├── FeatureDetail/     상세 + 캘린더/리마인더 sync
@@ -133,6 +133,8 @@ tuist test
 - 에러 응답은 `APIErrorEnvelope` 통일 포맷
 
 이미지 첨부는 서버가 bytes 를 받지 않는다. iOS 가 업로드용 파생본(긴 변 1920px 이하, JPEG q60)을 만들고, 그 bytes 기준 `sha256/mimeType/byteSize` 로 `/mochi_items/presign` 을 호출한 뒤 GCS Signed URL 에 직접 PUT 한다. 이후 `objectKey` 를 `POST /mochi_items` 의 `imageRefs` 로 전달한다 (2026-06-04 단일 ingest — back-tap 경로 폐기).
+
+**능동 회수**: `MochiAPIClient` 에 회수 메서드 3종 — `recallFeed(limit:)`(홈 "회수 한 칸"·자세히), `recallLanding(eventID:)`(알림 landing 시 로컬 역매핑 실패 fallback, 단건 fetch), `recordRecallReaction(eventID:reaction:)`(opened/dismissed/stop, 응답 액션 ↔ 서버 reaction 1:1). DTO 는 `RecallFeedEntryDTO`(itemID·recallEventID·reason 등).
 
 ## 참고
 

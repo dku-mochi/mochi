@@ -156,6 +156,18 @@ class Settings(BaseSettings):
     apns_bundle_id: str = "app.mochi"
     apns_auth_key_p8_base64: str | None = None
 
+    # 능동 회수 알림 cron 워커 (P3/P4). 정본 journal/proactive-recall/.
+    # killswitch False 면 워커 기동은 하되 루프가 no-op(§7). dry_run True 면 실발송 없이 payload 로그만
+    # (발송 0 으로 threshold 튜닝, §6/§7) — 실발송 전환은 .env 로 recall_notifications_dry_run=false.
+    recall_worker_enabled: bool = True
+    recall_notifications_dry_run: bool = True
+    recall_worker_poll_interval_seconds: int = 30
+    recall_worker_lock_seconds: int = 120
+    recall_daily_cap: int = 3                 # owner 하루 발송 cap (KST local date)
+    recall_quiet_start_hour_kst: int = 21     # 야간 무음 시작 (KST)
+    recall_quiet_end_hour_kst: int = 8        # 야간 무음 종료 (KST)
+    recall_dismiss_cooldown_days: int = 7     # dismiss 후 같은 intent 재알림 쿨다운 (plan 경계 넘음)
+
     @property
     def auth_google_client_id_list(self) -> tuple[str, ...]:
         return tuple(s.strip() for s in self.auth_google_client_ids.split(",") if s.strip())

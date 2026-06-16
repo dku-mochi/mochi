@@ -52,10 +52,13 @@ public struct HomeView: View {
                         .riseIn(hasEntered, index: 1)
                     needsReviewPrompt
                         .riseIn(hasEntered, index: 2)
-                    recentSection
+                    // 회수 "한 칸" — needsReview 다음, analyzing 앞(ux-ui §6). 고정 틀이라 비어도 자리 유지.
+                    recallSection
                         .riseIn(hasEntered, index: 3)
-                    processingSection
+                    recentSection
                         .riseIn(hasEntered, index: 4)
+                    processingSection
+                        .riseIn(hasEntered, index: 5)
                     //                    settingsFooter
                 }
                 .padding(.horizontal, HomeDesign.Spacing.xl)
@@ -923,8 +926,18 @@ public struct HomeView: View {
         )
     }
     
+    // MARK: - 회수 "한 칸" (다시 보면 좋을 기억)
+
+    /// 능동 회수 고정 틀 — count + 최상위 1건 미리보기, 비면 "지금은 없어요"(레이아웃 안정).
+    /// 탭하면 ② 자세히(통일 카드 목록)로. 회수=분류 아님(category·주제 라벨 0개).
+    private var recallSection: some View {
+        RecallEntryCard(entries: store.recall) {
+            store.send(.recallEntryTapped)
+        }
+    }
+
     // MARK: - ② 모찌가 정리하고 있어요 (analyzing, 접힘)
-    
+
     @ViewBuilder
     private var processingSection: some View {
         if !store.analyzing.isEmpty {

@@ -1413,6 +1413,141 @@
           }
         }
       }
+    },
+    "/api/v1/recall/feed": {
+      "get": {
+        "tags": [
+          "recall"
+        ],
+        "summary": "Get Recall Feed",
+        "description": "홈 회수 한 칸 + 자세히 목록 — owner 의 active spaced plan knowledge(다시 볼 지식).\n\n소스: notification_plan(status='active', plan_kind='spaced') → source item(deleted_at IS NULL,\n살아있는 knowledge instance). recency 정렬(랭킹 공식 미정 — 후속). 빈손이면 entries=[](정상).",
+        "operationId": "get_recall_feed_api_v1_recall_feed_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "Authorization",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecallFeedResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/recall/events/{event_id}": {
+      "get": {
+        "tags": [
+          "recall"
+        ],
+        "summary": "Get Recall Landing",
+        "description": "알림 landing fallback — recallEventID 로 단건 회수 entry(iOS 로컬 역매핑 실패 시 서버 fetch).\n\nowner+event 로 outbox→item 해석. status 무관(sent 후 탭이라도 보여야 함). 남의 event·삭제·미실재 404.",
+        "operationId": "get_recall_landing_api_v1_recall_events__event_id__get",
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Event Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "Authorization",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecallFeedEntry"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/recall/events/{event_id}/reaction": {
+      "post": {
+        "tags": [
+          "recall"
+        ],
+        "summary": "Record Recall Reaction",
+        "description": "알림 반응 보고 (owner-scoped, first-write-wins 멱등).\n\n`(event_id, owner_id)` + `status='sent'` 인 행만 갱신한다. 행이 없으면 404(남의 event_id·\npending·이미 종료). 이미 같은 반응이 기록돼 있으면 멱등 no-op(중복 탭 → 204).",
+        "operationId": "record_recall_reaction_api_v1_recall_events__event_id__reaction_post",
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Event Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "Authorization",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordRecallReactionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2469,6 +2604,16 @@
         "title": "PushTokenType",
         "description": "등록되는 푸시 토큰의 종류.\n\n- ``apns_device``: 단말 remote notification 토큰 (owner 1:N 단말). 분석완료 alert 대상.\n- ``la_start``: Live Activity push-to-start 토큰 (owner 1:N 단말, item 무관). needs_review=true\n  분석완료 시 백엔드가 이 토큰으로 LA 를 background(잠금)에서 시작한다(start push). iOS 17.2+.\n  진행중/완료 LA 는 띄우지 않는다(팀 결정 2026-06-09) — 구 per-item ``live_activity`` 토큰 폐기."
       },
+      "ReactionKind": {
+        "type": "string",
+        "enum": [
+          "opened",
+          "dismissed",
+          "stop"
+        ],
+        "title": "ReactionKind",
+        "description": "알림 반응 종류 — iOS 가 보고하는 3종.\n\n- opened: 알림 탭(양성 신호). spaced 면 회수 소생 트리거(HIGH-2).\n- dismissed: soft 부정(cooldown 신호). 멱등.\n- stop: \"이 기억 그만\" 영구 부정 → plan cancelled(codex-7 1:1)."
+      },
       "ReanalyzeRequest": {
         "properties": {
           "userHint": {
@@ -2484,6 +2629,104 @@
         ],
         "title": "ReanalyzeRequest",
         "description": "needs_review 항목 재분석 요청 — 사용자가 \"다른 의도\"를 고르며 자연어로 적은 의도 힌트.\n\n힌트는 분석 프롬프트 context 에만 합류하고 **outbox 행에만 일시 적재**된다.\n`mochi_items`·`user_memo` 에는 저장하지 않는다(사용자가 직접 쓴 메모로 오해하는 것을 막는다)."
+      },
+      "RecallFeedEntry": {
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Itemid"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "oneline": {
+            "type": "string",
+            "title": "Oneline"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "savedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Savedat"
+          },
+          "gist": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Gist"
+          },
+          "related": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Related"
+          },
+          "relatedCount": {
+            "type": "integer",
+            "title": "Relatedcount"
+          },
+          "recallEventID": {
+            "title": "Recalleventid",
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "itemId",
+          "kind",
+          "reason",
+          "title",
+          "oneline",
+          "source",
+          "savedAt",
+          "relatedCount"
+        ],
+        "title": "RecallFeedEntry",
+        "description": "능동 회수 1건 — iOS ``RecallEntry`` 표시모델 매핑(P5b). 홈 한 칸·자세히 목록·알림 landing 공용.\n\nUI 전용(color/symbol/grad)은 제외 — iOS 가 ``reason`` → 색/아이콘 매핑. 트랙 A/B 에선 피드가\n\"다시 볼 지식\"(active spaced plan knowledge)뿐이라 ``kind``=\"knowledge\", ``reason``=\"fadingValue\",\n``related``=[]·``relatedCount``=1(트랙 C 관련/맥락 후속). ``oneline``/``gist`` 는 summary 분할."
+      },
+      "RecallFeedResponse": {
+        "properties": {
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/RecallFeedEntry"
+            },
+            "type": "array",
+            "title": "Entries"
+          }
+        },
+        "type": "object",
+        "title": "RecallFeedResponse",
+        "description": "홈 회수 피드 — owner 의 다시 볼 지식 목록. 빈손이면 entries=[](cold-start 정상)."
+      },
+      "RecordRecallReactionRequest": {
+        "properties": {
+          "reaction": {
+            "$ref": "#/components/schemas/ReactionKind"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reaction"
+        ],
+        "title": "RecordRecallReactionRequest",
+        "description": "알림 반응 보고 — iOS 가 알림 탭/dismiss/그만 시 `recallEventID`(=outbox.event_id)로 보고.\n\nopened=양성, dismissed=soft 부정, stop=\"이 기억 그만\" 영구(plan cancel). 신호 의미는\nnotification-agent.md §6, 반응→상태전이 1:1 은 ux-ui.md §4."
       },
       "ReferenceLinkResponse": {
         "properties": {

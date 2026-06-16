@@ -30,6 +30,9 @@ public struct HomeFeature: Sendable {
         public var needsReview: IdentifiedArrayOf<MochiItem> = []
         public var weeklyRecordCount: Int = 0
         public var weeklyTopCategories: [WeeklyCategoryStat] = []
+        /// 능동 회수 "한 칸" — "다시 보면 좋을 기억"(고정 틀, 비면 "지금은 없어요"). cold-start 빈손은 정상.
+        /// 가장 가치 높은 1건 미리보기 + count 만 홈에 두고, 자세히/상세는 별도 화면(RecallListFeature).
+        public var recall: [RecallFeedEntryDTO] = []
         /// 채팅 입력바 밑 추천 칩 — 최근 기록의 intent/카테고리로 사용자화(로컬 규칙). 신규 유저는 evergreen.
         public var suggestions: [HomeSuggestion] = HomeFeature.evergreenSuggestions
         public var chatDraft: String = ""
@@ -60,6 +63,11 @@ public struct HomeFeature: Sendable {
             weeklyItems: [MochiItem]
         )
         case loadFailed(String)
+        /// 회수 피드 로드 결과(빈손이면 [] — cold-start 정상). onAppear 와 별개 effect 로 분리해
+        /// 회수 API 실패가 홈 본문(recent/needsReview) 로드를 막지 않게 한다(실패 격리).
+        case recallLoaded([RecallFeedEntryDTO])
+        /// 회수 "한 칸" 탭 → 상위(MainTab)가 ② 자세히 목록을 push 한다.
+        case recallEntryTapped
         case suggestedQuestionTapped(String)
         case chatSubmitTapped
         case reviewSummaryTapped
@@ -93,6 +101,9 @@ public struct HomeFeature: Sendable {
             case chatRequested(String)
             /// "최근에 보낸 것들 > 전체 보기" — 상위가 검색 탭(전체 기록 브라우징)으로 전환한다.
             case seeAllRecentRequested
+            /// 회수 "한 칸" 탭 — 상위가 ② 자세히(통일 카드 목록)를 push 한다. 이미 받아둔 피드를 넘겨
+            /// 즉시 그린다(목록 화면은 백그라운드 최신화만).
+            case recallListRequested([RecallFeedEntryDTO])
             /// 헤더 별 → 상위가 즐겨찾기 화면을 push 한다.
             case favoritesRequested
         }
@@ -104,7 +115,7 @@ public struct HomeFeature: Sendable {
     @Dependency(\.uuid) var uuid
     @Dependency(\.date) var date
 
-    private enum CancelID { case observe }
+    private enum CancelID { case observe, recallFeed }
 
     public init() {}
 
@@ -121,6 +132,10 @@ public struct HomeFeature: Sendable {
                 // 최초 load + 저장소 변경 관찰(서버 응답·외부 캡처 도착 시 즉시 재로드).
                 return .merge(
                     .run { send in await loadAll(send: send) },
+                    // 회수 피드는 별도 effect — 실패해도 홈 본문 로드를 막지 않는다(실패 격리).
+                    // cancelInFlight — onAppear/refresh 가 겹쳐도 이전 응답이 최신을 덮지 않게(stale overwrite 방지).
+                    .run { send in await send(.recallLoaded((try? await apiClient.recallFeed(limit: 20)) ?? [])) }
+                        .cancellable(id: CancelID.recallFeed, cancelInFlight: true),
                     // 로컬이 비어있으면(재설치 직후 등) 서버에서 복구 — pull 결과는 observeChanges 가 자동 재로드.
                     .run { _ in
                         if (try? await repository.listRecent(limit: 1))?.isEmpty ?? true {
@@ -137,9 +152,11 @@ public struct HomeFeature: Sendable {
 
             case .refresh:
                 state.isLoading = true
-                return .run { send in
-                    await loadAll(send: send)
-                }
+                return .merge(
+                    .run { send in await loadAll(send: send) },
+                    .run { send in await send(.recallLoaded((try? await apiClient.recallFeed(limit: 20)) ?? [])) }
+                        .cancellable(id: CancelID.recallFeed, cancelInFlight: true)
+                )
 
             case let .sectionsLoaded(recent, analyzing, needsReview, weeklyItems):
                 state.isLoading = false
@@ -166,6 +183,14 @@ public struct HomeFeature: Sendable {
                 state.isSaving = false
                 state.lastError = message
                 return .none
+
+            case let .recallLoaded(entries):
+                state.recall = entries
+                return .none
+
+            case .recallEntryTapped:
+                guard !state.recall.isEmpty else { return .none }
+                return .send(.delegate(.recallListRequested(state.recall)))
 
             case let .suggestedQuestionTapped(question):
                 // 칩은 입력 없이 바로 회수 — "떠올린다"가 아니라 "떠오른다"(미션, PRODUCT.md §1.5).

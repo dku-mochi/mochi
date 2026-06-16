@@ -25,7 +25,16 @@ _JWT_TTL_SECONDS = 3000
 
 
 class APNsError(RuntimeError):
-    """APNs 가 non-200 을 반환했을 때. 호출부(worker)가 best-effort 로 격리한다."""
+    """APNs 가 non-200 을 반환했을 때. 호출부(worker)가 best-effort 로 격리한다.
+
+    status_code/reason 을 담아 호출부가 실패를 분류한다(codex-5): 410 또는 reason 이
+    Unregistered/BadDeviceToken 이면 토큰 무효화(영구), 5xx/timeout 은 transient backoff.
+    """
+
+    def __init__(self, message: str, *, status_code: int | None = None, reason: str | None = None) -> None:
+        super().__init__(message)
+        self.status_code = status_code
+        self.reason = reason
 
 
 class HttpxAPNsClient(APNsClient):
@@ -75,6 +84,12 @@ class HttpxAPNsClient(APNsClient):
             f"https://{host}/3/device/{token}", json=payload, headers=headers
         )
         if resp.status_code != 200:
+            # APNs 실패 body 는 {"reason": "..."} JSON — 분류용으로 추출(codex-5).
+            reason: str | None = None
+            try:
+                reason = resp.json().get("reason")
+            except Exception:  # noqa: BLE001 - body 가 JSON 이 아니면 reason 없이 진행
+                reason = None
             log.warning(
                 "apns.failed",
                 token=_mask_token(token),
@@ -82,9 +97,14 @@ class HttpxAPNsClient(APNsClient):
                 push_type=push_type.value,
                 topic=topic,
                 status_code=resp.status_code,
+                reason=reason,
                 body=resp.text[:256],
             )
-            raise APNsError(f"APNs {resp.status_code} for {push_type.value}: {resp.text[:256]}")
+            raise APNsError(
+                f"APNs {resp.status_code} for {push_type.value}: {resp.text[:256]}",
+                status_code=resp.status_code,
+                reason=reason,
+            )
         log.info(
             "apns.sent",
             token=_mask_token(token),

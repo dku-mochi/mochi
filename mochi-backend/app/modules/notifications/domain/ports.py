@@ -42,3 +42,7 @@ class PushTokenRepository(ABC):
 
     @abstractmethod
     async def list_for_owner(self, *, owner_id: UUID, token_type: PushTokenType) -> list[DevicePushToken]: ...
+
+    @abstractmethod
+    async def delete(self, *, token: str) -> None:
+        """무효 토큰(APNs 410 Unregistered/BadDeviceToken)을 영구 삭제한다 (codex-5)."""

@@ -590,6 +590,8 @@ let project = Project(
                 .package(product: "Perception"),
                 .package(product: "PerceptionCore"),
                 .package(product: "SwiftNavigation"),
+                // 회수 상세 토스트(continuousClock) 테스트용 TestClock.
+                .package(product: "Clocks"),
             ]
         ),
         unitTests(

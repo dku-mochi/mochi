@@ -10,6 +10,35 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-06-16 — docs (능동 회수: 트랙 C 위상 정정 + sensitivity 디커플링 + EventKit 미러 결정)
+- **트랙 C(관련·맥락 회수)를 "별도 후속 트랙"에서 A/B와 같은 구현 범위로 재편입** — `journal/proactive-recall/` 5종 + `ARCHITECTURE`·`DOMAIN_DESIGN`·`PRIVACY_SENSITIVE_CAPTURE`·`UX_SPEC` framing 정정. `tech-plan.md` §8에 트랙 C를 P7–P9(후보 생성·게이트+민감 필터·발송 합류, A/B 발송 파이프라인 P4–P6 재사용)로 본문화. 코드 미구현 — 설계 위상만 조정.
+- **민감 스크린샷 ≠ `sensitivity_level` 전체 구현 의존** — 트랙 C가 스크린샷을 회수해도 민감 노출은 회수 후보 생성/발송 시점 필터(민감 항목 후보 제외·본문 마스킹·channel allowlist)로 국소 처리. 이전 "sensitivity 필드 = 트랙 C blocker" framing 폐기.
+- **EventKit 양방향 미러 동기화 = 안 함(결정)** — 앱↔시스템 캘린더 생명주기 미러는 비범위. 일회성 등록(proposal 확정/캘린더 추가의 EKEvent/EKReminder, `CoreIntegrations.SystemCalendarRegistrar`)은 별개로 유지. known-drift "캘린더 탭 반영"은 앱 내부 데이터 버그(미러와 무관)로 분리.
+
+## 2026-06-16 — backend (능동 회수 알림 구현 — 트랙 A/B)
+- **`notification_plan` + `notification_outbox` 2테이블 + stages DSL (alembic 0023)** — "생성 분리(plan)/발송 통합(outbox)". plan_kind(deadline_backoff/recurring_nudge/spaced) + JSONB stages(relative/recurring/spaced trigger, Pydantic `RecallPlanStages` 삽입 전 검증). DB 제약으로 불변식 못 박음: 부분 UNIQUE(plan_id,stage_seq,occurrence_seq) + `ck_no__plan_row_has_seq`(NULL 우회 차단) + active-plan 유일성 `ux_notification_plan_active_intent(owner_id,source_intent_id) WHERE status='active'` + enum CheckConstraint(ORM↔migration 일치). 정본 `journal/proactive-recall/schema.md`.
+- **알림 설계 Agent(플래너)** — 메인 분석 후단 best-effort hook(`_plan_recall_notifications`, 독립세션·격리)이 결정적 eligibility 게이트(intent 종류·미래 date·importance — v21/finalizeAnalysis 무손상)로 후보를 거른 뒤, Gemini tool-loop 플래너(`get_scheduled` 묶기 tool + 구조화 finalize, flash-lite, 강프롬프트 criteria+why)가 `notification_plan` 생성. 같은 source_intent active plan 1개(supersede).
+- **cron 워커 + 하드 가드 + 발송** — lifespan `NotificationWorker`(킬스위치 `recall_worker_enabled`, dry-run 기본 True). materialize: active plan→occurrence 계산(relative/recurring/spaced, spaced 는 반응 기준 전진)→하드 가드(cap·야간무음·dismiss cooldown·트랙B 양보, per-owner advisory lock, KST)→outbox lazy materialize. deferred(cap/야간/트랙B)는 `next_retry_at` 도달 시 재평가로 회생(영구 소실 차단). 종료연동(HIGH-2): intent archived→plan cancelled. 발송: `SendRecallNotification`(payload mochiItemID/sourceIntentID/routeType/recallEventID/kind), APNs 410/Unregistered→토큰 무효화+dead_letter, 5xx→backoff. occurrence-math·가드는 순수함수 분리.
+- **반응 수집 + spaced 소생** — `POST /recall/events/{event_id}/reaction`(opened/dismissed/stop, (event_id,owner_id)+status='sent' first-write-wins 멱등). opened+spaced+knowledge(decaying/reviewRequested)→active 소생(lifecycle_policy 재사용, HIGH-2 "지금 소생까지 구현" 결정). stop→plan cancelled(user_dismiss). openapi.json ⓪ 재생성·iOS 동기화.
+- 검증: `make typecheck`/`make lint` clean, `make test` 396 passed, alembic 왕복, codex 리뷰 3라운드(P1+P2 / P3+P4 / 최종) → HIGH 다수 수정(DB 제약·deferred 상태머신·조기 done·skip_reason 어휘·종료연동·소생 격리). 정본 `journal/proactive-recall/`. **committed 폭포(DOMAIN_DESIGN·ARCHITECTURE·PROPOSAL·PRIVACY·UX_SPEC·양 README) 동기화 완료 + iOS landing/홈 회수 칸 실체화(아래 ios 항목).**
+
+## 2026-06-16 — ios (능동 회수 회수 화면 — P6)
+- **회수 3단 실체화** (`FeatureInbox/RecallFeature.swift`·`RecallView.swift`, mock `RecallHomeFeedMock` 제거) — ② 자세히(`RecallListFeature`, 통일 카드 목록) + ③ 상세(`RecallDetailFeature`, kind별 섹션 + 응답 액션). 이유 칩 4종(`RecallReasonKind`: 잊기 전에 한 번/관련해서 여러 번/요즘 자주 보시던/지금 맥락과 이어져요, 색·아이콘 iOS 매핑·VoiceOver "회수 이유: …").
+- **홈 "회수 한 칸"** — `HomeFeature` slice(count + top-1 미리보기, 별도 화면 아님), needsReview 다음 상단 고정 틀, 비면 "지금은 없어요"(레이아웃 안정). 탭 → 자세히.
+- **알림 landing** — `MochiAppDelegate`(routeType="detail"+recallEventID) → `RootFeature` → `MainTabFeature` 가 ③ 회수 상세 직행. 로컬 역매핑 실패 시 `recallEventID`로 서버 fetch fallback(`recallLanding`).
+- **반응** — `MochiAPIClient` 회수 메서드 3종(`recallFeed`/`recallLanding`/`recordRecallReaction`, `RecallFeedEntryDTO`). 응답 액션 ↔ reaction 1:1: 기억났어요/탭 진입/열기=opened·원본 보기=원본 상세·그만 보기=stop(plan cancel). primary=목적 수행, 피드백 보조(미션 정합).
+- **접근성** — 이유 칩 VoiceOver 의미 라벨, 홈 preview Dynamic Type 2줄, 상세 액션 세로 스택 전환.
+- **opened 신호 유실 경합 수정** (최종 QA, `MainTabFeature`) — 알림 landing 의 `opened` 보고를 landing fetch 의 `.cancellable(cancelInFlight)` 에서 분리해 별도 비취소 effect 로(`.merge`). 회수 알림 연속 탭 시 첫 알림의 유일한 opened 경로가 cancelInFlight 로 취소·유실되던 것 차단.
+- 검증: `tuist build`/`tuist test` 통과, `ios-boundaries.sh` 위반 0. 최종 QA(codex 교차 정합) PASS — 푸시 payload·reaction enum·피드 DTO·landing·openapi 단일계약 백엔드↔iOS 일치. 화면 정본 `journal/proactive-recall/ux-ui.md`, committed `UX_SPEC.md §3.11`·`mochi-ios/README.md`.
+
+## 2026-06-16 — ios
+- **채팅 스크롤을 bottom anchored 메신저 구조로 재구성** — 질문 top-pin 연출을 포기하고 `activeUserTurnID`/동적 spacer/버블 높이 PreferenceKey/iOS18 `ModernMessageList`/`pinToTop` 경로를 제거했다. 메시지 리스트는 단일 `ScrollViewReader` + bottom anchor 로 단순화하고, 바닥 근처일 때만 메시지·스트림 텍스트·구조 카드·키보드 resize 를 따라간다. 전송 후 키보드도 강제로 내리지 않아 입력 중 흐름을 유지한다. 목적은 SwiftUI safeAreaInset 키보드 회피와 수동 top-pin scroll 이 경합하던 구조 제거. UX_SPEC §1.5 채팅 스크롤 정책 동기화. 검증: `tuist build FeatureChat`, `tuist test FeatureChat`.
+
+## 2026-06-16 — docs, lab
+- **능동 회수 알림·회수 설계 확정 폴더 신설** (`journal/proactive-recall/` 5종: INDEX·schema·notification-agent·ux-ui·tech-plan) — 정본 2저널(notification-planner·ux-decision)을 정제해 알림 발송 스키마(`notification_plan`+`notification_outbox`+stages DSL), 정책(메인 Agent가 "알림 필요" 판정 → 알림 설계 tool-calling Agent가 예약조회·묶기·생성 / 규칙가드 cron, 서버 push 단일·EventKit 무관), 회수 3단 UX·알림 landing 매핑, 구현 플랜으로 확정. codex 적대검증(스키마 7 ACCEPT·과설계 3 거부 / 문서 9 ACCEPT·timezone PARTIAL) + doc-guardian 충돌 스캔(CRITICAL 0) 반영. 트랙 C 본체·민감 게이트·EventKit 동기화·채팅 reminder 는 별도 후속 트랙. 미구현 — committed(PROPOSAL/DOMAIN_DESIGN/openapi) 폭포는 구현 착수 시.
+- **능동 회수 알림 타이밍·플래너 실데이터 결정** (journal `2026-06-16-proactive-recall-notification-planner.md`) — 최다보유 계정 114건 추출 + lab 실험 3건으로: (1) "저장시각=알림시각" 가설 폐기·6~10시 죽은시간 발견, (2) importance 단독 무게게이트 폐기(무게와 직교 실증) → intent_type 1차+schedule LLM, (3) 알림 = LLM 플래너(강프롬프트+시간순 맥락주입) + 규칙 집행가드. 운영품질(죽은시간0·난사↓·주기넛지 자동생성) B우세, 비결정성은 측정설계 결함으로 미결. 미승인 — committed 정합 반영 별도.
+- **`.gitignore`에 recall-notification 실험 results/ 추가** — `lab/active/recall-notification-{weight,planner}/results/*.json` 에 개인 기록 title 포함, 커밋 차단(코드 `.py` 는 추적).
+
 ## 2026-06-15 — ios, backend, docs (UX 배치: 캘린더·채팅·홈)
 - **[1a] 캘린더 날짜 sheet 수정 즉시 반영** — DaySheet 가 observeChanges 미구독이라 상세 수정/완료 후 재탭 전까지 stale 했다. `loaded` 시 선택 날짜가 있으면 그 날짜 목록도 재조회(`SelectedDay.id==date` 라 sheet 재present 없음).
 - **[2a] 채팅 바닥 과스크롤 제거** — `bottomSpacerHeight` 의 pinSlack 초과분 제거. spacer 를 "질문+답변이 딱 한 화면" 양으로만 둬 짧은 턴에서 콘텐츠가 화면 밖으로 사라지는 과스크롤 제거 + 한 화면 채우면 0(최근 답변이 입력바 위에 붙음). (develop 머지 시 `bf69a40` 의 iOS18/17 `bottomSpacerHeight` 분기 재작성과 충돌 — pinSlack 제거를 양 분기에 반영해 해소: iOS17 은 PR 원본과 동일, iOS18 은 develop anchor-흡수 구조 보존 + pinSlack 제거. `pinSlack` 상수 삭제.)

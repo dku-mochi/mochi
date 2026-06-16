@@ -1,0 +1,68 @@
+{
+  "note": "ground-truth theme 기준 (이상적 묶음기 가정)",
+  "timeline": [
+    {
+      "at_n_items": 3,
+      "n_bundles": 0,
+      "n_recallable_items": 0,
+      "recallable_ratio": 0.0,
+      "bundles": {}
+    },
+    {
+      "at_n_items": 5,
+      "n_bundles": 0,
+      "n_recallable_items": 0,
+      "recallable_ratio": 0.0,
+      "bundles": {}
+    },
+    {
+      "at_n_items": 10,
+      "n_bundles": 0,
+      "n_recallable_items": 0,
+      "recallable_ratio": 0.0,
+      "bundles": {}
+    },
+    {
+      "at_n_items": 20,
+      "n_bundles": 1,
+      "n_recallable_items": 3,
+      "recallable_ratio": 0.15,
+      "bundles": {
+        "헨리넥티셔츠": 3
+      }
+    },
+    {
+      "at_n_items": 30,
+      "n_bundles": 1,
+      "n_recallable_items": 3,
+      "recallable_ratio": 0.1,
+      "bundles": {
+        "헨리넥티셔츠": 3
+      }
+    },
+    {
+      "at_n_items": 50,
+      "n_bundles": 2,
+      "n_recallable_items": 6,
+      "recallable_ratio": 0.12,
+      "bundles": {
+        "주거정보": 3,
+        "헨리넥티셔츠": 3
+      }
+    },
+    {
+      "at_n_items": 103,
+      "n_bundles": 6,
+      "n_recallable_items": 21,
+      "recallable_ratio": 0.2,
+      "bundles": {
+        "무신사여름프로모션": 2,
+        "유니클로": 2,
+        "주거정보": 4,
+        "추출실패더미": 5,
+        "투자종목": 4,
+        "헨리넥티셔츠": 4
+      }
+    }
+  ]
+}

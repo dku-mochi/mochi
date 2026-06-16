@@ -85,6 +85,8 @@ description: 시스템 토폴로지·iOS↔Backend 데이터흐름·API 계약�
 │                                                                       │
 │  Mochi Worker  ──►  LISTEN mochi_item_outbox / poll                   │
 │  (FOR UPDATE SKIP LOCKED, AgentRunPersistence, DLQ)                   │
+│  Recall Worker ──►  notification_plan/outbox (능동 회수 A/B, dry-run)  │
+│  (materialize+가드+종료연동 / send+APNs, killswitch)                   │
 │                                                                       │
 │  Vertex AI │ gemini-3.1-flash-lite (multimodal function calling)      │
 │  Voyage AI │ voyage-3-large@1024 (embedding) + rerank-2.5 (reranker)  │
@@ -234,11 +236,19 @@ app/
 │   │   ├── application/           HybridSearch use case
 │   │   ├── infrastructure/        PostgresHybridIndex (owner-scoped BM25 + 벡터) + rrf
 │   │   └── presentation/router.py      POST /search
-│   ├── notifications/                   PR-B — APNs background push
+│   ├── notifications/                   APNs background push (PR-B) + 능동 회수 알림 (트랙 A/B 구현·C 설계)
 │   │   ├── domain/                APNsClient/PushTokenRepository port, DevicePushToken
+│   │   │                          + recall_plan(stages DSL Pydantic), recall_planning/reaction/feed ports
 │   │   ├── application/           RegisterPushToken, SendAnalysisNotification, make_push_token_repository
+│   │   │                          + PlanRecallNotifications(eligibility 게이트 + LLM 플래너) · NotificationWorker
+│   │   │                            (cron: materialize+하드가드+종료연동 / send+APNs 410 분류, dry-run·killswitch)
+│   │   │                          · SendRecallNotification · RecordRecallReaction(opened/dismissed/stop + spaced 소생)
+│   │   │                          · GetRecallFeed/GetRecallLanding · recall_occurrence·recall_guards(순수함수, DB무관)
 │   │   ├── infrastructure/        HttpxAPNsClient(http2+ES256 JWT), PostgresPushTokenRepository, DevicePushTokenRow
-│   │   └── presentation/router.py      POST /devices/push-token
+│   │   │                          + NotificationPlanRow/NotificationOutboxRow · GeminiRecallPlanner(tool-loop, flash-lite)
+│   │   │                          · recall_plan/context/reaction/feed repositories
+│   │   └── presentation/          POST /devices/push-token · POST /recall/events/{id}/reaction
+│   │                              · GET /recall/feed · GET /recall/events/{id}(landing fallback)
 │   └── conversations/                   채팅 탭 — LLM 루프 read-only + proposal (journal 2026-06-10)
 │       ├── domain/                Conversation/Message/MessageCitation, ChatTool·ChatLLMClient·ChatTurnStore ports, run_events
 │       ├── application/           BeginChatTurn(암묵 생성·동시 run 409) · RunChatTurn(detached run 본체) · queries(스냅샷+stale lazy repair)
@@ -322,6 +332,31 @@ AgentOrchestrator(persistence=AgentRunPersistence(session)).run(mochi_item_id)
 - **foreground = SSE**: iOS `AgentStreamClient` 가 `GET /mochi_items/{id}/stream` 구독. 서버는 worker 의 `mochi_items.lifecycle_kind` 를 read-only 폴링(1s)해 `node`/`final`/`failed` emit — 실제 분석은 worker 단독(이중 실행 방지). iOS 는 `final` 수신 시 `GET /mochi_items/{serverID}` 재조회로 분석결과 fetch.
 - **background/종료 = APNs**: SSE 소켓이 suspend 되므로 worker push 훅이 인계 — 완료 alert(전 단말) + needs_review=true 면 LA **push-to-start**(잠금화면에서 후보 선택, 탭하면 위젯이 reanalyze 직접 호출).
 - **fallback = 폴링**: SSE 실패/끊김 시 3초 폴링(`GET /mochi_items/{serverID}`, 제거 금지). scenePhase active 복귀 시 reconcile(SSE 재연결 + 1회 폴링).
+
+#### 능동 회수 알림 (트랙 A/B/C)
+
+> **트랙**: A=지식 spaced · B=마감 역산(`notification_plan` 경유, 구현됨) / C=관련·맥락 회수(plan 없이 `notification_outbox` 직행 `kind=recall`, **범위 내**이나 후보 생성 미구현 — `journal/proactive-recall/tech-plan.md` §8 P7–P9). 민감 스크린샷 노출은 회수 후보/발송 시점 필터로 처리(`sensitivity_level` 전체 구현 비의존).
+> 기동: `app/main.py` lifespan 에 `NotificationWorker.run_forever()` 1개를 MochiWorker 옆에 추가(graceful stop). killswitch `recall_worker_enabled`, dry-run 기본 True(발송 0 튜닝). 정본 `journal/proactive-recall/`.
+
+```
+[생성] 분석 done 직후 best-effort hook (분석 try 밖, 독립 세션)
+  PlanRecallNotifications: eligibility 게이트(intent 종류·미래 date·importance — v21 무손상)
+    → GeminiRecallPlanner(tool-loop, get_scheduled 묶기) → notification_plan 1 row(stages 검증)
+  ↓
+[발송] NotificationWorker.run_forever (poll)
+  ① materialize: active plan(next_eligible_at<=now) → source intent fresh 로드(archived→plan cancelled, HIGH-2)
+       → occurrence 계산(relative/recurring/spaced; spaced 는 반응 기준 전진) → 하드 가드
+       (cap·야간무음·dismiss cooldown·트랙B 양보, per-owner advisory lock, KST) → outbox lazy materialize
+       (deferred=cap/야간/트랙B 는 next_retry_at 도달 시 재평가로 회생)
+  ② send: status='pending' AND fire_at<=now claim(plan active JOIN, expires 가드) → dry-run/실발송
+       APNs alert(payload mochiItemID·sourceIntentID·routeType·recallEventID·kind)
+       410/Unregistered→토큰 무효화+dead_letter / 5xx→backoff
+  ↓
+[반응] POST /recall/events/{id}/reaction (opened/dismissed/stop)
+  → outbox.opened_at/dismissed_at (first-write-wins) + opened+spaced+knowledge → instance 소생(reviewRequested/decaying→active, savepoint 격리)
+  → stop → plan cancelled(user_dismiss)
+[회수 화면] GET /recall/feed(홈 한 칸·자세히) · GET /recall/events/{id}(알림 landing fallback)
+```
 
 #### 자연어 검색
 

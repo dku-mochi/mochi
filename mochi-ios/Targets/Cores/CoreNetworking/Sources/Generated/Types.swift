@@ -311,6 +311,35 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `POST /api/v1/devices/push-token`.
     /// - Remark: Generated from `#/paths//api/v1/devices/push-token/post(register_push_token_api_v1_devices_push_token_post)`.
     func register_push_token_api_v1_devices_push_token_post(_ input: Operations.register_push_token_api_v1_devices_push_token_post.Input) async throws -> Operations.register_push_token_api_v1_devices_push_token_post.Output
+    /// Get Recall Feed
+    ///
+    /// 홈 회수 한 칸 + 자세히 목록 — owner 의 active spaced plan knowledge(다시 볼 지식).
+    ///
+    /// 소스: notification_plan(status='active', plan_kind='spaced') → source item(deleted_at IS NULL,
+    /// 살아있는 knowledge instance). recency 정렬(랭킹 공식 미정 — 후속). 빈손이면 entries=[](정상).
+    ///
+    /// - Remark: HTTP `GET /api/v1/recall/feed`.
+    /// - Remark: Generated from `#/paths//api/v1/recall/feed/get(get_recall_feed_api_v1_recall_feed_get)`.
+    func get_recall_feed_api_v1_recall_feed_get(_ input: Operations.get_recall_feed_api_v1_recall_feed_get.Input) async throws -> Operations.get_recall_feed_api_v1_recall_feed_get.Output
+    /// Get Recall Landing
+    ///
+    /// 알림 landing fallback — recallEventID 로 단건 회수 entry(iOS 로컬 역매핑 실패 시 서버 fetch).
+    ///
+    /// owner+event 로 outbox→item 해석. status 무관(sent 후 탭이라도 보여야 함). 남의 event·삭제·미실재 404.
+    ///
+    /// - Remark: HTTP `GET /api/v1/recall/events/{event_id}`.
+    /// - Remark: Generated from `#/paths//api/v1/recall/events/{event_id}/get(get_recall_landing_api_v1_recall_events__event_id__get)`.
+    func get_recall_landing_api_v1_recall_events__event_id__get(_ input: Operations.get_recall_landing_api_v1_recall_events__event_id__get.Input) async throws -> Operations.get_recall_landing_api_v1_recall_events__event_id__get.Output
+    /// Record Recall Reaction
+    ///
+    /// 알림 반응 보고 (owner-scoped, first-write-wins 멱등).
+    ///
+    /// `(event_id, owner_id)` + `status='sent'` 인 행만 갱신한다. 행이 없으면 404(남의 event_id·
+    /// pending·이미 종료). 이미 같은 반응이 기록돼 있으면 멱등 no-op(중복 탭 → 204).
+    ///
+    /// - Remark: HTTP `POST /api/v1/recall/events/{event_id}/reaction`.
+    /// - Remark: Generated from `#/paths//api/v1/recall/events/{event_id}/reaction/post(record_recall_reaction_api_v1_recall_events__event_id__reaction_post)`.
+    func record_recall_reaction_api_v1_recall_events__event_id__reaction_post(_ input: Operations.record_recall_reaction_api_v1_recall_events__event_id__reaction_post.Input) async throws -> Operations.record_recall_reaction_api_v1_recall_events__event_id__reaction_post.Output
 }
 
 /// Convenience overloads for operation inputs.
@@ -838,6 +867,59 @@ extension APIProtocol {
     /// - Remark: Generated from `#/paths//api/v1/devices/push-token/post(register_push_token_api_v1_devices_push_token_post)`.
     public func register_push_token_api_v1_devices_push_token_post(body: Operations.register_push_token_api_v1_devices_push_token_post.Input.Body) async throws -> Operations.register_push_token_api_v1_devices_push_token_post.Output {
         try await register_push_token_api_v1_devices_push_token_post(Operations.register_push_token_api_v1_devices_push_token_post.Input(body: body))
+    }
+    /// Get Recall Feed
+    ///
+    /// 홈 회수 한 칸 + 자세히 목록 — owner 의 active spaced plan knowledge(다시 볼 지식).
+    ///
+    /// 소스: notification_plan(status='active', plan_kind='spaced') → source item(deleted_at IS NULL,
+    /// 살아있는 knowledge instance). recency 정렬(랭킹 공식 미정 — 후속). 빈손이면 entries=[](정상).
+    ///
+    /// - Remark: HTTP `GET /api/v1/recall/feed`.
+    /// - Remark: Generated from `#/paths//api/v1/recall/feed/get(get_recall_feed_api_v1_recall_feed_get)`.
+    public func get_recall_feed_api_v1_recall_feed_get(
+        query: Operations.get_recall_feed_api_v1_recall_feed_get.Input.Query = .init(),
+        headers: Operations.get_recall_feed_api_v1_recall_feed_get.Input.Headers = .init()
+    ) async throws -> Operations.get_recall_feed_api_v1_recall_feed_get.Output {
+        try await get_recall_feed_api_v1_recall_feed_get(Operations.get_recall_feed_api_v1_recall_feed_get.Input(
+            query: query,
+            headers: headers
+        ))
+    }
+    /// Get Recall Landing
+    ///
+    /// 알림 landing fallback — recallEventID 로 단건 회수 entry(iOS 로컬 역매핑 실패 시 서버 fetch).
+    ///
+    /// owner+event 로 outbox→item 해석. status 무관(sent 후 탭이라도 보여야 함). 남의 event·삭제·미실재 404.
+    ///
+    /// - Remark: HTTP `GET /api/v1/recall/events/{event_id}`.
+    /// - Remark: Generated from `#/paths//api/v1/recall/events/{event_id}/get(get_recall_landing_api_v1_recall_events__event_id__get)`.
+    public func get_recall_landing_api_v1_recall_events__event_id__get(
+        path: Operations.get_recall_landing_api_v1_recall_events__event_id__get.Input.Path,
+        headers: Operations.get_recall_landing_api_v1_recall_events__event_id__get.Input.Headers = .init()
+    ) async throws -> Operations.get_recall_landing_api_v1_recall_events__event_id__get.Output {
+        try await get_recall_landing_api_v1_recall_events__event_id__get(Operations.get_recall_landing_api_v1_recall_events__event_id__get.Input(
+            path: path,
+            headers: headers
+        ))
+    }
+    /// Record Recall Reaction
+    ///
+    /// 알림 반응 보고 (owner-scoped, first-write-wins 멱등).
+    ///
+    /// `(event_id, owner_id)` + `status='sent'` 인 행만 갱신한다. 행이 없으면 404(남의 event_id·
+    /// pending·이미 종료). 이미 같은 반응이 기록돼 있으면 멱등 no-op(중복 탭 → 204).
+    ///
+    /// - Remark: HTTP `POST /api/v1/recall/events/{event_id}/reaction`.
+    /// - Remark: Generated from `#/paths//api/v1/recall/events/{event_id}/reaction/post(record_recall_reaction_api_v1_recall_events__event_id__reaction_post)`.
+    public func record_recall_reaction_api_v1_recall_events__event_id__reaction_post(
+        path: Operations.record_recall_reaction_api_v1_recall_events__event_id__reaction_post.Input.Path,
+        body: Operations.record_recall_reaction_api_v1_recall_events__event_id__reaction_post.Input.Body
+    ) async throws -> Operations.record_recall_reaction_api_v1_recall_events__event_id__reaction_post.Output {
+        try await record_recall_reaction_api_v1_recall_events__event_id__reaction_post(Operations.record_recall_reaction_api_v1_recall_events__event_id__reaction_post.Input(
+            path: path,
+            body: body
+        ))
     }
 }
 
@@ -2156,6 +2238,18 @@ public enum Components {
             case apns_device = "apns_device"
             case la_start = "la_start"
         }
+        /// 알림 반응 종류 — iOS 가 보고하는 3종.
+        ///
+        /// - opened: 알림 탭(양성 신호). spaced 면 회수 소생 트리거(HIGH-2).
+        /// - dismissed: soft 부정(cooldown 신호). 멱등.
+        /// - stop: "이 기억 그만" 영구 부정 → plan cancelled(codex-7 1:1).
+        ///
+        /// - Remark: Generated from `#/components/schemas/ReactionKind`.
+        @frozen public enum ReactionKind: String, Codable, Hashable, Sendable, CaseIterable {
+            case opened = "opened"
+            case dismissed = "dismissed"
+            case stop = "stop"
+        }
         /// needs_review 항목 재분석 요청 — 사용자가 "다른 의도"를 고르며 자연어로 적은 의도 힌트.
         ///
         /// 힌트는 분석 프롬프트 context 에만 합류하고 **outbox 행에만 일시 적재**된다.
@@ -2174,6 +2268,126 @@ public enum Components {
             }
             public enum CodingKeys: String, CodingKey {
                 case userHint
+            }
+        }
+        /// 능동 회수 1건 — iOS ``RecallEntry`` 표시모델 매핑(P5b). 홈 한 칸·자세히 목록·알림 landing 공용.
+        ///
+        /// UI 전용(color/symbol/grad)은 제외 — iOS 가 ``reason`` → 색/아이콘 매핑. 트랙 A/B 에선 피드가
+        /// "다시 볼 지식"(active spaced plan knowledge)뿐이라 ``kind``="knowledge", ``reason``="fadingValue",
+        /// ``related``=[]·``relatedCount``=1(트랙 C 관련/맥락 후속). ``oneline``/``gist`` 는 summary 분할.
+        ///
+        /// - Remark: Generated from `#/components/schemas/RecallFeedEntry`.
+        public struct RecallFeedEntry: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/RecallFeedEntry/itemId`.
+            public var itemId: Swift.String
+            /// - Remark: Generated from `#/components/schemas/RecallFeedEntry/kind`.
+            public var kind: Swift.String
+            /// - Remark: Generated from `#/components/schemas/RecallFeedEntry/reason`.
+            public var reason: Swift.String
+            /// - Remark: Generated from `#/components/schemas/RecallFeedEntry/title`.
+            public var title: Swift.String
+            /// - Remark: Generated from `#/components/schemas/RecallFeedEntry/oneline`.
+            public var oneline: Swift.String
+            /// - Remark: Generated from `#/components/schemas/RecallFeedEntry/source`.
+            public var source: Swift.String
+            /// - Remark: Generated from `#/components/schemas/RecallFeedEntry/savedAt`.
+            public var savedAt: Foundation.Date
+            /// - Remark: Generated from `#/components/schemas/RecallFeedEntry/gist`.
+            public var gist: [Swift.String]?
+            /// - Remark: Generated from `#/components/schemas/RecallFeedEntry/related`.
+            public var related: [Swift.String]?
+            /// - Remark: Generated from `#/components/schemas/RecallFeedEntry/relatedCount`.
+            public var relatedCount: Swift.Int
+            /// - Remark: Generated from `#/components/schemas/RecallFeedEntry/recallEventID`.
+            public var recallEventID: Swift.String?
+            /// Creates a new `RecallFeedEntry`.
+            ///
+            /// - Parameters:
+            ///   - itemId:
+            ///   - kind:
+            ///   - reason:
+            ///   - title:
+            ///   - oneline:
+            ///   - source:
+            ///   - savedAt:
+            ///   - gist:
+            ///   - related:
+            ///   - relatedCount:
+            ///   - recallEventID:
+            public init(
+                itemId: Swift.String,
+                kind: Swift.String,
+                reason: Swift.String,
+                title: Swift.String,
+                oneline: Swift.String,
+                source: Swift.String,
+                savedAt: Foundation.Date,
+                gist: [Swift.String]? = nil,
+                related: [Swift.String]? = nil,
+                relatedCount: Swift.Int,
+                recallEventID: Swift.String? = nil
+            ) {
+                self.itemId = itemId
+                self.kind = kind
+                self.reason = reason
+                self.title = title
+                self.oneline = oneline
+                self.source = source
+                self.savedAt = savedAt
+                self.gist = gist
+                self.related = related
+                self.relatedCount = relatedCount
+                self.recallEventID = recallEventID
+            }
+            public enum CodingKeys: String, CodingKey {
+                case itemId
+                case kind
+                case reason
+                case title
+                case oneline
+                case source
+                case savedAt
+                case gist
+                case related
+                case relatedCount
+                case recallEventID
+            }
+        }
+        /// 홈 회수 피드 — owner 의 다시 볼 지식 목록. 빈손이면 entries=[](cold-start 정상).
+        ///
+        /// - Remark: Generated from `#/components/schemas/RecallFeedResponse`.
+        public struct RecallFeedResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/RecallFeedResponse/entries`.
+            public var entries: [Components.Schemas.RecallFeedEntry]?
+            /// Creates a new `RecallFeedResponse`.
+            ///
+            /// - Parameters:
+            ///   - entries:
+            public init(entries: [Components.Schemas.RecallFeedEntry]? = nil) {
+                self.entries = entries
+            }
+            public enum CodingKeys: String, CodingKey {
+                case entries
+            }
+        }
+        /// 알림 반응 보고 — iOS 가 알림 탭/dismiss/그만 시 `recallEventID`(=outbox.event_id)로 보고.
+        ///
+        /// opened=양성, dismissed=soft 부정, stop="이 기억 그만" 영구(plan cancel). 신호 의미는
+        /// notification-agent.md §6, 반응→상태전이 1:1 은 ux-ui.md §4.
+        ///
+        /// - Remark: Generated from `#/components/schemas/RecordRecallReactionRequest`.
+        public struct RecordRecallReactionRequest: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/RecordRecallReactionRequest/reaction`.
+            public var reaction: Components.Schemas.ReactionKind
+            /// Creates a new `RecordRecallReactionRequest`.
+            ///
+            /// - Parameters:
+            ///   - reaction:
+            public init(reaction: Components.Schemas.ReactionKind) {
+                self.reaction = reaction
+            }
+            public enum CodingKeys: String, CodingKey {
+                case reaction
             }
         }
         /// 상세 화면 "지금 할 수 있어요" 에 붙일 참고 URL.
@@ -6737,6 +6951,357 @@ public enum Operations {
             /// - Throws: An error if `self` is not `.noContent`.
             /// - SeeAlso: `.noContent`.
             public var noContent: Operations.register_push_token_api_v1_devices_push_token_post.Output.NoContent {
+                get throws {
+                    switch self {
+                    case let .noContent(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "noContent",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+    }
+    /// Get Recall Feed
+    ///
+    /// 홈 회수 한 칸 + 자세히 목록 — owner 의 active spaced plan knowledge(다시 볼 지식).
+    ///
+    /// 소스: notification_plan(status='active', plan_kind='spaced') → source item(deleted_at IS NULL,
+    /// 살아있는 knowledge instance). recency 정렬(랭킹 공식 미정 — 후속). 빈손이면 entries=[](정상).
+    ///
+    /// - Remark: HTTP `GET /api/v1/recall/feed`.
+    /// - Remark: Generated from `#/paths//api/v1/recall/feed/get(get_recall_feed_api_v1_recall_feed_get)`.
+    public enum get_recall_feed_api_v1_recall_feed_get {
+        public static let id: Swift.String = "get_recall_feed_api_v1_recall_feed_get"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/api/v1/recall/feed/GET/query`.
+            public struct Query: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/recall/feed/GET/query/limit`.
+                public var limit: Swift.Int?
+                /// Creates a new `Query`.
+                ///
+                /// - Parameters:
+                ///   - limit:
+                public init(limit: Swift.Int? = nil) {
+                    self.limit = limit
+                }
+            }
+            public var query: Operations.get_recall_feed_api_v1_recall_feed_get.Input.Query
+            /// - Remark: Generated from `#/paths/api/v1/recall/feed/GET/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.get_recall_feed_api_v1_recall_feed_get.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.get_recall_feed_api_v1_recall_feed_get.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.get_recall_feed_api_v1_recall_feed_get.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - query:
+            ///   - headers:
+            public init(
+                query: Operations.get_recall_feed_api_v1_recall_feed_get.Input.Query = .init(),
+                headers: Operations.get_recall_feed_api_v1_recall_feed_get.Input.Headers = .init()
+            ) {
+                self.query = query
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/recall/feed/GET/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/api/v1/recall/feed/GET/responses/200/content/application\/json`.
+                    case json(Components.Schemas.RecallFeedResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.RecallFeedResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.get_recall_feed_api_v1_recall_feed_get.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.get_recall_feed_api_v1_recall_feed_get.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Successful Response
+            ///
+            /// - Remark: Generated from `#/paths//api/v1/recall/feed/get(get_recall_feed_api_v1_recall_feed_get)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.get_recall_feed_api_v1_recall_feed_get.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.get_recall_feed_api_v1_recall_feed_get.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Get Recall Landing
+    ///
+    /// 알림 landing fallback — recallEventID 로 단건 회수 entry(iOS 로컬 역매핑 실패 시 서버 fetch).
+    ///
+    /// owner+event 로 outbox→item 해석. status 무관(sent 후 탭이라도 보여야 함). 남의 event·삭제·미실재 404.
+    ///
+    /// - Remark: HTTP `GET /api/v1/recall/events/{event_id}`.
+    /// - Remark: Generated from `#/paths//api/v1/recall/events/{event_id}/get(get_recall_landing_api_v1_recall_events__event_id__get)`.
+    public enum get_recall_landing_api_v1_recall_events__event_id__get {
+        public static let id: Swift.String = "get_recall_landing_api_v1_recall_events__event_id__get"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/api/v1/recall/events/{event_id}/GET/path`.
+            public struct Path: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/recall/events/{event_id}/GET/path/event_id`.
+                public var event_id: Swift.String
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - event_id:
+                public init(event_id: Swift.String) {
+                    self.event_id = event_id
+                }
+            }
+            public var path: Operations.get_recall_landing_api_v1_recall_events__event_id__get.Input.Path
+            /// - Remark: Generated from `#/paths/api/v1/recall/events/{event_id}/GET/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.get_recall_landing_api_v1_recall_events__event_id__get.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.get_recall_landing_api_v1_recall_events__event_id__get.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.get_recall_landing_api_v1_recall_events__event_id__get.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            ///   - headers:
+            public init(
+                path: Operations.get_recall_landing_api_v1_recall_events__event_id__get.Input.Path,
+                headers: Operations.get_recall_landing_api_v1_recall_events__event_id__get.Input.Headers = .init()
+            ) {
+                self.path = path
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/recall/events/{event_id}/GET/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/api/v1/recall/events/{event_id}/GET/responses/200/content/application\/json`.
+                    case json(Components.Schemas.RecallFeedEntry)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.RecallFeedEntry {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.get_recall_landing_api_v1_recall_events__event_id__get.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.get_recall_landing_api_v1_recall_events__event_id__get.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Successful Response
+            ///
+            /// - Remark: Generated from `#/paths//api/v1/recall/events/{event_id}/get(get_recall_landing_api_v1_recall_events__event_id__get)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.get_recall_landing_api_v1_recall_events__event_id__get.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.get_recall_landing_api_v1_recall_events__event_id__get.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Record Recall Reaction
+    ///
+    /// 알림 반응 보고 (owner-scoped, first-write-wins 멱등).
+    ///
+    /// `(event_id, owner_id)` + `status='sent'` 인 행만 갱신한다. 행이 없으면 404(남의 event_id·
+    /// pending·이미 종료). 이미 같은 반응이 기록돼 있으면 멱등 no-op(중복 탭 → 204).
+    ///
+    /// - Remark: HTTP `POST /api/v1/recall/events/{event_id}/reaction`.
+    /// - Remark: Generated from `#/paths//api/v1/recall/events/{event_id}/reaction/post(record_recall_reaction_api_v1_recall_events__event_id__reaction_post)`.
+    public enum record_recall_reaction_api_v1_recall_events__event_id__reaction_post {
+        public static let id: Swift.String = "record_recall_reaction_api_v1_recall_events__event_id__reaction_post"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/api/v1/recall/events/{event_id}/reaction/POST/path`.
+            public struct Path: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/recall/events/{event_id}/reaction/POST/path/event_id`.
+                public var event_id: Swift.String
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - event_id:
+                public init(event_id: Swift.String) {
+                    self.event_id = event_id
+                }
+            }
+            public var path: Operations.record_recall_reaction_api_v1_recall_events__event_id__reaction_post.Input.Path
+            /// - Remark: Generated from `#/paths/api/v1/recall/events/{event_id}/reaction/POST/requestBody`.
+            @frozen public enum Body: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/recall/events/{event_id}/reaction/POST/requestBody/content/application\/json`.
+                case json(Components.Schemas.RecordRecallReactionRequest)
+            }
+            public var body: Operations.record_recall_reaction_api_v1_recall_events__event_id__reaction_post.Input.Body
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            ///   - body:
+            public init(
+                path: Operations.record_recall_reaction_api_v1_recall_events__event_id__reaction_post.Input.Path,
+                body: Operations.record_recall_reaction_api_v1_recall_events__event_id__reaction_post.Input.Body
+            ) {
+                self.path = path
+                self.body = body
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct NoContent: Sendable, Hashable {
+                /// Creates a new `NoContent`.
+                public init() {}
+            }
+            /// Successful Response
+            ///
+            /// - Remark: Generated from `#/paths//api/v1/recall/events/{event_id}/reaction/post(record_recall_reaction_api_v1_recall_events__event_id__reaction_post)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            case noContent(Operations.record_recall_reaction_api_v1_recall_events__event_id__reaction_post.Output.NoContent)
+            /// Successful Response
+            ///
+            /// - Remark: Generated from `#/paths//api/v1/recall/events/{event_id}/reaction/post(record_recall_reaction_api_v1_recall_events__event_id__reaction_post)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            public static var noContent: Self {
+                .noContent(.init())
+            }
+            /// The associated value of the enum case if `self` is `.noContent`.
+            ///
+            /// - Throws: An error if `self` is not `.noContent`.
+            /// - SeeAlso: `.noContent`.
+            public var noContent: Operations.record_recall_reaction_api_v1_recall_events__event_id__reaction_post.Output.NoContent {
                 get throws {
                     switch self {
                     case let .noContent(response):

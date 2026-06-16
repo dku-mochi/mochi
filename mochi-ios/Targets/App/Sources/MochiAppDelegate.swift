@@ -95,7 +95,13 @@ public final class MochiAppDelegate: NSObject, UIApplicationDelegate, UNUserNoti
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
         let userInfo = response.notification.request.content.userInfo
-        if let raw = userInfo["mochiItemID"] as? String, let id = UUID(uuidString: raw) {
+        // 능동 회수 알림(routeType="detail" + recallEventID) → ③ 회수 상세 직행. recallEventID 는 항상
+        // 존재해 landing fallback·반응추적 키가 된다(서버 fetch 로 빈 상세 금지). 기존 분석완료 알림은
+        // mochiItemID(server PK) 로 기존 상세 경로를 탄다.
+        if let routeType = userInfo["routeType"] as? String, routeType == "detail",
+           let raw = userInfo["recallEventID"] as? String, let eventID = UUID(uuidString: raw) {
+            Task { @MainActor in MochiApp.rootStore.send(.recallNotificationTapped(recallEventID: eventID)) }
+        } else if let raw = userInfo["mochiItemID"] as? String, let id = UUID(uuidString: raw) {
             Task { @MainActor in MochiApp.rootStore.send(.notificationTapped(id)) }
         }
         completionHandler()

@@ -2,7 +2,7 @@
 level: 2
 mode: reference
 status: active
-last_verified: 2026-06-04
+last_verified: 2026-06-16
 confidence: 0.9
 owners: [송준서, 이용찬, 박세현]
 description: FastAPI 백엔드 진입점·빌드 가이드·모듈 구조. 백엔드 코드 시작 시 또는 make 명령·헥사고날 레이어 규칙·Idempotency·SSRF 가드 작업 시 읽어라. 모듈 경계 테스트(test_module_boundaries.py) 의도 + openapi.json 생성 흐름 포함.
@@ -67,11 +67,11 @@ app/
 │   │   ├── infrastructure/        ORM·repository · RunRegistry(in-process queue) · GeminiChatClient(첫 라운드 ANY→AUTO, stream) · turn_store · tools/(read-only)
 │   │   ├── prompts/               chat@v10 — PromptVersion 버저닝, 기준+why
 │   │   └── presentation/router.py POST /{id}/messages(POST-as-SSE) · GET 목록/스냅샷 · DELETE
-│   └── notifications/
-│       ├── domain/                DevicePushToken, APNsClient port
-│       ├── application/           RegisterPushToken, SendNotification
-│       ├── infrastructure/        HttpxAPNsClient(HTTP/2), PostgresPushTokenRepository
-│       └── presentation/router.py /devices/push-token
+│   └── notifications/             푸시 토큰 + 능동 회수 알림(트랙 A/B)
+│       ├── domain/                DevicePushToken, APNsClient port · RecallPlan/RecallPlanStages · RecallReaction · RecallFeedEntry
+│       ├── application/           RegisterPushToken, SendNotification · PlanRecallNotifications(eligibility 게이트 + LLM 플래너) · NotificationWorker(cron) · SendRecallNotification · RecordRecallReaction · GetRecallFeed · 순수함수(recall_occurrence·recall_guards)
+│       ├── infrastructure/        HttpxAPNsClient(HTTP/2), PostgresPushTokenRepository · notification_plan/outbox ORM·repository · GeminiRecallPlanner(tool-loop)
+│       └── presentation/          router.py(/devices/push-token) · recall_router.py(/recall/feed · /recall/events/{id} · /recall/events/{id}/reaction)
 ├── api.py                         /api/v1 라우터 조립
 └── main.py                        FastAPI app factory + 미들웨어 + 예외 핸들러
 ```
@@ -178,6 +178,15 @@ ingested → normalized → analyzed → routed → persisted → indexed → sy
 - `FOR UPDATE SKIP LOCKED` + item-level lock 으로 N 코루틴·N 인스턴스 모두 동시 안전 → prod 수평확장은 인스턴스 복제
 - DB 풀은 `DB_POOL_SIZE`(기본 5) / `DB_MAX_OVERFLOW`(기본 10). 워커를 올리면 풀도 함께 상향 — `인스턴스수 × (pool_size + max_overflow) < Postgres max_connections`(기본 100), 초과 시 PgBouncer
 
+### 능동 회수 알림 (트랙 A/B)
+"놓치기 쉬운 순간은 쉽게 남기고, 필요한 기억은 쉽게 떠오른다" — 모찌가 먼저 떠올려준다. "생성 분리(plan) / 발송 통합(outbox)" 2테이블 구조 (정본 `journal/proactive-recall/`).
+- **`notification_plan`** — 계획 1행. `plan_kind`(`deadline_backoff`/`recurring_nudge`/`spaced`) + JSONB `stages` DSL(relative/recurring/spaced trigger, `RecallPlanStages` Pydantic 검증 후 삽입). 같은 `source_intent_id` 에 active plan 1개(부분 UNIQUE). anchor(마감·일정일)는 심볼 참조 — 발송 시 `intent_instances.payload` 최신 조회(사용자 수정 자동 추종).
+- **`notification_outbox`** — 발송+반응 큐. occurrence 를 lazy materialize, `sent`/`opened_at`/`dismissed_at`(recall_log 흡수).
+- **플래너** (`PlanRecallNotifications`) — 메인 분석 후단 best-effort hook(독립세션·격리)이 결정적 eligibility 게이트(intent 종류·미래 date·importance)로 후보를 거른 뒤, Gemini tool-loop 플래너(`get_scheduled` 묶기 tool + 구조화 finalize, flash-lite)가 plan 1행 생성(같은 source_intent supersede).
+- **cron 워커** (`NotificationWorker`, `app/main.py` lifespan 에 1 인스턴스) — active plan→occurrence 계산(relative/recurring/spaced, spaced 는 반응 기준 전진)→하드 가드(cap·야간무음·dismiss cooldown·트랙B 양보, per-owner advisory lock, KST)→outbox lazy materialize→APNs 발송. deferred(cap/야간/트랙B)는 `next_retry_at` 도달 시 재평가로 회생. intent archived→plan `cancelled(intent_archived)`. occurrence-math·가드는 순수함수 분리.
+- **킬스위치 / dry-run** — `recall_worker_enabled=False` 면 워커 기동은 하되 루프 no-op. `recall_notifications_dry_run`(기본 **True**) 이면 실발송 없이 payload 로그만(발송 0 으로 threshold 튜닝). 실발송 전환은 `.env` 로 `recall_notifications_dry_run=false`.
+- **반응 + spaced 소생** — `POST /recall/events/{id}/reaction`(opened/dismissed/stop, (event_id,owner_id)+status='sent' first-write-wins 멱등). opened+spaced+knowledge(decaying/reviewRequested)→active 소생(`lifecycle_policy` 재사용). stop→plan `cancelled(user_dismiss)`. 회수 화면 fetch 는 `GET /recall/feed`(홈 한 칸·자세히) + `GET /recall/events/{id}`(알림 landing fallback).
+
 ### Hybrid Search RAG
 - `bm25_k=80`, `vector_k=80` 두 후보를 만들어 RRF (`k=60`) 융합
 - recall@50 가 90% 이상 측정될 때만 cross-encoder reranker 활성화 (settings.toggleable)
@@ -214,4 +223,4 @@ ingested → normalized → analyzed → routed → persisted → indexed → sy
 
 전체 엔드포인트·요청/응답 스키마의 단일 원천은 **`openapi.json`** 이다 (`make openapi` 생성물, 서버 구동 시 `GET /docs` Swagger UI). iOS 배선 예외(서버만 실재·라우트 미존재 등)는 [`docs/DOMAIN_DESIGN.md`](../docs/DOMAIN_DESIGN.md) §6.4 를 본다.
 
-대분류: `auth/*`(Apple·Google·dev·refresh·logout) · `users/me` · `mochi_items`(ingest(+confirmedInstances §5.2 예외) · PATCH 콘텐츠+instance · presign · 조회 · list · calendar · todos/upcoming · instance lifecycle 완료/완료취소 · reanalyze · SSE stream) · `search`(Hybrid RAG) · `conversations`(채팅 — 메시지 전송 POST-as-SSE·세션 목록·메시지 스냅샷·삭제·proposal 카드 상태 PATCH) · `devices`(push 토큰) · `health`. 모든 보호 라우트는 `Authorization: Bearer`, `POST /mochi_items` 는 `Idempotency-Key` 필수. (2026-06-04 단일 ingest — back-tap·intent override 라우트 폐기)
+대분류: `auth/*`(Apple·Google·dev·refresh·logout) · `users/me` · `mochi_items`(ingest(+confirmedInstances §5.2 예외) · PATCH 콘텐츠+instance · presign · 조회 · list · calendar · todos/upcoming · instance lifecycle 완료/완료취소 · reanalyze · SSE stream) · `search`(Hybrid RAG) · `conversations`(채팅 — 메시지 전송 POST-as-SSE·세션 목록·메시지 스냅샷·삭제·proposal 카드 상태 PATCH) · `recall`(능동 회수 — feed·landing fallback·reaction) · `devices`(push 토큰) · `health`. 모든 보호 라우트는 `Authorization: Bearer`, `POST /mochi_items` 는 `Idempotency-Key` 필수. (2026-06-04 단일 ingest — back-tap·intent override 라우트 폐기)

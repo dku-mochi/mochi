@@ -27,6 +27,9 @@ from app.modules.agent.infrastructure.mochi_item_gateway import MochiItemGateway
 from app.modules.agent.infrastructure.profile_store import PostgresUserProfileStore
 from app.modules.agent.infrastructure.registry import StaticToolRegistry
 from app.modules.mochi_items.application.queries import GetMochiItemForOwner, make_mochi_item_repository
+from app.modules.notifications.application.recall_planning_factory import (
+    make_plan_recall_notifications,
+)
 from app.modules.notifications.application.repositories import make_push_token_repository
 from app.modules.notifications.application.send_notification import (
     AnalysisNotification,
@@ -208,6 +211,10 @@ class MochiItemWorker:
         # push 실패가 분석을 롤백/되돌리지 않는다(이미 done 커밋). 누락은 iOS reconcile 이 메운다. 재시도 없음.
         await self._notify_analysis_complete(claimed.owner_id, claimed.mochi_item_id)
 
+        # 능동 회수 알림 plan 설계 (P2) — push 와 분리된 별도 best-effort 단계. 독립 세션, 재시도 없음.
+        # 분석을 롤백/되돌리지 않고, 실패해도 worker 루프를 죽이지 않는다(push 와 동일 격리 계약).
+        await self._plan_recall_notifications(claimed.owner_id, claimed.mochi_item_id)
+
     async def _notify_analysis_complete(self, owner_id: UUID, mochi_item_id: UUID) -> None:
         # get_apns_client() 도 try 안 — p8 misconfig(base64/PEM/non-EC) 예외가 worker 루프를
         # 죽이지 않게(격리 계약). best-effort, 재시도 없음.
@@ -259,6 +266,39 @@ class MochiItemWorker:
         except Exception as exc:  # noqa: BLE001
             log.warning(
                 "push.send_failed",
+                mochi_item_id=str(mochi_item_id),
+                exception=str(exc),
+                exc_info=True,
+            )
+
+    async def _plan_recall_notifications(self, owner_id: UUID, mochi_item_id: UUID) -> None:
+        # 능동 회수 알림 설계(P2). 분석 결과의 intent_instances 로 결정적 eligibility 게이트 →
+        # eligible 건만 LLM 플래너가 시점·시각·문구 설계 → notification_plan 영속.
+        # best-effort, 재시도 없음 — 실패해도 분석은 이미 done 커밋이고 worker 루프를 죽이지 않는다.
+        try:
+            async with get_session_factory()() as plan_session:
+                item = await GetMochiItemForOwner(
+                    repository=make_mochi_item_repository(plan_session)
+                ).execute(owner_id=owner_id, mochi_item_id=mochi_item_id)
+                if item is None:
+                    return
+                use_case = make_plan_recall_notifications(plan_session, owner_id=owner_id)
+                created = await use_case.run(
+                    owner_id=owner_id,
+                    mochi_item_id=mochi_item_id,
+                    intent_instances=item.intent_instances,
+                )
+                await plan_session.commit()
+                log.info(
+                    "recall.plan_run_finished",
+                    owner_id=str(owner_id),
+                    mochi_item_id=str(mochi_item_id),
+                    created=created,
+                )
+        except Exception as exc:  # noqa: BLE001
+            log.warning(
+                "recall.plan_run_failed",
+                owner_id=str(owner_id),
                 mochi_item_id=str(mochi_item_id),
                 exception=str(exc),
                 exc_info=True,

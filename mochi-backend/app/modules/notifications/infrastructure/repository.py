@@ -3,7 +3,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -59,3 +59,8 @@ class PostgresPushTokenRepository(PushTokenRepositoryPort):
         )
         rows = (await self._session.scalars(stmt)).all()
         return [_to_entity(r) for r in rows]
+
+    async def delete(self, *, token: str) -> None:
+        # token 은 globally unique(ux_device_push_tokens_token) — owner-scope 불필요.
+        await self._session.execute(delete(DevicePushTokenRow).where(DevicePushTokenRow.token == token))
+        await self._session.flush()
