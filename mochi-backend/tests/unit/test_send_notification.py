@@ -14,6 +14,7 @@ from app.modules.notifications.domain.entities import (
     DevicePushToken,
     PushTokenType,
 )
+from app.modules.notifications.infrastructure.apns_client import APNsError
 from app.shared.intent import Intent
 
 
@@ -29,6 +30,7 @@ class _FakeRepo:
     def __init__(self, *, device=(), la_start=()) -> None:
         self._device = list(device)
         self._la_start = list(la_start)
+        self.deleted: list[str] = []
 
     async def upsert(self, token):  # pragma: no cover - 미사용
         ...
@@ -39,6 +41,9 @@ class _FakeRepo:
         if token_type == PushTokenType.LA_START:
             return self._la_start
         return []
+
+    async def delete(self, *, token):
+        self.deleted.append(token)
 
 
 def _device_token(owner: UUID) -> DevicePushToken:
@@ -166,3 +171,60 @@ async def test_apns_none_is_noop():
         mochi_item_id=item,
         notification=AnalysisNotification(needs_review=False, summary="x", review_options=()),
     )
+
+
+class _FailingAPNs:
+    """지정 토큰에 APNsError 를 던지는 fake — 토큰 무효화 분기 검증용."""
+
+    def __init__(self, *, fail_tokens, status_code=410, reason="Unregistered") -> None:
+        self.sent: list[dict] = []
+        self._fail = set(fail_tokens)
+        self._status_code = status_code
+        self._reason = reason
+
+    async def send(self, *, token, environment, push_type, topic, payload, collapse_id=None):
+        if token in self._fail:
+            raise APNsError("apns failure", status_code=self._status_code, reason=self._reason)
+        self.sent.append({"token": token})
+
+
+async def test_alert_410_invalidates_token():
+    # 410/Unregistered alert 실패 → 죽은 토큰 무효화(삭제). 앱 재설치 누적 토큰 정리.
+    owner, item = uuid4(), uuid4()
+    dead = DevicePushToken(owner, "dead-device", PushTokenType.APNS_DEVICE, APNsEnvironment.SANDBOX)
+    apns = _FailingAPNs(fail_tokens={"dead-device"})
+    repo = _FakeRepo(device=[dead])
+    await SendAnalysisNotification(tokens=repo, apns=apns).run(
+        owner_id=owner,
+        mochi_item_id=item,
+        notification=AnalysisNotification(needs_review=False, summary="x", review_options=()),
+    )
+    assert repo.deleted == ["dead-device"]
+
+
+async def test_la_start_410_invalidates_token():
+    # 410 LA push-to-start 실패 → 죽은 토큰 무효화(매번 재발송되던 문제 해결).
+    owner, item = uuid4(), uuid4()
+    dead = DevicePushToken(owner, "dead-la", PushTokenType.LA_START, APNsEnvironment.SANDBOX)
+    apns = _FailingAPNs(fail_tokens={"dead-la"})
+    repo = _FakeRepo(la_start=[dead])
+    await SendAnalysisNotification(tokens=repo, apns=apns).run(
+        owner_id=owner,
+        mochi_item_id=item,
+        notification=AnalysisNotification(needs_review=True, summary="x", review_options=()),
+    )
+    assert repo.deleted == ["dead-la"]
+
+
+async def test_transient_5xx_does_not_invalidate_token():
+    # 5xx/timeout 은 일시 실패 — 토큰을 무효화하지 않는다(다음 재시도 대상).
+    owner, item = uuid4(), uuid4()
+    tok = DevicePushToken(owner, "live-device", PushTokenType.APNS_DEVICE, APNsEnvironment.SANDBOX)
+    apns = _FailingAPNs(fail_tokens={"live-device"}, status_code=503, reason=None)
+    repo = _FakeRepo(device=[tok])
+    await SendAnalysisNotification(tokens=repo, apns=apns).run(
+        owner_id=owner,
+        mochi_item_id=item,
+        notification=AnalysisNotification(needs_review=False, summary="x", review_options=()),
+    )
+    assert repo.deleted == []

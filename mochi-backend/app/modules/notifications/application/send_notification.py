@@ -14,8 +14,10 @@ from uuid import UUID
 from app.core.config import get_settings
 from app.core.logging import get_logger
 from app.modules.mochi_items.domain.value_objects import ReviewOption
+from app.modules.notifications.application.send_recall_notification import _is_invalid_token
 from app.modules.notifications.domain.entities import APNsPushType, PushTokenType
 from app.modules.notifications.domain.ports import APNsClient, PushTokenRepository
+from app.modules.notifications.infrastructure.apns_client import APNsError
 
 log = get_logger("notifications.send")
 
@@ -75,6 +77,28 @@ class SendAnalysisNotification:
                     token=_mask_token(tok.token),
                     environment=tok.environment.value,
                 )
+            except APNsError as exc:
+                # 410/Unregistered/BadDeviceToken → 죽은 토큰 무효화(삭제). 안 그러면 앱 재설치로
+                # 죽은 토큰이 영영 쌓여 매번 재발송된다(회수 경로와 동일 정책, codex-5).
+                if _is_invalid_token(exc):
+                    await self._tokens.delete(token=tok.token)
+                    log.info(
+                        "push.token_invalidated",
+                        owner_id=str(owner_id),
+                        token=_mask_token(tok.token),
+                        environment=tok.environment.value,
+                        reason=exc.reason or str(exc.status_code),
+                    )
+                else:
+                    log.warning(
+                        "push.alert_failed",
+                        owner_id=str(owner_id),
+                        mochi_item_id=str(mochi_item_id),
+                        token=_mask_token(tok.token),
+                        environment=tok.environment.value,
+                        exception=str(exc),
+                        exc_info=True,
+                    )
             except Exception as exc:  # noqa: BLE001
                 log.warning(
                     "push.alert_failed",
@@ -117,6 +141,28 @@ class SendAnalysisNotification:
                         token=_mask_token(tok.token),
                         environment=tok.environment.value,
                     )
+                except APNsError as exc:
+                    # 410/Unregistered → 죽은 LA push-to-start 토큰 무효화(삭제). 앱 재설치 시 옛 토큰이
+                    # 무효화되지 않아 매번 410 재발송되던 문제 해결(alert 경로와 동일 정책).
+                    if _is_invalid_token(exc):
+                        await self._tokens.delete(token=tok.token)
+                        log.info(
+                            "push.token_invalidated",
+                            owner_id=str(owner_id),
+                            token=_mask_token(tok.token),
+                            environment=tok.environment.value,
+                            reason=exc.reason or str(exc.status_code),
+                        )
+                    else:
+                        log.warning(
+                            "push.la_start_failed",
+                            owner_id=str(owner_id),
+                            mochi_item_id=str(mochi_item_id),
+                            token=_mask_token(tok.token),
+                            environment=tok.environment.value,
+                            exception=str(exc),
+                            exc_info=True,
+                        )
                 except Exception as exc:  # noqa: BLE001
                     log.warning(
                         "push.la_start_failed",

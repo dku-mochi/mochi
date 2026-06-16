@@ -10,6 +10,15 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-06-16 — backend (재분석 needs_review 해제 + push 토큰 410 무효화 + 회수 dry-run off)
+- **재분석 시 `needs_review` 강제 해제** — `reanalyze`(hint 필수)는 사용자가 의도를 확정한 행위인데, flash-lite 가 재분석마다 `needs_review=true` 로 되돌려 "확정했는데 모찌가 또 되묻는" 미션 위반이 발생. orchestrator 가 `reanalysis_hint` 있을 때 결과의 `needs_review=false` + `review_options=()` 로 강제(사용자 확정 > LLM 추론). 첫 분석(hint 없음)은 LLM 판단 그대로 존중. `DOMAIN_DESIGN.md` 재분석 규약 보강.
+- **분석완료 push(`send_notification.py`) 410 토큰 무효화** — alert/la_start 발송이 410/Unregistered 를 받아도 토큰을 지우지 않아, 앱 재설치로 죽은 토큰(특히 la_start)이 누적돼 매번 재발송되던 버그 수정. 회수 발송 경로(`send_recall_notification`)와 동일하게 `_is_invalid_token` → `tokens.delete`. 5xx/timeout 은 일시실패라 무효화 안 함.
+- **능동 회수 발송 dry-run off** — prod `RECALL_NOTIFICATIONS_DRY_RUN=false`(systemd drop-in) 로 트랙 C 회수 알림 실발송 시작. dry-run 동안 outbox 를 `skipped(dry_run)` 로 닫아 dedup(`recent_recall_exists` 는 pending/sent/deferred 만 본다)이 우회되던 재생성은 `sent` 전이로 자연 해소.
+- 검증: lint/typecheck clean, test 411 passed.
+
+## 2026-06-16 — ios (채팅 스트리밍 자동 스크롤 iOS 18 회귀 수정)
+- **iOS 18 에서 LLM 응답이 와도 스크롤이 따라가지 않던 문제 수정** (`ChatView.swift`) — iOS 18(Xcode 16 빌드)에서 named-coordinate-space `GeometryReader` preference 기반 near-bottom 판정과 `ScrollViewReader.scrollTo` 가 스트리밍 중 불안정해 자동 따라가기가 멈추던 알려진 회귀. iOS 18+ 전용 `ChatGeometryFollow`(onScrollGeometryChange, WWDC24)를 추가해 콘텐츠 성장·입력독/키보드 inset 증가를 직접 감지, 바닥 근처일 때만 즉시 따라가도록 함(위로 읽는 중이면 끌지 않음). deployment target 은 17 유지 — iOS 17 경로(preference + onChange→scrollTo)는 그대로 두고 18 에서만 비활성화해 이중 추종 방지.
+
 ## 2026-06-16 — ios (회수 진입 페이지 ②자세히·③상세 최상급 리디자인)
 - **② 목록·③ 상세 비주얼 승격** (`RecallView.swift`) — 평면 회색 배경 → 라벤더 오로라 배경(홈·주간정리와 연속성). ② 목록: 밋밋한 인트로 텍스트 → 스파클 글로우 오브 히어로(마스코트 미사용)·통일 카드 다듬기(썸네일 광택·관련묶음 칩·chevron 글로우). ③ 상세: 평면 헤더 → reason 색 히어로 카드(옅은 이유 워터마크)·primary CTA를 파일 주석이 약속한 "보라 그라데이션"으로 실현·안내문구 보이스 칸화.
 - **회수 이유 색을 단일 시각 언어로 정합** — 이전엔 칩 tint(`fadingValue`=peach)와 썸네일 grad(`fadingValue`=mint/sky)가 reason마다 따로 놀던 선행 불일치를, `RecallReasonKind` 뷰-레이어 확장(tint/paleTint/gradient) 단일 소스로 통일(칩·썸네일·상세 히어로 동색). 색은 UI 전용이라 계약·Feature 미변경(ux-ui §3).
