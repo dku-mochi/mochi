@@ -115,6 +115,7 @@ public struct RecallDetailFeature: Sendable {
         case onAppear
         case markReportedOpen
         case openOriginalTapped
+        case relatedTapped(RelatedItemDTO)
         case rememberedTapped
         case stopTapped
         case showToast(String)
@@ -125,6 +126,8 @@ public struct RecallDetailFeature: Sendable {
         public enum Delegate: Sendable {
             /// "원본 보기" — 상위가 원본 mochiItem 상세를 연다(server PK).
             case openOriginal(itemID: UUID)
+            /// "관련 기억" 카드 탭 — 상위가 그 항목 상세를 연다(원본 보기와 같은 경로).
+            case openRelated(itemID: UUID)
         }
     }
 
@@ -152,6 +155,9 @@ public struct RecallDetailFeature: Sendable {
 
             case .openOriginalTapped:
                 return .send(.delegate(.openOriginal(itemID: state.entry.itemID)))
+
+            case let .relatedTapped(item):
+                return .send(.delegate(.openRelated(itemID: item.itemID)))
 
             case .rememberedTapped:
                 // "기억났어요" — 양성 신호(opened). primary 가 아니라 보조 피드백(codex-8).

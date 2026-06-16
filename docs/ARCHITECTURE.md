@@ -335,7 +335,7 @@ AgentOrchestrator(persistence=AgentRunPersistence(session)).run(mochi_item_id)
 
 #### 능동 회수 알림 (트랙 A/B/C)
 
-> **트랙**: A=지식 spaced · B=마감 역산(`notification_plan` 경유, 구현됨) / C=관련·맥락 회수(plan 없이 `notification_outbox` 직행 `kind=recall`, **범위 내**이나 후보 생성 미구현 — `journal/proactive-recall/tech-plan.md` §8 P7–P9). 민감 스크린샷 노출은 회수 후보/발송 시점 필터로 처리(`sensitivity_level` 전체 구현 비의존).
+> **트랙**: A=지식 spaced · B=마감 역산(`notification_plan` 경유) / C=관련·맥락 회수(plan 없이 `notification_outbox` 직행 `kind=recall`) — **A/B/C 모두 구현됨(2026-06-16)**. C 는 새 item 분석 done 후 worker 가 best-effort 로 유사 과거 기록을 임베딩 ANN 조회(`generate_recall_candidates`) → 게이트(점수·dedup·dismiss cooldown·야간/cap/트랙B 양보는 fire_at 미루기) → outbox 직행. 발송 패스 클레임이 `plan_id IS NULL OR active plan` 이라 recall 행 발송. 1:1 단건 맥락 회수(임베딩 ANN), 주제 묶음=비범위. 상세 `journal/proactive-recall/tech-plan.md` §8 P7–P9. 민감 필터는 안 넣음 — 본문이 추상화 LLM 요약이라 A/B 와 동일 ungated(`sensitivity_level` 실구현 시 발송 게이트로, `PRIVACY_SENSITIVE_CAPTURE.md` §9).
 > 기동: `app/main.py` lifespan 에 `NotificationWorker.run_forever()` 1개를 MochiWorker 옆에 추가(graceful stop). killswitch `recall_worker_enabled`, dry-run 기본 True(발송 0 튜닝). 정본 `journal/proactive-recall/`.
 
 ```

@@ -2272,9 +2272,10 @@ public enum Components {
         }
         /// 능동 회수 1건 — iOS ``RecallEntry`` 표시모델 매핑(P5b). 홈 한 칸·자세히 목록·알림 landing 공용.
         ///
-        /// UI 전용(color/symbol/grad)은 제외 — iOS 가 ``reason`` → 색/아이콘 매핑. 트랙 A/B 에선 피드가
-        /// "다시 볼 지식"(active spaced plan knowledge)뿐이라 ``kind``="knowledge", ``reason``="fadingValue",
-        /// ``related``=[]·``relatedCount``=1(트랙 C 관련/맥락 후속). ``oneline``/``gist`` 는 summary 분할.
+        /// UI 전용(color/symbol/grad)은 제외 — iOS 가 ``reason`` → 색/아이콘 매핑. 트랙 A(spaced)는
+        /// ``kind``="knowledge"/``reason``="fadingValue"/``related``=[]/``relatedCount``=1, 트랙 C(recall)는
+        /// ``kind``="recall"/``reason``="linkedToRecent"/``related``=관련 기억 N개. ``oneline``/``gist`` 는
+        /// summary 분할.
         ///
         /// - Remark: Generated from `#/components/schemas/RecallFeedEntry`.
         public struct RecallFeedEntry: Codable, Hashable, Sendable {
@@ -2295,7 +2296,7 @@ public enum Components {
             /// - Remark: Generated from `#/components/schemas/RecallFeedEntry/gist`.
             public var gist: [Swift.String]?
             /// - Remark: Generated from `#/components/schemas/RecallFeedEntry/related`.
-            public var related: [Swift.String]?
+            public var related: [Components.Schemas.RelatedItem]?
             /// - Remark: Generated from `#/components/schemas/RecallFeedEntry/relatedCount`.
             public var relatedCount: Swift.Int
             /// - Remark: Generated from `#/components/schemas/RecallFeedEntry/recallEventID`.
@@ -2323,7 +2324,7 @@ public enum Components {
                 source: Swift.String,
                 savedAt: Foundation.Date,
                 gist: [Swift.String]? = nil,
-                related: [Swift.String]? = nil,
+                related: [Components.Schemas.RelatedItem]? = nil,
                 relatedCount: Swift.Int,
                 recallEventID: Swift.String? = nil
             ) {
@@ -2521,6 +2522,37 @@ public enum Components {
                 case tokenType
                 case environment
                 case mochiItemID
+            }
+        }
+        /// 관련 기억 1건(트랙 C 상세 "관련 N개"). 탭 시 그 항목 상세로 — ``itemId`` 운반.
+        ///
+        /// - Remark: Generated from `#/components/schemas/RelatedItem`.
+        public struct RelatedItem: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/RelatedItem/itemId`.
+            public var itemId: Swift.String
+            /// - Remark: Generated from `#/components/schemas/RelatedItem/title`.
+            public var title: Swift.String
+            /// - Remark: Generated from `#/components/schemas/RelatedItem/oneline`.
+            public var oneline: Swift.String
+            /// Creates a new `RelatedItem`.
+            ///
+            /// - Parameters:
+            ///   - itemId:
+            ///   - title:
+            ///   - oneline:
+            public init(
+                itemId: Swift.String,
+                title: Swift.String,
+                oneline: Swift.String
+            ) {
+                self.itemId = itemId
+                self.title = title
+                self.oneline = oneline
+            }
+            public enum CodingKeys: String, CodingKey {
+                case itemId
+                case title
+                case oneline
             }
         }
         /// needs_review=true 일 때의 미확정 후보 (mochi_items JSONB 영속 — PR-B).

@@ -37,24 +37,35 @@ class RecordRecallReactionRequest(BaseModel):
     model_config = {"populate_by_name": True}
 
 
+class RelatedItem(BaseModel):
+    """관련 기억 1건(트랙 C 상세 "관련 N개"). 탭 시 그 항목 상세로 — ``itemId`` 운반."""
+
+    item_id: UUID = Field(alias="itemId")
+    title: str
+    oneline: str
+
+    model_config = {"populate_by_name": True}
+
+
 class RecallFeedEntry(BaseModel):
     """능동 회수 1건 — iOS ``RecallEntry`` 표시모델 매핑(P5b). 홈 한 칸·자세히 목록·알림 landing 공용.
 
-    UI 전용(color/symbol/grad)은 제외 — iOS 가 ``reason`` → 색/아이콘 매핑. 트랙 A/B 에선 피드가
-    "다시 볼 지식"(active spaced plan knowledge)뿐이라 ``kind``="knowledge", ``reason``="fadingValue",
-    ``related``=[]·``relatedCount``=1(트랙 C 관련/맥락 후속). ``oneline``/``gist`` 는 summary 분할.
+    UI 전용(color/symbol/grad)은 제외 — iOS 가 ``reason`` → 색/아이콘 매핑. 트랙 A(spaced)는
+    ``kind``="knowledge"/``reason``="fadingValue"/``related``=[]/``relatedCount``=1, 트랙 C(recall)는
+    ``kind``="recall"/``reason``="linkedToRecent"/``related``=관련 기억 N개. ``oneline``/``gist`` 는
+    summary 분할.
     """
 
     item_id: UUID = Field(alias="itemId")
-    kind: str  # 현재 항상 "knowledge"(트랙 A/B)
+    kind: str  # "knowledge"(트랙 A spaced) | "recall"(트랙 C)
     reason: str  # "fadingValue" | "relatedCluster" | "revisitedOften" | "linkedToRecent"
     title: str
     oneline: str  # summary 요지 1줄(미리보기). 없으면 ""
     source: str  # ingest channel 문자열
     saved_at: UtcDateTime = Field(alias="savedAt")
     gist: list[str] = Field(default_factory=list)  # 상세 핵심 bullet(summary 기반). 없으면 []
-    related: list[str] = Field(default_factory=list)  # 트랙 C 후속 — 현재 항상 []
-    related_count: int = Field(alias="relatedCount")  # 현재 항상 1
+    related: list[RelatedItem] = Field(default_factory=list)  # 트랙 C 관련 기억(spaced 는 [])
+    related_count: int = Field(alias="relatedCount")  # spaced=1, recall=관련 개수
     # 그 항목의 최근 sent outbox event_id(없으면 null) — 알림 landing 역참조·reaction 보고용.
     recall_event_id: UUID | None = Field(default=None, alias="recallEventID")
 

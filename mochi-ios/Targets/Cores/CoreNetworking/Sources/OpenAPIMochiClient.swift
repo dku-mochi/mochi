@@ -387,7 +387,12 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
             source: e.source,
             savedAt: e.savedAt,
             gist: e.gist ?? [],
-            related: e.related ?? [],
+            // 관련 항목의 itemId 파싱 실패 1건은 전체를 막지 않고 그 1건만 떨군다(compactMap).
+            related: (e.related ?? []).compactMap { r in
+                UUID(uuidString: r.itemId).map {
+                    RelatedItemDTO(itemID: $0, title: r.title, oneline: r.oneline)
+                }
+            },
             relatedCount: e.relatedCount,
             recallEventID: e.recallEventID.flatMap { UUID(uuidString: $0) }
         )

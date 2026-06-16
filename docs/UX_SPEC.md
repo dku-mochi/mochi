@@ -265,7 +265,7 @@ UI (`ShareEntryView`) — 콘텐츠에 따라 2가지 레이아웃:
 
 **③ 기록 상세** (`RecallDetailFeature`) — `kind`(=`outbox.kind`, plan_kind 유래)별로 섹션을 다르게 렌더, **kind마다 별도 화면을 만들지 않는다**:
 - **지식**(`spaced`): 모찌가 정리한 핵심 + 원본 링크(원본 대체 금지).
-- **관련·맥락**(`recall`): 관련 기억 목록(그때 맥락) + "왜 지금 이어지는지" 연결 설명. 관련 N개를 상세가 품는다(트랙 C — 후보 생성은 A/B 다음 단계, 정본 `tech-plan.md` §8 P7–P9).
+- **관련·맥락**(`recall`): 관련 기억 목록(그때 맥락) + "왜 지금 이어지는지" 연결 설명. 관련 N개(`related`, 탭 → 그 항목 상세)를 상세가 품는다(트랙 C 구현됨 2026-06-16, 정본 `tech-plan.md` §8 P7–P9). 표시·게이트는 서버 `relatedCount` 가 아니라 실제 렌더 가능한 `related.count` 기준.
 - 단정 금지 — 항상 확인 질문 톤("샀나요"❌ → "결정하셨어요?"⭕).
 
 **이유 칩 4종** ("왜 지금 떠올렸나" — 회수 신호의 표현이지 분류가 아니다, `RecallReasonKind`): **잊기 전에 한 번**(fadingValue) / **관련해서 여러 번**(relatedCluster) / **요즘 자주 보시던**(revisitedOften) / **지금 맥락과 이어져요**(linkedToRecent). 색·아이콘은 iOS 매핑(비계약).

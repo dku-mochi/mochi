@@ -10,6 +10,15 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-06-16 — ios (회수 진입 페이지 ②자세히·③상세 최상급 리디자인)
+- **② 목록·③ 상세 비주얼 승격** (`RecallView.swift`) — 평면 회색 배경 → 라벤더 오로라 배경(홈·주간정리와 연속성). ② 목록: 밋밋한 인트로 텍스트 → 스파클 글로우 오브 히어로(마스코트 미사용)·통일 카드 다듬기(썸네일 광택·관련묶음 칩·chevron 글로우). ③ 상세: 평면 헤더 → reason 색 히어로 카드(옅은 이유 워터마크)·primary CTA를 파일 주석이 약속한 "보라 그라데이션"으로 실현·안내문구 보이스 칸화.
+- **회수 이유 색을 단일 시각 언어로 정합** — 이전엔 칩 tint(`fadingValue`=peach)와 썸네일 grad(`fadingValue`=mint/sky)가 reason마다 따로 놀던 선행 불일치를, `RecallReasonKind` 뷰-레이어 확장(tint/paleTint/gradient) 단일 소스로 통일(칩·썸네일·상세 히어로 동색). 색은 UI 전용이라 계약·Feature 미변경(ux-ui §3).
+- 도메인/계약/플로우(①한칸→②목록→③상세)·reducer 무변경. 회수=분류 아님 유지(카드 표면 중립, 색은 신호로만). 검증: `tuist build FeatureInbox` 성공.
+- **트랙 C 후보 생성·게이트·발송 합류 (P7–P9)** — 새 item 분석 done 후 worker 가 best-effort 로 `_generate_recall_candidates`(P2 플래너 형제, 독립세션·격리) 호출. `recall_context_provider._similar` 와 동일 pgvector cosine ANN 으로 유사 과거 기록(A) 조회 → 게이트(점수 임계·재스팸 dedup·dismiss cooldown·야간/cap/트랙B 양보를 fire_at 미루기로) 통과분만 `notification_outbox` 직행(`kind=recall, plan_id NULL`). 발송 패스 클레임이 이미 `plan_id IS NULL OR active plan` 이라 recall 행 발송(worker 무수정). 신규 `generate_recall_candidates.py`·`recall_candidate.py`·`recall_candidate_repository.py`. 정본 `journal/proactive-recall/tech-plan.md` §8.
+- **회수 피드/landing 합류 + `related` 객체화** — `GetRecallFeed` 가 active spaced(A) + 최근 recall outbox(C) 합류, `related` 를 landing/feed 시점 ANN 재실행으로 채움. API 계약 `related: [String]` → `[RelatedItem]{itemId,title,oneline}` (openapi 단일원천 → iOS `Generated/Types.swift` 재생성).
+- **iOS** — `RelatedItemDTO` 소비 + "관련 기억 N개" 카드 탭 → 항목 상세 네비게이션(`RecallView`·`RecallFeature`·`MainTabFeature`). 회수 표면(홈 한 칸·상세·이유 칩·landing·반응)은 기존 완성분 재사용.
+- **민감 필터 = 안 넣음(결정)** — 회수 본문이 원본 OCR 아닌 추상화 LLM 요약이라 A/B 와 동일 ungated. no-op stub 도 speculative 라 제외(Simplicity First). `sensitivity_level` 실구현 시 발송 게이트로 끼움 (`PRIVACY_SENSITIVE_CAPTURE.md` §9). 검증: `make` 406 passed + iOS tuist build/test.
+
 ## 2026-06-16 — docs (능동 회수: 트랙 C 위상 정정 + sensitivity 디커플링 + EventKit 미러 결정)
 - **트랙 C(관련·맥락 회수)를 "별도 후속 트랙"에서 A/B와 같은 구현 범위로 재편입** — `journal/proactive-recall/` 5종 + `ARCHITECTURE`·`DOMAIN_DESIGN`·`PRIVACY_SENSITIVE_CAPTURE`·`UX_SPEC` framing 정정. `tech-plan.md` §8에 트랙 C를 P7–P9(후보 생성·게이트+민감 필터·발송 합류, A/B 발송 파이프라인 P4–P6 재사용)로 본문화. 코드 미구현 — 설계 위상만 조정.
 - **민감 스크린샷 ≠ `sensitivity_level` 전체 구현 의존** — 트랙 C가 스크린샷을 회수해도 민감 노출은 회수 후보 생성/발송 시점 필터(민감 항목 후보 제외·본문 마스킹·channel allowlist)로 국소 처리. 이전 "sensitivity 필드 = 트랙 C blocker" framing 폐기.

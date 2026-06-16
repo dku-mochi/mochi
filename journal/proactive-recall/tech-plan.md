@@ -11,7 +11,7 @@ description: 능동 회수 알림(트랙 A/B/C)의 구현 순서·선결 의존�
 
 # 능동 회수 알림 — 테크니컬 구현 플랜 (2026-06-16)
 
-> `schema.md`(데이터) + `notification-agent.md`(정책) + `ux-ui.md`(화면)를 코드로 내리는 순서. **트랙 A/B/C 전체** (A/B=P1–P6, C=P7–P9). 미착수.
+> `schema.md`(데이터) + `notification-agent.md`(정책) + `ux-ui.md`(화면)를 코드로 내리는 순서. **트랙 A/B/C 전체** (A/B=P1–P6, C=P7–P9). **2026-06-16 구현 완료** (A/B·C 모두 — make 406 passed + iOS tuist build/test).
 
 ---
 
@@ -79,13 +79,14 @@ P9  발송 합류(outbox 직행)         → 검증: kind=recall outbox(plan_id 
 - 홈 회수 "한 칸"(`HomeFeature` 새 섹션, `ux-ui.md` §6).
 - **접근성 (codex-9)**: 이유 칩 VoiceOver 라벨, 홈 preview Dynamic Type 2줄, 상세 액션 세로 스택 전환(`ux-ui.md` §5a).
 
-## 8. 트랙 C (범위 내, P7–P9) + 안 함 / 별도 트랙
+## 8. 트랙 C (구현 완료, P7–P9) + 안 함 / 별도 트랙
 
-**트랙 C 회수 본체 — A/B 다음 단계로 이어 채운다 (P7–P9):**
-- **P7 후보 생성** — `recall_candidates` 후보 생성/ANN/dedup. `entities (owner_id, kind, value)` 인덱스 선행.
-- **P8 발송 적격 게이트 + 민감 필터** — 점수 임계·중복·맥락 적합 게이트에 **민감 항목 필터**(민감 스크린샷은 후보 제외 or 본문 마스킹, channel allowlist)를 포함. `sensitivity_level` 전체 구현을 기다리지 않고 회수 시점 필터로 처리.
-- **P9 발송 합류** — plan 없이 `notification_outbox` 직행(`schema.md` outbox `kind=recall, plan_id NULL`). 발송·반응·landing 은 A/B 파이프라인(P4–P6) 재사용.
-- 후보 생성 알고리즘(ANN 파라미터·dedup 기준·점수 공식)의 상세는 착수 시 이 절을 확장.
+**트랙 C 회수 본체 — 구현 완료 (2026-06-16, P7–P9).** 범위 내 트랙 C는 **1:1 단건 맥락 회수**(임베딩 ANN)다 — 주제 묶음(entity bundling)은 **비범위**(콜드스타트 후속, `journal/2026-06-15-track-c-bundling-validation.md`).
+- **P7 후보 생성** (`notifications/application/generate_recall_candidates.py` + `infrastructure/recall_candidate_repository.py`) — 새 item(B) 분석 done 후 worker 가 best-effort 로 `_generate_recall_candidates` 호출(P2 플래너 형제, 독립 세션·격리). `recall_context_provider._similar` 와 동일 pgvector cosine ANN 으로 유사 과거 기록 조회 → 최고점(A)을 회수 앵커(`source_item_id=A`). **`entities (owner_id, kind, value)` 인덱스는 불필요** — 1:1 임베딩 ANN 은 entity 집계를 안 쓴다(인덱스 선행은 entity 묶음=비범위용이었음, 이 절이 정정).
+- **P8 발송 적격 게이트** — 점수 임계(`recall_candidate_min_score`)·재스팸 dedup(`recent_recall_exists`)·dismiss cooldown(`source_intent_id` 기준, `check_dismiss_cooldown` 재사용)·generic copy 금지(근거 명사 확보 시만). 야간/cap/트랙B 양보는 `recall_guards` 재사용하되 **생성 시점에 fire_at 미루기**로 표현(트랙 C 는 plan 없어 worker deferred 회생을 못 타므로 pending 의 future fire_at 으로). **민감 필터는 넣지 않는다(2026-06-16 결정)** — 회수 본문은 원본 OCR 이 아니라 추상화된 LLM 요약이라 A/B 와 동일한 ungated 논리(`PRIVACY_SENSITIVE_CAPTURE.md` §9). no-op pluggable stub 도 speculative 라 두지 않음(Simplicity First). `sensitivity_level` 실구현 시 회수 use case 에 발송 게이트로 끼운다.
+- **P9 발송 합류** — plan 없이 `notification_outbox` 직행(`kind=recall, plan_id NULL`). 발송 패스 클레임이 이미 `plan_id IS NULL OR active plan` 이라 recall 행을 클레임·발송(worker 수정 불필요였음). 발송·반응·landing 은 A/B 파이프라인(P4–P6) 재사용. 본문 = 결정적 템플릿(근거 명사, 비단정 "다시 볼까요?" 톤 — 비교/의도단정 아님).
+- **피드/landing 합류** — `GetRecallFeed` 가 active spaced(A) + 최근 recall outbox(C) 를 합류, `related` 를 landing/feed 시점 ANN 재실행으로 채움(`RelatedItem{item_id,title,oneline}` 객체). iOS 관련 카드 탭 → 항목 상세.
+- 검증: `make lint/typecheck/test`(406 passed) + iOS `tuist build/test`. dry-run 기본 True(threshold 튜닝 후 flip).
 
 **안 함 (2026-06-16 결정):**
 - **EventKit 양방향 미러 동기화** — 앱↔시스템 캘린더 생명주기 미러는 비범위(복잡도 대비 가치 낮음). 일회성 등록(proposal 확정/캘린더 추가의 EKEvent/EKReminder)은 별개로 유지. ※ known-drift "캘린더 탭 반영"(날짜·메모 확정이 캘린더 탭에 안 보임)은 **앱 내부 데이터 반영 버그**(EventKit 미러와 무관, 별개)로 그쪽에서 처리.

@@ -28,6 +28,9 @@ from app.modules.notifications.application.record_recall_reaction import (
     RecordRecallReaction,
     RecordRecallReactionCommand,
 )
+from app.modules.notifications.infrastructure.recall_candidate_repository import (
+    PostgresRecallCandidateRepository,
+)
 from app.modules.notifications.infrastructure.recall_feed_repository import (
     PostgresRecallFeedRepository,
 )
@@ -38,6 +41,7 @@ from app.modules.notifications.presentation.schemas import (
     RecallFeedEntry,
     RecallFeedResponse,
     RecordRecallReactionRequest,
+    RelatedItem,
 )
 
 router = APIRouter(prefix="/recall", tags=["recall"])
@@ -53,7 +57,10 @@ def _entry_to_response(entry: RecallFeedEntryDTO) -> RecallFeedEntry:
         source=entry.source,
         saved_at=entry.saved_at,
         gist=entry.gist,
-        related=[],  # 트랙 C 후속 — application 도 항상 [] 를 낸다
+        related=[
+            RelatedItem(item_id=r.item_id, title=r.title, oneline=r.oneline)
+            for r in entry.related
+        ],
         related_count=entry.related_count,
         recall_event_id=entry.recall_event_id,
     )
@@ -73,6 +80,7 @@ async def get_recall_feed(
     use_case = GetRecallFeed(
         feed=PostgresRecallFeedRepository(db),
         mochi_items=make_mochi_item_repository(db),
+        candidates=PostgresRecallCandidateRepository(db),
     )
     entries = await use_case.execute(owner_id=user, limit=max(1, min(limit, 50)))
     return RecallFeedResponse(entries=[_entry_to_response(e) for e in entries])
@@ -91,6 +99,7 @@ async def get_recall_landing(
     use_case = GetRecallLanding(
         feed=PostgresRecallFeedRepository(db),
         mochi_items=make_mochi_item_repository(db),
+        candidates=PostgresRecallCandidateRepository(db),
     )
     entry = await use_case.execute(owner_id=user, event_id=event_id)
     return _entry_to_response(entry)

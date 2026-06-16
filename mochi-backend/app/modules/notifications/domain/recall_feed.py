@@ -19,13 +19,16 @@ from uuid import UUID
 
 @dataclass(frozen=True, slots=True)
 class RecallFeedCandidate:
-    """피드 1건의 후보 — active spaced plan 이 가리키는 item id + 그 item 의 최근 sent event id.
+    """피드 1건의 후보 — item id + 그 item 의 회수 event id + 소스 구분.
 
-    ``recall_event_id`` 는 알림 landing 역참조용(없으면 None). 표시필드는 application 이 하이드레이션.
+    ``recall_event_id`` 는 알림 landing 역참조용(없으면 None). ``source_kind`` 는 트랙 구분 —
+    "spaced"(트랙 A: active spaced plan knowledge) | "recall"(트랙 C: kind=recall outbox 직행).
+    표시필드(title/summary/channel)는 application 이 cross-module 하이드레이션한다.
     """
 
     item_id: UUID
     recall_event_id: UUID | None
+    source_kind: str = "spaced"
 
 
 class RecallFeedRepositoryPort(ABC):
@@ -45,8 +48,9 @@ class RecallFeedRepositoryPort(ABC):
     @abstractmethod
     async def resolve_landing(
         self, *, owner_id: UUID, event_id: UUID
-    ) -> UUID | None:
-        """outbox event_id → source item id 해석(알림 landing). owner 스코프 필수, status 무관.
+    ) -> tuple[UUID, str] | None:
+        """outbox event_id → (source item id, outbox kind) 해석(알림 landing). owner 스코프, status 무관.
 
+        kind 로 landing 섹션을 정한다 — recall 이면 관련 N개(트랙 C), 그 외(spaced 등)는 지식 gist.
         event 가 없거나 다른 owner·source_item_id NULL 이면 None(→404 / 하이드레이션 실패도 404).
         """
