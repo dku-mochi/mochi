@@ -2,7 +2,7 @@ import asyncio
 import hashlib
 import json
 from collections.abc import AsyncIterator
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime
 from time import perf_counter
 from typing import Any
@@ -293,6 +293,12 @@ class AgentOrchestrator:
                 )
 
         analysis = _to_analysis_result(final_payload)
+        if reanalysis_hint:
+            # 재분석은 사용자가 의도를 확정한 행위(reanalyze 는 hint 필수). 사용자 확정은 LLM 추론보다
+            # 상위 신뢰라 LLM 이 needs_review 를 다시 올려도 무시한다 — "확정했는데 모찌가 되묻는"
+            # 미션 위반 방지(DOMAIN_DESIGN 재분석 규약 — 사용자 확정 > LLM 추론). review_options 도
+            # 비운다(needs_review=false 와 정합).
+            analysis = replace(analysis, needs_review=False, review_options=())
         yield StreamEvent(
             "partial",
             {

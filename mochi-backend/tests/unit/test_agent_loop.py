@@ -359,3 +359,33 @@ async def test_max_steps_exhausted_raises_and_emits_failed():
             events.append(ev)
     assert gateway.applied is None
     assert any(e.kind == "failed" for e in events)
+
+
+@pytest.mark.asyncio
+async def test_reanalysis_hint_forces_needs_review_false():
+    # 재분석(사용자 의도 확정, hint 필수)은 LLM 이 needs_review=true 를 내도 false 로 강제하고
+    # review_options 를 비운다 — "확정했는데 모찌가 되묻는" 미션 위반 방지(DOMAIN_DESIGN §6.3).
+    gateway = _FakeGateway(AnalysisInput(text="영수증", url=None, user_memo=None))
+    chunk = _finalize_chunk(
+        needs_review=True,
+        review_options=[{"intent_type": "todo", "label": "할 일", "reasoning": "?"}],
+    )
+    orch = AgentOrchestrator(llm=_ScriptedLLM([chunk]), tools=_Registry(), max_steps=8, gateway=gateway)
+    async for _ev in orch.run(uuid4(), uuid4(), reanalysis_hint="todo 로 분류해줘"):
+        pass
+    assert gateway.applied.needs_review is False
+    assert gateway.applied.review_options == ()
+
+
+@pytest.mark.asyncio
+async def test_first_analysis_keeps_llm_needs_review():
+    # 첫 분석(hint 없음)은 LLM holistic 판단을 그대로 존중 — needs_review=true 유지.
+    gateway = _FakeGateway(AnalysisInput(text="애매한 캡처", url=None, user_memo=None))
+    chunk = _finalize_chunk(
+        needs_review=True,
+        review_options=[{"intent_type": "todo", "label": "할 일", "reasoning": "?"}],
+    )
+    orch = AgentOrchestrator(llm=_ScriptedLLM([chunk]), tools=_Registry(), max_steps=8, gateway=gateway)
+    await _drain(orch, uuid4(), uuid4())
+    assert gateway.applied.needs_review is True
+    assert len(gateway.applied.review_options) == 1
