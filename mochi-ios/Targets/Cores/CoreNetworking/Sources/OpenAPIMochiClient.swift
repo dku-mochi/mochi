@@ -335,6 +335,64 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
         }
     }
 
+    public func recallFeed(limit: Int) async throws -> [RecallFeedEntryDTO] {
+        let output = try await client.get_recall_feed_api_v1_recall_feed_get(
+            query: .init(limit: limit)
+        )
+        switch output {
+        case let .ok(response):
+            return try (response.body.json.entries ?? []).map(Self.mapRecallEntry)
+        case let .undocumented(status, payload): throw await Self.error(status: status, payload: payload)
+        }
+    }
+
+    public func recallLanding(eventID: UUID) async throws -> RecallFeedEntryDTO {
+        let output = try await client.get_recall_landing_api_v1_recall_events__event_id__get(
+            path: .init(event_id: eventID.uuidString)
+        )
+        switch output {
+        case let .ok(response): return try Self.mapRecallEntry(response.body.json)
+        case let .undocumented(status, payload): throw await Self.error(status: status, payload: payload)
+        }
+    }
+
+    public func recordRecallReaction(eventID: UUID, reaction: RecallReaction) async throws {
+        // 변환 실패 시 throw — `?? .opened` 로 강등하면 계약 drift 때 stop/dismissed 가 조용히
+        // 양성 신호(opened)로 오염된다(학습 신호 오염 방지). 정상 경로엔 3 case 가 1:1 일치.
+        guard let kind = Components.Schemas.ReactionKind(rawValue: reaction.rawValue) else {
+            throw Self.clientError("client.invalid_reaction", reaction.rawValue)
+        }
+        let output = try await client.record_recall_reaction_api_v1_recall_events__event_id__reaction_post(
+            path: .init(event_id: eventID.uuidString),
+            body: .json(.init(reaction: kind))
+        )
+        switch output {
+        case .noContent: return
+        case let .undocumented(status, payload): throw await Self.error(status: status, payload: payload)
+        }
+    }
+
+    /// 생성 `RecallFeedEntry` → ``RecallFeedEntryDTO``. 필수 `itemId` 는 파싱 실패 시 throw,
+    /// optional `recallEventID` 는 계약상 nilable 이라 파싱 실패 시 nil 강등한다.
+    private static func mapRecallEntry(_ e: Components.Schemas.RecallFeedEntry) throws -> RecallFeedEntryDTO {
+        guard let itemID = UUID(uuidString: e.itemId) else {
+            throw clientError("client.invalid_uuid", e.itemId)
+        }
+        return RecallFeedEntryDTO(
+            itemID: itemID,
+            kind: e.kind,
+            reason: e.reason,
+            title: e.title,
+            oneline: e.oneline,
+            source: e.source,
+            savedAt: e.savedAt,
+            gist: e.gist ?? [],
+            related: e.related ?? [],
+            relatedCount: e.relatedCount,
+            recallEventID: e.recallEventID.flatMap { UUID(uuidString: $0) }
+        )
+    }
+
     /// 도메인 ``InstanceLifecycle`` → 생성 요청의 (kind, reason).
     /// active/decaying/reviewRequested 는 reason 없음, archived 만 사유를 싣는다.
     private static func lifecycleParts(

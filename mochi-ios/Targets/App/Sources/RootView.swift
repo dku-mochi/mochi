@@ -143,6 +143,14 @@ struct MainTabView: View {
                 // 대화 풀스크린 — 탭바를 덮는 push 라 입력 독이 키보드에 정확히 붙는다
                 // (TabView 안 safeAreaInset 키보드 inset 버그·이중 바 회피, 2026-06-10).
                 ChatView(store: chatStore)
+
+            case let .recallList(recallListStore):
+                // 능동 회수 ② 자세히 — 홈 "한 칸"에서 push. 통일 카드 탭은 delegate 로 상세 push.
+                RecallListView(store: recallListStore)
+
+            case let .recallDetail(recallDetailStore):
+                // 능동 회수 ③ 기록 상세 — 목록 탭 / 알림 landing 직행.
+                RecallDetailView(store: recallDetailStore)
             }
         }
         // push 화면(설정)의 바 버튼·back tint = 모찌 퍼플.

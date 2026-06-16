@@ -4,6 +4,7 @@ from app.modules.agent.presentation.router import router as agent_router
 from app.modules.auth.presentation.router import auth_router, users_router
 from app.modules.conversations.presentation.router import router as conversations_router
 from app.modules.mochi_items.presentation.router import router as mochi_items_router
+from app.modules.notifications.presentation.recall_router import router as recall_router
 from app.modules.notifications.presentation.router import router as notifications_router
 from app.modules.search.presentation.router import router as search_router
 from app.modules.search.presentation.router import similar_router
@@ -24,4 +25,5 @@ def build_v1_router() -> APIRouter:
     router.include_router(search_router)
     router.include_router(similar_router)
     router.include_router(notifications_router)
+    router.include_router(recall_router)
     return router

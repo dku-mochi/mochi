@@ -1,0 +1,86 @@
+"""능동 회수 후보 조회 + 알림 landing 해석 — `RecallFeedRepositoryPort` 구현 (P5b).
+
+P5 reaction repo(쓰기)와 별개 파일 — 읽기 전용 단순 SELECT. 이 모듈 소유 테이블만 만진다
+(notification_plan/outbox). item 표시필드 하이드레이션은 application 이 cross-module 로 한다.
+
+후보 = owner 의 active spaced plan 의 source_item_id(plan recency desc, 중복 item dedup).
+각 후보에 그 item 의 최근 sent outbox event_id(없으면 NULL)를 붙인다 — 알림 landing 역참조용.
+랭킹 공식은 미정이라 recency(plan.created_at desc)로 충분(후속).
+"""
+
+from uuid import UUID
+
+from sqlalchemy import desc, func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.modules.notifications.domain.recall_feed import (
+    RecallFeedCandidate,
+    RecallFeedRepositoryPort,
+)
+from app.modules.notifications.infrastructure.orm import (
+    NotificationOutboxRow,
+    NotificationPlanRow,
+)
+
+
+class PostgresRecallFeedRepository(RecallFeedRepositoryPort):
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    async def list_candidates(
+        self, *, owner_id: UUID, limit: int
+    ) -> list[RecallFeedCandidate]:
+        # active spaced plan → source_item_id. 같은 item 에 plan 이 여럿이어도 1행만(group by item),
+        # 정렬 키는 그 item 의 가장 최근 plan.created_at(recency). source_item_id NULL plan 은 제외.
+        latest_plan = func.max(NotificationPlanRow.created_at).label("latest_plan")
+        plans = (
+            select(
+                NotificationPlanRow.source_item_id.label("item_id"),
+                latest_plan,
+            )
+            .where(
+                NotificationPlanRow.owner_id == owner_id,
+                NotificationPlanRow.status == "active",
+                NotificationPlanRow.plan_kind == "spaced",
+                NotificationPlanRow.source_item_id.is_not(None),
+            )
+            .group_by(NotificationPlanRow.source_item_id)
+            .order_by(desc(latest_plan))
+            .limit(limit)
+        )
+        rows = (await self._session.execute(plans)).all()
+        return [
+            RecallFeedCandidate(
+                item_id=row.item_id,
+                recall_event_id=await self._latest_sent_event(
+                    owner_id=owner_id, item_id=row.item_id
+                ),
+            )
+            for row in rows
+        ]
+
+    async def resolve_landing(
+        self, *, owner_id: UUID, event_id: UUID
+    ) -> UUID | None:
+        # event → source item id. status 무관(sent 후 탭 OK), owner 스코프 필수.
+        stmt = select(NotificationOutboxRow.source_item_id).where(
+            NotificationOutboxRow.event_id == event_id,
+            NotificationOutboxRow.owner_id == owner_id,
+        )
+        return (await self._session.execute(stmt)).scalar_one_or_none()
+
+    async def _latest_sent_event(
+        self, *, owner_id: UUID, item_id: UUID
+    ) -> UUID | None:
+        """그 item 의 가장 최근 sent outbox event_id(없으면 None). owner 스코프."""
+        stmt = (
+            select(NotificationOutboxRow.event_id)
+            .where(
+                NotificationOutboxRow.owner_id == owner_id,
+                NotificationOutboxRow.source_item_id == item_id,
+                NotificationOutboxRow.status == "sent",
+            )
+            .order_by(desc(NotificationOutboxRow.sent_at))
+            .limit(1)
+        )
+        return (await self._session.execute(stmt)).scalar_one_or_none()

@@ -2203,4 +2203,194 @@ public struct Client: APIProtocol {
             }
         )
     }
+    /// Get Recall Feed
+    ///
+    /// 홈 회수 한 칸 + 자세히 목록 — owner 의 active spaced plan knowledge(다시 볼 지식).
+    ///
+    /// 소스: notification_plan(status='active', plan_kind='spaced') → source item(deleted_at IS NULL,
+    /// 살아있는 knowledge instance). recency 정렬(랭킹 공식 미정 — 후속). 빈손이면 entries=[](정상).
+    ///
+    /// - Remark: HTTP `GET /api/v1/recall/feed`.
+    /// - Remark: Generated from `#/paths//api/v1/recall/feed/get(get_recall_feed_api_v1_recall_feed_get)`.
+    public func get_recall_feed_api_v1_recall_feed_get(_ input: Operations.get_recall_feed_api_v1_recall_feed_get.Input) async throws -> Operations.get_recall_feed_api_v1_recall_feed_get.Output {
+        try await client.send(
+            input: input,
+            forOperation: Operations.get_recall_feed_api_v1_recall_feed_get.id,
+            serializer: { input in
+                let path = try converter.renderedPath(
+                    template: "/api/v1/recall/feed",
+                    parameters: []
+                )
+                var request: HTTPTypes.HTTPRequest = .init(
+                    soar_path: path,
+                    method: .get
+                )
+                suppressMutabilityWarning(&request)
+                try converter.setQueryItemAsURI(
+                    in: &request,
+                    style: .form,
+                    explode: true,
+                    name: "limit",
+                    value: input.query.limit
+                )
+                converter.setAcceptHeader(
+                    in: &request.headerFields,
+                    contentTypes: input.headers.accept
+                )
+                return (request, nil)
+            },
+            deserializer: { response, responseBody in
+                switch response.status.code {
+                case 200:
+                    let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
+                    let body: Operations.get_recall_feed_api_v1_recall_feed_get.Output.Ok.Body
+                    let chosenContentType = try converter.bestContentType(
+                        received: contentType,
+                        options: [
+                            "application/json"
+                        ]
+                    )
+                    switch chosenContentType {
+                    case "application/json":
+                        body = try await converter.getResponseBodyAsJSON(
+                            Components.Schemas.RecallFeedResponse.self,
+                            from: responseBody,
+                            transforming: { value in
+                                .json(value)
+                            }
+                        )
+                    default:
+                        preconditionFailure("bestContentType chose an invalid content type.")
+                    }
+                    return .ok(.init(body: body))
+                default:
+                    return .undocumented(
+                        statusCode: response.status.code,
+                        .init(
+                            headerFields: response.headerFields,
+                            body: responseBody
+                        )
+                    )
+                }
+            }
+        )
+    }
+    /// Get Recall Landing
+    ///
+    /// 알림 landing fallback — recallEventID 로 단건 회수 entry(iOS 로컬 역매핑 실패 시 서버 fetch).
+    ///
+    /// owner+event 로 outbox→item 해석. status 무관(sent 후 탭이라도 보여야 함). 남의 event·삭제·미실재 404.
+    ///
+    /// - Remark: HTTP `GET /api/v1/recall/events/{event_id}`.
+    /// - Remark: Generated from `#/paths//api/v1/recall/events/{event_id}/get(get_recall_landing_api_v1_recall_events__event_id__get)`.
+    public func get_recall_landing_api_v1_recall_events__event_id__get(_ input: Operations.get_recall_landing_api_v1_recall_events__event_id__get.Input) async throws -> Operations.get_recall_landing_api_v1_recall_events__event_id__get.Output {
+        try await client.send(
+            input: input,
+            forOperation: Operations.get_recall_landing_api_v1_recall_events__event_id__get.id,
+            serializer: { input in
+                let path = try converter.renderedPath(
+                    template: "/api/v1/recall/events/{}",
+                    parameters: [
+                        input.path.event_id
+                    ]
+                )
+                var request: HTTPTypes.HTTPRequest = .init(
+                    soar_path: path,
+                    method: .get
+                )
+                suppressMutabilityWarning(&request)
+                converter.setAcceptHeader(
+                    in: &request.headerFields,
+                    contentTypes: input.headers.accept
+                )
+                return (request, nil)
+            },
+            deserializer: { response, responseBody in
+                switch response.status.code {
+                case 200:
+                    let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
+                    let body: Operations.get_recall_landing_api_v1_recall_events__event_id__get.Output.Ok.Body
+                    let chosenContentType = try converter.bestContentType(
+                        received: contentType,
+                        options: [
+                            "application/json"
+                        ]
+                    )
+                    switch chosenContentType {
+                    case "application/json":
+                        body = try await converter.getResponseBodyAsJSON(
+                            Components.Schemas.RecallFeedEntry.self,
+                            from: responseBody,
+                            transforming: { value in
+                                .json(value)
+                            }
+                        )
+                    default:
+                        preconditionFailure("bestContentType chose an invalid content type.")
+                    }
+                    return .ok(.init(body: body))
+                default:
+                    return .undocumented(
+                        statusCode: response.status.code,
+                        .init(
+                            headerFields: response.headerFields,
+                            body: responseBody
+                        )
+                    )
+                }
+            }
+        )
+    }
+    /// Record Recall Reaction
+    ///
+    /// 알림 반응 보고 (owner-scoped, first-write-wins 멱등).
+    ///
+    /// `(event_id, owner_id)` + `status='sent'` 인 행만 갱신한다. 행이 없으면 404(남의 event_id·
+    /// pending·이미 종료). 이미 같은 반응이 기록돼 있으면 멱등 no-op(중복 탭 → 204).
+    ///
+    /// - Remark: HTTP `POST /api/v1/recall/events/{event_id}/reaction`.
+    /// - Remark: Generated from `#/paths//api/v1/recall/events/{event_id}/reaction/post(record_recall_reaction_api_v1_recall_events__event_id__reaction_post)`.
+    public func record_recall_reaction_api_v1_recall_events__event_id__reaction_post(_ input: Operations.record_recall_reaction_api_v1_recall_events__event_id__reaction_post.Input) async throws -> Operations.record_recall_reaction_api_v1_recall_events__event_id__reaction_post.Output {
+        try await client.send(
+            input: input,
+            forOperation: Operations.record_recall_reaction_api_v1_recall_events__event_id__reaction_post.id,
+            serializer: { input in
+                let path = try converter.renderedPath(
+                    template: "/api/v1/recall/events/{}/reaction",
+                    parameters: [
+                        input.path.event_id
+                    ]
+                )
+                var request: HTTPTypes.HTTPRequest = .init(
+                    soar_path: path,
+                    method: .post
+                )
+                suppressMutabilityWarning(&request)
+                let body: OpenAPIRuntime.HTTPBody?
+                switch input.body {
+                case let .json(value):
+                    body = try converter.setRequiredRequestBodyAsJSON(
+                        value,
+                        headerFields: &request.headerFields,
+                        contentType: "application/json; charset=utf-8"
+                    )
+                }
+                return (request, body)
+            },
+            deserializer: { response, responseBody in
+                switch response.status.code {
+                case 204:
+                    return .noContent(.init())
+                default:
+                    return .undocumented(
+                        statusCode: response.status.code,
+                        .init(
+                            headerFields: response.headerFields,
+                            body: responseBody
+                        )
+                    )
+                }
+            }
+        )
+    }
 }

@@ -91,6 +91,91 @@ public protocol MochiAPIClient: Sendable {
     /// `POST /api/v1/mochi_items/weekly_digest` — 이번주 정리. 그 주(KST 월~일) 항목의 카테고리를
     /// 서버가 정규화(write)하고 "모찌의 한마디"를 생성한다. `weekStart` 가 어긋나도 서버가 재정규화한다.
     func weeklyDigest(weekStart: Date) async throws -> WeeklyDigestDTO
+
+    /// `GET /api/v1/recall/feed` — 능동 회수 피드(홈 한 칸·자세히 목록). owner 의 "다시 볼 지식".
+    /// cold-start 빈손은 정상(`[]`). UI 필드(색/아이콘)는 iOS 가 `reason` → 매핑한다.
+    func recallFeed(limit: Int) async throws -> [RecallFeedEntryDTO]
+
+    /// `GET /api/v1/recall/events/{event_id}` — 알림 landing fallback. 로컬 역매핑 실패 시
+    /// `recallEventID` 로 단건 회수 entry 를 서버에서 가져온다(빈 상세 금지). owner 스코프, 404 가능.
+    func recallLanding(eventID: UUID) async throws -> RecallFeedEntryDTO
+
+    /// `POST /api/v1/recall/events/{event_id}/reaction` — 알림/회수 반응 보고(204). 멱등.
+    /// `opened`(양성·탭/열기) / `dismissed`(soft 부정) / `stop`("이 기억 그만" → plan cancel).
+    func recordRecallReaction(eventID: UUID, reaction: RecallReaction) async throws
+}
+
+/// 알림/회수 반응 — 백엔드 `ReactionKind` 와 1:1. 액션 ↔ 서버 상태전이 매핑(ux-ui §4 codex-7):
+/// 탭/열기/기억남=`opened`, 알림 swipe-away=`dismissed`, "그만 보기"=`stop`(영구, plan cancelled).
+public enum RecallReaction: String, Sendable, Codable {
+    /// 알림 탭·상세 진입·"기억났어요"(행동 양성 신호). 학습 우선 신호(ux-ui §6).
+    case opened
+    /// 알림을 열지 않고 swipe-away 한 soft 부정(cooldown). **OS 알림 dismiss 신호**라 앱 내
+    /// 화면에는 대응 제스처가 없다(back-navigation 은 이미 opened). 캡처하려면
+    /// `UNNotificationCategory` + customDismissAction 등록이 필요 — 알림 인프라 후속 스코프.
+    case dismissed
+    /// "이 기억 그만"(영구 부정 → plan cancelled, codex-7 1:1). destructive 액션.
+    case stop
+}
+
+/// 능동 회수 1건 — 백엔드 `RecallFeedEntry` 미러. 홈 한 칸·자세히 목록·알림 landing 공용.
+/// UI 전용(색/아이콘/그라데이션)은 제외 — iOS 가 `reason` → 매핑한다.
+public struct RecallFeedEntryDTO: Sendable, Hashable, Codable, Identifiable {
+    /// 원본 mochiItem 의 server PK(상세 진입·원본 보기 대상).
+    public let itemID: UUID
+    /// 상세 섹션 형태("knowledge" 등). 트랙 A/B 에선 "knowledge".
+    public let kind: String
+    /// "왜 지금 떠올렸나"(분류 아님). "fadingValue" 등 — iOS 가 색/아이콘/라벨로 매핑.
+    public let reason: String
+    public let title: String
+    public let oneline: String
+    /// 출처 표기(예: "medium · Hybrid Search").
+    public let source: String
+    public let savedAt: Date
+    /// 모찌가 정리한 핵심 줄들(원본 안 봐도 떠올림). 없으면 빈 배열.
+    public let gist: [String]
+    /// 관련 기억(트랙 C 후속 — 지금 빈 배열).
+    public let related: [String]
+    public let relatedCount: Int
+    /// 최근 sent 알림의 event_id(반응 추적·landing fallback 키). 없으면 nil.
+    public let recallEventID: UUID?
+
+    public var id: UUID { itemID }
+
+    public init(
+        itemID: UUID,
+        kind: String,
+        reason: String,
+        title: String,
+        oneline: String,
+        source: String,
+        savedAt: Date,
+        gist: [String] = [],
+        related: [String] = [],
+        relatedCount: Int,
+        recallEventID: UUID? = nil
+    ) {
+        self.itemID = itemID
+        self.kind = kind
+        self.reason = reason
+        self.title = title
+        self.oneline = oneline
+        self.source = source
+        self.savedAt = savedAt
+        self.gist = gist
+        self.related = related
+        self.relatedCount = relatedCount
+        self.recallEventID = recallEventID
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case itemID = "itemId"
+        case kind, reason, title, oneline, source
+        case savedAt = "savedAt"
+        case gist, related
+        case relatedCount = "relatedCount"
+        case recallEventID = "recallEventID"
+    }
 }
 
 /// push 토큰 종류. rawValue 는 백엔드 `device_push_tokens.token_type` 과 1:1.

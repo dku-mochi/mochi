@@ -66,6 +66,9 @@ struct RootFeature: Sendable {
         case pendingMemoDiscovered(UUID)
         /// 분석완료 알림 탭 — 해당 항목 상세를 연다. 인자는 server PK(server→local 역매핑은 MainTab 이 수행).
         case notificationTapped(UUID)
+        /// 능동 회수 알림 탭 — ③ 회수 상세로 직행한다. recallEventID 로 단건 entry 를 서버 fetch 해
+        /// 렌더(빈 상세 금지). landing 은 회수 목록·상세로 착지(ux-decision §4·§5).
+        case recallNotificationTapped(recallEventID: UUID)
         /// foreground 완료 푸시 수신(탭 아님) — 폴링 tick 을 기다리지 않고 그 항목을 즉시 reconcile 한다.
         /// 인자는 server PK. 반영은 observeChanges 로 열린 상세·홈에 전파(별도 화면 전환 없음).
         case analysisPushReceived(UUID)
@@ -136,6 +139,12 @@ struct RootFeature: Sendable {
                 // 콜드 스타트에도 안전). 항목 최신화는 scenePhase active reconcile(폴링/SSE 재구독).
                 state.main.selectedTab = .home
                 return .send(.main(.openDetailFromNotification(serverID: serverID)))
+
+            case let .recallNotificationTapped(recallEventID):
+                // 회수 알림 탭 → 홈 탭 + ③ 회수 상세 직행. recallEventID 로 서버 fetch 는 MainTab effect 가
+                // 맡는다(phase 무관하게 즉시 시작, 콜드 스타트에도 안전).
+                state.main.selectedTab = .home
+                return .send(.main(.openRecallLandingFromNotification(recallEventID: recallEventID)))
 
             case let .analysisPushReceived(serverID):
                 // foreground 완료 푸시 — 화면 전환 없이 그 항목만 즉시 가져온다. 열린 상세(observeChanges)

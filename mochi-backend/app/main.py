@@ -21,6 +21,7 @@ from app.core.error_envelope import (
 from app.core.logging import configure_logging, get_logger
 from app.core.middleware import RequestContextMiddleware
 from app.modules.agent.application.mochi_item_worker import MochiItemWorker
+from app.modules.notifications.application.notification_worker import NotificationWorker
 
 log = get_logger("app")
 
@@ -36,16 +37,24 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     ]
     worker_tasks = [asyncio.create_task(w.run_forever()) for w in workers]
     log.info("worker.started", count=settings.worker_concurrency)
+    # 능동 회수 알림 cron 워커 1 인스턴스. killswitch=False 여도 기동은 하고 루프가 no-op.
+    recall_worker = NotificationWorker()
+    recall_task = asyncio.create_task(recall_worker.run_forever())
+    log.info("recall_worker.started")
     try:
         yield
     finally:
         for w in workers:
             await w.stop()
+        await recall_worker.stop()
         for task in worker_tasks:
             task.cancel()
+        recall_task.cancel()
         for task in worker_tasks:
             with suppress(asyncio.CancelledError):
                 await task
+        with suppress(asyncio.CancelledError):
+            await recall_task
         log.info("worker.stopped", count=len(worker_tasks))
 
 

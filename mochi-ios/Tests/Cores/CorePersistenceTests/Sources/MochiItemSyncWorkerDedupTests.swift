@@ -153,4 +153,13 @@ private actor StubSyncAPIClient: MochiAPIClient {
     func weeklyDigest(weekStart: Date) async throws -> WeeklyDigestDTO {
         try await unimplemented.weeklyDigest(weekStart: weekStart)
     }
+    func recallFeed(limit: Int) async throws -> [RecallFeedEntryDTO] {
+        try await unimplemented.recallFeed(limit: limit)
+    }
+    func recallLanding(eventID: UUID) async throws -> RecallFeedEntryDTO {
+        try await unimplemented.recallLanding(eventID: eventID)
+    }
+    func recordRecallReaction(eventID: UUID, reaction: RecallReaction) async throws {
+        try await unimplemented.recordRecallReaction(eventID: eventID, reaction: reaction)
+    }
 }

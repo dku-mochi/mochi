@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import CoreNetworking
 import CorePersistence
 import DesignSystem
 import Foundation
@@ -71,6 +72,10 @@ struct MainTabFeature: Sendable {
         case openDetailFromNotification(serverID: UUID)
         /// 역매핑된 로컬 id 로 상세 present — 같은 항목이면 무시, 다른 상세가 떠 있으면 닫고 재open.
         case presentDetailFromNotification(localID: UUID)
+        /// 회수 알림 탭 → recallEventID 로 단건 entry 를 서버 fetch(effect, RootFeature 가 위임).
+        case openRecallLandingFromNotification(recallEventID: UUID)
+        /// fetch 된 entry 로 ③ 회수 상세를 push. fetch 실패(404·네트워크)면 조용히 포기(홈 한 칸 fallback).
+        case pushRecallDetailFromNotification(RecallFeedEntryDTO)
         case debugInboxChanged(Bool)
         case delegate(Delegate)
 
@@ -81,8 +86,9 @@ struct MainTabFeature: Sendable {
     }
 
     @Dependency(\.mochiItemRepository) var repository
+    @Dependency(\.mochiAPIClient) var apiClient
 
-    private enum CancelID: Hashable { case notificationOpen }
+    private enum CancelID: Hashable { case notificationOpen, recallLandingOpen }
 
     var body: some ReducerOf<Self> {
         Scope(state: \.home,     action: \.home)     { HomeFeature() }
@@ -140,6 +146,21 @@ struct MainTabFeature: Sendable {
                 // "전체 보기" — 전체 기록을 검색·필터로 훑을 수 있는 검색 탭으로.
                 state.selectedTab = .search
                 return .none
+
+            case let .home(.delegate(.recallListRequested(entries))):
+                // 회수 "한 칸" 탭 → ② 자세히(통일 카드 목록) push. 홈이 들고 있던 피드를 그대로 넘겨
+                // 즉시 그린다(목록 화면 onAppear 가 백그라운드 최신화).
+                state.path.append(.recallList(RecallListFeature.State(entries: entries)))
+                return .none
+
+            case let .path(.element(id: _, action: .recallList(.delegate(.openDetail(entry))))):
+                // 통일 카드 탭 → ③ 회수 상세 push.
+                state.path.append(.recallDetail(RecallDetailFeature.State(entry: entry)))
+                return .none
+
+            case let .path(.element(id: _, action: .recallDetail(.delegate(.openOriginal(itemID))))):
+                // 회수 상세 "원본 보기" → 원본 mochiItem 상세 present(server PK 역매핑은 기존 경로 재사용).
+                return .send(.openDetailFromNotification(serverID: itemID))
 
             case let .path(.element(id: _, action: .weeklyDigest(.delegate(.mochiItemTapped(mochiItemID, hero))))):
                 // 정리 화면의 항목 탭 → 상세 present (캘린더처럼 hero 없으면 중앙 scale 폴백).
@@ -256,6 +277,38 @@ struct MainTabFeature: Sendable {
                 state.detail = DetailFeature.State(mochiItemID: localID)
                 return .none
 
+            case let .openRecallLandingFromNotification(recallEventID):
+                // 회수 알림 landing — recallEventID 로 단건 entry 를 서버 fetch 해 ③ 상세를 push 한다
+                // (로컬 피드에 없을 수 있어 항상 fetch — 빈 상세 금지, codex-2). 404·네트워크 실패면
+                // 조용히 포기(홈 한 칸이 always-on fallback). 연속 탭은 cancelInFlight 로 마지막만.
+                // 알림 탭 = opened(양성)는 fetch·effect 취소 둘 다와 분리한다 — 별도 비취소
+                // fire-and-forget effect 라 다음 알림 탭의 cancelInFlight 가 이전 opened POST 를
+                // in-flight 중 취소하지 못한다. landing push 는 alreadyReportedOpen:true 라 이 보고가
+                // 그 알림의 유일한 opened 경로 → 취소로 유실되면 복구 불가(codex). best-effort(try?)
+                // 라 네트워크 실패엔 양보하되 취소로는 유실되지 않는다(reaction 1:1 정확도).
+                let reportOpened = Effect<Action>.run { _ in
+                    try? await apiClient.recordRecallReaction(eventID: recallEventID, reaction: .opened)
+                }
+                let fetchLanding = Effect<Action>.run { send in
+                    if let entry = try? await apiClient.recallLanding(eventID: recallEventID) {
+                        await send(.pushRecallDetailFromNotification(entry))
+                    }
+                }
+                .cancellable(id: CancelID.recallLandingOpen, cancelInFlight: true)
+                return .merge(reportOpened, fetchLanding)
+
+            case let .pushRecallDetailFromNotification(entry):
+                // 이미 같은 회수 event 상세가 최상단이면 재push 안 함(중복 방지). 같은 item 이라도 다른
+                // recallEventID(새 알림)면 교체해 최신 event 를 띄운다.
+                if case .recallDetail(let top) = state.path.last,
+                   top.entry.recallEventID == entry.recallEventID,
+                   top.entry.itemID == entry.itemID {
+                    return .none
+                }
+                // opened 는 위 landing effect 에서 이미 보고했으니 상세 onAppear 의 중복 보고는 건너뛴다.
+                state.path.append(.recallDetail(RecallDetailFeature.State(entry: entry, alreadyReportedOpen: true)))
+                return .none
+
             case .home, .inbox, .chatLanding, .mochiCalendar, .search, .path, .mochiItem, .detail, .delegate:
                 return .none
 
@@ -281,6 +334,10 @@ extension MainTabFeature {
         case favorites(FavoritesFeature)
         /// 대화 풀스크린 — 탭바를 덮는 push (랜딩·홈 입력바가 Entry 를 들고 연다).
         case chat(ChatFeature)
+        /// 능동 회수 ② 자세히(통일 카드 목록) — 홈 "한 칸"에서 push.
+        case recallList(RecallListFeature)
+        /// 능동 회수 ③ 기록 상세 — 목록 탭 / 알림 landing 직행.
+        case recallDetail(RecallDetailFeature)
     }
 }
 
