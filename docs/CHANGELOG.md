@@ -10,6 +10,9 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-06-16 — ios (마감/일정 시각 표시 + 기간 라벨 혼동 수정 — DueDisplay 단일화)
+- **표시 책임을 프론트 단일 소스(`DueDisplay`)로 통일** (사용자 지시: 시각 표시는 프론트가 결정·일관 처리, 포맷 다양성이 흩어지면 곤란). schedule/todo 의 시각·마감 라벨은 이미 `DueDisplay`(`deadlineLabel`/`scheduleLabel`/`scheduleRangeLabel`) 한 곳에 모여 있고 Detail/Calendar/WeeklyDigest 가 위임만 함을 확인 — 시각 포맷을 새 private `timeSuffix(_:)` 한 함수로 모아(단일 원천) 다양성 차단. ① **todo 마감 라벨에 시각 표시** — `deadlineLabel` 이 "오늘 마감"/"D-3" 일 단위만 그려 deadline 안에 든 시각(알람형 할 일, '10분 뒤')이 안 보이던 것을 "오늘 마감 · 오후 9:00"처럼 시각 있을 때 덧붙임(자정=시각 없음 → 미표시, 하루 단위 마감 그대로). ② **기간 일정 라벨 "D-10 ~ 6월 27일 (토)" 양끝 포맷 불일치 수정** — 시작은 상대(`scheduleLabel`=D-10), 끝은 절대("M월 d일 (E)")로 **양끝 포맷이 달라** 읽기 나쁘던 것을 `rangeEndpoint` 로 **양끝 동일 절대 포맷**("M월 d일 (E)" + 시각, 상대 표현 없음)으로 통일. 백엔드/계약/도메인 무변경(표시 전용) — payload 의 ISO date/time/deadline 추출은 v22 가 담당, 포맷팅은 프론트. `tuist build DesignSystem/FeatureInbox/FeatureDetail` 성공. UX_SPEC §3.6/§3.8 동기화.
+
 ## 2026-06-16 — backend (캡처 분석 날짜/시각 누락 수정 — 분류 프롬프트 v22)
 - **schedule/todo 의 `payload.date`·`deadline` 가 비던 버그 수정** (사용자 리포트: '친구들과 여행 (6/26-27)' → "날짜 미정", '10분 뒤 알람' → "마감일 미정" — 제목·요약엔 날짜가 들어갔으나 typed 필드는 공백). 다운스트림(영속→`IntentPayloadResponse` projection→iOS `PayloadDate`)은 `date/time/deadline` 을 `str|None` 로 1:1 보존하므로 유실 지점 아님 — 원인은 캡처 분석 LLM 출력 자체. 근본원인 둘: ① function schema `_PAYLOAD_PROPS`(`gemini_agent_client.py`)의 date/time/end_*/deadline 가 description·포맷 0 — 채팅 propose 경로(`propose.py`)는 이미 'ISO date, e.g. ...'/'HH:MM' 명시인데 캡처 경로만 누락(이 파일 478 의 "프롬프트가 payload.deadline 포맷 강제 안 함, 향후 ISO 보강 여지" 갭). ② 분류 프롬프트의 'fill only what the capture supports / don't invent' 가 화면에 연도 없는 부분 날짜('6/26')·계산 필요한 상대 시각('10분 뒤')을 '근거 부족 → 비움'으로 과억제(`thinking_budget=0` 이라 추론 여지도 없음). **수정**: 스키마 5필드에 ISO 포맷+설명 추가(채팅 경로와 정합), 프롬프트 v21→v22 — payload 섹션에 "날짜=일정/할일의 핵심, 현재시각 기준 상대·부분 날짜 해석은 필수이며 invent 아님(연도 추론·'10분 뒤' 계산), ISO 포맷" 1블록 추가. 분류 ladder·도구·eval_dataset 불변(payload 채움 정밀화만). 검증: lint/typecheck clean.
 

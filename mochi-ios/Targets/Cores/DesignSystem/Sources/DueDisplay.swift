@@ -27,13 +27,17 @@ extension DateFormatter {
 
 /// 마감 D-day 라벨과 긴급도 색, 일정 상대 라벨 — 화면들이 같은 시각 언어를 쓴다.
 public enum DueDisplay {
-    /// "n일 지남" / "오늘 마감" / "내일 마감" / "D-n".
+    /// "n일 지남" / "오늘 마감" / "내일 마감" / "D-n" — 시각이 있으면 " · 오후 9:00" 을 덧붙인다.
+    /// todo 의 시각은 별도 필드가 아니라 deadline 안에 담기므로(알람형 할 일), 시각이 들어온
+    /// 마감은 그 시각까지 라벨에 드러낸다.
     public static func deadlineLabel(_ deadline: Date) -> String {
         let days = daysFromToday(to: deadline)
-        if days < 0 { return "\(-days)일 지남" }
-        if days == 0 { return "오늘 마감" }
-        if days == 1 { return "내일 마감" }
-        return "D-\(days)"
+        let day: String
+        if days < 0 { day = "\(-days)일 지남" }
+        else if days == 0 { day = "오늘 마감" }
+        else if days == 1 { day = "내일 마감" }
+        else { day = "D-\(days)" }
+        return day + timeSuffix(deadline)
     }
 
     /// 긴급도 색 — 지남(blush) > 오늘·내일(peach) > 그 외 마감(butter) > 미정(muted).
@@ -46,25 +50,37 @@ public enum DueDisplay {
         return HomeDesign.Color.butter400
     }
 
-    /// 기간 일정 라벨 — 시작은 상대 표현 그대로, 끝은 절대 날짜로 못박는다.
+    /// 기간 일정 라벨 — "시작 ~ 끝". **양끝을 같은 절대 포맷**("M월 d일 (E)" + 시각)으로 적는다.
+    /// 한쪽만 상대(오늘/D-10)로 적으면 끝의 절대 날짜와 포맷이 어긋나 "D-10 ~ 6월 27일 (토)" 처럼
+    /// 읽기 나빠진다 — 양끝 포맷을 통일한다.
     public static func scheduleRangeLabel(_ start: Date, _ end: Date) -> String {
-        scheduleLabel(start) + " ~ " + DateFormatter.mochiSeoul("M월 d일 (E)").string(from: end)
+        rangeEndpoint(start) + " ~ " + rangeEndpoint(end)
     }
 
     /// 일정 상대 라벨 — 오늘/내일/요일(7일 미만)/D-n + (자정이 아니면) 시각.
     /// 절대 날짜는 왼쪽 날짜 타일이 담당하므로 여기선 상대 표현만.
     public static func scheduleLabel(_ date: Date) -> String {
-        let calendar = Calendar.mochiSeoul
         let days = daysFromToday(to: date)
-        let hasTime = calendar.component(.hour, from: date) != 0 || calendar.component(.minute, from: date) != 0
-        let time = hasTime ? " · " + DateFormatter.mochiSeoul("a h:mm").string(from: date) : ""
         let day: String
         if days < 0 { day = DateFormatter.mochiSeoul("M월 d일 (E)").string(from: date) }  // 지난 일정 방어
         else if days == 0 { day = "오늘" }
         else if days == 1 { day = "내일" }
         else if days < 7 { day = DateFormatter.mochiSeoul("EEEE").string(from: date) }
         else { day = "D-\(days)" }
-        return day + time
+        return day + timeSuffix(date)
+    }
+
+    /// 기간 끝점 — 양끝 공통 절대 포맷("M월 d일 (E)" + 시각). 상대 표현 없음(양끝 포맷 통일).
+    private static func rangeEndpoint(_ date: Date) -> String {
+        DateFormatter.mochiSeoul("M월 d일 (E)").string(from: date) + timeSuffix(date)
+    }
+
+    /// 자정(시각 없음)이 아니면 " · 오후 9:00" 형태의 시각 접미사 — **표시 시각 포맷의 단일 원천**.
+    /// date-only payload 는 KST 자정으로 파싱돼 hasTime=false → 접미사 없음(하루 단위 일정/마감).
+    private static func timeSuffix(_ date: Date) -> String {
+        let calendar = Calendar.mochiSeoul
+        let hasTime = calendar.component(.hour, from: date) != 0 || calendar.component(.minute, from: date) != 0
+        return hasTime ? " · " + DateFormatter.mochiSeoul("a h:mm").string(from: date) : ""
     }
 
     private static func daysFromToday(to date: Date) -> Int {
