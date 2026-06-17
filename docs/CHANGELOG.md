@@ -10,6 +10,17 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-06-17 — ios (검색 키보드 toolbar 제거 — ✓ 바 + 빈결과 캡슐 둘 다 redundant)
+- **검색바 포커스 시 키보드 위에 떠 있던 toolbar 제거** (사용자 지시). 두 요소 모두 중복이었다: (1) 항상 떠 있던 **✓ dismiss 버튼** = 스크롤·return 과 중복, (2) 0건일 때 키보드 위 **"못 찾았어요 — 모찌에게 물어보기" 캡슐** = `SearchEmptyResultView` 안의 같은 CTA 와 중복(키보드 내리면 바로 노출).
+- 보강: 콘텐츠 영역 **탭-dismiss**(`phaseBody` 에 `simultaneousGesture(TapGesture)` — 카드·칩·드롭다운 탭은 그대로 통과하며 키보드만 함께 내려감, 홈 채팅과 동일 패턴). 빈 결과 escalation 은 빈 화면 CTA 하나로 일원화.
+- `SearchView`: `keyboardDismissBar`/`emptyAskBar` + `.safeAreaInset(.bottom)` 제거, 탭-dismiss 추가. iOS only(계약·도메인·백엔드·테스트 무관, 기존 검색 테스트 3 그대로 통과). UX_SPEC §3.5 동기화.
+
+## 2026-06-17 — ios (검색 .idle 필터 재설계 — 타입 드롭다운 + 카테고리 칩)
+- **검색 기본화면 필터를 타입 칩 5개 → "타입 드롭다운 + 카테고리 칩"으로 재설계** (사용자 지시). 타입(전체/링크/스크린샷/메모)은 좌측 고정 `Menu` 드롭다운(기존 "전체" 칩 자리, **미확인 제거**), 그 칩 자리엔 **정규화 category 칩**(쇼핑/방문/취미·자기계발/일상/… — 주간 리포트와 같은 소스, 전체 기록 기준 많은 순). 둘은 **AND** 동시 적용.
+- `SearchFeature`: `selectedCategory` state + `categoryTapped` 액션 + `availableCategories`(items 의 `analysis.category` distinct, count desc) + `filteredItems` 에 카테고리 AND. clear 경로(retryAll/clearFilters)도 리셋. 단위테스트 2(정렬·AND).
+- `SearchDefaultView`: `filterChips`(5칩) → `filterBar`(타입 `Menu` + 카테고리 칩 가로 스크롤). 카테고리 칩 아이콘 `MochiCategoryIcon` 재사용(리포트 톤 일치). `TypeFilterChip`(고아) → `CategoryChip` 교체. 미확인은 enum case 는 카드 타일용으로 유지하되 드롭다운 목록에서만 제외.
+- 홈 이번주 리포트·결과화면 Intent 칩 무변경. iOS only(계약·도메인·백엔드 무관). UX_SPEC §3.5 동기화.
+
 ## 2026-06-17 — backend (저장완료 "이렇게 저장했어요" 푸시 제거)
 - 캡처 저장/분석 완료 시 needs_review=false 알림("이렇게 저장했어요")을 더 이상 보내지 않는다(사용자 결정 — 조용히 저장). `SendAnalysisNotification.run()` 에 needs_review=false early-return 추가, `_build_alert` 의 저장완료 문구 분기 제거. **needs_review=true(분류 모호 → "어떤 의도로 남겼나요?" + Live Activity push-to-start)는 유지** — 4-Intent 의도 확인은 도메인 본질. worker `_notify_analysis_complete` 무변경(run() 이 no-op). 테스트: 저장완료 alert 검증 → "needs_review=false 면 무발송" 으로 교체, 410/5xx 토큰 무효화 검증은 needs_review=true 로 이전(415 passed). foreground 확정 완료는 SSE·3초 폴링·복귀 reconcile 이 반영(완료 푸시 비의존). `docs/UX_SPEC.md`(분석완료 알림) 동기화. ⚠️ known drift: iOS `MochiLiveActivityAttributes.swift:23` 주석 예시 문구가 부정확(captureCaption 필드는 needs_review=true LA 에 계속 쓰임 — 코드 무관, 주석만) — iOS 정리 시 갱신.
 
@@ -27,6 +38,7 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 - **`docs/BUSINESS_MODEL.md` 신규** (사용자 요청: LLM 원가 vs LTV 정리 → 요금/무료정책 결정 근거를 별도 문서로). `llm_usage` 테이블 실측(4일·6명 도그푸딩)으로 단위원가 산출: 캡처 1건 $0.0040 / 채팅 1대화 $0.0127, 전부 gemini-3.1-flash-lite($0.25/$1.50 per 1M), Voyage·검색 API 는 무시 수준. 결정 기록: ① 통합크레딧(캡처1·채팅3) ② 무료=평생 일회성 체험(지속 무료 아님 → 지속원가 0) ③ 소규모 수수료 15% 추구. 미결정: 가격(₩1,900 vs ₩3,900)·체험한도(50 vs 100~150)·cap(가격연동 ₩1,900→~200/₩3,900→~500). 핵심 경고 — ₩1,900 은 ₩3,900 대비 전환 3~5배 필요(순기여 1/3~1/5, 사용량 의존), 체험한도는 원가 아닌 전환이 기준(원가 미미).
 - **`docs/business-model-sim.html` 신규** — 오프라인 단일파일 인터랙티브 시뮬레이터. 변수(유저수·전환율·가격·수수료·무료정책[평생체험/지속무료]·체험한도·유료사용·cap·토큰단가·인프라·환율) 조절 시 월손익·유료순기여·손익분기전환율·LTV/CAC·worst-case마진·일회성CAC + 손익 vs 전환율 차트 실시간 갱신. 프리셋(₩1,900공격/₩3,900안정/체험150).
 - **문서 수치 정정**: 작성 중 시뮬레이터와 대조해 BUSINESS_MODEL §5.2 ₩1,900 손익표 오류 수정(잘못: +$394/+$789/+$1,185 → 정정: +$18/+$155/+$293, 적극사용 기준). §5.3 순기여비를 사용량 의존(3~5배)으로 명확화. `docs/INDEX.md` 포인터 2건 추가.
+## 2026-06-16 — ios (마감/일정 시각 표시 + 기간 라벨 혼동 수정 — DueDisplay 단일화)
 - **표시 책임을 프론트 단일 소스(`DueDisplay`)로 통일** (사용자 지시: 시각 표시는 프론트가 결정·일관 처리, 포맷 다양성이 흩어지면 곤란). schedule/todo 의 시각·마감 라벨은 이미 `DueDisplay`(`deadlineLabel`/`scheduleLabel`/`scheduleRangeLabel`) 한 곳에 모여 있고 Detail/Calendar/WeeklyDigest 가 위임만 함을 확인 — 시각 포맷을 새 private `timeSuffix(_:)` 한 함수로 모아(단일 원천) 다양성 차단. ① **todo 마감 라벨에 시각 표시** — `deadlineLabel` 이 "오늘 마감"/"D-3" 일 단위만 그려 deadline 안에 든 시각(알람형 할 일, '10분 뒤')이 안 보이던 것을 "오늘 마감 · 오후 9:00"처럼 시각 있을 때 덧붙임(자정=시각 없음 → 미표시, 하루 단위 마감 그대로). ② **기간 일정 라벨 "D-10 ~ 6월 27일 (토)" 양끝 포맷 불일치 수정** — 시작은 상대(`scheduleLabel`=D-10), 끝은 절대("M월 d일 (E)")로 **양끝 포맷이 달라** 읽기 나쁘던 것을 `rangeEndpoint` 로 **양끝 동일 절대 포맷**("M월 d일 (E)" + 시각, 상대 표현 없음)으로 통일. 백엔드/계약/도메인 무변경(표시 전용) — payload 의 ISO date/time/deadline 추출은 v22 가 담당, 포맷팅은 프론트. `tuist build DesignSystem/FeatureInbox/FeatureDetail` 성공. UX_SPEC §3.6/§3.8 동기화.
 
 ## 2026-06-16 — backend (캡처 분석 날짜/시각 누락 수정 — 분류 프롬프트 v22)
