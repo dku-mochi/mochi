@@ -10,6 +10,12 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-06-17 — ios (검색 .idle 필터 재설계 — 타입 드롭다운 + 카테고리 칩)
+- **검색 기본화면 필터를 타입 칩 5개 → "타입 드롭다운 + 카테고리 칩"으로 재설계** (사용자 지시). 타입(전체/링크/스크린샷/메모)은 좌측 고정 `Menu` 드롭다운(기존 "전체" 칩 자리, **미확인 제거**), 그 칩 자리엔 **정규화 category 칩**(쇼핑/방문/취미·자기계발/일상/… — 주간 리포트와 같은 소스, 전체 기록 기준 많은 순). 둘은 **AND** 동시 적용.
+- `SearchFeature`: `selectedCategory` state + `categoryTapped` 액션 + `availableCategories`(items 의 `analysis.category` distinct, count desc) + `filteredItems` 에 카테고리 AND. clear 경로(retryAll/clearFilters)도 리셋. 단위테스트 2(정렬·AND).
+- `SearchDefaultView`: `filterChips`(5칩) → `filterBar`(타입 `Menu` + 카테고리 칩 가로 스크롤). 카테고리 칩 아이콘 `MochiCategoryIcon` 재사용(리포트 톤 일치). `TypeFilterChip`(고아) → `CategoryChip` 교체. 미확인은 enum case 는 카드 타일용으로 유지하되 드롭다운 목록에서만 제외.
+- 홈 이번주 리포트·결과화면 Intent 칩 무변경. iOS only(계약·도메인·백엔드 무관). UX_SPEC §3.5 동기화.
+
 ## 2026-06-16 — ios (마감/일정 시각 표시 + 기간 라벨 혼동 수정 — DueDisplay 단일화)
 - **표시 책임을 프론트 단일 소스(`DueDisplay`)로 통일** (사용자 지시: 시각 표시는 프론트가 결정·일관 처리, 포맷 다양성이 흩어지면 곤란). schedule/todo 의 시각·마감 라벨은 이미 `DueDisplay`(`deadlineLabel`/`scheduleLabel`/`scheduleRangeLabel`) 한 곳에 모여 있고 Detail/Calendar/WeeklyDigest 가 위임만 함을 확인 — 시각 포맷을 새 private `timeSuffix(_:)` 한 함수로 모아(단일 원천) 다양성 차단. ① **todo 마감 라벨에 시각 표시** — `deadlineLabel` 이 "오늘 마감"/"D-3" 일 단위만 그려 deadline 안에 든 시각(알람형 할 일, '10분 뒤')이 안 보이던 것을 "오늘 마감 · 오후 9:00"처럼 시각 있을 때 덧붙임(자정=시각 없음 → 미표시, 하루 단위 마감 그대로). ② **기간 일정 라벨 "D-10 ~ 6월 27일 (토)" 양끝 포맷 불일치 수정** — 시작은 상대(`scheduleLabel`=D-10), 끝은 절대("M월 d일 (E)")로 **양끝 포맷이 달라** 읽기 나쁘던 것을 `rangeEndpoint` 로 **양끝 동일 절대 포맷**("M월 d일 (E)" + 시각, 상대 표현 없음)으로 통일. 백엔드/계약/도메인 무변경(표시 전용) — payload 의 ISO date/time/deadline 추출은 v22 가 담당, 포맷팅은 프론트. `tuist build DesignSystem/FeatureInbox/FeatureDetail` 성공. UX_SPEC §3.6/§3.8 동기화.
 
