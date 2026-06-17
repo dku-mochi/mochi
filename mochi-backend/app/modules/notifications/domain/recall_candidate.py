@@ -74,3 +74,14 @@ class RecallCandidateRepositoryPort(ABC):
         collapse_id: str | None,
     ) -> UUID:
         """회수 1건을 notification_outbox 에 직행 적재(kind=recall, plan_id NULL). event_id 반환."""
+
+    @abstractmethod
+    async def recent_owner_recall_exists(self, *, owner_id: UUID, since: datetime) -> bool:
+        """owner 가 since 이후 트랙 C 회수를 이미 적재했나(pending/sent/deferred) — owner 쿨다운(트리거 디바운스 대체)."""
+
+    @abstractmethod
+    async def acquire_owner_lock(self, *, owner_id: UUID) -> None:
+        """per-owner advisory xact lock — 동시 저장(worker concurrency)의 cap/쿨다운 카운트 레이스 직렬화.
+
+        발송 워커(`_materialize_one_plan`)와 동일 키 공간(`hashtext(owner)`). 트랜잭션 커밋/롤백 시 자동 해제.
+        """
