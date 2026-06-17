@@ -69,6 +69,8 @@ active plan 스캔 → "다음 occurrence" 계산(spaced는 **반응** 기준) �
 
 ## 3. 보낸다 / 참는다 게이트 ("애매하면 안 보낸다")
 
+> **2026-06-17 갱신(트랙 C):** 트랙 C 의 보낸다/참는다는 점수 임계가 아니라 **LLM 선별 게이트**가 판정한다(코사인=후보 추림 바닥값). 결정적 가드(cap·야간·dismiss·dedup·owner 쿨다운·advisory lock)는 그대로 백스톱으로 남는다. 정본 `track-c-llm-gate-decision.md`. (A/B 는 본 절 그대로.)
+
 발송은 화이트리스트가 아니라 **게이트 통과 + 애매하면 보류**.
 
 **보낸다 (모두 충족):** push 권한 / 하루 cap 안 / theme cooldown 지남 / candidate age 적정 / 점수 임계 이상 / **preview에 구체 명사 1–2개**(generic 금지) / **landing 준비됨** / 같은 날 트랙 B 충돌 시 양보 안 함.

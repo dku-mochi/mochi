@@ -81,6 +81,8 @@ P9  발송 합류(outbox 직행)         → 검증: kind=recall outbox(plan_id 
 
 ## 8. 트랙 C (구현 완료, P7–P9) + 안 함 / 별도 트랙
 
+> **2026-06-17 재설계:** 아래 "규칙 기반 ANN best-1 직행"은 무차별 발송이라 **폐기**. 트랙 C 는 이제 **ANN overfetch → 얇은 필터(archived·근중복) → LLM 선별 게이트(0~1건 채택+한국어 작문) → 결정적 백스톱(owner advisory lock·쿨다운·dedup·dismiss·cap·야간·트랙B)** 다. 코사인은 판별자가 아니라 후보 추림 바닥값. 정본·실험근거: `track-c-llm-gate-decision.md`. (P9 발송 합류·민감 필터 결정은 그대로 유효.)
+
 **트랙 C 회수 본체 — 구현 완료 (2026-06-16, P7–P9).** 범위 내 트랙 C는 **1:1 단건 맥락 회수**(임베딩 ANN)다 — 주제 묶음(entity bundling)은 **비범위**(콜드스타트 후속, `journal/2026-06-15-track-c-bundling-validation.md`).
 - **P7 후보 생성** (`notifications/application/generate_recall_candidates.py` + `infrastructure/recall_candidate_repository.py`) — 새 item(B) 분석 done 후 worker 가 best-effort 로 `_generate_recall_candidates` 호출(P2 플래너 형제, 독립 세션·격리). `recall_context_provider._similar` 와 동일 pgvector cosine ANN 으로 유사 과거 기록 조회 → 최고점(A)을 회수 앵커(`source_item_id=A`). **`entities (owner_id, kind, value)` 인덱스는 불필요** — 1:1 임베딩 ANN 은 entity 집계를 안 쓴다(인덱스 선행은 entity 묶음=비범위용이었음, 이 절이 정정).
 - **P8 발송 적격 게이트** — 점수 임계(`recall_candidate_min_score`)·재스팸 dedup(`recent_recall_exists`)·dismiss cooldown(`source_intent_id` 기준, `check_dismiss_cooldown` 재사용)·generic copy 금지(근거 명사 확보 시만). 야간/cap/트랙B 양보는 `recall_guards` 재사용하되 **생성 시점에 fire_at 미루기**로 표현(트랙 C 는 plan 없어 worker deferred 회생을 못 타므로 pending 의 future fire_at 으로). **민감 필터는 넣지 않는다(2026-06-16 결정)** — 회수 본문은 원본 OCR 이 아니라 추상화된 LLM 요약이라 A/B 와 동일한 ungated 논리(`PRIVACY_SENSITIVE_CAPTURE.md` §9). no-op pluggable stub 도 speculative 라 두지 않음(Simplicity First). `sensitivity_level` 실구현 시 회수 use case 에 발송 게이트로 끼운다.
