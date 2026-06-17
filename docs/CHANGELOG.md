@@ -10,6 +10,9 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-06-17 — ios (캘린더 빈 날짜 일정 추가 회귀 수정)
+- **캘린더에서 내용 없는 날짜를 탭해도 아무 반응 없어 일정 추가 불가하던 회귀 수정.** `DayCell` 에 `.disabled(summary == nil)` 가 남아 있어 마커(일정/할일/저장)가 하나도 없는 날은 버튼이 비활성 → `daySelected` 미발화 → DaySheet 가 안 열려 "+ 일정 추가" 진입 불가. 1b(2026-06-15 날짜에서 일정 추가) 도입 전엔 "빈 날은 보여줄 게 없으니 비활성"이 맞았으나 추가 진입을 막는 회귀가 됨. `.disabled` 제거 → 빈 날 탭 시 빈 상태 DaySheet(헤더 "+ 일정 추가" 포함) 열림. 표시/도메인 무변경.
+
 ## 2026-06-17 — ios (검색 키보드 toolbar 제거 — ✓ 바 + 빈결과 캡슐 둘 다 redundant)
 - **검색바 포커스 시 키보드 위에 떠 있던 toolbar 제거** (사용자 지시). 두 요소 모두 중복이었다: (1) 항상 떠 있던 **✓ dismiss 버튼** = 스크롤·return 과 중복, (2) 0건일 때 키보드 위 **"못 찾았어요 — 모찌에게 물어보기" 캡슐** = `SearchEmptyResultView` 안의 같은 CTA 와 중복(키보드 내리면 바로 노출).
 - 보강: 콘텐츠 영역 **탭-dismiss**(`phaseBody` 에 `simultaneousGesture(TapGesture)` — 카드·칩·드롭다운 탭은 그대로 통과하며 키보드만 함께 내려감, 홈 채팅과 동일 패턴). 빈 결과 escalation 은 빈 화면 CTA 하나로 일원화.
