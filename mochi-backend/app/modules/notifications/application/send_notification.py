@@ -45,6 +45,11 @@ class SendAnalysisNotification:
         if self._apns is None:
             return  # APNs 미설정(local dev) — no-op.
 
+        # 저장완료(needs_review=false) 알림은 보내지 않는다(2026-06-17, 팀 결정). 분류가 모호해 사용자
+        # 확인이 필요한 needs_review=true 만 alert("어떤 의도로 남겼나요?") + Live Activity 로 띄운다.
+        if not notification.needs_review:
+            return
+
         bundle_id = get_settings().apns_bundle_id
 
         # 1) alert push — owner 의 모든 단말. needs_review 분기 문구.
@@ -176,12 +181,9 @@ class SendAnalysisNotification:
 
     @staticmethod
     def _build_alert(mochi_item_id: UUID, n: AnalysisNotification) -> dict[str, object]:
-        if n.needs_review:
-            title = "어떤 의도로 남겼나요?"
-            body = n.summary or "탭해서 확인해주세요"
-        else:
-            title = "이렇게 저장했어요"
-            body = n.summary or "분석을 완료했어요"
+        # needs_review=true 의도 확인 알림만 발송한다 — 저장완료("이렇게 저장했어요")는 제거(2026-06-17).
+        title = "어떤 의도로 남겼나요?"
+        body = n.summary or "탭해서 확인해주세요"
         return {
             "aps": {
                 "alert": {"title": title, "body": body[:_ALERT_BODY_MAX]},

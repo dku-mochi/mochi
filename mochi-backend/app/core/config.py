@@ -172,6 +172,13 @@ class Settings(BaseSettings):
     recall_candidate_limit: int = 10          # ANN 후보 조회 상한 (best 1건이 회수 앵커)
     recall_dedup_cooldown_days: int = 7       # 같은 item 재회수 방지 윈도우 (재스팸 dedup)
     recall_expires_days: int = 14             # 회수 outbox expires (지나면 stale skip)
+    # 트랙 C LLM 선별 게이트 (2026-06-17, journal/proactive-recall/track-c-llm-gate-decision.md).
+    recall_gate_enabled: bool = True          # False 면 LLM 건너뛰고 결정적 best-1 경로(롤백 안전판)
+    recall_gate_dry_run: bool = True          # True 면 LLM 결정 로그만, outbox 미적재(발송측 dry_run 과 별개)
+    recall_overfetch_limit: int = 40          # ANN overfetch 상한(필터 전)
+    recall_gate_topn: int = 10                # 필터 후 LLM 에 넘길 후보 상한
+    recall_near_dup_score: float = 0.92       # 근중복(재저장) 컷 — 이상이면 앵커 후보 제외
+    recall_owner_cooldown_hours: int = 6      # owner 회수 최소 간격(트리거 디바운스, 결정적 백스톱)
 
     @property
     def auth_google_client_id_list(self) -> tuple[str, ...]:

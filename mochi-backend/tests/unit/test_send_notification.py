@@ -55,21 +55,19 @@ def _la_start_token(owner: UUID) -> DevicePushToken:
     return DevicePushToken(owner, "la-start-tok", PushTokenType.LA_START, APNsEnvironment.SANDBOX)
 
 
-async def test_complete_alert_when_not_needs_review():
+async def test_no_push_when_not_needs_review():
+    # needs_review=false(저장 완료)는 더 이상 어떤 push 도 보내지 않는다(2026-06-17). device·LA 토큰이
+    # 있어도 alert·Live Activity 모두 미발송.
     owner, item = uuid4(), uuid4()
     apns = _FakeAPNs()
-    repo = _FakeRepo(device=[_device_token(owner)])
+    repo = _FakeRepo(device=[_device_token(owner)], la_start=[_la_start_token(owner)])
     await SendAnalysisNotification(tokens=repo, apns=apns).run(
         owner_id=owner,
         mochi_item_id=item,
         notification=AnalysisNotification(needs_review=False, summary="회의 일정 저장", review_options=()),
     )
-    assert len(apns.sent) == 1
-    sent = apns.sent[0]
-    assert sent["push_type"] == APNsPushType.ALERT
-    assert sent["payload"]["aps"]["alert"]["title"] == "이렇게 저장했어요"
-    assert "회의 일정 저장" in sent["payload"]["aps"]["alert"]["body"]
-    assert sent["payload"]["mochiItemID"] == str(item)
+    assert apns.sent == []
+    assert repo.deleted == []
 
 
 async def test_review_alert_when_needs_review():
@@ -82,20 +80,6 @@ async def test_review_alert_when_needs_review():
         notification=AnalysisNotification(needs_review=True, summary="뭐였더라", review_options=()),
     )
     assert apns.sent[0]["payload"]["aps"]["alert"]["title"] == "어떤 의도로 남겼나요?"
-
-
-async def test_no_la_start_when_not_needs_review():
-    # 완료(needs_review=false)는 alert 만 — LA push-to-start 는 보내지 않는다(팀 결정 2026-06-09).
-    owner, item = uuid4(), uuid4()
-    apns = _FakeAPNs()
-    repo = _FakeRepo(device=[_device_token(owner)], la_start=[_la_start_token(owner)])
-    await SendAnalysisNotification(tokens=repo, apns=apns).run(
-        owner_id=owner,
-        mochi_item_id=item,
-        notification=AnalysisNotification(needs_review=False, summary="저장됨", review_options=()),
-    )
-    assert all(s["push_type"] != APNsPushType.LIVEACTIVITY for s in apns.sent)
-    assert len([s for s in apns.sent if s["push_type"] == APNsPushType.ALERT]) == 1
 
 
 async def test_la_start_push_carries_attributes_and_content_state():
@@ -197,7 +181,7 @@ async def test_alert_410_invalidates_token():
     await SendAnalysisNotification(tokens=repo, apns=apns).run(
         owner_id=owner,
         mochi_item_id=item,
-        notification=AnalysisNotification(needs_review=False, summary="x", review_options=()),
+        notification=AnalysisNotification(needs_review=True, summary="x", review_options=()),
     )
     assert repo.deleted == ["dead-device"]
 
@@ -225,6 +209,6 @@ async def test_transient_5xx_does_not_invalidate_token():
     await SendAnalysisNotification(tokens=repo, apns=apns).run(
         owner_id=owner,
         mochi_item_id=item,
-        notification=AnalysisNotification(needs_review=False, summary="x", review_options=()),
+        notification=AnalysisNotification(needs_review=True, summary="x", review_options=()),
     )
     assert repo.deleted == []
