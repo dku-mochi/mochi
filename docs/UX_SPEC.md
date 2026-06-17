@@ -243,10 +243,9 @@ UI (`ShareEntryView`) — 콘텐츠에 따라 2가지 레이아웃:
 **Live Activity — needs_review 전용** (팀 결정 2026-06-09, 진행중/완료 LA 폐기):
 - iOS 가 LA 를 직접 시작하지 않는다. **needs_review=true 분석완료 시 백엔드가 push-to-start** 로 background(잠금)에서 LA 를 시작하는 단일 경로 (iOS 17.2+, `la_start` 토큰).
 - content-state phase: `.ready`(후보 2~3개 버튼 — **한 탭 선택이 1급 인터랙션**, 앱을 열지 않고 Lock Screen 에서 의도 확정 + "다른 의도"는 앱 진입) → 사용자가 후보를 고르면 위젯이 `reanalyze`(hint=후보)를 직접 호출하고 로컬에서 `.confirmed` 로 전이.
-- **전 채널** (스크린샷·링크·텍스트). 확정(needs_review=false)·실패 분석완료는 LA 없이 alert push 로 통지. 알림 탭 → 홈 탭 + 해당 기록 상세로 바로 진입(server→local 역매핑; 다른 상세가 떠 있으면 닫고 그 항목으로 재open, 같은 항목이면 유지).
+- **전 채널** (스크린샷·링크·텍스트). 확정(needs_review=false)·실패 분석완료는 **푸시하지 않는다**(2026-06-17, 저장완료 알림 제거 — 조용히 저장; foreground SSE·폴링·복귀 reconcile 이 반영). needs_review=true 만 LA push-to-start + alert. 알림 탭 → 홈 탭 + 해당 기록 상세로 바로 진입(server→local 역매핑; 다른 상세가 떠 있으면 닫고 그 항목으로 재open, 같은 항목이면 유지).
 
-**알림 (분석 완료 시 항상)** — 빈도 조절은 OS 알림 설정에 맡기고 모찌가 가르지 않는다. 본문은 iOS 가 truncate 하므로 **요약 1줄**:
-- 확정: "이렇게 저장했어요 — <요약>" (탭 → 앱).
+**알림 (헷갈려요 = needs_review=true 일 때만, 2026-06-17~)** — 확정 저장완료("이렇게 저장했어요")는 더 이상 푸시하지 않는다(조용히 저장; foreground SSE·폴링·복귀 reconcile 이 반영). 빈도 조절은 OS 알림 설정에 맡기고 모찌가 가르지 않는다. 본문은 iOS 가 truncate 하므로 **요약 1줄**:
 - 헷갈려요: "어떤 의도로 남겼나요?" (탭 → 앱, 홈 "지금 확인해 주세요" 버킷으로). **일반 alert 다 — interactive notification 은 채택하지 않는다**(의도 선택은 Live Activity / 앱 내 버킷이 담당).
 
 **실시간 분담**:

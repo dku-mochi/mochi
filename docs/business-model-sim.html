@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>모찌 · 수익모델 시뮬레이터</title>
+<style>
+  :root{
+    --bg:#f6f6fb; --card:#ffffff; --ink:#1b1b2f; --muted:#6b6b85;
+    --line:#e7e7f0; --accent:#6c5ce7; --accent-soft:#efecff;
+    --pos:#15a34a; --neg:#dc2626; --warn:#d97706;
+    --shadow:0 1px 2px rgba(27,27,47,.04),0 8px 24px rgba(27,27,47,.06);
+    --radius:16px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard",Segoe UI,Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased;line-height:1.5}
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 20px 64px}
+  header{margin-bottom:22px}
+  h1{font-size:22px;margin:0 0 4px;letter-spacing:-.02em}
+  .sub{color:var(--muted);font-size:13.5px;max-width:760px}
+  .badge{display:inline-block;background:var(--accent-soft);color:var(--accent);
+    font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:999px;margin-left:8px;vertical-align:middle}
+  .caveat{margin-top:10px;font-size:12px;color:var(--muted);background:#fff;border:1px solid var(--line);
+    border-left:3px solid var(--accent);padding:8px 12px;border-radius:8px}
+  .grid{display:grid;grid-template-columns:380px 1fr;gap:20px;align-items:start}
+  @media(max-width:880px){.grid{grid-template-columns:1fr}}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .controls{padding:6px 18px 18px}
+  .group{padding:16px 0;border-bottom:1px solid var(--line)}
+  .group:last-child{border-bottom:none}
+  .group h3{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 12px;font-weight:700}
+  .field{margin-bottom:13px}
+  .field:last-child{margin-bottom:0}
+  .field .row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px}
+  label{font-size:13px;font-weight:500}
+  .val{font-size:13px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+  input[type=range]{-webkit-appearance:none;width:100%;height:4px;border-radius:4px;background:var(--line);outline:none;margin:6px 0 0}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;
+    background:var(--accent);cursor:pointer;box-shadow:0 1px 4px rgba(108,92,231,.5);transition:transform .1s}
+  input[type=range]::-webkit-slider-thumb:active{transform:scale(1.2)}
+  input[type=number]{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:8px;font-size:13px;
+    font-variant-numeric:tabular-nums;color:var(--ink);background:#fff}
+  input[type=number]:focus{border-color:var(--accent);outline:none}
+  .seg{display:flex;gap:6px}
+  .seg button{flex:1;padding:7px 4px;border:1px solid var(--line);background:#fff;border-radius:8px;
+    font-size:12.5px;cursor:pointer;color:var(--muted);font-weight:600;transition:all .12s}
+  .seg button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .twocol{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .mini{font-size:11px;color:var(--muted);margin-top:4px}
+  .presets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .presets button{padding:6px 12px;border:1px solid var(--accent);background:var(--accent-soft);color:var(--accent);
+    border-radius:999px;font-size:12px;font-weight:600;cursor:pointer}
+  .presets button:hover{background:var(--accent);color:#fff}
+  /* results */
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}
+  @media(max-width:560px){.kpis{grid-template-columns:1fr 1fr}}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 16px;box-shadow:var(--shadow)}
+  .kpi .k{font-size:11.5px;color:var(--muted);font-weight:600;margin-bottom:6px}
+  .kpi .v{font-size:23px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .kpi .s{font-size:11.5px;color:var(--muted);margin-top:4px;font-variant-numeric:tabular-nums}
+  .kpi.hero{grid-column:span 3;background:linear-gradient(135deg,#6c5ce7,#8b7bf0);color:#fff;border:none}
+  @media(max-width:560px){.kpi.hero{grid-column:span 2}}
+  .kpi.hero .k{color:rgba(255,255,255,.85)}
+  .kpi.hero .v{font-size:34px}
+  .kpi.hero .s{color:rgba(255,255,255,.85)}
+  .pos{color:var(--pos)} .neg{color:var(--neg)} .warn{color:var(--warn)}
+  .chartcard{padding:16px 18px}
+  .chartcard h3{font-size:13px;margin:0 0 2px}
+  .chartcard .ch-sub{font-size:11.5px;color:var(--muted);margin-bottom:8px}
+  canvas{width:100%;height:240px;display:block}
+  .legend{display:flex;gap:16px;font-size:11.5px;color:var(--muted);margin-top:8px;flex-wrap:wrap}
+  .legend i{display:inline-block;width:10px;height:3px;border-radius:2px;margin-right:5px;vertical-align:middle}
+  .notes{font-size:11.5px;color:var(--muted);margin-top:14px;line-height:1.7}
+  .footer{margin-top:26px;font-size:11.5px;color:var(--muted)}
+  details{margin-top:6px}
+  summary{cursor:pointer;font-size:12px;color:var(--accent);font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>모찌 수익모델 시뮬레이터 <span class="badge">draft</span></h1>
+    <div class="sub">LLM 단위원가는 <code>llm_usage</code> 실측, 사용량·전환율은 가정. 변수를 바꿔 월 손익·LTV/CAC·손익분기를 실시간 확인. 자세한 근거는 <code>docs/BUSINESS_MODEL.md</code>.</div>
+    <div class="caveat">⚠️ 단위원가(캡처 $0.0040 / 채팅 $0.0127)는 4일·6명 도그푸딩 실측이라 신뢰 가능. <b>전환율·사용량·리텐션은 출시 전이라 전부 가정</b> — 베타로 검증 전까지 방향성 도구로만.</div>
+  </header>
+
+  <div class="grid">
+    <!-- CONTROLS -->
+    <div class="panel controls">
+      <div class="group">
+        <div class="presets">
+          <button data-preset="aggressive">₩1,900 공격</button>
+          <button data-preset="stable">₩3,900 안정</button>
+          <button data-preset="trial150">체험 150건</button>
+        </div>
+        <h3>시장</h3>
+        <div class="field">
+          <div class="row"><label>총 유저수</label><span class="val" id="vUsers">10,000</span></div>
+          <input type="range" id="users" min="1000" max="100000" step="1000" value="10000">
+        </div>
+        <div class="field">
+          <div class="row"><label>전환율 (무료→유료)</label><span class="val" id="vConv">10%</span></div>
+          <input type="range" id="conv" min="0" max="40" step="0.5" value="10">
+        </div>
+        <div class="field">
+          <div class="row"><label>유료 리텐션 (개월)</label><span class="val" id="vRet">12</span></div>
+          <input type="range" id="ret" min="1" max="36" step="1" value="12">
+        </div>
+      </div>
+
+      <div class="group">
+        <h3>가격</h3>
+        <div class="field">
+          <div class="row"><label>월 구독가 (₩)</label><span class="val" id="vPrice">₩1,900</span></div>
+          <input type="range" id="price" min="900" max="12900" step="100" value="1900">
+        </div>
+        <div class="field">
+          <div class="row"><label>앱스토어 수수료</label></div>
+          <div class="seg" id="feeSeg">
+            <button data-fee="15" class="on">15% (소규모)</button>
+            <button data-fee="30">30%</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="group">
+        <h3>무료 정책</h3>
+        <div class="field">
+          <div class="seg" id="freeSeg">
+            <button data-free="trial" class="on">평생 체험(일회성)</button>
+            <button data-free="ongoing">지속 무료</button>
+          </div>
+        </div>
+        <div id="trialFields">
+          <div class="field">
+            <div class="row"><label>체험 한도 (건/평생)</label><span class="val" id="vTrial">50</span></div>
+            <input type="range" id="trial" min="10" max="300" step="10" value="50">
+          </div>
+          <div class="field">
+            <div class="row"><label>평균 체험 소진 (건)</label><span class="val" id="vTrialUsed">30</span></div>
+            <input type="range" id="trialUsed" min="5" max="300" step="5" value="30">
+            <div class="mini">체험자가 전환/이탈 전 실제로 쓰는 평균 건수 (≤ 한도)</div>
+          </div>
+        </div>
+        <div id="ongoingFields" style="display:none">
+          <div class="field">
+            <div class="row"><label>무료 월 cap (건/월)</label><span class="val" id="vFreeCap">30</span></div>
+            <input type="range" id="freeCap" min="5" max="100" step="5" value="30">
+          </div>
+          <div class="field">
+            <div class="row"><label>무료 평균 사용 (건/월)</label><span class="val" id="vFreeAvg">15</span></div>
+            <input type="range" id="freeAvg" min="2" max="100" step="1" value="15">
+            <div class="mini">원가는 cap 이 아니라 이 평균이 결정 (관측 중앙값 ≈15). 채팅 불가 가정.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="group">
+        <h3>유료 사용 (평균)</h3>
+        <div class="twocol">
+          <div class="field">
+            <div class="row"><label>캡처/월</label><span class="val" id="vPC">100</span></div>
+            <input type="range" id="paidCap" min="0" max="500" step="10" value="100">
+          </div>
+          <div class="field">
+            <div class="row"><label>채팅/월</label><span class="val" id="vPCh">30</span></div>
+            <input type="range" id="paidChat" min="0" max="300" step="5" value="30">
+          </div>
+        </div>
+        <div class="field">
+          <div class="row"><label>통합크레딧 cap (캡처1·채팅3)</label><span class="val" id="vCap">200</span></div>
+          <input type="range" id="cap" min="50" max="800" step="10" value="200">
+          <div class="mini">worst-case(상한 꽉 쓴 유저) 마진 계산용. 평균은 보통 cap 한참 아래.</div>
+        </div>
+      </div>
+
+      <div class="group">
+        <h3>원가 (고급)</h3>
+        <details>
+          <summary>토큰 단가 · 인프라 · 환율 펼치기</summary>
+          <div style="margin-top:12px">
+            <div class="twocol">
+              <div class="field"><label>입력 $/1M</label><input type="number" id="pin" value="0.25" step="0.01"></div>
+              <div class="field"><label>출력 $/1M</label><input type="number" id="pout" value="1.50" step="0.05"></div>
+            </div>
+            <div class="twocol">
+              <div class="field"><label>캡처 토큰 in</label><input type="number" id="capIn" value="13266" step="100"></div>
+              <div class="field"><label>캡처 토큰 out</label><input type="number" id="capOut" value="433" step="10"></div>
+            </div>
+            <div class="twocol">
+              <div class="field"><label>채팅 토큰 in</label><input type="number" id="chIn" value="36147" step="100"></div>
+              <div class="field"><label>채팅 토큰 out</label><input type="number" id="chOut" value="2455" step="50"></div>
+            </div>
+            <div class="twocol">
+              <div class="field"><label>부가버퍼 ×</label><input type="number" id="oh" value="1.15" step="0.05"></div>
+              <div class="field"><label>인프라 $/월</label><input type="number" id="infra" value="120" step="10"></div>
+            </div>
+            <div class="field"><label>환율 ₩/$</label><input type="number" id="fx" value="1380" step="10"></div>
+          </div>
+        </details>
+        <div class="mini" id="unitCosts" style="margin-top:10px"></div>
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <div>
+      <div class="kpis">
+        <div class="kpi hero">
+          <div class="k">월 순이익 (정상상태)</div>
+          <div class="v" id="rProfit">—</div>
+          <div class="s" id="rProfitSub">—</div>
+        </div>
+        <div class="kpi">
+          <div class="k">유료 1인 순기여 /월</div>
+          <div class="v" id="rContrib">—</div>
+          <div class="s" id="rContribSub">—</div>
+        </div>
+        <div class="kpi">
+          <div class="k">손익분기 전환율</div>
+          <div class="v" id="rBE">—</div>
+          <div class="s" id="rBESub">—</div>
+        </div>
+        <div class="kpi">
+          <div class="k" id="rCacK">LTV / CAC</div>
+          <div class="v" id="rCac">—</div>
+          <div class="s" id="rCacSub">—</div>
+        </div>
+        <div class="kpi">
+          <div class="k">worst-case 유료마진 (cap)</div>
+          <div class="v" id="rWorst">—</div>
+          <div class="s" id="rWorstSub">—</div>
+        </div>
+        <div class="kpi">
+          <div class="k" id="rExtraK">일회성 체험비 (총)</div>
+          <div class="v" id="rExtra">—</div>
+          <div class="s" id="rExtraSub">—</div>
+        </div>
+      </div>
+
+      <div class="panel chartcard">
+        <h3>월 순이익 vs 전환율</h3>
+        <div class="ch-sub">현재 설정 기준. 점선 = 현재 전환율, 세로선 = 손익분기.</div>
+        <canvas id="chart" width="700" height="240"></canvas>
+        <div class="legend">
+          <span><i style="background:#6c5ce7"></i>월 순이익</span>
+          <span><i style="background:#15a34a"></i>흑자 구간</span>
+          <span><i style="background:#dc2626"></i>적자 구간</span>
+        </div>
+      </div>
+
+      <div class="notes" id="notes"></div>
+    </div>
+  </div>
+
+  <div class="footer">모찌 · 세얼간이 — 단위원가는 <code>app/shared/llm_cost.py</code> + <code>llm_usage</code> 기준. 가격 미확정(draft). 결정 전 베타 검증 필수.</div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let fee = 0.15, freeMode = 'trial';
+
+// segmented controls
+$('feeSeg').addEventListener('click', e=>{
+  if(!e.target.dataset.fee) return;
+  fee = +e.target.dataset.fee/100;
+  [...$('feeSeg').children].forEach(b=>b.classList.toggle('on', b===e.target));
+  render();
+});
+$('freeSeg').addEventListener('click', e=>{
+  if(!e.target.dataset.free) return;
+  freeMode = e.target.dataset.free;
+  [...$('freeSeg').children].forEach(b=>b.classList.toggle('on', b===e.target));
+  $('trialFields').style.display = freeMode==='trial'?'block':'none';
+  $('ongoingFields').style.display = freeMode==='ongoing'?'block':'none';
+  render();
+});
+
+// presets
+document.querySelector('.presets').addEventListener('click', e=>{
+  const p = e.target.dataset.preset; if(!p) return;
+  if(p==='aggressive'){ $('price').value=1900; $('cap').value=200; }
+  if(p==='stable'){ $('price').value=3900; $('cap').value=500; }
+  if(p==='trial150'){ freeMode='trial'; $('trial').value=150; $('trialUsed').value=60;
+    [...$('freeSeg').children].forEach(b=>b.classList.toggle('on', b.dataset.free==='trial'));
+    $('trialFields').style.display='block'; $('ongoingFields').style.display='none'; }
+  render();
+});
+
+// re-render on any input
+document.querySelectorAll('input').forEach(el=>el.addEventListener('input', render));
+
+const fmtUSD = n => (n<0?'-':'')+'$'+Math.abs(n).toLocaleString('en-US',{maximumFractionDigits:0});
+const fmtUSD2 = n => (n<0?'-':'')+'$'+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtUSD4 = n => '$'+n.toFixed(4);
+const fmtKRW = n => '₩'+Math.round(n).toLocaleString('ko-KR');
+const fmtPct = n => n.toLocaleString('en-US',{maximumFractionDigits:1})+'%';
+
+function model(){
+  const v = id => +$(id).value;
+  const N=v('users'), conv=v('conv')/100, ret=v('ret');
+  const price=v('price'), fx=v('fx');
+  const pin=v('pin'), pout=v('pout'), oh=v('oh'), infra=v('infra');
+  const captureRaw = (v('capIn')*pin + v('capOut')*pout)/1e6;
+  const chatRaw    = (v('chIn')*pin + v('chOut')*pout)/1e6;
+  const captureUnit = captureRaw*oh, chatUnit = chatRaw*oh;
+  const netPerPaid = price/fx*(1-fee);
+  const paidCogsPerUser = v('paidCap')*captureUnit + v('paidChat')*chatUnit;
+  const contrib = netPerPaid - paidCogsPerUser;
+
+  function freeMonthlyAt(c){
+    if(freeMode!=='ongoing') return 0;
+    const freeUsers = N*(1-c);
+    return freeUsers * v('freeAvg') * captureUnit; // 무료 채팅 불가
+  }
+  function profitAt(c){
+    const paid=N*c;
+    return paid*netPerPaid - paid*paidCogsPerUser - freeMonthlyAt(c) - infra;
+  }
+  // break-even conversion (linear solve)
+  const slope = N*(netPerPaid - paidCogsPerUser) + (freeMode==='ongoing'? N*v('freeAvg')*captureUnit : 0);
+  const intercept = -(freeMode==='ongoing'? N*v('freeAvg')*captureUnit : 0) - infra;
+  const be = slope>0 ? -intercept/slope : NaN;
+
+  // one-time trial cost
+  const oneTime = freeMode==='trial' ? N*v('trialUsed')*captureUnit : 0;
+
+  return {N,conv,ret,price,fx,infra,captureRaw,chatRaw,captureUnit,chatUnit,netPerPaid,paidCogsPerUser,contrib,
+    profit:profitAt(conv), profitAt, freeMonthly:freeMonthlyAt(conv), be, oneTime,
+    paidUsers:N*conv, cap:v('cap')};
+}
+
+function render(){
+  // sync slider readouts
+  $('vUsers').textContent = (+$('users').value).toLocaleString();
+  $('vConv').textContent = (+$('conv').value)+'%';
+  $('vRet').textContent = $('ret').value;
+  $('vPrice').textContent = fmtKRW(+$('price').value);
+  $('vTrial').textContent = $('trial').value;
+  $('vTrialUsed').textContent = $('trialUsed').value;
+  $('vFreeCap').textContent = $('freeCap').value;
+  $('vFreeAvg').textContent = $('freeAvg').value;
+  $('vPC').textContent = $('paidCap').value;
+  $('vPCh').textContent = $('paidChat').value;
+  $('vCap').textContent = $('cap').value;
+  // clamp trialUsed to trial
+  if(+$('trialUsed').value > +$('trial').value){ $('trialUsed').value=$('trial').value; $('vTrialUsed').textContent=$('trial').value; }
+
+  const m = model();
+
+  $('unitCosts').innerHTML = `단위원가(raw) → 캡처 <b>${fmtUSD4(m.captureRaw)}</b> · 채팅 <b>${fmtUSD4(m.chatRaw)}</b> · 부가버퍼 ×${$('oh').value} 반영 (채팅=캡처의 ${(m.chatRaw/m.captureRaw).toFixed(1)}배)`;
+
+  // hero profit
+  const pe=$('rProfit'); pe.textContent=fmtUSD(m.profit);
+  pe.className='v '+(m.profit>=0?'':'');
+  pe.style.color = '#fff';
+  $('rProfitSub').textContent = `${fmtKRW(m.profit*m.fx)}/월 · 유료 ${Math.round(m.paidUsers).toLocaleString()}명`+(m.profit>=0?' · 흑자':' · 적자');
+
+  // contribution
+  $('rContrib').innerHTML = `<span class="${m.contrib>=0?'pos':'neg'}">${fmtUSD2(m.contrib)}</span>`;
+  $('rContribSub').textContent = `순매출 ${fmtUSD2(m.netPerPaid)} − 원가 ${fmtUSD2(m.paidCogsPerUser)}`;
+
+  // break-even
+  if(isNaN(m.be) || m.be<0){
+    $('rBE').innerHTML = `<span class="neg">불가</span>`;
+    $('rBESub').textContent = '유료 1인 순기여가 음수';
+  } else {
+    const beP=m.be*100;
+    $('rBE').innerHTML = `<span class="${m.conv>=m.be?'pos':'warn'}">${fmtPct(beP)}</span>`;
+    $('rBESub').textContent = m.conv>=m.be? `현재 ${fmtPct(m.conv*100)} ≥ 분기점 ✓` : `현재 ${fmtPct(m.conv*100)} < 분기점`;
+  }
+
+  // CAC / free burden
+  const LTV = m.contrib*m.ret;
+  if(freeMode==='trial'){
+    const cac = m.paidUsers>0 ? m.oneTime/m.paidUsers : NaN;
+    const ratio = (cac>0)? LTV/cac : NaN;
+    $('rCacK').textContent='LTV / CAC';
+    $('rCac').innerHTML = isNaN(ratio)?'—':`<span class="${ratio>=3?'pos':(ratio>=1?'warn':'neg')}">${ratio.toFixed(1)}x</span>`;
+    $('rCacSub').textContent = `LTV ${fmtUSD2(LTV)} · CAC ${isNaN(cac)?'—':fmtUSD2(cac)}`;
+    $('rExtraK').textContent='일회성 체험비 (총)';
+    $('rExtra').textContent = fmtUSD(m.oneTime);
+    $('rExtraSub').textContent = `1인당 ${fmtUSD2(m.N? m.oneTime/m.N:0)} · 매달 아님`;
+  } else {
+    $('rCacK').textContent='무료 월 보조부담';
+    $('rCac').innerHTML = `<span class="neg">${fmtUSD(m.freeMonthly)}</span>`;
+    $('rCacSub').textContent = `유료 1인당 ${m.paidUsers>0?fmtUSD2(m.freeMonthly/m.paidUsers):'—'} 보조`;
+    $('rExtraK').textContent='유료 LTV';
+    $('rExtra').textContent = fmtUSD2(LTV);
+    $('rExtraSub').textContent = `잔존 ${m.ret}개월 × 순기여`;
+  }
+
+  // worst-case margin at cap (all-capture equivalent)
+  const worstCogs = m.cap*m.captureUnit;
+  const worstMargin = (m.netPerPaid-worstCogs)/m.netPerPaid*100;
+  $('rWorst').innerHTML = `<span class="${worstMargin>=20?'pos':(worstMargin>=0?'warn':'neg')}">${worstMargin.toFixed(0)}%</span>`;
+  $('rWorstSub').textContent = `cap ${m.cap}크레딧 = COGS ${fmtUSD2(worstCogs)}`;
+
+  // +1%p value
+  const dv = 0.01*m.N*m.contrib - (freeMode==='ongoing'? -0.01*m.N*(+$('freeAvg').value)*m.captureUnit : 0);
+  $('notes').innerHTML =
+    `· <b>전환 +1%p</b> ≈ 월 ${fmtUSD(dv)} (${fmtKRW(dv*m.fx)})<br>`+
+    (freeMode==='trial'
+      ? `· 평생 체험은 무료가 <b>일회성 CAC</b> — 정상상태 월손익엔 안 들어감(소진 후 캡처 0). 손익분기 전환율이 낮은 이유.`
+      : `· 지속 무료는 매달 보조부담 발생 — 원가는 cap 이 아니라 <b>무료 평균 사용량</b>이 결정.`)+
+    `<br>· ₩1,900 은 ₩3,900 대비 순기여 약 1/3 → 같은 총이익엔 <b>전환 ~3배</b> 필요. 가격 슬라이더로 직접 확인.`;
+
+  drawChart(m);
+}
+
+function drawChart(m){
+  const cv=$('chart'), ctx=cv.getContext('2d');
+  const W=cv.width=cv.clientWidth*2, H=cv.height=240*2; ctx.scale(1,1);
+  ctx.clearRect(0,0,W,H);
+  const padL=70, padR=20, padT=18, padB=34;
+  const maxC=0.40; // x: 0..40%
+  // y range
+  let ys=[]; for(let i=0;i<=80;i++){ys.push(m.profitAt(i/200));}
+  let ymax=Math.max(...ys, m.profit, 100), ymin=Math.min(...ys, m.profit, -100);
+  const pad=(ymax-ymin)*0.1||100; ymax+=pad; ymin-=pad;
+  const X=c=> padL + (c/maxC)*(W-padL-padR);
+  const Y=v=> padT + (1-(v-ymin)/(ymax-ymin))*(H-padT-padB);
+
+  // zero line
+  ctx.strokeStyle='#cfcfe0'; ctx.lineWidth=2; ctx.setLineDash([6,6]);
+  ctx.beginPath(); ctx.moveTo(padL,Y(0)); ctx.lineTo(W-padR,Y(0)); ctx.stroke(); ctx.setLineDash([]);
+
+  // axes labels (y)
+  ctx.fillStyle='#9a9ab0'; ctx.font='20px -apple-system,sans-serif'; ctx.textAlign='right';
+  [ymax, (ymax+ymin)/2, ymin].forEach(val=>{ ctx.fillText('$'+Math.round(val).toLocaleString(), padL-10, Y(val)+6); });
+  // x ticks
+  ctx.textAlign='center';
+  for(let c=0;c<=maxC+1e-9;c+=0.10){ ctx.fillText((c*100).toFixed(0)+'%', X(c), H-10); }
+
+  // area fill split pos/neg
+  function fillArea(){
+    ctx.beginPath(); ctx.moveTo(X(0),Y(m.profitAt(0)));
+    for(let i=1;i<=200;i++){const c=i/200*maxC; ctx.lineTo(X(c),Y(m.profitAt(c)));}
+    ctx.lineTo(X(maxC),Y(0)); ctx.lineTo(X(0),Y(0)); ctx.closePath();
+  }
+  // line
+  ctx.save();
+  // green above zero
+  ctx.beginPath(); ctx.rect(padL,Y(ymax),W-padL-padR,Y(0)-Y(ymax)); ctx.clip();
+  ctx.fillStyle='rgba(21,163,74,.10)'; fillArea(); ctx.fill(); ctx.restore();
+  ctx.save();
+  ctx.beginPath(); ctx.rect(padL,Y(0),W-padL-padR,Y(ymin)-Y(0)); ctx.clip();
+  ctx.fillStyle='rgba(220,38,38,.10)'; fillArea(); ctx.fill(); ctx.restore();
+
+  // profit curve
+  ctx.strokeStyle='#6c5ce7'; ctx.lineWidth=3; ctx.beginPath();
+  for(let i=0;i<=200;i++){const c=i/200*maxC; const x=X(c),y=Y(m.profitAt(c)); i?ctx.lineTo(x,y):ctx.moveTo(x,y);}
+  ctx.stroke();
+
+  // break-even vertical
+  if(!isNaN(m.be)&&m.be>=0&&m.be<=maxC){
+    ctx.strokeStyle='#d97706'; ctx.lineWidth=1.5; ctx.setLineDash([4,4]);
+    ctx.beginPath(); ctx.moveTo(X(m.be),padT); ctx.lineTo(X(m.be),H-padB); ctx.stroke(); ctx.setLineDash([]);
+  }
+  // current conv marker
+  const cx=X(Math.min(m.conv,maxC)), cy=Y(m.profit);
+  ctx.strokeStyle='#1b1b2f'; ctx.lineWidth=1.5; ctx.setLineDash([3,5]);
+  ctx.beginPath(); ctx.moveTo(cx,padT); ctx.lineTo(cx,H-padB); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle=m.profit>=0?'#15a34a':'#dc2626';
+  ctx.beginPath(); ctx.arc(cx,cy,7,0,7); ctx.fill();
+  ctx.strokeStyle='#fff'; ctx.lineWidth=2.5; ctx.beginPath(); ctx.arc(cx,cy,7,0,7); ctx.stroke();
+}
+
+render();
+window.addEventListener('resize', render);
+</script>
+</body>
+</html>
