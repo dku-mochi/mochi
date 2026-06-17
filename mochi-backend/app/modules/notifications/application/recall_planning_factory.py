@@ -16,6 +16,7 @@ from app.modules.notifications.application.generate_recall_candidates import (
 from app.modules.notifications.application.plan_recall_notifications import (
     PlanRecallNotifications,
 )
+from app.modules.notifications.infrastructure.gemini_recall_gate import GeminiRecallGate
 from app.modules.notifications.infrastructure.gemini_recall_planner import GeminiRecallPlanner
 from app.modules.notifications.infrastructure.recall_candidate_repository import (
     PostgresRecallCandidateRepository,
@@ -47,10 +48,16 @@ def make_generate_recall_candidates(session: AsyncSession) -> GenerateRecallCand
     return GenerateRecallCandidates(
         candidates=PostgresRecallCandidateRepository(session),
         mochi_items=make_mochi_item_repository(session),
+        gate=GeminiRecallGate(),
         min_score=s.recall_candidate_min_score,
-        candidate_limit=s.recall_candidate_limit,
+        overfetch_limit=s.recall_overfetch_limit,
+        gate_topn=s.recall_gate_topn,
+        near_dup_score=s.recall_near_dup_score,
+        gate_enabled=s.recall_gate_enabled,
+        gate_dry_run=s.recall_gate_dry_run,
         dedup_cooldown_days=s.recall_dedup_cooldown_days,
         dismiss_cooldown_days=s.recall_dismiss_cooldown_days,
+        owner_cooldown_hours=s.recall_owner_cooldown_hours,
         daily_cap=s.recall_daily_cap,
         quiet_start_hour=s.recall_quiet_start_hour_kst,
         quiet_end_hour=s.recall_quiet_end_hour_kst,
