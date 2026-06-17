@@ -4,11 +4,16 @@ import DesignSystem
 
 /// 검색 탭 *기본* 화면 (.idle phase) — 검색바 빈 상태 + 포커스 X.
 ///
-/// 구조: 필터칩 row (TypeFilter 5개) + 2col 그리드 (filteredItems).
+/// 필터: 타입(전체/링크/스크린샷/메모) 드롭다운 + 카테고리(주간 리포트 정규화 category) 칩 행.
+/// 둘은 AND 로 동시 적용(상위 SearchFeature.filteredItems). 2col 모자이크 그리드.
 struct SearchDefaultView: View {
     let items: [MochiItem]
     let typeFilter: SearchD5.TypeFilter
     let onTypeFilter: (SearchD5.TypeFilter) -> Void
+    /// 카테고리 칩 — 전체 기록의 정규화 category 많은 순. nil = 전체.
+    let categories: [String]
+    let selectedCategory: String?
+    let onCategory: (String?) -> Void
     let onCardTap: (MochiItem.ID, HeroSourceFrames) -> Void
     let onCardDelete: (MochiItem.ID) -> Void
     let onCardToggleFavorite: (MochiItem.ID) -> Void
@@ -16,7 +21,7 @@ struct SearchDefaultView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            filterChips
+            filterBar
                 .padding(.top, 10)
                 .padding(.bottom, 6)
 
@@ -102,61 +107,102 @@ struct SearchDefaultView: View {
         .frame(maxWidth: .infinity)
     }
 
-    // MARK: - 필터칩 row (TypeFilter 5개)
+    // MARK: - 필터 바 (타입 드롭다운 + 카테고리 칩)
 
-    private var filterChips: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 6) {
-                ForEach(SearchD5.TypeFilter.allCases) { filter in
-                    TypeFilterChip(
-                        filter: filter,
-                        isActive: typeFilter == filter
-                    ) {
-                        onTypeFilter(filter)
+    /// 좌측 고정 타입 드롭다운 + 우측 가로 스크롤 카테고리 칩. 둘은 AND(상위 filteredItems).
+    private var filterBar: some View {
+        HStack(spacing: HomeDesign.Spacing.sm) {
+            typeDropdown
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 6) {
+                    CategoryChip(label: "전체", systemImage: "square.grid.2x2",
+                                 isActive: selectedCategory == nil) { onCategory(nil) }
+                    ForEach(categories, id: \.self) { category in
+                        CategoryChip(
+                            label: category,
+                            systemImage: MochiCategoryIcon.icon(for: category, fallbackIndex: 0),
+                            isActive: selectedCategory == category
+                        ) { onCategory(category) }
                     }
                 }
+                .padding(.trailing, SearchD5.Sizes.pageH)
             }
-            .padding(.horizontal, SearchD5.Sizes.pageH)
-            // 칩 탭영역이 44 로 커져 세로 여백을 칩이 머금는다 — strip 높이는 거의 그대로(과거 4pt 패딩 제거).
         }
+        .padding(.leading, SearchD5.Sizes.pageH)
+    }
+
+    /// 종류 필터 드롭다운 — 기존 "전체" 칩 자리를 Menu 트리거로(미확인 제외). 선택 시 칩 색으로 활성 표시.
+    private var typeDropdown: some View {
+        let active = typeFilter != .all
+        return Menu {
+            ForEach([SearchD5.TypeFilter.all, .link, .screenshot, .memo]) { f in
+                Button { onTypeFilter(f) } label: { Label(f.label, systemImage: f.systemImage) }
+            }
+        } label: {
+            HStack(spacing: 4) {
+                // 타입 선택 시에만 그 타입 아이콘 노출 — 미선택 기본은 "종류"만(카테고리 "전체"와 중복 회피).
+                if active {
+                    Image(systemName: typeFilter.systemImage)
+                        .font(.system(size: 12.5, weight: .semibold, design: .rounded))
+                }
+                Text(active ? typeFilter.label : "종류")
+                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .tracking(-0.3)
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 9, weight: .bold))
+            }
+            .foregroundStyle(active ? typeFilter.activeFg : SearchD5.Palette.textPrimary.opacity(0.82))
+            .padding(.horizontal, 10)
+            .frame(height: SearchD5.Sizes.filterChipHeight)
+            .background(Capsule().fill(active ? typeFilter.activeBg : SearchD5.Palette.card))
+            .overlay(
+                Capsule().stroke(
+                    active ? typeFilter.activeFg.opacity(0.55) : SearchD5.Palette.cardBorder,
+                    lineWidth: active ? 1.2 : 1
+                )
+            )
+        }
+        .accessibilityLabel(active ? "종류 필터, 현재 \(typeFilter.label)" : "종류 필터")
     }
 }
 
-// MARK: - TypeFilter chip (active = filter 색 배경 + border, idle = 흰 + ink border)
+// MARK: - Category chip (정규화 category — active = 퍼플 캡슐, idle = 흰 + ink border)
 
-struct TypeFilterChip: View {
-    let filter: SearchD5.TypeFilter
+private struct CategoryChip: View {
+    let label: String
+    let systemImage: String
     let isActive: Bool
     let onTap: () -> Void
 
     var body: some View {
         Button(action: onTap) {
             HStack(spacing: 4) {
-                Image(systemName: filter.systemImage)
-                    .font(.system(size: 13.5, weight: .semibold, design: .rounded))
-                Text(filter.label)
+                Image(systemName: systemImage)
+                    .font(.system(size: 12.5, weight: .semibold, design: .rounded))
+                Text(label)
                     .font(.system(size: 13, weight: .semibold, design: .rounded))
                     .tracking(-0.3)
+                    .lineLimit(1)
             }
-            .padding(.horizontal, 9)
+            .padding(.horizontal, 10)
             .frame(height: SearchD5.Sizes.filterChipHeight)
-            .foregroundStyle(isActive ? filter.activeFg : SearchD5.Palette.textPrimary.opacity(0.82))
+            .foregroundStyle(isActive ? HomeDesign.Color.purple600 : SearchD5.Palette.textPrimary.opacity(0.82))
             .background(
-                Capsule().fill(isActive ? filter.activeBg : SearchD5.Palette.card)
+                Capsule().fill(isActive ? HomeDesign.Color.purple50 : SearchD5.Palette.card)
             )
             .overlay(
                 Capsule().stroke(
-                    isActive ? filter.activeFg.opacity(0.55) : SearchD5.Palette.cardBorder,
+                    isActive ? HomeDesign.Color.purple500.opacity(0.5) : SearchD5.Palette.cardBorder,
                     lineWidth: isActive ? 1.2 : 1
                 )
             )
             .animation(.easeInOut(duration: 0.18), value: isActive)
-            // 캡슐(32)은 그대로, 세로 터치 영역만 44 로 — 가로는 칩 간격이 6pt 로 좁아 확장 안 함(인접 충돌 회피).
+            // 캡슐은 그대로, 세로 터치 영역만 44(검색 필터칩과 동일 규약).
             .frame(height: 44)
             .contentShape(Rectangle())
         }
         .buttonStyle(TypeChipPress())
-        .accessibilityLabel("\(filter.label) 필터")
+        .accessibilityLabel("\(label) 카테고리 필터")
         .accessibilityAddTraits(isActive ? [.isSelected] : [])
     }
 }

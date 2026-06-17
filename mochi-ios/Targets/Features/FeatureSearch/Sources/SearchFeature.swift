@@ -20,6 +20,8 @@ public struct SearchFeature: Sendable {
         public var query: String = ""
         public var isFocused: Bool = false
         public var typeFilter: SearchD5.TypeFilter = .all
+        /// 카테고리 필터(주간 리포트와 같은 정규화 category). nil = 전체 카테고리.
+        public var selectedCategory: String?
         public var selectedIntent: Intent?
         public var items: [MochiItem] = []
         public var results: [SearchResult] = []
@@ -43,9 +45,30 @@ public struct SearchFeature: Sendable {
             return results.isEmpty ? .empty : .results
         }
 
-        /// 기본 화면 그리드의 표시 items — typeFilter 적용.
+        /// 기본 화면 그리드의 표시 items — 타입(드롭다운) ∧ 카테고리(칩) 동시 적용(AND).
         public var filteredItems: [MochiItem] {
-            items.filter { typeFilter.matches($0) }
+            items.filter {
+                typeFilter.matches($0)
+                    && (selectedCategory == nil || $0.analysis?.category == selectedCategory)
+            }
+        }
+
+        /// 카테고리 칩 집합 — 전체 기록의 정규화 category 를 많은 순으로(주간 리포트 카테고리와 같은 소스).
+        /// 빈 category 는 제외. 신규 유저(카테고리 없음)면 빈 배열 → 칩 행은 "전체"만 표시.
+        public var availableCategories: [String] {
+            var counts: [String: Int] = [:]
+            var order: [String] = []
+            for item in items {
+                guard let c = item.analysis?.category, !c.isEmpty else { continue }
+                if counts[c] == nil { order.append(c) }
+                counts[c, default: 0] += 1
+            }
+            // count 내림차순, 동률은 첫 등장 순.
+            return order.sorted { lhs, rhs in
+                let cl = counts[lhs] ?? 0, cr = counts[rhs] ?? 0
+                if cl != cr { return cl > cr }
+                return (order.firstIndex(of: lhs) ?? 0) < (order.firstIndex(of: rhs) ?? 0)
+            }
         }
     }
 
@@ -59,6 +82,7 @@ public struct SearchFeature: Sendable {
         // 검색바 / 필터
         case searchBarFocused(Bool)
         case typeFilterTapped(SearchD5.TypeFilter)
+        case categoryTapped(String?)           // 카테고리 칩 (nil = 전체)
         case intentChipTapped(Intent?)
 
         // 최근 검색 칩 row (포커스 + query 빈 상태에서 검색바 아래 한 줄)
@@ -147,6 +171,11 @@ public struct SearchFeature: Sendable {
                 state.typeFilter = filter
                 return .none
 
+            case let .categoryTapped(category):
+                // 같은 칩 재탭 = 해제(전체). 타입과 독립(AND).
+                state.selectedCategory = (state.selectedCategory == category) ? nil : category
+                return .none
+
             case let .intentChipTapped(intent):
                 state.selectedIntent = (state.selectedIntent == intent) ? nil : intent
                 return self.updateSearch(&state)
@@ -211,12 +240,14 @@ public struct SearchFeature: Sendable {
 
             case .retryAllTapped:
                 state.typeFilter = .all
+                state.selectedCategory = nil
                 state.selectedIntent = nil
                 return .merge(self.updateSearch(&state), self.semanticSearch(&state))
 
             case .clearFiltersTapped:
                 state.query = ""
                 state.typeFilter = .all
+                state.selectedCategory = nil
                 state.selectedIntent = nil
                 state.results = []
                 state.isSearching = false
