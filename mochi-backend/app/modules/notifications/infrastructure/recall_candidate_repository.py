@@ -147,3 +147,22 @@ class PostgresRecallCandidateRepository(RecallCandidateRepositoryPort):
         self._session.add(row)
         await self._session.flush()
         return row.event_id
+
+    async def recent_owner_recall_exists(self, *, owner_id: UUID, since: datetime) -> bool:
+        stmt = text(
+            """
+            SELECT EXISTS(
+              SELECT 1 FROM notification_outbox
+              WHERE owner_id = :owner AND kind = 'recall'
+                AND status IN ('pending','sent','deferred')
+                AND created_at >= :since
+            )
+            """
+        ).bindparams(bindparam("owner", owner_id), bindparam("since", since))
+        return bool((await self._session.execute(stmt)).scalar())
+
+    async def acquire_owner_lock(self, *, owner_id: UUID) -> None:
+        # 발송 워커(_materialize_one_plan)와 동일 키 공간 hashtext(owner) — 동시 저장 직렬화.
+        await self._session.execute(
+            text("SELECT pg_advisory_xact_lock(hashtext(:owner))").bindparams(owner=str(owner_id))
+        )
