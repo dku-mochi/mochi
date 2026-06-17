@@ -10,6 +10,11 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-06-17 — ios (검색 키보드 toolbar 제거 — ✓ 바 + 빈결과 캡슐 둘 다 redundant)
+- **검색바 포커스 시 키보드 위에 떠 있던 toolbar 제거** (사용자 지시). 두 요소 모두 중복이었다: (1) 항상 떠 있던 **✓ dismiss 버튼** = 스크롤·return 과 중복, (2) 0건일 때 키보드 위 **"못 찾았어요 — 모찌에게 물어보기" 캡슐** = `SearchEmptyResultView` 안의 같은 CTA 와 중복(키보드 내리면 바로 노출).
+- 보강: 콘텐츠 영역 **탭-dismiss**(`phaseBody` 에 `simultaneousGesture(TapGesture)` — 카드·칩·드롭다운 탭은 그대로 통과하며 키보드만 함께 내려감, 홈 채팅과 동일 패턴). 빈 결과 escalation 은 빈 화면 CTA 하나로 일원화.
+- `SearchView`: `keyboardDismissBar`/`emptyAskBar` + `.safeAreaInset(.bottom)` 제거, 탭-dismiss 추가. iOS only(계약·도메인·백엔드·테스트 무관, 기존 검색 테스트 3 그대로 통과). UX_SPEC §3.5 동기화.
+
 ## 2026-06-17 — ios (검색 .idle 필터 재설계 — 타입 드롭다운 + 카테고리 칩)
 - **검색 기본화면 필터를 타입 칩 5개 → "타입 드롭다운 + 카테고리 칩"으로 재설계** (사용자 지시). 타입(전체/링크/스크린샷/메모)은 좌측 고정 `Menu` 드롭다운(기존 "전체" 칩 자리, **미확인 제거**), 그 칩 자리엔 **정규화 category 칩**(쇼핑/방문/취미·자기계발/일상/… — 주간 리포트와 같은 소스, 전체 기록 기준 많은 순). 둘은 **AND** 동시 적용.
 - `SearchFeature`: `selectedCategory` state + `categoryTapped` 액션 + `availableCategories`(items 의 `analysis.category` distinct, count desc) + `filteredItems` 에 카테고리 AND. clear 경로(retryAll/clearFilters)도 리셋. 단위테스트 2(정렬·AND).

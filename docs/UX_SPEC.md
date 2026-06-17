@@ -152,7 +152,7 @@ description: 화면·시나리오·IA·디자인 톤·데모 시나리오의 com
 - 메모: butter / 스크린샷(이미지 없음): sky / 미확인: ink 파스텔 타일 — 제목 → 본문 preview(인용 워터마크), 138pt. 타일 색 = 타입 필터칩 activeBg 와 동일 매핑
 - 제목은 `displayTitle` 위계 + "[출처앱: …]" 메타 strip. 분석 전 항목은 "모찌가 정리하고 있어요" (메타줄 삭제로 "분석 중" 칩도 제거). semantic("비슷한 기억") 구분도 시각 표시 제거, VoiceOver 만 유지
 
-**키보드 ✓ toolbar** — 키보드 dismiss = 포커스 해제(최근 검색 칩 줄도 함께 내려감 — 별도 화면이 없어 phase 는 변하지 않는다). 검색바 X 는 query 있을 때만(전체 reset). **검색 탭 reselect** — 탭바 검색 탭 재탭 시 filter+query reset → `.idle` 그리드 복귀. 타이핑 중 결과 0 이면 키보드 위 bar 에 "못 찾았어요 — 모찌에게 물어보기" 캡슐(키보드 dismiss 없는 발견 경로).
+**키보드 dismiss** (2026-06-17 키보드 toolbar 제거) — 항상 떠 있던 ✓ 바 + 0건일 때 키보드 위 "물어보기" 캡슐을 둘 다 제거. 둘 다 redundant 였다(✓ 는 스크롤·return 과 중복, 키보드 위 캡슐은 빈 결과 화면의 같은 CTA 와 중복). 이제 dismiss = 스크롤·return·**콘텐츠 영역 탭**(`simultaneousGesture` 라 카드·칩·드롭다운 탭은 그대로 통과하며 키보드만 함께 내려감). 포커스 해제 시 최근 검색 칩 줄도 함께 내려감(별도 화면이 없어 phase 는 변하지 않는다). 빈 결과 escalation 은 `SearchEmptyResultView` 안의 "모찌에게 물어보기" CTA 하나로 일원화(키보드 내리면 바로 노출). 검색바 X 는 query 있을 때만(전체 reset). **검색 탭 reselect** — 탭바 검색 탭 재탭 시 filter+query reset → `.idle` 그리드 복귀.
 
 > **배선 상태 (2026-06-11 실연결 완료)**: 그리드 = 로컬 Realm(`listRecent(200)` + `observeChanges` 자동 재로드, 홈 패턴), 저장 0 이면 빈 상태 화면. **2단 검색** — 키 입력 중 로컬 token 매칭(`LocalSearchService`, 즉답) + return 제출 시 `POST /search`(RAG) 의미 검색 보강(citations 서버 id → 로컬 역매핑, literal 우선 + semantic 추가). 최근 검색어 UserDefaults 실저장(최대 10). 빈 결과 "모찌에게 물어보기" → 채팅을 query 첫 메시지로 push. 삭제 = 홈 규약(서버 soft delete + 로컬 hard delete). 카드 탭 → 상세 hero present.
 

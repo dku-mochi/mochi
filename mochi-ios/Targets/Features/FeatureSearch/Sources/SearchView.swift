@@ -37,6 +37,13 @@ public struct SearchView: View {
                 }
 
                 phaseBody
+                    // 항상 떠 있던 ✓ 바 제거(2026-06-17) 보상 — 콘텐츠 영역 탭으로 키보드 dismiss.
+                    // simultaneousGesture 라 카드·칩·드롭다운 탭은 그대로 통과(탭 + dismiss 동시).
+                    .simultaneousGesture(
+                        TapGesture().onEnded {
+                            if isSearchFocused { isSearchFocused = false }
+                        }
+                    )
             }
             .animation(.easeInOut(duration: 0.18), value: showsRecentChips)
         }
@@ -71,68 +78,8 @@ public struct SearchView: View {
                 isSearchFocused = newValue
             }
         }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            keyboardDismissBar
-        }
         // 카드 height 고정(182/138) 레이아웃이라 무제한 확대는 잘림 — large 까지는 lineLimit 으로 안전.
         .dynamicTypeSize(...DynamicTypeSize.large)
-    }
-
-    // MARK: - Keyboard dismiss bar (검색바 포커스 시 키보드 위)
-
-    /// 키보드가 올라오면 시스템이 bottom safe area 를 키보드 위까지 올려주므로,
-    /// `.safeAreaInset(edge: .bottom)` 에 둔 view 가 자동으로 키보드 위에 stick 된다.
-    ///
-    /// 빈 결과(.empty)일 땐 좌측에 "모찌에게 물어보기" 제안을 함께 띄운다 —
-    /// 키보드가 빈 결과 화면의 CTA 를 가려서 사용자가 기능 존재를 모른 채
-    /// 지나치는 것을 막는다 (키보드 dismiss 를 요구하지 않는 발견 경로).
-    @ViewBuilder
-    private var keyboardDismissBar: some View {
-        if isSearchFocused {
-            HStack(spacing: 8) {
-                if store.phase == .empty {
-                    Button {
-                        isSearchFocused = false
-                        store.send(.askMochiTapped)
-                    } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: "bubble.left.fill")
-                                .font(.system(size: 12, weight: .semibold))
-                            Text("못 찾았어요 — 모찌에게 물어보기")
-                                .font(.system(size: 13.5, weight: .semibold, design: .rounded))
-                                .tracking(-0.2)
-                        }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 7)
-                        .foregroundStyle(.white)
-                        .background(Capsule().fill(SearchD5.Palette.ctaGradient))
-                    }
-                    .buttonStyle(PressableStyle())
-                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
-                }
-                Spacer(minLength: 0)
-                Button {
-                    isSearchFocused = false
-                } label: {
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 18, weight: .semibold, design: .rounded))
-                        .foregroundStyle(SearchD5.Palette.primary)
-                        .frame(width: 40, height: 40)
-                        .contentShape(Rectangle())
-                }
-            }
-            .padding(.horizontal, 12)
-            .frame(height: 44)
-            .background(SearchD5.Palette.card)
-            .overlay(
-                Rectangle()
-                    .fill(SearchD5.Palette.cardBorder)
-                    .frame(height: 0.5),
-                alignment: .top
-            )
-            .animation(.easeInOut(duration: 0.18), value: store.phase)
-            .transition(.move(edge: .bottom).combined(with: .opacity))
-        }
     }
 
     // MARK: - 검색바
@@ -164,7 +111,7 @@ public struct SearchView: View {
                     }
             }
 
-            // query 가 있을 때만 X — 빈 상태의 키보드 dismiss 는 ✓ 바가 담당.
+            // query 가 있을 때만 X — 빈 상태의 키보드 dismiss 는 스크롤·return·콘텐츠 탭이 담당.
             if !queryText.isEmpty {
                 Button {
                     queryText = ""
