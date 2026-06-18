@@ -9,9 +9,10 @@ import DesignSystem
 /// 새 홈 reducer — "사용자는 찾으러 들어오지만, 모찌가 잊은 기억을 떠올려줘 '아, 맞다!' 하게 한다".
 ///
 /// 기존 `HomeFeature`("자동성의 예외 처리 인박스")와 달리, 이 홈의 무게중심은 **능동 회수**다
-/// (PRODUCT.md §1.5 — 회수의 주체는 모찌). 화면 위계: 검색(입구) → 회수 히어로(심장) →
-/// 카테고리 서랍(탐색) → 최근·확인(안전망). reducer 는 데이터 조립과 라우팅만 책임지고,
-/// 회수 히어로의 3D 인터랙션은 전부 뷰(`RecallHeroView`)의 로컬 상태다.
+/// (PRODUCT.md §1.5 — 회수의 주체는 모찌). 화면 위계: 회수 히어로(상단을 가득 채운 심장) →
+/// 월간 리포트(이번 달 카테고리 분포) → 최근·확인(안전망). 검색은 홈에서 비우고 상단 아이콘으로
+/// 검색 탭에 양보한다(탭별 역할 분리 — 큐레이션·회수가 홈의 일, 탐색은 검색 탭의 일).
+/// reducer 는 데이터 조립과 라우팅만 책임지고, 회수 히어로의 3D 인터랙션은 전부 뷰(`RecallHeroView`)의 로컬 상태다.
 @Reducer
 public struct MochiHomeFeature: Sendable {
 
@@ -19,20 +20,20 @@ public struct MochiHomeFeature: Sendable {
     public struct State: Equatable, Sendable {
         /// 능동 회수 — 홈의 심장. 모찌가 떠올린 "다시 보면 좋을 기억". cold-start 빈손은 정상.
         public var recall: [RecallFeedEntryDTO] = []
+        /// "예정된 알림" — 모찌가 보낼 예정인 미래 마감·일정 알림(언제 올지 미리 안심). 빈손이면 섹션 숨김.
+        public var upcoming: [UpcomingNotificationDTO] = []
         /// 회수 itemID → 원본 캡처 이미지 ref. 이미지가 회상의 핵심이라(이미지 보고 "아, 맞다"),
         /// 회수 DTO엔 없는 이미지를 server PK 로 로컬 기록을 역매핑해 채운다. 없으면(메모·URL·지식) 폴백.
         public var recallImages: [UUID: ImageRef] = [:]
-        /// "이런 걸 모아두셨어요" — 카테고리별 누적 집계(전체). 카드 탭 → 3D 턴테이블.
-        public var categories: [CategoryBucket] = []
+        /// "이런 걸 모아두셨어요" — **이번 달** 카테고리별 분포(월간 리포트 막대·범례). 전체가 아니라
+        /// 월간으로 묶어 최신성을 반영한다. 범례 탭 → 그 서랍을 3D 턴테이블로.
+        public var monthlyCategories: [CategoryBucket] = []
+        /// 이번 달 저장한 총 기억 수(월간 리포트 헤드라인 "기억 N개를 저장했어요").
+        public var monthlyRecordCount: Int = 0
         /// 최근에 보낸 것들 — 정리 대상 아닌 안전망(원본 확인·되돌리기).
         public var recent: IdentifiedArrayOf<MochiItem> = []
         /// 모찌가 확신 못 한 것("지금 확인해 주세요"). 있을 때만 배너로 노출.
         public var needsReview: IdentifiedArrayOf<MochiItem> = []
-        public var weeklyRecordCount: Int = 0
-        public var weeklyTopCategories: [WeeklyCategoryStat] = []
-        /// 검색바 아래 빠른 검색 칩 — 상위 카테고리·주제어(검색 query 로 전송).
-        public var searchSuggestions: [String] = MochiHomeFeature.evergreenSearches
-        public var searchDraft: String = ""
         public var quickMemoText: String = ""
         public var isComposingMemo: Bool = false
         public var isNeedsReviewPresented: Bool = false
@@ -52,20 +53,25 @@ public struct MochiHomeFeature: Sendable {
         case sectionsLoaded(
             recent: [MochiItem],
             needsReview: [MochiItem],
-            weeklyItems: [MochiItem],
-            allItems: [MochiItem]
+            monthlyItems: [MochiItem]
         )
         case recallLoaded([RecallFeedEntryDTO])
         case recallImagesLoaded([UUID: ImageRef])
+        /// "예정된 알림" 로드(실패 격리 — 빈손이면 섹션 숨김).
+        case upcomingLoaded([UpcomingNotificationDTO])
+        /// 예정 알림 끄기 — 낙관적 즉시 제거 후 서버 veto 보고.
+        case upcomingVetoed(eventID: UUID)
+        /// 예정 알림 시각 조정 — 낙관적 즉시 반영(프리셋·DatePicker 공용) 후 서버 reschedule 보고.
+        case upcomingRescheduled(eventID: UUID, fireAt: Date)
         case loadFailed(String)
-        /// 검색바 제출 → 검색 탭으로(상위가 query 라우팅).
-        case searchSubmitted
-        /// 빠른 검색 칩 탭 → 그 주제로 검색.
-        case searchSuggestionTapped(String)
+        /// 상단 검색 아이콘 탭 → 검색 탭으로 전환(홈은 검색을 비우고 탐색을 검색 탭에 양보).
+        case searchTapped
         /// 회수 히어로 "모두 보기" → ② 자세히 목록 push.
         case recallSeeAllTapped
-        /// 회수 히어로 초점 카드 탭 → ③ 회수 상세 직행 push.
-        case recallEntryOpened(RecallFeedEntryDTO)
+        /// 회수 히어로 초점 카드 탭 → 그 기록 원본 상세로 hero zoom. 카드 frame(`hero`)을 함께 싣는다.
+        case recallEntryOpened(RecallFeedEntryDTO, hero: HeroSourceFrames)
+        /// 상세가 닫힌 뒤(MainTab 발) — 닫힌 그 회수 카드(itemID)만 피드에서 우아하게 제거한다(돌아왔다 사라진다).
+        case recallDetailClosed(itemID: UUID)
         /// 카테고리 카드 탭 → 3D 턴테이블 push.
         case categoryTapped(CategoryBucket)
         /// 최근 카드 탭 → 상세(hero zoom). 상위(MainTab)가 처리.
@@ -89,12 +95,12 @@ public struct MochiHomeFeature: Sendable {
             case confirmDelete(MochiItem.ID)
         }
         public enum Delegate: Equatable, Sendable {
-            /// 검색바·칩 제출 — 상위가 검색 탭으로 전환하고 query 로 검색을 실행한다.
-            case searchRequested(String)
+            /// 상단 검색 아이콘 — 상위가 검색 탭으로 전환한다(query 없이, 탐색은 검색 탭의 역할).
+            case searchTabRequested
             /// 회수 "모두 보기" — 상위가 ② 자세히 목록을 push 한다(이미 받아둔 피드를 넘겨 즉시 그림).
             case recallListRequested([RecallFeedEntryDTO])
-            /// 회수 히어로 카드 탭 — 상위가 그 기록의 원본 상세를 연다("왜 떴는지"는 노출 안 함).
-            case recallItemOpened(itemID: UUID)
+            /// 회수 히어로 카드 탭 — 상위가 그 기록의 원본 상세를 hero zoom 으로 연다("왜 떴는지"는 노출 안 함).
+            case recallItemOpened(itemID: UUID, hero: HeroSourceFrames)
             /// 카테고리 카드 탭 — 상위가 그 서랍을 3D 턴테이블로 push 한다.
             case categoryCarouselRequested(CategoryBucket)
             case weeklyDigestRequested
@@ -109,7 +115,7 @@ public struct MochiHomeFeature: Sendable {
     @Dependency(\.uuid) var uuid
     @Dependency(\.date) var date
 
-    private enum CancelID { case observe, recallFeed }
+    private enum CancelID { case observe, recallFeed, upcoming }
 
     public init() {}
 
@@ -128,6 +134,9 @@ public struct MochiHomeFeature: Sendable {
                     // 회수 피드는 별도 effect — 실패해도 홈 본문 로드를 막지 않는다(실패 격리).
                     .run { send in await send(.recallLoaded((try? await apiClient.recallFeed(limit: 20)) ?? [])) }
                         .cancellable(id: CancelID.recallFeed, cancelInFlight: true),
+                    // 예정 알림도 별도 effect — 실패해도 홈을 막지 않는다(실패 격리). 빈손이면 뷰가 섹션 숨김.
+                    .run { send in await send(.upcomingLoaded((try? await apiClient.upcomingNotifications(limit: 20)) ?? [])) }
+                        .cancellable(id: CancelID.upcoming, cancelInFlight: true),
                     // 로컬이 비어있으면(재설치 직후 등) 서버에서 복구 — pull 결과는 observeChanges 가 자동 재로드.
                     .run { _ in
                         if (try? await repository.listRecent(limit: 1))?.isEmpty ?? true {
@@ -147,19 +156,17 @@ public struct MochiHomeFeature: Sendable {
                 return .merge(
                     .run { send in await loadAll(send: send) },
                     .run { send in await send(.recallLoaded((try? await apiClient.recallFeed(limit: 20)) ?? [])) }
-                        .cancellable(id: CancelID.recallFeed, cancelInFlight: true)
+                        .cancellable(id: CancelID.recallFeed, cancelInFlight: true),
+                    .run { send in await send(.upcomingLoaded((try? await apiClient.upcomingNotifications(limit: 20)) ?? [])) }
+                        .cancellable(id: CancelID.upcoming, cancelInFlight: true)
                 )
 
-            case let .sectionsLoaded(recent, needsReview, weeklyItems, allItems):
+            case let .sectionsLoaded(recent, needsReview, monthlyItems):
                 state.isLoading = false
                 state.recent = IdentifiedArray(uniqueElements: recent)
                 state.needsReview = IdentifiedArray(uniqueElements: needsReview)
-                state.weeklyRecordCount = weeklyItems.count
-                state.weeklyTopCategories = Self.weeklyCategoryStats(from: weeklyItems)
-                state.categories = Self.categoryBuckets(from: allItems)
-                state.searchSuggestions = Self.makeSearchSuggestions(
-                    weekly: state.weeklyTopCategories, buckets: state.categories
-                )
+                state.monthlyRecordCount = monthlyItems.count
+                state.monthlyCategories = Self.categoryBuckets(from: monthlyItems)
                 if state.needsReviewPage >= needsReview.count {
                     state.needsReviewPage = max(0, needsReview.count - 1)
                 }
@@ -193,25 +200,47 @@ public struct MochiHomeFeature: Sendable {
                 state.recallImages = map
                 return .none
 
-            case .searchSubmitted:
-                let query = state.searchDraft.trimmingCharacters(in: .whitespacesAndNewlines)
-                guard !query.isEmpty else { return .none }
-                state.searchDraft = ""
-                return .send(.delegate(.searchRequested(query)))
+            case let .upcomingLoaded(entries):
+                state.upcoming = entries
+                return .none
 
-            case let .searchSuggestionTapped(term):
-                return .send(.delegate(.searchRequested(term)))
+            case let .upcomingVetoed(eventID):
+                // 낙관적 UI — 즉시 목록에서 제거하고 서버에는 백그라운드 보고(stopTapped 패턴, undo 없음).
+                state.upcoming.removeAll { $0.eventID == eventID }
+                return .run { _ in try? await apiClient.vetoUpcoming(eventID: eventID) }
+
+            case let .upcomingRescheduled(eventID, fireAt):
+                // 낙관적 UI — 즉시 새 시각 반영(원안은 최초 1회 보존). 서버에는 백그라운드 보고.
+                if let index = state.upcoming.firstIndex(where: { $0.eventID == eventID }) {
+                    let current = state.upcoming[index]
+                    state.upcoming[index] = UpcomingNotificationDTO(
+                        eventID: current.eventID,
+                        kind: current.kind,
+                        fireAt: fireAt,
+                        title: current.title,
+                        body: current.body,
+                        originalFireAt: current.originalFireAt ?? current.fireAt,
+                        itemID: current.itemID,
+                        intentID: current.intentID
+                    )
+                    // fire_at 오름차순 정합 유지 — 옮긴 항목이 새 시각 위치로 재정렬되게.
+                    state.upcoming.sort { $0.fireAt < $1.fireAt }
+                }
+                return .run { _ in try? await apiClient.rescheduleUpcoming(eventID: eventID, fireAt: fireAt) }
+
+            case .searchTapped:
+                return .send(.delegate(.searchTabRequested))
 
             case .recallSeeAllTapped:
                 guard !state.recall.isEmpty else { return .none }
                 return .send(.delegate(.recallListRequested(state.recall)))
 
-            case let .recallEntryOpened(entry):
-                // 열어본 회수는 홈에서 즉시 뺀다(낙관적 — "봤으니 그만"). 서버엔 opened 반응을 보고해
-                // 학습·소생(knowledge active 복귀)에 반영하고(recallEventID 있을 때), 원본 상세로 직행한다.
-                // 이 보고가 없으면 서버는 "안 열렸다"고 알아 다음 피드에도 그대로 남는다.
-                state.recall.removeAll { $0.itemID == entry.itemID }
-                state.recallImages[entry.itemID] = nil
+            case let .recallEntryOpened(entry, hero):
+                // 열어본 회수는 피드에서 빠지지만(제품 규칙), 즉시가 아니라 상세를 닫고 돌아온 뒤
+                // (recallDetailClosed) 빠진다 — hero zoom 으로 카드 자리에 착지한 다음 우아하게 사라지게.
+                // opened 반응은 지금 보고한다(학습·소생, recallEventID 있을 때). 이 보고가 없으면 서버는
+                // "안 열렸다"고 알아 다음 피드에도 그대로 남는다. 원본 상세로 hero 직행. 어떤 카드를 닫을지는
+                // 상위(MainTab)가 server PK 로 추적한다 — 닫을 때 정확히 그 itemID 만 빼도록(여러 카드 연속 열기 안전).
                 let eventID = entry.recallEventID
                 return .merge(
                     .run { _ in
@@ -219,8 +248,16 @@ public struct MochiHomeFeature: Sendable {
                             try? await apiClient.recordRecallReaction(eventID: eventID, reaction: .opened)
                         }
                     },
-                    .send(.delegate(.recallItemOpened(itemID: entry.itemID)))
+                    .send(.delegate(.recallItemOpened(itemID: entry.itemID, hero: hero)))
                 )
+
+            case let .recallDetailClosed(itemID):
+                // 상세가 닫혀(hero 가 카드 자리에 착지) 돌아왔다 — 닫힌 그 회수만 피드에서 뺀다(itemID 로 특정 —
+                // 닫는 사이 다른 카드를 열어도 엉뚱한 카드가 빠지지 않는다). RecallHeroView 의
+                // `.transition(.scale+opacity)` 가 호출부 animation 트랜잭션에 실려 발동한다.
+                state.recall.removeAll { $0.itemID == itemID }
+                state.recallImages[itemID] = nil
+                return .none
 
             case let .categoryTapped(bucket):
                 return .send(.delegate(.categoryCarouselRequested(bucket)))
@@ -367,22 +404,21 @@ public struct MochiHomeFeature: Sendable {
 
     // MARK: - Helpers
 
-    /// recent / needsReview / weekly(집계) / all(카테고리 집계) 를 병렬 로드.
+    /// recent / needsReview / monthly(이번 달 카테고리 집계) 를 병렬 로드.
     private func loadAll(send: Send<Action>) async {
         async let recentTask: [MochiItem] = (try? await repository.listRecent(limit: 12)) ?? []
         async let needsReviewTask: [MochiItem] = (try? await repository.listNeedsReview(limit: 10)) ?? []
-        async let weeklyTask: [MochiItem] = (try? await repository.listCaptured(in: Self.currentWeekInterval(now: date.now), limit: 500)) ?? []
-        async let allTask: [MochiItem] = (try? await repository.listCaptured(in: Self.allTimeInterval, limit: 800)) ?? []
+        // 카테고리 리포트는 이번 달 표본만 — 전체를 보여주면 최신성이 거의 안 반영된다(회의 결정).
+        async let monthlyTask: [MochiItem] = (try? await repository.listCaptured(in: Self.currentMonthInterval(now: date.now), limit: 800)) ?? []
 
-        let (recent, needsReview, weeklyItems, allItems) = await (
-            recentTask, needsReviewTask, weeklyTask, allTask
+        let (recent, needsReview, monthlyItems) = await (
+            recentTask, needsReviewTask, monthlyTask
         )
         await send(.sectionsLoaded(
-            recent: recent, needsReview: needsReview, weeklyItems: weeklyItems, allItems: allItems
+            recent: recent, needsReview: needsReview, monthlyItems: monthlyItems
         ))
     }
 
-    private static let allTimeInterval = DateInterval(start: .distantPast, end: .distantFuture)
     private static let carouselCoverCap = 30
     private static let categoryGridLimit = 6
 
@@ -415,28 +451,11 @@ public struct MochiHomeFeature: Sendable {
             }
     }
 
-    private static func currentWeekInterval(now: Date) -> DateInterval {
+    private static func currentMonthInterval(now: Date) -> DateInterval {
         var calendar = Calendar(identifier: .gregorian)
         calendar.locale = Locale(identifier: "ko_KR")
         calendar.timeZone = .autoupdatingCurrent
-        calendar.firstWeekday = 2
-        return calendar.dateInterval(of: .weekOfYear, for: now) ?? DateInterval(start: now, duration: 7 * 24 * 60 * 60)
-    }
-
-    private static func weeklyCategoryStats(from items: [MochiItem]) -> [WeeklyCategoryStat] {
-        let counts = items.reduce(into: [String: Int]()) { partial, item in
-            let category = item.analysis?.category?.trimmingCharacters(in: .whitespacesAndNewlines)
-            let label = category.flatMap { $0.isEmpty ? nil : $0 } ?? fallbackCategory(for: item)
-            partial[label, default: 0] += 1
-        }
-        return counts
-            .map { WeeklyCategoryStat(name: $0.key, count: $0.value) }
-            .sorted { lhs, rhs in
-                if lhs.count != rhs.count { return lhs.count > rhs.count }
-                return lhs.name < rhs.name
-            }
-            .prefix(3)
-            .map { $0 }
+        return calendar.dateInterval(of: .month, for: now) ?? DateInterval(start: now, duration: 30 * 24 * 60 * 60)
     }
 
     private static func fallbackCategory(for item: MochiItem) -> String {
@@ -470,18 +489,4 @@ public struct MochiHomeFeature: Sendable {
         if host.contains("apple.com") || host.contains("safari") { return .safari }
         return .appShareSheet
     }
-
-    /// 빠른 검색 칩 — 상위 카테고리/주제어를 검색 query 로. 모자라면 evergreen 으로 4개까지.
-    static func makeSearchSuggestions(weekly: [WeeklyCategoryStat], buckets: [CategoryBucket]) -> [String] {
-        var out: [String] = []
-        for bucket in buckets.prefix(2) where !out.contains(bucket.name) { out.append(bucket.name) }
-        for stat in weekly.prefix(2) where !out.contains(stat.name) { out.append(stat.name) }
-        for ever in evergreenSearches where out.count < 4 {
-            if !out.contains(ever) { out.append(ever) }
-        }
-        return Array(out.prefix(4))
-    }
-
-    /// 기록이 적은 유저용 기본 검색 칩.
-    static let evergreenSearches: [String] = ["이번주 저장", "즐겨찾기", "최근 링크", "스크린샷"]
 }

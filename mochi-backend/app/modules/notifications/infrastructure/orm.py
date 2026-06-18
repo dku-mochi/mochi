@@ -182,6 +182,9 @@ class NotificationOutboxRow(Base):
     sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
     opened_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
     dismissed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+    # 사용자가 발송 시각을 옮기면(reschedule) 모찌 원안 fire_at 을 1회 보존(COALESCE). NULL=미조정(현 fire_at=원안).
+    # worker 는 이 컬럼을 읽지 않는다(fire_at 만 스캔) — pending fire_at 직접 갱신의 무변경 불변식 유지.
+    original_fire_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default_factory=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default_factory=datetime.utcnow, onupdate=datetime.utcnow

@@ -13,10 +13,13 @@ struct RecallHeroView: View {
     let entries: [RecallFeedEntryDTO]
     /// 회수 itemID → 원본 캡처 이미지 ref. 있으면 카드 커버로 실제 캡처를 깐다(회상의 핵심).
     let images: [UUID: ImageRef]
+    /// 덱(코버플로우) 높이 — 홈에서 상단을 가득 채우도록 화면 비례로 크게 준다.
+    var deckHeight: CGFloat = 348
     /// 헤더 "모두 보기" → 자세히 목록.
     let onOpenAll: () -> Void
-    /// 가운데 카드 탭 → 그 기록의 원본 상세로 직행.
-    let onOpenFocal: (RecallFeedEntryDTO) -> Void
+    /// 가운데 카드 탭 → 그 기록의 원본 상세로 직행. 카드 통째가 상세 헤더로 확대되는 hero zoom 의
+    /// 출발 frame(`HeroSourceFrames`)을 함께 넘긴다 — 최근 카드와 같은 확대 전환.
+    let onOpenFocal: (RecallFeedEntryDTO, HeroSourceFrames) -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     /// 연속 회전값(카드 단위). **무한** — clamp 없이 흐르고 wrap 돼 끝과 처음이 이어진다.
@@ -25,6 +28,9 @@ struct RecallHeroView: View {
     @State private var dragStart: Double?
     @State private var focalIndex: Int = 0
     @State private var appeared = false
+    /// 초점 카드의 화면상 frame — 탭 시 hero zoom 의 출발점. 초점은 변환이 거의 identity(scale 1·offset 0)라
+    /// `.global` 레이아웃 frame 이 실제 화면 위치와 일치한다(코버플로우 변환은 `.global` 에 반영 안 되지만 초점은 무변환).
+    @State private var focalFrame: CGRect = .zero
 
     private var count: Int { entries.count }
     /// 드래그 1pt 당 회전(카드 단위) — 한 장 넘기는 데 ~120pt.
@@ -33,7 +39,8 @@ struct RecallHeroView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
             header
-            deck.frame(height: 348)
+            deck.frame(height: deckHeight)
+            if count > 1 && count <= 7 { pageDots }
         }
         // 카드가 가운데에 들어올 때마다 선택 햅틱 — 촉각으로 "한 장 떠올랐다".
         .sensoryFeedback(.selection, trigger: focalIndex)
@@ -54,8 +61,9 @@ struct RecallHeroView: View {
 
     private var header: some View {
         HStack(alignment: .firstTextBaseline) {
-            Text("다시 보면 좋을 기억")
-                .font(.system(size: 18, weight: .heavy, design: .rounded))
+            Text("모찌가 골라봤어요")
+                .font(.system(size: 20, weight: .heavy, design: .rounded))
+                .tracking(-0.4)
                 .foregroundStyle(HomeDesign.Color.textPrimary)
             Spacer(minLength: 0)
             Button(action: onOpenAll) {
@@ -70,7 +78,22 @@ struct RecallHeroView: View {
             .buttonStyle(PressableStyle())
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("다시 보면 좋을 기억 \(count)개. 모두 보기")
+        .accessibilityLabel("모찌가 고른 기록 \(count)개. 모두 보기")
+    }
+
+    // MARK: - 페이지 인디케이터 (덱 아래 가운데 — 적을 때만, 많으면 이웃 카드가 어포던스를 대신)
+
+    private var pageDots: some View {
+        HStack(spacing: 5) {
+            ForEach(0..<count, id: \.self) { i in
+                Capsule(style: .continuous)
+                    .fill(i == focalIndex ? HomeDesign.Color.purple500 : HomeDesign.Color.purple200)
+                    .frame(width: i == focalIndex ? 18 : 6, height: 6)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .animation(.spring(response: 0.32, dampingFraction: 0.8), value: focalIndex)
+        .accessibilityHidden(true)
     }
 
     // MARK: - 무한 코버플로우 덱 (평면 — 끝과 처음이 이어진다)
@@ -82,8 +105,18 @@ struct RecallHeroView: View {
                 ForEach(Array(entries.enumerated()), id: \.element.id) { index, entry in
                     RecallCoverCard(entry: entry, imageRef: images[entry.itemID])
                         .frame(width: metrics.cardWidth, height: metrics.cardHeight)
+                        // 초점 카드만 화면 frame 을 추적 — hero zoom 의 출발 좌표(변환 전 레이아웃 frame, 초점은 무변환).
+                        .background {
+                            if index == focalIndex {
+                                GeometryReader { g in
+                                    Color.clear
+                                        .onAppear { focalFrame = g.frame(in: .global) }
+                                        .onChange(of: g.frame(in: .global)) { _, f in focalFrame = f }
+                                }
+                            }
+                        }
                         .contentShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-                        .onTapGesture { onOpenFocal(entry) }
+                        .onTapGesture { openFocal(entry) }
                         .modifier(RecallCoverTransform(rotation: rotation, index: index, count: count, metrics: metrics))
                         // 목록에서 빠질 때(열어봐서 제거 등) 툭 끊기지 않고 작아지며 사라진다.
                         .transition(.scale(scale: 0.86).combined(with: .opacity))
@@ -124,6 +157,19 @@ struct RecallHeroView: View {
             }
     }
 
+    /// 초점 카드 탭 — 그 카드 frame 에서 출발하는 hero zoom 으로 원본 상세를 연다.
+    /// 회수 카드는 캡처가 카드 전체를 채우므로(풀블리드) `card == cardImage`. 이미지 없는 회수
+    /// (메모·URL·지식)는 `cardImage == nil` → 상세가 중앙에서 fade-in(이미지 비행 없음).
+    private func openFocal(_ entry: RecallFeedEntryDTO) {
+        let imageRef = images[entry.itemID]
+        let hero = HeroSourceFrames(
+            card: focalFrame,
+            cardImage: imageRef != nil ? focalFrame : nil,
+            imageRelativePath: imageRef?.relativePath
+        )
+        onOpenFocal(entry, hero)
+    }
+
     /// `rotation`(카드 단위)에 가장 가까운 커버 인덱스를 [0, count) 로 감싼다(무한 순환).
     static func wrappedIndex(_ rotation: Double, _ count: Int) -> Int {
         guard count > 0 else { return 0 }
@@ -137,10 +183,11 @@ struct RecallHeroView: View {
 private struct RecallCoverMetrics: Equatable {
     let size: CGSize
 
-    /// 스크린샷 비율(세로 ~0.53) — 세로 캡처가 거의 안 잘린다.
-    var cardHeight: CGFloat { min(size.height, 344) }
-    var cardWidth: CGFloat { cardHeight * 0.53 }
-    private var stepX: CGFloat { cardWidth * 0.7 }
+    /// 스크린샷 비율(세로 ~0.53) — 세로 캡처가 거의 안 잘린다. 덱 높이를 거의 다 쓰되,
+    /// 폭은 가용 폭의 66% 로 상한을 둬 큰 덱에서도 좌우 이웃 카드가 비치게 한다.
+    var cardHeight: CGFloat { size.height * 0.97 }
+    var cardWidth: CGFloat { min(cardHeight * 0.53, size.width * 0.66) }
+    private var stepX: CGFloat { cardWidth * 0.72 }
 
     func placement(index: Int, rotation: Double, count: Int) -> RecallCoverPlacement {
         guard count > 0 else {
@@ -257,7 +304,9 @@ private struct RecallCoverCard: View {
                 sha256: ref.sha256,
                 mimeType: ref.mimeType,
                 targetSize: CGSize(width: 190, height: 360),
-                alignment: .top
+                // center 크롭 — 상세 헤더(ScreenshotPreviewImage)·hero 비행체(scaleAspectFill)와 같은 정렬이라
+                // 카드 → 상세 zoom 에서 이미지 내용이 위아래로 튀지 않는다(UX_SPEC §3.4: 세로=center fill).
+                alignment: .center
             ) { reasonWash }
             // 하단 스크림 — 텍스트 대비. 위쪽(캡처 본문)은 건드리지 않는다.
             LinearGradient(
@@ -380,7 +429,7 @@ private extension RecallReasonKind {
         ],
         images: [:],
         onOpenAll: {},
-        onOpenFocal: { _ in }
+        onOpenFocal: { _, _ in }
     )
     .padding()
     .background(HomeDesign.Color.bg)

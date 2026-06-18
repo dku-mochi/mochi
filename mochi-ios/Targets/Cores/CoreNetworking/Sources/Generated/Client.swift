@@ -2393,4 +2393,170 @@ public struct Client: APIProtocol {
             }
         )
     }
+    /// Get Upcoming Notifications
+    ///
+    /// 홈탭 "예정 알림" — owner 의 아직 안 보낸 미래 알림(마감/일정, fire_at>now) fire_at 오름차순.
+    ///
+    /// "언제 알림이 갈지" 미리 보여줘 안심시키는 예고. spaced 회수는 RecallHero 담당이라 제외.
+    /// 빈손이면 entries=[](정상).
+    ///
+    /// - Remark: HTTP `GET /api/v1/recall/upcoming`.
+    /// - Remark: Generated from `#/paths//api/v1/recall/upcoming/get(get_upcoming_notifications_api_v1_recall_upcoming_get)`.
+    public func get_upcoming_notifications_api_v1_recall_upcoming_get(_ input: Operations.get_upcoming_notifications_api_v1_recall_upcoming_get.Input) async throws -> Operations.get_upcoming_notifications_api_v1_recall_upcoming_get.Output {
+        try await client.send(
+            input: input,
+            forOperation: Operations.get_upcoming_notifications_api_v1_recall_upcoming_get.id,
+            serializer: { input in
+                let path = try converter.renderedPath(
+                    template: "/api/v1/recall/upcoming",
+                    parameters: []
+                )
+                var request: HTTPTypes.HTTPRequest = .init(
+                    soar_path: path,
+                    method: .get
+                )
+                suppressMutabilityWarning(&request)
+                try converter.setQueryItemAsURI(
+                    in: &request,
+                    style: .form,
+                    explode: true,
+                    name: "limit",
+                    value: input.query.limit
+                )
+                converter.setAcceptHeader(
+                    in: &request.headerFields,
+                    contentTypes: input.headers.accept
+                )
+                return (request, nil)
+            },
+            deserializer: { response, responseBody in
+                switch response.status.code {
+                case 200:
+                    let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
+                    let body: Operations.get_upcoming_notifications_api_v1_recall_upcoming_get.Output.Ok.Body
+                    let chosenContentType = try converter.bestContentType(
+                        received: contentType,
+                        options: [
+                            "application/json"
+                        ]
+                    )
+                    switch chosenContentType {
+                    case "application/json":
+                        body = try await converter.getResponseBodyAsJSON(
+                            Components.Schemas.UpcomingNotificationsResponse.self,
+                            from: responseBody,
+                            transforming: { value in
+                                .json(value)
+                            }
+                        )
+                    default:
+                        preconditionFailure("bestContentType chose an invalid content type.")
+                    }
+                    return .ok(.init(body: body))
+                default:
+                    return .undocumented(
+                        statusCode: response.status.code,
+                        .init(
+                            headerFields: response.headerFields,
+                            body: responseBody
+                        )
+                    )
+                }
+            }
+        )
+    }
+    /// Reschedule Upcoming Notification
+    ///
+    /// 예정 알림의 발송 시각을 사용자 지정 시각으로 옮긴다(프리셋·DatePicker 공용, owner-scoped).
+    ///
+    /// pending(fire_at>now) 인 행만 갱신 + 첫 1회 원안 보존. 행이 없으면 404(남의 event·이미 발송).
+    /// 과거 시각이면 422(`recall_upcoming.past_fire_at`).
+    ///
+    /// - Remark: HTTP `POST /api/v1/recall/upcoming/{event_id}/reschedule`.
+    /// - Remark: Generated from `#/paths//api/v1/recall/upcoming/{event_id}/reschedule/post(reschedule_upcoming_notification_api_v1_recall_upcoming__event_id__reschedule_post)`.
+    public func reschedule_upcoming_notification_api_v1_recall_upcoming__event_id__reschedule_post(_ input: Operations.reschedule_upcoming_notification_api_v1_recall_upcoming__event_id__reschedule_post.Input) async throws -> Operations.reschedule_upcoming_notification_api_v1_recall_upcoming__event_id__reschedule_post.Output {
+        try await client.send(
+            input: input,
+            forOperation: Operations.reschedule_upcoming_notification_api_v1_recall_upcoming__event_id__reschedule_post.id,
+            serializer: { input in
+                let path = try converter.renderedPath(
+                    template: "/api/v1/recall/upcoming/{}/reschedule",
+                    parameters: [
+                        input.path.event_id
+                    ]
+                )
+                var request: HTTPTypes.HTTPRequest = .init(
+                    soar_path: path,
+                    method: .post
+                )
+                suppressMutabilityWarning(&request)
+                let body: OpenAPIRuntime.HTTPBody?
+                switch input.body {
+                case let .json(value):
+                    body = try converter.setRequiredRequestBodyAsJSON(
+                        value,
+                        headerFields: &request.headerFields,
+                        contentType: "application/json; charset=utf-8"
+                    )
+                }
+                return (request, body)
+            },
+            deserializer: { response, responseBody in
+                switch response.status.code {
+                case 204:
+                    return .noContent(.init())
+                default:
+                    return .undocumented(
+                        statusCode: response.status.code,
+                        .init(
+                            headerFields: response.headerFields,
+                            body: responseBody
+                        )
+                    )
+                }
+            }
+        )
+    }
+    /// Veto Upcoming Notification
+    ///
+    /// 이 항목 알림 전체 끄기 — 대상 pending skip(user_veto) + 그 plan 영구 cancel(user_dismiss).
+    ///
+    /// 그 plan 의 나머지 미래 단계 알림도 함께 정지된다. 행이 없으면 404(남의 event·이미 발송/취소).
+    ///
+    /// - Remark: HTTP `POST /api/v1/recall/upcoming/{event_id}/veto`.
+    /// - Remark: Generated from `#/paths//api/v1/recall/upcoming/{event_id}/veto/post(veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post)`.
+    public func veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post(_ input: Operations.veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post.Input) async throws -> Operations.veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post.Output {
+        try await client.send(
+            input: input,
+            forOperation: Operations.veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post.id,
+            serializer: { input in
+                let path = try converter.renderedPath(
+                    template: "/api/v1/recall/upcoming/{}/veto",
+                    parameters: [
+                        input.path.event_id
+                    ]
+                )
+                var request: HTTPTypes.HTTPRequest = .init(
+                    soar_path: path,
+                    method: .post
+                )
+                suppressMutabilityWarning(&request)
+                return (request, nil)
+            },
+            deserializer: { response, responseBody in
+                switch response.status.code {
+                case 204:
+                    return .noContent(.init())
+                default:
+                    return .undocumented(
+                        statusCode: response.status.code,
+                        .init(
+                            headerFields: response.headerFields,
+                            body: responseBody
+                        )
+                    )
+                }
+            }
+        )
+    }
 }

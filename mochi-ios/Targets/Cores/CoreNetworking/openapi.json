@@ -1548,6 +1548,134 @@
           }
         }
       }
+    },
+    "/api/v1/recall/upcoming": {
+      "get": {
+        "tags": [
+          "recall"
+        ],
+        "summary": "Get Upcoming Notifications",
+        "description": "홈탭 \"예정 알림\" — owner 의 아직 안 보낸 미래 알림(마감/일정, fire_at>now) fire_at 오름차순.\n\n\"언제 알림이 갈지\" 미리 보여줘 안심시키는 예고. spaced 회수는 RecallHero 담당이라 제외.\n빈손이면 entries=[](정상).",
+        "operationId": "get_upcoming_notifications_api_v1_recall_upcoming_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "Authorization",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpcomingNotificationsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/recall/upcoming/{event_id}/reschedule": {
+      "post": {
+        "tags": [
+          "recall"
+        ],
+        "summary": "Reschedule Upcoming Notification",
+        "description": "예정 알림의 발송 시각을 사용자 지정 시각으로 옮긴다(프리셋·DatePicker 공용, owner-scoped).\n\npending(fire_at>now) 인 행만 갱신 + 첫 1회 원안 보존. 행이 없으면 404(남의 event·이미 발송).\n과거 시각이면 422(`recall_upcoming.past_fire_at`).",
+        "operationId": "reschedule_upcoming_notification_api_v1_recall_upcoming__event_id__reschedule_post",
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Event Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "Authorization",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RescheduleUpcomingRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        }
+      }
+    },
+    "/api/v1/recall/upcoming/{event_id}/veto": {
+      "post": {
+        "tags": [
+          "recall"
+        ],
+        "summary": "Veto Upcoming Notification",
+        "description": "이 항목 알림 전체 끄기 — 대상 pending skip(user_veto) + 그 plan 영구 cancel(user_dismiss).\n\n그 plan 의 나머지 미래 단계 알림도 함께 정지된다. 행이 없으면 404(남의 event·이미 발송/취소).",
+        "operationId": "veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post",
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Event Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "Authorization",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2862,6 +2990,21 @@
         "title": "RelatedItem",
         "description": "관련 기억 1건(트랙 C 상세 \"관련 N개\"). 탭 시 그 항목 상세로 — ``itemId`` 운반."
       },
+      "RescheduleUpcomingRequest": {
+        "properties": {
+          "fireAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Fireat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "fireAt"
+        ],
+        "title": "RescheduleUpcomingRequest",
+        "description": "예정 알림 시간 조정 — 사용자가 정한 새 발송 시각(프리셋·DatePicker 공용). 과거 불가(422)."
+      },
       "ReviewOptionResponse": {
         "properties": {
           "intentType": {
@@ -3135,6 +3278,74 @@
         ],
         "title": "UpcomingActionableResponse",
         "description": "\"이번주 정리\"의 \"아직 안 끝났어요\" 1건 — 미해결 todo 또는 다가올 schedule.\n\n``is_schedule`` false(=todo)면 클라가 카드에서 1-tap 완료(``instance_id`` 가 lifecycle 전이 대상).\n``due_at`` 은 instance/entities free-text 를 서버가 파싱한 값(미상이면 null), ``due_label`` 은 원문."
+      },
+      "UpcomingNotificationEntry": {
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Eventid"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "fireAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Fireat"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "body": {
+            "type": "string",
+            "title": "Body"
+          },
+          "originalFireAt": {
+            "title": "Originalfireat",
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "itemId": {
+            "title": "Itemid",
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "intentId": {
+            "title": "Intentid",
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "eventId",
+          "kind",
+          "fireAt",
+          "title",
+          "body"
+        ],
+        "title": "UpcomingNotificationEntry",
+        "description": "홈탭 \"예정 알림\" 1건 — 모찌가 보낼 예정인 미래 알림(마감/일정). iOS ``UpcomingNotificationDTO`` 1:1.\n\n``eventId`` 가 veto/reschedule 타겟 키(=outbox.event_id). ``fireAt`` 은 현재 유효 발송 예정 시각,\n``originalFireAt`` 은 사용자가 옮겼으면 모찌 원안(없으면 null=미조정). ``kind``=\"deadline\"|\"nudge\"."
+      },
+      "UpcomingNotificationsResponse": {
+        "properties": {
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/UpcomingNotificationEntry"
+            },
+            "type": "array",
+            "title": "Entries"
+          }
+        },
+        "type": "object",
+        "title": "UpcomingNotificationsResponse",
+        "description": "홈 \"예정 알림\" 목록 — fire_at 오름차순. 빈손이면 entries=[](정상 — 예정 알림 없음)."
       },
       "UpcomingTodoListResponse": {
         "properties": {

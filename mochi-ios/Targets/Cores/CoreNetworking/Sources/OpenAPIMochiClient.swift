@@ -372,6 +372,56 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
         }
     }
 
+    public func upcomingNotifications(limit: Int) async throws -> [UpcomingNotificationDTO] {
+        let output = try await client.get_upcoming_notifications_api_v1_recall_upcoming_get(
+            query: .init(limit: limit)
+        )
+        switch output {
+        case let .ok(response):
+            return try (response.body.json.entries ?? []).map(Self.mapUpcoming)
+        case let .undocumented(status, payload): throw await Self.error(status: status, payload: payload)
+        }
+    }
+
+    public func rescheduleUpcoming(eventID: UUID, fireAt: Date) async throws {
+        let output = try await client.reschedule_upcoming_notification_api_v1_recall_upcoming__event_id__reschedule_post(
+            path: .init(event_id: eventID.uuidString),
+            body: .json(.init(fireAt: fireAt))
+        )
+        switch output {
+        case .noContent: return
+        case let .undocumented(status, payload): throw await Self.error(status: status, payload: payload)
+        }
+    }
+
+    public func vetoUpcoming(eventID: UUID) async throws {
+        let output = try await client.veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post(
+            path: .init(event_id: eventID.uuidString)
+        )
+        switch output {
+        case .noContent: return
+        case let .undocumented(status, payload): throw await Self.error(status: status, payload: payload)
+        }
+    }
+
+    /// 생성 `UpcomingNotificationEntry` → ``UpcomingNotificationDTO``. 필수 `eventId` 는 파싱 실패 시
+    /// throw, optional `itemId`/`intentId` 는 계약상 nilable 이라 파싱 실패 시 nil 강등한다(`mapRecallEntry` 패턴).
+    private static func mapUpcoming(_ e: Components.Schemas.UpcomingNotificationEntry) throws -> UpcomingNotificationDTO {
+        guard let eventID = UUID(uuidString: e.eventId) else {
+            throw clientError("client.invalid_uuid", e.eventId)
+        }
+        return UpcomingNotificationDTO(
+            eventID: eventID,
+            kind: e.kind,
+            fireAt: e.fireAt,
+            title: e.title,
+            body: e.body,
+            originalFireAt: e.originalFireAt,
+            itemID: e.itemId.flatMap { UUID(uuidString: $0) },
+            intentID: e.intentId.flatMap { UUID(uuidString: $0) }
+        )
+    }
+
     /// 생성 `RecallFeedEntry` → ``RecallFeedEntryDTO``. 필수 `itemId` 는 파싱 실패 시 throw,
     /// optional `recallEventID` 는 계약상 nilable 이라 파싱 실패 시 nil 강등한다.
     private static func mapRecallEntry(_ e: Components.Schemas.RecallFeedEntry) throws -> RecallFeedEntryDTO {

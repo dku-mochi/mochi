@@ -482,6 +482,15 @@ private actor StubAPIClient: MochiAPIClient {
     func recordRecallReaction(eventID: UUID, reaction: RecallReaction) async throws {
         try await unimplemented.recordRecallReaction(eventID: eventID, reaction: reaction)
     }
+    func upcomingNotifications(limit: Int) async throws -> [UpcomingNotificationDTO] {
+        try await unimplemented.upcomingNotifications(limit: limit)
+    }
+    func rescheduleUpcoming(eventID: UUID, fireAt: Date) async throws {
+        try await unimplemented.rescheduleUpcoming(eventID: eventID, fireAt: fireAt)
+    }
+    func vetoUpcoming(eventID: UUID) async throws {
+        try await unimplemented.vetoUpcoming(eventID: eventID)
+    }
 }
 
 private struct DenyingReminderScheduler: ReminderScheduler {
