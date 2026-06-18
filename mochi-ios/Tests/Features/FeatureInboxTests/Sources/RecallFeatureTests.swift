@@ -245,6 +245,15 @@ private actor RecallStubAPIClient: MochiAPIClient {
     func weeklyDigest(weekStart: Date) async throws -> WeeklyDigestDTO {
         try await unimplemented.weeklyDigest(weekStart: weekStart)
     }
+    func upcomingNotifications(limit: Int) async throws -> [UpcomingNotificationDTO] {
+        try await unimplemented.upcomingNotifications(limit: limit)
+    }
+    func rescheduleUpcoming(eventID: UUID, fireAt: Date) async throws {
+        try await unimplemented.rescheduleUpcoming(eventID: eventID, fireAt: fireAt)
+    }
+    func vetoUpcoming(eventID: UUID) async throws {
+        try await unimplemented.vetoUpcoming(eventID: eventID)
+    }
 }
 
 private extension NotConfiguredAPIClient {

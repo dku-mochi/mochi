@@ -108,7 +108,7 @@ public final class ShareExtensionPrincipal: UIViewController {
                 channelGuess: extracted.channelGuess,
                 sourceApp: extracted.sourceApp,
                 url: extracted.url,
-                onSubmit: { [weak self] payload in self?.persist(payload, original: extracted.imageRefs) },
+                onSubmit: { [weak self] payload, crop in self?.persist(payload, crop: crop, original: extracted.imageRefs) },
                 onCancel: { [weak self] in self?.cancel(cleaning: extracted.imageRefs) }
             )
         } else {
@@ -118,39 +118,66 @@ public final class ShareExtensionPrincipal: UIViewController {
                 imageRefs: extracted.imageRefs,
                 channelGuess: extracted.channelGuess,
                 sourceApp: extracted.sourceApp,
-                onSubmit: { [weak self] payload in self?.persist(payload, original: extracted.imageRefs) },
+                onSubmit: { [weak self] payload, crop in self?.persist(payload, crop: crop, original: extracted.imageRefs) },
                 onCancel: { [weak self] in self?.cancel(cleaning: extracted.imageRefs) }
             )
         }
     }
 
-    /// 큐에 떨굴 때, 일반 메모 모드로 사용자가 제거한 이미지(원본엔 있었으나 payload 엔 빠진)의
-    /// 고아 PNG 를 함께 청소한다 — `persistImage` 가 이미 디스크에 써 둔 상태라 안 지우면 누수.
-    private func persist(_ payload: InboundIngestPayload, original: [ImageRef]) {
+    /// 큐에 떨굴 때, (a) 사용자 코너 크롭을 첫 이미지에 적용해 새 ref 로 교체하고, (b) 일반 메모
+    /// 모드로 사용자가 제거한 이미지(원본엔 있었으나 payload 엔 빠진)의 고아 PNG 를 함께 청소한다.
+    /// 크롭으로 교체된 원본도 (b) 로직(원본엔 있고 최종 payload 엔 없는 ref)에 걸려 자동 정리된다.
+    private func persist(_ payload: InboundIngestPayload, crop: CGRect, original: [ImageRef]) {
         isPersisting = true   // 끌어내림 안전망이 큐 적재 이미지를 청소하지 않도록 표식
-        let removed = original.filter { ref in
-            !payload.imageRefs.contains { $0.relativePath == ref.relativePath }
-        }
-        Self.deleteImagePNGs(removed)
         Task { [weak self] in
             // 성공 모먼트(`ShareSuccessOverlay`)의 최소 노출시간 — 직접전송이 즉시 반환되는 빠른 경로
             // (앱 미실행·토큰 만료 등)에서 한 프레임만 깜빡이고 닫히는 glitch 를 막고, 캐릭터
             // 바운스(~0.45s) + "기억했어요!" 읽을 시간을 보장한다. (기존 600ms 로딩 닷 → 900ms)
             let minSuccessDisplay = Task { try? await Task.sleep(nanoseconds: 900_000_000) }
+
+            // 0) 사용자 크롭 적용 — 디코드·재인코딩·파일쓰기는 무거우므로 메인 밖에서. 크롭이 사실상
+            //    전체거나 실패하면 payload 그대로(원본 유지). 멱등키(payload.id)는 보존한다.
+            let finalPayload = await Task.detached(priority: .userInitiated) {
+                Self.applyCrop(crop, to: payload)
+            }.value
+
+            // 크롭 교체 원본 + 메모 모드 제거 이미지를 함께 청소.
+            let removed = original.filter { ref in
+                !finalPayload.imageRefs.contains { $0.relativePath == ref.relativePath }
+            }
+            Self.deleteImagePNGs(removed)
+
             // 1) 큐 적재가 **항상 진실원천** — 로컬 Realm ingest·동기화·유실 방지(다음 active tick 의
             //    drain → upsert → SyncWorker 업로드). 직접전송보다 먼저 써 유실을 0으로 만든다.
-            let fileURL = AppGroup.inboundQueueURL.appendingPathComponent("\(payload.id.uuidString).json")
-            if let data = try? JSONEncoder().encode(payload) {
+            let fileURL = AppGroup.inboundQueueURL.appendingPathComponent("\(finalPayload.id.uuidString).json")
+            if let data = try? JSONEncoder().encode(finalPayload) {
                 try? data.write(to: fileURL, options: [.atomic])
             }
             // 2) best-effort 선반영 — 서버 분석을 앱 부팅 전 조기 트리거(짧은 timeout).
             //    성공해도 큐는 그대로 — 멱등키(payload.id)가 drain·SyncWorker 재전송과 같은 행을
             //    반환해 이중 적재가 없다. 이미지 업로드 성공 시 큐 JSON 도 objectKey 로 보강한다.
             //    completeRequest 전에 시도해 extension 이 살아있는 동안 끝낸다.
-            await ShareExtDirectUpload.attempt(payload, queueFileURL: fileURL)
+            await ShareExtDirectUpload.attempt(finalPayload, queueFileURL: fileURL)
             await minSuccessDisplay.value
             self?.complete(success: true)
         }
+    }
+
+    /// 첫 이미지에 코너 크롭을 적용해 imageRefs[0] 을 새 ref 로 교체한 payload 를 만든다.
+    /// 크롭이 전체(또는 실패)면 원본 payload 를 그대로 돌려준다. **멱등키 `id` 는 보존**한다.
+    private static func applyCrop(_ crop: CGRect, to payload: InboundIngestPayload) -> InboundIngestPayload {
+        guard let first = payload.imageRefs.first,
+              let cropped = ShareImageCropper.croppedRef(from: first, crop: crop) else { return payload }
+        var refs = payload.imageRefs
+        refs[0] = cropped
+        return InboundIngestPayload(
+            id: payload.id,
+            url: payload.url,
+            text: payload.text,
+            userMemo: payload.userMemo,
+            channelGuess: payload.channelGuess,
+            imageRefs: refs
+        )
     }
 
     /// 취소(시트 dismiss) 경로 — `persistImage` 가 써 둔 PNG 를 모두 청소한 뒤 닫는다.

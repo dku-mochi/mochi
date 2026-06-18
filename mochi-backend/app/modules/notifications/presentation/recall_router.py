@@ -24,9 +24,21 @@ from app.modules.notifications.application.get_recall_feed import (
 from app.modules.notifications.application.get_recall_feed import (
     RecallFeedEntry as RecallFeedEntryDTO,
 )
+from app.modules.notifications.application.get_upcoming_notifications import (
+    GetUpcomingNotifications,
+)
+from app.modules.notifications.application.override_upcoming_notification import (
+    RescheduleUpcomingCommand,
+    RescheduleUpcomingNotification,
+    VetoUpcomingCommand,
+    VetoUpcomingNotification,
+)
 from app.modules.notifications.application.record_recall_reaction import (
     RecordRecallReaction,
     RecordRecallReactionCommand,
+)
+from app.modules.notifications.domain.upcoming_feed import (
+    UpcomingNotification as UpcomingNotificationDTO,
 )
 from app.modules.notifications.infrastructure.recall_candidate_repository import (
     PostgresRecallCandidateRepository,
@@ -37,11 +49,20 @@ from app.modules.notifications.infrastructure.recall_feed_repository import (
 from app.modules.notifications.infrastructure.recall_reaction_repository import (
     PostgresRecallReactionRepository,
 )
+from app.modules.notifications.infrastructure.upcoming_feed_repository import (
+    PostgresUpcomingFeedRepository,
+)
+from app.modules.notifications.infrastructure.upcoming_override_repository import (
+    PostgresUpcomingOverrideRepository,
+)
 from app.modules.notifications.presentation.schemas import (
     RecallFeedEntry,
     RecallFeedResponse,
     RecordRecallReactionRequest,
     RelatedItem,
+    RescheduleUpcomingRequest,
+    UpcomingNotificationEntry,
+    UpcomingNotificationsResponse,
 )
 
 router = APIRouter(prefix="/recall", tags=["recall"])
@@ -128,5 +149,79 @@ async def record_recall_reaction(
             reaction=payload.reaction,
         )
     )
+    await db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+def _upcoming_to_response(n: UpcomingNotificationDTO) -> UpcomingNotificationEntry:
+    return UpcomingNotificationEntry(
+        event_id=n.event_id,
+        kind=n.kind,
+        fire_at=n.fire_at,
+        title=n.title,
+        body=n.body,
+        original_fire_at=n.original_fire_at,
+        item_id=n.item_id,
+        intent_id=n.intent_id,
+    )
+
+
+@router.get("/upcoming", response_model=UpcomingNotificationsResponse)
+async def get_upcoming_notifications(
+    db: DBSession,
+    user: CurrentUser,
+    limit: int = 20,
+) -> UpcomingNotificationsResponse:
+    """홈탭 "예정 알림" — owner 의 아직 안 보낸 미래 알림(마감/일정, fire_at>now) fire_at 오름차순.
+
+    "언제 알림이 갈지" 미리 보여줘 안심시키는 예고. spaced 회수는 RecallHero 담당이라 제외.
+    빈손이면 entries=[](정상).
+    """
+    use_case = GetUpcomingNotifications(feed=PostgresUpcomingFeedRepository(db))
+    items = await use_case.execute(owner_id=user, limit=max(1, min(limit, 50)))
+    return UpcomingNotificationsResponse(
+        entries=[_upcoming_to_response(n) for n in items]
+    )
+
+
+@router.post("/upcoming/{event_id}/reschedule", status_code=status.HTTP_204_NO_CONTENT)
+async def reschedule_upcoming_notification(
+    event_id: UUID,
+    payload: RescheduleUpcomingRequest,
+    db: DBSession,
+    user: CurrentUser,
+) -> Response:
+    """예정 알림의 발송 시각을 사용자 지정 시각으로 옮긴다(프리셋·DatePicker 공용, owner-scoped).
+
+    pending(fire_at>now) 인 행만 갱신 + 첫 1회 원안 보존. 행이 없으면 404(남의 event·이미 발송).
+    과거 시각이면 422(`recall_upcoming.past_fire_at`).
+    """
+    use_case = RescheduleUpcomingNotification(
+        override=PostgresUpcomingOverrideRepository(db)
+    )
+    await use_case.execute(
+        RescheduleUpcomingCommand(
+            owner_id=user, event_id=event_id, new_fire_at=payload.fire_at
+        )
+    )
+    await db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/upcoming/{event_id}/veto", status_code=status.HTTP_204_NO_CONTENT)
+async def veto_upcoming_notification(
+    event_id: UUID,
+    db: DBSession,
+    user: CurrentUser,
+) -> Response:
+    """이 항목 알림 전체 끄기 — 대상 pending skip(user_veto) + 그 plan 영구 cancel(user_dismiss).
+
+    그 plan 의 나머지 미래 단계 알림도 함께 정지된다. 행이 없으면 404(남의 event·이미 발송/취소).
+    """
+    use_case = VetoUpcomingNotification(
+        override=PostgresUpcomingOverrideRepository(db),
+        reactions=PostgresRecallReactionRepository(db),
+    )
+    await use_case.execute(VetoUpcomingCommand(owner_id=user, event_id=event_id))
     await db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

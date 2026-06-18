@@ -18,10 +18,12 @@ struct ShareEntryView: View {
     let imageRefs: [ImageRef]
     let channelGuess: IngestChannel
     let sourceApp: String?
-    let onSubmit: (InboundIngestPayload) -> Void
+    /// 사용자 코너 크롭(이미지 우세 모드에서만, 정규화 0...1). 제출 시 ``ShareImageCropper`` 가 적용한다.
+    let onSubmit: (InboundIngestPayload, CGRect) -> Void
     let onCancel: () -> Void
 
     @State private var memo: String = ""
+    @State private var crop = ShareCropImage.fullCrop
     @State private var isSubmitting = false
     @State private var appeared = false
 
@@ -64,7 +66,7 @@ struct ShareEntryView: View {
                 .shareEntrance(0, appeared: appeared)
 
             if let firstImage = imageRefs.first {
-                SharePreviewImage(imageRef: firstImage)
+                ShareCropImage(imageRef: firstImage, crop: $crop)
                     .frame(maxHeight: .infinity)
                     .shareEntrance(1, appeared: appeared)
             }
@@ -235,12 +237,15 @@ struct ShareEntryView: View {
         guard !isSubmitting else { return }   // 중복 탭 방지
         withAnimation(.easeInOut(duration: 0.2)) { isSubmitting = true }
         ShareHaptics.success()
-        onSubmit(InboundIngestPayload(
-            url: initialURL,
-            text: CaptureContextSentinel.composeText(sourceApp: sourceApp, base: initialText),
-            userMemo: memo.isEmpty ? nil : memo,
-            channelGuess: channelGuess,
-            imageRefs: imageRefs
-        ))
+        onSubmit(
+            InboundIngestPayload(
+                url: initialURL,
+                text: CaptureContextSentinel.composeText(sourceApp: sourceApp, base: initialText),
+                userMemo: memo.isEmpty ? nil : memo,
+                channelGuess: channelGuess,
+                imageRefs: imageRefs
+            ),
+            isImageDominant ? crop : ShareCropImage.fullCrop
+        )
     }
 }

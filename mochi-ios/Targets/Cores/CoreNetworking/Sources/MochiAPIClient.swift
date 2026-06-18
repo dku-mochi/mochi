@@ -103,6 +103,68 @@ public protocol MochiAPIClient: Sendable {
     /// `POST /api/v1/recall/events/{event_id}/reaction` — 알림/회수 반응 보고(204). 멱등.
     /// `opened`(양성·탭/열기) / `dismissed`(soft 부정) / `stop`("이 기억 그만" → plan cancel).
     func recordRecallReaction(eventID: UUID, reaction: RecallReaction) async throws
+
+    /// `GET /api/v1/recall/upcoming?limit=` — 홈 "예정된 알림"(모찌가 보낼 예정인 미래 마감·일정 알림).
+    /// owner 의 pending outbox 를 fire_at 오름차순으로 돌려준다. 빈손은 정상(`[]`).
+    func upcomingNotifications(limit: Int) async throws -> [UpcomingNotificationDTO]
+
+    /// `POST /api/v1/recall/upcoming/{event_id}/reschedule` — 예정 알림 시각 조정(프리셋·DatePicker 공용, 204).
+    /// `fireAt` 은 미래여야 한다(과거면 서버가 422). 최초 1회 모찌 원안이 `originalFireAt` 으로 보존된다.
+    func rescheduleUpcoming(eventID: UUID, fireAt: Date) async throws
+
+    /// `POST /api/v1/recall/upcoming/{event_id}/veto` — 이 항목 알림 전체 끄기(204).
+    /// 대상 pending skip + 그 plan 영구 cancel → 다음 단계 알림도 안 온다.
+    func vetoUpcoming(eventID: UUID) async throws
+}
+
+/// 홈 "예정된 알림" 1건 — 백엔드 `UpcomingNotificationEntry` 미러. 모찌가 보낼 예정인 미래 알림(마감/일정).
+/// `eventID` 가 veto/reschedule 타겟 키(=outbox.event_id). `fireAt` 은 현재 유효 발송 예정 시각,
+/// `originalFireAt` 은 사용자가 옮겼으면 모찌 원안(없으면 nil=미조정). 계약상 optional 은 nil 강등.
+public struct UpcomingNotificationDTO: Sendable, Hashable, Codable, Identifiable {
+    /// veto/reschedule 타겟 키 (= outbox.event_id).
+    public let eventID: UUID
+    /// "deadline"(마감 backoff) | "nudge"(다가올 일정).
+    public let kind: String
+    /// 현재 유효 발송 예정 시각(사용자가 옮겼으면 옮긴 값).
+    public let fireAt: Date
+    public let title: String
+    public let body: String
+    /// 사용자가 옮겼을 때의 모찌 원안 — "원래 X시 → 옮김" 보조 표기용. nil = 미조정.
+    public let originalFireAt: Date?
+    /// 원본 mochiItem PK (없으면 nil).
+    public let itemID: UUID?
+    /// 원본 intent instance PK (없으면 nil).
+    public let intentID: UUID?
+
+    public var id: UUID { eventID }
+
+    public init(
+        eventID: UUID,
+        kind: String,
+        fireAt: Date,
+        title: String,
+        body: String,
+        originalFireAt: Date? = nil,
+        itemID: UUID? = nil,
+        intentID: UUID? = nil
+    ) {
+        self.eventID = eventID
+        self.kind = kind
+        self.fireAt = fireAt
+        self.title = title
+        self.body = body
+        self.originalFireAt = originalFireAt
+        self.itemID = itemID
+        self.intentID = intentID
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case eventID = "eventId"
+        case kind, fireAt, title, body
+        case originalFireAt = "originalFireAt"
+        case itemID = "itemId"
+        case intentID = "intentId"
+    }
 }
 
 /// 알림/회수 반응 — 백엔드 `ReactionKind` 와 1:1. 액션 ↔ 서버 상태전이 매핑(ux-ui §4 codex-7):

@@ -76,3 +76,36 @@ class RecallFeedResponse(BaseModel):
     """홈 회수 피드 — owner 의 다시 볼 지식 목록. 빈손이면 entries=[](cold-start 정상)."""
 
     entries: list[RecallFeedEntry] = Field(default_factory=list)
+
+
+class UpcomingNotificationEntry(BaseModel):
+    """홈탭 "예정 알림" 1건 — 모찌가 보낼 예정인 미래 알림(마감/일정). iOS ``UpcomingNotificationDTO`` 1:1.
+
+    ``eventId`` 가 veto/reschedule 타겟 키(=outbox.event_id). ``fireAt`` 은 현재 유효 발송 예정 시각,
+    ``originalFireAt`` 은 사용자가 옮겼으면 모찌 원안(없으면 null=미조정). ``kind``="deadline"|"nudge".
+    """
+
+    event_id: UUID = Field(alias="eventId")
+    kind: str
+    fire_at: UtcDateTime = Field(alias="fireAt")
+    title: str
+    body: str
+    original_fire_at: UtcDateTime | None = Field(default=None, alias="originalFireAt")
+    item_id: UUID | None = Field(default=None, alias="itemId")
+    intent_id: UUID | None = Field(default=None, alias="intentId")
+
+    model_config = {"populate_by_name": True}
+
+
+class UpcomingNotificationsResponse(BaseModel):
+    """홈 "예정 알림" 목록 — fire_at 오름차순. 빈손이면 entries=[](정상 — 예정 알림 없음)."""
+
+    entries: list[UpcomingNotificationEntry] = Field(default_factory=list)
+
+
+class RescheduleUpcomingRequest(BaseModel):
+    """예정 알림 시간 조정 — 사용자가 정한 새 발송 시각(프리셋·DatePicker 공용). 과거 불가(422)."""
+
+    fire_at: UtcDateTime = Field(alias="fireAt")
+
+    model_config = {"populate_by_name": True}
