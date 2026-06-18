@@ -78,7 +78,7 @@ struct MainTabView: View {
         // 전체가 함께 슬라이드(아웃)되게 한다(UIKit hidesBottomBarWhenPushed 와 동일한 자연스러운 전환).
         NavigationStack(path: $store.scope(state: \.path, action: \.path)) {
             TabView(selection: $store.selectedTab.sending(\.tabSelected)) {
-                HomeView(store: store.scope(state: \.home, action: \.home))
+                MochiHomeView(store: store.scope(state: \.home, action: \.home))
                     .tabItem { Label("홈", image: "tab_home") }
                     .tag(MainTabFeature.Tab.home)
 
@@ -151,6 +151,10 @@ struct MainTabView: View {
             case let .recallDetail(recallDetailStore):
                 // 능동 회수 ③ 기록 상세 — 목록 탭 / 알림 landing 직행.
                 RecallDetailView(store: recallDetailStore)
+
+            case let .categoryCarousel(carouselStore):
+                // 카테고리 3D 턴테이블 — 홈 "이런 걸 모아두셨어요" 카드에서 push. 초점 커버 탭은 delegate 로 상세 present.
+                CategoryCarouselView(store: carouselStore)
             }
         }
         // push 화면(설정)의 바 버튼·back tint = 모찌 퍼플.

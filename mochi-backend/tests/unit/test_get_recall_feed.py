@@ -125,7 +125,7 @@ def test_split_summary_empty() -> None:
     assert _split_summary("   ") == ("", [])
 
 
-# ---------- feed 필터: active spaced knowledge 만 ----------
+# ---------- feed 필터: "잊혀가는"(decaying/reviewRequested) spaced knowledge 만 ----------
 
 
 async def test_feed_returns_knowledge_entry() -> None:
@@ -166,6 +166,19 @@ async def test_feed_excludes_deleted_item() -> None:
 async def test_feed_excludes_archived_knowledge() -> None:
     # knowledge 이나 archived(사용자가 닫음) → 제외.
     item = _knowledge_item(lifecycle=InstanceLifecycleKind.ARCHIVED)
+    feed = _FeedRepo(
+        candidates=[RecallFeedCandidate(item_id=item.id, recall_event_id=None)]
+    )
+    entries = await GetRecallFeed(feed=feed, mochi_items=_MochiRepo({item.id: item})).execute(
+        owner_id=_OWNER, limit=20
+    )
+    assert entries == []
+
+
+async def test_feed_excludes_active_knowledge() -> None:
+    # opened 로 소생된(active) knowledge → 더는 "잊혀가는" 게 아니므로 회수 feed 에서 제외.
+    # 이게 빠지지 않으면 "열어봐도 같은 항목이 계속 뜨는" 버그가 재발한다(§5.4 소생=feed 제외).
+    item = _knowledge_item(lifecycle=InstanceLifecycleKind.ACTIVE)
     feed = _FeedRepo(
         candidates=[RecallFeedCandidate(item_id=item.id, recall_event_id=None)]
     )
