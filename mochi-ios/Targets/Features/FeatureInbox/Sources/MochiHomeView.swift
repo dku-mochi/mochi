@@ -9,17 +9,17 @@ import DesignSystem
 /// 새 홈 — "찾으러 들어왔다가, 잊은 기억을 발견하고 '아, 맞다!' 한다".
 ///
 /// 시선 위계(아래로 갈수록 약해진다):
-///  1. **입구(차분)** — 인사 + 검색바. 사용자 의도(찾기)를 즉시 받되 무게는 아래에 양보.
-///  2. **심장(강렬)** — 회수 3D 히어로(`RecallHeroView`). 모찌가 잊은 기억을 큰 카드로 내민다.
-///  3. **서랍(탐색)** — "이런 걸 모아두셨어요" 카테고리(실 캡처 커버), 탭 → 3D 턴테이블.
-///  4. **안전망(조용)** — 최근에 보낸 것들 · (있을 때) 확인이 필요해요 · 이번주 리포트.
+///  1. **심장(전면)** — 회수 3D 히어로(`RecallHeroView`)가 상단을 가득 채운다. 제목·검색·설정은
+///     히어로 위에 떠 있는 floating bar 로 올려, 내비바 영역까지 회수에 내준다.
+///  2. **리포트(요약)** — "이번 달 이런 걸 모아두셨어요" 카테고리 분포(막대+범례), 범례 탭 → 3D 턴테이블.
+///  3. **안전망(조용)** — 최근에 보낸 것들 · (있을 때) 확인이 필요해요.
 ///
+/// 검색바는 두지 않는다 — 탐색은 검색 탭의 역할이라, 상단 돋보기 아이콘으로만 양보한다(탭별 역할 분리).
 /// 우하단 + 버튼이 빠른 입력(메모·링크·사진·카메라) — 저장도 홈의 일부지만 시각 비중은 낮춘다.
 public struct MochiHomeView: View {
 
     @Bindable public var store: StoreOf<MochiHomeFeature>
 
-    @FocusState private var searchFocused: Bool
     @FocusState private var quickMemoFocused: Bool
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var isPhotoLibraryPresented = false
@@ -31,60 +31,64 @@ public struct MochiHomeView: View {
     /// 첫 진입 시 섹션들이 순서대로 떠오르는 entrance 연출(한 번만).
     @State private var hasEntered = false
 
+    /// 최상단 bar 의 날짜 라벨 — 큰 제목 대신 컨텍스트를 둬 앱 이름 오인을 막는다.
+    private static let dateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "ko_KR")
+        f.dateFormat = "M월 d일 EEEE"
+        return f
+    }()
+    private var todayLabel: String { Self.dateFormatter.string(from: Date()) }
+
     public init(store: StoreOf<MochiHomeFeature>) {
         self.store = store
     }
 
     public var body: some View {
-        ZStack(alignment: .bottomTrailing) {
-            background.ignoresSafeArea()
-
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: HomeDesign.Spacing.xl) {
-                    searchHeader
-                        .padding(.top, HomeDesign.Spacing.sm)
-                        .riseIn(hasEntered, index: 0)
-                    searchChips
-                        .riseIn(hasEntered, index: 1)
-                    needsReviewBanner
-                        .riseIn(hasEntered, index: 2)
-                    recallHeroSection
-                        .riseIn(hasEntered, index: 3)
-                    categoriesSection
-                        .riseIn(hasEntered, index: 4)
-                    recentSection
-                        .riseIn(hasEntered, index: 5)
-                    weeklyBanner
-                        .riseIn(hasEntered, index: 6)
+        GeometryReader { geo in
+            ZStack(alignment: .bottomTrailing) {
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: HomeDesign.Spacing.xl) {
+                        recallHeroSection(deckHeight: heroDeckHeight(for: geo.size.height))
+                            .riseIn(hasEntered, index: 0)
+                        needsReviewBanner
+                            .riseIn(hasEntered, index: 1)
+                        upcomingSection
+                            .riseIn(hasEntered, index: 2)
+                        monthlyReportCard(cardWidth: geo.size.width - HomeDesign.Spacing.xl * 2)
+                            .riseIn(hasEntered, index: 3)
+                        recentSection
+                            .riseIn(hasEntered, index: 4)
+                    }
+                    .padding(.horizontal, HomeDesign.Spacing.xl)
+                    .padding(.top, Self.topBarHeight + HomeDesign.Spacing.sm)
+                    // FAB(48) + 우하단 여백이 마지막 섹션을 가리지 않도록 충분히 비운다(탭바 inset 은 시스템 자동).
+                    .padding(.bottom, Self.fabClearance)
                 }
-                .padding(.horizontal, HomeDesign.Spacing.xl)
-                .padding(.top, HomeDesign.Spacing.md)
-                .padding(.bottom, HomeDesign.Spacing.xxl)
-            }
-            .refreshable { await store.send(.refresh).finish() }
-            .scrollDismissesKeyboard(.immediately)
-            .simultaneousGesture(
-                TapGesture().onEnded { if searchFocused { searchFocused = false } }
-            )
+                .refreshable { await store.send(.refresh).finish() }
 
-            statusBarScrim
+                floatingTopBar
 
-            if isComposeMenuPresented {
-                HomeDesign.Color.ink900.opacity(0.22)
-                    .ignoresSafeArea()
-                    .transition(.opacity)
-                    .onTapGesture { closeComposeMenu() }
-            }
-
-            VStack(alignment: .trailing, spacing: HomeDesign.Spacing.md) {
                 if isComposeMenuPresented {
-                    composeMenuCard
-                        .transition(.scale(scale: 0.85, anchor: .bottomTrailing).combined(with: .opacity))
+                    HomeDesign.Color.ink900.opacity(0.22)
+                        .ignoresSafeArea()
+                        .transition(.opacity)
+                        .onTapGesture { closeComposeMenu() }
                 }
-                floatingActionButton
+
+                VStack(alignment: .trailing, spacing: HomeDesign.Spacing.md) {
+                    if isComposeMenuPresented {
+                        composeMenuCard
+                            .transition(.scale(scale: 0.85, anchor: .bottomTrailing).combined(with: .opacity))
+                    }
+                    floatingActionButton
+                }
+                .padding(.trailing, HomeDesign.Spacing.xl)
+                .padding(.bottom, HomeDesign.Spacing.lg)
             }
-            .padding(.trailing, HomeDesign.Spacing.xl)
-            .padding(.bottom, HomeDesign.Spacing.lg)
+            // 배경은 ZStack 바깥(.background)으로 분리 — ZStack 본체가 safe area 안에서 잡혀야
+            // bottomTrailing FAB 이 탭바 밑이 아니라 탭바 위에 정렬된다(겹침 방지).
+            .background(background.ignoresSafeArea())
         }
         .background(HomeDesign.Color.bg.ignoresSafeArea())
         .preferredColorScheme(.light)
@@ -124,53 +128,46 @@ public struct MochiHomeView: View {
     private var background: some View {
         ZStack {
             HomeDesign.Color.bg
-            // 회수가 심장인 홈 — 상단에 모찌의 보라 기운이 은은히 번진다.
+            // 회수가 심장인 홈 — 상단에 모찌의 보라 기운이 은은히 번진다(히어로가 커진 만큼 길게).
             LinearGradient(
                 colors: [
-                    HomeDesign.Color.purple200.opacity(0.28),
-                    HomeDesign.Color.purple100.opacity(0.08),
+                    HomeDesign.Color.purple200.opacity(0.30),
+                    HomeDesign.Color.purple100.opacity(0.10),
                     Color.clear,
                 ],
                 startPoint: .top,
                 endPoint: .bottom
             )
-            .frame(height: 320)
+            .frame(height: 440)
             .frame(maxHeight: .infinity, alignment: .top)
         }
     }
 
-    private var statusBarScrim: some View {
+    // MARK: - 상단 floating bar (제목 + 검색·즐겨찾기·설정) — 회수 히어로 위에 떠 있다
+
+    /// bar 한 줄 높이. 콘텐츠 top inset 과 같게 둬 히어로가 bar 바로 아래에서 시작한다.
+    private static let topBarHeight: CGFloat = 52
+    /// FAB(48) + 우하단 여백 — 마지막 섹션이 FAB 뒤로 들어가지 않게 ScrollView 하단을 비우는 양.
+    private static let fabClearance: CGFloat = 92
+
+    private var floatingTopBar: some View {
         VStack(spacing: 0) {
-            HomeDesign.Color.bg
-                .mask(
-                    LinearGradient(
-                        stops: [
-                            .init(color: .black, location: 0),
-                            .init(color: .black, location: 0.55),
-                            .init(color: .clear, location: 1),
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-                .frame(height: 80)
-            Spacer(minLength: 0)
-        }
-        .ignoresSafeArea(edges: .top)
-        .allowsHitTesting(false)
-    }
-
-    // MARK: - ① 입구 (인사 + 검색바)
-
-    private var searchHeader: some View {
-        VStack(alignment: .leading, spacing: HomeDesign.Spacing.lg) {
-            HStack(alignment: .center) {
-                Image("mochi2")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 40, height: 40)
-                    .accessibilityHidden(true)
+            HStack(alignment: .center, spacing: HomeDesign.Spacing.sm) {
+                // 최상단은 제목이 아니라 날짜(컨텍스트). bar 배경 없이도 콘텐츠 위에서 잘 보이도록
+                // chrome 과 같은 frosted 칩에 글씨를 얹는다(글자 뒤만 블러 — 배경 띠는 두지 않는다).
+                Text(todayLabel)
+                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                    .foregroundStyle(HomeDesign.Color.ink700)
+                    .padding(.horizontal, HomeDesign.Spacing.md)
+                    .padding(.vertical, 7)
+                    .background(.ultraThinMaterial, in: Capsule())
+                    .overlay(Capsule().stroke(Color.white.opacity(0.55), lineWidth: 0.5))
+                    .shadow(color: HomeDesign.Color.ink900.opacity(0.06), radius: 6, x: 0, y: 3)
+                    .accessibilityAddTraits(.isHeader)
                 Spacer(minLength: 0)
+                CircleIconButton(systemName: "magnifyingglass", accessibilityLabel: "검색") {
+                    store.send(.searchTapped)
+                }
                 CircleIconButton(systemName: "star", accessibilityLabel: "즐겨찾기") {
                     store.send(.favoritesTapped)
                 }
@@ -178,170 +175,283 @@ public struct MochiHomeView: View {
                     store.send(.openSettingsTapped)
                 }
             }
-
-            searchBar
+            .padding(.horizontal, HomeDesign.Spacing.xl)
+            .frame(height: Self.topBarHeight)
+            Spacer(minLength: 0)
         }
     }
 
-    private var searchBar: some View {
-        HStack(spacing: HomeDesign.Spacing.md) {
-            ZStack {
-                Circle().fill(HomeDesign.Color.purple50)
-                Image(systemName: "magnifyingglass")
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundStyle(HomeDesign.Color.purple500)
-            }
-            .frame(width: 30, height: 30)
-            .accessibilityHidden(true)
+    // MARK: - 히어로 덱 높이 + 스크롤 추적
 
-            TextField("기억을 검색해보세요", text: $store.searchDraft)
-                .font(.system(size: 15, weight: .medium, design: .rounded))
-                .foregroundStyle(HomeDesign.Color.textPrimary)
-                .tint(HomeDesign.Color.purple500)
-                .focused($searchFocused)
-                .submitLabel(.search)
-                .onSubmit { store.send(.searchSubmitted) }
-
-            if !store.searchDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                Button {
-                    store.send(.searchSubmitted)
-                } label: {
-                    Image(systemName: "arrow.up")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(.white)
-                        .frame(width: 32, height: 32)
-                        .background(
-                            Circle().fill(
-                                LinearGradient(
-                                    colors: [HomeDesign.Color.purple400, HomeDesign.Color.purple600],
-                                    startPoint: .topLeading, endPoint: .bottomTrailing
-                                )
-                            )
-                        )
-                }
-                .buttonStyle(PressableStyle())
-                .transition(.scale.combined(with: .opacity))
-            }
-        }
-        .padding(.leading, HomeDesign.Spacing.md)
-        .padding(.trailing, store.searchDraft.isEmpty ? HomeDesign.Spacing.lg : HomeDesign.Spacing.sm)
-        .padding(.vertical, HomeDesign.Spacing.sm + 2)
-        .frame(minHeight: 52)
-        .background(Capsule(style: .continuous).fill(HomeDesign.Color.surface))
-        .overlay(Capsule(style: .continuous).stroke(HomeDesign.Color.purple100, lineWidth: 1.4))
-        .shadow(color: HomeDesign.Color.purple500.opacity(0.08), radius: 16, x: 0, y: 8)
-        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: store.searchDraft.isEmpty)
+    /// 회수 히어로가 상단을 가득 채우도록 화면 높이의 ~48% (덱 위 섹션 헤더 + 아래 인디케이터 몫을 남김).
+    private func heroDeckHeight(for available: CGFloat) -> CGFloat {
+        min(max(available * 0.48, 340), 440)
     }
 
-    // MARK: - 빠른 검색 칩
+    // MARK: - ① 심장 (회수 히어로 — 상단 전면)
 
     @ViewBuilder
-    private var searchChips: some View {
-        if !store.searchSuggestions.isEmpty {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: HomeDesign.Spacing.sm) {
-                    ForEach(store.searchSuggestions, id: \.self) { term in
-                        Button {
-                            store.send(.searchSuggestionTapped(term))
-                        } label: {
-                            HStack(spacing: 5) {
-                                Image(systemName: "magnifyingglass")
-                                    .font(.system(size: 11, weight: .bold))
-                                Text(term)
-                                    .font(.system(size: 13, weight: .bold, design: .rounded))
-                                    .lineLimit(1)
-                            }
-                            .foregroundStyle(HomeDesign.Color.purple600)
-                            .padding(.horizontal, HomeDesign.Spacing.md)
-                            .padding(.vertical, 9)
-                            .background(Capsule().fill(HomeDesign.Color.purple100.opacity(0.6)))
-                        }
-                        .buttonStyle(PressableStyle())
-                    }
-                }
-                .padding(.horizontal, HomeDesign.Spacing.xl)
-            }
-            .padding(.horizontal, -HomeDesign.Spacing.xl)
-        }
-    }
-
-    // MARK: - ② 심장 (회수 히어로)
-
-    @ViewBuilder
-    private var recallHeroSection: some View {
+    private func recallHeroSection(deckHeight: CGFloat) -> some View {
         if store.recall.isEmpty {
             recallEmptyCard
         } else {
             RecallHeroView(
                 entries: store.recall,
                 images: store.recallImages,
+                deckHeight: deckHeight,
                 onOpenAll: { store.send(.recallSeeAllTapped) },
-                onOpenFocal: { entry in
-                    // 열어본 카드가 목록에서 빠지는 변화를 애니메이션 트랜잭션으로 — 부드럽게 사라진다.
-                    store.send(.recallEntryOpened(entry), animation: .spring(response: 0.45, dampingFraction: 0.85))
+                onOpenFocal: { entry, hero in
+                    // 카드는 지금 빠지지 않는다 — hero zoom 으로 상세를 열고, 닫고 돌아온 뒤 제거된다
+                    // (recallDetailClosed). 그래야 카드 자리에 착지한 다음 우아하게 사라진다.
+                    store.send(.recallEntryOpened(entry, hero: hero))
                 }
             )
         }
     }
 
-    /// 회수가 비었을 때 — 자리를 비워두지 않고 "곧 떠올려줄게요"로 채운다(고정 틀, 레이아웃 안정).
+    /// 회수가 비었을 때(cold-start) — 작은 가로 카드 대신 중앙 정렬 일러스트로 따뜻하게 채운다.
+    /// 모찌가 "곧 골라줄게요" 하는 준비 상태. 빈 자리를 어색하게 비워두지 않는다.
     private var recallEmptyCard: some View {
-        HStack(spacing: HomeDesign.Spacing.md) {
+        VStack(spacing: HomeDesign.Spacing.lg) {
             ZStack {
                 Circle()
-                    .fill(RadialGradient(colors: [HomeDesign.Color.purpleGlow.opacity(0.4), .clear], center: .center, startRadius: 2, endRadius: 30))
-                    .frame(width: 60, height: 60)
-                Circle()
-                    .fill(LinearGradient(colors: [HomeDesign.Color.purple400, HomeDesign.Color.purple600], startPoint: .topLeading, endPoint: .bottomTrailing))
-                    .frame(width: 44, height: 44)
-                Image(systemName: "sparkles")
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundStyle(.white)
+                    .fill(RadialGradient(colors: [HomeDesign.Color.purpleGlow.opacity(0.28), .clear], center: .center, startRadius: 4, endRadius: 52))
+                    .frame(width: 104, height: 104)
+                Image("mochi2")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 58, height: 58)
+                    .shadow(color: HomeDesign.Color.purple500.opacity(0.18), radius: 12, x: 0, y: 6)
             }
-            VStack(alignment: .leading, spacing: 4) {
-                Text("다시 보면 좋을 기억")
-                    .font(.system(size: 16, weight: .heavy, design: .rounded))
+            VStack(spacing: 6) {
+                Text("모찌가 곧 골라드릴게요")
+                    .font(.system(size: 17, weight: .heavy, design: .rounded))
                     .foregroundStyle(HomeDesign.Color.textPrimary)
-                Text("기억이 무르익으면 모찌가 먼저 꺼내드릴게요")
-                    .font(.system(size: 12.5, weight: .medium, design: .rounded))
+                Text("기억이 무르익으면 먼저 떠올려드릴게요")
+                    .font(.system(size: 13, weight: .medium, design: .rounded))
                     .foregroundStyle(HomeDesign.Color.textMuted)
+                    .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            Spacer(minLength: 0)
         }
-        .padding(HomeDesign.Spacing.xl)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, HomeDesign.Spacing.xxl + HomeDesign.Spacing.sm)
+        .padding(.horizontal, HomeDesign.Spacing.xl)
+        .background(
+            RoundedRectangle(cornerRadius: HomeDesign.Radius.xl, style: .continuous)
+                .fill(LinearGradient(colors: [HomeDesign.Color.surface, HomeDesign.Color.purple50.opacity(0.7)], startPoint: .top, endPoint: .bottom))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: HomeDesign.Radius.xl, style: .continuous)
+                .stroke(HomeDesign.Color.purple100, lineWidth: 1.2)
+        )
+        .cardShadow()
+    }
+
+    // MARK: - ② 리포트 (이번 달 카테고리 분포 — 막대 + 범례 + 마스코트)
+
+    /// 옛 홈 "이번주 리포트"의 감성을 잇되 **이번 달** 분포를 한 카드에 요약한다(회의 결정).
+    /// 카테고리 카드 그리드를 대체 — stacked 막대로 비중을 한눈에 보이고, 범례를 누르면 그 서랍이
+    /// 3D 턴테이블로 펼쳐진다(서랍 탐색 기능은 보존, 진입점만 막대 범례로 옮김).
+    private func monthlyReportCard(cardWidth: CGFloat) -> some View {
+        let peekW = cardWidth * 0.30
+        return ZStack(alignment: .top) {
+            reportCardBody
+            // 작은 모찌가 카드 오른쪽에서 살짝 엿본다(귀엽게). 본체 하단선이 카드 top edge 에 걸침(검증 비율).
+            Image("mochi-peek")
+                .resizable()
+                .scaledToFit()
+                .frame(width: peekW)
+                .offset(x: cardWidth * 0.18, y: -peekW * 0.383)
+                .shadow(color: HomeDesign.Color.ink900.opacity(0.16), radius: 6, x: 0, y: 4)
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
+        }
+        // peek 가 위로 솟는 만큼 위 섹션과의 간격을 비운다(빼꼼은 살리되 닷·콘텐츠와 안 겹치게).
+        .padding(.top, peekW * 0.36)
+    }
+
+    private var reportCardBody: some View {
+        VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
+            HStack(alignment: .center) {
+                HStack(spacing: 5) {
+                    Image(systemName: "chart.pie.fill")
+                        .font(.system(size: 10, weight: .bold))
+                    Text("이번 달 모찌 리포트")
+                        .font(.system(size: 11, weight: .heavy, design: .rounded))
+                        .tracking(0.6)
+                }
+                .foregroundStyle(HomeDesign.Color.purple600)
+                Spacer(minLength: 0)
+                Button {
+                    store.send(.weeklyDigestTapped)
+                } label: {
+                    Text("자세히")
+                        .font(.system(size: 12, weight: .heavy, design: .rounded))
+                        .foregroundStyle(HomeDesign.Color.purple600)
+                        .padding(.horizontal, HomeDesign.Spacing.md)
+                        .padding(.vertical, 6)
+                        .background(Capsule().fill(HomeDesign.Color.purple50))
+                }
+                .buttonStyle(PressableStyle())
+            }
+
+            monthlyHeadline
+
+            if store.monthlyCategories.isEmpty {
+                monthlyEmptyMessage
+            } else {
+                categoryStackBar
+                categoryLegend
+            }
+        }
+        .padding(HomeDesign.Spacing.lg)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous)
-                .fill(LinearGradient(colors: [HomeDesign.Color.surface, HomeDesign.Color.purple50.opacity(0.6)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                .fill(LinearGradient(colors: [Color.white, HomeDesign.Color.purple50, HomeDesign.Color.sky100.opacity(0.42)], startPoint: .topLeading, endPoint: .bottomTrailing))
         )
         .overlay(RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous).stroke(HomeDesign.Color.purple100, lineWidth: 1.2))
         .cardShadow()
     }
 
-    // MARK: - ③ 서랍 (카테고리)
+    /// 저장 개수 헤드라인 — 한 줄, 숫자가 갱신될 때 굴러가며 바뀐다.
+    private var monthlyHeadline: some View {
+        Group {
+            if store.monthlyRecordCount == 0 {
+                Text("이번 달 첫 기억을 기다리고 있어요")
+            } else {
+                Text("기억 ")
+                + Text("\(store.monthlyRecordCount)개").foregroundStyle(HomeDesign.Color.purple600)
+                + Text("를 저장했어요")
+            }
+        }
+        .font(.system(size: 20, weight: .heavy, design: .rounded))
+        .foregroundStyle(HomeDesign.Color.textPrimary)
+        .lineLimit(1)
+        .minimumScaleFactor(0.85)
+        .contentTransition(.numericText(value: Double(store.monthlyRecordCount)))
+        .animation(.spring(response: 0.6, dampingFraction: 0.9), value: store.monthlyRecordCount)
+    }
 
-    @ViewBuilder
-    private var categoriesSection: some View {
-        if !store.categories.isEmpty {
-            VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
-                SectionHeader(title: "이런 걸 모아두셨어요")
-                let maxCount = max(store.categories.map(\.count).max() ?? 1, 1)
-                LazyVGrid(
-                    columns: [
-                        GridItem(.flexible(), spacing: HomeDesign.Spacing.md),
-                        GridItem(.flexible(), spacing: HomeDesign.Spacing.md),
-                    ],
-                    spacing: HomeDesign.Spacing.md
-                ) {
-                    ForEach(store.categories) { bucket in
-                        CategoryDrawerCard(bucket: bucket, maxCount: maxCount) {
-                            store.send(.categoryTapped(bucket))
-                        }
-                    }
+    private var monthlyEmptyMessage: some View {
+        Text("이번 달엔 아직 모은 기억이 없어요.\n캡처하거나 링크를 보내면 카테고리로 모아둘게요.")
+            .font(.system(size: 12.5, weight: .medium, design: .rounded))
+            .foregroundStyle(HomeDesign.Color.textMuted)
+            .lineSpacing(3)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    /// 이번 달 비중 막대 — 상위 카테고리 + "그외" 한 묶음을 하나의 캡슐에 비율로 채운다.
+    private var categoryStackBar: some View {
+        let segments = reportSegments
+        let total = max(segments.reduce(0) { $0 + $1.count }, 1)
+        let gap: CGFloat = 3
+        return GeometryReader { proxy in
+            let usable = proxy.size.width - CGFloat(max(segments.count - 1, 0)) * gap
+            HStack(spacing: gap) {
+                ForEach(segments) { seg in
+                    LinearGradient(colors: [seg.color, seg.color.opacity(0.82)], startPoint: .top, endPoint: .bottom)
+                        .frame(width: max(usable * CGFloat(seg.count) / CGFloat(total), 6))
                 }
             }
         }
+        .frame(height: 18)
+        .clipShape(Capsule(style: .continuous))
+        .overlay(Capsule(style: .continuous).stroke(Color.white.opacity(0.55), lineWidth: 1))
+        .shadow(color: HomeDesign.Color.ink900.opacity(0.06), radius: 3, x: 0, y: 1)
+        .animation(.spring(response: 0.5, dampingFraction: 0.9), value: store.monthlyRecordCount)
+    }
+
+    /// 범례 — 탭 가능한 카테고리 칩 2열 그리드. 누르면 그 서랍의 3D 턴테이블로(그외는 탭 불가).
+    /// 연한 tint 배경 + 테두리 + chevron 으로 "누를 수 있다"를 분명히 한다(범례처럼 안 보이게).
+    private var categoryLegend: some View {
+        LazyVGrid(
+            columns: [
+                GridItem(.flexible(), spacing: HomeDesign.Spacing.sm),
+                GridItem(.flexible(), spacing: HomeDesign.Spacing.sm),
+            ],
+            spacing: HomeDesign.Spacing.sm
+        ) {
+            ForEach(reportSegments) { seg in
+                legendItem(seg)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func legendItem(_ seg: ReportSegment) -> some View {
+        let tappable = seg.bucket != nil
+        let row = HStack(spacing: 7) {
+            Circle().fill(seg.color).frame(width: 9, height: 9)
+            Text(seg.name)
+                .font(.system(size: 12.5, weight: .bold, design: .rounded))
+                .foregroundStyle(HomeDesign.Color.ink700)
+                .lineLimit(1)
+                .truncationMode(.tail)
+            Text("\(seg.count)")
+                .font(.system(size: 12.5, weight: .heavy, design: .rounded))
+                .foregroundStyle(HomeDesign.Color.textPrimary)
+            Spacer(minLength: 2)
+            if tappable {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 9, weight: .bold))
+                    .foregroundStyle(seg.color)
+            }
+        }
+        .padding(.horizontal, HomeDesign.Spacing.md)
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: HomeDesign.Radius.sm, style: .continuous)
+                .fill(seg.color.opacity(tappable ? 0.13 : 0.07))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: HomeDesign.Radius.sm, style: .continuous)
+                .stroke(seg.color.opacity(tappable ? 0.22 : 0.12), lineWidth: 1)
+        )
+
+        if let bucket = seg.bucket {
+            Button { store.send(.categoryTapped(bucket)) } label: { row }
+                .buttonStyle(PressableStyle())
+                .accessibilityLabel("\(seg.name) \(seg.count)개. 눌러서 입체로 펼쳐보기")
+        } else {
+            row.accessibilityLabel("그외 \(seg.count)개")
+        }
+    }
+
+    /// 막대·범례 세그먼트 — 상위 3개 카테고리 + (나머지가 있으면) "그외".
+    /// "그외" 는 월간 총합에서 표시 카테고리 합을 뺀 값으로, 표시 밖 카테고리를 모두 흡수한다.
+    private struct ReportSegment: Identifiable {
+        let id: String
+        let name: String
+        let count: Int
+        let color: Color
+        /// 탭 → 그 서랍의 턴테이블. "그외" 는 nil(탭 불가).
+        let bucket: CategoryBucket?
+    }
+
+    private var reportSegments: [ReportSegment] {
+        let maxSegments = 3
+        let shown = Array(store.monthlyCategories.prefix(maxSegments))
+        var segments = shown.map { bucket in
+            ReportSegment(
+                id: bucket.name,
+                name: bucket.name,
+                count: bucket.count,
+                color: MochiCategoryPalette.tint(bucket.tintIndex).strong,
+                bucket: bucket
+            )
+        }
+        let shownSum = shown.reduce(0) { $0 + $1.count }
+        let etc = max(store.monthlyRecordCount - shownSum, 0)
+        if etc > 0 {
+            segments.append(ReportSegment(
+                id: "__etc__", name: "그외", count: etc,
+                color: HomeDesign.Color.purple200, bucket: nil
+            ))
+        }
+        return segments
     }
 
     // MARK: - ④ 안전망 (최근 / 확인 필요 / 이번주)
@@ -451,55 +561,18 @@ public struct MochiHomeView: View {
         }
     }
 
-    private var weeklyBanner: some View {
-        Button {
-            store.send(.weeklyDigestTapped)
-        } label: {
-            HStack(spacing: HomeDesign.Spacing.md) {
-                Image("mochi2")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 40, height: 40)
-                    .accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("이번주 리포트")
-                        .font(.system(size: 11, weight: .heavy, design: .rounded))
-                        .foregroundStyle(HomeDesign.Color.purple600)
-                    if store.weeklyRecordCount == 0 {
-                        Text("이번주 첫 기억을 기다리고 있어요")
-                            .font(.system(size: 14, weight: .bold, design: .rounded))
-                            .foregroundStyle(HomeDesign.Color.textPrimary)
-                    } else {
-                        (Text("이번주 ")
-                         + Text("\(store.weeklyRecordCount)개").foregroundStyle(HomeDesign.Color.purple600)
-                         + Text("의 기억을 모았어요"))
-                            .font(.system(size: 14, weight: .bold, design: .rounded))
-                            .foregroundStyle(HomeDesign.Color.textPrimary)
-                    }
-                }
-                Spacer(minLength: 0)
-                HStack(spacing: 4) {
-                    Text("돌아보기")
-                        .font(.system(size: 11, weight: .heavy, design: .rounded))
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 9, weight: .bold))
-                }
-                .foregroundStyle(HomeDesign.Color.purple600)
-                .padding(.horizontal, HomeDesign.Spacing.md)
-                .padding(.vertical, HomeDesign.Spacing.sm)
-                .background(Capsule().fill(HomeDesign.Color.surface))
-                .overlay(Capsule().stroke(HomeDesign.Color.purple200, lineWidth: 1.2))
-            }
-            .padding(HomeDesign.Spacing.md)
-            .frame(maxWidth: .infinity)
-            .background(
-                RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous)
-                    .fill(LinearGradient(colors: [Color.white, HomeDesign.Color.purple50, HomeDesign.Color.sky100.opacity(0.4)], startPoint: .topLeading, endPoint: .bottomTrailing))
+    // MARK: - ③ 예정된 알림 (모찌가 보낼 예정인 미래 알림 — pending 0건이면 숨김)
+
+    /// pending 0건이면 섹션 자체를 비운다(안심 톤 — 빈 자리를 만들지 않는다).
+    @ViewBuilder
+    private var upcomingSection: some View {
+        if !store.upcoming.isEmpty {
+            UpcomingNotificationsView(
+                entries: store.upcoming,
+                onVeto: { eventID in store.send(.upcomingVetoed(eventID: eventID), animation: .spring(response: 0.4, dampingFraction: 0.85)) },
+                onReschedule: { eventID, fireAt in store.send(.upcomingRescheduled(eventID: eventID, fireAt: fireAt), animation: .spring(response: 0.5, dampingFraction: 0.88)) }
             )
-            .overlay(RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous).stroke(HomeDesign.Color.purple100, lineWidth: 1.2))
-            .cardShadow()
         }
-        .buttonStyle(PressableStyle())
     }
 
     // MARK: - 빠른 입력 (FAB + compose 메뉴)
@@ -737,105 +810,6 @@ private struct SectionHeader: View {
     }
 }
 
-// MARK: - 카테고리 서랍 카드 (실 캡처 커버 + 입체 press)
-
-/// 카테고리 카드 — 대표 캡처 이미지를 커버로 깔고(없으면 색 그라데이션), 이름·개수·비중 바를 얹는다.
-/// 누르면 살짝 안으로 눌리며(PressableStyle) 그 서랍이 3D 턴테이블로 열린다.
-private struct CategoryDrawerCard: View {
-    let bucket: CategoryBucket
-    let maxCount: Int
-    let onTap: () -> Void
-
-    private var tint: (soft: Color, strong: Color) { MochiCategoryPalette.tint(bucket.tintIndex) }
-    private var icon: String { MochiCategoryIcon.icon(for: bucket.name, fallbackIndex: bucket.tintIndex) }
-    private var coverRef: ImageRef? { bucket.items.first?.source.imageRefs.first }
-
-    var body: some View {
-        Button(action: onTap) {
-            VStack(alignment: .leading, spacing: 0) {
-                cover
-                info
-            }
-            .background(RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous).fill(HomeDesign.Color.surface))
-            .overlay(RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous).stroke(HomeDesign.Color.border, lineWidth: 1))
-            .clipShape(RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous))
-            .shadow(color: HomeDesign.Color.ink900.opacity(0.05), radius: 8, x: 0, y: 3)
-        }
-        .buttonStyle(PressableStyle())
-        .accessibilityLabel("\(bucket.name) \(bucket.count)개. 눌러서 입체로 펼쳐보기")
-    }
-
-    private var cover: some View {
-        ZStack(alignment: .topLeading) {
-            if let ref = coverRef {
-                LocalThumbnail(
-                    relativePath: ref.relativePath,
-                    objectKey: ref.objectKey,
-                    sha256: ref.sha256,
-                    mimeType: ref.mimeType,
-                    targetSize: CGSize(width: 180, height: 96),
-                    alignment: .top
-                ) { gradientCover }
-            } else {
-                gradientCover
-            }
-            // 출처가 가려지지 않게 상단 살짝 어둡게 + 아이콘 칩.
-            LinearGradient(colors: [Color.black.opacity(0.16), .clear], startPoint: .top, endPoint: .center)
-            ZStack {
-                Circle().fill(Color.white.opacity(0.92))
-                Image(systemName: icon)
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(tint.strong)
-            }
-            .frame(width: 28, height: 28)
-            .shadow(color: HomeDesign.Color.ink900.opacity(0.12), radius: 3, x: 0, y: 1)
-            .padding(HomeDesign.Spacing.sm)
-        }
-        .frame(height: 96)
-        .clipped()
-    }
-
-    private var gradientCover: some View {
-        ZStack {
-            LinearGradient(colors: [tint.strong, tint.strong.opacity(0.7), tint.soft], startPoint: .topLeading, endPoint: .bottomTrailing)
-            Image(systemName: icon)
-                .font(.system(size: 34, weight: .semibold))
-                .foregroundStyle(.white.opacity(0.9))
-                .shadow(color: tint.strong.opacity(0.4), radius: 8, x: 0, y: 4)
-        }
-        .frame(maxWidth: .infinity)
-        .frame(height: 96)
-    }
-
-    private var info: some View {
-        VStack(alignment: .leading, spacing: HomeDesign.Spacing.sm) {
-            Text(bucket.name)
-                .font(.system(size: 13.5, weight: .bold, design: .rounded))
-                .foregroundStyle(HomeDesign.Color.textPrimary)
-                .lineLimit(1)
-            HStack(alignment: .firstTextBaseline, spacing: 1) {
-                Text("\(bucket.count)")
-                    .font(.system(size: 16, weight: .heavy, design: .rounded))
-                    .foregroundStyle(tint.strong)
-                Text("개")
-                    .font(.system(size: 11, weight: .semibold, design: .rounded))
-                    .foregroundStyle(HomeDesign.Color.textFaint)
-                Spacer(minLength: 0)
-            }
-            GeometryReader { proxy in
-                ZStack(alignment: .leading) {
-                    Capsule().fill(HomeDesign.Color.ink100.opacity(0.7))
-                    Capsule()
-                        .fill(LinearGradient(colors: [tint.strong, tint.strong.opacity(0.55)], startPoint: .leading, endPoint: .trailing))
-                        .frame(width: max(proxy.size.width * CGFloat(bucket.count) / CGFloat(maxCount), 8))
-                }
-            }
-            .frame(height: 4)
-        }
-        .padding(HomeDesign.Spacing.md)
-    }
-}
-
 // MARK: - 헤더 원형 아이콘 버튼
 
 private struct CircleIconButton: View {
@@ -846,11 +820,13 @@ private struct CircleIconButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: systemName)
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(HomeDesign.Color.textPrimary)
-                .frame(width: 38, height: 38)
-                .background(Circle().fill(HomeDesign.Color.surface).shadow(color: HomeDesign.Color.ink900.opacity(0.05), radius: 6, x: 0, y: 2))
-                .overlay(Circle().stroke(HomeDesign.Color.border, lineWidth: 1))
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(HomeDesign.Color.ink700)
+                .frame(width: 34, height: 34)
+                // frosted glass — 히어로가 은은히 비치는 블러 칩. 스크롤하면 bar 배경이 차올라 또렷해진다.
+                .background(.ultraThinMaterial, in: Circle())
+                .overlay(Circle().stroke(Color.white.opacity(0.55), lineWidth: 0.5))
+                .shadow(color: HomeDesign.Color.ink900.opacity(0.06), radius: 6, x: 0, y: 3)
         }
         .buttonStyle(PressableStyle())
         .accessibilityLabel(accessibilityLabel)

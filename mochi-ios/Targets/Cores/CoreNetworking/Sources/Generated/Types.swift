@@ -340,6 +340,35 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `POST /api/v1/recall/events/{event_id}/reaction`.
     /// - Remark: Generated from `#/paths//api/v1/recall/events/{event_id}/reaction/post(record_recall_reaction_api_v1_recall_events__event_id__reaction_post)`.
     func record_recall_reaction_api_v1_recall_events__event_id__reaction_post(_ input: Operations.record_recall_reaction_api_v1_recall_events__event_id__reaction_post.Input) async throws -> Operations.record_recall_reaction_api_v1_recall_events__event_id__reaction_post.Output
+    /// Get Upcoming Notifications
+    ///
+    /// 홈탭 "예정 알림" — owner 의 아직 안 보낸 미래 알림(마감/일정, fire_at>now) fire_at 오름차순.
+    ///
+    /// "언제 알림이 갈지" 미리 보여줘 안심시키는 예고. spaced 회수는 RecallHero 담당이라 제외.
+    /// 빈손이면 entries=[](정상).
+    ///
+    /// - Remark: HTTP `GET /api/v1/recall/upcoming`.
+    /// - Remark: Generated from `#/paths//api/v1/recall/upcoming/get(get_upcoming_notifications_api_v1_recall_upcoming_get)`.
+    func get_upcoming_notifications_api_v1_recall_upcoming_get(_ input: Operations.get_upcoming_notifications_api_v1_recall_upcoming_get.Input) async throws -> Operations.get_upcoming_notifications_api_v1_recall_upcoming_get.Output
+    /// Reschedule Upcoming Notification
+    ///
+    /// 예정 알림의 발송 시각을 사용자 지정 시각으로 옮긴다(프리셋·DatePicker 공용, owner-scoped).
+    ///
+    /// pending(fire_at>now) 인 행만 갱신 + 첫 1회 원안 보존. 행이 없으면 404(남의 event·이미 발송).
+    /// 과거 시각이면 422(`recall_upcoming.past_fire_at`).
+    ///
+    /// - Remark: HTTP `POST /api/v1/recall/upcoming/{event_id}/reschedule`.
+    /// - Remark: Generated from `#/paths//api/v1/recall/upcoming/{event_id}/reschedule/post(reschedule_upcoming_notification_api_v1_recall_upcoming__event_id__reschedule_post)`.
+    func reschedule_upcoming_notification_api_v1_recall_upcoming__event_id__reschedule_post(_ input: Operations.reschedule_upcoming_notification_api_v1_recall_upcoming__event_id__reschedule_post.Input) async throws -> Operations.reschedule_upcoming_notification_api_v1_recall_upcoming__event_id__reschedule_post.Output
+    /// Veto Upcoming Notification
+    ///
+    /// 이 항목 알림 전체 끄기 — 대상 pending skip(user_veto) + 그 plan 영구 cancel(user_dismiss).
+    ///
+    /// 그 plan 의 나머지 미래 단계 알림도 함께 정지된다. 행이 없으면 404(남의 event·이미 발송/취소).
+    ///
+    /// - Remark: HTTP `POST /api/v1/recall/upcoming/{event_id}/veto`.
+    /// - Remark: Generated from `#/paths//api/v1/recall/upcoming/{event_id}/veto/post(veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post)`.
+    func veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post(_ input: Operations.veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post.Input) async throws -> Operations.veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post.Output
 }
 
 /// Convenience overloads for operation inputs.
@@ -920,6 +949,53 @@ extension APIProtocol {
             path: path,
             body: body
         ))
+    }
+    /// Get Upcoming Notifications
+    ///
+    /// 홈탭 "예정 알림" — owner 의 아직 안 보낸 미래 알림(마감/일정, fire_at>now) fire_at 오름차순.
+    ///
+    /// "언제 알림이 갈지" 미리 보여줘 안심시키는 예고. spaced 회수는 RecallHero 담당이라 제외.
+    /// 빈손이면 entries=[](정상).
+    ///
+    /// - Remark: HTTP `GET /api/v1/recall/upcoming`.
+    /// - Remark: Generated from `#/paths//api/v1/recall/upcoming/get(get_upcoming_notifications_api_v1_recall_upcoming_get)`.
+    public func get_upcoming_notifications_api_v1_recall_upcoming_get(
+        query: Operations.get_upcoming_notifications_api_v1_recall_upcoming_get.Input.Query = .init(),
+        headers: Operations.get_upcoming_notifications_api_v1_recall_upcoming_get.Input.Headers = .init()
+    ) async throws -> Operations.get_upcoming_notifications_api_v1_recall_upcoming_get.Output {
+        try await get_upcoming_notifications_api_v1_recall_upcoming_get(Operations.get_upcoming_notifications_api_v1_recall_upcoming_get.Input(
+            query: query,
+            headers: headers
+        ))
+    }
+    /// Reschedule Upcoming Notification
+    ///
+    /// 예정 알림의 발송 시각을 사용자 지정 시각으로 옮긴다(프리셋·DatePicker 공용, owner-scoped).
+    ///
+    /// pending(fire_at>now) 인 행만 갱신 + 첫 1회 원안 보존. 행이 없으면 404(남의 event·이미 발송).
+    /// 과거 시각이면 422(`recall_upcoming.past_fire_at`).
+    ///
+    /// - Remark: HTTP `POST /api/v1/recall/upcoming/{event_id}/reschedule`.
+    /// - Remark: Generated from `#/paths//api/v1/recall/upcoming/{event_id}/reschedule/post(reschedule_upcoming_notification_api_v1_recall_upcoming__event_id__reschedule_post)`.
+    public func reschedule_upcoming_notification_api_v1_recall_upcoming__event_id__reschedule_post(
+        path: Operations.reschedule_upcoming_notification_api_v1_recall_upcoming__event_id__reschedule_post.Input.Path,
+        body: Operations.reschedule_upcoming_notification_api_v1_recall_upcoming__event_id__reschedule_post.Input.Body
+    ) async throws -> Operations.reschedule_upcoming_notification_api_v1_recall_upcoming__event_id__reschedule_post.Output {
+        try await reschedule_upcoming_notification_api_v1_recall_upcoming__event_id__reschedule_post(Operations.reschedule_upcoming_notification_api_v1_recall_upcoming__event_id__reschedule_post.Input(
+            path: path,
+            body: body
+        ))
+    }
+    /// Veto Upcoming Notification
+    ///
+    /// 이 항목 알림 전체 끄기 — 대상 pending skip(user_veto) + 그 plan 영구 cancel(user_dismiss).
+    ///
+    /// 그 plan 의 나머지 미래 단계 알림도 함께 정지된다. 행이 없으면 404(남의 event·이미 발송/취소).
+    ///
+    /// - Remark: HTTP `POST /api/v1/recall/upcoming/{event_id}/veto`.
+    /// - Remark: Generated from `#/paths//api/v1/recall/upcoming/{event_id}/veto/post(veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post)`.
+    public func veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post(path: Operations.veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post.Input.Path) async throws -> Operations.veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post.Output {
+        try await veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post(Operations.veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post.Input(path: path))
     }
 }
 
@@ -2555,6 +2631,23 @@ public enum Components {
                 case oneline
             }
         }
+        /// 예정 알림 시간 조정 — 사용자가 정한 새 발송 시각(프리셋·DatePicker 공용). 과거 불가(422).
+        ///
+        /// - Remark: Generated from `#/components/schemas/RescheduleUpcomingRequest`.
+        public struct RescheduleUpcomingRequest: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/RescheduleUpcomingRequest/fireAt`.
+            public var fireAt: Foundation.Date
+            /// Creates a new `RescheduleUpcomingRequest`.
+            ///
+            /// - Parameters:
+            ///   - fireAt:
+            public init(fireAt: Foundation.Date) {
+                self.fireAt = fireAt
+            }
+            public enum CodingKeys: String, CodingKey {
+                case fireAt
+            }
+        }
         /// needs_review=true 일 때의 미확정 후보 (mochi_items JSONB 영속 — PR-B).
         ///
         /// - Remark: Generated from `#/components/schemas/ReviewOptionResponse`.
@@ -2873,6 +2966,87 @@ public enum Components {
                 case dueLabel
                 case isSchedule
                 case instanceId
+            }
+        }
+        /// 홈탭 "예정 알림" 1건 — 모찌가 보낼 예정인 미래 알림(마감/일정). iOS ``UpcomingNotificationDTO`` 1:1.
+        ///
+        /// ``eventId`` 가 veto/reschedule 타겟 키(=outbox.event_id). ``fireAt`` 은 현재 유효 발송 예정 시각,
+        /// ``originalFireAt`` 은 사용자가 옮겼으면 모찌 원안(없으면 null=미조정). ``kind``="deadline"|"nudge".
+        ///
+        /// - Remark: Generated from `#/components/schemas/UpcomingNotificationEntry`.
+        public struct UpcomingNotificationEntry: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/UpcomingNotificationEntry/eventId`.
+            public var eventId: Swift.String
+            /// - Remark: Generated from `#/components/schemas/UpcomingNotificationEntry/kind`.
+            public var kind: Swift.String
+            /// - Remark: Generated from `#/components/schemas/UpcomingNotificationEntry/fireAt`.
+            public var fireAt: Foundation.Date
+            /// - Remark: Generated from `#/components/schemas/UpcomingNotificationEntry/title`.
+            public var title: Swift.String
+            /// - Remark: Generated from `#/components/schemas/UpcomingNotificationEntry/body`.
+            public var body: Swift.String
+            /// - Remark: Generated from `#/components/schemas/UpcomingNotificationEntry/originalFireAt`.
+            public var originalFireAt: Foundation.Date?
+            /// - Remark: Generated from `#/components/schemas/UpcomingNotificationEntry/itemId`.
+            public var itemId: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/UpcomingNotificationEntry/intentId`.
+            public var intentId: Swift.String?
+            /// Creates a new `UpcomingNotificationEntry`.
+            ///
+            /// - Parameters:
+            ///   - eventId:
+            ///   - kind:
+            ///   - fireAt:
+            ///   - title:
+            ///   - body:
+            ///   - originalFireAt:
+            ///   - itemId:
+            ///   - intentId:
+            public init(
+                eventId: Swift.String,
+                kind: Swift.String,
+                fireAt: Foundation.Date,
+                title: Swift.String,
+                body: Swift.String,
+                originalFireAt: Foundation.Date? = nil,
+                itemId: Swift.String? = nil,
+                intentId: Swift.String? = nil
+            ) {
+                self.eventId = eventId
+                self.kind = kind
+                self.fireAt = fireAt
+                self.title = title
+                self.body = body
+                self.originalFireAt = originalFireAt
+                self.itemId = itemId
+                self.intentId = intentId
+            }
+            public enum CodingKeys: String, CodingKey {
+                case eventId
+                case kind
+                case fireAt
+                case title
+                case body
+                case originalFireAt
+                case itemId
+                case intentId
+            }
+        }
+        /// 홈 "예정 알림" 목록 — fire_at 오름차순. 빈손이면 entries=[](정상 — 예정 알림 없음).
+        ///
+        /// - Remark: Generated from `#/components/schemas/UpcomingNotificationsResponse`.
+        public struct UpcomingNotificationsResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/UpcomingNotificationsResponse/entries`.
+            public var entries: [Components.Schemas.UpcomingNotificationEntry]?
+            /// Creates a new `UpcomingNotificationsResponse`.
+            ///
+            /// - Parameters:
+            ///   - entries:
+            public init(entries: [Components.Schemas.UpcomingNotificationEntry]? = nil) {
+                self.entries = entries
+            }
+            public enum CodingKeys: String, CodingKey {
+                case entries
             }
         }
         /// - Remark: Generated from `#/components/schemas/UpcomingTodoListResponse`.
@@ -7334,6 +7508,299 @@ public enum Operations {
             /// - Throws: An error if `self` is not `.noContent`.
             /// - SeeAlso: `.noContent`.
             public var noContent: Operations.record_recall_reaction_api_v1_recall_events__event_id__reaction_post.Output.NoContent {
+                get throws {
+                    switch self {
+                    case let .noContent(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "noContent",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+    }
+    /// Get Upcoming Notifications
+    ///
+    /// 홈탭 "예정 알림" — owner 의 아직 안 보낸 미래 알림(마감/일정, fire_at>now) fire_at 오름차순.
+    ///
+    /// "언제 알림이 갈지" 미리 보여줘 안심시키는 예고. spaced 회수는 RecallHero 담당이라 제외.
+    /// 빈손이면 entries=[](정상).
+    ///
+    /// - Remark: HTTP `GET /api/v1/recall/upcoming`.
+    /// - Remark: Generated from `#/paths//api/v1/recall/upcoming/get(get_upcoming_notifications_api_v1_recall_upcoming_get)`.
+    public enum get_upcoming_notifications_api_v1_recall_upcoming_get {
+        public static let id: Swift.String = "get_upcoming_notifications_api_v1_recall_upcoming_get"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/api/v1/recall/upcoming/GET/query`.
+            public struct Query: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/recall/upcoming/GET/query/limit`.
+                public var limit: Swift.Int?
+                /// Creates a new `Query`.
+                ///
+                /// - Parameters:
+                ///   - limit:
+                public init(limit: Swift.Int? = nil) {
+                    self.limit = limit
+                }
+            }
+            public var query: Operations.get_upcoming_notifications_api_v1_recall_upcoming_get.Input.Query
+            /// - Remark: Generated from `#/paths/api/v1/recall/upcoming/GET/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.get_upcoming_notifications_api_v1_recall_upcoming_get.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.get_upcoming_notifications_api_v1_recall_upcoming_get.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.get_upcoming_notifications_api_v1_recall_upcoming_get.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - query:
+            ///   - headers:
+            public init(
+                query: Operations.get_upcoming_notifications_api_v1_recall_upcoming_get.Input.Query = .init(),
+                headers: Operations.get_upcoming_notifications_api_v1_recall_upcoming_get.Input.Headers = .init()
+            ) {
+                self.query = query
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/recall/upcoming/GET/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/api/v1/recall/upcoming/GET/responses/200/content/application\/json`.
+                    case json(Components.Schemas.UpcomingNotificationsResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.UpcomingNotificationsResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.get_upcoming_notifications_api_v1_recall_upcoming_get.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.get_upcoming_notifications_api_v1_recall_upcoming_get.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Successful Response
+            ///
+            /// - Remark: Generated from `#/paths//api/v1/recall/upcoming/get(get_upcoming_notifications_api_v1_recall_upcoming_get)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.get_upcoming_notifications_api_v1_recall_upcoming_get.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.get_upcoming_notifications_api_v1_recall_upcoming_get.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Reschedule Upcoming Notification
+    ///
+    /// 예정 알림의 발송 시각을 사용자 지정 시각으로 옮긴다(프리셋·DatePicker 공용, owner-scoped).
+    ///
+    /// pending(fire_at>now) 인 행만 갱신 + 첫 1회 원안 보존. 행이 없으면 404(남의 event·이미 발송).
+    /// 과거 시각이면 422(`recall_upcoming.past_fire_at`).
+    ///
+    /// - Remark: HTTP `POST /api/v1/recall/upcoming/{event_id}/reschedule`.
+    /// - Remark: Generated from `#/paths//api/v1/recall/upcoming/{event_id}/reschedule/post(reschedule_upcoming_notification_api_v1_recall_upcoming__event_id__reschedule_post)`.
+    public enum reschedule_upcoming_notification_api_v1_recall_upcoming__event_id__reschedule_post {
+        public static let id: Swift.String = "reschedule_upcoming_notification_api_v1_recall_upcoming__event_id__reschedule_post"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/api/v1/recall/upcoming/{event_id}/reschedule/POST/path`.
+            public struct Path: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/recall/upcoming/{event_id}/reschedule/POST/path/event_id`.
+                public var event_id: Swift.String
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - event_id:
+                public init(event_id: Swift.String) {
+                    self.event_id = event_id
+                }
+            }
+            public var path: Operations.reschedule_upcoming_notification_api_v1_recall_upcoming__event_id__reschedule_post.Input.Path
+            /// - Remark: Generated from `#/paths/api/v1/recall/upcoming/{event_id}/reschedule/POST/requestBody`.
+            @frozen public enum Body: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/recall/upcoming/{event_id}/reschedule/POST/requestBody/content/application\/json`.
+                case json(Components.Schemas.RescheduleUpcomingRequest)
+            }
+            public var body: Operations.reschedule_upcoming_notification_api_v1_recall_upcoming__event_id__reschedule_post.Input.Body
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            ///   - body:
+            public init(
+                path: Operations.reschedule_upcoming_notification_api_v1_recall_upcoming__event_id__reschedule_post.Input.Path,
+                body: Operations.reschedule_upcoming_notification_api_v1_recall_upcoming__event_id__reschedule_post.Input.Body
+            ) {
+                self.path = path
+                self.body = body
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct NoContent: Sendable, Hashable {
+                /// Creates a new `NoContent`.
+                public init() {}
+            }
+            /// Successful Response
+            ///
+            /// - Remark: Generated from `#/paths//api/v1/recall/upcoming/{event_id}/reschedule/post(reschedule_upcoming_notification_api_v1_recall_upcoming__event_id__reschedule_post)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            case noContent(Operations.reschedule_upcoming_notification_api_v1_recall_upcoming__event_id__reschedule_post.Output.NoContent)
+            /// Successful Response
+            ///
+            /// - Remark: Generated from `#/paths//api/v1/recall/upcoming/{event_id}/reschedule/post(reschedule_upcoming_notification_api_v1_recall_upcoming__event_id__reschedule_post)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            public static var noContent: Self {
+                .noContent(.init())
+            }
+            /// The associated value of the enum case if `self` is `.noContent`.
+            ///
+            /// - Throws: An error if `self` is not `.noContent`.
+            /// - SeeAlso: `.noContent`.
+            public var noContent: Operations.reschedule_upcoming_notification_api_v1_recall_upcoming__event_id__reschedule_post.Output.NoContent {
+                get throws {
+                    switch self {
+                    case let .noContent(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "noContent",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+    }
+    /// Veto Upcoming Notification
+    ///
+    /// 이 항목 알림 전체 끄기 — 대상 pending skip(user_veto) + 그 plan 영구 cancel(user_dismiss).
+    ///
+    /// 그 plan 의 나머지 미래 단계 알림도 함께 정지된다. 행이 없으면 404(남의 event·이미 발송/취소).
+    ///
+    /// - Remark: HTTP `POST /api/v1/recall/upcoming/{event_id}/veto`.
+    /// - Remark: Generated from `#/paths//api/v1/recall/upcoming/{event_id}/veto/post(veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post)`.
+    public enum veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post {
+        public static let id: Swift.String = "veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/api/v1/recall/upcoming/{event_id}/veto/POST/path`.
+            public struct Path: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/recall/upcoming/{event_id}/veto/POST/path/event_id`.
+                public var event_id: Swift.String
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - event_id:
+                public init(event_id: Swift.String) {
+                    self.event_id = event_id
+                }
+            }
+            public var path: Operations.veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post.Input.Path
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            public init(path: Operations.veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post.Input.Path) {
+                self.path = path
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct NoContent: Sendable, Hashable {
+                /// Creates a new `NoContent`.
+                public init() {}
+            }
+            /// Successful Response
+            ///
+            /// - Remark: Generated from `#/paths//api/v1/recall/upcoming/{event_id}/veto/post(veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            case noContent(Operations.veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post.Output.NoContent)
+            /// Successful Response
+            ///
+            /// - Remark: Generated from `#/paths//api/v1/recall/upcoming/{event_id}/veto/post(veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            public static var noContent: Self {
+                .noContent(.init())
+            }
+            /// The associated value of the enum case if `self` is `.noContent`.
+            ///
+            /// - Throws: An error if `self` is not `.noContent`.
+            /// - SeeAlso: `.noContent`.
+            public var noContent: Operations.veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post.Output.NoContent {
                 get throws {
                     switch self {
                     case let .noContent(response):
