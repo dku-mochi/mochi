@@ -25,10 +25,12 @@ struct BackTapShareView: View {
     let sourceApp: String?
     /// sentinel 로 받은 화면상 URL(Safari 등) — 기록상세 "원본에서 보기"용. 없으면 nil.
     let url: URL?
-    let onSubmit: (InboundIngestPayload) -> Void
+    /// 사용자 코너 크롭(정규화 0...1, 표시 이미지 기준). 제출 시 ``ShareImageCropper`` 가 파일에 적용한다.
+    let onSubmit: (InboundIngestPayload, CGRect) -> Void
     let onCancel: () -> Void
 
     @State private var memo: String = ""
+    @State private var crop = ShareCropImage.fullCrop
     @State private var imageRemoved = false
     @State private var showUndo = false
     @State private var isSubmitting = false
@@ -41,15 +43,17 @@ struct BackTapShareView: View {
                 .ignoresSafeArea()
 
             VStack(spacing: 14) {
-                ShareTopBar(sourceApp: sourceApp, isSubmitting: isSubmitting, onCancel: onCancel)
-                    .shareEntrance(0, appeared: appeared)
+                ShareTopBar(
+                    sourceApp: sourceApp,
+                    isSubmitting: isSubmitting,
+                    onCancel: onCancel,
+                    onRemoveImage: imageRemoved ? nil : removeImage
+                )
+                .shareEntrance(0, appeared: appeared)
 
                 if !imageRemoved, let firstImage = imageRefs.first {
-                    SharePreviewImage(imageRef: firstImage)
+                    ShareCropImage(imageRef: firstImage, crop: $crop)
                         .frame(maxHeight: .infinity)
-                        .overlay(alignment: .topTrailing) {
-                            RemoveImageButton(action: removeImage)
-                        }
                         .transition(.opacity.combined(with: .scale(scale: 0.96)))
                         .shareEntrance(1, appeared: appeared)
                 }
@@ -141,12 +145,15 @@ struct BackTapShareView: View {
         withAnimation(.easeInOut(duration: 0.2)) { isSubmitting = true }
         ShareHaptics.success()
         let text = CaptureContextSentinel.composeText(sourceApp: sourceApp, base: nil)
-        onSubmit(InboundIngestPayload(
-            url: imageRemoved ? nil : url,
-            text: text,
-            userMemo: memo.isEmpty ? nil : memo,
-            channelGuess: imageRemoved ? .appDirectInput : channelGuess,
-            imageRefs: imageRemoved ? [] : imageRefs
-        ))
+        onSubmit(
+            InboundIngestPayload(
+                url: imageRemoved ? nil : url,
+                text: text,
+                userMemo: memo.isEmpty ? nil : memo,
+                channelGuess: imageRemoved ? .appDirectInput : channelGuess,
+                imageRefs: imageRemoved ? [] : imageRefs
+            ),
+            imageRemoved ? ShareCropImage.fullCrop : crop
+        )
     }
 }

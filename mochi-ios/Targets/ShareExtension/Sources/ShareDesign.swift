@@ -77,11 +77,6 @@ enum ShareDesign {
         light: Color(red: 0.30, green: 0.24, blue: 0.68),
         dark: Color(red: 0.81, green: 0.77, blue: 1.0)
     )
-    /// 프리뷰 하단 "아래로 이어짐" 페이드 색 — 배경 그라데이션과 맞춰 이질감 최소화.
-    static let fadeHint = Color(
-        light: Color(red: 0.86, green: 0.85, blue: 0.96),
-        dark: Color(red: 0.13, green: 0.11, blue: 0.20)
-    )
     /// 메모 입력란 채움 — 배경보다 살짝 가라앉은(recessed) 톤. 라이트=어둡게, 다크=밝게.
     static let memoFill = Color(
         light: Color.black.opacity(0.045),
@@ -110,6 +105,14 @@ enum ShareDesign {
 enum ShareHaptics {
     static func success() {
         UINotificationFeedbackGenerator().notificationOccurred(.success)
+    }
+    /// 크롭 모드 진입(모서리를 잡은 순간) — 가벼운 탭.
+    static func lightTap() {
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+    }
+    /// 크롭 확정(손을 뗀 순간) — 선택 변경 햅틱.
+    static func selection() {
+        UISelectionFeedbackGenerator().selectionChanged()
     }
 }
 
@@ -148,6 +151,9 @@ struct ShareTopBar: View {
     let sourceApp: String?
     let isSubmitting: Bool
     let onCancel: () -> Void
+    /// 이미지가 있을 때만 — 스크린샷을 빼고 메모만 남기는 액션. 미리보기 위(탑바)로 옮겨
+    /// 코너 크롭 핸들과 자리 충돌을 없앤다. nil 이면 표시하지 않는다.
+    var onRemoveImage: (() -> Void)? = nil
 
     var body: some View {
         ZStack {
@@ -159,6 +165,9 @@ struct ShareTopBar: View {
                     ShareCloseButton(action: onCancel)
                 }
                 Spacer()
+                if !isSubmitting, let onRemoveImage {
+                    ShareRemoveImageButton(action: onRemoveImage)
+                }
             }
         }
         .frame(minHeight: 44)
@@ -307,24 +316,32 @@ struct ShareCloseButton: View {
 
 // MARK: - Remove image button
 
-/// 미리보기 우상단 이미지 제거 — 어두운 반투명 원 + 흰 trash 아이콘.
-/// `xmark` 는 "시트 닫기"로 오해되기 쉬워 `trash` 로 "이건 사진 삭제"임을 명확히 한다.
-/// 좌상단 "취소"(텍스트, 모달 dismiss)와 시각·의미 모두 분리. 44pt 터치타깃.
-struct RemoveImageButton: View {
+/// 탑바 우측 "사진 빼기" 필 — 스크린샷을 버리고 메모만 남긴다. 코너 크롭 핸들이 미리보기 모서리를
+/// 차지하므로, 제거 액션은 미리보기 위(탑바)로 올려 자리 충돌을 없앴다. 좌측 "취소"(모달 dismiss)와
+/// 의미·시각 모두 분리한다. 44pt 터치타깃.
+struct ShareRemoveImageButton: View {
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            Image(systemName: "trash.fill")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(.white)
-                .frame(width: 32, height: 32)
-                .background(Color.black.opacity(0.42), in: Circle())
-                .overlay(Circle().stroke(.white.opacity(0.25), lineWidth: 0.5))
+            HStack(spacing: 5) {
+                Image(systemName: "trash")
+                    .font(.system(size: 12, weight: .semibold))
+                Text("사진 빼기")
+                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+            }
+            .foregroundStyle(ShareDesign.subtitle)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(
+                Capsule()
+                    .fill(ShareDesign.cardFill)
+                    .overlay(Capsule().stroke(ShareDesign.cardStroke, lineWidth: 1))
+            )
+            .contentShape(Capsule())
         }
-        .frame(width: 44, height: 44)
-        .padding(6)
-        .accessibilityLabel(Text("스크린샷 제거"))
+        .frame(minHeight: 44)
+        .accessibilityLabel(Text("스크린샷 빼고 메모만 남기기"))
     }
 }
 
@@ -381,70 +398,6 @@ struct ShareMemoField: View {
                         .stroke(ShareDesign.title.opacity(0.10), lineWidth: 1)
                 )
         )
-    }
-}
-
-// MARK: - Preview image
-
-/// App Group container 의 captures/ PNG 를 카드에 **전체폭 fit + 세로 스크롤**로 표시한다.
-///
-/// 백탭 캡처는 풀스크린(≈9:19.5)이라 가용 높이보다 훨씬 길다. 이전엔 ``scaledToFill`` 상단정렬로
-/// 아래를 하드컷했는데, 사용자가 "왜 이 영역만 전송되지?" 로 오해했다. 그래서 이미지를 카드 폭에
-/// 맞춰(``scaledToFit``) 세로로 길게 펼치고 **세로 스크롤**로 끝까지 확인하게 한다 — 잘린 게 아니라
-/// 화면이 짧아 일부만 보일 뿐임을 스크롤 인디케이터 + 하단 페이드("아래로 이어짐")로 전달한다.
-/// 헤더·CTA 는 이 뷰 바깥(부모 VStack)에 고정돼 스크롤과 무관하게 항상 함께 보인다.
-///
-/// 캡처 상단 상태바(~6%)는 실기기 상태바와 중복돼 잘라낸다(콘텐츠가 아니라 인식에 무해).
-struct SharePreviewImage: View {
-    let imageRef: ImageRef
-
-    var body: some View {
-        ScrollView(.vertical, showsIndicators: true) {
-            if let uiImage = loadImage() {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(maxWidth: .infinity)
-            } else {
-                ZStack {
-                    ShareDesign.cardSolid
-                    Image(systemName: "photo")
-                        .font(.system(size: 28))
-                        .foregroundStyle(ShareDesign.subtitle)
-                }
-                .frame(maxWidth: .infinity)
-                .frame(height: 240)
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .overlay(alignment: .bottom) {
-            // "아래로 이어짐" 단서 — 콘텐츠가 하드컷이 아니라 계속됨을 암시(스크롤 인디케이터와 함께).
-            LinearGradient(
-                colors: [ShareDesign.fadeHint.opacity(0), ShareDesign.fadeHint],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .frame(height: 28)
-            .allowsHitTesting(false)
-        }
-        .overlay(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .stroke(ShareDesign.cardStroke, lineWidth: 1)
-        )
-        .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 3)
-    }
-
-    private func loadImage() -> UIImage? {
-        let url = AppGroup.containerURL.appendingPathComponent(imageRef.relativePath)
-        guard let data = try? Data(contentsOf: url), let img = UIImage(data: data) else { return nil }
-        // 풀스크린 캡처 상단 상태바(~6%)를 잘라 중복 상태바를 없앤 뒤 top-align 으로 상단 콘텐츠 보존.
-        guard let cg = img.cgImage else { return img }
-        let cropY = Int(CGFloat(cg.height) * 0.06)
-        guard cropY > 0,
-              let cropped = cg.cropping(to: CGRect(x: 0, y: cropY, width: cg.width, height: cg.height - cropY))
-        else { return img }
-        return UIImage(cgImage: cropped, scale: img.scale, orientation: img.imageOrientation)
     }
 }
 

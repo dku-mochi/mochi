@@ -37,10 +37,12 @@ _MAX_GIST = 5
 # related(관련 기억) 조회 — ANN 이웃 상한·임계(과하게 길지 않게, 개인 규모 충분).
 _DEFAULT_RELATED_MIN_SCORE = 0.5
 _DEFAULT_RELATED_LIMIT = 3
-# "다시 볼" 살아있는 knowledge lifecycle — archived 는 사용자가 이미 닫아 회수 대상 아님.
-_LIVE_KINDS = frozenset(
+# spaced 회수가 떠올리는 "잊혀가는" knowledge lifecycle. active 는 제외한다 — 사용자가
+# (저장 직후거나, 회수를 열어 소생시켜) 지금 활발히 보는 중이라 회수 대상이 아니다. 이 제외가
+# "opened → instance active 소생"(§5.4)과 "다음 feed 에서 빠짐"을 잇는 고리다(소생=다시 안 보여줌).
+# archived 도 당연히 제외(사용자가 이미 닫음).
+_RECALLABLE_SPACED_KINDS = frozenset(
     {
-        InstanceLifecycleKind.ACTIVE,
         InstanceLifecycleKind.DECAYING,
         InstanceLifecycleKind.REVIEW_REQUESTED,
     }
@@ -86,9 +88,10 @@ def _split_summary(summary: str | None) -> tuple[str, list[str]]:
     return oneline, lines[:_MAX_GIST]
 
 
-def _has_live_knowledge(item: MochiItem) -> bool:
+def _is_recallable_spaced_knowledge(item: MochiItem) -> bool:
     return any(
-        inst.intent_type is Intent.KNOWLEDGE and inst.lifecycle.kind in _LIVE_KINDS
+        inst.intent_type is Intent.KNOWLEDGE
+        and inst.lifecycle.kind in _RECALLABLE_SPACED_KINDS
         for inst in item.intent_instances
     )
 
@@ -175,8 +178,9 @@ class GetRecallFeed:
                               kind=_KIND_RECALL, reason=_REASON_LINKED, related=related)
                 )
             else:
-                # spaced — 살아있는 knowledge instance 없으면 제외(사용자가 닫음/비-knowledge).
-                if not _has_live_knowledge(item):
+                # spaced — "잊혀가는"(decaying/reviewRequested) knowledge 만. active(소생/활발)·
+                # archived·비-knowledge 는 제외. opened 로 소생된 항목이 여기서 자동으로 빠진다.
+                if not _is_recallable_spaced_knowledge(item):
                     continue
                 entries.append(
                     _to_entry(item, recall_event_id=cand.recall_event_id,

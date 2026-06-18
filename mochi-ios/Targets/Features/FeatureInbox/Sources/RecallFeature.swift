@@ -223,7 +223,7 @@ public enum RecallReasonKind: String, Sendable, CaseIterable {
         case .relatedCluster: "관련해서 여러 번"
         case .fadingValue:    "잊기 전에 한 번"
         case .revisitedOften: "요즘 자주 보시던"
-        case .linkedToRecent: "지금 맥락과 이어져요"
+        case .linkedToRecent: "최근에 보신 것과 이어져요"
         }
     }
 

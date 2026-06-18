@@ -1,0 +1,487 @@
+import Foundation
+import CryptoKit
+import ComposableArchitecture
+import CoreDomain
+import CorePersistence
+import CoreNetworking
+import DesignSystem
+
+/// 새 홈 reducer — "사용자는 찾으러 들어오지만, 모찌가 잊은 기억을 떠올려줘 '아, 맞다!' 하게 한다".
+///
+/// 기존 `HomeFeature`("자동성의 예외 처리 인박스")와 달리, 이 홈의 무게중심은 **능동 회수**다
+/// (PRODUCT.md §1.5 — 회수의 주체는 모찌). 화면 위계: 검색(입구) → 회수 히어로(심장) →
+/// 카테고리 서랍(탐색) → 최근·확인(안전망). reducer 는 데이터 조립과 라우팅만 책임지고,
+/// 회수 히어로의 3D 인터랙션은 전부 뷰(`RecallHeroView`)의 로컬 상태다.
+@Reducer
+public struct MochiHomeFeature: Sendable {
+
+    @ObservableState
+    public struct State: Equatable, Sendable {
+        /// 능동 회수 — 홈의 심장. 모찌가 떠올린 "다시 보면 좋을 기억". cold-start 빈손은 정상.
+        public var recall: [RecallFeedEntryDTO] = []
+        /// 회수 itemID → 원본 캡처 이미지 ref. 이미지가 회상의 핵심이라(이미지 보고 "아, 맞다"),
+        /// 회수 DTO엔 없는 이미지를 server PK 로 로컬 기록을 역매핑해 채운다. 없으면(메모·URL·지식) 폴백.
+        public var recallImages: [UUID: ImageRef] = [:]
+        /// "이런 걸 모아두셨어요" — 카테고리별 누적 집계(전체). 카드 탭 → 3D 턴테이블.
+        public var categories: [CategoryBucket] = []
+        /// 최근에 보낸 것들 — 정리 대상 아닌 안전망(원본 확인·되돌리기).
+        public var recent: IdentifiedArrayOf<MochiItem> = []
+        /// 모찌가 확신 못 한 것("지금 확인해 주세요"). 있을 때만 배너로 노출.
+        public var needsReview: IdentifiedArrayOf<MochiItem> = []
+        public var weeklyRecordCount: Int = 0
+        public var weeklyTopCategories: [WeeklyCategoryStat] = []
+        /// 검색바 아래 빠른 검색 칩 — 상위 카테고리·주제어(검색 query 로 전송).
+        public var searchSuggestions: [String] = MochiHomeFeature.evergreenSearches
+        public var searchDraft: String = ""
+        public var quickMemoText: String = ""
+        public var isComposingMemo: Bool = false
+        public var isNeedsReviewPresented: Bool = false
+        public var needsReviewPage: Int = 0
+        public var isLoading: Bool = false
+        public var isSaving: Bool = false
+        public var lastError: String?
+        @Presents public var deleteAlert: AlertState<Action.Alert>?
+
+        public init() {}
+    }
+
+    public enum Action: Sendable, BindableAction {
+        case binding(BindingAction<State>)
+        case onAppear
+        case refresh
+        case sectionsLoaded(
+            recent: [MochiItem],
+            needsReview: [MochiItem],
+            weeklyItems: [MochiItem],
+            allItems: [MochiItem]
+        )
+        case recallLoaded([RecallFeedEntryDTO])
+        case recallImagesLoaded([UUID: ImageRef])
+        case loadFailed(String)
+        /// 검색바 제출 → 검색 탭으로(상위가 query 라우팅).
+        case searchSubmitted
+        /// 빠른 검색 칩 탭 → 그 주제로 검색.
+        case searchSuggestionTapped(String)
+        /// 회수 히어로 "모두 보기" → ② 자세히 목록 push.
+        case recallSeeAllTapped
+        /// 회수 히어로 초점 카드 탭 → ③ 회수 상세 직행 push.
+        case recallEntryOpened(RecallFeedEntryDTO)
+        /// 카테고리 카드 탭 → 3D 턴테이블 push.
+        case categoryTapped(CategoryBucket)
+        /// 최근 카드 탭 → 상세(hero zoom). 상위(MainTab)가 처리.
+        case mochiItemTapped(MochiItem.ID, hero: HeroSourceFrames)
+        case deleteMochiItemTapped(MochiItem.ID)
+        case deleteAlert(PresentationAction<Alert>)
+        case needsReviewTapped
+        case dismissNeedsReview
+        case reanalyzeTapped(mochiItemID: MochiItem.ID, hint: String)
+        case retryAnalysisTapped(MochiItem.ID)
+        case quickMemoSubmitted
+        case quickMemoSaved
+        case imagePicked(data: Data, memo: String)
+        case weeklyDigestTapped
+        case favoritesTapped
+        case openSettingsTapped
+        case replayOnboardingTapped
+        case delegate(Delegate)
+
+        public enum Alert: Equatable, Sendable {
+            case confirmDelete(MochiItem.ID)
+        }
+        public enum Delegate: Equatable, Sendable {
+            /// 검색바·칩 제출 — 상위가 검색 탭으로 전환하고 query 로 검색을 실행한다.
+            case searchRequested(String)
+            /// 회수 "모두 보기" — 상위가 ② 자세히 목록을 push 한다(이미 받아둔 피드를 넘겨 즉시 그림).
+            case recallListRequested([RecallFeedEntryDTO])
+            /// 회수 히어로 카드 탭 — 상위가 그 기록의 원본 상세를 연다("왜 떴는지"는 노출 안 함).
+            case recallItemOpened(itemID: UUID)
+            /// 카테고리 카드 탭 — 상위가 그 서랍을 3D 턴테이블로 push 한다.
+            case categoryCarouselRequested(CategoryBucket)
+            case weeklyDigestRequested
+            case favoritesRequested
+            case onboardingRequested
+        }
+    }
+
+    @Dependency(\.mochiItemRepository) var repository
+    @Dependency(\.mochiAPIClient) var apiClient
+    @Dependency(\.syncTrigger) var syncTrigger
+    @Dependency(\.uuid) var uuid
+    @Dependency(\.date) var date
+
+    private enum CancelID { case observe, recallFeed }
+
+    public init() {}
+
+    public var body: some ReducerOf<Self> {
+        BindingReducer()
+
+        Reduce { state, action in
+            switch action {
+            case .binding:
+                return .none
+
+            case .onAppear:
+                state.isLoading = true
+                return .merge(
+                    .run { send in await loadAll(send: send) },
+                    // 회수 피드는 별도 effect — 실패해도 홈 본문 로드를 막지 않는다(실패 격리).
+                    .run { send in await send(.recallLoaded((try? await apiClient.recallFeed(limit: 20)) ?? [])) }
+                        .cancellable(id: CancelID.recallFeed, cancelInFlight: true),
+                    // 로컬이 비어있으면(재설치 직후 등) 서버에서 복구 — pull 결과는 observeChanges 가 자동 재로드.
+                    .run { _ in
+                        if (try? await repository.listRecent(limit: 1))?.isEmpty ?? true {
+                            await syncTrigger.pullRemote()
+                        }
+                    },
+                    .run { send in
+                        for await _ in repository.observeChanges() {
+                            await loadAll(send: send)
+                        }
+                    }
+                    .cancellable(id: CancelID.observe, cancelInFlight: true)
+                )
+
+            case .refresh:
+                state.isLoading = true
+                return .merge(
+                    .run { send in await loadAll(send: send) },
+                    .run { send in await send(.recallLoaded((try? await apiClient.recallFeed(limit: 20)) ?? [])) }
+                        .cancellable(id: CancelID.recallFeed, cancelInFlight: true)
+                )
+
+            case let .sectionsLoaded(recent, needsReview, weeklyItems, allItems):
+                state.isLoading = false
+                state.recent = IdentifiedArray(uniqueElements: recent)
+                state.needsReview = IdentifiedArray(uniqueElements: needsReview)
+                state.weeklyRecordCount = weeklyItems.count
+                state.weeklyTopCategories = Self.weeklyCategoryStats(from: weeklyItems)
+                state.categories = Self.categoryBuckets(from: allItems)
+                state.searchSuggestions = Self.makeSearchSuggestions(
+                    weekly: state.weeklyTopCategories, buckets: state.categories
+                )
+                if state.needsReviewPage >= needsReview.count {
+                    state.needsReviewPage = max(0, needsReview.count - 1)
+                }
+                if needsReview.isEmpty {
+                    state.isNeedsReviewPresented = false
+                }
+                return .none
+
+            case let .loadFailed(message):
+                state.isLoading = false
+                state.isSaving = false
+                state.lastError = message
+                return .none
+
+            case let .recallLoaded(entries):
+                state.recall = entries
+                // 회수의 원본 캡처 이미지를 역매핑해 히어로 커버로 — 이미지를 보고 "아, 맞다" 하는 회상이
+                // 가장 강하다. itemID 는 server PK. 이미지 없는 회수(메모·URL·지식)는 맵에 안 담겨 폴백.
+                return .run { send in
+                    var map: [UUID: ImageRef] = [:]
+                    for entry in entries {
+                        if let item = try? await repository.find(serverID: entry.itemID),
+                           let ref = item.source.imageRefs.first {
+                            map[entry.itemID] = ref
+                        }
+                    }
+                    await send(.recallImagesLoaded(map))
+                }
+
+            case let .recallImagesLoaded(map):
+                state.recallImages = map
+                return .none
+
+            case .searchSubmitted:
+                let query = state.searchDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !query.isEmpty else { return .none }
+                state.searchDraft = ""
+                return .send(.delegate(.searchRequested(query)))
+
+            case let .searchSuggestionTapped(term):
+                return .send(.delegate(.searchRequested(term)))
+
+            case .recallSeeAllTapped:
+                guard !state.recall.isEmpty else { return .none }
+                return .send(.delegate(.recallListRequested(state.recall)))
+
+            case let .recallEntryOpened(entry):
+                // 열어본 회수는 홈에서 즉시 뺀다(낙관적 — "봤으니 그만"). 서버엔 opened 반응을 보고해
+                // 학습·소생(knowledge active 복귀)에 반영하고(recallEventID 있을 때), 원본 상세로 직행한다.
+                // 이 보고가 없으면 서버는 "안 열렸다"고 알아 다음 피드에도 그대로 남는다.
+                state.recall.removeAll { $0.itemID == entry.itemID }
+                state.recallImages[entry.itemID] = nil
+                let eventID = entry.recallEventID
+                return .merge(
+                    .run { _ in
+                        if let eventID {
+                            try? await apiClient.recordRecallReaction(eventID: eventID, reaction: .opened)
+                        }
+                    },
+                    .send(.delegate(.recallItemOpened(itemID: entry.itemID)))
+                )
+
+            case let .categoryTapped(bucket):
+                return .send(.delegate(.categoryCarouselRequested(bucket)))
+
+            case .mochiItemTapped, .openSettingsTapped:
+                // 상위 Feature(MainTab)가 처리 — 상세 hero present / 설정 push.
+                return .none
+
+            case .needsReviewTapped:
+                state.isNeedsReviewPresented = !state.needsReview.isEmpty
+                return .none
+
+            case .dismissNeedsReview:
+                state.isNeedsReviewPresented = false
+                return .none
+
+            case let .deleteMochiItemTapped(id):
+                state.deleteAlert = AlertState {
+                    TextState("기록을 삭제할까요?")
+                } actions: {
+                    ButtonState(role: .destructive, action: .confirmDelete(id)) { TextState("삭제") }
+                    ButtonState(role: .cancel) { TextState("취소") }
+                } message: {
+                    TextState("삭제한 기록은 되돌릴 수 없어요.")
+                }
+                return .none
+
+            case let .deleteAlert(.presented(.confirmDelete(id))):
+                return .run { send in
+                    do {
+                        if let item = try await repository.find(id: id),
+                           case let .uploaded(serverID, _) = item.syncState {
+                            try await apiClient.deleteMochiItem(mochiServerID: serverID)
+                        }
+                        try await repository.delete(id: id)
+                    } catch {
+                        await send(.loadFailed(String(describing: error)))
+                    }
+                }
+
+            case .deleteAlert:
+                return .none
+
+            case let .retryAnalysisTapped(mochiItemID):
+                return .run { send in
+                    do {
+                        try await repository.requeueForAnalysis(mochiItemID: mochiItemID)
+                        await loadAll(send: send)
+                    } catch {
+                        await send(.loadFailed(String(describing: error)))
+                    }
+                }
+
+            case let .reanalyzeTapped(mochiItemID, hint):
+                return .run { send in
+                    do {
+                        guard let item = try await repository.find(id: mochiItemID),
+                              case let .uploaded(serverID, _) = item.syncState else { return }
+                        try await apiClient.reanalyzeMochiItem(id: serverID, userHint: hint)
+                        try await repository.requeueForAnalysis(mochiItemID: mochiItemID)
+                        await loadAll(send: send)
+                    } catch {
+                        await send(.loadFailed(String(describing: error)))
+                    }
+                }
+
+            case .quickMemoSubmitted:
+                let text = state.quickMemoText.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !text.isEmpty, !state.isSaving else { return .none }
+                state.isSaving = true
+                let id = uuid()
+                let now = date.now
+                // 한 입력창에 링크든 메모든 — URL 한 건이면 url 채널로, 아니면 메모로.
+                let source: IngestSource
+                if let url = Self.normalizedURL(text) {
+                    source = IngestSource(id: id, channel: Self.channel(for: url), url: url, capturedAt: now)
+                } else {
+                    source = IngestSource(id: id, channel: .appDirectInput, text: text, capturedAt: now)
+                }
+                return .run { send in
+                    do {
+                        try await repository.upsert(MochiItem(source: source, createdAt: now, updatedAt: now))
+                        await syncTrigger.runOnce()
+                        await send(.quickMemoSaved)
+                        await loadAll(send: send)
+                    } catch {
+                        await send(.loadFailed(String(describing: error)))
+                    }
+                }
+
+            case .quickMemoSaved:
+                state.isSaving = false
+                state.quickMemoText = ""
+                state.isComposingMemo = false
+                return .none
+
+            case let .imagePicked(data, memo):
+                let id = uuid()
+                let now = date.now
+                let trimmedMemo = memo.trimmingCharacters(in: .whitespacesAndNewlines)
+                return .run { send in
+                    do {
+                        let digest = SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
+                        let filename = "\(id.uuidString).jpg"
+                        let permanent = AppGroup.capturedImagesDirectoryURL.appendingPathComponent(filename)
+                        try data.write(to: permanent, options: [.atomic])
+                        let ref = ImageRef(
+                            relativePath: "captures/\(filename)",
+                            mimeType: "image/jpeg",
+                            byteSize: data.count,
+                            sha256: digest,
+                            objectKey: nil
+                        )
+                        let source = IngestSource(
+                            id: id,
+                            channel: .screenshot,
+                            imageRefs: [ref],
+                            userMemo: trimmedMemo.isEmpty ? nil : trimmedMemo,
+                            capturedAt: now
+                        )
+                        try await repository.upsert(MochiItem(source: source, createdAt: now, updatedAt: now))
+                        await syncTrigger.runOnce()
+                        await loadAll(send: send)
+                    } catch {
+                        await send(.loadFailed(String(describing: error)))
+                    }
+                }
+
+            case .weeklyDigestTapped:
+                return .send(.delegate(.weeklyDigestRequested))
+
+            case .favoritesTapped:
+                return .send(.delegate(.favoritesRequested))
+
+            case .replayOnboardingTapped:
+                return .send(.delegate(.onboardingRequested))
+
+            case .delegate:
+                return .none
+            }
+        }
+        .ifLet(\.$deleteAlert, action: \.deleteAlert)
+    }
+
+    // MARK: - Helpers
+
+    /// recent / needsReview / weekly(집계) / all(카테고리 집계) 를 병렬 로드.
+    private func loadAll(send: Send<Action>) async {
+        async let recentTask: [MochiItem] = (try? await repository.listRecent(limit: 12)) ?? []
+        async let needsReviewTask: [MochiItem] = (try? await repository.listNeedsReview(limit: 10)) ?? []
+        async let weeklyTask: [MochiItem] = (try? await repository.listCaptured(in: Self.currentWeekInterval(now: date.now), limit: 500)) ?? []
+        async let allTask: [MochiItem] = (try? await repository.listCaptured(in: Self.allTimeInterval, limit: 800)) ?? []
+
+        let (recent, needsReview, weeklyItems, allItems) = await (
+            recentTask, needsReviewTask, weeklyTask, allTask
+        )
+        await send(.sectionsLoaded(
+            recent: recent, needsReview: needsReview, weeklyItems: weeklyItems, allItems: allItems
+        ))
+    }
+
+    private static let allTimeInterval = DateInterval(start: .distantPast, end: .distantFuture)
+    private static let carouselCoverCap = 30
+    private static let categoryGridLimit = 6
+
+    /// 카테고리별 누적 묶음 — 전체 표본을 카테고리로 묶어 개수 내림차순. `count` 는 전체 개수(표시용),
+    /// `items` 는 턴테이블에 띄울 대표 항목(상한). 카드 탭 시 그대로 넘겨 즉시 그린다.
+    static func categoryBuckets(from items: [MochiItem]) -> [CategoryBucket] {
+        var order: [String] = []
+        var groups: [String: [MochiItem]] = [:]
+        for item in items {
+            let category = item.analysis?.category?.trimmingCharacters(in: .whitespacesAndNewlines)
+            let label = category.flatMap { $0.isEmpty ? nil : $0 } ?? fallbackCategory(for: item)
+            if groups[label] == nil { order.append(label) }
+            groups[label, default: []].append(item)
+        }
+        return order
+            .map { (name: $0, items: groups[$0] ?? []) }
+            .sorted { lhs, rhs in
+                if lhs.items.count != rhs.items.count { return lhs.items.count > rhs.items.count }
+                return lhs.name < rhs.name
+            }
+            .prefix(categoryGridLimit)
+            .enumerated()
+            .map { index, pair in
+                CategoryBucket(
+                    name: pair.name,
+                    count: pair.items.count,
+                    items: Array(pair.items.prefix(carouselCoverCap)),
+                    tintIndex: index
+                )
+            }
+    }
+
+    private static func currentWeekInterval(now: Date) -> DateInterval {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.locale = Locale(identifier: "ko_KR")
+        calendar.timeZone = .autoupdatingCurrent
+        calendar.firstWeekday = 2
+        return calendar.dateInterval(of: .weekOfYear, for: now) ?? DateInterval(start: now, duration: 7 * 24 * 60 * 60)
+    }
+
+    private static func weeklyCategoryStats(from items: [MochiItem]) -> [WeeklyCategoryStat] {
+        let counts = items.reduce(into: [String: Int]()) { partial, item in
+            let category = item.analysis?.category?.trimmingCharacters(in: .whitespacesAndNewlines)
+            let label = category.flatMap { $0.isEmpty ? nil : $0 } ?? fallbackCategory(for: item)
+            partial[label, default: 0] += 1
+        }
+        return counts
+            .map { WeeklyCategoryStat(name: $0.key, count: $0.value) }
+            .sorted { lhs, rhs in
+                if lhs.count != rhs.count { return lhs.count > rhs.count }
+                return lhs.name < rhs.name
+            }
+            .prefix(3)
+            .map { $0 }
+    }
+
+    private static func fallbackCategory(for item: MochiItem) -> String {
+        if let label = item.instances.first(where: { ($0.label ?? "").isEmpty == false })?.label {
+            return label
+        }
+        switch item.representativeIntent {
+        case .schedule: return "일정"
+        case .todo: return "할 일"
+        case .knowledge: return "학습"
+        case .memo, .none: return "기록"
+        }
+    }
+
+    /// raw 문자열을 http(s) URL 로 정규화. scheme 누락 시 https 부착, http/https 아니거나 host 없으면 nil.
+    static func normalizedURL(_ raw: String) -> URL? {
+        guard !raw.isEmpty else { return nil }
+        let candidate = raw.contains("://") ? raw : "https://\(raw)"
+        guard let url = URL(string: candidate),
+              let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https",
+              let host = url.host, !host.isEmpty else { return nil }
+        return url
+    }
+
+    /// host 기반 채널 추론 — 앱 내 URL 입력도 같은 enrich 채널로 흘려보내 분석 일관성 유지.
+    static func channel(for url: URL) -> IngestChannel {
+        guard let host = url.host?.lowercased() else { return .appShareSheet }
+        if host.contains("youtube.com") || host.contains("youtu.be") { return .youtube }
+        if host.contains("instagram.com") { return .instagram }
+        if host.contains("kakao") { return .kakaoTalk }
+        if host.contains("apple.com") || host.contains("safari") { return .safari }
+        return .appShareSheet
+    }
+
+    /// 빠른 검색 칩 — 상위 카테고리/주제어를 검색 query 로. 모자라면 evergreen 으로 4개까지.
+    static func makeSearchSuggestions(weekly: [WeeklyCategoryStat], buckets: [CategoryBucket]) -> [String] {
+        var out: [String] = []
+        for bucket in buckets.prefix(2) where !out.contains(bucket.name) { out.append(bucket.name) }
+        for stat in weekly.prefix(2) where !out.contains(stat.name) { out.append(stat.name) }
+        for ever in evergreenSearches where out.count < 4 {
+            if !out.contains(ever) { out.append(ever) }
+        }
+        return Array(out.prefix(4))
+    }
+
+    /// 기록이 적은 유저용 기본 검색 칩.
+    static let evergreenSearches: [String] = ["이번주 저장", "즐겨찾기", "최근 링크", "스크린샷"]
+}

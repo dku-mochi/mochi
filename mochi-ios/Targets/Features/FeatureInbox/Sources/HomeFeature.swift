@@ -30,6 +30,9 @@ public struct HomeFeature: Sendable {
         public var needsReview: IdentifiedArrayOf<MochiItem> = []
         public var weeklyRecordCount: Int = 0
         public var weeklyTopCategories: [WeeklyCategoryStat] = []
+        /// "이런 걸 모아두셨어요" — 카테고리별 누적 집계(전체 기준). 카드 그리드 + 탭 시 3D 턴테이블의 원천.
+        /// 주간 카드(`weeklyTopCategories`)와 달리 기간 제한 없이 전체에서 묶고, 카드 탭 시 그대로 넘겨 띄운다.
+        public var categoryBuckets: [CategoryBucket] = []
         /// 능동 회수 "한 칸" — "다시 보면 좋을 기억"(고정 틀, 비면 "지금은 없어요"). cold-start 빈손은 정상.
         /// 가장 가치 높은 1건 미리보기 + count 만 홈에 두고, 자세히/상세는 별도 화면(RecallListFeature).
         public var recall: [RecallFeedEntryDTO] = []
@@ -60,7 +63,8 @@ public struct HomeFeature: Sendable {
             recent: [MochiItem],
             analyzing: [MochiItem],
             needsReview: [MochiItem],
-            weeklyItems: [MochiItem]
+            weeklyItems: [MochiItem],
+            allItems: [MochiItem]
         )
         case loadFailed(String)
         /// 회수 피드 로드 결과(빈손이면 [] — cold-start 정상). onAppear 와 별개 effect 로 분리해
@@ -68,6 +72,8 @@ public struct HomeFeature: Sendable {
         case recallLoaded([RecallFeedEntryDTO])
         /// 회수 "한 칸" 탭 → 상위(MainTab)가 ② 자세히 목록을 push 한다.
         case recallEntryTapped
+        /// 카테고리 카드 탭 → 상위(MainTab)가 그 서랍을 3D 턴테이블로 push 한다.
+        case categoryTapped(CategoryBucket)
         case suggestedQuestionTapped(String)
         case chatSubmitTapped
         case reviewSummaryTapped
@@ -106,6 +112,8 @@ public struct HomeFeature: Sendable {
             case recallListRequested([RecallFeedEntryDTO])
             /// 헤더 별 → 상위가 즐겨찾기 화면을 push 한다.
             case favoritesRequested
+            /// 카테고리 카드 탭 → 상위가 그 서랍을 3D 턴테이블(`CategoryCarouselFeature`)로 push 한다.
+            case categoryCarouselRequested(CategoryBucket)
         }
     }
 
@@ -158,13 +166,14 @@ public struct HomeFeature: Sendable {
                         .cancellable(id: CancelID.recallFeed, cancelInFlight: true)
                 )
 
-            case let .sectionsLoaded(recent, analyzing, needsReview, weeklyItems):
+            case let .sectionsLoaded(recent, analyzing, needsReview, weeklyItems, allItems):
                 state.isLoading = false
                 state.recent = IdentifiedArray(uniqueElements: recent)
                 state.analyzing = IdentifiedArray(uniqueElements: analyzing)
                 state.needsReview = IdentifiedArray(uniqueElements: needsReview)
                 state.weeklyRecordCount = weeklyItems.count
                 state.weeklyTopCategories = Self.weeklyCategoryStats(from: weeklyItems)
+                state.categoryBuckets = Self.categoryBuckets(from: allItems)
                 state.suggestions = Self.makeSuggestions(
                     recent: recent, categories: state.weeklyTopCategories
                 )
@@ -191,6 +200,9 @@ public struct HomeFeature: Sendable {
             case .recallEntryTapped:
                 guard !state.recall.isEmpty else { return .none }
                 return .send(.delegate(.recallListRequested(state.recall)))
+
+            case let .categoryTapped(bucket):
+                return .send(.delegate(.categoryCarouselRequested(bucket)))
 
             case let .suggestedQuestionTapped(question):
                 // 칩은 입력 없이 바로 회수 — "떠올린다"가 아니라 "떠오른다"(미션, PRODUCT.md §1.5).
@@ -367,20 +379,60 @@ public struct HomeFeature: Sendable {
         async let analyzingTask: [MochiItem] = (try? await repository.listAnalyzing(limit: 10)) ?? []
         async let needsReviewTask: [MochiItem] = (try? await repository.listNeedsReview(limit: 10)) ?? []
         async let weeklyTask: [MochiItem] = (try? await repository.listCaptured(in: Self.currentWeekInterval(now: date.now), limit: 500)) ?? []
+        // 카테고리 집계용 전체 표본 — 전 기간(capturedAt 내림차순). 상한은 한 화면 집계로 충분한 크기.
+        async let allTask: [MochiItem] = (try? await repository.listCaptured(in: Self.allTimeInterval, limit: 800)) ?? []
 
-        let (recent, analyzing, needsReview, weeklyItems) = await (
+        let (recent, analyzing, needsReview, weeklyItems, allItems) = await (
             recentTask,
             analyzingTask,
             needsReviewTask,
-            weeklyTask
+            weeklyTask,
+            allTask
         )
 
         await send(.sectionsLoaded(
             recent: recent,
             analyzing: analyzing,
             needsReview: needsReview,
-            weeklyItems: weeklyItems
+            weeklyItems: weeklyItems,
+            allItems: allItems
         ))
+    }
+
+    /// 전 기간 — 카테고리 누적 집계용. `listCaptured` 가 `capturedAt < end` 라 distantFuture 면 전부 포함.
+    private static let allTimeInterval = DateInterval(start: .distantPast, end: .distantFuture)
+
+    /// 카테고리별 누적 묶음 — 전체 표본을 카테고리로 묶어 개수 내림차순 정렬한다.
+    /// `count` 는 표본 내 전체 개수(표시용), `items` 는 턴테이블에 띄울 대표 항목으로 상한을 둔다
+    /// (수백 개를 한 ZStack 에 그리지 않기 위함 — 표시 개수와 커버 수가 어긋날 수 있다).
+    private static let carouselCoverCap = 30
+    private static let categoryGridLimit = 6
+
+    static func categoryBuckets(from items: [MochiItem]) -> [CategoryBucket] {
+        var order: [String] = []
+        var groups: [String: [MochiItem]] = [:]
+        for item in items {
+            let category = item.analysis?.category?.trimmingCharacters(in: .whitespacesAndNewlines)
+            let label = category.flatMap { $0.isEmpty ? nil : $0 } ?? fallbackCategory(for: item)
+            if groups[label] == nil { order.append(label) }
+            groups[label, default: []].append(item)
+        }
+        return order
+            .map { (name: $0, items: groups[$0] ?? []) }
+            .sorted { lhs, rhs in
+                if lhs.items.count != rhs.items.count { return lhs.items.count > rhs.items.count }
+                return lhs.name < rhs.name
+            }
+            .prefix(categoryGridLimit)
+            .enumerated()
+            .map { index, pair in
+                CategoryBucket(
+                    name: pair.name,
+                    count: pair.items.count,
+                    items: Array(pair.items.prefix(carouselCoverCap)),
+                    tintIndex: index
+                )
+            }
     }
 
     private static func currentWeekInterval(now: Date) -> DateInterval {

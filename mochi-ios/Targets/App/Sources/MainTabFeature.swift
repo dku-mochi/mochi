@@ -19,7 +19,7 @@ struct MainTabFeature: Sendable {
     @ObservableState
     struct State: Equatable, Sendable {
         var selectedTab: Tab = .home
-        var home = HomeFeature.State()
+        var home = MochiHomeFeature.State()
         var inbox = InboxFeature.State()    // dev debug 접근용 (설정 → 디버그)
         var chatLanding = ChatLandingFeature.State()
         var mochiCalendar = MochiCalendarFeature.State()
@@ -60,7 +60,7 @@ struct MainTabFeature: Sendable {
     enum Action: Sendable {
         case tabSelected(Tab)
         case searchTabReselected            // 검색 탭이 이미 선택된 상태에서 다시 탭 → 시작 화면으로 복귀
-        case home(HomeFeature.Action)
+        case home(MochiHomeFeature.Action)
         case inbox(InboxFeature.Action)
         case chatLanding(ChatLandingFeature.Action)
         case mochiCalendar(MochiCalendarFeature.Action)
@@ -91,7 +91,7 @@ struct MainTabFeature: Sendable {
     private enum CancelID: Hashable { case notificationOpen, recallLandingOpen }
 
     var body: some ReducerOf<Self> {
-        Scope(state: \.home,     action: \.home)     { HomeFeature() }
+        Scope(state: \.home,     action: \.home)     { MochiHomeFeature() }
         Scope(state: \.inbox,    action: \.inbox)    { InboxFeature() }
         Scope(state: \.chatLanding, action: \.chatLanding) { ChatLandingFeature() }
         Scope(state: \.mochiCalendar, action: \.mochiCalendar) { MochiCalendarFeature() }
@@ -131,26 +131,42 @@ struct MainTabFeature: Sendable {
                 state.path.append(.favorites(FavoritesFeature.State()))
                 return .none
 
-            case let .home(.delegate(.chatRequested(query))):
-                // 홈 질문 입력바 → 대화 풀스크린 push, 첫 메시지로 전송 (2026-06-10 push 전환).
-                // 탭은 바꾸지 않는다 — back 으로 홈에 그대로 돌아온다.
-                state.path.append(.chat(ChatFeature.State(entry: .firstMessage(query))))
-                return .none
+            case let .home(.delegate(.searchRequested(query))):
+                // 홈 검색바·칩 제출 → 검색 탭으로 전환하고 query 로 검색을 실행한다(recentSearchTapped
+                // 가 query 세팅 + 로컬·의미 검색을 모두 발화한다). 사용자가 "찾으러" 들어온 의도를 받는다.
+                state.selectedTab = .search
+                return .send(.search(.recentSearchTapped(query)))
 
             case let .chatLanding(.delegate(.conversationRequested(entry))):
                 // 랜딩(입력바 모양 버튼·칩·지난 대화) → 대화 풀스크린 push.
                 state.path.append(.chat(ChatFeature.State(entry: entry)))
                 return .none
 
-            case .home(.delegate(.seeAllRecentRequested)):
-                // "전체 보기" — 전체 기록을 검색·필터로 훑을 수 있는 검색 탭으로.
-                state.selectedTab = .search
-                return .none
-
             case let .home(.delegate(.recallListRequested(entries))):
-                // 회수 "한 칸" 탭 → ② 자세히(통일 카드 목록) push. 홈이 들고 있던 피드를 그대로 넘겨
+                // 회수 히어로 "모두 보기" → ② 자세히(통일 카드 목록) push. 홈이 들고 있던 피드를 그대로 넘겨
                 // 즉시 그린다(목록 화면 onAppear 가 백그라운드 최신화).
                 state.path.append(.recallList(RecallListFeature.State(entries: entries)))
+                return .none
+
+            case let .home(.delegate(.recallItemOpened(itemID))):
+                // 회수 히어로 카드 탭 → 그 기록의 원본 상세로 직행("왜 떴는지"는 사용자 관심 밖).
+                // itemID 는 server PK — 기존 알림 경로(로컬 역매핑 + 미존재 시 pullRemote 재시도)를 재사용한다.
+                return .send(.openDetailFromNotification(serverID: itemID))
+
+            case let .home(.delegate(.categoryCarouselRequested(bucket))):
+                // 카테고리 카드 탭 → 그 서랍을 3D 턴테이블로 push. 홈이 집계한 묶음을 그대로 넘겨 즉시 그린다.
+                state.path.append(.categoryCarousel(CategoryCarouselFeature.State(bucket: bucket)))
+                return .none
+
+            case let .path(.element(id: _, action: .categoryCarousel(.delegate(.openItem(itemID, hero))))):
+                // 턴테이블 초점 커버 탭 → 그 커버 frame 에서 상세로 hero 확대(홈 카드와 같은 zoom present).
+                // itemID 는 로컬 id 라 server PK 역매핑 불필요. hero 없으면(드물게) 중앙 scale 폴백.
+                guard state.detail == nil else { return .none }
+                state.detailHero = hero
+                state.detail = DetailFeature.State(
+                    mochiItemID: itemID,
+                    heroImageHidden: hero?.cardImage != nil
+                )
                 return .none
 
             case let .path(.element(id: _, action: .recallList(.delegate(.openDetail(entry))))):
@@ -342,6 +358,8 @@ extension MainTabFeature {
         case recallList(RecallListFeature)
         /// 능동 회수 ③ 기록 상세 — 목록 탭 / 알림 landing 직행.
         case recallDetail(RecallDetailFeature)
+        /// 카테고리 3D 턴테이블 — 홈 "이런 걸 모아두셨어요" 카드에서 push.
+        case categoryCarousel(CategoryCarouselFeature)
     }
 }
 

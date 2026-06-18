@@ -10,6 +10,28 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-06-17 — backend, docs (능동 회수 "열어봐도 안 빠짐" 버그 수정)
+- **회수 feed 가 소생된 항목을 제외하지 않던 버그 수정** (`get_recall_feed.py`) — `opened` 반응이 knowledge instance 를 `reviewRequested`/`decaying → active` 로 소생시켜도, spaced 후보 하이드레이션 필터가 `active` 를 "살아있는 지식"에 포함(`_LIVE_KINDS`)해 다음 `GET /recall/feed` 에 같은 항목이 계속 떴다. 필터를 `decaying`/`reviewRequested` 만(`_RECALLABLE_SPACED_KINDS`)으로 좁혀 "opened → 소생 → 다음 피드 제외" 고리를 이음. 모듈 경계상 repo 쿼리 JOIN 대신 application 필터에서 처리(`recall_feed_repository.py` 는 자기 테이블만). 회귀 테스트 `test_feed_excludes_active_knowledge` 추가, `DOMAIN_DESIGN §5.4` 동기화. (홈 회수 카드 탭 시 iOS 가 `opened` 반응 보고 복원 + 낙관적 제거 — iOS 변경은 별도 확정 대기.)
+
+## 2026-06-17 — ios, docs (Share Extension 인라인 크롭 + 미리보기 잘림 해소)
+- **이미지 미리보기 "잘려 보임" 해소** (`ShareCropImage` 신규, 기존 `SharePreviewImage`/`fadeHint` 제거) — 폭맞춤 + 세로 스크롤 + 하단 페이드 + 상태바 6% 자동크롭이 "창처럼 일부만" 보여 잘린 것으로 오해되던 문제를, 캡처를 **자기 비율 그대로 카드가 꽉 감싸**(주변 배경 박스·레터박스 매트 없이) 한눈에 100% 보이게 바꿔 해결(피드백 반영: "이미지를 담은 상위 뷰가 어색" → 좌표를 이미지-로컬로 재설계해 카드가 이미지를 hug).
+- **인라인 코너 크롭** — 전체 이미지 위 네 모서리 L 핸들로 그 자리에서 크롭. 전체 이미지가 항상 보이고 크롭은 선택 사각형이라 **모서리 안쪽=축소·바깥=확대 양방향 자유**(피드백 반영: 늘린 걸 원본으로 되돌리지 않음). **잘려나갈 영역은 항상 dim 오버레이**라 정지 중에도 결과가 예측되고(피드백 반영: 드래그 중 말고도 예측 가능해야), 드래그 중 dim 이 짙어지며 3분할 그리드(`ShareHaptics.lightTap`/`.selection`). 핸들은 **모서리 끝에 딱 붙어 바깥으로 감싸는 앵커**(애플 사진 수정처럼, 카드 거의 직각 + 얇은 흰 크롭 프레임) — 피드백 반영. "원본" 칩으로 전체 복원, "모서리를 끌어 자르기" 힌트.
+- **크롭 적용은 제출 경로에서** (`ShareImageCropper`) — `ShareExtensionPrincipal.persist` 가 오프메인(`Task.detached`)으로 첫 이미지 파일을 정규화 rect 로 잘라 새 `ImageRef` 로 교체(orientation 베이크, jpeg/png 보존). **멱등키(`payload.id`) 보존**, 교체된 원본은 기존 고아청소 로직이 자동 정리. 백엔드 계약(이미지 1장=1 ref) 불변.
+- **"사진 빼기"(메모만 남기기) 버튼을 탑바로 이동** (`ShareRemoveImageButton`, 기존 over-image `RemoveImageButton` 제거) — 코너 크롭 핸들과 우상단 자리 충돌 제거. 다크모드는 `ShareDesign` 듀얼 토큰으로 전 표면 지원(기존 유지).
+- `onSubmit` 시그니처에 사용자 크롭(`CGRect`) 추가 (`BackTapShareView`/`ShareEntryView`/`ShareExtensionPrincipal`). 문서: `UX_SPEC.md` §3.9 갱신.
+
+## 2026-06-17 — ios, docs (홈 카테고리 집계 섹션 + 3D 턴테이블 화면)
+- **홈 "이런 걸 모아두셨어요" 섹션 추가** (`HomeView`/`HomeFeature`) — 카테고리별 누적 기록을 2열 카드 그리드(아이콘·이름·개수·비중 바)로. 집계는 `loadAll` 이 전 기간 표본(`listCaptured` 상한 800)을 `analysis.category`(없으면 fallback)로 묶어 개수순 상위 6. 기록 0 이면 섹션 숨김. `sectionsLoaded` 에 `allItems` 인자 추가.
+- **카테고리 3D 턴테이블 화면 신규** (`CategoryCarouselFeature`/`CategoryCarouselView`, FeatureInbox) — 카드 탭 → push. 한 서랍의 기억을 누운 원판(LP 턴테이블)으로 펼쳐 드래그→관성→스냅(시안 `home-carousel-prototype.html` 복제). 커버 위치는 `Animatable` 모디파이어(`CoverTransform3D`)가 연속 `rotation` 보간으로 매 프레임 재배치(타이머 루프 없이 `interpolatingSpring`). 초점 커버 탭/"이 기억 열기" → 공용 상세(중앙 scale present). 커버는 카테고리당 상위 30개 상한.
+- **`MochiCategoryPalette` 추가** (DesignSystem) — 홈 그리드·턴테이블이 같은 인덱스에 같은 색을 쓰도록 6색 팔레트 단일화.
+- 턴테이블 다듬기(피드백 반영): 커버를 **실제 캡처 이미지**(`LocalThumbnail`, 세로 top-fill)로 + 비율을 폰 스크린샷(≈0.52)에 맞춤 / 지나간 커버도 천천히 페이드(커버 4장↑이면 직전 커버를 왼쪽에 약간 남김, 3장↓은 전부 또렷) / 관성을 ±2.4 커버로 클램프해 더 가까운 스냅 / 이미지 없는 메모·URL 플레이스홀더는 깊은 그라데이션+블러 오브+프로스티드 글래스 글리프로 고급화.
+- 턴테이블 시네마틱 패스(프로 디테일): 초점+바로 이웃은 정면(0°) 유지하고 멀어지는 커버만 점진 기울임(활성 카드가 명확한 메인) / 피사계심도 블러·공기원근 헤이즈가 거리에 연동 / 초점은 깊이 연동 elevation 그림자로 떠오름 / softLight 유리 광택·얇은 흰 hairline 엣지 / 무대 상단 페이드 + 비네트 / 커버가 초점에 들어올 때 `sensoryFeedback(.selection)` 피커식 햅틱.
+- **네비게이션 배선** — `MainTabFeature.Path.categoryCarousel` + `home.delegate.categoryCarouselRequested` / `categoryCarousel.delegate.openItem` 라우팅, `RootView` destination 렌더.
+- 문서: `UX_SPEC.md` §3.4 홈 순서에 6번 항목 추가 + §3.4b 신설. 미션 정합은 즐겨찾기(§3.4a)와 같은 "부차 탐색 표면" 결로 정리(능동 회수 주체는 여전히 모찌).
+
+## 2026-06-17 — docs (홈 카테고리 3D 카루셀 인터랙션 프로토타입)
+- **`docs/home-carousel-prototype.html` 추가** — 홈 카테고리 카드 탭 시 그 서랍이 가로 3D 카루셀(coverflow)로 열리는 동작 프로토타입. 스크롤 속도연동 물결 효과(motion.dev `scroll-velocity-linked-offset` 스타일 — `useScroll→useVelocity→useSpring` 등가 로직을 vanilla JS rAF 로 구현: coverflow rotateY/translateZ + 속도연동 skewY(±8°) + per-card translateY wave(±32px), 멈추면 0 으로 감쇠해 스프링 복귀). 외부 의존성 없는 단일 HTML 이라 그대로 WKWebView 임베드 가능. 기존 `home-redesign-mockup.html` 디자인 토큰·마스코트·카테고리 색 그대로 계승. **탐색용 디자인 목업 — 실제 데이터/네비 미연결, 아직 committed UX 결정 아님(UX_SPEC 미반영).**
+
 ## 2026-06-17 — ios (캘린더 빈 날짜 일정 추가 회귀 수정)
 - **캘린더에서 내용 없는 날짜를 탭해도 아무 반응 없어 일정 추가 불가하던 회귀 수정.** `DayCell` 에 `.disabled(summary == nil)` 가 남아 있어 마커(일정/할일/저장)가 하나도 없는 날은 버튼이 비활성 → `daySelected` 미발화 → DaySheet 가 안 열려 "+ 일정 추가" 진입 불가. 1b(2026-06-15 날짜에서 일정 추가) 도입 전엔 "빈 날은 보여줄 게 없으니 비활성"이 맞았으나 추가 진입을 막는 회귀가 됨. `.disabled` 제거 → 빈 날 탭 시 빈 상태 DaySheet(헤더 "+ 일정 추가" 포함) 열림. 표시/도메인 무변경.
 
