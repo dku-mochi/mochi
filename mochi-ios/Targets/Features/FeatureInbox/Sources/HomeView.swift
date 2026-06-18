@@ -57,8 +57,10 @@ public struct HomeView: View {
                         .riseIn(hasEntered, index: 3)
                     recentSection
                         .riseIn(hasEntered, index: 4)
-                    processingSection
+                    categoriesSection
                         .riseIn(hasEntered, index: 5)
+                    processingSection
+                        .riseIn(hasEntered, index: 6)
                     //                    settingsFooter
                 }
                 .padding(.horizontal, HomeDesign.Spacing.xl)
@@ -934,6 +936,104 @@ public struct HomeView: View {
         RecallEntryCard(entries: store.recall) {
             store.send(.recallEntryTapped)
         }
+    }
+
+    // MARK: - 이런 걸 모아두셨어요 (카테고리 서랍 → 3D 턴테이블)
+
+    /// 카테고리별 누적 기록을 2열 카드 그리드로 — 카드를 누르면 그 서랍이 3D 턴테이블로 펼쳐진다.
+    /// 비어 있으면(기록 0) 섹션 자체를 숨긴다 — 빈 카드 그리드는 자리만 차지하고 의미가 없다.
+    @ViewBuilder
+    private var categoriesSection: some View {
+        if !store.categoryBuckets.isEmpty {
+            VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
+                SectionHeader(
+                    title: "이런 걸 모아두셨어요",
+                    trailing: nil,
+                    subtitle: "눌러서 그 서랍을 입체로 펼쳐보세요"
+                )
+                categoriesGrid
+            }
+        }
+    }
+
+    private var categoriesGrid: some View {
+        let buckets = store.categoryBuckets
+        let maxCount = max(buckets.map(\.count).max() ?? 1, 1)
+        return LazyVGrid(
+            columns: [
+                GridItem(.flexible(), spacing: HomeDesign.Spacing.md),
+                GridItem(.flexible(), spacing: HomeDesign.Spacing.md),
+            ],
+            spacing: HomeDesign.Spacing.md
+        ) {
+            ForEach(buckets) { bucket in
+                categoryCard(bucket, maxCount: maxCount)
+            }
+        }
+    }
+
+    private func categoryCard(_ bucket: CategoryBucket, maxCount: Int) -> some View {
+        let tint = MochiCategoryPalette.tint(bucket.tintIndex)
+        let icon = MochiCategoryIcon.icon(for: bucket.name, fallbackIndex: bucket.tintIndex)
+        return Button {
+            store.send(.categoryTapped(bucket))
+        } label: {
+            VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
+                HStack(spacing: HomeDesign.Spacing.sm) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 9, style: .continuous).fill(tint.soft)
+                        Image(systemName: icon)
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(tint.strong)
+                    }
+                    .frame(width: 30, height: 30)
+                    Text(bucket.name)
+                        .font(.system(size: 13.5, weight: .bold, design: .rounded))
+                        .foregroundStyle(HomeDesign.Color.textPrimary)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                }
+
+                HStack(alignment: .firstTextBaseline, spacing: 1) {
+                    Text("\(bucket.count)")
+                        .font(.system(size: 16, weight: .heavy, design: .rounded))
+                        .foregroundStyle(HomeDesign.Color.purple600)
+                    Text("개")
+                        .font(.system(size: 11, weight: .semibold, design: .rounded))
+                        .foregroundStyle(HomeDesign.Color.textFaint)
+                }
+
+                GeometryReader { proxy in
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(HomeDesign.Color.ink100.opacity(0.7))
+                        Capsule()
+                            .fill(
+                                LinearGradient(
+                                    colors: [tint.strong, tint.strong.opacity(0.55)],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .frame(width: max(proxy.size.width * CGFloat(bucket.count) / CGFloat(maxCount), 8))
+                    }
+                }
+                .frame(height: 4)
+            }
+            .padding(.horizontal, HomeDesign.Spacing.md)
+            .padding(.vertical, HomeDesign.Spacing.md)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
+                    .fill(HomeDesign.Color.surface)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
+                    .stroke(HomeDesign.Color.border, lineWidth: 1)
+            )
+            .shadow(color: HomeDesign.Color.ink900.opacity(0.04), radius: 8, x: 0, y: 3)
+        }
+        .buttonStyle(PressableStyle())
+        .accessibilityLabel("\(bucket.name) \(bucket.count)개. 눌러서 입체로 펼쳐보기")
     }
 
     // MARK: - ② 모찌가 정리하고 있어요 (analyzing, 접힘)

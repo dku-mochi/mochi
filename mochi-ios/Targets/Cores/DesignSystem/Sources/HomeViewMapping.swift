@@ -104,6 +104,28 @@ public enum MochiItemKind {
     }
 }
 
+// MARK: - Category palette (카테고리 인덱스 → 파스텔 색쌍)
+
+/// 카테고리별 색을 한 곳에서 정한다 — 홈 "이런 걸 모아두셨어요" 그리드와 카테고리 턴테이블이
+/// 같은 인덱스엔 같은 색을 쓰도록 통일한다(같은 서랍이 두 화면에서 다른 색으로 보이지 않게).
+/// 시안 home-carousel-prototype 의 6색 팔레트(blush/purple/mint/butter/sky/peach)를 토큰으로 옮긴 것.
+public enum MochiCategoryPalette {
+    /// (옅은 배경 틴트, 강조색) 색쌍. 인덱스를 순환해서 쓴다.
+    public static let tints: [(soft: Color, strong: Color)] = [
+        (HomeDesign.Color.blush100, HomeDesign.Color.blush400),
+        (HomeDesign.Color.purple100, HomeDesign.Color.purple500),
+        (HomeDesign.Color.mint100, HomeDesign.Color.mint400),
+        (HomeDesign.Color.butter100, HomeDesign.Color.butter400),
+        (HomeDesign.Color.sky100, HomeDesign.Color.sky400),
+        (HomeDesign.Color.cream100, HomeDesign.Color.peach400),
+    ]
+
+    public static func tint(_ index: Int) -> (soft: Color, strong: Color) {
+        let count = tints.count
+        return tints[((index % count) + count) % count]
+    }
+}
+
 // MARK: - Category icon (자유형 카테고리 이름 → SF Symbol)
 
 /// LLM 이 만드는 자유형 카테고리 이름을 키워드로 아이콘에 매핑한다 (홈 주간 카드·주간 정리 공용).

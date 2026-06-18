@@ -138,7 +138,7 @@ struct RootFeature: Sendable {
                 // 짧게 재시도"는 MainTab 이 effect 로 맡는다(phase 와 무관하게 즉시 시작하므로
                 // 콜드 스타트에도 안전). 항목 최신화는 scenePhase active reconcile(폴링/SSE 재구독).
                 state.main.selectedTab = .home
-                return .send(.main(.openDetailFromNotification(serverID: serverID)))
+                return .send(.main(.openDetailFromNotification(serverID: serverID, hero: nil)))
 
             case let .recallNotificationTapped(recallEventID):
                 // 회수 알림 탭 → 홈 탭 + ③ 회수 상세 직행. recallEventID 로 서버 fetch 는 MainTab effect 가

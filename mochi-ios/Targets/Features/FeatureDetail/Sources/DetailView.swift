@@ -179,14 +179,9 @@ public struct DetailView: View {
     }
 
     /// 원형 칩 toolbar 버튼 — bg(F2F4F7) 위에서도, 드래그 중 dim 이 비칠 때도 또렷한 모달 어포던스.
+    /// DesignSystem `CircularGlyph` 단일 소스(카테고리 턴테이블 back 버튼과 같은 칩).
     private func toolbarIcon(_ systemName: String) -> some View {
-        Image(systemName: systemName)
-            .font(.system(size: 13, weight: .semibold))
-            .foregroundStyle(HomeDesign.Color.textPrimary)
-            .frame(width: 30, height: 30)
-            .background(Circle().fill(HomeDesign.Color.surface))
-            .overlay(Circle().stroke(HomeDesign.Color.border, lineWidth: 1))
-            .shadow(color: HomeDesign.Color.ink900.opacity(0.06), radius: 6, x: 0, y: 2)
+        CircularGlyph(systemName)
     }
 
     private func presentScreenshotBrowser(image: UIImage?, thumbnailView: UIImageView?) {
