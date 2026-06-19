@@ -203,6 +203,15 @@ struct MainTabFeature: Sendable {
                 state.detail = DetailFeature.State(mochiItemID: mochiItemID)
                 return .none
 
+            case let .path(.element(id: _, action: .weeklyDigest(.delegate(.categoryViewAllRequested(category))))):
+                // 리포트 카테고리 레일 "전체 보기" → 정리 화면을 닫고 검색 탭을 그 카테고리로 필터해 연다
+                // (회수 "찾기"는 검색이 담당 — seeAllRecentRequested 와 같은 위임 패턴).
+                state.path.removeAll()
+                state.selectedTab = .search
+                state.search.query = ""
+                state.search.selectedCategory = category
+                return .none
+
             case let .path(.element(id: _, action: .favorites(.delegate(.mochiItemTapped(mochiItemID, hero))))):
                 // 즐겨찾기 화면의 항목 탭 → 상세 present (정리 화면과 같은 경로).
                 guard state.detail == nil else { return .none }
