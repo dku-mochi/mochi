@@ -53,12 +53,10 @@ public struct MochiHomeView: View {
                             .riseIn(hasEntered, index: 0)
                         needsReviewBanner
                             .riseIn(hasEntered, index: 1)
-                        upcomingSection
-                            .riseIn(hasEntered, index: 2)
                         monthlyReportCard(cardWidth: geo.size.width - HomeDesign.Spacing.xl * 2)
-                            .riseIn(hasEntered, index: 3)
+                            .riseIn(hasEntered, index: 2)
                         recentSection
-                            .riseIn(hasEntered, index: 4)
+                            .riseIn(hasEntered, index: 3)
                     }
                     .padding(.horizontal, HomeDesign.Spacing.xl)
                     .padding(.top, Self.topBarHeight + HomeDesign.Spacing.sm)
@@ -167,6 +165,9 @@ public struct MochiHomeView: View {
                 Spacer(minLength: 0)
                 CircleIconButton(systemName: "magnifyingglass", accessibilityLabel: "검색") {
                     store.send(.searchTapped)
+                }
+                CircleIconButton(systemName: "bell", accessibilityLabel: "알림") {
+                    store.send(.notificationsTapped)
                 }
                 CircleIconButton(systemName: "star", accessibilityLabel: "즐겨찾기") {
                     store.send(.favoritesTapped)
@@ -558,20 +559,6 @@ public struct MochiHomeView: View {
                 .overlay(RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous).stroke(HomeDesign.Color.cream200, lineWidth: 1))
             }
             .buttonStyle(PressableStyle())
-        }
-    }
-
-    // MARK: - ③ 예정된 알림 (모찌가 보낼 예정인 미래 알림 — pending 0건이면 숨김)
-
-    /// pending 0건이면 섹션 자체를 비운다(안심 톤 — 빈 자리를 만들지 않는다).
-    @ViewBuilder
-    private var upcomingSection: some View {
-        if !store.upcoming.isEmpty {
-            UpcomingNotificationsView(
-                entries: store.upcoming,
-                onVeto: { eventID in store.send(.upcomingVetoed(eventID: eventID), animation: .spring(response: 0.4, dampingFraction: 0.85)) },
-                onReschedule: { eventID, fireAt in store.send(.upcomingRescheduled(eventID: eventID, fireAt: fireAt), animation: .spring(response: 0.5, dampingFraction: 0.88)) }
-            )
         }
     }
 

@@ -1676,6 +1676,50 @@
           }
         }
       }
+    },
+    "/api/v1/recall/history": {
+      "get": {
+        "tags": [
+          "recall"
+        ],
+        "summary": "Get Sent Notifications",
+        "description": "알림 페이지 \"지난 알림\" — owner 의 이미 보낸 알림(status='sent') sent_at 내림차순.\n\n종류 무관(받은 알림 전부). opened_at/dismissed_at 로 열어봤는지 표시. 빈손이면 entries=[].",
+        "operationId": "get_sent_notifications_api_v1_recall_history_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "Authorization",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SentNotificationsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3104,6 +3148,80 @@
           "text"
         ],
         "title": "SendMessageRequest"
+      },
+      "SentNotificationEntry": {
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Eventid"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "sentAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Sentat"
+          },
+          "openedAt": {
+            "title": "Openedat",
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "dismissedAt": {
+            "title": "Dismissedat",
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "body": {
+            "type": "string",
+            "title": "Body"
+          },
+          "itemId": {
+            "title": "Itemid",
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "intentId": {
+            "title": "Intentid",
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "eventId",
+          "kind",
+          "sentAt",
+          "title",
+          "body"
+        ],
+        "title": "SentNotificationEntry",
+        "description": "알림 페이지 \"지난 알림\" 1건 — 모찌가 이미 보낸 알림. iOS ``SentNotificationDTO`` 1:1.\n\n``sentAt`` 발송 시각, ``openedAt`` 열어본 시각(없으면 null=안 열어봄), ``dismissedAt`` 무시한 시각.\n``kind`` 는 받은 알림 종류 전부('deadline'|'nudge'|'recall' 등)."
+      },
+      "SentNotificationsResponse": {
+        "properties": {
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/SentNotificationEntry"
+            },
+            "type": "array",
+            "title": "Entries"
+          }
+        },
+        "type": "object",
+        "title": "SentNotificationsResponse",
+        "description": "알림 페이지 \"지난 알림\" 목록 — sent_at 내림차순. 빈손이면 entries=[](정상)."
       },
       "SignInResponse": {
         "properties": {
