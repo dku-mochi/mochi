@@ -141,10 +141,10 @@ description: 화면·시나리오·IA·디자인 톤·데모 시나리오의 com
 
 ### 3.4c 알림 페이지 (2026-06-19)
 
-홈 상단 bell 버튼 → push 되는 알림 화면(`NotificationsPageView` / `NotificationsPageFeature`, 즐겨찾기·턴테이블과 같은 path 패턴). **이전엔 홈 본문에 있던 "예정된 알림" 섹션을 이 페이지로 옮기고**(홈은 회수·리포트·최근에 집중 — 알림은 별도 표면으로 분리), 새 "지난 알림" 탭을 더해 상단 segmented Picker("예정"/"지난")로 전환한다.
+홈 상단 bell 버튼 → push 되는 알림 화면(`NotificationsPageView` / `NotificationsPageFeature`, 즐겨찾기·턴테이블과 같은 path 패턴). **이전엔 홈 본문에 있던 "예정된 알림" 섹션을 이 페이지로 옮기고**(홈은 회수·리포트·최근에 집중 — 알림은 별도 표면으로 분리), 새 "받은 알림" 탭을 더해 상단 segmented Picker("예정된 알림"/"받은 알림")로 전환한다.
 
-- **예정 탭** — 모찌가 보낼 예정인 미래 마감·일정 알림(`GET /recall/upcoming`, fire_at 오름차순). 홈에서 통째로 옮겨온 `UpcomingNotificationsView` 재사용 — 각 행 3액션(끄기 veto·미루기 프리셋·직접 고르기 DatePicker)·"모찌가 정하고 나는 조정한다" 그대로. 빈손이면 안내 일러스트.
-- **지난 탭** — 모찌가 이미 보낸 알림(`GET /recall/history` → `SentNotificationEntry`, sent_at 내림차순). **읽기 전용** — 종류 아이콘(deadline/nudge/recall) + title/body + 발송 시각 + 상태 칩(읽음=opened / 지나침=dismissed / 안 읽음). 안 읽은 알림은 왼쪽 보라 띠로 부드럽게 강조. 빈손이면 안내. 조정 액션 없음("이미 보낸 것"의 기록).
+- **예정된 알림 탭** — 모찌가 보낼 예정인 미래 마감·일정 알림(`GET /recall/upcoming`, fire_at 오름차순). 홈에서 통째로 옮겨온 `UpcomingNotificationsView` 재사용 — 각 행 3액션(끄기 veto·미루기 프리셋·직접 고르기 DatePicker)·"모찌가 정하고 나는 조정한다" 그대로. 빈손이면 안내 일러스트.
+- **받은 알림 탭** — 모찌가 이미 보낸 알림(`GET /recall/history` → `SentNotificationEntry`, sent_at 내림차순). **읽기 전용** — 종류 아이콘(deadline/nudge/recall) + title/body + 발송 시각 + 상태 칩(읽음=opened / 지나침=dismissed / 안 읽음). 안 읽은 알림은 왼쪽 보라 띠로 부드럽게 강조. 빈손이면 안내. 조정 액션 없음("이미 보낸 것"의 기록).
 
 **미션 정합**: 알림 페이지는 모찌가 능동으로 보낸/보낼 알림의 타임라인이다 — 회수의 주체는 여전히 모찌(PRODUCT §1.5). 사용자는 예정 알림을 끄거나 옮길 뿐(통제), 지난 알림은 받은 기록을 되짚어 보는 안전망이다. 둘 다 실패 격리(한 탭 로드 실패가 다른 탭을 막지 않음).
 
