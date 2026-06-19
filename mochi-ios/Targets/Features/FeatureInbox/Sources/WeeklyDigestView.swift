@@ -7,15 +7,20 @@ import DesignSystem
 ///
 /// 미션("필요한 기억은 쉽게 떠오른다")의 진열장: 사용자가 뒤지는 게 아니라
 /// 모찌가 건넨다. 4-Intent 라벨 비노출. 위→아래:
-///  - ① 히어로: 주 범위 + 쌓인 기억 수 + 모찌의 한마디(말풍선)
-///  - ② 아직 안 끝났어요: 미해결 todo(1-tap 완료) + 다가올 일정
-///  - ③ 이런 걸 모았어요: 카테고리 카드 — 접힌 상태에서도 썸네일로 기억이 *보이게*
-///  - ④ 푸터: 회수는 모찌에게 물어보면 된다는 마무리 한 줄
+///  - ① 히어로: 주 범위 + 쌓인 기억 수 + 카테고리 요약 바 + 모찌의 한마디(말풍선)
+///  - ② 이런 걸 모았어요: 카테고리별 가로 레일 — 그 주 항목 전부를 가로 스크롤, 탭하면 상세.
+///    헤더 "전체 보기" → 검색 탭을 그 카테고리로 필터. 카테고리 많으면 아래는 접는다.
+///  - ③ 푸터: 회수는 모찌에게 물어보면 된다는 마무리 한 줄
 public struct WeeklyDigestView: View {
 
     @Bindable public var store: StoreOf<WeeklyDigestFeature>
     /// 진입 시 섹션 순차 등장 트리거 (한 번만).
     @State private var hasEntered = false
+    /// 카테고리가 많을 때 아래쪽 레일을 접는다 — "더 보기"로 펼침.
+    @State private var showsAllCategories = false
+
+    /// 접기 전 항상 보이는 카테고리 수 = digestTint 색 수(5)와 정렬 — 펼침 전엔 색이 안 겹친다.
+    private let categoryCollapseLimit = 5
 
     public init(store: StoreOf<WeeklyDigestFeature>) {
         self.store = store
@@ -26,21 +31,17 @@ public struct WeeklyDigestView: View {
             LazyVStack(alignment: .leading, spacing: HomeDesign.Spacing.xl) {
                 heroCard
                     .riseIn(hasEntered, index: 0)
-                if !store.upcoming.isEmpty {
-                    unfinishedSection
-                        .riseIn(hasEntered, index: 1)
-                }
                 if store.groups.isEmpty {
                     if !store.isLoading {
                         emptyHarvest
-                            .riseIn(hasEntered, index: 2)
+                            .riseIn(hasEntered, index: 1)
                     }
                 } else {
                     harvestSection
-                        .riseIn(hasEntered, index: 2)
+                        .riseIn(hasEntered, index: 1)
                 }
                 weekFooter
-                    .riseIn(hasEntered, index: 3)
+                    .riseIn(hasEntered, index: 2)
             }
             .padding(.horizontal, HomeDesign.Spacing.xl)
             .padding(.top, HomeDesign.Spacing.md)
@@ -74,7 +75,7 @@ public struct WeeklyDigestView: View {
         }
     }
 
-    // MARK: - ① 히어로 (주 범위 + 기억 수 + 모찌의 한마디)
+    // MARK: - ① 히어로 (주 범위 + 기억 수 + 카테고리 요약 + 모찌의 한마디)
 
     private var heroCard: some View {
         VStack(alignment: .leading, spacing: HomeDesign.Spacing.lg) {
@@ -86,16 +87,9 @@ public struct WeeklyDigestView: View {
                 heroHeadline
             }
 
-            // 한 주 요약 칩 — 숫자만으로 이번 주의 부피가 잡힌다.
-            if !store.groups.isEmpty || remainingTodoCount > 0 {
-                HStack(spacing: HomeDesign.Spacing.sm) {
-                    if !store.groups.isEmpty {
-                        statChip(icon: "square.grid.2x2.fill", label: "\(store.groups.count)가지 주제")
-                    }
-                    if remainingTodoCount > 0 {
-                        statChip(icon: "checklist", label: "남은 할 일 \(remainingTodoCount)개")
-                    }
-                }
+            // 카테고리 요약 바 — 2개 이상일 때만(1개면 단색 풀바라 무의미). 아래 레일과 색 일치.
+            if store.groups.count >= 2 {
+                categorySummaryBar
             }
 
             // 모찌의 한마디 — 마스코트가 직접 건네는 말풍선.
@@ -131,7 +125,7 @@ public struct WeeklyDigestView: View {
     private var heroHeadline: some View {
         Group {
             if store.allWeekItems.isEmpty {
-                Text("이번 주 기억을 기다리고 있어요")
+                Text("이번 주는 잠깐 쉬어갔어요")
             } else {
                 Text("기억 ")
                 + Text("\(store.allWeekItems.count)개")
@@ -145,23 +139,57 @@ public struct WeeklyDigestView: View {
         .animation(.spring(response: 0.6, dampingFraction: 0.9), value: store.allWeekItems.count)
     }
 
-    private func statChip(icon: String, label: String) -> some View {
-        HStack(spacing: 5) {
-            Image(systemName: icon)
-                .font(.system(size: 10, weight: .bold))
-                .foregroundStyle(HomeDesign.Color.purple500)
-            Text(label)
-                .font(.system(size: 11.5, weight: .bold, design: .rounded))
-                .foregroundStyle(HomeDesign.Color.ink700)
+    /// 카테고리 비중을 한 줄 세그먼트 + 레전드로 — 색은 위 레일과 공유. 상위 5개만 색으로,
+    /// 나머지는 회색 "외 N개" 한 조각으로 합쳐 막대 정확성·레전드 길이를 통제(작은 카테고리 많을 때 오버플로 방지).
+    private var categorySummaryBar: some View {
+        let shown = Array(store.groups.prefix(categoryCollapseLimit))
+        let restCount = store.groups.count - shown.count
+        let restItems = store.groups.dropFirst(categoryCollapseLimit).reduce(0) { $0 + $1.items.count }
+        let total = max(1, store.groups.reduce(0) { $0 + $1.items.count })
+        let segCount = shown.count + (restItems > 0 ? 1 : 0)
+        return VStack(alignment: .leading, spacing: HomeDesign.Spacing.sm) {
+            GeometryReader { geo in
+                let gap: CGFloat = 2
+                let usable = max(0, geo.size.width - gap * CGFloat(max(0, segCount - 1)))
+                HStack(spacing: gap) {
+                    ForEach(Array(shown.enumerated()), id: \.element.id) { index, group in
+                        digestTint(index).strong
+                            .frame(width: max(6, usable * CGFloat(group.items.count) / CGFloat(total)))
+                    }
+                    if restItems > 0 {
+                        HomeDesign.Color.ink300
+                            .frame(width: max(6, usable * CGFloat(restItems) / CGFloat(total)))
+                    }
+                }
+            }
+            .frame(height: 9)
+            .clipShape(Capsule(style: .continuous))
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: HomeDesign.Spacing.md) {
+                    ForEach(Array(shown.enumerated()), id: \.element.id) { index, group in
+                        HStack(spacing: 5) {
+                            Circle()
+                                .fill(digestTint(index).strong)
+                                .frame(width: 8, height: 8)
+                            Text("\(group.coarse) \(group.items.count)")
+                                .font(.system(size: 12, weight: .bold, design: .rounded))
+                                .foregroundStyle(HomeDesign.Color.ink700)
+                        }
+                    }
+                    if restCount > 0 {
+                        Text("외 \(restCount)개")
+                            .font(.system(size: 12, weight: .bold, design: .rounded))
+                            .foregroundStyle(HomeDesign.Color.textMuted)
+                    }
+                }
+            }
         }
-        .padding(.horizontal, HomeDesign.Spacing.md)
-        .padding(.vertical, 7)
-        .background(Capsule(style: .continuous).fill(Color.white.opacity(0.85)))
-        .overlay(Capsule(style: .continuous).stroke(HomeDesign.Color.purple100, lineWidth: 1))
     }
 
     private var speechBubble: some View {
-        Text(store.greeting.isEmpty ? " " : store.greeting)
+        // 로딩 중엔 더미 문장으로 skeleton 폭을 확보(공백 1칸이면 placeholder 가 거의 안 보임).
+        Text(store.greeting.isEmpty ? (store.isLoading ? "이번 주 기억을 정리하고 있어요" : " ") : store.greeting)
             .font(.system(size: 14.5, weight: .semibold, design: .rounded))
             .foregroundStyle(HomeDesign.Color.ink700)
             .lineSpacing(4)
@@ -196,59 +224,55 @@ public struct WeeklyDigestView: View {
         return "\(formatter.string(from: interval.start)) – \(formatter.string(from: endDay))"
     }
 
-    private var remainingTodoCount: Int {
-        store.upcoming.filter { !$0.isSchedule }.count
-    }
-
-    // MARK: - ② 아직 안 끝났어요
-
-    private var unfinishedSection: some View {
-        VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
-            sectionHeader(
-                "아직 안 끝났어요",
-                systemImage: "checklist",
-                badge: store.upcoming.count
-            )
-            VStack(spacing: HomeDesign.Spacing.sm) {
-                ForEach(store.upcoming) { item in
-                    UnfinishedRow(
-                        item: item,
-                        isCompleting: store.completingIDs.contains(item.id),
-                        onComplete: {
-                            store.send(.todoCompleteTapped(localID: item.id, instanceID: item.instanceID))
-                        },
-                        onTap: { store.send(.mochiItemTapped(item.id, hero: nil)) }
-                    )
-                    .transition(.opacity.combined(with: .move(edge: .leading)))
-                }
-            }
-            // 1-tap 완료로 행이 빠질 때 부드럽게 줄어들도록.
-            .animation(.spring(response: 0.4, dampingFraction: 0.84), value: store.upcoming)
-        }
-    }
-
-    // MARK: - ③ 이번 주 이런 걸 모았어요
+    // MARK: - ② 이번 주 이런 걸 모았어요 (카테고리 가로 레일)
 
     private var harvestSection: some View {
-        VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
+        VStack(alignment: .leading, spacing: HomeDesign.Spacing.lg) {
             sectionHeader("이런 걸 모았어요", systemImage: "sparkles")
-            VStack(spacing: HomeDesign.Spacing.sm) {
-                ForEach(Array(store.groups.enumerated()), id: \.element.id) { index, group in
-                    HarvestGroupCard(group: group, index: index) { id in
-                        store.send(.mochiItemTapped(id, hero: nil))
-                    }
-                }
+            let visible = showsAllCategories
+                ? Array(store.groups.enumerated())
+                : Array(store.groups.enumerated().prefix(categoryCollapseLimit))
+            ForEach(visible, id: \.element.id) { index, group in
+                HarvestRail(
+                    group: group,
+                    index: index,
+                    onTapItem: { store.send(.mochiItemTapped($0, hero: nil)) },
+                    onViewAll: { store.send(.categoryViewAllTapped($0)) }
+                )
+            }
+            if !showsAllCategories && store.groups.count > categoryCollapseLimit {
+                moreCategoriesButton(remaining: store.groups.count - categoryCollapseLimit)
             }
         }
+    }
+
+    private func moreCategoriesButton(remaining: Int) -> some View {
+        Button {
+            withAnimation(.spring(response: 0.32, dampingFraction: 0.85)) { showsAllCategories = true }
+        } label: {
+            HStack(spacing: 6) {
+                Text("그 외 \(remaining)개 카테고리 더 보기")
+                    .font(.system(size: 14, weight: .heavy, design: .rounded))
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 11, weight: .bold))
+            }
+            .foregroundStyle(HomeDesign.Color.purple600)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 15)
+            .background(
+                RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
+                    .fill(HomeDesign.Color.surface)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
+                    .stroke(HomeDesign.Color.border, lineWidth: 1)
+            )
+        }
+        .buttonStyle(PressableStyle())
     }
 
     private var emptyHarvest: some View {
         VStack(spacing: HomeDesign.Spacing.md) {
-            Image("mochi2")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 84, height: 84)
-                .opacity(0.9)
             VStack(spacing: 5) {
                 Text("이번 주엔 아직 모은 기억이 없어요")
                     .font(.system(size: 14.5, weight: .bold, design: .rounded))
@@ -264,12 +288,15 @@ public struct WeeklyDigestView: View {
         .padding(.vertical, 40)
     }
 
-    /// ④ 마무리 — 회수의 주체는 모찌라는 것을 마지막 한 줄로 남긴다.
+    /// ③ 마무리 — 회수의 주체는 모찌라는 것을 마지막 한 줄로 남긴다.
     private var weekFooter: some View {
         VStack(spacing: HomeDesign.Spacing.sm) {
-            Image(systemName: "sparkles")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(HomeDesign.Color.purple400.opacity(0.7))
+            Image("mochi2")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 40, height: 40)
+                .opacity(0.9)
+                .accessibilityHidden(true)
             Text("이번 주 기억은 모찌가 잘 맡아둘게요.\n궁금해지면 언제든 물어봐 주세요!")
                 .font(.system(size: 12.5, weight: .medium, design: .rounded))
                 .foregroundStyle(HomeDesign.Color.textMuted)
@@ -300,6 +327,20 @@ public struct WeeklyDigestView: View {
     }
 }
 
+// MARK: - 카테고리 색
+
+/// 카테고리 index → 색. 히어로 요약 바와 레일 아이콘이 공유해 같은 카테고리=같은 색.
+func digestTint(_ index: Int) -> (soft: Color, strong: Color) {
+    let tints: [(Color, Color)] = [
+        (HomeDesign.Color.blush100, HomeDesign.Color.blush400),
+        (HomeDesign.Color.purple100, HomeDesign.Color.purple500),
+        (HomeDesign.Color.mint100, HomeDesign.Color.mint400),
+        (HomeDesign.Color.sky100, HomeDesign.Color.sky400),
+        (HomeDesign.Color.butter100, HomeDesign.Color.butter400),
+    ]
+    return tints[index % tints.count]
+}
+
 // MARK: - 말풍선 꼬리
 
 /// 오른쪽 아래로 뻗는 작은 꼬리 — 말풍선이 마스코트의 발화임을 드러낸다.
@@ -320,246 +361,160 @@ private struct BubbleTail: Shape {
     }
 }
 
-// MARK: - ② 행 (미해결 todo / 다가올 일정)
+// MARK: - ② 카테고리 가로 레일
 
-/// 캘린더 탭과 같은 시각 언어 — 일정은 날짜 타일(월/일) + 상대 라벨(sky),
-/// 할 일은 체크 + 긴급도 색 D-day(`DueDisplay`).
-private struct UnfinishedRow: View {
-    let item: WeeklyDigestFeature.UpcomingItem
-    let isCompleting: Bool
-    let onComplete: () -> Void
-    let onTap: () -> Void
-
-    /// 마감/일시 원문을 날짜로 파싱(자연어는 nil → 원문 그대로 표시).
-    private var dueDate: Date? { CalendarDueDate.parse(item.dueLabel) }
-
-    var body: some View {
-        HStack(spacing: HomeDesign.Spacing.md) {
-            // 할 일만 완료 체크 — 일정은 완료 개념이 어색해 날짜 타일로 표시만.
-            if item.isSchedule {
-                ScheduleDateTile(date: dueDate)
-            } else {
-                Button(action: onComplete) {
-                    ZStack {
-                        Circle()
-                            .strokeBorder(
-                                isCompleting ? HomeDesign.Color.mint400 : HomeDesign.Color.purple200,
-                                lineWidth: 2
-                            )
-                        if isCompleting {
-                            Circle().fill(HomeDesign.Color.mint400).padding(3)
-                            Image(systemName: "checkmark")
-                                .font(.system(size: 10, weight: .heavy))
-                                .foregroundStyle(.white)
-                        }
-                    }
-                    .frame(width: 26, height: 26)
-                    // 체크 터치영역 44pt 보장.
-                    .frame(width: 44, height: 44)
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(PressableStyle())
-                .disabled(isCompleting)
-                .accessibilityLabel("할 일 완료")
-            }
-
-            Button(action: onTap) {
-                HStack(spacing: HomeDesign.Spacing.sm) {
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(item.displayTitle)
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(HomeDesign.Color.textPrimary)
-                            .lineLimit(1)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        if let due = dueText {
-                            Text(due)
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundStyle(dueColor)
-                                .lineLimit(1)
-                        }
-                    }
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(HomeDesign.Color.textFaint)
-                }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(PressableStyle())
-        }
-        .padding(.leading, item.isSchedule ? HomeDesign.Spacing.md : HomeDesign.Spacing.sm)
-        .padding(.trailing, HomeDesign.Spacing.lg)
-        .padding(.vertical, item.isSchedule ? HomeDesign.Spacing.md : HomeDesign.Spacing.sm)
-        .background(
-            RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
-                .fill(HomeDesign.Color.surface)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
-                .stroke(HomeDesign.Color.border, lineWidth: 1)
-        )
-        .opacity(isCompleting ? 0.55 : 1)
-    }
-
-    /// 파싱되면 캘린더 탭과 같은 표현(상대 라벨/D-day), 안 되면 원문 그대로.
-    private var dueText: String? {
-        if let dueDate {
-            return item.isSchedule ? DueDisplay.scheduleLabel(dueDate) : DueDisplay.deadlineLabel(dueDate)
-        }
-        guard let raw = item.dueLabel, !raw.isEmpty else { return nil }
-        return raw
-    }
-
-    private var dueColor: Color {
-        if item.isSchedule { return HomeDesign.Color.sky400 }
-        return DueDisplay.deadlineColor(dueDate)
-    }
-}
-
-// MARK: - ③ 카테고리 카드 (썸네일 미리보기 + 펼침)
-
-/// 접힌 상태에서도 겹친 썸네일로 "뭘 모았는지"가 보인다 — 텍스트가 아니라 기억이 떠오르게.
-private struct HarvestGroupCard: View {
+/// 한 카테고리 = 헤더(아이콘·이름·개수·전체 보기) + 그 주 항목 전부의 가로 스크롤.
+/// 세로 길이는 항목 수와 무관(가로로 흡수) — 카테고리 수로만 늘어난다. 썸네일 탭 → 상세.
+private struct HarvestRail: View {
     let group: WeeklyDigestFeature.DigestGroup
     let index: Int
     let onTapItem: (MochiItem.ID) -> Void
-    @State private var isExpanded = false
+    let onViewAll: (String) -> Void
+
+    /// "그 외"(카테고리 없는 묶음)는 실제 category 값이 아니라 검색 필터로 못 가므로 "전체 보기"를 숨긴다.
+    private var canViewAll: Bool { group.coarse != WeeklyDigestFeature.uncategorizedLabel }
 
     var body: some View {
-        VStack(spacing: 0) {
-            Button {
-                withAnimation(.spring(response: 0.32, dampingFraction: 0.82)) { isExpanded.toggle() }
-            } label: {
-                HStack(spacing: HomeDesign.Spacing.md) {
-                    ZStack {
-                        Circle().fill(tint.soft)
-                        Image(systemName: MochiCategoryIcon.icon(for: group.coarse, fallbackIndex: index))
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundStyle(tint.strong)
-                    }
-                    .frame(width: 34, height: 34)
+        VStack(alignment: .leading, spacing: HomeDesign.Spacing.sm) {
+            railHeader
 
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(group.coarse)
-                            .font(.system(size: 15, weight: .bold, design: .rounded))
-                            .foregroundStyle(HomeDesign.Color.textPrimary)
-                            .lineLimit(1)
-                        Text("\(group.items.count)개의 기억")
-                            .font(.system(size: 11.5, weight: .medium, design: .rounded))
-                            .foregroundStyle(HomeDesign.Color.textMuted)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                    if !isExpanded {
-                        thumbnailFan
-                            .transition(.opacity.combined(with: .scale(scale: 0.9)))
-                    }
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundStyle(HomeDesign.Color.textFaint)
-                        .rotationEffect(.degrees(isExpanded ? 90 : 0))
-                }
-                .padding(.horizontal, HomeDesign.Spacing.lg)
-                .padding(.vertical, HomeDesign.Spacing.md)
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(PressableStyle())
-
-            if isExpanded {
-                VStack(spacing: 0) {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: HomeDesign.Spacing.sm) {
                     ForEach(group.items) { item in
-                        Divider().padding(.leading, HomeDesign.Spacing.lg)
                         Button { onTapItem(item.id) } label: {
-                            HStack(spacing: HomeDesign.Spacing.md) {
-                                itemThumbnail(item, size: 36)
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(item.displayTitle)
-                                        .font(.system(size: 13, weight: .semibold))
-                                        .foregroundStyle(HomeDesign.Color.ink700)
-                                        .lineLimit(1)
-                                    Text(item.displaySubtitle)
-                                        .font(.system(size: 10.5, weight: .regular))
-                                        .foregroundStyle(HomeDesign.Color.textMuted)
-                                        .lineLimit(1)
-                                }
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                Image(systemName: "chevron.right")
-                                    .font(.system(size: 10, weight: .semibold))
-                                    .foregroundStyle(HomeDesign.Color.textFaint)
-                            }
-                            .padding(.horizontal, HomeDesign.Spacing.lg)
-                            .padding(.vertical, 9)
-                            .contentShape(Rectangle())
+                            railThumbnail(item)
                         }
                         .buttonStyle(PressableStyle())
                     }
                 }
+                .padding(.horizontal, HomeDesign.Spacing.xl)
+            }
+            // 레일만 화면 양끝까지 흘려보낸다(상위 페이지 패딩 상쇄) + 우측 끝 페이드로 "더 있다"를 항상 신호.
+            .padding(.horizontal, -HomeDesign.Spacing.xl)
+            .mask(
+                LinearGradient(
+                    stops: [
+                        .init(color: .black, location: 0),
+                        .init(color: .black, location: 0.93),
+                        .init(color: .clear, location: 1.0),
+                    ],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
+        }
+    }
+
+    /// 헤더 — 좌측 아이콘·이름·개수는 비대화형, 우측 "전체 보기"만 탭 타겟(퍼플 칩). "그 외"는 칩 숨김.
+    private var railHeader: some View {
+        HStack(spacing: HomeDesign.Spacing.sm) {
+            ZStack {
+                Circle().fill(tint.soft)
+                Image(systemName: MochiCategoryIcon.icon(for: group.coarse, fallbackIndex: index))
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(tint.strong)
+            }
+            .frame(width: 32, height: 32)
+
+            Text(group.coarse)
+                .font(.system(size: 15, weight: .bold, design: .rounded))
+                .foregroundStyle(HomeDesign.Color.textPrimary)
+                .lineLimit(1)
+            Text("\(group.items.count)개")
+                .font(.system(size: 11.5, weight: .bold, design: .rounded))
+                .foregroundStyle(HomeDesign.Color.textMuted)
+
+            Spacer(minLength: HomeDesign.Spacing.sm)
+
+            if canViewAll {
+                Button { onViewAll(group.coarse) } label: {
+                    HStack(spacing: 3) {
+                        Text("전체 보기")
+                            .font(.system(size: 12, weight: .bold, design: .rounded))
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 9, weight: .bold))
+                    }
+                    .foregroundStyle(HomeDesign.Color.purple600)
+                    .padding(.horizontal, 9)
+                    .padding(.vertical, 5)
+                    .background(Capsule().fill(HomeDesign.Color.purple50))
+                    .contentShape(Capsule())
+                }
+                .buttonStyle(PressableStyle())
             }
         }
-        .background(
-            RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
-                .fill(HomeDesign.Color.surface)
-        )
+    }
+
+    /// 104pt 정사각 썸네일 + 하단 제목 캡션. 캡처 이미지/메모/링크를 형태로 구분.
+    private func railThumbnail(_ item: MochiItem) -> some View {
+        ZStack(alignment: .bottomLeading) {
+            thumbnailBackground(item)
+            // 미분석 항목의 시스템 폴백 제목("(분석 대기 중)")이 회고 진열장에 노출되지 않게.
+            Text(item.analysis == nil ? "정리 중" : item.displayTitle)
+                .font(.system(size: 10.5, weight: .bold, design: .rounded))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+                .padding(.horizontal, 8)
+                .padding(.top, 16)
+                .padding(.bottom, 7)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(
+                    LinearGradient(
+                        colors: [Color.black.opacity(0.45), Color.black.opacity(0.0)],
+                        startPoint: .bottom,
+                        endPoint: .top
+                    )
+                )
+                .allowsHitTesting(false)
+        }
+        .frame(width: 104, height: 104)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        // OG 이미지가 있는 링크는 사진처럼 렌더되므로 작은 링크 배지로 "링크"임을 표시.
+        .overlay(alignment: .topTrailing) {
+            if !item.source.imageRefs.isEmpty, item.source.url != nil {
+                Image(systemName: "link")
+                    .font(.system(size: 9, weight: .bold))
+                    .foregroundStyle(.white)
+                    .padding(5)
+                    .background(Circle().fill(Color.black.opacity(0.45)))
+                    .padding(6)
+            }
+        }
         .overlay(
-            RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .stroke(HomeDesign.Color.border, lineWidth: 1)
         )
     }
 
-    /// 최대 3개를 살짝 겹쳐 보여주는 미리보기 — 펼치기 전의 시각적 단서.
-    private var thumbnailFan: some View {
-        HStack(spacing: -10) {
-            ForEach(Array(group.items.prefix(3).enumerated()), id: \.element.id) { _, item in
-                itemThumbnail(item, size: 30)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .stroke(HomeDesign.Color.surface, lineWidth: 2)
-                    )
-            }
-        }
-    }
-
     @ViewBuilder
-    private func itemThumbnail(_ item: MochiItem, size: CGFloat) -> some View {
-        Group {
-            switch item.viewKind {
-            case .screenshot:
-                LocalThumbnail(
-                    relativePath: item.source.imageRefs.first?.relativePath,
-                    objectKey: item.source.imageRefs.first?.objectKey,
-                    sha256: item.source.imageRefs.first?.sha256,
-                    mimeType: item.source.imageRefs.first?.mimeType,
-                    targetSize: CGSize(width: size, height: size)
-                ) {
-                    Rectangle().fill(HomeDesign.Color.purple100)
-                }
-            case .memo:
-                ZStack {
-                    Rectangle().fill(HomeDesign.Color.butter50)
-                    Image(systemName: "doc.text")
-                        .font(.system(size: size * 0.4, weight: .medium))
-                        .foregroundStyle(HomeDesign.Color.butter400.opacity(0.8))
-                }
-            case .url:
-                ZStack {
-                    Rectangle().fill(HomeDesign.Color.purple50)
-                    Image(systemName: "link")
-                        .font(.system(size: size * 0.38, weight: .semibold))
-                        .foregroundStyle(HomeDesign.Color.purple600.opacity(0.75))
-                }
+    private func thumbnailBackground(_ item: MochiItem) -> some View {
+        switch item.viewKind {
+        case .screenshot:
+            LocalThumbnail(
+                relativePath: item.source.imageRefs.first?.relativePath,
+                objectKey: item.source.imageRefs.first?.objectKey,
+                sha256: item.source.imageRefs.first?.sha256,
+                mimeType: item.source.imageRefs.first?.mimeType,
+                targetSize: CGSize(width: 104, height: 104)
+            ) {
+                Rectangle().fill(HomeDesign.Color.purple100)
+            }
+        case .memo:
+            ZStack {
+                Rectangle().fill(HomeDesign.Color.butter50)
+                Image(systemName: "doc.text")
+                    .font(.system(size: 30, weight: .medium))
+                    .foregroundStyle(HomeDesign.Color.butter400.opacity(0.8))
+            }
+        case .url:
+            ZStack {
+                Rectangle().fill(HomeDesign.Color.purple50)
+                Image(systemName: "link")
+                    .font(.system(size: 28, weight: .semibold))
+                    .foregroundStyle(HomeDesign.Color.purple600.opacity(0.75))
             }
         }
-        .frame(width: size, height: size)
-        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
     }
 
-    private var tint: (soft: Color, strong: Color) {
-        let tints: [(Color, Color)] = [
-            (HomeDesign.Color.blush100, HomeDesign.Color.blush400),
-            (HomeDesign.Color.purple100, HomeDesign.Color.purple500),
-            (HomeDesign.Color.mint100, HomeDesign.Color.mint400),
-            (HomeDesign.Color.sky100, HomeDesign.Color.sky400),
-            (HomeDesign.Color.butter100, HomeDesign.Color.butter400),
-        ]
-        return tints[index % tints.count]
-    }
+    private var tint: (soft: Color, strong: Color) { digestTint(index) }
 }
