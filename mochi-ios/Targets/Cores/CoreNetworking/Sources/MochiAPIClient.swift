@@ -115,6 +115,63 @@ public protocol MochiAPIClient: Sendable {
     /// `POST /api/v1/recall/upcoming/{event_id}/veto` — 이 항목 알림 전체 끄기(204).
     /// 대상 pending skip + 그 plan 영구 cancel → 다음 단계 알림도 안 온다.
     func vetoUpcoming(eventID: UUID) async throws
+
+    /// `GET /api/v1/recall/history?limit=` — 알림 페이지 "지난 알림"(모찌가 이미 보낸 알림).
+    /// owner 의 sent outbox 를 sent_at 내림차순으로 돌려준다. 빈손은 정상(`[]`). 읽기 전용.
+    func sentNotifications(limit: Int) async throws -> [SentNotificationDTO]
+}
+
+/// 알림 페이지 "지난 알림" 1건 — 백엔드 `SentNotificationEntry` 미러. 모찌가 이미 보낸 알림(읽기 전용).
+/// `sentAt` 발송 시각, `openedAt` 열어본 시각(없으면 nil=안 열어봄), `dismissedAt` 무시한 시각.
+/// 계약상 optional(`openedAt`/`dismissedAt`/`itemID`/`intentID`)은 nil 강등.
+public struct SentNotificationDTO: Sendable, Hashable, Codable, Identifiable {
+    /// 알림 event 키 (= outbox.event_id).
+    public let eventID: UUID
+    /// 받은 알림 종류 전부("deadline" | "nudge" | "recall" 등).
+    public let kind: String
+    /// 발송 시각.
+    public let sentAt: Date
+    /// 열어본 시각 — nil 이면 안 열어봄.
+    public let openedAt: Date?
+    /// swipe-away 로 무시한 시각 — nil 이면 미무시.
+    public let dismissedAt: Date?
+    public let title: String
+    public let body: String
+    /// 원본 mochiItem PK (없으면 nil).
+    public let itemID: UUID?
+    /// 원본 intent instance PK (없으면 nil).
+    public let intentID: UUID?
+
+    public var id: UUID { eventID }
+
+    public init(
+        eventID: UUID,
+        kind: String,
+        sentAt: Date,
+        openedAt: Date? = nil,
+        dismissedAt: Date? = nil,
+        title: String,
+        body: String,
+        itemID: UUID? = nil,
+        intentID: UUID? = nil
+    ) {
+        self.eventID = eventID
+        self.kind = kind
+        self.sentAt = sentAt
+        self.openedAt = openedAt
+        self.dismissedAt = dismissedAt
+        self.title = title
+        self.body = body
+        self.itemID = itemID
+        self.intentID = intentID
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case eventID = "eventId"
+        case kind, sentAt, openedAt, dismissedAt, title, body
+        case itemID = "itemId"
+        case intentID = "intentId"
+    }
 }
 
 /// 홈 "예정된 알림" 1건 — 백엔드 `UpcomingNotificationEntry` 미러. 모찌가 보낼 예정인 미래 알림(마감/일정).

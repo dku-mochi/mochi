@@ -62,8 +62,9 @@ struct SplashView: View {
                 .resizable()
                 .scaledToFit()
                 .frame(width: min(proxy.size.width * 0.62, 280))
-                .scaleEffect(hasAppeared ? 1.0 : 0.6)
-                .opacity(hasAppeared ? 1 : 0)
+                .shadow(color: HomeDesign.Color.purple500.opacity(0.18), radius: 22, x: 0, y: 14)
+//                .scaleEffect(hasAppeared ? 1.0 : 0.6)
+//                .opacity(hasAppeared ? 1 : 0)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         }
     }
@@ -173,8 +174,8 @@ private struct ConfettiParticle {
         ]
         var particles: [ConfettiParticle] = []
 
-        for _ in 0..<340 {
-            let speed = CGFloat.random(in: 950...1980)
+        for _ in 0..<30 {
+            let speed = CGFloat.random(in: 200...390)
             let angle = CGFloat.random(in: -2.62...2.62)   // 수직 위 기준 ±150°(위 중심, 옆구리 아래까지)
             let kindRoll = Double.random(in: 0...1)
             let kind: Kind = kindRoll < 0.60 ? .confetti : (kindRoll < 0.85 ? .ribbon : .dot)
@@ -182,9 +183,9 @@ private struct ConfettiParticle {
                 ConfettiParticle(
                     origin: CGPoint(x: 0.5 + .random(in: -0.025...0.025), y: 0.45 + .random(in: -0.02...0.02)),
                     vx0: speed * sin(angle),
-                    vy0: -speed * cos(angle),
+                    vy0: -speed * cos(angle) * 3,
                     drag: CGFloat.random(in: 1.5...2.05),
-                    gravity: CGFloat.random(in: 600...980),
+                    gravity: CGFloat.random(in: 200...580),
                     color: palette.randomElement()!,
                     length: kind == .dot ? .random(in: 6...10) : .random(in: 9...17),
                     kind: kind,

@@ -20,8 +20,6 @@ public struct MochiHomeFeature: Sendable {
     public struct State: Equatable, Sendable {
         /// 능동 회수 — 홈의 심장. 모찌가 떠올린 "다시 보면 좋을 기억". cold-start 빈손은 정상.
         public var recall: [RecallFeedEntryDTO] = []
-        /// "예정된 알림" — 모찌가 보낼 예정인 미래 마감·일정 알림(언제 올지 미리 안심). 빈손이면 섹션 숨김.
-        public var upcoming: [UpcomingNotificationDTO] = []
         /// 회수 itemID → 원본 캡처 이미지 ref. 이미지가 회상의 핵심이라(이미지 보고 "아, 맞다"),
         /// 회수 DTO엔 없는 이미지를 server PK 로 로컬 기록을 역매핑해 채운다. 없으면(메모·URL·지식) 폴백.
         public var recallImages: [UUID: ImageRef] = [:]
@@ -57,15 +55,11 @@ public struct MochiHomeFeature: Sendable {
         )
         case recallLoaded([RecallFeedEntryDTO])
         case recallImagesLoaded([UUID: ImageRef])
-        /// "예정된 알림" 로드(실패 격리 — 빈손이면 섹션 숨김).
-        case upcomingLoaded([UpcomingNotificationDTO])
-        /// 예정 알림 끄기 — 낙관적 즉시 제거 후 서버 veto 보고.
-        case upcomingVetoed(eventID: UUID)
-        /// 예정 알림 시각 조정 — 낙관적 즉시 반영(프리셋·DatePicker 공용) 후 서버 reschedule 보고.
-        case upcomingRescheduled(eventID: UUID, fireAt: Date)
         case loadFailed(String)
         /// 상단 검색 아이콘 탭 → 검색 탭으로 전환(홈은 검색을 비우고 탐색을 검색 탭에 양보).
         case searchTapped
+        /// 상단 알림(bell) 아이콘 탭 → 알림 페이지(예정/지난 2탭) push. 상위(MainTab)가 처리.
+        case notificationsTapped
         /// 회수 히어로 "모두 보기" → ② 자세히 목록 push.
         case recallSeeAllTapped
         /// 회수 히어로 초점 카드 탭 → 그 기록 원본 상세로 hero zoom. 카드 frame(`hero`)을 함께 싣는다.
@@ -97,6 +91,8 @@ public struct MochiHomeFeature: Sendable {
         public enum Delegate: Equatable, Sendable {
             /// 상단 검색 아이콘 — 상위가 검색 탭으로 전환한다(query 없이, 탐색은 검색 탭의 역할).
             case searchTabRequested
+            /// 상단 알림 아이콘 — 상위가 알림 페이지(예정/지난 2탭)를 push 한다.
+            case notificationsPageRequested
             /// 회수 "모두 보기" — 상위가 ② 자세히 목록을 push 한다(이미 받아둔 피드를 넘겨 즉시 그림).
             case recallListRequested([RecallFeedEntryDTO])
             /// 회수 히어로 카드 탭 — 상위가 그 기록의 원본 상세를 hero zoom 으로 연다("왜 떴는지"는 노출 안 함).
@@ -115,7 +111,7 @@ public struct MochiHomeFeature: Sendable {
     @Dependency(\.uuid) var uuid
     @Dependency(\.date) var date
 
-    private enum CancelID { case observe, recallFeed, upcoming }
+    private enum CancelID { case observe, recallFeed }
 
     public init() {}
 
@@ -134,9 +130,6 @@ public struct MochiHomeFeature: Sendable {
                     // 회수 피드는 별도 effect — 실패해도 홈 본문 로드를 막지 않는다(실패 격리).
                     .run { send in await send(.recallLoaded((try? await apiClient.recallFeed(limit: 20)) ?? [])) }
                         .cancellable(id: CancelID.recallFeed, cancelInFlight: true),
-                    // 예정 알림도 별도 effect — 실패해도 홈을 막지 않는다(실패 격리). 빈손이면 뷰가 섹션 숨김.
-                    .run { send in await send(.upcomingLoaded((try? await apiClient.upcomingNotifications(limit: 20)) ?? [])) }
-                        .cancellable(id: CancelID.upcoming, cancelInFlight: true),
                     // 로컬이 비어있으면(재설치 직후 등) 서버에서 복구 — pull 결과는 observeChanges 가 자동 재로드.
                     .run { _ in
                         if (try? await repository.listRecent(limit: 1))?.isEmpty ?? true {
@@ -156,9 +149,7 @@ public struct MochiHomeFeature: Sendable {
                 return .merge(
                     .run { send in await loadAll(send: send) },
                     .run { send in await send(.recallLoaded((try? await apiClient.recallFeed(limit: 20)) ?? [])) }
-                        .cancellable(id: CancelID.recallFeed, cancelInFlight: true),
-                    .run { send in await send(.upcomingLoaded((try? await apiClient.upcomingNotifications(limit: 20)) ?? [])) }
-                        .cancellable(id: CancelID.upcoming, cancelInFlight: true)
+                        .cancellable(id: CancelID.recallFeed, cancelInFlight: true)
                 )
 
             case let .sectionsLoaded(recent, needsReview, monthlyItems):
@@ -200,36 +191,11 @@ public struct MochiHomeFeature: Sendable {
                 state.recallImages = map
                 return .none
 
-            case let .upcomingLoaded(entries):
-                state.upcoming = entries
-                return .none
-
-            case let .upcomingVetoed(eventID):
-                // 낙관적 UI — 즉시 목록에서 제거하고 서버에는 백그라운드 보고(stopTapped 패턴, undo 없음).
-                state.upcoming.removeAll { $0.eventID == eventID }
-                return .run { _ in try? await apiClient.vetoUpcoming(eventID: eventID) }
-
-            case let .upcomingRescheduled(eventID, fireAt):
-                // 낙관적 UI — 즉시 새 시각 반영(원안은 최초 1회 보존). 서버에는 백그라운드 보고.
-                if let index = state.upcoming.firstIndex(where: { $0.eventID == eventID }) {
-                    let current = state.upcoming[index]
-                    state.upcoming[index] = UpcomingNotificationDTO(
-                        eventID: current.eventID,
-                        kind: current.kind,
-                        fireAt: fireAt,
-                        title: current.title,
-                        body: current.body,
-                        originalFireAt: current.originalFireAt ?? current.fireAt,
-                        itemID: current.itemID,
-                        intentID: current.intentID
-                    )
-                    // fire_at 오름차순 정합 유지 — 옮긴 항목이 새 시각 위치로 재정렬되게.
-                    state.upcoming.sort { $0.fireAt < $1.fireAt }
-                }
-                return .run { _ in try? await apiClient.rescheduleUpcoming(eventID: eventID, fireAt: fireAt) }
-
             case .searchTapped:
                 return .send(.delegate(.searchTabRequested))
+
+            case .notificationsTapped:
+                return .send(.delegate(.notificationsPageRequested))
 
             case .recallSeeAllTapped:
                 guard !state.recall.isEmpty else { return .none }

@@ -404,6 +404,17 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
         }
     }
 
+    public func sentNotifications(limit: Int) async throws -> [SentNotificationDTO] {
+        let output = try await client.get_sent_notifications_api_v1_recall_history_get(
+            query: .init(limit: limit)
+        )
+        switch output {
+        case let .ok(response):
+            return try (response.body.json.entries ?? []).map(Self.mapSent)
+        case let .undocumented(status, payload): throw await Self.error(status: status, payload: payload)
+        }
+    }
+
     /// 생성 `UpcomingNotificationEntry` → ``UpcomingNotificationDTO``. 필수 `eventId` 는 파싱 실패 시
     /// throw, optional `itemId`/`intentId` 는 계약상 nilable 이라 파싱 실패 시 nil 강등한다(`mapRecallEntry` 패턴).
     private static func mapUpcoming(_ e: Components.Schemas.UpcomingNotificationEntry) throws -> UpcomingNotificationDTO {
@@ -417,6 +428,25 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
             title: e.title,
             body: e.body,
             originalFireAt: e.originalFireAt,
+            itemID: e.itemId.flatMap { UUID(uuidString: $0) },
+            intentID: e.intentId.flatMap { UUID(uuidString: $0) }
+        )
+    }
+
+    /// 생성 `SentNotificationEntry` → ``SentNotificationDTO``. 필수 `eventId` 는 파싱 실패 시 throw,
+    /// optional `itemId`/`intentId` 는 계약상 nilable 이라 파싱 실패 시 nil 강등한다(`mapUpcoming` 패턴).
+    private static func mapSent(_ e: Components.Schemas.SentNotificationEntry) throws -> SentNotificationDTO {
+        guard let eventID = UUID(uuidString: e.eventId) else {
+            throw clientError("client.invalid_uuid", e.eventId)
+        }
+        return SentNotificationDTO(
+            eventID: eventID,
+            kind: e.kind,
+            sentAt: e.sentAt,
+            openedAt: e.openedAt,
+            dismissedAt: e.dismissedAt,
+            title: e.title,
+            body: e.body,
             itemID: e.itemId.flatMap { UUID(uuidString: $0) },
             intentID: e.intentId.flatMap { UUID(uuidString: $0) }
         )

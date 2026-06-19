@@ -136,6 +136,11 @@ struct MainTabFeature: Sendable {
                 state.path.append(.favorites(FavoritesFeature.State()))
                 return .none
 
+            case .home(.delegate(.notificationsPageRequested)):
+                // 홈 상단 bell 버튼 → 알림 페이지(예정/지난 2탭) push. 설정·즐겨찾기와 같은 path push.
+                state.path.append(.notifications(NotificationsPageFeature.State()))
+                return .none
+
             case .home(.delegate(.searchTabRequested)):
                 // 홈 상단 검색 아이콘 → 검색 탭으로 전환(query 없이, 깨끗한 시작). 홈은 회수·큐레이션,
                 // 탐색은 검색 탭으로 역할을 분리한다(회의 결정). 재진입 시 이전 필터를 비운다.
@@ -389,6 +394,8 @@ extension MainTabFeature {
         case recallDetail(RecallDetailFeature)
         /// 카테고리 3D 턴테이블 — 홈 "이런 걸 모아두셨어요" 카드에서 push.
         case categoryCarousel(CategoryCarouselFeature)
+        /// 알림 페이지(예정/지난 2탭) — 홈 상단 bell 버튼에서 push.
+        case notifications(NotificationsPageFeature)
     }
 }
 

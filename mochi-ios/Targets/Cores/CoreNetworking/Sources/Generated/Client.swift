@@ -2559,4 +2559,75 @@ public struct Client: APIProtocol {
             }
         )
     }
+    /// Get Sent Notifications
+    ///
+    /// 알림 페이지 "지난 알림" — owner 의 이미 보낸 알림(status='sent') sent_at 내림차순.
+    ///
+    /// 종류 무관(받은 알림 전부). opened_at/dismissed_at 로 열어봤는지 표시. 빈손이면 entries=[].
+    ///
+    /// - Remark: HTTP `GET /api/v1/recall/history`.
+    /// - Remark: Generated from `#/paths//api/v1/recall/history/get(get_sent_notifications_api_v1_recall_history_get)`.
+    public func get_sent_notifications_api_v1_recall_history_get(_ input: Operations.get_sent_notifications_api_v1_recall_history_get.Input) async throws -> Operations.get_sent_notifications_api_v1_recall_history_get.Output {
+        try await client.send(
+            input: input,
+            forOperation: Operations.get_sent_notifications_api_v1_recall_history_get.id,
+            serializer: { input in
+                let path = try converter.renderedPath(
+                    template: "/api/v1/recall/history",
+                    parameters: []
+                )
+                var request: HTTPTypes.HTTPRequest = .init(
+                    soar_path: path,
+                    method: .get
+                )
+                suppressMutabilityWarning(&request)
+                try converter.setQueryItemAsURI(
+                    in: &request,
+                    style: .form,
+                    explode: true,
+                    name: "limit",
+                    value: input.query.limit
+                )
+                converter.setAcceptHeader(
+                    in: &request.headerFields,
+                    contentTypes: input.headers.accept
+                )
+                return (request, nil)
+            },
+            deserializer: { response, responseBody in
+                switch response.status.code {
+                case 200:
+                    let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
+                    let body: Operations.get_sent_notifications_api_v1_recall_history_get.Output.Ok.Body
+                    let chosenContentType = try converter.bestContentType(
+                        received: contentType,
+                        options: [
+                            "application/json"
+                        ]
+                    )
+                    switch chosenContentType {
+                    case "application/json":
+                        body = try await converter.getResponseBodyAsJSON(
+                            Components.Schemas.SentNotificationsResponse.self,
+                            from: responseBody,
+                            transforming: { value in
+                                .json(value)
+                            }
+                        )
+                    default:
+                        preconditionFailure("bestContentType chose an invalid content type.")
+                    }
+                    return .ok(.init(body: body))
+                default:
+                    return .undocumented(
+                        statusCode: response.status.code,
+                        .init(
+                            headerFields: response.headerFields,
+                            body: responseBody
+                        )
+                    )
+                }
+            }
+        )
+    }
 }

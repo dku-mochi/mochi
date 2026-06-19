@@ -89,6 +89,9 @@ public struct NotConfiguredAPIClient: MochiAPIClient {
     public func vetoUpcoming(eventID: UUID) async throws {
         throw Self.error
     }
+    public func sentNotifications(limit: Int) async throws -> [SentNotificationDTO] {
+        throw Self.error
+    }
     private static let error = APIErrorEnvelope(
         code: "client.not_configured",
         message: "MochiAPIClient not wired",
