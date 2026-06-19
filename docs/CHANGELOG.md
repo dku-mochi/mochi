@@ -10,6 +10,12 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-06-19 — ios (캘린더 하단·DaySheet 리스트 더보기 + 플랫 행 — 많이 쌓여도 한눈에)
+- **캘린더 하단 "다가오는 일정"·"마감 임박한 할 일"과 DaySheet 「일정·마감」/「저장한 기억」을 `CollapsibleRows` 로** (사용자 지시): 기본 3개 + "N개 더 보기"↔"접기" 인라인 토글. "완료한 일"도 동일 적용(기존엔 펼치면 전부 쏟아짐). 많이 쌓여도 세로로 끝없이 나열 안 됨.
+- **다가오는 일정·할 일 행의 카드 박스(배경·테두리·그림자) 제거 → 플랫 + 행 *사이* 1px 디바이더**(`ink300` 0.5 — 회색 배경 위에서도 보이게, 마지막 행·"더 보기" 직전엔 선 없음). 할 일 체크박스 탭 타겟 44pt(일정 날짜 타일과 좌측 앵커·행 높이 통일). DaySheet 행(`DayMochiRow`)은 카드 유지.
+- 재사용 컴포넌트 `CollapsibleRows<Item, Row>`(limit·spacing·showsDividers 파라미터). 뷰 전용 — reducer·데이터·limit 상한(200/20/10) 무변경. 페이징(offset/cursor)은 데모 규모라 보류.
+- `tuist build FeatureInbox` 성공. UX_SPEC §3.6 동기화.
+
 ## 2026-06-19 — backend, ios, docs (예정 알림을 홈→알림 페이지로 이동 + "지난 알림" 탭 신설)
 - **백엔드 "지난 알림" API** (`GET /recall/history`) — owner 의 이미 보낸 알림(`status='sent'`, `sent_at` 내림차순, 종류 무관 — deadline/nudge/recall 전부, `opened_at`/`dismissed_at` 포함) 조회. upcoming 패턴 복제 헥사고날 신규(`sent_feed`/`get_sent_notifications`/`sent_feed_repository`), **스키마·마이그레이션 변경 0**(기존 outbox 컬럼 재사용), 단위테스트 2. `make lint/typecheck/test` 426 green, code-review·codex 교차검증 PASS.
 - **알림 페이지 신설** (`NotificationsPageFeature`/`NotificationsPageView`, FeatureInbox) — 홈 상단 bell 버튼(검색 다음·즐겨찾기 앞)으로 push 되는 화면(즐겨찾기·턴테이블과 같은 path 패턴). 상단 segmented Picker "예정된 알림"/"받은 알림" 2탭. **예정 탭** = 홈에서 통째로 옮겨온 `UpcomingNotificationsView` 재사용(veto·미루기·직접고르기 그대로). **지난 탭** = 새 읽기 전용 sent 타임라인 — 종류 아이콘 + title/body + 발송 시각(`DueDisplay`/`Calendar.mochiSeoul` 한국어 KST) + 상태 칩(읽음/지나침/안 읽음, 안 읽음은 왼쪽 보라 띠 강조). 두 탭 별도 effect·실패 격리(`(try?…) ?? []`).
