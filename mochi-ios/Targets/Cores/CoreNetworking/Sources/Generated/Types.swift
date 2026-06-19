@@ -369,6 +369,15 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `POST /api/v1/recall/upcoming/{event_id}/veto`.
     /// - Remark: Generated from `#/paths//api/v1/recall/upcoming/{event_id}/veto/post(veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post)`.
     func veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post(_ input: Operations.veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post.Input) async throws -> Operations.veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post.Output
+    /// Get Sent Notifications
+    ///
+    /// 알림 페이지 "지난 알림" — owner 의 이미 보낸 알림(status='sent') sent_at 내림차순.
+    ///
+    /// 종류 무관(받은 알림 전부). opened_at/dismissed_at 로 열어봤는지 표시. 빈손이면 entries=[].
+    ///
+    /// - Remark: HTTP `GET /api/v1/recall/history`.
+    /// - Remark: Generated from `#/paths//api/v1/recall/history/get(get_sent_notifications_api_v1_recall_history_get)`.
+    func get_sent_notifications_api_v1_recall_history_get(_ input: Operations.get_sent_notifications_api_v1_recall_history_get.Input) async throws -> Operations.get_sent_notifications_api_v1_recall_history_get.Output
 }
 
 /// Convenience overloads for operation inputs.
@@ -996,6 +1005,23 @@ extension APIProtocol {
     /// - Remark: Generated from `#/paths//api/v1/recall/upcoming/{event_id}/veto/post(veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post)`.
     public func veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post(path: Operations.veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post.Input.Path) async throws -> Operations.veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post.Output {
         try await veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post(Operations.veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post.Input(path: path))
+    }
+    /// Get Sent Notifications
+    ///
+    /// 알림 페이지 "지난 알림" — owner 의 이미 보낸 알림(status='sent') sent_at 내림차순.
+    ///
+    /// 종류 무관(받은 알림 전부). opened_at/dismissed_at 로 열어봤는지 표시. 빈손이면 entries=[].
+    ///
+    /// - Remark: HTTP `GET /api/v1/recall/history`.
+    /// - Remark: Generated from `#/paths//api/v1/recall/history/get(get_sent_notifications_api_v1_recall_history_get)`.
+    public func get_sent_notifications_api_v1_recall_history_get(
+        query: Operations.get_sent_notifications_api_v1_recall_history_get.Input.Query = .init(),
+        headers: Operations.get_sent_notifications_api_v1_recall_history_get.Input.Headers = .init()
+    ) async throws -> Operations.get_sent_notifications_api_v1_recall_history_get.Output {
+        try await get_sent_notifications_api_v1_recall_history_get(Operations.get_sent_notifications_api_v1_recall_history_get.Input(
+            query: query,
+            headers: headers
+        ))
     }
 }
 
@@ -2758,6 +2784,93 @@ public enum Components {
             }
             public enum CodingKeys: String, CodingKey {
                 case text
+            }
+        }
+        /// 알림 페이지 "지난 알림" 1건 — 모찌가 이미 보낸 알림. iOS ``SentNotificationDTO`` 1:1.
+        ///
+        /// ``sentAt`` 발송 시각, ``openedAt`` 열어본 시각(없으면 null=안 열어봄), ``dismissedAt`` 무시한 시각.
+        /// ``kind`` 는 받은 알림 종류 전부('deadline'|'nudge'|'recall' 등).
+        ///
+        /// - Remark: Generated from `#/components/schemas/SentNotificationEntry`.
+        public struct SentNotificationEntry: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/SentNotificationEntry/eventId`.
+            public var eventId: Swift.String
+            /// - Remark: Generated from `#/components/schemas/SentNotificationEntry/kind`.
+            public var kind: Swift.String
+            /// - Remark: Generated from `#/components/schemas/SentNotificationEntry/sentAt`.
+            public var sentAt: Foundation.Date
+            /// - Remark: Generated from `#/components/schemas/SentNotificationEntry/openedAt`.
+            public var openedAt: Foundation.Date?
+            /// - Remark: Generated from `#/components/schemas/SentNotificationEntry/dismissedAt`.
+            public var dismissedAt: Foundation.Date?
+            /// - Remark: Generated from `#/components/schemas/SentNotificationEntry/title`.
+            public var title: Swift.String
+            /// - Remark: Generated from `#/components/schemas/SentNotificationEntry/body`.
+            public var body: Swift.String
+            /// - Remark: Generated from `#/components/schemas/SentNotificationEntry/itemId`.
+            public var itemId: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/SentNotificationEntry/intentId`.
+            public var intentId: Swift.String?
+            /// Creates a new `SentNotificationEntry`.
+            ///
+            /// - Parameters:
+            ///   - eventId:
+            ///   - kind:
+            ///   - sentAt:
+            ///   - openedAt:
+            ///   - dismissedAt:
+            ///   - title:
+            ///   - body:
+            ///   - itemId:
+            ///   - intentId:
+            public init(
+                eventId: Swift.String,
+                kind: Swift.String,
+                sentAt: Foundation.Date,
+                openedAt: Foundation.Date? = nil,
+                dismissedAt: Foundation.Date? = nil,
+                title: Swift.String,
+                body: Swift.String,
+                itemId: Swift.String? = nil,
+                intentId: Swift.String? = nil
+            ) {
+                self.eventId = eventId
+                self.kind = kind
+                self.sentAt = sentAt
+                self.openedAt = openedAt
+                self.dismissedAt = dismissedAt
+                self.title = title
+                self.body = body
+                self.itemId = itemId
+                self.intentId = intentId
+            }
+            public enum CodingKeys: String, CodingKey {
+                case eventId
+                case kind
+                case sentAt
+                case openedAt
+                case dismissedAt
+                case title
+                case body
+                case itemId
+                case intentId
+            }
+        }
+        /// 알림 페이지 "지난 알림" 목록 — sent_at 내림차순. 빈손이면 entries=[](정상).
+        ///
+        /// - Remark: Generated from `#/components/schemas/SentNotificationsResponse`.
+        public struct SentNotificationsResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/SentNotificationsResponse/entries`.
+            public var entries: [Components.Schemas.SentNotificationEntry]?
+            /// Creates a new `SentNotificationsResponse`.
+            ///
+            /// - Parameters:
+            ///   - entries:
+            public init(entries: [Components.Schemas.SentNotificationEntry]? = nil) {
+                self.entries = entries
+            }
+            public enum CodingKeys: String, CodingKey {
+                case entries
             }
         }
         /// - Remark: Generated from `#/components/schemas/SignInResponse`.
@@ -7817,6 +7930,138 @@ public enum Operations {
             ///
             /// A response with a code that is not documented in the OpenAPI document.
             case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+    }
+    /// Get Sent Notifications
+    ///
+    /// 알림 페이지 "지난 알림" — owner 의 이미 보낸 알림(status='sent') sent_at 내림차순.
+    ///
+    /// 종류 무관(받은 알림 전부). opened_at/dismissed_at 로 열어봤는지 표시. 빈손이면 entries=[].
+    ///
+    /// - Remark: HTTP `GET /api/v1/recall/history`.
+    /// - Remark: Generated from `#/paths//api/v1/recall/history/get(get_sent_notifications_api_v1_recall_history_get)`.
+    public enum get_sent_notifications_api_v1_recall_history_get {
+        public static let id: Swift.String = "get_sent_notifications_api_v1_recall_history_get"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/api/v1/recall/history/GET/query`.
+            public struct Query: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/recall/history/GET/query/limit`.
+                public var limit: Swift.Int?
+                /// Creates a new `Query`.
+                ///
+                /// - Parameters:
+                ///   - limit:
+                public init(limit: Swift.Int? = nil) {
+                    self.limit = limit
+                }
+            }
+            public var query: Operations.get_sent_notifications_api_v1_recall_history_get.Input.Query
+            /// - Remark: Generated from `#/paths/api/v1/recall/history/GET/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.get_sent_notifications_api_v1_recall_history_get.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.get_sent_notifications_api_v1_recall_history_get.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.get_sent_notifications_api_v1_recall_history_get.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - query:
+            ///   - headers:
+            public init(
+                query: Operations.get_sent_notifications_api_v1_recall_history_get.Input.Query = .init(),
+                headers: Operations.get_sent_notifications_api_v1_recall_history_get.Input.Headers = .init()
+            ) {
+                self.query = query
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/recall/history/GET/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/api/v1/recall/history/GET/responses/200/content/application\/json`.
+                    case json(Components.Schemas.SentNotificationsResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.SentNotificationsResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.get_sent_notifications_api_v1_recall_history_get.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.get_sent_notifications_api_v1_recall_history_get.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Successful Response
+            ///
+            /// - Remark: Generated from `#/paths//api/v1/recall/history/get(get_sent_notifications_api_v1_recall_history_get)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.get_sent_notifications_api_v1_recall_history_get.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.get_sent_notifications_api_v1_recall_history_get.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
         }
     }
 }

@@ -24,6 +24,9 @@ from app.modules.notifications.application.get_recall_feed import (
 from app.modules.notifications.application.get_recall_feed import (
     RecallFeedEntry as RecallFeedEntryDTO,
 )
+from app.modules.notifications.application.get_sent_notifications import (
+    GetSentNotifications,
+)
 from app.modules.notifications.application.get_upcoming_notifications import (
     GetUpcomingNotifications,
 )
@@ -37,6 +40,9 @@ from app.modules.notifications.application.record_recall_reaction import (
     RecordRecallReaction,
     RecordRecallReactionCommand,
 )
+from app.modules.notifications.domain.sent_feed import (
+    SentNotification as SentNotificationDTO,
+)
 from app.modules.notifications.domain.upcoming_feed import (
     UpcomingNotification as UpcomingNotificationDTO,
 )
@@ -48,6 +54,9 @@ from app.modules.notifications.infrastructure.recall_feed_repository import (
 )
 from app.modules.notifications.infrastructure.recall_reaction_repository import (
     PostgresRecallReactionRepository,
+)
+from app.modules.notifications.infrastructure.sent_feed_repository import (
+    PostgresSentFeedRepository,
 )
 from app.modules.notifications.infrastructure.upcoming_feed_repository import (
     PostgresUpcomingFeedRepository,
@@ -61,6 +70,8 @@ from app.modules.notifications.presentation.schemas import (
     RecordRecallReactionRequest,
     RelatedItem,
     RescheduleUpcomingRequest,
+    SentNotificationEntry,
+    SentNotificationsResponse,
     UpcomingNotificationEntry,
     UpcomingNotificationsResponse,
 )
@@ -225,3 +236,34 @@ async def veto_upcoming_notification(
     await use_case.execute(VetoUpcomingCommand(owner_id=user, event_id=event_id))
     await db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+def _sent_to_response(n: SentNotificationDTO) -> SentNotificationEntry:
+    return SentNotificationEntry(
+        event_id=n.event_id,
+        kind=n.kind,
+        sent_at=n.sent_at,
+        opened_at=n.opened_at,
+        dismissed_at=n.dismissed_at,
+        title=n.title,
+        body=n.body,
+        item_id=n.item_id,
+        intent_id=n.intent_id,
+    )
+
+
+@router.get("/history", response_model=SentNotificationsResponse)
+async def get_sent_notifications(
+    db: DBSession,
+    user: CurrentUser,
+    limit: int = 20,
+) -> SentNotificationsResponse:
+    """알림 페이지 "지난 알림" — owner 의 이미 보낸 알림(status='sent') sent_at 내림차순.
+
+    종류 무관(받은 알림 전부). opened_at/dismissed_at 로 열어봤는지 표시. 빈손이면 entries=[].
+    """
+    use_case = GetSentNotifications(feed=PostgresSentFeedRepository(db))
+    items = await use_case.execute(owner_id=user, limit=max(1, min(limit, 50)))
+    return SentNotificationsResponse(
+        entries=[_sent_to_response(n) for n in items]
+    )
