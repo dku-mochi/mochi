@@ -3,7 +3,7 @@ import ComposableArchitecture
 import CoreNetworking
 import DesignSystem
 
-/// 알림 페이지 — 홈 bell 버튼으로 진입. "예정"/"지난" 2탭.
+/// 알림 페이지 — 홈 bell 버튼으로 진입. "예정된 알림"/"받은 알림" 2탭.
 ///
 /// **예정 탭**: 홈에서 옮겨온 `UpcomingNotificationsView` 재사용(행·veto·미루기·직접고르기 그대로).
 /// **지난 탭**: 모찌가 이미 보낸 알림의 읽기 전용 타임라인 — 발송 시각 + opened/dismissed 상태 칩.
@@ -56,8 +56,8 @@ public struct NotificationsPageView: View {
 
     private var segmentedPicker: some View {
         Picker("알림 종류", selection: $store.selectedTab) {
-            Text("예정").tag(NotificationsPageFeature.Tab.upcoming)
-            Text("지난").tag(NotificationsPageFeature.Tab.sent)
+            Text("예정된 알림").tag(NotificationsPageFeature.Tab.upcoming)
+            Text("받은 알림").tag(NotificationsPageFeature.Tab.sent)
         }
         .pickerStyle(.segmented)
     }
@@ -98,7 +98,7 @@ public struct NotificationsPageView: View {
         if store.sent.isEmpty {
             emptyState(
                 icon: "tray",
-                title: "아직 보낸 알림이 없어요",
+                title: "아직 받은 알림이 없어요",
                 subtitle: "모찌가 알림을 보내면 여기에 차곡차곡 쌓아둘게요."
             )
         } else {
@@ -279,7 +279,7 @@ private struct SentNotificationRow: View {
 
 // MARK: - Preview
 
-#Preview("예정") {
+#Preview("예정된 알림") {
     NavigationStack {
         NotificationsPageView(
             store: Store(initialState: NotificationsPageFeature.State()) {
@@ -289,7 +289,7 @@ private struct SentNotificationRow: View {
     }
 }
 
-#Preview("지난") {
+#Preview("받은 알림") {
     NavigationStack {
         NotificationsPageView(
             store: Store(initialState: NotificationsPageFeature.State(selectedTab: .sent)) {
