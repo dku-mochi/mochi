@@ -238,7 +238,7 @@ public struct MochiCalendarView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.vertical, HomeDesign.Spacing.lg)
             } else {
-                ForEach(store.upcomingSchedules) { schedule in
+                CollapsibleRows(items: Array(store.upcomingSchedules), spacing: 0, showsDividers: true) { schedule in
                     UpcomingScheduleRow(item: schedule) {
                         store.send(.mochiItemTapped(schedule.id, hero: nil))
                     }
@@ -265,7 +265,7 @@ public struct MochiCalendarView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.vertical, HomeDesign.Spacing.lg)
             } else {
-                ForEach(incompleteTodos) { row in
+                CollapsibleRows(items: incompleteTodos, spacing: 0, showsDividers: true) { row in
                     UpcomingTodoRow(
                         row: row,
                         onToggle: { store.send(.todoCompletionToggled(row)) },
@@ -306,7 +306,7 @@ public struct MochiCalendarView: View {
             .buttonStyle(PressableStyle())
 
             if showsCompleted {
-                ForEach(completedTodos) { row in
+                CollapsibleRows(items: completedTodos, spacing: 0, showsDividers: true) { row in
                     UpcomingTodoRow(
                         row: row,
                         onToggle: { store.send(.todoCompletionToggled(row)) },
@@ -486,6 +486,8 @@ private struct UpcomingTodoRow: View {
                 Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
                     .font(.system(size: 22, weight: .regular))
                     .foregroundStyle(isCompleted ? HomeDesign.Color.butter400 : HomeDesign.Color.textFaint)
+                    // 아이콘은 22pt 유지, 탭 타겟·좌측 앵커는 44pt(일정 행 날짜 타일과 폭·높이 통일).
+                    .frame(width: 44, height: 44)
                     .contentShape(Rectangle())
             }
             .buttonStyle(PressableStyle())
@@ -513,15 +515,7 @@ private struct UpcomingTodoRow: View {
             }
             .buttonStyle(PressableStyle())
         }
-        .padding(HomeDesign.Spacing.md)
-        .background(
-            RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
-                .fill(HomeDesign.Color.surface)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
-                .stroke(HomeDesign.Color.border, lineWidth: 1)
-        )
+        .padding(.vertical, HomeDesign.Spacing.md)
         .opacity(isCompleted ? 0.65 : 1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.75), value: isCompleted)
     }
@@ -586,15 +580,7 @@ private struct UpcomingScheduleRow: View {
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(HomeDesign.Color.textFaint)
             }
-            .padding(HomeDesign.Spacing.md)
-            .background(
-                RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
-                    .fill(HomeDesign.Color.surface)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
-                    .stroke(HomeDesign.Color.border, lineWidth: 1)
-            )
+            .padding(.vertical, HomeDesign.Spacing.md)
         }
         .buttonStyle(PressableStyle())
     }
@@ -603,6 +589,56 @@ private struct UpcomingScheduleRow: View {
         guard let span = scheduleSpan else { return "날짜 미정" }
         guard let end = span.end else { return DueDisplay.scheduleLabel(span.start) }
         return DueDisplay.scheduleRangeLabel(span.start, end)
+    }
+}
+
+// MARK: - Collapsible rows
+
+/// 기본 `limit`개만 보이고 넘치면 "N개 더 보기"로 인라인 펼친다(한번 펼치면 접지 않음 — 스크롤로 충분).
+/// 캘린더 하단·DaySheet 의 일정·할 일이 많이 쌓여도 한눈에 들어오게 한다.
+private struct CollapsibleRows<Item: Identifiable, Row: View>: View {
+    let items: [Item]
+    var limit: Int = 3
+    var spacing: CGFloat = HomeDesign.Spacing.md
+    /// 행 *사이*에만 1px 디바이더(마지막 행·"더 보기" 직전 제외). 박스 없는 플랫 리스트용.
+    var showsDividers: Bool = false
+    @ViewBuilder var row: (Item) -> Row
+    @State private var expanded = false
+
+    var body: some View {
+        let visible = expanded ? items : Array(items.prefix(limit))
+        LazyVStack(spacing: spacing) {
+            ForEach(Array(visible.enumerated()), id: \.element.id) { index, item in
+                row(item)
+                if showsDividers && index < visible.count - 1 {
+                    Rectangle()
+                        .fill(HomeDesign.Color.ink300.opacity(0.5))
+                        .frame(height: 1)
+                }
+            }
+            if items.count > limit {
+                expandToggle
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var expandToggle: some View {
+        Button {
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) { expanded.toggle() }
+        } label: {
+            HStack(spacing: 5) {
+                Text(expanded ? "접기" : "\(items.count - limit)개 더 보기")
+                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                Image(systemName: expanded ? "chevron.up" : "chevron.down")
+                    .font(.system(size: 11, weight: .bold))
+            }
+            .foregroundStyle(HomeDesign.Color.textMuted)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, HomeDesign.Spacing.sm)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(PressableStyle())
     }
 }
 
@@ -642,14 +678,14 @@ private struct DaySheet: View {
                 } else {
                     if !groups.due.isEmpty {
                         sectionLabel("이날 일정 · 마감", tint: HomeDesign.Color.sky400)
-                        ForEach(groups.due) { item in
+                        CollapsibleRows(items: groups.due) { item in
                             DayMochiRow(item: item, onTap: onTap)
                         }
                     }
                     if !groups.captured.isEmpty {
                         sectionLabel("이날 저장한 기억", tint: HomeDesign.Color.purple400)
                             .padding(.top, groups.due.isEmpty ? 0 : HomeDesign.Spacing.sm)
-                        ForEach(groups.captured) { item in
+                        CollapsibleRows(items: groups.captured) { item in
                             DayMochiRow(item: item, onTap: onTap)
                         }
                     }
