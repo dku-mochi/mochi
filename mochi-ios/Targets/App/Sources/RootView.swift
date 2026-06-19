@@ -155,6 +155,10 @@ struct MainTabView: View {
             case let .categoryCarousel(carouselStore):
                 // 카테고리 3D 턴테이블 — 홈 "이런 걸 모아두셨어요" 카드에서 push. 초점 커버 탭은 delegate 로 상세 present.
                 CategoryCarouselView(store: carouselStore)
+
+            case let .notifications(notificationsStore):
+                // 알림 페이지(예정/지난 2탭) — 홈 상단 bell 버튼에서 push.
+                NotificationsPageView(store: notificationsStore)
             }
         }
         // push 화면(설정)의 바 버튼·back tint = 모찌 퍼플.

@@ -109,3 +109,29 @@ class RescheduleUpcomingRequest(BaseModel):
     fire_at: UtcDateTime = Field(alias="fireAt")
 
     model_config = {"populate_by_name": True}
+
+
+class SentNotificationEntry(BaseModel):
+    """알림 페이지 "지난 알림" 1건 — 모찌가 이미 보낸 알림. iOS ``SentNotificationDTO`` 1:1.
+
+    ``sentAt`` 발송 시각, ``openedAt`` 열어본 시각(없으면 null=안 열어봄), ``dismissedAt`` 무시한 시각.
+    ``kind`` 는 받은 알림 종류 전부('deadline'|'nudge'|'recall' 등).
+    """
+
+    event_id: UUID = Field(alias="eventId")
+    kind: str
+    sent_at: UtcDateTime = Field(alias="sentAt")
+    opened_at: UtcDateTime | None = Field(default=None, alias="openedAt")
+    dismissed_at: UtcDateTime | None = Field(default=None, alias="dismissedAt")
+    title: str
+    body: str
+    item_id: UUID | None = Field(default=None, alias="itemId")
+    intent_id: UUID | None = Field(default=None, alias="intentId")
+
+    model_config = {"populate_by_name": True}
+
+
+class SentNotificationsResponse(BaseModel):
+    """알림 페이지 "지난 알림" 목록 — sent_at 내림차순. 빈손이면 entries=[](정상)."""
+
+    entries: list[SentNotificationEntry] = Field(default_factory=list)

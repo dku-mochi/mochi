@@ -171,4 +171,7 @@ private actor StubSyncAPIClient: MochiAPIClient {
     func vetoUpcoming(eventID: UUID) async throws {
         try await unimplemented.vetoUpcoming(eventID: eventID)
     }
+    func sentNotifications(limit: Int) async throws -> [SentNotificationDTO] {
+        try await unimplemented.sentNotifications(limit: limit)
+    }
 }
