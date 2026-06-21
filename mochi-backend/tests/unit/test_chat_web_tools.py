@@ -168,9 +168,7 @@ async def test_web_fetch_strips_html_and_truncates() -> None:
         )
     )
 
-    result = await WebFetchChatTool(inner).run(
-        owner_id=_OWNER, args={"url": "https://example.com/a"}
-    )
+    result = await WebFetchChatTool(inner).run(owner_id=_OWNER, args={"url": "https://example.com/a"})
 
     text = result.payload["text"]
     assert "<" not in text and "hidden" not in text and "color:red" not in text

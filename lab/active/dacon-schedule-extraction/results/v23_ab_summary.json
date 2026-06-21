@@ -1,0 +1,959 @@
+{
+  "meta": {
+    "model": "gemini-3.1-flash-lite",
+    "base_prompt": "classify_and_act@v22",
+    "v23": "v22 + single inserted block (나열형 캡처 분해), surgical-verified",
+    "pinned_now": "2026-06-19T15:38:00+09:00",
+    "n_runs_per_arm": 5,
+    "n_regression_runs": 3,
+    "dacon_image": "/Users/jun/Downloads/스크린샷, 2026-06-19 오후 3.38.12.png",
+    "client": "vertex(project,location=global)_inline_base64",
+    "v22_len": 18235,
+    "v23_len": 19829
+  },
+  "aggregate": {
+    "v22": {
+      "n_scored": 5,
+      "n_instances_mean": 1.6,
+      "recall_mean": 1.4,
+      "core_caught_out_of_n": {
+        "기획서": "4/5",
+        "산출물": "3/5",
+        "결과발표": "0/5"
+      },
+      "over_gen_runs": 2,
+      "over_gen_items": {
+        "대회기간(우산span)": 2
+      },
+      "span_misuse_runs": 1,
+      "date_accuracy_runs": "4/5",
+      "type_ok_runs": "5/5",
+      "noise_runs": 0,
+      "needs_review_majority": false
+    },
+    "v23": {
+      "n_scored": 5,
+      "n_instances_mean": 3.0,
+      "recall_mean": 2.0,
+      "core_caught_out_of_n": {
+        "기획서": "5/5",
+        "산출물": "5/5",
+        "결과발표": "0/5"
+      },
+      "over_gen_runs": 5,
+      "over_gen_items": {
+        "대회기간(우산span)": 5,
+        "예선평가/투표(제3자)": 1
+      },
+      "span_misuse_runs": 5,
+      "date_accuracy_runs": "5/5",
+      "type_ok_runs": "5/5",
+      "noise_runs": 0,
+      "needs_review_majority": false
+    }
+  },
+  "dacon": {
+    "v22": [
+      {
+        "latency_ms": 4939.7,
+        "output": {
+          "needs_review": false,
+          "intent_instances": [
+            {
+              "payload": {
+                "deadline": "2026-07-07 10:00",
+                "title": "데이콘 대회 예선 아이디어 기획서 제출"
+              },
+              "reasoning": "대회 일정상 예선 아이디어 기획서 제출 마감일이 명시되어 있어 이를 할 일로 등록합니다.",
+              "label": "예선 아이디어 기획서 제출",
+              "intent_type": "todo"
+            },
+            {
+              "label": "예선 최종 산출물 제출",
+              "intent_type": "todo",
+              "payload": {
+                "deadline": "2026-07-15 10:00",
+                "title": "데이콘 대회 예선 최종 산출물 제출"
+              },
+              "reasoning": "대회 일정상 예선 최종 산출물 제출 마감일이 명시되어 있어 이를 할 일로 등록합니다."
+            }
+          ],
+          "summary": "데이콘 데이터 분석 대회의 주요 일정(예선 아이디어 기획서 및 최종 산출물 제출)을 확인하고 마감 기한을 저장합니다.",
+          "category": "데이터 분석 대회",
+          "importance": 4,
+          "entities": [
+            {
+              "kind": "deadline",
+              "value": "2026-07-07 10:00"
+            },
+            {
+              "value": "2026-07-15 10:00",
+              "kind": "deadline"
+            }
+          ]
+        },
+        "run": 1,
+        "score": {
+          "n": 2,
+          "recall": 2,
+          "recall_detail": {
+            "기획서": true,
+            "산출물": true,
+            "결과발표": false
+          },
+          "over": [],
+          "span_misuse": false,
+          "date_accuracy": true,
+          "date_check": {
+            "기획서": [
+              "2026-07-07",
+              true
+            ],
+            "산출물": [
+              "2026-07-15",
+              true
+            ]
+          },
+          "type_ok": true,
+          "noise": false,
+          "needs_review": false,
+          "category": "데이터 분석 대회"
+        }
+      },
+      {
+        "latency_ms": 2119.2,
+        "output": {
+          "intent_instances": [
+            {
+              "payload": {
+                "note": "데이콘 대회 예선 아이디어 기획서 제출 마감일입니다.",
+                "deadline": "2026-07-07 10:00",
+                "title": "데이콘 대회 예선 아이디어 기획서 제출"
+              },
+              "reasoning": "화면에 명시된 대회 일정 중 가장 먼저 다가오는 마감 기한인 '예선 아이디어 기획서 제출'을 할 일로 등록합니다.",
+              "intent_type": "todo",
+              "label": "예선 아이디어 기획서 제출"
+            }
+          ],
+          "summary": "데이콘 데이터 분석 대회의 주요 일정입니다. 예선 아이디어 기획서 제출 마감일인 7월 7일 10시를 할 일로 저장합니다.",
+          "needs_review": false,
+          "category": "데이터 분석 대회",
+          "importance": 4,
+          "entities": [
+            {
+              "kind": "deadline",
+              "value": "2026-07-07 10:00"
+            }
+          ]
+        },
+        "run": 2,
+        "score": {
+          "n": 1,
+          "recall": 1,
+          "recall_detail": {
+            "기획서": true,
+            "산출물": false,
+            "결과발표": false
+          },
+          "over": [],
+          "span_misuse": false,
+          "date_accuracy": true,
+          "date_check": {
+            "기획서": [
+              "2026-07-07",
+              true
+            ]
+          },
+          "type_ok": true,
+          "noise": false,
+          "needs_review": false,
+          "category": "데이터 분석 대회"
+        }
+      },
+      {
+        "latency_ms": 2396.0,
+        "output": {
+          "intent_instances": [
+            {
+              "label": "예선 아이디어 기획서 제출",
+              "payload": {
+                "note": "데이콘 대회 예선 아이디어 기획서 제출 마감일입니다.",
+                "deadline": "2026-07-07 10:00",
+                "title": "데이콘 대회 예선 아이디어 기획서 제출"
+              },
+              "reasoning": "스크린샷에 명시된 예선 아이디어 기획서 제출 마감일(7.7)이 확인되며, 대회 참가를 위해 수행해야 할 구체적인 할 일입니다.",
+              "intent_type": "todo"
+            },
+            {
+              "reasoning": "스크린샷에 명시된 예선 최종 산출물 제출 마감일(7.15)이 확인되며, 대회 참가를 위해 수행해야 할 구체적인 할 일입니다.",
+              "payload": {
+                "title": "데이콘 대회 예선 최종 산출물 제출",
+                "deadline": "2026-07-15 10:00",
+                "note": "데이콘 대회 예선 최종 산출물 제출 마감일입니다."
+              },
+              "label": "예선 최종 산출물 제출",
+              "intent_type": "todo"
+            }
+          ],
+          "category": "데이터 분석 대회",
+          "needs_review": false,
+          "importance": 4,
+          "summary": "데이콘 데이터 분석 대회의 주요 일정 중 예선 기획서 및 산출물 제출 마감일을 확인하고 기록합니다.",
+          "entities": [
+            {
+              "value": "2026-07-07 10:00",
+              "kind": "deadline"
+            },
+            {
+              "kind": "deadline",
+              "value": "2026-07-15 10:00"
+            }
+          ]
+        },
+        "run": 3,
+        "score": {
+          "n": 2,
+          "recall": 2,
+          "recall_detail": {
+            "기획서": true,
+            "산출물": true,
+            "결과발표": false
+          },
+          "over": [
+            "대회기간(우산span)"
+          ],
+          "span_misuse": false,
+          "date_accuracy": true,
+          "date_check": {
+            "기획서": [
+              "2026-07-07",
+              true
+            ],
+            "산출물": [
+              "2026-07-15",
+              true
+            ]
+          },
+          "type_ok": true,
+          "noise": false,
+          "needs_review": false,
+          "category": "데이터 분석 대회"
+        }
+      },
+      {
+        "latency_ms": 2368.3,
+        "output": {
+          "needs_review": false,
+          "intent_instances": [
+            {
+              "intent_type": "schedule",
+              "label": "대회 일정 확인",
+              "reasoning": "사용자가 데이콘 대회의 주요 일정을 확인하고 참여를 고려하고 있습니다. 대회 기간이 명확히 명시되어 있어 이를 일정으로 등록합니다.",
+              "payload": {
+                "title": "데이콘 대회 참가 일정",
+                "end_date": "2026-07-15",
+                "note": "대회 기간: 2026.07.01 ~ 2026.07.15 09:59",
+                "end_time": "09:59",
+                "date": "2026-07-01"
+              }
+            }
+          ],
+          "summary": "데이콘 데이터 분석 대회의 주요 일정입니다. 7월 1일부터 15일까지 진행되는 대회 기간을 확인하고 참여 계획을 세우기 위해 저장했습니다.",
+          "category": "데이터 분석 대회",
+          "importance": 5,
+          "entities": []
+        },
+        "run": 4,
+        "score": {
+          "n": 1,
+          "recall": 0,
+          "recall_detail": {
+            "기획서": false,
+            "산출물": false,
+            "결과발표": false
+          },
+          "over": [
+            "대회기간(우산span)"
+          ],
+          "span_misuse": true,
+          "date_accuracy": false,
+          "date_check": {},
+          "type_ok": true,
+          "noise": false,
+          "needs_review": false,
+          "category": "데이터 분석 대회"
+        }
+      },
+      {
+        "latency_ms": 2430.5,
+        "output": {
+          "entities": [
+            {
+              "kind": "deadline",
+              "value": "2026-07-07 10:00"
+            },
+            {
+              "value": "2026-07-15 10:00",
+              "kind": "deadline"
+            }
+          ],
+          "needs_review": false,
+          "category": "데이터 분석 대회",
+          "summary": "데이콘 데이터 분석 대회의 주요 일정(예선 아이디어 기획서 및 최종 산출물 제출)을 확인하고 마감 기한을 저장했습니다.",
+          "importance": 4,
+          "intent_instances": [
+            {
+              "payload": {
+                "deadline": "2026-07-07 10:00",
+                "title": "데이콘 대회 예선 아이디어 기획서 제출",
+                "note": "데이콘 대회 예선 아이디어 기획서 제출 마감일입니다."
+              },
+              "intent_type": "todo",
+              "label": "예선 아이디어 기획서 제출",
+              "reasoning": "사용자가 대회 일정 페이지를 캡처하여 저장한 것은 대회 참여 의사가 있음을 나타냅니다. 특히 예선 아이디어 기획서 제출 마감일이 명시되어 있어 이를 할 일로 등록합니다."
+            },
+            {
+              "reasoning": "대회 예선 최종 산출물 제출 마감일이 명시되어 있어 이를 할 일로 등록합니다.",
+              "label": "예선 최종 산출물 제출",
+              "payload": {
+                "title": "데이콘 대회 예선 최종 산출물 제출",
+                "note": "데이콘 대회 예선 최종 산출물 제출 마감일입니다.",
+                "deadline": "2026-07-15 10:00"
+              },
+              "intent_type": "todo"
+            }
+          ]
+        },
+        "run": 5,
+        "score": {
+          "n": 2,
+          "recall": 2,
+          "recall_detail": {
+            "기획서": true,
+            "산출물": true,
+            "결과발표": false
+          },
+          "over": [],
+          "span_misuse": false,
+          "date_accuracy": true,
+          "date_check": {
+            "기획서": [
+              "2026-07-07",
+              true
+            ],
+            "산출물": [
+              "2026-07-15",
+              true
+            ]
+          },
+          "type_ok": true,
+          "noise": false,
+          "needs_review": false,
+          "category": "데이터 분석 대회"
+        }
+      }
+    ],
+    "v23": [
+      {
+        "latency_ms": 2482.4,
+        "output": {
+          "entities": [
+            {
+              "kind": "deadline",
+              "value": "2026-07-07 10:00"
+            },
+            {
+              "kind": "deadline",
+              "value": "2026-07-15 10:00"
+            }
+          ],
+          "importance": 4,
+          "summary": "데이콘 데이터 분석 대회의 예선 기획서 및 최종 산출물 제출 마감 기한을 확인하고 기록합니다.",
+          "needs_review": false,
+          "intent_instances": [
+            {
+              "reasoning": "대회 일정 중 사용자가 직접 제출해야 하는 마감 기한이 명시되어 있어 할 일로 등록합니다.",
+              "payload": {
+                "deadline": "2026-07-07 10:00",
+                "title": "데이콘 대회 예선 아이디어 기획서 제출"
+              },
+              "label": "예선 아이디어 기획서 제출",
+              "intent_type": "todo"
+            },
+            {
+              "reasoning": "대회 일정 중 사용자가 직접 제출해야 하는 마감 기한이 명시되어 있어 할 일로 등록합니다.",
+              "payload": {
+                "title": "데이콘 대회 예선 최종 산출물 제출",
+                "deadline": "2026-07-15 10:00"
+              },
+              "label": "예선 최종 산출물 제출",
+              "intent_type": "todo"
+            },
+            {
+              "payload": {
+                "end_date": "2026-07-15",
+                "title": "데이콘 대회 참가 기간",
+                "date": "2026-07-01"
+              },
+              "reasoning": "대회 기간 동안 참가를 고려하고 있으므로 전체 일정을 일정으로 등록합니다.",
+              "label": "대회 일정 확인",
+              "intent_type": "schedule"
+            }
+          ],
+          "category": "데이터 분석 대회"
+        },
+        "run": 1,
+        "score": {
+          "n": 3,
+          "recall": 2,
+          "recall_detail": {
+            "기획서": true,
+            "산출물": true,
+            "결과발표": false
+          },
+          "over": [
+            "대회기간(우산span)"
+          ],
+          "span_misuse": true,
+          "date_accuracy": true,
+          "date_check": {
+            "기획서": [
+              "2026-07-07",
+              true
+            ],
+            "산출물": [
+              "2026-07-15",
+              true
+            ]
+          },
+          "type_ok": true,
+          "noise": false,
+          "needs_review": false,
+          "category": "데이터 분석 대회"
+        }
+      },
+      {
+        "latency_ms": 2593.3,
+        "output": {
+          "intent_instances": [
+            {
+              "reasoning": "대회 일정표에 명시된 예선 아이디어 기획서 제출 마감일입니다. 사용자가 대회에 참가할 의사가 있어 저장한 것으로 판단되므로, 마감 시점에 맞춰 알림이 필요합니다.",
+              "label": "예선 아이디어 기획서 제출",
+              "payload": {
+                "title": "데이콘 대회 예선 아이디어 기획서 제출",
+                "deadline": "2026-07-07 10:00"
+              },
+              "intent_type": "todo"
+            },
+            {
+              "label": "예선 최종 산출물 제출",
+              "reasoning": "대회 일정표에 명시된 예선 최종 산출물 제출 마감일입니다. 마감 시점에 맞춰 알림이 필요합니다.",
+              "payload": {
+                "title": "데이콘 대회 예선 최종 산출물 제출",
+                "deadline": "2026-07-15 10:00"
+              },
+              "intent_type": "todo"
+            },
+            {
+              "reasoning": "대회 전체 운영 기간입니다. 이 기간 동안 대회 관련 활동을 수행해야 하므로 일정으로 등록합니다.",
+              "label": "대회 기간 확인",
+              "intent_type": "schedule",
+              "payload": {
+                "end_date": "2026-07-15",
+                "title": "데이콘 대회 기간",
+                "date": "2026-07-01"
+              }
+            }
+          ],
+          "summary": "데이콘 데이터 분석 대회의 주요 일정입니다. 예선 아이디어 기획서 및 최종 산출물 제출 마감일이 포함되어 있어, 대회 준비를 위해 저장했습니다.",
+          "importance": 4,
+          "entities": [
+            {
+              "kind": "reference_url",
+              "value": "{\"provider\":\"web\",\"label\":\"데이콘 대회 일정\",\"url\":\"https://dacon.io\"}"
+            }
+          ],
+          "category": "데이터 분석 대회",
+          "needs_review": false
+        },
+        "run": 2,
+        "score": {
+          "n": 3,
+          "recall": 2,
+          "recall_detail": {
+            "기획서": true,
+            "산출물": true,
+            "결과발표": false
+          },
+          "over": [
+            "대회기간(우산span)"
+          ],
+          "span_misuse": true,
+          "date_accuracy": true,
+          "date_check": {
+            "기획서": [
+              "2026-07-07",
+              true
+            ],
+            "산출물": [
+              "2026-07-15",
+              true
+            ]
+          },
+          "type_ok": true,
+          "noise": false,
+          "needs_review": false,
+          "category": "데이터 분석 대회"
+        }
+      },
+      {
+        "latency_ms": 2566.1,
+        "output": {
+          "importance": 4,
+          "category": "데이터 분석 대회",
+          "needs_review": false,
+          "entities": [
+            {
+              "value": "{\"provider\":\"web\",\"label\":\"데이콘 대회 일정\",\"url\":\"https://dacon.io\"}",
+              "kind": "reference_url"
+            }
+          ],
+          "summary": "데이콘에서 진행하는 대회 일정입니다. 예선 아이디어 기획서와 최종 산출물 제출 마감일이 포함되어 있어, 대회 참여를 위해 주요 일정을 저장합니다.",
+          "intent_instances": [
+            {
+              "reasoning": "대회 일정표에 명시된 예선 아이디어 기획서 제출 마감일입니다. 사용자가 대회에 참가할 의사가 있어 저장한 것으로 판단되므로, 마감일에 맞춰 알림을 제공합니다.",
+              "label": "예선 아이디어 기획서 제출",
+              "intent_type": "todo",
+              "payload": {
+                "title": "데이콘 대회 예선 아이디어 기획서 제출",
+                "deadline": "2026-07-07 10:00"
+              }
+            },
+            {
+              "reasoning": "대회 일정표에 명시된 예선 최종 산출물 제출 마감일입니다. 사용자가 대회에 참가할 의사가 있어 저장한 것으로 판단되므로, 마감일에 맞춰 알림을 제공합니다.",
+              "label": "예선 최종 산출물 제출",
+              "intent_type": "todo",
+              "payload": {
+                "deadline": "2026-07-15 10:00",
+                "title": "데이콘 대회 예선 최종 산출물 제출"
+              }
+            },
+            {
+              "reasoning": "대회 전체 참가 기간을 일정으로 저장하여 대회 흐름을 파악할 수 있도록 합니다.",
+              "label": "대회 참가 기간 확인",
+              "intent_type": "schedule",
+              "payload": {
+                "end_date": "2026-07-15",
+                "date": "2026-07-01",
+                "end_time": "10:00",
+                "title": "데이콘 대회 참가 기간"
+              }
+            }
+          ]
+        },
+        "run": 3,
+        "score": {
+          "n": 3,
+          "recall": 2,
+          "recall_detail": {
+            "기획서": true,
+            "산출물": true,
+            "결과발표": false
+          },
+          "over": [
+            "대회기간(우산span)"
+          ],
+          "span_misuse": true,
+          "date_accuracy": true,
+          "date_check": {
+            "기획서": [
+              "2026-07-07",
+              true
+            ],
+            "산출물": [
+              "2026-07-15",
+              true
+            ]
+          },
+          "type_ok": true,
+          "noise": false,
+          "needs_review": false,
+          "category": "데이터 분석 대회"
+        }
+      },
+      {
+        "latency_ms": 2665.9,
+        "output": {
+          "needs_review": false,
+          "summary": "데이콘 대회의 주요 일정과 제출 마감 기한을 확인했습니다. 예선 아이디어 기획서와 최종 산출물 제출 마감일을 챙겨야 합니다.",
+          "intent_instances": [
+            {
+              "payload": {
+                "title": "데이콘 대회 예선 아이디어 기획서 제출",
+                "deadline": "2026-07-07 10:00"
+              },
+              "reasoning": "대회 일정 중 사용자가 직접 수행해야 하는 마감 기한이 명시된 작업입니다.",
+              "label": "예선 아이디어 기획서 제출",
+              "intent_type": "todo"
+            },
+            {
+              "payload": {
+                "title": "데이콘 대회 예선 최종 산출물 제출",
+                "deadline": "2026-07-15 10:00"
+              },
+              "intent_type": "todo",
+              "label": "예선 최종 산출물 제출",
+              "reasoning": "대회 일정 중 사용자가 직접 수행해야 하는 마감 기한이 명시된 작업입니다."
+            },
+            {
+              "reasoning": "대회 전체 일정 중 사용자가 참여하는 기간입니다.",
+              "label": "대회 참가 및 예선 평가 기간 확인",
+              "intent_type": "schedule",
+              "payload": {
+                "date": "2026-07-01",
+                "end_date": "2026-07-15",
+                "title": "데이콘 대회 예선 기간 및 평가 확인"
+              }
+            }
+          ],
+          "entities": [
+            {
+              "value": "{\"provider\":\"web\",\"label\":\"데이콘 대회 페이지\",\"rank_profile\":\"general\",\"url\":\"https://dacon.io\"}",
+              "kind": "reference_url"
+            }
+          ],
+          "category": "데이터 분석 대회",
+          "importance": 5
+        },
+        "run": 4,
+        "score": {
+          "n": 3,
+          "recall": 2,
+          "recall_detail": {
+            "기획서": true,
+            "산출물": true,
+            "결과발표": false
+          },
+          "over": [
+            "대회기간(우산span)",
+            "예선평가/투표(제3자)"
+          ],
+          "span_misuse": true,
+          "date_accuracy": true,
+          "date_check": {
+            "기획서": [
+              "2026-07-07",
+              true
+            ],
+            "산출물": [
+              "2026-07-15",
+              true
+            ]
+          },
+          "type_ok": true,
+          "noise": false,
+          "needs_review": false,
+          "category": "데이터 분석 대회"
+        }
+      },
+      {
+        "latency_ms": 2571.1,
+        "output": {
+          "category": "데이터 분석 대회",
+          "entities": [
+            {
+              "value": "{\"provider\":\"web\",\"label\":\"데이콘 대회 페이지\",\"url\":\"https://dacon.io\"}",
+              "kind": "reference_url"
+            }
+          ],
+          "intent_instances": [
+            {
+              "payload": {
+                "title": "데이콘 대회 예선 아이디어 기획서 제출",
+                "deadline": "2026-07-07 10:00"
+              },
+              "label": "아이디어 기획서 제출",
+              "reasoning": "대회 일정 중 사용자가 직접 수행해야 하는 마감 기한이 명시된 작업입니다.",
+              "intent_type": "todo"
+            },
+            {
+              "intent_type": "todo",
+              "label": "최종 산출물 제출",
+              "reasoning": "대회 일정 중 사용자가 직접 수행해야 하는 마감 기한이 명시된 작업입니다.",
+              "payload": {
+                "title": "데이콘 대회 예선 최종 산출물 제출",
+                "deadline": "2026-07-15 10:00"
+              }
+            },
+            {
+              "intent_type": "schedule",
+              "label": "대회 일정 확인",
+              "reasoning": "대회 참가 기간이라는 전체 일정을 관리하기 위해 등록합니다.",
+              "payload": {
+                "end_date": "2026-07-15",
+                "date": "2026-07-01",
+                "title": "데이콘 대회 참가 기간"
+              }
+            }
+          ],
+          "needs_review": false,
+          "importance": 4,
+          "summary": "데이콘 대회의 주요 일정과 제출 마감 기한을 확인했습니다. 예선 아이디어 기획서와 최종 산출물 제출 기한을 챙겨야 합니다."
+        },
+        "run": 5,
+        "score": {
+          "n": 3,
+          "recall": 2,
+          "recall_detail": {
+            "기획서": true,
+            "산출물": true,
+            "결과발표": false
+          },
+          "over": [
+            "대회기간(우산span)"
+          ],
+          "span_misuse": true,
+          "date_accuracy": true,
+          "date_check": {
+            "기획서": [
+              "2026-07-07",
+              true
+            ],
+            "산출물": [
+              "2026-07-15",
+              true
+            ]
+          },
+          "type_ok": true,
+          "noise": false,
+          "needs_review": false,
+          "category": "데이터 분석 대회"
+        }
+      }
+    ]
+  },
+  "regression": [
+    {
+      "image": "validation_13_나중에 살 화장품.jpg",
+      "desc": "단일 화장품 구매고민(memo)",
+      "v22_counts": [
+        1,
+        1,
+        1
+      ],
+      "v23_counts": [
+        1,
+        1,
+        1
+      ],
+      "v22_runs": [
+        {
+          "n": 1,
+          "types": [
+            "memo"
+          ],
+          "titles": [
+            "Bath and Body Works Warm Vanilla Sugar 라인 추천"
+          ]
+        },
+        {
+          "n": 1,
+          "types": [
+            "memo"
+          ],
+          "titles": [
+            "Bath and Body Works Warm Vanilla Sugar 라인 추천"
+          ]
+        },
+        {
+          "n": 1,
+          "types": [
+            "memo"
+          ],
+          "titles": [
+            "Bath and Body Works Warm Vanilla Sugar 라인"
+          ]
+        }
+      ],
+      "v23_runs": [
+        {
+          "n": 1,
+          "types": [
+            "memo"
+          ],
+          "titles": [
+            "Bath and Body Works Warm Vanilla Sugar 라인"
+          ]
+        },
+        {
+          "n": 1,
+          "types": [
+            "memo"
+          ],
+          "titles": [
+            "바닐라 향 바디 제품 추천"
+          ]
+        },
+        {
+          "n": 1,
+          "types": [
+            "memo"
+          ],
+          "titles": [
+            "Bath and Body Works Warm Vanilla Sugar 라인"
+          ]
+        }
+      ],
+      "v22_avg": 1.0,
+      "v23_avg": 1.0
+    },
+    {
+      "image": "validation_03_공차 할인 이벤트하니까 캡쳐해두고 나중에 가봐야지.jpg",
+      "desc": "단일 할인 이벤트(memo)",
+      "v22_counts": [
+        1,
+        1,
+        1
+      ],
+      "v23_counts": [
+        1,
+        1,
+        1
+      ],
+      "v22_runs": [
+        {
+          "n": 1,
+          "types": [
+            "memo"
+          ],
+          "titles": [
+            "공차 900호점 기념 해피아워 이벤트"
+          ]
+        },
+        {
+          "n": 1,
+          "types": [
+            "memo"
+          ],
+          "titles": [
+            "공차 900호점 기념 해피아워 이벤트"
+          ]
+        },
+        {
+          "n": 1,
+          "types": [
+            "memo"
+          ],
+          "titles": [
+            "공차 900호점 기념 해피아워 이벤트"
+          ]
+        }
+      ],
+      "v23_runs": [
+        {
+          "n": 1,
+          "types": [
+            "memo"
+          ],
+          "titles": [
+            "공차 900호점 기념 해피아워 이벤트"
+          ]
+        },
+        {
+          "n": 1,
+          "types": [
+            "memo"
+          ],
+          "titles": [
+            "공차 900호점 기념 해피아워 이벤트"
+          ]
+        },
+        {
+          "n": 1,
+          "types": [
+            "memo"
+          ],
+          "titles": [
+            "공차 900호점 기념 해피아워 이벤트"
+          ]
+        }
+      ],
+      "v22_avg": 1.0,
+      "v23_avg": 1.0
+    },
+    {
+      "image": "validation_05_기프티콘 나중에 꼭 써야지.jpg",
+      "desc": "단일 기프티콘 사용(memo/todo)",
+      "v22_counts": [
+        1,
+        1,
+        1
+      ],
+      "v23_counts": [
+        1,
+        1,
+        1
+      ],
+      "v22_runs": [
+        {
+          "n": 1,
+          "types": [
+            "memo"
+          ],
+          "titles": [
+            "메가MGC커피 모바일 금액권 5천원권"
+          ]
+        },
+        {
+          "n": 1,
+          "types": [
+            "memo"
+          ],
+          "titles": [
+            "메가MGC커피 모바일 금액권 5천원권"
+          ]
+        },
+        {
+          "n": 1,
+          "types": [
+            "memo"
+          ],
+          "titles": [
+            "메가MGC커피 모바일 금액권 5천원권"
+          ]
+        }
+      ],
+      "v23_runs": [
+        {
+          "n": 1,
+          "types": [
+            "memo"
+          ],
+          "titles": [
+            "메가MGC커피 모바일 금액권 5천원권"
+          ]
+        },
+        {
+          "n": 1,
+          "types": [
+            "memo"
+          ],
+          "titles": [
+            "메가MGC커피 모바일 금액권 5천원권"
+          ]
+        },
+        {
+          "n": 1,
+          "types": [
+            "memo"
+          ],
+          "titles": [
+            "메가MGC커피 모바일 금액권 5천원권"
+          ]
+        }
+      ],
+      "v22_avg": 1.0,
+      "v23_avg": 1.0
+    }
+  ]
+}

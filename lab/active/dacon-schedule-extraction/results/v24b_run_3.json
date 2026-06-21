@@ -1,0 +1,70 @@
+{
+  "latency_ms": 8301.3,
+  "usage": {
+    "thoughts_tokens": 1586,
+    "candidates_tokens": 464,
+    "total_tokens": 8263
+  },
+  "finish_reason": "FinishReason.STOP",
+  "output": {
+    "importance": 4,
+    "category": "대회 일정",
+    "summary": "데이콘 '데이스쿨 할인 리턴즈' 대회의 주요 일정입니다. 예선 아이디어 기획서 제출(7/7)과 최종 산출물 제출(7/15) 마감 기한을 챙겨야 합니다.",
+    "intent_instances": [
+      {
+        "intent_type": "schedule",
+        "label": "대회 기간",
+        "reasoning": "대회 전체 진행 기간을 일정으로 등록하여 관리합니다.",
+        "payload": {
+          "date": "2026-07-01",
+          "end_date": "2026-07-15",
+          "title": "데이스쿨 할인 리턴즈 대회 기간"
+        }
+      },
+      {
+        "reasoning": "대회 예선 아이디어 기획서 제출 마감 기한입니다.",
+        "label": "기획서 제출",
+        "payload": {
+          "title": "예선 아이디어 기획서 제출",
+          "deadline": "2026-07-07 10:00"
+        },
+        "intent_type": "todo"
+      },
+      {
+        "intent_type": "todo",
+        "payload": {
+          "title": "예선 최종 산출물 제출",
+          "deadline": "2026-07-15 10:00"
+        },
+        "label": "산출물 제출",
+        "reasoning": "대회 예선 최종 산출물 제출 마감 기한입니다."
+      },
+      {
+        "intent_type": "memo",
+        "label": "본선 준비",
+        "reasoning": "본선 진출 여부에 따라 필요한 후속 조치이므로 메모로 기록합니다.",
+        "payload": {
+          "title": "본선 진출 시 발표자료 제출",
+          "note": "본선 진출 시 7월 17일부터 20일까지 발표자료 제출이 필요합니다."
+        }
+      }
+    ],
+    "needs_review": false,
+    "entities": [
+      {
+        "kind": "deadline",
+        "value": "2026-07-07 10:00"
+      },
+      {
+        "kind": "deadline",
+        "value": "2026-07-15 10:00"
+      }
+    ]
+  },
+  "run": 3,
+  "arm": "v24b",
+  "config": {
+    "thinking_budget": -1,
+    "max_output_tokens": 4096
+  }
+}

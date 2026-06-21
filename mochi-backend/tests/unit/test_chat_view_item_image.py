@@ -222,7 +222,9 @@ def test_history_reconstruction_never_carries_images() -> None:
                 "compact": {"id": "x", "note": "call view_item_image again"},
             },
         ),
-        Message(id=uuid4(), conversation_id=_CONVERSATION, role=MessageRole.ASSISTANT, content="12,000원이에요"),
+        Message(
+            id=uuid4(), conversation_id=_CONVERSATION, role=MessageRole.ASSISTANT, content="12,000원이에요"
+        ),
     ]
 
     contents = _contents_from_history(history)
@@ -254,9 +256,9 @@ async def test_budget_exhaustion_mid_round_keeps_image_part_after_recorded_pairs
     run_id = uuid4()
     queue = registry.create(run_id)
 
-    await _runner(
-        llm, store, registry, tools=[_FakeImageTool(), FakeSearchTool()], max_tool_calls=1
-    ).execute(owner_id=_OWNER, conversation_id=_CONVERSATION, run_id=run_id)
+    await _runner(llm, store, registry, tools=[_FakeImageTool(), FakeSearchTool()], max_tool_calls=1).execute(
+        owner_id=_OWNER, conversation_id=_CONVERSATION, run_id=run_id
+    )
     await _drain(queue)
 
     contents = llm.calls[1]["contents"]

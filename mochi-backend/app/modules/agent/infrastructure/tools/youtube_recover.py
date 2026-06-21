@@ -37,11 +37,11 @@ _VIDEO_ID_RE = re.compile(r'"videoId":"([\w-]{11})"')
 _SEARCH_URL = "https://www.youtube.com/results"
 _OEMBED_URL = "https://www.youtube.com/oembed"
 _YT_API = "https://www.googleapis.com/youtube/v3"
-_MAX_QUERY_LEN = 120     # 검색어 길이 상한 — 외부 검색 전 bound
-_TOP_K = 5               # oembed 로 검증·재랭킹할 후보 수
-_UPLOADS_SCAN = 50       # uploads playlist 에서 제목 매칭할 최신 영상 수
+_MAX_QUERY_LEN = 120  # 검색어 길이 상한 — 외부 검색 전 bound
+_TOP_K = 5  # oembed 로 검증·재랭킹할 후보 수
+_UPLOADS_SCAN = 50  # uploads playlist 에서 제목 매칭할 최신 영상 수
 _CHANNEL_MATCH_MIN = 0.34  # 채널명 토큰 자카드 임계
-_TITLE_MATCH_MIN = 0.5     # 채널 표기차 fallback — query 토큰의 절반 이상이 후보 제목에 등장
+_TITLE_MATCH_MIN = 0.5  # 채널 표기차 fallback — query 토큰의 절반 이상이 후보 제목에 등장
 
 
 class YoutubeRecoverInput(BaseModel):
@@ -57,7 +57,7 @@ class YoutubeRecoverOutput(BaseModel):
     recovered_title: str | None = None
     recovered_channel: str | None = None
     channel_url: str | None = None  # 영상 못 찾을 때 fallback — 채널로라도 보내준다
-    source: str | None = None       # "keyless" | "api_uploads" | "api_search" | "channel_only"
+    source: str | None = None  # "keyless" | "api_uploads" | "api_search" | "channel_only"
 
 
 class RecoverYoutubeUrlTool(Tool[YoutubeRecoverInput, YoutubeRecoverOutput]):
@@ -71,17 +71,13 @@ class RecoverYoutubeUrlTool(Tool[YoutubeRecoverInput, YoutubeRecoverOutput]):
     input_model = YoutubeRecoverInput
     output_model = YoutubeRecoverOutput
 
-    async def run(
-        self, payload: YoutubeRecoverInput
-    ) -> tuple[YoutubeRecoverOutput, ToolUsage]:
+    async def run(self, payload: YoutubeRecoverInput) -> tuple[YoutubeRecoverOutput, ToolUsage]:
         started = time.perf_counter()
         out = await self._recover(payload.query[:_MAX_QUERY_LEN], payload.channel_hint)
         usage = ToolUsage(latency_ms=int((time.perf_counter() - started) * 1000))
         return out, usage
 
-    async def _recover(
-        self, query: str, channel_hint: str | None
-    ) -> YoutubeRecoverOutput:
+    async def _recover(self, query: str, channel_hint: str | None) -> YoutubeRecoverOutput:
         key = get_settings().youtube_api_key
         async with httpx.AsyncClient(timeout=15) as hc:
             # 1) 무키 검색 (무료, 빠름) — 채택되면 끝.
@@ -106,9 +102,7 @@ class RecoverYoutubeUrlTool(Tool[YoutubeRecoverInput, YoutubeRecoverOutput]):
     ) -> YoutubeRecoverOutput | None:
         """무키 youtube 검색 → 후보 oEmbed 채널/제목 매칭. 채택 Output, 실패 None."""
         try:
-            r = await hc.get(
-                _SEARCH_URL, params={"search_query": query}, headers={"User-Agent": _UA}
-            )
+            r = await hc.get(_SEARCH_URL, params={"search_query": query}, headers={"User-Agent": _UA})
             ids: list[str] = []
             for m in _VIDEO_ID_RE.finditer(r.text):
                 if m.group(1) not in ids:
@@ -118,9 +112,7 @@ class RecoverYoutubeUrlTool(Tool[YoutubeRecoverInput, YoutubeRecoverOutput]):
             if not ids:
                 return None
             oembeds = await asyncio.gather(*(self._oembed(hc, v) for v in ids))
-            chosen = _choose_candidate(
-                list(zip(ids, oembeds, strict=True)), channel_hint, query
-            )
+            chosen = _choose_candidate(list(zip(ids, oembeds, strict=True)), channel_hint, query)
             if chosen is None:
                 return None
             vid, o = chosen
@@ -148,25 +140,31 @@ class RecoverYoutubeUrlTool(Tool[YoutubeRecoverInput, YoutubeRecoverOutput]):
             if hit:
                 vid, title = hit
                 return YoutubeRecoverOutput(
-                    recovered=True, url=_watch_url(vid), video_id=vid,
-                    recovered_title=title, recovered_channel=ctitle, source="api_uploads",
+                    recovered=True,
+                    url=_watch_url(vid),
+                    video_id=vid,
+                    recovered_title=title,
+                    recovered_channel=ctitle,
+                    source="api_uploads",
                 )
         # search.list 폴백(100 unit) — 채널 한정(cid) 또는 전역.
         hit2 = await _api_search(hc, query, channel_hint, cid, key)
         if hit2:
             vid, title, ch = hit2
             return YoutubeRecoverOutput(
-                recovered=True, url=_watch_url(vid), video_id=vid,
-                recovered_title=title, recovered_channel=ch, source="api_search",
+                recovered=True,
+                url=_watch_url(vid),
+                video_id=vid,
+                recovered_title=title,
+                recovered_channel=ch,
+                source="api_search",
             )
         return None
 
     async def _oembed(self, hc: httpx.AsyncClient, vid: str) -> dict[str, Any] | None:
         """후보 1개의 oEmbed(title/author) 회수. 실패는 None(검증 불가 후보)."""
         try:
-            ro = await hc.get(
-                _OEMBED_URL, params={"format": "json", "url": _watch_url(vid)}, timeout=10
-            )
+            ro = await hc.get(_OEMBED_URL, params={"format": "json", "url": _watch_url(vid)}, timeout=10)
             if ro.status_code != 200:
                 return None
             data = ro.json()
@@ -176,9 +174,7 @@ class RecoverYoutubeUrlTool(Tool[YoutubeRecoverInput, YoutubeRecoverOutput]):
 
 
 # ── YouTube Data API 헬퍼 ─────────────────────────────────────────────────────
-async def _api_get(
-    hc: httpx.AsyncClient, key: str, path: str, params: dict[str, Any]
-) -> dict[str, Any]:
+async def _api_get(hc: httpx.AsyncClient, key: str, path: str, params: dict[str, Any]) -> dict[str, Any]:
     r = await hc.get(f"{_YT_API}/{path}", params={**params, "key": key}, timeout=15)
     r.raise_for_status()
     data = r.json()
@@ -214,7 +210,9 @@ async def _api_resolve_channel(
             pass
     # 2) search type=channel — 채널명(공백 포함 등)
     try:
-        d = await _api_get(hc, key, "search", {"part": "snippet", "q": hint, "type": "channel", "maxResults": 1})
+        d = await _api_get(
+            hc, key, "search", {"part": "snippet", "q": hint, "type": "channel", "maxResults": 1}
+        )
         items = d.get("items") or []
         if items:
             ccid = items[0]["snippet"]["channelId"]
@@ -232,8 +230,9 @@ async def _api_match_uploads(
 ) -> tuple[str, str] | None:
     """uploads playlist 최신 N개에서 query 제목 매칭 → (video_id, title). 인덱스 무관(1 unit)."""
     try:
-        d = await _api_get(hc, key, "playlistItems",
-                           {"part": "snippet", "playlistId": uploads, "maxResults": _UPLOADS_SCAN})
+        d = await _api_get(
+            hc, key, "playlistItems", {"part": "snippet", "playlistId": uploads, "maxResults": _UPLOADS_SCAN}
+        )
     except (httpx.HTTPError, ValueError):
         return None
     for it in d.get("items", []):
@@ -269,9 +268,7 @@ async def _api_search(
     return None
 
 
-async def _resolve_channel_url(
-    hc: httpx.AsyncClient, hint: str | None, key: str | None
-) -> str | None:
+async def _resolve_channel_url(hc: httpx.AsyncClient, hint: str | None, key: str | None) -> str | None:
     """영상 못 찾을 때 채널 주소라도. API 우선(정확), 없으면 무키 @handle 구성+검증."""
     if not hint:
         return None

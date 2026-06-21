@@ -79,7 +79,9 @@ def compute_eligible_candidates(
 
         p = inst.payload
         if inst.intent_type is Intent.SCHEDULE:
-            anchor = p.date if _is_future(p.date, now) else (p.end_date if _is_future(p.end_date, now) else None)
+            anchor = (
+                p.date if _is_future(p.date, now) else (p.end_date if _is_future(p.end_date, now) else None)
+            )
             if anchor is None:
                 continue  # 과거/날짜없는 일정은 알림 가치 없음
             candidates.append(
@@ -245,9 +247,7 @@ class PlanRecallNotifications:
         # planner 가 명시 supersede_plan_id 를 줬으면 그것을, 아니면 게이트가 찾은 existing 을 교체한다.
         supersede_id = decision.supersede_plan_id or (existing.id if existing else None)
         if supersede_id is not None and supersede_id != new_plan_id:
-            await self._repo.supersede(
-                owner_id=owner_id, old_plan_id=supersede_id, new_plan_id=new_plan_id
-            )
+            await self._repo.supersede(owner_id=owner_id, old_plan_id=supersede_id, new_plan_id=new_plan_id)
             log.info(
                 "recall.plan_superseded",
                 owner_id=str(owner_id),

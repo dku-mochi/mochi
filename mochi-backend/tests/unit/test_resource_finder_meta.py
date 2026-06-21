@@ -19,27 +19,29 @@ from app.modules.agent.infrastructure.tools.resource_finder import (
 
 def _ranked(**over: object) -> RankedUrl:
     base: dict[str, object] = {
-        "url": "https://x.com", "title": "t", "tier_num": 4.0,
-        "tier_label": "tier4_info", "label": "보기", "provider": "info",
-        "role": "read", "source": "naver:blog", "rank_profile": "general",
+        "url": "https://x.com",
+        "title": "t",
+        "tier_num": 4.0,
+        "tier_label": "tier4_info",
+        "label": "보기",
+        "provider": "info",
+        "role": "read",
+        "source": "naver:blog",
+        "rank_profile": "general",
     }
     base.update(over)
     return RankedUrl(**base)  # type: ignore[arg-type]
 
 
 def test_display_meta_shop_price_and_brand() -> None:
-    subtitle, price = _display_meta(
-        {"lprice": "18900", "brand": "토리든", "mallName": "올리브영"}
-    )
+    subtitle, price = _display_meta({"lprice": "18900", "brand": "토리든", "mallName": "올리브영"})
     assert price == "18,900원"
-    assert subtitle == "토리든"   # mallName 은 provider 와 겹쳐 안 쓴다
+    assert subtitle == "토리든"  # mallName 은 provider 와 겹쳐 안 쓴다
 
 
 def test_display_meta_local_category_and_region() -> None:
-    subtitle, price = _display_meta(
-        {"category": "양식", "roadAddress": "서울특별시 강남구 도산대로 123"}
-    )
-    assert subtitle == "양식 · 서울특별시 강남구"   # 주소는 앞 2토큰(시·구)만
+    subtitle, price = _display_meta({"category": "양식", "roadAddress": "서울특별시 강남구 도산대로 123"})
+    assert subtitle == "양식 · 서울특별시 강남구"  # 주소는 앞 2토큰(시·구)만
     assert price == ""
 
 
@@ -62,8 +64,14 @@ def test_reference_entity_value_omits_empty_meta_keys() -> None:
 
 
 def test_reference_entity_value_includes_meta_when_present() -> None:
-    row = _ranked(provider="oliveyoung", role="buy", source="naver:shop",
-                  rank_profile="cosmetics", subtitle="토리든", price_text="18,900원")
+    row = _ranked(
+        provider="oliveyoung",
+        role="buy",
+        source="naver:shop",
+        rank_profile="cosmetics",
+        subtitle="토리든",
+        price_text="18,900원",
+    )
     payload = json.loads(_reference_entity_value(row, 5))
     assert payload["subtitle"] == "토리든"
     assert payload["priceText"] == "18,900원"
@@ -73,11 +81,16 @@ def test_reference_entity_value_includes_meta_when_present() -> None:
 def test_render_exposes_metadata_to_judge() -> None:
     """judge 가 picks 를 고를 때 가격·요약문을 보도록 _render 가 노출하는지(회귀 방지)."""
     payload = ResourceFinderInput(queries=["토리든 세럼"], category="shop")
-    collected = [{
-        "title": "토리든 세럼", "link": "https://x.com",
-        "lprice": "18900", "mallName": "올리브영", "brand": "토리든",
-        "description": "저분자 히알루론산 세럼",
-    }]
+    collected = [
+        {
+            "title": "토리든 세럼",
+            "link": "https://x.com",
+            "lprice": "18900",
+            "mallName": "올리브영",
+            "brand": "토리든",
+            "description": "저분자 히알루론산 세럼",
+        }
+    ]
     rendered = _render(payload, collected)
     assert "18900" in rendered
     assert "토리든" in rendered

@@ -78,7 +78,7 @@ iOS · 백엔드 · 프롬프트 모두 동일 용어를 쓴다.
 | **Outbox Message** | mochi_items COMMIT 직후 worker 가 픽업할 행 (`mochi_item_outbox`) |
 | **Idempotency Key** | `POST /mochi_items` 의 owner-scoped 키 |
 | **Embedding** | voyage-3-large (1024d) chunk 벡터 — input = summary + intent labels, INDEXED 노드가 색인 |
-| **Category** | LLM 이 뽑는 자유 카테고리 라벨. 주간 정리가 coarse 정규화 write (§4.4) |
+| **Category** | LLM 이 뽑는 자유 카테고리 라벨. 월간 정리가 coarse 정규화 write (§4.4) |
 
 > design-ahead 용어(ActionCandidate · Citation · Tag · Conversation · Similar 등)는 §10 에서 정의. 본문은 as-built 만.
 
@@ -150,7 +150,7 @@ intent 를 `mochi_items` 컬럼이 아니라 별도 `intent_instances` 행으로
 - **`review_options`**: needs_review=true 일 때 제시할 미확정 후보. **instance 아님** — 사용자가 고르면 그때 instance 생성. `mochi_items.review_options` JSONB 컬럼 영속 — 헷갈려요 후보를 push payload·GET projection·앱 내 needsReview 버킷 fallback 이 모두 읽는다.
 - **`memo` fallback**: 대상/행동 불분명 시 memo instance 하나로 안전 보관 + needs_review=true. 미션("놓치기 쉬운 순간은 쉽게 남긴다")과 정합 — 분류를 못 해도 안 잃는다.
 - **`payload.title` 필수** (프롬프트 v13~, 현재 `ACTIVE_PROMPT`=v16): 저장되는 모든 instance 는 title 을 가진다. **LLM 출력 계약 레벨** — function schema `payload.required=['title']` + 프롬프트가 강제. iOS 카드·캘린더·기록상세가 제목으로 `payload.title` 을 쓴다. 정체조차 못 짚어 title 을 못 만들 정도면 그 자체가 분류 불신뢰 신호라 `needs_review=true` 로 빠진다. 단 **DB 는 JSONB `DEFAULT '{}'` 유지**(필수는 계약 레벨이지 DB 제약 아님), **DTO `title` 은 optional 유지**(graceful degradation — LLM 일탈 시에도 분석 전체가 죽지 않게, iOS 가 빈 title→summary 폴백).
-- **기간형 일정 — `payload.end_date`/`end_time`** (프롬프트 v16~): schedule 의 `date`/`time` 은 **시작**(또는 단일 시점), `end_date`/`end_time` 은 기간형 일정의 **끝** — 없으면 점 일정(기존 데이터 하위호환). 사용자가 그 기간에 *참여*할 때만 채운다(여행·다회차 프로그램 — 할인 기간 등 화면에 보이는 정보성 span 은 비대상). 끝<시작 역전·비정형 값은 모든 소비자(검색 occurs overlap·iOS 캘린더 막대·EKEvent 등록)가 **점 일정으로 수렴**시킨다(graceful — DB 제약 없음, 채팅 `propose_create_schedule` 만 카드 생성 전 역전을 거부). API projection 은 camelCase `endDate`/`endTime`.
+- **기간형 일정 — `payload.end_date`/`end_time`** (프롬프트 v16~): schedule 의 `date`/`time` 은 **시작**(또는 단일 시점), `end_date`/`end_time` 은 기간형 일정의 **끝** — 없으면 점 일정(기존 데이터 하위호환). 사용자가 그 기간에 *참여*할 때만 채운다(여행·다회차 프로그램 — 할인 기간 등 화면에 보이는 정보성 span 은 비대상). **안에 개별 마감·이벤트가 사는 컨테이너 기간**(대회 참가기간 등)도 span 이 아니다 — span 은 사용자가 그 기간 내내 연속 참여하는 단일 활동만이고, 컨테이너 기간은 그 안의 개별 시점이 각각 별도 instance·기간 자체는 summary (프롬프트 v25 나열형 분해 블록). 끝<시작 역전·비정형 값은 모든 소비자(검색 occurs overlap·iOS 캘린더 막대·EKEvent 등록)가 **점 일정으로 수렴**시킨다(graceful — DB 제약 없음, 채팅 `propose_create_schedule` 만 카드 생성 전 역전을 거부). API projection 은 camelCase `endDate`/`endTime`.
 
 ### 4.3 파생 — 저장 안 함, read 시 계산 (projection)
 
@@ -161,13 +161,13 @@ intent 를 `mochi_items` 컬럼이 아니라 별도 `intent_instances` 행으로
 
 API 응답은 `intentInstances`(intentType/payload/label/reasoning/lifecycleKind/instanceId) + `needsReview` + `reviewOptions` projection. 옛 `intent`/`secondaryIntents`/`confidence`/`candidates` 는 제거됐다.
 
-### 4.4 카테고리 정규화 — read projection 아닌 **write** (주간 정리)
+### 4.4 카테고리 정규화 — read projection 아닌 **write** (월간 정리)
 
-`mochi_items.category` 는 캡처마다 LLM 이 개별로 뽑아 파편화되기 쉽다("여행"/"여행 준비"/"여행 계획"). **주간 정리(`POST /mochi_items/weekly_digest`)** 가 그 주(KST 월~일) 항목의 category 를 LLM 1회(flash-lite structured output)로 더 큰 묶음(coarse)으로 **정규화해 DB 에 write** 한다 — read projection 과 달리 실제 컬럼을 재작성한다. 같은 호출이 "모찌의 한마디"(greeting) 도 생성한다.
+`mochi_items.category` 는 캡처마다 LLM 이 개별로 뽑아 파편화되기 쉽다("여행"/"여행 준비"/"여행 계획"). **월간 정리(`POST /mochi_items/monthly_digest`)** 가 그 달(KST 1일~말일) 항목의 category 를 LLM 1회(flash-lite structured output)로 더 큰 묶음(coarse)으로 **정규화해 DB 에 write** 한다 — read projection 과 달리 실제 컬럼을 재작성한다. 같은 호출이 "모찌의 한마디"(greeting) 도 생성한다. `monthStart` 가 어긋나도 서버가 KST 그 달 1일로 재정규화한다(상한 30 item 을 LLM 컨텍스트로).
 
-- **연쇄 톤앤매너**: 정규화한 item 은 `category_normalized_at` 마커를 찍는다. 다음 주 digest 는 **정규화된 라벨만** "기존 카테고리" 컨텍스트로 LLM 에 넘겨 재사용을 유도한다 — raw fine 은 제외해 주별 흔들림을 줄인다.
-- **iOS 반영**: 응답 그룹의 `itemIds`(서버 id)를 클라가 로컬 id 역매핑해 Realm `category` 를 갱신 → 홈 주간 카드가 정규화 라벨로 자동 반영.
-- LLM 은 item id 를 다루지 않는다(fine→coarse 매핑만 반환, 서버가 적용). 매핑 누락 fine 은 원본 유지(결정론·유실 0). 그 주 항목 3건 미만이면 LLM 미호출 + 정적 greeting.
+- **연쇄 톤앤매너**: 정규화한 item 은 `category_normalized_at` 마커를 찍는다. 다음 달 digest 는 **정규화된 라벨만** "기존 카테고리" 컨텍스트로 LLM 에 넘겨 재사용을 유도한다 — raw fine 은 제외해 달별 흔들림을 줄인다.
+- **iOS 반영**: 응답 그룹의 `itemIds`(서버 id)를 클라가 로컬 id 역매핑해 Realm `category` 를 갱신 → 홈 월간 리포트가 정규화 라벨로 자동 반영. (돌아보기 화면은 **현재 달만** 이 호출을 트리거하고, 과거 달은 로컬 집계만 보여줘 재정규화·LLM 비용을 막는다.)
+- LLM 은 item id 를 다루지 않는다(fine→coarse 매핑만 반환, 서버가 적용). 매핑 누락 fine 은 원본 유지(결정론·유실 0). 그 달 항목 3건 미만이면 LLM 미호출 + 정적 greeting.
 
 ---
 
@@ -226,6 +226,8 @@ archive 전이는 instance 의 `intent_type` 으로 검증한다. 한 캡쳐의 
 | intent instance `archived` 진입(완료/만료) + 연결된 active `notification_plan` 존재 | → 능동 회수 cron 이 plan 을 `cancelled(intent_archived)` + 그 plan 의 pending/deferred `notification_outbox` `skipped(cancelled)` (§3 Notifications). plan.status 는 intent `lifecycle_kind` 와 **별개 enum**(active/superseded/done/cancelled) |
 
 > **일정 종료 시각** = `payload.end_date`(+`end_time`), 없으면 `date`(+`time`) — 점 일정은 시작=종료, 기간형 일정은 끝이 지나야 종료(§4.2 기간형 일정). 일정/할일 종료 판정의 실제 소스(종료시각·완료여부)는 typed 테이블(§10) 구현 후 정밀화 — 현재는 entity/payload 기반.
+
+> **knowledge 시간 전이 구현(2026-06-20)**: 위 knowledge 두 행(`active→decaying`, `decaying→reviewRequested`)은 `NotificationWorker._maybe_decay_knowledge` 가 하루 1회 일괄 UPDATE 로 수행한다. **시계는 instance `updated_at`**(= 마지막 상태변경 시각): 회수 소생(opened+spaced → active, §5.2)이 `update_instance_lifecycle` 로 `updated_at` 을 리셋하므로 소생된 knowledge 는 다시 30일 active 를 보장받고, `active→decaying` UPDATE 가 `updated_at=now()` 로 갱신해 "decaying 진입 시각"도 같은 컬럼이 된다(전용 `last_recalled_at` 컬럼 없이 정합). 이 전이가 없으면 instance 가 영원히 active 라 트랙A(spaced) 피드가 항상 비었다(가드된 HIGH-2). *schedule/todo 종료 행은 별도 경로(완료는 lifecycle route, 종료시각 기반 자동 archive 는 미구현) — 이 패스는 knowledge 한정.*
 
 ### 5.5 전이 강제
 

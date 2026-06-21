@@ -167,7 +167,9 @@ class MochiItemWorker:
                     )
                 await session.execute(
                     # 성공 종료 시 재분석 힌트를 비운다 — 분석에 쓰인 후 행과 함께 소멸(transient invariant).
-                    text("UPDATE mochi_item_outbox SET status='done', reanalysis_hint=NULL WHERE id=:id").bindparams(id=claimed.id)
+                    text(
+                        "UPDATE mochi_item_outbox SET status='done', reanalysis_hint=NULL WHERE id=:id"
+                    ).bindparams(id=claimed.id)
                 )
                 await session.commit()
                 log.info(

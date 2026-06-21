@@ -1,8 +1,6 @@
 import html
-import ipaddress
 import json
 import re
-import socket
 import time
 import zlib
 from typing import Literal, cast
@@ -14,6 +12,7 @@ from pydantic import BaseModel, HttpUrl
 from app.core.config import get_settings
 from app.core.logging import get_logger
 from app.modules.agent.domain.tools import Tool, ToolExecutionError, ToolName, ToolUsage
+from app.modules.agent.infrastructure.tools.safe_fetch import guarded_get
 
 PlatformName = Literal["auto", "youtube", "x", "instagram"]
 log = get_logger("agent.tool.platform_context")
@@ -58,14 +57,10 @@ class PlatformContextTool(Tool[PlatformContextInput, PlatformContextOutput]):
         "application/xhtml+xml",
     )
 
-    async def run(
-        self, payload: PlatformContextInput
-    ) -> tuple[PlatformContextOutput, ToolUsage]:
+    async def run(self, payload: PlatformContextInput) -> tuple[PlatformContextOutput, ToolUsage]:
         started = time.perf_counter()
         url = str(payload.url)
-        platform = (
-            detect_platform(url) if payload.platform == "auto" else payload.platform
-        )
+        platform = detect_platform(url) if payload.platform == "auto" else payload.platform
 
         if platform == "youtube":
             output = await self._youtube_context(url)
@@ -80,9 +75,7 @@ class PlatformContextTool(Tool[PlatformContextInput, PlatformContextOutput]):
         return output, usage
 
     async def _youtube_context(self, url: str) -> PlatformContextOutput:
-        oembed_url = "https://www.youtube.com/oembed?" + urlencode(
-            {"url": url, "format": "json"}
-        )
+        oembed_url = "https://www.youtube.com/oembed?" + urlencode({"url": url, "format": "json"})
         oembed_resp = await self._guarded_get_json(oembed_url)
         oembed = oembed_resp.json()
 
@@ -245,9 +238,7 @@ class PlatformContextTool(Tool[PlatformContextInput, PlatformContextOutput]):
                 body_length=len(response.content),
                 exception=str(exc),
             )
-            raise ToolExecutionError(
-                self.name, f"Invalid JSON response: {exc}", transient=True
-            ) from exc
+            raise ToolExecutionError(self.name, f"Invalid JSON response: {exc}", transient=True) from exc
         return response
 
     async def _guarded_get_text(self, url: str) -> httpx.Response:
@@ -255,33 +246,15 @@ class PlatformContextTool(Tool[PlatformContextInput, PlatformContextOutput]):
 
     async def _guarded_get(self, url: str) -> httpx.Response:
         settings = get_settings()
-        self._enforce_host_policy(url, settings.web_fetch_blocked_hosts)
         async with httpx.AsyncClient(
             timeout=settings.web_fetch_timeout_seconds, follow_redirects=False
         ) as client:
-            current_url = url
-            response: httpx.Response | None = None
-            for _ in range(6):
-                try:
-                    response = await client.get(current_url)
-                except httpx.HTTPError as exc:
-                    raise ToolExecutionError(
-                        self.name, f"HTTP error: {exc}", transient=True
-                    ) from exc
-
-                if response.is_redirect:
-                    location = response.headers.get("location")
-                    if not location:
-                        raise ToolExecutionError(self.name, "Redirect without Location header")
-                    next_url = str(response.url.join(location))
-                    self._enforce_host_policy(next_url, settings.web_fetch_blocked_hosts)
-                    current_url = next_url
-                    continue
-                break
-            else:
-                raise ToolExecutionError(self.name, "Too many redirects")
-
-            assert response is not None
+            response, current_url = await guarded_get(
+                client,
+                url,
+                blocked_hosts=settings.web_fetch_blocked_hosts,
+                tool_name=self.name,
+            )
             mime = response.headers.get("content-type", "").split(";", 1)[0].strip().lower()
             if mime and not mime.startswith(self.ALLOWED_MIME_PREFIXES):
                 raise ToolExecutionError(self.name, f"Blocked MIME: {mime}")
@@ -292,9 +265,7 @@ class PlatformContextTool(Tool[PlatformContextInput, PlatformContextOutput]):
                 async for chunk in response.aiter_bytes():
                     buffer.extend(chunk)
                     if len(buffer) > limit:
-                        raise ToolExecutionError(
-                            self.name, f"Response too large (> {limit} bytes)"
-                        )
+                        raise ToolExecutionError(self.name, f"Response too large (> {limit} bytes)")
             except (httpx.HTTPError, zlib.error) as exc:
                 log.warning(
                     "tool.platform_context.decode_failed",
@@ -303,9 +274,7 @@ class PlatformContextTool(Tool[PlatformContextInput, PlatformContextOutput]):
                     content_type=response.headers.get("content-type"),
                     exception=str(exc),
                 )
-                raise ToolExecutionError(
-                    self.name, f"HTTP decode error: {exc}", transient=True
-                ) from exc
+                raise ToolExecutionError(self.name, f"HTTP decode error: {exc}", transient=True) from exc
             headers = httpx.Headers(response.headers)
             headers.pop("content-encoding", None)
             headers.pop("content-length", None)
@@ -325,46 +294,7 @@ class PlatformContextTool(Tool[PlatformContextInput, PlatformContextOutput]):
                     content_type=response.headers.get("content-type"),
                     exception=str(exc),
                 )
-                raise ToolExecutionError(
-                    self.name, f"HTTP decode error: {exc}", transient=True
-                ) from exc
-
-    def _enforce_host_policy(self, url: str, blocked: tuple[str, ...]) -> None:
-        host = urlparse(url).hostname
-        if not host:
-            raise ToolExecutionError(self.name, "URL has no host")
-        if host.lower() in blocked:
-            raise ToolExecutionError(self.name, f"Blocked host: {host}")
-
-        candidates: list[ipaddress.IPv4Address | ipaddress.IPv6Address] = []
-        try:
-            candidates.append(ipaddress.ip_address(host))
-        except ValueError:
-            try:
-                infos = socket.getaddrinfo(host, None, type=socket.SOCK_STREAM)
-            except OSError as exc:
-                raise ToolExecutionError(self.name, f"DNS resolution failed for {host}") from exc
-            seen: set[str] = set()
-            for info in infos:
-                addr = str(info[4][0])
-                if addr in seen:
-                    continue
-                seen.add(addr)
-                try:
-                    candidates.append(ipaddress.ip_address(addr))
-                except ValueError:
-                    continue
-
-        for ip in candidates:
-            if (
-                ip.is_private
-                or ip.is_loopback
-                or ip.is_link_local
-                or ip.is_multicast
-                or ip.is_reserved
-                or ip.is_unspecified
-            ):
-                raise ToolExecutionError(self.name, f"Blocked IP {ip} for host {host}")
+                raise ToolExecutionError(self.name, f"HTTP decode error: {exc}", transient=True) from exc
 
 
 def detect_platform(url: str) -> str:

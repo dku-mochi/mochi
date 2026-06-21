@@ -115,9 +115,7 @@ class _FailingMochiRepo:
 def _item(instance: IntentInstance) -> MochiItem:
     return MochiItem(
         id=uuid4(),
-        source=IngestSource(
-            channel=IngestChannel.SCREENSHOT, captured_at=datetime(2026, 6, 1, tzinfo=UTC)
-        ),
+        source=IngestSource(channel=IngestChannel.SCREENSHOT, captured_at=datetime(2026, 6, 1, tzinfo=UTC)),
         intent_instances=(instance,),
         lifecycle=LifecycleState(kind=LifecycleStateKind.ANALYZED),
     )
@@ -140,9 +138,7 @@ def _event(
 
 
 def _cmd(event: SentRecallEvent, reaction: ReactionKind) -> RecordRecallReactionCommand:
-    return RecordRecallReactionCommand(
-        owner_id=_OWNER, event_id=event.event_id, reaction=reaction
-    )
+    return RecordRecallReactionCommand(owner_id=_OWNER, event_id=event.event_id, reaction=reaction)
 
 
 async def _run(reactions: _ReactionRepo, mochi: object, cmd: RecordRecallReactionCommand) -> None:

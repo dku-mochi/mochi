@@ -81,6 +81,7 @@ struct RootFeature: Sendable {
 
     @Dependency(\.authCoordinator) var authCoordinator
     @Dependency(\.syncTrigger) var syncTrigger
+    @Dependency(\.pushAuthorization) var pushAuthorization
 
     var body: some ReducerOf<Self> {
         Scope(state: \.login, action: \.login) { LoginFeature() }
@@ -117,10 +118,12 @@ struct RootFeature: Sendable {
                 let ensureCapture = Effect<Action>.run { [authCoordinator] _ in
                     await authCoordinator.ensureCaptureToken()
                 }
+                // 인증 확정 후에만 푸시 권한 팝업 — 온보딩 중이면 완료 시점(.onboarding finished)으로 미룬다.
+                let push = state.onboarding == nil ? Self.requestPush(pushAuthorization) : Effect<Action>.none
                 if state.backTapModal == nil, state.onboarding == nil {
-                    return .merge(pull, ensureCapture, Self.checkPendingMemo())
+                    return .merge(pull, ensureCapture, Self.checkPendingMemo(), push)
                 }
-                return .merge(pull, ensureCapture)
+                return .merge(pull, ensureCapture, push)
 
             case let .pendingMemoDiscovered(captureID):
                 // 활성 모달이 같은 captureID 면 (concurrent discovery — sessionResolved +
@@ -173,10 +176,12 @@ struct RootFeature: Sendable {
                 state.login = .init()
                 // 새 로그인 직후 서버→로컬 복구 — 재설치 후 같은 계정의 기록을 끌어온다.
                 let pull = Effect<Action>.run { [syncTrigger] _ in await syncTrigger.pullRemote() }
+                // 로그인 직후 푸시 권한 팝업 — 온보딩 중이면 완료 시점으로 미룬다.
+                let push = state.onboarding == nil ? Self.requestPush(pushAuthorization) : Effect<Action>.none
                 if state.backTapModal == nil {
-                    return .merge(pull, Self.checkPendingMemo())
+                    return .merge(pull, Self.checkPendingMemo(), push)
                 }
-                return pull
+                return .merge(pull, push)
 
             case .requestSignOut:
                 return .run { [authCoordinator] send in
@@ -194,10 +199,13 @@ struct RootFeature: Sendable {
             case .onboarding(.presented(.delegate(.finished))):
                 Self.hasCompletedOnboarding = true
                 state.onboarding = nil
-                if case .authenticated = state.phase, state.backTapModal == nil {
-                    return Self.checkPendingMemo()
+                // 온보딩(회수 가치 설명)을 막 마친 인증 사용자에게 푸시 권한 요청 — 가치 경험 직후가 거부율 최저.
+                guard case .authenticated = state.phase else { return .none }
+                let push = Self.requestPush(pushAuthorization)
+                if state.backTapModal == nil {
+                    return .merge(Self.checkPendingMemo(), push)
                 }
-                return .none
+                return push
 
             case .onboarding(.dismiss):
                 state.onboarding = nil
@@ -214,6 +222,11 @@ struct RootFeature: Sendable {
     private static var hasCompletedOnboarding: Bool {
         get { UserDefaults.standard.bool(forKey: onboardingCompletedKey) }
         set { UserDefaults.standard.set(newValue, forKey: onboardingCompletedKey) }
+    }
+
+    /// 인증 시점 푸시 권한 팝업 요청 효과. requester 는 reducer 의 `@Dependency` 에서 캡처해 넘긴다.
+    private static func requestPush(_ requester: any PushAuthorizationRequesting) -> Effect<Action> {
+        .run { _ in await requester.requestIfNeeded() }
     }
 
     /// pending-backtap 디렉터리에서 `.memo` marker 가장 최근 한 장을 탐지해 captureID 발사.

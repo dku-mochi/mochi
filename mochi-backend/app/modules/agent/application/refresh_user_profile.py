@@ -47,9 +47,7 @@ class RefreshUserProfile:
         if not due:
             return False
 
-        window = await self._gateway.list_recent_window(
-            owner_id=owner_id, limit=self._window_size
-        )
+        window = await self._gateway.list_recent_window(owner_id=owner_id, limit=self._window_size)
         summary = await self._summarizer.summarize(
             window=window, previous=profile.summary if profile else None
         )
@@ -60,15 +58,11 @@ class RefreshUserProfile:
         # 분류 프로필 저장을 막지 않고, 결과가 비면 이전 값을 유지한다.
         chat_summary = profile.chat_summary if profile else None
         try:
-            new_chat = await self._summarizer.summarize_chat(
-                window=window, previous=chat_summary
-            )
+            new_chat = await self._summarizer.summarize_chat(window=window, previous=chat_summary)
             if new_chat:
                 chat_summary = new_chat
         except Exception as exc:  # noqa: BLE001
-            log.warning(
-                "profile.chat_summary_failed", owner_id=str(owner_id), exception=str(exc)
-            )
+            log.warning("profile.chat_summary_failed", owner_id=str(owner_id), exception=str(exc))
 
         await self._store.upsert(
             UserProfile(

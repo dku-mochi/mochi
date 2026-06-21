@@ -59,6 +59,7 @@ def _row(
 
 # --- 정규화 키 ---
 
+
 def test_canonical_link_key_equates_youtube_video_forms() -> None:
     """youtu.be / watch?v= / shorts/ / embed/ + m. 프리픽스는 같은 영상으로 환원된다."""
     keys = {
@@ -87,6 +88,7 @@ def test_canonical_link_key_preserves_query_case_for_non_youtube() -> None:
 
 
 # --- dedup ---
+
 
 def test_reference_dropped_when_same_video_as_intent_payload() -> None:
     """쇼츠↔watch 표기가 달라도 같은 영상이면 관련 링크에서 제외된다(재현된 핵심 케이스)."""

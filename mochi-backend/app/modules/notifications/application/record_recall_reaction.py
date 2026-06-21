@@ -34,9 +34,7 @@ from app.shared.intent import Intent
 log = get_logger("notifications.record_reaction")
 
 # spaced 소생 대상 = 회수로 다시 살아나는 knowledge lifecycle (lifecycle_policy 가 →active 허용).
-_REVIVABLE_KINDS = frozenset(
-    {InstanceLifecycleKind.DECAYING, InstanceLifecycleKind.REVIEW_REQUESTED}
-)
+_REVIVABLE_KINDS = frozenset({InstanceLifecycleKind.DECAYING, InstanceLifecycleKind.REVIEW_REQUESTED})
 _SPACED_KIND = "spaced"
 
 
@@ -65,9 +63,7 @@ class RecordRecallReaction:
 
     async def execute(self, command: RecordRecallReactionCommand) -> None:
         # atomic UPDATE 의 가드 컨텍스트 + 소생 정보를 한 번에 읽는다(0행 분기·spaced 소생 공용).
-        event = await self._reactions.find_sent_event(
-            event_id=command.event_id, owner_id=command.owner_id
-        )
+        event = await self._reactions.find_sent_event(event_id=command.event_id, owner_id=command.owner_id)
         if event is None:
             # sent 행이 없다 — 남의 event_id·pending·이미 종료 → 404(멱등 no-op 과 구분).
             raise NotFoundError("Recall event not found", code="recall_event.not_found")
@@ -76,39 +72,25 @@ class RecordRecallReaction:
             await self._handle_opened(command, event)
         elif command.reaction is ReactionKind.DISMISSED:
             # soft 부정(cooldown 신호) — 멱등 atomic UPDATE. 0행=이미 dismissed(no-op).
-            await self._reactions.mark_dismissed(
-                event_id=command.event_id, owner_id=command.owner_id
-            )
+            await self._reactions.mark_dismissed(event_id=command.event_id, owner_id=command.owner_id)
         else:  # ReactionKind.STOP — "이 기억 그만" 영구(codex-7)
             await self._handle_stop(command, event)
 
-    async def _handle_opened(
-        self, command: RecordRecallReactionCommand, event: SentRecallEvent
-    ) -> None:
+    async def _handle_opened(self, command: RecordRecallReactionCommand, event: SentRecallEvent) -> None:
         # first-write-wins — opened_at IS NULL 인 sent 행에만 기록. 1행=이번이 첫 탭(소생 트리거),
         # 0행=이미 opened(중복 탭 멱등 no-op, 소생 재시도 안 함).
-        updated = await self._reactions.mark_opened(
-            event_id=command.event_id, owner_id=command.owner_id
-        )
+        updated = await self._reactions.mark_opened(event_id=command.event_id, owner_id=command.owner_id)
         if updated and event.kind == _SPACED_KIND:
             # HIGH-2: 회수로 소생. best-effort — 실패가 opened_at 기록을 롤백/실패시키지 않게 격리.
             await self._revive_spaced(command, event)
 
-    async def _handle_stop(
-        self, command: RecordRecallReactionCommand, event: SentRecallEvent
-    ) -> None:
+    async def _handle_stop(self, command: RecordRecallReactionCommand, event: SentRecallEvent) -> None:
         # dismissed_at 세팅(멱등) + plan 영구 취소. plan_id NULL(트랙C)이면 plan 변경 생략.
-        await self._reactions.mark_dismissed(
-            event_id=command.event_id, owner_id=command.owner_id
-        )
+        await self._reactions.mark_dismissed(event_id=command.event_id, owner_id=command.owner_id)
         if event.plan_id is not None:
-            await self._reactions.cancel_plan(
-                plan_id=event.plan_id, owner_id=command.owner_id
-            )
+            await self._reactions.cancel_plan(plan_id=event.plan_id, owner_id=command.owner_id)
 
-    async def _revive_spaced(
-        self, command: RecordRecallReactionCommand, event: SentRecallEvent
-    ) -> None:
+    async def _revive_spaced(self, command: RecordRecallReactionCommand, event: SentRecallEvent) -> None:
         """opened+spaced 면 source knowledge instance 를 decaying/reviewRequested → active 로 소생.
 
         best-effort: 어떤 실패(item/instance 없음·다른 owner·비-knowledge·전이 불가)도 삼켜서

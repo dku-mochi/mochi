@@ -6,7 +6,9 @@ import CoreNetworking
 /// APNs 토큰 등록 + 알림 핸들러. `@UIApplicationDelegateAdaptor` 로 SwiftUI `MochiApp` 에 부착.
 ///
 /// PR-B: background/종료 상태의 분석완료 통지를 위해 device push 토큰을 백엔드에 등록한다.
-/// 알림 권한은 첫 진입(active) 시 1회 요청 — 거부해도 앱 내 needsReview 버킷이 always-on fallback.
+/// 권한 요청·등록 로직은 ``PushAuthorization`` 단일 지점에 있다 — 팝업은 인증 완료 후(``RootFeature``)로
+/// 이연하고(미인증 콜드스타트 팝업 회피), 등록은 매 active(``MochiApp``) 안전 호출한다. 거부해도 앱 내
+/// needsReview 버킷이 always-on fallback.
 public final class MochiAppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
     public func application(
         _ application: UIApplication,
@@ -14,31 +16,6 @@ public final class MochiAppDelegate: NSObject, UIApplicationDelegate, UNUserNoti
     ) -> Bool {
         UNUserNotificationCenter.current().delegate = self
         return true
-    }
-
-    /// 알림 권한 확인 + remote 등록. 앱 진입(active)마다 호출해도 안전하다.
-    ///
-    /// 권한 팝업(1회)과 remote 등록(매번)을 분리한다 — 등록을 1회성 UserDefaults 플래그로 가드하면
-    /// 첫 등록이 한 번 어긋났을 때(로그인 전 401·콜백 타이밍·설정에서 나중에 권한 ON) device 토큰을
-    /// 영영 다시 못 받는다. 시스템이 토큰을 캐시하므로 매 진입 재등록은 저렴하고, 토큰 회전·첫 실패를
-    /// 함께 복구한다(Apple 권고). 팝업은 `.notDetermined` 일 때만 — 시스템이 중복 노출을 막는다.
-    /// active 시점 호출(didFinishLaunching 아님)은 컨텍스트 없는 즉시 팝업 회피 — 호출부(MochiApp) 책임.
-    @MainActor
-    func requestAuthorizationIfNeeded() {
-        UNUserNotificationCenter.current().getNotificationSettings { settings in
-            switch settings.authorizationStatus {
-            case .notDetermined:
-                UNUserNotificationCenter.current()
-                    .requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
-                        guard granted else { return }
-                        Task { @MainActor in UIApplication.shared.registerForRemoteNotifications() }
-                    }
-            case .authorized, .provisional, .ephemeral:
-                Task { @MainActor in UIApplication.shared.registerForRemoteNotifications() }
-            default:
-                break  // .denied — 앱 내 needsReview 버킷이 always-on fallback.
-            }
-        }
     }
 
     public func application(

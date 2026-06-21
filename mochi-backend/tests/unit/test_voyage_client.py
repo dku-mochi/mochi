@@ -29,9 +29,7 @@ def _client(handler: Any, **kwargs: Any) -> VoyageClient:
 
 
 def _embedding_response(count: int, dim: int = DIM) -> httpx.Response:
-    return httpx.Response(
-        200, json={"data": [{"embedding": [0.1] * dim} for _ in range(count)]}
-    )
+    return httpx.Response(200, json={"data": [{"embedding": [0.1] * dim} for _ in range(count)]})
 
 
 def test_build_embedding_text_joins_summary_and_labels() -> None:
@@ -84,10 +82,12 @@ async def test_rerank_parses_results_preserving_input_index() -> None:
         assert body["top_k"] == 2
         return httpx.Response(
             200,
-            json={"data": [
-                {"index": 2, "relevance_score": 0.9},
-                {"index": 0, "relevance_score": 0.4},
-            ]},
+            json={
+                "data": [
+                    {"index": 2, "relevance_score": 0.9},
+                    {"index": 0, "relevance_score": 0.4},
+                ]
+            },
         )
 
     ranked = await _client(handler).rerank(query="q", documents=["a", "b", "c"], top_k=2)

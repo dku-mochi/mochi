@@ -1,0 +1,69 @@
+{
+  "latency_ms": 9926.5,
+  "usage": {
+    "thoughts_tokens": 1869,
+    "candidates_tokens": 441,
+    "total_tokens": 8523
+  },
+  "finish_reason": "FinishReason.STOP",
+  "output": {
+    "review_options": [
+      {
+        "intent_type": "todo",
+        "reasoning": "대회 참여 시 필수 제출 항목으로 마감 기한이 명시되어 있음.",
+        "label": "예선 아이디어 기획서 제출"
+      },
+      {
+        "intent_type": "todo",
+        "label": "예선 최종 산출물 제출",
+        "reasoning": "대회 참여 시 필수 제출 항목으로 마감 기한이 명시되어 있음."
+      },
+      {
+        "intent_type": "todo",
+        "reasoning": "본선 진출 시 필수 제출 항목으로 마감 기한이 명시되어 있음.",
+        "label": "본선 진출팀 발표자료 제출"
+      },
+      {
+        "reasoning": "예선 평가 기간 동안 투표 참여 및 확인이 필요함.",
+        "label": "예선평가 (투표) 기간 확인",
+        "intent_type": "schedule"
+      },
+      {
+        "intent_type": "schedule",
+        "reasoning": "안내 시점에 맞춰 확인이 필요함.",
+        "label": "본선 진출팀 및 발표자료 제출 안내 확인"
+      },
+      {
+        "reasoning": "자료 검증 기간 동안 확인이 필요함.",
+        "label": "자료 검증 기간 확인",
+        "intent_type": "schedule"
+      },
+      {
+        "reasoning": "결과 발표 시점에 맞춰 확인이 필요함.",
+        "label": "예선 결과 발표 확인",
+        "intent_type": "schedule"
+      }
+    ],
+    "needs_review": true,
+    "entities": [],
+    "intent_instances": [
+      {
+        "payload": {
+          "title": "데이스쿨 할인 리턴즈 대회"
+        },
+        "label": "대회 참여 고려",
+        "reasoning": "대회 참여를 고려 중이며, 상세 일정 확인이 필요함. 현재 참가 신청 전이므로 구체적인 일정은 검토 후 확정하기 위해 메모로 저장함.",
+        "intent_type": "memo"
+      }
+    ],
+    "summary": "데이스쿨 할인 리턴즈 대회 일정입니다. 참여를 고려 중이시라면 마감 기한과 주요 일정을 확인하세요.",
+    "importance": 4,
+    "category": "대회 일정"
+  },
+  "run": 2,
+  "arm": "v24b",
+  "config": {
+    "thinking_budget": -1,
+    "max_output_tokens": 4096
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "latency_ms": 3159.1,
+  "usage": {
+    "thoughts_tokens": null,
+    "candidates_tokens": 385,
+    "total_tokens": 6598
+  },
+  "finish_reason": "FinishReason.STOP",
+  "output": {
+    "needs_review": false,
+    "entities": [
+      {
+        "value": "{\"provider\":\"web\",\"label\":\"데이콘 대회 일정\",\"url\":\"https://dacon.io\"}",
+        "kind": "reference_url"
+      }
+    ],
+    "category": "데이터 분석 대회",
+    "summary": "데이콘 데이터 분석 대회의 주요 일정 중 사용자가 직접 제출해야 하는 마감 기한과 평가 기간을 저장합니다.",
+    "importance": 4,
+    "intent_instances": [
+      {
+        "payload": {
+          "deadline": "2026-07-07 10:00",
+          "title": "데이콘 대회 예선 아이디어 기획서 제출"
+        },
+        "intent_type": "todo",
+        "reasoning": "사용자가 대회 일정 중 직접 참여해야 하는 구체적인 마감 기한이 명시되어 있습니다.",
+        "label": "예선 아이디어 기획서 제출"
+      },
+      {
+        "payload": {
+          "title": "데이콘 대회 예선 최종 산출물 제출",
+          "deadline": "2026-07-15 10:00"
+        },
+        "intent_type": "todo",
+        "reasoning": "대회 일정 중 사용자가 완수해야 할 마감 기한이 명시되어 있습니다.",
+        "label": "예선 최종 산출물 제출"
+      },
+      {
+        "intent_type": "schedule",
+        "payload": {
+          "end_date": "2026-07-17",
+          "end_time": "10:00",
+          "time": "10:00",
+          "title": "데이콘 대회 예선 평가 기간",
+          "date": "2026-07-15"
+        },
+        "reasoning": "대회 예선 평가가 진행되는 기간으로, 사용자가 확인해야 할 일정입니다.",
+        "label": "대회 예선 평가 기간 확인"
+      }
+    ]
+  },
+  "run": 4,
+  "arm": "v24b_tok",
+  "config": {
+    "thinking_budget": 0,
+    "max_output_tokens": 4096
+  }
+}

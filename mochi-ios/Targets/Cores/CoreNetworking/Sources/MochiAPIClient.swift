@@ -88,9 +88,9 @@ public protocol MochiAPIClient: Sendable {
     /// 미해결 todo + 다가올 schedule 을 서버가 마감일 파싱·임박순 정렬해 돌려준다(캘린더 탭과 별개).
     func upcomingActionables() async throws -> [UpcomingActionableDTO]
 
-    /// `POST /api/v1/mochi_items/weekly_digest` — 이번주 정리. 그 주(KST 월~일) 항목의 카테고리를
-    /// 서버가 정규화(write)하고 "모찌의 한마디"를 생성한다. `weekStart` 가 어긋나도 서버가 재정규화한다.
-    func weeklyDigest(weekStart: Date) async throws -> WeeklyDigestDTO
+    /// `POST /api/v1/mochi_items/monthly_digest` — 이번 달 정리. 그 달(KST 1일~말일) 항목의 카테고리를
+    /// 서버가 정규화(write)하고 "모찌의 한마디"를 생성한다. `monthStart` 가 어긋나도 서버가 재정규화한다.
+    func monthlyDigest(monthStart: Date) async throws -> MonthlyDigestDTO
 
     /// `GET /api/v1/recall/feed` — 능동 회수 피드(홈 한 칸·자세히 목록). owner 의 "다시 볼 지식".
     /// cold-start 빈손은 정상(`[]`). UI 필드(색/아이콘)는 iOS 가 `reason` → 매핑한다.
@@ -772,11 +772,11 @@ public struct UpcomingActionableDTO: Sendable, Hashable, Codable {
     }
 }
 
-/// 이번주 정리 — 모찌 한마디 + 정규화된 카테고리 묶음.
-public struct WeeklyDigestDTO: Sendable, Hashable, Codable {
+/// 이번 달 정리 — 모찌 한마디 + 정규화된 카테고리 묶음.
+public struct MonthlyDigestDTO: Sendable, Hashable, Codable {
     public let greeting: String
     public let groups: [Group]
-    /// false 면 그 주 항목이 적어 LLM 미호출한 정적 폴백(클라가 캐시 정책에 활용).
+    /// false 면 그 달 항목이 적어 LLM 미호출한 정적 폴백(클라가 캐시 정책에 활용).
     public let generated: Bool
 
     public struct Group: Sendable, Hashable, Codable {

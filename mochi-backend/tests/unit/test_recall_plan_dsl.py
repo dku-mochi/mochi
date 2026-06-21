@@ -51,9 +51,7 @@ def test_relative_minimal_ok():
 
 
 def test_recurring_with_optional_fields_ok():
-    t = Trigger(
-        type="recurring", interval_days=3, max_occurrences=2, until_anchor="deadline"
-    )
+    t = Trigger(type="recurring", interval_days=3, max_occurrences=2, until_anchor="deadline")
     assert t.max_occurrences == 2
     assert t.until_anchor is not None
 

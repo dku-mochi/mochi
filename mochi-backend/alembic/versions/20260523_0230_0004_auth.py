@@ -33,7 +33,9 @@ def upgrade() -> None:
 
     op.create_table(
         "users",
-        sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True, server_default=sa.text("gen_random_uuid()")),
+        sa.Column(
+            "id", postgresql.UUID(as_uuid=True), primary_key=True, server_default=sa.text("gen_random_uuid()")
+        ),
         sa.Column("email", sa.String(320), nullable=False),
         sa.Column("display_name", sa.String(128), nullable=False, server_default=""),
         sa.Column("locale", sa.String(16), nullable=False, server_default="ko-KR"),
@@ -52,7 +54,9 @@ def upgrade() -> None:
 
     op.create_table(
         "auth_accounts",
-        sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True, server_default=sa.text("gen_random_uuid()")),
+        sa.Column(
+            "id", postgresql.UUID(as_uuid=True), primary_key=True, server_default=sa.text("gen_random_uuid()")
+        ),
         sa.Column(
             "user_id",
             postgresql.UUID(as_uuid=True),
@@ -71,7 +75,9 @@ def upgrade() -> None:
 
     op.create_table(
         "refresh_tokens",
-        sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True, server_default=sa.text("gen_random_uuid()")),
+        sa.Column(
+            "id", postgresql.UUID(as_uuid=True), primary_key=True, server_default=sa.text("gen_random_uuid()")
+        ),
         sa.Column(
             "user_id",
             postgresql.UUID(as_uuid=True),

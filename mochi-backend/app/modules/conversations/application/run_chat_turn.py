@@ -83,7 +83,9 @@ class RunChatTurn:
                 timeout=self.timeout_seconds,
             )
         except TimeoutError:
-            await self._fail(owner_id, run_id, code="chat.run_timeout", message="답변 생성이 너무 오래 걸렸어요")
+            await self._fail(
+                owner_id, run_id, code="chat.run_timeout", message="답변 생성이 너무 오래 걸렸어요"
+            )
         except Exception as exc:  # noqa: BLE001 — detached task 의 마지막 방어선
             logger.error("chat.run.failed", run_id=str(run_id), error=str(exc), exc_info=exc)
             await self._fail(owner_id, run_id, code="chat.run_failed", message="답변을 생성하지 못했어요")
@@ -150,8 +152,11 @@ class RunChatTurn:
                     break
                 calls += 1
                 result = await self._execute_tool(
-                    owner_id=owner_id, conversation_id=conversation_id, run_id=run_id,
-                    name=name, args=args,
+                    owner_id=owner_id,
+                    conversation_id=conversation_id,
+                    run_id=run_id,
+                    name=name,
+                    args=args,
                 )
                 if result.proposal is not None:
                     # propose_* 툴의 확인 카드 — 쓰기 없음. 즉시 스트림으로 흘리고
@@ -166,9 +171,7 @@ class RunChatTurn:
                             "payload": result.proposal["payload"],
                         },
                     )
-                executed_calls.append(
-                    {"name": name, "args": args, "thought_signature": signature}
-                )
+                executed_calls.append({"name": name, "args": args, "thought_signature": signature})
                 executed_responses.append({"name": name, "response": result.payload})
                 round_images.extend(result.images)
             if executed_calls:
@@ -189,8 +192,7 @@ class RunChatTurn:
                     {
                         "role": "user",
                         "text": (
-                            f"(attached: {len(round_images)} image(s) from the "
-                            "view_item_image results above)"
+                            f"(attached: {len(round_images)} image(s) from the view_item_image results above)"
                         ),
                         "images": round_images,
                     }
@@ -220,8 +222,13 @@ class RunChatTurn:
         self._publish(run_id, run_events.DONE, {"message_id": str(message_id)})
 
     async def _execute_tool(
-        self, *, owner_id: UUID, conversation_id: UUID, run_id: UUID,
-        name: str, args: dict[str, Any],
+        self,
+        *,
+        owner_id: UUID,
+        conversation_id: UUID,
+        run_id: UUID,
+        name: str,
+        args: dict[str, Any],
     ) -> ChatToolResult:
         tool = self._tool_by_name.get(name)
         if tool is None:
@@ -234,9 +241,7 @@ class RunChatTurn:
             result = await tool.run(owner_id=owner_id, args=args)
         except Exception as exc:  # noqa: BLE001 — 툴 실패는 run 실패가 아니라 모델이 다룰 정보
             logger.warning("chat.run.tool_failed", run_id=str(run_id), tool=name, error=str(exc))
-            result = ChatToolResult(
-                payload={"error": "tool execution failed"}, summary="잠깐 막혔어요"
-            )
+            result = ChatToolResult(payload={"error": "tool execution failed"}, summary="잠깐 막혔어요")
         await self.store.append(
             owner_id=owner_id,
             message=Message(
@@ -248,9 +253,7 @@ class RunChatTurn:
                 run_id=run_id,
             ),
         )
-        self._publish(
-            run_id, run_events.TOOL_FINISHED, {"name": tool.name, "summary": result.summary}
-        )
+        self._publish(run_id, run_events.TOOL_FINISHED, {"name": tool.name, "summary": result.summary})
         return result
 
     async def _persist_answer(
@@ -312,9 +315,7 @@ class RunChatTurn:
         if self.profile_loader is None:
             return None
         try:
-            return await asyncio.wait_for(
-                self.profile_loader(owner_id), timeout=_PROFILE_LOAD_TIMEOUT
-            )
+            return await asyncio.wait_for(self.profile_loader(owner_id), timeout=_PROFILE_LOAD_TIMEOUT)
         except Exception as exc:  # noqa: BLE001 — 프로필은 부가, 실패·지연해도 답변은 진행
             logger.warning("chat.profile_load_failed", run_id=str(run_id), error=str(exc))
             return None

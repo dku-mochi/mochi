@@ -314,17 +314,17 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
         }
     }
 
-    public func weeklyDigest(weekStart: Date) async throws -> WeeklyDigestDTO {
-        let output = try await client.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post(
-            query: .init(weekStart: weekStart)
+    public func monthlyDigest(monthStart: Date) async throws -> MonthlyDigestDTO {
+        let output = try await client.generate_monthly_digest_api_v1_mochi_items_monthly_digest_post(
+            query: .init(monthStart: monthStart)
         )
         switch output {
         case let .ok(response):
             let dto = try response.body.json
-            return WeeklyDigestDTO(
+            return MonthlyDigestDTO(
                 greeting: dto.greeting,
                 groups: (dto.groups ?? []).map { group in
-                    WeeklyDigestDTO.Group(
+                    MonthlyDigestDTO.Group(
                         coarse: group.coarse,
                         itemIDs: (group.itemIds ?? []).compactMap { UUID(uuidString: $0) }
                     )

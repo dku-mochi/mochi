@@ -1,0 +1,46 @@
+{
+  "latency_ms": 2593.3,
+  "output": {
+    "intent_instances": [
+      {
+        "reasoning": "대회 일정표에 명시된 예선 아이디어 기획서 제출 마감일입니다. 사용자가 대회에 참가할 의사가 있어 저장한 것으로 판단되므로, 마감 시점에 맞춰 알림이 필요합니다.",
+        "label": "예선 아이디어 기획서 제출",
+        "payload": {
+          "title": "데이콘 대회 예선 아이디어 기획서 제출",
+          "deadline": "2026-07-07 10:00"
+        },
+        "intent_type": "todo"
+      },
+      {
+        "label": "예선 최종 산출물 제출",
+        "reasoning": "대회 일정표에 명시된 예선 최종 산출물 제출 마감일입니다. 마감 시점에 맞춰 알림이 필요합니다.",
+        "payload": {
+          "title": "데이콘 대회 예선 최종 산출물 제출",
+          "deadline": "2026-07-15 10:00"
+        },
+        "intent_type": "todo"
+      },
+      {
+        "reasoning": "대회 전체 운영 기간입니다. 이 기간 동안 대회 관련 활동을 수행해야 하므로 일정으로 등록합니다.",
+        "label": "대회 기간 확인",
+        "intent_type": "schedule",
+        "payload": {
+          "end_date": "2026-07-15",
+          "title": "데이콘 대회 기간",
+          "date": "2026-07-01"
+        }
+      }
+    ],
+    "summary": "데이콘 데이터 분석 대회의 주요 일정입니다. 예선 아이디어 기획서 및 최종 산출물 제출 마감일이 포함되어 있어, 대회 준비를 위해 저장했습니다.",
+    "importance": 4,
+    "entities": [
+      {
+        "kind": "reference_url",
+        "value": "{\"provider\":\"web\",\"label\":\"데이콘 대회 일정\",\"url\":\"https://dacon.io\"}"
+      }
+    ],
+    "category": "데이터 분석 대회",
+    "needs_review": false
+  },
+  "run": 2
+}

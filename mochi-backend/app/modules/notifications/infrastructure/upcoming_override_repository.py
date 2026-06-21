@@ -23,9 +23,7 @@ class PostgresUpcomingOverrideRepository(UpcomingOverrideRepositoryPort):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    async def reschedule(
-        self, *, event_id: UUID, owner_id: UUID, new_fire_at: datetime
-    ) -> int:
+    async def reschedule(self, *, event_id: UUID, owner_id: UUID, new_fire_at: datetime) -> int:
         # 첫 조정 때만 original 보존(COALESCE) — 여러 번 옮겨도 최초 모찌 원안 유지.
         # WHERE fire_at>now() — 이미 발송 시점 지난 행은 옮기지 못함(중복/즉시발송 방지).
         stmt = (
@@ -48,9 +46,7 @@ class PostgresUpcomingOverrideRepository(UpcomingOverrideRepositoryPort):
         await self._session.flush()
         return result.rowcount or 0
 
-    async def veto_pending(
-        self, *, event_id: UUID, owner_id: UUID
-    ) -> tuple[int, UUID | None]:
+    async def veto_pending(self, *, event_id: UUID, owner_id: UUID) -> tuple[int, UUID | None]:
         # 대상 pending 1건을 skipped(user_veto). RETURNING 으로 plan_id 회수 → 호출부가 cancel_plan.
         stmt = (
             update(NotificationOutboxRow)

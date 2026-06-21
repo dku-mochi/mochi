@@ -275,17 +275,14 @@ public actor RealmMochiItemRepository: MochiItemRepository {
     /// Realm collection 알림으로 변경을 감지해 스트림으로 방출한다.
     /// Realm 의 cross-process 알림 덕에 ShareExtension·AppIntents 등 **다른 프로세스의 쓰기**도 잡힌다.
     ///
-    /// 알림 토큰은 run loop 가 있는 스레드에서만 콜백이 도므로 MainActor(메인 run loop) 에 둔다.
-    /// 화면(소비자)이 스트림을 끊으면 `onTermination` 에서 토큰을 무효화한다.
+    /// 알림 토큰은 전용 직렬 큐에 가둔다 (메인 run loop 가 아니라). Realm 종료(close)가 프로세스 간
+    /// 뮤텍스를 잡는데, 이를 user-interactive 인 메인 스레드에서 하면 priority inversion 이 나기 때문이다
+    /// (자세한 근거는 ``RealmChangeObserver``). 화면(소비자)이 스트림을 끊으면 `onTermination` 에서 토큰을 무효화한다.
     public nonisolated func observeChanges() -> AsyncStream<Void> {
         AsyncStream { continuation in
-            Task { @MainActor in
-                let observer = RealmChangeObserver(continuation: continuation)
-                observer.start()
-                continuation.onTermination = { _ in
-                    Task { @MainActor in observer.stop() }
-                }
-            }
+            let observer = RealmChangeObserver(continuation: continuation)
+            observer.start()
+            continuation.onTermination = { _ in observer.stop() }
         }
     }
 
@@ -310,13 +307,17 @@ public actor RealmMochiItemRepository: MochiItemRepository {
 
 // MARK: - Realm change observer
 
-/// MainActor 에 머무는 알림 토큰 보유자. `observeChanges()` 스트림의 수명 동안 살아 있다.
+/// 전용 직렬 큐에 갇힌 알림 토큰 보유자. `observeChanges()` 스트림의 수명 동안 살아 있다.
 ///
-/// Realm·NotificationToken 은 Sendable 이 아니라 한 스레드(여기선 메인)에 가둬야 한다.
-/// `continuation` 만 Sendable 이라 콜백에서 안전하게 yield 한다.
-@MainActor
-private final class RealmChangeObserver {
+/// Realm·NotificationToken 은 Sendable 이 아니라 한 실행 맥락에 가둬야 한다. 메인 run loop 가 아니라
+/// 전용 직렬 큐(`Realm(queue:)`)에 두는 이유: Realm 종료(close)는 프로세스 간 뮤텍스(InterprocessMutex)를
+/// 잡는데, 이를 user-interactive 인 메인 스레드에서 하면 default QoS 백그라운드 스레드(read/write detached)가
+/// 그 뮤텍스를 쥔 동안 priority inversion 이 난다(Thread Performance Checker 경고). 큐 QoS 를 백그라운드
+/// Realm 접근과 같은 `.default` 로 맞춰 열기·관찰·종료 전부를 메인 스레드 밖에서 처리한다.
+/// 모든 가변 상태(token·realm)는 이 직렬 큐에서만 접근하므로 `@unchecked Sendable` 이 안전하다.
+private final class RealmChangeObserver: @unchecked Sendable {
     private let continuation: AsyncStream<Void>.Continuation
+    private let queue = DispatchQueue(label: "app.mochi.realm-observer", qos: .default)
     private var token: NotificationToken?
     private var realm: Realm?
 
@@ -325,27 +326,32 @@ private final class RealmChangeObserver {
     }
 
     func start() {
-        do {
-            let realm = try RealmStoreFactory.openRealm()
-            self.realm = realm
-            // `.initial` 은 건너뛴다 — 소비자(화면)가 첫 load 를 따로 하므로 중복 방지.
-            // 실제 쓰기(`.update`) 에만 신호를 보낸다.
-            token = realm.objects(RealmMochiItem.self).observe { [continuation] change in
-                switch change {
-                case .update:
-                    continuation.yield(())
-                case .initial, .error:
-                    break
+        queue.async { [self] in
+            do {
+                // 큐에 갇힌 Realm — 알림은 이 큐로 전달되고, 종료(close)도 이 큐에서 일어난다.
+                let realm = try RealmStoreFactory.openRealm(queue: queue)
+                self.realm = realm
+                // `.initial` 은 건너뛴다 — 소비자(화면)가 첫 load 를 따로 하므로 중복 방지.
+                // 실제 쓰기(`.update`) 에만 신호를 보낸다.
+                token = realm.objects(RealmMochiItem.self).observe { [continuation] change in
+                    switch change {
+                    case .update:
+                        continuation.yield(())
+                    case .initial, .error:
+                        break
+                    }
                 }
+            } catch {
+                continuation.finish()
             }
-        } catch {
-            continuation.finish()
         }
     }
 
     func stop() {
-        token?.invalidate()
-        token = nil
-        realm = nil
+        queue.async { [self] in
+            token?.invalidate()
+            token = nil
+            realm = nil
+        }
     }
 }

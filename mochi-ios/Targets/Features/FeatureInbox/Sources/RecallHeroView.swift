@@ -6,9 +6,12 @@ import DesignSystem
 /// 홈의 시각적 심장 — 사용자는 "찾으러" 들어오지만, 모찌가 잊고 있던 기억을 떠올려줘 "아, 맞다!"
 /// 하게 만든다. 회상의 핵심은 **이미지**다 — 그때 그 화면을 다시 보면 즉시 기억난다.
 ///
-/// 스크린샷 비율(세로 ~0.53)을 그대로 살린 **무한 가로 코버플로우**다 — 끝과 처음이 이어진다. 한 장이
-/// 가운데에 서고 좌우 이웃이 살짝 작아져 비친다(평면 — 3D 회전 없이 절제). 텍스트는 제목 + "왜 지금"(reason) 한 줄로 덜어내,
-/// 캡처 이미지가 카드의 주인공이 되게 한다. 이미지 없는 회수(메모·URL·순수 지식)만 reason 색 폴백.
+/// 스크린샷 비율(세로 ~0.53)을 그대로 살린 **무한 가로 3D 코버플로우**다 — 끝과 처음이 이어진다. 한 장이
+/// 가운데에 정면으로 서고, 좌우 이웃은 Y축으로 기울어 원근 속으로 물러난다(수평 축만 — 대각선 흐름 없음).
+/// 어두운 무대가 아니라 **밝은 공간**이 무대다: 비초점 카드는 **블러**로 살짝 물러나고(흰 오버레이 없이),
+/// 카드는 그림자 2겹(ambient+key)으로 떠 있으며, 덱 뒤 공간이 **초점 카드의 reason 색으로 물든다**(넘길 때마다 색으로 숨쉰다).
+/// 텍스트는 제목 + "왜 지금"(reason) 한 줄로 덜어내, 캡처 이미지가 카드의 주인공이 되게 한다.
+/// 이미지 없는 회수(메모·URL·순수 지식)만 reason 색 폴백.
 struct RecallHeroView: View {
     let entries: [RecallFeedEntryDTO]
     /// 회수 itemID → 원본 캡처 이미지 ref. 있으면 카드 커버로 실제 캡처를 깐다(회상의 핵심).
@@ -96,12 +99,13 @@ struct RecallHeroView: View {
         .accessibilityHidden(true)
     }
 
-    // MARK: - 무한 코버플로우 덱 (평면 — 끝과 처음이 이어진다)
+    // MARK: - 무한 3D 코버플로우 덱 (수평 — 끝과 처음이 이어진다)
 
     private var deck: some View {
         GeometryReader { proxy in
             let metrics = RecallCoverMetrics(size: proxy.size)
             ZStack {
+                focalGlow(in: proxy.size)
                 ForEach(Array(entries.enumerated()), id: \.element.id) { index, entry in
                     RecallCoverCard(entry: entry, imageRef: images[entry.itemID])
                         .frame(width: metrics.cardWidth, height: metrics.cardHeight)
@@ -130,6 +134,29 @@ struct RecallHeroView: View {
         }
     }
 
+    /// 시그니처 — 덱 뒤 공간이 초점 카드의 reason 색으로 은은히 물든다. 넘길 때마다 히어로가 색으로
+    /// 숨쉬어 "왜 지금 떠올렸나"의 감정을 빛으로 전한다(홈 상단 보라 글로우 배경과 이어지는 정체성).
+    /// 카드 뒤(ZStack 최하단)에 두고 hit-test 는 끈다.
+    private func focalGlow(in size: CGSize) -> some View {
+        Ellipse()
+            .fill(focalReasonColor)
+            .frame(width: size.width * 1.05, height: size.height * 0.62)
+            .blur(radius: 64)
+            .opacity(0.34)
+            .offset(y: size.height * 0.06)
+            .allowsHitTesting(false)
+            // 초점이 바뀌면 색이 번지듯 부드럽게 갈아입는다.
+            .animation(.easeInOut(duration: 0.5), value: focalIndex)
+    }
+
+    /// 초점 카드 reason 의 대표색 — 글로우의 소스. reason 폴백 색(`heroColors`)의 첫 색을 쓴다.
+    private var focalReasonColor: Color {
+        let reasonString = entries.indices.contains(focalIndex)
+            ? entries[focalIndex].reason
+            : (entries.first?.reason ?? "")
+        return RecallReasonKind(reason: reasonString).heroColors.first ?? HomeDesign.Color.purple400
+    }
+
     private var dragGesture: some Gesture {
         // 수평 의도가 우세할 때만 — 홈 세로 스크롤에 양보한다.
         DragGesture(minimumDistance: 12)
@@ -138,8 +165,10 @@ struct RecallHeroView: View {
                 guard abs(value.translation.width) > abs(value.translation.height) else { return }
                 let start = dragStart ?? rotation
                 dragStart = start
-                // clamp 없음 — rotation 이 무한히 흐르고 wrap 으로 끝과 처음이 이어진다.
-                rotation = start - Double(value.translation.width) * sensitivity
+                // 3장 이상은 clamp 없이 무한히 흐르고 wrap 으로 끝과 처음이 이어진다. 2장은 무한 순환을
+                // 끄고 [0,1] 로 clamp 해 좌우 2장 페이지로만 민다(텔레포트 경계 제거).
+                let raw = start - Double(value.translation.width) * sensitivity
+                rotation = count <= 2 ? min(max(raw, 0), Double(count - 1)) : raw
                 focalIndex = Self.wrappedIndex(rotation, count)
             }
             .onEnded { value in
@@ -149,7 +178,9 @@ struct RecallHeroView: View {
                 // 관성(예측 이동)을 싣되 현재에서 최대 ±2.4 카드로 클램프해 가까운 카드에 스냅.
                 let predicted = start - Double(value.predictedEndTranslation.width) * sensitivity
                 let clamped = min(max(predicted, rotation - 2.4), rotation + 2.4)
-                let target = clamped.rounded()
+                var target = clamped.rounded()
+                // 2장은 [0,1] 페이지 경계에서 멈춘다(무한 순환 비활성).
+                if count <= 2 { target = min(max(target, 0), Double(count - 1)) }
                 focalIndex = Self.wrappedIndex(target, count)
                 withAnimation(.interpolatingSpring(stiffness: 130, damping: 18)) {
                     rotation = target
@@ -162,6 +193,7 @@ struct RecallHeroView: View {
     /// (메모·URL·지식)는 `cardImage == nil` → 상세가 중앙에서 fade-in(이미지 비행 없음).
     private func openFocal(_ entry: RecallFeedEntryDTO) {
         let imageRef = images[entry.itemID]
+        // 초점은 scale 1.0(무변환)이라 focalFrame(레이아웃 frame)이 실제 화면 위치·크기와 일치한다.
         let hero = HeroSourceFrames(
             card: focalFrame,
             cardImage: imageRef != nil ? focalFrame : nil,
@@ -178,37 +210,74 @@ struct RecallHeroView: View {
     }
 }
 
-// MARK: - 무한 평면 코버플로우 배치 (Animatable — rotation 보간 시 매 프레임 재배치)
+// MARK: - 무한 3D 코버플로우 배치 (Animatable — rotation 보간 시 매 프레임 재배치)
 
 private struct RecallCoverMetrics: Equatable {
     let size: CGSize
 
-    /// 스크린샷 비율(세로 ~0.53) — 세로 캡처가 거의 안 잘린다. 덱 높이를 거의 다 쓰되,
+    /// 스크린샷 비율(세로 ~0.53) — 세로 캡처가 거의 안 잘린다. 덱 높이를 거의 다 쓴다(초점이 덱을 꽉 채움).
     /// 폭은 가용 폭의 66% 로 상한을 둬 큰 덱에서도 좌우 이웃 카드가 비치게 한다.
     var cardHeight: CGFloat { size.height * 0.97 }
     var cardWidth: CGFloat { min(cardHeight * 0.53, size.width * 0.66) }
-    private var stepX: CGFloat { cardWidth * 0.72 }
+    /// 초점 바로 옆 카드의 수평 오프셋 — 카드 사이 간격(0.72w, 간격 확대 피드백 2026-06-19). 클수록 이웃이
+    /// 바깥으로 가 겹침이 줄고 간격이 넓어진다.
+    private var firstStep: CGFloat { cardWidth * 0.72 }
+    /// 한 칸 더 멀어질 때마다 더해지는 오프셋 — 첫 칸보다 작게(0.24w) 둬 먼 카드들이 가장자리에
+    /// 점점 촘촘히 쌓이며 깊이로 물러나는 코버플로우 스택을 만든다.
+    private var farStep: CGFloat { cardWidth * 0.24 }
+    /// 옆 카드가 Y축으로 기우는 최대 각 — **0 = 완전 평면**(회전 제거 피드백 반영 50→34→9→0, 2026-06-19).
+    /// 회전이 없으니 "활성 카드" 핸드오프는 scale 대비(초점 큼) + alpha(중앙 또렷) + DoF(blur)가 책임진다.
+    private let maxTilt: Double = 0
 
     func placement(index: Int, rotation: Double, count: Int) -> RecallCoverPlacement {
         guard count > 0 else {
             return RecallCoverPlacement(
-                dx: 0, scale: 1, opacity: 1, zIndex: 1, isFocal: true,
-                shadowRadius: 26, shadowOpacity: 0.2, shadowY: 16
+                dx: 0, scale: 1, rotationY: 0, blur: 0, opacity: 1, zIndex: 1, isFocal: true, depth: 1
             )
         }
         let countD = Double(count)
-        // 무한 wrap — 오프셋을 [-count/2, count/2) 로 감싸 끝과 처음이 이어진다.
-        var n = (Double(index) - rotation).truncatingRemainder(dividingBy: countD)
-        if n > countD / 2 { n -= countD }
-        if n <= -countD / 2 { n += countD }
+        // 2장 이하는 무한 wrap 을 끈다 — wrap 윈도우가 (-1,1] 로 퇴화해 떠나는 카드가 정수 경계
+        // (스냅 타깃)에서 좌→우로 순간 텔레포트하고, underdamped 스냅이 그 경계를 overshoot·왕복해
+        // "왔다리 갔다리" 흔들림이 보였다(3장 이상은 텔레포트가 흐릿한 반정수 위치라 안 보인다).
+        // wrap 없이 n=index-rotation 을 그대로 쓰면(rotation 은 드래그에서 [0,count-1] 로 clamp)
+        // 카드가 좌우 2장 페이지로 연속 이동해 텔레포트 경계 자체가 사라진다.
+        var n = Double(index) - rotation
+        if count > 2 {
+            // 무한 wrap — 오프셋을 [-count/2, count/2) 로 감싸 끝과 처음이 이어진다.
+            n = n.truncatingRemainder(dividingBy: countD)
+            if n > countD / 2 { n -= countD }
+            if n <= -countD / 2 { n += countD }
+        }
 
         let ad = abs(n)
         let centered = max(0, 1 - ad)
-        let dx = CGFloat(n) * stepX
-        let scale = max(0.78, 1 - ad * 0.12)
-        var opacity = 1.0
-        if ad > 2.2 { opacity = max(0, 1 - (ad - 2.2) / 0.8) }
-        if ad >= 3.0 { opacity = 0 }
+        let sign: CGFloat = n >= 0 ? 1 : -1
+        // 수평 오프셋만(대각선 없음) — 첫 칸은 firstStep, 그 너머는 farStep 씩만 더해 가장자리로
+        // 갈수록 촘촘히 쌓인다. |n|<1 구간은 n*firstStep 이라 드래그 중에도 매끄럽게 이어진다.
+        let dx = sign * (min(ad, 1) * firstStep + max(ad - 1, 0) * farStep)
+        // Y축 기울임 — 초점은 정면(0°), 옆 카드는 가운데를 바라보게 기운다(concave fan). 첫 칸에서
+        // 최대치에 닿고 그 너머로는 일정. 부호는 카테고리 턴테이블과 같은 방향(우측 카드 음각).
+        let rotationY = -maxTilt * Double(max(-1, min(1, n)))
+        // 가운데로 올수록 커지는 핸드오프 — 초점은 1.0(덱을 꽉 채우는 풀사이즈, 무변환이라 hero zoom 안전),
+        // 이웃(ad1)은 0.87 이라 초점이 이웃의 약 1.15배. 카드를 줄이지 않고 이웃만 줄여 대비를 만든다.
+        let scale = max(0.78, 1 - ad * 0.13)
+        // 피사계심도 — 흰색 오버레이(헤이즈) 대신 **블러**가 비초점 카드를 물러나게 하는 주역(피드백 반영).
+        // 초점(ad 0)은 0 으로 또렷 → hero zoom 무변환 전제 유지. 이웃(ad1)은 ~1.8 의 약한 블러.
+        let blur = min(6, max(0, ad - 0.4) * 3.0)
+
+        // 활성 핸드오프 = alpha(은은하게). 중앙(ad0) 1.0, 양옆(ad1) nearAlpha — 드래그로 중앙이 밀리면
+        // alpha 가 살짝 빠지고 옆에서 온 카드는 차오른다. 흰 오버레이로 강하게 누르지 않고(피드백 반영)
+        // 물러남은 블러가 맡는다. ad2 부터 0 이라 정지 시 3장만. smoothstep 두 구간이라 "툭" 없이 매끄럽다.
+        let nearAlpha = 0.9
+        let opacity: Double
+        if ad <= 1 {
+            let s = ad * ad * (3 - 2 * ad)        // smoothstep 0→1
+            opacity = 1 - (1 - nearAlpha) * s     // 1.0 → nearAlpha
+        } else {
+            let t = min(1, ad - 1)
+            let s = t * t * (3 - 2 * t)
+            opacity = nearAlpha * (1 - s)         // nearAlpha → 0
+        }
 
         let isFocal = index == RecallHeroView.wrappedIndex(rotation, count)
         // 중앙이 최상, 멀수록 뒤로(겹친 덱).
@@ -217,12 +286,12 @@ private struct RecallCoverMetrics: Equatable {
         return RecallCoverPlacement(
             dx: dx,
             scale: scale,
+            rotationY: rotationY,
+            blur: blur,
             opacity: opacity,
             zIndex: zIndex,
             isFocal: isFocal,
-            shadowRadius: 12 + 18 * centered,
-            shadowOpacity: 0.12 + 0.16 * centered,
-            shadowY: 7 + 11 * centered
+            depth: centered
         )
     }
 }
@@ -230,15 +299,16 @@ private struct RecallCoverMetrics: Equatable {
 private struct RecallCoverPlacement {
     let dx: CGFloat
     let scale: CGFloat
+    let rotationY: Double
+    let blur: CGFloat
     let opacity: Double
     let zIndex: Double
     let isFocal: Bool
-    let shadowRadius: CGFloat
-    let shadowOpacity: Double
-    let shadowY: CGFloat
+    /// 초점 근접도(1=정면, 0=먼 카드) — 레이어드 그림자 강도 산출에 쓴다.
+    let depth: CGFloat
 }
 
-/// 한 카드의 평면 변환. `animatableData == rotation` 이라, 공유 `rotation` 을 `withAnimation` 으로
+/// 한 카드의 3D 변환. `animatableData == rotation` 이라, 공유 `rotation` 을 `withAnimation` 으로
 /// 바꾸면 SwiftUI 가 프레임마다 다시 계산해 카드가 부드럽게 흐른다(관성·스냅·무한 순환의 구현부).
 private struct RecallCoverTransform: ViewModifier, Animatable {
     var rotation: Double
@@ -254,7 +324,17 @@ private struct RecallCoverTransform: ViewModifier, Animatable {
     func body(content: Content) -> some View {
         let p = metrics.placement(index: index, rotation: rotation, count: count)
         return content
-            .shadow(color: HomeDesign.Color.ink900.opacity(p.shadowOpacity), radius: p.shadowRadius, x: 0, y: p.shadowY)
+            // elevation — 진짜 떠 있는 느낌을 위해 그림자 2겹: 넓고 옅은 ambient(은은한 접지) + 좁고 진한
+            // key(방향성). 초점일수록(depth↑) 둘 다 커져 카드가 공간 위로 떠오른다. 카드 자체엔 드롭섀도가
+            // 없어 여기가 유일한 그림자 소스(이중 겹침 없음).
+            .shadow(color: HomeDesign.Color.ink900.opacity(0.06 + 0.10 * Double(p.depth)),
+                    radius: 18 + 16 * p.depth, x: 0, y: 4 + 5 * p.depth)
+            .shadow(color: HomeDesign.Color.ink900.opacity(0.04 + 0.14 * Double(p.depth)),
+                    radius: 4 + 8 * p.depth, x: 0, y: 5 + 9 * p.depth)
+            // 피사계심도 — 초점에서 멀수록 부드럽게 흐려져 시선이 초점 카드에 집중된다.
+            .blur(radius: p.blur)
+            // 코버플로우 — 옆 카드가 Y축으로 기울어 원근 속으로 물러난다(수평 축만, 대각선 없음).
+            .rotation3DEffect(.degrees(p.rotationY), axis: (x: 0, y: 1, z: 0), anchor: .center, perspective: 0.46)
             .scaleEffect(p.scale)
             .offset(x: p.dx)
             .opacity(p.opacity)
@@ -274,11 +354,27 @@ private struct RecallCoverCard: View {
     var body: some View {
         content
             .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+            // 유리 광택 — 좌상단에서 떨어지는 미세 하이라이트(softLight 라 캡처 이미지 위에서도 자연스럽다,
+            // 카테고리 커버(`TurntableCover`)와 같은 톤).
             .overlay(
                 RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    .strokeBorder(Color.white.opacity(0.18), lineWidth: 1)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.white.opacity(0.20), Color.white.opacity(0.03), .clear],
+                            startPoint: .topLeading,
+                            endPoint: .center
+                        )
+                    )
+                    .blendMode(.softLight)
+                    .allowsHitTesting(false)
             )
-            .shadow(color: HomeDesign.Color.ink900.opacity(0.18), radius: 18, x: 0, y: 10)
+            // 유리 엣지 — 얇은 흰 hairline. **드롭섀도는 카드에 두지 않는다** — 입체 깊이(그림자)는
+            // 코버플로우 transform 이 단독으로 책임진다(카드 자체 그림자 + transform 그림자가 이중으로
+            // 겹쳐 비초점 카드가 탁해지던 문제 제거, 카테고리 커버와 동일한 단일-그림자 구조).
+            .overlay(
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .strokeBorder(Color.white.opacity(0.28), lineWidth: 1)
+            )
             .accessibilityElement(children: .ignore)
             .accessibilityLabel("\(reason.accessibilityLabel). \(entry.title).")
             .accessibilityHint("눌러서 자세히 보기")

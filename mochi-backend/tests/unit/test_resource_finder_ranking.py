@@ -68,7 +68,7 @@ def test_top3_mixes_action_and_reference() -> None:
     ranked = _rank_results(judge, collected, payload)
     providers = [r.provider for r in ranked]
 
-    assert ranked[0].provider == "naver_map"           # 합성 지도 액션 1위
+    assert ranked[0].provider == "naver_map"  # 합성 지도 액션 1위
     assert any(p in {"info", "social"} for p in providers)  # 참고 자료 동반
 
 
@@ -101,15 +101,13 @@ def test_unpicked_action_demoted_below_picked() -> None:
         {"title": "로지텍 마우스 그립 스킨 스티커", "link": accessory, "source": "tavily"},
         {"title": "로지텍 MX 마스터 3S 공식", "link": official, "source": "tavily"},
     ]
-    judge = _FinalJudge(
-        useful=True, picks=[_Pick(url=official, usefulness=5)], comment="본품만"
-    )
+    judge = _FinalJudge(useful=True, picks=[_Pick(url=official, usefulness=5)], comment="본품만")
 
     ranked = _rank_results(judge, collected, payload)
 
-    assert ranked[0].url == official                       # judge 가 인정한 본품이 1위
+    assert ranked[0].url == official  # judge 가 인정한 본품이 1위
     acc = [r for r in ranked if r.url == accessory]
-    if acc:                                                # 강등은 role/label/CTA 까지 반영
+    if acc:  # 강등은 role/label/CTA 까지 반영
         assert acc[0].role == "reference"
         assert acc[0].label == "관련 링크 보기"
 
@@ -125,15 +123,13 @@ def test_picked_match_is_normalized() -> None:
         {"title": "몽탄 - 캐치테이블", "link": target, "source": "naver:webkr"},
         {"title": "다른 가게", "link": other, "source": "naver:webkr"},
     ]
-    judge = _FinalJudge(
-        useful=True, picks=[_Pick(url=target + "/", usefulness=5)], comment="ok"
-    )
+    judge = _FinalJudge(useful=True, picks=[_Pick(url=target + "/", usefulness=5)], comment="ok")
 
     ranked = _rank_results(judge, collected, payload)
     by_url = {r.url: r for r in ranked}
 
-    assert by_url[target].role == "reserve"                # 정규화 매칭 → picked 로 인정
-    if other in by_url:                                    # picked 아님 → 강등
+    assert by_url[target].role == "reserve"  # 정규화 매칭 → picked 로 인정
+    if other in by_url:  # picked 아님 → 강등
         assert by_url[other].role == "reference"
 
 
@@ -147,14 +143,12 @@ def test_accessory_kept_when_user_wants_it() -> None:
         {"title": "투명 자석 그립톡", "link": griptok, "source": "tavily"},
         {"title": "그립톡 추천 블로그", "link": "https://blog.naver.com/x/3", "source": "naver:webkr"},
     ]
-    judge = _FinalJudge(
-        useful=True, picks=[_Pick(url=griptok, usefulness=5)], comment="그립톡 상품"
-    )
+    judge = _FinalJudge(useful=True, picks=[_Pick(url=griptok, usefulness=5)], comment="그립톡 상품")
 
     ranked = _rank_results(judge, collected, payload)
     top = ranked[0]
 
-    assert top.url == griptok                # 부속품이지만 대상이므로 구매 액션 1위
+    assert top.url == griptok  # 부속품이지만 대상이므로 구매 액션 1위
     assert top.provider == "coupang"
     assert top.role == "buy"
 
@@ -178,22 +172,28 @@ def test_picks_empty_demotes_real_action_keeps_synthetic() -> None:
     by_url = {r.url: r for r in ranked}
 
     synthetic = next(r for r in ranked if r.source == "synthetic:coupang_search")
-    assert synthetic.role == "buy"                 # 합성 검색 링크는 fallback 액션
-    assert by_url[real_pdp].role == "reference"    # 실 PDP 는 확신 0 이라 강등
+    assert synthetic.role == "buy"  # 합성 검색 링크는 fallback 액션
+    assert by_url[real_pdp].role == "reference"  # 실 PDP 는 확신 0 이라 강등
 
 
 def test_reference_entity_usefulness_per_url() -> None:
     """pick 된 URL 만 usefulness 를 싣고, pick 밖은 키 자체를 뺀다(iOS 다중 점등 해소)."""
     row = RankedUrl(
-        url="https://www.coupang.com/vp/products/1", title="t", tier_num=3.0,
-        tier_label="tier3_openmarket", label="쿠팡에서 보기", provider="coupang",
-        role="buy", source="tavily", rank_profile="coupang",
+        url="https://www.coupang.com/vp/products/1",
+        title="t",
+        tier_num=3.0,
+        tier_label="tier3_openmarket",
+        label="쿠팡에서 보기",
+        provider="coupang",
+        role="buy",
+        source="tavily",
+        rank_profile="coupang",
     )
     picked = json.loads(_reference_entity_value(row, 5))
     unpicked = json.loads(_reference_entity_value(row, None))
 
     assert picked["usefulness"] == 5
-    assert "usefulness" not in unpicked          # None → 키 생략 → iOS 뱃지 OFF
+    assert "usefulness" not in unpicked  # None → 키 생략 → iOS 뱃지 OFF
 
 
 def test_exact_picks_drops_below_four() -> None:

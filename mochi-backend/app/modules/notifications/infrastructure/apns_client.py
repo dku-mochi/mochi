@@ -80,9 +80,7 @@ class HttpxAPNsClient(APNsClient):
         }
         if collapse_id is not None:
             headers["apns-collapse-id"] = collapse_id[:64]
-        resp = await self._client.post(
-            f"https://{host}/3/device/{token}", json=payload, headers=headers
-        )
+        resp = await self._client.post(f"https://{host}/3/device/{token}", json=payload, headers=headers)
         if resp.status_code != 200:
             # APNs 실패 body 는 {"reason": "..."} JSON — 분류용으로 추출(codex-5).
             reason: str | None = None

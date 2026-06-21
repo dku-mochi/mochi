@@ -1,0 +1,28 @@
+{
+  "latency_ms": 2119.2,
+  "output": {
+    "intent_instances": [
+      {
+        "payload": {
+          "note": "데이콘 대회 예선 아이디어 기획서 제출 마감일입니다.",
+          "deadline": "2026-07-07 10:00",
+          "title": "데이콘 대회 예선 아이디어 기획서 제출"
+        },
+        "reasoning": "화면에 명시된 대회 일정 중 가장 먼저 다가오는 마감 기한인 '예선 아이디어 기획서 제출'을 할 일로 등록합니다.",
+        "intent_type": "todo",
+        "label": "예선 아이디어 기획서 제출"
+      }
+    ],
+    "summary": "데이콘 데이터 분석 대회의 주요 일정입니다. 예선 아이디어 기획서 제출 마감일인 7월 7일 10시를 할 일로 저장합니다.",
+    "needs_review": false,
+    "category": "데이터 분석 대회",
+    "importance": 4,
+    "entities": [
+      {
+        "kind": "deadline",
+        "value": "2026-07-07 10:00"
+      }
+    ]
+  },
+  "run": 2
+}

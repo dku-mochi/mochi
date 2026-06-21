@@ -84,9 +84,7 @@ def _build_prompt(gate_input: RecallGateInput) -> str:
     ]
     for c in gate_input.candidates:
         gap = f"{c.gap_days:.1f}일전" if c.gap_days >= 1 else f"{c.gap_days * 24:.0f}시간전"
-        lines.append(
-            f"[{c.index}] {c.title} | {list(c.intent_types)} | {gap} | sim {c.score:.2f}"
-        )
+        lines.append(f"[{c.index}] {c.title} | {list(c.intent_types)} | {gap} | sim {c.score:.2f}")
     lines.append("")
     lines.append("chosen_index 는 위 [n] 기준. 없거나 무가치하면 recall=false.")
     return "\n".join(lines)
@@ -136,9 +134,7 @@ class GeminiRecallGate(RecallGatePort):
             max_output_tokens=512,
             thinking_config=types.ThinkingConfig(thinking_budget=0),
             tools=[types.Tool(function_declarations=_decls())],
-            tool_config=types.ToolConfig(
-                function_calling_config=types.FunctionCallingConfig(mode="ANY")
-            ),
+            tool_config=types.ToolConfig(function_calling_config=types.FunctionCallingConfig(mode="ANY")),
         )
         resp = await asyncio.wait_for(
             _shared_client().aio.models.generate_content(

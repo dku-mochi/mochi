@@ -37,9 +37,11 @@ def _public_jwk(private_key, kid: str) -> dict:
         encoding=serialization.Encoding.PEM,
         format=serialization.PublicFormat.SubjectPublicKeyInfo,
     )
-    jwk_json = RSAAlgorithm.to_jwk(jwt.algorithms.RSAAlgorithm.from_jwk(
-        json.dumps({"kty": "RSA", "kid": kid, **_n_e_from_pem(public_pem)})  # type: ignore[arg-type]
-    ))
+    jwk_json = RSAAlgorithm.to_jwk(
+        jwt.algorithms.RSAAlgorithm.from_jwk(
+            json.dumps({"kty": "RSA", "kid": kid, **_n_e_from_pem(public_pem)})  # type: ignore[arg-type]
+        )
+    )
     obj = json.loads(jwk_json)
     obj["kid"] = kid
     obj["alg"] = "RS256"
@@ -139,6 +141,31 @@ async def test_apple_id_token_rejects_wrong_nonce() -> None:
         verifier = HttpxIdTokenVerifier(_settings(), http_client=client)
         with pytest.raises(IdTokenNonceMismatchError):
             await verifier.verify_apple(id_token=token, nonce_raw="client-sent-this")
+
+
+@pytest.mark.asyncio
+async def test_apple_id_token_rejects_token_without_nonce() -> None:
+    # nonce claim 이 없는(=nonce 미바인딩) 유효 서명 토큰은 거부해야 한다. 과거엔 검증을 건너뛰어
+    # nonce-less victim identityToken 의 replay(계정 탈취)가 가능했다. raw nonce 유무와 무관하게 거부.
+    pk = _gen_rsa_key()
+    kid = "k"
+    jwks = {"keys": [_public_jwk(pk, kid)]}
+    now = datetime.now(UTC)
+    claims = {
+        "iss": "https://appleid.apple.com",
+        "aud": "app.mochi",
+        "sub": "u",
+        "iat": int(now.timestamp()),
+        "exp": int((now + timedelta(minutes=10)).timestamp()),
+        # nonce 의도적 누락
+    }
+    token = _sign(pk, claims, kid)
+    async with httpx.AsyncClient(transport=_mock_jwks_transport(jwks)) as client:
+        verifier = HttpxIdTokenVerifier(_settings(), http_client=client)
+        with pytest.raises(IdTokenNonceMismatchError):
+            await verifier.verify_apple(id_token=token, nonce_raw="client-sent-this")
+        with pytest.raises(IdTokenNonceMismatchError):
+            await verifier.verify_apple(id_token=token, nonce_raw=None)
 
 
 @pytest.mark.asyncio

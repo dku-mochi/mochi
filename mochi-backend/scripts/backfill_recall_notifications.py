@@ -55,9 +55,9 @@ async def _backfill(owner_id: UUID, limit: int | None, track_c_only: bool, ab_on
     cands = 0
     for i, mid in enumerate(ids, 1):
         async with sf() as s:
-            item = await GetMochiItemForOwner(
-                repository=make_mochi_item_repository(s)
-            ).execute(owner_id=owner_id, mochi_item_id=mid)
+            item = await GetMochiItemForOwner(repository=make_mochi_item_repository(s)).execute(
+                owner_id=owner_id, mochi_item_id=mid
+            )
             if item is None:
                 continue
             if not track_c_only:
@@ -71,9 +71,7 @@ async def _backfill(owner_id: UUID, limit: int | None, track_c_only: bool, ab_on
                     print(f"  [plan 실패] {mid}: {exc}")
             if not ab_only:
                 try:
-                    if await make_generate_recall_candidates(s).run(
-                        owner_id=owner_id, mochi_item_id=mid
-                    ):
+                    if await make_generate_recall_candidates(s).run(owner_id=owner_id, mochi_item_id=mid):
                         cands += 1
                 except Exception as exc:  # noqa: BLE001
                     print(f"  [candidate 실패] {mid}: {exc}")
@@ -147,9 +145,7 @@ def main() -> int:
     parser.add_argument("--dump-only", action="store_true", help="생성 없이 현재 상태만 출력")
     args = parser.parse_args()
     get_settings()
-    return asyncio.run(
-        _run(args.owner, args.limit, args.track_c_only, args.ab_only, args.dump_only)
-    )
+    return asyncio.run(_run(args.owner, args.limit, args.track_c_only, args.ab_only, args.dump_only))
 
 
 if __name__ == "__main__":

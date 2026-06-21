@@ -39,9 +39,7 @@ class SentFeedRepositoryPort(ABC):
     """이미 보낸 알림 조회. owner-scoped, 읽기 전용 단순 SELECT(이 모듈 테이블만)."""
 
     @abstractmethod
-    async def list_sent(
-        self, *, owner_id: UUID, limit: int
-    ) -> list[SentNotification]:
+    async def list_sent(self, *, owner_id: UUID, limit: int) -> list[SentNotification]:
         """owner 의 발송 완료 알림(status='sent') sent_at 내림차순(최근 순). 종류 제한 없음.
 
         빈손이면 [](정상 — 아직 받은 알림 없음).

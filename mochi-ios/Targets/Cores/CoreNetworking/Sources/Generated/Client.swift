@@ -1120,23 +1120,23 @@ public struct Client: APIProtocol {
             }
         )
     }
-    /// Generate Weekly Digest
+    /// Generate Monthly Digest
     ///
-    /// 이번주 정리 — 그 주(KST 월~일) item 의 카테고리 정규화(write) + 모찌 한마디(LLM 1회).
+    /// 이번 달 정리 — 그 달(KST 1일~말일) item 의 카테고리 정규화(write) + 모찌 한마디(LLM 1회).
     ///
     /// 같은 의미인데 항목마다 제각각 생긴 category 를 LLM 이 통합 라벨로 정규화해 ``item.category`` 를
-    /// 갱신한다(파편화 수렴). 그 주 항목이 3개 미만이면 LLM 을 돌리지 않고 정적 인사로 폴백한다
-    /// (``generated=false``). ``weekStart`` 가 어긋나도 서버가 KST 월요일 00:00 으로 재정규화한다.
+    /// 갱신한다(파편화 수렴). 그 달 항목이 3개 미만이면 LLM 을 돌리지 않고 정적 인사로 폴백한다
+    /// (``generated=false``). ``monthStart`` 가 어긋나도 서버가 KST 그 달 1일 00:00 으로 재정규화한다.
     ///
-    /// - Remark: HTTP `POST /api/v1/mochi_items/weekly_digest`.
-    /// - Remark: Generated from `#/paths//api/v1/mochi_items/weekly_digest/post(generate_weekly_digest_api_v1_mochi_items_weekly_digest_post)`.
-    public func generate_weekly_digest_api_v1_mochi_items_weekly_digest_post(_ input: Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.Input) async throws -> Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.Output {
+    /// - Remark: HTTP `POST /api/v1/mochi_items/monthly_digest`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/monthly_digest/post(generate_monthly_digest_api_v1_mochi_items_monthly_digest_post)`.
+    public func generate_monthly_digest_api_v1_mochi_items_monthly_digest_post(_ input: Operations.generate_monthly_digest_api_v1_mochi_items_monthly_digest_post.Input) async throws -> Operations.generate_monthly_digest_api_v1_mochi_items_monthly_digest_post.Output {
         try await client.send(
             input: input,
-            forOperation: Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.id,
+            forOperation: Operations.generate_monthly_digest_api_v1_mochi_items_monthly_digest_post.id,
             serializer: { input in
                 let path = try converter.renderedPath(
-                    template: "/api/v1/mochi_items/weekly_digest",
+                    template: "/api/v1/mochi_items/monthly_digest",
                     parameters: []
                 )
                 var request: HTTPTypes.HTTPRequest = .init(
@@ -1148,8 +1148,8 @@ public struct Client: APIProtocol {
                     in: &request,
                     style: .form,
                     explode: true,
-                    name: "weekStart",
-                    value: input.query.weekStart
+                    name: "monthStart",
+                    value: input.query.monthStart
                 )
                 converter.setAcceptHeader(
                     in: &request.headerFields,
@@ -1161,7 +1161,7 @@ public struct Client: APIProtocol {
                 switch response.status.code {
                 case 200:
                     let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
-                    let body: Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.Output.Ok.Body
+                    let body: Operations.generate_monthly_digest_api_v1_mochi_items_monthly_digest_post.Output.Ok.Body
                     let chosenContentType = try converter.bestContentType(
                         received: contentType,
                         options: [
@@ -1171,7 +1171,7 @@ public struct Client: APIProtocol {
                     switch chosenContentType {
                     case "application/json":
                         body = try await converter.getResponseBodyAsJSON(
-                            Components.Schemas.WeeklyDigestResponse.self,
+                            Components.Schemas.MonthlyDigestResponse.self,
                             from: responseBody,
                             transforming: { value in
                                 .json(value)

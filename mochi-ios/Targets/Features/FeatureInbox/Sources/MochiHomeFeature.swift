@@ -79,7 +79,7 @@ public struct MochiHomeFeature: Sendable {
         case quickMemoSubmitted
         case quickMemoSaved
         case imagePicked(data: Data, memo: String)
-        case weeklyDigestTapped
+        case monthlyDigestTapped
         case favoritesTapped
         case openSettingsTapped
         case replayOnboardingTapped
@@ -99,7 +99,7 @@ public struct MochiHomeFeature: Sendable {
             case recallItemOpened(itemID: UUID, hero: HeroSourceFrames)
             /// 카테고리 카드 탭 — 상위가 그 서랍을 3D 턴테이블로 push 한다.
             case categoryCarouselRequested(CategoryBucket)
-            case weeklyDigestRequested
+            case monthlyDigestRequested
             case favoritesRequested
             case onboardingRequested
         }
@@ -352,8 +352,8 @@ public struct MochiHomeFeature: Sendable {
                     }
                 }
 
-            case .weeklyDigestTapped:
-                return .send(.delegate(.weeklyDigestRequested))
+            case .monthlyDigestTapped:
+                return .send(.delegate(.monthlyDigestRequested))
 
             case .favoritesTapped:
                 return .send(.delegate(.favoritesRequested))
@@ -380,6 +380,7 @@ public struct MochiHomeFeature: Sendable {
         let (recent, needsReview, monthlyItems) = await (
             recentTask, needsReviewTask, monthlyTask
         )
+
         await send(.sectionsLoaded(
             recent: recent, needsReview: needsReview, monthlyItems: monthlyItems
         ))
@@ -424,7 +425,9 @@ public struct MochiHomeFeature: Sendable {
         return calendar.dateInterval(of: .month, for: now) ?? DateInterval(start: now, duration: 30 * 24 * 60 * 60)
     }
 
-    private static func fallbackCategory(for item: MochiItem) -> String {
+    /// category 가 비었을 때의 의도 기반 라벨(일정/할 일/학습/기록). 상세 화면
+    /// (`MonthlyDigestFeature.makeGroups`)도 같은 분류 규칙을 공유한다 — 같은 모듈 internal.
+    static func fallbackCategory(for item: MochiItem) -> String {
         if let label = item.instances.first(where: { ($0.label ?? "").isEmpty == false })?.label {
             return label
         }

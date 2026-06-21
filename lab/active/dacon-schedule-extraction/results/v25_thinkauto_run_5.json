@@ -1,0 +1,66 @@
+{
+  "latency_ms": 7184.5,
+  "usage": {
+    "thoughts_tokens": 886,
+    "candidates_tokens": 420,
+    "total_tokens": 7706
+  },
+  "finish_reason": "FinishReason.STOP",
+  "output": {
+    "category": "데이터 분석 대회",
+    "importance": 4,
+    "entities": [
+      {
+        "kind": "reference_url",
+        "value": "{\"provider\":\"dacon.io\",\"label\":\"데이콘 대회 페이지\",\"match_score\":1.0,\"url\":\"https://dacon.io/\"}"
+      }
+    ],
+    "needs_review": false,
+    "intent_instances": [
+      {
+        "payload": {
+          "deadline": "2026-07-07 10:00",
+          "title": "데이콘 대회 예선 아이디어 기획서 제출"
+        },
+        "label": "기획서 제출",
+        "intent_type": "todo",
+        "reasoning": "대회 예선 아이디어 기획서 제출 마감일입니다."
+      },
+      {
+        "payload": {
+          "title": "데이콘 대회 예선 최종 산출물 제출",
+          "deadline": "2026-07-15 10:00"
+        },
+        "reasoning": "대회 예선 최종 산출물 제출 마감일입니다.",
+        "label": "산출물 제출",
+        "intent_type": "todo"
+      },
+      {
+        "payload": {
+          "title": "데이콘 대회 본선 진출팀 발표자료 제출",
+          "deadline": "2026-07-20 10:00"
+        },
+        "label": "발표자료 제출",
+        "intent_type": "todo",
+        "reasoning": "본선 진출 시 발표자료 제출 마감일입니다."
+      },
+      {
+        "payload": {
+          "title": "데이콘 대회 예선 결과 발표 확인",
+          "time": "14:00",
+          "date": "2026-07-27"
+        },
+        "intent_type": "schedule",
+        "label": "결과 확인",
+        "reasoning": "예선 결과가 발표되는 날입니다."
+      }
+    ],
+    "summary": "데이콘 대회 참가 및 주요 일정(기획서/산출물 제출, 결과 발표)을 확인했습니다. 대회 일정에 맞춰 준비할 예정입니다."
+  },
+  "run": 5,
+  "arm": "v25_thinkauto",
+  "config": {
+    "thinking_budget": -1,
+    "max_output_tokens": 4096
+  }
+}

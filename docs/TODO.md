@@ -145,6 +145,12 @@ snippet 흐름의 `CommitBackTapCaptureIntent` 와 모달의 `BackTapModalFeatur
 `.env.example` 에 추가된 키를 실제 값으로 채워 `.env` 작성. **`.env` 는 절대 커밋 금지.**
 
 ```
+# === App ===
+# 운영/스테이징 배포는 반드시 설정. 미설정(=local)은 dev 토큰·dev sign-in·well-known dev secret 을
+# 허용하는 permissive 모드다. 부팅 가드(_verify_startup_safety): environment=local 인데 운영용
+# AUTH_ACCESS_SECRET 이 주입돼 있으면 ENVIRONMENT 누락으로 보고 부팅을 거부한다(fail-open 방지).
+ENVIRONMENT=production
+
 # === Self-issued JWT ===
 AUTH_ACCESS_SECRET=<openssl rand -base64 48>     # 32+ chars 권장
 AUTH_ACCESS_TTL_SECONDS=1800                     # 30분
@@ -192,6 +198,7 @@ VOYAGE_API_KEY=<dash.voyageai.com 또는 MongoDB Atlas 발급 키>
 - [ ] `AUTH_ACCESS_SECRET` 은 `openssl rand -base64 48` 로 생성
 - [ ] dev / staging / prod 마다 다른 값 사용
 - [ ] 운영에서는 AWS Secrets Manager / GCP Secret Manager 등으로 격상
+- [ ] 운영/스테이징은 `ENVIRONMENT=production`(또는 `staging`) 설정 — 미설정(=local)이면 부팅 가드가 운영용 secret 감지 시 부팅을 거부한다(dev auth fail-open 방지)
 
 ### 4.2 시크릿 회전 정책
 - [ ] `AUTH_ACCESS_SECRET` 교체 시 모든 사용자가 강제 재로그인됨 (refresh token 도 access 만 무효, refresh는 DB hash 매칭이라 영향 없음). 보안 사고 시 즉시 회전.

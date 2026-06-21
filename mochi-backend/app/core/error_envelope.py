@@ -64,7 +64,9 @@ def _request_id_from(request: Request) -> str:
     return getattr(request.state, "request_id", "unknown")
 
 
-def _envelope_response(*, status_code: int, code: str, message: str, request_id: str, retry_after: float | None = None) -> JSONResponse:
+def _envelope_response(
+    *, status_code: int, code: str, message: str, request_id: str, retry_after: float | None = None
+) -> JSONResponse:
     envelope = ErrorEnvelope(code=code, message=message, request_id=request_id, retry_after=retry_after)
     headers: dict[str, Any] = {"X-Mochi-Request-ID": request_id}
     if retry_after is not None:

@@ -61,7 +61,9 @@ async def _run(by: str) -> None:
         rows = (await session.execute(sql)).all()
 
     print(f"# LLM usage by {by}")
-    print(f"{'bucket':<40} {'source':<8} {'model':<24} {'calls':>6} {'tok_in':>10} {'tok_out':>10} {'avg':>8} {'cost$':>10}")
+    print(
+        f"{'bucket':<40} {'source':<8} {'model':<24} {'calls':>6} {'tok_in':>10} {'tok_out':>10} {'avg':>8} {'cost$':>10}"
+    )
     total_cost = Decimal(0)
     cost_known = True
     for r in rows:

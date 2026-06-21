@@ -19,9 +19,7 @@ class UpcomingOverrideRepositoryPort(ABC):
     """pending outbox 의 reschedule + veto(pending skip). owner-scoped, atomic."""
 
     @abstractmethod
-    async def reschedule(
-        self, *, event_id: UUID, owner_id: UUID, new_fire_at: datetime
-    ) -> int:
+    async def reschedule(self, *, event_id: UUID, owner_id: UUID, new_fire_at: datetime) -> int:
         """pending(fire_at>now) 인 owner 의 outbox 발송 시각을 new_fire_at 으로 갱신.
 
         첫 조정 때만 original_fire_at=COALESCE(original_fire_at, fire_at) 로 원안 보존.
@@ -29,9 +27,7 @@ class UpcomingOverrideRepositoryPort(ABC):
         """
 
     @abstractmethod
-    async def veto_pending(
-        self, *, event_id: UUID, owner_id: UUID
-    ) -> tuple[int, UUID | None]:
+    async def veto_pending(self, *, event_id: UUID, owner_id: UUID) -> tuple[int, UUID | None]:
         """pending(fire_at>now) 인 owner 의 outbox 1건을 skipped(user_veto) 마킹.
 
         (갱신 행수, 그 행의 plan_id) 반환. 행수 0 → 404 분기. plan_id 가 있으면 호출부가

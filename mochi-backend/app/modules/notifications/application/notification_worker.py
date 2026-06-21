@@ -14,16 +14,20 @@ occurrence-math·가드는 순수함수로 분리(DB 무관·단위테스트 가
 
 import asyncio
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import Any, cast
 from uuid import UUID, uuid4
 
-from sqlalchemy import bindparam, text
+from sqlalchemy import CursorResult, bindparam, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.core.config import Settings, get_settings
 from app.core.db import get_session_factory
 from app.core.deps import get_apns_client
 from app.core.logging import get_logger
+from app.modules.intents.domain.lifecycle_policy import (
+    KNOWLEDGE_ACTIVE_DAYS,
+    KNOWLEDGE_DECAY_DAYS,
+)
 from app.modules.mochi_items.application.queries import (
     GetMochiItemForOwner,
     make_mochi_item_repository,
@@ -38,9 +42,7 @@ from app.modules.notifications.application.recall_guards import (
     GUARD_DEFER,
     GUARD_SKIP,
     GuardDecision,
-    check_daily_cap,
     check_dismiss_cooldown,
-    check_quiet_hours,
     check_track_b_yield,
 )
 from app.modules.notifications.application.recall_occurrence import (
@@ -68,6 +70,7 @@ from app.modules.notifications.domain.recall_plan import (
     TriggerType,
     outbox_kind_for,
 )
+from app.shared.intent import Intent
 
 log = get_logger("notifications.recall_worker")
 
@@ -85,11 +88,14 @@ _RECURRING_LOOKAHEAD = timedelta(minutes=15)
 # 발송 transient 실패 backoff.
 _SEND_BASE_BACKOFF = timedelta(minutes=5)
 _SEND_MAX_ATTEMPTS = 5
+# knowledge 의미 lifecycle 시간 전이 주기 — 전체 스캔이라 매 poll 이 아니라 하루 1회.
+_DECAY_INTERVAL = timedelta(days=1)
 
 
 class NotificationWorker:
     def __init__(self) -> None:
         self._stop = asyncio.Event()
+        self._last_decay_at: datetime | None = None
 
     async def run_forever(self) -> None:
         settings = get_settings()
@@ -101,6 +107,7 @@ class NotificationWorker:
                 await asyncio.sleep(poll)
                 continue
             try:
+                await self._maybe_decay_knowledge(session_factory)
                 await self._materialize_pass(session_factory, settings)
                 await self._send_pass(session_factory, settings)
             except Exception as exc:  # noqa: BLE001 - 한 tick 실패가 루프를 죽이지 않게.
@@ -109,6 +116,73 @@ class NotificationWorker:
 
     async def stop(self) -> None:
         self._stop.set()
+
+    # ---------- (0) Knowledge decay pass ----------
+
+    async def _maybe_decay_knowledge(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
+        """knowledge instance 의 시간 기반 의미 lifecycle 전이 — 하루 1회(전체 스캔).
+
+        ``active → decaying → reviewRequested``. **시계 = ``updated_at``**(= 마지막 상태변경 시각). spaced
+        회수 트랙(트랙A)은 decaying/reviewRequested knowledge 만 피드에 노출하므로(``get_recall_feed``),
+        이 전이가 없으면 instance 가 영원히 active 라 spaced 알림을 열어도 항상 빈 피드였다(트랙A 무력, HIGH-2).
+
+        ``updated_at`` 을 시계로 쓰는 이유: 회수 소생(opened+spaced → decaying/reviewRequested→active,
+        `record_recall_reaction`)이 ``update_instance_lifecycle`` 로 updated_at 을 now 로 리셋하므로,
+        소생된 knowledge 는 다시 30일 active 를 보장받는다(created_at 시계면 소생 직후 즉시 재decay). §5.4
+        의미("마지막 회수 후 30일 → decaying", "decaying 진입 후 180일 → reviewRequested")와 정합 —
+        active→decaying 이 updated_at 을 now 로 갱신해 "decaying 진입 시각" 도 같은 컬럼이 된다.
+
+        두 UPDATE 는 같은 트랜잭션 — 오래 방치된 active 는 먼저 decaying(updated_at=now) 으로만 가고,
+        이번에 막 decaying 된 행은 review_cutoff(now-180) 밖이라 같은 패스에서 review 로 안 넘어간다(정상).
+        전이 합법성은 ``lifecycle_policy`` 가 정본(test_lifecycle_policy 가 불변식 고정).
+        정본: DOMAIN_DESIGN §5.4 / `intents.domain.lifecycle_policy`.
+        """
+        now = datetime.now(UTC)
+        if self._last_decay_at is not None and now - self._last_decay_at < _DECAY_INTERVAL:
+            return
+        self._last_decay_at = now
+        active_cutoff = now - timedelta(days=KNOWLEDGE_ACTIVE_DAYS)
+        review_cutoff = now - timedelta(days=KNOWLEDGE_DECAY_DAYS)
+        async with session_factory() as session:
+            to_decaying = cast(
+                CursorResult[Any],
+                await session.execute(
+                    text(
+                        """
+                        UPDATE intent_instances
+                        SET lifecycle_kind=:decaying, updated_at=now()
+                        WHERE intent_type=:knowledge AND lifecycle_kind=:active AND updated_at < :cutoff
+                        """
+                    ).bindparams(
+                        bindparam("decaying", InstanceLifecycleKind.DECAYING.value),
+                        bindparam("knowledge", Intent.KNOWLEDGE.value),
+                        bindparam("active", InstanceLifecycleKind.ACTIVE.value),
+                        bindparam("cutoff", active_cutoff),
+                    )
+                ),
+            )
+            to_review = cast(
+                CursorResult[Any],
+                await session.execute(
+                    text(
+                        """
+                        UPDATE intent_instances
+                        SET lifecycle_kind=:review, updated_at=now()
+                        WHERE intent_type=:knowledge AND lifecycle_kind=:decaying AND updated_at < :cutoff
+                        """
+                    ).bindparams(
+                        bindparam("review", InstanceLifecycleKind.REVIEW_REQUESTED.value),
+                        bindparam("knowledge", Intent.KNOWLEDGE.value),
+                        bindparam("decaying", InstanceLifecycleKind.DECAYING.value),
+                        bindparam("cutoff", review_cutoff),
+                    )
+                ),
+            )
+            await session.commit()
+        decayed = to_decaying.rowcount or 0
+        reviewed = to_review.rowcount or 0
+        if decayed or reviewed:
+            log.info("recall_worker.knowledge_decayed", to_decaying=decayed, to_review_requested=reviewed)
 
     # ---------- (1) Materialize pass ----------
 
@@ -171,9 +245,13 @@ class NotificationWorker:
         )
 
         # source intent fresh 로드 + 종료연동(HIGH-2).
-        item = await GetMochiItemForOwner(
-            repository=make_mochi_item_repository(session)
-        ).execute(owner_id=owner_id, mochi_item_id=plan_row.source_item_id) if plan_row.source_item_id else None
+        item = (
+            await GetMochiItemForOwner(repository=make_mochi_item_repository(session)).execute(
+                owner_id=owner_id, mochi_item_id=plan_row.source_item_id
+            )
+            if plan_row.source_item_id
+            else None
+        )
         instance = self._find_instance(item, source_intent_id)
         if instance is None or instance.lifecycle.kind is InstanceLifecycleKind.ARCHIVED:
             await self._cancel_plan_intent_archived(session, plan_id=plan_id, owner_id=owner_id, now=now)
@@ -191,10 +269,14 @@ class NotificationWorker:
         await self._reactivate_deferred(session, settings, plan_row=plan_row, now=now)
 
         # 다음 occurrence 계산(stage 별). 첫 materialize 가능한 1건만 처리(가드/INSERT).
-        occ, stage = await self._compute_next(session, plan_id, plan_kind, stages_model.stages, item, instance, now)
+        occ, stage = await self._compute_next(
+            session, plan_id, plan_kind, stages_model.stages, item, instance, now
+        )
         if occ is None or stage is None:
             # 모든 stage 소진/대기/종료. spaced wait/done 은 _compute_next 가 plan 상태를 갱신했다.
-            await self._reschedule_or_finish(session, plan_id, plan_kind, stages_model.stages, item, instance, now)
+            await self._reschedule_or_finish(
+                session, plan_id, plan_kind, stages_model.stages, item, instance, now
+            )
             return
 
         kind = outbox_kind_for(plan_kind).value
@@ -203,8 +285,15 @@ class NotificationWorker:
         # 가 영원히 claim 못 해 plan 이 영구 재폴된다. 가드 실행 전에 terminal skip(stale)+즉시 재평가.
         if occ.expires_at is not None and occ.expires_at <= now:
             await self._insert_outbox(
-                session, plan_row=plan_row, occ=occ, kind=kind, fire_at=occ.fire_at,
-                status="skipped", skip_reason="stale", instance=instance, stage=stage,
+                session,
+                plan_row=plan_row,
+                occ=occ,
+                kind=kind,
+                fire_at=occ.fire_at,
+                status="skipped",
+                skip_reason="stale",
+                instance=instance,
+                stage=stage,
             )
             await self._set_next_eligible(session, plan_id, now + timedelta(seconds=1))
             return
@@ -217,31 +306,59 @@ class NotificationWorker:
 
         # 하드 가드 — materialize 직전.
         decision = await self._run_guards(
-            session, settings, owner_id=owner_id, source_intent_id=source_intent_id,
-            kind=kind, fire_at=occ.fire_at, now=now,
+            session,
+            settings,
+            owner_id=owner_id,
+            source_intent_id=source_intent_id,
+            kind=kind,
+            fire_at=occ.fire_at,
+            now=now,
         )
         fire_at = decision.fire_at or occ.fire_at
 
         if decision.action == GUARD_SKIP:
             await self._insert_outbox(
-                session, plan_row=plan_row, occ=occ, kind=kind, fire_at=fire_at,
-                status="skipped", skip_reason=decision.skip_reason, instance=instance, stage=stage,
+                session,
+                plan_row=plan_row,
+                occ=occ,
+                kind=kind,
+                fire_at=fire_at,
+                status="skipped",
+                skip_reason=decision.skip_reason,
+                instance=instance,
+                stage=stage,
             )
             await self._set_next_eligible(session, plan_id, now + timedelta(seconds=1))
             return
         if decision.action == GUARD_DEFER:
             await self._insert_outbox(
-                session, plan_row=plan_row, occ=occ, kind=kind, fire_at=fire_at,
-                status="deferred", skip_reason=decision.skip_reason, instance=instance, stage=stage,
+                session,
+                plan_row=plan_row,
+                occ=occ,
+                kind=kind,
+                fire_at=fire_at,
+                status="deferred",
+                skip_reason=decision.skip_reason,
+                instance=instance,
+                stage=stage,
                 next_retry_at=decision.next_retry_at,
             )
-            await self._set_next_eligible(session, plan_id, decision.next_retry_at or now + timedelta(minutes=30))
+            await self._set_next_eligible(
+                session, plan_id, decision.next_retry_at or now + timedelta(minutes=30)
+            )
             return
 
         # allow — pending materialize.
         await self._insert_outbox(
-            session, plan_row=plan_row, occ=occ, kind=kind, fire_at=fire_at,
-            status="pending", skip_reason=None, instance=instance, stage=stage,
+            session,
+            plan_row=plan_row,
+            occ=occ,
+            kind=kind,
+            fire_at=fire_at,
+            status="pending",
+            skip_reason=None,
+            instance=instance,
+            stage=stage,
         )
         # 다음 평가는 이 occurrence 발송 후 — 곧바로 재평가(다음 stage·occurrence).
         await self._set_next_eligible(session, plan_id, now + timedelta(seconds=1))
@@ -301,7 +418,10 @@ class NotificationWorker:
                     continue
                 already = await self._occurrence_exists(session, plan_id, stage.seq, 1)
                 occ = next_relative_occurrence(
-                    stage=stage, anchor_time=anchor_time, now=now, grace=_STALE_GRACE,
+                    stage=stage,
+                    anchor_time=anchor_time,
+                    now=now,
+                    grace=_STALE_GRACE,
                     already_materialized=already,
                 )
                 if occ is not None:
@@ -312,7 +432,9 @@ class NotificationWorker:
                 occ = next_recurring_occurrence(
                     stage=stage, base=saved_at, last_occurrence_seq=last_seq, until_time=until_time
                 )
-                if occ is not None and not await self._occurrence_exists(session, plan_id, stage.seq, occ.occurrence_seq):
+                if occ is not None and not await self._occurrence_exists(
+                    session, plan_id, stage.seq, occ.occurrence_seq
+                ):
                     return occ, stage
             elif ttype is TriggerType.SPACED:
                 last = await self._last_spaced_state(session, plan_id, stage.seq)
@@ -345,7 +467,9 @@ class NotificationWorker:
         # event_date until 도 relative anchor 처럼 date+time 결합(P2#2) — time 을 버리면 마감 당일 일찍 끊긴다.
         event_value = f"{p.date}T{p.time}" if (p.date and p.time) else p.date
         return resolve_anchor_time(
-            anchor=stage.trigger.until_anchor, deadline_value=p.deadline, event_date_value=event_value,
+            anchor=stage.trigger.until_anchor,
+            deadline_value=p.deadline,
+            event_date_value=event_value,
             saved_at=datetime.now(UTC),
         )
 
@@ -397,33 +521,7 @@ class NotificationWorker:
         if track_b is not None:
             return track_b
 
-        # 3) 야간 무음 — quiet 윈도우 안이면 종료시각으로 shift(defer).
-        quiet = check_quiet_hours(
-            fire_at=fire_at,
-            quiet_start_hour=settings.recall_quiet_start_hour_kst,
-            quiet_end_hour=settings.recall_quiet_end_hour_kst,
-        )
-        if quiet.action == GUARD_DEFER:
-            return quiet
-        guarded_fire = quiet.fire_at or fire_at
-
-        # 4) 하루 cap — owner 의 같은 KST day pending/sent 카운트.
-        same_day = (
-            await session.execute(
-                text(
-                    """
-                    SELECT COUNT(*) FROM notification_outbox
-                    WHERE owner_id=:owner AND status IN ('pending','sent')
-                      AND (fire_at AT TIME ZONE 'Asia/Seoul')::date = :d
-                    """
-                ).bindparams(owner=owner_id, d=guarded_fire.astimezone(KST).date())
-            )
-        ).scalar() or 0
-        cap = check_daily_cap(fire_at=guarded_fire, same_day_count=int(same_day), daily_cap=settings.recall_daily_cap)
-        if cap is not None:
-            return cap
-
-        return GuardDecision(action=GUARD_ALLOW, fire_at=guarded_fire)
+        return GuardDecision(action=GUARD_ALLOW, fire_at=fire_at)
 
     async def _reactivate_deferred(
         self, session: AsyncSession, settings: Settings, *, plan_row: Any, now: datetime
@@ -453,8 +551,13 @@ class NotificationWorker:
                 continue
             candidate_fire = r.next_retry_at if r.next_retry_at > now else now
             decision = await self._run_guards(
-                session, settings, owner_id=plan_row.owner_id,
-                source_intent_id=plan_row.source_intent_id, kind=r.kind, fire_at=candidate_fire, now=now,
+                session,
+                settings,
+                owner_id=plan_row.owner_id,
+                source_intent_id=plan_row.source_intent_id,
+                kind=r.kind,
+                fire_at=candidate_fire,
+                now=now,
             )
             if decision.action == GUARD_ALLOW:
                 await session.execute(
@@ -469,12 +572,15 @@ class NotificationWorker:
                         "UPDATE notification_outbox SET next_retry_at=:r, skip_reason=:sr, updated_at=now() "
                         "WHERE id=:id AND status='deferred'"
                     ).bindparams(
-                        bindparam("r", decision.next_retry_at), bindparam("sr", decision.skip_reason),
+                        bindparam("r", decision.next_retry_at),
+                        bindparam("sr", decision.skip_reason),
                         bindparam("id", r.id),
                     )
                 )
             else:  # GUARD_SKIP
-                await self._update_outbox_status(session, r.id, status="skipped", skip_reason=decision.skip_reason)
+                await self._update_outbox_status(
+                    session, r.id, status="skipped", skip_reason=decision.skip_reason
+                )
 
     async def _update_outbox_status(
         self, session: AsyncSession, outbox_id: int, *, status: str, skip_reason: str | None
@@ -501,7 +607,9 @@ class NotificationWorker:
         next_retry_at: datetime | None = None,
     ) -> None:
         title, body = _render_content(stage, instance)
-        collapse = (str(plan_row.source_intent_id) if plan_row.source_intent_id else f"{plan_row.id}:{occ.stage_seq}")[:64]
+        collapse = (
+            str(plan_row.source_intent_id) if plan_row.source_intent_id else f"{plan_row.id}:{occ.stage_seq}"
+        )[:64]
         # owner_id 복사(§4 #3). UNIQUE(plan_id,stage_seq,occurrence_seq) 가 중복 차단(IntegrityError 시 plan 단위 격리).
         # event_id 명시 생성 — raw text() INSERT 는 ORM 의 insert_default=uuid4(orm.py) 를 우회하고
         # event_id 는 NOT NULL·DB default 없음(migration 0023)이라 여기서 채워야 NotNullViolation 안 난다.
@@ -537,8 +645,13 @@ class NotificationWorker:
         )
         log.info(
             "recall_worker.materialized",
-            plan_id=str(plan_row.id), stage_seq=occ.stage_seq, occurrence_seq=occ.occurrence_seq,
-            kind=kind, status=status, skip_reason=skip_reason, fire_at=fire_at.isoformat(),
+            plan_id=str(plan_row.id),
+            stage_seq=occ.stage_seq,
+            occurrence_seq=occ.occurrence_seq,
+            kind=kind,
+            status=status,
+            skip_reason=skip_reason,
+            fire_at=fire_at.isoformat(),
         )
 
     async def _reschedule_or_finish(
@@ -567,9 +680,12 @@ class NotificationWorker:
             elif stage.trigger.type is TriggerType.RECURRING:
                 last_seq = await self._max_occurrence_seq(session, plan_id, stage.seq)
                 until_time = self._resolve_until(stage, instance)
-                if next_recurring_occurrence(
-                    stage=stage, base=saved_at, last_occurrence_seq=last_seq, until_time=until_time
-                ) is not None:
+                if (
+                    next_recurring_occurrence(
+                        stage=stage, base=saved_at, last_occurrence_seq=last_seq, until_time=until_time
+                    )
+                    is not None
+                ):
                     any_active = True
             elif stage.trigger.type is TriggerType.RELATIVE:
                 if not await self._occurrence_exists(session, plan_id, stage.seq, 1):
@@ -597,9 +713,9 @@ class NotificationWorker:
 
     async def _set_next_eligible(self, session: AsyncSession, plan_id: UUID, when: datetime) -> None:
         await session.execute(
-            text("UPDATE notification_plan SET next_eligible_at=:w, updated_at=now() WHERE id=:id").bindparams(
-                bindparam("w", when), bindparam("id", plan_id)
-            )
+            text(
+                "UPDATE notification_plan SET next_eligible_at=:w, updated_at=now() WHERE id=:id"
+            ).bindparams(bindparam("w", when), bindparam("id", plan_id))
         )
 
     async def _has_unsent_outbox(self, session: AsyncSession, plan_id: UUID) -> bool:
@@ -655,17 +771,14 @@ class NotificationWorker:
             ).first()
         )
 
-    async def _max_occurrence_seq(
-        self, session: AsyncSession, plan_id: UUID, stage_seq: int
-    ) -> int | None:
+    async def _max_occurrence_seq(self, session: AsyncSession, plan_id: UUID, stage_seq: int) -> int | None:
         # skipped 포함 전체 MAX(P1#3): skipped 를 빼면 recurring occ N 이 SKIP terminal(dismiss_cooldown
         # 등) 됐을 때 같은 N 을 재계산 → _occurrence_exists True → occ N+1 로 못 넘어가 영구 정지.
         # 중복 차단은 _occurrence_exists + UNIQUE(plan_id,stage_seq,occurrence_seq) 가 이미 담당.
         value = (
             await session.execute(
                 text(
-                    "SELECT MAX(occurrence_seq) FROM notification_outbox "
-                    "WHERE plan_id=:p AND stage_seq=:s"
+                    "SELECT MAX(occurrence_seq) FROM notification_outbox WHERE plan_id=:p AND stage_seq=:s"
                 ).bindparams(p=plan_id, s=stage_seq)
             )
         ).scalar()
@@ -689,15 +802,15 @@ class NotificationWorker:
         if row is None:
             return None
         return SpacedState(
-            occurrence_seq=row.occurrence_seq, sent_at=row.sent_at,
-            opened_at=row.opened_at, dismissed_at=row.dismissed_at,
+            occurrence_seq=row.occurrence_seq,
+            sent_at=row.sent_at,
+            opened_at=row.opened_at,
+            dismissed_at=row.dismissed_at,
         )
 
     # ---------- (2) Send pass ----------
 
-    async def _send_pass(
-        self, session_factory: async_sessionmaker[AsyncSession], settings: Settings
-    ) -> None:
+    async def _send_pass(self, session_factory: async_sessionmaker[AsyncSession], settings: Settings) -> None:
         apns = get_apns_client()
         for _ in range(_MATERIALIZE_BATCH):
             async with session_factory() as session:
@@ -706,9 +819,7 @@ class NotificationWorker:
                 return
             await self._send_one(session_factory, settings, apns, claimed)
 
-    async def _claim_next(
-        self, session: AsyncSession, settings: Settings
-    ) -> "ClaimedNotification | None":
+    async def _claim_next(self, session: AsyncSession, settings: Settings) -> "ClaimedNotification | None":
         now = datetime.now(UTC)
         lock_until = now + timedelta(seconds=settings.recall_worker_lock_seconds)
         sql = text(
@@ -737,9 +848,16 @@ class NotificationWorker:
         if row is None:
             return None
         return ClaimedNotification(
-            id=row.id, event_id=row.event_id, owner_id=row.owner_id, kind=row.kind,
-            title=row.title, body=row.body, source_item_id=row.source_item_id,
-            source_intent_id=row.source_intent_id, collapse_id=row.collapse_id, attempts=row.attempts,
+            id=row.id,
+            event_id=row.event_id,
+            owner_id=row.owner_id,
+            kind=row.kind,
+            title=row.title,
+            body=row.body,
+            source_item_id=row.source_item_id,
+            source_intent_id=row.source_intent_id,
+            collapse_id=row.collapse_id,
+            attempts=row.attempts,
         )
 
     async def _send_one(
@@ -753,8 +871,11 @@ class NotificationWorker:
         if settings.recall_notifications_dry_run:
             log.info(
                 "recall_worker.dry_run",
-                event_id=str(claimed.event_id), owner_id=str(claimed.owner_id), kind=claimed.kind,
-                title=claimed.title, body=claimed.body,
+                event_id=str(claimed.event_id),
+                owner_id=str(claimed.owner_id),
+                kind=claimed.kind,
+                title=claimed.title,
+                body=claimed.body,
                 source_item_id=str(claimed.source_item_id) if claimed.source_item_id else None,
                 source_intent_id=str(claimed.source_intent_id) if claimed.source_intent_id else None,
                 route_type="detail",
@@ -767,8 +888,12 @@ class NotificationWorker:
             result = await sender.run(
                 owner_id=claimed.owner_id,
                 notification=RecallNotification(
-                    event_id=claimed.event_id, title=claimed.title, body=claimed.body, kind=claimed.kind,
-                    source_item_id=claimed.source_item_id, source_intent_id=claimed.source_intent_id,
+                    event_id=claimed.event_id,
+                    title=claimed.title,
+                    body=claimed.body,
+                    kind=claimed.kind,
+                    source_item_id=claimed.source_item_id,
+                    source_intent_id=claimed.source_intent_id,
                     collapse_id=claimed.collapse_id,
                 ),
             )
@@ -782,13 +907,13 @@ class NotificationWorker:
             return
         if not result.had_tokens or (result.invalid_tokens and result.transient_error is None):
             # 유효 토큰 0(처음부터 없음 또는 전부 무효) → dead_letter(재시도 안 함).
-            await self._close(
-                session_factory, claimed.id, status="dead_letter", skip_reason="no_valid_token"
-            )
+            await self._close(session_factory, claimed.id, status="dead_letter", skip_reason="no_valid_token")
             return
         # transient(5xx/timeout) → pending 유지 + backoff. attempts>=MAX → dead_letter.
         if claimed.attempts >= _SEND_MAX_ATTEMPTS:
-            await self._close(session_factory, claimed.id, status="dead_letter", last_error=result.transient_error)
+            await self._close(
+                session_factory, claimed.id, status="dead_letter", last_error=result.transient_error
+            )
             return
         backoff = _SEND_BASE_BACKOFF * (2 ** (claimed.attempts - 1))
         retry_at = datetime.now(UTC) + backoff
@@ -811,8 +936,10 @@ class NotificationWorker:
                     f"UPDATE notification_outbox SET status=:s, skip_reason=:r, last_error=:e, "
                     f"locked_until=NULL{sent_clause}, updated_at=now() WHERE id=:id"
                 ).bindparams(
-                    bindparam("s", status), bindparam("r", skip_reason),
-                    bindparam("e", last_error[:1024] if last_error else None), bindparam("id", outbox_id),
+                    bindparam("s", status),
+                    bindparam("r", skip_reason),
+                    bindparam("e", last_error[:1024] if last_error else None),
+                    bindparam("id", outbox_id),
                 )
             )
             await session.commit()
@@ -831,8 +958,10 @@ class NotificationWorker:
                     "UPDATE notification_outbox SET locked_until=:lu, next_retry_at=:r, last_error=:e, "
                     "updated_at=now() WHERE id=:id"
                 ).bindparams(
-                    bindparam("lu", retry_at), bindparam("r", retry_at),
-                    bindparam("e", (error or "")[:1024]), bindparam("id", outbox_id),
+                    bindparam("lu", retry_at),
+                    bindparam("r", retry_at),
+                    bindparam("e", (error or "")[:1024]),
+                    bindparam("id", outbox_id),
                 )
             )
             await session.commit()
@@ -840,13 +969,31 @@ class NotificationWorker:
 
 class ClaimedNotification:
     __slots__ = (
-        "id", "event_id", "owner_id", "kind", "title", "body",
-        "source_item_id", "source_intent_id", "collapse_id", "attempts",
+        "id",
+        "event_id",
+        "owner_id",
+        "kind",
+        "title",
+        "body",
+        "source_item_id",
+        "source_intent_id",
+        "collapse_id",
+        "attempts",
     )
 
     def __init__(
-        self, *, id: int, event_id: UUID, owner_id: UUID, kind: str, title: str, body: str,
-        source_item_id: UUID | None, source_intent_id: UUID | None, collapse_id: str | None, attempts: int,
+        self,
+        *,
+        id: int,
+        event_id: UUID,
+        owner_id: UUID,
+        kind: str,
+        title: str,
+        body: str,
+        source_item_id: UUID | None,
+        source_intent_id: UUID | None,
+        collapse_id: str | None,
+        attempts: int,
     ) -> None:
         self.id = id
         self.event_id = event_id

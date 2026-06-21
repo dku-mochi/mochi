@@ -70,14 +70,10 @@ _PLAN_TO_TRIGGER_TYPE: dict[PlanKind, TriggerType] = {
 }
 
 # deadline_backoff(relative) 에서 허용되는 anchor. saved_at 은 마감 역산 의미가 없어 제외.
-_DEADLINE_BACKOFF_ANCHORS: frozenset[AnchorKind] = frozenset(
-    {AnchorKind.DEADLINE, AnchorKind.EVENT_DATE}
-)
+_DEADLINE_BACKOFF_ANCHORS: frozenset[AnchorKind] = frozenset({AnchorKind.DEADLINE, AnchorKind.EVENT_DATE})
 
 # ISO-8601 duration 부호부 — `-P7D`, `-PT2H`, `+P3D`. 주(W)는 다른 요소와 못 섞이는 ISO 규칙 반영.
-_DURATION_RE = re.compile(
-    r"^[+-]P(?:\d+W|(?:\d+Y)?(?:\d+M)?(?:\d+D)?(?:T(?:\d+H)?(?:\d+M)?(?:\d+S)?)?)$"
-)
+_DURATION_RE = re.compile(r"^[+-]P(?:\d+W|(?:\d+Y)?(?:\d+M)?(?:\d+D)?(?:T(?:\d+H)?(?:\d+M)?(?:\d+S)?)?)$")
 # 모든 숫자 component 를 뽑아 0-only 인지 판정(`+P0D`, `-PT0S` 등 무의미 duration 거부).
 _DURATION_NUMS_RE = re.compile(r"\d+")
 
@@ -136,9 +132,7 @@ class Trigger(BaseModel):
             if self.max_occurrences is not None and self.max_occurrences <= 0:
                 raise ValueError("max_occurrences must be positive")
             if self.anchor is not None or self.offset is not None or self.schedule_days is not None:
-                raise ValueError(
-                    "recurring trigger allows only interval_days, max_occurrences, until_anchor"
-                )
+                raise ValueError("recurring trigger allows only interval_days, max_occurrences, until_anchor")
         elif self.type is TriggerType.SPACED:
             if not self.schedule_days:
                 raise ValueError("spaced trigger requires non-empty schedule_days")

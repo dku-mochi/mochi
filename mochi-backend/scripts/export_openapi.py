@@ -30,14 +30,8 @@ def _downgrade_nullable_to_30(node: Any) -> Any:
     if isinstance(node, dict):
         any_of = node.get("anyOf")
         if isinstance(any_of, list):
-            non_null = [
-                s for s in any_of if not (isinstance(s, dict) and s.get("type") == "null")
-            ]
-            if (
-                len(non_null) != len(any_of)
-                and len(non_null) == 1
-                and isinstance(non_null[0], dict)
-            ):
+            non_null = [s for s in any_of if not (isinstance(s, dict) and s.get("type") == "null")]
+            if len(non_null) != len(any_of) and len(non_null) == 1 and isinstance(non_null[0], dict):
                 merged = {k: v for k, v in node.items() if k != "anyOf"}
                 merged.update(non_null[0])
                 merged["nullable"] = True

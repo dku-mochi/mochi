@@ -89,10 +89,7 @@ def _entry_to_response(entry: RecallFeedEntryDTO) -> RecallFeedEntry:
         source=entry.source,
         saved_at=entry.saved_at,
         gist=entry.gist,
-        related=[
-            RelatedItem(item_id=r.item_id, title=r.title, oneline=r.oneline)
-            for r in entry.related
-        ],
+        related=[RelatedItem(item_id=r.item_id, title=r.title, oneline=r.oneline) for r in entry.related],
         related_count=entry.related_count,
         recall_event_id=entry.recall_event_id,
     )
@@ -190,9 +187,7 @@ async def get_upcoming_notifications(
     """
     use_case = GetUpcomingNotifications(feed=PostgresUpcomingFeedRepository(db))
     items = await use_case.execute(owner_id=user, limit=max(1, min(limit, 50)))
-    return UpcomingNotificationsResponse(
-        entries=[_upcoming_to_response(n) for n in items]
-    )
+    return UpcomingNotificationsResponse(entries=[_upcoming_to_response(n) for n in items])
 
 
 @router.post("/upcoming/{event_id}/reschedule", status_code=status.HTTP_204_NO_CONTENT)
@@ -207,13 +202,9 @@ async def reschedule_upcoming_notification(
     pending(fire_at>now) 인 행만 갱신 + 첫 1회 원안 보존. 행이 없으면 404(남의 event·이미 발송).
     과거 시각이면 422(`recall_upcoming.past_fire_at`).
     """
-    use_case = RescheduleUpcomingNotification(
-        override=PostgresUpcomingOverrideRepository(db)
-    )
+    use_case = RescheduleUpcomingNotification(override=PostgresUpcomingOverrideRepository(db))
     await use_case.execute(
-        RescheduleUpcomingCommand(
-            owner_id=user, event_id=event_id, new_fire_at=payload.fire_at
-        )
+        RescheduleUpcomingCommand(owner_id=user, event_id=event_id, new_fire_at=payload.fire_at)
     )
     await db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
@@ -264,6 +255,4 @@ async def get_sent_notifications(
     """
     use_case = GetSentNotifications(feed=PostgresSentFeedRepository(db))
     items = await use_case.execute(owner_id=user, limit=max(1, min(limit, 50)))
-    return SentNotificationsResponse(
-        entries=[_sent_to_response(n) for n in items]
-    )
+    return SentNotificationsResponse(entries=[_sent_to_response(n) for n in items])

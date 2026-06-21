@@ -1,0 +1,17 @@
+{
+  "latency_ms": 10552.9,
+  "usage": {
+    "thoughts_tokens": 953,
+    "candidates_tokens": null,
+    "total_tokens": 7166
+  },
+  "finish_reason": "FinishReason.MAX_TOKENS",
+  "error": "no finalizeAnalysis call",
+  "raw_text": null,
+  "run": 2,
+  "arm": "v24b_think",
+  "config": {
+    "thinking_budget": -1,
+    "max_output_tokens": 1024
+  }
+}

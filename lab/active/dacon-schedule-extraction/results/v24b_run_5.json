@@ -1,0 +1,55 @@
+{
+  "latency_ms": 7807.6,
+  "usage": {
+    "thoughts_tokens": 1545,
+    "candidates_tokens": 339,
+    "total_tokens": 8097
+  },
+  "finish_reason": "FinishReason.STOP",
+  "output": {
+    "needs_review": true,
+    "importance": 4,
+    "review_options": [
+      {
+        "label": "예선 아이디어 기획서 제출",
+        "reasoning": "대회 일정상 중요한 제출 마감 기한임.",
+        "intent_type": "todo"
+      },
+      {
+        "intent_type": "todo",
+        "reasoning": "대회 일정상 중요한 제출 마감 기한임.",
+        "label": "예선 최종 산출물 제출"
+      },
+      {
+        "reasoning": "대회 일정상 중요한 제출 마감 기한임.",
+        "label": "본선 진출팀 발표자료 제출",
+        "intent_type": "todo"
+      }
+    ],
+    "category": "대회 일정",
+    "intent_instances": [
+      {
+        "payload": {
+          "title": "데이콘 대회 일정",
+          "note": "대회 참여를 위한 주요 일정과 마감 기한을 확인하고 관리하기 위해 저장함."
+        },
+        "intent_type": "memo",
+        "reasoning": "대회 참여를 위한 주요 일정과 마감 기한을 확인하고 관리하기 위해 저장함. 사용자의 실제 참여 여부가 명확하지 않아 우선 메모로 저장하고, 주요 마감 기한을 할 일로 제안함.",
+        "label": "대회 일정 확인"
+      }
+    ],
+    "entities": [
+      {
+        "value": "{\"provider\":\"dacon\",\"label\":\"데이콘 대회 일정\",\"match_score\":0.9}",
+        "kind": "reference_url"
+      }
+    ],
+    "summary": "데이콘(dacon.io) 대회의 상세 일정표입니다. 대회 참여를 위해 주요 제출 마감 기한을 확인하고 관리하고자 저장했습니다."
+  },
+  "run": 5,
+  "arm": "v24b",
+  "config": {
+    "thinking_budget": -1,
+    "max_output_tokens": 4096
+  }
+}

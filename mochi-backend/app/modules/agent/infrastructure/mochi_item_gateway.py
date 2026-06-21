@@ -23,9 +23,7 @@ class MochiItemGatewayAdapter(MochiItemGateway):
     def __init__(self, session: AsyncSession):
         self._repo = make_mochi_item_repository(session)
 
-    async def load_source(
-        self, *, owner_id: UUID, mochi_item_id: UUID
-    ) -> AnalysisInput | None:
+    async def load_source(self, *, owner_id: UUID, mochi_item_id: UUID) -> AnalysisInput | None:
         item = await GetMochiItemForOwner(repository=self._repo).execute(
             owner_id=owner_id, mochi_item_id=mochi_item_id
         )
@@ -46,9 +44,7 @@ class MochiItemGatewayAdapter(MochiItemGateway):
             images=images,
         )
 
-    async def apply_analysis(
-        self, *, owner_id: UUID, mochi_item_id: UUID, result: AnalysisResult
-    ) -> None:
+    async def apply_analysis(self, *, owner_id: UUID, mochi_item_id: UUID, result: AnalysisResult) -> None:
         await self._repo.apply_analysis(
             owner_id=owner_id,
             mochi_item_id=mochi_item_id,
@@ -79,16 +75,18 @@ class MochiItemGatewayAdapter(MochiItemGateway):
             model_version=model_version,
         )
 
-    async def list_recent_window(
-        self, *, owner_id: UUID, limit: int
-    ) -> list[ProfileWindowItem]:
+    async def list_recent_window(self, *, owner_id: UUID, limit: int) -> list[ProfileWindowItem]:
         items = await self._repo.list_recent(owner_id=owner_id, limit=max(limit, 80))
         cutoff = datetime.now(UTC) - timedelta(days=30)
         recent = [
             item
             for item in items
             if (
-                (item.source.captured_at if item.source.captured_at.tzinfo else item.source.captured_at.replace(tzinfo=UTC))
+                (
+                    item.source.captured_at
+                    if item.source.captured_at.tzinfo
+                    else item.source.captured_at.replace(tzinfo=UTC)
+                )
                 >= cutoff
             )
         ][:limit]

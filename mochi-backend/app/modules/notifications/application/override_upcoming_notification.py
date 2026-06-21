@@ -47,9 +47,7 @@ class RescheduleUpcomingNotification:
             new_fire_at=command.new_fire_at,
         )
         if updated == 0:
-            raise NotFoundError(
-                "Upcoming notification not found", code="recall_upcoming.not_found"
-            )
+            raise NotFoundError("Upcoming notification not found", code="recall_upcoming.not_found")
 
 
 @dataclass(slots=True)
@@ -74,8 +72,6 @@ class VetoUpcomingNotification:
             event_id=command.event_id, owner_id=command.owner_id
         )
         if updated == 0:
-            raise NotFoundError(
-                "Upcoming notification not found", code="recall_upcoming.not_found"
-            )
+            raise NotFoundError("Upcoming notification not found", code="recall_upcoming.not_found")
         if plan_id is not None:
             await self.reactions.cancel_plan(plan_id=plan_id, owner_id=command.owner_id)

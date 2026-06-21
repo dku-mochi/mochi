@@ -34,9 +34,9 @@ class ProfileWindowItem:
 @dataclass(frozen=True, slots=True)
 class UserProfile:
     owner_id: UUID
-    summary: str                # 분석 개인화용 — 분류 성향(어떻게 4-intent 로 나누나)
+    summary: str  # 분석 개인화용 — 분류 성향(어떻게 4-intent 로 나누나)
     model_version: str
-    items_covered: int          # 마지막 요약 시점의 누적 항목 수 (디바운스 기준)
+    items_covered: int  # 마지막 요약 시점의 누적 항목 수 (디바운스 기준)
     refreshed_at: datetime | None = None
     # 채팅용 페르소나 — "이 사람이 누구인지"(관심사·취향·맥락). 채팅 system prompt 에
     # 배경/톤으로 주입된다(사실 출처 아님 — 구체 사실은 여전히 검색이 회수). 신규 유저는 None.
@@ -53,13 +53,9 @@ class UserProfileStore(Protocol):
 class UserProfileSummarizer(Protocol):
     """최근 window 를 받아 사용자 특성 요약 텍스트를 생성하는 outbound port (LLM)."""
 
-    async def summarize(
-        self, *, window: list[ProfileWindowItem], previous: str | None
-    ) -> str: ...
+    async def summarize(self, *, window: list[ProfileWindowItem], previous: str | None) -> str: ...
 
-    async def summarize_chat(
-        self, *, window: list[ProfileWindowItem], previous: str | None
-    ) -> str:
+    async def summarize_chat(self, *, window: list[ProfileWindowItem], previous: str | None) -> str:
         """채팅용 페르소나 요약 — "이 사람이 누구인지"(관심사·취향·맥락). ``summarize`` 와
         같은 입력(최소전송: summary/user_memo 만)이지만 분류 성향이 아니라 인물상을 뽑는다."""
         ...

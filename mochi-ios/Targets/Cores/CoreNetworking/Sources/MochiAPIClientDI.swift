@@ -68,7 +68,7 @@ public struct NotConfiguredAPIClient: MochiAPIClient {
     public func upcomingActionables() async throws -> [UpcomingActionableDTO] {
         throw Self.error
     }
-    public func weeklyDigest(weekStart: Date) async throws -> WeeklyDigestDTO {
+    public func monthlyDigest(monthStart: Date) async throws -> MonthlyDigestDTO {
         throw Self.error
     }
     public func recallFeed(limit: Int) async throws -> [RecallFeedEntryDTO] {

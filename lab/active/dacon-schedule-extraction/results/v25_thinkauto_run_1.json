@@ -1,0 +1,61 @@
+{
+  "latency_ms": 7605.2,
+  "usage": {
+    "thoughts_tokens": 1542,
+    "candidates_tokens": 357,
+    "total_tokens": 8299
+  },
+  "finish_reason": "FinishReason.STOP",
+  "output": {
+    "summary": "데이콘 대회 주요 일정입니다. 기획서 및 산출물 제출 마감일과 결과 발표일을 확인하기 위해 저장합니다.",
+    "intent_instances": [
+      {
+        "intent_type": "todo",
+        "label": "기획서 제출",
+        "reasoning": "대회 예선 아이디어 기획서 제출 마감일입니다.",
+        "payload": {
+          "deadline": "2026-07-07 10:00",
+          "title": "예선 아이디어 기획서 제출"
+        }
+      },
+      {
+        "payload": {
+          "title": "예선 최종 산출물 제출",
+          "deadline": "2026-07-15 10:00"
+        },
+        "reasoning": "대회 예선 최종 산출물 제출 마감일입니다.",
+        "label": "산출물 제출",
+        "intent_type": "todo"
+      },
+      {
+        "payload": {
+          "title": "본선 발표자료 제출",
+          "deadline": "2026-07-20 10:00"
+        },
+        "reasoning": "본선 진출 시 발표자료 제출 마감일입니다.",
+        "label": "발표자료 제출",
+        "intent_type": "todo"
+      },
+      {
+        "payload": {
+          "date": "2026-07-27",
+          "time": "14:00",
+          "title": "예선 결과 발표 확인"
+        },
+        "reasoning": "예선 결과 발표 시점에 맞춰 확인이 필요합니다.",
+        "label": "결과 확인",
+        "intent_type": "schedule"
+      }
+    ],
+    "needs_review": false,
+    "entities": [],
+    "importance": 4,
+    "category": "대회 일정"
+  },
+  "run": 1,
+  "arm": "v25_thinkauto",
+  "config": {
+    "thinking_budget": -1,
+    "max_output_tokens": 4096
+  }
+}

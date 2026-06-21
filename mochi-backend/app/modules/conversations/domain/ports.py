@@ -101,9 +101,9 @@ class ChatTool(Protocol):
     """
 
     name: str
-    label: str          # tool_started 동사형 카피 — "기록을 뒤지고 있어요"
-    description: str    # 모델용 (영어)
-    parameters: dict[str, Any]   # JSON Schema
+    label: str  # tool_started 동사형 카피 — "기록을 뒤지고 있어요"
+    description: str  # 모델용 (영어)
+    parameters: dict[str, Any]  # JSON Schema
 
     async def run(self, *, owner_id: UUID, args: dict[str, Any]) -> ChatToolResult: ...
 

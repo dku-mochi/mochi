@@ -32,7 +32,7 @@ log = get_logger("voyage")
 #: 거부(403)하고 자체 게이트웨이만 받는다 (voyageai SDK 의 get_default_base_url 과 동일 로직).
 _VOYAGE_BASE_URL = "https://api.voyageai.com/v1"
 _MONGODB_BASE_URL = "https://ai.mongodb.com/v1"
-_EMBED_BATCH_MAX = 128          # Voyage embeddings API 의 요청당 입력 상한
+_EMBED_BATCH_MAX = 128  # Voyage embeddings API 의 요청당 입력 상한
 _RETRYABLE_STATUS = frozenset({429, 500, 502, 503, 504})
 
 #: 경로별 재시도·타임아웃 예산. 인터랙티브 경로(쿼리 임베딩·리랭크)는 사용자가 기다린다 —
@@ -95,9 +95,7 @@ class VoyageClient:
         self._rerank_model = rerank_model
         self._timeout_seconds = timeout_seconds
         self._transport = transport
-        self._base_url = base_url or (
-            _MONGODB_BASE_URL if api_key.startswith("al-") else _VOYAGE_BASE_URL
-        )
+        self._base_url = base_url or (_MONGODB_BASE_URL if api_key.startswith("al-") else _VOYAGE_BASE_URL)
 
     @property
     def model_version(self) -> str:
@@ -123,9 +121,7 @@ class VoyageClient:
         )
         return vectors[0]
 
-    async def rerank(
-        self, *, query: str, documents: Sequence[str], top_k: int
-    ) -> list[RerankedDocument]:
+    async def rerank(self, *, query: str, documents: Sequence[str], top_k: int) -> list[RerankedDocument]:
         """관련도순 상위 ``top_k`` — 입력 인덱스를 보존해 호출자가 원본과 재결합한다."""
         if not documents:
             return []
@@ -197,9 +193,7 @@ class VoyageClient:
             except (httpx.TransportError, _RetryableVoyageError) as exc:
                 last_exc = exc
                 if attempt < attempts:
-                    await asyncio.sleep(
-                        min(_BACKOFF_BASE_SECONDS * 2 ** (attempt - 1), _BACKOFF_MAX_SECONDS)
-                    )
+                    await asyncio.sleep(min(_BACKOFF_BASE_SECONDS * 2 ** (attempt - 1), _BACKOFF_MAX_SECONDS))
         # 키·페이로드를 메시지에 싣지 않는다 — 예외 타입만으로 재시도/우회 판단에 충분.
         raise VoyageError(
             f"voyage {path} failed after {attempts} attempts: {type(last_exc).__name__}"

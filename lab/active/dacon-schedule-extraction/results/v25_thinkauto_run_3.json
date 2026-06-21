@@ -1,0 +1,78 @@
+{
+  "latency_ms": 7239.3,
+  "usage": {
+    "thoughts_tokens": 1309,
+    "candidates_tokens": 567,
+    "total_tokens": 8276
+  },
+  "finish_reason": "FinishReason.STOP",
+  "output": {
+    "entities": [
+      {
+        "value": "{\"provider\":\"dacon.io\",\"label\":\"데이스쿨 할인 리턴즈 대회 페이지\",\"match_score\":1.0,\"url\":\"https://dacon.io/\"}",
+        "kind": "reference_url"
+      }
+    ],
+    "category": "데이터 분석 대회",
+    "importance": 4,
+    "intent_instances": [
+      {
+        "reasoning": "대회 일정상 예선 아이디어 기획서 제출 마감일입니다.",
+        "payload": {
+          "deadline": "2026-07-07 10:00",
+          "title": "데이스쿨 할인 리턴즈 예선 아이디어 기획서 제출"
+        },
+        "label": "예선 아이디어 기획서 제출",
+        "intent_type": "todo"
+      },
+      {
+        "intent_type": "todo",
+        "label": "예선 최종 산출물 제출",
+        "payload": {
+          "deadline": "2026-07-15 10:00",
+          "title": "데이스쿨 할인 리턴즈 예선 최종 산출물 제출"
+        },
+        "reasoning": "대회 일정상 예선 최종 산출물 제출 마감일입니다."
+      },
+      {
+        "payload": {
+          "time": "10:00",
+          "date": "2026-07-15",
+          "end_date": "2026-07-17",
+          "title": "데이스쿨 할인 리턴즈 예선평가 투표 기간",
+          "end_time": "10:00"
+        },
+        "label": "예선평가 투표 확인",
+        "intent_type": "schedule",
+        "reasoning": "예선평가 투표가 진행되는 기간으로, 결과 확인을 위해 일정에 추가합니다."
+      },
+      {
+        "payload": {
+          "deadline": "2026-07-20 10:00",
+          "title": "데이스쿨 할인 리턴즈 본선 발표자료 제출"
+        },
+        "intent_type": "todo",
+        "label": "본선 발표자료 제출",
+        "reasoning": "본선 진출 시 발표자료 제출 마감일입니다."
+      },
+      {
+        "payload": {
+          "title": "데이스쿨 할인 리턴즈 예선 결과발표",
+          "date": "2026-07-27",
+          "time": "14:00"
+        },
+        "intent_type": "schedule",
+        "label": "예선 결과발표 확인",
+        "reasoning": "예선 결과가 발표되는 시점입니다."
+      }
+    ],
+    "summary": "데이스쿨 할인 리턴즈 대회의 주요 제출 마감일과 평가 및 결과 발표 일정을 정리했습니다.",
+    "needs_review": false
+  },
+  "run": 3,
+  "arm": "v25_thinkauto",
+  "config": {
+    "thinking_budget": -1,
+    "max_output_tokens": 4096
+  }
+}

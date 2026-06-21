@@ -35,9 +35,7 @@ _OWNER = uuid4()
 def _item(instance: IntentInstance) -> MochiItem:
     return MochiItem(
         id=uuid4(),
-        source=IngestSource(
-            channel=IngestChannel.SCREENSHOT, captured_at=datetime(2026, 6, 1, tzinfo=UTC)
-        ),
+        source=IngestSource(channel=IngestChannel.SCREENSHOT, captured_at=datetime(2026, 6, 1, tzinfo=UTC)),
         intent_instances=(instance,),
         lifecycle=LifecycleState(kind=LifecycleStateKind.ANALYZED),
     )
@@ -66,9 +64,7 @@ class _Repo:
         return False
 
 
-def _command(
-    item: MochiItem, instance_id, target: InstanceLifecycleState
-) -> UpdateInstanceLifecycleCommand:
+def _command(item: MochiItem, instance_id, target: InstanceLifecycleState) -> UpdateInstanceLifecycleCommand:
     return UpdateInstanceLifecycleCommand(
         owner_id=_OWNER, mochi_item_id=item.id, instance_id=instance_id, target=target
     )

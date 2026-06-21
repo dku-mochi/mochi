@@ -52,9 +52,7 @@ async def _call(*, prompt: str, model: str, system: str) -> str:
         max_output_tokens=512,
         thinking_config=types.ThinkingConfig(thinking_budget=0),
     )
-    resp = await _shared_client().aio.models.generate_content(
-        model=model, contents=prompt, config=cfg
-    )
+    resp = await _shared_client().aio.models.generate_content(model=model, contents=prompt, config=cfg)
     return resp.text or ""
 
 
@@ -76,16 +74,10 @@ class GeminiProfileSummarizer(UserProfileSummarizer):
         )
         return raw.strip()
 
-    async def summarize(
-        self, *, window: list[ProfileWindowItem], previous: str | None
-    ) -> str:
-        return await self._summarize_with(
-            window=window, previous=previous, system=PROFILE_SUMMARY_SYSTEM
-        )
+    async def summarize(self, *, window: list[ProfileWindowItem], previous: str | None) -> str:
+        return await self._summarize_with(window=window, previous=previous, system=PROFILE_SUMMARY_SYSTEM)
 
-    async def summarize_chat(
-        self, *, window: list[ProfileWindowItem], previous: str | None
-    ) -> str:
+    async def summarize_chat(self, *, window: list[ProfileWindowItem], previous: str | None) -> str:
         return await self._summarize_with(
             window=window, previous=previous, system=CHAT_PROFILE_SUMMARY_SYSTEM
         )

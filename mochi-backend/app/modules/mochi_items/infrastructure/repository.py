@@ -38,7 +38,16 @@ from app.modules.mochi_items.infrastructure.orm import (
 from app.shared.intent import Intent
 
 _PAYLOAD_FIELDS = (
-    "title", "date", "time", "end_date", "end_time", "deadline", "person", "topic", "url", "note"
+    "title",
+    "date",
+    "time",
+    "end_date",
+    "end_time",
+    "deadline",
+    "person",
+    "topic",
+    "url",
+    "note",
 )
 
 
@@ -196,9 +205,7 @@ def _row_to_entity(row: MochiItemRow) -> MochiItem:
         ),
         summary=row.summary,
         category=row.category,
-        shopping_product_query=next(
-            (e.value for e in row.entities if e.kind == "shopping_product"), None
-        ),
+        shopping_product_query=next((e.value for e in row.entities if e.kind == "shopping_product"), None),
         reference_links=_reference_links(row),
         importance=row.importance,
         is_favorite=row.is_favorite,
@@ -535,9 +542,7 @@ class PostgresMochiItemRepository(MochiItemRepository):
         if row is None:
             return
         # delete-reinsert — 재분석·backfill 멱등 (apply_analysis 의 instances/entities 와 동일 패턴).
-        await self._session.execute(
-            delete(EmbeddingRow).where(EmbeddingRow.mochi_item_id == mochi_item_id)
-        )
+        await self._session.execute(delete(EmbeddingRow).where(EmbeddingRow.mochi_item_id == mochi_item_id))
         self._session.add(
             EmbeddingRow(
                 mochi_item_id=mochi_item_id,
@@ -569,6 +574,10 @@ class PostgresMochiItemRepository(MochiItemRepository):
             return False
         row.lifecycle_kind = lifecycle.kind.value
         row.lifecycle_archive_reason = lifecycle.archive_reason.value if lifecycle.archive_reason else None
+        # updated_at 을 lifecycle 상태변경의 시계로 쓴다 — knowledge decay 패스가 "마지막 상태변경 후
+        # N일" 로 active→decaying 을 판정하므로, 회수 소생(decaying→active)이 시계를 리셋해야 한다
+        # (안 그러면 소생 직후 다음 패스에서 즉시 재decay). ORM 에 onupdate 가 없어 수동 갱신.
+        row.updated_at = datetime.utcnow()
         await self._session.flush()
         return True
 
@@ -601,9 +610,7 @@ class PostgresMochiItemRepository(MochiItemRepository):
         await self._session.flush()
         return bool(getattr(result, "rowcount", 0))
 
-    async def set_favorite(
-        self, *, owner_id: UUID, mochi_item_id: UUID, is_favorite: bool
-    ) -> bool:
+    async def set_favorite(self, *, owner_id: UUID, mochi_item_id: UUID, is_favorite: bool) -> bool:
         # owner-scoped set-state UPDATE — 다른 owner 항목은 대상에서 빠진다(rowcount 0 → False).
         # 존재/소유 검증은 application(SetFavorite)이 find_by_id 로 선행해 없는 항목을 404 로 끊는다.
         result = await self._session.execute(

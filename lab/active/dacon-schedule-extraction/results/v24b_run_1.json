@@ -1,0 +1,75 @@
+{
+  "latency_ms": 7963.6,
+  "usage": {
+    "thoughts_tokens": 1325,
+    "candidates_tokens": 565,
+    "total_tokens": 8103
+  },
+  "finish_reason": "FinishReason.STOP",
+  "output": {
+    "entities": [
+      {
+        "value": "{\"provider\":\"dacon.io\",\"label\":\"데이스쿨 할인 리턴즈\",\"match_score\":1.0,\"url\":\"https://dacon.io/competitions/official/236359/overview/description\"}",
+        "kind": "reference_url"
+      }
+    ],
+    "intent_instances": [
+      {
+        "label": "기획서 제출",
+        "intent_type": "todo",
+        "reasoning": "예선 아이디어 기획서 제출 마감 기한입니다. 사용자가 직접 제출해야 하는 할 일입니다.",
+        "payload": {
+          "deadline": "2026-07-07 10:00",
+          "title": "예선 아이디어 기획서 제출"
+        }
+      },
+      {
+        "reasoning": "예선 최종 산출물 제출 마감 기한입니다. 사용자가 직접 제출해야 하는 할 일입니다.",
+        "payload": {
+          "deadline": "2026-07-15 10:00",
+          "title": "예선 최종 산출물 제출"
+        },
+        "label": "산출물 제출",
+        "intent_type": "todo"
+      },
+      {
+        "intent_type": "schedule",
+        "label": "예선 투표 참여",
+        "reasoning": "예선평가(투표)가 진행되는 기간입니다. 사용자가 참여하거나 결과를 확인해야 하는 일정입니다.",
+        "payload": {
+          "date": "2026-07-15",
+          "title": "예선평가(투표) 기간",
+          "end_date": "2026-07-17"
+        }
+      },
+      {
+        "payload": {
+          "deadline": "2026-07-20 10:00",
+          "title": "본선 진출팀 발표자료 제출"
+        },
+        "reasoning": "본선 진출 시 발표자료를 제출해야 하는 마감 기한입니다. 사용자가 직접 제출해야 하는 할 일입니다.",
+        "label": "본선 자료 제출",
+        "intent_type": "todo"
+      },
+      {
+        "label": "결과 확인",
+        "intent_type": "schedule",
+        "payload": {
+          "title": "예선 결과 발표",
+          "date": "2026-07-27"
+        },
+        "reasoning": "예선 결과가 발표되는 날입니다. 사용자가 결과를 확인해야 하는 일정입니다."
+      }
+    ],
+    "needs_review": false,
+    "summary": "데이콘에서 진행하는 '데이스쿨 할인 리턴즈' 대회의 주요 일정입니다. 기획서 및 산출물 제출 마감과 평가/결과 발표 일정을 챙기기 위해 저장합니다.",
+    "importance": 4,
+    "category": "대회 일정"
+  },
+  "run": 1,
+  "arm": "v24b",
+  "config": {
+    "thinking_budget": -1,
+    "max_output_tokens": 4096
+  }
+}

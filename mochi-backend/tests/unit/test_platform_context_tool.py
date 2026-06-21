@@ -77,7 +77,7 @@ async def test_guarded_get_wraps_decode_errors(monkeypatch):
         async def __aexit__(self, *args):
             return None
 
-        async def get(self, url):
+        async def get(self, url, **kwargs):
             return BrokenResponse()
 
     monkeypatch.setattr(
@@ -118,7 +118,7 @@ async def test_guarded_get_does_not_double_decode_buffer(monkeypatch):
         async def __aexit__(self, *args):
             return None
 
-        async def get(self, url):
+        async def get(self, url, **kwargs):
             return EncodedHeaderResponse()
 
     monkeypatch.setattr(
@@ -126,9 +126,7 @@ async def test_guarded_get_does_not_double_decode_buffer(monkeypatch):
         FakeClient,
     )
 
-    response = await PlatformContextTool()._guarded_get(
-        "https://www.youtube.com/watch?v=abc"
-    )
+    response = await PlatformContextTool()._guarded_get("https://www.youtube.com/watch?v=abc")
 
     assert response.status_code == 404
     assert response.headers.get("content-encoding") is None
@@ -160,7 +158,7 @@ async def test_guarded_get_json_wraps_invalid_json(monkeypatch):
         async def __aexit__(self, *args):
             return None
 
-        async def get(self, url):
+        async def get(self, url, **kwargs):
             return EmptyJsonResponse()
 
     monkeypatch.setattr(
@@ -169,6 +167,4 @@ async def test_guarded_get_json_wraps_invalid_json(monkeypatch):
     )
 
     with pytest.raises(ToolExecutionError, match="Invalid JSON response"):
-        await PlatformContextTool()._guarded_get_json(
-            "https://www.youtube.com/oembed?url=bad"
-        )
+        await PlatformContextTool()._guarded_get_json("https://www.youtube.com/oembed?url=bad")

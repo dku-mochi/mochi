@@ -4,7 +4,7 @@ import CoreDomain
 import CorePersistence
 import DesignSystem
 
-/// 즐겨찾기 화면 reducer — 홈 헤더 별로 진입(WeeklyDigest 와 같은 path push 패턴).
+/// 즐겨찾기 화면 reducer — 홈 헤더 별로 진입(MonthlyDigest 와 같은 path push 패턴).
 ///
 /// 즐겨찾기는 "사용자가 모찌에게 준 중요 신호"고, 이 화면은 모찌가 그 신호로 다시 꺼내 보여주는
 /// 회수 표면이다(PRODUCT §1.5). 항목 탭 → 공용 상세(delegate 로 상위가 present). 서버 list 라우트

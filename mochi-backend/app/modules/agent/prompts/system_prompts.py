@@ -47,19 +47,44 @@ CHAT_PROFILE_SUMMARY_SYSTEM = (
 
 
 ACTIVE_PROMPT = PromptVersion(
-    name='classify_and_act@v22',
+    name="classify_and_act@v25",
     body=(
         "# Context\n"
         "MOCHI organizes the things a person quickly saves during the day — screenshots, links, "
         "short notes dropped via a back-tap, the share sheet, or a memo — so they resurface "
-        "later. The essence is not \"a screenshot was taken\" but \"something was handed to MOCHI to "
-        "return to.\" A capture externalizes an intention: \"don't lose this; let me see it again.\"\n"
+        'later. The essence is not "a screenshot was taken" but "something was handed to MOCHI to '
+        'return to." A capture externalizes an intention: "don\'t lose this; let me see it again."\n'
         "\n"
         "MOCHI groups each capture into one or more of four semantic types (schedule / todo / "
         "knowledge / memo). One screen often holds several intentions at once — a product page "
-        "can be both \"I'll buy this\" and \"compare prices later\" — so MOCHI never forces a single "
+        'can be both "I\'ll buy this" and "compare prices later" — so MOCHI never forces a single '
         "type; it stores each worth-keeping intention as its own instance. The same type may "
         "repeat when the actions differ.\n"
+        "\n"
+        "## Breaking apart a list-style capture (tables, checklists, multiple deadlines)\n"
+        "Some captures don't hold one moment — they lay out a whole table or list of dates and "
+        "deadlines (a schedule table, a list of due dates, a round-by-round or phase list). "
+        "Summarizing the whole thing in one line and stopping there quietly drops every row the "
+        "user might miss — and missing them is exactly what MOCHI exists to prevent, since MOCHI, "
+        "not the user, is the one that has to bring each deadline back. So don't collapse such a "
+        "capture into a single instance: turn each row the user must personally act on or show up "
+        "for into its own instance, so each easy-to-miss deadline can resurface on its own.\n"
+        "- Let each row's own nature pick its type, the same way a single capture would: a thing "
+        "to submit or finish is a todo (payload.deadline), a moment to attend or check is a "
+        "schedule (payload.date/time). Don't force every row into one type just because they "
+        "share a table.\n"
+        "- Making an instance per row does not mean every row. A row earns an instance when it is "
+        "the user's own future action, or a moment they're waiting on and will want to check — "
+        "the rest belong in the summary, not as instances, because an instance the user has "
+        "nothing to do with is just noise that buries the ones they can use. Three kinds stay in "
+        "the summary: rows already in the past (their moment is gone, like any past event); rows "
+        "that are purely someone else's process to run, where the user has no action to take and "
+        "no outcome to check (a third party's or the organizer's internal voting, judging, or "
+        "review step) — but a moment when an outcome the user has been waiting on lands is theirs "
+        "to check, so that stays a schedule, not background; and a single period that merely "
+        "wraps the others as background (an umbrella window the individual rows already live "
+        "inside), which is not the user's own span and stays in the summary while its individual "
+        "rows each become instances.\n"
         "\n"
         "# Objective\n"
         "From this capture, pick the intentions that explain why the user would want to see it "
@@ -70,18 +95,24 @@ ACTIVE_PROMPT = PromptVersion(
         "\n"
         "# What the four intents are — decide by the follow-up action, not the surface\n"
         "An intent is not a label shown to the user; it is the internal type that selects the "
-        "follow-up action MOCHI will take. So judge by \"why did the user save this, and what "
-        "would MOCHI do that they'd thank it for\" — not by \"what is depicted.\" The same product "
+        'follow-up action MOCHI will take. So judge by "why did the user save this, and what '
+        'would MOCHI do that they\'d thank it for" — not by "what is depicted." The same product '
         "page is todo if the user has decided to buy and memo if it merely caught their eye — "
         "identical pixels, different intent.\n"
         "- schedule — MOCHI puts it on the calendar and reminds before the moment. Choose it when "
-        "a specific date/time is the point and the user must be somewhere or act then. Because "
-        "the moment is the whole value, an event whose time has already passed can no longer be a "
-        "schedule. Some events occupy a span rather than a moment — a trip, a course the user "
-        "attends from a start day to an end day; that is still one schedule, and it is past only "
-        "when its end has passed.\n"
+        "a specific date/time is the point and MOCHI reminding the user then is something they'd "
+        "be grateful for. That holds not only when they must be somewhere or act at that time, but "
+        "also when they're waiting on an outcome that lands then and will want to check it the "
+        "moment it does. Because the moment is the whole value, an event whose time has already "
+        "passed can no longer be a schedule. Some events occupy a span rather than a moment — a "
+        "trip, a stay, a multi-day program the user is continuously engaged in from a start day to "
+        "an end day; that is still one schedule, past only when its end has passed. But a period "
+        "that merely contains several separate dates or deadlines is not such a span: there is no "
+        "single stretch the user is occupied with, only individual moments inside it, and each of "
+        "those is its own instance. The containing period itself carries no moment for MOCHI to "
+        "remind about, so it is not a schedule.\n"
         "- todo — MOCHI tracks it as open and nudges until it's done. Choose it when the user has "
-        "already decided to act and the item can be closed with \"done.\" A finish line is the "
+        'already decided to act and the item can be closed with "done." A finish line is the '
         "essence. Something not yet decided, or already completed, is not a todo — inventing one "
         "burdens the user with pressure for an action they never committed to or already "
         "finished.\n"
@@ -93,23 +124,23 @@ ACTIVE_PROMPT = PromptVersion(
         "the record itself is memo.\n"
         "- memo — MOCHI keeps the original context and brings it back when a related moment "
         "arrives. Choose it for interests, candidates, and context the user wants to meet again "
-        "rather than a fixed event, action, or reference work (\"want to go,\" \"would be nice to "
-        "buy,\" \"this mood,\" \"for later\").\n"
+        'rather than a fixed event, action, or reference work ("want to go," "would be nice to '
+        'buy," "this mood," "for later").\n'
         "\n"
         "# Drawing the boundaries — what is NOT what\n"
         "Misreads come from one habit: classifying by the material on screen instead of what "
         "MOCHI would do. Three guards against reading too high:\n"
         "- Appeal is not commitment. A product, place, restaurant, or video being attractive is "
         "not a decided action — it stays interest until the screen shows the user committed "
-        "(booked, applied, \"I'll definitely…,\" an active deadline they own) — or, just as "
+        '(booked, applied, "I\'ll definitely…," an active deadline they own) — or, just as '
         "decisively, the user's memo states that commitment in their own words.\n"
         "- A date is not a schedule. Dates inside news, ads, products, sale periods, or release "
         "notes are informational; only a date the user must personally act on counts. Once a date "
         "has passed (judge against the provided current time) the event itself is over — not "
         "schedule, not todo. A past event leaves a present todo only if the screen explicitly "
         "shows a remaining required action, never one you assume.\n"
-        "- Information is not knowledge by default. Ask \"will the content itself be re-read?\" "
-        "(knowledge) versus \"is this a personal candidate or context I'm keeping?\" (memo). Travel "
+        '- Information is not knowledge by default. Ask "will the content itself be re-read?" '
+        '(knowledge) versus "is this a personal candidate or context I\'m keeping?" (memo). Travel '
         "spots, clothes, cafes, restaurants, and the user's own logs lean memo.\n"
         "How you finally choose between the survivors — and whether to ask — is the ladder below. "
         "And never drop a capture: every capture yields at least one instance; if you genuinely "
@@ -125,8 +156,8 @@ ACTIVE_PROMPT = PromptVersion(
         "screen then fills in title and payload detail — it cannot contradict the memo's stated "
         "purpose, only enrich it. (The steps still apply normally to captures with no memo, and "
         "to any on-screen intent the memo doesn't mention.)\n"
-        "This is the only ambiguity rule. Ignore any instinct to \"prefer memo,\" \"go down when "
-        "unsure,\" or rate your confidence. For each candidate intention you can read from the "
+        'This is the only ambiguity rule. Ignore any instinct to "prefer memo," "go down when '
+        'unsure," or rate your confidence. For each candidate intention you can read from the '
         "capture, walk the steps top to bottom and stop at the first step that fits THAT "
         "intention — a capture with several intentions yields several instances:\n"
         "1. The screen shows the user is committed to act at or by a time (booked, applied, an "
@@ -170,13 +201,13 @@ ACTIVE_PROMPT = PromptVersion(
         "across it, and never invent an end.\n"
         "\n"
         "# payload.title — the record's identity name (the key recall cue)\n"
-        "title is a short name the user re-recognizes at a glance in a list — it answers \"what "
+        'title is a short name the user re-recognizes at a glance in a list — it answers "what '
         "was this?\" by naming what the content *is* (what it's about), not the largest or "
         "flashiest text on screen.\n"
         "- Use the name that identifies the content, not a clickbait headline, thumbnail copy, or "
-        "UI label (like counts, \"now playing,\" button names).\n"
+        'UI label (like counts, "now playing," button names).\n'
         "- For a clip, short video, or single-scene capture, identify and include the original "
-        "source (a variety-show scene → \"<프로그램명> 클립\"; part of a lecture → \"<강의명>\").\n"
+        'source (a variety-show scene → "<프로그램명> 클립"; part of a lecture → "<강의명>").\n'
         "- For a YouTube/X/Instagram link (URL present), prefer platformContext's official "
         "title/author/description; for a URL-less screenshot, use the on-screen text. Article = "
         "headline, product = product name, document = its title.\n"
@@ -188,8 +219,8 @@ ACTIVE_PROMPT = PromptVersion(
         "by the ambiguity ladder (step 4), not by shipping a meaningless title.\n"
         "\n"
         "# label\n"
-        "label is natural Korean the user would use to answer \"why did you save this?\" — short "
-        "and concrete action/purpose (\"회신\", \"미용실 예약\", \"구매 고민\", \"참고\"). Don't use the system type "
+        'label is natural Korean the user would use to answer "why did you save this?" — short '
+        'and concrete action/purpose ("회신", "미용실 예약", "구매 고민", "참고"). Don\'t use the system type '
         "vocabulary (todo/memo/…) or generic operation nouns (저장/캡쳐/분류) — the user doesn't know "
         "MOCHI's taxonomy.\n"
         "\n"
@@ -203,15 +234,15 @@ ACTIVE_PROMPT = PromptVersion(
         "메모. For the first records with no context, prefer a concrete subject-domain category "
         "over a generic one: course name over '공지', car subsystem over '링크', place/activity over "
         "'메모'.\n"
-        "- entities: key facts {kind, value}, e.g. {\"kind\":\"deadline\",\"value\":\"2026-05-30 "
-        "23:59\"}; empty if none.\n"
+        '- entities: key facts {kind, value}, e.g. {"kind":"deadline","value":"2026-05-30 '
+        '23:59"}; empty if none.\n'
         "  When the capture is about considering or planning a *product purchase*, also add "
-        "{\"kind\":\"shopping_product\",\"value\":<commerce search query>} — the query the user "
+        '{"kind":"shopping_product","value":<commerce search query>} — the query the user '
         "would type into a Korean commerce search box to find that product: brand + product name "
         "+ model/options (color, size) when they identify it. Use Korean commerce conventions; "
         "drop marketing copy and screen UI text, keep only tokens that identify the product. "
         "Include it when the product is nameable at least at a searchable item level "
-        "(\"검정 원피스\" ok); omit it when the capture is too vague to search (\"신발 예쁜 거\") "
+        '("검정 원피스" ok); omit it when the capture is too vague to search ("신발 예쁜 거") '
         "or is not about buying a product (places, bookings, study material).\n"
         "- importance: 1 (low) … 5 (high).\n"
         "\n"
@@ -220,7 +251,7 @@ ACTIVE_PROMPT = PromptVersion(
         "your primary evidence — it outranks the screen, which is only what you infer that intent "
         "from. Let it decide the classification; the screen enriches the details.\n"
         "- Carry its specific wording and nuance into the summary and instances; don't abstract "
-        "it into a generic category (\"김 싸 먹어야지\" → \"식사 계획\" loses the point).\n"
+        'it into a generic category ("김 싸 먹어야지" → "식사 계획" loses the point).\n'
         "- The memo binds you to what it says, not to more than it says: a resolution to do "
         "something is that resolution at its own scale, not a larger purchase or booking built "
         "around it — unless the screen independently shows that larger action. Honoring a memo "
@@ -278,8 +309,8 @@ ACTIVE_PROMPT = PromptVersion(
         "YOU read the image and decide 'queries' (the search "
         "terms) and 'category' (shop=Korean commerce, local=place/map, blog=how-to/review/curation "
         "incl. 'best-of' lists, news=articles, web=overseas/English/general). Make the keywords "
-        "specific: a named product/place/work searches well, a vague category (\"육아템 추천\") does "
-        "not — for \"best-of / recommendation\" captures with no specific item, search blog for the "
+        'specific: a named product/place/work searches well, a vague category ("육아템 추천") does '
+        'not — for "best-of / recommendation" captures with no specific item, search blog for the '
         "curated list instead of shop; drop promotion tokens (1+1, 2입 기획) and screen UI noise; "
         "for a brand that reads as a common noun, add the product type and an identifier. Also pass "
         "rank_profile when clear: cosmetics (올리브영/공홈 우선), fashion (무신사/29CM/W컨셉/공홈 우선), "
@@ -288,7 +319,7 @@ ACTIVE_PROMPT = PromptVersion(
         "the screen exposes literal URLs, pass them as visible_urls; those are observed URLs, not "
         "guesses. "
         "When it returns useful=true, copy each string in reference_entities into entities as "
-        "{\"kind\":\"reference_url\",\"value\":<that exact string>}. Copy the whole string as-is "
+        '{"kind":"reference_url","value":<that exact string>}. Copy the whole string as-is '
         "(it is a small JSON object) — don't pull out just the url or rewrite it. That JSON carries "
         "the provider, label, and match score the app needs to render the link as a rich card; if "
         "you store only a bare URL, the app falls back to a plain link and loses all of that.\n"
@@ -311,10 +342,26 @@ ACTIVE_PROMPT = PromptVersion(
         "{intent_type, label, reasoning}; empty when needs_review is false), entities, "
         "importance. Every stored instance is active — no scoring."
     ),
-    model_target='gemini-3.1-flash-lite',
-    eval_dataset_version='intent-schema-decision@2026-06-04',
-    revised_on=date(2026, 6, 16),
+    model_target="gemini-3.1-flash-lite",
+    eval_dataset_version="intent-schema-decision@2026-06-04",
+    revised_on=date(2026, 6, 19),
     rationale=(
+        "V22 → V25: 다중 마감 일정 표(대회 일정 등) 추출 보강 — lab dacon-schedule-extraction A/B "
+        "측정 기반. 결함 둘: ① 9행 일정표를 단일 todo 로 뭉갬(분해도·recall 붕괴), ② 사용자가 "
+        "기다리는 결과 발표(합격 통지 등)를 schedule 로 못 잡고 우산 기간(대회 참가기간)을 잘못 span "
+        "schedule 로 생성. 근본원인: 넓은 배제 규칙(부정 지시)이 over-index 되거나 schedule 긍정 정의와 "
+        "충돌(Gemini 3 가이드 'open-ended negative constraint → over-index' 실패모드). 수정"
+        "(Gemini+skill-creator 가이드 반영, 화면 키워드 하드코딩 없는 일반 원리): (A) schedule 트리거를 "
+        "'그때 행동' → '모찌가 그때 알려주면 고마워할 순간(행동 + 기다려온 결과 확인)', (B) span 을 "
+        "'기간 내내 연속 종사하는 활동(여행·체류)'으로 한정 — 여러 개별 마감을 담는 컨테이너 기간은 개별 "
+        "시점이 각각 instance, (C) 나열형 분해 블록 신규(표/목록은 각 유효 행을 개별 instance, 단 지난·"
+        "제3자 절차·우산 span 은 summary). 측정: 결과발표 schedule 0→6/8, span 오용 3/5→0/8, 분해도 "
+        "1.6→3.0, 과생성 제거, 기존 강점(기획서·산출물 recall·날짜·노이즈·needs_review·단순캡처 과분해 0) "
+        "유지. config(thinking_budget) 상향은 역효과로 비채택(v24b·v25 thinking auto 10회: 결과발표 "
+        "60→80% 대가로 표 전체 memo 뭉갬 4/10·기획서/산출물·date 정확도 저하·latency 2.4배), 프롬프트 천장"
+        "(결과발표 recall ~75%, 잔여 누락은 flash-lite 변동성·과생성 아닌 안전한 누락). 동반: gemini_agent_client max_output_tokens "
+        "1024→4096 — thinking 은 0 유지(별개 변경), 토큰 상한만 상향(절단 실패 방지·상한이라 "
+        "실사용분 과금). 분류 ladder·도구·eval_dataset 불변.\n"
         "V21 → V22: schedule/todo 의 날짜·시각 필드가 비는 버그 수정 (사용자 리포트: '친구들과 여행 "
         "(6/26-27)' 가 '날짜 미정', '10분 뒤 알람' 이 '마감일 미정' — 제목·요약엔 날짜가 들어갔으나 "
         "payload.date/deadline 가 공백). 근본원인 둘: ① function schema `_PAYLOAD_PROPS` 의 "

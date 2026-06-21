@@ -23,7 +23,7 @@ from app.modules.notifications.domain.recall_plan import (
 KST = timezone(timedelta(hours=9))
 
 # whole-day(시각 미지정) relative offset 또는 recurring/spaced 의 time_hint 가 없을 때 쓰는 기본 발송시각.
-# planner §3: 활동 히스토그램 없으면 10~20시 윈도우 — 보수적 기본값 9시(야간 가드가 quiet 윈도우 밖으로 민다).
+# planner §3: 활동 히스토그램 없으면 10~20시 윈도우 — 보수적 기본값 9시.
 _DEFAULT_FIRE_HOUR_KST = 9
 
 

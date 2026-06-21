@@ -7,12 +7,9 @@ cap defer / night defer / dismiss cooldown skip / 트랙B yield (시간·사실 
 from datetime import UTC, datetime, timedelta
 
 from app.modules.notifications.application.recall_guards import (
-    GUARD_ALLOW,
     GUARD_DEFER,
     GUARD_SKIP,
-    check_daily_cap,
     check_dismiss_cooldown,
-    check_quiet_hours,
     check_track_b_yield,
 )
 from app.modules.notifications.application.recall_occurrence import KST
@@ -64,9 +61,7 @@ def test_track_b_recall_yields_too():
 
 
 def test_track_b_deadline_does_not_yield():
-    assert (
-        check_track_b_yield(kind="deadline", has_deadline_push_same_day=True, fire_at=_FIRE) is None
-    )
+    assert check_track_b_yield(kind="deadline", has_deadline_push_same_day=True, fire_at=_FIRE) is None
 
 
 def test_track_b_nudge_does_not_yield():
@@ -74,59 +69,4 @@ def test_track_b_nudge_does_not_yield():
 
 
 def test_track_b_no_deadline_passes():
-    assert (
-        check_track_b_yield(kind="spaced", has_deadline_push_same_day=False, fire_at=_FIRE) is None
-    )
-
-
-# ---------- quiet hours ----------
-
-
-def test_quiet_hours_allows_daytime():
-    # 14:00 KST = 05:00 UTC → 윈도우 밖.
-    fire = datetime(2026, 6, 16, 5, 0, tzinfo=UTC)
-    out = check_quiet_hours(fire_at=fire, quiet_start_hour=21, quiet_end_hour=8)
-    assert out.action == GUARD_ALLOW
-    assert out.fire_at == fire
-
-
-def test_quiet_hours_defers_late_night_to_next_morning():
-    # 23:00 KST = 14:00 UTC → quiet(>=21). shift → 다음날 08:00 KST.
-    fire = datetime(2026, 6, 16, 14, 0, tzinfo=UTC)
-    out = check_quiet_hours(fire_at=fire, quiet_start_hour=21, quiet_end_hour=8)
-    assert out.action == GUARD_DEFER
-    assert out.skip_reason == "night"
-    assert out.next_retry_at is not None
-    shifted = out.next_retry_at.astimezone(KST)
-    assert shifted.hour == 8
-    assert shifted.date().isoformat() == "2026-06-17"  # 밤 → 다음날
-
-
-def test_quiet_hours_defers_early_morning_same_day():
-    # 06:00 KST = 21:00 UTC(전날) → quiet(<8). shift → 같은 KST day 08:00.
-    fire = datetime(2026, 6, 15, 21, 0, tzinfo=UTC)  # 2026-06-16 06:00 KST
-    out = check_quiet_hours(fire_at=fire, quiet_start_hour=21, quiet_end_hour=8)
-    assert out.action == GUARD_DEFER
-    shifted = out.next_retry_at.astimezone(KST)
-    assert shifted.hour == 8
-    assert shifted.date().isoformat() == "2026-06-16"  # 새벽 → 같은 날 아침
-
-
-# ---------- daily cap ----------
-
-
-def test_daily_cap_passes_under_limit():
-    fire = datetime(2026, 6, 16, 5, 0, tzinfo=UTC)
-    assert check_daily_cap(fire_at=fire, same_day_count=2, daily_cap=3) is None
-
-
-def test_daily_cap_defers_at_limit_to_next_kst_day():
-    fire = datetime(2026, 6, 16, 5, 0, tzinfo=UTC)  # 14:00 KST 2026-06-16
-    out = check_daily_cap(fire_at=fire, same_day_count=3, daily_cap=3)
-    assert out is not None
-    assert out.action == GUARD_DEFER
-    assert out.skip_reason == "cap"
-    # next_retry = 다음날 KST 0시(D-1 마감이 cap 에 영구 소실 안 되게).
-    retry_kst = out.next_retry_at.astimezone(KST)
-    assert retry_kst.hour == 0
-    assert retry_kst.date().isoformat() == "2026-06-17"
+    assert check_track_b_yield(kind="spaced", has_deadline_push_same_day=False, fire_at=_FIRE) is None

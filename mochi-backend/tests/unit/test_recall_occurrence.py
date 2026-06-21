@@ -29,7 +29,9 @@ from app.modules.notifications.domain.recall_plan import (
 _GRACE = timedelta(hours=6)
 
 
-def _relative_stage(offset: str, *, time_hint: str | None = None, anchor: AnchorKind = AnchorKind.DEADLINE) -> Stage:
+def _relative_stage(
+    offset: str, *, time_hint: str | None = None, anchor: AnchorKind = AnchorKind.DEADLINE
+) -> Stage:
     return Stage(
         seq=1,
         trigger=Trigger(type=TriggerType.RELATIVE, anchor=anchor, offset=offset),
@@ -41,7 +43,9 @@ def _relative_stage(offset: str, *, time_hint: str | None = None, anchor: Anchor
 def _recurring_stage(interval_days: int, *, max_occurrences: int | None = None) -> Stage:
     return Stage(
         seq=1,
-        trigger=Trigger(type=TriggerType.RECURRING, interval_days=interval_days, max_occurrences=max_occurrences),
+        trigger=Trigger(
+            type=TriggerType.RECURRING, interval_days=interval_days, max_occurrences=max_occurrences
+        ),
         content_template="{title}",
     )
 
@@ -86,13 +90,17 @@ def test_parse_duration_month_rejected():
 
 def test_resolve_saved_at_anchor_uses_created_at():
     saved = datetime(2026, 6, 16, 3, 0, tzinfo=UTC)
-    out = resolve_anchor_time(anchor=AnchorKind.SAVED_AT, deadline_value=None, event_date_value=None, saved_at=saved)
+    out = resolve_anchor_time(
+        anchor=AnchorKind.SAVED_AT, deadline_value=None, event_date_value=None, saved_at=saved
+    )
     assert out == saved
 
 
 def test_resolve_deadline_naive_interpreted_as_kst():
     out = resolve_anchor_time(
-        anchor=AnchorKind.DEADLINE, deadline_value="2026-06-20T09:00", event_date_value=None,
+        anchor=AnchorKind.DEADLINE,
+        deadline_value="2026-06-20T09:00",
+        event_date_value=None,
         saved_at=datetime.now(UTC),
     )
     # 09:00 KST == 00:00 UTC
@@ -127,7 +135,10 @@ def test_relative_whole_day_offset_applies_time_hint_kst():
     anchor = datetime(2026, 6, 20, 0, 0, tzinfo=UTC)  # 2026-06-20 09:00 KST
     now = datetime(2026, 6, 1, 0, 0, tzinfo=UTC)
     occ = next_relative_occurrence(
-        stage=_relative_stage("-P3D", time_hint="19:00"), anchor_time=anchor, now=now, grace=_GRACE,
+        stage=_relative_stage("-P3D", time_hint="19:00"),
+        anchor_time=anchor,
+        now=now,
+        grace=_GRACE,
         already_materialized=False,
     )
     assert occ is not None
@@ -149,8 +160,11 @@ def test_relative_whole_day_default_hour_when_no_hint():
 def test_relative_already_materialized_returns_none():
     anchor = datetime(2026, 6, 20, 0, 0, tzinfo=UTC)
     occ = next_relative_occurrence(
-        stage=_relative_stage("-P1D"), anchor_time=anchor, now=datetime(2026, 6, 1, tzinfo=UTC),
-        grace=_GRACE, already_materialized=True,
+        stage=_relative_stage("-P1D"),
+        anchor_time=anchor,
+        now=datetime(2026, 6, 1, tzinfo=UTC),
+        grace=_GRACE,
+        already_materialized=True,
     )
     assert occ is None
 
@@ -182,7 +196,9 @@ def test_relative_positive_offset():
 
 def test_recurring_first_occurrence_is_seq0():
     base = datetime(2026, 6, 16, 0, 0, tzinfo=UTC)
-    occ = next_recurring_occurrence(stage=_recurring_stage(3), base=base, last_occurrence_seq=None, until_time=None)
+    occ = next_recurring_occurrence(
+        stage=_recurring_stage(3), base=base, last_occurrence_seq=None, until_time=None
+    )
     assert occ is not None
     assert occ.occurrence_seq == 0
     assert occ.fire_at == base + timedelta(days=3)
@@ -190,7 +206,9 @@ def test_recurring_first_occurrence_is_seq0():
 
 def test_recurring_advances_by_interval():
     base = datetime(2026, 6, 16, 0, 0, tzinfo=UTC)
-    occ = next_recurring_occurrence(stage=_recurring_stage(3), base=base, last_occurrence_seq=0, until_time=None)
+    occ = next_recurring_occurrence(
+        stage=_recurring_stage(3), base=base, last_occurrence_seq=0, until_time=None
+    )
     assert occ is not None
     assert occ.occurrence_seq == 1
     assert occ.fire_at == base + timedelta(days=6)
@@ -208,7 +226,9 @@ def test_recurring_stops_at_max_occurrences():
 def test_recurring_stops_at_until_time():
     base = datetime(2026, 6, 16, 0, 0, tzinfo=UTC)
     until = base + timedelta(days=5)  # seq0 fire=+3d(ok), seq1 fire=+6d(>until)
-    occ = next_recurring_occurrence(stage=_recurring_stage(3), base=base, last_occurrence_seq=0, until_time=until)
+    occ = next_recurring_occurrence(
+        stage=_recurring_stage(3), base=base, last_occurrence_seq=0, until_time=until
+    )
     assert occ is None
 
 

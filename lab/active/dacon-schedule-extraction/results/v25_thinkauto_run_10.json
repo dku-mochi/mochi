@@ -1,0 +1,62 @@
+{
+  "latency_ms": 9127.2,
+  "usage": {
+    "thoughts_tokens": 1944,
+    "candidates_tokens": 358,
+    "total_tokens": 8702
+  },
+  "finish_reason": "FinishReason.STOP",
+  "output": {
+    "category": "대회 일정",
+    "entities": [
+      {
+        "value": "2026-07-07 10:00",
+        "kind": "deadline"
+      },
+      {
+        "value": "2026-07-15 10:00",
+        "kind": "deadline"
+      },
+      {
+        "kind": "schedule",
+        "value": "2026-07-27 14:00"
+      }
+    ],
+    "review_options": [
+      {
+        "intent_type": "todo",
+        "label": "예선 아이디어 기획서 제출",
+        "reasoning": "대회 참가 시 필요한 예선 아이디어 기획서 제출 마감일입니다."
+      },
+      {
+        "intent_type": "todo",
+        "reasoning": "대회 참가 시 필요한 예선 최종 산출물 제출 마감일입니다.",
+        "label": "예선 최종 산출물 제출"
+      },
+      {
+        "label": "예선 결과발표",
+        "reasoning": "대회 예선 결과가 발표되는 날입니다.",
+        "intent_type": "schedule"
+      }
+    ],
+    "needs_review": true,
+    "importance": 3,
+    "intent_instances": [
+      {
+        "reasoning": "대회 참가 여부를 고민 중이거나 일정을 확인하기 위해 저장한 것으로 보입니다. 아직 참가 신청 전이므로 확정된 일정으로 관리하지 않고 메모로 저장합니다.",
+        "label": "대회 일정 확인",
+        "intent_type": "memo",
+        "payload": {
+          "title": "데이콘 대회 일정"
+        }
+      }
+    ],
+    "summary": "데이콘 대회 일정 및 주요 마감 기한을 확인하기 위해 저장했습니다. 아직 참가 신청 전이므로 향후 참가 결정 시 일정 관리가 필요할 수 있습니다."
+  },
+  "run": 10,
+  "arm": "v25_thinkauto",
+  "config": {
+    "thinking_budget": -1,
+    "max_output_tokens": 4096
+  }
+}

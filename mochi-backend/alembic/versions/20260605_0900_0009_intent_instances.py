@@ -89,11 +89,15 @@ def downgrade() -> None:
     )
     op.add_column(
         "mochi_items",
-        sa.Column("intent_applicability", postgresql.JSONB, nullable=False, server_default=sa.text("'{}'::jsonb")),
+        sa.Column(
+            "intent_applicability", postgresql.JSONB, nullable=False, server_default=sa.text("'{}'::jsonb")
+        ),
     )
     op.add_column(
         "mochi_items",
-        sa.Column("intent_candidates", postgresql.JSONB, nullable=False, server_default=sa.text("'[]'::jsonb")),
+        sa.Column(
+            "intent_candidates", postgresql.JSONB, nullable=False, server_default=sa.text("'[]'::jsonb")
+        ),
     )
     op.add_column(
         "mochi_items",

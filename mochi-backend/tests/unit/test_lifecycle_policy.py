@@ -22,20 +22,30 @@ def _archived(reason: ArchiveReason) -> InstanceLifecycleState:
 
 
 def test_schedule_can_archive_after_active() -> None:
-    assert is_allowed(Intent.SCHEDULE, _state(InstanceLifecycleKind.ACTIVE), _archived(ArchiveReason.SCHEDULE_ENDED))
+    assert is_allowed(
+        Intent.SCHEDULE, _state(InstanceLifecycleKind.ACTIVE), _archived(ArchiveReason.SCHEDULE_ENDED)
+    )
 
 
 def test_schedule_can_user_manual_archive() -> None:
-    assert is_allowed(Intent.SCHEDULE, _state(InstanceLifecycleKind.ACTIVE), _archived(ArchiveReason.USER_MANUAL))
+    assert is_allowed(
+        Intent.SCHEDULE, _state(InstanceLifecycleKind.ACTIVE), _archived(ArchiveReason.USER_MANUAL)
+    )
 
 
 def test_schedule_archive_with_wrong_reason_rejected() -> None:
-    assert not is_allowed(Intent.SCHEDULE, _state(InstanceLifecycleKind.ACTIVE), _archived(ArchiveReason.TODO_COMPLETED))
+    assert not is_allowed(
+        Intent.SCHEDULE, _state(InstanceLifecycleKind.ACTIVE), _archived(ArchiveReason.TODO_COMPLETED)
+    )
 
 
 def test_todo_archive_requires_todo_or_user_reason() -> None:
-    assert is_allowed(Intent.TODO, _state(InstanceLifecycleKind.ACTIVE), _archived(ArchiveReason.TODO_COMPLETED))
-    assert not is_allowed(Intent.TODO, _state(InstanceLifecycleKind.ACTIVE), _archived(ArchiveReason.KNOWLEDGE_STALE))
+    assert is_allowed(
+        Intent.TODO, _state(InstanceLifecycleKind.ACTIVE), _archived(ArchiveReason.TODO_COMPLETED)
+    )
+    assert not is_allowed(
+        Intent.TODO, _state(InstanceLifecycleKind.ACTIVE), _archived(ArchiveReason.KNOWLEDGE_STALE)
+    )
 
 
 def test_todo_can_uncomplete_archived_to_active() -> None:
@@ -66,9 +76,13 @@ def test_archive_without_reason_rejected() -> None:
 
 
 def test_knowledge_can_decay_then_review_requested() -> None:
-    assert is_allowed(Intent.KNOWLEDGE, _state(InstanceLifecycleKind.ACTIVE), _state(InstanceLifecycleKind.DECAYING))
     assert is_allowed(
-        Intent.KNOWLEDGE, _state(InstanceLifecycleKind.DECAYING), _state(InstanceLifecycleKind.REVIEW_REQUESTED)
+        Intent.KNOWLEDGE, _state(InstanceLifecycleKind.ACTIVE), _state(InstanceLifecycleKind.DECAYING)
+    )
+    assert is_allowed(
+        Intent.KNOWLEDGE,
+        _state(InstanceLifecycleKind.DECAYING),
+        _state(InstanceLifecycleKind.REVIEW_REQUESTED),
     )
 
 
@@ -83,5 +97,9 @@ def test_instance_transition_is_isolated_by_type() -> None:
 
     같은 캡쳐에서 todo 를 완료(todoCompleted)해도, schedule instance 는 todoCompleted 로 archive 불가.
     """
-    assert is_allowed(Intent.TODO, _state(InstanceLifecycleKind.ACTIVE), _archived(ArchiveReason.TODO_COMPLETED))
-    assert not is_allowed(Intent.SCHEDULE, _state(InstanceLifecycleKind.ACTIVE), _archived(ArchiveReason.TODO_COMPLETED))
+    assert is_allowed(
+        Intent.TODO, _state(InstanceLifecycleKind.ACTIVE), _archived(ArchiveReason.TODO_COMPLETED)
+    )
+    assert not is_allowed(
+        Intent.SCHEDULE, _state(InstanceLifecycleKind.ACTIVE), _archived(ArchiveReason.TODO_COMPLETED)
+    )

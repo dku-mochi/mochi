@@ -407,7 +407,7 @@ retrieval 책임은 search 모듈(새 seed-item 포트 필요 — 기존 `Retrie
 | 멱등성 | `Idempotency-Key` 헤더 필수. `mochi_item:{owner_id}:{raw_key}` 의 SHA-256 으로 owner-scoping |
 | 분산 추적 | `X-Mochi-Request-ID` 헤더 echo + structlog contextvars 자동 바인딩 |
 | 에러 envelope | `{code, message, requestId, retryAfter}` 통일 포맷, iOS `APIErrorEnvelope` 와 1:1 |
-| SSRF | WebFetchTool/PlatformContextTool: 호스트 블록리스트 + 모든 A/AAAA 답변 IP 검증 (DNS rebinding 방어) + 매 redirect 재검증 + 스트리밍 byte limit + MIME 화이트리스트 |
+| SSRF | WebFetchTool/PlatformContextTool 공유 가드(`safe_fetch.guarded_get`): 호스트 블록리스트 + 모든 A/AAAA 답변 IP 검증(IPv4-mapped unwrap 포함) + **연결-핀(검증한 IP 로 직접 연결, host 를 SNI/Host 로 보존 → 연결-시점 rebinding/TOCTOU 차단)** + 매 redirect 재핀 + 스트리밍 byte limit + MIME 화이트리스트 |
 
 ### 3.6 OpenAPI 계약 (⓪-tier 단일 원천)
 

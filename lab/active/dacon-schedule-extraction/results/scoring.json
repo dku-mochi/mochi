@@ -1,0 +1,109 @@
+[
+  {
+    "run": 1,
+    "n": 3,
+    "recall": 2,
+    "recall_kw": [
+      "기획서",
+      "산출물"
+    ],
+    "over": [
+      "대회기간 span"
+    ],
+    "span": true,
+    "noise": false,
+    "needs_review": false,
+    "date_check": {
+      "기획서": [
+        "2026-07-07 10:00",
+        true
+      ],
+      "산출물": [
+        "2026-07-15 10:00",
+        true
+      ]
+    },
+    "type_ok": true,
+    "category": "데이터 분석 대회"
+  },
+  {
+    "run": 2,
+    "n": 1,
+    "recall": 1,
+    "recall_kw": [
+      "기획서"
+    ],
+    "over": [],
+    "span": false,
+    "noise": false,
+    "needs_review": false,
+    "date_check": {
+      "기획서": [
+        "2026-07-07 10:00",
+        true
+      ]
+    },
+    "type_ok": true,
+    "category": "데이터 분석 대회"
+  },
+  {
+    "run": 3,
+    "n": 1,
+    "recall": 1,
+    "recall_kw": [
+      "기획서"
+    ],
+    "over": [],
+    "span": false,
+    "noise": false,
+    "needs_review": false,
+    "date_check": {
+      "기획서": [
+        "2026-07-07 10:00",
+        true
+      ]
+    },
+    "type_ok": true,
+    "category": "데이터 분석 대회"
+  },
+  {
+    "run": 4,
+    "n": 1,
+    "recall": 1,
+    "recall_kw": [
+      "기획서"
+    ],
+    "over": [],
+    "span": false,
+    "noise": false,
+    "needs_review": false,
+    "date_check": {
+      "기획서": [
+        "2026-07-07 10:00",
+        true
+      ]
+    },
+    "type_ok": true,
+    "category": "데이터 분석 대회"
+  },
+  {
+    "run": 5,
+    "n": 1,
+    "recall": 1,
+    "recall_kw": [
+      "기획서"
+    ],
+    "over": [],
+    "span": false,
+    "noise": false,
+    "needs_review": false,
+    "date_check": {
+      "기획서": [
+        "2026-07-07 10:00",
+        true
+      ]
+    },
+    "type_ok": true,
+    "category": "데이터 분석 대회"
+  }
+]

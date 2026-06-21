@@ -67,7 +67,9 @@ class PostgresHybridIndex(RetrievalIndex):
             bindparam("k", query.bm25_k),
         )
         rows = (await self._session.execute(sql)).all()
-        return [Citation(mochi_item_id=row.id, snippet=row.snippet or "", score=float(row.score)) for row in rows]
+        return [
+            Citation(mochi_item_id=row.id, snippet=row.snippet or "", score=float(row.score)) for row in rows
+        ]
 
     async def vector(self, query: SearchQuery) -> list[Citation]:
         if query.owner_id is None:
@@ -97,7 +99,10 @@ class PostgresHybridIndex(RetrievalIndex):
             bindparam("k", query.vector_k),
         )
         rows = (await self._session.execute(sql)).all()
-        return [Citation(mochi_item_id=row.mochi_item_id, snippet=row.snippet or "", score=float(row.score)) for row in rows]
+        return [
+            Citation(mochi_item_id=row.mochi_item_id, snippet=row.snippet or "", score=float(row.score))
+            for row in rows
+        ]
 
     async def similar(
         self, *, owner_id: UUID, mochi_item_id: UUID, limit: int, min_score: float

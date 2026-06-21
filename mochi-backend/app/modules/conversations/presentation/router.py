@@ -178,9 +178,7 @@ async def send_message(
         timeout_seconds=get_settings().chat_run_timeout_seconds,
         profile_loader=_load_chat_profile,
     )
-    task = asyncio.create_task(
-        runner.execute(owner_id=user, conversation_id=conversation_id, run_id=run_id)
-    )
+    task = asyncio.create_task(runner.execute(owner_id=user, conversation_id=conversation_id, run_id=run_id))
     _RUNNING_TASKS.add(task)
     task.add_done_callback(_RUNNING_TASKS.discard)
 
@@ -233,9 +231,7 @@ async def get_conversation_snapshot(
     )
 
 
-@router.patch(
-    "/{conversation_id}/proposals/{proposal_id}", status_code=status.HTTP_204_NO_CONTENT
-)
+@router.patch("/{conversation_id}/proposals/{proposal_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def update_proposal_status(
     conversation_id: UUID,
     proposal_id: UUID,

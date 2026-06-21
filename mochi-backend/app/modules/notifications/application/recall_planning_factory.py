@@ -30,9 +30,7 @@ from app.modules.notifications.infrastructure.recall_plan_repository import (
 )
 
 
-def make_plan_recall_notifications(
-    session: AsyncSession, *, owner_id: UUID
-) -> PlanRecallNotifications:
+def make_plan_recall_notifications(session: AsyncSession, *, owner_id: UUID) -> PlanRecallNotifications:
     """프로덕션 조립 — Gemini 플래너 + Postgres 어댑터. owner_id 는 get_scheduled owner-scope 용."""
     return PlanRecallNotifications(
         planner=GeminiRecallPlanner(owner_id=owner_id),
@@ -58,8 +56,5 @@ def make_generate_recall_candidates(session: AsyncSession) -> GenerateRecallCand
         dedup_cooldown_days=s.recall_dedup_cooldown_days,
         dismiss_cooldown_days=s.recall_dismiss_cooldown_days,
         owner_cooldown_hours=s.recall_owner_cooldown_hours,
-        daily_cap=s.recall_daily_cap,
-        quiet_start_hour=s.recall_quiet_start_hour_kst,
-        quiet_end_hour=s.recall_quiet_end_hour_kst,
         expires_days=s.recall_expires_days,
     )

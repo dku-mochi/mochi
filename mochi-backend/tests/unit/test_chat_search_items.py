@@ -201,7 +201,10 @@ async def test_semantic_path_runs_two_queries_and_reranks() -> None:
     vec_b.id = kw_b.id  # 두 갈래에 모두 잡힌 기록 — 중복 제거 대상
     captured: list[Any] = []
     voyage = _FakeVoyage(
-        ranked=[RerankedDocument(index=2, relevance_score=0.9), RerankedDocument(index=0, relevance_score=0.5)]
+        ranked=[
+            RerankedDocument(index=2, relevance_score=0.9),
+            RerankedDocument(index=0, relevance_score=0.5),
+        ]
     )
     tool = SearchItemsTool(
         session_factory=lambda: _FakeSession(captured, results=[[kw_a, kw_b], [vec_b, vec_c]]),
@@ -255,7 +258,8 @@ async def test_filter_only_browse_skips_semantic_path() -> None:
     captured: list[Any] = []
     voyage = _FakeVoyage()
     tool = SearchItemsTool(
-        session_factory=lambda: _FakeSession(captured), voyage=voyage  # type: ignore[arg-type]
+        session_factory=lambda: _FakeSession(captured),
+        voyage=voyage,  # type: ignore[arg-type]
     )
     await tool.run(owner_id=_OWNER, args={"intent_type": "schedule"})
     assert len(captured) == 1

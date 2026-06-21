@@ -1,0 +1,49 @@
+{
+  "latency_ms": 7361.5,
+  "usage": {
+    "thoughts_tokens": 1330,
+    "candidates_tokens": 290,
+    "total_tokens": 7833
+  },
+  "finish_reason": "FinishReason.STOP",
+  "output": {
+    "summary": "데이콘의 '데이스쿨 할인 리턴즈' 대회 일정입니다. 대회 상세 일정과 참가 신청 대기 상태를 확인하기 위해 저장했습니다.",
+    "intent_instances": [
+      {
+        "label": "대회 일정 확인",
+        "reasoning": "대회 상세 일정과 참가 신청 대기 상태를 확인하기 위해 저장했습니다. 사용자가 아직 참가 신청을 하지 않았으므로, 일정을 관리하기 전 단계로 판단하여 메모로 저장합니다.",
+        "intent_type": "memo",
+        "payload": {
+          "title": "데이스쿨 할인 리턴즈 대회 일정"
+        }
+      }
+    ],
+    "needs_review": true,
+    "importance": 3,
+    "entities": [
+      {
+        "value": "{\"provider\":\"dacon\",\"label\":\"데이스쿨 할인 리턴즈\",\"match_score\":1.0,\"url\":\"https://dacon.io/\"}",
+        "kind": "reference_url"
+      }
+    ],
+    "review_options": [
+      {
+        "intent_type": "schedule",
+        "label": "대회 일정 등록",
+        "reasoning": "대회 주요 일정을 캘린더에 등록하여 관리하고 싶습니다."
+      },
+      {
+        "intent_type": "todo",
+        "label": "대회 참가 신청 및 마감 관리",
+        "reasoning": "대회 참가 신청을 완료하고 제출 마감 기한을 관리하고 싶습니다."
+      }
+    ],
+    "category": "데이터 분석 대회"
+  },
+  "run": 4,
+  "arm": "v24b",
+  "config": {
+    "thinking_budget": -1,
+    "max_output_tokens": 4096
+  }
+}

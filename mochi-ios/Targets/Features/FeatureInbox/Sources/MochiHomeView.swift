@@ -255,7 +255,7 @@ public struct MochiHomeView: View {
     /// 카테고리 카드 그리드를 대체 — stacked 막대로 비중을 한눈에 보이고, 범례를 누르면 그 서랍이
     /// 3D 턴테이블로 펼쳐진다(서랍 탐색 기능은 보존, 진입점만 막대 범례로 옮김).
     private func monthlyReportCard(cardWidth: CGFloat) -> some View {
-        let peekW = cardWidth * 0.30
+        let peekW = cardWidth * 0.16
         return ZStack(alignment: .top) {
             reportCardBody
             // 작은 모찌가 카드 오른쪽에서 살짝 엿본다(귀엽게). 본체 하단선이 카드 top edge 에 걸침(검증 비율).
@@ -263,7 +263,7 @@ public struct MochiHomeView: View {
                 .resizable()
                 .scaledToFit()
                 .frame(width: peekW)
-                .offset(x: cardWidth * 0.18, y: -peekW * 0.383)
+                .offset(x: cardWidth * 0.25, y: -peekW * 0.383)
                 .shadow(color: HomeDesign.Color.ink900.opacity(0.16), radius: 6, x: 0, y: 4)
                 .allowsHitTesting(false)
                 .accessibilityHidden(true)
@@ -285,7 +285,7 @@ public struct MochiHomeView: View {
                 .foregroundStyle(HomeDesign.Color.purple600)
                 Spacer(minLength: 0)
                 Button {
-                    store.send(.weeklyDigestTapped)
+                    store.send(.monthlyDigestTapped)
                 } label: {
                     Text("자세히")
                         .font(.system(size: 12, weight: .heavy, design: .rounded))
@@ -344,7 +344,7 @@ public struct MochiHomeView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    /// 이번 달 비중 막대 — 상위 카테고리 + "그외" 한 묶음을 하나의 캡슐에 비율로 채운다.
+    /// 이번 달 비중 막대 — 상위 카테고리 + "기타" 한 묶음을 하나의 캡슐에 비율로 채운다.
     private var categoryStackBar: some View {
         let segments = reportSegments
         let total = max(segments.reduce(0) { $0 + $1.count }, 1)
@@ -365,7 +365,7 @@ public struct MochiHomeView: View {
         .animation(.spring(response: 0.5, dampingFraction: 0.9), value: store.monthlyRecordCount)
     }
 
-    /// 범례 — 탭 가능한 카테고리 칩 2열 그리드. 누르면 그 서랍의 3D 턴테이블로(그외는 탭 불가).
+    /// 범례 — 탭 가능한 카테고리 칩 2열 그리드. 누르면 그 서랍의 3D 턴테이블로(기타는 탭 불가).
     /// 연한 tint 배경 + 테두리 + chevron 으로 "누를 수 있다"를 분명히 한다(범례처럼 안 보이게).
     private var categoryLegend: some View {
         LazyVGrid(
@@ -417,18 +417,18 @@ public struct MochiHomeView: View {
                 .buttonStyle(PressableStyle())
                 .accessibilityLabel("\(seg.name) \(seg.count)개. 눌러서 입체로 펼쳐보기")
         } else {
-            row.accessibilityLabel("그외 \(seg.count)개")
+            row.accessibilityLabel("기타 \(seg.count)개")
         }
     }
 
-    /// 막대·범례 세그먼트 — 상위 3개 카테고리 + (나머지가 있으면) "그외".
-    /// "그외" 는 월간 총합에서 표시 카테고리 합을 뺀 값으로, 표시 밖 카테고리를 모두 흡수한다.
+    /// 막대·범례 세그먼트 — 상위 3개 카테고리 + (나머지가 있으면) "기타".
+    /// "기타" 는 월간 총합에서 표시 카테고리 합을 뺀 값으로, 표시 밖 카테고리를 모두 흡수한다.
     private struct ReportSegment: Identifiable {
         let id: String
         let name: String
         let count: Int
         let color: Color
-        /// 탭 → 그 서랍의 턴테이블. "그외" 는 nil(탭 불가).
+        /// 탭 → 그 서랍의 턴테이블. "기타" 는 nil(탭 불가).
         let bucket: CategoryBucket?
     }
 
@@ -448,7 +448,7 @@ public struct MochiHomeView: View {
         let etc = max(store.monthlyRecordCount - shownSum, 0)
         if etc > 0 {
             segments.append(ReportSegment(
-                id: "__etc__", name: "그외", count: etc,
+                id: "__etc__", name: "기타", count: etc,
                 color: HomeDesign.Color.purple200, bucket: nil
             ))
         }
