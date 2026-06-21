@@ -43,7 +43,11 @@ enum ShareExtDirectUpload {
         // timeout/실패면 false → 호출부가 이미 써 둔 큐가 처리(유실 0).
         do {
             let ok = try await withTimeout(seconds: timeoutSeconds(for: payload)) {
-                let uploaded = try await uploadedImageRefs(payload.imageRefs, using: client)
+                let uploaded = try await uploadedImageRefs(
+                    payload.imageRefs,
+                    policy: payload.privacy?.policy ?? .originalUpload,
+                    using: client
+                )
                 persistUploadedImageRefs(uploaded.imageRefs, for: payload, to: queueFileURL)
                 let request = MochiItemIngestRequest(
                     channel: payload.channelGuess,
@@ -100,13 +104,24 @@ enum ShareExtDirectUpload {
 
     private static func uploadedImageRefs(
         _ imageRefs: [ImageRef],
+        policy: PrivacyPolicy,
         using client: any MochiAPIClient
     ) async throws -> UploadedImageRefs {
+        // 기기에만 저장 — 서버에 이미지를 전송하지 않는다(텍스트/메타는 그대로 ingest).
+        if policy == .localOnly {
+            return UploadedImageRefs(imageRefs: imageRefs, dtos: [])
+        }
         var enrichedRefs: [ImageRef] = []
         var dtos: [ImageRefDTO] = []
 
         for imageRef in imageRefs {
             if let objectKey = imageRef.objectKey, !objectKey.isEmpty {
+                // objectKey 는 정책 적용 후 생성된다(블러 정책이면 블러본 key). 방어: blurredUpload 인데
+                // 블러본이 없으면 이 objectKey 는 원본일 수 있어 재사용하지 않는다(원본 유출 방지, codex P1).
+                if policy == .blurredUpload, imageRef.redactedRelativePath == nil {
+                    enrichedRefs.append(imageRef)
+                    continue
+                }
                 enrichedRefs.append(imageRef)
                 dtos.append(
                     ImageRefDTO(
@@ -119,8 +134,24 @@ enum ShareExtDirectUpload {
                 continue
             }
 
+            // 블러 정책이면 블러본을, 아니면 원본을 올린다. 블러본이 없으면 원본 유출을 막기 위해 스킵.
+            let sourcePath: String
+            switch policy {
+            case .localOnly:
+                enrichedRefs.append(imageRef)
+                continue
+            case .blurredUpload:
+                guard let redacted = imageRef.redactedRelativePath else {
+                    enrichedRefs.append(imageRef)
+                    continue
+                }
+                sourcePath = redacted
+            case .originalUpload:
+                sourcePath = imageRef.relativePath
+            }
+
             let originalData = try Data(
-                contentsOf: AppGroup.containerURL.appendingPathComponent(imageRef.relativePath)
+                contentsOf: AppGroup.containerURL.appendingPathComponent(sourcePath)
             )
             let uploadImage = try CaptureUploadImagePreprocessor.makeUploadVariant(from: originalData)
             let signed = try await client.presignCaptureUpload(
@@ -139,7 +170,11 @@ enum ShareExtDirectUpload {
                     mimeType: uploadImage.mimeType,
                     byteSize: uploadImage.byteSize,
                     sha256: uploadImage.sha256,
-                    objectKey: signed.objectKey
+                    objectKey: signed.objectKey,
+                    // 블러본 로컬 경로를 보존한다 — 빠뜨리면 이 enriched ref 가 큐를 덮어써(`persistUploadedImageRefs`)
+                    // 메인 앱 Realm 의 `redactedRelativePath` 가 nil 이 되고, `displayRelativePath` 가 원본을 가리켜
+                    // 저장된 캡처가 메인 앱에서 가려지지 않은 채 보인다.
+                    redactedRelativePath: imageRef.redactedRelativePath
                 )
             )
             dtos.append(
@@ -167,7 +202,8 @@ enum ShareExtDirectUpload {
             text: payload.text,
             userMemo: payload.userMemo,
             channelGuess: payload.channelGuess,
-            imageRefs: imageRefs
+            imageRefs: imageRefs,
+            privacy: payload.privacy
         )
         if let data = try? JSONEncoder().encode(enrichedPayload) {
             try? data.write(to: queueFileURL, options: [.atomic])

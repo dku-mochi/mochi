@@ -295,6 +295,20 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
         }
     }
 
+    public func logItemAccess(mochiServerID: UUID, source: ItemAccessSource) async throws {
+        // rawValue 가 백엔드 AccessSource enum 과 1:1 — 매핑 실패는 계약 불일치라 일어나지 않는다.
+        let body = Components.Schemas.AccessLogRequest(
+            source: Components.Schemas.AccessSource(rawValue: source.rawValue) ?? .home
+        )
+        let output = try await client.log_mochi_item_access_api_v1_mochi_items__mochi_item_id__access_post(
+            .init(path: .init(mochi_item_id: mochiServerID.uuidString), body: .json(body))
+        )
+        switch output {
+        case .noContent: return
+        case let .undocumented(status, payload): throw await Self.error(status: status, payload: payload)
+        }
+    }
+
     public func upcomingActionables() async throws -> [UpcomingActionableDTO] {
         let output = try await client.get_upcoming_actionables_api_v1_mochi_items_upcoming_get()
         switch output {

@@ -5,6 +5,7 @@ from uuid import UUID
 
 from app.modules.mochi_items.domain.entities import MochiItem
 from app.modules.mochi_items.domain.value_objects import (
+    AccessSource,
     InstanceLifecycleState,
     IntentInstance,
     ReviewOption,
@@ -156,6 +157,11 @@ class MochiItemRepository(Protocol):
     async def set_favorite(self, *, owner_id: UUID, mochi_item_id: UUID, is_favorite: bool) -> bool:
         """즐겨찾기 신호 set-state — owner-scoped UPDATE. 없거나 다른 owner 면 ``False``(→ 404).
         같은 값 재설정도 성공(멱등) — 존재/소유 검증은 application(`SetFavorite`)이 선행한다."""
+        ...
+
+    async def log_access(self, *, owner_id: UUID, mochi_item_id: UUID, source: AccessSource) -> None:
+        """상세 열람 이벤트 1행 INSERT(append-only). owner_id 를 행에 실어 cross-tenant 누설 차단.
+        존재/소유 검증은 application(`LogItemAccess`)이 선행 — 여기선 순수 적재만."""
         ...
 
     async def soft_delete(self, *, owner_id: UUID, mochi_item_id: UUID) -> None:

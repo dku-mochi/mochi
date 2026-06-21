@@ -1,6 +1,7 @@
 import Foundation
 import ComposableArchitecture
 import CoreAuth
+import CoreNetworking
 import CorePersistence
 import FeatureAuth
 import FeatureMochiItem
@@ -157,7 +158,7 @@ struct RootFeature: Sendable {
                     return .none
                 }
                 state.main.selectedTab = .home
-                return .send(.main(.openDetailFromNotification(serverID: serverID, hero: nil)))
+                return .send(.main(.openDetailFromNotification(serverID: serverID, hero: nil, source: .notification)))
 
             case let .recallNotificationTapped(recallEventID):
                 // 회수 알림 탭 → 홈 탭 + ③ 회수 상세 직행. 인증 전 도착은 동일하게 큐잉한다 —
@@ -256,7 +257,7 @@ struct RootFeature: Sendable {
         state.main.selectedTab = .home
         switch route {
         case let .detail(serverID):
-            return .send(.main(.openDetailFromNotification(serverID: serverID, hero: nil)))
+            return .send(.main(.openDetailFromNotification(serverID: serverID, hero: nil, source: .notification)))
         case let .recallLanding(recallEventID):
             return .send(.main(.openRecallLandingFromNotification(recallEventID: recallEventID)))
         }

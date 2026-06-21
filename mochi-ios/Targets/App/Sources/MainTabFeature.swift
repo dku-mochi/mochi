@@ -74,9 +74,9 @@ struct MainTabFeature: Sendable {
         case detail(PresentationAction<DetailFeature.Action>)
         /// 분석완료 알림 탭 → server PK 를 로컬 id 로 역매핑(effect, RootFeature 가 위임).
         /// `hero` 는 회수·턴테이블 카드처럼 출발 frame 이 있을 때만 비고, 알림 진입은 nil(중앙 scale).
-        case openDetailFromNotification(serverID: UUID, hero: HeroSourceFrames?)
+        case openDetailFromNotification(serverID: UUID, hero: HeroSourceFrames?, source: ItemAccessSource)
         /// 역매핑된 로컬 id 로 상세 present — 같은 항목이면 무시, 다른 상세가 떠 있으면 닫고 재open.
-        case presentDetailFromNotification(localID: UUID, hero: HeroSourceFrames?)
+        case presentDetailFromNotification(localID: UUID, hero: HeroSourceFrames?, source: ItemAccessSource)
         /// 회수 알림 탭 → recallEventID 로 단건 entry 를 서버 fetch(effect, RootFeature 가 위임).
         case openRecallLandingFromNotification(recallEventID: UUID)
         /// fetch 된 entry 로 ③ 회수 상세를 push. fetch 실패(404·네트워크)면 조용히 포기(홈 한 칸 fallback).
@@ -120,6 +120,7 @@ struct MainTabFeature: Sendable {
                 // 이미지 비행이 있으면 상세 hero 이미지를 숨긴 채 시작 — 비행 스냅샷과 이중 노출 방지.
                 state.detail = DetailFeature.State(
                     mochiItemID: mochiItemID,
+                    source: .home,
                     heroImageHidden: hero.cardImage != nil
                 )
                 return .none
@@ -168,7 +169,7 @@ struct MainTabFeature: Sendable {
                 // 실어 보존한다. 역매핑이 끝날 때까지 카드는 화면에 남아(즉시 제거 안 함) 비행 출발점이 유효하다.
                 // 닫힐 때 이 카드만 정확히 빼도록 server PK 를 기억해 둔다.
                 state.detailFromRecallItemID = itemID
-                return .send(.openDetailFromNotification(serverID: itemID, hero: hero))
+                return .send(.openDetailFromNotification(serverID: itemID, hero: hero, source: .recall))
 
             case let .home(.delegate(.categoryCarouselRequested(bucket))):
                 // 카테고리 카드 탭 → 그 서랍을 3D 턴테이블로 push. 홈이 집계한 묶음을 그대로 넘겨 즉시 그린다.
@@ -182,6 +183,7 @@ struct MainTabFeature: Sendable {
                 state.detailHero = hero
                 state.detail = DetailFeature.State(
                     mochiItemID: itemID,
+                    source: .category,
                     heroImageHidden: hero?.cardImage != nil
                 )
                 return .none
@@ -194,11 +196,11 @@ struct MainTabFeature: Sendable {
             case let .path(.element(id: _, action: .recallDetail(.delegate(.openOriginal(itemID))))):
                 // 회수 상세 "원본 보기" → 원본 mochiItem 상세 present(server PK 역매핑은 기존 경로 재사용).
                 // 카드 frame 출처가 없어 hero nil → 중앙 scale 폴백.
-                return .send(.openDetailFromNotification(serverID: itemID, hero: nil))
+                return .send(.openDetailFromNotification(serverID: itemID, hero: nil, source: .recall))
 
             case let .path(.element(id: _, action: .recallDetail(.delegate(.openRelated(itemID))))):
                 // 회수 상세 "관련 기억" 카드 탭 → 그 항목 상세 present(원본 보기와 같은 server PK 역매핑 경로).
-                return .send(.openDetailFromNotification(serverID: itemID, hero: nil))
+                return .send(.openDetailFromNotification(serverID: itemID, hero: nil, source: .recall))
 
             case let .path(.element(id: _, action: .recallDetail(.delegate(.stopped(itemID))))):
                 // 회수 상세 "그만 보기" → 홈 회수 히어로에서 그 카드 제거(opened-close 의 recallDetailClosed 재사용).
@@ -210,7 +212,7 @@ struct MainTabFeature: Sendable {
                 // 정리 화면의 항목 탭 → 상세 present (캘린더처럼 hero 없으면 중앙 scale 폴백).
                 guard state.detail == nil else { return .none }
                 state.detailHero = hero
-                state.detail = DetailFeature.State(mochiItemID: mochiItemID)
+                state.detail = DetailFeature.State(mochiItemID: mochiItemID, source: .digest)
                 return .none
 
             case let .path(.element(id: _, action: .monthlyDigest(.delegate(.categoryViewAllRequested(category))))):
@@ -228,6 +230,7 @@ struct MainTabFeature: Sendable {
                 state.detailHero = hero
                 state.detail = DetailFeature.State(
                     mochiItemID: mochiItemID,
+                    source: .favorites,
                     heroImageHidden: hero?.cardImage != nil
                 )
                 return .none
@@ -242,7 +245,7 @@ struct MainTabFeature: Sendable {
                 // presented VC 위에서 띄우므로 sheet 와 충돌하지 않고, 상세를 닫으면
                 // 보던 날짜 목록으로 그대로 돌아온다. hero 없으면 중앙 scale 폴백.
                 state.detailHero = hero
-                state.detail = DetailFeature.State(mochiItemID: mochiItemID)
+                state.detail = DetailFeature.State(mochiItemID: mochiItemID, source: .calendar)
                 return .none
 
             case let .search(.recentTapped(mochiItemID, hero)):
@@ -251,6 +254,7 @@ struct MainTabFeature: Sendable {
                 state.detailHero = hero
                 state.detail = DetailFeature.State(
                     mochiItemID: mochiItemID,
+                    source: .search,
                     heroImageHidden: hero?.cardImage != nil
                 )
                 return .none
@@ -264,7 +268,7 @@ struct MainTabFeature: Sendable {
                 // 채팅 근거 미니카드 탭 — hero frame 이 없어 중앙 scale 폴백 (캘린더와 동일).
                 guard state.detail == nil else { return .none }
                 state.detailHero = nil
-                state.detail = DetailFeature.State(mochiItemID: mochiItemID)
+                state.detail = DetailFeature.State(mochiItemID: mochiItemID, source: .chat)
                 return .none
 
             case let .debugInboxChanged(isOn):
@@ -306,10 +310,10 @@ struct MainTabFeature: Sendable {
                 // 비슷한 기록 탭(root 상세) → 닫지 않고 같은 상세의 push 스택에 그 항목을 쌓는다(앞으로 push).
                 // 오른쪽에서 밀려 들어오고, 시스템 back/엣지 스와이프로 이전 상세에 복귀한다(A→B→C 재귀).
                 // 자손 상세에서의 탭은 DetailFeature 가 자기 path 로 직접 흡수해 여기까지 오지 않는다.
-                state.detail?.path.append(DetailFeature.State(mochiItemID: localID))
+                state.detail?.path.append(DetailFeature.State(mochiItemID: localID, source: .related))
                 return .none
 
-            case let .openDetailFromNotification(serverID, hero):
+            case let .openDetailFromNotification(serverID, hero, source):
                 // 알림 페이로드는 server PK — 로컬 행으로 역매핑한 뒤 present 한다. 보통 로컬에 이미
                 // 있어 즉시 열리지만, 재설치 직후·타기기 생성 항목이면 RootFeature 의 pullRemote 가
                 // 항목을 끌어올 때까지 짧게(최대 ~2.5s) 재시도한다. 끝내 없으면 조용히 포기 —
@@ -317,7 +321,7 @@ struct MainTabFeature: Sendable {
                 return .run { send in
                     for attempt in 0..<6 {
                         if let item = try? await repository.find(serverID: serverID) {
-                            await send(.presentDetailFromNotification(localID: item.id, hero: hero))
+                            await send(.presentDetailFromNotification(localID: item.id, hero: hero, source: source))
                             return
                         }
                         if attempt < 5 { try? await Task.sleep(for: .milliseconds(500)) }
@@ -325,7 +329,7 @@ struct MainTabFeature: Sendable {
                 }
                 .cancellable(id: CancelID.notificationOpen, cancelInFlight: true)
 
-            case let .presentDetailFromNotification(localID, hero):
+            case let .presentDetailFromNotification(localID, hero, source):
                 // 같은 항목 상세가 이미 떠 있으면 그대로 둔다(재present 시 화면 깜빡임만 생긴다).
                 if state.detail?.mochiItemID == localID { return .none }
                 // 다른 상세가 떠 있으면 닫고, dismiss 가 끝난 뒤 그 항목으로 새로 연다. 새 State 라 push 스택도
@@ -337,7 +341,7 @@ struct MainTabFeature: Sendable {
                     state.detailHero = nil
                     return .run { send in
                         try? await Task.sleep(for: .milliseconds(360))
-                        await send(.presentDetailFromNotification(localID: localID, hero: hero))
+                        await send(.presentDetailFromNotification(localID: localID, hero: hero, source: source))
                     }
                     .cancellable(id: CancelID.notificationOpen, cancelInFlight: true)
                 }
@@ -346,6 +350,7 @@ struct MainTabFeature: Sendable {
                 state.detailHero = hero
                 state.detail = DetailFeature.State(
                     mochiItemID: localID,
+                    source: source,
                     heroImageHidden: hero?.cardImage != nil
                 )
                 return .none

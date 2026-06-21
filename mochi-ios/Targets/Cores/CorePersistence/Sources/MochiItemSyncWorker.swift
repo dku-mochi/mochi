@@ -193,9 +193,14 @@ public actor MochiItemSyncWorker {
     }
 
     private func uploadedImageRefDTOs(for mochiItem: MochiItem) async throws -> [ImageRefDTO] {
+        let policy = mochiItem.source.privacy?.policy ?? .originalUpload
+        // 기기에만 저장 — 서버에 이미지를 전송하지 않는다(텍스트/메타는 그대로 ingest).
+        if policy == .localOnly { return [] }
         var refs: [ImageRefDTO] = []
         for imageRef in mochiItem.source.imageRefs {
-            let uploaded = try await ensureUploadedImageRef(mochiItemID: mochiItem.id, imageRef: imageRef)
+            guard let uploaded = try await ensureUploadedImageRef(
+                mochiItemID: mochiItem.id, imageRef: imageRef, policy: policy
+            ) else { continue }
             refs.append(
                 ImageRefDTO(
                     objectKey: uploaded.objectKey,
@@ -208,8 +213,17 @@ public actor MochiItemSyncWorker {
         return refs
     }
 
-    private func ensureUploadedImageRef(mochiItemID: UUID, imageRef: ImageRef) async throws -> ImageRefDTO {
+    /// 정책에 따라 원본/블러본을 업로드한다. 블러 정책인데 블러본이 없으면 원본 유출을 막기 위해
+    /// `nil`(업로드 스킵)을 반환한다.
+    private func ensureUploadedImageRef(
+        mochiItemID: UUID,
+        imageRef: ImageRef,
+        policy: PrivacyPolicy
+    ) async throws -> ImageRefDTO? {
         if let objectKey = imageRef.objectKey, !objectKey.isEmpty {
+            // objectKey 는 정책 적용 후 생성된다(블러 정책이면 블러본 key). 방어: blurredUpload 인데
+            // 블러본이 없으면 이 objectKey 는 원본일 수 있어 재사용하지 않는다(원본 유출 방지, codex P1).
+            if policy == .blurredUpload, imageRef.redactedRelativePath == nil { return nil }
             return ImageRefDTO(
                 objectKey: objectKey,
                 mimeType: imageRef.mimeType,
@@ -217,7 +231,17 @@ public actor MochiItemSyncWorker {
                 sha256: imageRef.sha256
             )
         }
-        let originalData = try readImageBytes(imageRef.relativePath)
+        let sourcePath: String
+        switch policy {
+        case .localOnly:
+            return nil
+        case .blurredUpload:
+            guard let redacted = imageRef.redactedRelativePath else { return nil }
+            sourcePath = redacted
+        case .originalUpload:
+            sourcePath = imageRef.relativePath
+        }
+        let originalData = try readImageBytes(sourcePath)
         let uploadImage = try CaptureUploadImagePreprocessor.makeUploadVariant(from: originalData)
         let signed = try await apiClient.presignCaptureUpload(
             sha256: uploadImage.sha256,

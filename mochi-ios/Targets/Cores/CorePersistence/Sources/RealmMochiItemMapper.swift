@@ -23,6 +23,8 @@ public enum RealmMochiItemMapper {
         row.importance = mochiItem.analysis?.importance.rawValue ?? 3
         row.needsReview = mochiItem.analysis?.needsReview ?? false
         row.modelVersion = mochiItem.analysis?.modelVersion
+        row.privacyPolicyRawValue = mochiItem.source.privacy?.policy.rawValue
+        row.sensitivityLevelRawValue = mochiItem.source.privacy?.level.rawValue
         row.lifecycleStateRawValue = lifecycleStateRaw(mochiItem.lifecycleState)
         row.syncStateRawValue = syncStateRaw(mochiItem.syncState)
         row.capturedAt = mochiItem.source.capturedAt
@@ -41,6 +43,7 @@ public enum RealmMochiItemMapper {
             imgRow.byteSize = ref.byteSize
             imgRow.sha256 = ref.sha256
             imgRow.objectKey = ref.objectKey
+            imgRow.redactedRelativePath = ref.redactedRelativePath
             row.imageRefs.append(imgRow)
         }
 
@@ -86,7 +89,8 @@ public enum RealmMochiItemMapper {
             text: row.text,
             imageRefs: row.imageRefs.map(decode(imageRef:)),
             userMemo: row.userMemo,
-            capturedAt: row.capturedAt
+            capturedAt: row.capturedAt,
+            privacy: decodePrivacy(policyRaw: row.privacyPolicyRawValue, levelRaw: row.sensitivityLevelRawValue)
         )
 
         var analysis: MochiItemAnalysis?
@@ -185,8 +189,15 @@ public enum RealmMochiItemMapper {
             mimeType: row.mimeType,
             byteSize: row.byteSize,
             sha256: row.sha256,
-            objectKey: row.objectKey
+            objectKey: row.objectKey,
+            redactedRelativePath: row.redactedRelativePath
         )
+    }
+
+    private static func decodePrivacy(policyRaw: String?, levelRaw: String?) -> PrivacyDecision? {
+        guard let policyRaw, let policy = PrivacyPolicy(rawValue: policyRaw) else { return nil }
+        let level = levelRaw.flatMap(SensitivityLevel.init(rawValue:)) ?? .caution
+        return PrivacyDecision(policy: policy, level: level)
     }
 
     // MARK: - ActionCandidate encoding

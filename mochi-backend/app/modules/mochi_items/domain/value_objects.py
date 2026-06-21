@@ -37,6 +37,29 @@ class ArchiveReason(StrEnum):
     USER_MANUAL = "userManual"
 
 
+class AccessSource(StrEnum):
+    """사용자가 상세를 연 **직전 화면(navigation origin)** — 접근 자체가 아니라 *어디서 왔나*.
+
+    origin 이 의도를 인코딩한다: ``search``=사용자가 존재를 알고 의도적으로 찾음,
+    ``chat``=모찌가 못 떠올린 걸 찾아줌(능동회수 성공), ``recall``/``notification``=모찌 능동 push.
+    능동 회수 랭킹(최근 클릭한 기록 가중)에서 origin 별로 신호 강도를 다르게 쓰기 위한 차원.
+
+    안정적 도메인 enum 이 아니라 *진화하는 분석 차원* — DB CheckConstraint 로 굳히지 않고
+    API(Pydantic/OpenAPI) 레이어에서만 검증한다(origin 추가가 마이그레이션을 요구하지 않게).
+    """
+
+    HOME = "home"
+    SEARCH = "search"
+    CHAT = "chat"
+    RECALL = "recall"
+    NOTIFICATION = "notification"
+    CALENDAR = "calendar"
+    CATEGORY = "category"
+    FAVORITES = "favorites"
+    DIGEST = "digest"
+    RELATED = "related"
+
+
 @dataclass(frozen=True, slots=True)
 class InstanceLifecycleState:
     kind: InstanceLifecycleKind = InstanceLifecycleKind.ACTIVE

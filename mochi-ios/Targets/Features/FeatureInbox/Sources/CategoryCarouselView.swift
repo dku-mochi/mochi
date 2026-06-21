@@ -258,7 +258,7 @@ public struct CategoryCarouselView: View {
         return HeroSourceFrames(
             card: rect,
             cardImage: ref != nil ? rect : nil,
-            imageRelativePath: ref?.relativePath
+            imageRelativePath: ref?.displayRelativePath
         )
     }
 
@@ -291,7 +291,7 @@ private struct TurntableCover: View {
                 // center fill — 홈 카드·hero 비행(`scaleAspectFill`)·상세 헤더와 같은 크롭이라, 탭/복귀 hero
                 // 전환에서 같은 영역이 보여 이미지가 튀지 않는다(이전 `.top` 은 위쪽만 보여 복귀 시 어긋났다).
                 LocalThumbnail(
-                    relativePath: ref.relativePath,
+                    relativePath: ref.displayRelativePath,
                     objectKey: ref.objectKey,
                     sha256: ref.sha256,
                     mimeType: ref.mimeType,

@@ -14,6 +14,10 @@ from app.modules.mochi_items.application.delete_mochi_item import (
     DeleteMochiItemCommand,
 )
 from app.modules.mochi_items.application.ingest import Ingest, IngestCommand
+from app.modules.mochi_items.application.log_item_access import (
+    LogItemAccess,
+    LogItemAccessCommand,
+)
 from app.modules.mochi_items.application.monthly_digest import GenerateMonthlyDigest
 from app.modules.mochi_items.application.queries import (
     GetMonthlyCalendar,
@@ -46,6 +50,7 @@ from app.modules.mochi_items.infrastructure.gemini_monthly_digest import GeminiM
 from app.modules.mochi_items.infrastructure.outbox import OutboxNotifier
 from app.modules.mochi_items.infrastructure.repository import PostgresMochiItemRepository
 from app.modules.mochi_items.presentation.schemas import (
+    AccessLogRequest,
     CalendarDayResponse,
     DownloadUrlRequest,
     DownloadUrlResponse,
@@ -611,6 +616,25 @@ async def set_mochi_item_favorite(
     )
     await db.commit()
     return _to_response(item)
+
+
+@router.post("/{mochi_item_id}/access", status_code=status.HTTP_204_NO_CONTENT)
+async def log_mochi_item_access(
+    mochi_item_id: UUID,
+    payload: AccessLogRequest,
+    db: DBSession,
+    user: CurrentUser,
+) -> None:
+    """상세 열람 이벤트 기록 — iOS 가 상세 진입 시 best-effort 로 호출(fire-and-forget).
+
+    ``source`` 는 상세를 연 직전 화면(navigation origin)으로, origin 이 의도를 인코딩한다
+    (검색=의도적 회수, 채팅=모찌가 찾아줌). 능동 회수 랭킹의 "최근 클릭한 기록" 신호로 쓰인다.
+    best-effort: 없는/다른 owner 항목은 조용히 204(use-case no-op) — 로깅이 UI 를 막지 않는다.
+    """
+    await LogItemAccess(repository=PostgresMochiItemRepository(db)).execute(
+        LogItemAccessCommand(owner_id=user, mochi_item_id=mochi_item_id, source=payload.source)
+    )
+    await db.commit()
 
 
 @router.delete("/{mochi_item_id}", status_code=status.HTTP_204_NO_CONTENT)

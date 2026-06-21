@@ -85,6 +85,31 @@ class MochiItemImageRefRow(Base):
     mochi_item: Mapped["MochiItemRow"] = relationship(back_populates="image_refs", default=None)
 
 
+class ItemAccessLogRow(Base):
+    """사용자 상세 열람 이벤트 — append-only(같은 item 다회 열람 = 다회 행). 관계 없음(쓰기 전용).
+
+    ``source`` = 상세를 연 직전 화면(navigation origin). lifecycle 과 직교한 순수 관찰 로그.
+    ``owner_id`` 는 컨벤션대로 FK 없이 denormalized. 인덱스는 마이그레이션 0025 와 1:1.
+    """
+
+    __tablename__ = "item_access_log"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True, init=False)
+    owner_id: Mapped[UUID] = mapped_column(PgUUIDColumn(as_uuid=True))
+    mochi_item_id: Mapped[UUID] = mapped_column(
+        PgUUIDColumn(as_uuid=True), ForeignKey("mochi_items.id", ondelete="CASCADE")
+    )
+    source: Mapped[str] = mapped_column(String(16))
+    accessed_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default_factory=datetime.utcnow
+    )
+
+    __table_args__ = (
+        Index("ix_item_access_log_owner_accessed", "owner_id", "accessed_at"),
+        Index("ix_item_access_log_owner_item_accessed", "owner_id", "mochi_item_id", "accessed_at"),
+    )
+
+
 class IntentInstanceRow(Base):
     """LLM 이 한 캡쳐에서 펼친 의도 1개 — 1급 행. 저장돼 있으면 곧 active.
 

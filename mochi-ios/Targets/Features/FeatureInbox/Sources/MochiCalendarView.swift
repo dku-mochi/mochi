@@ -781,7 +781,7 @@ private struct DayMochiRow: View {
             onTap(item.id, HeroSourceFrames(
                 card: cardFrame,
                 cardImage: (item.viewKind == .screenshot && mediaFrame != .zero) ? mediaFrame : nil,
-                imageRelativePath: item.source.imageRefs.first?.relativePath
+                imageRelativePath: item.source.imageRefs.first?.displayRelativePath
             ))
         } label: {
             HStack(spacing: HomeDesign.Spacing.md) {
@@ -843,7 +843,7 @@ private struct DayMochiRow: View {
     private var thumbnail: some View {
         if item.viewKind == .screenshot {
             LocalThumbnail(
-                relativePath: item.source.imageRefs.first?.relativePath,
+                relativePath: item.source.imageRefs.first?.displayRelativePath,
                 objectKey: item.source.imageRefs.first?.objectKey,
                 sha256: item.source.imageRefs.first?.sha256,
                 mimeType: item.source.imageRefs.first?.mimeType,

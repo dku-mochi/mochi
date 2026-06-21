@@ -20,6 +20,7 @@ from app.modules.mochi_items.domain.entities import (
 )
 from app.modules.mochi_items.domain.ports import MochiItemRepository
 from app.modules.mochi_items.domain.value_objects import (
+    AccessSource,
     ArchiveReason,
     InstanceLifecycleKind,
     InstanceLifecycleState,
@@ -32,6 +33,7 @@ from app.modules.mochi_items.infrastructure.orm import (
     EntityRow,
     IdempotencyKeyRow,
     IntentInstanceRow,
+    ItemAccessLogRow,
     MochiItemImageRefRow,
     MochiItemRow,
 )
@@ -624,6 +626,14 @@ class PostgresMochiItemRepository(MochiItemRepository):
         )
         await self._session.flush()
         return bool(getattr(result, "rowcount", 0))
+
+    async def log_access(self, *, owner_id: UUID, mochi_item_id: UUID, source: AccessSource) -> None:
+        # append-only INSERT — owner_id 를 행에 실어 cross-tenant 불가. 존재/소유 검증은
+        # application(LogItemAccess)이 find_by_id 로 선행한다(없는 item 은 no-op, 로깅 안 함).
+        self._session.add(
+            ItemAccessLogRow(owner_id=owner_id, mochi_item_id=mochi_item_id, source=source.value)
+        )
+        await self._session.flush()
 
     async def update_instance_fields(
         self,

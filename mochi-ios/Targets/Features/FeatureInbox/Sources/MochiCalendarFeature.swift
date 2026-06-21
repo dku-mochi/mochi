@@ -430,7 +430,7 @@ public struct CalendarDaySummary: Equatable, Sendable, Identifiable {
             return CalendarDaySummary(
                 date: day,
                 count: group.count,
-                thumbnailRelativePath: group.lazy.compactMap { $0.source.imageRefs.first?.relativePath }.first,
+                thumbnailRelativePath: group.lazy.compactMap { $0.source.imageRefs.first?.displayRelativePath }.first,
                 dueCount: dueIntents.count + (inRange ? 1 : 0),
                 hasScheduleDue: dueIntents.contains(.schedule),
                 hasTodoDue: dueIntents.contains(.todo),
