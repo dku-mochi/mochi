@@ -20,6 +20,8 @@ import CorePersistence
 ///
 /// 디자인 토큰/컴포넌트는 ``ShareDesign`` 을 통해 ``ShareEntryView`` 와 공유한다.
 struct BackTapShareView: View {
+    /// 선감지 결과 — 가림이 적용되면 블러본을 작업 이미지로 보여주고 저장 payload 에 싣는다.
+    @ObservedObject var redaction: CaptureRedaction
     let imageRefs: [ImageRef]
     let channelGuess: IngestChannel
     let sourceApp: String?
@@ -51,7 +53,7 @@ struct BackTapShareView: View {
                 )
                 .shareEntrance(0, appeared: appeared)
 
-                if !imageRemoved, let firstImage = imageRefs.first {
+                if !imageRemoved, let firstImage = redaction.workingRef ?? imageRefs.first {
                     ShareCropImage(imageRef: firstImage, crop: $crop)
                         .frame(maxHeight: .infinity)
                         .transition(.opacity.combined(with: .scale(scale: 0.96)))
@@ -112,7 +114,7 @@ struct BackTapShareView: View {
                 .foregroundStyle(.white)
             Button("되돌리기", action: undoRemove)
                 .font(.system(size: 14, weight: .bold, design: .rounded))
-                .foregroundStyle(Color(red: 0.80, green: 0.76, blue: 1.0))
+                .foregroundStyle(ShareDesign.snackbarAccent)
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 12)
@@ -151,7 +153,8 @@ struct BackTapShareView: View {
                 text: text,
                 userMemo: memo.isEmpty ? nil : memo,
                 channelGuess: imageRemoved ? .appDirectInput : channelGuess,
-                imageRefs: imageRemoved ? [] : imageRefs
+                imageRefs: imageRemoved ? [] : (redaction.workingRef.map { [$0] + imageRefs.dropFirst() } ?? imageRefs),
+                privacy: imageRemoved ? nil : redaction.decision
             ),
             imageRemoved ? ShareCropImage.fullCrop : crop
         )

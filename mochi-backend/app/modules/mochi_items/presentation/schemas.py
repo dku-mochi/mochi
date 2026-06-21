@@ -4,7 +4,11 @@ from pydantic import BaseModel, Field
 
 from app.core.schema import UtcDateTime
 from app.modules.mochi_items.domain.entities import IngestChannel
-from app.modules.mochi_items.domain.value_objects import ArchiveReason, InstanceLifecycleKind
+from app.modules.mochi_items.domain.value_objects import (
+    AccessSource,
+    ArchiveReason,
+    InstanceLifecycleKind,
+)
 from app.shared.intent import Intent
 
 
@@ -146,6 +150,17 @@ class FavoriteUpdateRequest(BaseModel):
     같은 값 재전송은 멱등 no-op(완료 토글과 동일 규약)."""
 
     is_favorite: bool = Field(alias="isFavorite")
+
+    model_config = {"populate_by_name": True}
+
+
+class AccessLogRequest(BaseModel):
+    """상세 열람 이벤트 기록 요청 — ``source`` 는 상세를 연 직전 화면(navigation origin).
+
+    enum 검증은 이 경계(Pydantic/OpenAPI)에서만 — DB 는 String 으로 permissive(origin 진화 대비).
+    """
+
+    source: AccessSource
 
     model_config = {"populate_by_name": True}
 

@@ -76,6 +76,13 @@ public protocol MochiAPIClient: Sendable {
     @discardableResult
     func setFavorite(mochiServerID: UUID, isFavorite: Bool) async throws -> MochiItemDTO
 
+    /// `POST /api/v1/mochi_items/{id}/access` — 상세 열람 이벤트 기록(append-only, best-effort).
+    /// `source` 는 상세를 연 직전 화면(navigation origin) — origin 이 의도를 인코딩한다
+    /// (검색=의도적 회수, 채팅=모찌가 찾아줌). 능동 회수 랭킹의 "최근 클릭한 기록" 신호.
+    /// fire-and-forget: 호출부가 `try?` 로 실패를 삼킨다(로깅이 UI 를 막지 않는다).
+    /// `mochiServerID` 는 업로드된 서버 id 여야 한다(미업로드 로컬 항목엔 호출하지 않는다).
+    func logItemAccess(mochiServerID: UUID, source: ItemAccessSource) async throws
+
     /// `PATCH /api/v1/mochi_items/{id}` — 콘텐츠(text/userMemo/summary) + instance 변경
     /// (payload 병합·label·lifecycle 전이)을 **한 트랜잭션**으로. 채팅 수정 proposal 확정 경로.
     /// 404(`*.not_found`) = 카드 만료, 409 = 불법 lifecycle 전이.
@@ -329,6 +336,23 @@ public enum PushTokenKind: String, Sendable, Codable {
 public enum PushEnvironment: String, Sendable, Codable {
     case sandbox
     case production
+}
+
+/// 상세를 연 직전 화면(navigation origin) — `logItemAccess` 의 `source`.
+/// origin 이 의도를 인코딩한다(검색=의도적 회수, 채팅=모찌가 찾아줌, recall/notification=모찌 push).
+/// rawValue 는 백엔드 `AccessSource` enum 과 1:1(계약 정본). 새 origin 은 백엔드 enum 에 먼저 추가.
+public enum ItemAccessSource: String, Sendable, Codable {
+    case home
+    case search
+    case chat
+    case recall
+    case notification
+    case calendar
+    case category
+    case favorites
+    case digest
+    /// 상세 안의 "비슷한 기록" 카드로 들어간 재귀 진입(세션 내 연관 탐색).
+    case related
 }
 
 // MARK: - Request / Response DTOs

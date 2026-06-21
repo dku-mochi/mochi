@@ -235,7 +235,7 @@ private struct AmbiguousCard: View {
             switch mochiItem.viewKind {
             case .screenshot:
                 LocalThumbnail(
-                    relativePath: mochiItem.source.imageRefs.first?.relativePath,
+                    relativePath: mochiItem.source.imageRefs.first?.displayRelativePath,
                     objectKey: mochiItem.source.imageRefs.first?.objectKey,
                     sha256: mochiItem.source.imageRefs.first?.sha256,
                     mimeType: mochiItem.source.imageRefs.first?.mimeType,
@@ -458,7 +458,7 @@ private struct AnalyzingRow: View {
         switch mochiItem.viewKind {
         case .screenshot:
             LocalThumbnail(
-                relativePath: mochiItem.source.imageRefs.first?.relativePath,
+                relativePath: mochiItem.source.imageRefs.first?.displayRelativePath,
                 objectKey: mochiItem.source.imageRefs.first?.objectKey,
                 sha256: mochiItem.source.imageRefs.first?.sha256,
                 mimeType: mochiItem.source.imageRefs.first?.mimeType,

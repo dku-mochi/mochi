@@ -33,8 +33,8 @@ enum ScreenshotSaver {
     }
 
     private static func imageData(ref: ImageRef, apiClient: any MochiAPIClient) async throws -> Data {
-        if !ref.relativePath.isEmpty {
-            let url = AppGroup.containerURL.appendingPathComponent(ref.relativePath)
+        if !ref.displayRelativePath.isEmpty {
+            let url = AppGroup.containerURL.appendingPathComponent(ref.displayRelativePath)
             if let data = try? Data(contentsOf: url) { return data }
         }
         guard let objectKey = ref.objectKey, !objectKey.isEmpty else { throw SaveError.noImage }

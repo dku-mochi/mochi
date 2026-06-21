@@ -78,7 +78,7 @@ struct SearchGridCard: View {
             onTap(HeroSourceFrames(
                 card: frames.card,
                 cardImage: hasThumbnail ? frames.media : nil,
-                imageRelativePath: item.source.imageRefs.first?.relativePath
+                imageRelativePath: item.source.imageRefs.first?.displayRelativePath
             ))
         } label: {
             Group {
@@ -185,7 +185,7 @@ struct SearchGridCard: View {
     private var showcaseBody: some View {
         ZStack(alignment: .bottomLeading) {
             LocalThumbnail(
-                relativePath: item.source.imageRefs.first?.relativePath,
+                relativePath: item.source.imageRefs.first?.displayRelativePath,
                 objectKey: item.source.imageRefs.first?.objectKey,
                 sha256: item.source.imageRefs.first?.sha256,
                 mimeType: item.source.imageRefs.first?.mimeType,
@@ -389,7 +389,7 @@ private struct SearchCardPreview: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            if let path = item.source.imageRefs.first?.relativePath {
+            if let path = item.source.imageRefs.first?.displayRelativePath {
                 LocalThumbnail(
                     relativePath: path,
                     objectKey: item.source.imageRefs.first?.objectKey,

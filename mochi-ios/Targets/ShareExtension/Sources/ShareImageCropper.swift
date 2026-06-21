@@ -12,10 +12,40 @@ import CorePersistence
 enum ShareImageCropper {
     /// crop: 0...1 정규화 rect, **표시 이미지(orientation 적용) 기준**. 사실상 전체면(epsilon 여백)
     /// nil 을 돌려 호출부가 원본을 그대로 쓰게 한다(불필요한 재인코딩 회피).
+    ///
+    /// **원본·블러본을 같은 rect 로 각각 잘라** `relativePath`(원본 보존)와 `redactedRelativePath`(블러본)를
+    /// 분리 유지한다(불변식 1·5). 블러본이 있는데 그 크롭에 실패하면 원본 노출을 막기 위해 크롭 전체를
+    /// 포기한다(fail-closed) — 호출부가 가려진 워킹 ref 를 그대로 쓴다.
     static func croppedRef(from ref: ImageRef, crop: CGRect) -> ImageRef? {
         guard !isFull(crop) else { return nil }
 
-        let srcURL = AppGroup.containerURL.appendingPathComponent(ref.relativePath)
+        // 원본이 jpeg 면 jpeg(0.92 면 텍스트 많은 스크린샷도 충분), 그 외엔 png 무손실.
+        let isJPEG = ref.mimeType.localizedCaseInsensitiveContains("jpeg")
+            || ref.mimeType.localizedCaseInsensitiveContains("jpg")
+        guard let original = cropFile(relativePath: ref.relativePath, crop: crop, isJPEG: isJPEG) else { return nil }
+
+        // 가려진(블러본) 작업 이미지였으면 블러본도 같은 rect 로 잘라 display/upload 가 잘린 블러본을 쓰게 한다.
+        // 블러본은 항상 PNG(`writeBlurredPNG`). 크롭 실패는 fail-closed.
+        var croppedRedactedPath: String?
+        if let redacted = ref.redactedRelativePath {
+            guard let blurredCrop = cropFile(relativePath: redacted, crop: crop, isJPEG: false) else { return nil }
+            croppedRedactedPath = blurredCrop.relativePath
+        }
+
+        return ImageRef(
+            relativePath: original.relativePath,
+            mimeType: original.mimeType,
+            byteSize: original.byteSize,
+            sha256: original.sha256,
+            objectKey: nil,
+            redactedRelativePath: croppedRedactedPath
+        )
+    }
+
+    /// 한 파일(원본 또는 블러본)을 정규화 crop 으로 잘라 새 파일 + 기본 ``ImageRef``(objectKey/redacted 없음)를
+    /// 만든다. 표시 좌표 기준 rect 를 베이크된 픽셀 좌표로 변환해 자른다.
+    private static func cropFile(relativePath: String, crop: CGRect, isJPEG: Bool) -> ImageRef? {
+        let srcURL = AppGroup.containerURL.appendingPathComponent(relativePath)
         guard let data = try? Data(contentsOf: srcURL),
               let image = UIImage(data: data),
               let cg = orientedCGImage(image) else { return nil }
@@ -35,9 +65,6 @@ enum ShareImageCropper {
               let cropped = cg.cropping(to: rect) else { return nil }
 
         let croppedImage = UIImage(cgImage: cropped)
-        // 원본이 jpeg 면 jpeg(0.92 면 텍스트 많은 스크린샷도 충분), 그 외엔 png 무손실.
-        let isJPEG = ref.mimeType.localizedCaseInsensitiveContains("jpeg")
-            || ref.mimeType.localizedCaseInsensitiveContains("jpg")
         let outData: Data?
         let ext: String
         let mime: String
@@ -53,13 +80,13 @@ enum ShareImageCropper {
         guard let bytes = outData else { return nil }
 
         let filename = "\(UUID().uuidString).\(ext)"
-        let relativePath = "captures/\(filename)"
+        let outPath = "captures/\(filename)"
         let destination = AppGroup.capturedImagesDirectoryURL.appendingPathComponent(filename)
         guard (try? bytes.write(to: destination, options: [.atomic])) != nil else { return nil }
 
         let digest = SHA256.hash(data: bytes).map { String(format: "%02x", $0) }.joined()
         return ImageRef(
-            relativePath: relativePath,
+            relativePath: outPath,
             mimeType: mime,
             byteSize: bytes.count,
             sha256: digest,

@@ -203,6 +203,17 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `POST /api/v1/mochi_items/{mochi_item_id}/favorite`.
     /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/favorite/post(set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post)`.
     func set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post(_ input: Operations.set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post.Input) async throws -> Operations.set_mochi_item_favorite_api_v1_mochi_items__mochi_item_id__favorite_post.Output
+    /// Log Mochi Item Access
+    ///
+    /// 상세 열람 이벤트 기록 — iOS 가 상세 진입 시 best-effort 로 호출(fire-and-forget).
+    ///
+    /// ``source`` 는 상세를 연 직전 화면(navigation origin)으로, origin 이 의도를 인코딩한다
+    /// (검색=의도적 회수, 채팅=모찌가 찾아줌). 능동 회수 랭킹의 "최근 클릭한 기록" 신호로 쓰인다.
+    /// best-effort: 없는/다른 owner 항목은 조용히 204(use-case no-op) — 로깅이 UI 를 막지 않는다.
+    ///
+    /// - Remark: HTTP `POST /api/v1/mochi_items/{mochi_item_id}/access`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/access/post(log_mochi_item_access_api_v1_mochi_items__mochi_item_id__access_post)`.
+    func log_mochi_item_access_api_v1_mochi_items__mochi_item_id__access_post(_ input: Operations.log_mochi_item_access_api_v1_mochi_items__mochi_item_id__access_post.Input) async throws -> Operations.log_mochi_item_access_api_v1_mochi_items__mochi_item_id__access_post.Output
     /// Get Conversation Snapshot
     ///
     /// 대화 메시지 전체 스냅샷 — iOS 포그라운드 복귀·히스토리 재진입용.
@@ -735,6 +746,25 @@ extension APIProtocol {
             body: body
         ))
     }
+    /// Log Mochi Item Access
+    ///
+    /// 상세 열람 이벤트 기록 — iOS 가 상세 진입 시 best-effort 로 호출(fire-and-forget).
+    ///
+    /// ``source`` 는 상세를 연 직전 화면(navigation origin)으로, origin 이 의도를 인코딩한다
+    /// (검색=의도적 회수, 채팅=모찌가 찾아줌). 능동 회수 랭킹의 "최근 클릭한 기록" 신호로 쓰인다.
+    /// best-effort: 없는/다른 owner 항목은 조용히 204(use-case no-op) — 로깅이 UI 를 막지 않는다.
+    ///
+    /// - Remark: HTTP `POST /api/v1/mochi_items/{mochi_item_id}/access`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/access/post(log_mochi_item_access_api_v1_mochi_items__mochi_item_id__access_post)`.
+    public func log_mochi_item_access_api_v1_mochi_items__mochi_item_id__access_post(
+        path: Operations.log_mochi_item_access_api_v1_mochi_items__mochi_item_id__access_post.Input.Path,
+        body: Operations.log_mochi_item_access_api_v1_mochi_items__mochi_item_id__access_post.Input.Body
+    ) async throws -> Operations.log_mochi_item_access_api_v1_mochi_items__mochi_item_id__access_post.Output {
+        try await log_mochi_item_access_api_v1_mochi_items__mochi_item_id__access_post(Operations.log_mochi_item_access_api_v1_mochi_items__mochi_item_id__access_post.Input(
+            path: path,
+            body: body
+        ))
+    }
     /// Get Conversation Snapshot
     ///
     /// 대화 메시지 전체 스냅샷 — iOS 포그라운드 복귀·히스토리 재진입용.
@@ -1042,6 +1072,47 @@ public enum Components {
         @frozen public enum APNsEnvironment: String, Codable, Hashable, Sendable, CaseIterable {
             case sandbox = "sandbox"
             case production = "production"
+        }
+        /// 상세 열람 이벤트 기록 요청 — ``source`` 는 상세를 연 직전 화면(navigation origin).
+        ///
+        /// enum 검증은 이 경계(Pydantic/OpenAPI)에서만 — DB 는 String 으로 permissive(origin 진화 대비).
+        ///
+        /// - Remark: Generated from `#/components/schemas/AccessLogRequest`.
+        public struct AccessLogRequest: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/AccessLogRequest/source`.
+            public var source: Components.Schemas.AccessSource
+            /// Creates a new `AccessLogRequest`.
+            ///
+            /// - Parameters:
+            ///   - source:
+            public init(source: Components.Schemas.AccessSource) {
+                self.source = source
+            }
+            public enum CodingKeys: String, CodingKey {
+                case source
+            }
+        }
+        /// 사용자가 상세를 연 **직전 화면(navigation origin)** — 접근 자체가 아니라 *어디서 왔나*.
+        ///
+        /// origin 이 의도를 인코딩한다: ``search``=사용자가 존재를 알고 의도적으로 찾음,
+        /// ``chat``=모찌가 못 떠올린 걸 찾아줌(능동회수 성공), ``recall``/``notification``=모찌 능동 push.
+        /// 능동 회수 랭킹(최근 클릭한 기록 가중)에서 origin 별로 신호 강도를 다르게 쓰기 위한 차원.
+        ///
+        /// 안정적 도메인 enum 이 아니라 *진화하는 분석 차원* — DB CheckConstraint 로 굳히지 않고
+        /// API(Pydantic/OpenAPI) 레이어에서만 검증한다(origin 추가가 마이그레이션을 요구하지 않게).
+        ///
+        /// - Remark: Generated from `#/components/schemas/AccessSource`.
+        @frozen public enum AccessSource: String, Codable, Hashable, Sendable, CaseIterable {
+            case home = "home"
+            case search = "search"
+            case chat = "chat"
+            case recall = "recall"
+            case notification = "notification"
+            case calendar = "calendar"
+            case category = "category"
+            case favorites = "favorites"
+            case digest = "digest"
+            case related = "related"
         }
         /// - Remark: Generated from `#/components/schemas/AppleSignInRequest`.
         public struct AppleSignInRequest: Codable, Hashable, Sendable {
@@ -6230,6 +6301,93 @@ public enum Operations {
                     .json
                 ]
             }
+        }
+    }
+    /// Log Mochi Item Access
+    ///
+    /// 상세 열람 이벤트 기록 — iOS 가 상세 진입 시 best-effort 로 호출(fire-and-forget).
+    ///
+    /// ``source`` 는 상세를 연 직전 화면(navigation origin)으로, origin 이 의도를 인코딩한다
+    /// (검색=의도적 회수, 채팅=모찌가 찾아줌). 능동 회수 랭킹의 "최근 클릭한 기록" 신호로 쓰인다.
+    /// best-effort: 없는/다른 owner 항목은 조용히 204(use-case no-op) — 로깅이 UI 를 막지 않는다.
+    ///
+    /// - Remark: HTTP `POST /api/v1/mochi_items/{mochi_item_id}/access`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/access/post(log_mochi_item_access_api_v1_mochi_items__mochi_item_id__access_post)`.
+    public enum log_mochi_item_access_api_v1_mochi_items__mochi_item_id__access_post {
+        public static let id: Swift.String = "log_mochi_item_access_api_v1_mochi_items__mochi_item_id__access_post"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/access/POST/path`.
+            public struct Path: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/access/POST/path/mochi_item_id`.
+                public var mochi_item_id: Swift.String
+                /// Creates a new `Path`.
+                ///
+                /// - Parameters:
+                ///   - mochi_item_id:
+                public init(mochi_item_id: Swift.String) {
+                    self.mochi_item_id = mochi_item_id
+                }
+            }
+            public var path: Operations.log_mochi_item_access_api_v1_mochi_items__mochi_item_id__access_post.Input.Path
+            /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/access/POST/requestBody`.
+            @frozen public enum Body: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/mochi_items/{mochi_item_id}/access/POST/requestBody/content/application\/json`.
+                case json(Components.Schemas.AccessLogRequest)
+            }
+            public var body: Operations.log_mochi_item_access_api_v1_mochi_items__mochi_item_id__access_post.Input.Body
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - path:
+            ///   - body:
+            public init(
+                path: Operations.log_mochi_item_access_api_v1_mochi_items__mochi_item_id__access_post.Input.Path,
+                body: Operations.log_mochi_item_access_api_v1_mochi_items__mochi_item_id__access_post.Input.Body
+            ) {
+                self.path = path
+                self.body = body
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct NoContent: Sendable, Hashable {
+                /// Creates a new `NoContent`.
+                public init() {}
+            }
+            /// Successful Response
+            ///
+            /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/access/post(log_mochi_item_access_api_v1_mochi_items__mochi_item_id__access_post)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            case noContent(Operations.log_mochi_item_access_api_v1_mochi_items__mochi_item_id__access_post.Output.NoContent)
+            /// Successful Response
+            ///
+            /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/access/post(log_mochi_item_access_api_v1_mochi_items__mochi_item_id__access_post)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            public static var noContent: Self {
+                .noContent(.init())
+            }
+            /// The associated value of the enum case if `self` is `.noContent`.
+            ///
+            /// - Throws: An error if `self` is not `.noContent`.
+            /// - SeeAlso: `.noContent`.
+            public var noContent: Operations.log_mochi_item_access_api_v1_mochi_items__mochi_item_id__access_post.Output.NoContent {
+                get throws {
+                    switch self {
+                    case let .noContent(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "noContent",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
         }
     }
     /// Get Conversation Snapshot

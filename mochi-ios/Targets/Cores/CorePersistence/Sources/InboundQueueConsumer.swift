@@ -35,7 +35,8 @@ public actor InboundQueueConsumer {
                     url: payload.url,
                     text: payload.text,
                     imageRefs: payload.imageRefs,
-                    userMemo: payload.userMemo
+                    userMemo: payload.userMemo,
+                    privacy: payload.privacy
                 )
                 try await repository.enqueueIngestedFromExtension(source)
                 try? fileManager.removeItem(at: fileURL)
@@ -68,6 +69,9 @@ public struct InboundIngestPayload: Codable, Sendable, Equatable {
     public let userMemo: String?
     public let channelGuess: IngestChannel
     public let imageRefs: [ImageRef]
+    /// 저장 시점 민감 감지 + 사용자 선택의 결과. `nil` = 비민감/감지 비대상(기존 원본 업로드).
+    /// ShareExtension 직접 전송과 메인 앱 drain 양 경로가 같은 정책을 적용하도록 큐 JSON 에 함께 싣는다.
+    public let privacy: PrivacyDecision?
 
     public init(
         id: UUID = UUID(),
@@ -75,7 +79,8 @@ public struct InboundIngestPayload: Codable, Sendable, Equatable {
         text: String?,
         userMemo: String?,
         channelGuess: IngestChannel,
-        imageRefs: [ImageRef] = []
+        imageRefs: [ImageRef] = [],
+        privacy: PrivacyDecision? = nil
     ) {
         self.id = id
         self.url = url
@@ -83,5 +88,6 @@ public struct InboundIngestPayload: Codable, Sendable, Equatable {
         self.userMemo = userMemo
         self.channelGuess = channelGuess
         self.imageRefs = imageRefs
+        self.privacy = privacy
     }
 }

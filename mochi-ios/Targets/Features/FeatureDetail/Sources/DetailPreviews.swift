@@ -2,6 +2,7 @@
 import SwiftUI
 import ComposableArchitecture
 import CoreDomain
+import CoreNetworking
 
 /// 기록 상세 화면 미리보기 — mock 데이터로 주요 상태를 Xcode Canvas 에서 확인.
 ///
@@ -113,7 +114,7 @@ private enum DetailPreviewData {
     )
 
     static func store(_ item: MochiItem) -> StoreOf<DetailFeature> {
-        var state = DetailFeature.State(mochiItemID: item.id)
+        var state = DetailFeature.State(mochiItemID: item.id, source: .home)
         state.mochiItem = item
         return Store(initialState: state) {
             EmptyReducer<DetailFeature.State, DetailFeature.Action>()

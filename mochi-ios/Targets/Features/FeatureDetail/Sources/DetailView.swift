@@ -236,7 +236,7 @@ private struct RecallHeader: View {
         VStack(alignment: .leading, spacing: 0) {
             if let ref = mochiItem.source.imageRefs.first {
                 ScreenshotPreviewImage(
-                    relativePath: ref.relativePath,
+                    relativePath: ref.displayRelativePath,
                     objectKey: ref.objectKey,
                     sha256: ref.sha256,
                     mimeType: ref.mimeType,
@@ -782,7 +782,7 @@ private struct SimilarItemCard: View {
         switch item.viewKind {
         case .screenshot:
             LocalThumbnail(
-                relativePath: item.source.imageRefs.first?.relativePath,
+                relativePath: item.source.imageRefs.first?.displayRelativePath,
                 objectKey: item.source.imageRefs.first?.objectKey,
                 sha256: item.source.imageRefs.first?.sha256,
                 mimeType: item.source.imageRefs.first?.mimeType,
@@ -945,7 +945,7 @@ private enum DetailStateView {
     private static func heroMedia(_ mochiItem: MochiItem) -> some View {
         if let ref = mochiItem.source.imageRefs.first {
             ScreenshotPreviewImage(
-                relativePath: ref.relativePath,
+                relativePath: ref.displayRelativePath,
                 objectKey: ref.objectKey,
                 sha256: ref.sha256,
                 mimeType: ref.mimeType,

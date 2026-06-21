@@ -1609,6 +1609,59 @@ public struct Client: APIProtocol {
             }
         )
     }
+    /// Log Mochi Item Access
+    ///
+    /// 상세 열람 이벤트 기록 — iOS 가 상세 진입 시 best-effort 로 호출(fire-and-forget).
+    ///
+    /// ``source`` 는 상세를 연 직전 화면(navigation origin)으로, origin 이 의도를 인코딩한다
+    /// (검색=의도적 회수, 채팅=모찌가 찾아줌). 능동 회수 랭킹의 "최근 클릭한 기록" 신호로 쓰인다.
+    /// best-effort: 없는/다른 owner 항목은 조용히 204(use-case no-op) — 로깅이 UI 를 막지 않는다.
+    ///
+    /// - Remark: HTTP `POST /api/v1/mochi_items/{mochi_item_id}/access`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/{mochi_item_id}/access/post(log_mochi_item_access_api_v1_mochi_items__mochi_item_id__access_post)`.
+    public func log_mochi_item_access_api_v1_mochi_items__mochi_item_id__access_post(_ input: Operations.log_mochi_item_access_api_v1_mochi_items__mochi_item_id__access_post.Input) async throws -> Operations.log_mochi_item_access_api_v1_mochi_items__mochi_item_id__access_post.Output {
+        try await client.send(
+            input: input,
+            forOperation: Operations.log_mochi_item_access_api_v1_mochi_items__mochi_item_id__access_post.id,
+            serializer: { input in
+                let path = try converter.renderedPath(
+                    template: "/api/v1/mochi_items/{}/access",
+                    parameters: [
+                        input.path.mochi_item_id
+                    ]
+                )
+                var request: HTTPTypes.HTTPRequest = .init(
+                    soar_path: path,
+                    method: .post
+                )
+                suppressMutabilityWarning(&request)
+                let body: OpenAPIRuntime.HTTPBody?
+                switch input.body {
+                case let .json(value):
+                    body = try converter.setRequiredRequestBodyAsJSON(
+                        value,
+                        headerFields: &request.headerFields,
+                        contentType: "application/json; charset=utf-8"
+                    )
+                }
+                return (request, body)
+            },
+            deserializer: { response, responseBody in
+                switch response.status.code {
+                case 204:
+                    return .noContent(.init())
+                default:
+                    return .undocumented(
+                        statusCode: response.status.code,
+                        .init(
+                            headerFields: response.headerFields,
+                            body: responseBody
+                        )
+                    )
+                }
+            }
+        )
+    }
     /// Get Conversation Snapshot
     ///
     /// 대화 메시지 전체 스냅샷 — iOS 포그라운드 복귀·히스토리 재진입용.

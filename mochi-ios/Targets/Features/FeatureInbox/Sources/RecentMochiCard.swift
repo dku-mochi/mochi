@@ -27,7 +27,7 @@ struct RecentMochiCard: View {
             onTap(HeroSourceFrames(
                 card: cardFrame,
                 cardImage: (mochiItem.viewKind == .screenshot && isMediaFullyVisible) ? mediaFrame : nil,
-                imageRelativePath: mochiItem.source.imageRefs.first?.relativePath
+                imageRelativePath: mochiItem.source.imageRefs.first?.displayRelativePath
             ))
         } label: {
             VStack(alignment: .leading, spacing: 0) {
@@ -99,7 +99,7 @@ struct RecentMochiCard: View {
         switch mochiItem.viewKind {
         case .screenshot:
             LocalThumbnail(
-                relativePath: mochiItem.source.imageRefs.first?.relativePath,
+                relativePath: mochiItem.source.imageRefs.first?.displayRelativePath,
                 objectKey: mochiItem.source.imageRefs.first?.objectKey,
                 sha256: mochiItem.source.imageRefs.first?.sha256,
                 mimeType: mochiItem.source.imageRefs.first?.mimeType,
