@@ -223,6 +223,9 @@ private actor NotificationsStubAPIClient: MochiAPIClient {
     func setFavorite(mochiServerID: UUID, isFavorite: Bool) async throws -> MochiItemDTO {
         try await unimplemented.setFavorite(mochiServerID: mochiServerID, isFavorite: isFavorite)
     }
+    func logItemAccess(mochiServerID: UUID, source: ItemAccessSource) async throws {
+        try await unimplemented.logItemAccess(mochiServerID: mochiServerID, source: source)
+    }
     func updateMochiItem(mochiServerID: UUID, _ request: MochiItemUpdateRequestDTO) async throws -> MochiItemDTO {
         try await unimplemented.updateMochiItem(mochiServerID: mochiServerID, request)
     }

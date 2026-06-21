@@ -97,6 +97,20 @@ enum ShareDesign {
         startPoint: .topLeading,
         endPoint: .bottomTrailing
     )
+
+    /// 민감 감지 "주의" 액센트 — 라벤더 본판과 대비되는 따뜻한 호박(amber) 톤. 공포(빨강)가 아니라
+    /// "잠깐 봐주세요" 신호. 민감 시트의 헤더 아이콘·감지 유형 칩에만 쓴다(구조·CTA·선택은 라벤더 유지).
+    static let caution = Color(
+        light: Color(red: 0.74, green: 0.46, blue: 0.13),
+        dark: Color(red: 0.99, green: 0.80, blue: 0.50)
+    )
+    /// 주의 액센트의 배경(아이콘 원·칩 채움) — 라이트는 옅은 살구, 다크는 호박 반투명.
+    static let cautionSoft = Color(
+        light: Color(red: 1.00, green: 0.91, blue: 0.78),
+        dark: Color(red: 0.99, green: 0.80, blue: 0.50).opacity(0.16)
+    )
+    /// 스낵바 액션("되돌리기") 텍스트 — 어두운 캡슐(``snackbarFill``) 위에서 읽히는 밝은 라벤더. 양 모드 공용.
+    static let snackbarAccent = Color(red: 0.80, green: 0.76, blue: 1.0)
 }
 
 // MARK: - Haptics

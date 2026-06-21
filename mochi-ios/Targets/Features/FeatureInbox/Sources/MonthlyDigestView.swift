@@ -519,7 +519,7 @@ private struct HarvestRail: View {
         switch item.viewKind {
         case .screenshot:
             LocalThumbnail(
-                relativePath: item.source.imageRefs.first?.relativePath,
+                relativePath: item.source.imageRefs.first?.displayRelativePath,
                 objectKey: item.source.imageRefs.first?.objectKey,
                 sha256: item.source.imageRefs.first?.sha256,
                 mimeType: item.source.imageRefs.first?.mimeType,

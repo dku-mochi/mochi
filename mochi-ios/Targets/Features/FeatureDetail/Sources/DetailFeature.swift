@@ -24,14 +24,21 @@ public struct DetailFeature: Sendable {
         /// 비행이 있는 진입은 true 로 시작 → 비행 스냅샷이 사라질 때 App 이 false 로 켠다.
         public var heroImageHidden: Bool = false
 
+        /// 이 상세를 연 직전 화면(navigation origin) — 열람 로깅(`logItemAccess`)에 실어 보낸다.
+        /// 진입점마다 명시(컴파일러 강제)해 origin 으로 의도를 인코딩한다(검색=의도적, 채팅=모찌가 찾아줌).
+        public var source: ItemAccessSource
+        /// 열람 로깅을 한 진입당 1회만 발사하기 위한 가드(onAppear 재호출·뒤로가기 복귀 시 중복 방지).
+        public var hasReportedAccess: Bool = false
+
         /// "비슷한 기록" push 스택 — 카드 탭 시 그 항목 상세를 앞으로 쌓는다(재귀 DetailFeature).
         /// root 상세만 `NavigationStack(path:)`(DetailRootView)에 이 path 를 바인딩하고, 모든 push 는
         /// root 의 path 로 모인다 — 자손이 또 비슷한 기록을 탭하면 그 openSimilar delegate 를 root 가
         /// 흡수해 같은 스택에 append 한다(자식 인스턴스의 path 는 렌더되지 않아 미사용).
         public var path = StackState<DetailFeature.State>()
 
-        public init(mochiItemID: UUID, heroImageHidden: Bool = false) {
+        public init(mochiItemID: UUID, source: ItemAccessSource, heroImageHidden: Bool = false) {
             self.mochiItemID = mochiItemID
+            self.source = source
             self.heroImageHidden = heroImageHidden
         }
     }
@@ -95,14 +102,22 @@ public struct DetailFeature: Sendable {
         Reduce { state, action in
             switch action {
             case .onAppear:
+                // 열람 로깅은 한 진입당 1회 — onAppear 가 재호출돼도(뒤로가기 복귀 등) 중복 발사 안 함.
+                let reportAccess = !state.hasReportedAccess
+                state.hasReportedAccess = true
                 return .merge(
-                    .run { [id = state.mochiItemID] send in
+                    .run { [id = state.mochiItemID, source = state.source] send in
                         let mochiItem = try await repository.find(id: id)
                         await send(.loaded(mochiItem))
 
                         // 비슷한 기록 — 업로드된(서버 id 있는) 항목만 조회한다. 미업로드 로컬 항목은
                         // 서버 embedding 이 없어 호출을 생략한다. 실패·빈 결과 → 섹션 숨김(no-op).
                         guard let mochiItem, case let .uploaded(serverID, _) = mochiItem.syncState else { return }
+                        // 상세 열람 이벤트 기록 — best-effort(try?), fire-and-forget. 미업로드 항목은 서버
+                        // id 가 없어 생략(similar 와 같은 uploaded 게이트). 능동 회수 랭킹의 "최근 클릭" 신호.
+                        if reportAccess {
+                            try? await apiClient.logItemAccess(mochiServerID: serverID, source: source)
+                        }
                         let refs = (try? await apiClient.similarItems(serverID: serverID, limit: 6)) ?? []
                         guard !refs.isEmpty else { return }
                         // 서버 id → 로컬 MochiItem 매핑(로컬에 있는 항목만 카드로 렌더 — 응답은 id+score+reasons
@@ -319,7 +334,7 @@ public struct DetailFeature: Sendable {
             case let .path(.element(id: _, action: .delegate(.openSimilar(localID)))):
                 // 자손 상세(B,C…)에서 비슷한 기록 탭 → root 의 push 스택에 쌓는다(flat: 모든 push 가
                 // root path 로 모인다). root 자신의 openSimilar 는 부모 MainTabFeature 가 흡수한다.
-                state.path.append(DetailFeature.State(mochiItemID: localID))
+                state.path.append(DetailFeature.State(mochiItemID: localID, source: .related))
                 return .none
 
             case let .path(.element(id: id, action: .delegate(.deleted))):

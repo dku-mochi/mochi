@@ -13,6 +13,8 @@ import CorePersistence
 ///
 /// 디자인 토큰/컴포넌트는 ``ShareDesign`` 을 통해 ``BackTapShareView`` 와 공유한다.
 struct ShareEntryView: View {
+    /// 선감지 결과 — 첫 이미지가 가려지면 블러본을 보여주고 저장 payload 에 싣는다.
+    @ObservedObject var redaction: CaptureRedaction
     let initialURL: URL?
     let initialText: String?
     let imageRefs: [ImageRef]
@@ -65,7 +67,7 @@ struct ShareEntryView: View {
             ShareTopBar(sourceApp: sourceApp, isSubmitting: isSubmitting, onCancel: onCancel)
                 .shareEntrance(0, appeared: appeared)
 
-            if let firstImage = imageRefs.first {
+            if let firstImage = redaction.workingRef ?? imageRefs.first {
                 ShareCropImage(imageRef: firstImage, crop: $crop)
                     .frame(maxHeight: .infinity)
                     .shareEntrance(1, appeared: appeared)
@@ -224,6 +226,12 @@ struct ShareEntryView: View {
 
     // MARK: - Derived
 
+    /// 선감지로 첫 이미지가 가려졌으면 그 블러본으로 첫 ref 를 교체(나머지 이미지는 유지).
+    private var effectiveImageRefs: [ImageRef] {
+        guard let wr = redaction.workingRef, !imageRefs.isEmpty else { return imageRefs }
+        return [wr] + imageRefs.dropFirst()
+    }
+
     private var hasURL: Bool { initialURL != nil }
     private var hasText: Bool { !(initialText?.isEmpty ?? true) }
     private var isEmptyPayload: Bool { !hasURL && !hasText && imageRefs.isEmpty }
@@ -243,7 +251,8 @@ struct ShareEntryView: View {
                 text: CaptureContextSentinel.composeText(sourceApp: sourceApp, base: initialText),
                 userMemo: memo.isEmpty ? nil : memo,
                 channelGuess: channelGuess,
-                imageRefs: imageRefs
+                imageRefs: effectiveImageRefs,
+                privacy: redaction.decision
             ),
             isImageDominant ? crop : ShareCropImage.fullCrop
         )

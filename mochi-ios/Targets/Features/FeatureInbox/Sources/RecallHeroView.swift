@@ -217,7 +217,7 @@ struct RecallHeroView: View {
         let hero = HeroSourceFrames(
             card: focalFrame,
             cardImage: imageRef != nil ? focalFrame : nil,
-            imageRelativePath: imageRef?.relativePath
+            imageRelativePath: imageRef?.displayRelativePath
         )
         onOpenFocal(entry, hero)
     }
@@ -415,7 +415,7 @@ private struct RecallCoverCard: View {
     private func imageCover(_ ref: ImageRef) -> some View {
         ZStack(alignment: .bottomLeading) {
             LocalThumbnail(
-                relativePath: ref.relativePath,
+                relativePath: ref.displayRelativePath,
                 objectKey: ref.objectKey,
                 sha256: ref.sha256,
                 mimeType: ref.mimeType,
