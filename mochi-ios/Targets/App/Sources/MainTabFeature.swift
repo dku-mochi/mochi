@@ -159,6 +159,10 @@ struct MainTabFeature: Sendable {
                 return .none
 
             case let .home(.delegate(.recallItemOpened(itemID, hero))):
+                // 이미 상세가 떠 있으면 재진입 무시 — 다른 present 경로(mochiItemTapped 등)와 동일 가드.
+                // (present 완료 후의 추가 탭만 여기서 막는다. 역매핑 in-flight 중 연속 탭은
+                //  openDetailFromNotification 의 cancelInFlight 가 마지막 탭만 남겨 이미 처리한다.)
+                guard state.detail == nil else { return .none }
                 // 회수 히어로 카드 탭 → 그 기록의 원본 상세로 hero zoom 직행(최근 카드와 같은 확대 전환).
                 // itemID 는 server PK — 기존 알림 경로(로컬 역매핑 + 미존재 시 pullRemote 재시도)에 hero 를
                 // 실어 보존한다. 역매핑이 끝날 때까지 카드는 화면에 남아(즉시 제거 안 함) 비행 출발점이 유효하다.
@@ -195,6 +199,12 @@ struct MainTabFeature: Sendable {
             case let .path(.element(id: _, action: .recallDetail(.delegate(.openRelated(itemID))))):
                 // 회수 상세 "관련 기억" 카드 탭 → 그 항목 상세 present(원본 보기와 같은 server PK 역매핑 경로).
                 return .send(.openDetailFromNotification(serverID: itemID, hero: nil))
+
+            case let .path(.element(id: _, action: .recallDetail(.delegate(.stopped(itemID))))):
+                // 회수 상세 "그만 보기" → 홈 회수 히어로에서 그 카드 제거(opened-close 의 recallDetailClosed 재사용).
+                // 사용자는 상세에 머물며 토스트를 보고, back 으로 돌아오면 카드가 사라져 있다.
+                return .send(.home(.recallDetailClosed(itemID: itemID)),
+                             animation: .spring(response: 0.45, dampingFraction: 0.85))
 
             case let .path(.element(id: _, action: .monthlyDigest(.delegate(.mochiItemTapped(mochiItemID, hero))))):
                 // 정리 화면의 항목 탭 → 상세 present (캘린더처럼 hero 없으면 중앙 scale 폴백).

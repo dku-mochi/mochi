@@ -85,10 +85,15 @@ class RecordRecallReaction:
             await self._revive_spaced(command, event)
 
     async def _handle_stop(self, command: RecordRecallReactionCommand, event: SentRecallEvent) -> None:
-        # dismissed_at 세팅(멱등) + plan 영구 취소. plan_id NULL(트랙C)이면 plan 변경 생략.
+        # dismissed_at 세팅(멱등) — 재생성 쿨다운 신호 공용. 그 위에 트랙별 영구 피드 제외를 더한다.
         await self._reactions.mark_dismissed(event_id=command.event_id, owner_id=command.owner_id)
         if event.plan_id is not None:
+            # 트랙 A(spaced) — plan 영구 취소 → 피드의 active-plan 필터에서 제외.
             await self._reactions.cancel_plan(plan_id=event.plan_id, owner_id=command.owner_id)
+        else:
+            # 트랙 C(recall 직행, plan 없음) — sent outbox 행을 skipped 로 종결해 피드에서 영구 제외.
+            # 없으면 피드가 dismissed_at 을 무시해 재fetch(앱 재시작)마다 그 카드가 부활한다.
+            await self._reactions.skip_recall_outbox(event_id=command.event_id, owner_id=command.owner_id)
 
     async def _revive_spaced(self, command: RecordRecallReactionCommand, event: SentRecallEvent) -> None:
         """opened+spaced 면 source knowledge instance 를 decaying/reviewRequested → active 로 소생.

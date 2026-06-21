@@ -107,10 +107,20 @@ public struct ChatProposal: Equatable, Sendable, Identifiable {
     public struct CreateSchedulePayload: Equatable, Sendable {
         public let text: String?
         public let instances: [ConfirmedInstance]
+        /// propose-시점 경량 LLM 이 도출한 item 메타 — 확정 시 ingest 로 운반(SSE free-form 수기 디코드).
+        public let category: String?
+        public let summary: String?
 
-        public init(text: String?, instances: [ConfirmedInstance]) {
+        public init(
+            text: String?,
+            instances: [ConfirmedInstance],
+            category: String? = nil,
+            summary: String? = nil
+        ) {
             self.text = text
             self.instances = instances
+            self.category = category
+            self.summary = summary
         }
     }
 
@@ -211,7 +221,12 @@ public extension ChatProposal {
             }
             guard !instances.isEmpty else { return nil }
             action = .createSchedule(
-                CreateSchedulePayload(text: payload["text"] as? String, instances: instances)
+                CreateSchedulePayload(
+                    text: payload["text"] as? String,
+                    instances: instances,
+                    category: payload["category"] as? String,
+                    summary: payload["summary"] as? String
+                )
             )
 
         case .createMemo:

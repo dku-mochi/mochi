@@ -115,6 +115,8 @@ final class RecallFeatureTests: XCTestCase {
 
         await store.send(.stopTapped) { $0.didStop = true }
         await store.receive(\.showToast) { $0.toast = "이 기억은 더 꺼내지 않을게요" }
+        // 홈 회수 히어로에서 이 카드를 빼라는 제거 신호(상위가 recallDetailClosed 로 전달).
+        await store.receive(\.delegate.stopped, itemID)
         await clock.advance(by: .seconds(1.6))
         await store.receive(\.dismissToast) { $0.toast = nil }
 

@@ -70,6 +70,23 @@ class RecallReactionRepositoryPort(ABC):
         """
 
     @abstractmethod
+    async def bump_plan_next_eligible(self, *, plan_id: UUID, owner_id: UUID) -> None:
+        """active plan 의 next_eligible_at 을 now 로 당겨 다음 materialize tick 에서 즉시 재평가시킨다.
+
+        spaced veto("이번 회차만") 후 다음 occurrence 를 곧바로 만들기 위해(occurrence 는 이미
+        user_veto skip). owner-scope + status='active' 가드. plan_id NULL(트랙C)이면 호출 안 함.
+        """
+
+    @abstractmethod
+    async def skip_recall_outbox(self, *, event_id: UUID, owner_id: UUID) -> None:
+        """트랙 C(plan 없는 recall 직행) stop 시 그 sent outbox 행을 skipped(cancelled) 로 종결.
+
+        plan 이 없어 cancel_plan 으로 못 거르는 트랙 C 를 피드에서 영구 제외한다 — 피드 쿼리는
+        status IN ('pending','sent') 만 후보로 보므로, skipped 면 재fetch(앱 재시작)에도 다시
+        안 뜬다(codex-7 stop=영구). owner-scope + status='sent' 가드.
+        """
+
+    @abstractmethod
     def savepoint(self) -> AbstractAsyncContextManager[None]:
         """best-effort 부수효과(spaced 소생)를 감쌀 트랜잭션 savepoint(중첩 트랜잭션).
 

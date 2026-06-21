@@ -787,13 +787,16 @@ class NotificationWorker:
     async def _last_spaced_state(
         self, session: AsyncSession, plan_id: UUID, stage_seq: int
     ) -> SpacedState | None:
+        # status != 'skipped' 가 기본(stale/cancelled/superseded skip 은 전진 신호 아님)이나,
+        # user_veto("이번 회차만 건너뛰기")는 예외 — 그 칸을 last 로 인식해 다음 칸으로 전진시킨다.
         row = (
             await session.execute(
                 text(
                     """
-                    SELECT occurrence_seq, sent_at, opened_at, dismissed_at
+                    SELECT occurrence_seq, sent_at, opened_at, dismissed_at, fire_at, skip_reason
                     FROM notification_outbox
-                    WHERE plan_id=:p AND stage_seq=:s AND status != 'skipped'
+                    WHERE plan_id=:p AND stage_seq=:s
+                      AND (status != 'skipped' OR skip_reason = 'user_veto')
                     ORDER BY occurrence_seq DESC LIMIT 1
                     """
                 ).bindparams(p=plan_id, s=stage_seq)
@@ -806,6 +809,8 @@ class NotificationWorker:
             sent_at=row.sent_at,
             opened_at=row.opened_at,
             dismissed_at=row.dismissed_at,
+            fire_at=row.fire_at,
+            vetoed=row.skip_reason == "user_veto",
         )
 
     # ---------- (2) Send pass ----------

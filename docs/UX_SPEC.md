@@ -90,7 +90,7 @@ description: 화면·시나리오·IA·디자인 톤·데모 시나리오의 com
 
 ### 3.1 스플래시
 
-- 파스텔 그라데이션 배경 + 모찌 캐릭터 아이콘(`SplashMochi`, 화면 정중앙, 부드러운 보라 드롭섀도우)
+- 파스텔 연보라 그라데이션 배경 + **모찌가 걷는 애니메이션**(`MochiWalk00~24` 25프레임 시퀀스 24fps, 화면 정중앙, 은은한 발치 접지 그림자). Veo 3.1 image-to-video 로 생성한 walk 을 크로마키·seamless loop 처리한 투명 프레임 에셋(원본·소스는 루트 `mochi-walk-assets/`). 이전 정적 `SplashMochi`·가로등 조명 연출을 대체.
 - 카피·장식 텍스트 없음 — 아이콘만. 등장 시 **모찌 뒤(가려진 중앙)에서 생일폭죽(파티 포퍼)이 터져** 색종이가 솟구쳐 흩날리는 축하 연출(`Canvas`+`TimelineView` 파티클, 선형 drag 낙하·회전·3D flip·좌우 흔들림, `Reduce Motion` 시 생략). 색은 주간 리포트 카드와 같은 `HomeDesign.Color` 팔레트(blush/peach/mint/sky/purple).
 
 ### 3.2 로그인
@@ -144,7 +144,7 @@ description: 화면·시나리오·IA·디자인 톤·데모 시나리오의 com
 
 홈 상단 bell 버튼 → push 되는 알림 화면(`NotificationsPageView` / `NotificationsPageFeature`, 즐겨찾기·턴테이블과 같은 path 패턴). **이전엔 홈 본문에 있던 "예정된 알림" 섹션을 이 페이지로 옮기고**(홈은 회수·리포트·최근에 집중 — 알림은 별도 표면으로 분리), 새 "받은 알림" 탭을 더해 상단 segmented Picker("예정된 알림"/"받은 알림")로 전환한다.
 
-- **예정된 알림 탭** — 모찌가 보낼 예정인 미래 마감·일정 알림(`GET /recall/upcoming`, fire_at 오름차순). 홈에서 통째로 옮겨온 `UpcomingNotificationsView` 재사용 — 각 행 3액션(끄기 veto·미루기 프리셋·직접 고르기 DatePicker)·"모찌가 정하고 나는 조정한다" 그대로. 빈손이면 안내 일러스트.
+- **예정된 알림 탭** — 모찌가 보낼 예정인 미래 마감·일정 + **예약 회수(spaced)** 알림(`GET /recall/upcoming`, fire_at 오름차순). spaced 는 RecallHero(식어가는 지식 in-app 회수)와 별개로 "앞으로 보낼 예약 알림"이라 여기 노출한다(2026-06-21, "다시 보기" 보라 배지로 구분). recall(트랙C 즉시발송)은 pending 미래로 안 머물러 자연 제외. 홈에서 통째로 옮겨온 `UpcomingNotificationsView` 재사용 — 각 행 3액션(끄기 veto·미루기 프리셋·직접 고르기 DatePicker)·"모찌가 정하고 나는 조정한다" 그대로. **veto 의미는 kind 별**: deadline/nudge 는 그 plan 영구 cancel(시리즈 중단), spaced 는 "이번 회차만 건너뛰기"(plan 유지 → 다음 회차는 예정대로). 빈손이면 안내 일러스트.
 - **받은 알림 탭** — 모찌가 이미 보낸 알림(`GET /recall/history` → `SentNotificationEntry`, sent_at 내림차순). **읽기 전용** — 종류 아이콘(deadline/nudge/recall) + title/body + 발송 시각 + 상태 칩(읽음=opened / 지나침=dismissed / 안 읽음). 안 읽은 알림은 왼쪽 보라 띠로 부드럽게 강조. 빈손이면 안내. 조정 액션 없음("이미 보낸 것"의 기록).
 
 **미션 정합**: 알림 페이지는 모찌가 능동으로 보낸/보낼 알림의 타임라인이다 — 회수의 주체는 여전히 모찌(PRODUCT §1.5). 사용자는 예정 알림을 끄거나 옮길 뿐(통제), 지난 알림은 받은 기록을 되짚어 보는 안전망이다. 둘 다 실패 격리(한 탭 로드 실패가 다른 탭을 막지 않음).
@@ -299,7 +299,7 @@ UI (`ShareEntryView` / `BackTapShareView`, 토큰은 `ShareDesign`) — 콘텐�
 
 **알림 landing** — 단건 회수 알림(routeType="detail" + `recallEventID`) 탭 → ③ 상세 직행(기존 `mochiItemID`/`sourceIntentID` deep-link 재사용, server→local 역매핑). **로컬 역매핑 실패 시 `recallEventID`로 서버 fetch fallback**(`GET /recall/events/{id}`, 빈 상세 금지). 진입 경로(App 레이어): `MochiAppDelegate` → `RootFeature` → `MainTabFeature` 가 ③ 회수 상세 push. 홈 한 칸은 알림이 아닌 in-app 진입.
 
-**응답 액션** — primary 는 **사용자 목적 수행**(열기·원본 보기·완료)이지 "모찌 품질 평가"가 아니다(미션 정합 — "필요한 기억은 *떠오른다*"). 학습은 행동 신호(open/탭 진입 = `opened`)를 우선으로 삼고, 명시 피드백은 보조/dismiss 사유로 낮춘다. 액션 ↔ 서버 reaction 1:1: **기억났어요/탭 진입/열기** = `opened`(spaced+knowledge 면 instance 소생) · **원본 보기** = 원본 mochiItem 상세 · **그만 보기** = `stop`(plan cancel, destructive — primary confirm 과 시각 분리). reaction 보고는 `POST /recall/events/{id}/reaction`.
+**응답 액션** — primary 는 **사용자 목적 수행**(열기·원본 보기·완료)이지 "모찌 품질 평가"가 아니다(미션 정합 — "필요한 기억은 *떠오른다*"). 학습은 행동 신호(open/탭 진입 = `opened`)를 우선으로 삼고, 명시 피드백은 보조/dismiss 사유로 낮춘다. 액션 ↔ 서버 reaction 1:1: **기억났어요/탭 진입/열기** = `opened`(spaced+knowledge 면 instance 소생) · **원본 보기** = 원본 mochiItem 상세 · **그만 보기** = `stop`(destructive — primary confirm 과 시각 분리). reaction 보고는 `POST /recall/events/{id}/reaction`. **"그만 보기"는 토스트 확인과 함께 그 카드를 홈 회수 히어로에서도 제거**한다(opened-close 의 `recallDetailClosed` 재사용 — "그만 보겠다"는데 화면에 남으면 미션 위반, 2026-06-21). 서버도 영구 억제해 재출현 없음: 트랙 A 는 plan cancel, **트랙 C(plan 없는 직행)는 sent outbox 행을 종결(skipped)** — 안 그러면 피드가 `dismissed_at` 을 무시해 앱 재시작마다 부활(`DOMAIN_DESIGN.md` §3).
 
 **접근성**: 이유 칩은 VoiceOver 에서 "회수 이유: 잊기 전에 한 번"처럼 의미가 읽히게 라벨링(색·아이콘만으론 불충분). 홈 한 칸 preview 는 Dynamic Type 확대 시 2줄까지 확장(레이아웃 안정은 유지하되 텍스트는 안 자름). 상세 액션은 큰 글자에서 가로 버튼이 잘리면 세로 스택으로 전환.
 

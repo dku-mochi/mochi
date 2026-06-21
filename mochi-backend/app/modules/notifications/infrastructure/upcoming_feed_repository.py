@@ -18,8 +18,10 @@ from app.modules.notifications.infrastructure.orm import (
     NotificationPlanRow,
 )
 
-# 홈 "예정 알림" 범위 — 마감/일정(deadline)·주기 넛지(nudge)만. spaced 회수는 RecallHero 담당.
-_UPCOMING_KINDS = ("deadline", "nudge")
+# 홈 "예정 알림" 범위 — 마감/일정(deadline)·주기 넛지(nudge) + 미래 예약 회수(spaced).
+# spaced 는 RecallHero(식어가는 지식 in-app 회수)와 별개로 "모찌가 앞으로 보낼 예약 알림"이라
+# 예정 탭에 노출(2026-06-21). recall(트랙C 즉시발송)은 pending 미래로 머물지 않아 자연 제외.
+_UPCOMING_KINDS = ("deadline", "nudge", "spaced")
 
 
 class PostgresUpcomingFeedRepository(UpcomingFeedRepositoryPort):
@@ -27,8 +29,8 @@ class PostgresUpcomingFeedRepository(UpcomingFeedRepositoryPort):
         self._session = session
 
     async def list_upcoming(self, *, owner_id: UUID, limit: int) -> list[UpcomingNotification]:
-        # pending + 미래(fire_at>now) + 마감/일정. active plan 조인으로 cancel 된 plan 잔여 배제.
-        # deadline/nudge 는 항상 plan 기반(plan_id NOT NULL)이라 inner join 이 자연스럽다.
+        # pending + 미래(fire_at>now) + 마감/일정/회수. active plan 조인으로 cancel 된 plan 잔여 배제.
+        # deadline/nudge/spaced 모두 plan 기반(plan_id NOT NULL)이라 inner join 이 자연스럽다.
         stmt = (
             select(
                 NotificationOutboxRow.event_id,

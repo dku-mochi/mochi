@@ -202,12 +202,19 @@ def next_recurring_occurrence(
 
 @dataclass(frozen=True, slots=True)
 class SpacedState:
-    """직전 spaced occurrence 의 식별·반응 — 전진 판단 입력(schema.md §4 #1: 반응 기준, sent_at 아님)."""
+    """직전 spaced occurrence 의 식별·반응 — 전진 판단 입력(schema.md §4 #1: 반응 기준, sent_at 아님).
+
+    ``vetoed`` 는 user_veto 로 skip 된 occurrence(발송 전 사용자가 "이번 회차만 건너뛰기") —
+    반응(opened)은 아니지만 명시적 "다음은 받겠다" 신호라 전진시킨다(§4 #1 예외). 이때 ``fire_at``
+    (veto 된 칸의 예정 시각)이 다음 occurrence 의 전진 base 가 된다(opened_at 이 없으므로).
+    """
 
     occurrence_seq: int
     sent_at: datetime | None
     opened_at: datetime | None
     dismissed_at: datetime | None
+    fire_at: datetime | None = None
+    vetoed: bool = False
 
 
 # spaced 전진/대기/종료 신호.
@@ -231,6 +238,9 @@ def next_spaced_occurrence(
 
     occurrence0 = base + schedule_days[0]. occurrence i>0 은 occurrence(i-1) 이 opened 일 때만,
     fire_at = opened_at + (schedule_days[i] - schedule_days[i-1]).
+
+    예외(§4 #1): 직전이 user_veto("이번 회차만 건너뛰기")면 opened 없이도 다음 칸으로 전진하되,
+    base 는 veto 된 칸의 예정 시각(fire_at)을 써 원래 간격을 유지한다("다음 회차는 예정대로").
     """
     schedule = stage.trigger.schedule_days or []
     if not schedule:
@@ -247,9 +257,19 @@ def next_spaced_occurrence(
     next_i = last.occurrence_seq + 1
     if next_i >= len(schedule):
         return None  # 마지막 칸까지 발송·반응 완료
+    gap_days = schedule[next_i] - schedule[next_i - 1]
+    if last.vetoed:
+        # user_veto("이번 회차만 건너뛰기") — opened 없이도 다음 칸으로 전진(§4 #1 예외).
+        # base 는 veto 된 칸의 예정 시각(fire_at) → 원래 간격대로 "다음 회차는 예정대로".
+        base_veto = last.fire_at or (_ensure_utc(base) + timedelta(days=schedule[last.occurrence_seq]))
+        return NextOccurrence(
+            stage_seq=stage.seq,
+            occurrence_seq=next_i,
+            fire_at=_ensure_utc(base_veto) + timedelta(days=gap_days),
+            expires_at=None,
+        )
     if last.opened_at is None:
         return SPACED_WAIT  # sent 됐지만 미반응 — 전진 보류(페널티 없음)
-    gap_days = schedule[next_i] - schedule[next_i - 1]
     return NextOccurrence(
         stage_seq=stage.seq,
         occurrence_seq=next_i,

@@ -34,6 +34,12 @@ struct RecallHeroView: View {
     /// 초점 카드의 화면상 frame — 탭 시 hero zoom 의 출발점. 초점은 변환이 거의 identity(scale 1·offset 0)라
     /// `.global` 레이아웃 frame 이 실제 화면 위치와 일치한다(코버플로우 변환은 `.global` 에 반영 안 되지만 초점은 무변환).
     @State private var focalFrame: CGRect = .zero
+    /// 카드 제거(opened/stop) 후 남은 카드가 자리를 메우며 미끄러지는(reflow) 동안 켜진다. 그 사이 탭하면
+    /// hero 가 항상-중앙인 `focalFrame` 에서 출발하지만 카드는 아직 옆에서 미끄러지는 중이라 어긋나 튄다
+    /// (offset 은 render transform 이라 `.global` layout frame 에 안 잡혀 출발점 보정이 불가 — 탭 잠금이 정공법).
+    @State private var isReflowing = false
+    /// reflow 잠금 해제 타이머의 재시작 토큰 — 연속 제거 시 `.task(id:)` 가 이전 해제를 취소하고 다시 센다.
+    @State private var reflowToken = 0
 
     private var count: Int { entries.count }
     /// 드래그 1pt 당 회전(카드 단위) — 한 장 넘기는 데 ~120pt.
@@ -57,6 +63,19 @@ struct RecallHeroView: View {
             withAnimation(.interpolatingSpring(stiffness: 60, damping: 12).delay(0.05)) {
                 rotation = 0
             }
+        }
+        // 카드가 빠지면(count 감소) 남은 카드가 ~0.45s 미끄러져 자리를 메운다 — 그 사이 focal 탭을 잠근다.
+        .onChange(of: count) { old, new in
+            guard new < old else { return }   // 제거일 때만(추가·초기 로드는 무시)
+            isReflowing = true
+            reflowToken += 1
+        }
+        // 잠금 해제 — 마지막 제거로부터 reflow(스프링 response 0.45)가 가라앉을 때까지. 연속 제거면
+        // reflowToken 증가가 이 task 를 취소·재시작해 항상 마지막 제거 기준 0.5s 뒤에 풀린다.
+        .task(id: reflowToken) {
+            guard isReflowing else { return }
+            try? await Task.sleep(for: .seconds(0.5))
+            isReflowing = false
         }
     }
 
@@ -120,7 +139,8 @@ struct RecallHeroView: View {
                             }
                         }
                         .contentShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-                        .onTapGesture { openFocal(entry) }
+                        // reflow(카드 제거 재배치) 중엔 탭 무시 — 미끄러지는 카드에서 hero 가 출발하면 튄다.
+                        .onTapGesture { if !isReflowing { openFocal(entry) } }
                         .modifier(RecallCoverTransform(rotation: rotation, index: index, count: count, metrics: metrics))
                         // 목록에서 빠질 때(열어봐서 제거 등) 툭 끊기지 않고 작아지며 사라진다.
                         .transition(.scale(scale: 0.86).combined(with: .opacity))

@@ -11,6 +11,10 @@ _workspace/
 *.tmp
 .playwright-mcp/
 
+# 이미지 생성 스크래치 (루트 직속 PNG·walk 에셋 원본 — git 추적 금지, 앱은 imageset 만 사용)
+/*.png
+mochi-walk-assets/
+
 # lab 실험 데이터 (개인 스크린샷 등 — git 추적 금지, 별도 공유)
 lab/data/
 

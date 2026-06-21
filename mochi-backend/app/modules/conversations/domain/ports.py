@@ -147,6 +147,33 @@ class ChatLLMClient(Protocol):
         ...
 
 
+# ---------- 채팅 일정 proposal 메타 도출 ----------
+
+
+@dataclass(frozen=True, slots=True)
+class ScheduleMeta:
+    """채팅 일정 proposal 확정 항목의 경량 메타 — ``MochiItem.category/summary`` 운반용.
+
+    instance(날짜·일정)는 채팅 확정값 그대로 보존하고(DOMAIN_DESIGN §5.2 "재분석 안 함" 유지),
+    월간정리 분류·리스트·검색이 빈약해지지 않게 이 두 필드만 채운다. 도출 실패 시 둘 다 None —
+    항목은 메타 없이 생성된다(iOS '정리 중' 폴백).
+    """
+
+    category: str | None = None
+    summary: str | None = None
+
+
+class ScheduleMetaLLM(Protocol):
+    """``propose_create_schedule`` 확정 *전* category/summary 를 1회 호출로 도출한다.
+
+    재분석이 아니다 — 사용자가 채팅에서 확정한 일정의 instance 는 건드리지 않고, 월간정리
+    분류·리스트·검색용 메타만 만든다. 확정 fields(title/date/...) + 사용자의 최근 카테고리
+    어휘(``known_categories``)를 받아 라벨 흔들림을 줄인다. 실패는 graceful(빈 메타).
+    """
+
+    async def derive(self, *, fields: dict[str, str], known_categories: list[str]) -> ScheduleMeta: ...
+
+
 @dataclass(frozen=True, slots=True)
 class ResolvedCitation:
     """본문 마커의 item id 를 owner-scoped 로 실재 검증한 결과."""

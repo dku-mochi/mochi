@@ -116,6 +116,37 @@ class PostgresRecallReactionRepository(RecallReactionRepositoryPort):
         )
         await self._session.flush()
 
+    async def bump_plan_next_eligible(self, *, plan_id: UUID, owner_id: UUID) -> None:
+        # spaced veto("이번 회차만") 후 다음 회차 전진 — active plan 의 next_eligible_at 을 now 로
+        # 당겨 다음 materialize tick 이 곧바로 재평가하게 한다(occurrence 는 이미 user_veto skip).
+        stmt = (
+            update(NotificationPlanRow)
+            .where(
+                NotificationPlanRow.id == plan_id,
+                NotificationPlanRow.owner_id == owner_id,
+                NotificationPlanRow.status == "active",
+            )
+            .values(next_eligible_at=datetime.utcnow())
+        )
+        await self._session.execute(stmt)
+        await self._session.flush()
+
+    async def skip_recall_outbox(self, *, event_id: UUID, owner_id: UUID) -> None:
+        # 트랙 C stop — sent recall outbox 행을 skipped(cancelled) 로 종결해 피드에서 영구 제외.
+        # plan 이 없어 cancel_plan 으로 못 거르는 직행 행을 위한 대칭 처리(같은 skip_reason).
+        # 피드 쿼리(_recall_candidates)는 status IN ('pending','sent') 만 보므로 자동 제외된다.
+        stmt = (
+            update(NotificationOutboxRow)
+            .where(
+                NotificationOutboxRow.event_id == event_id,
+                NotificationOutboxRow.owner_id == owner_id,
+                NotificationOutboxRow.status == "sent",
+            )
+            .values(status="skipped", skip_reason="cancelled")
+        )
+        await self._session.execute(stmt)
+        await self._session.flush()
+
     def savepoint(self) -> AbstractAsyncContextManager[None]:
         # begin_nested = SAVEPOINT — 안에서 DB 에러가 나면 이 savepoint 만 롤백되어 outer 트랜잭션
         # (이미 flush 된 opened_at)이 aborted 되지 않는다(P1#4). recall_plan_repository 컨벤션과 동일.

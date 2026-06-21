@@ -27,9 +27,12 @@ class UpcomingOverrideRepositoryPort(ABC):
         """
 
     @abstractmethod
-    async def veto_pending(self, *, event_id: UUID, owner_id: UUID) -> tuple[int, UUID | None]:
+    async def veto_pending(
+        self, *, event_id: UUID, owner_id: UUID
+    ) -> tuple[int, UUID | None, str | None]:
         """pending(fire_at>now) 인 owner 의 outbox 1건을 skipped(user_veto) 마킹.
 
-        (갱신 행수, 그 행의 plan_id) 반환. 행수 0 → 404 분기. plan_id 가 있으면 호출부가
-        cancel_plan(user_dismiss)으로 그 plan 의 나머지 미래 알림까지 영구 정지한다(전체 끄기).
+        (갱신 행수, plan_id, kind) 반환. 행수 0 → 404 분기. 호출부가 kind 로 분기한다:
+        - deadline/nudge: plan 을 cancel_plan(user_dismiss)으로 영구 정지(나머지 단계도 끔).
+        - spaced: plan 은 active 유지("이번 회차만 건너뛰기") — 다음 회차는 예정대로 진행.
         """

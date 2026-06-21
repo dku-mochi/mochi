@@ -57,6 +57,8 @@ description: 능동 회수의 화면 설계. "회수=분류 아님"(다시 볼 �
 
 **"그만" scope 1:1 매핑 (codex-7)**: 액션 문구 ↔ 서버 상태전이를 고정 — "이 기억 그만"=`plan.cancelled` / "이 주제 줄이기"=theme cooldown / "회수 알림 끄기"=설정. "그만" 눌렀는데 비슷한 게 또 오면 신뢰가 깨진다.
 
+**spaced 예정 탭 노출 + veto scope (2026-06-21)**: spaced 는 회수 피드(RecallHero)뿐 아니라 **예정된 알림 탭**(미래 pending 알림 예고, `GET /recall/upcoming`)에도 노출한다 — "앞으로 보낼 회수"를 미리 보여 안심시킨다("다시 보기" 배지로 deadline/nudge 와 구분). 예정 탭의 veto 는 kind 별로 scope 가 다르다: deadline/nudge=`plan.cancelled`(시리즈 중단), **spaced="이번 회차만 건너뛰기"**(plan 유지 → occurrence-math 가 user_veto 칸을 다음 칸 전진 신호로 인식해 다음 회차는 예정대로). 정본 `DOMAIN_DESIGN.md`(소생 노트 옆) / 백엔드 `recall_occurrence.next_spaced_occurrence`.
+
 **라우팅 규칙:**
 - **단건 알림(기본) → ③ 기록 상세 직행.** 기존 `mochiItemID`/`sourceIntentID` deep-link(iOS `openDetailFromNotification`, PK→Local 역매핑) 재사용. **로컬 역매핑 실패 시 `recallEventID`로 서버 fetch fallback**(codex-2 — 빈 상세 금지).
 - **① 홈 한 칸** = 알림 아닌 **in-app 진입**(앱 직접 켤 때). ②③ 화면을 공유.

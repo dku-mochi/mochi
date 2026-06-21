@@ -25,6 +25,10 @@ class IngestCommand:
     # 채팅 proposal 확정으로 사용자가 직접 확정한 instance — 있으면 분석 파이프라인을 생략한다
     # (DOMAIN_DESIGN §5.2 예외: "사용자 확정 = 분석보다 상위 신뢰". journal 2026-06-10 M2).
     confirmed_instances: tuple[IntentInstance, ...] = ()
+    # 확정 instance 와 함께 propose-시점에 도출된 item 메타(분류·요약). instance 는 그대로 두고
+    # category/summary 만 채운다 — 월간정리 "그 외"·검색 빈약 방지(§5.2 는 instance 재분석만 생략).
+    category: str | None = None
+    summary: str | None = None
 
 
 @dataclass(slots=True)
@@ -68,6 +72,8 @@ class Ingest:
                 id=source.id,
                 source=source,
                 intent_instances=command.confirmed_instances,
+                category=command.category,
+                summary=command.summary,
                 lifecycle=LifecycleState(kind=LifecycleStateKind.ANALYZED),
             )
         else:

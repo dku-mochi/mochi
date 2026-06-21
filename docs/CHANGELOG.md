@@ -10,6 +10,44 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-06-21 — ios · docs (스플래시 모찌 걷기 애니메이션)
+- **왜**: 기존 스플래시(가로등 조명 + 정적 `SplashMochi`)가 어색 → "조명 치우고 심플하게" + 모찌가 걷는 옆모습 애니메이션 요청.
+- **ios**: `SplashView` 가로등 조명·빛기둥·셀프셰이딩 전부 제거 → 심플 연보라 배경 + `MochiWalk00~24` 25프레임 walk(24fps `Timer` 토글) + 은은한 발치 접지 그림자. `reduceMotion` 시 정지 프레임. Assets 에서 nano 3프레임(`MochiWalk1~3`) 제거하고 25프레임 추가.
+- **에셋 파이프라인**: Nano Banana Pro(`gemini-3-pro-image`)로 옆모습 생성 → Veo 3.1(`veo-3.1-fast`) image-to-video walk → ffmpeg crop·seamless loop 자동탐색(프레임 MSE)·크로마키 de-spill → union-crop 25 투명 프레임. 원본·소스·실험물은 루트 `mochi-walk-assets/`(README 포함). 품질: Gemini 비디오 평가 overall 10.0.
+- **docs**: `UX_SPEC.md` §3.1 갱신.
+- 검증: `tuist build Mochi` 성공.
+- **알려진 갭**: UX_SPEC §3.1(line 94)의 "파티 포퍼 색종이 연출"은 현재 `SplashView` 에 미구현 — 이전 가로등 버전부터의 문서-코드 drift 로, 이번 walk 교체와 별개. 후속 결정 필요.
+
+## 2026-06-21 — backend · ios · docs (예정 알림 탭에 spaced 회수 노출 + veto "이번 회차만")
+- **왜**: 사용자가 "비슷한 거 저장 시·N시간 뒤 회수 알림이 안 보인다"고 했는데, 회수(spaced/recall)는 예정 탭(`deadline`/`nudge` 한정)에 설계상 제외돼 있었다. spaced 미래 예약 회수는 "모찌가 앞으로 보낼 알림"이라 예정 탭 정의에 부합 → 노출 결정(recall 은 즉시발송이라 pending 미래로 안 머물러 자연 제외, 정상).
+- **backend**: `upcoming_feed` `_UPCOMING_KINDS` 에 `spaced` 추가(inner join plan active 그대로 통과). **veto 의미 kind 분기** — `veto_pending` 이 kind 도 RETURNING → `VetoUpcomingNotification` 이 spaced 면 `cancel_plan` 대신 `bump_plan_next_eligible`(plan 유지+재평가), deadline/nudge 는 기존 cancel. occurrence-math(`next_spaced_occurrence`)에 veto 전진 분기 — `SpacedState.vetoed/fire_at` 신설, `_last_spaced_state` 가 `user_veto` 칸 인식 → 다음 칸을 veto fire_at+gap 으로 전진("다음 회차는 예정대로", opened 기준 전진의 명시적 예외).
+- **ios**: `UpcomingRow` 가 `kind=='spaced'` 면 "다시 보기" 보라 배지 + veto 라벨 "이번 알림만 건너뛰기" 분기.
+- **docs**: `UX_SPEC.md` §3.4c, `journal/proactive-recall/ux-ui.md` §4, `DOMAIN_DESIGN.md`(소생 노트 옆 veto 노트) 동기화.
+- 검증: 백엔드 `pytest tests/unit`(456) green + ruff/mypy clean. `make openapi` 구조 무변경(description 만) + `generate.sh` no-diff. iOS `tuist test FeatureInbox` Success. codex 코드리뷰·QA PASS(P1 0건 — 무한루프·occurrence 충돌·owner-scope 안전 확인).
+- **알려진 갭**: spaced veto 의 `_last_spaced_state` SQL(user_veto 인식)·plan done 전이는 DB 통합테스트 인프라(`tests/integration/` 비어 있음) 부재로 순수함수+use case+코드리뷰로만 검증 — 워커/SQL 레벨 통합테스트는 후속(인프라 신설 선행 필요).
+
+## 2026-06-21 — ios (알림 딥링크 cold-start 유실 수정)
+- **문제**: 앱 종료 상태에서 알림 탭(cold start) 시 상세/회수 딥링크가 유실. 근본원인 2겹 — (1) `RootFeature` 가 `notificationTapped`/`recallNotificationTapped` 를 phase 무관 즉시 `.main(...)` 디스패치해, `.resolving`(MainTab 미마운트·auth 미준비) 중 도착하면 zoom present 가 `ZoomDetailPresentation.sync` 의 `host.view.window != nil` 가드에 걸려 드롭(state.detail 만 남아 락인)되고 recall 은 `recallLanding` 네트워크 fetch 가 401 로 빈손. (2) 그 드롭은 self-heal(present 내부) 도달 전이라 영구 락인.
+- **수정 (RootFeature)**: `pendingNotificationRoute` 큐 신설 — `phase != .authenticated` 면 라우트를 큐잉했다가 `.sessionResolved`(자동 로그인)·`.login` signedIn 의 `.authenticated` 전이에서 `flushPendingNotificationRoute` 로 흘린다. MainTab 마운트·auth 준비 후 디스패치라 present·fetch 둘 다 성립(warm start·이미 인증 시는 기존대로 즉시 디스패치).
+- **수정 (ZoomDetailPresentation)**: `sync` 가 store non-nil·host window 미부착 시 드롭하던 것을 토큰 가드 bounded 재시도(프레임 간격, ~2s 한도)로 전환 — 마운트 완료 시 present 성립. dismiss/교체는 토큰 증가로 stale 재시도 무효화(스테일 present 방지). 문서가 짚은 끊김 지점(`ZoomDetailPresentation:80` 락인) 해소.
+- **MainTabFeature 미변경** — 소비 핸들러(`openDetailFromNotification`/`openRecallLandingFromNotification`)는 그대로 정확. (병렬 회수-카드 작업과 파일 충돌도 회피.)
+- 검증: `tuist build Mochi` Success.
+
+## 2026-06-21 — ios · backend · docs (회수 "그만 보기" 카드 제거 + 연속탭·재시작 부활 수정 — 코드리뷰 Phase 1 잔여)
+- **"그만 보기" → 홈 회수 히어로 카드 제거** (`RecallFeature`/`MainTabFeature`): 능동 회수 상세의 stop 이 reaction(plan cancel)만 기록하고 홈 카드는 그대로 남던 미션 위반 수정("그만 보겠다는데 화면에 남음"). `RecallDetailFeature.Delegate.stopped(itemID:)` 추가 → `stopTapped` 가 토스트·reaction 과 함께 방출 → `MainTabFeature` 가 opened-close 의 `recallDetailClosed` 재사용으로 홈에서 제거. 핸드오프 `journal/2026-06-20-recall-stop-card-removal-handoff.md` 구현.
+- **회수 카드 연속 탭 hero 꼬임 수정** (`MainTabFeature` + `RecallHeroView`): 두 겹. (1) `recallItemOpened` 에 present 완료 후 재진입 가드 추가(다른 present 경로와 일관 — in-flight 연속 탭은 기존 `cancelInFlight` 가 이미 마지막 탭만 남겨 처리; `ZStack` 라 frame 은 항상 중앙이라 "index 오류"는 원인 아님). (2) **근본 원인 = 카드 닫은 직후 제거 reflow(~0.45s) 중 다음 카드 탭** → hero 가 항상-중앙 `focalFrame` 에서 출발하나 카드는 미끄러지는 중이라 점프(offset 은 render transform 이라 layout frame 미반영 → 출발점 보정 불가). `RecallHeroView` 에 reflow 중 focal 탭 잠금(settle-lock — count 감소 감지 → `.task(id:)` 로 0.5s 뒤 해제, 연속 제거 시 자동 취소·재시작) 추가. 디바이스 feel 확인 권장.
+- **트랙 C stop 카드 앱 재시작 부활 수정** (`record_recall_reaction`/`recall_reaction_repository`): plan 없는 트랙 C(`kind=recall` 직행)는 stop 시 `dismissed_at` 만 찍히고 outbox `status='sent'` 로 남는데 피드 쿼리(`_recall_candidates`)가 `dismissed_at` 을 무시해 재fetch(앱 재시작)마다 부활. `_handle_stop` 의 `plan_id IS NULL` 분기에서 `skip_recall_outbox` 로 sent 행을 `skipped` 종결(트랙 A `cancel_plan` 과 대칭 — 쿼리·마이그레이션 불필요). **알려진 갭**: 생성부 재스팸 가드가 stop/dismissed 공용 `dismissed_at` 쿨다운뿐 → 쿨다운 후 재생성 가능(stop 전용 영구 제외는 후속).
+- 문서: `UX_SPEC.md` §3.11(그만 보기 → 카드 제거 + 트랙별 영구 억제), `DOMAIN_DESIGN.md` §3(트랙 C stop 처리 + 갭) 동기화.
+- 검증: 백엔드 `test_record_recall_reaction`(14) green + ruff/mypy clean. iOS `tuist test FeatureInbox` + `tuist build Mochi` 둘 다 Success(settle-lock 포함 재검증). codex 코드리뷰 PASS(P1 0건). reflow 탭 잠금 feel 은 디바이스 수동 확인 권장.
+
+## 2026-06-21 — backend, ios, docs (채팅 일정 propose 메타 채움 — category/summary)
+- **문제**: 채팅 `propose_create_schedule`(일정 카드) 확정 항목이 §5.2(분석 생략) 때문에 `MochiItem.category`·`summary` 가 비어 태어나 월간정리 "그 외"로 빠지고 리스트/검색이 빈약했다(테스터 4번 근본). `propose_create_memo` 는 분석 경유라 정상 — schedule 만 발원지.
+- **백엔드**: 경량 메타 도출 LLM `ScheduleMetaLLM`/`GeminiScheduleMeta` 신설(`gemini_monthly_digest` 패턴 클론 — flash-lite + `thinking_budget=0` + `response_schema {category, summary}`, 실패 시 graceful 빈 메타). `ProposeCreateScheduleTool` 이 확정 *전* 확정 args + 최근 카테고리 어휘(`list_normalized_categories`)로 `{category, summary}` 를 1회 도출해 카드 payload 에 싣는다. `MochiItemCreateRequest`(⓪계약)·`IngestCommand` 에 top-level `category`/`summary` 추가 → 확정 분기 `MochiItem` 운반(instance 재분석 아님 — instance·날짜는 확정값 그대로). `make openapi` 반영.
+- **iOS**: `generate.sh` 재생성(`Generated/Types.swift` no-diff 게이트). `MochiItemIngestRequest`·`OpenAPIMochiClient.ingestMochiItem`·`ChatStreamClient.CreateSchedulePayload`(SSE free-form 수기 디코드)·`ChatFeature` `.createSchedule` 확정 분기에 category/summary 운반.
+- **범위 결정**: entities 제외(도메인이 raw entities 가 아니라 projection 보유 + schedule 엔 url 필드 없어 가치 marginal). 메타 LLM 맥락 = args + category window(raw 대화 history 미주입 — args 가 이미 대화를 distill, history 주입은 `ChatTool` 포트 9개 변경 필요라 비례 안 함).
+- **문서**: DOMAIN_DESIGN §5.2("분석 생략" = instance 재분석(outbox)만 생략, item 메타는 propose-시점 채움으로 명문화), ARCHITECTURE §3.6(SSE create_schedule wire 에 category/summary).
+- 검증: 백엔드 `make lint/typecheck/test`(452) green, iOS `tuist build FeatureChat` Build Succeeded.
+
 ## 2026-06-20 — backend (코드리뷰 Phase 1 — Apple nonce + SSRF 연결-핀 + knowledge decay)
 - **Apple ID token nonce 필수화** (`auth/.../id_token_verifier.py`): nonce claim 이 없으면 검증을 통째로 건너뛰던 동작 제거 — nonce 없이 발급된 victim identityToken 의 replay(계정 탈취)를 허용했다. iOS 는 항상 rawNonce 를 전송하므로 raw·token nonce 가 **둘 다** 있어야 통과하도록 변경. 회귀 테스트 추가(nonce 없는 유효 토큰 → 거부). (rawNonce 를 openapi 계약상 required 로 올리는 건 ⓪폭포 동반 후속 — 검증부에서 이미 차단.)
 - **SSRF 가드 공유 모듈화 + IPv4-mapped 우회 차단 + 연결-핀(TOCTOU 차단)** (`agent/.../tools/safe_fetch.py` 신설): `WebFetchTool`·`PlatformContextTool` 이 각자 들고 있던 `_enforce_host_policy` 복사본을 단일 모듈로 통합(fix-drift 제거). (1) `::ffff:127.0.0.1`·`::ffff:169.254.169.254` 같은 IPv4-mapped IPv6 는 IPv6 객체의 `is_loopback`/`is_link_local` 이 내부 IPv4 를 반영 안 해 우회됐는데 unwrap 후 판정. (2) **연결-핀** — `guarded_get` 이 호스트를 한 번 resolve·검증한 뒤 그 IP 로 직접 연결하고 원본 host 를 SNI/Host 로 보존(인증서·가상호스팅 유지) → 검증 IP=연결 IP 라 연결-시점 DNS rebinding(TOCTOU) 차단. 매 redirect hop 재핀.

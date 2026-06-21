@@ -15,7 +15,7 @@ import pytest
 
 from app.core.error_envelope import ConflictError, NotFoundError
 from app.modules.conversations.domain.entities import MessageRole, RunStatus
-from app.modules.conversations.domain.ports import ChatLLMChunk
+from app.modules.conversations.domain.ports import ChatLLMChunk, ScheduleMeta
 from app.modules.conversations.infrastructure.run_registry import RunRegistry
 from app.modules.conversations.infrastructure.tools.propose import (
     ProposeCreateMemoTool,
@@ -47,6 +47,27 @@ from app.shared.intent import Intent
 from tests.unit.test_chat_run import FakeLLM, FakeStore, _drain, _runner
 
 _OWNER = uuid4()
+
+
+class _StubScheduleMeta:
+    """고정 메타를 돌려주는 fake — propose tool 의 메타 운반·window 주입만 검증(LLM 비호출)."""
+
+    def __init__(self, meta: ScheduleMeta | None = None):
+        self.meta = meta or ScheduleMeta(category="병원", summary="치과 정기 검진 예약")
+        self.seen_fields: dict[str, str] | None = None
+        self.seen_known: list[str] | None = None
+
+    async def derive(self, *, fields: dict[str, str], known_categories: list[str]) -> ScheduleMeta:
+        self.seen_fields = fields
+        self.seen_known = known_categories
+        return self.meta
+
+
+def _stub_categories(labels: tuple[str, ...] = ()):
+    async def _read(owner_id: UUID) -> list[str]:
+        return list(labels)
+
+    return _read
 
 
 def _item_with_instance(intent: Intent = Intent.SCHEDULE) -> MochiItem:
@@ -144,7 +165,7 @@ async def test_propose_update_unknown_instance_or_item_yields_error() -> None:
 
 
 async def test_propose_schedule_requires_title_and_iso_date() -> None:
-    tool = ProposeCreateScheduleTool()
+    tool = ProposeCreateScheduleTool(_StubScheduleMeta(), _stub_categories())
     bad = await tool.run(owner_id=_OWNER, args={"title": "회의", "date": "내일", **_DISPLAY})
     assert bad.proposal is None
 
@@ -158,7 +179,7 @@ async def test_propose_schedule_requires_title_and_iso_date() -> None:
 
 
 async def test_propose_schedule_range_validates_and_carries_end_date() -> None:
-    tool = ProposeCreateScheduleTool()
+    tool = ProposeCreateScheduleTool(_StubScheduleMeta(), _stub_categories())
     # 끝이 시작보다 앞서면 카드 자체를 만들지 않는다 — 모델이 정정하게 에러로 돌려준다.
     inverted = await tool.run(
         owner_id=_OWNER,
@@ -174,6 +195,42 @@ async def test_propose_schedule_range_validates_and_carries_end_date() -> None:
     payload = ranged.proposal["payload"]["confirmed_instances"][0]["payload"]
     assert payload["date"] == "2026-06-12"
     assert payload["end_date"] == "2026-06-14"
+
+
+async def test_propose_schedule_carries_derived_meta() -> None:
+    # propose-시점 경량 LLM 이 도출한 category/summary 가 카드 payload 에 실려야 한다 —
+    # 월간정리·검색이 "그 외"·빈약으로 빠지지 않게(§5.2 는 instance 재분석만 생략, 메타는 채움).
+    meta = _StubScheduleMeta(ScheduleMeta(category="병원", summary="치과 정기 검진"))
+    tool = ProposeCreateScheduleTool(meta, _stub_categories(("병원", "데이트")))
+    result = await tool.run(
+        owner_id=_OWNER,
+        args={"title": "치과 예약", "date": "2026-06-25", "note": "스케일링", **_DISPLAY},
+    )
+    assert result.proposal is not None
+    payload = result.proposal["payload"]
+    assert payload["category"] == "병원"
+    assert payload["summary"] == "치과 정기 검진"
+    # 확정 args + 최근 카테고리 window 가 메타 LLM 에 주입된다.
+    assert meta.seen_fields is not None and meta.seen_fields["title"] == "치과 예약"
+    assert meta.seen_known == ["병원", "데이트"]
+    # instance(날짜·일정)는 채팅 확정값 그대로 — 메타가 instance 를 건드리지 않는다.
+    instance = payload["confirmed_instances"][0]["payload"]
+    assert instance["date"] == "2026-06-25"
+
+
+async def test_propose_schedule_creates_card_when_meta_empty() -> None:
+    # 메타 도출 실패(GeminiScheduleMeta 가 graceful 로 빈 ScheduleMeta 반환)·빈 window 여도
+    # 일정 카드는 생성된다 — 메타는 부가, 카드 생성을 막지 않는다(§5.2 graceful).
+    tool = ProposeCreateScheduleTool(_StubScheduleMeta(ScheduleMeta()), _stub_categories())
+    result = await tool.run(
+        owner_id=_OWNER, args={"title": "치과 예약", "date": "2026-06-25", **_DISPLAY}
+    )
+    assert result.proposal is not None
+    payload = result.proposal["payload"]
+    # category/summary 가 None 이면 키 자체를 싣지 않는다 — SSE 옵셔널 디코드 안전.
+    assert "category" not in payload
+    assert "summary" not in payload
+    assert payload["confirmed_instances"][0]["payload"]["date"] == "2026-06-25"
 
 
 async def test_propose_reminder_rejects_past_fire_at() -> None:
@@ -356,6 +413,9 @@ def _confirmed_command(key: str = "k1") -> IngestCommand:
         text="회의",
         user_memo=None,
         idempotency_key=key,
+        # propose-시점 도출 메타 — 확정 instance 와 함께 item 레벨로 운반된다(§5.2 는 재분석만 생략).
+        category="회의",
+        summary="민수와의 주간 회의",
         confirmed_instances=(
             IntentInstance(
                 intent_type=Intent.SCHEDULE,
@@ -376,6 +436,9 @@ async def test_confirmed_instances_skip_analysis_pipeline() -> None:
     assert item.lifecycle.kind is LifecycleStateKind.ANALYZED
     assert item.intent_instances[0].intent_type is Intent.SCHEDULE
     assert item.intent_instances[0].lifecycle.kind is InstanceLifecycleKind.ACTIVE
+    # propose-시점 메타가 item 에 보존된다 — 월간정리 "그 외"·검색 빈약 방지(이번 변경의 핵심).
+    assert item.category == "회의"
+    assert item.summary == "민수와의 주간 회의"
 
 
 async def test_confirmed_instances_ingest_is_idempotent() -> None:

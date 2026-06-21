@@ -180,7 +180,7 @@ public struct SentNotificationDTO: Sendable, Hashable, Codable, Identifiable {
 public struct UpcomingNotificationDTO: Sendable, Hashable, Codable, Identifiable {
     /// veto/reschedule 타겟 키 (= outbox.event_id).
     public let eventID: UUID
-    /// "deadline"(마감 backoff) | "nudge"(다가올 일정).
+    /// "deadline"(마감 backoff) | "nudge"(다가올 일정) | "spaced"(예약 회수, "다시 보기").
     public let kind: String
     /// 현재 유효 발송 예정 시각(사용자가 옮겼으면 옮긴 값).
     public let fireAt: Date
@@ -342,6 +342,10 @@ public struct MochiItemIngestRequest: Sendable, Hashable, Codable {
     /// 사용자 확정 instance — 존재 시 서버가 **분석을 생략**하고 instance 를 그대로 생성한다
     /// (DOMAIN_DESIGN §5.2 예외: 사용자 확정 = 분석보다 상위 신뢰). 채팅 일정 proposal 확정 경로.
     public let confirmedInstances: [ConfirmedInstanceIngestDTO]?
+    /// 채팅 일정 proposal 이 propose-시점에 도출한 item 메타 — confirmedInstances 경로에서만 채워진다
+    /// (instance 재분석 아님 — §5.2 는 outbox 재분석만 생략, category/summary 는 채운다).
+    public let category: String?
+    public let summary: String?
 
     public init(
         channel: IngestChannel,
@@ -349,7 +353,9 @@ public struct MochiItemIngestRequest: Sendable, Hashable, Codable {
         text: String? = nil,
         userMemo: String? = nil,
         imageRefs: [ImageRefDTO] = [],
-        confirmedInstances: [ConfirmedInstanceIngestDTO]? = nil
+        confirmedInstances: [ConfirmedInstanceIngestDTO]? = nil,
+        category: String? = nil,
+        summary: String? = nil
     ) {
         self.channel = channel
         self.url = url
@@ -357,10 +363,12 @@ public struct MochiItemIngestRequest: Sendable, Hashable, Codable {
         self.userMemo = userMemo
         self.imageRefs = imageRefs
         self.confirmedInstances = confirmedInstances
+        self.category = category
+        self.summary = summary
     }
 
     private enum CodingKeys: String, CodingKey {
-        case channel, url, text
+        case channel, url, text, category, summary
         case userMemo = "userMemo"
         case imageRefs = "imageRefs"
         case confirmedInstances = "confirmedInstances"

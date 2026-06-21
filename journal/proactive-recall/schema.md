@@ -156,7 +156,7 @@ trigger 3종(relative / recurring / spaced) + 시각·문구·무게. LLM 플래
 
 codex 검증으로 도출. 스키마는 이미 받치고, 아래는 코드 레벨 규약:
 
-1. **spaced 전진 = 반응 기준.** 다음 칸은 마지막 occurrence의 `opened_at`/`dismissed_at` 으로 판단(`MAX(sent_at)` 아님). dismiss=소멸, 양성=다음 간격.
+1. **spaced 전진 = 반응 기준.** 다음 칸은 마지막 occurrence의 `opened_at`/`dismissed_at` 으로 판단(`MAX(sent_at)` 아님). dismiss=소멸, 양성=다음 간격. **예외(2026-06-21)**: 예정 탭 veto("이번 회차만 건너뛰기")로 `skip_reason='user_veto'` 된 칸은 opened 없이도 다음 칸으로 전진하되, 전진 base 를 그 칸의 `fire_at` 으로 쓴다(opened 경로와 격리 — "다음 회차는 예정대로"). 정본 동작 `recall_occurrence.next_spaced_occurrence`, 표시·scope 는 `ux-ui.md` §4 / `DOMAIN_DESIGN.md` §5.2.
 2. **plan 교체 race 차단.** sender 클레임 쿼리는 `JOIN notification_plan ON status='active'` 필수. supersede 트랜잭션에서 기존 pending outbox를 `skipped(superseded)` 마킹(같은 트랜잭션).
 3. **owner 일관성.** 삽입 시 `outbox.owner_id := plan.owner_id` 복사 + 테스트(composite FK는 과설계라 안 씀, §6).
 4. **dismiss cooldown은 plan 경계를 넘는다.** `source_intent_id` 기준 outbox 조회로 판정(plan이 교체돼도 dismiss 이력 추종).
