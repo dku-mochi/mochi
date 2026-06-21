@@ -59,6 +59,8 @@ description: 능동 정보 회수의 구현 기술 설계. 코드 변경 없음(
 - 트랙 C는 둘 다 아님 — **이벤트 도착 시 즉시 materialize**(`recall_candidates`).
 
 ### 2.4 재방문(access) 로그 — MVP 포함 (송준서 결정)
+> ✅ **구현 완료 2026-06-21** — `item_access_log`(마이그레이션 0025) + `POST /mochi_items/{id}/access`. `source` 는 navigation origin 10값으로 확장(home/search/chat/recall/notification/calendar/category/favorites/digest/related — origin 이 의도를 인코딩). 정본=DOMAIN_DESIGN §3·코드. 그 사이 트랙 A spaced(마지막 접근=`instance.updated_at`)·트랙 C 억제(recall cooldown)는 access 로그 없이 대체 구현됐고, 이 로그는 N:N 재설계의 organic 열람 신호로 부활했다.
+
 codex는 "재방문 로그 없음 → v2"로 미뤘으나, **prod 마이그레이션 부담이 없는 초기라 지금 제대로 넣는다**(품질 우선). `item_access_log`(append-only: owner, item, accessed_at, source). 활용:
 - **트랙 A spaced**: "마지막 접근"의 진실원천(`recall_log.opened` 근사 불필요). 30/180 적응형의 기준 신호.
 - **트랙 C**: "최근 열어본 item은 이미 안 잊음 → 소환 억제"(prior_interest 신호).
@@ -102,7 +104,8 @@ codex는 "재방문 로그 없음 → v2"로 미뤘으나, **prod 마이그레�
 - 새 저장에 shopping_product/product entity → 과거 동종 entity item을 relaxed 임계로 비교 카드. **상태추적 없음**("결정 관리" 아님 — 명칭이 곧 책임 경계). 데모 임팩트 큼.
 
 ### 3.7 MVP 제외 (명시)
-위치 / 캘린더 교차(트랙 B로) / 앱 사용패턴 / 점수 가중합 / access(열람)로그 / entity canonicalization.
+위치 / 캘린더 교차(트랙 B로) / 앱 사용패턴 / 점수 가중합 / entity canonicalization.
+> ⚠️ 정정(2026-06-21): 원문은 여기에 "access(열람)로그"도 넣어 §2.4("MVP 포함")와 자기모순이었다. §2.4 가 맞다 — access 로그는 포함이 결정이었고 **2026-06-21 구현 완료**(`item_access_log`, 마이그레이션 0025). 이 목록에서 제거.
 
 ---
 

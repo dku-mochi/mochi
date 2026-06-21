@@ -60,6 +60,9 @@ public struct NotConfiguredAPIClient: MochiAPIClient {
     public func setFavorite(mochiServerID: UUID, isFavorite: Bool) async throws -> MochiItemDTO {
         throw Self.error
     }
+    public func logItemAccess(mochiServerID: UUID, source: ItemAccessSource) async throws {
+        throw Self.error
+    }
     public func updateMochiItem(
         mochiServerID: UUID, _ request: MochiItemUpdateRequestDTO
     ) async throws -> MochiItemDTO {

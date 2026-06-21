@@ -121,16 +121,14 @@ OCR 텍스트에서 Apple 기본 데이터 패턴을 탐지한다.
 
 주의: `NSDataDetector` 는 검증기가 아니라 탐지기다. 불확실한 후보를 버릴 수 있으므로 단독 판정이 아니라 민감도 점수의 신호로 사용한다.
 
-### 3.4 NaturalLanguage
+### 3.4 NaturalLanguage NER — 제외 (한국어 미지원)
 
-OCR 텍스트에서 사람, 장소, 조직 같은 named entity 를 탐지한다.
+Apple NaturalLanguage 의 `.nameType`(named entity recognition)은 **한국어를 지원하지 않는다**
+(한국어는 Language/Script/TokenType 스킴만). 한국어 NER 커스텀 모델(BERT/임베딩 계열)은 Share
+Extension 120MB 메모리 한도와 충돌한다. 따라서 **NER(사람·장소·조직 이름)은 사용하지 않는다.**
 
-- Apple NaturalLanguage NER: https://developer.apple.com/documentation/naturallanguage/identifying-people-places-and-organizations
-- 용도:
-  - 사람 이름 탐지
-  - 장소명 탐지
-  - 조직명 탐지
-  - 전화번호/주소/이메일 등 다른 신호와 조합해 민감도 가중
+근거: 민감 캡처 판정의 핵심(주민번호·카드·OTP·계좌·토큰)은 검증기(체크섬)+문맥 근접으로 충분히
+잡히고, 이름은 본래 가중치가 가장 낮다(§4.2). NER 부재가 전체 감지력을 거의 손상시키지 않는다.
 
 ### 3.5 한국형 룰 기반 탐지
 
@@ -228,16 +226,22 @@ public enum SensitivityType: String, Sendable {
 
 ### 5.2 선택지
 
-- 기기에만 저장
-- 민감 영역 가리고 분석
-- 텍스트만 분석
-- 원본 분석 허용
+저장 시점에 **고신뢰(검증 통과) 민감 신호**가 감지되면 `PrivacyChoiceView` 시트로 묻는다 —
+저신뢰 신호(문맥 없는 짧은 숫자·단독 전화/이메일)는 점수에만 기여하고 저장 흐름을 막지 않아
+false positive 의 UX 마찰을 차단한다.
 
-기본값:
+- **원본 그대로 저장** (`originalUpload`)
+- **민감한 곳 가리고 저장** (`blurredUpload`) — 감지 영역만 가우시안 블러. 선택 시 결과 미리보기(crossfade + 자물쇠 배지)로 안심시킨다.
+- **이 기기에만 저장** (`localOnly`) — 서버에 이미지 미전송, 폰에만 보관.
 
-- 0-5점: 텍스트/메타데이터 분석
-- 6-8점: 민감 영역 가리고 분석
-- 9-10점: 기기에만 저장
+기본 추천(`SensitivityScorer.recommendedPolicy`):
+
+- 0-5점(low/caution): 원본 그대로
+- 6-8점(sensitive): 민감한 곳 가리고 (기본 추천)
+- 9-10점(highlySensitive): 이 기기에만
+
+로컬에는 **항상 원본 PNG 를 보존**하고(`§1.1`), 서버에는 정책본(블러본/원본/미전송)을 올린다.
+블러 정책인데 블러본 생성에 실패하면 원본 유출을 막기 위해 업로드를 스킵한다.
 
 ### 5.3 설명 원칙
 
@@ -343,23 +347,26 @@ agent/application
 3. 한국형 룰로 인증번호, 카드번호, 계좌, 토큰 문맥 탐지
 4. `SensitivityScorer` 로 0-10점 계산
 5. 6점 이상 경고 UI 표시
-6. `MochiItemSyncWorker` 에서 `local_only`, `text_only`, `redacted_image`, `original_allowed` 분기
-7. 백엔드 mochi_items API 에 privacy metadata 저장
-8. Agent/search 가 원본 이미지 없는 캡처를 정상 처리하도록 fallback 구현
+6. 저장 시점 선택 시트(`PrivacyChoiceView`) — 블러 선택 시 결과 미리보기로 안심
+7. `MochiItemSyncWorker`·`ShareExtDirectUpload` 에서 `originalUpload`/`blurredUpload`/`localOnly` 분기 (로컬 원본 보존, 서버엔 정책본; 블러본 실패 시 업로드 스킵)
+8. Agent/search 가 이미지 없는(`localOnly`) 캡처를 정상 처리하도록 fallback (기존 이미지 optional 경로 재사용)
 
 ---
 
 ## 9. 남은 결정 사항
 
-- 민감도 점수 threshold 를 실제 사용자 테스트 후 조정할지 여부
-- 원본 업로드 허용을 캡처별 1회 승인으로 할지, 설정에서 항상 허용을 둘지 여부
-- embedding 을 민감도 6 이상에도 생성할지 여부
-- 로컬 전용 캡처를 자연어 검색에 포함하려면 온디바이스 검색 인덱스를 둘지 여부
-- 마스킹 이미지 생성 시 blur, solid fill, semantic overlay 중 어떤 방식을 기본으로 할지 여부
-- **유사 회수(similar)가 민감 캡처를 무관 항목 상세에서 자동 노출할지** — 상세 화면 "비슷한 기록"(`DOMAIN_DESIGN.md` §10.5)은 사용자 질의 없이 상세를 열기만 해도 cosine 이웃을 끌어오는 **새 회수 표면**이다(검색탭과 달리 능동 질의 불필요). 현재 `sensitivity_level` 필드 미구현이라 분석 경로(`view_item_image`)와 **동일하게 ungated** — 노출 표면이 분석 경로보다 넓어지지 않는다(§10 동일 논리). privacy 필드 도입 시 **이 엔드포인트를 게이트 대상에 반드시 포함**(누락하면 민감 항목이 회수로 우회 노출) — `TODO.md` §5.1 후속
-- **이미지 사진앱 저장(2026-06-14)이 민감 캡처를 앱 경계 밖으로 반출할지** — 상세 ⋯ 메뉴 "이미지 저장"은 캡처 원본을 **iOS 사진 라이브러리(iCloud 동기화·타 앱 접근 가능)로 내보내는 새 반출 표면**이다. `view_item_image`/similar 의 ungated 정당화("노출이 분석 경로 이내")가 **여기엔 적용 안 된다** — 분석 경로보다 넓은 외부 반출. 단 현재 `sensitivity_level` 미구현이라 민감도 판별 근거 자체가 없어 **지금은 ungated 진행**(사용자가 ⋯ 메뉴에서 명시적으로 누르는 행위). privacy 필드 도입 시 **민감 캡처는 저장 차단/경고 게이트 대상에 포함**(`view_item_image`/similar 와 함께) — `TODO.md` §5.1 후속. 팀 결정 필요 항목.
-- **즐겨찾기 화면(2026-06-14)이 민감 캡처를 노출할지** — 홈 헤더 별 → 즐겨찾기 화면은 사용자가 직접 즐겨찾기한 항목만 모아 보이는 회수 표면이다. 노출 범위가 기존 검색/홈/캘린더보다 넓어지지 않아(이미 보이던 항목) similar 와 같은 ungated 논리. privacy 필드 도입 시 회수 표면 일괄 게이트에 포함.
-- **능동 회수 알림(2026-06-16)의 APNs 본문이 민감 캡처 요약을 잠금화면에 노출할지** — 트랙 A/B/C 알림은 LLM 이 근거 item 의 summary·명사로 `body` 를 만들어 **잠금화면(미인증 표면)에 노출**한다(§6 alert payload "summary 노출 + 민감도 마스킹 후속" 라인의 연장). 트랙 A/B 소스(일정·마감·지식)는 사용자가 의도적으로 만든 구조라 민감 스크린샷과 성격이 다르다. **트랙 C(스크린샷 회수)의 민감 노출은 `sensitivity_level` 도메인 전체 구현을 기다리지 않는다** — 회수 후보 생성/발송 시점의 **필터**(민감 스크린샷은 회수 후보에서 제외하거나 알림 본문 마스킹, channel allowlist)로 국소 처리한다(정본 `journal/proactive-recall/tech-plan.md` §8 P8). **2026-06-16 — 트랙 C 구현 완료 + 민감 게이트 결정**: 트랙 C 회수(`generate_recall_candidates.py`, 새 저장→유사 과거 ANN→`notification_outbox` 직행)를 구현하며 **회수 시점 민감 필터를 넣지 않기로 결정**. 근거: 회수 본문은 원본 OCR 이 아니라 **추상화된 LLM 요약**(근거 명사 기반 "다시 볼까요?" 비단정 톤)이라 `view_item_image`/similar/alert 와 동일한 ungated 논리가 그대로 적용된다(노출이 분석 경로 이내). no-op pluggable stub 게이트조차 두지 않음 — 판별 신호(`sensitivity_level`)가 없는데 추상 게이트만 두는 것은 speculative(Simplicity First). `sensitivity_level` 실구현 시 회수 use case 발송 게이트로 끼운다(`view_item_image`/similar/즐겨찾기/alert 와 함께 일괄). 정본 `journal/proactive-recall/tech-plan.md` §8 P8 — `TODO.md` §5.1 후속.
+- 민감도 점수 threshold·가중치를 실제 사용자 테스트 후 조정할지 여부 (`SensitivityScorer` §4)
+- embedding 을 민감도 6 이상에도 생성할지 여부 (블러 업로드 시 블러본으로 embedding 생성됨)
+- 로컬 전용(`localOnly`) 캡처를 자연어 검색에 포함하려면 온디바이스 검색 인덱스를 둘지 여부
+- **백탭 캡처(`CommitBackTapCaptureIntent` — UI 없는 background intent)의 민감 처리** — 저장 시점에 선택 시트를 띄울 수 없는 구조적 제약. 자동 블러(보수적 안전) vs 앱 진입 후 사후 조정 중 팀 결정 필요.
+
+> **노출 게이트는 블러 저장으로 해소됨 (2026-06-21 결정).** 민감 영역을 저장 시점에 가우시안
+> 블러 처리해 업로드하므로 **서버에 올라간 이미지 자체가 안전하다**. 따라서 다운스트림 노출
+> 표면(`view_item_image`·`similar`·즐겨찾기·사진앱 저장·능동 회수 알림)에 개별 민감 게이트를
+> 두지 않는다 — 게이트(각 표면마다 `sensitivity_level` 검사) 대신 "애초에 안전한 이미지를 올린다"로
+> 문제를 근본 제거한다(§2). 마스킹 방식은 **가우시안 블러**로 확정(deblur/재-OCR 방지 위해 강하게).
+> 서버 privacy 메타데이터(`sensitivity_*`)는 추가하지 않는다 — 서버는 올라온 이미지가 진실이며
+> 블러본/원본을 구분할 필요가 없다(Simplicity First).
 
 ---
 
@@ -385,7 +392,7 @@ agent/application
 - **`view_item_image`(2026-06-12) 는 외부 반출 경로가 아니다** — 채팅 모델이 기록의 업로드
   이미지를 다시 보는 툴이지만, 분석 파이프라인과 동일하게 Vertex AI 가 `gs://` 를 직접
   read 한다(백엔드 bytes 무접촉, 제3자 전송 없음 — 데이터 경계는 분석 시점과 동일).
-  민감도 게이트는 미적용 — §6.2 privacy 필드가 아직 미구현이라 판별 근거가 없고, 분석
-  경로도 동일하게 ungated 라 노출 표면이 새로 늘지 않는다 (의도된 결정 2026-06-12,
-  필드 도입은 `TODO.md` §5.1 후속). 이미지는 현재 턴 in-memory 전용 — 과거 턴 히스토리에
-  재주입되지 않으며 대화 DB 에 이미지 URI 가 영속되지 않는다.
+  민감도 게이트는 불필요 — 민감 영역은 저장 시점에 블러 처리되어 서버 이미지 자체가
+  안전하다(§2, §9 결정). 채팅이 다시 보는 이미지도 블러본이라 추가 게이트가 필요 없다.
+  이미지는 현재 턴 in-memory 전용 — 과거 턴 히스토리에 재주입되지 않으며 대화 DB 에
+  이미지 URI 가 영속되지 않는다.

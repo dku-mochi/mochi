@@ -38,6 +38,10 @@ struct ShareCropImage: View {
         GeometryReader { geo in
             content(in: geo.size)
         }
+        // 이미지 로드는 **항상 렌더되는 body** 에 건다 — `placeholder` 에만 걸면 첫 로드 후 placeholder 가
+        // 뷰 트리에서 사라져 task 도 사라지므로, imageRef 가 바뀌어도(선감지 블러본 교체) 재로드가 안 돼
+        // 원본이 그대로 남는다. body 의 task(id:)는 displayRelativePath 가 바뀔 때마다 재로드한다.
+        .task(id: imageRef.displayRelativePath) { await loadImage() }
     }
 
     @ViewBuilder
@@ -77,6 +81,13 @@ struct ShareCropImage: View {
         .frame(width: imageSize.width, height: imageSize.height)
         .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
         .overlay { chrome(selection: selection, bounds: bounds) }
+        // 가림(블러)이 적용된 작업 이미지면 **이미지 카드 좌상단**에 배지를 붙인다 — 바깥 프레임이 아니라
+        // 실제 이미지에 붙어야 "지금 보는 게 가린 본"이라는 안심이 정확히 전달된다.
+        .overlay(alignment: .topLeading) {
+            if imageRef.redactedRelativePath != nil {
+                redactedBadge.padding(10)
+            }
+        }
         .shadow(color: .black.opacity(0.14), radius: 12, x: 0, y: 5)
         .accessibilityElement(children: .contain)
         .accessibilityLabel(Text(isCropped ? "잘린 캡처 미리보기" : "캡처 미리보기"))
@@ -167,6 +178,23 @@ struct ShareCropImage: View {
         .background(Capsule().fill(.black.opacity(0.42)))
     }
 
+    /// 가림(블러)이 적용된 작업 이미지임을 알리는 배지 — 가림 ref(`redactedRelativePath != nil`)일 때만,
+    /// 이미지 카드 좌상단에 뜬다. 표시는 `displayRelativePath`(블러본)이라 사용자는 가린 본을 본다.
+    private var redactedBadge: some View {
+        HStack(spacing: 5) {
+            Image(systemName: "eye.slash.fill")
+                .font(.system(size: 11, weight: .bold))
+            Text("가렸어요")
+                .font(.system(size: 12, weight: .semibold, design: .rounded))
+        }
+        .foregroundStyle(.white)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(Capsule().fill(ShareDesign.primary))
+        .shadow(color: .black.opacity(0.22), radius: 3, x: 0, y: 1)
+        .allowsHitTesting(false)
+    }
+
     // MARK: - Corner bracket (두꺼운 L 핸들)
 
     private func cornerBracket(_ corner: Corner, in rect: CGRect, active: Bool) -> some View {
@@ -200,7 +228,6 @@ struct ShareCropImage: View {
             RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                 .stroke(ShareDesign.cardStroke, lineWidth: 1)
         )
-        .task(id: imageRef.relativePath) { await loadImage() }
     }
 
     // MARK: - Gesture
@@ -252,7 +279,9 @@ struct ShareCropImage: View {
     // MARK: - Loading
 
     private func loadImage() async {
-        let path = imageRef.relativePath
+        // 표시는 가린 본 우선(`displayRelativePath` = 블러본 ?? 원본) — 가림 적용 후 캡처 화면에서
+        // 원본이 노출되지 않게 한다. 크롭은 정규화 좌표라 저장 시 원본·블러본 양쪽에 같은 rect 가 적용된다.
+        let path = imageRef.displayRelativePath
         let loaded: UIImage? = await Task.detached(priority: .userInitiated) {
             let url = AppGroup.containerURL.appendingPathComponent(path)
             guard let data = try? Data(contentsOf: url) else { return nil }

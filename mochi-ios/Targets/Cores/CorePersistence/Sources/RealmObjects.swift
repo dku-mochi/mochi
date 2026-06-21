@@ -27,6 +27,11 @@ public final class RealmMochiItem: Object, Identifiable {
     /// 모찌가 분류를 확신 못 함 — "헷갈려요" 버킷 (서버 boolean 미러).
     @Persisted public var needsReview: Bool = false
     @Persisted public var modelVersion: String?
+    /// 저장 시점 민감 캡처 정책(`originalUpload|blurredUpload|localOnly`). nil = 미감지/비민감.
+    /// 업로드 워커가 이 값으로 원본/블러본/스킵을 고른다. iOS 내부 전용(서버 미전송).
+    @Persisted public var privacyPolicyRawValue: String?
+    /// 감지된 민감도 등급(`low|caution|sensitive|highlySensitive`). nil = 미감지. 경고 UI·디버깅용.
+    @Persisted public var sensitivityLevelRawValue: String?
     @Persisted public var capturedAt: Date
     @Persisted public var analyzedAt: Date?
     @Persisted public var createdAt: Date
@@ -94,6 +99,8 @@ public final class RealmImageRef: EmbeddedObject {
     @Persisted public var byteSize: Int
     @Persisted public var sha256: String
     @Persisted public var objectKey: String?
+    /// 민감 영역 블러 파생본의 App Group 상대 경로(`blurredUpload` 시 생성). nil = 블러본 없음.
+    @Persisted public var redactedRelativePath: String?
 }
 
 public final class RealmExtractedEntity: EmbeddedObject {

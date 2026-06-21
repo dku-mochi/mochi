@@ -231,27 +231,18 @@ VOYAGE_API_KEY=<dash.voyageai.com 또는 MongoDB Atlas 발급 키>
 
 상세 설계: [민감 캡처 보호 설계](./PRIVACY_SENSITIVE_CAPTURE.md)
 
-- [ ] iOS `CorePrivacy` 모듈 추가: `ImageTextExtractor`, `SensitiveDataDetector`, `SensitivityScorer`, `RedactionPlanner`.
-- [ ] Vision OCR 로 스크린샷 텍스트와 bounding box 추출.
-- [ ] `NSDataDetector` 로 URL, 전화번호, 주소, 날짜/시간 탐지.
-- [ ] `NaturalLanguage` 의 named entity recognition 으로 사람, 장소, 조직 후보 탐지.
-- [ ] 한국형 룰 기반 탐지 추가: 주민등록번호 후보, 카드번호 Luhn check, 계좌/은행 문맥, 인증번호/OTP, API key/token, 병원/처방/계약/급여 문맥.
-- [ ] 민감도 점수 0-10 산출 및 `low/caution/sensitive/highly_sensitive` 등급화.
-- [ ] 점수 6 이상 캡처에 사용자 경고 UI 표시: `기기에만 저장`, `민감 영역 가리고 분석`, `텍스트만 분석`, `원본 분석 허용`.
-- [ ] `MochiItemSyncWorker` 에 업로드 정책 분기 추가: `local_only`, `text_only`, `redacted_image`, `original_allowed`.
-- [ ] 서버 mochi_items API 에 privacy metadata 추가: `sensitivity_score`, `sensitivity_level`, `redaction_status`, `original_image_uploaded`, `privacy_policy`.
-- [ ] Agent/search 가 원본 이미지 없는 semantic payload 를 정상 분석하도록 fallback 구현.
-- [ ] 민감 캡처 embedding 생성/삭제 정책 결정 및 계정 삭제 플로우에 반영.
-- [ ] privacy 필드 도입 시 채팅 `view_item_image` 에 민감도 게이트 추가 — 현재는 판별
-      메타데이터 부재로 ungated 진행(2026-06-12 결정, 분석 경로와 동일 노출 — PRIVACY §10).
-- [ ] privacy 필드 도입 시 `GET /mochi_items/{id}/similar`("비슷한 기록" 자동 회수)도 게이트 대상에
-      포함 — 상세를 열기만 해도 cosine 이웃을 끌어오므로 누락 시 민감 항목이 회수로 우회 노출된다.
-      쿼리 WHERE 에 `AND c.sensitivity_level < :threshold` 자리를 구현 시 주석으로 못박을 것
-- [x] `NSPhotoLibraryAddUsageDescription` Info.plist 추가 (2026-06-14, 상세 ⋯ "이미지 저장" — 사진앱 add-only 권한).
-- [ ] privacy 필드 도입 시 **이미지 사진앱 저장**(상세 ⋯ "이미지 저장")에 민감도 게이트 추가 —
-      사진앱은 앱 경계 밖(iCloud·타 앱) 반출 표면이라 `view_item_image`/similar 보다 위험(PRIVACY §9).
-      현재는 판별 메타데이터 부재로 ungated. 민감 캡처는 저장 차단/경고로 막을 것. 팀 결정 필요.
-      (제안 계약 DOMAIN_DESIGN §10.5, 노출 논리 PRIVACY §9·§10).
+**저장 시점에 민감 영역을 블러 처리해 업로드**하므로 서버 이미지 자체가 안전하다 — 다운스트림 노출
+표면(`view_item_image`·`similar`·즐겨찾기·사진앱 저장·회수 알림)에 **별도 민감 게이트가 필요 없다**
+(2026-06-21 결정 — PRIVACY §2). 게이트 대신 "안전한 이미지를 올린다"로 문제를 근본 제거.
+
+- [x] iOS `CorePrivacy` 모듈: `ImageTextExtractor`(Vision OCR), `SensitiveDataDetector`(NSDataDetector + 한국형 검증기), `SensitivityScorer`, `RedactionPlanner`, `ImageBlurRedactor`, `SensitiveCaptureScanner`.
+- [x] 한국형 검증기: 주민등록번호(생년월일 월별 일수+체크섬), 카드번호(Luhn), 사업자등록번호(체크섬), 계좌/은행 문맥, 인증번호/OTP(대소문자), API key/token(Bearer 포함), 의료/금융 문맥 + 명시 라벨(`카드번호:`/`비밀번호:`/`주민번호:`/`계좌번호:`) 보강. 검증/문맥/라벨 통과만 채택해 false positive 억제.
+- [x] 민감도 0-10 점수 + `low/caution/sensitive/highlySensitive` 등급화. 검증 통과(high-precision) 신호만 저장 흐름에 시트를 띄워 FP 마찰 차단(저신뢰 신호는 점수만).
+- [x] 저장 선택 시트(`PrivacyChoiceView`): `원본 그대로` / `민감한 곳 가리고(블러, 기본 추천)` / `이 기기에만`. 블러 선택 시 결과 미리보기(crossfade + 자물쇠 배지)로 안심.
+- [x] 업로드 정책 분기(`MochiItemSyncWorker`·`ShareExtDirectUpload`): `originalUpload`/`blurredUpload`/`localOnly`. 로컬엔 원본 PNG 보존, 서버엔 정책본(블러본 없으면 안전하게 업로드 스킵).
+- [x] `NSPhotoLibraryAddUsageDescription` Info.plist 추가 (2026-06-14, 상세 ⋯ "이미지 저장" — 사진앱 add-only 권한). 블러본이 서버 정본이므로 사진앱 반출도 안전.
+- [ ] (후속·팀 결정) 백탭 캡처(`CommitBackTapCaptureIntent` — background intent, UI 없음)의 민감 처리 방식: 자동 블러 vs 앱 진입 후 사후 조정. UI 가 없어 저장 시점 시트를 띄울 수 없는 구조적 제약.
+- 제외: NER(사람·조직 이름)은 Apple NaturalLanguage 한국어 미지원 + Share Extension 120MB 메모리 한도로 미사용(PRIVACY §3.4). 서버 privacy 메타데이터(`sensitivity_*`)는 미추가 — 서버는 올라온 이미지가 진실(블러본/원본 구분 불필요), iOS 내부 정책으로 충분.
 
 ---
 
