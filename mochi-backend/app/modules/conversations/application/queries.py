@@ -48,9 +48,7 @@ class GetConversationSnapshot:
     repository: ConversationRepository
 
     async def execute(self, *, owner_id: UUID, conversation_id: UUID) -> ConversationSnapshot | None:
-        conversation = await self.repository.find_by_id(
-            owner_id=owner_id, conversation_id=conversation_id
-        )
+        conversation = await self.repository.find_by_id(owner_id=owner_id, conversation_id=conversation_id)
         if conversation is None:
             return None
         await self.repository.mark_stale_runs_failed(
@@ -59,9 +57,7 @@ class GetConversationSnapshot:
             started_before=datetime.utcnow()
             - timedelta(seconds=stale_threshold_seconds(get_settings().chat_run_timeout_seconds)),
         )
-        messages = await self.repository.list_messages(
-            owner_id=owner_id, conversation_id=conversation_id
-        )
+        messages = await self.repository.list_messages(owner_id=owner_id, conversation_id=conversation_id)
         return ConversationSnapshot(conversation=conversation, messages=messages)
 
 
@@ -85,9 +81,7 @@ class SetProposalStatus:
 
     repository: ConversationRepository
 
-    async def execute(
-        self, *, owner_id: UUID, conversation_id: UUID, proposal_id: UUID, status: str
-    ) -> bool:
+    async def execute(self, *, owner_id: UUID, conversation_id: UUID, proposal_id: UUID, status: str) -> bool:
         return await self.repository.set_proposal_status(
             owner_id=owner_id,
             conversation_id=conversation_id,

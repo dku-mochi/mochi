@@ -131,9 +131,9 @@ struct MainTabView: View {
                         }
                     }
 
-            case let .weeklyDigest(digestStore):
-                // 이번주 정리 — 설정과 동일하게 push. 항목 탭은 delegate 로 상세 present.
-                WeeklyDigestView(store: digestStore)
+            case let .monthlyDigest(digestStore):
+                // 이번 달 정리 — 설정과 동일하게 push. 항목 탭은 delegate 로 상세 present.
+                MonthlyDigestView(store: digestStore)
 
             case let .favorites(favoritesStore):
                 // 즐겨찾기 — 홈 헤더 별로 진입. 항목 탭은 delegate 로 상세 present.

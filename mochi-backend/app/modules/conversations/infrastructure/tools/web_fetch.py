@@ -37,8 +37,7 @@ _PARAMETERS: dict[str, Any] = {
         "url": {
             "type": "string",
             "description": (
-                "Absolute http(s) URL — from a web_search result or a url stored in the "
-                "user's records."
+                "Absolute http(s) URL — from a web_search result or a url stored in the user's records."
             ),
         },
     },

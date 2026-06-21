@@ -90,10 +90,16 @@ async def test_similar_derives_reasons() -> None:
     near, far = uuid4(), uuid4()
     main_rows = [
         SimpleNamespace(
-            mochi_item_id=near, score=0.92, url="https://toss.im/a", target_url="https://toss.im/a",
+            mochi_item_id=near,
+            score=0.92,
+            url="https://toss.im/a",
+            target_url="https://toss.im/a",
         ),
         SimpleNamespace(
-            mochi_item_id=far, score=0.71, url=None, target_url="https://toss.im/a",
+            mochi_item_id=far,
+            score=0.71,
+            url=None,
+            target_url="https://toss.im/a",
         ),
     ]
     intent_rows = [

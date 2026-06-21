@@ -49,7 +49,7 @@ private extension RecallReasonKind {
     }
 }
 
-/// 회수 화면 공용 배경 — bg 위 상단 라벤더 글로우. 홈·주간 정리(`WeeklyDigestView`)와 같은 기조로
+/// 회수 화면 공용 배경 — bg 위 상단 라벤더 글로우. 홈·월간 정리(`MonthlyDigestView`)와 같은 기조로
 /// 화면 간 연속성을 만든다("모찌의 보라 세계로 들어왔다").
 private struct RecallAuroraBackground: View {
     var body: some View {

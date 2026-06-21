@@ -52,10 +52,12 @@ async def test_embedder_passes_through_vector() -> None:
 
 async def test_reranker_reorders_and_replaces_score() -> None:
     candidates = _citations(3)
-    fake = _FakeVoyage(ranked=[
-        RerankedDocument(index=2, relevance_score=0.9),
-        RerankedDocument(index=0, relevance_score=0.3),
-    ])
+    fake = _FakeVoyage(
+        ranked=[
+            RerankedDocument(index=2, relevance_score=0.9),
+            RerankedDocument(index=0, relevance_score=0.3),
+        ]
+    )
     out = await VoyageReranker(fake).rerank("q", candidates, top_n=2)  # type: ignore[arg-type]
     assert [c.mochi_item_id for c in out] == [candidates[2].mochi_item_id, candidates[0].mochi_item_id]
     assert [c.score for c in out] == [0.9, 0.3]

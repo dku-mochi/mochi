@@ -67,8 +67,7 @@ def upgrade() -> None:
             name="ck_np__status_enum",
         ),
         sa.CheckConstraint(
-            "cancel_reason IS NULL OR cancel_reason IN "
-            "('user_dismiss','intent_archived','superseded')",
+            "cancel_reason IS NULL OR cancel_reason IN ('user_dismiss','intent_archived','superseded')",
             name="ck_np__cancel_reason_enum",
         ),
     )

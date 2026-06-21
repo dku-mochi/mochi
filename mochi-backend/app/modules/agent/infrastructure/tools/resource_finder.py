@@ -37,12 +37,12 @@ from app.shared.llm_usage import extract_token_usage
 
 log = get_logger("agent.tool.resource_finder")
 
-_JUDGE_MODEL = "gemini-3.1-flash-lite"   # final judge — 관련성 게이트(비용 최우선, 메인과 동일 모델)
+_JUDGE_MODEL = "gemini-3.1-flash-lite"  # final judge — 관련성 게이트(비용 최우선, 메인과 동일 모델)
 _NAVER_SEARCH_URL = "https://openapi.naver.com/v1/search/{category}.json"
 _TAVILY_SEARCH_URL = "https://api.tavily.com/search"
 _DISPLAY = 10
 _SORT = "sim"
-_MAX_QUERIES = 5      # 메인이 분해한 키워드 검색 상한 — 영상 추천 리스트 등 과다 분해 시 비용 bound
+_MAX_QUERIES = 5  # 메인이 분해한 키워드 검색 상한 — 영상 추천 리스트 등 과다 분해 시 비용 bound
 _MAX_QUERY_LEN = 100  # 검색어 1개 길이 상한 — 외부 API 전 bound (너드킹 셔츠 전체나열 같은 폭주 방지)
 _MAX_VISIBLE_URLS = 5
 _TAG_RE = re.compile(r"<[^>]+>")
@@ -95,43 +95,106 @@ def _exact_picks(picks: list[_Pick]) -> list[_Pick]:
 # tier = "들어가서 바로 액션(예약/구매/시청)이 되는가 + 정확한가". 작을수록 우선.
 #   0 원본일치 / 1 공식 / 2 편집샵 / 3 오픈마켓·직구·가격비교 / 4 정보.
 _DOMAIN_TIER: dict[str, float] = {
-    "netflix.com": 1.0, "youtube.com": 1.0, "youtu.be": 1.0,
-    "map.naver.com": 1.0, "place.naver.com": 1.0,
-    "lottecinema.com": 1.0, "cgv.co.kr": 1.0, "megabox.co.kr": 1.0,
-    "myrealtrip.com": 1.0, "catchtable.co.kr": 1.0,
-    "oliveyoung": 2.0, "musinsa": 2.0, "29cm": 2.0, "wconcept": 2.0,
-    "zigzag": 2.0, "kream": 2.0, "ably": 2.0, "brandi": 2.0,
-    "coupang": 3.0, "smartstore.naver.com": 3.0,
-    "aliexpress": 3.3, "temu": 3.3,
-    "11st": 3.6, "gmarket": 3.6, "auction": 3.6, "danawa": 3.6, "google": 3.6,
+    "netflix.com": 1.0,
+    "youtube.com": 1.0,
+    "youtu.be": 1.0,
+    "map.naver.com": 1.0,
+    "place.naver.com": 1.0,
+    "lottecinema.com": 1.0,
+    "cgv.co.kr": 1.0,
+    "megabox.co.kr": 1.0,
+    "myrealtrip.com": 1.0,
+    "catchtable.co.kr": 1.0,
+    "oliveyoung": 2.0,
+    "musinsa": 2.0,
+    "29cm": 2.0,
+    "wconcept": 2.0,
+    "zigzag": 2.0,
+    "kream": 2.0,
+    "ably": 2.0,
+    "brandi": 2.0,
+    "coupang": 3.0,
+    "smartstore.naver.com": 3.0,
+    "aliexpress": 3.3,
+    "temu": 3.3,
+    "11st": 3.6,
+    "gmarket": 3.6,
+    "auction": 3.6,
+    "danawa": 3.6,
+    "google": 3.6,
     "search.shopping.naver.com/catalog": 3.6,
-    "blog.naver.com": 4.0, "tistory.com": 4.0, "brunch.co.kr": 4.0,
-    "medium.com": 4.0, "velog.io": 4.0,
+    "blog.naver.com": 4.0,
+    "tistory.com": 4.0,
+    "brunch.co.kr": 4.0,
+    "medium.com": 4.0,
+    "velog.io": 4.0,
 }
 _MALL_TIER: dict[str, float] = {
-    "올리브영": 2.0, "무신사": 2.0, "29cm": 2.0, "에이블리": 2.0, "브랜디": 2.0,
-    "쿠팡": 3.0, "스마트스토어": 3.0, "알리": 3.3, "테무": 3.3,
-    "11번가": 3.6, "지마켓": 3.6, "옥션": 3.6, "다나와": 3.6,
+    "올리브영": 2.0,
+    "무신사": 2.0,
+    "29cm": 2.0,
+    "에이블리": 2.0,
+    "브랜디": 2.0,
+    "쿠팡": 3.0,
+    "스마트스토어": 3.0,
+    "알리": 3.3,
+    "테무": 3.3,
+    "11번가": 3.6,
+    "지마켓": 3.6,
+    "옥션": 3.6,
+    "다나와": 3.6,
 }
 _TIER_LABEL = {
-    0.0: "tier0_original", 1.0: "tier1_official", 2.0: "tier2_editorial",
-    3.0: "tier3_openmarket", 3.3: "tier3_overseas", 3.6: "tier3_pricecompare",
+    0.0: "tier0_original",
+    1.0: "tier1_official",
+    2.0: "tier2_editorial",
+    3.0: "tier3_openmarket",
+    3.3: "tier3_overseas",
+    3.6: "tier3_pricecompare",
     4.0: "tier4_info",
 }
 _OFFICIAL_HOST_PATTERNS: tuple[str, ...] = (
-    "abib.com", "apple.com", "baskinrobbins.co.kr", "coor.kr", "dasique.com",
-    "depound.com", "emis.kr", "logitech.com", "locknlock.com", "matinkim.com",
-    "react.dev", "romand.co.kr", "roundlab.co.kr", "samsung.com", "sie-official.kr",
-    "torriden.com", "uniqlo.com",
+    "abib.com",
+    "apple.com",
+    "baskinrobbins.co.kr",
+    "coor.kr",
+    "dasique.com",
+    "depound.com",
+    "emis.kr",
+    "logitech.com",
+    "locknlock.com",
+    "matinkim.com",
+    "react.dev",
+    "romand.co.kr",
+    "roundlab.co.kr",
+    "samsung.com",
+    "sie-official.kr",
+    "torriden.com",
+    "uniqlo.com",
 )
 
 RankProfile = Literal[
-    "auto", "general", "cosmetics", "fashion", "electronics", "local",
-    "event_booking", "coupang", "web",
+    "auto",
+    "general",
+    "cosmetics",
+    "fashion",
+    "electronics",
+    "local",
+    "event_booking",
+    "coupang",
+    "web",
 ]
 SourceApp = Literal[
-    "unknown", "coupang", "naver_map", "naver_shopping", "oliveyoung", "musinsa",
-    "instagram", "youtube", "safari", "browser",
+    "unknown",
+    "coupang",
+    "naver_map",
+    "naver_shopping",
+    "oliveyoung",
+    "musinsa",
+    "instagram",
+    "youtube",
+    "safari",
+    "browser",
 ]
 
 
@@ -157,7 +220,7 @@ class RankedUrl(BaseModel):
     source: str
     rank_profile: str
     # 누르기 전 "어디서/얼마/무슨 글인지" 식별 단서 — 검색 시점에 이미 받은 메타를 흘린다(추가 fetch 0).
-    subtitle: str = ""    # 카테고리별 부제: local="업종 · 지역" / blog·web=요약문 / shop=브랜드.
+    subtitle: str = ""  # 카테고리별 부제: local="업종 · 지역" / blog·web=요약문 / shop=브랜드.
     price_text: str = ""  # shop lprice 가 있을 때만 "18,900원". provider 브랜드와 겹치는 몰名은 안 쓴다.
 
 
@@ -180,9 +243,7 @@ class ResourceFinderTool(Tool[ResourceFinderInput, ResourceFinderOutput]):
     input_model = ResourceFinderInput
     output_model = ResourceFinderOutput
 
-    async def run(
-        self, payload: ResourceFinderInput
-    ) -> tuple[ResourceFinderOutput, ToolUsage]:
+    async def run(self, payload: ResourceFinderInput) -> tuple[ResourceFinderOutput, ToolUsage]:
         settings = get_settings()
         if _needs_naver(payload) and not settings.naver_client_id:
             raise ToolExecutionError(self.name, "Naver search API key not configured")
@@ -205,13 +266,10 @@ class ResourceFinderTool(Tool[ResourceFinderInput, ResourceFinderOutput]):
         # pick 밖(강등됐거나 참고)은 None 으로 둔다(iOS isExactMatch 가 다중 점등하던 버그 해소).
         picks_map = {_dedupe_key(p.url): p.usefulness for p in judge.picks if p.url}
         reference_entities = [
-            _reference_entity_value(row, picks_map.get(_dedupe_key(row.url)))
-            for row in ranked
+            _reference_entity_value(row, picks_map.get(_dedupe_key(row.url))) for row in ranked
         ]
         # top-level 단일값은 로그/구버전 호환용만 — 신뢰 UI 는 entity 별 usefulness 를 본다.
-        output_usefulness = max(
-            (p.usefulness for p in judge.picks), default=3 if judge.useful else 1
-        )
+        output_usefulness = max((p.usefulness for p in judge.picks), default=3 if judge.useful else 1)
         usage = ToolUsage(
             tokens_in=tin_total,
             tokens_out=tout_total,
@@ -252,7 +310,8 @@ class ResourceFinderTool(Tool[ResourceFinderInput, ResourceFinderOutput]):
         if not place_confirmed:
             place_confirmed = any(
                 "catchtable.co.kr/ct/shop" in it.get("link", "")
-                for s in searches for it in s.get("items", [])
+                for s in searches
+                for it in s.get("items", [])
             )
         # 장소 실존이 확인됐을 때만 지도/쿠팡 검색 fallback 합성(0건 깨진 링크 차단).
         fallback = _fallback_search_items(payload, place_confirmed)
@@ -285,22 +344,26 @@ def _normalize_item(category: str, it: dict[str, Any]) -> dict[str, Any]:
         "source": f"naver:{category}",
     }
     if category == "shop":
-        base.update({"lprice": it.get("lprice", ""), "mallName": it.get("mallName", ""),
-                     "brand": it.get("brand", "")})
+        base.update(
+            {"lprice": it.get("lprice", ""), "mallName": it.get("mallName", ""), "brand": it.get("brand", "")}
+        )
     elif category == "local":
-        base.update({
-            "category": it.get("category", ""),
-            "address": it.get("address", ""),
-            "roadAddress": it.get("roadAddress", ""),
-        })
+        base.update(
+            {
+                "category": it.get("category", ""),
+                "address": it.get("address", ""),
+                "roadAddress": it.get("roadAddress", ""),
+            }
+        )
     elif category in ("blog", "news", "webkr"):
         base.update({"description": _strip_tags(it.get("description", ""))})
     return base
 
 
 async def _search_naver(http: httpx.AsyncClient, category: str, query: str) -> dict[str, Any]:
-    url = (_NAVER_SEARCH_URL.format(category=category)
-           + f"?query={quote(query)}&display={_DISPLAY}&sort={_SORT}")
+    url = (
+        _NAVER_SEARCH_URL.format(category=category) + f"?query={quote(query)}&display={_DISPLAY}&sort={_SORT}"
+    )
     try:
         resp = await http.get(url)
         resp.raise_for_status()
@@ -315,18 +378,24 @@ async def _search_tavily(http: httpx.AsyncClient, api_key: str, query: str) -> d
     try:
         resp = await http.post(
             _TAVILY_SEARCH_URL,
-            json={"api_key": api_key, "query": query, "max_results": _DISPLAY,
-                  "search_depth": "basic"},
+            json={"api_key": api_key, "query": query, "max_results": _DISPLAY, "search_depth": "basic"},
         )
         resp.raise_for_status()
         data = resp.json()
     except (httpx.HTTPError, ValueError) as exc:
         log.warning("tool.resource_finder.tavily_failed", error=str(exc))
         return {"items": []}
-    return {"items": [{"title": r.get("title", ""), "link": r.get("url", ""),
-                       "source": "tavily",
-                       "description": (r.get("content", "") or "")[:200]}
-                      for r in data.get("results", [])[:_DISPLAY]]}
+    return {
+        "items": [
+            {
+                "title": r.get("title", ""),
+                "link": r.get("url", ""),
+                "source": "tavily",
+                "description": (r.get("content", "") or "")[:200],
+            }
+            for r in data.get("results", [])[:_DISPLAY]
+        ]
+    }
 
 
 def _collect_items(searches: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -346,7 +415,11 @@ def _collect_items(searches: list[dict[str, Any]]) -> list[dict[str, Any]]:
 def _needs_naver(payload: ResourceFinderInput) -> bool:
     profile = _rank_profile(payload)
     return payload.category != "web" or profile in {
-        "cosmetics", "local", "event_booking", "coupang", "fashion"
+        "cosmetics",
+        "local",
+        "event_booking",
+        "coupang",
+        "fashion",
     }
 
 
@@ -397,9 +470,7 @@ def _search_backends(payload: ResourceFinderInput) -> list[tuple[str, str]]:
     return [("naver", payload.category), ("tavily", "web")]
 
 
-def _search_plan(
-    payload: ResourceFinderInput, query: str
-) -> list[tuple[str, str, str]]:
+def _search_plan(payload: ResourceFinderInput, query: str) -> list[tuple[str, str, str]]:
     """(backend, category, effective_query) 목록. 백본별로 검색어를 다르게 쓸 수 있다.
 
     장소·예약 회수(local/event_booking)는 webkr 백본에 "{query} 캐치테이블 예약" 변형을
@@ -420,26 +491,28 @@ def _observed_items(payload: ResourceFinderInput) -> list[dict[str, Any]]:
     items: list[dict[str, Any]] = []
     for url in payload.visible_urls[:_MAX_VISIBLE_URLS]:
         if _is_http_url(url):
-            items.append({
-                "title": "화면 속 링크",
-                "link": url,
-                "source": "visible_url",
-                "synthetic": True,
-            })
+            items.append(
+                {
+                    "title": "화면 속 링크",
+                    "link": url,
+                    "source": "visible_url",
+                    "synthetic": True,
+                }
+            )
     original_url = payload.original_url
     if original_url and _is_http_url(original_url):
-        items.append({
-            "title": "원본 링크",
-            "link": original_url,
-            "source": "original_url",
-            "synthetic": True,
-        })
+        items.append(
+            {
+                "title": "원본 링크",
+                "link": original_url,
+                "source": "original_url",
+                "synthetic": True,
+            }
+        )
     return items
 
 
-def _fallback_search_items(
-    payload: ResourceFinderInput, place_confirmed: bool
-) -> list[dict[str, Any]]:
+def _fallback_search_items(payload: ResourceFinderInput, place_confirmed: bool) -> list[dict[str, Any]]:
     """검색 재개용 합성 링크(네이버지도·쿠팡 검색 URL).
 
     이건 실제 place/PDP URL 이 아니라 "그 쿼리로 다시 검색하는" URL 이다. 그래서 지도
@@ -454,20 +527,24 @@ def _fallback_search_items(
     if not first_query:
         return items
     if profile == "local" and place_confirmed:
-        items.append({
-            "title": f"{first_query} - 네이버 지도 검색",
-            "link": _naver_map_search_url(first_query),
-            "source": "synthetic:naver_map",
-            "synthetic": True,
-        })
+        items.append(
+            {
+                "title": f"{first_query} - 네이버 지도 검색",
+                "link": _naver_map_search_url(first_query),
+                "source": "synthetic:naver_map",
+                "synthetic": True,
+            }
+        )
     if profile == "coupang":
         query = first_query.replace(" 쿠팡", "")
-        items.append({
-            "title": f"{query} - 쿠팡 검색",
-            "link": _coupang_search_url(query),
-            "source": "synthetic:coupang_search",
-            "synthetic": True,
-        })
+        items.append(
+            {
+                "title": f"{query} - 쿠팡 검색",
+                "link": _coupang_search_url(query),
+                "source": "synthetic:coupang_search",
+                "synthetic": True,
+            }
+        )
     return items
 
 
@@ -488,12 +565,14 @@ def _is_http_url(url: str) -> bool:
 
 
 def _render(payload: ResourceFinderInput, collected: list[dict[str, Any]]) -> str:
-    lines = [(
-        "사용자 기록: "
-        f"category={payload.category}, rank_profile={_rank_profile(payload)}, "
-        f"source_app={payload.source_app}, queries={payload.queries}"
-    ),
-             "지금까지 모은 결과:"]
+    lines = [
+        (
+            "사용자 기록: "
+            f"category={payload.category}, rank_profile={_rank_profile(payload)}, "
+            f"source_app={payload.source_app}, queries={payload.queries}"
+        ),
+        "지금까지 모은 결과:",
+    ]
     if collected:
         for i, it in enumerate(collected):
             extra = it.get("description", "")
@@ -634,13 +713,23 @@ def _label(provider: str, role: str) -> str:
 # role 은 provider 가 가리키는 행동 종류(iOS roleIcon·CTA 동사). payload 단위 하나가 아니라
 # URL 단위로 정해야 한다 — local 이라고 블로그 후기까지 "예약"이 되면 안 된다(codex 리뷰).
 _PROVIDER_ROLE: dict[str, str] = {
-    "naver_map": "reserve", "catchtable": "reserve",
-    "coupang": "buy", "smartstore": "buy", "oliveyoung": "buy", "musinsa": "buy",
-    "29cm": "buy", "wconcept": "buy", "zigzag": "buy", "naver_shopping": "buy",
+    "naver_map": "reserve",
+    "catchtable": "reserve",
+    "coupang": "buy",
+    "smartstore": "buy",
+    "oliveyoung": "buy",
+    "musinsa": "buy",
+    "29cm": "buy",
+    "wconcept": "buy",
+    "zigzag": "buy",
+    "naver_shopping": "buy",
     "openmarket": "buy",
-    "info": "read", "social": "read",
-    "official": "reference", "site": "reference",
-    "visible_url": "reference", "original_url": "reference",
+    "info": "read",
+    "social": "read",
+    "official": "reference",
+    "site": "reference",
+    "visible_url": "reference",
+    "original_url": "reference",
 }
 
 
@@ -664,10 +753,21 @@ def _role(provider: str, payload: ResourceFinderInput) -> str:
 #   reference      참고 자료(블로그/SNS/일반 사이트)
 # 합성 검색 링크(synthetic:naver_map 등)는 provider 가 naver_map/coupang 이라 primary_action
 # 에 들되, returned>0 게이트로 신뢰가 보장되고 _synthetic_penalty 로 실재 결과보다 뒤로 간다.
-_PRIMARY_ACTION_PROVIDERS: frozenset[str] = frozenset({
-    "naver_map", "catchtable", "coupang", "smartstore", "oliveyoung",
-    "musinsa", "29cm", "wconcept", "zigzag", "naver_shopping", "openmarket",
-})
+_PRIMARY_ACTION_PROVIDERS: frozenset[str] = frozenset(
+    {
+        "naver_map",
+        "catchtable",
+        "coupang",
+        "smartstore",
+        "oliveyoung",
+        "musinsa",
+        "29cm",
+        "wconcept",
+        "zigzag",
+        "naver_shopping",
+        "openmarket",
+    }
+)
 
 
 def _bucket(provider: str) -> str:
@@ -736,24 +836,24 @@ def _select_diverse(rows: list[_Cand], profile: str, limit: int = 3) -> list[_Ca
         chosen.append(c)
         used.add(c.order)
 
-    for c in by_bucket.get("observed", []):       # 관측 링크는 무조건 우선
+    for c in by_bucket.get("observed", []):  # 관측 링크는 무조건 우선
         if len(chosen) < limit and c.order not in used:
             take(c)
     for bucket in _QUOTA_ORDER.get(profile, _QUOTA_ORDER["general"]):
         if len(chosen) >= limit:
             break
-        for c in by_bucket.get(bucket, []):       # 선호 bucket 에서 한 칸씩
+        for c in by_bucket.get(bucket, []):  # 선호 bucket 에서 한 칸씩
             if c.order not in used:
                 take(c)
                 break
     seen_providers = {c.provider for c in chosen}
-    for c in rows_sorted:                         # 남는 칸: 우선 새 provider
+    for c in rows_sorted:  # 남는 칸: 우선 새 provider
         if len(chosen) >= limit:
             break
         if c.order not in used and c.provider not in seen_providers:
             take(c)
             seen_providers.add(c.provider)
-    for c in rows_sorted:                         # 그래도 남으면 score 순(중복 허용)
+    for c in rows_sorted:  # 그래도 남으면 score 순(중복 허용)
         if len(chosen) >= limit:
             break
         if c.order not in used:
@@ -933,13 +1033,21 @@ def _rank_results(
         tier_num = 4.0 if c.demoted else c.tier_num
         tier_label = _TIER_LABEL[4.0] if c.demoted else c.tier_label
         subtitle, price_text = _display_meta(c.item)
-        results.append(RankedUrl(
-            url=c.item.get("link", ""), title=c.item.get("title", ""),
-            tier_num=tier_num, tier_label=tier_label, label=label,
-            provider=c.provider, role=role,
-            source=c.item.get("source", ""), rank_profile=profile,
-            subtitle=subtitle, price_text=price_text,
-        ))
+        results.append(
+            RankedUrl(
+                url=c.item.get("link", ""),
+                title=c.item.get("title", ""),
+                tier_num=tier_num,
+                tier_label=tier_label,
+                label=label,
+                provider=c.provider,
+                role=role,
+                source=c.item.get("source", ""),
+                rank_profile=profile,
+                subtitle=subtitle,
+                price_text=price_text,
+            )
+        )
     return results
 
 
@@ -963,11 +1071,11 @@ def _display_meta(item: dict[str, Any]) -> tuple[str, str]:
     subtitle = ""
     category = str(item.get("category") or "").strip()
     region = _short_region(str(item.get("roadAddress") or item.get("address") or "").strip())
-    if category or region:                                  # local: "양식점 · 서울 강남구"
+    if category or region:  # local: "양식점 · 서울 강남구"
         subtitle = " · ".join(p for p in (category, region) if p)
-    elif (desc := str(item.get("description") or "").strip()):  # blog/news/web: 요약문
+    elif desc := str(item.get("description") or "").strip():  # blog/news/web: 요약문
         subtitle = desc[:80]
-    elif (brand := str(item.get("brand") or "").strip()):       # shop: 브랜드
+    elif brand := str(item.get("brand") or "").strip():  # shop: 브랜드
         subtitle = brand
     return subtitle, price_text
 

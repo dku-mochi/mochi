@@ -48,8 +48,13 @@ def upgrade() -> None:
     op.create_table(
         "entities",
         sa.Column("id", sa.BigInteger, primary_key=True, autoincrement=True),
-        sa.Column("capture_id", postgresql.UUID(as_uuid=True),
-                  sa.ForeignKey("captures.id", ondelete="CASCADE"), nullable=False, index=True),
+        sa.Column(
+            "capture_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("captures.id", ondelete="CASCADE"),
+            nullable=False,
+            index=True,
+        ),
         sa.Column("kind", sa.String(16), nullable=False),
         sa.Column("value", sa.String(512), nullable=False),
     )
@@ -57,8 +62,13 @@ def upgrade() -> None:
     op.create_table(
         "embeddings",
         sa.Column("id", sa.BigInteger, primary_key=True, autoincrement=True),
-        sa.Column("capture_id", postgresql.UUID(as_uuid=True),
-                  sa.ForeignKey("captures.id", ondelete="CASCADE"), nullable=False, index=True),
+        sa.Column(
+            "capture_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("captures.id", ondelete="CASCADE"),
+            nullable=False,
+            index=True,
+        ),
         sa.Column("chunk_text", sa.String, nullable=False),
         sa.Column("embedding", Vector(768), nullable=False),
         sa.Column("model_version", sa.String(64), nullable=False),
@@ -78,8 +88,13 @@ def upgrade() -> None:
     op.create_table(
         "agent_runs",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("capture_id", postgresql.UUID(as_uuid=True),
-                  sa.ForeignKey("captures.id", ondelete="CASCADE"), nullable=False, index=True),
+        sa.Column(
+            "capture_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("captures.id", ondelete="CASCADE"),
+            nullable=False,
+            index=True,
+        ),
         sa.Column("current_node", sa.String(32), nullable=False, server_default="ingested"),
         sa.Column("total_tokens", sa.Integer, nullable=False, server_default="0"),
         sa.Column("total_latency_ms", sa.Integer, nullable=False, server_default="0"),
@@ -91,8 +106,13 @@ def upgrade() -> None:
     op.create_table(
         "tool_calls",
         sa.Column("id", sa.BigInteger, primary_key=True, autoincrement=True),
-        sa.Column("agent_run_id", postgresql.UUID(as_uuid=True),
-                  sa.ForeignKey("agent_runs.id", ondelete="CASCADE"), nullable=False, index=True),
+        sa.Column(
+            "agent_run_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("agent_runs.id", ondelete="CASCADE"),
+            nullable=False,
+            index=True,
+        ),
         sa.Column("name", sa.String(64), nullable=False),
         sa.Column("input_digest", sa.String(128), nullable=False),
         sa.Column("output_digest", sa.String(128)),

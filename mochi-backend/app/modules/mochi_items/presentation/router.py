@@ -14,6 +14,7 @@ from app.modules.mochi_items.application.delete_mochi_item import (
     DeleteMochiItemCommand,
 )
 from app.modules.mochi_items.application.ingest import Ingest, IngestCommand
+from app.modules.mochi_items.application.monthly_digest import GenerateMonthlyDigest
 from app.modules.mochi_items.application.queries import (
     GetMonthlyCalendar,
     ListMochiItemsInRange,
@@ -33,7 +34,6 @@ from app.modules.mochi_items.application.update_mochi_item import (
     UpdateMochiItem,
     UpdateMochiItemCommand,
 )
-from app.modules.mochi_items.application.weekly_digest import GenerateWeeklyDigest
 from app.modules.mochi_items.domain.entities import ImageRef, MochiItem
 from app.modules.mochi_items.domain.ports import CaptureImageStorage, ObjectStat
 from app.modules.mochi_items.domain.value_objects import (
@@ -42,7 +42,7 @@ from app.modules.mochi_items.domain.value_objects import (
     IntentInstance,
     IntentPayload,
 )
-from app.modules.mochi_items.infrastructure.gemini_weekly_digest import GeminiWeeklyDigest
+from app.modules.mochi_items.infrastructure.gemini_monthly_digest import GeminiMonthlyDigest
 from app.modules.mochi_items.infrastructure.outbox import OutboxNotifier
 from app.modules.mochi_items.infrastructure.repository import PostgresMochiItemRepository
 from app.modules.mochi_items.presentation.schemas import (
@@ -59,6 +59,8 @@ from app.modules.mochi_items.presentation.schemas import (
     MochiItemResponse,
     MochiItemUpdateRequest,
     MonthlyCalendarResponse,
+    MonthlyDigestGroupResponse,
+    MonthlyDigestResponse,
     PresignRequest,
     PresignResponse,
     ReanalyzeRequest,
@@ -68,8 +70,6 @@ from app.modules.mochi_items.presentation.schemas import (
     UpcomingActionableResponse,
     UpcomingTodoListResponse,
     UpcomingTodoResponse,
-    WeeklyDigestGroupResponse,
-    WeeklyDigestResponse,
 )
 from app.shared.intent import Intent
 
@@ -441,28 +441,28 @@ async def get_upcoming_actionables(
     )
 
 
-@router.post("/weekly_digest", response_model=WeeklyDigestResponse)
-async def generate_weekly_digest(
+@router.post("/monthly_digest", response_model=MonthlyDigestResponse)
+async def generate_monthly_digest(
     db: DBSession,
     user: CurrentUser,
-    week_start: Annotated[datetime, Query(alias="weekStart")],
-) -> WeeklyDigestResponse:
-    """이번주 정리 — 그 주(KST 월~일) item 의 카테고리 정규화(write) + 모찌 한마디(LLM 1회).
+    month_start: Annotated[datetime, Query(alias="monthStart")],
+) -> MonthlyDigestResponse:
+    """이번 달 정리 — 그 달(KST 1일~말일) item 의 카테고리 정규화(write) + 모찌 한마디(LLM 1회).
 
     같은 의미인데 항목마다 제각각 생긴 category 를 LLM 이 통합 라벨로 정규화해 ``item.category`` 를
-    갱신한다(파편화 수렴). 그 주 항목이 3개 미만이면 LLM 을 돌리지 않고 정적 인사로 폴백한다
-    (``generated=false``). ``weekStart`` 가 어긋나도 서버가 KST 월요일 00:00 으로 재정규화한다.
+    갱신한다(파편화 수렴). 그 달 항목이 3개 미만이면 LLM 을 돌리지 않고 정적 인사로 폴백한다
+    (``generated=false``). ``monthStart`` 가 어긋나도 서버가 KST 그 달 1일 00:00 으로 재정규화한다.
     """
-    use_case = GenerateWeeklyDigest(
+    use_case = GenerateMonthlyDigest(
         repository=PostgresMochiItemRepository(db),
-        llm=GeminiWeeklyDigest(),
+        llm=GeminiMonthlyDigest(),
     )
-    result = await use_case.execute(owner_id=user, week_start=week_start)
+    result = await use_case.execute(owner_id=user, month_start=month_start)
     await db.commit()
-    return WeeklyDigestResponse(
+    return MonthlyDigestResponse(
         greeting=result.greeting,
         groups=[
-            WeeklyDigestGroupResponse(coarse=group.coarse, item_ids=list(group.item_ids))
+            MonthlyDigestGroupResponse(coarse=group.coarse, item_ids=list(group.item_ids))
             for group in result.groups
         ],
         generated=result.generated,
@@ -504,9 +504,7 @@ async def update_mochi_item(
                     # archive_reason 은 archived 전이에서만 의미 — 비-archived 에 끼면
                     # active 행에 reason 이 영속되는 도메인 위생 위반이라 무시한다 (리뷰 P2).
                     archive_reason=(
-                        req.archive_reason
-                        if req.lifecycle_kind is InstanceLifecycleKind.ARCHIVED
-                        else None
+                        req.archive_reason if req.lifecycle_kind is InstanceLifecycleKind.ARCHIVED else None
                     ),
                 )
                 if req.lifecycle_kind is not None
@@ -606,9 +604,7 @@ async def set_mochi_item_favorite(
     """
     use_case = SetFavorite(repository=PostgresMochiItemRepository(db))
     item = await use_case.execute(
-        SetFavoriteCommand(
-            owner_id=user, mochi_item_id=mochi_item_id, is_favorite=payload.is_favorite
-        )
+        SetFavoriteCommand(owner_id=user, mochi_item_id=mochi_item_id, is_favorite=payload.is_favorite)
     )
     await db.commit()
     return _to_response(item)

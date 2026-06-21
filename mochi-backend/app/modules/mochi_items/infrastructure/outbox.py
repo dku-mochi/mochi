@@ -26,7 +26,9 @@ class MochiItemOutboxRow(Base):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True, init=False)
     event_id: Mapped[UUID] = mapped_column(PgUUIDColumn(as_uuid=True), insert_default=uuid4, init=False)
-    mochi_item_id: Mapped[UUID] = mapped_column(PgUUIDColumn(as_uuid=True), ForeignKey("mochi_items.id", ondelete="CASCADE"), index=True)
+    mochi_item_id: Mapped[UUID] = mapped_column(
+        PgUUIDColumn(as_uuid=True), ForeignKey("mochi_items.id", ondelete="CASCADE"), index=True
+    )
     owner_id: Mapped[UUID] = mapped_column(PgUUIDColumn(as_uuid=True), index=True)
     status: Mapped[str] = mapped_column(String(16), default="pending", index=True)
     attempts: Mapped[int] = mapped_column(Integer, default=0)
@@ -49,9 +51,7 @@ class OutboxNotifier:
     def __init__(self, session: AsyncSession):
         self._session = session
 
-    async def emit(
-        self, *, owner_id: UUID, mochi_item_id: UUID, reanalysis_hint: str | None = None
-    ) -> None:
+    async def emit(self, *, owner_id: UUID, mochi_item_id: UUID, reanalysis_hint: str | None = None) -> None:
         row = MochiItemOutboxRow(
             mochi_item_id=mochi_item_id,
             owner_id=owner_id,
@@ -62,5 +62,7 @@ class OutboxNotifier:
         # LISTEN/NOTIFY 즉시 wake-up — payload 는 mochi_item_id 만으로 충분.
         from sqlalchemy import text
 
-        await self._session.execute(text("SELECT pg_notify('mochi_item_outbox', :mochi_item_id)"),
-                                    {"mochi_item_id": str(mochi_item_id)})
+        await self._session.execute(
+            text("SELECT pg_notify('mochi_item_outbox', :mochi_item_id)"),
+            {"mochi_item_id": str(mochi_item_id)},
+        )

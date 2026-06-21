@@ -8,9 +8,7 @@ from app.shared.llm_usage import extract_token_usage
 
 
 def test_extract_usage_from_metadata() -> None:
-    resp = SimpleNamespace(
-        usage_metadata=SimpleNamespace(prompt_token_count=120, candidates_token_count=45)
-    )
+    resp = SimpleNamespace(usage_metadata=SimpleNamespace(prompt_token_count=120, candidates_token_count=45))
     assert extract_token_usage(resp) == (120, 45)
 
 

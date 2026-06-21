@@ -161,9 +161,7 @@ async def _call(*, system_prompt: str, contents: list[types.Content], model: str
         max_output_tokens=1024,
         thinking_config=types.ThinkingConfig(thinking_budget=0),
         tools=[types.Tool(function_declarations=_decls())],
-        tool_config=types.ToolConfig(
-            function_calling_config=types.FunctionCallingConfig(mode="ANY")
-        ),
+        tool_config=types.ToolConfig(function_calling_config=types.FunctionCallingConfig(mode="ANY")),
     )
     return await _shared_client().aio.models.generate_content(
         model=model, contents=cast(types.ContentListUnion, contents), config=cfg
@@ -200,7 +198,9 @@ def _to_decision(args: dict[str, Any], model: str) -> PlannerDecision | None:
 
 
 class GeminiRecallPlanner(RecallPlannerPort):
-    def __init__(self, *, owner_id: UUID, model: str | None = None, timeout_seconds: float | None = None) -> None:
+    def __init__(
+        self, *, owner_id: UUID, model: str | None = None, timeout_seconds: float | None = None
+    ) -> None:
         settings = get_settings()
         # owner_id 는 get_scheduled 호출을 owner-scope 로 묶기 위해 어댑터에 바인드(후보엔 owner 없음).
         self._owner_id = owner_id

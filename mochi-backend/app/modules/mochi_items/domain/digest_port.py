@@ -1,4 +1,4 @@
-"""주간 정리(weekly digest) LLM outbound port.
+"""월간 정리(monthly digest) LLM outbound port.
 
 agent 모듈의 function-calling ``LLMClient`` 와 별개 — 단발 structured-output 1회 호출용.
 카테고리 정규화(fine→coarse 매핑)와 "모찌의 한마디"(greeting)를 한 번에 받는다.
@@ -11,7 +11,7 @@ from typing import Protocol
 
 @dataclass(frozen=True, slots=True)
 class DigestInputItem:
-    """LLM 에 보낼 그 주 항목 1건 — fine category + 대표 텍스트(요약).
+    """LLM 에 보낼 그 달 항목 1건 — fine category + 대표 텍스트(요약).
 
     raw 캡처 본문은 보내지 않는다(PRIVACY 최소전송 — 프로필 요약기와 동일 원칙).
     """
@@ -29,15 +29,15 @@ class CategoryGroup:
 
 
 @dataclass(frozen=True, slots=True)
-class WeeklyDigestLLMResult:
+class MonthlyDigestLLMResult:
     greeting: str
     category_groups: tuple[CategoryGroup, ...]
 
 
-class WeeklyDigestLLM(Protocol):
-    """그 주 항목을 받아 greeting + 카테고리 재그룹핑을 1회 생성한다.
+class MonthlyDigestLLM(Protocol):
+    """그 달 항목을 받아 greeting + 카테고리 재그룹핑을 1회 생성한다.
 
-    ``known_categories`` 는 기존에 자주 쓰인 정규화 라벨 — 재사용을 우선해 주별 흔들림을 줄인다.
+    ``known_categories`` 는 기존에 자주 쓰인 정규화 라벨 — 재사용을 우선해 달별 흔들림을 줄인다.
     LLM 은 item id 를 다루지 않는다(매핑 적용은 application 이 fine→coarse dict 로 수행).
     """
 
@@ -47,4 +47,4 @@ class WeeklyDigestLLM(Protocol):
         items: list[DigestInputItem],
         item_count: int,
         known_categories: list[str],
-    ) -> WeeklyDigestLLMResult: ...
+    ) -> MonthlyDigestLLMResult: ...

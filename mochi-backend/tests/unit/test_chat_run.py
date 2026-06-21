@@ -223,9 +223,7 @@ async def test_first_round_forces_tool_call_then_releases() -> None:
     run_id = uuid4()
     queue = registry.create(run_id)
 
-    await _runner(llm, store, registry).execute(
-        owner_id=_OWNER, conversation_id=_CONVERSATION, run_id=run_id
-    )
+    await _runner(llm, store, registry).execute(owner_id=_OWNER, conversation_id=_CONVERSATION, run_id=run_id)
     await _drain(queue)
 
     assert [c["force_tool"] for c in llm.calls] == [True, False]
@@ -250,9 +248,7 @@ async def test_parallel_tool_calls_grouped_into_single_turn_with_signature() -> 
     run_id = uuid4()
     queue = registry.create(run_id)
 
-    await _runner(llm, store, registry).execute(
-        owner_id=_OWNER, conversation_id=_CONVERSATION, run_id=run_id
-    )
+    await _runner(llm, store, registry).execute(owner_id=_OWNER, conversation_id=_CONVERSATION, run_id=run_id)
     await _drain(queue)
 
     contents = llm.calls[1]["contents"]
@@ -307,9 +303,7 @@ async def test_no_profile_loader_leaves_slot_empty() -> None:
     run_id = uuid4()
     queue = registry.create(run_id)
 
-    await _runner(llm, store, registry).execute(
-        owner_id=_OWNER, conversation_id=_CONVERSATION, run_id=run_id
-    )
+    await _runner(llm, store, registry).execute(owner_id=_OWNER, conversation_id=_CONVERSATION, run_id=run_id)
     await _drain(queue)
 
     system_prompt = llm.calls[0]["system_prompt"]
@@ -408,9 +402,7 @@ async def test_empty_answer_marks_failed() -> None:
     run_id = uuid4()
     queue = registry.create(run_id)
 
-    await _runner(llm, store, registry).execute(
-        owner_id=_OWNER, conversation_id=_CONVERSATION, run_id=run_id
-    )
+    await _runner(llm, store, registry).execute(owner_id=_OWNER, conversation_id=_CONVERSATION, run_id=run_id)
     events = await _drain(queue)
 
     assert store.statuses == [(run_id, RunStatus.FAILED)]
@@ -455,9 +447,7 @@ async def test_unknown_tool_call_recovers_without_persisting_row() -> None:
     run_id = uuid4()
     queue = registry.create(run_id)
 
-    await _runner(llm, store, registry).execute(
-        owner_id=_OWNER, conversation_id=_CONVERSATION, run_id=run_id
-    )
+    await _runner(llm, store, registry).execute(owner_id=_OWNER, conversation_id=_CONVERSATION, run_id=run_id)
     await _drain(queue)
 
     assert [m.role for m in store.appended] == [MessageRole.ASSISTANT]  # tool 행 미영속
@@ -486,8 +476,7 @@ def test_router_tool_registry_is_read_only() -> None:
     session_factory: Any = object()  # 빌더는 팩토리를 보관만 한다 — 호출 없음
 
     bare = {
-        tool.name
-        for tool in _build_chat_tools(session_factory, tavily_api_key=None, gcs_capture_bucket=None)
+        tool.name for tool in _build_chat_tools(session_factory, tavily_api_key=None, gcs_capture_bucket=None)
     }
     assert bare == base
 
@@ -519,7 +508,9 @@ class _BeginStubRepo:
     async def create(self, *, owner_id: UUID, conversation: Conversation) -> None:
         self.created.append(conversation)
 
-    async def mark_stale_runs_failed(self, *, owner_id: UUID, conversation_id: UUID, started_before: Any) -> int:
+    async def mark_stale_runs_failed(
+        self, *, owner_id: UUID, conversation_id: UUID, started_before: Any
+    ) -> int:
         self.stale_repairs += 1
         return 0
 
@@ -552,9 +543,7 @@ async def test_begin_rejects_concurrent_run() -> None:
     repo = _BeginStubRepo(existing=Conversation(id=uuid4()), running=True)
 
     with pytest.raises(RunInProgressError):
-        await BeginChatTurn(repository=repo).execute(
-            owner_id=_OWNER, conversation_id=uuid4(), text="질문"
-        )
+        await BeginChatTurn(repository=repo).execute(owner_id=_OWNER, conversation_id=uuid4(), text="질문")
     assert repo.messages == []  # user 행 미영속
 
 

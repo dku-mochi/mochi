@@ -27,14 +27,10 @@ class UpdateInstanceLifecycle:
         self._repo = repository
 
     async def execute(self, command: UpdateInstanceLifecycleCommand) -> MochiItem:
-        item = await self._repo.find_by_id(
-            owner_id=command.owner_id, mochi_item_id=command.mochi_item_id
-        )
+        item = await self._repo.find_by_id(owner_id=command.owner_id, mochi_item_id=command.mochi_item_id)
         if item is None:
             raise NotFoundError("Mochi item not found", code="mochi_item.not_found")
-        instance = next(
-            (i for i in item.intent_instances if i.id == command.instance_id), None
-        )
+        instance = next((i for i in item.intent_instances if i.id == command.instance_id), None)
         if instance is None:
             raise NotFoundError("Intent instance not found", code="intent_instance.not_found")
         # 멱등 — 이미 목표 상태면 no-op(200). 완료 토글은 set-state 의미라, 같은 상태 재전송(응답 유실

@@ -24,6 +24,10 @@ def get_engine() -> AsyncEngine:
             pool_pre_ping=True,
             pool_size=settings.db_pool_size,
             max_overflow=settings.db_max_overflow,
+            # 세션 타임존을 UTC 로 고정 — 코드 전반의 naive ``datetime.utcnow()`` 값이 timestamptz 컬럼에
+            # 쓰일 때 세션 TZ 로 해석되므로, 서버 기본 TZ 가 무엇이든 UTC 로 일관 해석되게 한다
+            # (회수 dismiss 쿨다운·stale-run 정리 등 시간 비교 정확성의 근본 봉인). asyncpg server_settings.
+            connect_args={"server_settings": {"timezone": "UTC"}},
         )
     return _engine
 

@@ -32,16 +32,12 @@ class BeginChatTurn:
     repository: ConversationRepository
 
     async def execute(self, *, owner_id: UUID, conversation_id: UUID, text: str) -> Message:
-        conversation = await self.repository.find_by_id(
-            owner_id=owner_id, conversation_id=conversation_id
-        )
+        conversation = await self.repository.find_by_id(owner_id=owner_id, conversation_id=conversation_id)
         if conversation is None:
             try:
                 await self.repository.create(
                     owner_id=owner_id,
-                    conversation=Conversation(
-                        id=conversation_id, title=title_from_first_message(text)
-                    ),
+                    conversation=Conversation(id=conversation_id, title=title_from_first_message(text)),
                 )
             except IntegrityError as exc:
                 # 동시 첫 메시지 2건 — 둘째의 PK 충돌은 "이미 생성됨"이고, 그 대화엔

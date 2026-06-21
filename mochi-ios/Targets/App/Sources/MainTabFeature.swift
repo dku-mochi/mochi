@@ -128,8 +128,8 @@ struct MainTabFeature: Sendable {
                 state.path.append(.settings(SettingsFeature.State()))
                 return .none
 
-            case .home(.delegate(.weeklyDigestRequested)):
-                state.path.append(.weeklyDigest(WeeklyDigestFeature.State()))
+            case .home(.delegate(.monthlyDigestRequested)):
+                state.path.append(.monthlyDigest(MonthlyDigestFeature.State()))
                 return .none
 
             case .home(.delegate(.favoritesRequested)):
@@ -196,14 +196,14 @@ struct MainTabFeature: Sendable {
                 // 회수 상세 "관련 기억" 카드 탭 → 그 항목 상세 present(원본 보기와 같은 server PK 역매핑 경로).
                 return .send(.openDetailFromNotification(serverID: itemID, hero: nil))
 
-            case let .path(.element(id: _, action: .weeklyDigest(.delegate(.mochiItemTapped(mochiItemID, hero))))):
+            case let .path(.element(id: _, action: .monthlyDigest(.delegate(.mochiItemTapped(mochiItemID, hero))))):
                 // 정리 화면의 항목 탭 → 상세 present (캘린더처럼 hero 없으면 중앙 scale 폴백).
                 guard state.detail == nil else { return .none }
                 state.detailHero = hero
                 state.detail = DetailFeature.State(mochiItemID: mochiItemID)
                 return .none
 
-            case let .path(.element(id: _, action: .weeklyDigest(.delegate(.categoryViewAllRequested(category))))):
+            case let .path(.element(id: _, action: .monthlyDigest(.delegate(.categoryViewAllRequested(category))))):
                 // 리포트 카테고리 레일 "전체 보기" → 정리 화면을 닫고 검색 탭을 그 카테고리로 필터해 연다
                 // (회수 "찾기"는 검색이 담당 — seeAllRecentRequested 와 같은 위임 패턴).
                 state.path.removeAll()
@@ -387,13 +387,13 @@ struct MainTabFeature: Sendable {
 }
 
 extension MainTabFeature {
-    /// 네비게이션 destination — 설정·이번주 정리·대화. 설정을 sheet 가 아닌 push 로 둬,
+    /// 네비게이션 destination — 설정·이번 달 정리·대화. 설정을 sheet 가 아닌 push 로 둬,
     /// 설정 위에 온보딩 fullScreenCover 를 띄울 때 "single sheet" 충돌을 피한다.
     /// (상세는 path 가 아니라 `@Presents var detail` 로 별도 custom present.)
     @Reducer
     enum Path {
         case settings(SettingsFeature)
-        case weeklyDigest(WeeklyDigestFeature)
+        case monthlyDigest(MonthlyDigestFeature)
         case favorites(FavoritesFeature)
         /// 대화 풀스크린 — 탭바를 덮는 push (랜딩·홈 입력바가 Entry 를 들고 연다).
         case chat(ChatFeature)

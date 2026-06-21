@@ -37,7 +37,7 @@ class SearchResult:
 
 
 class SimilarReasonKind(StrEnum):
-    """"왜 비슷한지" 연결 이유 신호 — 서버 계산 enum. 한국어 카피는 iOS 가 매핑한다
+    """ "왜 비슷한지" 연결 이유 신호 — 서버 계산 enum. 한국어 카피는 iOS 가 매핑한다
     (카피 변경이 ⓪ openapi 폭포를 안 타도록). 1차는 기본 컬럼만 쓰는 3종 — 엔티티 겹침은
     후속(`DOMAIN_DESIGN.md` §10.5)."""
 

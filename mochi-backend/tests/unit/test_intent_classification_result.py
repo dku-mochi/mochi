@@ -24,8 +24,7 @@ def _payload(
             for i, label in insts
         ],
         "review_options": [
-            {"intent_type": i.value, "label": label, "reasoning": "-"}
-            for i, label in (review_options or [])
+            {"intent_type": i.value, "label": label, "reasoning": "-"} for i, label in (review_options or [])
         ],
         "entities": [],
         "importance": 3,

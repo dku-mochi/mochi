@@ -234,9 +234,7 @@ async def issue_capture_token(
     sliding TTL: 사용 시 연장 — 캡처를 계속 쓰는 한 만료되지 않는다.
     """
     use_case = _build_issue_capture_token(db)
-    issued = await use_case.execute(
-        IssueCaptureTokenCommand(user_id=user, device_label=payload.device_label)
-    )
+    issued = await use_case.execute(IssueCaptureTokenCommand(user_id=user, device_label=payload.device_label))
     await db.commit()
     return CaptureTokenResponse(
         capture_token=issued.raw_token,

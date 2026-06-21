@@ -80,9 +80,7 @@ class MochiItemCreateRequest(BaseModel):
     text: str | None = None
     user_memo: str | None = Field(default=None, alias="userMemo")
     image_refs: list[ImageRefDTO] = Field(default_factory=list, alias="imageRefs")
-    confirmed_instances: list[ConfirmedInstanceDTO] = Field(
-        default_factory=list, alias="confirmedInstances"
-    )
+    confirmed_instances: list[ConfirmedInstanceDTO] = Field(default_factory=list, alias="confirmedInstances")
 
     model_config = {"populate_by_name": True}
 
@@ -297,7 +295,7 @@ class UpcomingActionableListResponse(BaseModel):
     actionables: list[UpcomingActionableResponse] = Field(default_factory=list)
 
 
-class WeeklyDigestGroupResponse(BaseModel):
+class MonthlyDigestGroupResponse(BaseModel):
     """정규화된 coarse 카테고리 1묶음 — 그 그룹에 속한 item id 목록(captured_at desc)."""
 
     coarse: str
@@ -306,16 +304,16 @@ class WeeklyDigestGroupResponse(BaseModel):
     model_config = {"populate_by_name": True}
 
 
-class WeeklyDigestResponse(BaseModel):
-    """이번주 정리 — 모찌 한마디 + 정규화된 카테고리 그룹.
+class MonthlyDigestResponse(BaseModel):
+    """이번 달 정리 — 모찌 한마디 + 정규화된 카테고리 그룹.
 
-    ``generated`` 가 false 면 그 주 항목이 적어 LLM 을 돌리지 않은 정적 폴백이다(클라가 캐시 정책에 활용).
+    ``generated`` 가 false 면 그 달 항목이 적어 LLM 을 돌리지 않은 정적 폴백이다(클라가 캐시 정책에 활용).
     카테고리 정규화는 서버가 item.category 를 write 한 결과이므로, 클라는 응답의 itemIds 로 로컬 캐시를
     함께 갱신한다.
     """
 
     greeting: str
-    groups: list[WeeklyDigestGroupResponse] = Field(default_factory=list)
+    groups: list[MonthlyDigestGroupResponse] = Field(default_factory=list)
     generated: bool = True
 
 

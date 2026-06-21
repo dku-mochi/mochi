@@ -35,9 +35,7 @@ def _inst(intent: Intent, payload: IntentPayload, *, archived: bool = False) -> 
 
 
 def _classify(*insts: IntentInstance):
-    return compute_eligible_candidates(
-        intent_instances=tuple(insts), source_item_id=uuid4(), now=_NOW
-    )
+    return compute_eligible_candidates(intent_instances=tuple(insts), source_item_id=uuid4(), now=_NOW)
 
 
 def test_future_schedule_is_deadline_backoff():
@@ -58,9 +56,7 @@ def test_schedule_without_date_excluded():
 
 def test_schedule_uses_end_date_when_only_end_is_future():
     # date 가 과거고 end_date 만 미래면 end_date 를 anchor 로(기간형 일정 끝까지 알림 가치).
-    out = _classify(
-        _inst(Intent.SCHEDULE, IntentPayload(title="페스티벌", date=_PAST, end_date=_FUTURE))
-    )
+    out = _classify(_inst(Intent.SCHEDULE, IntentPayload(title="페스티벌", date=_PAST, end_date=_FUTURE)))
     assert len(out) == 1
     assert out[0].anchor_value == _FUTURE
 
@@ -94,15 +90,13 @@ def test_memo_excluded():
 
 
 def test_no_intents_yields_empty():
-    assert compute_eligible_candidates(
-        intent_instances=(), source_item_id=uuid4(), now=_NOW
-    ) == []
+    assert compute_eligible_candidates(intent_instances=(), source_item_id=uuid4(), now=_NOW) == []
 
 
 def test_archived_instance_excluded():
-    assert _classify(
-        _inst(Intent.SCHEDULE, IntentPayload(title="끝난 일정", date=_FUTURE), archived=True)
-    ) == []
+    assert (
+        _classify(_inst(Intent.SCHEDULE, IntentPayload(title="끝난 일정", date=_FUTURE), archived=True)) == []
+    )
 
 
 def test_mixed_intents_classified_independently():

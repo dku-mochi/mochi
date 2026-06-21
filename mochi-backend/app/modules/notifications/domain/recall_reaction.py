@@ -50,9 +50,7 @@ class RecallReactionRepositoryPort(ABC):
     """
 
     @abstractmethod
-    async def find_sent_event(
-        self, *, event_id: UUID, owner_id: UUID
-    ) -> SentRecallEvent | None:
+    async def find_sent_event(self, *, event_id: UUID, owner_id: UUID) -> SentRecallEvent | None:
         """`(event_id, owner_id)` + `status='sent'` 인 행 조회. 없으면 None(→ 404 분기·소생 컨텍스트)."""
 
     @abstractmethod

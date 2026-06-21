@@ -31,9 +31,7 @@ class PostgresRecallReactionRepository(RecallReactionRepositoryPort):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    async def find_sent_event(
-        self, *, event_id: UUID, owner_id: UUID
-    ) -> SentRecallEvent | None:
+    async def find_sent_event(self, *, event_id: UUID, owner_id: UUID) -> SentRecallEvent | None:
         stmt = select(
             NotificationOutboxRow.event_id,
             NotificationOutboxRow.kind,

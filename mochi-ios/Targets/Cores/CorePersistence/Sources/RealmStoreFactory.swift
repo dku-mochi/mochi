@@ -42,4 +42,12 @@ public enum RealmStoreFactory {
         _ = makeConfiguration()
         return try Realm()
     }
+
+    /// 전용 직렬 큐에 갇힌 Realm — 알림 토큰을 메인 run loop 밖에서 굴리기 위한 경로.
+    /// 종료(close) 시 InterprocessMutex 를 user-interactive 인 메인 스레드가 아니라 이 큐에서 잡게 해
+    /// priority inversion 을 피한다 (근거는 ``RealmChangeObserver``).
+    public static func openRealm(queue: DispatchQueue) throws -> Realm {
+        _ = makeConfiguration()
+        return try Realm(queue: queue)
+    }
 }

@@ -42,6 +42,14 @@ class HS256AccessTokenIssuer(AccessTokenIssuer):
             )
         return secret
 
+    def validate(self) -> None:
+        """부팅 시 fail-fast 용 — secret 오설정이면 즉시 raise(첫 로그인까지 미루지 않는다)."""
+        self._resolve_secret()
+
+    def is_using_dev_default_secret(self) -> bool:
+        """현재 secret 이 빌트인 dev 기본값인지. environment=local 오설정 탐지용(부팅 가드)."""
+        return self._settings.auth_access_secret == self._DEV_DEFAULT_SECRET
+
     def issue(self, *, user_id: UserID, now: datetime) -> tuple[str, datetime]:
         expires_at = now + timedelta(seconds=self._settings.auth_access_ttl_seconds)
         claims = {

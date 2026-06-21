@@ -4,8 +4,6 @@
 워커(P3)가 DB 에서 읽은 사실(직전 dismiss 시각·하루 발송 카운트·트랙B 존재)을 값으로 넘기면
 "보낸다 / deferred / skipped" 판정만 한다. per-owner 직렬화(advisory lock)는 워커가 건다 —
 이 모듈은 카운트 자체는 안 한다(이미 센 결과를 받는다).
-
-KST local date 기준 cap·야간 판정(codex-1). quiet 윈도우는 [start, end) 시각(KST hour).
 """
 
 from dataclasses import dataclass
@@ -73,49 +71,3 @@ def check_track_b_yield(
             next_retry_at=next_day_kst.astimezone(fire_at.tzinfo),
         )
     return None
-
-
-def check_quiet_hours(
-    *,
-    fire_at: datetime,
-    quiet_start_hour: int,
-    quiet_end_hour: int,
-) -> GuardDecision:
-    """야간 무음(§4): fire_at 이 KST quiet 윈도우(예 21~8시) 안이면 윈도우 종료로 shift 후 allow.
-
-    윈도우가 자정을 넘으므로(start>end) "start 이상 또는 end 미만"이 quiet. 통과면 원래 fire_at allow.
-    shift 는 quiet 종료(quiet_end_hour:00 KST) — 윈도우 밖이 되어 더 이상 야간 가드에 안 걸린다.
-    """
-    fire_kst = fire_at.astimezone(KST)
-    hour = fire_kst.hour
-    in_quiet = (hour >= quiet_start_hour) or (hour < quiet_end_hour)
-    if not in_quiet:
-        return GuardDecision(action=GUARD_ALLOW, fire_at=fire_at)
-    # quiet 종료시각으로 민다: 같은 날(hour<end)이면 그날 end, 밤(hour>=start)이면 다음날 end.
-    base_date = fire_kst.date()
-    if hour >= quiet_start_hour:
-        base_date = base_date + timedelta(days=1)
-    shifted_kst = datetime.combine(base_date, time(quiet_end_hour, 0), tzinfo=KST)
-    return GuardDecision(action=GUARD_DEFER, skip_reason="night", next_retry_at=shifted_kst.astimezone(fire_at.tzinfo))
-
-
-def check_daily_cap(
-    *,
-    fire_at: datetime,
-    same_day_count: int,
-    daily_cap: int,
-) -> GuardDecision | None:
-    """하루 cap(§4): owner 의 fire_at KST local date pending/sent 카운트가 cap 이상이면 deferred.
-
-    next_retry_at = 다음날 KST 0시(D-1 마감이 cap 에 영구 소실 안 되게, codex-4 — expires 전까지 재배치).
-    None = 통과(cap 미만). same_day_count 는 호출부가 KST date 기준으로 세서 넘긴다.
-    """
-    if same_day_count < daily_cap:
-        return None
-    fire_kst_date = _to_kst_date(fire_at)
-    next_day_kst = datetime.combine(fire_kst_date + timedelta(days=1), time(0, 0), tzinfo=KST)
-    return GuardDecision(
-        action=GUARD_DEFER,
-        skip_reason="cap",
-        next_retry_at=next_day_kst.astimezone(fire_at.tzinfo),
-    )

@@ -45,7 +45,10 @@ _PAYLOAD_PROPS: dict[str, Any] = {
             "capture identifies a day."
         ),
     },
-    "time": {"type": "string", "description": "Start time, 24-hour `HH:MM` (e.g. 14:30). Omit if no clock time is given."},
+    "time": {
+        "type": "string",
+        "description": "Start time, 24-hour `HH:MM` (e.g. 14:30). Omit if no clock time is given.",
+    },
     "end_date": {
         "type": "string",
         "description": "End date of a multi-day event, ISO `YYYY-MM-DD` (date is the start). Omit for a single day.",
@@ -154,15 +157,30 @@ _RESOURCE_FINDER_PARAMS: dict[str, Any] = {
         "rank_profile": {
             "type": "string",
             "enum": [
-                "auto", "general", "cosmetics", "fashion", "electronics", "local",
-                "event_booking", "coupang", "web",
+                "auto",
+                "general",
+                "cosmetics",
+                "fashion",
+                "electronics",
+                "local",
+                "event_booking",
+                "coupang",
+                "web",
             ],
         },
         "source_app": {
             "type": "string",
             "enum": [
-                "unknown", "coupang", "naver_map", "naver_shopping", "oliveyoung",
-                "musinsa", "instagram", "youtube", "safari", "browser",
+                "unknown",
+                "coupang",
+                "naver_map",
+                "naver_shopping",
+                "oliveyoung",
+                "musinsa",
+                "instagram",
+                "youtube",
+                "safari",
+                "browser",
             ],
         },
     },
@@ -272,9 +290,7 @@ def _to_contents(user_parts: list[dict[str, Any]]) -> list[types.Content]:
                     role="model",
                     parts=[
                         types.Part(
-                            function_call=types.FunctionCall(
-                                name=fc["name"], args=fc.get("args", {})
-                            ),
+                            function_call=types.FunctionCall(name=fc["name"], args=fc.get("args", {})),
                             thought_signature=part.get("thought_signature"),
                         )
                     ],
@@ -286,9 +302,7 @@ def _to_contents(user_parts: list[dict[str, Any]]) -> list[types.Content]:
                 types.Content(
                     role="user",
                     parts=[
-                        types.Part.from_function_response(
-                            name=fr["name"], response=fr.get("response", {})
-                        )
+                        types.Part.from_function_response(name=fr["name"], response=fr.get("response", {}))
                     ],
                 )
             )
@@ -297,9 +311,7 @@ def _to_contents(user_parts: list[dict[str, Any]]) -> list[types.Content]:
             # 멀티모달 입력: gs:// 이미지를 같은 user turn 에 첨부 (Gemini 가 직접 read).
             for uri, mime in part.get("images", []):
                 content_parts.append(types.Part.from_uri(file_uri=uri, mime_type=mime))
-            contents.append(
-                types.Content(role=part.get("role", "user"), parts=content_parts)
-            )
+            contents.append(types.Content(role=part.get("role", "user"), parts=content_parts))
     return contents
 
 
@@ -313,12 +325,10 @@ async def _call(
     cfg = types.GenerateContentConfig(
         system_instruction=system_prompt,
         temperature=0.3,
-        max_output_tokens=1024,
+        max_output_tokens=4096,
         thinking_config=types.ThinkingConfig(thinking_budget=0),
         tools=[types.Tool(function_declarations=decls)],
-        tool_config=types.ToolConfig(
-            function_calling_config=types.FunctionCallingConfig(mode="ANY")
-        ),
+        tool_config=types.ToolConfig(function_calling_config=types.FunctionCallingConfig(mode="ANY")),
     )
     return await _shared_client().aio.models.generate_content(
         model=model, contents=cast(types.ContentListUnion, contents), config=cfg

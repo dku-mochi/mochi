@@ -56,6 +56,9 @@ public struct LocalThumbnail<Placeholder: View>: View {
         GeometryReader { geo in
             content(geo.size)
         }
+        // 가로 이미지(scaledToFill blur 배경)의 hit-test 오버플로가 프레임 밖(이웃 카드)으로 새지
+        // 않게 hit-test 영역을 셀 박스로 가둔다. .clipped() 는 시각만 자르고 hit-test 는 안 막는다.
+        .contentShape(Rectangle())
         .task(id: relativePath ?? objectKey) {
             // @3x 까지 커버하도록 셀 변 길이의 3배를 상한 픽셀로 둔다.
             let maxPixel = Int(max(targetSize.width, targetSize.height) * 3)

@@ -25,9 +25,7 @@ class PostgresRecallPlanRepository(RecallPlanRepositoryPort):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    async def find_active_by_intent(
-        self, *, owner_id: UUID, source_intent_id: UUID
-    ) -> StoredPlan | None:
+    async def find_active_by_intent(self, *, owner_id: UUID, source_intent_id: UUID) -> StoredPlan | None:
         stmt = select(NotificationPlanRow.id, NotificationPlanRow.source_intent_id).where(
             NotificationPlanRow.owner_id == owner_id,
             NotificationPlanRow.source_intent_id == source_intent_id,
@@ -67,9 +65,7 @@ class PostgresRecallPlanRepository(RecallPlanRepositoryPort):
             await self._session.flush()  # id 채우기(insert_default=uuid4 는 flush 시점)
         return row.id
 
-    async def supersede(
-        self, *, owner_id: UUID, old_plan_id: UUID, new_plan_id: UUID
-    ) -> None:
+    async def supersede(self, *, owner_id: UUID, old_plan_id: UUID, new_plan_id: UUID) -> None:
         # owner-scope + status='active' 가드 — cross-tenant update·이미 종료된 plan 재교체 차단(§4-3).
         # cancelled_at 은 비운다: schema.md §1 상 cancelled_at=영구 dismiss 시각이라 supersede(재평가 교체)
         # 에선 의미상 비우는 게 맞다(cancel_reason='superseded' 만 사유로 기록).

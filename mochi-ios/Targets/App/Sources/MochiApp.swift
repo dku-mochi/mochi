@@ -60,7 +60,8 @@ struct MochiApp: App {
                 .task {
                     await tick()
                     await syncWorker.startForegroundPolling()
-                    appDelegate.requestAuthorizationIfNeeded()
+                    // 팝업 없이 등록만 — 권한 팝업은 인증 후 RootFeature 가 띄운다(미인증 콜드스타트 팝업 회피).
+                    PushAuthorization.registerForRemoteNotificationsIfAuthorized()
                 }
                 .onChange(of: scenePhase) { _, newPhase in
                     if newPhase == .active {
@@ -68,7 +69,7 @@ struct MochiApp: App {
                             await tick()
                             await syncWorker.startForegroundPolling()
                         }
-                        appDelegate.requestAuthorizationIfNeeded()
+                        PushAuthorization.registerForRemoteNotificationsIfAuthorized()
                     } else {
                         // background/inactive 진입 시 metadata-only 폴링 중단 (foreground 한정).
                         Task { await syncWorker.stopForegroundPolling() }

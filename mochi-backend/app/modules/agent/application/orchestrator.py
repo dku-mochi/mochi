@@ -41,7 +41,7 @@ _INDEX_EMBED_TIMEOUT_SECONDS = 15.0
 
 @dataclass(slots=True)
 class StreamEvent:
-    kind: str           # "node" | "tool_started" | "tool_finished" | "partial" | "final" | "failed"
+    kind: str  # "node" | "tool_started" | "tool_finished" | "partial" | "final" | "failed"
     payload: dict[str, Any]
 
 
@@ -112,11 +112,7 @@ class AgentOrchestrator:
                             analysis = event
                         else:
                             yield event
-                elif (
-                    node is AgentNode.PERSISTED
-                    and analysis is not None
-                    and self._gateway is not None
-                ):
+                elif node is AgentNode.PERSISTED and analysis is not None and self._gateway is not None:
                     await self._gateway.apply_analysis(
                         owner_id=owner_id, mochi_item_id=mochi_item_id, result=analysis
                     )
@@ -324,9 +320,7 @@ class AgentOrchestrator:
         ``scripts/backfill_embeddings.py`` 가 멱등 재색인한다.
         """
         assert self._gateway is not None and self._embedder is not None
-        chunk_text = build_embedding_text(
-            analysis.summary, (i.label for i in analysis.intent_instances)
-        )
+        chunk_text = build_embedding_text(analysis.summary, (i.label for i in analysis.intent_instances))
         if not chunk_text:
             return
         try:
@@ -352,9 +346,7 @@ class AgentOrchestrator:
                 exception=str(exc),
             )
 
-    async def _recent_analysis_context(
-        self, *, owner_id: UUID, current_item_id: UUID
-    ) -> tuple[str, ...]:
+    async def _recent_analysis_context(self, *, owner_id: UUID, current_item_id: UUID) -> tuple[str, ...]:
         if self._gateway is None:
             return ()
         window = await self._gateway.list_recent_window(owner_id=owner_id, limit=40)
@@ -405,7 +397,7 @@ class AgentOrchestrator:
             out, usage = await tool.run(tool.input_model.model_validate(args))
             response = out.model_dump()
             if isinstance(response.get("text"), str):
-                response["text"] = response["text"][:4000]   # 토큰 bound
+                response["text"] = response["text"][:4000]  # 토큰 bound
             succeeded = True
             log.info(
                 "agent.tool_succeeded",
@@ -431,9 +423,7 @@ class AgentOrchestrator:
                 transient=getattr(exc, "transient", False),
                 error=str(exc)[:300],
             )
-        parts.append(
-            {"role": "user", "function_response": {"name": tool_name.value, "response": response}}
-        )
+        parts.append({"role": "user", "function_response": {"name": tool_name.value, "response": response}})
 
         call = ToolCall(
             name=tool_name,
@@ -622,8 +612,7 @@ def _initial_user_text(
             "# 최근 기록 컨텍스트 (최근 1달)\n"
             "같은 사용자의 최근 기록에서 category/title/intent/summary 만 추린 목록입니다. "
             "현재 캡처가 직접 지지하는 해석 안에서 naming/category 일관성을 맞출 때만 약하게 사용하세요. "
-            "현재 캡처의 보이는 근거를 덮어쓰지 마세요.\n"
-            + "\n".join(recent_context)
+            "현재 캡처의 보이는 근거를 덮어쓰지 마세요.\n" + "\n".join(recent_context)
         )
     if reanalysis_hint:
         # "다른 의도" 재분석 — 사용자가 직접 적은 의도. user_memo 와 구분해서 우선 반영.

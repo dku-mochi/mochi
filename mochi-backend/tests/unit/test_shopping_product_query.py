@@ -33,9 +33,7 @@ def _row(*, entities: list[tuple[str, str]]) -> MochiItemRow:
     )
     row.id = uuid4()
     for kind, value in entities:
-        row.entities.append(
-            EntityRow(mochi_item_id=row.id, kind=kind, value=value, mochi_item=row)
-        )
+        row.entities.append(EntityRow(mochi_item_id=row.id, kind=kind, value=value, mochi_item=row))
     return row
 
 
@@ -106,9 +104,9 @@ def test_row_to_entity_keeps_plain_url_reference() -> None:
     assert len(item.reference_links) == 1
     link = item.reference_links[0]
     assert link.url.startswith("https://soco.seoul.go.kr")
-    assert link.label == "관련 링크 열기"   # 기본값
+    assert link.label == "관련 링크 열기"  # 기본값
     assert link.provider == "unknown"
-    assert link.usefulness is None          # 뱃지 OFF
+    assert link.usefulness is None  # 뱃지 OFF
 
 
 def test_to_response_exposes_reference_links_alias() -> None:
@@ -139,14 +137,27 @@ def test_to_response_exposes_reference_links_alias() -> None:
 def test_row_to_entity_extracts_reference_metadata() -> None:
     """subtitle·priceText 가 있으면 도메인으로 복원, 없는 구 JSON 은 None(하위호환)."""
     with_meta = json.dumps(
-        {"url": "https://www.oliveyoung.co.kr/goods/1", "title": "토리든 세럼",
-         "label": "올리브영에서 보기", "role": "buy", "provider": "oliveyoung",
-         "rankProfile": "cosmetics", "subtitle": "토리든", "priceText": "18,900원"},
+        {
+            "url": "https://www.oliveyoung.co.kr/goods/1",
+            "title": "토리든 세럼",
+            "label": "올리브영에서 보기",
+            "role": "buy",
+            "provider": "oliveyoung",
+            "rankProfile": "cosmetics",
+            "subtitle": "토리든",
+            "priceText": "18,900원",
+        },
         ensure_ascii=False,
     )
     legacy = json.dumps(
-        {"url": "https://blog.naver.com/x", "title": "후기", "label": "관련 글 보기",
-         "role": "read", "provider": "info", "rankProfile": "general"},
+        {
+            "url": "https://blog.naver.com/x",
+            "title": "후기",
+            "label": "관련 글 보기",
+            "role": "read",
+            "provider": "info",
+            "rankProfile": "general",
+        },
         ensure_ascii=False,
     )
     row = _row(entities=[("reference_url", with_meta), ("reference_url", legacy)])
@@ -156,7 +167,7 @@ def test_row_to_entity_extracts_reference_metadata() -> None:
     assert len(links) == 2
     assert links[0].subtitle == "토리든"
     assert links[0].price_text == "18,900원"
-    assert links[1].subtitle is None    # 구 데이터·메타없는 링크 하위호환
+    assert links[1].subtitle is None  # 구 데이터·메타없는 링크 하위호환
     assert links[1].price_text is None
 
 

@@ -131,17 +131,17 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `GET /api/v1/mochi_items/upcoming`.
     /// - Remark: Generated from `#/paths//api/v1/mochi_items/upcoming/get(get_upcoming_actionables_api_v1_mochi_items_upcoming_get)`.
     func get_upcoming_actionables_api_v1_mochi_items_upcoming_get(_ input: Operations.get_upcoming_actionables_api_v1_mochi_items_upcoming_get.Input) async throws -> Operations.get_upcoming_actionables_api_v1_mochi_items_upcoming_get.Output
-    /// Generate Weekly Digest
+    /// Generate Monthly Digest
     ///
-    /// 이번주 정리 — 그 주(KST 월~일) item 의 카테고리 정규화(write) + 모찌 한마디(LLM 1회).
+    /// 이번 달 정리 — 그 달(KST 1일~말일) item 의 카테고리 정규화(write) + 모찌 한마디(LLM 1회).
     ///
     /// 같은 의미인데 항목마다 제각각 생긴 category 를 LLM 이 통합 라벨로 정규화해 ``item.category`` 를
-    /// 갱신한다(파편화 수렴). 그 주 항목이 3개 미만이면 LLM 을 돌리지 않고 정적 인사로 폴백한다
-    /// (``generated=false``). ``weekStart`` 가 어긋나도 서버가 KST 월요일 00:00 으로 재정규화한다.
+    /// 갱신한다(파편화 수렴). 그 달 항목이 3개 미만이면 LLM 을 돌리지 않고 정적 인사로 폴백한다
+    /// (``generated=false``). ``monthStart`` 가 어긋나도 서버가 KST 그 달 1일 00:00 으로 재정규화한다.
     ///
-    /// - Remark: HTTP `POST /api/v1/mochi_items/weekly_digest`.
-    /// - Remark: Generated from `#/paths//api/v1/mochi_items/weekly_digest/post(generate_weekly_digest_api_v1_mochi_items_weekly_digest_post)`.
-    func generate_weekly_digest_api_v1_mochi_items_weekly_digest_post(_ input: Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.Input) async throws -> Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.Output
+    /// - Remark: HTTP `POST /api/v1/mochi_items/monthly_digest`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/monthly_digest/post(generate_monthly_digest_api_v1_mochi_items_monthly_digest_post)`.
+    func generate_monthly_digest_api_v1_mochi_items_monthly_digest_post(_ input: Operations.generate_monthly_digest_api_v1_mochi_items_monthly_digest_post.Input) async throws -> Operations.generate_monthly_digest_api_v1_mochi_items_monthly_digest_post.Output
     /// Get Mochi Item
     ///
     /// - Remark: HTTP `GET /api/v1/mochi_items/{mochi_item_id}`.
@@ -604,21 +604,21 @@ extension APIProtocol {
             headers: headers
         ))
     }
-    /// Generate Weekly Digest
+    /// Generate Monthly Digest
     ///
-    /// 이번주 정리 — 그 주(KST 월~일) item 의 카테고리 정규화(write) + 모찌 한마디(LLM 1회).
+    /// 이번 달 정리 — 그 달(KST 1일~말일) item 의 카테고리 정규화(write) + 모찌 한마디(LLM 1회).
     ///
     /// 같은 의미인데 항목마다 제각각 생긴 category 를 LLM 이 통합 라벨로 정규화해 ``item.category`` 를
-    /// 갱신한다(파편화 수렴). 그 주 항목이 3개 미만이면 LLM 을 돌리지 않고 정적 인사로 폴백한다
-    /// (``generated=false``). ``weekStart`` 가 어긋나도 서버가 KST 월요일 00:00 으로 재정규화한다.
+    /// 갱신한다(파편화 수렴). 그 달 항목이 3개 미만이면 LLM 을 돌리지 않고 정적 인사로 폴백한다
+    /// (``generated=false``). ``monthStart`` 가 어긋나도 서버가 KST 그 달 1일 00:00 으로 재정규화한다.
     ///
-    /// - Remark: HTTP `POST /api/v1/mochi_items/weekly_digest`.
-    /// - Remark: Generated from `#/paths//api/v1/mochi_items/weekly_digest/post(generate_weekly_digest_api_v1_mochi_items_weekly_digest_post)`.
-    public func generate_weekly_digest_api_v1_mochi_items_weekly_digest_post(
-        query: Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.Input.Query,
-        headers: Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.Input.Headers = .init()
-    ) async throws -> Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.Output {
-        try await generate_weekly_digest_api_v1_mochi_items_weekly_digest_post(Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.Input(
+    /// - Remark: HTTP `POST /api/v1/mochi_items/monthly_digest`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/monthly_digest/post(generate_monthly_digest_api_v1_mochi_items_monthly_digest_post)`.
+    public func generate_monthly_digest_api_v1_mochi_items_monthly_digest_post(
+        query: Operations.generate_monthly_digest_api_v1_mochi_items_monthly_digest_post.Input.Query,
+        headers: Operations.generate_monthly_digest_api_v1_mochi_items_monthly_digest_post.Input.Headers = .init()
+    ) async throws -> Operations.generate_monthly_digest_api_v1_mochi_items_monthly_digest_post.Output {
+        try await generate_monthly_digest_api_v1_mochi_items_monthly_digest_post(Operations.generate_monthly_digest_api_v1_mochi_items_monthly_digest_post.Input(
             query: query,
             headers: headers
         ))
@@ -2248,6 +2248,66 @@ public enum Components {
                 case days
             }
         }
+        /// 정규화된 coarse 카테고리 1묶음 — 그 그룹에 속한 item id 목록(captured_at desc).
+        ///
+        /// - Remark: Generated from `#/components/schemas/MonthlyDigestGroupResponse`.
+        public struct MonthlyDigestGroupResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/MonthlyDigestGroupResponse/coarse`.
+            public var coarse: Swift.String
+            /// - Remark: Generated from `#/components/schemas/MonthlyDigestGroupResponse/itemIds`.
+            public var itemIds: [Swift.String]?
+            /// Creates a new `MonthlyDigestGroupResponse`.
+            ///
+            /// - Parameters:
+            ///   - coarse:
+            ///   - itemIds:
+            public init(
+                coarse: Swift.String,
+                itemIds: [Swift.String]? = nil
+            ) {
+                self.coarse = coarse
+                self.itemIds = itemIds
+            }
+            public enum CodingKeys: String, CodingKey {
+                case coarse
+                case itemIds
+            }
+        }
+        /// 이번 달 정리 — 모찌 한마디 + 정규화된 카테고리 그룹.
+        ///
+        /// ``generated`` 가 false 면 그 달 항목이 적어 LLM 을 돌리지 않은 정적 폴백이다(클라가 캐시 정책에 활용).
+        /// 카테고리 정규화는 서버가 item.category 를 write 한 결과이므로, 클라는 응답의 itemIds 로 로컬 캐시를
+        /// 함께 갱신한다.
+        ///
+        /// - Remark: Generated from `#/components/schemas/MonthlyDigestResponse`.
+        public struct MonthlyDigestResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/MonthlyDigestResponse/greeting`.
+            public var greeting: Swift.String
+            /// - Remark: Generated from `#/components/schemas/MonthlyDigestResponse/groups`.
+            public var groups: [Components.Schemas.MonthlyDigestGroupResponse]?
+            /// - Remark: Generated from `#/components/schemas/MonthlyDigestResponse/generated`.
+            public var generated: Swift.Bool?
+            /// Creates a new `MonthlyDigestResponse`.
+            ///
+            /// - Parameters:
+            ///   - greeting:
+            ///   - groups:
+            ///   - generated:
+            public init(
+                greeting: Swift.String,
+                groups: [Components.Schemas.MonthlyDigestGroupResponse]? = nil,
+                generated: Swift.Bool? = nil
+            ) {
+                self.greeting = greeting
+                self.groups = groups
+                self.generated = generated
+            }
+            public enum CodingKeys: String, CodingKey {
+                case greeting
+                case groups
+                case generated
+            }
+        }
         /// 캡처 이미지 업로드용 Signed PUT URL 발급 요청.
         ///
         /// - Remark: Generated from `#/components/schemas/PresignRequest`.
@@ -3340,66 +3400,6 @@ public enum Components {
                 case _type = "type"
                 case input
                 case ctx
-            }
-        }
-        /// 정규화된 coarse 카테고리 1묶음 — 그 그룹에 속한 item id 목록(captured_at desc).
-        ///
-        /// - Remark: Generated from `#/components/schemas/WeeklyDigestGroupResponse`.
-        public struct WeeklyDigestGroupResponse: Codable, Hashable, Sendable {
-            /// - Remark: Generated from `#/components/schemas/WeeklyDigestGroupResponse/coarse`.
-            public var coarse: Swift.String
-            /// - Remark: Generated from `#/components/schemas/WeeklyDigestGroupResponse/itemIds`.
-            public var itemIds: [Swift.String]?
-            /// Creates a new `WeeklyDigestGroupResponse`.
-            ///
-            /// - Parameters:
-            ///   - coarse:
-            ///   - itemIds:
-            public init(
-                coarse: Swift.String,
-                itemIds: [Swift.String]? = nil
-            ) {
-                self.coarse = coarse
-                self.itemIds = itemIds
-            }
-            public enum CodingKeys: String, CodingKey {
-                case coarse
-                case itemIds
-            }
-        }
-        /// 이번주 정리 — 모찌 한마디 + 정규화된 카테고리 그룹.
-        ///
-        /// ``generated`` 가 false 면 그 주 항목이 적어 LLM 을 돌리지 않은 정적 폴백이다(클라가 캐시 정책에 활용).
-        /// 카테고리 정규화는 서버가 item.category 를 write 한 결과이므로, 클라는 응답의 itemIds 로 로컬 캐시를
-        /// 함께 갱신한다.
-        ///
-        /// - Remark: Generated from `#/components/schemas/WeeklyDigestResponse`.
-        public struct WeeklyDigestResponse: Codable, Hashable, Sendable {
-            /// - Remark: Generated from `#/components/schemas/WeeklyDigestResponse/greeting`.
-            public var greeting: Swift.String
-            /// - Remark: Generated from `#/components/schemas/WeeklyDigestResponse/groups`.
-            public var groups: [Components.Schemas.WeeklyDigestGroupResponse]?
-            /// - Remark: Generated from `#/components/schemas/WeeklyDigestResponse/generated`.
-            public var generated: Swift.Bool?
-            /// Creates a new `WeeklyDigestResponse`.
-            ///
-            /// - Parameters:
-            ///   - greeting:
-            ///   - groups:
-            ///   - generated:
-            public init(
-                greeting: Swift.String,
-                groups: [Components.Schemas.WeeklyDigestGroupResponse]? = nil,
-                generated: Swift.Bool? = nil
-            ) {
-                self.greeting = greeting
-                self.groups = groups
-                self.generated = generated
-            }
-            public enum CodingKeys: String, CodingKey {
-                case greeting
-                case groups
-                case generated
             }
         }
     }
@@ -5300,52 +5300,52 @@ public enum Operations {
             }
         }
     }
-    /// Generate Weekly Digest
+    /// Generate Monthly Digest
     ///
-    /// 이번주 정리 — 그 주(KST 월~일) item 의 카테고리 정규화(write) + 모찌 한마디(LLM 1회).
+    /// 이번 달 정리 — 그 달(KST 1일~말일) item 의 카테고리 정규화(write) + 모찌 한마디(LLM 1회).
     ///
     /// 같은 의미인데 항목마다 제각각 생긴 category 를 LLM 이 통합 라벨로 정규화해 ``item.category`` 를
-    /// 갱신한다(파편화 수렴). 그 주 항목이 3개 미만이면 LLM 을 돌리지 않고 정적 인사로 폴백한다
-    /// (``generated=false``). ``weekStart`` 가 어긋나도 서버가 KST 월요일 00:00 으로 재정규화한다.
+    /// 갱신한다(파편화 수렴). 그 달 항목이 3개 미만이면 LLM 을 돌리지 않고 정적 인사로 폴백한다
+    /// (``generated=false``). ``monthStart`` 가 어긋나도 서버가 KST 그 달 1일 00:00 으로 재정규화한다.
     ///
-    /// - Remark: HTTP `POST /api/v1/mochi_items/weekly_digest`.
-    /// - Remark: Generated from `#/paths//api/v1/mochi_items/weekly_digest/post(generate_weekly_digest_api_v1_mochi_items_weekly_digest_post)`.
-    public enum generate_weekly_digest_api_v1_mochi_items_weekly_digest_post {
-        public static let id: Swift.String = "generate_weekly_digest_api_v1_mochi_items_weekly_digest_post"
+    /// - Remark: HTTP `POST /api/v1/mochi_items/monthly_digest`.
+    /// - Remark: Generated from `#/paths//api/v1/mochi_items/monthly_digest/post(generate_monthly_digest_api_v1_mochi_items_monthly_digest_post)`.
+    public enum generate_monthly_digest_api_v1_mochi_items_monthly_digest_post {
+        public static let id: Swift.String = "generate_monthly_digest_api_v1_mochi_items_monthly_digest_post"
         public struct Input: Sendable, Hashable {
-            /// - Remark: Generated from `#/paths/api/v1/mochi_items/weekly_digest/POST/query`.
+            /// - Remark: Generated from `#/paths/api/v1/mochi_items/monthly_digest/POST/query`.
             public struct Query: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/api/v1/mochi_items/weekly_digest/POST/query/weekStart`.
-                public var weekStart: Foundation.Date
+                /// - Remark: Generated from `#/paths/api/v1/mochi_items/monthly_digest/POST/query/monthStart`.
+                public var monthStart: Foundation.Date
                 /// Creates a new `Query`.
                 ///
                 /// - Parameters:
-                ///   - weekStart:
-                public init(weekStart: Foundation.Date) {
-                    self.weekStart = weekStart
+                ///   - monthStart:
+                public init(monthStart: Foundation.Date) {
+                    self.monthStart = monthStart
                 }
             }
-            public var query: Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.Input.Query
-            /// - Remark: Generated from `#/paths/api/v1/mochi_items/weekly_digest/POST/header`.
+            public var query: Operations.generate_monthly_digest_api_v1_mochi_items_monthly_digest_post.Input.Query
+            /// - Remark: Generated from `#/paths/api/v1/mochi_items/monthly_digest/POST/header`.
             public struct Headers: Sendable, Hashable {
-                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.AcceptableContentType>]
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.generate_monthly_digest_api_v1_mochi_items_monthly_digest_post.AcceptableContentType>]
                 /// Creates a new `Headers`.
                 ///
                 /// - Parameters:
                 ///   - accept:
-                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.AcceptableContentType>] = .defaultValues()) {
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.generate_monthly_digest_api_v1_mochi_items_monthly_digest_post.AcceptableContentType>] = .defaultValues()) {
                     self.accept = accept
                 }
             }
-            public var headers: Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.Input.Headers
+            public var headers: Operations.generate_monthly_digest_api_v1_mochi_items_monthly_digest_post.Input.Headers
             /// Creates a new `Input`.
             ///
             /// - Parameters:
             ///   - query:
             ///   - headers:
             public init(
-                query: Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.Input.Query,
-                headers: Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.Input.Headers = .init()
+                query: Operations.generate_monthly_digest_api_v1_mochi_items_monthly_digest_post.Input.Query,
+                headers: Operations.generate_monthly_digest_api_v1_mochi_items_monthly_digest_post.Input.Headers = .init()
             ) {
                 self.query = query
                 self.headers = headers
@@ -5353,15 +5353,15 @@ public enum Operations {
         }
         @frozen public enum Output: Sendable, Hashable {
             public struct Ok: Sendable, Hashable {
-                /// - Remark: Generated from `#/paths/api/v1/mochi_items/weekly_digest/POST/responses/200/content`.
+                /// - Remark: Generated from `#/paths/api/v1/mochi_items/monthly_digest/POST/responses/200/content`.
                 @frozen public enum Body: Sendable, Hashable {
-                    /// - Remark: Generated from `#/paths/api/v1/mochi_items/weekly_digest/POST/responses/200/content/application\/json`.
-                    case json(Components.Schemas.WeeklyDigestResponse)
+                    /// - Remark: Generated from `#/paths/api/v1/mochi_items/monthly_digest/POST/responses/200/content/application\/json`.
+                    case json(Components.Schemas.MonthlyDigestResponse)
                     /// The associated value of the enum case if `self` is `.json`.
                     ///
                     /// - Throws: An error if `self` is not `.json`.
                     /// - SeeAlso: `.json`.
-                    public var json: Components.Schemas.WeeklyDigestResponse {
+                    public var json: Components.Schemas.MonthlyDigestResponse {
                         get throws {
                             switch self {
                             case let .json(body):
@@ -5371,26 +5371,26 @@ public enum Operations {
                     }
                 }
                 /// Received HTTP response body
-                public var body: Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.Output.Ok.Body
+                public var body: Operations.generate_monthly_digest_api_v1_mochi_items_monthly_digest_post.Output.Ok.Body
                 /// Creates a new `Ok`.
                 ///
                 /// - Parameters:
                 ///   - body: Received HTTP response body
-                public init(body: Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.Output.Ok.Body) {
+                public init(body: Operations.generate_monthly_digest_api_v1_mochi_items_monthly_digest_post.Output.Ok.Body) {
                     self.body = body
                 }
             }
             /// Successful Response
             ///
-            /// - Remark: Generated from `#/paths//api/v1/mochi_items/weekly_digest/post(generate_weekly_digest_api_v1_mochi_items_weekly_digest_post)/responses/200`.
+            /// - Remark: Generated from `#/paths//api/v1/mochi_items/monthly_digest/post(generate_monthly_digest_api_v1_mochi_items_monthly_digest_post)/responses/200`.
             ///
             /// HTTP response code: `200 ok`.
-            case ok(Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.Output.Ok)
+            case ok(Operations.generate_monthly_digest_api_v1_mochi_items_monthly_digest_post.Output.Ok)
             /// The associated value of the enum case if `self` is `.ok`.
             ///
             /// - Throws: An error if `self` is not `.ok`.
             /// - SeeAlso: `.ok`.
-            public var ok: Operations.generate_weekly_digest_api_v1_mochi_items_weekly_digest_post.Output.Ok {
+            public var ok: Operations.generate_monthly_digest_api_v1_mochi_items_monthly_digest_post.Output.Ok {
                 get throws {
                     switch self {
                     case let .ok(response):

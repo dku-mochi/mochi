@@ -66,9 +66,7 @@ class PostgresRecallCandidateRepository(RecallCandidateRepositoryPort):
             for row in rows
         ]
 
-    async def recent_recall_exists(
-        self, *, owner_id: UUID, source_item_id: UUID, since: datetime
-    ) -> bool:
+    async def recent_recall_exists(self, *, owner_id: UUID, source_item_id: UUID, since: datetime) -> bool:
         stmt = text(
             """
             SELECT EXISTS(

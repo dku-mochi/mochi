@@ -1,29 +1,23 @@
 import SwiftUI
-import DesignSystem
 
 /// 앱 부팅 직후 노출되는 스플래시 화면.
 /// `UILaunchScreen` 은 빈 dict 라서 시스템은 흰 화면만 잠깐 보여주고,
 /// 실제 브랜딩은 이 SwiftUI 뷰에서 책임진다.
 ///
-/// 모찌가 톡 등장하는 순간, **모찌 뒤(가려진 중앙)에서 생일폭죽이 터져** 색종이가
-/// 솟구쳐 흩날린다(`ConfettiCannonLayer`). confetti 레이어가 ZStack 에서 모찌(content)
-/// 아래에 있어 초기엔 모찌에 가려졌다가 밖으로 솟아나오는 연출이 자연스럽게 나온다.
+/// 온보딩과 같은 연보라 무대 위, 위에서 따뜻한 노란 가로등 빛이 거의 일자로
+/// 내려와 모찌를 비춘다. 빛 기둥 + 발치의 빛 웅덩이로 "가로등 밑에 선" 분위기.
 struct SplashView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var hasAppeared = false
-    @State private var particles: [ConfettiParticle] = []
-    @State private var launchDate: Date?
+    @State private var isFloating = false
+
+    /// 가로등 빛 색 — 따뜻한 앰버-옐로우(나트륨등 톤).
+    private let lampLight = Color(red: 1.0, green: 0.80, blue: 0.42)
 
     var body: some View {
         ZStack {
-            backgroundGradient
+            stageLighting
                 .ignoresSafeArea()
-
-            if let launchDate {
-                ConfettiCannonLayer(particles: particles, launchDate: launchDate)
-                    .ignoresSafeArea()
-                    .allowsHitTesting(false)
-            }
 
             content
         }
@@ -31,18 +25,65 @@ struct SplashView: View {
     }
 
     private func start() {
-        withAnimation(.spring(response: 0.5, dampingFraction: 0.68)) {
+        // 모션 민감 사용자: 부유 없이 모찌만 정적으로 즉시 표시.
+        guard !reduceMotion else {
+            hasAppeared = true
+            return
+        }
+        // 빛 속으로 부드럽게 떠오르며 등장.
+        withAnimation(.spring(response: 0.7, dampingFraction: 0.72)) {
             hasAppeared = true
         }
-        // 색종이는 모션 민감 사용자에겐 생략 — 모찌만 차분히 등장.
-        guard !reduceMotion, launchDate == nil else { return }
-        particles = ConfettiParticle.partyPopperBurst()
-        launchDate = Date()
+        // 등장 후 은은한 상하 부유를 무한 반복.
+        withAnimation(.easeInOut(duration: 2.8).repeatForever(autoreverses: true)) {
+            isFloating = true
+        }
     }
 
-    // MARK: - Background
+    // MARK: - 무대 조명(위에서 내려오는 가로등 빛)
+
+    /// 온보딩 연보라 배경 + 위에서 내려오는 노란 빛 기둥 + 모찌 발치 빛 웅덩이 +
+    /// cone 바깥의 약한 그늘. 밝은 배경이라 빛은 normal 합성으로 '색'을 살리고,
+    /// 바깥을 살짝 눌러 빛 기둥이 도드라지게 한다.
+    private var stageLighting: some View {
+        GeometryReader { proxy in
+            let major = max(proxy.size.width, proxy.size.height)
+            ZStack {
+                backgroundGradient
+
+                // ① 빛 기둥 — 위에서 내려오는 따뜻한 노란 cone(살짝만 벌어져 일자에 가깝게).
+                LightBeamShape()
+                    .fill(
+                        LinearGradient(
+                            colors: [lampLight.opacity(0.55), lampLight.opacity(0.08)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .blur(radius: 30)
+
+                // ② 바닥 빛 웅덩이 — 빛이 닿는 모찌 발치를 따뜻하게 밝힌다.
+                RadialGradient(
+                    gradient: Gradient(colors: [lampLight.opacity(0.42), lampLight.opacity(0.0)]),
+                    center: UnitPoint(x: 0.5, y: 0.56),
+                    startRadius: 0,
+                    endRadius: major * 0.36
+                )
+
+                // ③ cone 바깥을 약하게 눌러 빛 기둥을 도드라지게(가로등 밤 느낌, 약하게).
+                RadialGradient(
+                    gradient: Gradient(colors: [Color.clear, Color.black.opacity(0.12)]),
+                    center: UnitPoint(x: 0.5, y: 0.42),
+                    startRadius: major * 0.24,
+                    endRadius: major * 0.64
+                )
+            }
+        }
+    }
 
     private var backgroundGradient: some View {
+        // 온보딩·로그인 화면과 동일한 연보라 톤(OnboardingTheme.backgroundGradient 미러).
+        // 흐름 연속성을 위해 의도적으로 일치. DesignSystem 정식 토큰화 시 공유 예정.
         LinearGradient(
             stops: [
                 .init(color: Color(red: 0.84, green: 0.83, blue: 0.96), location: 0.0),
@@ -58,150 +99,86 @@ struct SplashView: View {
 
     private var content: some View {
         GeometryReader { proxy in
-            Image("SplashMochi")
-                .resizable()
-                .scaledToFit()
-                .frame(width: min(proxy.size.width * 0.62, 280))
-                .shadow(color: HomeDesign.Color.purple500.opacity(0.18), radius: 22, x: 0, y: 14)
-//                .scaleEffect(hasAppeared ? 1.0 : 0.6)
-//                .opacity(hasAppeared ? 1 : 0)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-        }
-    }
-}
+            let size = min(proxy.size.width * 0.62, 280)
+            ZStack {
+                // 바닥 그림자 — 가로등 빛이 위에서 오니 발밑에 깔리는 접지 그림자.
+                // 모찌가 떠오르면 그림자도 작아지고 옅어져 부유감을 강화한다.
+                Ellipse()
+                    .fill(Color(red: 0.30, green: 0.24, blue: 0.42).opacity(0.30))
+                    .frame(width: size * 0.70, height: size * 0.12)
+                    .blur(radius: 14)
+                    .scaleEffect(isFloating ? 0.92 : 1.0)
+                    .opacity(isFloating ? 0.8 : 1.0)
+                    .offset(y: size * 0.46)
+                    .opacity(hasAppeared ? 1 : 0)
 
-// MARK: - 생일폭죽(파티 포퍼) 색종이 레이어
-
-/// 모찌 뒤에서 색종이가 솟구쳐 흩날리며 떨어지는 1회성 연출.
-/// 입자 위치는 발사 시각 기준 경과 `t` 의 **결정론적 함수**라 상태 누적 없이
-/// `TimelineView(.animation)` 의 매 프레임마다 `Canvas` 로 한 번에 GPU 렌더한다
-/// (수백 개를 개별 `View` 로 만들 때의 diff·레이아웃 비용 제거).
-private struct ConfettiCannonLayer: View {
-    let particles: [ConfettiParticle]
-    let launchDate: Date
-
-    var body: some View {
-        TimelineView(.animation) { timeline in
-            Canvas { context, size in
-                let elapsed = timeline.date.timeIntervalSince(launchDate)
-                guard elapsed >= 0 else { return }
-                for particle in particles {
-                    particle.draw(in: &context, elapsed: elapsed, canvas: size)
-                }
+                Image("SplashMochi")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: size)
+                    // 셀프 셰이딩 — 가로등 빛을 받은 윗면은 노랗게, 가장자리·아래는 그늘.
+                    .overlay {
+                        // 구체 그늘 — 흰 모찌는 더 밝아질 수 없으니 그늘로 입체를 만든다.
+                        RadialGradient(
+                            gradient: Gradient(stops: [
+                                .init(color: Color.clear, location: 0.0),
+                                .init(color: Color(red: 0.28, green: 0.22, blue: 0.42).opacity(0.10), location: 0.5),
+                                .init(color: Color(red: 0.28, green: 0.22, blue: 0.42).opacity(0.32), location: 1.0),
+                            ]),
+                            center: UnitPoint(x: 0.5, y: 0.30),
+                            startRadius: 0,
+                            endRadius: size * 0.55
+                        )
+                        .blendMode(.multiply)
+                    }
+                    .overlay {
+                        // 정수리에 닿는 따뜻한 가로등 빛.
+                        LinearGradient(
+                            stops: [
+                                .init(color: lampLight.opacity(0.40), location: 0.0),
+                                .init(color: Color.clear, location: 0.5),
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    }
+                    .compositingGroup()
+                    .mask {
+                        Image("SplashMochi")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: size)
+                    }
+                    // 부드럽게 아래로 떨어지는 본체 그림자 + 짧은 접지 그림자 2겹.
+                    .shadow(color: Color(red: 0.20, green: 0.16, blue: 0.34).opacity(0.22), radius: 20, x: 0, y: 22)
+                    .shadow(color: Color.black.opacity(0.12), radius: 7, x: 0, y: 7)
+                    .scaleEffect(hasAppeared ? 1.0 : 0.88)
+                    .opacity(hasAppeared ? 1 : 0)
+                    .offset(y: isFloating ? -size * 0.025 : size * 0.025)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         }
     }
 }
 
-/// 색종이 한 조각.
-///
-/// **선형 drag 모델** — 포물선(중력만)은 상승·하강이 대칭이라 화면 체공이 짧다.
-/// 실제 색종이가 화려한 건 가벼워서 공기저항으로 천천히 팔랑팔랑 떨어지기 때문이라,
-/// 속도에 비례하는 저항을 줘 "솟구침 → 급감속 → 종단속도 등속 낙하"로 모델링한다.
-/// 속도·중력은 기준 높이(844pt)값이며 `draw` 에서 실제 화면 높이에 비례 스케일한다.
-private struct ConfettiParticle {
-    enum Kind { case confetti, ribbon, dot }
+// MARK: - 위에서 내려오는 가로등 빛 기둥
 
-    let origin: CGPoint        // 정규화 좌표(0~1) — 모찌 뒤 중앙 근처
-    let vx0: CGFloat           // 초기 속도 (pt/s, 844 기준)
-    let vy0: CGFloat           // 초기 속도 — 음수 = 위로
-    let drag: CGFloat          // 속도 감쇠 계수 k (1/s)
-    let gravity: CGFloat       // 중력 (pt/s², 844 기준). 종단속도 = gravity/drag
-    let color: Color
-    let length: CGFloat
-    let kind: Kind
-    let spin: Double           // 2D 회전 속도 (deg/s)
-    let spinPhase: Double
-    let flipRate: Double       // 3D flip 속도 (rad/s)
-    let flipPhase: Double
-    let swayAmp: CGFloat       // 낙하 중 좌우 흔들림 진폭
-    let swayRate: Double
-    let swayPhase: Double
-    let launchDelay: TimeInterval
-    let lifetime: TimeInterval
-
-    func draw(in context: inout GraphicsContext, elapsed: TimeInterval, canvas: CGSize) {
-        let t = elapsed - launchDelay
-        guard t >= 0, t < lifetime else { return }
-
-        let scale = canvas.height / 844
-        let k = drag
-        let decay = CGFloat(exp(-Double(k) * t))      // e^{-kt}
-        let termVy = gravity * scale / k              // 종단속도(아래방향)
-        let originX = origin.x * canvas.width
-        let originY = origin.y * canvas.height
-        let sway = swayAmp * CGFloat(sin(swayRate * t + swayPhase))
-        let x = originX + (vx0 * scale / k) * (1 - decay) + sway
-        let y = originY + termVy * CGFloat(t) + ((vy0 * scale - termVy) / k) * (1 - decay)
-        guard y < canvas.height + 60 else { return }  // 화면 아래로 떨어진 조각은 건너뜀
-
-        let fadeWindow: TimeInterval = 0.5
-        let fadeStart = lifetime - fadeWindow
-        let opacity = t < fadeStart ? 1.0 : max(0, 1 - (t - fadeStart) / fadeWindow)
-        // |cos| 으로 앞뒤가 뒤집히며 얇아졌다 두꺼워지는 3D flip 을 가로 스케일로 흉내.
-        let flip = max(0.16, abs(cos(flipRate * t + flipPhase)))
-
-        context.drawLayer { layer in
-            layer.opacity = opacity
-            layer.translateBy(x: x, y: y)
-            layer.rotate(by: .degrees(spinPhase + spin * t))
-            layer.scaleBy(x: CGFloat(flip), y: 1)
-            layer.fill(shapePath, with: .color(color))
-        }
-    }
-
-    private var shapePath: Path {
-        switch kind {
-        case .confetti:
-            let w = length, h = length * 0.62
-            return Path(roundedRect: CGRect(x: -w / 2, y: -h / 2, width: w, height: h), cornerRadius: length * 0.16)
-        case .ribbon:
-            let w = length * 0.34, h = length * 1.5
-            return Path(roundedRect: CGRect(x: -w / 2, y: -h / 2, width: w, height: h), cornerRadius: w * 0.5)
-        case .dot:
-            return Path(ellipseIn: CGRect(x: -length / 2, y: -length / 2, width: length, height: length))
-        }
-    }
-
-    /// 모찌 뒤(화면 중앙)에서 거의 전방위로 솟구치는 한 발의 생일폭죽.
-    static func partyPopperBurst() -> [ConfettiParticle] {
-        let palette: [Color] = [
-            HomeDesign.Color.blush400,
-            HomeDesign.Color.peach400,
-            HomeDesign.Color.mint400,
-            HomeDesign.Color.sky400,
-            HomeDesign.Color.purple400,
-        ]
-        var particles: [ConfettiParticle] = []
-
-        for _ in 0..<30 {
-            let speed = CGFloat.random(in: 200...390)
-            let angle = CGFloat.random(in: -2.62...2.62)   // 수직 위 기준 ±150°(위 중심, 옆구리 아래까지)
-            let kindRoll = Double.random(in: 0...1)
-            let kind: Kind = kindRoll < 0.60 ? .confetti : (kindRoll < 0.85 ? .ribbon : .dot)
-            particles.append(
-                ConfettiParticle(
-                    origin: CGPoint(x: 0.5 + .random(in: -0.025...0.025), y: 0.45 + .random(in: -0.02...0.02)),
-                    vx0: speed * sin(angle),
-                    vy0: -speed * cos(angle) * 3,
-                    drag: CGFloat.random(in: 1.5...2.05),
-                    gravity: CGFloat.random(in: 200...580),
-                    color: palette.randomElement()!,
-                    length: kind == .dot ? .random(in: 6...10) : .random(in: 9...17),
-                    kind: kind,
-                    spin: .random(in: -340...340),
-                    spinPhase: .random(in: 0...360),
-                    flipRate: .random(in: 5...12),
-                    flipPhase: .random(in: 0...(2 * .pi)),
-                    swayAmp: .random(in: 9...26),
-                    swayRate: .random(in: 2.4...5.0),
-                    swayPhase: .random(in: 0...(2 * .pi)),
-                    launchDelay: .random(in: 0...0.42),
-                    lifetime: .random(in: 3.0...4.5)
-                )
-            )
-        }
-        return particles
+/// 화면 위 좁은 입구에서 아래로 '살짝만' 벌어지는 사다리꼴 — 가로등 빛 기둥 윤곽.
+/// 채움 그라데이션 + blur 로 가장자리를 흐려 공기 중 산란광처럼 보이게 한다.
+private struct LightBeamShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let centerX = rect.midX
+        let topWidth = rect.width * 0.30
+        let bottomWidth = rect.width * 0.58
+        let topY = -rect.height * 0.05          // 화면 위 밖에서 시작해 입구를 가린다
+        let bottomY = rect.height * 0.70
+        path.move(to: CGPoint(x: centerX - topWidth / 2, y: topY))
+        path.addLine(to: CGPoint(x: centerX + topWidth / 2, y: topY))
+        path.addLine(to: CGPoint(x: centerX + bottomWidth / 2, y: bottomY))
+        path.addLine(to: CGPoint(x: centerX - bottomWidth / 2, y: bottomY))
+        path.closeSubpath()
+        return path
     }
 }
 

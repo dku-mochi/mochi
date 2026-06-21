@@ -309,8 +309,7 @@ class PostgresCaptureTokenRepository(CaptureTokenRepositoryPort):
             .where(CaptureTokenRow.id == token_id)
             .where(CaptureTokenRow.revoked_at.is_(None))
             .where(
-                (CaptureTokenRow.last_used_at.is_(None))
-                | (CaptureTokenRow.last_used_at < debounce_cutoff)
+                (CaptureTokenRow.last_used_at.is_(None)) | (CaptureTokenRow.last_used_at < debounce_cutoff)
             )
             .values(last_used_at=now, expires_at=expires_at)
         )

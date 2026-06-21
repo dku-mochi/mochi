@@ -44,9 +44,7 @@ class PostgresRecallContextProvider(RecallContextProviderPort):
         recent = await self._recent(owner_id=owner_id)
         similar = await self._similar(owner_id=owner_id, mochi_item_id=mochi_item_id)
         past = await self._past_notifications(owner_id=owner_id)
-        return PlanningContext(
-            now_kst=now_kst, recent=recent, similar=similar, past_notifications=past
-        )
+        return PlanningContext(now_kst=now_kst, recent=recent, similar=similar, past_notifications=past)
 
     async def _recent(self, *, owner_id: UUID) -> list[RecentItem]:
         items = await self._items.list_recent(owner_id=owner_id, limit=_RECENT_LIMIT)
@@ -108,8 +106,7 @@ class PostgresRecallContextProvider(RecallContextProviderPort):
         )
         rows = (await self._session.execute(stmt)).all()
         return [
-            PastNotification(title=row.title, fire_at=row.fire_at, opened_at=row.opened_at)
-            for row in rows
+            PastNotification(title=row.title, fire_at=row.fire_at, opened_at=row.opened_at) for row in rows
         ]
 
 
@@ -139,8 +136,6 @@ class PostgresScheduledLookup(ScheduledLookup):
         )
         rows = (await self._session.execute(stmt)).all()
         return [
-            ScheduledNotification(
-                title=row.title, fire_at=row.fire_at.astimezone(_KST), kind=row.kind
-            )
+            ScheduledNotification(title=row.title, fire_at=row.fire_at.astimezone(_KST), kind=row.kind)
             for row in rows
         ]

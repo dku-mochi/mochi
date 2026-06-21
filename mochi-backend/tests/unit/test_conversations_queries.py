@@ -201,9 +201,7 @@ async def test_list_orders_by_updated_at_desc_and_limits() -> None:
 
 async def test_delete_returns_false_for_missing_conversation() -> None:
     assert (
-        await DeleteConversation(repository=_StubRepo()).execute(
-            owner_id=_OWNER, conversation_id=uuid4()
-        )
+        await DeleteConversation(repository=_StubRepo()).execute(owner_id=_OWNER, conversation_id=uuid4())
         is False
     )
 
@@ -213,9 +211,7 @@ async def test_delete_soft_deletes_existing_conversation() -> None:
     repo = _StubRepo([conversation])
 
     assert (
-        await DeleteConversation(repository=repo).execute(
-            owner_id=_OWNER, conversation_id=conversation.id
-        )
+        await DeleteConversation(repository=repo).execute(owner_id=_OWNER, conversation_id=conversation.id)
         is True
     )
     assert repo.deleted == [conversation.id]
@@ -236,9 +232,9 @@ def test_merge_proposal_status_updates_matching_entry_only() -> None:
 
     assert updated is not None
     assert updated[1]["status"] == "confirmed"
-    assert updated[1]["payload"] == {}          # 기존 필드 보존 (병합이지 교체 아님)
-    assert "status" not in updated[0]           # 다른 entry 불변
-    assert "status" not in proposals[1]         # 원본 리스트 불변 (새 리스트 반환)
+    assert updated[1]["payload"] == {}  # 기존 필드 보존 (병합이지 교체 아님)
+    assert "status" not in updated[0]  # 다른 entry 불변
+    assert "status" not in proposals[1]  # 원본 리스트 불변 (새 리스트 반환)
 
 
 def test_merge_proposal_status_returns_none_when_missing() -> None:

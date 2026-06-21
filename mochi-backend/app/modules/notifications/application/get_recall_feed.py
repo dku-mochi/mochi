@@ -90,8 +90,7 @@ def _split_summary(summary: str | None) -> tuple[str, list[str]]:
 
 def _is_recallable_spaced_knowledge(item: MochiItem) -> bool:
     return any(
-        inst.intent_type is Intent.KNOWLEDGE
-        and inst.lifecycle.kind in _RECALLABLE_SPACED_KINDS
+        inst.intent_type is Intent.KNOWLEDGE and inst.lifecycle.kind in _RECALLABLE_SPACED_KINDS
         for inst in item.intent_instances
     )
 
@@ -142,9 +141,7 @@ async def _build_related(
         if rel is None:
             continue
         oneline, _ = _split_summary(rel.summary)
-        out.append(
-            RelatedRecallItem(item_id=n.item_id, title=rel.display_title or "", oneline=oneline)
-        )
+        out.append(RelatedRecallItem(item_id=n.item_id, title=rel.display_title or "", oneline=oneline))
     return out
 
 
@@ -162,20 +159,26 @@ class GetRecallFeed:
         cands = await self.feed.list_candidates(owner_id=owner_id, limit=limit)
         entries: list[RecallFeedEntry] = []
         for cand in cands:
-            item = await self.mochi_items.find_by_id(
-                owner_id=owner_id, mochi_item_id=cand.item_id
-            )
+            item = await self.mochi_items.find_by_id(owner_id=owner_id, mochi_item_id=cand.item_id)
             if item is None:  # 삭제됨(soft-delete) → 제외.
                 continue
             if cand.source_kind == _KIND_RECALL:
                 related = await _build_related(
-                    candidates=self.candidates, mochi_items=self.mochi_items,
-                    owner_id=owner_id, source_item_id=item.id,
-                    min_score=self.related_min_score, limit=self.related_limit,
+                    candidates=self.candidates,
+                    mochi_items=self.mochi_items,
+                    owner_id=owner_id,
+                    source_item_id=item.id,
+                    min_score=self.related_min_score,
+                    limit=self.related_limit,
                 )
                 entries.append(
-                    _to_entry(item, recall_event_id=cand.recall_event_id,
-                              kind=_KIND_RECALL, reason=_REASON_LINKED, related=related)
+                    _to_entry(
+                        item,
+                        recall_event_id=cand.recall_event_id,
+                        kind=_KIND_RECALL,
+                        reason=_REASON_LINKED,
+                        related=related,
+                    )
                 )
             else:
                 # spaced — "잊혀가는"(decaying/reviewRequested) knowledge 만. active(소생/활발)·
@@ -183,8 +186,13 @@ class GetRecallFeed:
                 if not _is_recallable_spaced_knowledge(item):
                     continue
                 entries.append(
-                    _to_entry(item, recall_event_id=cand.recall_event_id,
-                              kind=_KIND_KNOWLEDGE, reason=_REASON_FADING_VALUE, related=[])
+                    _to_entry(
+                        item,
+                        recall_event_id=cand.recall_event_id,
+                        kind=_KIND_KNOWLEDGE,
+                        reason=_REASON_FADING_VALUE,
+                        related=[],
+                    )
                 )
         return entries
 
@@ -214,11 +222,16 @@ class GetRecallLanding:
             raise NotFoundError("Recall event not found", code="recall_event.not_found")
         if outbox_kind == _KIND_RECALL:
             related = await _build_related(
-                candidates=self.candidates, mochi_items=self.mochi_items,
-                owner_id=owner_id, source_item_id=item_id,
-                min_score=self.related_min_score, limit=self.related_limit,
+                candidates=self.candidates,
+                mochi_items=self.mochi_items,
+                owner_id=owner_id,
+                source_item_id=item_id,
+                min_score=self.related_min_score,
+                limit=self.related_limit,
             )
-            return _to_entry(item, recall_event_id=event_id,
-                             kind=_KIND_RECALL, reason=_REASON_LINKED, related=related)
-        return _to_entry(item, recall_event_id=event_id,
-                         kind=_KIND_KNOWLEDGE, reason=_REASON_FADING_VALUE, related=[])
+            return _to_entry(
+                item, recall_event_id=event_id, kind=_KIND_RECALL, reason=_REASON_LINKED, related=related
+            )
+        return _to_entry(
+            item, recall_event_id=event_id, kind=_KIND_KNOWLEDGE, reason=_REASON_FADING_VALUE, related=[]
+        )

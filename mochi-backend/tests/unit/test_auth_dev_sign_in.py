@@ -70,7 +70,5 @@ async def test_dev_sign_in_idempotent_for_same_subject() -> None:
 @pytest.mark.asyncio
 async def test_dev_sign_in_display_name_override() -> None:
     use_case, _, _ = _make()
-    result = await use_case.execute(
-        DevSignInCommand(subject="jun", display_name="준 (테스트)")
-    )
+    result = await use_case.execute(DevSignInCommand(subject="jun", display_name="준 (테스트)"))
     assert result.user.display_name == "준 (테스트)"

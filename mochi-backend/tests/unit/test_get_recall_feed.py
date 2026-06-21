@@ -131,13 +131,9 @@ def test_split_summary_empty() -> None:
 async def test_feed_returns_knowledge_entry() -> None:
     item = _knowledge_item()
     event_id = uuid4()
-    feed = _FeedRepo(
-        candidates=[RecallFeedCandidate(item_id=item.id, recall_event_id=event_id)]
-    )
+    feed = _FeedRepo(candidates=[RecallFeedCandidate(item_id=item.id, recall_event_id=event_id)])
     mochi = _MochiRepo({item.id: item})
-    entries = await GetRecallFeed(feed=feed, mochi_items=mochi).execute(
-        owner_id=_OWNER, limit=20
-    )
+    entries = await GetRecallFeed(feed=feed, mochi_items=mochi).execute(owner_id=_OWNER, limit=20)
     assert len(entries) == 1
     e = entries[0]
     assert e.item_id == item.id
@@ -154,21 +150,15 @@ async def test_feed_returns_knowledge_entry() -> None:
 async def test_feed_excludes_deleted_item() -> None:
     # 후보는 있으나 find_by_id None(soft-deleted) → 피드에서 제외.
     deleted_id = uuid4()
-    feed = _FeedRepo(
-        candidates=[RecallFeedCandidate(item_id=deleted_id, recall_event_id=None)]
-    )
-    entries = await GetRecallFeed(feed=feed, mochi_items=_MochiRepo({})).execute(
-        owner_id=_OWNER, limit=20
-    )
+    feed = _FeedRepo(candidates=[RecallFeedCandidate(item_id=deleted_id, recall_event_id=None)])
+    entries = await GetRecallFeed(feed=feed, mochi_items=_MochiRepo({})).execute(owner_id=_OWNER, limit=20)
     assert entries == []
 
 
 async def test_feed_excludes_archived_knowledge() -> None:
     # knowledge 이나 archived(사용자가 닫음) → 제외.
     item = _knowledge_item(lifecycle=InstanceLifecycleKind.ARCHIVED)
-    feed = _FeedRepo(
-        candidates=[RecallFeedCandidate(item_id=item.id, recall_event_id=None)]
-    )
+    feed = _FeedRepo(candidates=[RecallFeedCandidate(item_id=item.id, recall_event_id=None)])
     entries = await GetRecallFeed(feed=feed, mochi_items=_MochiRepo({item.id: item})).execute(
         owner_id=_OWNER, limit=20
     )
@@ -179,9 +169,7 @@ async def test_feed_excludes_active_knowledge() -> None:
     # opened 로 소생된(active) knowledge → 더는 "잊혀가는" 게 아니므로 회수 feed 에서 제외.
     # 이게 빠지지 않으면 "열어봐도 같은 항목이 계속 뜨는" 버그가 재발한다(§5.4 소생=feed 제외).
     item = _knowledge_item(lifecycle=InstanceLifecycleKind.ACTIVE)
-    feed = _FeedRepo(
-        candidates=[RecallFeedCandidate(item_id=item.id, recall_event_id=None)]
-    )
+    feed = _FeedRepo(candidates=[RecallFeedCandidate(item_id=item.id, recall_event_id=None)])
     entries = await GetRecallFeed(feed=feed, mochi_items=_MochiRepo({item.id: item})).execute(
         owner_id=_OWNER, limit=20
     )
@@ -191,9 +179,7 @@ async def test_feed_excludes_active_knowledge() -> None:
 async def test_feed_excludes_non_knowledge() -> None:
     # spaced 인데 source 가 todo만 — knowledge 아니면 제외.
     item = _knowledge_item(intent=Intent.TODO)
-    feed = _FeedRepo(
-        candidates=[RecallFeedCandidate(item_id=item.id, recall_event_id=None)]
-    )
+    feed = _FeedRepo(candidates=[RecallFeedCandidate(item_id=item.id, recall_event_id=None)])
     entries = await GetRecallFeed(feed=feed, mochi_items=_MochiRepo({item.id: item})).execute(
         owner_id=_OWNER, limit=20
     )
@@ -216,17 +202,16 @@ async def test_feed_recall_entry_populates_related() -> None:
     related_item = _knowledge_item(title="무선 마우스 B", summary="저소음 비교 메모")
     event_id = uuid4()
     feed = _FeedRepo(
-        candidates=[
-            RecallFeedCandidate(
-                item_id=anchor.id, recall_event_id=event_id, source_kind="recall"
-            )
-        ]
+        candidates=[RecallFeedCandidate(item_id=anchor.id, recall_event_id=event_id, source_kind="recall")]
     )
     cand_repo = _CandidatesRepo(
         neighbors=[
             RecallCandidate(
-                item_id=related_item.id, score=0.82,
-                summary=related_item.summary, category=None, channel=None,
+                item_id=related_item.id,
+                score=0.82,
+                summary=related_item.summary,
+                category=None,
+                channel=None,
             )
         ]
     )
@@ -249,9 +234,7 @@ async def test_feed_recall_entry_not_knowledge_filtered() -> None:
     # recall 은 kind 무관 — todo-only item 도(spaced 와 달리) live-knowledge 필터에 안 걸린다.
     anchor = _knowledge_item(title="todo 캡처", intent=Intent.TODO)
     feed = _FeedRepo(
-        candidates=[
-            RecallFeedCandidate(item_id=anchor.id, recall_event_id=uuid4(), source_kind="recall")
-        ]
+        candidates=[RecallFeedCandidate(item_id=anchor.id, recall_event_id=uuid4(), source_kind="recall")]
     )
     entries = await GetRecallFeed(
         feed=feed, mochi_items=_MochiRepo({anchor.id: anchor}), candidates=_CandidatesRepo()
@@ -268,8 +251,11 @@ async def test_landing_recall_populates_related() -> None:
     cand_repo = _CandidatesRepo(
         neighbors=[
             RecallCandidate(
-                item_id=related_item.id, score=0.82, summary="저소음 비교 메모",
-                category=None, channel=None,
+                item_id=related_item.id,
+                score=0.82,
+                summary="저소음 비교 메모",
+                category=None,
+                channel=None,
             )
         ]
     )

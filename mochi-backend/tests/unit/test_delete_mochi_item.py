@@ -28,9 +28,7 @@ _OWNER = uuid4()
 def _item() -> MochiItem:
     return MochiItem(
         id=uuid4(),
-        source=IngestSource(
-            channel=IngestChannel.SCREENSHOT, captured_at=datetime(2026, 6, 1, tzinfo=UTC)
-        ),
+        source=IngestSource(channel=IngestChannel.SCREENSHOT, captured_at=datetime(2026, 6, 1, tzinfo=UTC)),
         intent_instances=(),
         lifecycle=LifecycleState(kind=LifecycleStateKind.ANALYZED),
     )

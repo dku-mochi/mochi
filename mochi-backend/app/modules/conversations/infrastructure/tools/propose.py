@@ -50,9 +50,9 @@ def make_item_reader(
         )
 
         async with session_factory() as session:
-            return await GetMochiItemForOwner(
-                repository=make_mochi_item_repository(session)
-            ).execute(owner_id=owner_id, mochi_item_id=mochi_item_id)
+            return await GetMochiItemForOwner(repository=make_mochi_item_repository(session)).execute(
+                owner_id=owner_id, mochi_item_id=mochi_item_id
+            )
 
     return _read
 

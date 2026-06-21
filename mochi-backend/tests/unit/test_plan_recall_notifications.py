@@ -61,7 +61,17 @@ class _FakeRepo:
     async def find_active_by_intent(self, *, owner_id, source_intent_id) -> StoredPlan | None:
         return self._existing
 
-    async def insert_plan(self, *, owner_id, source_intent_id, source_item_id, plan_kind, stages, generated_model, next_eligible_at) -> UUID:
+    async def insert_plan(
+        self,
+        *,
+        owner_id,
+        source_intent_id,
+        source_item_id,
+        plan_kind,
+        stages,
+        generated_model,
+        next_eligible_at,
+    ) -> UUID:
         new_id = uuid4()
         self.inserted.append(
             {
@@ -177,7 +187,17 @@ async def test_invalid_stages_creates_no_plan():
 class _ConflictRepo(_FakeRepo):
     """insert_plan 이 부분 UNIQUE 충돌(동시 워커)을 시뮬레이트 — IntegrityError 발생."""
 
-    async def insert_plan(self, *, owner_id, source_intent_id, source_item_id, plan_kind, stages, generated_model, next_eligible_at) -> UUID:
+    async def insert_plan(
+        self,
+        *,
+        owner_id,
+        source_intent_id,
+        source_item_id,
+        plan_kind,
+        stages,
+        generated_model,
+        next_eligible_at,
+    ) -> UUID:
         raise IntegrityError("INSERT", {}, Exception("duplicate active plan"))
 
 

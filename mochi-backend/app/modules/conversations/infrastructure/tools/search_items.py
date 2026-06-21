@@ -108,8 +108,7 @@ _MAX_KEYWORDS = 5
 #: instance 의 "발생 시작일" — deadline 우선, 없으면 date (``ListUpcomingActionables`` 와 동일 우선순위).
 #: payload 값이 free-text 라 앞 10자를 ISO 모양으로 정규화('/'·'.' → '-')해 사전식 비교한다.
 _OCCURS_DATE_SQL = (
-    "translate(left(coalesce(nullif(ii.payload->>'deadline',''), ii.payload->>'date'), 10), "
-    "'./', '--')"
+    "translate(left(coalesce(nullif(ii.payload->>'deadline',''), ii.payload->>'date'), 10), './', '--')"
 )
 #: 사전식 비교는 zero-padded ISO 모양에서만 안전하다 — 단일 bound 호출에서 한글("내일")·
 #: 빈문자열·non-padded("2026.6.1") free-text 가 오탐/누락되므로, 모양이 어긋난 값은 전부
@@ -200,7 +199,9 @@ class SearchItemsTool:
     async def run(self, *, owner_id: UUID, args: dict[str, Any]) -> ChatToolResult:
         query = (args.get("query") or "").strip() or None
         intent_raw = args.get("intent_type")
-        intent = intent_raw if isinstance(intent_raw, str) and intent_raw in {i.value for i in Intent} else None
+        intent = (
+            intent_raw if isinstance(intent_raw, str) and intent_raw in {i.value for i in Intent} else None
+        )
         date_from = _parse_dt(args.get("date_from"))
         date_to = _parse_dt(args.get("date_to"))
         occurs_from = _parse_date_only(args.get("occurs_from"))
@@ -208,9 +209,7 @@ class SearchItemsTool:
         raw_limit = args.get("limit")
         # genai 가 숫자를 float 으로 줄 수 있다 — int/float 모두 수용.
         limit = (
-            min(int(raw_limit), TOP_K)
-            if isinstance(raw_limit, int | float) and int(raw_limit) > 0
-            else TOP_K
+            min(int(raw_limit), TOP_K) if isinstance(raw_limit, int | float) and int(raw_limit) > 0 else TOP_K
         )
 
         # 구조화 필터 — 키워드·의미 두 갈래에 동일 적용된다.

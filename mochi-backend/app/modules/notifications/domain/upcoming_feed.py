@@ -38,9 +38,7 @@ class UpcomingFeedRepositoryPort(ABC):
     """다가오는 예정 알림 조회. owner-scoped, 읽기 전용 단순 SELECT(이 모듈 테이블만)."""
 
     @abstractmethod
-    async def list_upcoming(
-        self, *, owner_id: UUID, limit: int
-    ) -> list[UpcomingNotification]:
+    async def list_upcoming(self, *, owner_id: UUID, limit: int) -> list[UpcomingNotification]:
         """owner 의 pending 미래 알림(kind IN ('deadline','nudge'), fire_at>now) fire_at 오름차순.
 
         active plan 에 연결된 것만(LEFT JOIN status='active') — veto 로 cancel 된 plan 의 잔여는

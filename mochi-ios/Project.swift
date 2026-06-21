@@ -8,7 +8,7 @@ private let deploymentTarget = "17.0"
 private let swiftVersion = "5.0"
 private let developmentTeam = "U9SLX327XS"
 // API 추가 등 의미 있는 변경 시 직접 한 줄만 올린다 (minor/patch 판단은 사람이). 단일 원천.
-private let marketingVersion = "0.3.6"
+private let marketingVersion = "0.3.7"
 // 빌드 번호 = generate 시점의 한국 시각 yyMMddHHmm (예: 2606151430). 항상 단조 증가·유니크.
 // archive 직전 `tuist generate` 를 다시 돌리면 그 순간 시각이 박혀 매 아카이빙이 새 번호가 된다.
 // baseSettings 를 통해 App·ShareExtension·Widgets 가 같은 값을 공급받아 확장 CFBundleVersion 누락을 막는다.

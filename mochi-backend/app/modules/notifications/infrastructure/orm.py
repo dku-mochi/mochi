@@ -117,8 +117,7 @@ class NotificationPlanRow(Base):
             name="ck_np__status_enum",
         ),
         CheckConstraint(
-            "cancel_reason IS NULL OR cancel_reason IN "
-            "('user_dismiss','intent_archived','superseded')",
+            "cancel_reason IS NULL OR cancel_reason IN ('user_dismiss','intent_archived','superseded')",
             name="ck_np__cancel_reason_enum",
         ),
         Index("ix_notification_plan_owner_status", "owner_id", "status"),

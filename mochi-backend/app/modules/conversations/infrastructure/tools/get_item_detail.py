@@ -53,9 +53,9 @@ class GetItemDetailTool:
             )
 
         async with self._session_factory() as session:
-            item = await GetMochiItemForOwner(
-                repository=make_mochi_item_repository(session)
-            ).execute(owner_id=owner_id, mochi_item_id=mochi_item_id)
+            item = await GetMochiItemForOwner(repository=make_mochi_item_repository(session)).execute(
+                owner_id=owner_id, mochi_item_id=mochi_item_id
+            )
 
         if item is None:
             return ChatToolResult(

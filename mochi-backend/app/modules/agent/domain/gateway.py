@@ -29,9 +29,7 @@ class AnalysisInput:
 
 
 class MochiItemGateway(Protocol):
-    async def load_source(
-        self, *, owner_id: UUID, mochi_item_id: UUID
-    ) -> AnalysisInput | None: ...
+    async def load_source(self, *, owner_id: UUID, mochi_item_id: UUID) -> AnalysisInput | None: ...
 
     async def apply_analysis(
         self, *, owner_id: UUID, mochi_item_id: UUID, result: AnalysisResult
@@ -49,8 +47,6 @@ class MochiItemGateway(Protocol):
         """INDEXED 노드 — item 의 vector 색인을 교체한다 (delete-reinsert 멱등)."""
         ...
 
-    async def list_recent_window(
-        self, *, owner_id: UUID, limit: int
-    ) -> list[ProfileWindowItem]: ...
+    async def list_recent_window(self, *, owner_id: UUID, limit: int) -> list[ProfileWindowItem]: ...
 
     async def count_items(self, *, owner_id: UUID) -> int: ...

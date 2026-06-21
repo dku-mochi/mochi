@@ -492,9 +492,7 @@ async def test_apple_signin_backfills_display_name_when_initially_empty() -> Non
     use_case = _make_signin(users, refresh, verifier)
     first = await use_case.with_apple(AppleSignInCommand(id_token="t", nonce_raw=None, full_name=None))
     assert first.user.display_name == ""
-    second = await use_case.with_apple(
-        AppleSignInCommand(id_token="t", nonce_raw=None, full_name="박세현")
-    )
+    second = await use_case.with_apple(AppleSignInCommand(id_token="t", nonce_raw=None, full_name="박세현"))
     assert second.user.display_name == "박세현"
 
 

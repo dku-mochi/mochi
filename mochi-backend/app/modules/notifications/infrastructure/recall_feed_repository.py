@@ -27,9 +27,7 @@ class PostgresRecallFeedRepository(RecallFeedRepositoryPort):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    async def list_candidates(
-        self, *, owner_id: UUID, limit: int
-    ) -> list[RecallFeedCandidate]:
+    async def list_candidates(self, *, owner_id: UUID, limit: int) -> list[RecallFeedCandidate]:
         # 트랙 C(recall outbox) 를 먼저(지금 맥락이라 신선) + 트랙 A(spaced knowledge) 합류,
         # 같은 item 은 dedup(recall 우선), recency 순. 랭킹 공식(ux-ui §7)은 후속 — 현재 recency.
         merged: list[RecallFeedCandidate] = []
@@ -46,9 +44,7 @@ class PostgresRecallFeedRepository(RecallFeedRepositoryPort):
                 break
         return merged
 
-    async def _spaced_candidates(
-        self, *, owner_id: UUID, limit: int
-    ) -> list[RecallFeedCandidate]:
+    async def _spaced_candidates(self, *, owner_id: UUID, limit: int) -> list[RecallFeedCandidate]:
         # active spaced plan → source_item_id. 같은 item 에 plan 이 여럿이어도 1행만(group by item),
         # 정렬 키는 그 item 의 가장 최근 plan.created_at(recency). source_item_id NULL plan 은 제외.
         latest_plan = func.max(NotificationPlanRow.created_at).label("latest_plan")
@@ -71,17 +67,13 @@ class PostgresRecallFeedRepository(RecallFeedRepositoryPort):
         return [
             RecallFeedCandidate(
                 item_id=row.item_id,
-                recall_event_id=await self._latest_sent_event(
-                    owner_id=owner_id, item_id=row.item_id
-                ),
+                recall_event_id=await self._latest_sent_event(owner_id=owner_id, item_id=row.item_id),
                 source_kind="spaced",
             )
             for row in rows
         ]
 
-    async def _recall_candidates(
-        self, *, owner_id: UUID, limit: int
-    ) -> list[RecallFeedCandidate]:
+    async def _recall_candidates(self, *, owner_id: UUID, limit: int) -> list[RecallFeedCandidate]:
         # kind=recall outbox(pending/sent) → source_item_id 별 최신 event, fire_at desc. 직행이라 plan 없음.
         sql = text(
             """
@@ -98,19 +90,13 @@ class PostgresRecallFeedRepository(RecallFeedRepositoryPort):
         ).bindparams(bindparam("owner", owner_id), bindparam("limit", limit))
         rows = (await self._session.execute(sql)).all()
         return [
-            RecallFeedCandidate(
-                item_id=row.item_id, recall_event_id=row.event_id, source_kind="recall"
-            )
+            RecallFeedCandidate(item_id=row.item_id, recall_event_id=row.event_id, source_kind="recall")
             for row in rows
         ]
 
-    async def resolve_landing(
-        self, *, owner_id: UUID, event_id: UUID
-    ) -> tuple[UUID, str] | None:
+    async def resolve_landing(self, *, owner_id: UUID, event_id: UUID) -> tuple[UUID, str] | None:
         # event → (source item id, kind). status 무관(sent 후 탭 OK), owner 스코프 필수.
-        stmt = select(
-            NotificationOutboxRow.source_item_id, NotificationOutboxRow.kind
-        ).where(
+        stmt = select(NotificationOutboxRow.source_item_id, NotificationOutboxRow.kind).where(
             NotificationOutboxRow.event_id == event_id,
             NotificationOutboxRow.owner_id == owner_id,
         )
@@ -119,9 +105,7 @@ class PostgresRecallFeedRepository(RecallFeedRepositoryPort):
             return None
         return row.source_item_id, row.kind
 
-    async def _latest_sent_event(
-        self, *, owner_id: UUID, item_id: UUID
-    ) -> UUID | None:
+    async def _latest_sent_event(self, *, owner_id: UUID, item_id: UUID) -> UUID | None:
         """그 item 의 가장 최근 sent outbox event_id(없으면 None). owner 스코프."""
         stmt = (
             select(NotificationOutboxRow.event_id)

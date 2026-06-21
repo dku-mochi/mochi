@@ -1,4 +1,4 @@
-"""주간 정리(weekly digest) + 다가올 미해결 use case 단위 테스트.
+"""월간 정리(monthly digest) + 다가올 미해결 use case 단위 테스트.
 
 DB fixture 없이 in-memory repo + fake LLM 으로 application 로직만 검증한다:
 카테고리 정규화(fine→coarse) write·마킹, 3개 미만 폴백, 매핑 누락 graceful,
@@ -8,14 +8,14 @@ known_categories(연쇄 톤앤매너) 전달, 그리고 todo+schedule 임박순 
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
-from app.modules.mochi_items.application.queries import ListUpcomingActionables
-from app.modules.mochi_items.application.weekly_digest import (
+from app.modules.mochi_items.application.monthly_digest import (
     STATIC_GREETING,
-    GenerateWeeklyDigest,
+    GenerateMonthlyDigest,
 )
+from app.modules.mochi_items.application.queries import ListUpcomingActionables
 from app.modules.mochi_items.domain.digest_port import (
     CategoryGroup,
-    WeeklyDigestLLMResult,
+    MonthlyDigestLLMResult,
 )
 from app.modules.mochi_items.domain.entities import (
     IngestChannel,
@@ -28,11 +28,11 @@ from app.modules.mochi_items.domain.value_objects import IntentInstance, IntentP
 from app.shared.intent import Intent
 
 _OWNER = uuid4()
-_WEEK_START = datetime(2026, 6, 8, tzinfo=UTC)  # 월요일
-_IN_WEEK = datetime(2026, 6, 9, 3, 0, tzinfo=UTC)
+_MONTH_ANCHOR = datetime(2026, 6, 8, tzinfo=UTC)  # 6월 안의 어느 날
+_IN_MONTH = datetime(2026, 6, 9, 3, 0, tzinfo=UTC)
 
 
-def _item(*, category: str | None, captured_at: datetime = _IN_WEEK) -> MochiItem:
+def _item(*, category: str | None, captured_at: datetime = _IN_MONTH) -> MochiItem:
     return MochiItem(
         id=uuid4(),
         source=IngestSource(channel=IngestChannel.SCREENSHOT, captured_at=captured_at),
@@ -64,7 +64,7 @@ class _DigestRepo:
 
 
 class _FakeLLM:
-    def __init__(self, result: WeeklyDigestLLMResult) -> None:
+    def __init__(self, result: MonthlyDigestLLMResult) -> None:
         self._result = result
         self.calls = 0
         self.known_categories: list[str] | None = None
@@ -77,9 +77,9 @@ class _FakeLLM:
 
 async def test_fewer_than_three_items_skips_llm_static_greeting() -> None:
     repo = _DigestRepo([_item(category="여행"), _item(category="개발")])
-    llm = _FakeLLM(WeeklyDigestLLMResult(greeting="x", category_groups=()))
-    result = await GenerateWeeklyDigest(repository=repo, llm=llm).execute(  # type: ignore[arg-type]
-        owner_id=_OWNER, week_start=_WEEK_START
+    llm = _FakeLLM(MonthlyDigestLLMResult(greeting="x", category_groups=()))
+    result = await GenerateMonthlyDigest(repository=repo, llm=llm).execute(  # type: ignore[arg-type]
+        owner_id=_OWNER, month_start=_MONTH_ANCHOR
     )
     assert llm.calls == 0
     assert result.generated is False
@@ -94,7 +94,7 @@ async def test_fine_to_coarse_normalizes_and_writes() -> None:
     c = _item(category="개발")
     repo = _DigestRepo([a, b, c])
     llm = _FakeLLM(
-        WeeklyDigestLLMResult(
+        MonthlyDigestLLMResult(
             greeting="이번 주엔 여행 준비를 많이 하셨네요.",
             category_groups=(
                 CategoryGroup(coarse="여행", fines=("여행 준비", "여행 계획")),
@@ -102,8 +102,8 @@ async def test_fine_to_coarse_normalizes_and_writes() -> None:
             ),
         )
     )
-    result = await GenerateWeeklyDigest(repository=repo, llm=llm).execute(  # type: ignore[arg-type]
-        owner_id=_OWNER, week_start=_WEEK_START
+    result = await GenerateMonthlyDigest(repository=repo, llm=llm).execute(  # type: ignore[arg-type]
+        owner_id=_OWNER, month_start=_MONTH_ANCHOR
     )
     assert result.generated is True
     assert repo.updated[a.id] == "여행"
@@ -119,10 +119,10 @@ async def test_unmapped_fine_keeps_original_category() -> None:
     cook = _item(category="요리")  # LLM 이 매핑에서 누락
     repo = _DigestRepo([a, cook, _item(category="개발")])
     llm = _FakeLLM(
-        WeeklyDigestLLMResult(greeting="g", category_groups=(CategoryGroup(coarse="여행", fines=("여행",)),))
+        MonthlyDigestLLMResult(greeting="g", category_groups=(CategoryGroup(coarse="여행", fines=("여행",)),))
     )
-    result = await GenerateWeeklyDigest(repository=repo, llm=llm).execute(  # type: ignore[arg-type]
-        owner_id=_OWNER, week_start=_WEEK_START
+    result = await GenerateMonthlyDigest(repository=repo, llm=llm).execute(  # type: ignore[arg-type]
+        owner_id=_OWNER, month_start=_MONTH_ANCHOR
     )
     assert repo.updated[cook.id] == "요리"  # 원본 유지(결정론)
     assert "요리" in {g.coarse for g in result.groups}
@@ -133,9 +133,9 @@ async def test_normalized_categories_passed_as_context() -> None:
         [_item(category="여행 준비"), _item(category="개발"), _item(category="요리")],
         normalized=["여행", "개발"],
     )
-    llm = _FakeLLM(WeeklyDigestLLMResult(greeting="g", category_groups=()))
-    await GenerateWeeklyDigest(repository=repo, llm=llm).execute(  # type: ignore[arg-type]
-        owner_id=_OWNER, week_start=_WEEK_START
+    llm = _FakeLLM(MonthlyDigestLLMResult(greeting="g", category_groups=()))
+    await GenerateMonthlyDigest(repository=repo, llm=llm).execute(  # type: ignore[arg-type]
+        owner_id=_OWNER, month_start=_MONTH_ANCHOR
     )
     assert llm.known_categories == ["여행", "개발"]
 
@@ -143,9 +143,9 @@ async def test_normalized_categories_passed_as_context() -> None:
 async def test_empty_llm_result_falls_back_to_static_greeting() -> None:
     # LLM 호출은 됐으나 빈 결과(파싱 실패 등) → 정적 greeting + 원본 category 유지.
     repo = _DigestRepo([_item(category="여행"), _item(category="개발"), _item(category="요리")])
-    llm = _FakeLLM(WeeklyDigestLLMResult(greeting="", category_groups=()))
-    result = await GenerateWeeklyDigest(repository=repo, llm=llm).execute(  # type: ignore[arg-type]
-        owner_id=_OWNER, week_start=_WEEK_START
+    llm = _FakeLLM(MonthlyDigestLLMResult(greeting="", category_groups=()))
+    result = await GenerateMonthlyDigest(repository=repo, llm=llm).execute(  # type: ignore[arg-type]
+        owner_id=_OWNER, month_start=_MONTH_ANCHOR
     )
     assert llm.calls == 1
     assert result.generated is True
@@ -161,7 +161,7 @@ def _actionable_item(*intents: Intent, deadline: str | None = None, date: str | 
     instances = tuple(IntentInstance(intent_type=i, payload=payload) for i in intents)
     return MochiItem(
         id=uuid4(),
-        source=IngestSource(channel=IngestChannel.SCREENSHOT, captured_at=_IN_WEEK),
+        source=IngestSource(channel=IngestChannel.SCREENSHOT, captured_at=_IN_MONTH),
         intent_instances=instances,
         lifecycle=LifecycleState(kind=LifecycleStateKind.ANALYZED),
     )

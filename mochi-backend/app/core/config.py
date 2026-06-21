@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from pydantic import Field
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -21,9 +21,7 @@ class Settings(BaseSettings):
     api_version: str = "v1"
 
     # Database — Postgres + pgvector
-    database_url: str = Field(
-        default="postgresql+asyncpg://mochi:mochi@localhost:5432/mochi"
-    )
+    database_url: str = Field(default="postgresql+asyncpg://mochi:mochi@localhost:5432/mochi")
     # 커넥션 풀 — SQLAlchemy 기본(5+10)과 동일값. worker_concurrency 를 올리면
     # 같이 상향한다(인스턴스수 × (pool_size+max_overflow) < Postgres max_connections).
     db_pool_size: int = 5
@@ -39,8 +37,8 @@ class Settings(BaseSettings):
     # bucket / signer 미설정 시 presign 비활성(503) — local 환경 fallback.
     gcs_capture_bucket: str | None = None
     gcs_capture_prefix: str = "captures"
-    gcs_signer_service_account: str | None = None   # Signed URL 서명용 impersonate 대상 SA email
-    gcs_signed_url_ttl_seconds: int = 900            # 15분
+    gcs_signer_service_account: str | None = None  # Signed URL 서명용 impersonate 대상 SA email
+    gcs_signed_url_ttl_seconds: int = 900  # 15분
     gemini_model: str = "gemini-3.5-flash"
 
     # Embedding / Rerank — Voyage AI (lab/active/rag-rerank-eval 2026-06-12 확정).
@@ -72,11 +70,11 @@ class Settings(BaseSettings):
     # 채팅 탭 멀티턴 run (journal 2026-06-10). 비용 최우선 flash-lite 기본 —
     # 멀티스텝 툴콜 신뢰도가 부족하면 lab 벤치 후 .env 로 상향 (코드 수정 없이 교체).
     gemini_chat_model: str = "gemini-3.1-flash-lite"
-    chat_run_timeout_seconds: float = 60.0   # SSE 로 기다리는 사용자 기준 — run 전체 상한
+    chat_run_timeout_seconds: float = 60.0  # SSE 로 기다리는 사용자 기준 — run 전체 상한
 
     # 사용자 개인화 프로필 (sliding-window 특성 요약)
-    profile_window_size: int = 20              # 요약에 넣을 최근 항목 수
-    profile_refresh_every_n_items: int = 5     # 마지막 갱신 이후 N개 쌓이면 재요약 (비용 bound)
+    profile_window_size: int = 20  # 요약에 넣을 최근 항목 수
+    profile_refresh_every_n_items: int = 5  # 마지막 갱신 이후 N개 쌓이면 재요약 (비용 bound)
 
     # WebFetch tool guards
     web_fetch_max_bytes: int = 2 * 1024 * 1024
@@ -84,7 +82,7 @@ class Settings(BaseSettings):
     web_fetch_blocked_hosts: tuple[str, ...] = (
         "localhost",
         "127.0.0.1",
-        "169.254.169.254",   # AWS / GCP metadata endpoint
+        "169.254.169.254",  # AWS / GCP metadata endpoint
         "metadata.google.internal",
         "0.0.0.0",
     )
@@ -123,13 +121,13 @@ class Settings(BaseSettings):
         default="dev-insecure-please-rotate-in-prod-with-openssl-rand-base64-48",
         description="HS256 서명 키. 운영에서는 반드시 .env 로 32+ chars random 으로 회전.",
     )
-    auth_access_ttl_seconds: int = 1800             # 30분
+    auth_access_ttl_seconds: int = 1800  # 30분
     auth_refresh_ttl_seconds: int = 60 * 60 * 24 * 30  # 30일
 
     # Capture-scoped token — ShareExtension 직접 전송 전용 (ingest+presign 한정 opaque token).
     # sliding: 검증 시 last_used 기준으로 연장(1h 디바운스) — 캡처를 쓰는 한 만료되지 않는다.
     auth_capture_ttl_seconds: int = 60 * 60 * 24 * 180  # 180일 (sliding)
-    auth_capture_max_active: int = 5                    # 사용자당 동시 활성 cap (초과 시 oldest evict)
+    auth_capture_max_active: int = 5  # 사용자당 동시 활성 cap (초과 시 oldest evict)
 
     # External IdP — Apple
     auth_apple_audience: str = "app.mochi"
@@ -158,31 +156,40 @@ class Settings(BaseSettings):
 
     # 능동 회수 알림 cron 워커 (P3/P4). 정본 journal/proactive-recall/.
     # killswitch False 면 워커 기동은 하되 루프가 no-op(§7). dry_run True 면 실발송 없이 payload 로그만
-    # (발송 0 으로 threshold 튜닝, §6/§7) — 실발송 전환은 .env 로 recall_notifications_dry_run=false.
+    # (발송 0 으로 threshold 튜닝, §6/§7). 운영 실발송이 기본값(2026-06-19) — dry-run 으로 되돌리려면
+    # .env 로 recall_notifications_dry_run=true. 야간 무음·하루 cap 은 제거(2026-06-19, LLM 게이트가 필터).
     recall_worker_enabled: bool = True
-    recall_notifications_dry_run: bool = True
+    recall_notifications_dry_run: bool = False
     recall_worker_poll_interval_seconds: int = 30
     recall_worker_lock_seconds: int = 120
-    recall_daily_cap: int = 3                 # owner 하루 발송 cap (KST local date)
-    recall_quiet_start_hour_kst: int = 21     # 야간 무음 시작 (KST)
-    recall_quiet_end_hour_kst: int = 8        # 야간 무음 종료 (KST)
-    recall_dismiss_cooldown_days: int = 7     # dismiss 후 같은 intent 재알림 쿨다운 (plan 경계 넘음)
+    recall_dismiss_cooldown_days: int = 7  # dismiss 후 같은 intent 재알림 쿨다운 (plan 경계 넘음)
     # 트랙 C(관련/맥락 회수) — 새 저장 시 임베딩 ANN 후보 생성·발송 게이트(P7~P9).
-    recall_candidate_min_score: float = 0.6   # cosine 유사도 임계 (미만이면 회수 안 함, dry-run 튜닝)
-    recall_candidate_limit: int = 10          # ANN 후보 조회 상한 (best 1건이 회수 앵커)
-    recall_dedup_cooldown_days: int = 7       # 같은 item 재회수 방지 윈도우 (재스팸 dedup)
-    recall_expires_days: int = 14             # 회수 outbox expires (지나면 stale skip)
+    recall_candidate_min_score: float = 0.6  # cosine 유사도 임계 (미만이면 회수 안 함, dry-run 튜닝)
+    recall_candidate_limit: int = 10  # ANN 후보 조회 상한 (best 1건이 회수 앵커)
+    recall_dedup_cooldown_days: int = 7  # 같은 item 재회수 방지 윈도우 (재스팸 dedup)
+    recall_expires_days: int = 14  # 회수 outbox expires (지나면 stale skip)
     # 트랙 C LLM 선별 게이트 (2026-06-17, journal/proactive-recall/track-c-llm-gate-decision.md).
-    recall_gate_enabled: bool = True          # False 면 LLM 건너뛰고 결정적 best-1 경로(롤백 안전판)
-    recall_gate_dry_run: bool = True          # True 면 LLM 결정 로그만, outbox 미적재(발송측 dry_run 과 별개)
-    recall_overfetch_limit: int = 40          # ANN overfetch 상한(필터 전)
-    recall_gate_topn: int = 10                # 필터 후 LLM 에 넘길 후보 상한
-    recall_near_dup_score: float = 0.92       # 근중복(재저장) 컷 — 이상이면 앵커 후보 제외
-    recall_owner_cooldown_hours: int = 6      # owner 회수 최소 간격(트리거 디바운스, 결정적 백스톱)
+    recall_gate_enabled: bool = True  # False 면 LLM 건너뛰고 결정적 best-1 경로(롤백 안전판)
+    recall_gate_dry_run: bool = False  # 기본 False=트랙C 후보 실적재(2026-06-19). True 면 LLM 결정 로그만·outbox 미적재(발송측 dry_run 과 별개)
+    recall_overfetch_limit: int = 40  # ANN overfetch 상한(필터 전)
+    recall_gate_topn: int = 10  # 필터 후 LLM 에 넘길 후보 상한
+    recall_near_dup_score: float = 0.92  # 근중복(재저장) 컷 — 이상이면 앵커 후보 제외
+    recall_owner_cooldown_hours: int = 6  # owner 회수 최소 간격(트리거 디바운스, 결정적 백스톱)
 
     @property
     def auth_google_client_id_list(self) -> tuple[str, ...]:
         return tuple(s.strip() for s in self.auth_google_client_ids.split(",") if s.strip())
+
+    @model_validator(mode="after")
+    def _normalize_and_harden(self) -> "Settings":
+        # environment 정규화 — dev permissive 게이트(security.py·auth/router·main 부팅가드)가 raw `== "local"`
+        # 비교라, "Local"/" local " 같은 변형·오타가 게이트마다 제각각 동작하지 않도록 단일 지점에서 정돈한다.
+        self.environment = self.environment.strip().lower()
+        # 운영/스테이징에서는 debug 를 강제 off — FastAPI traceback·DEBUG 로그가 내부정보를 노출하지 않도록.
+        # local/test 에서는 .env 설정을 존중한다(개발 편의).
+        if self.environment not in ("local", "test"):
+            self.debug = False
+        return self
 
 
 @lru_cache

@@ -65,9 +65,7 @@ def _to_contents(parts: list[dict[str, Any]]) -> list[types.Content]:
                 types.Content(
                     role="user",
                     parts=[
-                        types.Part.from_function_response(
-                            name=fr["name"], response=fr.get("response", {})
-                        )
+                        types.Part.from_function_response(name=fr["name"], response=fr.get("response", {}))
                         for fr in part["function_responses"]
                     ],
                 )
@@ -140,9 +138,7 @@ class GeminiChatClient(ChatLLMClient):
                 for part in (getattr(content, "parts", None) or []) if content else []:
                     fc = getattr(part, "function_call", None)
                     if fc is not None and getattr(fc, "name", None):
-                        logger.info(
-                            "chat.llm.function_call", model=self._model, function_name=fc.name
-                        )
+                        logger.info("chat.llm.function_call", model=self._model, function_name=fc.name)
                         yield ChatLLMChunk(
                             tool_call=(fc.name, dict(fc.args or {})),
                             thought_signature=getattr(part, "thought_signature", None),

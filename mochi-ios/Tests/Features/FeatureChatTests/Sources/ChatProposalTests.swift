@@ -470,8 +470,8 @@ private actor StubAPIClient: MochiAPIClient {
     func upcomingActionables() async throws -> [UpcomingActionableDTO] {
         try await unimplemented.upcomingActionables()
     }
-    func weeklyDigest(weekStart: Date) async throws -> WeeklyDigestDTO {
-        try await unimplemented.weeklyDigest(weekStart: weekStart)
+    func monthlyDigest(monthStart: Date) async throws -> MonthlyDigestDTO {
+        try await unimplemented.monthlyDigest(monthStart: monthStart)
     }
     func recallFeed(limit: Int) async throws -> [RecallFeedEntryDTO] {
         try await unimplemented.recallFeed(limit: limit)

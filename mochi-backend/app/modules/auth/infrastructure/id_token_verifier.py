@@ -76,7 +76,9 @@ def _find_jwk(jwks: dict[str, Any], kid: str | None) -> dict[str, Any]:
     if kid is None:
         if len(keys) == 1:
             return keys[0]
-        raise InvalidIdTokenError("kid required when JWKS has multiple keys", code="auth.id_token_kid_missing")
+        raise InvalidIdTokenError(
+            "kid required when JWKS has multiple keys", code="auth.id_token_kid_missing"
+        )
     for key in keys:
         if key.get("kid") == kid:
             return key
@@ -113,19 +115,18 @@ class HttpxIdTokenVerifier(IdTokenVerifier):
         )
 
         # Apple nonce 검증: identityToken 의 nonce 는 SHA-256(rawNonce) 의 HEX.
-        # iOS 는 raw nonce 를 생성·전달하므로, 서버가 동일한 해시를 만들어 비교한다.
+        # iOS 는 **항상** raw nonce 를 생성·전달하므로, raw·token nonce 가 둘 다 있어야 한다.
+        # 과거엔 nonce claim 이 없으면 검증을 통째로 건너뛰었는데, 이는 nonce 없이 발급된 victim
+        # identityToken 의 replay 를 허용했다(계정 탈취). 둘 중 하나라도 없으면 거부한다.
         token_nonce = claims.get("nonce")
-        if token_nonce is not None:
-            if nonce_raw is None:
-                raise IdTokenNonceMismatchError(
-                    "Apple ID token carries nonce but client did not send raw nonce",
-                    code="auth.id_token_nonce_missing",
-                )
-            expected = hashlib.sha256(nonce_raw.encode("utf-8")).hexdigest()
-            if not _constant_time_eq(expected, token_nonce):
-                raise IdTokenNonceMismatchError(
-                    "Apple nonce mismatch", code="auth.id_token_nonce_mismatch"
-                )
+        if nonce_raw is None or token_nonce is None:
+            raise IdTokenNonceMismatchError(
+                "Apple ID token requires nonce binding (both raw nonce and token nonce required)",
+                code="auth.id_token_nonce_missing",
+            )
+        expected = hashlib.sha256(nonce_raw.encode("utf-8")).hexdigest()
+        if not _constant_time_eq(expected, token_nonce):
+            raise IdTokenNonceMismatchError("Apple nonce mismatch", code="auth.id_token_nonce_mismatch")
 
         return VerifiedIdToken(
             provider=AuthProvider.APPLE,
@@ -171,15 +172,11 @@ class HttpxIdTokenVerifier(IdTokenVerifier):
         try:
             unverified_header = jwt.get_unverified_header(id_token)
         except jwt.PyJWTError as exc:
-            raise InvalidIdTokenError(
-                f"Malformed ID token: {exc}", code="auth.id_token_malformed"
-            ) from exc
+            raise InvalidIdTokenError(f"Malformed ID token: {exc}", code="auth.id_token_malformed") from exc
 
         alg = unverified_header.get("alg")
         if alg not in _ALLOWED_ALGS:
-            raise InvalidIdTokenError(
-                f"Disallowed JWT alg: {alg}", code="auth.id_token_alg_not_allowed"
-            )
+            raise InvalidIdTokenError(f"Disallowed JWT alg: {alg}", code="auth.id_token_alg_not_allowed")
         kid = unverified_header.get("kid")
 
         jwks = await self._jwks.get(jwks_url, http_client=self._http)

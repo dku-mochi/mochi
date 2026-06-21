@@ -41,9 +41,7 @@ class RecallCandidateRepositoryPort(ABC):
         """
 
     @abstractmethod
-    async def recent_recall_exists(
-        self, *, owner_id: UUID, source_item_id: UUID, since: datetime
-    ) -> bool:
+    async def recent_recall_exists(self, *, owner_id: UUID, source_item_id: UUID, since: datetime) -> bool:
         """그 item 을 앵커로 한 회수가 since 이후 이미 있나(pending/sent/deferred) — 재스팸 dedup."""
 
     @abstractmethod

@@ -141,9 +141,7 @@ class RecallPlanRepositoryPort(ABC):
     """notification_plan 영속화. owner-scoped, plan 폭증 방지(같은 intent 1 active)."""
 
     @abstractmethod
-    async def find_active_by_intent(
-        self, *, owner_id: UUID, source_intent_id: UUID
-    ) -> StoredPlan | None:
+    async def find_active_by_intent(self, *, owner_id: UUID, source_intent_id: UUID) -> StoredPlan | None:
         """같은 source_intent 의 active plan(있으면). 신규 생성 대신 supersede/skip 판정."""
 
     @abstractmethod
@@ -161,9 +159,7 @@ class RecallPlanRepositoryPort(ABC):
         """새 plan 1 row INSERT, 생성된 plan id 반환. status='active', dsl_version='1'."""
 
     @abstractmethod
-    async def supersede(
-        self, *, owner_id: UUID, old_plan_id: UUID, new_plan_id: UUID
-    ) -> None:
+    async def supersede(self, *, owner_id: UUID, old_plan_id: UUID, new_plan_id: UUID) -> None:
         """기존 plan.status='superseded' + superseded_by=new (같은 트랜잭션).
 
         owner-scope + status='active' 가드로 cross-tenant update·이미 종료된 plan 재교체를 막는다

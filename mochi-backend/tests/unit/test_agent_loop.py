@@ -44,9 +44,7 @@ class _LoopingLLM:
     """항상 webFetch 를 요청 — max_steps 소진 시나리오용."""
 
     async def stream(self, **_kwargs):
-        yield LLMResponseChunk(
-            tool_to_call=ToolName.WEB_FETCH, tool_arguments={"url": "https://example.com"}
-        )
+        yield LLMResponseChunk(tool_to_call=ToolName.WEB_FETCH, tool_arguments={"url": "https://example.com"})
 
 
 class _UrlInput(BaseModel):
@@ -182,9 +180,7 @@ def test_initial_user_text_includes_time_and_image_instruction():
 
 @pytest.mark.asyncio
 async def test_no_url_single_turn_finalize_writes_back():
-    gateway = _FakeGateway(
-        AnalysisInput(text="다음 주까지 발표 대본 수정하기", url=None, user_memo=None)
-    )
+    gateway = _FakeGateway(AnalysisInput(text="다음 주까지 발표 대본 수정하기", url=None, user_memo=None))
     llm = _ScriptedLLM([_finalize_chunk(intent="todo")])
     orch = AgentOrchestrator(
         llm=llm,
@@ -280,9 +276,7 @@ async def test_without_embedder_indexing_is_skipped():
 
 @pytest.mark.asyncio
 async def test_platform_context_then_finalize():
-    gateway = _FakeGateway(
-        AnalysisInput(text=None, url="https://youtu.be/abc", user_memo=None)
-    )
+    gateway = _FakeGateway(AnalysisInput(text=None, url="https://youtu.be/abc", user_memo=None))
     llm = _ScriptedLLM(
         [
             LLMResponseChunk(
@@ -296,10 +290,7 @@ async def test_platform_context_then_finalize():
     events = await _drain(orch, uuid4(), uuid4())
     assert llm.turns == 2
     assert gateway.applied.intent_instances[0].intent_type is Intent.KNOWLEDGE
-    assert any(
-        e.kind == "tool_started" and e.payload["name"] == "platformContext"
-        for e in events
-    )
+    assert any(e.kind == "tool_started" and e.payload["name"] == "platformContext" for e in events)
 
 
 @pytest.mark.asyncio

@@ -36,14 +36,10 @@ def _item(
 ) -> MochiItem:
     refs: tuple[ImageRef, ...] = ()
     if object_key is not None:
-        refs = (
-            ImageRef(sha256="a" * 64, mime_type="image/jpeg", byte_size=1, object_key=object_key),
-        )
+        refs = (ImageRef(sha256="a" * 64, mime_type="image/jpeg", byte_size=1, object_key=object_key),)
     return MochiItem(
         id=item_id or uuid4(),
-        source=IngestSource(
-            channel=IngestChannel.SCREENSHOT, captured_at=captured_at, image_refs=refs
-        ),
+        source=IngestSource(channel=IngestChannel.SCREENSHOT, captured_at=captured_at, image_refs=refs),
         intent_instances=(IntentInstance(intent_type=intent),),
         lifecycle=LifecycleState(kind=LifecycleStateKind.ANALYZED),
     )
@@ -55,9 +51,7 @@ class _RangeRepo:
     def __init__(self, items: list[MochiItem]) -> None:
         self._items = items
 
-    async def list_in_range(
-        self, *, owner_id, captured_from, captured_to, intent, limit
-    ):  # type: ignore[no-untyped-def]
+    async def list_in_range(self, *, owner_id, captured_from, captured_to, intent, limit):  # type: ignore[no-untyped-def]
         out = []
         for item in self._items:
             ts = item.source.captured_at
@@ -135,8 +129,10 @@ async def test_upcoming_todos_sort_deadline_then_undated_last() -> None:
 
 async def test_upcoming_todos_respects_limit() -> None:
     pairs = [
-        (_item(intent=Intent.TODO, captured_at=datetime(2026, 6, i + 1, tzinfo=UTC)),
-         (("deadline", f"2026-06-{i + 1:02d}"),))
+        (
+            _item(intent=Intent.TODO, captured_at=datetime(2026, 6, i + 1, tzinfo=UTC)),
+            (("deadline", f"2026-06-{i + 1:02d}"),),
+        )
         for i in range(5)
     ]
     use_case = ListUpcomingTodos(repository=_TodoRepo(pairs))  # type: ignore[arg-type]

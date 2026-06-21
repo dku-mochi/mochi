@@ -44,22 +44,16 @@ class UpdateMochiItem:
         self._repo = repository
 
     async def execute(self, command: UpdateMochiItemCommand) -> MochiItem:
-        item = await self._repo.find_by_id(
-            owner_id=command.owner_id, mochi_item_id=command.mochi_item_id
-        )
+        item = await self._repo.find_by_id(owner_id=command.owner_id, mochi_item_id=command.mochi_item_id)
         if item is None:
             raise NotFoundError("Mochi item not found", code="mochi_item.not_found")
 
         # 검증을 전부 끝낸 뒤 쓰기 시작 — 한 트랜잭션이지만 검증 실패 시 쓰기 자체가 없게.
         resolved: list[tuple[InstanceChange, dict[str, str] | None]] = []
         for change in command.instance_changes:
-            instance = next(
-                (i for i in item.intent_instances if i.id == change.instance_id), None
-            )
+            instance = next((i for i in item.intent_instances if i.id == change.instance_id), None)
             if instance is None:
-                raise NotFoundError(
-                    "Intent instance not found", code="intent_instance.not_found"
-                )
+                raise NotFoundError("Intent instance not found", code="intent_instance.not_found")
             if (
                 change.lifecycle is not None
                 and instance.lifecycle != change.lifecycle
@@ -108,9 +102,7 @@ class UpdateMochiItem:
                     label=change.label,
                 )
                 if not updated:
-                    raise NotFoundError(
-                        "Intent instance not found", code="intent_instance.not_found"
-                    )
+                    raise NotFoundError("Intent instance not found", code="intent_instance.not_found")
             if change.lifecycle is not None:
                 instance = next(i for i in item.intent_instances if i.id == change.instance_id)
                 if instance.lifecycle != change.lifecycle:  # 멱등 — 동일 상태 no-op
@@ -121,9 +113,7 @@ class UpdateMochiItem:
                         lifecycle=change.lifecycle,
                     )
                     if not updated:
-                        raise NotFoundError(
-                            "Intent instance not found", code="intent_instance.not_found"
-                        )
+                        raise NotFoundError("Intent instance not found", code="intent_instance.not_found")
 
         refreshed = await self._repo.find_by_id(
             owner_id=command.owner_id, mochi_item_id=command.mochi_item_id

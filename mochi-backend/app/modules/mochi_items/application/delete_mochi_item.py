@@ -22,11 +22,7 @@ class DeleteMochiItem:
         self._repo = repository
 
     async def execute(self, command: DeleteMochiItemCommand) -> None:
-        item = await self._repo.find_by_id(
-            owner_id=command.owner_id, mochi_item_id=command.mochi_item_id
-        )
+        item = await self._repo.find_by_id(owner_id=command.owner_id, mochi_item_id=command.mochi_item_id)
         if item is None:
             raise NotFoundError("Mochi item not found", code="mochi_item.not_found")
-        await self._repo.soft_delete(
-            owner_id=command.owner_id, mochi_item_id=command.mochi_item_id
-        )
+        await self._repo.soft_delete(owner_id=command.owner_id, mochi_item_id=command.mochi_item_id)

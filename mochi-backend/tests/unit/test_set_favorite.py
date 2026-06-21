@@ -28,9 +28,7 @@ _OWNER = uuid4()
 def _item(is_favorite: bool = False) -> MochiItem:
     return MochiItem(
         id=uuid4(),
-        source=IngestSource(
-            channel=IngestChannel.SCREENSHOT, captured_at=datetime(2026, 6, 1, tzinfo=UTC)
-        ),
+        source=IngestSource(channel=IngestChannel.SCREENSHOT, captured_at=datetime(2026, 6, 1, tzinfo=UTC)),
         lifecycle=LifecycleState(kind=LifecycleStateKind.ANALYZED),
         is_favorite=is_favorite,
     )
@@ -91,6 +89,4 @@ async def test_same_state_is_idempotent_noop() -> None:
 async def test_missing_item_raises_not_found() -> None:
     use_case = SetFavorite(repository=_Repo(None))  # type: ignore[arg-type]
     with pytest.raises(NotFoundError):
-        await use_case.execute(
-            SetFavoriteCommand(owner_id=_OWNER, mochi_item_id=uuid4(), is_favorite=True)
-        )
+        await use_case.execute(SetFavoriteCommand(owner_id=_OWNER, mochi_item_id=uuid4(), is_favorite=True))

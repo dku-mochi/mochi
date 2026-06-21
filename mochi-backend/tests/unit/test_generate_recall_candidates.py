@@ -53,8 +53,12 @@ def _item(*, title: str | None = "무선 마우스", summary: str | None = "저�
 
 def _accept(chosen_index: int = 0, message: str = "지난번 '지난 마우스' 어떠세요?") -> RecallGateDecision:
     return RecallGateDecision(
-        recall=True, chosen_index=chosen_index, relation="comparison",
-        confidence=0.8, message=message, reason="same choice",
+        recall=True,
+        chosen_index=chosen_index,
+        relation="comparison",
+        confidence=0.8,
+        message=message,
+        reason="same choice",
     )
 
 
@@ -153,14 +157,13 @@ def _use_case(
         dedup_cooldown_days=7,
         dismiss_cooldown_days=7,
         owner_cooldown_hours=owner_cooldown_hours,
-        daily_cap=3,
-        quiet_start_hour=21,
-        quiet_end_hour=8,
         expires_days=14,
     )
 
 
-def _similar(anchor: MochiItem, *, score: float = 0.82, summary: str | None = "저소음 비교") -> RecallCandidate:
+def _similar(
+    anchor: MochiItem, *, score: float = 0.82, summary: str | None = "저소음 비교"
+) -> RecallCandidate:
     return RecallCandidate(item_id=anchor.id, score=score, summary=summary, category=None, channel=None)
 
 
@@ -171,9 +174,9 @@ async def test_creates_recall_when_candidate_found() -> None:
     source = _item(title="새 마우스")
     anchor = _item(title="지난 마우스")
     cand = _CandRepo(similar=[_similar(anchor)])
-    created = await _use_case(
-        cand=cand, mochi=_MochiRepo({source.id: source, anchor.id: anchor})
-    ).run(owner_id=_OWNER, mochi_item_id=source.id)
+    created = await _use_case(cand=cand, mochi=_MochiRepo({source.id: source, anchor.id: anchor})).run(
+        owner_id=_OWNER, mochi_item_id=source.id
+    )
     assert created is True
     assert len(cand.inserted) == 1
     assert cand.inserted[0]["source_item_id"] == anchor.id
@@ -193,9 +196,7 @@ async def test_no_similar_skips() -> None:
 
 async def test_missing_source_skips() -> None:
     cand = _CandRepo(similar=[])
-    created = await _use_case(cand=cand, mochi=_MochiRepo({})).run(
-        owner_id=_OWNER, mochi_item_id=uuid4()
-    )
+    created = await _use_case(cand=cand, mochi=_MochiRepo({})).run(owner_id=_OWNER, mochi_item_id=uuid4())
     assert created is False
     assert cand.inserted == []
 
@@ -204,9 +205,9 @@ async def test_recent_recall_dedup_skips() -> None:
     source = _item()
     anchor = _item(title="지난 마우스")
     cand = _CandRepo(similar=[_similar(anchor)], recent_recall=True)
-    created = await _use_case(
-        cand=cand, mochi=_MochiRepo({source.id: source, anchor.id: anchor})
-    ).run(owner_id=_OWNER, mochi_item_id=source.id)
+    created = await _use_case(cand=cand, mochi=_MochiRepo({source.id: source, anchor.id: anchor})).run(
+        owner_id=_OWNER, mochi_item_id=source.id
+    )
     assert created is False
     assert cand.inserted == []
 
@@ -215,9 +216,9 @@ async def test_dismiss_cooldown_skips() -> None:
     source = _item()
     anchor = _item(title="지난 마우스")
     cand = _CandRepo(similar=[_similar(anchor)], last_dismissed=datetime.now(UTC))
-    created = await _use_case(
-        cand=cand, mochi=_MochiRepo({source.id: source, anchor.id: anchor})
-    ).run(owner_id=_OWNER, mochi_item_id=source.id)
+    created = await _use_case(cand=cand, mochi=_MochiRepo({source.id: source, anchor.id: anchor})).run(
+        owner_id=_OWNER, mochi_item_id=source.id
+    )
     assert created is False
     assert cand.inserted == []
 
@@ -227,9 +228,9 @@ async def test_track_b_yield_pushes_fire_at_to_later_day() -> None:
     anchor = _item(title="지난 마우스")
     cand = _CandRepo(similar=[_similar(anchor)], has_deadline=True)
     before = datetime.now(UTC)
-    created = await _use_case(
-        cand=cand, mochi=_MochiRepo({source.id: source, anchor.id: anchor})
-    ).run(owner_id=_OWNER, mochi_item_id=source.id)
+    created = await _use_case(cand=cand, mochi=_MochiRepo({source.id: source, anchor.id: anchor})).run(
+        owner_id=_OWNER, mochi_item_id=source.id
+    )
     assert created is True
     fire_at: datetime = cand.inserted[0]["fire_at"]
     assert fire_at.astimezone(KST).date() > before.astimezone(KST).date()
@@ -242,9 +243,9 @@ async def test_owner_cooldown_skips() -> None:
     source = _item()
     anchor = _item(title="지난 마우스")
     cand = _CandRepo(similar=[_similar(anchor)], owner_recent=True)
-    created = await _use_case(
-        cand=cand, mochi=_MochiRepo({source.id: source, anchor.id: anchor})
-    ).run(owner_id=_OWNER, mochi_item_id=source.id)
+    created = await _use_case(cand=cand, mochi=_MochiRepo({source.id: source, anchor.id: anchor})).run(
+        owner_id=_OWNER, mochi_item_id=source.id
+    )
     assert created is False
     assert cand.inserted == []
 
@@ -254,9 +255,9 @@ async def test_near_dup_filtered_out() -> None:
     source = _item()
     anchor = _item(title="거의 동일")
     cand = _CandRepo(similar=[_similar(anchor, score=0.97)])
-    created = await _use_case(
-        cand=cand, mochi=_MochiRepo({source.id: source, anchor.id: anchor})
-    ).run(owner_id=_OWNER, mochi_item_id=source.id)
+    created = await _use_case(cand=cand, mochi=_MochiRepo({source.id: source, anchor.id: anchor})).run(
+        owner_id=_OWNER, mochi_item_id=source.id
+    )
     assert created is False
     assert cand.inserted == []
 
@@ -270,8 +271,10 @@ async def test_gate_accept_creates_with_llm_body() -> None:
     cand = _CandRepo(similar=[_similar(anchor)])
     gate = _FakeGate(_accept(message="지난번 '지난 마우스' 어떠세요?"))
     created = await _use_case(
-        cand=cand, mochi=_MochiRepo({source.id: source, anchor.id: anchor}),
-        gate=gate, gate_enabled=True,
+        cand=cand,
+        mochi=_MochiRepo({source.id: source, anchor.id: anchor}),
+        gate=gate,
+        gate_enabled=True,
     ).run(owner_id=_OWNER, mochi_item_id=source.id)
     assert created is True
     assert gate.calls == 1
@@ -285,8 +288,10 @@ async def test_gate_reject_skips() -> None:
     cand = _CandRepo(similar=[_similar(anchor)])
     gate = _FakeGate(_DECLINE)
     created = await _use_case(
-        cand=cand, mochi=_MochiRepo({source.id: source, anchor.id: anchor}),
-        gate=gate, gate_enabled=True,
+        cand=cand,
+        mochi=_MochiRepo({source.id: source, anchor.id: anchor}),
+        gate=gate,
+        gate_enabled=True,
     ).run(owner_id=_OWNER, mochi_item_id=source.id)
     assert created is False
     assert cand.inserted == []
@@ -299,8 +304,10 @@ async def test_gate_exception_skips() -> None:
     anchor = _item(title="지난 마우스")
     cand = _CandRepo(similar=[_similar(anchor)])
     created = await _use_case(
-        cand=cand, mochi=_MochiRepo({source.id: source, anchor.id: anchor}),
-        gate=_FakeGate(raises=True), gate_enabled=True,
+        cand=cand,
+        mochi=_MochiRepo({source.id: source, anchor.id: anchor}),
+        gate=_FakeGate(raises=True),
+        gate_enabled=True,
     ).run(owner_id=_OWNER, mochi_item_id=source.id)
     assert created is False
     assert cand.inserted == []
@@ -311,8 +318,11 @@ async def test_gate_dry_run_logs_but_no_insert() -> None:
     anchor = _item(title="지난 마우스")
     cand = _CandRepo(similar=[_similar(anchor)])
     created = await _use_case(
-        cand=cand, mochi=_MochiRepo({source.id: source, anchor.id: anchor}),
-        gate=_FakeGate(_accept()), gate_enabled=True, gate_dry_run=True,
+        cand=cand,
+        mochi=_MochiRepo({source.id: source, anchor.id: anchor}),
+        gate=_FakeGate(_accept()),
+        gate_enabled=True,
+        gate_dry_run=True,
     ).run(owner_id=_OWNER, mochi_item_id=source.id)
     assert created is False
     assert cand.inserted == []

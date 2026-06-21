@@ -20,9 +20,7 @@ class PostgresSentFeedRepository(SentFeedRepositoryPort):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    async def list_sent(
-        self, *, owner_id: UUID, limit: int
-    ) -> list[SentNotification]:
+    async def list_sent(self, *, owner_id: UUID, limit: int) -> list[SentNotification]:
         # status='sent' 전부(종류 무관). sent_at 내림차순(최근 받은 것 먼저).
         stmt = (
             select(

@@ -3,17 +3,17 @@ import ComposableArchitecture
 import CoreDomain
 import DesignSystem
 
-/// "이번 주 돌아보기" — 모찌가 한 주를 추려 **먼저 말을 거는** 회고 화면.
+/// "이번 달 돌아보기" — 모찌가 한 달을 추려 **먼저 말을 거는** 회고 화면.
 ///
 /// 미션("필요한 기억은 쉽게 떠오른다")의 진열장: 사용자가 뒤지는 게 아니라
 /// 모찌가 건넨다. 4-Intent 라벨 비노출. 위→아래:
-///  - ① 히어로: 주 범위 + 쌓인 기억 수 + 카테고리 요약 바 + 모찌의 한마디(말풍선)
-///  - ② 이런 걸 모았어요: 카테고리별 가로 레일 — 그 주 항목 전부를 가로 스크롤, 탭하면 상세.
+///  - ① 히어로: 월 네비게이터(◀ 2026년 6월 ▶, 과거로 넘겨보기) + 쌓인 기억 수 + 카테고리 요약 바 + 모찌의 한마디
+///  - ② 이런 걸 모았어요: 카테고리별 가로 레일 — 그 달 항목 전부를 가로 스크롤, 탭하면 상세.
 ///    헤더 "전체 보기" → 검색 탭을 그 카테고리로 필터. 카테고리 많으면 아래는 접는다.
 ///  - ③ 푸터: 회수는 모찌에게 물어보면 된다는 마무리 한 줄
-public struct WeeklyDigestView: View {
+public struct MonthlyDigestView: View {
 
-    @Bindable public var store: StoreOf<WeeklyDigestFeature>
+    @Bindable public var store: StoreOf<MonthlyDigestFeature>
     /// 진입 시 섹션 순차 등장 트리거 (한 번만).
     @State private var hasEntered = false
     /// 카테고리가 많을 때 아래쪽 레일을 접는다 — "더 보기"로 펼침.
@@ -22,7 +22,7 @@ public struct WeeklyDigestView: View {
     /// 접기 전 항상 보이는 카테고리 수 = digestTint 색 수(5)와 정렬 — 펼침 전엔 색이 안 겹친다.
     private let categoryCollapseLimit = 5
 
-    public init(store: StoreOf<WeeklyDigestFeature>) {
+    public init(store: StoreOf<MonthlyDigestFeature>) {
         self.store = store
     }
 
@@ -40,7 +40,7 @@ public struct WeeklyDigestView: View {
                     harvestSection
                         .riseIn(hasEntered, index: 1)
                 }
-                weekFooter
+                monthFooter
                     .riseIn(hasEntered, index: 2)
             }
             .padding(.horizontal, HomeDesign.Spacing.xl)
@@ -49,7 +49,7 @@ public struct WeeklyDigestView: View {
         }
         .background(backgroundLayer.ignoresSafeArea())
         .preferredColorScheme(.light)
-        .navigationTitle("이번 주 돌아보기")
+        .navigationTitle("이번 달 돌아보기")
         .navigationBarTitleDisplayMode(.inline)
         .task {
             store.send(.onAppear)
@@ -75,15 +75,12 @@ public struct WeeklyDigestView: View {
         }
     }
 
-    // MARK: - ① 히어로 (주 범위 + 기억 수 + 카테고리 요약 + 모찌의 한마디)
+    // MARK: - ① 히어로 (월 네비게이터 + 기억 수 + 카테고리 요약 + 모찌의 한마디)
 
     private var heroCard: some View {
         VStack(alignment: .leading, spacing: HomeDesign.Spacing.lg) {
-            VStack(alignment: .leading, spacing: HomeDesign.Spacing.xs) {
-                Text(weekRangeLabel)
-                    .font(.system(size: 11, weight: .heavy, design: .rounded))
-                    .tracking(0.6)
-                    .foregroundStyle(HomeDesign.Color.purple600)
+            VStack(alignment: .leading, spacing: HomeDesign.Spacing.sm) {
+                monthNavigator
                 heroHeadline
             }
 
@@ -122,25 +119,55 @@ public struct WeeklyDigestView: View {
         .cardShadow()
     }
 
+    /// 월 네비게이터 — ◀ [2026년 6월] ▶. 과거로 넘겨보고, 이번 달이면 ▶ 비활성.
+    private var monthNavigator: some View {
+        HStack(spacing: HomeDesign.Spacing.sm) {
+            monthArrow(systemName: "chevron.left", enabled: true) { store.send(.previousMonth) }
+            Text(monthLabel)
+                .font(.system(size: 13, weight: .heavy, design: .rounded))
+                .foregroundStyle(HomeDesign.Color.purple600)
+                .monospacedDigit()
+                .contentTransition(.numericText())
+                .frame(minWidth: 92)
+            monthArrow(systemName: "chevron.right", enabled: store.canGoNextMonth) { store.send(.nextMonth) }
+        }
+        .animation(.spring(response: 0.4, dampingFraction: 0.9), value: store.monthOffset)
+    }
+
+    private func monthArrow(systemName: String, enabled: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: systemName)
+                .font(.system(size: 12, weight: .heavy))
+                .foregroundStyle(enabled ? HomeDesign.Color.purple600 : HomeDesign.Color.ink300)
+                .frame(width: 30, height: 30)
+                .background(Circle().fill(enabled ? HomeDesign.Color.purple50 : HomeDesign.Color.surface))
+                .overlay(Circle().stroke(HomeDesign.Color.purple100, lineWidth: enabled ? 1 : 0))
+        }
+        .buttonStyle(PressableStyle())
+        .disabled(!enabled)
+        .opacity(enabled ? 1 : 0.45)
+        .accessibilityLabel(systemName == "chevron.left" ? "이전 달" : "다음 달")
+    }
+
     private var heroHeadline: some View {
         Group {
-            if store.allWeekItems.isEmpty {
-                Text("이번 주는 잠깐 쉬어갔어요")
+            if store.allMonthItems.isEmpty {
+                Text(store.monthOffset == 0 ? "이번 달은 잠깐 쉬어갔어요" : "조용한 한 달이었어요")
             } else {
                 Text("기억 ")
-                + Text("\(store.allWeekItems.count)개")
+                + Text("\(store.allMonthItems.count)개")
                     .foregroundStyle(HomeDesign.Color.purple600)
                 + Text("가 쌓였어요")
             }
         }
         .font(.system(size: 21, weight: .heavy, design: .rounded))
         .foregroundStyle(HomeDesign.Color.textPrimary)
-        .contentTransition(.numericText(value: Double(store.allWeekItems.count)))
-        .animation(.spring(response: 0.6, dampingFraction: 0.9), value: store.allWeekItems.count)
+        .contentTransition(.numericText(value: Double(store.allMonthItems.count)))
+        .animation(.spring(response: 0.6, dampingFraction: 0.9), value: store.allMonthItems.count)
     }
 
     /// 카테고리 비중을 한 줄 세그먼트 + 레전드로 — 색은 위 레일과 공유. 상위 5개만 색으로,
-    /// 나머지는 회색 "외 N개" 한 조각으로 합쳐 막대 정확성·레전드 길이를 통제(작은 카테고리 많을 때 오버플로 방지).
+    /// 나머지는 회색 "기타 N개" 한 조각으로 합쳐 막대 정확성·레전드 길이를 통제(작은 카테고리 많을 때 오버플로 방지).
     private var categorySummaryBar: some View {
         let shown = Array(store.groups.prefix(categoryCollapseLimit))
         let restCount = store.groups.count - shown.count
@@ -178,7 +205,7 @@ public struct WeeklyDigestView: View {
                         }
                     }
                     if restCount > 0 {
-                        Text("외 \(restCount)개")
+                        Text("기타 \(restCount)개")
                             .font(.system(size: 12, weight: .bold, design: .rounded))
                             .foregroundStyle(HomeDesign.Color.textMuted)
                     }
@@ -189,7 +216,7 @@ public struct WeeklyDigestView: View {
 
     private var speechBubble: some View {
         // 로딩 중엔 더미 문장으로 skeleton 폭을 확보(공백 1칸이면 placeholder 가 거의 안 보임).
-        Text(store.greeting.isEmpty ? (store.isLoading ? "이번 주 기억을 정리하고 있어요" : " ") : store.greeting)
+        Text(store.greeting.isEmpty ? (store.isLoading ? "이번 달 기억을 정리하고 있어요" : " ") : store.greeting)
             .font(.system(size: 14.5, weight: .semibold, design: .rounded))
             .foregroundStyle(HomeDesign.Color.ink700)
             .lineSpacing(4)
@@ -214,17 +241,16 @@ public struct WeeklyDigestView: View {
             }
     }
 
-    /// 이번 주 월–일 범위 라벨 (예: "6월 9일 – 6월 15일").
-    private var weekRangeLabel: String {
-        let interval = WeeklyDigestFeature.currentWeekInterval(now: Date())
+    /// 보고 있는 달 라벨 (예: "2026년 6월").
+    private var monthLabel: String {
+        let interval = MonthlyDigestFeature.monthInterval(offset: store.monthOffset, now: Date())
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "ko_KR")
-        formatter.dateFormat = "M월 d일"
-        let endDay = interval.end.addingTimeInterval(-1)
-        return "\(formatter.string(from: interval.start)) – \(formatter.string(from: endDay))"
+        formatter.dateFormat = "yyyy년 M월"
+        return formatter.string(from: interval.start)
     }
 
-    // MARK: - ② 이번 주 이런 걸 모았어요 (카테고리 가로 레일)
+    // MARK: - ② 이번 달 이런 걸 모았어요 (카테고리 가로 레일)
 
     private var harvestSection: some View {
         VStack(alignment: .leading, spacing: HomeDesign.Spacing.lg) {
@@ -251,7 +277,7 @@ public struct WeeklyDigestView: View {
             withAnimation(.spring(response: 0.32, dampingFraction: 0.85)) { showsAllCategories = true }
         } label: {
             HStack(spacing: 6) {
-                Text("그 외 \(remaining)개 카테고리 더 보기")
+                Text("기타 \(remaining)개 카테고리 더 보기")
                     .font(.system(size: 14, weight: .heavy, design: .rounded))
                 Image(systemName: "chevron.down")
                     .font(.system(size: 11, weight: .bold))
@@ -274,7 +300,7 @@ public struct WeeklyDigestView: View {
     private var emptyHarvest: some View {
         VStack(spacing: HomeDesign.Spacing.md) {
             VStack(spacing: 5) {
-                Text("이번 주엔 아직 모은 기억이 없어요")
+                Text(store.monthOffset == 0 ? "이번 달엔 아직 모은 기억이 없어요" : "그 달엔 모은 기억이 없어요")
                     .font(.system(size: 14.5, weight: .bold, design: .rounded))
                     .foregroundStyle(HomeDesign.Color.textPrimary)
                 Text("화면을 캡처하거나 링크를 보내면\n다음 돌아보기가 풍성해져요.")
@@ -289,7 +315,7 @@ public struct WeeklyDigestView: View {
     }
 
     /// ③ 마무리 — 회수의 주체는 모찌라는 것을 마지막 한 줄로 남긴다.
-    private var weekFooter: some View {
+    private var monthFooter: some View {
         VStack(spacing: HomeDesign.Spacing.sm) {
             Image("mochi2")
                 .resizable()
@@ -297,7 +323,9 @@ public struct WeeklyDigestView: View {
                 .frame(width: 40, height: 40)
                 .opacity(0.9)
                 .accessibilityHidden(true)
-            Text("이번 주 기억은 모찌가 잘 맡아둘게요.\n궁금해지면 언제든 물어봐 주세요!")
+            Text(store.monthOffset == 0
+                ? "이번 달 기억은 모찌가 잘 맡아둘게요.\n궁금해지면 언제든 물어봐 주세요!"
+                : "그 달의 기억은 모찌가 잘 맡아둘게요.\n궁금해지면 언제든 물어봐 주세요!")
                 .font(.system(size: 12.5, weight: .medium, design: .rounded))
                 .foregroundStyle(HomeDesign.Color.textMuted)
                 .multilineTextAlignment(.center)
@@ -363,16 +391,16 @@ private struct BubbleTail: Shape {
 
 // MARK: - ② 카테고리 가로 레일
 
-/// 한 카테고리 = 헤더(아이콘·이름·개수·전체 보기) + 그 주 항목 전부의 가로 스크롤.
+/// 한 카테고리 = 헤더(아이콘·이름·개수·전체 보기) + 그 달 항목 전부의 가로 스크롤.
 /// 세로 길이는 항목 수와 무관(가로로 흡수) — 카테고리 수로만 늘어난다. 썸네일 탭 → 상세.
 private struct HarvestRail: View {
-    let group: WeeklyDigestFeature.DigestGroup
+    let group: MonthlyDigestFeature.DigestGroup
     let index: Int
     let onTapItem: (MochiItem.ID) -> Void
     let onViewAll: (String) -> Void
 
-    /// "그 외"(카테고리 없는 묶음)는 실제 category 값이 아니라 검색 필터로 못 가므로 "전체 보기"를 숨긴다.
-    private var canViewAll: Bool { group.coarse != WeeklyDigestFeature.uncategorizedLabel }
+    /// 실제 정규화된 category 묶음만 검색 필터로 갈 수 있다 — "정리 중"·의도 fallback 묶음은 "전체 보기"를 숨긴다.
+    private var canViewAll: Bool { group.isSearchable }
 
     var body: some View {
         VStack(alignment: .leading, spacing: HomeDesign.Spacing.sm) {
@@ -405,7 +433,7 @@ private struct HarvestRail: View {
         }
     }
 
-    /// 헤더 — 좌측 아이콘·이름·개수는 비대화형, 우측 "전체 보기"만 탭 타겟(퍼플 칩). "그 외"는 칩 숨김.
+    /// 헤더 — 좌측 아이콘·이름·개수는 비대화형, 우측 "전체 보기"만 탭 타겟(퍼플 칩). "정리 중"·fallback 묶음은 칩 숨김.
     private var railHeader: some View {
         HStack(spacing: HomeDesign.Spacing.sm) {
             ZStack {

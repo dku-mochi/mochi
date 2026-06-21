@@ -423,21 +423,35 @@ class _UpdateStubRepo:
         return self.item
 
     async def update_content(
-        self, *, owner_id: UUID, mochi_item_id: UUID, text: str | None,
-        user_memo: str | None, summary: str | None,
+        self,
+        *,
+        owner_id: UUID,
+        mochi_item_id: UUID,
+        text: str | None,
+        user_memo: str | None,
+        summary: str | None,
     ) -> bool:
         self.content_updates.append({"text": text, "user_memo": user_memo, "summary": summary})
         return True
 
     async def update_instance_fields(
-        self, *, owner_id: UUID, mochi_item_id: UUID, instance_id: UUID,
-        payload: dict[str, str] | None, label: str | None,
+        self,
+        *,
+        owner_id: UUID,
+        mochi_item_id: UUID,
+        instance_id: UUID,
+        payload: dict[str, str] | None,
+        label: str | None,
     ) -> bool:
         self.field_updates.append((instance_id, payload, label))
         return True
 
     async def update_instance_lifecycle(
-        self, *, owner_id: UUID, mochi_item_id: UUID, instance_id: UUID,
+        self,
+        *,
+        owner_id: UUID,
+        mochi_item_id: UUID,
+        instance_id: UUID,
         lifecycle: InstanceLifecycleState,
     ) -> bool:
         self.lifecycle_updates.append((instance_id, lifecycle))
@@ -480,9 +494,7 @@ async def test_update_merge_preserves_range_end_fields() -> None:
     # 기간형 일정의 기간 정보가 통째로 소실되던 버그 (2026-06-10).
     instance = IntentInstance(
         intent_type=Intent.SCHEDULE,
-        payload=IntentPayload(
-            title="워크숍", date="2026-06-12", end_date="2026-06-14", end_time="18:00"
-        ),
+        payload=IntentPayload(title="워크숍", date="2026-06-12", end_date="2026-06-14", end_time="18:00"),
     )
     item = MochiItem(
         id=uuid4(),
@@ -540,9 +552,7 @@ async def test_update_missing_instance_is_404() -> None:
             UpdateMochiItemCommand(
                 owner_id=_OWNER,
                 mochi_item_id=item.id,
-                instance_changes=(
-                    InstanceChange(instance_id=uuid4(), payload_fields={"time": "15:00"}),
-                ),
+                instance_changes=(InstanceChange(instance_id=uuid4(), payload_fields={"time": "15:00"}),),
             )
         )
 

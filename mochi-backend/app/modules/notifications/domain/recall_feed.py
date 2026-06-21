@@ -46,9 +46,7 @@ class RecallFeedRepositoryPort(ABC):
         """
 
     @abstractmethod
-    async def resolve_landing(
-        self, *, owner_id: UUID, event_id: UUID
-    ) -> tuple[UUID, str] | None:
+    async def resolve_landing(self, *, owner_id: UUID, event_id: UUID) -> tuple[UUID, str] | None:
         """outbox event_id → (source item id, outbox kind) 해석(알림 landing). owner 스코프, status 무관.
 
         kind 로 landing 섹션을 정한다 — recall 이면 관련 N개(트랙 C), 그 외(spaced 등)는 지식 gist.

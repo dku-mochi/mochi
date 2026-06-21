@@ -193,8 +193,9 @@ ingested → normalized → analyzed → routed → persisted → indexed → sy
 - 임베딩 voyage-3-large@1024 (input=summary+labels, doc/query input_type 비대칭), `HNSW (m=16, ef_construction=64) cosine`. `VOYAGE_API_KEY` 미설정 시 vector·rerank 만 비활성(BM25 degrade). 기존 데이터 재색인: `scripts/backfill_embeddings.py`
 
 ### WebFetch SSRF 가드
-- 호스트 블록리스트 + 사설/링크로컬/루프백/메타데이터/multicast/reserved IP 차단
-- **매 redirect hop 마다 호스트 정책 재검증** — DNS rebinding 우회 방지
+- 정책·페치는 `tools/safe_fetch.py` 단일 지점 — `WebFetchTool`·`PlatformContextTool` 공유(fix-drift 방지).
+- 호스트 블록리스트 + 호스트 리터럴 IP + **모든 A/AAAA 응답** 의 사설/링크로컬/루프백/메타데이터/multicast/reserved IP 차단. IPv4-mapped IPv6(`::ffff:a.b.c.d`)는 내부 IPv4 로 unwrap 후 판정(인코딩 우회 차단).
+- **연결-핀(TOCTOU 차단)**: `guarded_get` 이 호스트를 한 번 resolve·검증한 뒤 **검증한 IP 로 직접 연결**하고, 원본 host 를 SNI(`extensions['sni_hostname']`)·Host 헤더로 보존해 인증서 검증·가상호스팅을 유지한다. 검증 IP 와 연결 IP 가 동일해 권한 DNS 통제 공격자의 연결-시점 rebinding 을 차단. 매 redirect hop 도 재핀.
 - MIME 화이트리스트 (`text/html`, `text/plain`, `application/json`, `application/xhtml+xml`)
 - **스트리밍 byte counter** — `web_fetch_max_bytes` 초과 시 즉시 abort (전체 다운로드 후 길이 체크 아님)
 - redirect 최대 5회
