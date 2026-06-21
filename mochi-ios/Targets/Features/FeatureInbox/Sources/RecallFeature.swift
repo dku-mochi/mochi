@@ -128,6 +128,9 @@ public struct RecallDetailFeature: Sendable {
             case openOriginal(itemID: UUID)
             /// "관련 기억" 카드 탭 — 상위가 그 항목 상세를 연다(원본 보기와 같은 경로).
             case openRelated(itemID: UUID)
+            /// "그만 보기" — 상위가 홈 회수 히어로에서 이 카드를 제거(opened-close 의 제거 재사용).
+            /// "보던 기억을 그만 보겠다"는데 화면에 남으면 미션 위반이라, reaction 기록과 별개로 제거 신호를 보낸다.
+            case stopped(itemID: UUID)
         }
     }
 
@@ -177,6 +180,8 @@ public struct RecallDetailFeature: Sendable {
                 let eventID = state.entry.recallEventID
                 return .merge(
                     .send(.showToast("이 기억은 더 꺼내지 않을게요")),
+                    // 홈 회수 히어로에서 이 카드를 빼라고 상위에 알린다(낙관적 — reaction 성패와 무관).
+                    .send(.delegate(.stopped(itemID: state.entry.itemID))),
                     .run { _ in
                         guard let eventID else { return }
                         try? await apiClient.recordRecallReaction(eventID: eventID, reaction: .stop)

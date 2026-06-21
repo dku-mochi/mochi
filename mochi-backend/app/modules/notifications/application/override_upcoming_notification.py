@@ -17,6 +17,9 @@ from app.modules.notifications.domain.upcoming_override import (
     UpcomingOverrideRepositoryPort,
 )
 
+# spaced veto 는 "이번 회차만 건너뛰기"(plan 유지+다음 회차 전진) — deadline/nudge(plan cancel)와 분기 키.
+_OUTBOX_KIND_SPACED = "spaced"
+
 
 class PastFireAtError(DomainError):
     """과거 시각으로는 옮길 수 없다 — 즉시 발송(또는 영영 안 감)을 방지."""
@@ -58,20 +61,29 @@ class VetoUpcomingCommand:
 
 @dataclass(slots=True)
 class VetoUpcomingNotification:
-    """이 항목 알림 전체 끄기 — 대상 pending skip + 그 plan 영구 cancel(user_dismiss).
+    """이 항목 알림 끄기 — kind 별로 의미가 다르다(2026-06-21).
 
-    plan cancel 은 기존 `RecallReactionRepositoryPort.cancel_plan` 재사용 — 그 plan 의 나머지
-    pending/deferred 미래 알림도 skipped(cancelled)로 대칭 정리된다(다음 단계 알림도 안 옴).
+    - deadline/nudge: 대상 pending skip + 그 plan 영구 cancel(user_dismiss). `cancel_plan` 재사용 —
+      그 plan 의 나머지 pending/deferred 미래 알림도 skipped(cancelled)로 대칭 정리(다음 단계도 안 옴).
+    - spaced: "이번 회차만 건너뛰기" — 대상 pending skip(user_veto)만, plan 은 active 유지하고
+      next_eligible_at=now 로 재평가 유도 → 다음 회차는 예정대로 진행(occurrence-math 가 user_veto
+      칸을 다음 칸 전진 신호로 인식).
     """
 
     override: UpcomingOverrideRepositoryPort
     reactions: RecallReactionRepositoryPort
 
     async def execute(self, command: VetoUpcomingCommand) -> None:
-        updated, plan_id = await self.override.veto_pending(
+        updated, plan_id, kind = await self.override.veto_pending(
             event_id=command.event_id, owner_id=command.owner_id
         )
         if updated == 0:
             raise NotFoundError("Upcoming notification not found", code="recall_upcoming.not_found")
-        if plan_id is not None:
+        if plan_id is None:
+            return
+        if kind == _OUTBOX_KIND_SPACED:
+            # spaced veto = "이번 회차만" — plan 은 살리고 다음 회차로 전진(재평가 유도).
+            await self.reactions.bump_plan_next_eligible(plan_id=plan_id, owner_id=command.owner_id)
+        else:
+            # deadline/nudge veto = 항목 알림 전체 끄기 — 그 plan 영구 cancel(시리즈 중단).
             await self.reactions.cancel_plan(plan_id=plan_id, owner_id=command.owner_id)

@@ -37,6 +37,7 @@ from app.modules.conversations.application.queries import (
 from app.modules.conversations.application.run_chat_turn import RunChatTurn
 from app.modules.conversations.domain.ports import ChatTool
 from app.modules.conversations.domain.run_events import ChatEvent
+from app.modules.conversations.infrastructure.gemini_schedule_meta import GeminiScheduleMeta
 from app.modules.conversations.infrastructure.run_registry import get_run_registry
 from app.modules.conversations.infrastructure.tools.get_item_detail import GetItemDetailTool
 from app.modules.conversations.infrastructure.tools.propose import (
@@ -45,6 +46,7 @@ from app.modules.conversations.infrastructure.tools.propose import (
     ProposeItemDeleteTool,
     ProposeItemUpdateTool,
     ProposeReminderTool,
+    make_category_reader,
     make_item_reader,
 )
 from app.modules.conversations.infrastructure.tools.search_items import SearchItemsTool
@@ -91,7 +93,7 @@ def _build_chat_tools(
         GetItemDetailTool(session_factory),
         ProposeItemUpdateTool(item_reader),
         ProposeItemDeleteTool(item_reader),
-        ProposeCreateScheduleTool(),
+        ProposeCreateScheduleTool(GeminiScheduleMeta(), make_category_reader(session_factory)),
         ProposeReminderTool(),
         ProposeCreateMemoTool(),
         WebFetchChatTool(make_web_fetch_tool()),

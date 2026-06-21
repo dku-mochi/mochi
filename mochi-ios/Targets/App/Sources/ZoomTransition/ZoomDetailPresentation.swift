@@ -49,6 +49,8 @@ private struct ZoomDetailPresenter: UIViewControllerRepresentable {
         /// 남아 presenter 탐색에 잡혀 그 위에 새 VC 가 쌓이고, 이전 dismiss 의 completion 이 새 상세를
         /// 오염시켜 '투명한데 뒤가 먹통'이 된다. dismiss 정상 완료 시 nil 로 비운다.
         private var finishPendingDismiss: (() -> Void)?
+        /// 콜드 스타트 present 재시도의 stale 가드 — store 변경(dismiss/교체)마다 증가시켜 대기 중 재시도를 무효화한다.
+        private var presentRetryToken = 0
 
         private let cardRadius = HomeDesign.Radius.md
         private let detailHeaderRadius = HomeDesign.Radius.lg
@@ -77,11 +79,48 @@ private struct ZoomDetailPresenter: UIViewControllerRepresentable {
             onDismiss: @escaping () -> Void
         ) {
             if let store {
-                guard hosting == nil, host.view.window != nil else { return }
+                guard hosting == nil else { return }
+                // 이번 sync 가 최신 의도 — 직전에 예약된 재시도(있으면)를 무효화한다.
+                presentRetryToken &+= 1
                 self.onDismiss = onDismiss
-                present(store: store, hero: hero, host: host)
-            } else if let hosting {
-                dismiss(hosting)
+                if host.view.window != nil {
+                    present(store: store, hero: hero, host: host)
+                } else {
+                    // 콜드 스타트: phase 전환 직후 host(MainTabView 의 배경 VC)가 아직 window 에 미부착.
+                    // 드롭하면 state.detail 만 세팅된 채 present 가 영영 안 일어나 락인된다 — 부착될 때까지 재시도.
+                    scheduleRetryPresent(store: store, hero: hero, host: host, token: presentRetryToken)
+                }
+            } else {
+                // dismiss 의도 — 대기 중 재시도를 무효화(스테일 present 방지)하고 떠 있으면 닫는다.
+                presentRetryToken &+= 1
+                if let hosting { dismiss(hosting) }
+            }
+        }
+
+        /// host 가 window 에 부착될 때까지 프레임 간격으로 present 를 재시도한다(콜드 스타트 한정 경합).
+        /// token 이 어긋나면(그 사이 dismiss/교체로 의도 변경) 조용히 멈춘다. ~2s 한도 후 포기(다음 진입이 복구).
+        private func scheduleRetryPresent(
+            store: StoreOf<DetailFeature>,
+            hero: HeroSourceFrames?,
+            host: UIViewController,
+            token: Int,
+            attempt: Int = 0
+        ) {
+            guard attempt < 120 else {
+                // 한도 초과(2s 내 window 미부착 — 콜드 스타트에서도 사실상 없음): 정상 present 실패
+                // self-heal(라인 277-283)과 대칭으로 슬롯(state.detail)을 비워 "detail 만 락인" 재발을 막는다.
+                onDismiss?()
+                return
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.016) { [weak self] in
+                guard let self, self.presentRetryToken == token, self.hosting == nil else { return }
+                if host.view.window != nil {
+                    self.present(store: store, hero: hero, host: host)
+                } else {
+                    self.scheduleRetryPresent(
+                        store: store, hero: hero, host: host, token: token, attempt: attempt + 1
+                    )
+                }
             }
         }
 

@@ -46,8 +46,11 @@ class PostgresUpcomingOverrideRepository(UpcomingOverrideRepositoryPort):
         await self._session.flush()
         return result.rowcount or 0
 
-    async def veto_pending(self, *, event_id: UUID, owner_id: UUID) -> tuple[int, UUID | None]:
-        # 대상 pending 1건을 skipped(user_veto). RETURNING 으로 plan_id 회수 → 호출부가 cancel_plan.
+    async def veto_pending(
+        self, *, event_id: UUID, owner_id: UUID
+    ) -> tuple[int, UUID | None, str | None]:
+        # 대상 pending 1건을 skipped(user_veto). RETURNING 으로 plan_id+kind 회수 → 호출부가 kind 로
+        # 분기(spaced=다음 회차 전진 / deadline·nudge=cancel_plan 시리즈 중단).
         stmt = (
             update(NotificationOutboxRow)
             .where(
@@ -57,10 +60,10 @@ class PostgresUpcomingOverrideRepository(UpcomingOverrideRepositoryPort):
                 NotificationOutboxRow.fire_at > func.now(),
             )
             .values(status="skipped", skip_reason=_SKIP_REASON_USER_VETO)
-            .returning(NotificationOutboxRow.plan_id)
+            .returning(NotificationOutboxRow.plan_id, NotificationOutboxRow.kind)
         )
         rows = (await self._session.execute(stmt)).all()
         await self._session.flush()
         if not rows:
-            return 0, None
-        return len(rows), rows[0].plan_id
+            return 0, None, None
+        return len(rows), rows[0].plan_id, rows[0].kind

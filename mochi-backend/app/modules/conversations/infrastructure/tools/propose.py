@@ -23,9 +23,10 @@ from typing import Any
 from uuid import UUID, uuid4
 from zoneinfo import ZoneInfo
 
+import structlog
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from app.modules.conversations.domain.ports import ChatToolResult
+from app.modules.conversations.domain.ports import ChatToolResult, ScheduleMetaLLM
 from app.modules.intents.domain.lifecycle_policy import is_allowed
 from app.modules.mochi_items.domain.entities import MochiItem
 from app.modules.mochi_items.domain.value_objects import (
@@ -35,6 +36,8 @@ from app.modules.mochi_items.domain.value_objects import (
 )
 
 _KST = ZoneInfo("Asia/Seoul")
+
+logger = structlog.get_logger(__name__)
 
 #: owner-scoped item 조회 — prod 은 세션 기반, 테스트는 fake 주입.
 ItemReader = Callable[[UUID, UUID], Awaitable[MochiItem | None]]
@@ -53,6 +56,31 @@ def make_item_reader(
             return await GetMochiItemForOwner(repository=make_mochi_item_repository(session)).execute(
                 owner_id=owner_id, mochi_item_id=mochi_item_id
             )
+
+    return _read
+
+
+#: owner-scoped 최근 정규화 카테고리 라벨 — 일정 메타 도출의 어휘 일관성 window.
+CategoryReader = Callable[[UUID], Awaitable[list[str]]]
+
+
+def make_category_reader(
+    session_factory: Callable[[], AsyncSession] | async_sessionmaker[AsyncSession],
+    *,
+    limit: int = 24,
+) -> CategoryReader:
+    async def _read(owner_id: UUID) -> list[str]:
+        # mochi_items application factory + 도메인 포트(MochiItemRepository) 경유 — 어댑터 직접 의존 없음.
+        from app.modules.mochi_items.application.queries import make_mochi_item_repository
+
+        try:
+            async with session_factory() as session:
+                return await make_mochi_item_repository(session).list_normalized_categories(
+                    owner_id=owner_id, limit=limit
+                )
+        except Exception as exc:  # noqa: BLE001 — window 조회 실패는 카드 생성을 막지 않는다(메타 도출 graceful 과 일관)
+            logger.warning("schedule_meta_category_window_failed", error=str(exc))
+            return []
 
     return _read
 
@@ -278,6 +306,10 @@ class ProposeCreateScheduleTool:
         "required": ["title", "date", "display"],
     }
 
+    def __init__(self, meta_llm: ScheduleMetaLLM, category_reader: CategoryReader):
+        self._meta = meta_llm
+        self._categories = category_reader
+
     async def run(self, *, owner_id: UUID, args: dict[str, Any]) -> ChatToolResult:
         title = args.get("title")
         date = args.get("date")
@@ -298,15 +330,20 @@ class ProposeCreateScheduleTool:
             for key in ("title", "date", "time", "end_date", "end_time", "person", "note")
             if isinstance(args.get(key), str) and args[key]
         }
-        return _card(
-            "create_schedule",
-            {
-                "confirmed_instances": [{"intent_type": "schedule", "payload": payload}],
-                "text": payload.get("note") or title,
-                "display": _display(args, f"일정 '{title}' 을 추가할까요?"),
-            },
-            summary="일정 카드를 준비했어요",
-        )
+        # category/summary 도출 — instance(날짜·일정)는 확정값 그대로 보존하고(§5.2 "재분석 안 함"),
+        # 월간정리 분류·리스트·검색이 빈약해지지 않게 item 메타만 채운다. 최근 카테고리 window 로
+        # 라벨 흔들림을 줄인다. 도출 실패는 graceful(빈 메타) — 카드 생성을 막지 않는다.
+        meta = await self._meta.derive(fields=payload, known_categories=await self._categories(owner_id))
+        card: dict[str, Any] = {
+            "confirmed_instances": [{"intent_type": "schedule", "payload": payload}],
+            "text": payload.get("note") or title,
+            "display": _display(args, f"일정 '{title}' 을 추가할까요?"),
+        }
+        if meta.category:
+            card["category"] = meta.category
+        if meta.summary:
+            card["summary"] = meta.summary
+        return _card("create_schedule", card, summary="일정 카드를 준비했어요")
 
 
 class ProposeReminderTool:

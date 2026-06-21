@@ -275,3 +275,38 @@ def test_spaced_exhausted_returns_none():
     last = SpacedState(occurrence_seq=1, sent_at=base, opened_at=opened, dismissed_at=None)
     out = next_spaced_occurrence(stage=_spaced_stage([3, 7]), base=base, last=last)
     assert out is None
+
+
+def test_spaced_vetoed_advances_to_next_by_scheduled_gap():
+    base = datetime(2026, 6, 16, 0, 0, tzinfo=UTC)
+    veto_fire = base + timedelta(days=3)  # occurrence0 의 예정 시각(schedule[0]=3)
+    # user_veto("이번 회차만") — opened 없이도 다음 칸으로 전진하되 base 는 veto 된 칸 fire_at.
+    last = SpacedState(
+        occurrence_seq=0,
+        sent_at=None,
+        opened_at=None,
+        dismissed_at=None,
+        fire_at=veto_fire,
+        vetoed=True,
+    )
+    out = next_spaced_occurrence(stage=_spaced_stage([3, 7, 18, 45]), base=base, last=last)
+    assert isinstance(out, NextOccurrence)
+    assert out.occurrence_seq == 1
+    # gap = schedule[1]-schedule[0] = 4. fire_at = veto_fire + 4d("다음 회차는 예정대로", opened 무관).
+    assert out.fire_at == veto_fire + timedelta(days=4)
+
+
+def test_spaced_vetoed_last_slot_returns_none():
+    base = datetime(2026, 6, 16, 0, 0, tzinfo=UTC)
+    veto_fire = base + timedelta(days=7)
+    # 마지막 칸(seq=1, schedule 길이 2)을 veto → 다음 칸 없음(시리즈 자연 종료, dismiss 아님).
+    last = SpacedState(
+        occurrence_seq=1,
+        sent_at=None,
+        opened_at=None,
+        dismissed_at=None,
+        fire_at=veto_fire,
+        vetoed=True,
+    )
+    out = next_spaced_occurrence(stage=_spaced_stage([3, 7]), base=base, last=last)
+    assert out is None

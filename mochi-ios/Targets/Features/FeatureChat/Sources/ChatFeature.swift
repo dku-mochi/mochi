@@ -487,7 +487,10 @@ public struct ChatFeature: Sendable {
                         text: payload.text,
                         confirmedInstances: payload.instances.map {
                             ConfirmedInstanceIngestDTO(intentType: $0.intentType, payload: $0.payload)
-                        }
+                        },
+                        // propose-시점 도출 메타 — confirmedInstances 와 함께 운반(§5.2 는 instance 재분석만 생략).
+                        category: payload.category,
+                        summary: payload.summary
                     ),
                     idempotencyKey: proposal.id.uuidString
                 )

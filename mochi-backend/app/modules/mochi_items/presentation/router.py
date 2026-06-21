@@ -260,6 +260,9 @@ async def create_mochi_item(
             user_memo=payload.user_memo,
             image_refs=tuple(image_refs),
             idempotency_key=idempotency_key,
+            # 채팅 일정 proposal 이 propose-시점에 도출한 item 메타 — confirmed_instances 경로에서만 채워진다.
+            category=payload.category,
+            summary=payload.summary,
             # 채팅 proposal 확정 — 사용자 확정 instance 는 분석 생략·직접 생성 (§5.2 예외).
             confirmed_instances=tuple(
                 IntentInstance(

@@ -342,10 +342,10 @@ public protocol APIProtocol: Sendable {
     func record_recall_reaction_api_v1_recall_events__event_id__reaction_post(_ input: Operations.record_recall_reaction_api_v1_recall_events__event_id__reaction_post.Input) async throws -> Operations.record_recall_reaction_api_v1_recall_events__event_id__reaction_post.Output
     /// Get Upcoming Notifications
     ///
-    /// 홈탭 "예정 알림" — owner 의 아직 안 보낸 미래 알림(마감/일정, fire_at>now) fire_at 오름차순.
+    /// 홈탭 "예정 알림" — owner 의 아직 안 보낸 미래 알림(마감/일정·예약 회수, fire_at>now) fire_at 오름차순.
     ///
-    /// "언제 알림이 갈지" 미리 보여줘 안심시키는 예고. spaced 회수는 RecallHero 담당이라 제외.
-    /// 빈손이면 entries=[](정상).
+    /// "언제 알림이 갈지" 미리 보여줘 안심시키는 예고. spaced(예약 회수)도 포함 — RecallHero(식어가는
+    /// 지식 in-app 회수)와 별개의 "앞으로 보낼 알림" 예고다. 빈손이면 entries=[](정상).
     ///
     /// - Remark: HTTP `GET /api/v1/recall/upcoming`.
     /// - Remark: Generated from `#/paths//api/v1/recall/upcoming/get(get_upcoming_notifications_api_v1_recall_upcoming_get)`.
@@ -362,9 +362,10 @@ public protocol APIProtocol: Sendable {
     func reschedule_upcoming_notification_api_v1_recall_upcoming__event_id__reschedule_post(_ input: Operations.reschedule_upcoming_notification_api_v1_recall_upcoming__event_id__reschedule_post.Input) async throws -> Operations.reschedule_upcoming_notification_api_v1_recall_upcoming__event_id__reschedule_post.Output
     /// Veto Upcoming Notification
     ///
-    /// 이 항목 알림 전체 끄기 — 대상 pending skip(user_veto) + 그 plan 영구 cancel(user_dismiss).
+    /// 이 항목 알림 끄기 — kind 별 분기(2026-06-21). 행이 없으면 404(남의 event·이미 발송/취소).
     ///
-    /// 그 plan 의 나머지 미래 단계 알림도 함께 정지된다. 행이 없으면 404(남의 event·이미 발송/취소).
+    /// - deadline/nudge: 대상 pending skip + 그 plan 영구 cancel(나머지 단계도 정지).
+    /// - spaced: "이번 회차만 건너뛰기" — 대상만 skip(user_veto), plan 은 유지해 다음 회차는 예정대로.
     ///
     /// - Remark: HTTP `POST /api/v1/recall/upcoming/{event_id}/veto`.
     /// - Remark: Generated from `#/paths//api/v1/recall/upcoming/{event_id}/veto/post(veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post)`.
@@ -961,10 +962,10 @@ extension APIProtocol {
     }
     /// Get Upcoming Notifications
     ///
-    /// 홈탭 "예정 알림" — owner 의 아직 안 보낸 미래 알림(마감/일정, fire_at>now) fire_at 오름차순.
+    /// 홈탭 "예정 알림" — owner 의 아직 안 보낸 미래 알림(마감/일정·예약 회수, fire_at>now) fire_at 오름차순.
     ///
-    /// "언제 알림이 갈지" 미리 보여줘 안심시키는 예고. spaced 회수는 RecallHero 담당이라 제외.
-    /// 빈손이면 entries=[](정상).
+    /// "언제 알림이 갈지" 미리 보여줘 안심시키는 예고. spaced(예약 회수)도 포함 — RecallHero(식어가는
+    /// 지식 in-app 회수)와 별개의 "앞으로 보낼 알림" 예고다. 빈손이면 entries=[](정상).
     ///
     /// - Remark: HTTP `GET /api/v1/recall/upcoming`.
     /// - Remark: Generated from `#/paths//api/v1/recall/upcoming/get(get_upcoming_notifications_api_v1_recall_upcoming_get)`.
@@ -997,9 +998,10 @@ extension APIProtocol {
     }
     /// Veto Upcoming Notification
     ///
-    /// 이 항목 알림 전체 끄기 — 대상 pending skip(user_veto) + 그 plan 영구 cancel(user_dismiss).
+    /// 이 항목 알림 끄기 — kind 별 분기(2026-06-21). 행이 없으면 404(남의 event·이미 발송/취소).
     ///
-    /// 그 plan 의 나머지 미래 단계 알림도 함께 정지된다. 행이 없으면 404(남의 event·이미 발송/취소).
+    /// - deadline/nudge: 대상 pending skip + 그 plan 영구 cancel(나머지 단계도 정지).
+    /// - spaced: "이번 회차만 건너뛰기" — 대상만 skip(user_veto), plan 은 유지해 다음 회차는 예정대로.
     ///
     /// - Remark: HTTP `POST /api/v1/recall/upcoming/{event_id}/veto`.
     /// - Remark: Generated from `#/paths//api/v1/recall/upcoming/{event_id}/veto/post(veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post)`.
@@ -2003,6 +2005,10 @@ public enum Components {
             public var imageRefs: [Components.Schemas.ImageRefDTO]?
             /// - Remark: Generated from `#/components/schemas/MochiItemCreateRequest/confirmedInstances`.
             public var confirmedInstances: [Components.Schemas.ConfirmedInstanceDTO]?
+            /// - Remark: Generated from `#/components/schemas/MochiItemCreateRequest/category`.
+            public var category: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/MochiItemCreateRequest/summary`.
+            public var summary: Swift.String?
             /// Creates a new `MochiItemCreateRequest`.
             ///
             /// - Parameters:
@@ -2012,13 +2018,17 @@ public enum Components {
             ///   - userMemo:
             ///   - imageRefs:
             ///   - confirmedInstances:
+            ///   - category:
+            ///   - summary:
             public init(
                 channel: Components.Schemas.IngestChannel,
                 url: Swift.String? = nil,
                 text: Swift.String? = nil,
                 userMemo: Swift.String? = nil,
                 imageRefs: [Components.Schemas.ImageRefDTO]? = nil,
-                confirmedInstances: [Components.Schemas.ConfirmedInstanceDTO]? = nil
+                confirmedInstances: [Components.Schemas.ConfirmedInstanceDTO]? = nil,
+                category: Swift.String? = nil,
+                summary: Swift.String? = nil
             ) {
                 self.channel = channel
                 self.url = url
@@ -2026,6 +2036,8 @@ public enum Components {
                 self.userMemo = userMemo
                 self.imageRefs = imageRefs
                 self.confirmedInstances = confirmedInstances
+                self.category = category
+                self.summary = summary
             }
             public enum CodingKeys: String, CodingKey {
                 case channel
@@ -2034,6 +2046,8 @@ public enum Components {
                 case userMemo
                 case imageRefs
                 case confirmedInstances
+                case category
+                case summary
             }
         }
         /// 날짜 구간 모찌 목록 — 캘린더 탭에서 특정 날짜 선택 시 그날 목록.
@@ -7641,10 +7655,10 @@ public enum Operations {
     }
     /// Get Upcoming Notifications
     ///
-    /// 홈탭 "예정 알림" — owner 의 아직 안 보낸 미래 알림(마감/일정, fire_at>now) fire_at 오름차순.
+    /// 홈탭 "예정 알림" — owner 의 아직 안 보낸 미래 알림(마감/일정·예약 회수, fire_at>now) fire_at 오름차순.
     ///
-    /// "언제 알림이 갈지" 미리 보여줘 안심시키는 예고. spaced 회수는 RecallHero 담당이라 제외.
-    /// 빈손이면 entries=[](정상).
+    /// "언제 알림이 갈지" 미리 보여줘 안심시키는 예고. spaced(예약 회수)도 포함 — RecallHero(식어가는
+    /// 지식 in-app 회수)와 별개의 "앞으로 보낼 알림" 예고다. 빈손이면 entries=[](정상).
     ///
     /// - Remark: HTTP `GET /api/v1/recall/upcoming`.
     /// - Remark: Generated from `#/paths//api/v1/recall/upcoming/get(get_upcoming_notifications_api_v1_recall_upcoming_get)`.
@@ -7860,9 +7874,10 @@ public enum Operations {
     }
     /// Veto Upcoming Notification
     ///
-    /// 이 항목 알림 전체 끄기 — 대상 pending skip(user_veto) + 그 plan 영구 cancel(user_dismiss).
+    /// 이 항목 알림 끄기 — kind 별 분기(2026-06-21). 행이 없으면 404(남의 event·이미 발송/취소).
     ///
-    /// 그 plan 의 나머지 미래 단계 알림도 함께 정지된다. 행이 없으면 404(남의 event·이미 발송/취소).
+    /// - deadline/nudge: 대상 pending skip + 그 plan 영구 cancel(나머지 단계도 정지).
+    /// - spaced: "이번 회차만 건너뛰기" — 대상만 skip(user_veto), plan 은 유지해 다음 회차는 예정대로.
     ///
     /// - Remark: HTTP `POST /api/v1/recall/upcoming/{event_id}/veto`.
     /// - Remark: Generated from `#/paths//api/v1/recall/upcoming/{event_id}/veto/post(veto_upcoming_notification_api_v1_recall_upcoming__event_id__veto_post)`.

@@ -36,6 +36,9 @@ struct RootFeature: Sendable {
         var main: MainTabFeature.State
         @Presents var backTapModal: BackTapModalFeature.State?
         @Presents var onboarding: OnboardingFeature.State?
+        /// 미인증·리졸빙 단계에 도착해 큐잉된 알림 라우트 — `.authenticated` 전이 시 flush (콜드 스타트 딥링크 유실 방지).
+        /// 단일 슬롯(last-wins): 인증 전 여러 번 탭하면 마지막 의도만 연다(알림 탭은 보통 마지막이 의도).
+        var pendingNotificationRoute: NotificationRoute? = nil
 
         init(
             phase: Phase = .resolving,
@@ -57,6 +60,12 @@ struct RootFeature: Sendable {
         case resolving
         case unauthenticated
         case authenticated(AuthSession)
+    }
+
+    /// 알림 탭으로 받았으나 인증 전(리졸빙/로그인)이라 즉시 처리 못 한 라우트. `.authenticated` 전이 시 flush.
+    enum NotificationRoute: Equatable, Sendable {
+        case detail(serverID: UUID)
+        case recallLanding(recallEventID: UUID)
     }
 
     enum Action: Sendable {
@@ -120,10 +129,12 @@ struct RootFeature: Sendable {
                 }
                 // 인증 확정 후에만 푸시 권한 팝업 — 온보딩 중이면 완료 시점(.onboarding finished)으로 미룬다.
                 let push = state.onboarding == nil ? Self.requestPush(pushAuthorization) : Effect<Action>.none
+                // 콜드 스타트에 큐잉된 알림 라우트를 이제(MainTab 마운트·auth 준비) 흘린다.
+                let route = Self.flushPendingNotificationRoute(&state)
                 if state.backTapModal == nil, state.onboarding == nil {
-                    return .merge(pull, ensureCapture, Self.checkPendingMemo(), push)
+                    return .merge(pull, ensureCapture, Self.checkPendingMemo(), push, route)
                 }
-                return .merge(pull, ensureCapture, push)
+                return .merge(pull, ensureCapture, push, route)
 
             case let .pendingMemoDiscovered(captureID):
                 // 활성 모달이 같은 captureID 면 (concurrent discovery — sessionResolved +
@@ -137,15 +148,24 @@ struct RootFeature: Sendable {
                 return .none
 
             case let .notificationTapped(serverID):
-                // 알림 탭 → 홈 탭 + 해당 항목 상세 present. server→local 역매핑과 "로컬 도착까지
-                // 짧게 재시도"는 MainTab 이 effect 로 맡는다(phase 와 무관하게 즉시 시작하므로
-                // 콜드 스타트에도 안전). 항목 최신화는 scenePhase active reconcile(폴링/SSE 재구독).
+                // 알림 탭 → 홈 탭 + 해당 항목 상세 present. 단 인증 전(리졸빙/로그인 화면)에 도착하면
+                // MainTab 이 아직 마운트되지 않아 zoom present 가 유실되고(ZoomDetailPresentation
+                // host.view.window == nil 가드) pullRemote(재설치 항목 회수)도 auth 미준비라 못 돈다 —
+                // 큐잉했다가 `.authenticated` 전이에서 flush 한다(콜드 스타트 딥링크 유실 수정).
+                guard case .authenticated = state.phase else {
+                    state.pendingNotificationRoute = .detail(serverID: serverID)
+                    return .none
+                }
                 state.main.selectedTab = .home
                 return .send(.main(.openDetailFromNotification(serverID: serverID, hero: nil)))
 
             case let .recallNotificationTapped(recallEventID):
-                // 회수 알림 탭 → 홈 탭 + ③ 회수 상세 직행. recallEventID 로 서버 fetch 는 MainTab effect 가
-                // 맡는다(phase 무관하게 즉시 시작, 콜드 스타트에도 안전).
+                // 회수 알림 탭 → 홈 탭 + ③ 회수 상세 직행. 인증 전 도착은 동일하게 큐잉한다 —
+                // recallLanding 은 네트워크 fetch 라 auth 미준비면 401 로 빈손이 된다(콜드 스타트 수정).
+                guard case .authenticated = state.phase else {
+                    state.pendingNotificationRoute = .recallLanding(recallEventID: recallEventID)
+                    return .none
+                }
                 state.main.selectedTab = .home
                 return .send(.main(.openRecallLandingFromNotification(recallEventID: recallEventID)))
 
@@ -178,10 +198,12 @@ struct RootFeature: Sendable {
                 let pull = Effect<Action>.run { [syncTrigger] _ in await syncTrigger.pullRemote() }
                 // 로그인 직후 푸시 권한 팝업 — 온보딩 중이면 완료 시점으로 미룬다.
                 let push = state.onboarding == nil ? Self.requestPush(pushAuthorization) : Effect<Action>.none
+                // 로그인 화면에서 알림을 탭해 큐잉된 라우트가 있으면 인증 직후 흘린다.
+                let route = Self.flushPendingNotificationRoute(&state)
                 if state.backTapModal == nil {
-                    return .merge(pull, Self.checkPendingMemo(), push)
+                    return .merge(pull, Self.checkPendingMemo(), push, route)
                 }
-                return .merge(pull, push)
+                return .merge(pull, push, route)
 
             case .requestSignOut:
                 return .run { [authCoordinator] send in
@@ -222,6 +244,22 @@ struct RootFeature: Sendable {
     private static var hasCompletedOnboarding: Bool {
         get { UserDefaults.standard.bool(forKey: onboardingCompletedKey) }
         set { UserDefaults.standard.set(newValue, forKey: onboardingCompletedKey) }
+    }
+
+    /// 큐잉된 알림 라우트를 흘린다 — `.authenticated` 인 경우에만. MainTab 마운트·auth 준비 후 호출해
+    /// 콜드 스타트 딥링크가 유실되지 않게 한다. server→local 역매핑·fetch·재시도는 MainTab effect 담당.
+    private static func flushPendingNotificationRoute(_ state: inout State) -> Effect<Action> {
+        guard case .authenticated = state.phase, let route = state.pendingNotificationRoute else {
+            return .none
+        }
+        state.pendingNotificationRoute = nil
+        state.main.selectedTab = .home
+        switch route {
+        case let .detail(serverID):
+            return .send(.main(.openDetailFromNotification(serverID: serverID, hero: nil)))
+        case let .recallLanding(recallEventID):
+            return .send(.main(.openRecallLandingFromNotification(recallEventID: recallEventID)))
+        }
     }
 
     /// 인증 시점 푸시 권한 팝업 요청 효과. requester 는 reducer 의 `@Dependency` 에서 캡처해 넘긴다.

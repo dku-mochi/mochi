@@ -180,10 +180,10 @@ async def get_upcoming_notifications(
     user: CurrentUser,
     limit: int = 20,
 ) -> UpcomingNotificationsResponse:
-    """홈탭 "예정 알림" — owner 의 아직 안 보낸 미래 알림(마감/일정, fire_at>now) fire_at 오름차순.
+    """홈탭 "예정 알림" — owner 의 아직 안 보낸 미래 알림(마감/일정·예약 회수, fire_at>now) fire_at 오름차순.
 
-    "언제 알림이 갈지" 미리 보여줘 안심시키는 예고. spaced 회수는 RecallHero 담당이라 제외.
-    빈손이면 entries=[](정상).
+    "언제 알림이 갈지" 미리 보여줘 안심시키는 예고. spaced(예약 회수)도 포함 — RecallHero(식어가는
+    지식 in-app 회수)와 별개의 "앞으로 보낼 알림" 예고다. 빈손이면 entries=[](정상).
     """
     use_case = GetUpcomingNotifications(feed=PostgresUpcomingFeedRepository(db))
     items = await use_case.execute(owner_id=user, limit=max(1, min(limit, 50)))
@@ -216,9 +216,10 @@ async def veto_upcoming_notification(
     db: DBSession,
     user: CurrentUser,
 ) -> Response:
-    """이 항목 알림 전체 끄기 — 대상 pending skip(user_veto) + 그 plan 영구 cancel(user_dismiss).
+    """이 항목 알림 끄기 — kind 별 분기(2026-06-21). 행이 없으면 404(남의 event·이미 발송/취소).
 
-    그 plan 의 나머지 미래 단계 알림도 함께 정지된다. 행이 없으면 404(남의 event·이미 발송/취소).
+    - deadline/nudge: 대상 pending skip + 그 plan 영구 cancel(나머지 단계도 정지).
+    - spaced: "이번 회차만 건너뛰기" — 대상만 skip(user_veto), plan 은 유지해 다음 회차는 예정대로.
     """
     use_case = VetoUpcomingNotification(
         override=PostgresUpcomingOverrideRepository(db),

@@ -15,7 +15,7 @@ from app.modules.notifications.domain.upcoming_feed import (
 
 @dataclass(slots=True)
 class GetUpcomingNotifications:
-    """owner 의 pending 미래 알림(마감/일정)을 fire_at 오름차순으로 반환."""
+    """owner 의 pending 미래 알림(마감/일정 + 예약 회수 spaced)을 fire_at 오름차순으로 반환."""
 
     feed: UpcomingFeedRepositoryPort
 

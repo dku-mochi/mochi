@@ -52,7 +52,8 @@ class _ReactionRepo:
         self._dismissed_rowcount = dismissed_rowcount
         self.opened_calls = 0
         self.dismissed_calls = 0
-        self.cancelled: list[tuple] = []  # (plan_id, owner_id)
+        self.cancelled: list[tuple] = []  # (plan_id, owner_id) — 트랙 A stop
+        self.skipped: list[tuple] = []  # (event_id, owner_id) — 트랙 C stop 종결
 
     async def find_sent_event(self, *, event_id, owner_id):  # type: ignore[no-untyped-def]
         if self._event is None or self._event.event_id != event_id:
@@ -69,6 +70,9 @@ class _ReactionRepo:
 
     async def cancel_plan(self, *, plan_id, owner_id) -> None:  # type: ignore[no-untyped-def]
         self.cancelled.append((plan_id, owner_id))
+
+    async def skip_recall_outbox(self, *, event_id, owner_id) -> None:  # type: ignore[no-untyped-def]
+        self.skipped.append((event_id, owner_id))
 
     def savepoint(self):  # type: ignore[no-untyped-def]
         # no-op CM — nullcontext 는 async with 도 지원(Py3.10+). 진짜 savepoint 롤백 격리는
@@ -199,21 +203,25 @@ async def test_dismissed_marks() -> None:
 
 
 async def test_stop_cancels_plan() -> None:
+    # 트랙 A(plan 있음) — plan 취소로 피드 제외. 트랙 C 의 outbox 종결 경로는 타지 않는다.
     plan_id = uuid4()
     ev = _event(kind="spaced", plan_id=plan_id)
     repo = _ReactionRepo(event=ev)
     await _run(repo, _MochiRepo(None), _cmd(ev, ReactionKind.STOP))
     assert repo.dismissed_calls == 1
     assert repo.cancelled == [(plan_id, _OWNER)]
+    assert repo.skipped == []  # 트랙 A 는 plan cancel 로 제외 — outbox 직접 종결 안 함
 
 
-async def test_stop_without_plan_skips_cancel() -> None:
-    # 트랙 C 직행(plan_id NULL) — plan 변경 생략, dismissed 만.
+async def test_stop_without_plan_terminates_outbox() -> None:
+    # 트랙 C 직행(plan_id NULL) — plan 이 없어 cancel_plan 대신 sent outbox 를 skipped 로 종결한다.
+    # 이게 없으면 피드가 dismissed_at 을 무시해 앱 재시작 재fetch 마다 카드가 부활한다(부활 버그).
     ev = _event(kind="recall", plan_id=None)
     repo = _ReactionRepo(event=ev)
     await _run(repo, _MochiRepo(None), _cmd(ev, ReactionKind.STOP))
     assert repo.dismissed_calls == 1
-    assert repo.cancelled == []
+    assert repo.cancelled == []  # plan 없음 → plan cancel 생략
+    assert repo.skipped == [(ev.event_id, _OWNER)]  # 트랙 C → outbox 종결로 피드 영구 제외
 
 
 # ---------- opened + spaced + knowledge 소생 ----------

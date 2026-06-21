@@ -13,12 +13,13 @@ final class NotificationsPageTests: XCTestCase {
     private func upcoming(
         eventID: UUID,
         fireAt: Date,
+        kind: String = "deadline",
         title: String = "리포트 제출",
         originalFireAt: Date? = nil
     ) -> UpcomingNotificationDTO {
         UpcomingNotificationDTO(
             eventID: eventID,
-            kind: "deadline",
+            kind: kind,
             fireAt: fireAt,
             title: title,
             body: "내일이 마감이에요",
@@ -94,6 +95,34 @@ final class NotificationsPageTests: XCTestCase {
         await store.finish()
         let vetoed = await api.vetoed
         XCTAssertEqual(vetoed, [UUID(1)])
+    }
+
+    func test_upcomingVetoed_spaced도_동일경로로_낙관제거() async {
+        // spaced 도 예정 목록에 섞여 들어오고, veto 시 reducer 는 deadline 과 동일 경로
+        // (낙관 제거 + 서버 보고)로 다룬다. "이번 회차만" 의미 분기는 백엔드가 담당.
+        let api = NotificationsStubAPIClient()
+        let deadline = upcoming(eventID: UUID(1), fireAt: Date(timeIntervalSince1970: 1_000))
+        let spaced = upcoming(
+            eventID: UUID(2),
+            fireAt: Date(timeIntervalSince1970: 2_000),
+            kind: "spaced",
+            title: "Swift Concurrency 정리"
+        )
+
+        var initial = NotificationsPageFeature.State()
+        initial.upcoming = [deadline, spaced]
+        let store = TestStore(initialState: initial) {
+            NotificationsPageFeature()
+        } withDependencies: {
+            $0.mochiAPIClient = api
+        }
+
+        await store.send(.upcomingVetoed(eventID: UUID(2))) {
+            $0.upcoming = [deadline]
+        }
+        await store.finish()
+        let vetoed = await api.vetoed
+        XCTAssertEqual(vetoed, [UUID(2)])
     }
 
     func test_upcomingRescheduled_낙관적_새시각_반영_원안보존_재정렬() async {

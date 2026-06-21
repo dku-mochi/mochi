@@ -22,7 +22,7 @@ _OWNER = uuid4()
 
 
 class _OverrideRepo:
-    def __init__(self, *, reschedule_rowcount: int = 1, veto_result=(1, None)) -> None:
+    def __init__(self, *, reschedule_rowcount: int = 1, veto_result=(1, None, None)) -> None:
         self._reschedule_rowcount = reschedule_rowcount
         self._veto_result = veto_result
         self.reschedule_calls: list[tuple] = []
@@ -40,9 +40,13 @@ class _OverrideRepo:
 class _ReactionsRepo:
     def __init__(self) -> None:
         self.cancelled: list[tuple] = []
+        self.bumped: list[tuple] = []
 
     async def cancel_plan(self, *, plan_id, owner_id) -> None:  # type: ignore[no-untyped-def]
         self.cancelled.append((plan_id, owner_id))
+
+    async def bump_plan_next_eligible(self, *, plan_id, owner_id) -> None:  # type: ignore[no-untyped-def]
+        self.bumped.append((plan_id, owner_id))
 
 
 # ---------- reschedule ----------
@@ -79,30 +83,45 @@ async def test_reschedule_missing_raises_not_found() -> None:
 # ---------- veto ----------
 
 
-async def test_veto_with_plan_cancels_plan() -> None:
+async def test_veto_deadline_with_plan_cancels_plan() -> None:
     plan_id = uuid4()
-    repo = _OverrideRepo(veto_result=(1, plan_id))
+    repo = _OverrideRepo(veto_result=(1, plan_id, "deadline"))
     reactions = _ReactionsRepo()
     await VetoUpcomingNotification(override=repo, reactions=reactions).execute(
         VetoUpcomingCommand(owner_id=_OWNER, event_id=uuid4())
     )
     assert reactions.cancelled == [(plan_id, _OWNER)]
+    assert reactions.bumped == []
 
 
-async def test_veto_without_plan_skips_cancel() -> None:
-    repo = _OverrideRepo(veto_result=(1, None))
+async def test_veto_spaced_bumps_next_eligible_not_cancel() -> None:
+    # spaced veto = "이번 회차만 건너뛰기" — plan cancel 대신 next_eligible bump(다음 회차 전진).
+    plan_id = uuid4()
+    repo = _OverrideRepo(veto_result=(1, plan_id, "spaced"))
+    reactions = _ReactionsRepo()
+    await VetoUpcomingNotification(override=repo, reactions=reactions).execute(
+        VetoUpcomingCommand(owner_id=_OWNER, event_id=uuid4())
+    )
+    assert reactions.bumped == [(plan_id, _OWNER)]
+    assert reactions.cancelled == []
+
+
+async def test_veto_without_plan_skips_both() -> None:
+    repo = _OverrideRepo(veto_result=(1, None, "recall"))
     reactions = _ReactionsRepo()
     await VetoUpcomingNotification(override=repo, reactions=reactions).execute(
         VetoUpcomingCommand(owner_id=_OWNER, event_id=uuid4())
     )
     assert reactions.cancelled == []
+    assert reactions.bumped == []
 
 
 async def test_veto_missing_raises_not_found() -> None:
-    repo = _OverrideRepo(veto_result=(0, None))
+    repo = _OverrideRepo(veto_result=(0, None, None))
     reactions = _ReactionsRepo()
     with pytest.raises(NotFoundError):
         await VetoUpcomingNotification(override=repo, reactions=reactions).execute(
             VetoUpcomingCommand(owner_id=_OWNER, event_id=uuid4())
         )
     assert reactions.cancelled == []
+    assert reactions.bumped == []

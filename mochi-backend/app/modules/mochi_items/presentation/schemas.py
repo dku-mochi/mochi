@@ -81,6 +81,10 @@ class MochiItemCreateRequest(BaseModel):
     user_memo: str | None = Field(default=None, alias="userMemo")
     image_refs: list[ImageRefDTO] = Field(default_factory=list, alias="imageRefs")
     confirmed_instances: list[ConfirmedInstanceDTO] = Field(default_factory=list, alias="confirmedInstances")
+    # 채팅 일정 proposal 이 propose-시점 경량 LLM 으로 도출한 item 메타(instance 재분석 아님 — §5.2).
+    # confirmed_instances 경로에서만 실린다. 일반 ingest 는 None → worker 분석이 채운다.
+    category: str | None = None
+    summary: str | None = None
 
     model_config = {"populate_by_name": True}
 

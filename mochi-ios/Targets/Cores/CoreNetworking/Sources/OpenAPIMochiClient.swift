@@ -51,7 +51,9 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
                         )
                     }
                 }
-            }
+            },
+            category: request.category,
+            summary: request.summary
         )
         let output = try await client.create_mochi_item_api_v1_mochi_items_post(
             .init(headers: .init(Idempotency_hyphen_Key: idempotencyKey), body: .json(body))

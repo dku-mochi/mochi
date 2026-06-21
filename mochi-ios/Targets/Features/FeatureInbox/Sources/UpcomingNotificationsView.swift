@@ -74,6 +74,9 @@ private struct UpcomingRow: View {
             ScheduleDateTile(date: entry.fireAt)
 
             VStack(alignment: .leading, spacing: 5) {
+                if entry.kind == "spaced" {
+                    recallBadge
+                }
                 Text(entry.title)
                     .font(.system(size: 14.5, weight: .bold, design: .rounded))
                     .foregroundStyle(HomeDesign.Color.textPrimary)
@@ -106,6 +109,20 @@ private struct UpcomingRow: View {
                 .stroke(HomeDesign.Color.border, lineWidth: 1)
         )
         .cardShadow()
+    }
+
+    /// spaced(회수 정착) 알림 표식 — "마감 리마인드"가 아니라 "다시 보기"임을 구분(회수 보라 톤).
+    private var recallBadge: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "sparkles")
+                .font(.system(size: 8.5, weight: .bold))
+            Text("다시 보기")
+                .font(.system(size: 10, weight: .heavy, design: .rounded))
+        }
+        .foregroundStyle(HomeDesign.Color.purple500)
+        .padding(.horizontal, HomeDesign.Spacing.sm)
+        .padding(.vertical, 2)
+        .background(Capsule().fill(HomeDesign.Color.purple500.opacity(0.12)))
     }
 
     /// 발송 예정 상대 라벨 — DueDisplay 의 일정 시각 언어 + 긴급도 색을 그대로 쓴다(같은 시각 언어).
@@ -163,7 +180,7 @@ private struct UpcomingRow: View {
                 actionChip(icon: "bell.slash.fill", tint: HomeDesign.Color.blush400)
             }
             .buttonStyle(PressableStyle())
-            .accessibilityLabel("이 알림 끄기")
+            .accessibilityLabel(entry.kind == "spaced" ? "이번 알림만 건너뛰기" : "이 알림 끄기")
         }
     }
 
@@ -295,6 +312,14 @@ private struct ReschedulePickerSheet: View {
                     title: "치과 예약",
                     body: "다가오는 일정을 미리 챙겨드릴게요.",
                     originalFireAt: Date().addingTimeInterval(60 * 60 * 24 * 2)
+                ),
+                UpcomingNotificationDTO(
+                    eventID: UUID(),
+                    kind: "spaced",
+                    fireAt: Date().addingTimeInterval(60 * 60 * 24 * 3),
+                    title: "Swift Concurrency 정리",
+                    body: "저장한 지 사흘 됐어요. 다시 보면 더 오래 남아요.",
+                    originalFireAt: nil
                 ),
             ],
             onVeto: { _ in },
