@@ -89,6 +89,11 @@ class _InMemoryUsers(UserRepository):
         if not user.display_name:
             user.display_name = display_name
 
+    async def mark_deleted(self, *, user_id, deleted_at):
+        user = self.users.get(user_id)
+        if user is not None:
+            user.deleted_at = deleted_at
+
     async def upsert_user_with_id(self, *, user_id, email, display_name, locale="ko-KR"):
         existing = self.users.get(user_id)
         if existing is not None:

@@ -101,6 +101,16 @@ public final class AuthCoordinator: AuthTokenProvider, @unchecked Sendable {
         try? captureStore.clear()
     }
 
+    /// 회원 탈퇴 — 서버 계정 삭제(soft delete + capture token revoke). 실패 시 throw(사용자에게 알림).
+    /// 로컬 세션 정리·로그인 전환은 호출 측이 로그아웃 경로(`RootFeature.requestSignOut`)로 잇는다
+    /// — 그 경로의 서버 logout 이 refresh token 까지 revoke 하고 store 를 비운다.
+    public func deleteAccount() async throws {
+        guard let access = await bearerToken() else {
+            throw AuthError.unknown(message: "No active session")
+        }
+        try await api.deleteAccount(accessToken: access)
+    }
+
     // MARK: - Capture token (ShareExtension 직접 전송용)
 
     /// capture token 보장 — 부재 · 계정 불일치 · 만료 임박(잔여 < 30일)이면 재발급한다.

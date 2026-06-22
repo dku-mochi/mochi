@@ -11,12 +11,16 @@ public struct SettingsFeature: Sendable {
     public struct State: Equatable, Sendable {
         /// 로그인 계정(이메일·이름). onAppear 에서 Keychain 세션을 읽어 채운다. nil = 미해결/로그아웃.
         public var account: Account?
-        /// "전체 동기화" 진행 중 — 버튼에 스피너 표시 + 중복 탭 차단.
-        public var isSyncing: Bool = false
         /// 푸시 알림 권한 상태(onAppear 에서 시스템 조회). 켜기 CTA·상태 칩 분기에 쓴다.
         public var notificationStatus: NotificationStatus = .unknown
         /// 민감 캡처를 항상 이 기기에만 저장할지(AppGroup 공유, ShareExtension 이 읽음).
         public var sensitiveAlwaysLocalOnly: Bool
+        /// 회원 탈퇴 확인 다이얼로그 표시 여부.
+        public var confirmingDelete: Bool = false
+        /// 탈퇴 진행 중 — 중복 탭·이중 호출 차단.
+        public var isDeletingAccount: Bool = false
+        /// 탈퇴 실패 메시지(있으면 alert).
+        public var deleteAccountError: String?
 
         public init() {
             self.sensitiveAlwaysLocalOnly = SensitiveCapturePreference.load()
@@ -49,9 +53,12 @@ public struct SettingsFeature: Sendable {
         case accountResolved(Account?)
         case notificationStatusResolved(NotificationStatus)
         case sensitiveLocalOnlyChanged(Bool)
-        /// 사용자가 "전체 동기화" 탭 — 서버→로컬 복구를 수동 트리거(재설치 복구의 보조 수단).
-        case syncAllTapped
-        case syncCompleted
+        case deleteAccountTapped
+        case confirmingDeleteChanged(Bool)
+        case deleteAccountConfirmed
+        case deleteAccountSucceeded
+        case deleteAccountFailed(String)
+        case deleteErrorDismissed
         case onboardingButtonTapped
         case logoutButtonTapped
         case delegate(Delegate)
@@ -64,7 +71,6 @@ public struct SettingsFeature: Sendable {
         }
     }
 
-    @Dependency(\.syncTrigger) var syncTrigger
     @Dependency(\.authCoordinator) var authCoordinator
 
     public init() {}
@@ -93,16 +99,38 @@ public struct SettingsFeature: Sendable {
                 SensitiveCapturePreference.save(value)
                 return .none
 
-            case .syncAllTapped:
-                guard !state.isSyncing else { return .none }
-                state.isSyncing = true
+            case .deleteAccountTapped:
+                state.confirmingDelete = true
+                return .none
+
+            case let .confirmingDeleteChanged(value):
+                state.confirmingDelete = value
+                return .none
+
+            case .deleteAccountConfirmed:
+                guard !state.isDeletingAccount else { return .none }
+                state.confirmingDelete = false
+                state.isDeletingAccount = true
                 return .run { send in
-                    await syncTrigger.pullRemote()
-                    await send(.syncCompleted)
+                    do {
+                        try await authCoordinator.deleteAccount()
+                        await send(.deleteAccountSucceeded)
+                    } catch {
+                        await send(.deleteAccountFailed(String(describing: error)))
+                    }
                 }
 
-            case .syncCompleted:
-                state.isSyncing = false
+            case .deleteAccountSucceeded:
+                // 서버 삭제 완료 → 로그아웃 경로로 로컬 세션 정리 + 로그인 화면 복귀(refresh 도 함께 revoke).
+                return .send(.delegate(.logoutRequested))
+
+            case let .deleteAccountFailed(message):
+                state.isDeletingAccount = false
+                state.deleteAccountError = message
+                return .none
+
+            case .deleteErrorDismissed:
+                state.deleteAccountError = nil
                 return .none
 
             case .onboardingButtonTapped:

@@ -578,6 +578,47 @@ public struct Client: APIProtocol {
             }
         )
     }
+    /// Delete Me
+    ///
+    /// 계정 삭제(회원 탈퇴) — soft delete(``deleted_at``) + capture token 전부 revoke.
+    ///
+    /// access JWT 인증 필수(capture token 으로는 통과 불가). 이후 sign-in/refresh 는
+    /// ``deleted_at`` 으로 거부되어 모든 세션이 무효화된다. idempotent(이미 삭제면 no-op).
+    ///
+    /// - Remark: HTTP `DELETE /api/v1/users/me`.
+    /// - Remark: Generated from `#/paths//api/v1/users/me/delete(delete_me_api_v1_users_me_delete)`.
+    public func delete_me_api_v1_users_me_delete(_ input: Operations.delete_me_api_v1_users_me_delete.Input) async throws -> Operations.delete_me_api_v1_users_me_delete.Output {
+        try await client.send(
+            input: input,
+            forOperation: Operations.delete_me_api_v1_users_me_delete.id,
+            serializer: { input in
+                let path = try converter.renderedPath(
+                    template: "/api/v1/users/me",
+                    parameters: []
+                )
+                var request: HTTPTypes.HTTPRequest = .init(
+                    soar_path: path,
+                    method: .delete
+                )
+                suppressMutabilityWarning(&request)
+                return (request, nil)
+            },
+            deserializer: { response, responseBody in
+                switch response.status.code {
+                case 204:
+                    return .noContent(.init())
+                default:
+                    return .undocumented(
+                        statusCode: response.status.code,
+                        .init(
+                            headerFields: response.headerFields,
+                            body: responseBody
+                        )
+                    )
+                }
+            }
+        )
+    }
     /// List Mochi Items
     ///
     /// 캘린더 탭 — captured_at 구간 내 owner 모찌 목록(특정 날짜 선택 시 그날 sheet).

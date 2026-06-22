@@ -15,11 +15,11 @@ public struct SettingsView: View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 0) {
                 accountSection
-                syncSection
                 notificationSection
                 privacySection
                 infoSection
                 logoutSection
+                deleteAccountSection
             }
             .padding(.horizontal, HomeDesign.Spacing.lg)
             .padding(.bottom, HomeDesign.Spacing.xxl)
@@ -29,6 +29,40 @@ public struct SettingsView: View {
         .navigationTitle("설정")
         .navigationBarTitleDisplayMode(.inline)
         .task { store.send(.onAppear) }
+        .confirmationDialog(
+            "계정을 삭제할까요?",
+            isPresented: Binding(get: { store.confirmingDelete }, set: { store.send(.confirmingDeleteChanged($0)) }),
+            titleVisibility: .visible
+        ) {
+            Button("계정 삭제", role: .destructive) { store.send(.deleteAccountConfirmed) }
+            Button("취소", role: .cancel) {}
+        } message: {
+            Text("모든 기억과 계정 정보가 삭제되며 되돌릴 수 없어요.")
+        }
+        .alert(
+            "탈퇴하지 못했어요",
+            isPresented: Binding(get: { store.deleteAccountError != nil }, set: { if !$0 { store.send(.deleteErrorDismissed) } })
+        ) {
+            Button("확인", role: .cancel) {}
+        } message: {
+            Text("잠시 후 다시 시도해 주세요.")
+        }
+    }
+
+    private var deleteAccountSection: some View {
+        Button { store.send(.deleteAccountTapped) } label: {
+            HStack(spacing: 6) {
+                if store.isDeletingAccount { ProgressView() }
+                Text("회원 탈퇴")
+                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .foregroundStyle(HomeDesign.Color.textMuted)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, HomeDesign.Spacing.lg)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(PressableStyle())
+        .disabled(store.isDeletingAccount)
     }
 
     // MARK: - 계정
@@ -69,25 +103,6 @@ public struct SettingsView: View {
     private var avatarInitial: String {
         guard let first = store.account?.name.first else { return "모" }
         return String(first).uppercased()
-    }
-
-    // MARK: - 동기화
-
-    private var syncSection: some View {
-        section("동기화") {
-            card {
-                Button { store.send(.syncAllTapped) } label: {
-                    row(
-                        icon: "arrow.triangle.2.circlepath", iconFg: HomeDesign.Color.purple500, iconBg: HomeDesign.Color.purple100,
-                        title: "전체 동기화", subtitle: "모찌에 보관된 기억을 이 기기로 불러오기"
-                    ) {
-                        if store.isSyncing { ProgressView() } else { chevron }
-                    }
-                }
-                .buttonStyle(PressableStyle())
-                .disabled(store.isSyncing)
-            }
-        }
     }
 
     // MARK: - 알림

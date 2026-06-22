@@ -14,6 +14,7 @@ from app.modules.auth.application.capture_tokens import (
     IssueCaptureToken,
     IssueCaptureTokenCommand,
 )
+from app.modules.auth.application.delete_account import DeleteAccount, DeleteAccountCommand
 from app.modules.auth.application.dev_sign_in import DevSignIn, DevSignInCommand
 from app.modules.auth.application.logout import Logout, LogoutCommand
 from app.modules.auth.application.refresh import RefreshCommand, RotateRefreshToken
@@ -85,6 +86,13 @@ def _build_issue_capture_token(db: AsyncSession) -> IssueCaptureToken:
         capture_tokens=PostgresCaptureTokenRepository(db),
         issuer=get_capture_token_issuer(),
         max_active=get_settings().auth_capture_max_active,
+    )
+
+
+def _build_delete_account(db: AsyncSession) -> DeleteAccount:
+    return DeleteAccount(
+        users=PostgresUserRepository(db),
+        capture_tokens=PostgresCaptureTokenRepository(db),
     )
 
 
@@ -258,3 +266,16 @@ async def get_me(db: DBSession, user: CurrentUser) -> UserResponse:
         locale=found.locale,
         onboarding_completed_at=found.onboarding_completed_at,
     )
+
+
+@users_router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_me(db: DBSession, user: CurrentUser) -> Response:
+    """계정 삭제(회원 탈퇴) — soft delete(``deleted_at``) + capture token 전부 revoke.
+
+    access JWT 인증 필수(capture token 으로는 통과 불가). 이후 sign-in/refresh 는
+    ``deleted_at`` 으로 거부되어 모든 세션이 무효화된다. idempotent(이미 삭제면 no-op).
+    """
+    use_case = _build_delete_account(db)
+    await use_case.execute(DeleteAccountCommand(user_id=user))
+    await db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
