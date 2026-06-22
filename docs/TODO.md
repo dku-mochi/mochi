@@ -224,7 +224,7 @@ VOYAGE_API_KEY=<dash.voyageai.com 또는 MongoDB Atlas 발급 키>
 - [ ] **Audit log**: 로그인 성공/실패, refresh rotation, reuse_detected 이벤트를 structlog 의 `auth.*` 카테고리로 남기고 알람 대상으로 등록.
 - [ ] **계정 삭제 (Right to be Forgotten)**: `users.deleted_at` 세팅 + email 익명화(`deleted+{id}@invalid.local`) + 모든 refresh token revoke + **모든 capture token revoke**(`CaptureTokenRepository.revoke_all_for_user`, reason=`user_account_deleted` — 훅 구현돼 있음) + (옵션) Apple `revoke` 엔드포인트 호출.
 - [ ] **Apple App Store 심사 요구사항**: Sign In with Apple 을 제공하면 다른 third-party 로그인(Google 등) 이 있을 때 **반드시** 함께 제공해야 함 (App Review §4.8). 모찌는 이미 둘 다 제공 ✅.
-- [ ] **로그인 화면 약관/개인정보처리방침 링크**: 실제 URL 로 교체 (현재 placeholder).
+- [ ] **약관/개인정보처리방침 링크 실제 URL**: 로그인 화면 + **설정 정보 섹션**(2026-06-22 추가, `SettingsView.termsURL`/`privacyPolicyURL`) 둘 다 현재 placeholder(`https://mochi.app/terms`·`/privacy`). 실제 URL 나오면 교체.
 - [ ] **iOS Keychain access control**: `kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly` 로 device-bound + 백업 제외(이미 적용 예정). Face ID gate 는 옵션.
 
 ### 5.1 민감 캡처 보호

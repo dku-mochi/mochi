@@ -248,7 +248,7 @@ false positive 의 UX 마찰을 차단한다.
 - 감지된 항목의 원문 전체를 다시 노출하지 않는다.
 - "인증번호로 보이는 숫자"처럼 유형 중심으로 설명한다.
 - 원본 업로드 허용은 매번 명시 승인으로 처리한다.
-- 설정에서 "민감 캡처는 항상 로컬 저장" 옵션을 제공한다.
+- 설정에서 "민감 캡처는 항상 로컬 저장" 옵션을 제공한다(2026-06-22 구현 — 설정 토글 → `SensitiveCapturePreference`(AppGroup UserDefaults 공유) → ShareExtension 이 읽어, 고신뢰 민감 신호 감지 시 선택 시트 없이 `localOnly` 로 저장. 사용자가 시트에서 localOnly 를 고른 것과 동일 상태라 저장 경로 불변. 감지 시 "이 기기에만 저장됨" 비차단 확인 토스트는 후속 §5.1 폴리시로 분리).
 - **APNs alert / Live Activity(push-to-start) payload 는 백엔드 분석 결과(summary·후보 라벨)만 싣는다** — 원본 캡션·이미지·App Group 로컬 경로는 제외한다(LA 썸네일은 payload 가 아니라 단말 디스크에서 직접 read, push-to-start 의 `thumbnailRelativePath=null`). alert push 가 기존부터 잠금화면에 summary 를 노출하므로 LA push-to-start 도 노출 정보원이 동일하다(회귀 아님, 팀 결정 2026-06-09). 민감도별 summary 마스킹은 alert·LA 공통 후속 과제로 분리.
 
 ---

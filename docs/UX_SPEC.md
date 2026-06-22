@@ -149,6 +149,17 @@ description: 화면·시나리오·IA·디자인 톤·데모 시나리오의 com
 
 **미션 정합**: 알림 페이지는 모찌가 능동으로 보낸/보낼 알림의 타임라인이다 — 회수의 주체는 여전히 모찌(PRODUCT §1.5). 사용자는 예정 알림을 끄거나 옮길 뿐(통제), 지난 알림은 받은 기록을 되짚어 보는 안전망이다. 둘 다 실패 격리(한 탭 로드 실패가 다른 탭을 막지 않음).
 
+### 3.4d 설정 (2026-06-22 재설계)
+
+홈 상단 설정(gearshape) → push 되는 화면(`SettingsView`/`SettingsFeature`, 즐겨찾기·알림 페이지와 같은 path 패턴). 회색 시스템 `Form` → **앱 톤 카드 섹션**(HomeDesign 토큰·`cardShadow`, 다른 회수 표면과 같은 시각 언어)으로 재설계. 죽은 컨트롤(Server Endpoint·캘린더/미리알림 동기화 토글 — base URL 하드코딩·미배선)은 제거.
+
+- **계정** — 아바타(이름 이니셜) + 이메일·이름. Keychain `AuthSession`(`authCoordinator.currentSession`)에서 읽음. 이름 비면 "모찌 사용자" 폴백(Apple 비공개 relay 대비).
+- **동기화** — "전체 동기화"(서버→로컬 복구, `syncTrigger.pullRemote`). 기존 유지.
+- **알림** — 권한 상태 칩(허용됨/꺼짐/미설정, `UNUserNotificationCenter` 조회) + "iOS 설정에서 관리"(`openSettingsURLString` 딥링크). 앱 내 회수/분석 알림 on/off 토글은 서버 선호 API 미존재로 후속.
+- **프라이버시** — "민감 캡처는 항상 이 기기에만" 토글(PRIVACY §5.3 이행). 켜면 고신뢰 민감 감지 시 선택 시트 없이 `localOnly`. `SensitiveCapturePreference`(AppGroup 공유)로 ShareExtension 이 읽는다.
+- **정보** — 온보딩 다시 보기(기존) · 이용약관 · 개인정보처리방침(둘 다 URL placeholder, TODO §5) · 앱 버전(`Bundle`).
+- **로그아웃** — 맨 아래 destructive. 기존 경로(`delegate → RootFeature.requestSignOut`).
+
 ### 3.5 검색 (회수)
 
 검색 탭은 **3 phase 화면** — `query` 만으로 자동 분기 (시안 #34-36, 2026-06-10 전면 재구현 / 2026-06-13 focused 화면 제거):
