@@ -10,6 +10,11 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-06-23 — backend, ios, docs (계정 삭제(회원 탈퇴) 풀스택 + 수동 "전체 동기화" 제거)
+- **계정 삭제 풀스택** (App Store §5.1.1(v) 필수). 백엔드 `DELETE /api/v1/users/me`(access JWT 인증) 신설 → `UserRepository.mark_deleted`(`deleted_at` 세팅, 멱등: 이미 삭제면 no-op) + `DeleteAccount` 유스케이스가 `CaptureTokenRepository.revoke_all_for_user`(reason=`user_account_deleted`)로 capture token 전부 폐기. 이후 sign-in/refresh 는 기존 `deleted_at` 거부 경로로 차단. iOS: `AuthAPIClient.deleteAccount`/`AuthCoordinator.deleteAccount` 추가 → 설정 §회원 탈퇴 → 확인 다이얼로그(되돌릴 수 없음 경고) → 성공 시 **로그아웃 경로 재사용**(`delegate(.logoutRequested)` → `RootFeature.requestSignOut`: 서버 logout 으로 refresh revoke + 로컬 세션 clear + 로그인 복귀). 실패 시 alert. 계약 동기화: `make openapi` → `delete_me_api_v1_users_me_delete` → iOS `CodeGen/generate.sh` 재생성.
+- **수동 "전체 동기화" 제거** (사용자 지시). 자동 동기화·재설치 복구가 있어 수동 버튼은 일반 사용자에게 모호 — `SettingsFeature` 의 `syncTrigger` 의존·`isSyncing`/`syncAllTapped`/`syncCompleted`·`SettingsView` 동기화 섹션 제거.
+- `make lint`/`typecheck`(내 파일) ✓, `make test` 477 통과, `test_auth_delete_account` 신설. iOS `tuist build Mochi` 성공, CoreAuth 테스트 9개 통과(`FakeAuthAPIClient.deleteAccount` 스텁). UX_SPEC §3.4d·TODO §5 동기화.
+
 ## 2026-06-22 — ios, docs (설정 상세 재설계 — 앱 톤 카드 + 계정·알림·프라이버시·정보)
 - **회색 시스템 `Form` → 앱 톤 카드 섹션**(`SettingsView`, HomeDesign 토큰·`cardShadow`·`PressableStyle`)으로 재설계 (사용자 지시). 죽은 컨트롤(Server Endpoint·캘린더/미리알림 동기화 토글 — base URL 하드코딩·어디서도 안 읽힘) 제거.
 - **계정 섹션** — Keychain `AuthSession`(`@Dependency(\.authCoordinator).currentSession`)에서 이메일·이름 표시(이름 비면 "모찌 사용자" 폴백). FeatureSettings 에 CoreAuth 의존 추가. **Apple 비공개 릴레이 이메일**(`@privaterelay.appleid.com`)은 의미 없는 주소 대신 "Apple로 로그인" 으로 표시.

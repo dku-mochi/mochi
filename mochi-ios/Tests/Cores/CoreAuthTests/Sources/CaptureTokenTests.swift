@@ -52,6 +52,9 @@ final class CaptureTokenTests: XCTestCase {
         func getMe(accessToken: String) async throws -> AuthUser {
             throw AuthError.unknown(message: "unused")
         }
+        func deleteAccount(accessToken: String) async throws {
+            throw AuthError.unknown(message: "unused")
+        }
     }
 
     struct StubAppleAuthClient: AppleAuthClient {

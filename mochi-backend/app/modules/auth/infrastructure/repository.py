@@ -153,6 +153,15 @@ class PostgresUserRepository(UserRepositoryPort):
         )
         await self._session.execute(stmt)
 
+    async def mark_deleted(self, *, user_id: UserID, deleted_at: datetime) -> None:
+        stmt = (
+            update(UserRow)
+            .where(UserRow.id == user_id)
+            .where(UserRow.deleted_at.is_(None))
+            .values(deleted_at=deleted_at)
+        )
+        await self._session.execute(stmt)
+
     async def upsert_user_with_id(
         self,
         *,
