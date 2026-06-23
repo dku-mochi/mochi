@@ -19,10 +19,17 @@ public struct LoginFeature: Sendable {
     @ObservableState
     public struct State: Equatable, Sendable {
         public var inFlightProvider: AuthProviderKind?
+        /// 약관 미동의 상태에서 로그인 탭 시, 동의 모달을 띄울 대상 provider. nil = 모달 닫힘.
+        public var consentProvider: AuthProviderKind?
         @Presents public var alert: AlertState<Action.Alert>?
 
-        public init(inFlightProvider: AuthProviderKind? = nil, alert: AlertState<Action.Alert>? = nil) {
+        public init(
+            inFlightProvider: AuthProviderKind? = nil,
+            consentProvider: AuthProviderKind? = nil,
+            alert: AlertState<Action.Alert>? = nil
+        ) {
             self.inFlightProvider = inFlightProvider
+            self.consentProvider = consentProvider
             self.alert = alert
         }
 
@@ -38,6 +45,10 @@ public struct LoginFeature: Sendable {
 
     public enum Action: Sendable {
         case signInTapped(AuthProviderKind)
+        /// 동의 모달에서 "동의하고 계속" — 동의를 저장하고 대기 중 provider 로 로그인을 이어 진행.
+        case consentAgreed
+        /// 동의 모달이 닫힘(취소·드래그 dismiss).
+        case consentDismissed
         case signInFailed(AuthProviderKind, message: String)
         case alert(PresentationAction<Alert>)
         case delegate(Delegate)
@@ -55,6 +66,13 @@ public struct LoginFeature: Sendable {
             switch action {
             case let .signInTapped(provider):
                 guard state.inFlightProvider == nil else { return .none }
+                // 약관 명시 동의 게이트 — apple/google 은 동의 후에만 진행(한국 개인정보보호법: 묵시적
+                // "동의 간주"는 명확한 동의로 인정받기 어려움). dev(DEBUG 전용)는 게이트 면제.
+                guard provider == .dev || Self.hasAgreedToLegal else {
+                    state.consentProvider = provider
+                    return .none
+                }
+                state.consentProvider = nil
                 state.inFlightProvider = provider
                 return .run { [authCoordinator] send in
                     do {
@@ -76,6 +94,22 @@ public struct LoginFeature: Sendable {
                     }
                 }
 
+            case .consentAgreed:
+                Self.hasAgreedToLegal = true
+                guard let provider = state.consentProvider else { return .none }
+                state.consentProvider = nil
+                // 동의 모달 dismiss 와 로그인 시트(Apple/Google) present 가 겹치면 "presenting while
+                // dismissing" 으로 로그인 시트가 안 뜰 수 있다. 시트 닫힘 애니메이션 후 진행한다.
+                // (동의는 이미 저장됐으니 재진입 시 게이트를 통과해 실제 로그인으로 이어진다.)
+                return .run { send in
+                    try? await Task.sleep(for: .milliseconds(350))
+                    await send(.signInTapped(provider))
+                }
+
+            case .consentDismissed:
+                state.consentProvider = nil
+                return .none
+
             case let .signInFailed(_, message):
                 state.inFlightProvider = nil
                 if !message.isEmpty {
@@ -94,5 +128,16 @@ public struct LoginFeature: Sendable {
             }
         }
         .ifLet(\.$alert, action: \.alert)
+    }
+
+    // MARK: - 약관 동의 (기기 단위 1회)
+
+    private static let legalConsentKey = "app.mochi.legalConsentAccepted"
+
+    /// 이용약관·개인정보처리방침 명시 동의 여부. 한국 개인정보보호법상 "동의 간주"(묵시적)는 약해,
+    /// 최초 로그인 전 동의 모달에서 명시적으로 받고 여기 저장한다(`UserDefaults` — 온보딩 완료 플래그와 동일 패턴).
+    static var hasAgreedToLegal: Bool {
+        get { UserDefaults.standard.bool(forKey: legalConsentKey) }
+        set { UserDefaults.standard.set(newValue, forKey: legalConsentKey) }
     }
 }
