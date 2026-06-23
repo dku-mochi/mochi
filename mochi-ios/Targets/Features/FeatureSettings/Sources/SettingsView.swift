@@ -8,6 +8,7 @@ import UIKit
 public struct SettingsView: View {
     @Bindable public var store: StoreOf<SettingsFeature>
     @Environment(\.openURL) private var openURL
+    @State private var legalPage: LegalPage?
 
     public init(store: StoreOf<SettingsFeature>) { self.store = store }
 
@@ -46,6 +47,20 @@ public struct SettingsView: View {
             Button("확인", role: .cancel) {}
         } message: {
             Text("잠시 후 다시 시도해 주세요.")
+        }
+        .sheet(item: $legalPage) { page in
+            NavigationStack {
+                LegalWebView(url: page.url)
+                    .ignoresSafeArea(edges: .bottom)
+                    .background(HomeDesign.Color.bg)
+                    .navigationTitle(page.title)
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button("닫기") { legalPage = nil }
+                        }
+                    }
+            }
         }
     }
 
@@ -168,13 +183,13 @@ public struct SettingsView: View {
                 }
                 .buttonStyle(PressableStyle())
                 rowDivider
-                Button { openURL(Self.termsURL) } label: {
+                Button { legalPage = LegalPage(title: "이용약관", url: Self.termsURL) } label: {
                     row(icon: "doc.text.fill", iconFg: HomeDesign.Color.ink500, iconBg: HomeDesign.Color.ink100,
                         title: "이용약관") { chevron }
                 }
                 .buttonStyle(PressableStyle())
                 rowDivider
-                Button { openURL(Self.privacyPolicyURL) } label: {
+                Button { legalPage = LegalPage(title: "개인정보처리방침", url: Self.privacyPolicyURL) } label: {
                     row(icon: "hand.raised.fill", iconFg: HomeDesign.Color.ink500, iconBg: HomeDesign.Color.ink100,
                         title: "개인정보처리방침") { chevron }
                 }
@@ -299,7 +314,7 @@ public struct SettingsView: View {
         return "v\(marketing) (\(build))"
     }
 
-    /// 약관·개인정보처리방침 — 실제 URL 미정(placeholder, TODO.md §5). 팀이 URL 제공 시 교체.
-    private static let termsURL = URL(string: "https://mochi.app/terms")!
-    private static let privacyPolicyURL = URL(string: "https://mochi.app/privacy")!
+    /// 이용약관·개인정보처리방침 — GitHub Pages 호스팅(repo `dku-mochi/legal`). 인앱 ``LegalWebView`` 로 표시.
+    private static let termsURL = URL(string: "https://dku-mochi.github.io/legal/terms.html")!
+    private static let privacyPolicyURL = URL(string: "https://dku-mochi.github.io/legal/privacy.html")!
 }
