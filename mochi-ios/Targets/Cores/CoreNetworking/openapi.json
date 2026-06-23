@@ -302,6 +302,31 @@
             }
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Delete Me",
+        "description": "계정 삭제(회원 탈퇴) — soft delete(``deleted_at``) + capture token 전부 revoke.\n\naccess JWT 인증 필수(capture token 으로는 통과 불가). 이후 sign-in/refresh 는\n``deleted_at`` 으로 거부되어 모든 세션이 무효화된다. idempotent(이미 삭제면 no-op).",
+        "operationId": "delete_me_api_v1_users_me_delete",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "Authorization",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        }
       }
     },
     "/api/v1/mochi_items": {

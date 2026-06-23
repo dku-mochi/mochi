@@ -165,6 +165,12 @@ public final class ShareExtensionPrincipal: UIViewController {
             guard let self, let detection,
                   !self.didSubmit, !self.privacyDismissed,
                   self.redaction.decision == nil, self.privacyOverlay == nil else { return }
+            // 설정 "민감 캡처는 항상 이 기기에만"(PRIVACY §5.3) 켜짐 → 시트 없이 localOnly 결정.
+            // 사용자가 시트에서 localOnly 를 고른 것과 동일한 상태(workingRef nil)라 저장 경로가 같다.
+            if SensitiveCapturePreference.load() {
+                self.redaction.decision = PrivacyDecision(policy: .localOnly, level: detection.assessment.level)
+                return
+            }
             self.presentEarlyPrivacy(detection)
         }
     }
@@ -250,6 +256,14 @@ public final class ShareExtensionPrincipal: UIViewController {
 
             // 선감지가 저장보다 늦은(아주 빠른 탭) fallback — 저장 시점 감지로 시트를 띄운다.
             if let detection = await Self.detectPrivacy(for: finalPayload) {
+                // 설정 "항상 이 기기에만" 켜짐 → 시트 없이 localOnly 적용 후 저장(PRIVACY §5.3).
+                if SensitiveCapturePreference.load() {
+                    let updated = Self.applyPrivacy(
+                        .localOnly, level: detection.assessment.level, blurRef: nil, to: finalPayload
+                    )
+                    await self.proceedSave(updated)
+                    return
+                }
                 self.presentPrivacyChoice(detection, payload: finalPayload, original: original)
                 return
             }

@@ -10,6 +10,20 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-06-23 — backend, ios, docs (계정 삭제(회원 탈퇴) 풀스택 + 수동 "전체 동기화" 제거)
+- **계정 삭제 풀스택** (App Store §5.1.1(v) 필수). 백엔드 `DELETE /api/v1/users/me`(access JWT 인증) 신설 → `UserRepository.mark_deleted`(`deleted_at` 세팅, 멱등: 이미 삭제면 no-op) + `DeleteAccount` 유스케이스가 `CaptureTokenRepository.revoke_all_for_user`(reason=`user_account_deleted`)로 capture token 전부 폐기. 이후 sign-in/refresh 는 기존 `deleted_at` 거부 경로로 차단. iOS: `AuthAPIClient.deleteAccount`/`AuthCoordinator.deleteAccount` 추가 → 설정 §회원 탈퇴 → 확인 다이얼로그(되돌릴 수 없음 경고) → 성공 시 **로그아웃 경로 재사용**(`delegate(.logoutRequested)` → `RootFeature.requestSignOut`: 서버 logout 으로 refresh revoke + 로컬 세션 clear + 로그인 복귀). 실패 시 alert. 계약 동기화: `make openapi` → `delete_me_api_v1_users_me_delete` → iOS `CodeGen/generate.sh` 재생성.
+- **수동 "전체 동기화" 제거** (사용자 지시). 자동 동기화·재설치 복구가 있어 수동 버튼은 일반 사용자에게 모호 — `SettingsFeature` 의 `syncTrigger` 의존·`isSyncing`/`syncAllTapped`/`syncCompleted`·`SettingsView` 동기화 섹션 제거.
+- `make lint`/`typecheck`(내 파일) ✓, `make test` 477 통과, `test_auth_delete_account` 신설. iOS `tuist build Mochi` 성공, CoreAuth 테스트 9개 통과(`FakeAuthAPIClient.deleteAccount` 스텁). UX_SPEC §3.4d·TODO §5 동기화.
+
+## 2026-06-22 — ios, docs (설정 상세 재설계 — 앱 톤 카드 + 계정·알림·프라이버시·정보)
+- **회색 시스템 `Form` → 앱 톤 카드 섹션**(`SettingsView`, HomeDesign 토큰·`cardShadow`·`PressableStyle`)으로 재설계 (사용자 지시). 죽은 컨트롤(Server Endpoint·캘린더/미리알림 동기화 토글 — base URL 하드코딩·어디서도 안 읽힘) 제거.
+- **계정 섹션** — Keychain `AuthSession`(`@Dependency(\.authCoordinator).currentSession`)에서 이메일·이름 표시(이름 비면 "모찌 사용자" 폴백). FeatureSettings 에 CoreAuth 의존 추가. **Apple 비공개 릴레이 이메일**(`@privaterelay.appleid.com`)은 의미 없는 주소 대신 "Apple로 로그인" 으로 표시.
+- **친절 문구** — "서버" 같은 기술 용어 회피: 동기화 "모찌에 보관된 기억을 불러오기", 프라이버시 "이 기기 밖으로 내보내지 않아요".
+- **알림 섹션** — 권한 상태 칩(`UNUserNotificationCenter.notificationSettings` onAppear 조회) + iOS 설정 딥링크(`openSettingsURLString`).
+- **프라이버시 섹션** — "민감 캡처는 항상 이 기기에만" 토글(PRIVACY §5.3 이행, 그간 설계만·미구현). `SensitiveCapturePreference`(AppGroup UserDefaults 공유) 신설 → ShareExtension 이 읽어 고신뢰 민감 감지 시 선택 시트 없이 `localOnly` 저장(사용자가 시트에서 localOnly 고른 것과 동일 상태라 저장 경로 불변, 선감지·저장fallback 두 경로 모두 주입).
+- **정보 섹션** — 온보딩 다시 보기(기존) · 이용약관 · 개인정보처리방침(둘 다 URL placeholder, TODO §5) · 앱 버전(`Bundle`). **로그아웃**(기존, destructive).
+- `tuist build FeatureSettings`/`ShareExtension`/`Mochi` 성공. SettingsFeature 테스트 없음(무회귀). UX_SPEC §3.4d 신설 + PRIVACY §5.3 + TODO §5 동기화.
+
 ## 2026-06-22 — ios
 - **[버그수정] 블러 캡처가 앱에서 원본으로 보이던 문제.** `blurredUpload` 는 서버엔 블러본을 올리지만 (`ShareExtDirectUpload`/`MochiItemSyncWorker` 정상), 앱 렌더는 `relativePath`(원본)만 써서 `redactedRelativePath`(블러본)가 UI 어디서도 안 쓰였다 → 사용자는 "가렸는데 원본이 보인다"(블러가 무력). `ImageRef.displayRelativePath`(`redactedRelativePath ?? relativePath`) 도입, **모든 렌더 표면**을 이걸로 교체 — 썸네일(`LocalThumbnail` 10곳)·상세 hero(`ScreenshotPreviewImage`)·전체화면(`JXPhotoBrowser`, 로드 이미지 상속)·hero zoom 전환(`imageRelativePath` 5곳)·Live Activity 썸네일(`thumbnailRelativePath`)·사진앱 저장(`ScreenshotSaver`). 업로드된 `objectKey`/`sha256` 은 이미 블러본 기준이라 재설치 후 GCS 폴백도 블러본. 원본 `relativePath` 는 업로드·크롭·정리 로직만 직접 참조(표시/저장과 분리). **알려진 한계**: `localOnly` 캡처는 서버 미업로드라 재설치 후 로컬 파일이 사라지면 복구 불가(설계상 — placeholder).
 - **선감지 자동 표시 플로우.** 기존엔 "모찌에 저장" 탭 *이후* OCR 감지라 민감 시트가 저장 후에 떴다. 이제 캡처 표시 **직후 background 로 선감지**(`startEarlyDetection`, 화면·기록 차단 0)하고, 민감하면 저장 탭을 기다리지 않고 **캡처 화면 위 오버레이로 시트를 자동 표시**(`presentEarlyPrivacy`). 캡처 화면은 아래 살아 있어 메모/크롭 유지. 확정="이대로 적용"→**블러본을 캡처 화면의 작업 이미지로 교체**(observable `CaptureRedaction` — 캡처 뷰 @State 보존)→돌아온 화면에서 블러본을 보며 **crop·메모를 그 위에서** 쓰고 저장. crop 은 `ShareImageCropper` 가 블러본의 `redactedRelativePath` 를 새 경로로 이어 정합 유지. 저장이 선감지보다 빠른 race 는 기존 저장시점 감지로 fallback.
