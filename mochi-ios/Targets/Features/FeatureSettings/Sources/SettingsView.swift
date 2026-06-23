@@ -183,13 +183,13 @@ public struct SettingsView: View {
                 }
                 .buttonStyle(PressableStyle())
                 rowDivider
-                Button { legalPage = LegalPage(title: "이용약관", url: Self.termsURL) } label: {
+                Button { legalPage = LegalPage(title: "이용약관", url: LegalLinks.terms) } label: {
                     row(icon: "doc.text.fill", iconFg: HomeDesign.Color.ink500, iconBg: HomeDesign.Color.ink100,
                         title: "이용약관") { chevron }
                 }
                 .buttonStyle(PressableStyle())
                 rowDivider
-                Button { legalPage = LegalPage(title: "개인정보처리방침", url: Self.privacyPolicyURL) } label: {
+                Button { legalPage = LegalPage(title: "개인정보처리방침", url: LegalLinks.privacy) } label: {
                     row(icon: "hand.raised.fill", iconFg: HomeDesign.Color.ink500, iconBg: HomeDesign.Color.ink100,
                         title: "개인정보처리방침") { chevron }
                 }
@@ -314,7 +314,4 @@ public struct SettingsView: View {
         return "v\(marketing) (\(build))"
     }
 
-    /// 이용약관·개인정보처리방침 — GitHub Pages 호스팅(repo `dku-mochi/legal`). 인앱 ``LegalWebView`` 로 표시.
-    private static let termsURL = URL(string: "https://dku-mochi.github.io/legal/terms.html")!
-    private static let privacyPolicyURL = URL(string: "https://dku-mochi.github.io/legal/privacy.html")!
 }

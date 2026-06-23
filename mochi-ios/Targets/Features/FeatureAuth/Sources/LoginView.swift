@@ -6,6 +6,7 @@ import SwiftUI
 /// 로그인 진입 화면 — 시안 그대로 보라/연보라 그라데이션 + 모찌 캐릭터 + Apple/Google 버튼 + 약관 푸터.
 public struct LoginView: View {
     @Bindable var store: StoreOf<LoginFeature>
+    @State private var legalPage: LegalPage?
 
     public init(store: StoreOf<LoginFeature>) {
         self.store = store
@@ -41,6 +42,19 @@ public struct LoginView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .alert($store.scope(state: \.alert, action: \.alert))
+        .sheet(item: $legalPage) { page in
+            NavigationStack {
+                LegalWebView(url: page.url)
+                    .ignoresSafeArea(edges: .bottom)
+                    .navigationTitle(page.title)
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button("닫기") { legalPage = nil }
+                        }
+                    }
+            }
+        }
     }
 
     // MARK: - Header
@@ -206,15 +220,22 @@ public struct LoginView: View {
     // MARK: - Footer
 
     private var footer: some View {
-        VStack(spacing: 0) {
-            Text(
-                "로그인하면 서비스 이용약관 및 개인정보처리방침에\n동의하는 것으로 간주됩니다."
-            )
-            .font(.system(size: 11, weight: .regular, design: .rounded))
-            .foregroundStyle(Self.footerColor)
-            .multilineTextAlignment(.center)
-            .lineSpacing(2)
-        }
+        Text(
+            "로그인하면 서비스 [이용약관](mochi-legal://terms) 및 [개인정보처리방침](mochi-legal://privacy)에 동의하는 것으로 간주됩니다."
+        )
+        .font(.system(size: 11, weight: .regular, design: .rounded))
+        .foregroundStyle(Self.footerColor)
+        .tint(Self.titleColor)
+        .multilineTextAlignment(.center)
+        .lineSpacing(2)
+        .environment(\.openURL, OpenURLAction { url in
+            switch url.host {
+            case "terms": legalPage = LegalPage(title: "이용약관", url: LegalLinks.terms)
+            case "privacy": legalPage = LegalPage(title: "개인정보처리방침", url: LegalLinks.privacy)
+            default: return .systemAction
+            }
+            return .handled
+        })
     }
 
     // MARK: - Background
