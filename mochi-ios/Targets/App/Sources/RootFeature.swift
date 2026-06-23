@@ -92,6 +92,7 @@ struct RootFeature: Sendable {
     @Dependency(\.authCoordinator) var authCoordinator
     @Dependency(\.syncTrigger) var syncTrigger
     @Dependency(\.pushAuthorization) var pushAuthorization
+    @Dependency(\.mochiItemRepository) var mochiItemRepository
 
     var body: some ReducerOf<Self> {
         Scope(state: \.login, action: \.login) { LoginFeature() }
@@ -207,8 +208,14 @@ struct RootFeature: Sendable {
                 return .merge(pull, push, route)
 
             case .requestSignOut:
-                return .run { [authCoordinator] send in
+                return .run { [authCoordinator, mochiItemRepository] send in
                     await authCoordinator.signOut()
+                    // 계정 전환 시 이전 사용자 데이터 잔존 방지 — 로컬 Realm + 캡처 이미지를 비운다.
+                    // Realm 은 단일 파일·사용자 미분리라 로그아웃 때 비우지 않으면 재로그인 후 이전 계정
+                    // 기록이 그대로 남아 새 계정 데이터와 혼재된다(프라이버시 사고). signOut 으로 토큰을
+                    // 먼저 무효화한 뒤 지우므로, 진행 중이던 pull 이 있어도 401 로 멈춰 재오염되지 않는다.
+                    try? await mochiItemRepository.deleteAll()
+                    AppGroup.clearCapturedImages()
                     await send(.sessionResolved(nil))
                 }
 
