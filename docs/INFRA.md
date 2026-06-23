@@ -240,7 +240,7 @@ gcloud compute instances delete-access-config mochi-db --zone=asia-northeast3-c 
 재부팅해도 `--restart=always` 라 컨테이너는 자동 기동(startup-script 의 apt 단계는 외부망 없으면 실패하지만 컨테이너 동작엔 무관).
 
 ### 5.4 production = dev 로그인 차단
-`.env` 의 `ENVIRONMENT=production` 이라 `POST /auth/dev` 가 503 으로 막힌다(의도된 보안). **Apple 로그인은 운영 연결 완료**(`.env` `AUTH_APPLE_*` 명시 + iOS Release baseURL → 배포 백엔드, 2026-06-08). **Google 로그인**은 `AUTH_GOOGLE_CLIENT_IDS` 미주입이라 아직 미연결. 푸시(`APNS_AUTH_KEY_P8_BASE64`)는 `mochi-apns-p8-base64` Secret 으로 주입 완료(2026-06-08, key_id `CA6C3JCHW3`, EC 키 파싱 검증).
+`.env` 의 `ENVIRONMENT=production` 이라 `POST /auth/dev` 가 503 으로 막힌다(의도된 보안). **Apple 로그인은 운영 연결 완료**(`.env` `AUTH_APPLE_*` 명시 + iOS Release baseURL → 배포 백엔드, 2026-06-08). **Google 로그인도 운영 연결 완료**(2026-06-23): svc `/opt/mochi/.env` 에 `AUTH_GOOGLE_CLIENT_IDS`(iOS client id) append + `sudo systemctl restart mochi`, `/api/v1/health` ok. client id 는 공개 식별자라 Secret Manager 불필요·`.env` 직접. ⚠️ `.env` 가 재배포 setup 으로 재생성되면 이 키가 사라지므로, 재배포 스크립트(`mochi-svc-setup.sh`, repo 밖)의 `.env` 생성부에 `AUTH_GOOGLE_CLIENT_IDS` 를 포함해야 영속된다. 푸시(`APNS_AUTH_KEY_P8_BASE64`)는 `mochi-apns-p8-base64` Secret 으로 주입 완료(2026-06-08, key_id `CA6C3JCHW3`, EC 키 파싱 검증).
 
 ### 5.5 nip.io / static IP 결합
 TLS 도메인이 `34-64-104-136.nip.io` = svc IP 임베드. **IP 가 바뀌면 도메인·인증서가 통째로 바뀐다.** 그래서 svc 는 반드시 **static IP**(`mochi-svc-ip`)여야 한다. 운영 도메인을 따로 살 거면 그 도메인 A 레코드 → svc IP, Caddyfile 의 도메인만 교체하면 자동 재발급.
@@ -261,6 +261,6 @@ JWT secret·DB 비번은 Secret Manager 에만. VM 에 키파일 없음(SA + met
 - [x] SSH 단독화 — 현 상태 유지로 결정 (§3: owner 3명은 mochi 무관 팀원, 강등 안 함)
 - [x] Apple 로그인 운영 연결 — 백엔드 `AUTH_APPLE_*` 명시 + iOS Release baseURL (2026-06-08)
 - [x] iOS Release baseURL → 배포 서버 (`AppDependencies.resolveBaseURL`, Debug 는 localhost/LAN 유지)
-- [ ] Google 로그인: `AUTH_GOOGLE_CLIENT_IDS` 주입 (미연결)
+- [x] Google 로그인: `AUTH_GOOGLE_CLIENT_IDS` 주입 — svc `.env` append + `systemctl restart mochi` (2026-06-23). ⚠️ 재배포 시 `.env` 생성부에 포함 필요(공개 client id, Secret 불필요).
 - [ ] db 데이터 디스크 분리 + 스냅샷 백업
 - [ ] (선택) 운영 도메인 구입 → nip.io 대체

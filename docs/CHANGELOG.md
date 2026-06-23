@@ -10,6 +10,9 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-06-23 — infra (Google 로그인 운영 서버 연결)
+- GCP `mochi-svc` 의 `/opt/mochi/.env` 에 `AUTH_GOOGLE_CLIENT_IDS`(iOS client id) 주입 + `sudo systemctl restart mochi`. `/api/v1/health` ok. client id 는 공개 식별자라 Secret Manager 불필요(.env 직접). ⚠️ `.env` 는 재배포 setup 으로 재생성되므로 `mochi-svc-setup.sh`(repo 밖) `.env` 생성부에 포함해야 영속 — 미포함 시 재배포 후 재연결 필요. INFRA §5.4·§6 동기화.
+
 ## 2026-06-23 — ios, docs (Google 로그인 iOS 결선 + 공식 로고)
 - **Google OAuth iOS 결선.** GCP iOS OAuth client(`app.mochi`) 발급물의 `CLIENT_ID`/`REVERSED_CLIENT_ID` 를 `Targets/App/Support/Info.plist` 의 `GIDClientID` + `CFBundleURLTypes` URL scheme 으로 주입. GoogleSignIn 8.x 가 config 미지정 시 `GIDClientID` 를 자동 로드해 `signIn(withPresenting:)`, OAuth redirect 는 `MochiApp.onOpenURL → LiveGoogleAuthClient.handle(url:)` 로 복귀. 코드·연결부(`AppDependencies` 주입·`restorePreviousSignIn`)와 백엔드(`/auth/google`·ID Token 검증)는 **기존 완성** — 설정값만 비어 있던 상태였다. 남은 사람 작업: `.env` `AUTH_GOOGLE_CLIENT_IDS` 설정.
 - **로그인 화면 Google 로고 교체.** 임시 `GoogleGShape`(코드로 그린 단순 4색 G) → 공식 4색 "G" 로고(`Assets/GoogleLogo`, 브랜딩 가이드라인 SVG, 색·비율 불변). `LoginView.googleLogo` 가 `Image("GoogleLogo")` 사용, `GoogleGShape` 제거.
