@@ -10,6 +10,13 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-06-23 — ios, docs (이용약관·개인정보처리방침 호스팅 + 인앱 WebView)
+- **법무 페이지 호스팅** — private 메인 repo 는 GitHub Pages 가 free 플랜에서 불가라, 법무 페이지만 **별도 공개 repo `dku-mochi/legal`** 로 분리 + Pages 활성(`/legal/terms.html`·`/legal/privacy.html`, HTTP 200 확인). 모바일 앱 톤 정적 HTML(라벤더 단일 액센트·`noindex`), 공유 `style.css` + **Pretendard 웹폰트**(iOS 시뮬레이터 WebKit 한글 두부 방지) + 한국어 줄바꿈 정돈(`word-break:keep-all`·`overflow-wrap`·`text-wrap`). 하나의 페이지가 진실의 원천 → App Store 제출 URL·인앱 표시 공용, 페이지만 고치면 앱 재배포 없이 갱신.
+- **이용약관 신설** — 현재 프로젝트 상태에 맞춘 13개 조항(목적·정의·서비스 내용·계정·콘텐츠 권리·금지행위·**AI 결과물 한계**·변경/중단·계정 해지·면책·준거법·문의). 개인정보처리방침과 상호 링크.
+- **인앱 WebView 표시** — 설정 §정보 이용약관·개인정보처리방침 → 외부 Safari 로 튕기지 않고 `LegalWebView`(WKWebView `UIViewRepresentable`, iOS 17 은 SwiftUI 네이티브 WebView 부재)를 공통 `.sheet(item:)`(`LegalPage` = 제목+URL)로 표시. `termsURL`·`privacyPolicyURL` placeholder(`mochi.app/*`) → 실제 Pages URL 교체.
+- 공개 페이지라 보호책임자 연락처는 **전화번호 제외, 이메일만**(스크래핑·스팸 방어).
+- `tuist build Mochi` 성공. UX_SPEC §3.4d·TODO §5 동기화.
+
 ## 2026-06-23 — backend, ios, docs (계정 삭제(회원 탈퇴) 풀스택 + 수동 "전체 동기화" 제거)
 - **계정 삭제 풀스택** (App Store §5.1.1(v) 필수). 백엔드 `DELETE /api/v1/users/me`(access JWT 인증) 신설 → `UserRepository.mark_deleted`(`deleted_at` 세팅, 멱등: 이미 삭제면 no-op) + `DeleteAccount` 유스케이스가 `CaptureTokenRepository.revoke_all_for_user`(reason=`user_account_deleted`)로 capture token 전부 폐기. 이후 sign-in/refresh 는 기존 `deleted_at` 거부 경로로 차단. iOS: `AuthAPIClient.deleteAccount`/`AuthCoordinator.deleteAccount` 추가 → 설정 §회원 탈퇴 → 확인 다이얼로그(되돌릴 수 없음 경고) → 성공 시 **로그아웃 경로 재사용**(`delegate(.logoutRequested)` → `RootFeature.requestSignOut`: 서버 logout 으로 refresh revoke + 로컬 세션 clear + 로그인 복귀). 실패 시 alert. 계약 동기화: `make openapi` → `delete_me_api_v1_users_me_delete` → iOS `CodeGen/generate.sh` 재생성.
 - **수동 "전체 동기화" 제거** (사용자 지시). 자동 동기화·재설치 복구가 있어 수동 버튼은 일반 사용자에게 모호 — `SettingsFeature` 의 `syncTrigger` 의존·`isSyncing`/`syncAllTapped`/`syncCompleted`·`SettingsView` 동기화 섹션 제거.
