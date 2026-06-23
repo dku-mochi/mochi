@@ -198,23 +198,12 @@ public struct LoginView: View {
             .foregroundStyle(.white)
     }
 
-    /// Google G logo — 시안과 동일한 4색 G.
+    /// Google 공식 4색 "G" 로고 (Assets: GoogleLogo — 브랜딩 가이드라인 SVG 원본, 색·비율 변경 금지).
     private var googleLogo: some View {
-        ZStack {
-            // 단순화된 4색 마크 — 정식 G 아이콘 자산이 들어오면 교체 (codex review 이후).
-            GoogleGShape()
-                .fill(LinearGradient(
-                    colors: [
-                        Color(red: 0.27, green: 0.50, blue: 0.96),
-                        Color(red: 0.92, green: 0.30, blue: 0.27),
-                        Color(red: 0.97, green: 0.74, blue: 0.13),
-                        Color(red: 0.20, green: 0.66, blue: 0.33),
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                ))
-        }
-        .frame(width: 22, height: 22)
+        Image("GoogleLogo")
+            .resizable()
+            .scaledToFit()
+            .frame(width: 18, height: 18)
     }
 
     // MARK: - Footer
@@ -257,22 +246,6 @@ public struct LoginView: View {
     private static let titleColor = Color(red: 0.21, green: 0.20, blue: 0.45)
     private static let mutedTextColor = Color(red: 0.36, green: 0.34, blue: 0.55)
     private static let footerColor = Color(red: 0.55, green: 0.55, blue: 0.70)
-}
-
-/// Google G 의 단순화된 형태 — 자산 도착 전 임시.
-private struct GoogleGShape: Shape {
-    func path(in rect: CGRect) -> Path {
-        Path { p in
-            let r = min(rect.width, rect.height) / 2
-            let c = CGPoint(x: rect.midX, y: rect.midY)
-            p.addArc(center: c, radius: r, startAngle: .degrees(-60), endAngle: .degrees(360 - 60), clockwise: false)
-            // 가로 막대 (G 의 꼬리)
-            p.move(to: CGPoint(x: c.x, y: c.y))
-            p.addLine(to: CGPoint(x: c.x + r * 0.85, y: c.y))
-            p.addLine(to: CGPoint(x: c.x + r * 0.85, y: c.y - r * 0.45))
-            p.closeSubpath()
-        }
-    }
 }
 
 #if DEBUG

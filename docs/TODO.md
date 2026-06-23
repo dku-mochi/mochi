@@ -52,23 +52,24 @@ description: 외부 설정·비밀값 체크리스트 + 활성 작업·다음 sp
 ## 2. Google Cloud Console
 
 ### 2.1 OAuth Client ID (iOS)
-- [ ] console.cloud.google.com → APIs & Services → Credentials → **Create Credentials → OAuth client ID**
-- [ ] Application type: **iOS**
-- [ ] Bundle ID: `app.mochi`
-- [ ] Team ID: `U9SLX327XS` (Project.swift `developmentTeam`)
-- [ ] 생성된 **iOS client ID** 메모: `XXXXXXXXX-YYYYYYYY.apps.googleusercontent.com`
-- [ ] Reversed client ID 메모: `com.googleusercontent.apps.XXXXXXXXX-YYYYYYYY`
+- [x] console.cloud.google.com → APIs & Services → Credentials → **Create Credentials → OAuth client ID**
+- [x] Application type: **iOS**
+- [x] Bundle ID: `app.mochi`
+- [x] Team ID: `U9SLX327XS` (Project.swift `developmentTeam`)
+- [x] 생성된 **iOS client ID** (2026-06-23): `342560597049-732omfb5ut3tgut5epcr4irj5tjfodgg.apps.googleusercontent.com` — `Info.plist` `GIDClientID` 에 결선.
+- [x] Reversed client ID: `com.googleusercontent.apps.342560597049-732omfb5ut3tgut5epcr4irj5tjfodgg` — `Info.plist` `CFBundleURLTypes` URL scheme 에 결선.
 
 ### 2.2 (옵션) Web/Backend Client ID
 백엔드가 ID Token 의 `aud` 클레임을 검증할 때, 모바일 client id 외에 web client id 도 허용해 두면 future-proof.
 - [ ] Application type: **Web application** 추가 생성
 - [ ] **Web client ID** 메모
 
-### 2.3 GoogleService-Info.plist
-- [ ] iOS OAuth client 생성 화면에서 `GoogleService-Info.plist` 다운로드
-- [ ] `mochi-ios/Targets/App/Resources/GoogleService-Info.plist` 로 배치
-- [ ] **.gitignore 에 이미 등록되어 있음** — 커밋 금지 (개인별 자료)
-- [ ] CI 가 필요해지면 secrets 에 base64 로 저장 후 워크플로에서 디코드
+### 2.3 GoogleService-Info.plist — 본 앱은 미사용 (2026-06-23 정정)
+- 본 앱은 Firebase 를 쓰지 않으므로 `GoogleService-Info.plist` 파일을 **코드에서 읽지 않는다.**
+  GoogleSignIn 8.x 는 `Info.plist` 의 `GIDClientID`(§2.1·§3.1) 를 자동 로드하는 방식으로 결선했다
+  (`LiveGoogleAuthClient` 의 placeholder 검사도 `GIDClientID` 를 본다 — `LiveGoogleAuthClient.swift:41`).
+- 따라서 GCP 에서 받은 plist(`OAuth 클라이언트 ID.plist`)는 **값의 출처로만** 쓰고 레포에 배치하지 않는다.
+  (`.gitignore` 의 `GoogleService-Info.plist` 항목은 혹시 모를 실수 커밋 방지용으로 그대로 둔다.)
 
 ### 2.4 OAuth Consent Screen
 - [ ] User type: **External**
@@ -105,17 +106,16 @@ description: 외부 설정·비밀값 체크리스트 + 활성 작업·다음 sp
 
 ⚠️ `Show Preview ON` 또는 `이미지 변환` 액션 누락은 자동화를 깬다. 온보딩 가이드에서 두 가지 다 명시.
 
-### 3.1 Info.plist URL Scheme (Google)
-- [ ] `Targets/App/Support/Info.plist` 에 `CFBundleURLTypes` 등록 (Reversed client ID)
-- 실제 값은 §2.1 의 Reversed client ID 로 치환되어야 함.
-- ⚠️ 현재는 **비워 둠**(주석만 — Info.plist L55~59). 플레이스홀더를 박으면 App Store Connect 업로드 validation 이 "URL scheme not in correct format" 으로 실패하므로 §2.1 iOS client 값 확보 후 추가한다. Google 미설정이라 현재 TestFlight 는 Apple 로그인만 동작.
+### 3.1 Info.plist URL Scheme + GIDClientID (Google)
+- [x] `Targets/App/Support/Info.plist` 에 `GIDClientID`(§2.1 CLIENT_ID) + `CFBundleURLTypes`(§2.1 Reversed client ID URL scheme) 등록 (2026-06-23).
+- ✅ 실제 iOS client 값으로 결선 완료 — placeholder 가 아니므로 App Store Connect 업로드 validation 통과. Google 로그인 활성(코드·연결부는 기존 완성, 설정값만 비어 있던 상태였음). 남은 건 §4 백엔드 `.env` `AUTH_GOOGLE_CLIENT_IDS` 설정.
 
 ### 3.2 Entitlements — Sign In with Apple
 - [x] `Targets/App/Support/App.entitlements` 에 `com.apple.developer.applesignin = ["Default"]` 추가됨
 - §1.1 App ID 작업이 끝나야 Xcode 빌드 통과
 
-### 3.3 GoogleService-Info.plist 배치
-- [ ] §2.3 참고. 빌드 전에 필수.
+### 3.3 GoogleService-Info.plist 배치 — 불필요 (2026-06-23 정정)
+- §2.3 참고. 본 앱은 `Info.plist` `GIDClientID` 직접 방식이라 `GoogleService-Info.plist` 배치가 필요 없다.
 
 ### 3.4 백탭 snippet / 모달 에러 핸들링 보강 (production 직전)
 
