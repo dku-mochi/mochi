@@ -13,7 +13,8 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 ## 2026-06-23 — ios, docs (이용약관·개인정보처리방침 호스팅 + 인앱 WebView)
 - **법무 페이지 호스팅** — private 메인 repo 는 GitHub Pages 가 free 플랜에서 불가라, 법무 페이지만 **별도 공개 repo `dku-mochi/legal`** 로 분리 + Pages 활성(`/legal/terms.html`·`/legal/privacy.html`, HTTP 200 확인). 모바일 앱 톤 정적 HTML(라벤더 단일 액센트·`noindex`), 공유 `style.css` + **Pretendard 웹폰트**(iOS 시뮬레이터 WebKit 한글 두부 방지) + 한국어 줄바꿈 정돈(`word-break:keep-all`·`overflow-wrap`·`text-wrap`). 하나의 페이지가 진실의 원천 → App Store 제출 URL·인앱 표시 공용, 페이지만 고치면 앱 재배포 없이 갱신.
 - **이용약관 신설** — 현재 프로젝트 상태에 맞춘 13개 조항(목적·정의·서비스 내용·계정·콘텐츠 권리·금지행위·**AI 결과물 한계**·변경/중단·계정 해지·면책·준거법·문의). 개인정보처리방침과 상호 링크.
-- **인앱 WebView 표시** — 설정 §정보 이용약관·개인정보처리방침 → 외부 Safari 로 튕기지 않고 `LegalWebView`(WKWebView `UIViewRepresentable`, iOS 17 은 SwiftUI 네이티브 WebView 부재)를 공통 `.sheet(item:)`(`LegalPage` = 제목+URL)로 표시. `termsURL`·`privacyPolicyURL` placeholder(`mochi.app/*`) → 실제 Pages URL 교체.
+- **인앱 WebView 표시(설정 + 로그인)** — 외부 Safari 로 튕기지 않고 `LegalWebView`(WKWebView `UIViewRepresentable`, iOS 17 은 SwiftUI 네이티브 WebView 부재)를 공통 `.sheet(item:)`(`LegalPage` = 제목+URL)로 표시. ① **설정 §정보** 이용약관·개인정보처리방침 버튼, ② **로그인 화면 동의 푸터** — 기존 평문 "로그인하면 이용약관·개인정보처리방침에 동의" 의 두 문구를 마크다운 링크 + `OpenURLAction` 으로 탭 가능하게(묵시적 동의, App Store + 한국 가입 동의 관례).
+- **`LegalWebView`/`LegalPage`/`LegalLinks` → DesignSystem 승격** — 설정·로그인 두 Feature 가 공유하므로 Feature 간 import(레이어 위반) 대신 공유 UI 레이어로 이동(public). 호스팅 URL 은 `LegalLinks` 단일 원천(도메인 이전 시 한 곳만 수정). `termsURL`·`privacyPolicyURL` placeholder(`mochi.app/*`) → 실제 Pages URL 교체.
 - 공개 페이지라 보호책임자 연락처는 **전화번호 제외, 이메일만**(스크래핑·스팸 방어).
 - `tuist build Mochi` 성공. UX_SPEC §3.4d·TODO §5 동기화.
 
