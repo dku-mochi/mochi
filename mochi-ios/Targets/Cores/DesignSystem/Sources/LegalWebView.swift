@@ -40,3 +40,47 @@ public struct LegalPage: Identifiable {
         self.url = url
     }
 }
+
+/// 호스팅 법무 페이지(`dku-mochi/legal` `style.css` 의 `--bg: #FAF8FF`)와 맞춘 시트·네비 배경.
+/// `LegalWebView` 가 투명(`.clear`)이라 이 색이 페이지 배경과 이어져 이음매가 없다.
+public enum LegalPalette {
+    public static let background = Color(red: 250.0 / 255.0, green: 248.0 / 255.0, blue: 255.0 / 255.0)
+}
+
+public extension View {
+    /// 이용약관·개인정보처리방침을 앱 톤 시트로 띄운다 — 설정·로그인이 공유해 스타일을 단일화한다.
+    /// 배경 = 웹 페이지 색(#FAF8FF), tint = 브랜드 퍼플, 우상단 원형 X(``CircularGlyph``) 닫기.
+    func legalSheet(item: Binding<LegalPage?>) -> some View {
+        sheet(item: item) { page in
+            LegalSheetContent(page: page) { item.wrappedValue = nil }
+        }
+    }
+}
+
+private struct LegalSheetContent: View {
+    let page: LegalPage
+    let onClose: () -> Void
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                LegalPalette.background.ignoresSafeArea()
+                LegalWebView(url: page.url)
+                    .ignoresSafeArea(edges: .bottom)
+            }
+            .navigationTitle(page.title)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(action: onClose) {
+                        CircularGlyph("xmark")
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .toolbarBackground(LegalPalette.background, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+        }
+        .tint(HomeDesign.Color.purple500)
+    }
+}

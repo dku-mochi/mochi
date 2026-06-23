@@ -29,6 +29,14 @@ public enum AppGroup {
         return url
     }
 
+    /// 로그아웃·계정 전환 시 로컬 캡처 이미지를 전부 삭제한다(프라이버시 — 이전 사용자 이미지 잔존 방지).
+    /// 디렉토리 자체는 유지하고 내용만 비운다. Realm 항목 삭제(`MochiItemRepository.deleteAll`)와 함께 호출한다.
+    public static func clearCapturedImages() {
+        let fm = FileManager.default
+        let urls = (try? fm.contentsOfDirectory(at: capturedImagesDirectoryURL, includingPropertiesForKeys: nil)) ?? []
+        for url in urls { try? fm.removeItem(at: url) }
+    }
+
     /// ShareExtension이 데이터를 즉시 메인 앱과 공유할 수 없을 때 사용하는 inbound 큐.
     public static var inboundQueueURL: URL {
         let url = containerURL.appendingPathComponent("inbound-queue", isDirectory: true)

@@ -163,17 +163,20 @@ public struct MochiHomeView: View {
                     .shadow(color: HomeDesign.Color.ink900.opacity(0.06), radius: 6, x: 0, y: 3)
                     .accessibilityAddTraits(.isHeader)
                 Spacer(minLength: 0)
-                CircleIconButton(systemName: "magnifyingglass", accessibilityLabel: "검색") {
-                    store.send(.searchTapped)
-                }
-                CircleIconButton(systemName: "bell", accessibilityLabel: "알림") {
-                    store.send(.notificationsTapped)
-                }
-                CircleIconButton(systemName: "star", accessibilityLabel: "즐겨찾기") {
-                    store.send(.favoritesTapped)
-                }
-                CircleIconButton(systemName: "gearshape", accessibilityLabel: "설정") {
-                    store.send(.openSettingsTapped)
+                // 44pt 히트 프레임끼리 붙여 시각 칩 간격(≈10pt)은 프레임이 만든다 — 좁은 화면에서도 넘치지 않게.
+                HStack(spacing: 0) {
+                    CircleIconButton(systemName: "magnifyingglass", accessibilityLabel: "검색") {
+                        store.send(.searchTapped)
+                    }
+                    CircleIconButton(systemName: "bell", accessibilityLabel: "알림") {
+                        store.send(.notificationsTapped)
+                    }
+                    CircleIconButton(systemName: "star", accessibilityLabel: "즐겨찾기") {
+                        store.send(.favoritesTapped)
+                    }
+                    CircleIconButton(systemName: "gearshape", accessibilityLabel: "설정") {
+                        store.send(.openSettingsTapped)
+                    }
                 }
             }
             .padding(.horizontal, HomeDesign.Spacing.xl)
@@ -329,6 +332,7 @@ public struct MochiHomeView: View {
         }
         .font(.system(size: 20, weight: .heavy, design: .rounded))
         .foregroundStyle(HomeDesign.Color.textPrimary)
+        .monospacedDigit()
         .lineLimit(1)
         .minimumScaleFactor(0.85)
         .contentTransition(.numericText(value: Double(store.monthlyRecordCount)))
@@ -336,7 +340,7 @@ public struct MochiHomeView: View {
     }
 
     private var monthlyEmptyMessage: some View {
-        Text("이번 달엔 아직 모은 기억이 없어요.\n캡처하거나 링크를 보내면 카테고리로 모아둘게요.")
+        Text("이번 달엔 아직 모은 기억이 없어요.\n캡처하거나 링크를 보내면 모찌가 정리해둘게요.")
             .font(.system(size: 12.5, weight: .medium, design: .rounded))
             .foregroundStyle(HomeDesign.Color.textMuted)
             .lineSpacing(3)
@@ -491,10 +495,10 @@ public struct MochiHomeView: View {
                     .foregroundStyle(HomeDesign.Color.ink500)
             }
             VStack(spacing: 4) {
-                Text("아직 모찌가 없어요")
+                Text("아직 보낸 기억이 없어요")
                     .font(.system(size: 14, weight: .bold, design: .rounded))
                     .foregroundStyle(HomeDesign.Color.textPrimary)
-                Text("우하단 + 버튼으로 빠르게 남겨보세요")
+                Text("사진이나 링크를 보내면 모찌가 여기 모아둘게요")
                     .font(.system(size: 12, weight: .medium, design: .rounded))
                     .foregroundStyle(HomeDesign.Color.textMuted)
             }
@@ -582,6 +586,7 @@ public struct MochiHomeView: View {
                 .rotationEffect(.degrees(isComposeMenuPresented ? 45 : 0))
         }
         .buttonStyle(PressableStyle())
+        .sensoryFeedback(.impact(weight: .light), trigger: isComposeMenuPresented)
         .accessibilityLabel(isComposeMenuPresented ? "입력 메뉴 닫기" : "기록 남기기")
     }
 
@@ -642,7 +647,7 @@ public struct MochiHomeView: View {
             .frame(minHeight: 60)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(PressableStyle())
     }
 
     private func closeComposeMenu() {
@@ -706,7 +711,7 @@ public struct MochiHomeView: View {
                         .frame(maxWidth: .infinity)
                         .frame(maxHeight: 220)
                         .clipShape(RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous))
-                        .overlay(RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous).stroke(HomeDesign.Color.border, lineWidth: 1))
+                        .overlay(RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous).strokeBorder(HomeDesign.Color.border, lineWidth: 1))
                 }
                 TextField("간단한 메모를 남겨보세요 (선택)", text: $imageMemoText, axis: .vertical)
                     .font(.system(size: 15, weight: .regular, design: .rounded))
@@ -814,6 +819,9 @@ private struct CircleIconButton: View {
                 .background(.ultraThinMaterial, in: Circle())
                 .overlay(Circle().stroke(Color.white.opacity(0.55), lineWidth: 0.5))
                 .shadow(color: HomeDesign.Color.ink900.opacity(0.06), radius: 6, x: 0, y: 3)
+                // 보이는 칩은 34pt 로 두되 탭 영역은 44pt(HIG) 로 넓힌다 — 작은 글리프가 탭을 흘리지 않게.
+                .frame(width: 44, height: 44)
+                .contentShape(Circle())
         }
         .buttonStyle(PressableStyle())
         .accessibilityLabel(accessibilityLabel)

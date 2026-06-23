@@ -31,14 +31,14 @@ public struct SettingsView: View {
         .navigationBarTitleDisplayMode(.inline)
         .task { store.send(.onAppear) }
         .confirmationDialog(
-            "계정을 삭제할까요?",
+            "정말 탈퇴할까요?",
             isPresented: Binding(get: { store.confirmingDelete }, set: { store.send(.confirmingDeleteChanged($0)) }),
             titleVisibility: .visible
         ) {
-            Button("계정 삭제", role: .destructive) { store.send(.deleteAccountConfirmed) }
+            Button("탈퇴하기", role: .destructive) { store.send(.deleteAccountConfirmed) }
             Button("취소", role: .cancel) {}
         } message: {
-            Text("모든 기억과 계정 정보가 삭제되며 되돌릴 수 없어요.")
+            Text("지금까지 모은 모든 기억이 사라지고, 되돌릴 수 없어요.")
         }
         .alert(
             "탈퇴하지 못했어요",
@@ -46,22 +46,9 @@ public struct SettingsView: View {
         ) {
             Button("확인", role: .cancel) {}
         } message: {
-            Text("잠시 후 다시 시도해 주세요.")
+            Text("계정은 그대로 있어요. 잠시 후 다시 시도해 주세요.")
         }
-        .sheet(item: $legalPage) { page in
-            NavigationStack {
-                LegalWebView(url: page.url)
-                    .ignoresSafeArea(edges: .bottom)
-                    .background(HomeDesign.Color.bg)
-                    .navigationTitle(page.title)
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                        ToolbarItem(placement: .topBarTrailing) {
-                            Button("닫기") { legalPage = nil }
-                        }
-                    }
-            }
-        }
+        .legalSheet(item: $legalPage)
     }
 
     private var deleteAccountSection: some View {
