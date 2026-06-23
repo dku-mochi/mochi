@@ -85,12 +85,17 @@ public struct RiseInEffect: ViewModifier {
     let isVisible: Bool
     let index: Int
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     public func body(content: Content) -> some View {
         content
             .opacity(isVisible ? 1 : 0)
-            .offset(y: isVisible ? 0 : 16)
+            // Reduce Motion: fade in place — no travel through space.
+            .offset(y: reduceMotion ? 0 : (isVisible ? 0 : 16))
             .animation(
-                .spring(response: 0.5, dampingFraction: 0.86).delay(Double(index) * 0.06),
+                reduceMotion
+                    ? .easeOut(duration: 0.3).delay(Double(index) * 0.04)
+                    : .spring(response: 0.5, dampingFraction: 0.86).delay(Double(index) * 0.06),
                 value: isVisible
             )
     }
@@ -106,9 +111,21 @@ public struct PressableStyle: ButtonStyle {
     public init() {}
 
     public func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
-            .opacity(configuration.isPressed ? 0.85 : 1.0)
-            .animation(.spring(response: 0.28, dampingFraction: 0.7), value: configuration.isPressed)
+        PressableLabel(configuration: configuration)
+    }
+
+    /// Inner view so the style can read `accessibilityReduceMotion` from the environment
+    /// (a `ButtonStyle` itself isn't a `View`, so `@Environment` must live here).
+    private struct PressableLabel: View {
+        let configuration: ButtonStyleConfiguration
+        @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+        var body: some View {
+            configuration.label
+                // Reduce Motion: keep the dim feedback, drop the scale (motion).
+                .scaleEffect(configuration.isPressed && !reduceMotion ? 0.97 : 1.0)
+                .opacity(configuration.isPressed ? 0.85 : 1.0)
+                .animation(.spring(response: 0.28, dampingFraction: 0.7), value: configuration.isPressed)
+        }
     }
 }

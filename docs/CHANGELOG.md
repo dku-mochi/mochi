@@ -10,6 +10,18 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-06-23 — ios (UX writing 마이크로카피 개선 — 동의 시트·회원 탈퇴·홈 빈 상태)
+- 신설 `mochi-ux-writing` 스킬(`.claude/skills/`) 기준으로 3개 화면 카피 진단·개선. **기존 카피 = 개선 대상** 전제로 약한 곳만 끌어올리고, 좋은 카피(회수 히어로 "모찌가 곧 골라드릴게요", 탈퇴 "되돌릴 수 없어요")는 유지.
+- **홈 리포트 빈 상태 — 내부 메타 노출 제거**(가장 임팩트): "캡처하거나 링크를 보내면 **카테고리로** 모아둘게요" → "…**모찌가 정리해둘게요**". 4-Intent/카테고리 분류는 사용자에게 노출 금지(PRODUCT §8·UX_SPEC §8 회수 원칙) — '카테고리' 시스템 용어를 빼고 능동 주체를 모찌로 환원.
+- **회원 탈퇴 플로우 용어 통일**: 진입 버튼은 "회원 탈퇴"인데 다이얼로그가 "계정을 삭제할까요?/계정 삭제"로 갈려 혼란 → '탈퇴'로 통일("정말 탈퇴할까요?"/"탈퇴하기"). 메시지는 잃는 것을 구체화("지금까지 모은 모든 기억이 사라지고, 되돌릴 수 없어요"), 실패 alert 에 "계정은 그대로 있어요" 안심 추가(불안 순간 통제감).
+- **홈 최근 빈 상태**: "아직 모찌가 없어요 / 우하단 + 버튼으로…" → "아직 보낸 기억이 없어요 / 사진이나 링크를 보내면 모찌가 여기 모아둘게요". 저장 항목을 '모찌'로 부르던 모호성 + 기계적 위치 지시("우하단") 제거, '기억' 용어로 화면 일관.
+- **첫 동의 시트**: 헤더·부제·CTA 를 의무 통보에서 결과 약속으로("시작하기 전에 잠깐" / "…확인하고 동의하면 바로 시작해요" / "동의하고 계속"→"동의하고 시작하기"). 법적 필수 동의 체크박스 문구는 격식체 유지(불변).
+- UX_SPEC 본문엔 해당 마이크로카피 문자열이 정본으로 박혀있지 않아 동기화 불필요(개별 카피는 코드 정본). 검증: `tuist build Mochi`.
+
+## 2026-06-23 — ios (홈 화면 마감 디테일링 — SwiftUI 폴리시 패스)
+- 활성 홈(`MochiHomeView`) + 공유 모디파이어(`HomeDesign`)에 마감 디테일 적용(이미 `.continuous`·`PressableStyle`·`RiseInEffect`·`.numericText` 갖춘 상태에서 남은 갭만). **접근성**: `RiseInEffect`·`PressableStyle` 이 `accessibilityReduceMotion` 존중(켜지면 공간 이동·press 스케일 생략, 페이드/dim 유지) — 공유 모디파이어라 홈+주간정리 공통 개선, 기본 외형 불변. **히트 영역**: 상단 아이콘 칩(검색·알림·즐겨찾기·설정) 보이는 34pt 유지 + 탭 영역 44pt(`.frame(44).contentShape(Circle())`, `HStack(spacing:0)` 로 좁은 화면 오버플로 방지). **숫자**: 월간 헤드라인 카운트 `.monospacedDigit()`(`.numericText` 롤링 시 폭 흔들림 제거). **햅틱**: FAB compose 토글 `.sensoryFeedback(.impact(.light))`(기존 하우스 패턴). **피드백**: compose 메뉴 행 `.plain`→`PressableStyle`. **이미지**: 사진 메모 시트 테두리 `.stroke`→`.strokeBorder`(inset, 크기 보존).
+- `make-interfaces-feel-better-ios` 스킬(`~/.claude`, repo 밖) 기준의 finishing pass. 카드 tinted 보더는 의도된 파스텔 장식이라 유지. 검증: `tuist build Mochi` 성공(exit 0).
+
 ## 2026-06-23 — infra (Google 로그인 운영 서버 연결)
 - GCP `mochi-svc` 의 `/opt/mochi/.env` 에 `AUTH_GOOGLE_CLIENT_IDS`(iOS client id) 주입 + `sudo systemctl restart mochi`. `/api/v1/health` ok. client id 는 공개 식별자라 Secret Manager 불필요(.env 직접). ⚠️ `.env` 는 재배포 setup 으로 재생성되므로 `mochi-svc-setup.sh`(repo 밖) `.env` 생성부에 포함해야 영속 — 미포함 시 재배포 후 재연결 필요. INFRA §5.4·§6 동기화.
 

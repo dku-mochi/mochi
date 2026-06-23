@@ -7,6 +7,8 @@ import SwiftUI
 public struct LoginView: View {
     @Bindable var store: StoreOf<LoginFeature>
     @State private var legalPage: LegalPage?
+    @State private var appeared = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     public init(store: StoreOf<LoginFeature>) {
         self.store = store
@@ -20,6 +22,7 @@ public struct LoginView: View {
                 header
                     .padding(.top, 48)
                     .padding(.horizontal, 24)
+                    .enter(0, appeared, reduceMotion)
 
                 Spacer(minLength: 16)
 
@@ -28,32 +31,32 @@ public struct LoginView: View {
                     .scaledToFit()
                     .frame(maxWidth: 240)
                     .padding(.vertical, 8)
+                    .enter(1, appeared, reduceMotion)
 
                 Spacer(minLength: 16)
 
                 buttons
                     .padding(.horizontal, 24)
+                    .enter(2, appeared, reduceMotion)
 
                 footer
                     .padding(.top, 20)
                     .padding(.horizontal, 32)
                     .padding(.bottom, 28)
+                    .enter(3, appeared, reduceMotion)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+        .onAppear { appeared = true }
         .alert($store.scope(state: \.alert, action: \.alert))
-        .sheet(item: $legalPage) { page in
-            NavigationStack {
-                LegalWebView(url: page.url)
-                    .ignoresSafeArea(edges: .bottom)
-                    .navigationTitle(page.title)
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                        ToolbarItem(placement: .topBarTrailing) {
-                            Button("닫기") { legalPage = nil }
-                        }
-                    }
-            }
+        .legalSheet(item: $legalPage)
+        .sheet(isPresented: Binding(
+            get: { store.consentProvider != nil },
+            set: { presented in if !presented { store.send(.consentDismissed) } }
+        )) {
+            AgreementSheetView(onAgree: { store.send(.consentAgreed) })
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
         }
     }
 
@@ -97,15 +100,6 @@ public struct LoginView: View {
             ) {
                 googleLogo
             }
-
-            Button("또는 이메일로 계속하기") {
-                // 별도 마일스톤 — 현재 마일스톤에선 noop.
-            }
-            .font(.system(size: 13, weight: .medium, design: .rounded))
-            .foregroundStyle(Self.mutedTextColor)
-            .padding(.top, 10)
-            .disabled(true)
-            .opacity(0.55)
 
             #if DEBUG
             devLoginButton
@@ -185,7 +179,7 @@ public struct LoginView: View {
                     .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: 6)
             )
         }
-        .buttonStyle(.plain)
+        .buttonStyle(PressableStyle())
         .disabled(store.isBusy)
         .opacity(store.isBusy && store.inFlightProvider != kind ? 0.5 : 1.0)
         .accessibilityLabel(Text(title))
@@ -209,14 +203,11 @@ public struct LoginView: View {
     // MARK: - Footer
 
     private var footer: some View {
-        Text(
-            "로그인하면 서비스 [이용약관](mochi-legal://terms) 및 [개인정보처리방침](mochi-legal://privacy)에 동의하는 것으로 간주됩니다."
-        )
-        .font(.system(size: 11, weight: .regular, design: .rounded))
+        Text("[이용약관](mochi-legal://terms) · [개인정보처리방침](mochi-legal://privacy)")
+        .font(.system(size: 12, weight: .semibold, design: .rounded))
         .foregroundStyle(Self.footerColor)
         .tint(Self.titleColor)
         .multilineTextAlignment(.center)
-        .lineSpacing(2)
         .environment(\.openURL, OpenURLAction { url in
             switch url.host {
             case "terms": legalPage = LegalPage(title: "이용약관", url: LegalLinks.terms)
@@ -244,8 +235,16 @@ public struct LoginView: View {
     // MARK: - Palette
 
     private static let titleColor = Color(red: 0.21, green: 0.20, blue: 0.45)
-    private static let mutedTextColor = Color(red: 0.36, green: 0.34, blue: 0.55)
     private static let footerColor = Color(red: 0.55, green: 0.55, blue: 0.70)
+}
+
+private extension View {
+    /// 로그인 화면 진입 시 요소별 stagger fade-up. Reduce Motion 이면 세로 이동 없이 페이드만.
+    func enter(_ index: Int, _ appeared: Bool, _ reduceMotion: Bool) -> some View {
+        opacity(appeared ? 1 : 0)
+            .offset(y: reduceMotion ? 0 : (appeared ? 0 : 16))
+            .animation(.smooth(duration: 0.55).delay(Double(index) * 0.07), value: appeared)
+    }
 }
 
 #if DEBUG
