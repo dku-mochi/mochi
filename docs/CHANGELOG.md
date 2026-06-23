@@ -10,6 +10,12 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-06-23 — ios, docs (Google 로그인 iOS 결선 + 공식 로고)
+- **Google OAuth iOS 결선.** GCP iOS OAuth client(`app.mochi`) 발급물의 `CLIENT_ID`/`REVERSED_CLIENT_ID` 를 `Targets/App/Support/Info.plist` 의 `GIDClientID` + `CFBundleURLTypes` URL scheme 으로 주입. GoogleSignIn 8.x 가 config 미지정 시 `GIDClientID` 를 자동 로드해 `signIn(withPresenting:)`, OAuth redirect 는 `MochiApp.onOpenURL → LiveGoogleAuthClient.handle(url:)` 로 복귀. 코드·연결부(`AppDependencies` 주입·`restorePreviousSignIn`)와 백엔드(`/auth/google`·ID Token 검증)는 **기존 완성** — 설정값만 비어 있던 상태였다. 남은 사람 작업: `.env` `AUTH_GOOGLE_CLIENT_IDS` 설정.
+- **로그인 화면 Google 로고 교체.** 임시 `GoogleGShape`(코드로 그린 단순 4색 G) → 공식 4색 "G" 로고(`Assets/GoogleLogo`, 브랜딩 가이드라인 SVG, 색·비율 불변). `LoginView.googleLogo` 가 `Image("GoogleLogo")` 사용, `GoogleGShape` 제거.
+- **TODO 정정** (문서↔코드 정합). §2.1·§3.1 결선 완료 체크. §2.3·§3.3: 본 앱은 `GoogleService-Info.plist` 를 코드에서 읽지 않고 `Info.plist` `GIDClientID` 직접 방식이라 파일 배치 불필요 — 다운로드 plist 는 값 출처로만 사용.
+- 검증: `tuist generate` + `tuist build Mochi` 성공(exit 0). `plutil -lint` OK, `GIDClientID`·URL scheme 주입 확인. 실기 Google 로그인 신규/재로그인은 §6 수동 검증 대상.
+
 ## 2026-06-23 — ios, docs (이용약관·개인정보처리방침 호스팅 + 인앱 WebView)
 - **법무 페이지 호스팅** — private 메인 repo 는 GitHub Pages 가 free 플랜에서 불가라, 법무 페이지만 **별도 공개 repo `dku-mochi/legal`** 로 분리 + Pages 활성(`/legal/terms.html`·`/legal/privacy.html`, HTTP 200 확인). 모바일 앱 톤 정적 HTML(라벤더 단일 액센트·`noindex`), 공유 `style.css` + **Pretendard 웹폰트**(iOS 시뮬레이터 WebKit 한글 두부 방지) + 한국어 줄바꿈 정돈(`word-break:keep-all`·`overflow-wrap`·`text-wrap`). 하나의 페이지가 진실의 원천 → App Store 제출 URL·인앱 표시 공용, 페이지만 고치면 앱 재배포 없이 갱신.
 - **이용약관 신설** — 현재 프로젝트 상태에 맞춘 13개 조항(목적·정의·서비스 내용·계정·콘텐츠 권리·금지행위·**AI 결과물 한계**·변경/중단·계정 해지·면책·준거법·문의). 개인정보처리방침과 상호 링크.
