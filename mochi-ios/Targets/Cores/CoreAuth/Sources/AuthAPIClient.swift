@@ -17,6 +17,9 @@ public protocol AuthAPIClient: Sendable {
     /// 백엔드 ``POST /auth/capture-tokens``. ShareExtension 직접 전송용 scoped token 발급.
     /// access JWT 인증 필수 — capture token 으로는 발급받을 수 없다 (권한 상승 차단).
     func issueCaptureToken(_ body: CaptureTokenBody, accessToken: String) async throws -> CaptureTokenIssued
+    /// 백엔드 ``DELETE /users/me``. 회원 탈퇴 — soft delete(`deleted_at`) + capture token 전부 revoke.
+    /// access JWT 인증 필수. 이후 sign-in/refresh 는 거부된다.
+    func deleteAccount(accessToken: String) async throws
 }
 
 public final class URLSessionAuthAPIClient: AuthAPIClient, @unchecked Sendable {
@@ -86,6 +89,16 @@ public final class URLSessionAuthAPIClient: AuthAPIClient, @unchecked Sendable {
             path: "/api/v1/auth/capture-tokens",
             body: body,
             extraHeaders: ["Authorization": "Bearer \(accessToken)"]
+        )
+    }
+
+    public func deleteAccount(accessToken: String) async throws {
+        let _: EmptyResponse = try await perform(
+            method: "DELETE",
+            path: "/api/v1/users/me",
+            body: Optional<EmptyBody>.none,
+            extraHeaders: ["Authorization": "Bearer \(accessToken)"],
+            allowEmpty: true
         )
     }
 

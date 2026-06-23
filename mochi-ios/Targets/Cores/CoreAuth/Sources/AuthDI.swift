@@ -42,6 +42,7 @@ struct NotConfiguredAuthAPIClient: AuthAPIClient {
     func logout(_ body: LogoutBody) async throws { throw error }
     func getMe(accessToken: String) async throws -> AuthUser { throw error }
     func issueCaptureToken(_ body: CaptureTokenBody, accessToken: String) async throws -> CaptureTokenIssued { throw error }
+    func deleteAccount(accessToken: String) async throws { throw error }
 }
 
 struct NotConfiguredAppleAuthClient: AppleAuthClient {

@@ -60,6 +60,12 @@ class UserRepository(ABC):
     async def update_display_name_if_empty(self, *, user_id: UserID, display_name: str) -> None: ...
 
     @abstractmethod
+    async def mark_deleted(self, *, user_id: UserID, deleted_at: datetime) -> None:
+        """계정 soft delete — ``deleted_at`` 마킹(이미 삭제됐으면 no-op). sign-in/refresh 가
+        ``deleted_at`` 을 거부하므로 이후 인증이 막힌다(mochi_item soft delete 와 동일 패턴)."""
+        ...
+
+    @abstractmethod
     async def upsert_user_with_id(
         self,
         *,

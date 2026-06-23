@@ -62,6 +62,16 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `GET /api/v1/users/me`.
     /// - Remark: Generated from `#/paths//api/v1/users/me/get(get_me_api_v1_users_me_get)`.
     func get_me_api_v1_users_me_get(_ input: Operations.get_me_api_v1_users_me_get.Input) async throws -> Operations.get_me_api_v1_users_me_get.Output
+    /// Delete Me
+    ///
+    /// 계정 삭제(회원 탈퇴) — soft delete(``deleted_at``) + capture token 전부 revoke.
+    ///
+    /// access JWT 인증 필수(capture token 으로는 통과 불가). 이후 sign-in/refresh 는
+    /// ``deleted_at`` 으로 거부되어 모든 세션이 무효화된다. idempotent(이미 삭제면 no-op).
+    ///
+    /// - Remark: HTTP `DELETE /api/v1/users/me`.
+    /// - Remark: Generated from `#/paths//api/v1/users/me/delete(delete_me_api_v1_users_me_delete)`.
+    func delete_me_api_v1_users_me_delete(_ input: Operations.delete_me_api_v1_users_me_delete.Input) async throws -> Operations.delete_me_api_v1_users_me_delete.Output
     /// List Mochi Items
     ///
     /// 캘린더 탭 — captured_at 구간 내 owner 모찌 목록(특정 날짜 선택 시 그날 sheet).
@@ -490,6 +500,18 @@ extension APIProtocol {
     /// - Remark: Generated from `#/paths//api/v1/users/me/get(get_me_api_v1_users_me_get)`.
     public func get_me_api_v1_users_me_get(headers: Operations.get_me_api_v1_users_me_get.Input.Headers = .init()) async throws -> Operations.get_me_api_v1_users_me_get.Output {
         try await get_me_api_v1_users_me_get(Operations.get_me_api_v1_users_me_get.Input(headers: headers))
+    }
+    /// Delete Me
+    ///
+    /// 계정 삭제(회원 탈퇴) — soft delete(``deleted_at``) + capture token 전부 revoke.
+    ///
+    /// access JWT 인증 필수(capture token 으로는 통과 불가). 이후 sign-in/refresh 는
+    /// ``deleted_at`` 으로 거부되어 모든 세션이 무효화된다. idempotent(이미 삭제면 no-op).
+    ///
+    /// - Remark: HTTP `DELETE /api/v1/users/me`.
+    /// - Remark: Generated from `#/paths//api/v1/users/me/delete(delete_me_api_v1_users_me_delete)`.
+    public func delete_me_api_v1_users_me_delete() async throws -> Operations.delete_me_api_v1_users_me_delete.Output {
+        try await delete_me_api_v1_users_me_delete(Operations.delete_me_api_v1_users_me_delete.Input())
     }
     /// List Mochi Items
     ///
@@ -4443,6 +4465,63 @@ public enum Operations {
                     .json
                 ]
             }
+        }
+    }
+    /// Delete Me
+    ///
+    /// 계정 삭제(회원 탈퇴) — soft delete(``deleted_at``) + capture token 전부 revoke.
+    ///
+    /// access JWT 인증 필수(capture token 으로는 통과 불가). 이후 sign-in/refresh 는
+    /// ``deleted_at`` 으로 거부되어 모든 세션이 무효화된다. idempotent(이미 삭제면 no-op).
+    ///
+    /// - Remark: HTTP `DELETE /api/v1/users/me`.
+    /// - Remark: Generated from `#/paths//api/v1/users/me/delete(delete_me_api_v1_users_me_delete)`.
+    public enum delete_me_api_v1_users_me_delete {
+        public static let id: Swift.String = "delete_me_api_v1_users_me_delete"
+        public struct Input: Sendable, Hashable {
+            /// Creates a new `Input`.
+            public init() {}
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct NoContent: Sendable, Hashable {
+                /// Creates a new `NoContent`.
+                public init() {}
+            }
+            /// Successful Response
+            ///
+            /// - Remark: Generated from `#/paths//api/v1/users/me/delete(delete_me_api_v1_users_me_delete)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            case noContent(Operations.delete_me_api_v1_users_me_delete.Output.NoContent)
+            /// Successful Response
+            ///
+            /// - Remark: Generated from `#/paths//api/v1/users/me/delete(delete_me_api_v1_users_me_delete)/responses/204`.
+            ///
+            /// HTTP response code: `204 noContent`.
+            public static var noContent: Self {
+                .noContent(.init())
+            }
+            /// The associated value of the enum case if `self` is `.noContent`.
+            ///
+            /// - Throws: An error if `self` is not `.noContent`.
+            /// - SeeAlso: `.noContent`.
+            public var noContent: Operations.delete_me_api_v1_users_me_delete.Output.NoContent {
+                get throws {
+                    switch self {
+                    case let .noContent(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "noContent",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
         }
     }
     /// List Mochi Items

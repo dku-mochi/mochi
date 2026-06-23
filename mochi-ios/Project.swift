@@ -306,6 +306,7 @@ let project = Project(
             dependencies: [
                 .target(name: "CoreDomain"),
                 .target(name: "CorePersistence"),
+                .target(name: "CoreAuth"),
                 .target(name: "DesignSystem"),
                 .package(product: "ComposableArchitecture"),
                 .package(product: "Dependencies"),
