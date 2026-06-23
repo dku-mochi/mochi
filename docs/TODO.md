@@ -224,7 +224,7 @@ VOYAGE_API_KEY=<dash.voyageai.com 또는 MongoDB Atlas 발급 키>
 - [ ] **Audit log**: 로그인 성공/실패, refresh rotation, reuse_detected 이벤트를 structlog 의 `auth.*` 카테고리로 남기고 알람 대상으로 등록.
 - [x] **계정 삭제 (Right to be Forgotten)** (2026-06-23): `DELETE /api/v1/users/me`(access JWT) → `users.mark_deleted`(`deleted_at` 세팅) + **모든 capture token revoke**(`CaptureTokenRepository.revoke_all_for_user`, reason=`user_account_deleted`). iOS: 설정 §회원 탈퇴 → 확인 다이얼로그 → 성공 시 로그아웃 경로 재사용(로컬 clear + refresh revoke). 남은 후속: ① email 익명화(`deleted+{id}@invalid.local`) — 현재는 `deleted_at` 만, ② Apple `revoke` 엔드포인트 호출(Apple IdP 측 토큰 폐기, client_secret JWT 필요).
 - [ ] **Apple App Store 심사 요구사항**: Sign In with Apple 을 제공하면 다른 third-party 로그인(Google 등) 이 있을 때 **반드시** 함께 제공해야 함 (App Review §4.8). 모찌는 이미 둘 다 제공 ✅.
-- [ ] **약관/개인정보처리방침 링크 실제 URL**: 로그인 화면 + **설정 정보 섹션**(2026-06-22 추가, `SettingsView.termsURL`/`privacyPolicyURL`) 둘 다 현재 placeholder(`https://mochi.app/terms`·`/privacy`). 실제 URL 나오면 교체.
+- [x] **약관/개인정보처리방침 링크 실제 URL** (2026-06-23): **이용약관·개인정보처리방침 모두 완료** — 공개 repo `dku-mochi/legal` + GitHub Pages(`/legal/terms.html`·`/legal/privacy.html`, 공유 `style.css` + Pretendard 웹폰트 + 한국어 줄바꿈 `keep-all`), 설정 §정보 + **로그인 화면 동의 푸터** 양쪽에서 인앱 `LegalWebView`(WKWebView) `.sheet` 표시(`LegalWebView`/`LegalPage`/`LegalLinks` 는 DesignSystem 공유). 운영=팀 세얼간이, 보호책임자=송준서/jun@indexfinger.org(공개 페이지라 전화번호 제외). 후속: `mochi.app` 확보 시 `LegalLinks` URL 만 CNAME 으로 이전.
 - [ ] **iOS Keychain access control**: `kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly` 로 device-bound + 백업 제외(이미 적용 예정). Face ID gate 는 옵션.
 
 ### 5.1 민감 캡처 보호

@@ -95,7 +95,8 @@ description: 화면·시나리오·IA·디자인 톤·데모 시나리오의 com
 
 ### 3.2 로그인
 
-- 모찌 캐릭터 + Apple 로그인 / Google 로그인 버튼 + 약관·개인정보 동의
+- 모찌 캐릭터 + Apple 로그인 / Google 로그인 버튼 + 약관·개인정보 동의 푸터
+- 동의 푸터(2026-06-23): "로그인하면 [이용약관]·[개인정보처리방침]에 동의" 의 두 문구가 탭 가능한 인앱 `LegalWebView`(DesignSystem 공유, 설정과 동일 시트). 묵시적 동의.
 
 ### 3.3 온보딩 튜토리얼
 
@@ -156,7 +157,7 @@ description: 화면·시나리오·IA·디자인 톤·데모 시나리오의 com
 - **계정** — 아바타(이름 이니셜) + 이메일·이름. Keychain `AuthSession`(`authCoordinator.currentSession`)에서 읽음. 이름 비면 "모찌 사용자" 폴백. Apple 비공개 릴레이 이메일(`@privaterelay.appleid.com`)은 의미 없는 주소 대신 **"Apple로 로그인"** 표시.
 - **알림** — 권한 상태 칩(허용됨/꺼짐/미설정, `UNUserNotificationCenter` 조회) + "iOS 설정에서 관리"(`openSettingsURLString` 딥링크). 앱 내 회수/분석 알림 on/off 토글은 서버 선호 API 미존재로 후속.
 - **프라이버시** — "민감 캡처는 항상 이 기기에만" 토글(PRIVACY §5.3 이행). 켜면 고신뢰 민감 감지 시 선택 시트 없이 `localOnly`. `SensitiveCapturePreference`(AppGroup 공유)로 ShareExtension 이 읽는다.
-- **정보** — 온보딩 다시 보기(기존) · 이용약관 · 개인정보처리방침(둘 다 URL placeholder, TODO §5) · 앱 버전(`Bundle`).
+- **정보** — 온보딩 다시 보기(기존) · **이용약관·개인정보처리방침**(2026-06-23, 공개 repo `dku-mochi/legal` GitHub Pages → 외부 Safari 아닌 인앱 `LegalWebView`(WKWebView) 공통 `.sheet(item:)` 표시) · 앱 버전(`Bundle`).
 - **로그아웃** — destructive. 기존 경로(`delegate → RootFeature.requestSignOut`).
 - **회원 탈퇴**(2026-06-23, App Store §5.1.1(v) 필수) — 맨 아래 작은 버튼. 확인 다이얼로그(되돌릴 수 없음 경고) → `DELETE /api/v1/users/me`(백엔드 soft delete `deleted_at` + capture token 전부 revoke, access JWT 인증). 성공 시 로그아웃 경로 재사용(로컬 세션 정리 + refresh revoke + 로그인 복귀). 이후 sign-in/refresh 는 `deleted_at` 으로 거부. Apple IdP 토큰 revoke 는 후속(TODO §5).
 
