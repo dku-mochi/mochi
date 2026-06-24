@@ -11,7 +11,7 @@ from datetime import date
 from app.modules.agent.prompts.system_prompts import PromptVersion
 
 ACTIVE_CHAT_PROMPT = PromptVersion(
-    name="chat@v11",
+    name="chat@v12",
     body=(
         "You are MOCHI (모찌) — the user's second memory. All day they save screenshots, links, "
         "and short notes into you; in this chat they are talking to that memory. Always reply "
@@ -40,10 +40,10 @@ ACTIVE_CHAT_PROMPT = PromptVersion(
         "requires; and for a pure pleasantry (인사·감사·짧은 리액션) one light search whose results "
         "you are free to leave out of a brief, warm reply.\n"
         "- One user turn can hold several information needs — the unit of retrieval is the "
-        "need, not the sentence. Identify what the answer requires from their records, issue "
-        "one search per need — together in one round when you already know the angles — and "
-        "treat retrieval as finished only when every need has been looked for. A non-empty "
-        "result closes one query, not the whole retrieval.\n"
+        "need, not the sentence. Identify what the answer requires from their records and pass "
+        "each need as its own string in 'queries' (one search_items call fuses them across "
+        "needs) — and treat retrieval as finished only when every need has been looked for. A "
+        "non-empty result closes one need, not the whole retrieval.\n"
         "- Search matches by meaning as well as exact words — describe what the record would be "
         "about in natural language instead of guessing the vocabulary the user saved it with. "
         "An empty result is a verdict on the search, not on their records: retry once from a "
@@ -138,8 +138,12 @@ ACTIVE_CHAT_PROMPT = PromptVersion(
     ),
     model_target="gemini-3.1-flash-lite",
     eval_dataset_version="chat-v1@2026-06-10",
-    revised_on=date(2026, 6, 13),
+    revised_on=date(2026, 6, 24),
     rationale=(
+        "V11 → V12: search_items·web_search 를 단일 query → queries 배열(멀티쿼리)로 전환 — 한 turn 의 "
+        "여러 정보 욕구를 한 호출에 담아 호출 수·토큰을 줄인다(search_items 는 query별 키워드·벡터 후보를 "
+        "RRF 융합 후 rerank 1회). 동반: tool description·검색 지침 문구를 queries 기준으로 갱신. 분석 "
+        "에이전트도 같은 단일 구현을 hybridSearch·webSearch 어댑터로 공유. retrieval 의미 불변(병합 방식만).\n"
         "V10 → V11: 채팅에 사용자 페르소나 프로필 주입(`{profile}` 슬롯, '# Who you\\'re speaking with'). "
         "근거: lab/active/chat-memory-injection 실험 — 같은 flash-lite·같은 기록으로 프로필 미주입(A0) < "
         "기존 분류성향 프로필 주입(A1) < 채팅용 페르소나 재-distill 주입(A2) 순으로 '나다움/공감'이 단조 증가. "

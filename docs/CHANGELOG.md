@@ -10,6 +10,11 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-06-24 — backend (분석 에이전트 능동 검색 + 멀티쿼리 RRF)
+- **search_items·web_search 멀티쿼리(`queries: list`) + RRF**: 한 turn/캡처의 여러 정보 욕구를 한 호출에. search_items 는 query별 (키워드 ILIKE + voyage 벡터) 후보를 RRF(k=60) 융합 후 rerank-2.5 **1회**(query 수배 아님). web_search 는 query별 Tavily → url union/dedup. 하위호환(단일 `query`→`[query]`). 채팅 `chat@v12`.
+- **hybridSearch — 분석 에이전트가 과거 기록 능동 검색**: 채팅 `SearchItemsTool` 을 분석(ingestion) 에이전트에 노출. **저장 게이트가 아니라 분석 보강 신호** — 중복이어도 항상 저장하고(미션), 발견한 연결/중복/일정충돌은 summary·needs_review 에만 반영. `ContextAwareTool`+`ToolContext` 로 owner_id 를 LLM args 가 아니라 orchestrator 가 주입(cross-tenant 방어). conversations.application 팩토리 + agent.infrastructure duck-typing 어댑터로 모듈 경계(§3.3) 준수.
+- **webSearch 분석 이식**: KNOWLEDGE 외부 사실 그라운딩(Tavily, 키 있을 때만). 기록 원문 외부 반출 금지(`PRIVACY_SENSITIVE_CAPTURE.md` §10). 분석 프롬프트 `classify_and_act@v26`.
+
 ## 2026-06-24 — ios, docs (ShareExtension 가림 시트 — 줌/팬·집중 보기·재진입 + 커버리지 버그 수정)
 - **가림 에디터 줌/팬/집중 보기**(`RedactionImageEditor`): 작은 글자라 무엇이 가려졌는지 확인이 어렵던 문제 → 2손가락 핀치 확대(1~5x)·확대 상태 1손가락 팬 추가. 변환 안 된 제스처 캐처에서 좌표를 받아 `unzoomedPoint` 로 역변환해 **확대 상태에서도 탭/쓸기 히트테스트가 정확**. 집중 보기 토글(헤더·칩·옵션 접어 캔버스 확대, CTA 유지). 비민감 프리뷰도 같은 에디터 재사용(더블탭 확대 — 토글이 없어 충돌 없음).
 - **커버리지 버그 수정(각도/비율에 따라 가림이 어긋나 보이던 문제)**: `aspect = max(0.2,…)` 클램프 + `scaledToFill` 이 극단 비율(아주 긴 세로/가로 캡처)에서 이미지를 잘라 채우는데 마스크는 클램프된 size 기준이라 표시 이미지와 어긋났다 → `scaledToFit` + 실비율 잠금으로 마스크·테두리·히트테스트를 표시 이미지와 일치. **저장 블러본(`ImageBlurRedactor`, 정규화 rect)은 이 표시 변경과 독립이라 회귀 없음**.

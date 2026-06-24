@@ -20,7 +20,13 @@ from app.modules.agent.domain.ports import DocumentEmbedder, LLMClient, ToolRegi
 from app.modules.agent.domain.profile import UserProfileStore
 from app.modules.agent.domain.run import AgentRun, ToolCall
 from app.modules.agent.domain.states import HAPPY_PATH, AgentNode
-from app.modules.agent.domain.tools import ToolExecutionError, ToolName, ToolUsage
+from app.modules.agent.domain.tools import (
+    ContextAwareTool,
+    ToolContext,
+    ToolExecutionError,
+    ToolName,
+    ToolUsage,
+)
 from app.modules.agent.infrastructure.tools.multimodal_analyze import MultimodalAnalyzeOutput
 from app.modules.agent.prompts.system_prompts import ACTIVE_PROMPT
 from app.modules.mochi_items.domain.value_objects import (
@@ -251,6 +257,8 @@ class AgentOrchestrator:
                     chunk.tool_arguments or {},
                     chunk.thought_signature,
                     parts,
+                    owner_id=owner_id,
+                    mochi_item_id=mochi_item_id,
                 ):
                     yield ev
                 continue
@@ -373,6 +381,9 @@ class AgentOrchestrator:
         args: dict[str, Any],
         thought_signature: bytes | None,
         parts: list[dict[str, Any]],
+        *,
+        owner_id: UUID,
+        mochi_item_id: UUID,
     ) -> AsyncIterator[StreamEvent]:
         yield StreamEvent("tool_started", {"name": tool_name.value, "run_id": str(agent_run.id)})
         tool = self._tools.get(tool_name)
@@ -394,7 +405,14 @@ class AgentOrchestrator:
             }
         )
         try:
-            out, usage = await tool.run(tool.input_model.model_validate(args))
+            payload = tool.input_model.model_validate(args)
+            if isinstance(tool, ContextAwareTool):
+                # owner-scoped tool(검색 등)은 owner_id 를 args 가 아니라 여기서 주입한다.
+                out, usage = await tool.run_with_context(
+                    payload, context=ToolContext(owner_id=owner_id, mochi_item_id=mochi_item_id)
+                )
+            else:
+                out, usage = await tool.run(payload)
             response = out.model_dump()
             if isinstance(response.get("text"), str):
                 response["text"] = response["text"][:4000]  # 토큰 bound
