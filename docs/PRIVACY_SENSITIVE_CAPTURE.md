@@ -95,7 +95,10 @@ ephemeral OCR 의 효용은 "정보밀도 높은 일반 스크린샷에서 멀�
 > 다른 화면 어디서도 읽지 않는다)에 싣고, originalUpload 캡처에만 추출한다(blurred/localOnly 는 OCR
 > 자체를 만들지 않음). 서버는 추론 직후 삭제(영속 정본 없음), 로그는 길이·존재 여부(부울)만 — OCR
 > 원문은 로그·메트릭에도 남기지 않는다. (on-device 영속이 추가 노출은 아니다 — originalUpload 캡처는
-> 원본 이미지도 단말에 보존되므로 OCR 은 그 부분집합. 업로드 후 Realm OCR 정리[clear]는 후속 위생 옵션.)
+> 원본 이미지도 단말에 보존되므로 OCR 은 그 부분집합.) **업로드 성공 후 on-device OCR 정리(2026-06-25):**
+> `MochiItemSyncWorker.uploadOne` 이 ingest 성공 직후 `clearAnalysisOCR` 로 Realm isolated 컬럼을 비운다 —
+> 서버가 추론 직후 삭제하는 것과 대칭으로 ephemeral 수명을 단말에서도 닫는다(generation-guard 경합 회피 위해
+> `updatedAt` 미bump).
 
 ### 2.3 Intent 별 보존 필드
 
@@ -122,6 +125,10 @@ ephemeral OCR 의 효용은 "정보밀도 높은 일반 스크린샷에서 멀�
   - 텍스트별 bounding box 확보
   - 마스킹 영역 계산
   - 감지 근거 생성
+- **ShareExt 단일 스캔 캐시(2026-06-25):** 한 캡처의 선감지·저장 시점 fallback 감지·분석용 OCR 추출은
+  `relativePath` 로 키잉한 진행 중 `Task` 를 공유해 **같은 이미지를 한 번만 OCR** 한다(이전엔 비민감
+  originalUpload 캡처가 최대 3회 스캔). crop 으로 이미지가 바뀌면 캐시 미스 → 잘린 이미지로 재스캔(올바른 OCR).
+  디코드는 `CGImageSourceCreateWithURL` 로 풀해상도 `Data` 전체 로드 없이 수행(120MB 한도 OOM 위험↓).
 
 ### 3.2 VisionKit / Live Text 계열
 
@@ -413,6 +420,12 @@ agent/application
 > 문제를 근본 제거한다(§2). 마스킹 방식은 **가우시안 블러**로 확정(deblur/재-OCR 방지 위해 강하게).
 > 서버 privacy 메타데이터(`sensitivity_*`)는 추가하지 않는다 — 서버는 올라온 이미지가 진실이며
 > 블러본/원본을 구분할 필요가 없다(Simplicity First).
+>
+> **블러 굽기 메모리(2026-06-25).** ShareExt 120MB 한도에서 큰 스크린샷의 **전체 이미지** 가우시안이
+> 수동 블러 시 간헐 OOM 의 주범이었다. `ImageBlurRedactor` 는 가릴 영역 **합집합 박스(+커널 패딩 3σ)만**
+> 블러하고 원본 위에 합성한다 — 마스크 밖은 어차피 원본을 쓰므로 결과는 동일하되 가우시안 작업 메모리가
+> 영역 크기에 비례한다. `CIContext(cacheIntermediates:false)` + `makeBlur` 의 `autoreleasepool` 로 굽기
+> 임시버퍼를 즉시 해제한다. "강하게(deblur 방지)" 보장은 sigma(짧은 변 1/30, 최소 16) 그대로라 불변.
 
 ---
 

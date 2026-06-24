@@ -10,6 +10,14 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-06-25 — ios, docs (ephemeral OCR 위생 — 업로드 후 Realm clear + ShareExt 단일 스캔/메모리)
+- **왜**: ephemeral OCR PR(#60)의 비차단 후속 위생 항목. on-device OCR 수명을 서버 삭제 훅과 대칭으로 닫고, ShareExt 120MB 한도에서 중복 OCR·풀해상도 로드를 줄인다.
+- `MochiItemSyncWorker.uploadOne`: ingest 성공 후 `clearAnalysisOCR` 로 Realm isolated OCR 컬럼을 비운다(서버 추론후 삭제와 대칭). `updatedAt` 미bump — 분석 반영 generation-guard 경합 회피. 리포지토리 프로토콜·InMemory·Realm 에 `clearAnalysisOCR` 추가 + 회귀 테스트.
+- `ShareExtensionPrincipal`: 선감지·저장 fallback 감지·분석용 OCR 추출이 `relativePath` 키 진행중 `Task` 를 공유해 **같은 이미지를 1회만 OCR**(이전 최대 3회). `downsampledCGImage` 를 `CGImageSourceCreateWithURL` 로 바꿔 `Data` 전체 로드 제거(OOM 위험↓). 동작 불변(crop 시 재스캔으로 잘린 OCR 정합).
+- **민감 캡처 블러 메모리(사용자 리포트: 수동 블러 시 간헐 OOM)**: 블러 굽기가 OOM 주범이라 ① `ImageBlurRedactor` 가 **전체 이미지 대신 가릴 영역 합집합 박스만** 가우시안 블러(작업 메모리 영역 크기 비례) + `CIContext(cacheIntermediates:false)`, ② `makeBlur` 의 디코드·블러·PNG 인코딩을 `autoreleasepool` 로 감싸 임시버퍼 즉시 해제. 가림 정확성 회귀 테스트 추가(가린 영역만 블러·밖은 원본 보존·분산 다중 영역·가장자리 부착).
+- **민감 보호 견고성(코드리뷰 반영)**: ① `blurRegion` 이 `makeMask` 흰 영역 패딩을 공유·포함해 입력 해상도 무관하게 under-blur 누설 차단(mask ⊆ region 불변식). ② 민감 시트 표시 이미지를 스캔 디코드에서 함께 굽어(`ScanOutput.sheetImage`) **2차 재디코드 제거** — 메모리 압박 하 재디코드 실패로 민감 캡처가 무가림 업로드되던 보호 누락 방지(비민감 경로는 이미지 미보관, 메모리 동일).
+- 문서: `PRIVACY_SENSITIVE_CAPTURE.md` §1.1 불변식 박스(업로드 후 clear 구현)·§3.1(단일 스캔 캐시)·§9(영역-한정 블러) 동기화.
+
 ## 2026-06-25 — backend, ios, docs (ephemeral OCR — 분석 전용 화면 텍스트 동봉 + 추론 후 삭제)
 - **왜**: 정보밀도 높은 일반 스크린샷은 텍스트 레이어가 없어 멀티모달이 글자를 놓친다. iOS Vision OCR transcript 를 **분석 순간에만** 동봉해 분해 누락을 줄이되, 영속/노출/인덱스 없이 추론 후 삭제(ephemeral)해 PRIVACY 와 양립.
 - **백엔드**: `mochi_items.analysis_ocr_text`(nullable, 마이그레이션 0026) + ingest 전 경로 배선(Create 스키마 alias `analysisOcrText`만 — Response/Update 미추가). 분석 입력에 `source.text` 와 **분리한 별도 "# 화면 텍스트 (OCR)" 블록**으로 주입(신뢰도 다름, 이미지 보완·대체 아님), `classify_and_act@v27`. **삭제 훅**: `apply_analysis`(분석 done)·DLQ(영구 실패) 즉시 NULL. **누수 차단**: 검색 haystack·embedding·Response·채팅 상세 전부 미투입(grep 게이트 0 매치 검증).
