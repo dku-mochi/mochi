@@ -299,7 +299,7 @@ DB COMMIT (atomic)
 201 Created + MochiItemResponse
 ```
 
-> **ephemeral OCR 동봉 (2026-06-24)**: `MochiItemCreateRequest.analysisOcrText`(nullable, **Create 에만** — Response/Update 미포함)로 iOS Vision OCR 화면 transcript 를 받아 분석 컨텍스트로만 쓴다. iOS 는 effective 이미지 정책이 `originalUpload`(비민감 기본·사용자 원본 승인)일 때만 싣고 `blurredUpload`·`localOnly` 는 미동봉한다(사용자가 가린 raw 를 OCR 로 누설 안 함 — `PRIVACY_SENSITIVE_CAPTURE.md §2.2`). 서버는 `mochi_items.analysis_ocr_text`(마이그레이션 0026)에 잠깐 보관하다 worker 분석 done(또는 영구 실패) **즉시 NULL** — Response·검색 haystack·embedding 어디에도 안 싣는다(누수 grep 게이트, `PRIVACY §1.1`). 분석 입력엔 `source.text` 와 분리한 별도 "# 화면 텍스트 (OCR)" 블록으로 주입한다(`classify_and_act@v26`, 이미지 보완·대체 아님).
+> **ephemeral OCR 동봉 (2026-06-24)**: `MochiItemCreateRequest.analysisOcrText`(nullable, **Create 에만** — Response/Update 미포함)로 iOS Vision OCR 화면 transcript 를 받아 분석 컨텍스트로만 쓴다. iOS 는 effective 이미지 정책이 `originalUpload`(비민감 기본·사용자 원본 승인)일 때만 싣고 `blurredUpload`·`localOnly` 는 미동봉한다(사용자가 가린 raw 를 OCR 로 누설 안 함 — `PRIVACY_SENSITIVE_CAPTURE.md §2.2`). 서버는 `mochi_items.analysis_ocr_text`(마이그레이션 0026)에 잠깐 보관하다 worker 분석 done(또는 영구 실패) **즉시 NULL** — Response·검색 haystack·embedding 어디에도 안 싣는다(누수 grep 게이트, `PRIVACY §1.1`). 분석 입력엔 `source.text` 와 분리한 별도 "# 화면 텍스트 (OCR)" 블록으로 주입한다(`classify_and_act@v27`, 이미지 보완·대체 아님).
 
 #### Agent worker
 
@@ -472,6 +472,7 @@ iOS `CoreNetworking.MochiAPIClient` 의 DTO 가 backend `openapi.json` 의 스�
 - **`GeminiAgentClient(LLMClient)`** (`gemini-3.1-flash-lite`/global) — function-calling 루프. LLM 이 분석가: `finalizeAnalysis`(V7, boolean instances) 로 가변 개수 `intent_instances`(`intent_type`·`payload`(typed)·`label`·`reasoning`) + `needs_review` + `review_options` + summary·entities 를 직접 저술한다. **서버 derive 없음**(점수·대표·위계 폐기 — `_to_analysis_result` 가 DTO→instance 1:1 분해). `platformContext`/`webFetch` 로 URL 그라운딩. `AgentOrchestrator` 가 첫 user turn 에 `# 시간 컨텍스트`(Asia/Seoul 현재시각)를 주입한다. orchestrator 의 `ANALYZED` 노드가 루프를, `PERSISTED` 노드가 `MochiItemGateway.apply_analysis` write-back(intent_instances delete-reinsert + 처리상태 `→analyzed`)을 담당.
 - **개인화**: `user_profiles` 에 유저 특성 요약을 sliding-window 로 적립(`RefreshUserProfile`, 디바운스) → 쓸수록 정확. 두 관점 — `summary`(분류 성향)는 **분석** system prompt 에, `chat_summary`(페르소나)는 **채팅** system prompt 에 배경·톤으로 주입(`conversations` → `agent.application.load_chat_profile`, chat@v11). 도메인 위치: `DOMAIN_DESIGN.md` §3, 최소전송 `PRIVACY_SENSITIVE_CAPTURE.md` §2.1.
 - text+URL+이미지(gs:// 첨부 — Vertex 직접 read) = 실연결. 임베딩 적재(INDEXED)는 design-ahead.
+- **능동 검색 도구(2026-06-24)**: 분석 중 LLM 이 `hybridSearch`(자기 과거 기록 hybrid 검색 — 채팅 `search_items` 단일 구현을 owner_id 주입 어댑터로 공유)·`webSearch`(외부 사실, Tavily)를 능동 호출한다. `hybridSearch` 는 **저장 게이트가 아니라 분석 보강 신호** — 중복이어도 항상 저장하고(미션), 발견한 연결/중복/일정충돌은 summary·needs_review 에만 반영한다. 이는 분석 *후* 알림용 능동 회수(트랙C `generate_recall_candidates`, 임베딩 ANN→`notification_outbox`)와 **다른 단계**다: 전자는 분석 품질 보강(분석 중, LLM 이 과거를 떠올려 연결), 후자는 알림 발송 판단(분석 done 후 worker). owner_id 는 `ToolContext` 로 orchestrator 가 주입(LLM args 불신 — cross-tenant 방어), `conversations.application` 팩토리 경유 + duck-typing 으로 모듈 경계(§3.3) 준수.
 
 ---
 

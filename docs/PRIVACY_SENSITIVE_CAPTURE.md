@@ -442,3 +442,9 @@ agent/application
   안전하다(§2, §9 결정). 채팅이 다시 보는 이미지도 블러본이라 추가 게이트가 필요 없다.
   이미지는 현재 턴 in-memory 전용 — 과거 턴 히스토리에 재주입되지 않으며 대화 DB 에
   이미지 URI 가 영속되지 않는다.
+- **분석 에이전트도 동일 외부 반출 경계(2026-06-24)** — 분석(ingestion) 에이전트가
+  `webSearch`(Tavily, 채팅과 단일 구현 공유)로 외부 사실을 그라운딩한다. 시스템 프롬프트
+  (`system_prompts.py`, `classify_and_act@v27`)가 채팅과 동일하게 "기록 원문·식별 가능 문구를
+  외부 쿼리에 반출 금지, generic public 쿼리로"를 강제한다. `hybridSearch`(과거 기록 능동
+  검색)는 owner 스코프 **내부** 검색이라 외부 반출 경로가 아니다 — owner_id 는 orchestrator 가
+  `ToolContext` 로 주입하고 LLM args 를 신뢰하지 않는다(cross-tenant 방어).
