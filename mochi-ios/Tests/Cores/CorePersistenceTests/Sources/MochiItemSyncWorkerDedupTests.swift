@@ -75,6 +75,28 @@ final class MochiItemSyncWorkerDedupTests: XCTestCase {
         XCTAssertEqual(remaining.map(\.id), [serverID], "로컬에 없는 서버 항목은 server-id PK 로 복구돼야 함")
     }
 
+    /// 업로드 성공 후 ephemeral OCR(`source.analysisOcrText`)이 비워지는지 — 서버 삭제 훅과 대칭의
+    /// on-device 위생(PRIVACY §1.1). 업로드 전엔 게이트로 ingest 에 동봉되고, 성공 후 로컬은 nil 이 된다.
+    func test_uploadOne_clears_ephemeral_ocr_after_successful_upload() async throws {
+        let repo = InMemoryMochiItemRepository()
+        // originalUpload(privacy nil) + OCR 동봉 — 이미지 없는 항목이라 presign/PUT 경로를 안 탄다.
+        let local = MochiItem(source: IngestSource(
+            channel: .appDirectInput, text: "메모", analysisOcrText: "화면 transcript 카드 1234"
+        ))
+        try await repo.upsert(local)
+
+        let api = StubSyncAPIClient()
+        await api.setIngestResult(Self.dto(id: UUID(), text: "메모"))
+        let worker = MochiItemSyncWorker(repository: repo, apiClient: api, tokenProvider: FixedTokenProvider())
+        await worker.runOnce()
+
+        let uploaded = try await repo.find(id: local.id)
+        guard case .uploaded? = uploaded?.syncState else {
+            return XCTFail("업로드가 성공해 .uploaded 로 전이돼야 함")
+        }
+        XCTAssertNil(uploaded?.source.analysisOcrText, "업로드 성공 후 on-device ephemeral OCR 은 비워져야 함")
+    }
+
     private static func dto(id: UUID, text: String) -> MochiItemDTO {
         MochiItemDTO(
             id: id, channel: .appDirectInput, url: nil, text: text, userMemo: nil,
