@@ -8,11 +8,14 @@ struct OnboardingPageScaffold<Hero: View>: View {
     let subtitle: String?
     @ViewBuilder let hero: () -> Hero
 
+    @State private var appeared = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
         VStack(spacing: 0) {
             Spacer(minLength: 24)
 
-            // MARK: Copy
+            // MARK: Copy — 글씨가 한 박자씩 떠오른다 (제목 → 부제).
             VStack(spacing: 14) {
                 Text(title)
                     .font(.system(size: 26, weight: .heavy))
@@ -20,6 +23,7 @@ struct OnboardingPageScaffold<Hero: View>: View {
                     .multilineTextAlignment(.center)
                     .lineSpacing(4)
                     .fixedSize(horizontal: false, vertical: true)
+                    .onboardingEnter(0, appeared, reduceMotion: reduceMotion)
 
                 if let subtitle {
                     Text(subtitle)
@@ -28,18 +32,21 @@ struct OnboardingPageScaffold<Hero: View>: View {
                         .multilineTextAlignment(.center)
                         .lineSpacing(3)
                         .fixedSize(horizontal: false, vertical: true)
+                        .onboardingEnter(1, appeared, reduceMotion: reduceMotion)
                 }
             }
             .padding(.horizontal, 32)
 
             Spacer(minLength: 32)
 
-            // MARK: Hero illustration
+            // MARK: Hero illustration — 글씨 뒤에 등장.
             hero()
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, 32)
+                .onboardingEnter(2, appeared, reduceMotion: reduceMotion)
 
             Spacer(minLength: 24)
         }
+        .onAppear { appeared = true }
     }
 }

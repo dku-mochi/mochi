@@ -24,3 +24,19 @@ enum OnboardingTheme {
     static let indicatorOn      = Color(red: 0.55, green: 0.46, blue: 0.93)
     static let indicatorOff     = Color(red: 0.55, green: 0.46, blue: 0.93).opacity(0.25)
 }
+
+extension View {
+    /// 온보딩 페이지 진입 시 요소별 stagger fade-up — 한 요소씩 또렷이 차례로 떠올라
+    /// 사용자 시선을 제목 → 부제 → 히어로 순으로 이끈다. `index` 가 클수록 늦게 등장.
+    /// Reduce Motion 이면 세로 이동 없이 페이드만.
+    func onboardingEnter(_ index: Int, _ appeared: Bool, reduceMotion: Bool) -> some View {
+        opacity(appeared ? 1 : 0)
+            .offset(y: reduceMotion ? 0 : (appeared ? 0 : 14))
+            .animation(
+                reduceMotion
+                    ? .easeOut(duration: 0.2)   // 모션 최소화: stagger 없이 빠른 페이드
+                    : .smooth(duration: 0.5).delay(0.2 + Double(index) * 0.2),
+                value: appeared
+            )
+    }
+}

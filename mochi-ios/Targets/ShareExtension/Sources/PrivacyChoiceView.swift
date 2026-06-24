@@ -41,6 +41,9 @@ struct PrivacyChoiceView: View {
     @State private var appeared = false
     /// 칩 탭으로 토글할 때 이미지 위 해당 영역을 잠깐 강조.
     @State private var flashID: UUID?
+    /// 집중 보기 — 헤더·칩·옵션을 접어 에디터가 화면을 가득 채운다(작은 글자를 키워 무엇이 가려졌는지
+    /// 확인·미세조정하기 쉽게). CTA 는 유지해 언제든 저장한다.
+    @State private var focusMode = false
 
     /// 자동 감지엔 안 걸린 일반 텍스트 줄(수동 가림 후보, 미렌더 — 탭·쓸기 히트테스트에만 쓴다).
     private let manualCandidates: [RedactionRegion]
@@ -52,6 +55,7 @@ struct PrivacyChoiceView: View {
         textBoxes: [CGRect],
         confirmTitle: String? = nil,
         cancelTitle: String = "저장하지 않기",
+        initialEnabledRects: Set<CGRect>? = nil,
         onChoose: @escaping (PrivacyPolicy, [RedactionRegion]) -> Void,
         onCancel: @escaping () -> Void
     ) {
@@ -65,13 +69,22 @@ struct PrivacyChoiceView: View {
         self.onCancel = onCancel
 
         let detectedRects = Set(detectedRegions.map(\.rect))
-        self.manualCandidates = textBoxes
+        let manual = textBoxes
             .filter { !detectedRects.contains($0) }
             .map { RedactionRegion(rect: $0, types: []) }
+        self.manualCandidates = manual
 
         let recommended = assessment.recommendedPolicy
         _selected = State(initialValue: (recommended == .blurredUpload && detectedRegions.isEmpty) ? .originalUpload : recommended)
-        _enabled = State(initialValue: Set(detectedRegions.map(\.id)))
+        // 재진입(가린 곳 고치기)이면 직전에 켜둔 영역을 **rect 기준**으로 복원한다 — 감지·수동 후보를
+        // 모두 살린다(수동 후보는 매 init 마다 UUID 가 새로 나 id 로는 복원 불가하지만, rect 는 같은
+        // 감지 결과라 동일하다). 처음 진입이면 자동 감지 영역 전부(안전).
+        if let initialEnabledRects {
+            let all = detectedRegions + manual
+            _enabled = State(initialValue: Set(all.filter { initialEnabledRects.contains($0.rect) }.map(\.id)))
+        } else {
+            _enabled = State(initialValue: Set(detectedRegions.map(\.id)))
+        }
     }
 
     /// 탭·쓸기 히트테스트 + 블러 마스크 대상이 되는 모든 OCR 줄(감지 + 수동).
@@ -90,15 +103,20 @@ struct PrivacyChoiceView: View {
         ZStack {
             ShareDesign.backgroundGradient.ignoresSafeArea()
             VStack(spacing: HomeDesign.Spacing.lg) {
-                header.shareEntrance(0, appeared: appeared)
-                editorArea.shareEntrance(1, appeared: appeared)
-                if isBlur, !detectedRegions.isEmpty {
-                    detectedChips.shareEntrance(2, appeared: appeared)
+                if !focusMode {
+                    header.shareEntrance(0, appeared: appeared)
                 }
-                optionSelector.shareEntrance(3, appeared: appeared)
+                editorArea.shareEntrance(1, appeared: appeared)
+                if !focusMode {
+                    if isBlur, !detectedRegions.isEmpty {
+                        detectedChips.shareEntrance(2, appeared: appeared)
+                    }
+                    optionSelector.shareEntrance(3, appeared: appeared)
+                }
             }
-            .padding(.horizontal, HomeDesign.Spacing.lg)
-            .padding(.top, HomeDesign.Spacing.lg)
+            .padding(.horizontal, focusMode ? HomeDesign.Spacing.sm : HomeDesign.Spacing.lg)
+            .padding(.top, focusMode ? HomeDesign.Spacing.sm : HomeDesign.Spacing.lg)
+            .animation(.spring(response: 0.42, dampingFraction: 0.86), value: focusMode)
         }
         .safeAreaInset(edge: .bottom) { bottomBar }
         .onAppear { appeared = true }
@@ -146,12 +164,20 @@ struct PrivacyChoiceView: View {
                         onPaint: paint
                     )
                 } else {
-                    Image(uiImage: originalImage)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
+                    // 비민감(원본/기기에만) 미리보기도 같은 에디터를 재사용 — 가림 후보가 없어 칠하기·토글은
+                    // 무동작이지만 핀치 줌·팬·더블탭으로 "무엇을 저장하는지" 확대해 확인할 수 있다.
+                    RedactionImageEditor(
+                        image: originalImage,
+                        regions: [],
+                        enabled: [],
+                        flashID: nil,
+                        onToggle: { _ in },
+                        onPaint: { _ in }
+                    )
                 }
             }
             .clipShape(RoundedRectangle(cornerRadius: HomeDesign.Radius.lg, style: .continuous))
+            .overlay(alignment: .topLeading) { focusToggle }
             .overlay(alignment: .topTrailing) {
                 if selected == .localOnly {
                     // 어두운 캡슐(`snackbarFill`)에 흰 텍스트 — 양 모드 모두 대비 유지.
@@ -168,6 +194,24 @@ struct PrivacyChoiceView: View {
             .animation(.easeInOut(duration: 0.25), value: selected)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    /// 에디터 좌상단의 작게/크게 보기 토글 — 헤더·옵션을 접어 캔버스를 넓힌다(작은 글자 확인용).
+    private var focusToggle: some View {
+        Button {
+            withAnimation(.spring(response: 0.42, dampingFraction: 0.86)) { focusMode.toggle() }
+            ShareHaptics.lightTap()
+        } label: {
+            Image(systemName: focusMode ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right")
+                .font(.system(size: 13, weight: .bold))
+                .foregroundStyle(.white)
+                .frame(width: 32, height: 32)
+                .background(Circle().fill(.black.opacity(0.42)))
+                .overlay(Circle().strokeBorder(.white.opacity(0.18), lineWidth: 0.5))
+        }
+        .buttonStyle(PressableStyle())
+        .padding(HomeDesign.Spacing.sm)
+        .accessibilityLabel(Text(focusMode ? "작게 보기" : "크게 보기"))
     }
 
     private func badge(icon: String, text: String, tint: Color) -> some View {
@@ -364,15 +408,48 @@ struct PrivacyChoiceView: View {
     }
 }
 
+// MARK: - 줌/팬 공용 수학
+
+/// 등배(1x) 초과 확대 시, 확대된 콘텐츠가 컨테이너를 벗어나 빈 공간이 보이지 않게 offset 을 가둔다.
+private func clampedZoomOffset(_ offset: CGSize, scale: CGFloat, in size: CGSize) -> CGSize {
+    guard scale > 1 else { return .zero }
+    let maxX = size.width * (scale - 1) / 2
+    let maxY = size.height * (scale - 1) / 2
+    return CGSize(
+        width: min(max(offset.width, -maxX), maxX),
+        height: min(max(offset.height, -maxY), maxY)
+    )
+}
+
+/// 변환(`scaleEffect(anchor:.center)` + `offset`) 적용 후의 컨테이너 좌표를 변환 전 콘텐츠 좌표로
+/// 되돌린다 — 확대 상태에서도 히트테스트가 손가락 아래 OCR 줄을 정확히 맞추게 한다.
+private func unzoomedPoint(_ point: CGPoint, scale: CGFloat, offset: CGSize, in size: CGSize) -> CGPoint {
+    let cx = size.width / 2, cy = size.height / 2
+    return CGPoint(
+        x: cx + (point.x - offset.width - cx) / scale,
+        y: cy + (point.y - offset.height - cy) / scale
+    )
+}
+
 // MARK: - 인터랙티브 가림 에디터
 
-/// 원본 이미지 위에 가림을 탭/쓸기로 칠하는 라이브 에디터.
+/// 원본 이미지 위에 가림을 탭/쓸기로 칠하고, 핀치·더블탭으로 확대해 미세조정하는 라이브 에디터.
 ///
 /// 기본은 감지 영역만 가려진 깨끗한 화면 — OCR 줄을 박스로 미리 그리지 않는다(클러터 제거). 가린
 /// 영역만 얇은 라벤더 테두리로 "여기 손댈 수 있어요" 를 알리고, 그 위에 같은 이미지의 블러 복제본을
-/// 마스크로 드러내 즉시(GPU) 흐리게 보여준다. **탭** = 그 줄 가림 토글, **쓸기** = 지나간 줄들 가리기
-/// (더하기). 실제 업로드본은 확정 시 강한 가우시안 블러로 따로 굽는다. 좌표는 Vision 정규화(원점
-/// 좌하단)를 뷰 좌표(원점 좌상단)로 뒤집어 매핑한다.
+/// 마스크로 드러내 즉시(GPU) 흐리게 보여준다.
+///
+/// **제스처**: 1손가락 **탭** = 그 줄 가림 토글, 등배(1x)에서 1손가락 **쓸기** = 지나간 줄들 가리기
+/// (더하기). 2손가락 **핀치** = 확대(1x~5x). 확대된 상태(>1x)에선 1손가락 드래그가 **팬**으로 바뀌어
+/// 캔버스를 둘러본다(작은 글자가 손가락에 가려 무엇을 가렸는지 안 보이던 문제 해소). 토글이 주 동작이라
+/// 더블탭은 두지 않는다(가림 후보가 없는 비민감 프리뷰에서만 더블탭=확대/복귀). 실제 업로드본은 확정
+/// 시 강한 가우시안 블러로 따로 굽는다.
+///
+/// **좌표계**: 컨테이너를 이미지의 **실제 비율**로 잠가(`scaledToFit`) 레터박스 없이 꽉 채우므로,
+/// Vision 정규화(원점 좌하단)를 size 기준 뷰 좌표(원점 좌상단)로 뒤집기만 하면 마스크·테두리·히트
+/// 테스트가 표시 이미지와 정확히 일치한다(이전 `max(0.2,…)` 비율 클램프 + `scaledToFill` 조합이
+/// 극단 비율에서 이미지를 잘라 가림이 어긋나던 버그 제거). 확대 시엔 제스처 좌표를 변환의 역으로
+/// 되돌려 같은 매핑을 재사용한다.
 private struct RedactionImageEditor: View {
     let image: UIImage
     /// 모든 OCR 줄(감지 + 수동) — 히트테스트 + 블러 마스크 대상.
@@ -382,43 +459,152 @@ private struct RedactionImageEditor: View {
     let onToggle: (UUID) -> Void
     let onPaint: (UUID) -> Void
 
+    /// 커밋된 확대 배율(1=등배). 핀치/더블탭으로 갱신.
+    @State private var scale: CGFloat = 1
+    /// 커밋된 팬 오프셋(확대 상태에서 이동).
+    @State private var offset: CGSize = .zero
+    /// 핀치 진행 중 라이브 배율 델타.
+    @GestureState private var pinch: CGFloat = 1
+    /// 팬 드래그 진행 중 라이브 이동 델타(확대 상태에서만).
+    @GestureState private var dragPan: CGSize = .zero
+
+    private let maxScale: CGFloat = 5
+    private let doubleTapScale: CGFloat = 2.6
+
     var body: some View {
-        let aspect = max(0.2, image.size.width / max(1, image.size.height))
+        // 이미지의 실제 비율로 컨테이너를 잠근다 — 레터박스 0, fit==꽉참(0 나눗셈만 방어).
+        let aspect = max(0.05, image.size.width / max(1, image.size.height))
         GeometryReader { geo in
             editor(in: geo.size)
         }
         .aspectRatio(aspect, contentMode: .fit)
     }
 
+    /// 핀치 라이브 반영 + 1x~maxScale 클램프.
+    private var liveScale: CGFloat { min(max(scale * pinch, 1), maxScale) }
+
+    /// 팬 라이브 반영 + 확대된 콘텐츠가 컨테이너를 벗어나지 않게 가둠.
+    private func liveOffset(in size: CGSize) -> CGSize {
+        clampedZoomOffset(
+            CGSize(width: offset.width + dragPan.width, height: offset.height + dragPan.height),
+            scale: liveScale, in: size
+        )
+    }
+
     private func editor(in size: CGSize) -> some View {
+        ZStack {
+            content(in: size)
+                .scaleEffect(liveScale, anchor: .center)
+                .offset(liveOffset(in: size))
+                .allowsHitTesting(false)
+
+            gestureCatcher(in: size)
+        }
+        .frame(width: size.width, height: size.height)
+        .clipped()
+    }
+
+    /// 변환 안 된 제스처 캐처 — 탭·드래그·핀치를 받아 좌표를 역변환해 처리한다(변환된 콘텐츠에 직접
+    /// 붙이면 좌표계가 흔들리므로 분리). 가림 에디터(regions 있음)는 **1손가락 탭=토글**이 주 동작이라
+    /// 더블탭을 두지 않아 토글 지연·오발화를 없앤다. 비민감 프리뷰(regions 없음)는 토글이 없으니
+    /// **더블탭=확대/복귀**를 둔다. 확대는 양쪽 모두 핀치로.
+    @ViewBuilder
+    private func gestureCatcher(in size: CGSize) -> some View {
+        if regions.isEmpty {
+            Color.clear
+                .contentShape(Rectangle())
+                .onTapGesture(count: 2, coordinateSpace: .local) { location in
+                    toggleZoom(at: location, in: size)
+                }
+                .gesture(dragGesture(in: size))
+                .simultaneousGesture(magnifyGesture(in: size))
+        } else {
+            Color.clear
+                .contentShape(Rectangle())
+                .onTapGesture(count: 1, coordinateSpace: .local) { location in
+                    let p = unzoomedPoint(location, scale: scale, offset: offset, in: size)
+                    if let id = regionID(at: p, in: size) { onToggle(id) }
+                }
+                .gesture(dragGesture(in: size))
+                .simultaneousGesture(magnifyGesture(in: size))
+        }
+    }
+
+    private func content(in size: CGSize) -> some View {
         ZStack {
             Image(uiImage: image)
                 .resizable()
-                .scaledToFill()
+                .scaledToFit()
 
             Image(uiImage: image)
                 .resizable()
-                .scaledToFill()
+                .scaledToFit()
                 .blur(radius: max(8, min(size.width, size.height) * 0.06), opaque: true)
                 .mask(maskCanvas(in: size))
-                .allowsHitTesting(false)
 
             ForEach(regions) { region in
                 borderView(region, in: size)
             }
-            .allowsHitTesting(false)
         }
         .frame(width: size.width, height: size.height)
-        .contentShape(Rectangle())
-        .onTapGesture(coordinateSpace: .local) { location in
-            if let id = regionID(at: location, in: size) { onToggle(id) }
-        }
-        .gesture(
-            DragGesture(minimumDistance: 10, coordinateSpace: .local)
-                .onChanged { value in
-                    if let id = regionID(at: value.location, in: size) { onPaint(id) }
+    }
+
+    // MARK: 줌/팬 제스처
+
+    private func dragGesture(in size: CGSize) -> some Gesture {
+        DragGesture(minimumDistance: 10, coordinateSpace: .local)
+            .updating($dragPan) { value, state, _ in
+                if scale > 1 { state = value.translation }   // 확대 상태에서만 팬
+            }
+            .onChanged { value in
+                // 등배 + 핀치 비활성일 때만 쓸기 칠하기(2손가락 핀치 중 오발화 방지).
+                guard scale <= 1.01, pinch == 1 else { return }
+                let p = unzoomedPoint(value.location, scale: scale, offset: offset, in: size)
+                if let id = regionID(at: p, in: size) { onPaint(id) }
+            }
+            .onEnded { value in
+                guard scale > 1 else { return }
+                offset = clampedZoomOffset(
+                    CGSize(width: offset.width + value.translation.width,
+                           height: offset.height + value.translation.height),
+                    scale: scale, in: size
+                )
+            }
+    }
+
+    private func magnifyGesture(in size: CGSize) -> some Gesture {
+        MagnifyGesture()
+            .updating($pinch) { value, state, _ in state = value.magnification }
+            .onEnded { value in
+                let next = min(max(scale * value.magnification, 1), maxScale)
+                if next <= 1.01 {
+                    scale = 1
+                    withAnimation(.easeOut(duration: 0.18)) { offset = .zero }
+                } else {
+                    scale = next
+                    offset = clampedZoomOffset(offset, scale: next, in: size)
                 }
-        )
+            }
+    }
+
+    /// 더블탭 = 탭한 곳을 중심으로 확대, 이미 확대돼 있으면 등배로 복귀.
+    private func toggleZoom(at location: CGPoint, in size: CGSize) {
+        if scale > 1.01 {
+            withAnimation(.spring(response: 0.34, dampingFraction: 0.82)) {
+                scale = 1
+                offset = .zero
+            }
+        } else {
+            let s = doubleTapScale
+            let cx = size.width / 2, cy = size.height / 2
+            // 확대 후에도 탭 지점이 제자리에 남도록 오프셋을 잡는다(앵커=center 기준).
+            let target = CGSize(width: (location.x - cx) * (1 - s), height: (location.y - cy) * (1 - s))
+            withAnimation(.spring(response: 0.34, dampingFraction: 0.82)) {
+                scale = s
+                offset = clampedZoomOffset(target, scale: s, in: size)
+            }
+        }
+        ShareHaptics.lightTap()
     }
 
     private func maskCanvas(in size: CGSize) -> some View {
