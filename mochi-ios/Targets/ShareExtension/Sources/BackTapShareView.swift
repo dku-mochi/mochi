@@ -30,6 +30,8 @@ struct BackTapShareView: View {
     /// 사용자 코너 크롭(정규화 0...1, 표시 이미지 기준). 제출 시 ``ShareImageCropper`` 가 파일에 적용한다.
     let onSubmit: (InboundIngestPayload, CGRect) -> Void
     let onCancel: () -> Void
+    /// 민감 감지가 있을 때 가림 화면으로 (다시) 들어가는 동선. nil 이면 표시하지 않는다.
+    var onEditRedaction: (() -> Void)? = nil
 
     @State private var memo: String = ""
     @State private var crop = ShareCropImage.fullCrop
@@ -64,6 +66,11 @@ struct BackTapShareView: View {
                     memoOnlyHint
                         .frame(maxHeight: .infinity)
                         .transition(.opacity.combined(with: .scale(scale: 0.9)))
+                }
+
+                if !imageRemoved, redaction.canEditRedaction, let onEditRedaction {
+                    redactionEntryButton(onEditRedaction)
+                        .shareEntrance(2, appeared: appeared)
                 }
 
                 ShareMemoField(memo: $memo, compact: !imageRemoved)
@@ -120,6 +127,31 @@ struct BackTapShareView: View {
         .padding(.vertical, 12)
         .background(Capsule().fill(ShareDesign.snackbarFill))
         .transition(.move(edge: .bottom).combined(with: .opacity))
+    }
+
+    /// 민감 감지가 있을 때 가림 화면으로 (다시) 들어가는 진입점 — 이미 가렸으면 "가린 곳 고치기",
+    /// 아직이면 "가리기". 자동 감지가 놓친 부분을 보태거나 마음이 바뀐 경우의 안전 보정.
+    private var redactionEntryTitle: String {
+        redaction.decision?.policy == .blurredUpload ? "가린 곳 고치기" : "가리기"
+    }
+
+    private func redactionEntryButton(_ action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                Image(systemName: "eye.slash")
+                    .font(.system(size: 13, weight: .semibold))
+                Text(redactionEntryTitle)
+                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+            }
+            .foregroundStyle(ShareDesign.primary)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background(Capsule().fill(ShareDesign.primary.opacity(0.12)))
+            .overlay(Capsule().strokeBorder(ShareDesign.primary.opacity(0.25), lineWidth: 1))
+            .contentShape(Capsule())
+        }
+        .frame(minHeight: 44)
+        .accessibilityLabel(Text(redactionEntryTitle))
     }
 
     private func removeImage() {

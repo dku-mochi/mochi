@@ -17,6 +17,9 @@ import CorePrivacy
     @Published var workingRef: ImageRef?
     /// 적용된 정책 — 저장 payload 에 실린다. nil = 아직 선감지 미해결.
     @Published var decision: PrivacyDecision?
+    /// 민감 감지가 있어 캡처 화면에서 가림 화면으로 (다시) 들어갈 수 있는지 — 캡처 뷰가 관찰해
+    /// "가리기"/"가린 곳 고치기" 진입점을 띄운다. 자동 감지가 한 줄을 놓쳤거나 마음이 바뀐 경우의 안전 보정.
+    @Published var canEditRedaction = false
 }
 
 /// 코드 기반 진입점 — `Info.plist` 의 `NSExtensionPrincipalClass` 가 이 클래스를 가리킨다.
@@ -42,6 +45,11 @@ public final class ShareExtensionPrincipal: UIViewController {
     private var didSubmit = false
     /// 사용자가 선감지 시트를 가림 없이 닫았는지 — 저장 시 재감지/재프롬프트 skip.
     private var privacyDismissed = false
+    /// 선감지 결과를 보관해 캡처 화면에서 가림 화면으로 **다시 들어갈** 수 있게 한다(재진입).
+    private var lastDetection: PrivacyDetection?
+    /// 직전에 켜둔(가린) 영역의 rect — 재진입 시 감지·수동 가림을 모두 복원한다(UUID 는 매 시트 init
+    /// 마다 새로 나므로 rect 로 매칭; rect 는 같은 감지 결과라 동일하다).
+    private var lastEnabledRects: Set<CGRect>?
 
     public override func viewDidLoad() {
         super.viewDidLoad()
@@ -136,7 +144,8 @@ public final class ShareExtensionPrincipal: UIViewController {
                 sourceApp: extracted.sourceApp,
                 url: extracted.url,
                 onSubmit: { [weak self] payload, crop in self?.persist(payload, crop: crop, original: extracted.imageRefs) },
-                onCancel: { [weak self] in self?.cancel(cleaning: extracted.imageRefs) }
+                onCancel: { [weak self] in self?.cancel(cleaning: extracted.imageRefs) },
+                onEditRedaction: { [weak self] in self?.presentRedactionReentry() }
             )
         } else {
             ShareEntryView(
@@ -147,7 +156,8 @@ public final class ShareExtensionPrincipal: UIViewController {
                 channelGuess: extracted.channelGuess,
                 sourceApp: extracted.sourceApp,
                 onSubmit: { [weak self] payload, crop in self?.persist(payload, crop: crop, original: extracted.imageRefs) },
-                onCancel: { [weak self] in self?.cancel(cleaning: extracted.imageRefs) }
+                onCancel: { [weak self] in self?.cancel(cleaning: extracted.imageRefs) },
+                onEditRedaction: { [weak self] in self?.presentRedactionReentry() }
             )
         }
     }
@@ -165,12 +175,16 @@ public final class ShareExtensionPrincipal: UIViewController {
             guard let self, let detection,
                   !self.didSubmit, !self.privacyDismissed,
                   self.redaction.decision == nil, self.privacyOverlay == nil else { return }
+            // 재진입(가림 화면 다시 열기)을 위해 감지 결과를 보관한다.
+            self.lastDetection = detection
             // 설정 "민감 캡처는 항상 이 기기에만"(PRIVACY §5.3) 켜짐 → 시트 없이 localOnly 결정.
             // 사용자가 시트에서 localOnly 를 고른 것과 동일한 상태(workingRef nil)라 저장 경로가 같다.
             if SensitiveCapturePreference.load() {
                 self.redaction.decision = PrivacyDecision(policy: .localOnly, level: detection.assessment.level)
                 return
             }
+            // 캡처 화면에서 가림 화면으로 (다시) 들어갈 수 있음 — 시트를 닫아도 진입점이 남는다.
+            self.redaction.canEditRedaction = true
             self.presentEarlyPrivacy(detection)
         }
     }
@@ -178,13 +192,49 @@ public final class ShareExtensionPrincipal: UIViewController {
     /// 캡처 화면 **위에** 선감지 시트를 띄운다 — 캡처 화면은 아래 살아 있어 메모/크롭 입력이 유지된다.
     /// 확정 = 가림 결정을 저장해 두고 캡처로 복귀(저장 탭 때 그대로 적용). 취소 = 가림 없이 복귀.
     private func presentEarlyPrivacy(_ detection: PrivacyDetection) {
+        presentPrivacySheet(
+            detection: detection,
+            confirmTitle: "이대로 적용하기",
+            cancelTitle: "가리지 않고 둘게요",
+            initialEnabledRects: nil,
+            onCancel: { [weak self] in
+                self?.privacyDismissed = true
+                self?.dismissPrivacyOverlay()
+            }
+        )
+    }
+
+    /// 캡처 화면에서 "가리기/가린 곳 고치기" 로 가림 화면에 **다시** 들어간다 — 보관해 둔 선감지 결과와
+    /// 직전에 켜둔 영역을 복원해 더 가리거나 끌 수 있다. 확정 = 새 가림 결정으로 갱신, 취소 = 현 상태 유지.
+    private func presentRedactionReentry() {
+        guard privacyOverlay == nil, let detection = lastDetection else { return }
+        presentPrivacySheet(
+            detection: detection,
+            confirmTitle: "이대로 적용하기",
+            cancelTitle: "그대로 둘게요",
+            initialEnabledRects: lastEnabledRects,
+            onCancel: { [weak self] in self?.dismissPrivacyOverlay() }
+        )
+    }
+
+    /// 선감지 시트(처음/재진입 공용) — 확정 시 고른 영역으로 블러본을 굽고 작업 ref·결정·켠 영역을 갱신한다.
+    /// `workingRef` 는 원본 `relativePath` 를 보존하므로 저장 청소가 원본을 지우지 않는다(블러면 원본+블러본,
+    /// 원본/기기에만이면 nil). 켠 영역의 rect(`lastEnabledRects`)는 재진입 복원용으로 보관한다.
+    private func presentPrivacySheet(
+        detection: PrivacyDetection,
+        confirmTitle: String?,
+        cancelTitle: String,
+        initialEnabledRects: Set<CGRect>?,
+        onCancel: @escaping () -> Void
+    ) {
         let host = UIHostingController(rootView: PrivacyChoiceView(
             assessment: detection.assessment,
             originalImage: detection.originalImage,
             detectedRegions: detection.regions,
             textBoxes: detection.textBoxes,
-            confirmTitle: "이대로 적용하기",
-            cancelTitle: "가리지 않고 둘게요",
+            confirmTitle: confirmTitle,
+            cancelTitle: cancelTitle,
+            initialEnabledRects: initialEnabledRects,
             onChoose: { [weak self] policy, enabledRegions in
                 guard let self else { return }
                 // 블러인데 켠 영역이 없으면 원본으로 자연 강등.
@@ -194,18 +244,13 @@ public final class ShareExtensionPrincipal: UIViewController {
                         policy: effective, rects: enabledRegions.map(\.rect),
                         original: detection.originalRef
                     )
-                    // 가림 적용 → 캡처 화면이 블러본(`displayRelativePath`)을 작업 이미지로 보여주고 그 위에서
-                    // crop/메모. `workingRef` 는 원본 `relativePath` 를 보존하므로 저장 청소가 원본을 지우지 않는다.
-                    // 저장 시 이 결정이 payload 에 실린다. (블러면 workingRef=원본+블러본, 원본/기기에만이면 nil)
+                    self.lastEnabledRects = Set(enabledRegions.map(\.rect))
                     self.redaction.workingRef = blurRef
                     self.redaction.decision = PrivacyDecision(policy: effective, level: detection.assessment.level)
                     self.dismissPrivacyOverlay()
                 }
             },
-            onCancel: { [weak self] in
-                self?.privacyDismissed = true
-                self?.dismissPrivacyOverlay()
-            }
+            onCancel: onCancel
         ))
         privacyOverlay = host
         embed(host)
