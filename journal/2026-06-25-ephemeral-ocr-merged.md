@@ -55,12 +55,21 @@ develop 로그: `c5f93c6`(#60) → `560b781`(#59) → … 머지된 feature 브�
    gap 이라, 백탭 민감감지 통합과 함께 업로드 직전 재스캔으로 동봉.
 4. **`classify_and_act@v27` lab eval 회귀검증** — Visual grounding OCR 단락 추가가 분석 품질에 미치는 영향 A/B
    (MEMORY[prompt-editing-research-first]). 프롬프트 본문 수정은 eval 자산.
-5. **마이그레이션 0026 라이브 up/down** — docker 미가용으로 로컬 미실행. revision 체인(0025→0026 단일 head)·오프라인
-   검증만 함. `make db-up && make migrate && alembic downgrade -1 && alembic upgrade head` 로 확인 필요.
+5. ~~**마이그레이션 0026 라이브 up/down**~~ — **prod 배포로 upgrade 적용 완료**(§4). downgrade 경로는 미검증(0026 은 drop_column 단순 가역이라 위험 낮음).
 6. **`Data(contentsOf:)` 전체 로드** (ShareExtensionPrincipal) — 120MB 한도에서 `CGImageSourceCreateWithURL` 직접이
    더 안전. 단 기존 `detectPrivacy` 도 동일 패턴이라 이 PR 회귀 아님 — 별도 정리.
 
-## 4. 검증 재현
+## 4. 프로덕션 배포 (2026-06-25)
+
+develop `c4be7e8` 을 `mochi-svc`(GCP)에 배포 + DB 마이그레이션 적용 완료(INFRA.md §4 런북).
+
+- **코드**: tar(COPYFILE_DISABLE) → IAP scp → `/opt/mochi` extract-over(.env·.venv 보존) → `uv sync --frozen --no-dev`.
+- **DB**: `alembic upgrade head` → **0025 → 0026**(`mochi_items.analysis_ocr_text` 컬럼). `sudo systemctl restart mochi`.
+- **검증**: `/api/v1/health` ok, OpenAPI 에 `analysisOcrText` 노출(신규 코드 라이브), 시작 로그 에러 0, 서비스 active.
+- **롤백 안전망**: 배포 전 `/opt/mochi` 백업(`~/mochi-opt-backup-*.tar.gz`, .env 포함, svc 홈). 0026 downgrade=drop_column.
+- 토폴로지 무변경이라 INFRA.md 갱신 불요(§14 기준). 신규 env var 없음(TAVILY 기존, OCR env 무변경).
+
+## 5. 검증 재현
 
 - 백엔드: `cd mochi-backend && make test`(472) `make lint` `make typecheck`, 누수 `rg analysis_ocr_text app/modules/conversations app/modules/search`(0).
 - iOS: `cd mochi-ios && tuist test CoreDomain`(30) `tuist test CorePrivacy`(34) `tuist test CorePersistence`(33). 실기빌드는 `xcodebuild`(사용자).
