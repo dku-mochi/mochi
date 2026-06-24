@@ -9,14 +9,24 @@ public struct SensitiveCaptureScanResult: Sendable, Equatable {
     /// OCR 로 인식된 **모든** 텍스트 줄의 영역(Vision 정규화). 자동 감지엔 안 걸렸어도 사용자가
     /// 직접 가릴 수 있는 후보 — "조금 민감한 게 많은" 캡처에서 수동 가림의 타깃이 된다.
     public let textBoxes: [CGRect]
+    /// OCR 로 읽어낸 화면 transcript(줄 join). **분석 전용 ephemeral** — 서버가 추론 컨텍스트로만
+    /// 쓰고 추론 후 삭제한다(영속/노출/인덱스 없음). 이미지 캡처에만 있고 텍스트 캡처는 `nil`.
+    /// 업로드 경로가 정책에 따라 동봉 여부를 고른다(originalUpload 일 때만 — PRIVACY §9).
+    public let ocrText: String?
 
     /// 자동 감지 영역의 정규화 사각형 — 기존 호출부 호환용 편의 접근자.
     public var redactionRects: [CGRect] { regions.map(\.rect) }
 
-    public init(assessment: SensitivityAssessment, regions: [RedactionRegion], textBoxes: [CGRect]) {
+    public init(
+        assessment: SensitivityAssessment,
+        regions: [RedactionRegion],
+        textBoxes: [CGRect],
+        ocrText: String? = nil
+    ) {
         self.assessment = assessment
         self.regions = regions
         self.textBoxes = textBoxes
+        self.ocrText = ocrText
     }
 }
 
@@ -42,7 +52,8 @@ public struct SensitiveCaptureScanner {
         return SensitiveCaptureScanResult(
             assessment: assessment,
             regions: regions,
-            textBoxes: boxes.map(\.boundingBox)
+            textBoxes: boxes.map(\.boundingBox),
+            ocrText: text.isEmpty ? nil : text
         )
     }
 

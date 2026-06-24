@@ -2621,6 +2621,11 @@
             "title": "Summary",
             "type": "string",
             "nullable": true
+          },
+          "analysisOcrText": {
+            "title": "Analysisocrtext",
+            "type": "string",
+            "nullable": true
           }
         },
         "type": "object",

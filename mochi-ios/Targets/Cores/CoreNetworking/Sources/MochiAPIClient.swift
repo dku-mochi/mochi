@@ -370,6 +370,9 @@ public struct MochiItemIngestRequest: Sendable, Hashable, Codable {
     /// (instance 재분석 아님 — §5.2 는 outbox 재분석만 생략, category/summary 는 채운다).
     public let category: String?
     public let summary: String?
+    /// 분석 전용 ephemeral OCR(화면 transcript). 업로드 경로가 정책에 따라 채운다(originalUpload 일 때만).
+    /// 서버는 분석 컨텍스트로만 쓰고 추론 후 삭제한다(영속/노출/인덱스 없음 — PRIVACY §1.1).
+    public let analysisOcrText: String?
 
     public init(
         channel: IngestChannel,
@@ -379,7 +382,8 @@ public struct MochiItemIngestRequest: Sendable, Hashable, Codable {
         imageRefs: [ImageRefDTO] = [],
         confirmedInstances: [ConfirmedInstanceIngestDTO]? = nil,
         category: String? = nil,
-        summary: String? = nil
+        summary: String? = nil,
+        analysisOcrText: String? = nil
     ) {
         self.channel = channel
         self.url = url
@@ -389,6 +393,7 @@ public struct MochiItemIngestRequest: Sendable, Hashable, Codable {
         self.confirmedInstances = confirmedInstances
         self.category = category
         self.summary = summary
+        self.analysisOcrText = analysisOcrText
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -396,6 +401,7 @@ public struct MochiItemIngestRequest: Sendable, Hashable, Codable {
         case userMemo = "userMemo"
         case imageRefs = "imageRefs"
         case confirmedInstances = "confirmedInstances"
+        case analysisOcrText = "analysisOcrText"
     }
 }
 

@@ -2,7 +2,7 @@
 level: 2
 mode: committed
 status: active
-last_verified: 2026-06-10
+last_verified: 2026-06-24
 confidence: 0.7
 owners: [송준서, 이용찬, 박세현]
 description: 시스템 토폴로지·iOS↔Backend 데이터흐름·API 계약의 committed 정본. 다음 중 하나라도 손대기 전 반드시 읽어라 — 두 프로젝트 모두 영향, presentation 스키마, openapi.json, Idempotency-Key, WebFetch SSRF 가드, 모노레포 빌드/배포. 일부 "목표 상태" 서술은 docs/l2/aspirational/ 로 분리 예정. 변경 시 양 README·openapi.json·plan(L3) 정합성 폭포 필수.
@@ -298,6 +298,8 @@ DB COMMIT (atomic)
   ↓
 201 Created + MochiItemResponse
 ```
+
+> **ephemeral OCR 동봉 (2026-06-24)**: `MochiItemCreateRequest.analysisOcrText`(nullable, **Create 에만** — Response/Update 미포함)로 iOS Vision OCR 화면 transcript 를 받아 분석 컨텍스트로만 쓴다. iOS 는 effective 이미지 정책이 `originalUpload`(비민감 기본·사용자 원본 승인)일 때만 싣고 `blurredUpload`·`localOnly` 는 미동봉한다(사용자가 가린 raw 를 OCR 로 누설 안 함 — `PRIVACY_SENSITIVE_CAPTURE.md §2.2`). 서버는 `mochi_items.analysis_ocr_text`(마이그레이션 0026)에 잠깐 보관하다 worker 분석 done(또는 영구 실패) **즉시 NULL** — Response·검색 haystack·embedding 어디에도 안 싣는다(누수 grep 게이트, `PRIVACY §1.1`). 분석 입력엔 `source.text` 와 분리한 별도 "# 화면 텍스트 (OCR)" 블록으로 주입한다(`classify_and_act@v26`, 이미지 보완·대체 아님).
 
 #### Agent worker
 

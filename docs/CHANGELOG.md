@@ -10,6 +10,12 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-06-25 — backend, ios, docs (ephemeral OCR — 분석 전용 화면 텍스트 동봉 + 추론 후 삭제)
+- **왜**: 정보밀도 높은 일반 스크린샷은 텍스트 레이어가 없어 멀티모달이 글자를 놓친다. iOS Vision OCR transcript 를 **분석 순간에만** 동봉해 분해 누락을 줄이되, 영속/노출/인덱스 없이 추론 후 삭제(ephemeral)해 PRIVACY 와 양립.
+- **백엔드**: `mochi_items.analysis_ocr_text`(nullable, 마이그레이션 0026) + ingest 전 경로 배선(Create 스키마 alias `analysisOcrText`만 — Response/Update 미추가). 분석 입력에 `source.text` 와 **분리한 별도 "# 화면 텍스트 (OCR)" 블록**으로 주입(신뢰도 다름, 이미지 보완·대체 아님), `classify_and_act@v26`. **삭제 훅**: `apply_analysis`(분석 done)·DLQ(영구 실패) 즉시 NULL. **누수 차단**: 검색 haystack·embedding·Response·채팅 상세 전부 미투입(grep 게이트 0 매치 검증).
+- **iOS**: `SensitiveCaptureScanner` 가 만들고 버리던 OCR 텍스트를 보존해 동봉. **정책 종속 게이트**: effective 이미지 정책이 `originalUpload`(비민감 기본·사용자 원본 승인)일 때만 동봉, `blurredUpload`·`localOnly` 는 제외(사용자가 가린 raw 를 OCR 로 누설 안 함). 단일 게이트 `EphemeralOCRGate`(두 업로드 경로 공유). OCR 은 큐 JSON + Realm isolated 컬럼(schema v14, 업로드 워커가 읽음 — 검색·노출 미사용)에 실린다(originalUpload 캡처만 추출). 백탭 경로 OCR 은 후속(백탭 민감감지 통합과 함께).
+- **문서**: `PRIVACY_SENSITIVE_CAPTURE.md §1.1`(영속 vs ephemeral 텍스트 2종 구분)·`§2.2`(정책 종속 불변식), `DOMAIN_DESIGN.md §3`(컬럼 노트), `ARCHITECTURE.md`(ingest 계약). OpenAPI 재생성(`analysisOcrText` Create 필드) → iOS `CoreNetworking/openapi.json` 동기화.
+
 ## 2026-06-24 — ios, docs (ShareExtension 가림 시트 — 줌/팬·집중 보기·재진입 + 커버리지 버그 수정)
 - **가림 에디터 줌/팬/집중 보기**(`RedactionImageEditor`): 작은 글자라 무엇이 가려졌는지 확인이 어렵던 문제 → 2손가락 핀치 확대(1~5x)·확대 상태 1손가락 팬 추가. 변환 안 된 제스처 캐처에서 좌표를 받아 `unzoomedPoint` 로 역변환해 **확대 상태에서도 탭/쓸기 히트테스트가 정확**. 집중 보기 토글(헤더·칩·옵션 접어 캔버스 확대, CTA 유지). 비민감 프리뷰도 같은 에디터 재사용(더블탭 확대 — 토글이 없어 충돌 없음).
 - **커버리지 버그 수정(각도/비율에 따라 가림이 어긋나 보이던 문제)**: `aspect = max(0.2,…)` 클램프 + `scaledToFill` 이 극단 비율(아주 긴 세로/가로 캡처)에서 이미지를 잘라 채우는데 마스크는 클램프된 size 기준이라 표시 이미지와 어긋났다 → `scaledToFit` + 실비율 잠금으로 마스크·테두리·히트테스트를 표시 이미지와 일치. **저장 블러본(`ImageBlurRedactor`, 정규화 rect)은 이 표시 변경과 독립이라 회귀 없음**.

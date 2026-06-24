@@ -24,6 +24,9 @@ class MochiItemRow(Base):
     url: Mapped[str | None] = mapped_column(String(2048), default=None)
     text: Mapped[str | None] = mapped_column(String, default=None)
     user_memo: Mapped[str | None] = mapped_column(String, default=None)
+    # 분석 전용 ephemeral OCR — iOS Vision OCR 화면 transcript. 영속 데이터 아님: 분석 done 직후
+    # NULL 로 비운다(apply_analysis·DLQ). 검색 인덱스·Response·채팅 상세 어디에도 싣지 않는다(PRIVACY §1.1).
+    analysis_ocr_text: Mapped[str | None] = mapped_column(String, default=None)
 
     # 모찌가 분류를 확신 못 해 사용자에게 물을지 (LLM holistic boolean). 점수/threshold 폐기(2026-06-04).
     needs_review: Mapped[bool] = mapped_column(Boolean, default=False)

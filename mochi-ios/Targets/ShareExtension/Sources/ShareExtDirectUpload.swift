@@ -54,7 +54,11 @@ enum ShareExtDirectUpload {
                     url: payload.url,
                     text: payload.text,
                     userMemo: payload.userMemo,
-                    imageRefs: uploaded.dtos
+                    imageRefs: uploaded.dtos,
+                    analysisOcrText: EphemeralOCRGate.textForUpload(
+                        privacy: payload.privacy,
+                        ocrText: payload.analysisOcrText
+                    )
                 )
                 _ = try await client.ingestMochiItem(request, idempotencyKey: payload.id.uuidString)
                 return true
@@ -203,7 +207,8 @@ enum ShareExtDirectUpload {
             userMemo: payload.userMemo,
             channelGuess: payload.channelGuess,
             imageRefs: imageRefs,
-            privacy: payload.privacy
+            privacy: payload.privacy,
+            analysisOcrText: payload.analysisOcrText
         )
         if let data = try? JSONEncoder().encode(enrichedPayload) {
             try? data.write(to: queueFileURL, options: [.atomic])

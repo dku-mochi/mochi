@@ -47,7 +47,7 @@ CHAT_PROFILE_SUMMARY_SYSTEM = (
 
 
 ACTIVE_PROMPT = PromptVersion(
-    name="classify_and_act@v25",
+    name="classify_and_act@v26",
     body=(
         "# Context\n"
         "MOCHI organizes the things a person quickly saves during the day — screenshots, links, "
@@ -269,6 +269,11 @@ ACTIVE_PROMPT = PromptVersion(
         "When an image is attached, ground yourself in the visible objective facts, the user's "
         "preferences/intent, and context. An empty field beats an invented one; keep only "
         "high-signal values the on-screen evidence supports.\n"
+        "Some captures also carry a '# 화면 텍스트 (OCR)' block — a machine read of the same screen's "
+        "text. Use it to catch detail the image is too dense to read reliably (small print, long "
+        "lists, many rows), but treat it as a supplement, never a replacement for the image: "
+        "cross-check it against what you see and prefer the image's evidence when they disagree, "
+        "since OCR can misread or carry noise.\n"
         "\n"
         "# Tools\n"
         "You have four context tools. Choose by what the capture needs, spend them sparingly (at "
@@ -344,8 +349,15 @@ ACTIVE_PROMPT = PromptVersion(
     ),
     model_target="gemini-3.1-flash-lite",
     eval_dataset_version="intent-schema-decision@2026-06-04",
-    revised_on=date(2026, 6, 19),
+    revised_on=date(2026, 6, 24),
     rationale=(
+        "V25 → V26: 분석 입력에 iOS Vision OCR ephemeral 텍스트('# 화면 텍스트 (OCR)' 별도 블록, "
+        "user message)를 동봉할 때 모델 행동을 못박는 Visual grounding 1단락 추가 — OCR 은 이미지의 "
+        "보완(정보밀도 높은 화면에서 멀티모달이 놓치는 글자 메움)이지 대체가 아니며, 이미지와 교차확인해 "
+        "충돌 시 이미지 우선(OCR 오인식·잡음 가드). 좁은 화면 키워드 하드코딩 없이 기준+why "
+        "(prompt-criteria 철학). 분류 ladder·도구·payload·eval_dataset 불변. lab eval 회귀검증은 후속. "
+        "(병렬 PR '능동 검색 트랙'도 v25→v26 을 점유 — body 의 서로 다른 영역[Tools vs Visual grounding] "
+        "편집이라 머지 시 통합 v26, rationale 만 합친다.)\n"
         "V22 → V25: 다중 마감 일정 표(대회 일정 등) 추출 보강 — lab dacon-schedule-extraction A/B "
         "측정 기반. 결함 둘: ① 9행 일정표를 단일 todo 로 뭉갬(분해도·recall 붕괴), ② 사용자가 "
         "기다리는 결과 발표(합격 통지 등)를 schedule 로 못 잡고 우산 기간(대회 참가기간)을 잘못 span "

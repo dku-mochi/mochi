@@ -263,6 +263,7 @@ async def create_mochi_item(
             url=payload.url,
             text=payload.text,
             user_memo=payload.user_memo,
+            analysis_ocr_text=payload.analysis_ocr_text,
             image_refs=tuple(image_refs),
             idempotency_key=idempotency_key,
             # 채팅 일정 proposal 이 propose-시점에 도출한 item 메타 — confirmed_instances 경로에서만 채워진다.

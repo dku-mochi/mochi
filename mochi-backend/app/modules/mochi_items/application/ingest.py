@@ -29,6 +29,10 @@ class IngestCommand:
     # category/summary 만 채운다 — 월간정리 "그 외"·검색 빈약 방지(§5.2 는 instance 재분석만 생략).
     category: str | None = None
     summary: str | None = None
+    # 분석 전용 ephemeral OCR(iOS Vision OCR). 일반 ingest(분석 파이프라인)에서만 실린다 —
+    # confirmed_instances 경로는 즉시 analyzed 라 삭제 훅을 안 거치므로 execute() 가 OCR 을 None 으로
+    # 비운다(ephemeral 불변식 코드 강제). 채팅 proposal 은 스크린샷이 없어 실무상 OCR=None 이기도 하다.
+    analysis_ocr_text: str | None = None
 
 
 @dataclass(slots=True)
@@ -63,6 +67,10 @@ class Ingest:
             url=command.url,
             text=command.text,
             user_memo=command.user_memo,
+            # confirmed_instances 경로는 즉시 lifecycle=ANALYZED 로 만들어 outbox 를 안 태운다 →
+            # apply_analysis 삭제 훅이 영영 호출되지 않는다. ephemeral 불변식("analyzed 면 OCR NULL")을
+            # 주석이 아니라 코드로 강제: 분석 파이프라인을 타는 경우에만 OCR 을 싣는다(아니면 영구 잔류, P1).
+            analysis_ocr_text=None if command.confirmed_instances else command.analysis_ocr_text,
             image_refs=command.image_refs,
         )
         if command.confirmed_instances:

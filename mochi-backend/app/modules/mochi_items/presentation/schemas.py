@@ -89,6 +89,9 @@ class MochiItemCreateRequest(BaseModel):
     # confirmed_instances 경로에서만 실린다. 일반 ingest 는 None → worker 분석이 채운다.
     category: str | None = None
     summary: str | None = None
+    # 분석 전용 ephemeral OCR(iOS Vision OCR 화면 transcript). 추론 후 삭제 — 영속/노출/인덱스 없음.
+    # **Create 에만** 존재한다 (Response/Update 엔 미추가 = 누수 차단, PRIVACY §1.1).
+    analysis_ocr_text: str | None = Field(default=None, alias="analysisOcrText")
 
     model_config = {"populate_by_name": True}
 

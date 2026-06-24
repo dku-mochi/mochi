@@ -2,7 +2,7 @@
 level: 2
 mode: committed
 status: active
-last_verified: 2026-06-10
+last_verified: 2026-06-24
 confidence: 0.8
 owners: [송준서, 이용찬, 박세현]
 description: 민감 캡처 보호 설계(on-device 감지·마스킹·최소전송)의 committed 정본. 캡처 ingestion·업로드·저장 경로를 손대기 전 반드시 읽어라 — 도메인 불변식이라 우회 금지(code-reviewer/qa-validator 가 P1 으로 잡음). 변경 시 정합성 폭포 필수.
@@ -26,7 +26,22 @@ description: 민감 캡처 보호 설계(on-device 감지·마스킹·최소전�
   전제하므로 구 "분석 후 TTL 삭제" 목표는 폐기한다 (2026-06-12 결정 — as-built 정합:
   삭제 경로가 처음부터 없었고 복구 pull 이 보존에 의존). 삭제는 계정/항목 삭제 정책과
   함께 후속 결정.
-- 원본, OCR 텍스트, embedding, 분석 결과를 모두 개인정보 파생 데이터로 취급한다.
+- 원본, OCR 텍스트, embedding, 분석 결과를 모두 개인정보 파생 데이터로 취급한다 (OCR 텍스트는
+  영속·ephemeral 2종으로 갈린다 — 바로 아래 표).
+
+**텍스트 산출물 2종 — 보호 모델이 다르다 (2026-06-24).** OCR 에서 나온 화면 텍스트는 수명·노출이
+다른 두 갈래로 갈린다. 둘을 섞지 않는다.
+
+| | (a) 영속 텍스트 `mochi_items.text` | (b) 분석용 ephemeral `mochi_items.analysis_ocr_text` |
+|---|---|---|
+| 무엇 | 사용자가 명시 공유했거나 semantic-replace 된 의미 보존 텍스트(§2.1) | iOS Vision OCR 이 뽑은 **raw 화면 transcript**(블러 전 원본 — 카드번호 등 원문 가능) |
+| 수명 | 영속(검색·노출 대상) | 추론 직전까지만 DB 에 존재, 분석 done(또는 영구 실패) 즉시 NULL(`apply_analysis`·DLQ) |
+| 노출/인덱스 | 검색 haystack·API Response·채팅 상세·embedding 에 포함 | **어디에도 없음** — 검색 인덱스·Response·채팅 상세·embedding 전부 미투입(grep 게이트로 강제) |
+| 민감 처리 | 민감도 게이트 유지(semantic-replace·블러) | 민감도 **점수** 게이트 미적용(이름·번호 감지로 OCR 자체를 막는 over-gating 회피 — 사용성 우선). 대신 **사용자의 명시적 정책 선택을 따른다**(§2.2 불변식) |
+
+ephemeral OCR 의 효용은 "정보밀도 높은 일반 스크린샷에서 멀티모달이 놓치는 글자를 분석 순간에만
+메운다"는 것이고, 영속/노출/인덱스가 없으므로 §9 의 노출 게이트 제거 결정과 양립한다(추가 노출
+표면이 생기지 않는다).
 
 ### 1.2 제품 목표
 
@@ -69,6 +84,18 @@ description: 민감 캡처 보호 설계(on-device 감지·마스킹·최소전�
 | 3-5 | 주의 | 텍스트/메타데이터 중심 업로드 |
 | 6-8 | 민감 | 사용자 경고, 원본 업로드 차단 기본값 |
 | 9-10 | 매우 민감 | 로컬 저장 기본값, 명시 승인 없이는 서버 분석 금지 |
+
+> **ephemeral OCR 불변식 (2026-06-24).** 분석용 `analysis_ocr_text`(§1.1 (b))는 민감도 점수가
+> 아니라 **사용자가 고른 이미지 정책에 종속**한다 — effective policy 가 `originalUpload`(비민감
+> 기본값, 또는 사용자가 원본 업로드를 명시 승인)일 때만 동봉하고, `blurredUpload`·`localOnly` 는
+> 미동봉한다. 근거: OCR 은 블러 전 raw 라 사용자가 이미지에서 가리기로 한 값(카드번호 등)을 그대로
+> 담는다 — 사용자가 가린 것을 OCR 로 서버에 흘리지 않는다(§9 블러 정합). `localOnly` 는 이미지도
+> 안 보내므로 당연히 OCR 도 안 보낸다. iOS 는 OCR 을 큐 JSON + Realm **isolated 컬럼**(`privacy` 와
+> 동일하게 격리 — 메인 업로드 워커가 Realm 에서 읽어 정책 게이트를 적용하므로 보관하되, 검색·노출·
+> 다른 화면 어디서도 읽지 않는다)에 싣고, originalUpload 캡처에만 추출한다(blurred/localOnly 는 OCR
+> 자체를 만들지 않음). 서버는 추론 직후 삭제(영속 정본 없음), 로그는 길이·존재 여부(부울)만 — OCR
+> 원문은 로그·메트릭에도 남기지 않는다. (on-device 영속이 추가 노출은 아니다 — originalUpload 캡처는
+> 원본 이미지도 단말에 보존되므로 OCR 은 그 부분집합. 업로드 후 Realm OCR 정리[clear]는 후속 위생 옵션.)
 
 ### 2.3 Intent 별 보존 필드
 
@@ -302,13 +329,20 @@ original_image_uploaded: bool
 privacy_policy: local_only | text_only | redacted_image | original_allowed
 ```
 
+> 분석용 ephemeral OCR 은 위 영속 필드와 별개의 **transient ingest 입력**이다 — `MochiItemCreateRequest.
+> analysisOcrText`(Create 에만, nullable)로 들어와 `mochi_items.analysis_ocr_text` 에 잠깐 머물다 추론
+> 후 NULL. 위 semantic payload(`text`)에 합쳐지지 않는다(별도 필드). 정본·동봉 정책은 §1.1 (b)·§2.2 +
+> `ARCHITECTURE.md` MochiItem ingestion.
+
 ### 6.3 Agent fallback
 
 서버 Agent 는 원본 이미지가 없을 수 있음을 기본 전제로 한다.
 
-- 원본 이미지 없음: semantic payload + OCR 텍스트 기반 분석
-- redacted 이미지 있음: redacted 이미지 + semantic payload 함께 분석
-- 원본 승인됨: 업로드 이미지로 분석 (GCS 보존 — §1.1 의 TTL 폐기 결정)
+- 원본 이미지 없음: semantic payload + OCR 텍스트 기반 분석 (여기 "OCR 텍스트" = §2.1 의 영속
+  semantic `text` 필드. 분석용 ephemeral `analysis_ocr_text`(§1.1 (b))는 `localOnly` 에 미동봉이라
+  이 경우 포함되지 않는다 — §2.2 불변식)
+- redacted 이미지 있음: redacted 이미지 + semantic payload 함께 분석 (`blurredUpload` 도 ephemeral OCR 미동봉)
+- 원본 승인됨: 업로드 이미지로 분석 (GCS 보존 — §1.1 의 TTL 폐기 결정. `originalUpload` 에서만 ephemeral OCR 동봉)
 
 ---
 
@@ -370,7 +404,7 @@ agent/application
 - 민감도 점수 threshold·가중치를 실제 사용자 테스트 후 조정할지 여부 (`SensitivityScorer` §4)
 - embedding 을 민감도 6 이상에도 생성할지 여부 (블러 업로드 시 블러본으로 embedding 생성됨)
 - 로컬 전용(`localOnly`) 캡처를 자연어 검색에 포함하려면 온디바이스 검색 인덱스를 둘지 여부
-- **백탭 캡처(`CommitBackTapCaptureIntent` — UI 없는 background intent)의 민감 처리** — 저장 시점에 선택 시트를 띄울 수 없는 구조적 제약. 자동 블러(보수적 안전) vs 앱 진입 후 사후 조정 중 팀 결정 필요.
+- **백탭 캡처(`CommitBackTapCaptureIntent` — UI 없는 background intent)의 민감 처리** — 저장 시점에 선택 시트를 띄울 수 없는 구조적 제약. 자동 블러(보수적 안전) vs 앱 진입 후 사후 조정 중 팀 결정 필요. **분석용 ephemeral OCR 동봉도 같은 선상에서 deferred** — 백탭은 현재 sensitive scan 자체를 안 거쳐 OCR 이 없다(동봉하려면 업로드 직전 재스캔 필요). 백탭 민감 처리가 정해질 때 함께 결정(2026-06-24, ephemeral OCR PR 은 ShareExt·메인앱 큐 경로만 우선 구현).
 
 > **노출 게이트는 블러 저장으로 해소됨 (2026-06-21 결정).** 민감 영역을 저장 시점에 가우시안
 > 블러 처리해 업로드하므로 **서버에 올라간 이미지 자체가 안전하다**. 따라서 다운스트림 노출
