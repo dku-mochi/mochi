@@ -295,7 +295,7 @@ def test_active_chat_prompt_keeps_proposal_web_and_agentic_retrieval_rules() -> 
     # 테스트는 현재 active prompt 의 행동·grounding 규칙을 고정한다.
     import app.modules.conversations.prompts.chat_prompts as chat_prompts
 
-    assert chat_prompts.ACTIVE_CHAT_PROMPT.name == "chat@v11"
+    assert chat_prompts.ACTIVE_CHAT_PROMPT.name == "chat@v12"
     assert not any(name.startswith("CHAT_V") for name in dir(chat_prompts))
 
     active_chat_prompt = chat_prompts.ACTIVE_CHAT_PROMPT

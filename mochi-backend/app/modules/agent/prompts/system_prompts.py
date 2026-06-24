@@ -47,7 +47,7 @@ CHAT_PROFILE_SUMMARY_SYSTEM = (
 
 
 ACTIVE_PROMPT = PromptVersion(
-    name="classify_and_act@v26",
+    name="classify_and_act@v27",
     body=(
         "# Context\n"
         "MOCHI organizes the things a person quickly saves during the day — screenshots, links, "
@@ -276,9 +276,11 @@ ACTIVE_PROMPT = PromptVersion(
         "since OCR can misread or carry noise.\n"
         "\n"
         "# Tools\n"
-        "You have four context tools. Choose by what the capture needs, spend them sparingly (at "
-        "most two or three calls before finalizing), and skip a tool when the capture already "
-        "gives you enough. Two act on a URL, two on a URL-less screenshot:\n"
+        "You have a set of context tools. Choose by what the capture needs, spend them sparingly "
+        "(at most two or three calls before finalizing), and skip a tool when the capture already "
+        "gives you enough. Some act on a URL, some on a URL-less screenshot, and two reach beyond "
+        "the capture itself — the user's own past records (hybridSearch) and the public web "
+        "(webSearch):\n"
         "- platformContext / webFetch — use ONLY when the capture actually carries a URL (a real "
         "link shared into MOCHI), never a URL you read off the screenshot or guess. platformContext "
         "for YouTube/X/Instagram links (official title/author/description); webFetch for other "
@@ -328,7 +330,17 @@ ACTIVE_PROMPT = PromptVersion(
         "(it is a small JSON object) — don't pull out just the url or rewrite it. That JSON carries "
         "the provider, label, and match score the app needs to render the link as a rich card; if "
         "you store only a bare URL, the app falls back to a plain link and loses all of that.\n"
-        "Call nothing other than these four context tools / finalizeAnalysis.\n"
+        "- hybridSearch — search the user's OWN saved records while analyzing, to notice a similar "
+        "past capture, connect related records, or check what is already planned/due on a day "
+        "(intent_type + occurs_from/occurs_to). This never gates saving — even a duplicate is still "
+        "saved; use what you find only to enrich the summary and connections, not to decide whether "
+        "to store. Pass 'queries' (one concept each, several allowed). Skip when the capture stands "
+        "alone with nothing worth cross-referencing.\n"
+        "- webSearch — search the public web only when an external fact would materially change a "
+        "knowledge-type analysis (what a concept/event/person actually is). Most captures don't "
+        "need it. NEVER put the record's raw text or any user-identifying phrase into a query — "
+        "rephrase to a generic public query; leaking the capture is exfiltration, not grounding.\n"
+        "Call nothing other than these context tools / finalizeAnalysis.\n"
         "\n"
         "# Personalization and recent-record consistency\n"
         "If a '# 사용자 컨텍스트' section is present, it is WEAK evidence: it may choose among readings "
@@ -351,13 +363,16 @@ ACTIVE_PROMPT = PromptVersion(
     eval_dataset_version="intent-schema-decision@2026-06-04",
     revised_on=date(2026, 6, 24),
     rationale=(
-        "V25 → V26: 분석 입력에 iOS Vision OCR ephemeral 텍스트('# 화면 텍스트 (OCR)' 별도 블록, "
+        "V26 → V27: 분석 입력에 iOS Vision OCR ephemeral 텍스트('# 화면 텍스트 (OCR)' 별도 블록, "
         "user message)를 동봉할 때 모델 행동을 못박는 Visual grounding 1단락 추가 — OCR 은 이미지의 "
         "보완(정보밀도 높은 화면에서 멀티모달이 놓치는 글자 메움)이지 대체가 아니며, 이미지와 교차확인해 "
         "충돌 시 이미지 우선(OCR 오인식·잡음 가드). 좁은 화면 키워드 하드코딩 없이 기준+why "
-        "(prompt-criteria 철학). 분류 ladder·도구·payload·eval_dataset 불변. lab eval 회귀검증은 후속. "
-        "(병렬 PR '능동 검색 트랙'도 v25→v26 을 점유 — body 의 서로 다른 영역[Tools vs Visual grounding] "
-        "편집이라 머지 시 통합 v26, rationale 만 합친다.)\n"
+        "(prompt-criteria 철학). 분류 ladder·도구·payload·eval_dataset 불변. lab eval 회귀검증은 후속.\n"
+        "V25 → V26: 분석 에이전트에 hybridSearch(과거 기록 능동 검색)·webSearch(외부 사실 그라운딩) "
+        "도구 2개 추가 + search_items/web_search 멀티쿼리(queries) 전환. # Tools 고정 카운트('four')를 "
+        "일반화하고 두 도구 사용 규칙을 추가 — hybridSearch 는 저장 게이트가 아니라 분석 보강(중복이어도 "
+        "항상 저장, 미션), occurs 필터로 그날 일정/할일 인지; webSearch 는 KNOWLEDGE 외부 사실 한정 + 기록 "
+        "원문/식별 문구 외부 반출 금지(데이터 경계, 채팅 선례 동형). 분류 ladder·payload·eval_dataset 불변(도구 추가만).\n"
         "V22 → V25: 다중 마감 일정 표(대회 일정 등) 추출 보강 — lab dacon-schedule-extraction A/B "
         "측정 기반. 결함 둘: ① 9행 일정표를 단일 todo 로 뭉갬(분해도·recall 붕괴), ② 사용자가 "
         "기다리는 결과 발표(합격 통지 등)를 schedule 로 못 잡고 우산 기간(대회 참가기간)을 잘못 span "

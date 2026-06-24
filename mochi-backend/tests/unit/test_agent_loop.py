@@ -9,6 +9,7 @@
 """
 
 from datetime import UTC, datetime
+from types import SimpleNamespace
 from uuid import uuid4
 
 import pytest
@@ -21,7 +22,9 @@ from app.modules.agent.application.orchestrator import (
 )
 from app.modules.agent.domain.gateway import AnalysisInput
 from app.modules.agent.domain.ports import LLMResponseChunk
-from app.modules.agent.domain.tools import ToolName, ToolUsage
+from app.modules.agent.domain.tools import ToolContext, ToolName, ToolUsage
+from app.modules.agent.infrastructure.tools.hybrid_search import HybridSearchInput, HybridSearchTool
+from app.modules.agent.infrastructure.tools.web_search import WebSearchAgentTool, WebSearchInput
 from app.shared.intent import Intent
 
 
@@ -380,3 +383,77 @@ async def test_first_analysis_keeps_llm_needs_review():
     await _drain(orch, uuid4(), uuid4())
     assert gateway.applied.needs_review is True
     assert len(gateway.applied.review_options) == 1
+
+
+# ---------- 검색 어댑터 (hybridSearch / webSearch) ----------
+
+
+class _FakeChatSearch:
+    """SearchItemsTool/WebSearchTool duck-type — owner_id·args 를 캡처한다."""
+
+    def __init__(self, payload: dict):
+        self._payload = payload
+        self.owner_id = None
+        self.args: dict | None = None
+
+    async def run(self, *, owner_id, args):
+        self.owner_id = owner_id
+        self.args = args
+        return SimpleNamespace(payload=self._payload)
+
+
+@pytest.mark.asyncio
+async def test_hybrid_search_tool_binds_owner_and_unwraps_items():
+    search = _FakeChatSearch({"items": [{"id": "1"}, {"id": "2"}], "count": 2})
+    owner = uuid4()
+    out, _ = await HybridSearchTool(search).run_with_context(
+        HybridSearchInput(queries=["민수"], intent_type="schedule"),
+        context=ToolContext(owner_id=owner, mochi_item_id=uuid4()),
+    )
+    assert search.owner_id == owner  # owner 는 LLM args 가 아니라 context 에서 주입
+    assert search.args["queries"] == ["민수"]
+    assert search.args["intent_type"] == "schedule"
+    assert "limit" not in search.args  # exclude_none — 미지정 필드는 빠진다
+    assert out.count == 2
+
+
+@pytest.mark.asyncio
+async def test_web_search_tool_unwraps_results():
+    search = _FakeChatSearch({"results": [{"url": "https://a"}], "count": 1})
+    out, _ = await WebSearchAgentTool(search).run_with_context(
+        WebSearchInput(queries=["q1", "q2"]),
+        context=ToolContext(owner_id=uuid4(), mochi_item_id=uuid4()),
+    )
+    assert search.args["queries"] == ["q1", "q2"]
+    assert out.count == 1
+
+
+class _ContextRegistry:
+    def __init__(self, tool):
+        self._t = {tool.name: tool}
+
+    def get(self, name):
+        return self._t[name]
+
+    def all(self):
+        return list(self._t.values())
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_injects_owner_into_context_aware_tool():
+    # owner_id 는 LLM args 가 아니라 orchestrator(현재 분석 owner)가 주입한다 — cross-tenant 방어.
+    owner = uuid4()
+    search = _FakeChatSearch({"items": []})
+    llm = _ScriptedLLM(
+        [
+            LLMResponseChunk(tool_to_call=ToolName.HYBRID_SEARCH, tool_arguments={"queries": ["민수"]}),
+            _finalize_chunk(),
+        ]
+    )
+    gateway = _FakeGateway(AnalysisInput(text="t", url=None, user_memo=None))
+    orch = AgentOrchestrator(
+        llm=llm, tools=_ContextRegistry(HybridSearchTool(search)), max_steps=8, gateway=gateway
+    )
+    await _drain(orch, uuid4(), owner)
+    assert search.owner_id == owner
+    assert search.args["queries"] == ["민수"]

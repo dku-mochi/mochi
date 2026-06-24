@@ -132,7 +132,11 @@ class MochiItemWorker:
             profile_store = PostgresUserProfileStore(session)
             orchestrator = AgentOrchestrator(
                 llm=get_agent_llm(),
-                tools=StaticToolRegistry(),
+                tools=StaticToolRegistry(
+                    session_factory=session_factory,
+                    voyage=get_voyage_client(),
+                    tavily_api_key=settings.tavily_api_key,
+                ),
                 max_steps=self._max_steps,
                 persistence=AgentRunPersistence(session),
                 gateway=gateway,
