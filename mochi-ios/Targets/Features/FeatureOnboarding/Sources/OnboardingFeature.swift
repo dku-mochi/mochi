@@ -7,7 +7,7 @@ import Foundation
 /// 사용자가 "다음" 을 누르면 ``Delegate.finished`` 를 발행해 부모 (App 또는 RootFeature)
 /// 가 메인 흐름으로 전이하도록 한다.
 ///
-/// **백탭 페이지(index 1)는 단순 안내가 아니라 설정을 끝까지 끌고 가는 3-스텝 체크리스트다.**
+/// **백탭 페이지(마지막)는 단순 안내가 아니라 설정을 끝까지 끌고 가는 3-스텝 체크리스트다.**
 /// 백탭은 모찌의 1순위 입력 경로(`PRODUCT.md §7`)인데, 단축어를 라이브러리에 추가하는 것과
 /// 그 단축어를 *뒷면 탭에 연결* 하는 것은 분리된 두 행동이라, 어느 하나라도 빠지면 백탭이
 /// 죽은 채 홈에 도착한다. 그래서:
@@ -30,7 +30,7 @@ public struct OnboardingFeature: Sendable {
         /// 메인 흐름으로 전이한다.
         public var isFinished: Bool
 
-        // MARK: 백탭 페이지(index 1) 3-스텝 체크리스트 상태
+        // MARK: 백탭 페이지(마지막) 3-스텝 체크리스트 상태
         /// ① "단축어를 추가했어요" ack.
         public var shortcutAdded: Bool
         /// ② "뒷면 탭에 연결했어요" ack.
@@ -132,9 +132,9 @@ public struct OnboardingFeature: Sendable {
             case let .pageChanged(index):
                 let clamped = max(0, min(index, OnboardingPage.allCases.count - 1))
                 let backTapIndex = OnboardingPage.backTap.rawValue
-                // [P1] 백탭 미해결 시 전진 차단은 NavigationStack 에 forward push surface 가
+                // [P1] 백탭 미해결 시 전진 차단은 크로스페이드에 forward 스와이프 surface 가
                 // 없다는 것 + `nextTapped`/`backTapStepCompleted` reducer 가드가 담당한다.
-                // `pageChanged` 는 이제 NavigationStack 의 뒤로(pop) 만 반영한다.
+                // `pageChanged` 는 좌상단 back(직전 단계로만) 을 반영한다.
                 // 검증 진행 중 백탭 페이지를 떠나면 폴링/창을 정리한다.
                 let leavingMidVerify = state.currentPage == backTapIndex
                     && clamped != backTapIndex

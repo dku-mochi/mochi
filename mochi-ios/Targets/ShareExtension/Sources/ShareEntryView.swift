@@ -23,6 +23,8 @@ struct ShareEntryView: View {
     /// 사용자 코너 크롭(이미지 우세 모드에서만, 정규화 0...1). 제출 시 ``ShareImageCropper`` 가 적용한다.
     let onSubmit: (InboundIngestPayload, CGRect) -> Void
     let onCancel: () -> Void
+    /// 민감 감지가 있을 때 가림 화면으로 (다시) 들어가는 동선(이미지 우세 모드에서만). nil 이면 미표시.
+    var onEditRedaction: (() -> Void)? = nil
 
     @State private var memo: String = ""
     @State private var crop = ShareCropImage.fullCrop
@@ -77,6 +79,11 @@ struct ShareEntryView: View {
                 Text("외 \(imageRefs.count - 1)장 더 · 총 \(totalImageMB)MB")
                     .font(.system(size: 12, weight: .medium, design: .rounded))
                     .foregroundStyle(ShareDesign.muted)
+                    .shareEntrance(2, appeared: appeared)
+            }
+
+            if redaction.canEditRedaction, let onEditRedaction {
+                redactionEntryButton(onEditRedaction)
                     .shareEntrance(2, appeared: appeared)
             }
 
@@ -239,6 +246,30 @@ struct ShareEntryView: View {
     private var totalImageMB: String {
         let bytes = imageRefs.reduce(0) { $0 + $1.byteSize }
         return String(format: "%.1f", Double(bytes) / (1024 * 1024))
+    }
+
+    /// 민감 감지가 있을 때 가림 화면으로 (다시) 들어가는 진입점 — 이미 가렸으면 "가린 곳 고치기", 아직이면 "가리기".
+    private var redactionEntryTitle: String {
+        redaction.decision?.policy == .blurredUpload ? "가린 곳 고치기" : "가리기"
+    }
+
+    private func redactionEntryButton(_ action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                Image(systemName: "eye.slash")
+                    .font(.system(size: 13, weight: .semibold))
+                Text(redactionEntryTitle)
+                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+            }
+            .foregroundStyle(ShareDesign.primary)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background(Capsule().fill(ShareDesign.primary.opacity(0.12)))
+            .overlay(Capsule().strokeBorder(ShareDesign.primary.opacity(0.25), lineWidth: 1))
+            .contentShape(Capsule())
+        }
+        .frame(minHeight: 44)
+        .accessibilityLabel(Text(redactionEntryTitle))
     }
 
     private func submit() {
