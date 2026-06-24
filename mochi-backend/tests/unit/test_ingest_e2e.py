@@ -17,6 +17,8 @@ from app.modules.mochi_items.domain.entities import (
     IngestChannel,
     MochiItem,
 )
+from app.modules.mochi_items.domain.value_objects import IntentInstance
+from app.shared.intent import Intent
 
 
 class _InMemoryRepository:
@@ -80,6 +82,44 @@ async def test_ingest_persists_image_refs_and_emits_event() -> None:
     assert len(result.item.source.image_refs) == 1
     assert result.item.source.image_refs[0].sha256 == "a" * 64
     assert notifier.events == [(owner, result.item.id)]
+
+
+@pytest.mark.asyncio
+async def test_ingest_preserves_analysis_ocr_text() -> None:
+    # ephemeral OCR 이 command → 도메인 source 까지 손실 없이 흐른다 (worker 분석이 읽고 추론 후 삭제).
+    repo = _InMemoryRepository()
+    use_case = Ingest(repository=repo, notifier=_CollectingNotifier())
+    cmd = IngestCommand(
+        owner_id=uuid4(),
+        channel=IngestChannel.SCREENSHOT,
+        url=None,
+        text=None,
+        user_memo=None,
+        analysis_ocr_text="화면 OCR transcript",
+        idempotency_key="ocr-1",
+    )
+    result = await use_case.execute(cmd)
+    assert result.item.source.analysis_ocr_text == "화면 OCR transcript"
+
+
+@pytest.mark.asyncio
+async def test_confirmed_instances_path_drops_ephemeral_ocr() -> None:
+    # confirmed_instances 경로는 즉시 lifecycle=analyzed 라 outbox·삭제 훅을 안 거친다. ephemeral OCR 이
+    # 동시 전송돼도 persist-without-delete 영구 잔류를 막으려 use case 가 비운다(불변식 코드 강제, 리뷰 P1).
+    repo = _InMemoryRepository()
+    use_case = Ingest(repository=repo, notifier=_CollectingNotifier())
+    cmd = IngestCommand(
+        owner_id=uuid4(),
+        channel=IngestChannel.CHAT,
+        url=None,
+        text="채팅 확정 일정",
+        user_memo=None,
+        analysis_ocr_text="leaked card 1234-5678",  # 입력 계약상 막혀있지 않으니 방어적으로 검증
+        idempotency_key="confirmed-ocr",
+        confirmed_instances=(IntentInstance(intent_type=Intent.SCHEDULE),),
+    )
+    result = await use_case.execute(cmd)
+    assert result.item.source.analysis_ocr_text is None
 
 
 @pytest.mark.asyncio

@@ -23,6 +23,8 @@ class AnalysisInput:
     text: str | None
     url: str | None
     user_memo: str | None
+    # 분석 전용 ephemeral OCR(iOS Vision OCR 화면 transcript). 이미지 보완용 — 추론 후 row 에서 삭제된다.
+    analysis_ocr_text: str | None = None
     # 멀티모달 분석용 이미지: (gs:// URI, mime_type) 목록. 이미지 없으면 빈 튜플.
     # Gemini 가 Vertex AI 에서 gs:// URI 를 직접 읽으므로 백엔드는 bytes 를 들지 않는다.
     images: tuple[tuple[str, str], ...] = ()

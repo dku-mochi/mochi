@@ -25,6 +25,7 @@ public enum RealmMochiItemMapper {
         row.modelVersion = mochiItem.analysis?.modelVersion
         row.privacyPolicyRawValue = mochiItem.source.privacy?.policy.rawValue
         row.sensitivityLevelRawValue = mochiItem.source.privacy?.level.rawValue
+        row.analysisOcrText = mochiItem.source.analysisOcrText
         row.lifecycleStateRawValue = lifecycleStateRaw(mochiItem.lifecycleState)
         row.syncStateRawValue = syncStateRaw(mochiItem.syncState)
         row.capturedAt = mochiItem.source.capturedAt
@@ -90,7 +91,8 @@ public enum RealmMochiItemMapper {
             imageRefs: row.imageRefs.map(decode(imageRef:)),
             userMemo: row.userMemo,
             capturedAt: row.capturedAt,
-            privacy: decodePrivacy(policyRaw: row.privacyPolicyRawValue, levelRaw: row.sensitivityLevelRawValue)
+            privacy: decodePrivacy(policyRaw: row.privacyPolicyRawValue, levelRaw: row.sensitivityLevelRawValue),
+            analysisOcrText: row.analysisOcrText
         )
 
         var analysis: MochiItemAnalysis?

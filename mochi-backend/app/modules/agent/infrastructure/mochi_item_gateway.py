@@ -41,6 +41,7 @@ class MochiItemGatewayAdapter(MochiItemGateway):
             text=item.source.text,
             url=item.source.url,
             user_memo=item.source.user_memo,
+            analysis_ocr_text=item.source.analysis_ocr_text,
             images=images,
         )
 

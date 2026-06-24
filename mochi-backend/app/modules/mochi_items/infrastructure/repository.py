@@ -189,6 +189,7 @@ def _row_to_entity(row: MochiItemRow) -> MochiItem:
         url=row.url,
         text=row.text,
         user_memo=row.user_memo,
+        analysis_ocr_text=row.analysis_ocr_text,
         image_refs=image_refs,
         captured_at=row.captured_at,
     )
@@ -253,6 +254,7 @@ class PostgresMochiItemRepository(MochiItemRepository):
             url=item.source.url,
             text=item.source.text,
             user_memo=item.source.user_memo,
+            analysis_ocr_text=item.source.analysis_ocr_text,
             needs_review=item.needs_review,
             summary=item.summary,
             category=item.category,
@@ -500,6 +502,9 @@ class PostgresMochiItemRepository(MochiItemRepository):
         row.model_version = model_version
         # 처리상태 → 분석 완료(analyzed). 처리상태는 단일 선형이라 정책 검증 없이 확립.
         row.lifecycle_kind = LifecycleStateKind.ANALYZED.value
+        # ephemeral OCR 삭제 — 추론 입력은 분석이 끝나면 같은 트랜잭션에서 비운다(영속/노출/인덱스 없음,
+        # PRIVACY §1.1). 재분석은 OCR 없이 멀티모달+hint 로 동작(수용 — ephemeral 불변식 우선).
+        row.analysis_ocr_text = None
         row.updated_at = datetime.utcnow()
 
         # intent_instances 재적재 — 재분석 시 전량 delete-reinsert (멱등). 사용자 완료상태도

@@ -159,7 +159,11 @@ public actor MochiItemSyncWorker {
                 url: mochiItem.source.url,
                 text: mochiItem.source.text,
                 userMemo: mochiItem.source.userMemo,
-                imageRefs: imageRefs
+                imageRefs: imageRefs,
+                analysisOcrText: EphemeralOCRGate.textForUpload(
+                    privacy: mochiItem.source.privacy,
+                    ocrText: mochiItem.source.analysisOcrText
+                )
             )
             let dto = try await apiClient.ingestMochiItem(request, idempotencyKey: mochiItem.id.uuidString)
             // pull 경합 복제 정리 — ingest 가 서버에 commit 된 뒤 아래 updateSync 가 끝나기 전의

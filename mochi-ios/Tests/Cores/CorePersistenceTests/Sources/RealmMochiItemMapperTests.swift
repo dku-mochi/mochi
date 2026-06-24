@@ -75,4 +75,13 @@ final class RealmMochiItemMapperTests: XCTestCase {
         XCTAssertNil(restored.analysis)
         XCTAssertEqual(restored.lifecycleState, .ingested)
     }
+
+    func test_roundtrip_preserves_analysis_ocr_text() {
+        // ephemeral OCR 은 drain~업로드 사이 SyncWorker 가 읽어야 하므로 Realm round-trip 으로 보존돼야 한다.
+        let original = MochiItem(
+            source: IngestSource(channel: .screenshot, analysisOcrText: "화면 OCR transcript 예매번호 A1234")
+        )
+        let restored = RealmMochiItemMapper.toDomain(RealmMochiItemMapper.toRealm(original))
+        XCTAssertEqual(restored.source.analysisOcrText, "화면 OCR transcript 예매번호 A1234")
+    }
 }

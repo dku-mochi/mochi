@@ -10,6 +10,12 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-06-25 — backend, ios, docs (ephemeral OCR — 분석 전용 화면 텍스트 동봉 + 추론 후 삭제)
+- **왜**: 정보밀도 높은 일반 스크린샷은 텍스트 레이어가 없어 멀티모달이 글자를 놓친다. iOS Vision OCR transcript 를 **분석 순간에만** 동봉해 분해 누락을 줄이되, 영속/노출/인덱스 없이 추론 후 삭제(ephemeral)해 PRIVACY 와 양립.
+- **백엔드**: `mochi_items.analysis_ocr_text`(nullable, 마이그레이션 0026) + ingest 전 경로 배선(Create 스키마 alias `analysisOcrText`만 — Response/Update 미추가). 분석 입력에 `source.text` 와 **분리한 별도 "# 화면 텍스트 (OCR)" 블록**으로 주입(신뢰도 다름, 이미지 보완·대체 아님), `classify_and_act@v27`. **삭제 훅**: `apply_analysis`(분석 done)·DLQ(영구 실패) 즉시 NULL. **누수 차단**: 검색 haystack·embedding·Response·채팅 상세 전부 미투입(grep 게이트 0 매치 검증).
+- **iOS**: `SensitiveCaptureScanner` 가 만들고 버리던 OCR 텍스트를 보존해 동봉. **정책 종속 게이트**: effective 이미지 정책이 `originalUpload`(비민감 기본·사용자 원본 승인)일 때만 동봉, `blurredUpload`·`localOnly` 는 제외(사용자가 가린 raw 를 OCR 로 누설 안 함). 단일 게이트 `EphemeralOCRGate`(두 업로드 경로 공유). OCR 은 큐 JSON + Realm isolated 컬럼(schema v14, 업로드 워커가 읽음 — 검색·노출 미사용)에 실린다(originalUpload 캡처만 추출). 백탭 경로 OCR 은 후속(백탭 민감감지 통합과 함께).
+- **문서**: `PRIVACY_SENSITIVE_CAPTURE.md §1.1`(영속 vs ephemeral 텍스트 2종 구분)·`§2.2`(정책 종속 불변식), `DOMAIN_DESIGN.md §3`(컬럼 노트), `ARCHITECTURE.md`(ingest 계약). OpenAPI 재생성(`analysisOcrText` Create 필드) → iOS `CoreNetworking/openapi.json` 동기화.
+
 ## 2026-06-24 — backend (분석 에이전트 능동 검색 + 멀티쿼리 RRF)
 - **search_items·web_search 멀티쿼리(`queries: list`) + RRF**: 한 turn/캡처의 여러 정보 욕구를 한 호출에. search_items 는 query별 (키워드 ILIKE + voyage 벡터) 후보를 RRF(k=60) 융합 후 rerank-2.5 **1회**(query 수배 아님). web_search 는 query별 Tavily → url union/dedup. 하위호환(단일 `query`→`[query]`). 채팅 `chat@v12`.
 - **hybridSearch — 분석 에이전트가 과거 기록 능동 검색**: 채팅 `SearchItemsTool` 을 분석(ingestion) 에이전트에 노출. **저장 게이트가 아니라 분석 보강 신호** — 중복이어도 항상 저장하고(미션), 발견한 연결/중복/일정충돌은 summary·needs_review 에만 반영. `ContextAwareTool`+`ToolContext` 로 owner_id 를 LLM args 가 아니라 orchestrator 가 주입(cross-tenant 방어). conversations.application 팩토리 + agent.infrastructure duck-typing 어댑터로 모듈 경계(§3.3) 준수.

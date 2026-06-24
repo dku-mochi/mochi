@@ -317,7 +317,9 @@ public final class ShareExtensionPrincipal: UIViewController {
     }
 
     /// 큐 적재(진실원천) + best-effort 직접전송 + 성공 종료. 민감/비민감 경로 공통 저장 로직.
-    private func proceedSave(_ finalPayload: InboundIngestPayload) async {
+    private func proceedSave(_ rawPayload: InboundIngestPayload) async {
+        // 모든 저장 경로가 여기로 모이므로(민감/비민감 공통), 분석 전용 ephemeral OCR 동봉도 여기 한 곳에서 한다.
+        let finalPayload = await Self.attachingAnalysisOCR(to: rawPayload)
         // 성공 모먼트(`ShareSuccessOverlay`)의 최소 노출시간 — 직접전송이 즉시 반환되는 빠른 경로에서
         // 한 프레임만 깜빡이고 닫히는 glitch 를 막고 "기억했어요!" 를 읽을 시간을 보장한다.
         let minSuccessDisplay = Task { try? await Task.sleep(nanoseconds: 900_000_000) }
@@ -450,6 +452,34 @@ public final class ShareExtensionPrincipal: UIViewController {
             originalRef: ref,
             regions: result.regions,
             textBoxes: result.textBoxes
+        )
+    }
+
+    /// 분석 전용 ephemeral OCR 을 payload 에 동봉한다 — **effective policy == originalUpload 일 때만** 추출·보관한다.
+    /// blurredUpload(블러로 가린 raw 텍스트 누설 방지)·localOnly(이미지 미전송)는 OCR 자체를 만들지 않는다
+    /// (`EphemeralOCRGate` 와 동일 정책, PRIVACY §9). 첫 이미지의 화면 transcript 만 — 텍스트/URL 캡처는 대상 아님.
+    /// 모든 저장 경로가 `proceedSave` 로 모이므로 여기 한 곳에서, 민감/비민감 분기와 무관하게(공통 지점)
+    /// originalUpload 캡처에 한해 채운다(:466 게이트 — 비민감 기본 포함, blurred/localOnly 제외).
+    /// ⚠️ 선감지(`detectPrivacy`)와 별도 scan 이라 originalUpload 캡처엔 OCR scan 이 한 번 더 돈다 —
+    /// ShareExt 메모리/지연 최적화(선감지 scan 재사용)는 후속(오너 결정, "우선 동작 구현").
+    private static func attachingAnalysisOCR(to payload: InboundIngestPayload) async -> InboundIngestPayload {
+        let policy = payload.privacy?.policy ?? .originalUpload
+        guard policy == .originalUpload, payload.analysisOcrText == nil,
+              let ref = payload.imageRefs.first else { return payload }
+        let url = AppGroup.containerURL.appendingPathComponent(ref.relativePath)
+        guard let data = try? Data(contentsOf: url),
+              let cgImage = downsampledCGImage(from: data) else { return payload }
+        let result = await SensitiveCaptureScanner().scan(cgImage: cgImage)
+        guard let ocrText = result.ocrText else { return payload }
+        return InboundIngestPayload(
+            id: payload.id,
+            url: payload.url,
+            text: payload.text,
+            userMemo: payload.userMemo,
+            channelGuess: payload.channelGuess,
+            imageRefs: payload.imageRefs,
+            privacy: payload.privacy,
+            analysisOcrText: ocrText
         )
     }
 
