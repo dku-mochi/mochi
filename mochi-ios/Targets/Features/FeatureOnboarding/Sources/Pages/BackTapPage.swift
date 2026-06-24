@@ -1,8 +1,9 @@
 import ComposableArchitecture
 import SwiftUI
 
-/// 2페이지 — 백탭 설정 3-스텝 체크리스트.
+/// 마지막 페이지 — 백탭 설정 3-스텝 체크리스트.
 ///
+/// 가치(저장·정리·회수)를 먼저 본 뒤 마지막에 오는, 앱에서 유일하게 무거운 설정 단계다.
 /// 백탭은 단축어 *추가* 와 뒷면 탭 *연결* 이라는 분리된 두 행동이 모두 끝나야 살아난다.
 /// 어느 하나만 해도 "두 번 탭해도 반응 없는" 상태가 되므로, 두 단계를 명시적 체크리스트로
 /// 드러내고 마지막에 **실제 백탭이 모찌에 도달하는지 검증**한다 (`OnboardingFeature` ③).
@@ -10,6 +11,8 @@ import SwiftUI
 struct BackTapPage: View {
     @Bindable var store: StoreOf<OnboardingFeature>
     @Environment(\.openURL) private var openURL
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var appeared = false
 
     /// iCloud Shortcuts 갤러리의 모찌 단축어 (`Take Screenshot → 모찌 화면 캡쳐`).
     private static let shortcutURL = URL(string: "https://www.icloud.com/shortcuts/e24ac8bf17ef45a088e4b3cdc76aa44b")
@@ -18,11 +21,14 @@ struct BackTapPage: View {
         VStack(spacing: 0) {
             Spacer(minLength: 8)
             heading
+                .onboardingEnter(0, appeared, reduceMotion: reduceMotion)
             Spacer(minLength: 24)
             checklist
+                .onboardingEnter(1, appeared, reduceMotion: reduceMotion)
             Spacer(minLength: 8)
         }
         .padding(.horizontal, 24)
+        .onAppear { appeared = true }
         .sheet(isPresented: settingsGuideBinding) {
             BackTapSettingsGuideSheet(
                 onOpenSettings: openSettingsBestEffort,
