@@ -1,4 +1,7 @@
+from collections.abc import Callable
 from typing import Any
+
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.core.config import get_settings
 from app.modules.agent.domain.ports import ToolRegistry
@@ -7,6 +10,7 @@ from app.modules.agent.infrastructure.tools.platform_context import PlatformCont
 from app.modules.agent.infrastructure.tools.resource_finder import ResourceFinderTool
 from app.modules.agent.infrastructure.tools.web_fetch import WebFetchTool
 from app.modules.agent.infrastructure.tools.youtube_recover import RecoverYoutubeUrlTool
+from app.shared.voyage import VoyageClient
 
 
 class StaticToolRegistry(ToolRegistry):
@@ -19,7 +23,13 @@ class StaticToolRegistry(ToolRegistry):
     (`MultimodalAnalyzeTool` 클래스는 스키마 재사용을 위해 보존.)
     """
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        *,
+        session_factory: Callable[[], AsyncSession] | async_sessionmaker[AsyncSession] | None = None,
+        voyage: VoyageClient | None = None,
+        tavily_api_key: str | None = None,
+    ) -> None:
         self._tools: dict[ToolName, Tool[Any, Any]] = {
             ToolName.PLATFORM_CONTEXT: PlatformContextTool(),
             ToolName.WEB_FETCH: WebFetchTool(),
@@ -30,6 +40,23 @@ class StaticToolRegistry(ToolRegistry):
         # 않게 — web_search/Tavily 선례와 동일 패턴).
         if get_settings().naver_client_id:
             self._tools[ToolName.RESOURCE_FINDER] = ResourceFinderTool()
+        # hybridSearch — 분석 중 과거 기록 능동 검색. session_factory 가 주입됐을 때만(테스트의
+        # 무인자 StaticToolRegistry() 는 검색 없이 동작). conversations.application 경유로 모듈
+        # 경계를 지킨다(여기서 conversations.infrastructure 를 직접 import 하지 않는다).
+        if session_factory is not None:
+            from app.modules.agent.infrastructure.tools.hybrid_search import HybridSearchTool
+            from app.modules.conversations.application.tool_factories import make_search_items_tool
+
+            self._tools[ToolName.HYBRID_SEARCH] = HybridSearchTool(
+                make_search_items_tool(session_factory, voyage)
+            )
+        # webSearch — 외부 사실 그라운딩(KNOWLEDGE). Tavily 키가 있을 때만(키 발급이 머지를
+        # 블록하지 않게 — findReferenceUrls/네이버 선례와 동일). 채팅 web_search 와 단일 구현 공유.
+        if tavily_api_key:
+            from app.modules.agent.infrastructure.tools.web_search import WebSearchAgentTool
+            from app.modules.conversations.application.tool_factories import make_web_search_tool
+
+            self._tools[ToolName.WEB_SEARCH] = WebSearchAgentTool(make_web_search_tool(tavily_api_key))
 
     def get(self, name: ToolName) -> Tool[Any, Any]:
         return self._tools[name]

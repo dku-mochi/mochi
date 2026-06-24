@@ -47,14 +47,16 @@ RERANK_CANDIDATES = 24
 _PARAMETERS: dict[str, Any] = {
     "type": "object",
     "properties": {
-        "query": {
-            "type": "string",
+        "queries": {
+            "type": "array",
+            "items": {"type": "string"},
             "description": (
-                "Keyword(s) or a short phrase describing what the record is about. Matching is "
-                "hybrid: exact words match directly, and semantic retrieval also surfaces records "
-                "that mean the same thing in different words — so describe the thing naturally "
-                "instead of guessing the saved vocabulary. Keep one concept per call. Omit to "
-                "filter-only browse."
+                "One or more short phrases, each describing one thing a record is about. Matching "
+                "is hybrid: exact words match directly, and semantic retrieval also surfaces "
+                "records that mean the same thing in different words — so describe the thing "
+                "naturally instead of guessing the saved vocabulary. Put one concept per string, "
+                "and pass several at once when the ask spans distinct things (a person, a place, "
+                "a topic) — results are fused across them. Omit (empty) to filter-only browse."
             ),
         },
         "intent_type": {
@@ -105,6 +107,14 @@ _HAYSTACK_SQL = "coalesce(m.summary,'') || ' ' || coalesce(m.text,'') || ' ' || 
 #: 키워드당 substring 매칭 상한 — 그 이상은 노이즈 (plainto 의 AND 의미는 유지).
 _MAX_KEYWORDS = 5
 
+#: 한 호출에 받는 query 상한 — 여러 정보 욕구를 한 번에(resource_finder `_MAX_QUERIES` 선례).
+#: 그 이상 분해는 비용만 늘고 RRF 융합 변별력이 떨어진다.
+_MAX_QUERIES = 4
+
+#: RRF(Reciprocal Rank Fusion) 상수 — query별 (키워드·벡터) 순위 리스트를 단일 점수로 합친다.
+#: 60 은 RRF 표준값(rank 차이를 부드럽게 흡수). search/postgres_index 의 BM25+vector 융합과 동일 철학.
+_RRF_K = 60
+
 #: instance 의 "발생 시작일" — deadline 우선, 없으면 date (``ListUpcomingActionables`` 와 동일 우선순위).
 #: payload 값이 free-text 라 앞 10자를 ISO 모양으로 정규화('/'·'.' → '-')해 사전식 비교한다.
 _OCCURS_DATE_SQL = (
@@ -123,6 +133,45 @@ _OCCURS_END_DATE_SQL = (
     rf"AND {_OCCURS_END_RAW_SQL} >= {_OCCURS_DATE_SQL} "
     rf"THEN {_OCCURS_END_RAW_SQL} END, {_OCCURS_DATE_SQL})"
 )
+
+
+def _parse_queries(args: dict[str, Any]) -> list[str]:
+    """queries(list[str]) 우선, 단일 query(str) 하위호환. 공백 정리·빈 항목 제거 후 최대 _MAX_QUERIES.
+
+    genai 가 array 를 단일 문자열로 줄 수도 있어 str 도 단수로 수용한다.
+    """
+    raw = args.get("queries")
+    if raw is None:
+        single = args.get("query")
+        raw = [single] if single else []
+    elif isinstance(raw, str):
+        raw = [raw]
+    if not isinstance(raw, list):
+        return []
+    out: list[str] = []
+    for item in raw:
+        if isinstance(item, str):
+            stripped = item.strip()
+            if stripped and stripped not in out:  # 중복 query 제거 — 비용·RRF 중복가중 방지
+                out.append(stripped)
+        if len(out) >= _MAX_QUERIES:
+            break
+    return out
+
+
+def _rrf_fuse(ranked_lists: list[list[Any]]) -> list[Any]:
+    """Reciprocal Rank Fusion — 여러 순위 리스트를 id별 점수 Σ 1/(k+rank) 로 합쳐 내림차순.
+
+    각 리스트는 한 갈래(query별 키워드·벡터)의 순위(1-based, RRF 표준)다. 같은 item 이 여러
+    리스트 상위에 들수록 점수가 누적돼 위로 온다. row 객체는 첫 출현본을 보존한다(snippet 등 동일).
+    """
+    scores: dict[Any, float] = {}
+    rows_by_id: dict[Any, Any] = {}
+    for ranked in ranked_lists:
+        for rank, row in enumerate(ranked, start=1):
+            scores[row.id] = scores.get(row.id, 0.0) + 1.0 / (_RRF_K + rank)
+            rows_by_id.setdefault(row.id, row)
+    return [rows_by_id[item_id] for item_id in sorted(scores, key=lambda i: scores[i], reverse=True)]
 
 
 def _parse_dt(raw: Any) -> datetime | None:
@@ -177,8 +226,9 @@ class SearchItemsTool:
         "saved tastes, wishlists, places, and deadlines are what make the answer theirs. "
         "Matching is hybrid — exact keywords plus semantic retrieval — so describe what the "
         "record would be about in natural language; records phrased differently are still "
-        "found. An ask that holds several distinct information needs warrants one call per "
-        "need — issue them together. Combine query and filters. Two time axes: "
+        "found. An ask that holds several distinct information needs is still one call: pass "
+        "each need as its own string in `queries` and the results are fused. Combine queries "
+        "and filters. Two time axes: "
         "date_from/date_to scope when a record was saved; occurs_from/occurs_to scope when its "
         "event happens or is due — asks about a period's plans or due work need occurs_*, "
         "because a plan for tomorrow was usually saved earlier. If a call comes back empty, "
@@ -197,7 +247,7 @@ class SearchItemsTool:
         self._voyage = voyage
 
     async def run(self, *, owner_id: UUID, args: dict[str, Any]) -> ChatToolResult:
-        query = (args.get("query") or "").strip() or None
+        queries = _parse_queries(args)
         intent_raw = args.get("intent_type")
         intent = (
             intent_raw if isinstance(intent_raw, str) and intent_raw in {i.value for i in Intent} else None
@@ -212,25 +262,25 @@ class SearchItemsTool:
             min(int(raw_limit), TOP_K) if isinstance(raw_limit, int | float) and int(raw_limit) > 0 else TOP_K
         )
 
-        # 구조화 필터 — 키워드·의미 두 갈래에 동일 적용된다.
+        # 구조화 필터 — 모든 query 의 키워드·의미 갈래에 동일 적용된다.
         base_clauses = ["m.owner_id = :owner_id", "m.deleted_at IS NULL"]
-        params: dict[str, Any] = {"owner_id": owner_id}
+        base_params: dict[str, Any] = {"owner_id": owner_id}
         # intent·발생일은 같은 instance 가 만족해야 한다 — EXISTS 하나로 합친다.
         # archived instance 도 매칭한다 — 의도된 동작: 완료된 할일·끝난 일정도 "기록"이고
         # 회상 질문("민수랑 언제 만나기로 했지?")의 정답은 종종 archived 쪽에 있다.
         instance_conds: list[str] = []
         if intent:
             instance_conds.append("ii.intent_type = :intent")
-            params["intent"] = intent
+            base_params["intent"] = intent
         if occurs_from or occurs_to:
             instance_conds.append(_OCCURS_SHAPE_GUARD)
         if occurs_from:
             # 종료일 기준 — 기간형 일정은 끝나기 전까지 window 에 걸린다(점 일정은 종료=시작).
             instance_conds.append(f"{_OCCURS_END_DATE_SQL} >= :occurs_from")
-            params["occurs_from"] = occurs_from
+            base_params["occurs_from"] = occurs_from
         if occurs_to:
             instance_conds.append(f"{_OCCURS_DATE_SQL} <= :occurs_to")
-            params["occurs_to"] = occurs_to
+            base_params["occurs_to"] = occurs_to
         if instance_conds:
             base_clauses.append(
                 "EXISTS (SELECT 1 FROM intent_instances ii "
@@ -238,81 +288,46 @@ class SearchItemsTool:
             )
         if date_from:
             base_clauses.append("m.captured_at >= :date_from")
-            params["date_from"] = date_from
+            base_params["date_from"] = date_from
         if date_to:
             base_clauses.append("m.captured_at < :date_to")
-            params["date_to"] = date_to
+            base_params["date_to"] = date_to
 
-        keyword_clauses = list(base_clauses)
-        if query:
-            # 'simple' tsvector 는 토큰 동일성만 본다 — 한국어는 조사가 붙어("민수와") 표제어
-            # ("민수") 검색이 0건이 된다 (실기기 버그 2026-06-10). 매칭은 단어별 substring 으로
-            # ('simple' 토큰 동일성의 상위집합), 랭킹은 BM25 근사(ts_rank_cd)를 유지한다.
-            for idx, word in enumerate(query.split()[:_MAX_KEYWORDS]):
-                keyword_clauses.append(f"{_HAYSTACK_SQL} ILIKE :kw{idx}")
-                params[f"kw{idx}"] = _like_pattern(word)
-            params["q"] = query  # 랭킹(ts_rank_cd) 전용
-
-        # 의미 검색은 query 가 있고 voyage 가 살아 있을 때만 — 임베딩 실패는 키워드 단독 degrade.
-        query_vector: list[float] | None = None
-        if query and self._voyage is not None:
-            try:
-                query_vector = await self._voyage.embed_query(query)
-            except VoyageError as exc:
-                log.warning("chat.search_query_embed_failed", exception=str(exc))
-        semantic = query_vector is not None
-        # rerank 가 최종 순위를 정할 때만 갈래당 후보를 넓게 가져온다.
-        params["k"] = RERANK_CANDIDATES if semantic else limit
-
-        order = (
-            # 조사 붙은 매칭은 rank 0 이라 captured_at 보조 정렬이 실질 순서가 된다.
-            f"ts_rank_cd(to_tsvector('simple', {_HAYSTACK_SQL}), "
-            "plainto_tsquery('simple', :q)) DESC, m.captured_at DESC"
-            if query
-            else "m.captured_at DESC"
-        )
-        keyword_sql = text(
-            f"""
-            SELECT {_SELECT_COLUMNS}
-            FROM mochi_items m
-            WHERE {" AND ".join(keyword_clauses)}
-            ORDER BY {order}
-            LIMIT :k
-            """
-        ).bindparams(*[bindparam(key, value) for key, value in params.items()])
+        # query 당 의미검색 임베딩 — voyage 가 살아 있고 그 query 가 임베딩됐을 때만 벡터 갈래를 켠다.
+        # 임베딩 실패는 그 query 만 키워드 단독으로 degrade (검색이 외부 API 장애로 죽지 않는다).
+        query_vectors: dict[str, list[float]] = {}
+        if queries and self._voyage is not None:
+            for q in queries:
+                try:
+                    query_vectors[q] = await self._voyage.embed_query(q)
+                except VoyageError as exc:
+                    log.warning("chat.search_query_embed_failed", exception=str(exc))
+        semantic = bool(query_vectors)
+        # RRF 융합·rerank 가 최종 순위를 정할 때만 갈래당 후보를 넓게 가져온다.
+        fanout = RERANK_CANDIDATES if (semantic or len(queries) > 1) else limit
 
         async with self._session_factory() as session:
-            keyword_rows = list((await session.execute(keyword_sql)).all())
-            vector_rows: list[Any] = []
-            if semantic:
-                vector_params = {
-                    key: value
-                    for key, value in params.items()
-                    if key not in {"q"} and not key.startswith("kw")
-                }
-                vector_params["qvec"] = _vector_literal(query_vector or [])
-                vector_sql = text(
-                    f"""
-                    SELECT {_SELECT_COLUMNS}
-                    FROM embeddings e
-                    JOIN mochi_items m ON m.id = e.mochi_item_id
-                    WHERE {" AND ".join(base_clauses)}
-                    ORDER BY e.embedding <=> CAST(:qvec AS vector)
-                    LIMIT :k
-                    """
-                ).bindparams(*[bindparam(key, value) for key, value in vector_params.items()])
-                vector_rows = list((await session.execute(vector_sql)).all())
+            if not queries:
+                merged = await self._filter_only(session, base_clauses, base_params, limit)
+            else:
+                # query 별 (키워드 + 의미) 순위 리스트를 모아 RRF 로 융합한다 — 단일 query 면
+                # 키워드+벡터 두 리스트, N query 면 최대 2N 리스트가 한 점수로 합쳐진다.
+                ranked_lists: list[list[Any]] = []
+                for q in queries:
+                    ranked_lists.append(
+                        await self._keyword_candidates(session, base_clauses, base_params, q, fanout)
+                    )
+                    if q in query_vectors:
+                        ranked_lists.append(
+                            await self._vector_candidates(
+                                session, base_clauses, base_params, query_vectors[q], fanout
+                            )
+                        )
+                merged = _rrf_fuse(ranked_lists)
 
-        # 병합: 키워드 매치(모든 단어 포함 — 정밀) 먼저, 의미 후보는 뒤에 추가.
-        merged = list(keyword_rows)
-        seen = {row.id for row in keyword_rows}
-        for row in vector_rows:
-            if row.id not in seen:
-                seen.add(row.id)
-                merged.append(row)
-
-        if semantic and query and len(merged) > 1:
-            merged = await self._rerank(query, merged, limit)
+        # 의미 갈래가 있을 때만 rerank — 융합 query 는 모든 query 를 합쳐 멀티 측면을 함께 본다.
+        if semantic and queries and len(merged) > 1:
+            merged = await self._rerank(" | ".join(queries), merged[:RERANK_CANDIDATES], limit)
         else:
             merged = merged[:limit]
 
@@ -332,8 +347,83 @@ class SearchItemsTool:
             compact={"items": [{"id": i["id"], "snippet": i["snippet"][:60]} for i in items[:3]]},
         )
 
+    async def _keyword_candidates(
+        self,
+        session: AsyncSession,
+        base_clauses: list[str],
+        base_params: dict[str, Any],
+        query: str,
+        k: int,
+    ) -> list[Any]:
+        """단어별 substring(ILIKE AND) 매칭 — 'simple' tsvector 가 조사 붙은 한국어("민수와" vs
+        "민수")를 0건 만드는 회귀(2026-06-10)의 보험. 랭킹은 BM25 근사(ts_rank_cd)."""
+        clauses = list(base_clauses)
+        params = dict(base_params)
+        for idx, word in enumerate(query.split()[:_MAX_KEYWORDS]):
+            clauses.append(f"{_HAYSTACK_SQL} ILIKE :kw{idx}")
+            params[f"kw{idx}"] = _like_pattern(word)
+        params["q"] = query
+        params["k"] = k
+        sql = text(
+            f"""
+            SELECT {_SELECT_COLUMNS}
+            FROM mochi_items m
+            WHERE {" AND ".join(clauses)}
+            ORDER BY ts_rank_cd(to_tsvector('simple', {_HAYSTACK_SQL}),
+                                plainto_tsquery('simple', :q)) DESC, m.captured_at DESC
+            LIMIT :k
+            """
+        ).bindparams(*[bindparam(key, value) for key, value in params.items()])
+        return list((await session.execute(sql)).all())
+
+    async def _vector_candidates(
+        self,
+        session: AsyncSession,
+        base_clauses: list[str],
+        base_params: dict[str, Any],
+        query_vector: list[float],
+        k: int,
+    ) -> list[Any]:
+        """voyage 쿼리 임베딩 → pgvector 코사인. 기록은 저장 당시 어휘로 말하므로 질문
+        어휘가 달라도 의미로 회수한다."""
+        params = dict(base_params)
+        params["qvec"] = _vector_literal(query_vector)
+        params["k"] = k
+        sql = text(
+            f"""
+            SELECT {_SELECT_COLUMNS}
+            FROM embeddings e
+            JOIN mochi_items m ON m.id = e.mochi_item_id
+            WHERE {" AND ".join(base_clauses)}
+            ORDER BY e.embedding <=> CAST(:qvec AS vector)
+            LIMIT :k
+            """
+        ).bindparams(*[bindparam(key, value) for key, value in params.items()])
+        return list((await session.execute(sql)).all())
+
+    async def _filter_only(
+        self,
+        session: AsyncSession,
+        base_clauses: list[str],
+        base_params: dict[str, Any],
+        limit: int,
+    ) -> list[Any]:
+        """query 없는 browse — 구조화 필터만, 최신 저장순."""
+        params = dict(base_params)
+        params["k"] = limit
+        sql = text(
+            f"""
+            SELECT {_SELECT_COLUMNS}
+            FROM mochi_items m
+            WHERE {" AND ".join(base_clauses)}
+            ORDER BY m.captured_at DESC
+            LIMIT :k
+            """
+        ).bindparams(*[bindparam(key, value) for key, value in params.items()])
+        return list((await session.execute(sql)).all())
+
     async def _rerank(self, query: str, candidates: list[Any], limit: int) -> list[Any]:
-        """rerank-2.5 로 최종 순위 결정. 실패 시 병합 순서(키워드 우선) 그대로 truncate —
+        """rerank-2.5 로 최종 순위 결정. 실패 시 RRF 융합 순서 그대로 truncate —
         리랭크 장애가 검색을 죽이지 않는다."""
         assert self._voyage is not None
         documents = [

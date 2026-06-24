@@ -223,10 +223,44 @@ async def test_semantic_path_runs_two_queries_and_reranks() -> None:
     # rerank 가 최종 순위를 정하므로 갈래당 후보를 넓게 가져온다.
     assert dict(captured[0].compile().params)["k"] == RERANK_CANDIDATES
 
-    # 병합 [kw_a, kw_b, vec_c] → rerank [2, 0] → [vec_c, kw_a]. rerank 문서엔 라벨 동봉.
-    assert [i["id"] for i in result.payload["items"]] == [str(vec_c.id), str(kw_a.id)]
-    assert voyage.rerank_calls[0]["documents"] == ["키워드A", "키워드B", "의미C 라벨"]
+    # RRF 융합: kw_b 는 두 갈래(키워드 rank2 + 벡터 rank1, 둘 다 1-based)에 들어 점수 누적 → 최상위.
+    # [kw_b, kw_a, vec_c] → rerank [2, 0] → [vec_c, kw_b]. rerank 문서엔 라벨 동봉.
+    assert [i["id"] for i in result.payload["items"]] == [str(vec_c.id), str(kw_b.id)]
+    assert voyage.rerank_calls[0]["documents"] == ["키워드B", "키워드A", "의미C 라벨"]
     assert voyage.embed_calls == ["보라카이 숙소"]
+
+
+async def test_multi_query_fuses_candidates_and_reranks_once() -> None:
+    # 두 query — 각각 키워드+벡터(총 4 SQL). RRF 가 네 리스트를 한 점수로 융합하고,
+    # rerank 는 합쳐진 query 로 단 한 번 호출된다(query 수배가 아니라 1회 — 비용 bound).
+    a, b = _Row("A 기록"), _Row("B 기록")
+    captured: list[Any] = []
+    voyage = _FakeVoyage(ranked=[RerankedDocument(index=0, relevance_score=0.9)])
+    tool = SearchItemsTool(
+        session_factory=lambda: _FakeSession(
+            captured, results=[[a], [a], [b], [b]]  # q1 키워드/벡터=a, q2 키워드/벡터=b
+        ),
+        voyage=voyage,  # type: ignore[arg-type]
+    )
+    result = await tool.run(owner_id=_OWNER, args={"queries": ["민수 약속", "성수 카페"]})
+
+    assert len(captured) == 4  # query 2개 × (키워드 + 벡터)
+    assert voyage.embed_calls == ["민수 약속", "성수 카페"]  # query 당 임베딩 1회
+    assert len(voyage.rerank_calls) == 1  # 융합 후 단 1회
+    assert voyage.rerank_calls[0]["query"] == "민수 약속 | 성수 카페"
+    assert result.payload["count"] >= 1
+
+
+async def test_query_count_is_capped() -> None:
+    # _MAX_QUERIES(4) 초과분은 잘린다 — 과다 분해의 임베딩/SQL 비용 폭주 방지.
+    captured: list[Any] = []
+    voyage = _FakeVoyage()
+    tool = SearchItemsTool(
+        session_factory=lambda: _FakeSession(captured),
+        voyage=voyage,  # type: ignore[arg-type]
+    )
+    await tool.run(owner_id=_OWNER, args={"queries": [f"q{i}" for i in range(7)]})
+    assert len(voyage.embed_calls) == 4  # 7개 줘도 4개만
 
 
 async def test_embed_failure_degrades_to_keyword_only() -> None:

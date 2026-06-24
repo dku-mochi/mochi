@@ -43,6 +43,7 @@ class _FakeAsyncClient:
     """httpx.AsyncClient 대역 — 마지막 요청을 기록하고 준비된 응답/예외를 돌려준다."""
 
     last_request: dict[str, Any] = {}
+    requests: list[dict[str, Any]] = []
     response: _FakeResponse = _FakeResponse(200)
     error: Exception | None = None
 
@@ -56,7 +57,9 @@ class _FakeAsyncClient:
         return None
 
     async def post(self, url: str, **kwargs: Any) -> _FakeResponse:
-        type(self).last_request = {"url": url, **kwargs}
+        request = {"url": url, **kwargs}
+        type(self).last_request = request
+        type(self).requests.append(request)
         if type(self).error is not None:
             raise type(self).error
         return type(self).response
@@ -65,6 +68,7 @@ class _FakeAsyncClient:
 @pytest.fixture
 def fake_client(monkeypatch: pytest.MonkeyPatch) -> type[_FakeAsyncClient]:
     _FakeAsyncClient.last_request = {}
+    _FakeAsyncClient.requests = []
     _FakeAsyncClient.response = _FakeResponse(200, {"results": []})
     _FakeAsyncClient.error = None
     monkeypatch.setattr(web_search_module.httpx, "AsyncClient", _FakeAsyncClient)
@@ -99,8 +103,9 @@ async def test_web_search_truncates_results_and_builds_compact(fake_client: type
 
 @pytest.mark.asyncio
 async def test_web_search_empty_query_and_empty_results(fake_client: type[_FakeAsyncClient]) -> None:
+    # 단일 query(str) 하위호환 — 빈 문자열은 queries 0개로 수렴.
     blank = await WebSearchTool("k").run(owner_id=_OWNER, args={"query": "  "})
-    assert blank.payload == {"error": "query is required"}
+    assert blank.payload == {"error": "queries is required"}
 
     fake_client.response = _FakeResponse(200, {"results": []})
     empty = await WebSearchTool("k").run(owner_id=_OWNER, args={"query": "q"})
@@ -111,16 +116,38 @@ async def test_web_search_empty_query_and_empty_results(fake_client: type[_FakeA
 @pytest.mark.asyncio
 async def test_web_search_http_failures_return_error_payload(fake_client: type[_FakeAsyncClient]) -> None:
     # 비-200 — 에러 payload 로 모델에 돌아간다 (run 실패 아님). 키는 어디에도 노출 금지.
+    # 멀티쿼리라 query 별 status 가 다를 수 있어 메시지엔 코드를 싣지 않는다(로그로 남김).
     fake_client.response = _FakeResponse(429)
     throttled = await WebSearchTool("secret-key").run(owner_id=_OWNER, args={"query": "q"})
-    assert throttled.payload == {"error": "web search failed: HTTP 429"}
+    assert throttled.payload == {"error": "web search failed"}
     assert "secret-key" not in str(throttled)
 
-    # 전송 계층 실패(타임아웃 등) — 동일하게 흡수.
+    # 전송 계층 실패(타임아웃 등) — per-query degrade, 전부 실패 시 단일 메시지로 흡수.
     fake_client.error = httpx.ConnectTimeout("boom")
     down = await WebSearchTool("secret-key").run(owner_id=_OWNER, args={"query": "q"})
-    assert down.payload == {"error": "web search request failed: ConnectTimeout"}
+    assert down.payload == {"error": "web search failed"}
     assert "secret-key" not in str(down)
+
+
+@pytest.mark.asyncio
+async def test_web_search_multi_query_unions_and_dedupes(fake_client: type[_FakeAsyncClient]) -> None:
+    # 두 query — 각각 POST(2회). 같은 url 이 양쪽에 나와도 union 후 dedup 으로 한 번만.
+    fake_client.response = _FakeResponse(
+        200,
+        {
+            "results": [
+                {"title": "t0", "url": "https://r0.example", "content": "c"},
+                {"title": "t1", "url": "https://r1.example", "content": "c"},
+            ]
+        },
+    )
+    result = await WebSearchTool("k").run(owner_id=_OWNER, args={"queries": ["성수 카페", "성수 맛집"]})
+
+    assert len(fake_client.requests) == 2  # query 당 1회
+    assert [r["json"]["query"] for r in fake_client.requests] == ["성수 카페", "성수 맛집"]
+    # 두 query 가 같은 결과를 줘도 url dedup 으로 2건만(4건 아님).
+    assert result.payload["count"] == 2
+    assert [r["url"] for r in result.payload["results"]] == ["https://r0.example", "https://r1.example"]
 
 
 # ---------- web_fetch ----------

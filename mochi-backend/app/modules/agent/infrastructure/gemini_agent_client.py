@@ -187,6 +187,31 @@ _RESOURCE_FINDER_PARAMS: dict[str, Any] = {
     "required": ["queries", "category"],
 }
 
+# intent_type enum 은 4-Intent(app.shared.intent.Intent)와 동기화 — 안정적이라 하드코딩.
+_HYBRID_SEARCH_PARAMS: dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "queries": {"type": "array", "items": {"type": "string"}},
+        "intent_type": {
+            "type": "string",
+            "enum": ["schedule", "todo", "knowledge", "memo"],
+        },
+        "occurs_from": {"type": "string"},
+        "occurs_to": {"type": "string"},
+        "date_from": {"type": "string"},
+        "date_to": {"type": "string"},
+        "limit": {"type": "integer"},
+    },
+}
+
+_WEB_SEARCH_PARAMS: dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "queries": {"type": "array", "items": {"type": "string"}},
+    },
+    "required": ["queries"],
+}
+
 
 @lru_cache(maxsize=1)
 def _shared_client() -> genai.Client:
@@ -267,6 +292,40 @@ def _function_declarations(tools: list[Tool[Any, Any]]) -> list[types.FunctionDe
                         "entities(kind='reference_url') when useful."
                     ),
                     parameters=_RESOURCE_FINDER_PARAMS,
+                )
+            )
+        if tool.name is ToolName.HYBRID_SEARCH:
+            decls.append(
+                types.FunctionDeclaration(
+                    name=ToolName.HYBRID_SEARCH.value,
+                    description=(
+                        "Search the user's OWN past records while analyzing this capture — to notice "
+                        "if something similar was already saved, connect related records, or see what "
+                        "is already planned or due on a day. This does NOT gate saving: even an exact "
+                        "duplicate is still saved, so use it to enrich the analysis (summary, "
+                        "connections), never to decide whether to store. Matching is hybrid keyword + "
+                        "semantic; pass 'queries' (one concept each, several allowed) for what to look "
+                        "for. Add filters when useful — intent_type with occurs_from/occurs_to checks "
+                        "what is already scheduled or due on a given day. Skip it when the capture "
+                        "stands alone with nothing worth cross-referencing."
+                    ),
+                    parameters=_HYBRID_SEARCH_PARAMS,
+                )
+            )
+        if tool.name is ToolName.WEB_SEARCH:
+            decls.append(
+                types.FunctionDeclaration(
+                    name=ToolName.WEB_SEARCH.value,
+                    description=(
+                        "Search the public web for external facts that ground a knowledge-type "
+                        "capture (what a concept/event/person/term actually is). Use only when "
+                        "outside information would materially change the analysis — most captures do "
+                        "not need it. NEVER put the record's raw text or any user-identifying phrase "
+                        "into a query; rephrase to a generic public query — leaking the capture into "
+                        "an external query is exfiltration, not grounding. Pass 'queries' (several "
+                        "angles allowed)."
+                    ),
+                    parameters=_WEB_SEARCH_PARAMS,
                 )
             )
     decls.append(
