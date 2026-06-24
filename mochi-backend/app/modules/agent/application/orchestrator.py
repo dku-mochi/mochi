@@ -607,6 +607,15 @@ def _initial_user_text(
         blocks.append(f"사용자 메모: {source.user_memo}")
     if source.images:
         blocks.append("첨부된 스크린샷/이미지를 함께 분석하세요.")
+    if source.analysis_ocr_text:
+        # source.text(사용자가 명시 공유한 글)와 분리한 별도 블록 — 신뢰도가 다르다(기계 추출 transcript,
+        # 잡음·오인식 가능). 이미지가 정보밀도 높을 때 멀티모달이 놓치는 글자를 메우는 보완재.
+        blocks.append(
+            "# 화면 텍스트 (OCR)\n"
+            "기기에서 화면을 기계로 읽어낸 transcript 입니다 (사용자가 직접 쓴 글이 아니라 화면에 보이던 글자). "
+            "첨부 이미지와 교차확인해 항목을 빠짐없이 분해하는 데 쓰되, 이미지를 대체하지 말고 보완하세요 — "
+            "오인식·잡음이 있을 수 있으니 이미지가 보여주는 근거를 우선합니다.\n" + source.analysis_ocr_text
+        )
     if recent_context:
         blocks.append(
             "# 최근 기록 컨텍스트 (최근 1달)\n"

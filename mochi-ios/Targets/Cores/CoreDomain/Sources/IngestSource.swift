@@ -35,6 +35,11 @@ public struct IngestSource: Equatable, Sendable, Hashable, Codable {
     /// 저장 시점 민감도 감지 + 사용자 선택의 결과. `nil` = 감지 비대상/비민감(기존 원본 업로드 동작).
     /// iOS 내부 전용 — 서버로 전송하지 않는다(업로드 경로가 정책에 따라 원본/블러본/스킵을 고른다).
     public let privacy: PrivacyDecision?
+    /// OCR 화면 transcript — **분석 전용 ephemeral**(서버가 추론 컨텍스트로만 쓰고 추론 후 삭제, 영속 정본 없음).
+    /// 큐 JSON + Realm isolated 컬럼(`privacy` 와 동일하게 격리)에 실린다 — drain~업로드 사이 SyncWorker 가
+    /// 읽어야 해 보관하되 검색·노출 표면 어디서도 읽지 않는다. 업로드 경로가 정책에 따라 동봉 여부를 고른다
+    /// (originalUpload 일 때만 — blurredUpload/localOnly 는 추출조차 안 함, PRIVACY §9 블러 정합).
+    public let analysisOcrText: String?
 
     public init(
         id: UUID = UUID(),
@@ -44,7 +49,8 @@ public struct IngestSource: Equatable, Sendable, Hashable, Codable {
         imageRefs: [ImageRef] = [],
         userMemo: String? = nil,
         capturedAt: Date = .init(),
-        privacy: PrivacyDecision? = nil
+        privacy: PrivacyDecision? = nil,
+        analysisOcrText: String? = nil
     ) {
         self.id = id
         self.channel = channel
@@ -54,6 +60,7 @@ public struct IngestSource: Equatable, Sendable, Hashable, Codable {
         self.userMemo = userMemo
         self.capturedAt = capturedAt
         self.privacy = privacy
+        self.analysisOcrText = analysisOcrText
     }
 
     /// 사용자가 메모를 동반했는지 — 분석 시 confidence 상향 보정 신호로 사용된다.

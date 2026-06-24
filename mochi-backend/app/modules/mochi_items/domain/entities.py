@@ -46,6 +46,8 @@ class IngestSource:
     text: str | None = None
     image_refs: tuple[ImageRef, ...] = ()
     user_memo: str | None = None
+    # 분석 전용 ephemeral OCR(iOS Vision OCR). 추론 후 삭제 — 영속 텍스트(text)와 신뢰도·수명이 다르다.
+    analysis_ocr_text: str | None = None
     captured_at: datetime = field(default_factory=lambda: datetime.utcnow())
     id: UUID = field(default_factory=uuid4)
 

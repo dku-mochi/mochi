@@ -32,6 +32,10 @@ public final class RealmMochiItem: Object, Identifiable {
     @Persisted public var privacyPolicyRawValue: String?
     /// 감지된 민감도 등급(`low|caution|sensitive|highlySensitive`). nil = 미감지. 경고 UI·디버깅용.
     @Persisted public var sensitivityLevelRawValue: String?
+    /// 분석 전용 ephemeral OCR(화면 transcript). 업로드 워커가 정책에 따라 동봉할 수 있게 drain~업로드
+    /// 사이 보관하는 **업로드 전용** 컬럼 — 검색·노출 표면 어디서도 읽지 않는다(privacyPolicyRawValue 처럼
+    /// 격리된 isolated 컬럼). 서버는 추론 후 삭제(영속 정본은 서버에 없음, PRIVACY §1.1).
+    @Persisted public var analysisOcrText: String?
     @Persisted public var capturedAt: Date
     @Persisted public var analyzedAt: Date?
     @Persisted public var createdAt: Date

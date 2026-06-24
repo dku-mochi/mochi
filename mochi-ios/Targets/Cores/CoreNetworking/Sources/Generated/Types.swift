@@ -2102,6 +2102,8 @@ public enum Components {
             public var category: Swift.String?
             /// - Remark: Generated from `#/components/schemas/MochiItemCreateRequest/summary`.
             public var summary: Swift.String?
+            /// - Remark: Generated from `#/components/schemas/MochiItemCreateRequest/analysisOcrText`.
+            public var analysisOcrText: Swift.String?
             /// Creates a new `MochiItemCreateRequest`.
             ///
             /// - Parameters:
@@ -2113,6 +2115,7 @@ public enum Components {
             ///   - confirmedInstances:
             ///   - category:
             ///   - summary:
+            ///   - analysisOcrText:
             public init(
                 channel: Components.Schemas.IngestChannel,
                 url: Swift.String? = nil,
@@ -2121,7 +2124,8 @@ public enum Components {
                 imageRefs: [Components.Schemas.ImageRefDTO]? = nil,
                 confirmedInstances: [Components.Schemas.ConfirmedInstanceDTO]? = nil,
                 category: Swift.String? = nil,
-                summary: Swift.String? = nil
+                summary: Swift.String? = nil,
+                analysisOcrText: Swift.String? = nil
             ) {
                 self.channel = channel
                 self.url = url
@@ -2131,6 +2135,7 @@ public enum Components {
                 self.confirmedInstances = confirmedInstances
                 self.category = category
                 self.summary = summary
+                self.analysisOcrText = analysisOcrText
             }
             public enum CodingKeys: String, CodingKey {
                 case channel
@@ -2141,6 +2146,7 @@ public enum Components {
                 case confirmedInstances
                 case category
                 case summary
+                case analysisOcrText
             }
         }
         /// 날짜 구간 모찌 목록 — 캘린더 탭에서 특정 날짜 선택 시 그날 목록.

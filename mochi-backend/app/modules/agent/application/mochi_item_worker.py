@@ -201,9 +201,13 @@ class MochiItemWorker:
                 )
                 if is_dead:
                     # 영구 실패 → item 처리상태를 failed 로 확립 (iOS 폴링 컷오버 신호, §7.1).
-                    # 재시도 가능 실패는 ingested 유지 — 다음 attempt 가 analyzed 로 닫는다.
+                    # ephemeral OCR 도 함께 비운다 — 영구 실패는 재분석되지 않아 stale 로 영속될 위험.
+                    # 재시도 가능 실패는 ingested + OCR 유지 — 다음 attempt 가 재사용해 analyzed 로 닫는다.
                     await session.execute(
-                        text("UPDATE mochi_items SET lifecycle_kind='failed' WHERE id=:id").bindparams(
+                        text(
+                            "UPDATE mochi_items SET lifecycle_kind='failed', analysis_ocr_text=NULL "
+                            "WHERE id=:id"
+                        ).bindparams(
                             bindparam("id", claimed.mochi_item_id),
                         )
                     )
