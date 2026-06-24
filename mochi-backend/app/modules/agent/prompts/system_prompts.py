@@ -47,7 +47,7 @@ CHAT_PROFILE_SUMMARY_SYSTEM = (
 
 
 ACTIVE_PROMPT = PromptVersion(
-    name="classify_and_act@v26",
+    name="classify_and_act@v27",
     body=(
         "# Context\n"
         "MOCHI organizes the things a person quickly saves during the day — screenshots, links, "
@@ -269,6 +269,11 @@ ACTIVE_PROMPT = PromptVersion(
         "When an image is attached, ground yourself in the visible objective facts, the user's "
         "preferences/intent, and context. An empty field beats an invented one; keep only "
         "high-signal values the on-screen evidence supports.\n"
+        "Some captures also carry a '# 화면 텍스트 (OCR)' block — a machine read of the same screen's "
+        "text. Use it to catch detail the image is too dense to read reliably (small print, long "
+        "lists, many rows), but treat it as a supplement, never a replacement for the image: "
+        "cross-check it against what you see and prefer the image's evidence when they disagree, "
+        "since OCR can misread or carry noise.\n"
         "\n"
         "# Tools\n"
         "You have a set of context tools. Choose by what the capture needs, spend them sparingly "
@@ -358,6 +363,11 @@ ACTIVE_PROMPT = PromptVersion(
     eval_dataset_version="intent-schema-decision@2026-06-04",
     revised_on=date(2026, 6, 24),
     rationale=(
+        "V26 → V27: 분석 입력에 iOS Vision OCR ephemeral 텍스트('# 화면 텍스트 (OCR)' 별도 블록, "
+        "user message)를 동봉할 때 모델 행동을 못박는 Visual grounding 1단락 추가 — OCR 은 이미지의 "
+        "보완(정보밀도 높은 화면에서 멀티모달이 놓치는 글자 메움)이지 대체가 아니며, 이미지와 교차확인해 "
+        "충돌 시 이미지 우선(OCR 오인식·잡음 가드). 좁은 화면 키워드 하드코딩 없이 기준+why "
+        "(prompt-criteria 철학). 분류 ladder·도구·payload·eval_dataset 불변. lab eval 회귀검증은 후속.\n"
         "V25 → V26: 분석 에이전트에 hybridSearch(과거 기록 능동 검색)·webSearch(외부 사실 그라운딩) "
         "도구 2개 추가 + search_items/web_search 멀티쿼리(queries) 전환. # Tools 고정 카운트('four')를 "
         "일반화하고 두 도구 사용 규칙을 추가 — hybridSearch 는 저장 게이트가 아니라 분석 보강(중복이어도 "

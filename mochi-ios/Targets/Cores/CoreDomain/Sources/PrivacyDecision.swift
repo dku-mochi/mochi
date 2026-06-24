@@ -39,3 +39,18 @@ public struct PrivacyDecision: Equatable, Sendable, Hashable, Codable {
         self.level = level
     }
 }
+
+/// 분석 전용 ephemeral OCR 을 업로드에 동봉할지 결정하는 단일 게이트 — 두 업로드 경로
+/// (`MochiItemSyncWorker`·`ShareExtDirectUpload`)가 공유해 정책이 갈라지지 않게 한다.
+public enum EphemeralOCRGate {
+    /// **effective policy == originalUpload 일 때만 OCR 을 동봉**한다(비민감 기본 포함).
+    ///
+    /// OCR 은 블러 전 원본 raw 텍스트라, 사용자가 `blurredUpload` 로 이미지에서 가린 카드번호 등이
+    /// 그대로 남는다 — 가린 걸 OCR 로 누설하면 안 되므로 제외한다(`PRIVACY §9` 블러 정합).
+    /// `localOnly` 는 이미지처럼 미전송. 민감도 점수가 아니라 **사용자의 명시적 정책 선택**을 따른다
+    /// (over-gating 아님 — 정보밀도 높은 일반 스크린샷[비민감=originalUpload]은 OCR 을 그대로 받는다).
+    public static func textForUpload(privacy: PrivacyDecision?, ocrText: String?) -> String? {
+        let policy = privacy?.policy ?? .originalUpload
+        return policy == .originalUpload ? ocrText : nil
+    }
+}

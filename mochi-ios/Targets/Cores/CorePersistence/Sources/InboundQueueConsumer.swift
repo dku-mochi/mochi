@@ -36,7 +36,8 @@ public actor InboundQueueConsumer {
                     text: payload.text,
                     imageRefs: payload.imageRefs,
                     userMemo: payload.userMemo,
-                    privacy: payload.privacy
+                    privacy: payload.privacy,
+                    analysisOcrText: payload.analysisOcrText
                 )
                 try await repository.enqueueIngestedFromExtension(source)
                 try? fileManager.removeItem(at: fileURL)
@@ -72,6 +73,9 @@ public struct InboundIngestPayload: Codable, Sendable, Equatable {
     /// 저장 시점 민감 감지 + 사용자 선택의 결과. `nil` = 비민감/감지 비대상(기존 원본 업로드).
     /// ShareExtension 직접 전송과 메인 앱 drain 양 경로가 같은 정책을 적용하도록 큐 JSON 에 함께 싣는다.
     public let privacy: PrivacyDecision?
+    /// OCR 화면 transcript — **분석 전용 ephemeral**(서버가 추론 후 삭제). privacy 와 동일하게 큐 JSON 에
+    /// 실어 양 업로드 경로가 정책에 따라 동봉 여부를 고른다(originalUpload 일 때만 — PRIVACY §9).
+    public let analysisOcrText: String?
 
     public init(
         id: UUID = UUID(),
@@ -80,7 +84,8 @@ public struct InboundIngestPayload: Codable, Sendable, Equatable {
         userMemo: String?,
         channelGuess: IngestChannel,
         imageRefs: [ImageRef] = [],
-        privacy: PrivacyDecision? = nil
+        privacy: PrivacyDecision? = nil,
+        analysisOcrText: String? = nil
     ) {
         self.id = id
         self.url = url
@@ -89,5 +94,6 @@ public struct InboundIngestPayload: Codable, Sendable, Equatable {
         self.channelGuess = channelGuess
         self.imageRefs = imageRefs
         self.privacy = privacy
+        self.analysisOcrText = analysisOcrText
     }
 }

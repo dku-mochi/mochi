@@ -107,6 +107,8 @@ private func commitScreenshot(
         id: captureID,
         channel: .screenshot,
         imageRefs: [ref]
+        // analysisOcrText 미동봉(nil) — 백탭은 background intent 라 sensitive scan 자체를 안 거친다
+        // (privacy 미설정, known gap). OCR 재스캔은 백탭 민감감지 통합과 함께 후속(우선 동작 구현).
     )
     // pendingUpload 상태로 저장 — MochiItemSyncWorker 가 다음 tick 에 ingest.
     try await repository.upsert(MochiItem(source: source))
