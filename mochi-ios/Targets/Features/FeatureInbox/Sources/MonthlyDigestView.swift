@@ -49,7 +49,7 @@ public struct MonthlyDigestView: View {
         }
         .background(backgroundLayer.ignoresSafeArea())
         .preferredColorScheme(.light)
-        .navigationTitle("이번 달 돌아보기")
+        .navigationTitle("이번 달 모찌 리포트")
         .navigationBarTitleDisplayMode(.inline)
         .task {
             store.send(.onAppear)

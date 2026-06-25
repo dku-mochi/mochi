@@ -11,7 +11,7 @@ import DesignSystem
 /// 4-Intent 라벨은 사용자에게 노출하지 않고 행동·시간 단서로만 드러낸다.
 ///  - ① 모찌의 한마디: 서버 LLM 1문장(그 달 3건 미만이면 정적 폴백).
 ///  - ② 이번 달 이런 걸 모았어요: 정규화된 카테고리별 가로 레일(서버가 category 정규화 write).
-///    레일 항목 탭 → 상세, 헤더 "전체 보기" → 검색 탭을 그 카테고리로 필터(상위 위임).
+///    레일 항목 탭 → 상세, 헤더 "전체 보기" → 그 카테고리를 3D 턴테이블(샤라락)로 push(상위 위임).
 ///
 /// `monthOffset` 으로 과거 달을 넘겨볼 수 있다(0=이번 달, -1=지난달, …). 미래 달은 막는다.
 /// **현재 달만** 서버 digest(LLM greeting + 카테고리 정규화 write)를 호출하고, 과거 달은 로컬
@@ -66,13 +66,13 @@ public struct MonthlyDigestFeature: Sendable {
         case greetingResolved(greeting: String, groups: [DigestGroup]?, all: [MochiItem]?)
         case loadFailed(String)
         case mochiItemTapped(MochiItem.ID, hero: HeroSourceFrames?)
-        /// 카테고리 레일 "전체 보기" — 검색 탭을 그 카테고리로 필터해 연다(상위 위임).
+        /// 카테고리 레일 "전체 보기" — 그 카테고리를 3D 턴테이블(샤라락)로 연다(상위 위임).
         case categoryViewAllTapped(String)
         case delegate(Delegate)
 
         public enum Delegate: Sendable, Equatable {
             case mochiItemTapped(MochiItem.ID, hero: HeroSourceFrames?)
-            case categoryViewAllRequested(String)
+            case categoryViewAllRequested(CategoryBucket)
         }
     }
 
@@ -124,8 +124,17 @@ public struct MonthlyDigestFeature: Sendable {
             case let .mochiItemTapped(id, hero):
                 return .send(.delegate(.mochiItemTapped(id, hero: hero)))
 
-            case let .categoryViewAllTapped(category):
-                return .send(.delegate(.categoryViewAllRequested(category)))
+            case let .categoryViewAllTapped(coarse):
+                // 그 카테고리 묶음을 버킷으로 조립해 3D 턴테이블(샤라락)로 보낸다(홈 카드와 동일 패턴·색·상한).
+                guard let index = state.groups.firstIndex(where: { $0.coarse == coarse }) else { return .none }
+                let group = state.groups[index]
+                let bucket = CategoryBucket(
+                    name: group.coarse,
+                    count: group.items.count,
+                    items: Array(group.items.prefix(MochiHomeFeature.carouselCoverCap)),
+                    tintIndex: index
+                )
+                return .send(.delegate(.categoryViewAllRequested(bucket)))
 
             case .delegate:
                 return .none
