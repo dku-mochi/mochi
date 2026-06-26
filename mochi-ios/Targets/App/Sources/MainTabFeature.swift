@@ -224,6 +224,10 @@ struct MainTabFeature: Sendable {
                 state.search.selectedCategory = category
                 return .none
 
+            case let .path(.element(id: _, action: .notifications(.delegate(.openItemRequested(serverID))))):
+                // 받은 알림 행 탭 → 원본 기록 상세 present(server PK 역매핑). hero 없어 중앙 scale 폴백.
+                return .send(.openDetailFromNotification(serverID: serverID, hero: nil, source: .notification))
+
             case let .path(.element(id: _, action: .favorites(.delegate(.mochiItemTapped(mochiItemID, hero))))):
                 // 즐겨찾기 화면의 항목 탭 → 상세 present (정리 화면과 같은 경로).
                 guard state.detail == nil else { return .none }
