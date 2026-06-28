@@ -1,32 +1,61 @@
 import SwiftUI
 import ComposableArchitecture
+import CoreDomain
 import CoreNetworking
 import DesignSystem
 
-/// 홈 "예정된 알림" 섹션 — 모찌가 보낼 예정인 미래 마감·일정 알림을 미리 보여줘 안심시킨다
+/// "예정된 알림" 섹션 — 모찌가 보낼 예정인 미래 마감·일정 알림을 미리 보여줘 안심시킨다
 /// ("언제 올지 모르는 불안"을 없앤다). 모찌가 정한 시각이라, 사용자는 빈 폼이 아니라 이미 정해진
 /// 일정 위에서 끄거나(veto) 옮기기(reschedule)만 한다 — "모찌가 정하고, 나는 조정한다".
 ///
-/// 시선 위계상 회수 히어로보다 약하다(안전망 톤): 작은 시각 타일 + title/body + 3액션 행.
-/// pending 0건이면 호출부가 섹션 자체를 숨긴다(빈 자리를 만들지 않는다 — 안심).
+/// 같은 일정(`intentID`)에 모찌가 D-단계별로 여러 번 알림을 잡으므로, **한 일정 = 한 카드**로 묶고
+/// 다음 1건만 펼쳐 보인다("앞으로 N번 더" → 탭하면 단계별로 펼쳐지고 개별로 끌 수 있다).
+/// 왼쪽은 원본 캡처 썸네일(없으면 카테고리/종류 아이콘) — 내용으로만 보던 알림을 한눈에 구분.
 struct UpcomingNotificationsView: View {
     let entries: [UpcomingNotificationDTO]
+    let thumbnails: [UUID: ImageRef]
+    let categories: [UUID: String]
     let onVeto: (UUID) -> Void
     let onReschedule: (UUID, Date) -> Void
 
     /// "직접 고르기" DatePicker 시트 대상(eventID + 현재 발송 예정 시각으로 초기값).
     @State private var pickerTarget: UpcomingNotificationDTO?
 
+    private struct NotifGroup: Identifiable {
+        let items: [UpcomingNotificationDTO]   // fireAt 오름차순, [0] = 가장 가까운 다음 알림(head)
+        var id: UUID { items[0].eventID }
+    }
+
+    /// 같은 일정(intentID)의 알림을 묶는다. intentID 없으면 eventID 단독 묶음.
+    /// 각 묶음 내부는 fireAt 오름차순, 묶음들도 head(가장 가까운) fireAt 오름차순.
+    private var groups: [NotifGroup] {
+        var byKey: [String: [UpcomingNotificationDTO]] = [:]
+        var order: [String] = []
+        for e in entries {
+            let key = e.intentID?.uuidString ?? e.eventID.uuidString
+            if byKey[key] == nil { order.append(key) }
+            byKey[key, default: []].append(e)
+        }
+        return order
+            .compactMap { key -> NotifGroup? in
+                guard let items = byKey[key], !items.isEmpty else { return nil }
+                return NotifGroup(items: items.sorted { $0.fireAt < $1.fireAt })
+            }
+            .sorted { $0.items[0].fireAt < $1.items[0].fireAt }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
             header
             VStack(spacing: HomeDesign.Spacing.sm) {
-                ForEach(entries) { entry in
-                    UpcomingRow(
-                        entry: entry,
-                        onVeto: { onVeto(entry.eventID) },
-                        onPickExact: { pickerTarget = entry },
-                        onPreset: { onReschedule(entry.eventID, $0) }
+                ForEach(groups) { group in
+                    UpcomingGroupCard(
+                        items: group.items,
+                        thumbnails: thumbnails,
+                        categories: categories,
+                        onVeto: onVeto,
+                        onPickExact: { pickerTarget = $0 },
+                        onPreset: { onReschedule($0, $1) }
                     )
                 }
             }
@@ -51,7 +80,7 @@ struct UpcomingNotificationsView: View {
                     .tracking(-0.3)
                     .foregroundStyle(HomeDesign.Color.textPrimary)
             }
-            Text("모찌가 이때 한 번 알려드릴게요")
+            Text("모찌가 이때 알려드릴게요")
                 .font(.system(size: 12, weight: .medium, design: .rounded))
                 .foregroundStyle(HomeDesign.Color.textMuted)
         }
@@ -60,44 +89,52 @@ struct UpcomingNotificationsView: View {
     }
 }
 
-// MARK: - 행
+// MARK: - 묶음 카드 (한 일정 = 한 카드: head + 펼침 하위 단계)
 
-/// 예정 알림 1건 — 좌측 시각 타일 + title/body + 조정 표기 + 우측 3액션.
-private struct UpcomingRow: View {
-    let entry: UpcomingNotificationDTO
-    let onVeto: () -> Void
-    let onPickExact: () -> Void
-    let onPreset: (Date) -> Void
+/// 같은 일정의 알림 묶음 1개 — 다음 1건(head)을 카드로, 나머지는 "앞으로 N번 더"로 접어 둔다.
+/// head 의 미루기·끄기는 큰 액션, 하위 단계는 펼쳤을 때 개별 끄기만.
+private struct UpcomingGroupCard: View {
+    let items: [UpcomingNotificationDTO]
+    let thumbnails: [UUID: ImageRef]
+    let categories: [UUID: String]
+    let onVeto: (UUID) -> Void
+    let onPickExact: (UpcomingNotificationDTO) -> Void
+    let onPreset: (UUID, Date) -> Void
+
+    @State private var expanded = false
+
+    private var head: UpcomingNotificationDTO { items[0] }
+    private var rest: [UpcomingNotificationDTO] { Array(items.dropFirst()) }
 
     var body: some View {
-        HStack(alignment: .top, spacing: HomeDesign.Spacing.md) {
-            ScheduleDateTile(date: entry.fireAt)
+        VStack(spacing: 0) {
+            HStack(alignment: .top, spacing: HomeDesign.Spacing.md) {
+                NotifThumbnail(itemID: head.itemID, kind: head.kind, thumbnails: thumbnails, categories: categories)
 
-            VStack(alignment: .leading, spacing: 5) {
-                if entry.kind == "spaced" {
-                    recallBadge
+                VStack(alignment: .leading, spacing: 5) {
+                    if head.kind == "spaced" { recallBadge }
+                    Text(head.title)
+                        .font(.system(size: 14.5, weight: .bold, design: .rounded))
+                        .foregroundStyle(HomeDesign.Color.textPrimary)
+                        .lineLimit(1)
+                    Text(head.body)
+                        .font(.system(size: 12.5, weight: .medium, design: .rounded))
+                        .foregroundStyle(HomeDesign.Color.textMuted)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                    fireAtLabel(head.fireAt)
+                    if let original = head.originalFireAt { movedBadge(from: original) }
+                    if !rest.isEmpty { moreToggle }
                 }
-                Text(entry.title)
-                    .font(.system(size: 14.5, weight: .bold, design: .rounded))
-                    .foregroundStyle(HomeDesign.Color.textPrimary)
-                    .lineLimit(1)
 
-                Text(entry.body)
-                    .font(.system(size: 12.5, weight: .medium, design: .rounded))
-                    .foregroundStyle(HomeDesign.Color.textMuted)
-                    .lineLimit(2)
-                    .fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: HomeDesign.Spacing.sm)
 
-                fireAtLabel
-
-                if let original = entry.originalFireAt {
-                    movedBadge(from: original)
-                }
+                actions(for: head)
             }
 
-            Spacer(minLength: HomeDesign.Spacing.sm)
-
-            actions
+            if expanded {
+                ForEach(rest) { sub in substepRow(sub) }
+            }
         }
         .padding(HomeDesign.Spacing.md)
         .background(
@@ -109,6 +146,64 @@ private struct UpcomingRow: View {
                 .stroke(HomeDesign.Color.border, lineWidth: 1)
         )
         .cardShadow()
+    }
+
+    /// "앞으로 N번 더 알려드려요" — 탭하면 하위 단계가 펼쳐진다.
+    private var moreToggle: some View {
+        Button {
+            withAnimation(.spring(response: 0.32, dampingFraction: 0.85)) { expanded.toggle() }
+        } label: {
+            HStack(spacing: 5) {
+                Image(systemName: "bell.fill")
+                    .font(.system(size: 9.5, weight: .bold))
+                Text("앞으로 \(rest.count)번 더 알려드려요")
+                    .font(.system(size: 11.5, weight: .heavy, design: .rounded))
+                Image(systemName: expanded ? "chevron.up" : "chevron.down")
+                    .font(.system(size: 9, weight: .bold))
+            }
+            .foregroundStyle(HomeDesign.Color.purple500)
+            .padding(.horizontal, HomeDesign.Spacing.sm)
+            .padding(.vertical, 5)
+            .background(Capsule().fill(HomeDesign.Color.purple500.opacity(0.1)))
+        }
+        .buttonStyle(PressableStyle())
+        .padding(.top, 2)
+        .accessibilityLabel("이 일정 알림 \(rest.count)개 더 보기")
+    }
+
+    /// 펼친 하위 단계 1행 — 날짜 + 본문 + 그 단계만 끄기.
+    private func substepRow(_ sub: UpcomingNotificationDTO) -> some View {
+        HStack(spacing: HomeDesign.Spacing.sm) {
+            Text(Self.subDateFormatter.string(from: sub.fireAt))
+                .font(.system(size: 10.5, weight: .heavy, design: .rounded))
+                .foregroundStyle(HomeDesign.Color.sky400)
+                .multilineTextAlignment(.center)
+                .frame(width: 38)
+                .padding(.vertical, 5)
+                .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(HomeDesign.Color.sky100))
+
+            Text(sub.body)
+                .font(.system(size: 12, weight: .medium, design: .rounded))
+                .foregroundStyle(HomeDesign.Color.textMuted)
+                .lineLimit(1)
+
+            Spacer(minLength: 0)
+
+            Button { onVeto(sub.eventID) } label: {
+                Image(systemName: "bell.slash.fill")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(HomeDesign.Color.blush400)
+                    .frame(width: 28, height: 28)
+                    .background(Circle().fill(HomeDesign.Color.blush400.opacity(0.12)))
+            }
+            .buttonStyle(PressableStyle())
+            .accessibilityLabel("이 알림만 끄기")
+        }
+        .padding(.top, HomeDesign.Spacing.sm)
+        .overlay(alignment: .top) {
+            Rectangle().fill(HomeDesign.Color.border).frame(height: 0.5)
+                .padding(.leading, 38 + HomeDesign.Spacing.sm)
+        }
     }
 
     /// spaced(회수 정착) 알림 표식 — "마감 리마인드"가 아니라 "다시 보기"임을 구분(회수 보라 톤).
@@ -126,22 +221,20 @@ private struct UpcomingRow: View {
     }
 
     /// 발송 예정 상대 라벨 — DueDisplay 의 일정 시각 언어 + 긴급도 색을 그대로 쓴다(같은 시각 언어).
-    private var fireAtLabel: some View {
+    private func fireAtLabel(_ date: Date) -> some View {
         HStack(spacing: 5) {
             Image(systemName: "clock.fill")
                 .font(.system(size: 9.5, weight: .bold))
-            Text(DueDisplay.scheduleLabel(entry.fireAt))
+            Text(DueDisplay.scheduleLabel(date))
                 .font(.system(size: 12, weight: .heavy, design: .rounded))
         }
-        .foregroundStyle(DueDisplay.deadlineColor(entry.fireAt))
+        .foregroundStyle(DueDisplay.deadlineColor(date))
         .padding(.horizontal, HomeDesign.Spacing.sm)
         .padding(.vertical, 4)
-        .background(
-            Capsule().fill(DueDisplay.deadlineColor(entry.fireAt).opacity(0.12))
-        )
+        .background(Capsule().fill(DueDisplay.deadlineColor(date).opacity(0.12)))
     }
 
-    /// "원래 X → 옮김" — 모찌 원안 대비 사용자가 옮겼음을 작게 표기("모찌가 정하고, 내가 조정" 느낌).
+    /// "원래 X → 옮김" — 모찌 원안 대비 사용자가 옮겼음을 작게 표기.
     private func movedBadge(from original: Date) -> some View {
         HStack(spacing: 4) {
             Image(systemName: "arrow.uturn.right")
@@ -153,22 +246,20 @@ private struct UpcomingRow: View {
         .foregroundStyle(HomeDesign.Color.ink500)
     }
 
-    // MARK: 3액션 — 다음에(프리셋 Menu) · 직접 고르기 · 끄기(destructive)
+    // MARK: head 2액션 — 미루기(프리셋 Menu) · 끄기(destructive)
 
-    private var actions: some View {
+    private func actions(for entry: UpcomingNotificationDTO) -> some View {
         VStack(spacing: HomeDesign.Spacing.sm) {
             Menu {
                 ForEach(ReschedulePreset.all) { preset in
                     Button {
-                        onPreset(preset.fireAt(from: entry.fireAt))
+                        onPreset(entry.eventID, preset.fireAt(from: entry.fireAt))
                     } label: {
                         Label(preset.title, systemImage: preset.icon)
                     }
                 }
                 Divider()
-                Button {
-                    onPickExact()
-                } label: {
+                Button { onPickExact(entry) } label: {
                     Label("직접 고르기", systemImage: "calendar")
                 }
             } label: {
@@ -176,7 +267,7 @@ private struct UpcomingRow: View {
             }
             .accessibilityLabel("알림 시간 미루기")
 
-            Button(action: onVeto) {
+            Button { onVeto(entry.eventID) } label: {
                 actionChip(icon: "bell.slash.fill", tint: HomeDesign.Color.blush400)
             }
             .buttonStyle(PressableStyle())
@@ -192,6 +283,8 @@ private struct UpcomingRow: View {
             .background(Circle().fill(tint.opacity(0.12)))
             .overlay(Circle().stroke(tint.opacity(0.2), lineWidth: 1))
     }
+
+    private static let subDateFormatter = DateFormatter.mochiSeoul("M/d")
 }
 
 // MARK: - 프리셋 (다음에)
@@ -232,7 +325,6 @@ private struct ReschedulePickerSheet: View {
     init(entry: UpcomingNotificationDTO, onSave: @escaping (Date) -> Void) {
         self.entry = entry
         self.onSave = onSave
-        // 초기값은 현재 발송 예정 시각(미래라면 그대로, 혹시 과거면 지금 이후로).
         _selected = State(initialValue: max(entry.fireAt, Date()))
     }
 
@@ -294,34 +386,37 @@ private struct ReschedulePickerSheet: View {
 // MARK: - Preview
 
 #Preview {
-    ScrollView {
+    let intentA = UUID()
+    return ScrollView {
         UpcomingNotificationsView(
             entries: [
                 UpcomingNotificationDTO(
-                    eventID: UUID(),
-                    kind: "deadline",
+                    eventID: UUID(), kind: "deadline",
                     fireAt: Date().addingTimeInterval(60 * 60 * 26),
-                    title: "리포트 제출",
-                    body: "내일이 마감이에요. 잊지 않게 알려드릴게요.",
-                    originalFireAt: nil
+                    title: "리포트 제출", body: "내일이 마감이에요. 잊지 않게 알려드릴게요.",
+                    originalFireAt: nil, intentID: UUID()
                 ),
                 UpcomingNotificationDTO(
-                    eventID: UUID(),
-                    kind: "nudge",
-                    fireAt: Date().addingTimeInterval(60 * 60 * 24 * 4),
-                    title: "치과 예약",
-                    body: "다가오는 일정을 미리 챙겨드릴게요.",
-                    originalFireAt: Date().addingTimeInterval(60 * 60 * 24 * 2)
+                    eventID: UUID(), kind: "nudge",
+                    fireAt: Date().addingTimeInterval(60 * 60 * 24 * 5),
+                    title: "핀다이렉트 요금제 변경 확인", body: "변경할 요금제를 미리 확인해보면 좋아요.",
+                    originalFireAt: nil, intentID: intentA
                 ),
                 UpcomingNotificationDTO(
-                    eventID: UUID(),
-                    kind: "spaced",
-                    fireAt: Date().addingTimeInterval(60 * 60 * 24 * 3),
-                    title: "Swift Concurrency 정리",
-                    body: "저장한 지 사흘 됐어요. 다시 보면 더 오래 남아요.",
-                    originalFireAt: nil
+                    eventID: UUID(), kind: "nudge",
+                    fireAt: Date().addingTimeInterval(60 * 60 * 24 * 30),
+                    title: "핀다이렉트 요금제 변경 확인", body: "예정일이 일주일 앞으로 다가왔습니다.",
+                    originalFireAt: nil, intentID: intentA
+                ),
+                UpcomingNotificationDTO(
+                    eventID: UUID(), kind: "nudge",
+                    fireAt: Date().addingTimeInterval(60 * 60 * 24 * 37),
+                    title: "핀다이렉트 요금제 변경 확인", body: "오늘 요금제 변경을 진행하시겠어요?",
+                    originalFireAt: nil, intentID: intentA
                 ),
             ],
+            thumbnails: [:],
+            categories: [:],
             onVeto: { _ in },
             onReschedule: { _, _ in }
         )
