@@ -1,5 +1,6 @@
 import SwiftUI
 import ComposableArchitecture
+import CoreDomain
 import CoreNetworking
 import DesignSystem
 
@@ -85,6 +86,8 @@ public struct NotificationsPageView: View {
         } else {
             UpcomingNotificationsView(
                 entries: store.upcoming,
+                thumbnails: store.thumbnails,
+                categories: store.categories,
                 onVeto: { eventID in store.send(.upcomingVetoed(eventID: eventID), animation: .spring(response: 0.4, dampingFraction: 0.85)) },
                 onReschedule: { eventID, fireAt in store.send(.upcomingRescheduled(eventID: eventID, fireAt: fireAt), animation: .spring(response: 0.5, dampingFraction: 0.88)) }
             )
@@ -104,7 +107,12 @@ public struct NotificationsPageView: View {
         } else {
             VStack(spacing: HomeDesign.Spacing.sm) {
                 ForEach(store.sent) { entry in
-                    SentNotificationRow(entry: entry)
+                    SentNotificationRow(
+                        entry: entry,
+                        thumbnails: store.thumbnails,
+                        categories: store.categories,
+                        onTap: { store.send(.sentNotificationTapped(entry), animation: .easeInOut(duration: 0.22)) }
+                    )
                 }
             }
         }
@@ -141,19 +149,35 @@ public struct NotificationsPageView: View {
 
 // MARK: - 지난 알림 1행 (읽기 전용)
 
-/// 보낸 알림 1건 — 좌측 종류 아이콘 + title/body + 발송 시각 + opened/dismissed 상태 칩.
-/// 액션 없음(읽기 전용) — "이미 보낸 것"의 기록이라 조정 대상이 아니다.
+/// 보낸 알림 1건 — 좌측 캡처 썸네일 + title/body + 발송 시각 + opened/dismissed 상태 칩.
+/// 행을 탭하면 원본 기록 상세를 열고 그 알림을 읽음 처리(opened)한다 — 둘러보다 본 것이 회색으로 가라앉는다.
 private struct SentNotificationRow: View {
     let entry: SentNotificationDTO
+    let thumbnails: [UUID: ImageRef]
+    let categories: [UUID: String]
+    let onTap: () -> Void
+
+    private var isRead: Bool { status != .unread }
 
     var body: some View {
+        Button(action: onTap) {
+            cardContent.contentShape(Rectangle())
+        }
+        .buttonStyle(PressableStyle())
+        .cardShadow()
+        .opacity(isRead ? 0.72 : 1.0)
+        .accessibilityElement(children: .combine)
+        .accessibilityHint("탭하면 원본 기록을 열고 읽음 처리돼요")
+    }
+
+    private var cardContent: some View {
         HStack(alignment: .top, spacing: HomeDesign.Spacing.md) {
-            kindIcon
+            NotifThumbnail(itemID: entry.itemID, kind: entry.kind, thumbnails: thumbnails, categories: categories)
 
             VStack(alignment: .leading, spacing: 5) {
                 Text(entry.title)
-                    .font(.system(size: 14.5, weight: .bold, design: .rounded))
-                    .foregroundStyle(HomeDesign.Color.textPrimary)
+                    .font(.system(size: 14.5, weight: isRead ? .semibold : .bold, design: .rounded))
+                    .foregroundStyle(isRead ? HomeDesign.Color.textMuted : HomeDesign.Color.textPrimary)
                     .lineLimit(1)
 
                 Text(entry.body)
@@ -174,53 +198,21 @@ private struct SentNotificationRow: View {
         .padding(HomeDesign.Spacing.md)
         .background(
             RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
-                .fill(HomeDesign.Color.surface)
+                .fill(isRead ? HomeDesign.Color.ink100.opacity(0.5) : HomeDesign.Color.surface)
         )
         .overlay(
             RoundedRectangle(cornerRadius: HomeDesign.Radius.md, style: .continuous)
-                .stroke(HomeDesign.Color.border, lineWidth: 1)
+                .stroke(isRead ? Color.clear : HomeDesign.Color.border, lineWidth: 1)
         )
-        // 안 열어본 알림은 살짝 강조(왼쪽 보라 띠) — "아직 안 본 것"을 부드럽게 드러낸다.
+        // 안 읽은 알림만 왼쪽 보라 띠 + 흰 카드. 읽은 알림은 회색·흐리게(dim)로 가라앉혀 한눈에 구분.
         .overlay(alignment: .leading) {
-            if status == .unread {
+            if !isRead {
                 Capsule()
                     .fill(HomeDesign.Color.purple400)
                     .frame(width: 3)
                     .padding(.vertical, HomeDesign.Spacing.sm)
                     .padding(.leading, 1)
             }
-        }
-        .cardShadow()
-        .accessibilityElement(children: .combine)
-    }
-
-    /// 종류별 아이콘 타일 — deadline(마감)/nudge(일정)/recall(회수)/그외.
-    private var kindIcon: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: HomeDesign.Radius.sm, style: .continuous)
-                .fill(kindTint.opacity(0.14))
-            Image(systemName: kindSymbol)
-                .font(.system(size: 16, weight: .bold))
-                .foregroundStyle(kindTint)
-        }
-        .frame(width: 40, height: 40)
-    }
-
-    private var kindSymbol: String {
-        switch entry.kind {
-        case "deadline": return "flag.fill"
-        case "nudge": return "calendar"
-        case "recall": return "sparkles"
-        default: return "bell.fill"
-        }
-    }
-
-    private var kindTint: Color {
-        switch entry.kind {
-        case "deadline": return HomeDesign.Color.peach400
-        case "nudge": return HomeDesign.Color.sky400
-        case "recall": return HomeDesign.Color.purple500
-        default: return HomeDesign.Color.purple400
         }
     }
 
@@ -275,6 +267,70 @@ private struct SentNotificationRow: View {
     }
 
     private static let sentFormatter = DateFormatter.mochiSeoul("M월 d일 · a h:mm")
+}
+
+// MARK: - 알림 썸네일 타일 (예정·받음 공용)
+
+/// 알림 행 왼쪽 50px 타일 — 원본 캡처 썸네일(있으면) / 카테고리 색·아이콘(이미지 없고 카테고리 있으면) /
+/// 종류 아이콘(둘 다 없으면). 내용으로만 보던 알림을 한눈에 구분하되, 작게 둬서 난잡하지 않게.
+struct NotifThumbnail: View {
+    let itemID: UUID?
+    let kind: String
+    let thumbnails: [UUID: ImageRef]
+    let categories: [UUID: String]
+
+    private var imageRef: ImageRef? { itemID.flatMap { thumbnails[$0] } }
+    private var category: String? { itemID.flatMap { categories[$0] } }
+
+    var body: some View {
+        Group {
+            if let ref = imageRef {
+                LocalThumbnail(
+                    relativePath: ref.displayRelativePath,
+                    objectKey: ref.objectKey,
+                    sha256: ref.sha256,
+                    mimeType: ref.mimeType,
+                    targetSize: CGSize(width: 110, height: 110),
+                    alignment: .center
+                ) { fallback }
+            } else {
+                fallback
+            }
+        }
+        .frame(width: 50, height: 50)
+        .clipShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
+    }
+
+    private var fallback: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 13, style: .continuous).fill(tint.opacity(0.14))
+            Image(systemName: symbol)
+                .font(.system(size: 18, weight: .bold))
+                .foregroundStyle(tint)
+        }
+    }
+
+    private var tint: Color {
+        if let category {
+            return MochiCategoryPalette.tint(category.unicodeScalars.reduce(into: 0) { $0 += Int($1.value) }).strong
+        }
+        switch kind {
+        case "deadline": return HomeDesign.Color.peach400
+        case "nudge": return HomeDesign.Color.sky400
+        case "spaced", "recall": return HomeDesign.Color.purple500
+        default: return HomeDesign.Color.purple400
+        }
+    }
+
+    private var symbol: String {
+        if let category { return MochiCategoryIcon.icon(for: category, fallbackIndex: 0) }
+        switch kind {
+        case "deadline": return "flag.fill"
+        case "nudge": return "calendar"
+        case "spaced", "recall": return "sparkles"
+        default: return "bell.fill"
+        }
+    }
 }
 
 // MARK: - Preview
