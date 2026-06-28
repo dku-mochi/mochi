@@ -35,7 +35,8 @@ public struct SensitivityScorer {
         )
     }
 
-    /// 조합 가중치(`§4.3`) — 단일 신호보다 조합이 위험. 이름(NER) 제외분은 식별자 조합으로 대체.
+    /// 조합 가중치(`§4.3`) — 단일 신호보다 조합이 위험. NER 미도입(§3.4)이라 이름 조합 대신
+    /// 고신뢰 식별자 조합을 위험 신호로 본다.
     static func comboBonus(_ signals: [SensitivitySignal]) -> Int {
         let types = Set(signals.map(\.type))
         var bonus = 0

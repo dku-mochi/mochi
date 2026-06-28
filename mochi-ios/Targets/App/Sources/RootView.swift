@@ -3,7 +3,6 @@ import DesignSystem
 import FeatureAuth
 import FeatureChat
 import FeatureDetail
-import FeatureMochiItem
 import FeatureInbox
 import FeatureOnboarding
 import FeatureSearch
@@ -12,10 +11,6 @@ import SwiftUI
 import UIKit
 
 /// 인증 단계에 따라 ``LoginView`` 또는 메인 ``MainTabView`` 를 노출하는 분기.
-///
-/// 추가로 ``BackTapModalFeature`` 가 활성화되면 fullScreenCover 로 풀스크린 모달을 띄운다 —
-/// 백탭 snippet 의 메모 분기에서 ``OpenBackTapMemoIntent`` 가 marker 를 stash 한 뒤 모찌를
-/// foreground 로 깨운 직후 ``RootFeature`` 가 발사.
 struct RootView: View {
     @Bindable var store: StoreOf<RootFeature>
     @Environment(\.scenePhase) private var scenePhase
@@ -39,14 +34,6 @@ struct RootView: View {
             if newPhase == .active {
                 store.send(.appBecameActive)
             }
-        }
-        .fullScreenCover(
-            item: $store.scope(state: \.backTapModal, action: \.backTapModal)
-        ) { backTapStore in
-            BackTapModalView(store: backTapStore)
-                // memo marker 폐기 invariant 을 깨는 system-driven dismiss 차단.
-                // 사용자 의도 종료는 모달 내부의 "취소" 또는 memoSaveFinished delegate.
-                .interactiveDismissDisabled(true)
         }
         .fullScreenCover(
             item: $store.scope(state: \.onboarding, action: \.onboarding)

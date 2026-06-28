@@ -172,4 +172,28 @@ final class SensitiveDataDetectorTests: XCTestCase {
         let signals = detector.detect(in: "482910 이 인증번호입니다")
         XCTAssertTrue(signals.contains { $0.type == .otpCode && $0.isHighPrecision })
     }
+
+    // MARK: - OCR 표면 변형 정규화 (전각·유니코드 대시 — OCRTextNormalizer)
+
+    func test_detectsFullWidthCardNumber() {
+        // OCR 이 전각 숫자로 읽은 카드번호도 정규화 후 Luhn 으로 잡는다(4242…, Luhn 통과).
+        let signals = detector.detect(in: "결제 ４２４２４２４２４２４２４２４２ 승인")
+        XCTAssertTrue(signals.contains { $0.type == .cardNumber && $0.isHighPrecision })
+    }
+
+    func test_detectsNationalIDWithUnicodeDash() {
+        // 구분자가 유니코드 en dash(U+2013)여도 정규화 후 잡는다.
+        let signals = detector.detect(in: "주민번호 880101\u{2013}1234568 확인")
+        XCTAssertTrue(signals.contains { $0.type == .nationalID && $0.isHighPrecision })
+    }
+
+    func test_normalizedDetection_textRangeMapsToOriginal() {
+        // 정규화본에서 잡아도 textRange 는 **원본** 문자열 기준이어야 블러 영역이 맞다.
+        let text = "카드 ４２４２４２４２４２４２４２４２ 승인"
+        let card = detector.detect(in: text).first { $0.type == .cardNumber }
+        XCTAssertNotNil(card)
+        if let range = card?.textRange {
+            XCTAssertTrue(text[range].contains("４"), "textRange 는 원본(전각) 기준이어야 한다")
+        }
+    }
 }

@@ -561,12 +561,6 @@ let project = Project(
             settings: .settings(base: baseSettings)
         ),
 
-        // App Intents (QuickCaptureIntent / CaptureScreenshotIntent / MochiShortcuts) 는
-        // 별도 extension 타겟이 아니라 **메인 App 타겟 안** 에 있다 (`Targets/App/Sources/AppIntents/`).
-        // 이유: `AppShortcutsProvider` 와 그것이 참조하는 `AppIntent` 들은 반드시 메인 앱 타겟에
-        // 위치해야 시스템이 인덱싱한다 (Apple Developer Forums thread/759160).
-        // extension 타겟에 두면 단축어 앱·"앱과 공유"·Siri·Spotlight 어디에서도 발견되지 않음.
-
         // MARK: Tests
         unitTests(for: "CoreDomain", layer: .core),
         unitTests(for: "CorePrivacy", layer: .core, dependencies: [.target(name: "CoreDomain")]),
