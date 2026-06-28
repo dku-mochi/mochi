@@ -74,6 +74,8 @@ public struct DetailFeature: Sendable {
         case deleteAlert(PresentationAction<Alert>)
         // 닫기(X) 버튼 — custom present 를 닫도록 상위에 위임.
         case closeButtonTapped
+        /// 메타 eyebrow 의 카테고리 탭 → 그 카테고리 기록을 모아 3D 턴테이블(샤라락)로 (상위 위임).
+        case categoryTapped
         // hero 전환 중 상세 이미지 표시/숨김 — App(ZoomDetailPresentation)이 비행 타이밍에 맞춰 토글.
         case setHeroImageHidden(Bool)
         /// "비슷한 기록" push 스택(재귀 자식 상세). 자손의 openSimilar/deleted delegate 를 root 가 흡수.
@@ -88,6 +90,8 @@ public struct DetailFeature: Sendable {
             case closeRequested
             /// 비슷한 기록 카드 탭 → 부모가 그 항목으로 새 상세를 present (재귀 present 회피).
             case openSimilar(UUID)
+            /// 메타 카테고리 탭 → 부모가 상세를 닫고 그 카테고리의 3D 턴테이블(샤라락)을 push.
+            case openCategoryCarousel(name: String, items: [MochiItem])
         }
     }
 
@@ -326,6 +330,17 @@ public struct DetailFeature: Sendable {
 
             case .closeButtonTapped:
                 return .send(.delegate(.closeRequested))
+
+            case .categoryTapped:
+                guard let category = state.mochiItem?.analysis?.category?
+                    .trimmingCharacters(in: .whitespacesAndNewlines), !category.isEmpty else { return .none }
+                return .run { send in
+                    let all = (try? await repository.listRecent(limit: 2000)) ?? []
+                    let items = all.filter {
+                        $0.analysis?.category?.trimmingCharacters(in: .whitespacesAndNewlines) == category
+                    }
+                    await send(.delegate(.openCategoryCarousel(name: category, items: items)))
+                }
 
             case let .setHeroImageHidden(hidden):
                 state.heroImageHidden = hidden

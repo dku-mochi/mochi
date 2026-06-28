@@ -23,6 +23,9 @@ public struct MochiHomeFeature: Sendable {
         /// 회수 itemID → 원본 캡처 이미지 ref. 이미지가 회상의 핵심이라(이미지 보고 "아, 맞다"),
         /// 회수 DTO엔 없는 이미지를 server PK 로 로컬 기록을 역매핑해 채운다. 없으면(메모·URL·지식) 폴백.
         public var recallImages: [UUID: ImageRef] = [:]
+        /// 회수 itemID → 카테고리. 회수 카드 밑 캡션(카테고리 · 저장시각 / 제목)에 쓴다. 회수 DTO엔
+        /// category 가 없어, 이미지와 같은 server PK 역매핑으로 로컬 기록의 `analysis.category` 를 채운다.
+        public var recallCategories: [UUID: String] = [:]
         /// "이런 걸 모아두셨어요" — **이번 달** 카테고리별 분포(월간 리포트 막대·범례). 전체가 아니라
         /// 월간으로 묶어 최신성을 반영한다. 범례 탭 → 그 서랍을 3D 턴테이블로.
         public var monthlyCategories: [CategoryBucket] = []
@@ -54,7 +57,7 @@ public struct MochiHomeFeature: Sendable {
             monthlyItems: [MochiItem]
         )
         case recallLoaded([RecallFeedEntryDTO])
-        case recallImagesLoaded([UUID: ImageRef])
+        case recallResolved(images: [UUID: ImageRef], categories: [UUID: String])
         case loadFailed(String)
         /// 상단 검색 아이콘 탭 → 검색 탭으로 전환(홈은 검색을 비우고 탐색을 검색 탭에 양보).
         case searchTapped
@@ -177,18 +180,22 @@ public struct MochiHomeFeature: Sendable {
                 // 회수의 원본 캡처 이미지를 역매핑해 히어로 커버로 — 이미지를 보고 "아, 맞다" 하는 회상이
                 // 가장 강하다. itemID 는 server PK. 이미지 없는 회수(메모·URL·지식)는 맵에 안 담겨 폴백.
                 return .run { send in
-                    var map: [UUID: ImageRef] = [:]
+                    var images: [UUID: ImageRef] = [:]
+                    var categories: [UUID: String] = [:]
                     for entry in entries {
-                        if let item = try? await repository.find(serverID: entry.itemID),
-                           let ref = item.source.imageRefs.first {
-                            map[entry.itemID] = ref
+                        guard let item = try? await repository.find(serverID: entry.itemID) else { continue }
+                        if let ref = item.source.imageRefs.first { images[entry.itemID] = ref }
+                        if let category = item.analysis?.category?.trimmingCharacters(in: .whitespacesAndNewlines),
+                           !category.isEmpty {
+                            categories[entry.itemID] = category
                         }
                     }
-                    await send(.recallImagesLoaded(map))
+                    await send(.recallResolved(images: images, categories: categories))
                 }
 
-            case let .recallImagesLoaded(map):
-                state.recallImages = map
+            case let .recallResolved(images, categories):
+                state.recallImages = images
+                state.recallCategories = categories
                 return .none
 
             case .searchTapped:
@@ -223,6 +230,7 @@ public struct MochiHomeFeature: Sendable {
                 // `.transition(.scale+opacity)` 가 호출부 animation 트랜잭션에 실려 발동한다.
                 state.recall.removeAll { $0.itemID == itemID }
                 state.recallImages[itemID] = nil
+                state.recallCategories[itemID] = nil
                 return .none
 
             case let .categoryTapped(bucket):
@@ -386,7 +394,7 @@ public struct MochiHomeFeature: Sendable {
         ))
     }
 
-    private static let carouselCoverCap = 30
+    public static let carouselCoverCap = 30
     private static let categoryGridLimit = 6
 
     /// 카테고리별 누적 묶음 — 전체 표본을 카테고리로 묶어 개수 내림차순. `count` 는 전체 개수(표시용),
