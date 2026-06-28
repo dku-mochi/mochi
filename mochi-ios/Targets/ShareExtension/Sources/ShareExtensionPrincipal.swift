@@ -50,6 +50,11 @@ public final class ShareExtensionPrincipal: UIViewController {
     /// 직전에 켜둔(가린) 영역의 rect — 재진입 시 감지·수동 가림을 모두 복원한다(UUID 는 매 시트 init
     /// 마다 새로 나므로 rect 로 매칭; rect 는 같은 감지 결과라 동일하다).
     private var lastEnabledRects: Set<CGRect>?
+    /// 한 캡처(relativePath)에 대한 민감 스캔(OCR+민감감지) 결과를 공유하는 캐시. 선감지·저장 시점
+    /// fallback 감지·분석용 OCR 추출이 **같은 이미지를 여러 번 OCR 하지 않게** 한다(ShareExt 120MB·지연).
+    /// 진행 중 `Task` 를 보관해 동시 호출도 한 스캔을 공유하고(완료된 Task 는 즉시 값 반환), crop 등으로
+    /// 이미지가 바뀌면 `relativePath` 가 달라져 캐시 미스 → 새 이미지로 재스캔한다.
+    private var scanTask: (relativePath: String, task: Task<ScanOutput?, Never>)?
 
     public override func viewDidLoad() {
         super.viewDidLoad()
@@ -60,7 +65,7 @@ public final class ShareExtensionPrincipal: UIViewController {
         Task { @MainActor in
             // 온보딩 백탭 검증 모드: 백탭이 ShareExtension 까지 도달했음을 기록하고, 진짜 저장 없이
             // "작동해요" 만 보여준 뒤 닫는다 (검증용 스크린샷이 쓰레기로 남지 않게). 백탭의 실제
-            // 진입점은 snippet(CaptureScreenshotIntent)이 아니라 이 ShareExtension 이다.
+            // 진입점은 이 ShareExtension 이다(단축어 → 앱과 공유).
             // **추출 이전에** 분기한다 — 검증 모드는 payload 가 필요 없고, 추출 단계 hang 에 검증 UI 가
             // 막혀선 안 되며, 불필요한 PNG persist(→고아 청소)도 피한다.
             if AppGroup.isBackTapVerificationActive {
@@ -166,26 +171,26 @@ public final class ShareExtensionPrincipal: UIViewController {
     /// 민감하면 저장 탭을 기다리지 않고 시트를 **캡처 화면 위에 자동으로** 띄운다("감지하자마자").
     private func startEarlyDetection(for ref: ImageRef?) {
         guard let ref else { return }
-        let task = Task.detached(priority: .userInitiated) {
-            await Self.detectPrivacy(for: ref)
-        }
-        detectionTask = task
-        Task { @MainActor [weak self] in
-            let detection = await task.value
-            guard let self, let detection,
+        // `detectPrivacy` 가 내부에서 `scanResult`(detached 스캔)를 거쳐 캐시를 채우므로, 저장 시점
+        // `attachingAnalysisOCR`·fallback 감지가 같은 이미지를 다시 스캔하지 않는다.
+        detectionTask = Task { @MainActor [weak self] in
+            guard let self else { return nil }
+            let detection = await self.detectPrivacy(for: ref)
+            guard let detection,
                   !self.didSubmit, !self.privacyDismissed,
-                  self.redaction.decision == nil, self.privacyOverlay == nil else { return }
+                  self.redaction.decision == nil, self.privacyOverlay == nil else { return detection }
             // 재진입(가림 화면 다시 열기)을 위해 감지 결과를 보관한다.
             self.lastDetection = detection
             // 설정 "민감 캡처는 항상 이 기기에만"(PRIVACY §5.3) 켜짐 → 시트 없이 localOnly 결정.
             // 사용자가 시트에서 localOnly 를 고른 것과 동일한 상태(workingRef nil)라 저장 경로가 같다.
             if SensitiveCapturePreference.load() {
                 self.redaction.decision = PrivacyDecision(policy: .localOnly, level: detection.assessment.level)
-                return
+                return detection
             }
             // 캡처 화면에서 가림 화면으로 (다시) 들어갈 수 있음 — 시트를 닫아도 진입점이 남는다.
             self.redaction.canEditRedaction = true
             self.presentEarlyPrivacy(detection)
+            return detection
         }
     }
 
@@ -300,7 +305,7 @@ public final class ShareExtensionPrincipal: UIViewController {
             }
 
             // 선감지가 저장보다 늦은(아주 빠른 탭) fallback — 저장 시점 감지로 시트를 띄운다.
-            if let detection = await Self.detectPrivacy(for: finalPayload) {
+            if let detection = await self.detectPrivacy(for: finalPayload) {
                 // 설정 "항상 이 기기에만" 켜짐 → 시트 없이 localOnly 적용 후 저장(PRIVACY §5.3).
                 if SensitiveCapturePreference.load() {
                     let updated = Self.applyPrivacy(
@@ -319,7 +324,7 @@ public final class ShareExtensionPrincipal: UIViewController {
     /// 큐 적재(진실원천) + best-effort 직접전송 + 성공 종료. 민감/비민감 경로 공통 저장 로직.
     private func proceedSave(_ rawPayload: InboundIngestPayload) async {
         // 모든 저장 경로가 여기로 모이므로(민감/비민감 공통), 분석 전용 ephemeral OCR 동봉도 여기 한 곳에서 한다.
-        let finalPayload = await Self.attachingAnalysisOCR(to: rawPayload)
+        let finalPayload = await attachingAnalysisOCR(to: rawPayload)
         // 성공 모먼트(`ShareSuccessOverlay`)의 최소 노출시간 — 직접전송이 즉시 반환되는 빠른 경로에서
         // 한 프레임만 깜빡이고 닫히는 glitch 를 막고 "기억했어요!" 를 읽을 시간을 보장한다.
         let minSuccessDisplay = Task { try? await Task.sleep(nanoseconds: 900_000_000) }
@@ -386,12 +391,17 @@ public final class ShareExtensionPrincipal: UIViewController {
     /// 메인 스레드 밖에서 수행한다(디코드·블러·인코딩이 무겁다).
     private static func makeBlur(policy: PrivacyPolicy, rects: [CGRect], original: ImageRef) async -> ImageRef? {
         guard policy == .blurredUpload, !rects.isEmpty else { return nil }
-        return await Task.detached(priority: .userInitiated) {
+        return await Task.detached(priority: .userInitiated) { () -> ImageRef? in
             let url = AppGroup.containerURL.appendingPathComponent(original.relativePath)
-            guard let data = try? Data(contentsOf: url),
-                  let cg = Self.downsampledCGImage(from: data, maxPixel: 1920),
-                  let blurredCG = ImageBlurRedactor().redactedImage(from: cg, normalizedRects: rects),
-                  let blurredPath = Self.writeBlurredPNG(blurredCG, refID: original.id) else { return nil }
+            // 디코드 CGImage·CIContext 중간버퍼·`pngData` 의 큰 임시버퍼를 이 블록 종료 즉시 해제한다 —
+            // detached(GCD) 컨텍스트는 autorelease pool 배수가 늦어 ShareExt 120MB 한도에서 누적되면 OOM.
+            let blurredPath: String? = autoreleasepool {
+                guard let cg = Self.downsampledCGImage(from: url, maxPixel: 1920),
+                      let blurredCG = ImageBlurRedactor().redactedImage(from: cg, normalizedRects: rects)
+                else { return nil }
+                return Self.writeBlurredPNG(blurredCG, refID: original.id)
+            }
+            guard let blurredPath else { return nil }
             return ImageRef(
                 id: original.id,
                 relativePath: original.relativePath,
@@ -428,30 +438,59 @@ public final class ShareExtensionPrincipal: UIViewController {
         )
     }
 
+    /// 한 캡처를 OCR+민감감지로 **한 번만** 스캔한다(`scanTask` 캐시 공유). 같은 `relativePath` 의
+    /// 진행 중/완료 스캔이 있으면 그 결과를 그대로 쓰고, 없으면 새 스캔을 시작해 캐시에 건다. 디코드·OCR 은
+    /// 무거우므로 `Task.detached` 로 메인 밖에서 수행한다(캡처 화면 비차단). 시트 표시용 이미지는 **민감할
+    /// 때만**(`shouldPromptUser`) 같은 디코드 CGImage 로 만들어 함께 돌려준다 — 비민감(대다수)은 픽셀버퍼
+    /// 없이 가벼운 결과만 캐시에 남고, 민감 경로는 **2차 재디코드 없이**(메모리 압박 하 실패→보호 누락 차단)
+    /// 시트 이미지를 확보한다.
+    private func scanResult(for ref: ImageRef) async -> ScanOutput? {
+        if let cached = scanTask, cached.relativePath == ref.relativePath {
+            return await cached.task.value
+        }
+        let relativePath = ref.relativePath
+        let task = Task.detached(priority: .userInitiated) { () -> ScanOutput? in
+            let url = AppGroup.containerURL.appendingPathComponent(relativePath)
+            guard let cgImage = Self.downsampledCGImage(from: url) else { return nil }
+            let result = await SensitiveCaptureScanner().scan(cgImage: cgImage)
+            // 민감 캡처만 시트 표시 이미지를 같은 CGImage 로 굽는다(재디코드 0). 비민감은 nil → 캐시 경량.
+            let sheetImage = result.assessment.shouldPromptUser ? UIImage(cgImage: cgImage) : nil
+            return ScanOutput(result: result, sheetImage: sheetImage)
+        }
+        scanTask = (relativePath, task)   // MainActor 직렬화: 동시 호출은 여기서 같은 task 를 공유
+        return await task.value
+    }
+
+    /// 한 캡처 스캔의 산출 — 민감 평가/OCR(`result`) + 시트 표시 이미지(`sheetImage`, 민감할 때만).
+    /// `UIImage` 는 생성 후 읽기 전용이라 detached 스캔 task 경계로 안전히 넘긴다.
+    private struct ScanOutput: @unchecked Sendable {
+        let result: SensitiveCaptureScanResult
+        /// `shouldPromptUser` 일 때만 비-nil — 스캔 디코드를 재사용하므로 민감인데 nil 일 수 없다.
+        let sheetImage: UIImage?
+    }
+
     /// 첫 이미지를 OCR→패턴 감지하고, 고신뢰 신호가 있으면 블러본까지 만들어 선택 시트 입력을 준비한다.
     /// 비민감(시트 불필요)이면 `nil` 을 반환해 호출부가 기존 경로로 저장하게 한다.
-    private static func detectPrivacy(for payload: InboundIngestPayload) async -> PrivacyDetection? {
+    private func detectPrivacy(for payload: InboundIngestPayload) async -> PrivacyDetection? {
         guard let ref = payload.imageRefs.first else { return nil }   // 이미지 캡처만 대상
         return await detectPrivacy(for: ref)
     }
 
     /// 지정 이미지를 OCR→패턴 감지한다. 고신뢰 신호가 없으면(시트 불필요) `nil`.
-    /// 블러본은 **확정 시** 사용자가 고른 영역으로만 생성한다(`makeBlur`) — 여기서 미리 굽지 않는다.
+    /// 스캔은 `scanResult`(캐시 공유)를 거치므로 같은 캡처에 OCR 이 한 번만 돈다. 시트 표시 이미지는
+    /// scan 과 **같은 디코드**(`ScanOutput.sheetImage`)라 민감 감지 성공 시 시트가 항상 보장된다(재디코드
+    /// 실패로 인한 보호 누락 없음). 블러본은 **확정 시** 사용자가 고른 영역으로만 생성한다(`makeBlur`).
     /// 반환된 `originalRef` 가 블러본 파생 ref 의 베이스(원본 `relativePath`/메타 보존)다.
-    private static func detectPrivacy(for ref: ImageRef) async -> PrivacyDetection? {
-        let url = AppGroup.containerURL.appendingPathComponent(ref.relativePath)
-        guard let data = try? Data(contentsOf: url),
-              let cgImage = downsampledCGImage(from: data) else { return nil }
-
-        let result = await SensitiveCaptureScanner().scan(cgImage: cgImage)
-        guard result.assessment.shouldPromptUser else { return nil }
-
+    private func detectPrivacy(for ref: ImageRef) async -> PrivacyDetection? {
+        guard let output = await scanResult(for: ref),
+              output.result.assessment.shouldPromptUser,
+              let originalImage = output.sheetImage else { return nil }
         return PrivacyDetection(
-            assessment: result.assessment,
-            originalImage: UIImage(cgImage: cgImage),
+            assessment: output.result.assessment,
+            originalImage: originalImage,
             originalRef: ref,
-            regions: result.regions,
-            textBoxes: result.textBoxes
+            regions: output.result.regions,
+            textBoxes: output.result.textBoxes
         )
     }
 
@@ -459,18 +498,14 @@ public final class ShareExtensionPrincipal: UIViewController {
     /// blurredUpload(블러로 가린 raw 텍스트 누설 방지)·localOnly(이미지 미전송)는 OCR 자체를 만들지 않는다
     /// (`EphemeralOCRGate` 와 동일 정책, PRIVACY §9). 첫 이미지의 화면 transcript 만 — 텍스트/URL 캡처는 대상 아님.
     /// 모든 저장 경로가 `proceedSave` 로 모이므로 여기 한 곳에서, 민감/비민감 분기와 무관하게(공통 지점)
-    /// originalUpload 캡처에 한해 채운다(:466 게이트 — 비민감 기본 포함, blurred/localOnly 제외).
-    /// ⚠️ 선감지(`detectPrivacy`)와 별도 scan 이라 originalUpload 캡처엔 OCR scan 이 한 번 더 돈다 —
-    /// ShareExt 메모리/지연 최적화(선감지 scan 재사용)는 후속(오너 결정, "우선 동작 구현").
-    private static func attachingAnalysisOCR(to payload: InboundIngestPayload) async -> InboundIngestPayload {
+    /// originalUpload 캡처에 한해 채운다(게이트 — 비민감 기본 포함, blurred/localOnly 제외).
+    /// 스캔은 `scanResult`(캐시 공유)를 거치므로, crop 안 된 같은 이미지면 선감지 scan 을 재사용해
+    /// OCR 이 한 번만 돈다(crop 시엔 relativePath 가 바뀌어 잘린 이미지로 재스캔 — 올바른 OCR).
+    private func attachingAnalysisOCR(to payload: InboundIngestPayload) async -> InboundIngestPayload {
         let policy = payload.privacy?.policy ?? .originalUpload
         guard policy == .originalUpload, payload.analysisOcrText == nil,
               let ref = payload.imageRefs.first else { return payload }
-        let url = AppGroup.containerURL.appendingPathComponent(ref.relativePath)
-        guard let data = try? Data(contentsOf: url),
-              let cgImage = downsampledCGImage(from: data) else { return payload }
-        let result = await SensitiveCaptureScanner().scan(cgImage: cgImage)
-        guard let ocrText = result.ocrText else { return payload }
+        guard let output = await scanResult(for: ref), let ocrText = output.result.ocrText else { return payload }
         return InboundIngestPayload(
             id: payload.id,
             url: payload.url,
@@ -483,9 +518,11 @@ public final class ShareExtensionPrincipal: UIViewController {
         )
     }
 
-    /// OCR·블러용 다운샘플 CGImage. Share Extension 120MB 한도 안에서 메모리를 아끼려 장변을 제한한다.
-    private static func downsampledCGImage(from data: Data, maxPixel: CGFloat = 1920) -> CGImage? {
-        guard let source = CGImageSourceCreateWithData(data as CFData, nil) else { return nil }
+    /// OCR·블러용 다운샘플 CGImage. Share Extension 120MB 한도 안에서 메모리를 아끼려 장변을 제한하고,
+    /// **`Data` 전체 로드 없이 파일 URL 소스로 직접 디코드**한다(`CGImageSourceCreateWithURL`) — 풀해상도
+    /// 원본 바이트를 메모리에 통째로 올리지 않아 큰 스크린샷에서 OOM(강제종료) 위험을 낮춘다.
+    private static func downsampledCGImage(from url: URL, maxPixel: CGFloat = 1920) -> CGImage? {
+        guard let source = CGImageSourceCreateWithURL(url as CFURL, nil) else { return nil }
         let options: [CFString: Any] = [
             kCGImageSourceCreateThumbnailFromImageAlways: true,
             kCGImageSourceCreateThumbnailWithTransform: true,

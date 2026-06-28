@@ -253,7 +253,7 @@ public struct HomeFeature: Sendable {
                 return .none
 
             case let .imagePicked(data, memo):
-                // 백탭 캡처(CommitBackTapCaptureIntent)와 동일 경로: App Group captures/ 로 atomic write +
+                // ShareExtension 캡처와 동일 경로: App Group captures/ 로 atomic write +
                 // .pendingUpload 로 upsert → MochiItemSyncWorker 가 다음 tick 에 ingest.
                 // 사용자가 남긴 메모는 ShareExt 와 동일하게 userMemo(분석 confidence 신호)로 격리한다.
                 let id = uuid()

@@ -177,6 +177,14 @@ public actor MochiItemSyncWorker {
                 mochiItemID: mochiItem.id,
                 to: .uploaded(serverID: dto.id, at: Date())
             )
+            // ephemeral OCR 정리(위생) — 업로드로 OCR 이 서버에 전달됐으니 on-device 보관본을 비워
+            // 서버 삭제 훅과 대칭이 되게 한다(PRIVACY §1.1). OCR 이 있을 때만(가드는 repo 내부에도 있음).
+            // best-effort: 이미 `.uploaded` 라 실패해도 worker 후속 tick 의 재시도 대상이 아니다. 허용 —
+            // OCR 은 isolated 컬럼(검색·임베딩·노출 미투입)이고 원본 이미지가 단말에 남아 부분집합이라
+            // 추가 노출이 아니다(PRIVACY §1.1). 보안 게이트가 아니라 수명 위생이라 `try?` 로 삼킨다.
+            if mochiItem.source.analysisOcrText != nil {
+                try? await repository.clearAnalysisOCR(mochiItemID: mochiItem.id)
+            }
             // 즐겨찾기 재조정 — ingest create payload 엔 isFavorite 가 없어(서버 기본 false) 업로드 전
             // 즐겨찾기한 항목은 서버가 false 로 적재된다. serverID 가 잡힌 지금 서버에 한 번 반영해
             // "재설치 복구 시 보존" 보장의 구멍(업로드 전 즐겨찾기)을 막는다. best-effort.
