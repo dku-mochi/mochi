@@ -202,6 +202,8 @@ public struct MochiHomeView: View {
             RecallHeroView(
                 entries: store.recall,
                 images: store.recallImages,
+                recallCategories: store.recallCategories,
+                categoryTints: Dictionary(store.monthlyCategories.map { ($0.name, $0.tintIndex) }, uniquingKeysWith: { first, _ in first }),
                 deckHeight: deckHeight,
                 onOpenAll: { store.send(.recallSeeAllTapped) },
                 onOpenFocal: { entry, hero in

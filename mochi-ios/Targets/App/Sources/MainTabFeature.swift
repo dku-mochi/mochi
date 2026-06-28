@@ -215,14 +215,14 @@ struct MainTabFeature: Sendable {
                 state.detail = DetailFeature.State(mochiItemID: mochiItemID, source: .digest)
                 return .none
 
-            case let .path(.element(id: _, action: .monthlyDigest(.delegate(.categoryViewAllRequested(category))))):
-                // 리포트 카테고리 레일 "전체 보기" → 정리 화면을 닫고 검색 탭을 그 카테고리로 필터해 연다
-                // (회수 "찾기"는 검색이 담당 — seeAllRecentRequested 와 같은 위임 패턴).
-                state.path.removeAll()
-                state.selectedTab = .search
-                state.search.query = ""
-                state.search.selectedCategory = category
+            case let .path(.element(id: _, action: .monthlyDigest(.delegate(.categoryViewAllRequested(bucket))))):
+                // 리포트 카테고리 레일 "전체 보기" → 그 카테고리를 3D 턴테이블(샤라락)로 push(홈 카드와 동일 경로).
+                state.path.append(.categoryCarousel(CategoryCarouselFeature.State(bucket: bucket)))
                 return .none
+
+            case let .path(.element(id: _, action: .notifications(.delegate(.openItemRequested(serverID))))):
+                // 받은 알림 행 탭 → 원본 기록 상세 present(server PK 역매핑). hero 없어 중앙 scale 폴백.
+                return .send(.openDetailFromNotification(serverID: serverID, hero: nil, source: .notification))
 
             case let .path(.element(id: _, action: .favorites(.delegate(.mochiItemTapped(mochiItemID, hero))))):
                 // 즐겨찾기 화면의 항목 탭 → 상세 present (정리 화면과 같은 경로).
@@ -305,6 +305,19 @@ struct MainTabFeature: Sendable {
                 guard let recallID = state.detailFromRecallItemID else { return .none }
                 state.detailFromRecallItemID = nil
                 return .send(.home(.recallDetailClosed(itemID: recallID)), animation: .spring(response: 0.45, dampingFraction: 0.85))
+
+            case let .detail(.presented(.delegate(.openCategoryCarousel(name, items)))):
+                // 상세 메타 카테고리 탭 → 상세를 닫고 그 카테고리의 3D 턴테이블(샤라락)을 push(홈 카드와 동일 경로).
+                state.detail = nil
+                state.detailFromRecallItemID = nil
+                let categoryBucket = CategoryBucket(
+                    name: name,
+                    count: items.count,
+                    items: Array(items.prefix(MochiHomeFeature.carouselCoverCap)),
+                    tintIndex: name.unicodeScalars.reduce(into: 0) { $0 += Int($1.value) }
+                )
+                state.path.append(.categoryCarousel(CategoryCarouselFeature.State(bucket: categoryBucket)))
+                return .none
 
             case let .detail(.presented(.delegate(.openSimilar(localID)))):
                 // 비슷한 기록 탭(root 상세) → 닫지 않고 같은 상세의 push 스택에 그 항목을 쌓는다(앞으로 push).
