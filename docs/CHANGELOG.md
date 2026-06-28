@@ -16,6 +16,14 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 - **읽음/안읽음 디밍**(받음 탭) — 안 읽음 = 흰 카드 + 왼쪽 보라 띠 + 제목 진하게, 읽음(`openedAt`/`dismissedAt`) = 회색 배경 + 전체 흐리게(`opacity 0.72`)로 가라앉혀 한눈에 구분. **행 탭 → 원본 기록 상세 열기 + 읽음 처리**(`recordRecallReaction(.opened)` → `opened_at` + 낙관적 디밍, `itemID`→server PK present; 2026-06-26 추가) — 이전엔 회수 푸시/카드 열기만 읽음 트리거라 받은 탭을 둘러봐도 안 바뀌던 걸 보완(백엔드 `mark_opened` 는 kind 무관).
 - `tuist build`/`tuist test`(FeatureInbox 33·전체 0실패) green. 사용자 승인 HTML 목업(`notif-mockup.png`) 기준 구현. UX_SPEC §3.4c 동기화.
 
+## 2026-06-25 — ios, docs (회수/리포트/상세 카테고리 회수 동선 + "샤라락" 캡션 통일)
+- **홈 "모찌가 골라봤어요"(회수 히어로) 카드 밑 캡션 추가** — 초점 카드 아래 **카테고리 · 저장시각 / 제목**(샤라락 `focalPanel` 과 같은 구조). 회수 DTO엔 category 가 없어, 이미지와 같은 server PK 역매핑으로 로컬 `analysis.category` 를 채운다(`recallCategories`, `recallImagesLoaded`→`recallResolved` 로 묶음). 카테고리 글자색은 **리포트 카테고리와 동일한 색**(`MochiCategoryPalette`, 월간 리포트 `tintIndex` 를 `categoryTints` 로 전달 — 같은 카테고리=같은 색; 리포트 밖 카테고리는 이름 기반 폴백). 제목이 캡션으로 내려가 **이미지 커버의 제목 오버레이 제거**(텍스트 커버는 제목이 카드 본문이라 유지) + 하단 스크림 톤다운.
+- **이번 달 모찌 리포트** — 돌아보기 상세 헤더 "이번 달 돌아보기" → **"이번 달 모찌 리포트"**.
+- **리포트 "이런 걸 모았어요" 전체 보기** — 검색 탭 전환 폐기 → **3D 턴테이블(샤라락) 직행**. 그 카테고리 묶음을 `CategoryBucket`(홈과 동일 색·상한 30)으로 조립해 `path` 에 push(`MainTabFeature`).
+- **기록 상세 메타 "스크린샷" → 카테고리** — 형식 라벨 대신 `analysis.category` 표시(없으면 형식 폴백) + 탭하면 그 카테고리 기록(`listRecent` 후 클라 필터)을 모아 샤라락으로(상세 닫고 push). `CategoryBucket` 은 FeatureInbox 라 레이어 위반 피해 Detail→(카테고리+items) 위임 → MainTab 조립.
+- **샤라락 자체 캡션 정리** — 한 카테고리만 모인 화면이라 중복인 형식 줄 제거 → **저장시각 / 제목**만.
+- 공유 헬퍼 승격: `Date.mochiRelativeLabel`·`relativeCapturedLabel`(DesignSystem public, FeatureInbox 중복 제거)·`MochiHomeFeature.carouselCoverCap`(public). `tuist build`/`tuist test`(FeatureInbox 33·전체 0실패) green.
+
 ## 2026-06-25 — backend, ios, docs (ephemeral OCR — 분석 전용 화면 텍스트 동봉 + 추론 후 삭제)
 - **왜**: 정보밀도 높은 일반 스크린샷은 텍스트 레이어가 없어 멀티모달이 글자를 놓친다. iOS Vision OCR transcript 를 **분석 순간에만** 동봉해 분해 누락을 줄이되, 영속/노출/인덱스 없이 추론 후 삭제(ephemeral)해 PRIVACY 와 양립.
 - **백엔드**: `mochi_items.analysis_ocr_text`(nullable, 마이그레이션 0026) + ingest 전 경로 배선(Create 스키마 alias `analysisOcrText`만 — Response/Update 미추가). 분석 입력에 `source.text` 와 **분리한 별도 "# 화면 텍스트 (OCR)" 블록**으로 주입(신뢰도 다름, 이미지 보완·대체 아님), `classify_and_act@v27`. **삭제 훅**: `apply_analysis`(분석 done)·DLQ(영구 실패) 즉시 NULL. **누수 차단**: 검색 haystack·embedding·Response·채팅 상세 전부 미투입(grep 게이트 0 매치 검증).
