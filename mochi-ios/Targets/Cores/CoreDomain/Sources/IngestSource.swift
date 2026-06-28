@@ -6,12 +6,12 @@ public enum IngestChannel: String, Codable, Sendable, CaseIterable {
     case instagram
     case youtube
     case safari
-    /// 두 경로에서 할당된다:
-    /// - 백탭 단축어 → `CaptureScreenshotIntent` 가 직접 `.screenshot` 으로 채움
-    /// - 외부 공유시트의 `ShareExtensionPrincipal.guessChannel(from:hasImage:)` 가
-    ///   이미지+host 부재 조합으로 추론 (사진 앱 등에서 이미지 공유 시)
+    /// 백탭 단축어(`Take Screenshot → Share → 모찌`)와 외부 공유시트가 모두 ShareExtension 으로
+    /// 들어와 `ShareExtensionPrincipal.guessChannel(from:hasImage:)` 가 이미지+host 부재 조합으로
+    /// 추론한다 (사진 앱 등에서 이미지 공유 시).
     case screenshot
-    /// `QuickCaptureIntent` (Siri / Spotlight / 사용자 단축어가 텍스트 메모용으로 직접 호출).
+    /// AppIntent 텍스트 메모 채널 — 생산자 `QuickCaptureIntent` 는 2026-06-25 제거됐고,
+    /// 백엔드 계약(생성된 `Types.swift` enum)에만 남은 죽은 case (exhaustive switch 위해 보존).
     case appIntent
     case appShareSheet       // 모찌가 공유 시트에 노출되어 들어옴
     case appDirectInput      // 앱 내 직접 입력

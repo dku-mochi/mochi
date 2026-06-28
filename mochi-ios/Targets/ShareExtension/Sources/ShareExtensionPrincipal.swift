@@ -65,7 +65,7 @@ public final class ShareExtensionPrincipal: UIViewController {
         Task { @MainActor in
             // 온보딩 백탭 검증 모드: 백탭이 ShareExtension 까지 도달했음을 기록하고, 진짜 저장 없이
             // "작동해요" 만 보여준 뒤 닫는다 (검증용 스크린샷이 쓰레기로 남지 않게). 백탭의 실제
-            // 진입점은 snippet(CaptureScreenshotIntent)이 아니라 이 ShareExtension 이다.
+            // 진입점은 이 ShareExtension 이다(단축어 → 앱과 공유).
             // **추출 이전에** 분기한다 — 검증 모드는 payload 가 필요 없고, 추출 단계 hang 에 검증 UI 가
             // 막혀선 안 되며, 불필요한 PNG persist(→고아 청소)도 피한다.
             if AppGroup.isBackTapVerificationActive {
