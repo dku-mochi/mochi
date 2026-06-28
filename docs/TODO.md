@@ -2,7 +2,7 @@
 level: 3
 mode: log
 status: active
-last_verified: 2026-06-15
+last_verified: 2026-06-25
 confidence: 0.9
 owners: [송준서, 이용찬, 박세현]
 description: 외부 설정·비밀값 체크리스트 + 활성 작업·다음 sprint 목표. 다음 중 하나라도 손대기 전 읽어라 — 인증·외부 통합, sprint 작업 분배, /sprint-end 직후. 자주 바뀜 · `/sprint-end` 가 done 항목을 docs/archive/ 로 이관.
@@ -81,28 +81,25 @@ description: 외부 설정·비밀값 체크리스트 + 활성 작업·다음 sp
 
 ## 3. iOS — Xcode/Tuist 후속 작업
 
-### 3.0 iCloud 단축어 제작 & 온보딩 연결 (백탭 → 모찌 snippet 흐름)
+### 3.0 iCloud 단축어 제작 & 온보딩 연결 (백탭 → ShareExtension)
 
-백탭 캡처는 **사용자가 단축어 앱에 설치하는 iCloud 단축어**가 `Take Screenshot → 이미지 변환(PNG) → 모찌 화면 캡쳐` 로 동작한다. `CaptureScreenshotIntent` (`openAppWhenRun = false`) 가 PNG 를 `pending-backtap/<captureID>.png` 에 stash 한 뒤 `ShowsSnippetView` 로 `BackTapResultSnippet`(캡처 분기 = `BackTapSnippetView`)을 외부 앱 위에 카드로 띄운다 — **모찌 앱은 깨우지 않는다** (사용자 컨텍스트 보존). 카드의 두 버튼 (`CommitBackTapCaptureIntent` / `OpenBackTapMemoIntent`) 이 분기를 결정. 단축어 자체는 코드가 아니므로 1회 수동 제작 + iCloud 공유 URL 발급이 필요하다 (다만 빌더 스크립트가 `/tmp/build_mochi_shortcut.py` 에 존재 — handoff 문서 §11 참고).
+백탭 캡처는 **사용자가 단축어 앱에 설치하는 iCloud 단축어**가 `Take Screenshot → 이미지 변환(PNG) → 앱과 공유(모찌)` 로 동작한다 — 캡처한 PNG 를 모찌 ShareExtension 으로 보내, 외부 앱 공유 시트로 모찌를 고른 것과 같은 경로(`ShareExtensionPrincipal`, 선감지·민감 가림 포함)로 합류한다. 옛 AppIntent 직행(`CaptureScreenshotIntent` → snippet 카드 → `CommitBackTapCaptureIntent`/`OpenBackTapMemoIntent`) 경로는 2026-06-25 제거. 단축어 자체는 코드가 아니므로 1회 수동 제작 + iCloud 공유 URL 발급이 필요하다 (빌더 스크립트 `/tmp/build_mochi_shortcut.py` — handoff §11).
 
 - [ ] 개발 디바이스의 **단축어** 앱에서 새 단축어 생성. 이름: `모찌 백탭 캡쳐`.
 - [ ] **액션 구성** (3단계)
   - [ ] `스크린샷 찍기` 액션 추가. **미리보기 표시 (Show Preview) → OFF** ← 핵심. 켜져 있으면 매 백탭마다 마크업 시트가 떠서 자동화가 깨진다.
   - [ ] `이미지 변환` 액션 추가. 포맷 `PNG`. **이게 없으면** 시스템 locale 에 따라 한국어 파일명(`이미지.png`) 이 붙어 BackgroundShortcutRunner sandbox extension 발급이 실패한다 (`_INIssueSandboxExtensionWithTokenGeneratorBlock` 에러). 변환 액션이 ASCII 임시 파일명을 부여해 우회한다.
-  - [ ] `모찌 화면 캡쳐` 액션 추가. 입력은 위 변환 출력 자동 연결.
+  - [ ] `공유` 액션 추가(받는 곳: 모찌). 입력은 위 변환 출력(PNG) 자동 연결 — ShareExtension 으로 전달.
 - [ ] **단축어 설정 (i)** — 백탭 전용이라면 공유시트 표시 OFF 로 두는 게 깔끔 (외부 앱 공유는 ShareExtension 이 별도 surface).
-- [ ] **테스트 (snippet 흐름)** — iOS 17 실기 검증 필수 (Apple Forum thread/783911 에 일부 `Button(intent:)` 렌더링 이슈 보고. 모찌 deployment target = 17.0)
-  - [ ] 단축어 앱 안에서 직접 실행 (▶) → **외부 앱이 사라지지 않고** 그 위에 모찌 snippet 카드가 떠오르는지 확인.
+- [ ] **테스트 (ShareExtension)** — 실기 검증
+  - [ ] 단축어 앱 안에서 직접 실행 (▶) → 모찌 ShareExtension 시트가 떠오르는지 확인.
   - [ ] 백탭 두 번 → 동일 흐름 확인 (설정 → 손쉬운 사용 → 터치 → 뒤로 탭 → 두 번 탭 → 단축어 선택)
-  - [ ] **캡쳐 분기** — snippet 카드의 "캡쳐" 탭 → 카드 자동 dismiss + 외부 앱 그대로. 모찌 앱 다시 열어 Inbox 에 새 캡처가 들어왔는지 확인. `pending-backtap/<captureID>.png` 폐기되었는지 확인 (`ls ~/Library/Containers/.../pending-backtap/`).
-  - [ ] **메모 분기** — snippet 카드의 "메모" 탭 → 모찌 앱 foreground 진입 + 풀스크린 모달 (textarea) → 저장. Inbox 에 텍스트 캡쳐. `<captureID>.png` 폐기 + `<captureID>.memo` 폐기 확인.
-  - [ ] **취소 분기** — 메모 모달에서 "취소" → marker 폐기 + Inbox 변화 없음.
-  - [ ] **snippet 시스템 dismiss 잔재** — snippet 떠 있는 상태에서 어느 버튼도 안 누르고 외부 영역 탭 → 다음 모찌 launch / scenePhase active 시점에 `RootFeature` 가 stale `.png` sweep 하는지 확인.
-  - [ ] (대조군) Safari → 공유시트 → 모찌 → `ShareEntryView` 메모/저장 → Inbox. 백탭과 다른 surface 임을 확인.
+  - [ ] 시트에서 저장 → 모찌 Inbox 에 새 캡처. **민감 화면이면 가림 시트가 먼저 뜨는지** 확인(선감지).
+  - [ ] (대조군) Safari → 공유시트 → 모찌 → 같은 시트로 저장 → Inbox. 백탭과 **동일 경로**임을 확인.
 - [x] **iCloud 공유 URL 발급** (2026-05-29 dev 머지로 반영)
   - [x] 단축어 길게 누름 → 공유 → `iCloud 링크 복사`. 결과 형태: `https://www.icloud.com/shortcuts/<hash>`
   - [x] 발급된 URL 을 `BackTapPage` "단축어 등록하기" CTA 가 여는 값으로 교체. 현재 적용된 URL: `https://www.icloud.com/shortcuts/e24ac8bf17ef45a088e4b3cdc76aa44b` (`BackTapPage.swift:15` 의 `shortcutURL`).
-- [ ] **버전 관리**: 단축어 정의나 `CaptureScreenshotIntent` 시그니처가 바뀌면 iCloud URL 도 함께 갱신. CHANGELOG 의 `ios` 범위로 한 줄 남길 것.
+- [ ] **버전 관리**: 단축어 정의(액션 구성)가 바뀌면 iCloud URL 도 함께 갱신. CHANGELOG 의 `ios` 범위로 한 줄 남길 것.
 
 ⚠️ `Show Preview ON` 또는 `이미지 변환` 액션 누락은 자동화를 깬다. 온보딩 가이드에서 두 가지 다 명시.
 
@@ -117,18 +114,16 @@ description: 외부 설정·비밀값 체크리스트 + 활성 작업·다음 sp
 ### 3.3 GoogleService-Info.plist 배치 — 불필요 (2026-06-23 정정)
 - §2.3 참고. 본 앱은 `Info.plist` `GIDClientID` 직접 방식이라 `GoogleService-Info.plist` 배치가 필요 없다.
 
-### 3.4 백탭 snippet / 모달 에러 핸들링 보강 (production 직전)
+### 3.4 백탭 에러 핸들링 — snippet/모달 항목 무효 (2026-06-25)
 
-snippet 흐름의 `CommitBackTapCaptureIntent` 와 모달의 `BackTapModalFeature.commitMemo` 는 실패를 silent dismiss + pending 폐기로 처리한다 (`CommitBackTapCaptureIntent.swift:62`, `BackTapModalFeature.swift:88`). MVP 의 의식적 trade-off — 디스크 풀 / Realm 손상 같은 pre-upsert 실패는 일상적이지 않고, 진짜 fix 는 별도 alert/retry 인프라가 필요하기 때문. 그러나 베타에서 "메모 사라짐" 보고가 1건이라도 생기면 즉시 보강.
+이 섹션이 다루던 `CommitBackTapCaptureIntent`·`BackTapModalFeature` 는 백탭 ShareExtension 일원화로 삭제됐다. 백탭 캡처의 에러 처리는 이제 ShareExtension(공유 시트와 공통) 경로를 따르므로, snippet/메모-모달 전용 보강 항목은 폐기한다. 아래 두 항목만 유효하게 남는다.
 
-- [ ] **`CommitBackTapCaptureIntent` 실패 신호**: snippet 카드는 `openAppWhenRun = false` 라 background commit. Realm upsert 가 실패해도 사용자에게 알리지 못한다. (a) 실패 marker 파일 (`<captureID>.commit-failed`) stash → 다음 active 시점에 모찌 알림 표시. (b) `IntentResult` 가 `.result(dialog:)` 또는 `.result(view:)` 로 짧은 에러 snippet 반환. (b) 가 즉시성 우수.
-- [ ] **`commitMemo` 실패 시 UI state 유지**: Realm upsert 실패면 phase 를 `.memo` 로 복귀 + `memoText` 보존 + 인라인 에러 메시지. 사용자가 입력한 텍스트 손실 방지.
-- [ ] **`MochiItemSyncWorker` 의 `.syncFailed` retry**: 현재 `.pendingUpload` 만 retry 대상이라 한 번 실패 후엔 자동 재시도 없음. (a) `.syncFailed` 도 backoff 후 한 번 더 retry 하거나, (b) Inbox 에 retry 버튼 UI 추가. (b) 가 사용자에게 명시적이라 권장. snippet 캡쳐 분기는 백엔드 ingest 를 안 하므로 모든 캡쳐가 `.pendingUpload` 로 진입 → `MochiItemSyncWorker` retry 정책 신뢰도가 더 중요해졌다.
-- [ ] **ErrorReporter (sentry / firebase crashlytics) 도입** 후 위 세 흐름과 통합. 단순 catch 가 아닌 structured error 로 보고.
+- [ ] **`MochiItemSyncWorker` 의 `.syncFailed` retry**: 현재 `.pendingUpload` 만 retry 대상이라 한 번 실패 후엔 자동 재시도 없음. (a) `.syncFailed` 도 backoff 후 한 번 더 retry 하거나, (b) Inbox 에 retry 버튼 UI 추가. (b) 가 사용자에게 명시적이라 권장.
+- [ ] **ErrorReporter (sentry / crashlytics) 도입** 후 ShareExtension 캡처·동기화 흐름과 통합. 단순 catch 가 아닌 structured error 로 보고.
 
 ### 3.5 이미지 업로드 파이프라인 — 백엔드 ingest 가 PNG bytes 안 받음 (codex P1 #4)
 
-`CommitBackTapCaptureIntent` 가 영구 `captures/<captureID>.png` 로 이미지 bytes 를 저장하지만, `MochiItemSyncWorker` 가 백엔드 `POST /api/v1/mochi_items` 호출 시 보내는 `ImageRefDTO` 는 `objectKey/mimeType/byteSize/sha256` 만 — `objectKey: nil` 인 채로 metadata 만 전달된다. 백엔드는 multimodal 분석에 필요한 PNG 자체를 받지 못한다. 이건 snippet pivot 으로 도입된 결함이 아니라 **기존부터 비어 있던 업로드 파이프라인** — 모달 흐름에서도 동일했음. (`CommitBackTapCaptureIntent.swift:87`, `MochiItemSyncWorker.swift:42`, `IngestSource.swift:53`)
+ShareExtension/`MochiItemSyncWorker` 가 영구 `captures/<captureID>.png` 로 이미지 bytes 를 저장하지만, `MochiItemSyncWorker` 가 백엔드 `POST /api/v1/mochi_items` 호출 시 보내는 `ImageRefDTO` 는 `objectKey/mimeType/byteSize/sha256` 만 — `objectKey: nil` 인 채로 metadata 만 전달된다. 백엔드는 multimodal 분석에 필요한 PNG 자체를 받지 못한다. **기존부터 비어 있던 업로드 파이프라인** 으로, 입력 경로(공유시트·백탭·앱내)와 무관하게 동일하다. (`MochiItemSyncWorker.swift:42`, `IngestSource.swift:53`)
 
 - [x] **백엔드 presigned URL 발급 엔드포인트** (2026-05-30): `POST /api/v1/mochi_items/presign` → `{ objectKey, uploadURL, expiresAt }`. GCS V4 Signed PUT URL, 키 파일 없이 SA impersonation(signBlob) 서명.
 - [x] **iOS `MochiItemSyncWorker.uploadOne`** 이 원본 PNG 를 업로드용 파생본(긴 변 1920px 이하, JPEG q60)으로 변환 → 파생본 bytes 기준 `sha256/mimeType/byteSize` 계산 → presign → GCS PUT → `objectKey` 채워서 ingest 호출 (2026-05-30).
@@ -241,7 +236,7 @@ VOYAGE_API_KEY=<dash.voyageai.com 또는 MongoDB Atlas 발급 키>
 - [x] 저장 선택 시트(`PrivacyChoiceView`): `원본 그대로` / `민감한 곳 가리고(블러, 기본 추천)` / `이 기기에만`. 블러 선택 시 결과 미리보기(crossfade + 자물쇠 배지)로 안심.
 - [x] 업로드 정책 분기(`MochiItemSyncWorker`·`ShareExtDirectUpload`): `originalUpload`/`blurredUpload`/`localOnly`. 로컬엔 원본 PNG 보존, 서버엔 정책본(블러본 없으면 안전하게 업로드 스킵).
 - [x] `NSPhotoLibraryAddUsageDescription` Info.plist 추가 (2026-06-14, 상세 ⋯ "이미지 저장" — 사진앱 add-only 권한). 블러본이 서버 정본이므로 사진앱 반출도 안전.
-- [ ] (후속·팀 결정) 백탭 캡처(`CommitBackTapCaptureIntent` — background intent, UI 없음)의 민감 처리 방식: 자동 블러 vs 앱 진입 후 사후 조정. UI 가 없어 저장 시점 시트를 띄울 수 없는 구조적 제약.
+- [x] (해소 2026-06-25) 백탭 캡처 민감 처리: 백탭이 ShareExtension 단일 경로로 합류해 공유 시트와 동일한 캡처 직후 선감지·가림 시트를 그대로 거친다. 옛 background intent(`CommitBackTapCaptureIntent`, UI 없어 저장 시점 시트를 못 띄움) 경로가 삭제되며 제약 자체가 소멸.
 - 제외: NER(사람·조직 이름)은 Apple NaturalLanguage 한국어 미지원 + Share Extension 120MB 메모리 한도로 미사용(PRIVACY §3.4). 서버 privacy 메타데이터(`sensitivity_*`)는 미추가 — 서버는 올라온 이미지가 진실(블러본/원본 구분 불필요), iOS 내부 정책으로 충분.
 
 ---

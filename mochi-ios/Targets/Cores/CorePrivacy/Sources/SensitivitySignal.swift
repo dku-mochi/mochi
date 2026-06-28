@@ -2,10 +2,9 @@ import Foundation
 
 /// 한 캡처에서 감지된 민감 정보의 종류.
 ///
-/// NER(사람 이름·조직명)은 제외한다 — Apple `NaturalLanguage` 의 `.nameType` 이 한국어를
-/// 지원하지 않고, 한국어 NER 커스텀 모델은 Share Extension 120MB 메모리 한도와 충돌하기
-/// 때문이다. 민감 캡처 판정의 핵심(주민번호·카드·OTP·계좌·토큰)은 검증기+문맥으로 충분히
-/// 잡히며 이름은 본래 가중치가 가장 낮다(`PRIVACY_SENSITIVE_CAPTURE.md §3.4`).
+/// NER(사람 이름·조직명)은 미도입한다(원리적 제외) — 이름은 식별자와 결합할 때만 위험하고
+/// 그 결합은 조합 가중이 잡으며, 이름 단독 감지는 FP 비용만 크다. 한국어 미지원·Share Extension
+/// 120MB 한계도 겹친다(상세 근거 `PRIVACY_SENSITIVE_CAPTURE.md §3.4`).
 public enum SensitivityType: String, Sendable, Hashable, CaseIterable {
     case nationalID        // 주민등록번호
     case cardNumber        // 신용/체크카드

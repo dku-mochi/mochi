@@ -14,7 +14,7 @@ private extension Color {
 /// ShareExtension 전용 디자인 토큰 + 공통 컴포넌트.
 ///
 /// 라이트는 `FeatureOnboarding.OnboardingTheme` 와 동일한 라벤더 톤. 모듈 경계상 직접 import 불가
-/// 라 RGB 값을 정적 상수로 복제한다 (`BackTapSnippetView` 도 같은 패턴).
+/// 라 RGB 값을 정적 상수로 복제한다.
 /// `OnboardingTheme` 변경 시 본 파일도 sync 필요.
 /// 다크는 ShareExtension 고유 — 백탭 캡처는 야간 사용 빈도가 높아 밤에 화면이 확 밝아지는
 /// 이질감을 없앤다 (깊은 인디고·플럼 톤으로 라벤더 정체성 유지).

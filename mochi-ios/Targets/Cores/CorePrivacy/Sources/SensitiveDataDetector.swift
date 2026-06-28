@@ -7,12 +7,18 @@ import Foundation
 ///   숫자 일치를 체크섬과 문맥어로 걸러 false positive 를 억제한다.
 /// - 검증을 통과한 신호만 `isHighPrecision = true` 로 표시해, 저장 흐름에 끼어들어 사용자에게
 ///   시트를 띄울 자격을 준다. 흔하고 덜 민감한 신호(전화·이메일·문맥 단독)는 점수에만 기여한다.
-/// - NER(이름·조직) 제외 — 한국어 미지원 + Share Extension 메모리 제약.
+/// - 입력은 `OCRTextNormalizer` 로 길이 보존 정규화(전각·유니코드 대시/공백)해 매칭률을 높이되,
+///   `textRange` 는 원본 offset 으로 되돌려 블러 영역 매핑을 보존한다.
+/// - NER(이름·조직) 미도입(원리적 제외) — 이름은 식별자와 결합할 때만 위험하고 그 결합은 조합
+///   가중이 잡으며, 이름 단독 감지는 FP 비용만 크다(`PRIVACY_SENSITIVE_CAPTURE.md §3.4`).
 public struct SensitiveDataDetector {
     public init() {}
 
-    public func detect(in text: String) -> [SensitivitySignal] {
-        guard !text.isEmpty else { return [] }
+    public func detect(in original: String) -> [SensitivitySignal] {
+        guard !original.isEmpty else { return [] }
+        // OCR 표면 변형(전각·유니코드 대시/공백)을 정규화해 매칭률을 높인다. 정규화는 **길이 보존**이라
+        // 아래 textRange 를 같은 offset 으로 원본에 되돌릴 수 있다(블러 영역 매핑 보호 — `OCRTextNormalizer`).
+        let text = OCRTextNormalizer.normalize(original)
         var signals: [SensitivitySignal] = []
         signals += detectNationalIDs(in: text)
         signals += detectCardNumbers(in: text)
@@ -24,7 +30,27 @@ public struct SensitiveDataDetector {
         signals += detectEmails(in: text)
         signals += detectLabeledSecrets(in: text)
         signals += detectContextual(in: text)
-        return signals
+        // textRange 는 정규화본 기준 — 원본 기준으로 되돌린다(같은 UTF-16 offset, 길이 보존이라 1:1).
+        return signals.map { Self.remappingRange($0, from: text, to: original) }
+    }
+
+    /// 정규화본에서 잡은 `textRange` 를 같은 offset 으로 원본 문자열의 Range 로 되돌린다.
+    /// 정규화가 UTF-16 길이를 보존하므로 offset 이 1:1 대응한다(`OCRTextNormalizer`).
+    private static func remappingRange(
+        _ signal: SensitivitySignal,
+        from normalized: String,
+        to original: String
+    ) -> SensitivitySignal {
+        guard let range = signal.textRange,
+              let originalRange = Range(NSRange(range, in: normalized), in: original)
+        else { return signal }
+        return SensitivitySignal(
+            type: signal.type,
+            score: signal.score,
+            textRange: originalRange,
+            isHighPrecision: signal.isHighPrecision,
+            reason: signal.reason
+        )
     }
 
     // MARK: - 검증기 (테스트 대상 — 순수 함수)

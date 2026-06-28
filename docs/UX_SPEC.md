@@ -2,7 +2,7 @@
 level: 3
 mode: committed
 status: active
-last_verified: 2026-06-16
+last_verified: 2026-06-25
 confidence: 0.8
 owners: [송준서, 이용찬, 박세현]
 description: 화면·시나리오·IA·디자인 톤·데모 시나리오의 committed 정본 (PRODUCT.md L1 에서 분리된 자주 바뀌는 층). 다음 중 하나라도 손대기 전 읽어라 — 화면 구성/플로우 변경, 온보딩·홈·캘린더·상세·ShareExtension UI 작업, 데모 리허설. UI 변경 시 이 문서를 함께 갱신한다 (L3 — 자유 수정, 팀 합의 불요).
@@ -24,20 +24,20 @@ description: 화면·시나리오·IA·디자인 톤·데모 시나리오의 com
 2. 온보딩 4단계 (§3.3): 모찌 소개 → 공유 저장 → 캡처 자동 정리 → 백탭 설정(검증까지, 마지막)
 3. 홈 진입
 
-### 1.2 시나리오 B — 백탭으로 메모 저장
+### 1.2 시나리오 B — 메모 저장
 
-1. 아이폰 뒷면 두 번 탭 → Shortcuts → snippet 카드에서 "메모" 선택
-2. 모찌 풀스크린 메모 모달 → text area 입력 → 저장
+1. 모찌 ShareExtension 시트(백탭/공유시트)에서 스크린샷을 (×) 로 버리고 메모 입력, 또는 앱 내 직접 입력
+2. text area 입력 → 저장 (`.appDirectInput`)
 3. AI 가 Intent 분류 → 홈의 최근 모찌에 표시
 
 **입력 예시**: "다음 주까지 발표 대본 수정하기"
 **AI 결과**: Intent=할 일, 제목="발표 대본 수정", 마감 후보="다음 주"
 
-### 1.3 시나리오 C — 백탭으로 스크린샷 저장 (snippet 흐름)
+### 1.3 시나리오 C — 백탭으로 스크린샷 저장 (ShareExtension)
 
 1. 학교 LMS 과제 화면에서 백탭
-2. 단축어가 현재 화면을 자동 캡처 + PNG 를 모찌 stash → 외부 앱(LMS) 위에 모찌 snippet 카드가 떠오름. **LMS 화면은 사라지지 않음** — 사용자 컨텍스트 보존.
-3. snippet 카드의 "캡쳐" 버튼 탭 → 카드만 사라지고 LMS 가 계속 보임. 백그라운드에서 로컬 저장(상세 메커니즘·fallback 은 §3.7).
+2. 단축어가 현재 화면을 자동 캡처 → **앱과 공유**로 모찌 ShareExtension 시트가 뜬다(외부 공유시트와 같은 화면). 민감 화면이면 가림 시트가 먼저(선감지).
+3. 시트에서 저장 → 백그라운드 로컬 저장 + best-effort 서버 전송(상세 §3.7).
 4. 다음에 모찌 앱을 열면(또는 푸시로) 새 캡처가 분석 완료 상태로 떠오름.
 
 **AI 결과 예시**: Intent=일정, 제목="과제 제출", 마감 후보="다음 주 금요일 23:59"
@@ -107,7 +107,7 @@ description: 화면·시나리오·IA·디자인 톤·데모 시나리오의 com
 **백탭 설정(단계 ④, 마지막)은 단순 안내가 아니라 끝까지 끌고 가는 체크리스트다** — 백탭(1순위 입력)은 단축어 *추가* 와 뒷면 탭 *연결* 이라는 분리된 두 행동이 모두 끝나야 살아나므로:
 1. **단축어 추가** — iCloud Shortcuts 링크로 모찌 단축어(`Take Screenshot → 모찌 화면 캡쳐`) 가져오기
 2. **뒷면 탭 연결** — 설정 가이드 시트가 `손쉬운 사용 > 터치 > 뒷면 탭 > 두 번 탭 > 모찌` 경로를 **실제 설정 화면 스크린샷 세로 캐러셀**(탭할 항목만 스포트라이트로 강조)로 안내
-3. **실동작 검증** — 사용자가 실제 뒷면을 두 번 탭하면 App Group 핸드셰이크로 백탭이 모찌 intent 에 도달했음을 확인하고 "백탭이 작동해요"를 모찌가 먼저 알린다(폴링 90초 타임아웃). 검증 중에는 `CaptureScreenshotIntent` 가 진짜 캡처 대신 hit 만 기록해 쓰레기 저장을 막는다 (§3.7).
+3. **실동작 검증** — 사용자가 실제 뒷면을 두 번 탭하면 App Group 핸드셰이크로 백탭이 모찌 intent 에 도달했음을 확인하고 "백탭이 작동해요"를 모찌가 먼저 알린다(폴링 90초 타임아웃). 검증 중에는 `ShareExtensionPrincipal` 이 진짜 캡처 대신 hit 만 기록해 쓰레기 저장을 막는다 (§3.7).
 
 백탭은 마지막 페이지라 검증 성공 시 CTA 가 "시작하기"(온보딩 완료), 미해결 시 "나중에 할게요"(skip 도 곧 완료)다 — 둘 중 하나로 해결되기 전에는 완료로 넘어가지 않는다(미설정 채 홈 도착 방지). 온보딩은 첫 실행 때 한 번만 자동 노출하고, 이후에는 홈의 완전 빈 상태와 설정의 "온보딩 다시 보기"에서 재진입할 수 있다. 재진입 온보딩이 끝나면 기존 홈/설정 위치로 돌아간다.
 
@@ -201,37 +201,14 @@ description: 화면·시나리오·IA·디자인 톤·데모 시나리오의 com
 3. **하단 리스트** — ① 다가오는 일정(active schedule, 시작 빠른순 — 기간 일정은 시작이 지났어도 끝이 안 왔으면 "진행 중"으로 포함, 라벨은 "시작 ~ 끝"으로 **양끝 동일 절대 포맷**("M월 d일 (E)" + 시각 있으면 덧붙임 — 한쪽만 상대 "D-10"으로 적어 끝의 절대 날짜와 포맷이 어긋나던 문제 수정)) ② 마감 임박한 할 일(미완료) ③ 완료한 일. ①②③ 모두 **기본 3개 + "N개 더 보기"↔"접기" 인라인 토글**(`CollapsibleRows`, 2026-06-19). ①② 행은 **카드 박스 제거 → 플랫 + 행 사이 1px 디바이더**(ink300/0.5), 할 일 체크박스 탭 타겟 44pt(일정 날짜 타일과 행 높이 통일). 날짜 탭 sheet 의 「일정·마감」/「저장한 기억」도 같은 더보기(행은 `DayMochiRow` 카드 유지). 많이 쌓여도 세로로 끝없이 나열 안 됨.
 4. **할 일 체크박스** — `active ↔ archived(todoCompleted)` 토글, 서버 `POST .../lifecycle` 로 영속(낙관적 로컬 + 서버 push, 실패 시 롤백). 같은 화면 중복 캡처(같은 제목·라벨·마감)는 **표시에서 하나로 합치되**, 숨은 쌍둥이 instance 도 완료 토글에 함께 전이된다(하나만 완료하면 쌍둥이가 되살아나는 혼란 방지). 도메인 데이터는 합치지 않는다.
 
-### 3.7 백탭 Snippet 카드 + 메모 모달 + 온보딩 검증
+### 3.7 백탭 캡처(ShareExtension) + 온보딩 검증
 
-**snippet 카드** (`BackTapResultSnippet` wrapper, 외부 앱 위 표시 — 일반 캡처 분기는 `.capture` → `BackTapSnippetView`, 온보딩 검증 분기는 `.verified` → `BackTapVerifiedSnippetView`).
-
-`CaptureScreenshotIntent` 가 `Take Screenshot → 이미지 변환(PNG)` 출력을 받아 PNG 한 장을 `pending-backtap/<captureID>.png` 에 stash 한 직후 `.result(view:)` 로 반환. 시스템이 `ShowsSnippetView` 메커니즘으로 카드를 외부 앱 위에 띄움 — **모찌 앱을 깨우지 않는다** (Papago 패턴). 카드 구성:
-
-- 한 줄 안내 "이 화면을 어떻게 저장할까요?" + 작은 모찌 아이콘
-- 두 버튼: **캡쳐** (`CommitBackTapCaptureIntent`) / **메모** (`OpenBackTapMemoIntent`)
-
-**캡쳐 분기** — `CommitBackTapCaptureIntent` (`openAppWhenRun = false`):
-- background 에서 pending → 영구 `captures/<captureID>.png` 로 이동 + sha256 계산 + Realm `MochiItem(channel: .screenshot, syncState: .pendingUpload)` upsert + pending PNG 폐기
-- **백엔드 ingest 시도 안 함** — snippet background process 는 `AppDependencies.bootstrap()` 미호출 상태일 수 있어 인증/네트워크 인프라 부재 가능. Realm 에 박아둔 `.pendingUpload` 가 안전. 다음 모찌 active 시점에 `MochiItemSyncWorker` 가 ingest 시도 (실패 시 1회 더 retry 후 `.syncFailed` marking — 자동 재시도 종료, 사용자 retry UI 필요, 현재 TODO)
-- snippet 카드 자동 dismiss. 외부 앱 그대로.
-
-**메모 분기** — `OpenBackTapMemoIntent` (`openAppWhenRun = true`):
-- pending PNG 즉시 폐기 (사용자가 스크린샷 의도가 아님을 명시한 것)
-- `pending-backtap/<captureID>.memo` marker 파일 stash
-- 모찌 앱 foreground 진입 → `RootFeature` 가 marker 발견 → `BackTapModalFeature` 풀스크린 모달 (`ultraThinMaterial` blur + 모찌 캐릭터 + textarea + 저장 버튼)
-- "저장" → `commitMemo` 가 Realm `MochiItem(channel: .appDirectInput, text:)` upsert + `POST /api/v1/mochi_items` 시도 (모찌 앱 안이라 인프라 정상). 실패 시 fallback 은 `MochiItemSyncWorker`.
-- "취소" → marker 폐기 + dismiss.
-
-**invariant**:
-- `.png` 는 두 commit intent 중 하나가 실행되면 폐기 (캡쳐 분기는 commit 직후, 메모 분기는 marker stash 직전).
-- `.memo` marker 는 모달의 어느 정상 분기 (저장/취소) 든 폐기.
-- snippet 시스템 dismiss (사용자 외부 탭 / timeout) 후 잔재 (`.png`) 는 `RootFeature` 가 launch / scenePhase active 시점에 sweep.
+백탭은 별도 UI 가 아니라 **공유 시트와 동일한 ShareExtension 경로**다. 사용자가 설치한 단축어가 `Take Screenshot → 이미지 변환(PNG) → 앱과 공유(모찌)` 로 동작해, 캡처한 PNG 를 모찌 ShareExtension 으로 보낸다. 그러면 외부 앱 공유 시트로 모찌를 고른 것과 같은 화면(`ShareEntryView` 또는 민감 가림 시트)이 뜬다 — 캡처 직후 background 선감지(`ShareExtensionPrincipal.startEarlyDetection`)·민감 가림·정책별 업로드를 공유 시트와 그대로 공유한다. 옛 snippet 카드/AppIntent 직행 경로(`CaptureScreenshotIntent` → `CommitBackTapCaptureIntent`/`OpenBackTapMemoIntent`)는 2026-06-25 제거됐다 — 별도 경로를 유지할 이유가 없고(선감지·민감 가림을 상속 못 했다), ShareExtension 일원화로 백탭도 모든 캡처와 같은 민감 처리를 거친다.
 
 **온보딩 검증 모드** (일반 캡처 흐름과 분리된 1회성 셋업 절차 — §3.3 단계 ②의 3번째 스텝 "실동작 검증"):
 
 온보딩이 "지금 백탭 해보세요" 단계에 들어가면 `BackTapVerificationClient.begin()` → `AppGroup.beginBackTapVerification()` 이 App Group 파일 마커 `pending-backtap/verify.active` (TTL 120s) 를 연다. 이 창이 열린 동안:
-- **진짜 저장을 하지 않는다.** 백탭이 도달하면 진입점이 `AppGroup.markBackTapVerificationHit()` 만 호출 (`verify.hit` 기록 + `verify.active` 즉시 소비) 하고 스크린샷 PNG·`MochiItem` 을 만들지 않는다 — 검증용 백탭이 쓰레기 캡처로 메모리를 오염시키고 잘못된 동작을 학습시키는 것을 막는다.
-- **진입점은 두 경로 모두 hit 을 찍는다.** snippet 경로 `CaptureScreenshotIntent` (→ "백탭이 작동해요!" 카드) 와 ShareExtension 경로 `ShareExtensionPrincipal` (→ `BackTapVerifyShareView`). 사용자 단축어가 어느 경로로 흐르든 검증된다.
+- **진짜 저장을 하지 않는다.** 백탭이 ShareExtension 에 도달하면 `ShareExtensionPrincipal` 이 `AppGroup.markBackTapVerificationHit()` 만 호출(`verify.hit` 기록 + `verify.active` 즉시 소비)하고, 진짜 저장 없이 `BackTapVerifyShareView`("백탭이 작동해요!")만 보여준 뒤 닫는다 — 검증용 백탭이 쓰레기 캡처로 메모리를 오염시키는 것을 막는다.
 - **모찌가 폴링해 먼저 알린다.** 온보딩이 `verify.hit` 존재를 폴링(90초 타임아웃), 도달을 감지하면 체크리스트를 완료 처리한다 (미션 "떠오른다" — 사용자가 확인 버튼을 누르는 게 아니라 모찌가 먼저 안다). 감지·타임아웃·단계 이탈 시 `end()` 가 마커를 비운다.
 
 검증은 1회성이라 hit 직후의 일반 백탭은 다시 정상 저장 흐름으로 돌아간다. App 타겟이 `.live` 를 주입하지 않거나 사용자가 단축어를 연결하지 않으면 검증은 감지되지 않고 "나중에 할게요"(skip)로 진행한다 — 의도된 안전 기본값.

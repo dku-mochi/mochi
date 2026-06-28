@@ -2,7 +2,7 @@
 level: 2
 mode: committed
 status: active
-last_verified: 2026-06-24
+last_verified: 2026-06-25
 confidence: 0.8
 owners: [송준서, 이용찬, 박세현]
 description: 민감 캡처 보호 설계(on-device 감지·마스킹·최소전송)의 committed 정본. 캡처 ingestion·업로드·저장 경로를 손대기 전 반드시 읽어라 — 도메인 불변식이라 우회 금지(code-reviewer/qa-validator 가 P1 으로 잡음). 변경 시 정합성 폭포 필수.
@@ -95,7 +95,10 @@ ephemeral OCR 의 효용은 "정보밀도 높은 일반 스크린샷에서 멀�
 > 다른 화면 어디서도 읽지 않는다)에 싣고, originalUpload 캡처에만 추출한다(blurred/localOnly 는 OCR
 > 자체를 만들지 않음). 서버는 추론 직후 삭제(영속 정본 없음), 로그는 길이·존재 여부(부울)만 — OCR
 > 원문은 로그·메트릭에도 남기지 않는다. (on-device 영속이 추가 노출은 아니다 — originalUpload 캡처는
-> 원본 이미지도 단말에 보존되므로 OCR 은 그 부분집합. 업로드 후 Realm OCR 정리[clear]는 후속 위생 옵션.)
+> 원본 이미지도 단말에 보존되므로 OCR 은 그 부분집합.) **업로드 성공 후 on-device OCR 정리(2026-06-25):**
+> `MochiItemSyncWorker.uploadOne` 이 ingest 성공 직후 `clearAnalysisOCR` 로 Realm isolated 컬럼을 비운다 —
+> 서버가 추론 직후 삭제하는 것과 대칭으로 ephemeral 수명을 단말에서도 닫는다(generation-guard 경합 회피 위해
+> `updatedAt` 미bump).
 
 ### 2.3 Intent 별 보존 필드
 
@@ -122,6 +125,10 @@ ephemeral OCR 의 효용은 "정보밀도 높은 일반 스크린샷에서 멀�
   - 텍스트별 bounding box 확보
   - 마스킹 영역 계산
   - 감지 근거 생성
+- **ShareExt 단일 스캔 캐시(2026-06-25):** 한 캡처의 선감지·저장 시점 fallback 감지·분석용 OCR 추출은
+  `relativePath` 로 키잉한 진행 중 `Task` 를 공유해 **같은 이미지를 한 번만 OCR** 한다(이전엔 비민감
+  originalUpload 캡처가 최대 3회 스캔). crop 으로 이미지가 바뀌면 캐시 미스 → 잘린 이미지로 재스캔(올바른 OCR).
+  디코드는 `CGImageSourceCreateWithURL` 로 풀해상도 `Data` 전체 로드 없이 수행(120MB 한도 OOM 위험↓).
 
 ### 3.2 VisionKit / Live Text 계열
 
@@ -148,14 +155,28 @@ OCR 텍스트에서 Apple 기본 데이터 패턴을 탐지한다.
 
 주의: `NSDataDetector` 는 검증기가 아니라 탐지기다. 불확실한 후보를 버릴 수 있으므로 단독 판정이 아니라 민감도 점수의 신호로 사용한다.
 
-### 3.4 NaturalLanguage NER — 제외 (한국어 미지원)
+### 3.4 NaturalLanguage NER — 미도입 (확정, 추가 계획 없음)
 
 Apple NaturalLanguage 의 `.nameType`(named entity recognition)은 **한국어를 지원하지 않는다**
 (한국어는 Language/Script/TokenType 스킴만). 한국어 NER 커스텀 모델(BERT/임베딩 계열)은 Share
-Extension 120MB 메모리 한도와 충돌한다. 따라서 **NER(사람·장소·조직 이름)은 사용하지 않는다.**
+Extension 120MB 메모리 한도와 충돌한다. 따라서 **NER(사람·장소·조직 이름)은 쓰지 않으며, 추가
+계획도 없다** — 아래는 "메모리 한계 탓에 어쩔 수 없이 뺀 것"이 아니라 **설계상 빼는 것이 옳다**는
+근거다(가용해져도 도입하지 않는다).
 
-근거: 민감 캡처 판정의 핵심(주민번호·카드·OTP·계좌·토큰)은 검증기(체크섬)+문맥 근접으로 충분히
-잡히고, 이름은 본래 가중치가 가장 낮다(§4.2). NER 부재가 전체 감지력을 거의 손상시키지 않는다.
+1. **이름은 그 자체로 민감 정보가 아니다.** "홍길동" 석 자만으로는 유출 위험이 없다 — 위험은 이름이
+   **식별자(주민번호·전화·계좌)와 결합**할 때 비로소 생긴다. 그 결합 위험은 NER 없이도 식별자
+   검증기 + **조합 가중**(§4.3: 의료 문맥+식별자, 은행+계좌+금액 등)이 그대로 잡는다. NER 이
+   추가로 잡아낼 고유 위험은 거의 없다.
+2. **이름 감지는 false positive 비용이 압도적이다.** 사람 이름은 거의 모든 화면(메신저·뉴스·UI
+   라벨)에 흔해, NER 을 켜면 **대부분의 평범한 캡처가 "민감"으로 분류**된다. 이는 경고 피로를 낳고
+   "놓치기 쉬운 순간을 쉽게 남긴다"는 미션(`PRODUCT.md §1.5`)을 직접 위반하며, 저장 흐름에
+   끼어드는 시트를 고신뢰 신호로만 띄운다는 §5.2 원칙과도 정면충돌한다.
+3. **검증기 기반 정밀도 모델과 양립 불가.** 본 설계의 정밀도는 체크섬(Luhn·주민/사업자)과 문맥
+   근접이라는 **결정론적 검증**에서 나온다(§3.5, §4). 이름은 검증할 체크섬이 없어 본질적으로
+   low-precision 이고, 점수에 태우면 §5.2 의 "고신뢰만 차단" 불변식이 흐려진다.
+
+요컨대 NER 부재는 감지력 손실이 아니라 **위협 모델(텍스트 식별자 유출)에 맞춘 의도된 범위
+설정**이다 — 이름은 가중치가 낮아서가 아니라, 위 1~3 때문에 *원리적으로* 제외한다.
 
 ### 3.5 한국형 룰 기반 탐지
 
@@ -174,6 +195,27 @@ Extension 120MB 메모리 한도와 충돌한다. 따라서 **NER(사람·장소
 - 급여/세금/계약/송금/결제 문맥
 - 메신저/메일/DM/알림 화면 문맥
 - QR 코드/바코드
+
+### 3.6 텍스트 없는 민감 이미지 — 범위 밖 (Sensitive Content Analysis 미도입)
+
+본 설계의 위협 모델은 **OCR 로 읽히는 텍스트 식별자**(주민·카드·OTP·계좌·토큰)가 사용자의 의도와
+무관하게 서버로 전송되는 것이다. 따라서 감지는 OCR 텍스트 기반이고, **글자가 없는 민감 이미지**
+(노출 신체 등)는 설계상 감지 대상이 아니다. Apple `SensitiveContentAnalysis`(SCA)로 누드 감지가
+기술적으로는 가능하지만 **도입하지 않는다** — 다음은 그 확정 근거다.
+
+1. **앱이 보장할 수 없는 외부 의존.** SCA 는 사용자가 iOS 설정(*민감한 콘텐츠 경고*)을 직접 켜야만
+   결과를 낸다(`analysisPolicy`). 꺼져 있으면 무음으로 아무것도 잡지 못한다 — "민감하면 가려진다"는
+   본 설계의 약속을 OS 토글에 위임하는 순간 그 약속은 깨지므로 committed 불변식으로 둘 수 없다.
+2. **위협 모델이 다른 축.** 텍스트 식별자 유출은 사용자가 **의도치 않게** 흘리는 사고지만, 노출
+   이미지는 대개 사용자가 **의도적으로** 저장하는 콘텐츠다. 게다가 §9 의 보호 수단은 가우시안
+   블러 = **텍스트 영역** 마스킹이라 신체 이미지엔 의미가 없다. 누드 보호는 "유출 방지"가 아니라
+   "열람 차단"이라는 별개 문제로, 본 설계의 목적과 어긋난다.
+3. **비용 대비 효용.** entitlement(`com.apple.developer.sensitivecontentanalysis.client`) 추가 +
+   Share Extension 120MB 한도에서 온디바이스 ML 추론 비용을 치르고 얻는 것이, OS 설정에 종속된
+   부분적 누드 감지뿐이다.
+
+요컨대 텍스트 없는 이미지의 미감지는 **누락이 아니라 명시된 범위 경계**다. 위협 모델이 바뀌지
+않는 한(텍스트 식별자 유출 방지) SCA 는 도입하지 않는다.
 
 ---
 
@@ -361,9 +403,7 @@ CorePrivacy
 
 연동 지점:
 
-- `ShareExtension`: inbound payload 생성 전 1차 감지
-- `CommitBackTapCaptureIntent`: 백탭 snippet 의 캡쳐 분기 1차 감지 지점 (계획 — pending PNG 를 영구 `captures/` 로 promote 하기 전에 호출. **MVP §8 구현 순서 기준 아직 미통합** 이며, 현재 intent 는 감지 없이 promote 한다. snippet `openAppWhenRun = false` background process 에서 Vision OCR 비용을 어디까지 허용할지는 별도 결정 필요)
-- `BackTapModalFeature`: 백탭 snippet 의 메모 분기 — 사용자 입력 텍스트에 대한 1차 감지 (계획). 메모 분기는 PNG 가 즉시 폐기되므로 OCR 대상은 아니며, 텍스트 내 인증번호/카드번호 등 패턴 감지 위주
+- `ShareExtension`: inbound payload 생성 전 1차 감지 — **백탭 단축어도 "앱과 공유"로 여기 합류**하므로 백탭 캡처도 같은 선감지를 거친다(옛 background intent 직행 경로 제거, 2026-06-25)
 - `MochiItemFeature`: 앱 내 직접 입력 감지
 - `MochiItemSyncWorker`: 민감도에 따른 업로드 정책 적용
 - `FeatureSettings`: 기본 privacy mode 설정
@@ -404,7 +444,7 @@ agent/application
 - 민감도 점수 threshold·가중치를 실제 사용자 테스트 후 조정할지 여부 (`SensitivityScorer` §4)
 - embedding 을 민감도 6 이상에도 생성할지 여부 (블러 업로드 시 블러본으로 embedding 생성됨)
 - 로컬 전용(`localOnly`) 캡처를 자연어 검색에 포함하려면 온디바이스 검색 인덱스를 둘지 여부
-- **백탭 캡처(`CommitBackTapCaptureIntent` — UI 없는 background intent)의 민감 처리** — 저장 시점에 선택 시트를 띄울 수 없는 구조적 제약. 자동 블러(보수적 안전) vs 앱 진입 후 사후 조정 중 팀 결정 필요. **분석용 ephemeral OCR 동봉도 같은 선상에서 deferred** — 백탭은 현재 sensitive scan 자체를 안 거쳐 OCR 이 없다(동봉하려면 업로드 직전 재스캔 필요). 백탭 민감 처리가 정해질 때 함께 결정(2026-06-24, ephemeral OCR PR 은 ShareExt·메인앱 큐 경로만 우선 구현).
+- **백탭 캡처 민감 처리 — 해소됨(2026-06-25)**: 백탭이 ShareExtension 단일 경로(`Take Screenshot → 앱과 공유`)로 합류해, 공유 시트와 동일한 캡처 직후 선감지·가림 시트·정책별 ephemeral OCR 동봉을 그대로 거친다. 저장 시점에 선택 시트를 못 띄우던 옛 background intent 직행 경로(`CommitBackTapCaptureIntent`)는 제거됐다 — 별도 결정 불필요.
 
 > **노출 게이트는 블러 저장으로 해소됨 (2026-06-21 결정).** 민감 영역을 저장 시점에 가우시안
 > 블러 처리해 업로드하므로 **서버에 올라간 이미지 자체가 안전하다**. 따라서 다운스트림 노출
@@ -413,6 +453,12 @@ agent/application
 > 문제를 근본 제거한다(§2). 마스킹 방식은 **가우시안 블러**로 확정(deblur/재-OCR 방지 위해 강하게).
 > 서버 privacy 메타데이터(`sensitivity_*`)는 추가하지 않는다 — 서버는 올라온 이미지가 진실이며
 > 블러본/원본을 구분할 필요가 없다(Simplicity First).
+>
+> **블러 굽기 메모리(2026-06-25).** ShareExt 120MB 한도에서 큰 스크린샷의 **전체 이미지** 가우시안이
+> 수동 블러 시 간헐 OOM 의 주범이었다. `ImageBlurRedactor` 는 가릴 영역 **합집합 박스(+커널 패딩 3σ)만**
+> 블러하고 원본 위에 합성한다 — 마스크 밖은 어차피 원본을 쓰므로 결과는 동일하되 가우시안 작업 메모리가
+> 영역 크기에 비례한다. `CIContext(cacheIntermediates:false)` + `makeBlur` 의 `autoreleasepool` 로 굽기
+> 임시버퍼를 즉시 해제한다. "강하게(deblur 방지)" 보장은 sigma(짧은 변 1/30, 최소 16) 그대로라 불변.
 
 ---
 

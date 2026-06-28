@@ -86,6 +86,16 @@ public actor RealmMochiItemRepository: MochiItemRepository {
         }
     }
 
+    public func clearAnalysisOCR(mochiItemID: UUID) async throws {
+        try await write { realm in
+            guard let row = realm.object(ofType: RealmMochiItem.self, forPrimaryKey: mochiItemID.uuidString),
+                  row.analysisOcrText != nil else { return }
+            // isolated 컬럼만 비운다 — `updatedAt` 은 의도적으로 bump 하지 않는다(분석 반영
+            // generation-guard 경합 회피, 사용자 가시 상태 불변). 서버 삭제 훅과 대칭(PRIVACY §1.1).
+            row.analysisOcrText = nil
+        }
+    }
+
     public func find(id: UUID) async throws -> MochiItem? {
         try await read { realm in
             realm.object(ofType: RealmMochiItem.self, forPrimaryKey: id.uuidString).map(RealmMochiItemMapper.toDomain(_:))

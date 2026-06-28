@@ -39,8 +39,7 @@ mochi-ios/
 └── Targets/
     ├── App/                   메인 앱 셸 + @main
     │   ├── Sources/
-    │   │   ├── MochiApp.swift, RootFeature.swift, RootView.swift, MainTabFeature.swift, MochiAppDelegate.swift, AppDependencies.swift, ...   (능동 회수 알림 landing: MochiAppDelegate 가 routeType="detail"+recallEventID 푸시를 받아 RootFeature → MainTabFeature 가 ③ 회수 상세 직행)
-    │   │   └── AppIntents/    QuickCaptureIntent (텍스트/URL · Siri/Spotlight) + CaptureScreenshotIntent (이미지 · 백탭 단축어가 PNG stash + snippet 카드 표시, `openAppWhenRun = false`) + BackTapResultSnippet (외부 앱 위 시스템 카드 wrapper: 캡처 BackTapSnippetView / 온보딩 검증 BackTapVerifiedSnippetView) + CommitBackTapCaptureIntent (snippet 캡쳐 분기 background commit) + OpenBackTapMemoIntent (snippet 메모 분기 → 모찌 foreground 진입) + MochiShortcuts (AppShortcutsProvider)
+    │   │   └── MochiApp.swift, RootFeature.swift, RootView.swift, MainTabFeature.swift, MochiAppDelegate.swift, AppDependencies.swift, ...   (능동 회수 알림 landing: MochiAppDelegate 가 routeType="detail"+recallEventID 푸시를 받아 RootFeature → MainTabFeature 가 ③ 회수 상세 직행. AppIntents/AppShortcuts 는 2026-06-25 전부 제거 — 외부 입력은 ShareExtension 단일 경로)
     │   ├── Resources/Assets.xcassets
     │   └── Support/Info.plist, App.entitlements
     ├── Cores/
@@ -59,8 +58,6 @@ mochi-ios/
     └── ShareExtension/        NSExtensionPrincipalClass (스토리보드 X)
 ```
 
-> AppIntents 는 **별도 extension 타겟이 아니라 App 타겟 내부** 에 있다. `AppShortcutsProvider` 와 그것이 참조하는 `AppIntent` 는 메인 App 타겟에 위치해야 시스템이 인덱싱하기 때문 (Apple Developer Forums thread 759160).
-
 각 모듈은 다음 의존 규칙을 지킨다:
 
 ```
@@ -71,10 +68,10 @@ Features는 서로 직접 의존하지 않는다 (RootFeature가 조합만 담�
 
 ## App Group 공유
 
-App, ShareExtension 두 타겟이 동일 App Group `group.app.mochi` 에 속한다. AppIntents 는 App 타겟 내부이므로 App 의 entitlement 를 그대로 쓴다.
+App, ShareExtension 두 타겟이 동일 App Group `group.app.mochi` 에 속한다.
 - 공유 Realm: `<container>/mochi.realm`
-- Inbound 큐(ShareExtension·`QuickCaptureIntent` 진입 → 메인 앱): `<container>/inbound-queue/*.json`
-- Pending Back-Tap (snippet 흐름 단명 stash): `<container>/pending-backtap/<captureID>.png` (단축어가 stash, snippet 분기 commit 시 폐기) + `<container>/pending-backtap/<captureID>.memo` (메모 분기 marker, 모달 종료 시 폐기)
+- Inbound 큐(ShareExtension 진입 → 메인 앱): `<container>/inbound-queue/*.json`
+- Pending Back-Tap 디렉터리: 옛 snippet stash(`.png`/`.memo`)는 제거(2026-06-25), 지금은 아래 백탭 온보딩 검증 마커 전용
 - 백탭 온보딩 검증 핸드셰이크 (1회성): `<container>/pending-backtap/verify.active` (검증 창, TTL 120s) + `<container>/pending-backtap/verify.hit` (백탭 도달 마커) — 온보딩이 폴링, 상세는 [`docs/UX_SPEC.md`](../docs/UX_SPEC.md) §3.7
 - 캡처 이미지: `<container>/captures/...`
 - 공유 Keychain (access group, App ↔ ShareExtension): service `app.mochi.auth` 에 두 item — `session`(`KeychainTokenStore`, access/refresh 토큰) + `capture_token`(`KeychainCaptureTokenStore`, ShareExt 직접 전송용 장수명 capture-scoped 토큰 — 메인 앱이 로그인/부팅 시 발급·갱신, ShareExt 는 읽기만)
@@ -116,11 +113,10 @@ tuist test
 | 채널 | 진입점 | 모듈 / 위치 |
 | --- | --- | --- |
 | 외부 공유 시트 (의식적 캡처) | `ShareExtensionPrincipal` → `ShareEntryView` 메모/확인 모달 → inbound 큐 적재 | `ShareExtension` 타겟 |
-| 백탭 (snippet 카드) | 사용자 단축어 → `Take Screenshot` → 이미지 변환(PNG) → `CaptureScreenshotIntent` (`openAppWhenRun = false`) → `pending-backtap/<captureID>.png` stash + `BackTapResultSnippet`(캡처 분기 = `BackTapSnippetView`)이 외부 앱 위에 카드 표시. "캡쳐" 선택 시 `CommitBackTapCaptureIntent` 가 background commit (모찌 앱 안 깸). "메모" 선택 시 `OpenBackTapMemoIntent` 가 `.memo` marker stash + 모찌 foreground → `BackTapModalFeature` 풀스크린 모달 (textarea) | App 타겟 `App/Sources/AppIntents/` + `FeatureMochiItem/BackTapModalFeature` |
-| Siri / Spotlight (텍스트 메모) | `QuickCaptureIntent` + `MochiShortcuts` (모찌 UI 우회, inbound 큐 직접 적재) | App 타겟 `App/Sources/AppIntents/` |
+| 백탭 | 사용자 단축어 → `Take Screenshot` → **앱과 공유**(Share Sheet) → `ShareExtensionPrincipal`. 외부 공유 시트와 동일 ShareExtension 경로로 합류(단축어가 share 자동 호출). 옛 snippet/AppIntent 직행 경로는 2026-06-25 제거 | `ShareExtension` 타겟 (공유 시트와 공통) |
 | 앱 내 직접 입력 | `MochiItemFeature` (TCA) | `FeatureMochiItem` |
 
-세 외부 surface 는 의도에 따라 분리되어 있다 (공유시트=의식적·메모 입력 / 백탭=외부 앱 컨텍스트 보존 snippet + 분기 선택 / 음성검색=텍스트). 출력 경로도 다르다 — 공유시트·Siri 는 동일한 `InboundIngestPayload` JSON 큐를 거치고, 백탭은 snippet 분기에 따라 Realm `MochiItem` 를 직접 upsert (큐 우회). surface 분리 근거는 [`docs/ARCHITECTURE.md`](../docs/ARCHITECTURE.md) §2.3 노트.
+외부 입력은 모두 ShareExtension 단일 진입점으로 수렴한다 — 공유시트(의식적·메모 입력)·백탭(단축어가 자동 share). 둘 다 `InboundIngestPayload` JSON 큐를 거치고 캡처 직후 선감지·민감 가림을 공유한다. 앱 내 직접 입력만 별개(`MochiItemFeature`). AppIntents/AppShortcuts(`QuickCaptureIntent` 텍스트 메모 포함)는 2026-06-25 전부 제거됐다. surface 상세는 [`docs/ARCHITECTURE.md`](../docs/ARCHITECTURE.md) §2.3.
 
 ## 백엔드 계약
 

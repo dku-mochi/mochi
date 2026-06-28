@@ -23,6 +23,11 @@ public protocol MochiItemRepository: Sendable {
         sha256: String,
         objectKey: String
     ) async throws
+    /// 분석 전용 ephemeral OCR(`source.analysisOcrText`)을 비운다 — 업로드 성공 후 위생 정리.
+    /// 서버가 추론 직후 삭제하는 것과 대칭으로 on-device 보관본도 지워 ephemeral 수명을 닫는다
+    /// (PRIVACY §1.1). **`updatedAt` 을 bump 하지 않는다** — 사용자 가시 상태가 안 바뀌고, bump 하면
+    /// SSE/폴링의 분석 반영 generation-guard(`expectedUpdatedAt`)와 경합할 수 있다. 이미 nil 이면 no-op.
+    func clearAnalysisOCR(mochiItemID: UUID) async throws
     func find(id: UUID) async throws -> MochiItem?
     /// 서버 PK 로 로컬 항목을 찾는다 — 분석완료 알림 탭(딥링크)이 server→local id 를 역매핑할 때 사용.
     /// pull 복제 행(PK == serverID)·직접 업로드 행(PK == local id) 모두 `syncState == .uploaded(serverID:)`
@@ -190,6 +195,33 @@ public actor InMemoryMochiItemRepository: MochiItemRepository {
         )
         updated.updatedAt = Date()
         storage[mochiItemID] = updated
+        notifyChange()
+    }
+
+    public func clearAnalysisOCR(mochiItemID: UUID) async throws {
+        guard var mochiItem = storage[mochiItemID], mochiItem.source.analysisOcrText != nil else { return }
+        let source = IngestSource(
+            id: mochiItem.source.id,
+            channel: mochiItem.source.channel,
+            url: mochiItem.source.url,
+            text: mochiItem.source.text,
+            imageRefs: mochiItem.source.imageRefs,
+            userMemo: mochiItem.source.userMemo,
+            capturedAt: mochiItem.source.capturedAt,
+            privacy: mochiItem.source.privacy,
+            analysisOcrText: nil
+        )
+        mochiItem = MochiItem(
+            source: source,
+            analysis: mochiItem.analysis,
+            lifecycleState: mochiItem.lifecycleState,
+            syncState: mochiItem.syncState,
+            userTitle: mochiItem.userTitle,
+            isFavorite: mochiItem.isFavorite,
+            createdAt: mochiItem.createdAt,
+            updatedAt: mochiItem.updatedAt   // 미bump — generation-guard 경합 회피
+        )
+        storage[mochiItemID] = mochiItem
         notifyChange()
     }
 
