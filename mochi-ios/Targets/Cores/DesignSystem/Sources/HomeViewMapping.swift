@@ -109,6 +109,23 @@ public enum MochiItemKind {
 /// 카테고리별 색을 한 곳에서 정한다 — 홈 "이런 걸 모아두셨어요" 그리드와 카테고리 턴테이블이
 /// 같은 인덱스엔 같은 색을 쓰도록 통일한다(같은 서랍이 두 화면에서 다른 색으로 보이지 않게).
 /// 시안 home-carousel-prototype 의 6색 팔레트(blush/purple/mint/butter/sky/peach)를 토큰으로 옮긴 것.
+public extension Date {
+    /// 모찌 공용 상대 시각 라벨(방금 / N분 전 / N시간 전 / N일 전 / N주 전 / M월 d일).
+    var mochiRelativeLabel: String {
+        let interval = Date().timeIntervalSince(self)
+        if interval < 60 { return "방금" }
+        if interval < 3600 { return "\(Int(interval / 60))분 전" }
+        if interval < 86_400 { return "\(Int(interval / 3600))시간 전" }
+        let days = Int(interval / 86_400)
+        if days <= 7 { return "\(days)일 전" }
+        if days <= 30 { return "\(days / 7)주 전" }
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ko_KR")
+        formatter.dateFormat = "M월 d일"
+        return formatter.string(from: self)
+    }
+}
+
 public enum MochiCategoryPalette {
     /// (옅은 배경 틴트, 강조색) 색쌍. 인덱스를 순환해서 쓴다.
     public static let tints: [(soft: Color, strong: Color)] = [
@@ -179,6 +196,9 @@ extension MochiItem {
     }
 
     public var viewKind: MochiItemKind { MochiItemKind(source) }
+
+    /// 캡처 시각 기준 상대 시각(커버·초점 패널·상세 메타 공용).
+    public var relativeCapturedLabel: String { source.capturedAt.mochiRelativeLabel }
 
     private var relativeTime: String {
         let interval = Date().timeIntervalSince(createdAt)

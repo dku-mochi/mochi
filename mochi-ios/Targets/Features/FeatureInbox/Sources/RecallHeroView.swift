@@ -16,6 +16,11 @@ struct RecallHeroView: View {
     let entries: [RecallFeedEntryDTO]
     /// 회수 itemID → 원본 캡처 이미지 ref. 있으면 카드 커버로 실제 캡처를 깐다(회상의 핵심).
     let images: [UUID: ImageRef]
+    /// 회수 itemID → 카테고리. 카드 밑 캡션(카테고리 · 저장시각 / 제목)에 쓴다. 없으면 캡션에서 카테고리 생략.
+    let recallCategories: [UUID: String]
+    /// 카테고리명 → `MochiCategoryPalette` tint 인덱스(리포트가 카테고리에 부여한 색과 동일하게). 월간
+    /// 리포트 카테고리에 없는 카테고리는 이름 기반 안정 인덱스로 폴백.
+    let categoryTints: [String: Int]
     /// 덱(코버플로우) 높이 — 홈에서 상단을 가득 채우도록 화면 비례로 크게 준다.
     var deckHeight: CGFloat = 348
     /// 헤더 "모두 보기" → 자세히 목록.
@@ -49,6 +54,7 @@ struct RecallHeroView: View {
         VStack(alignment: .leading, spacing: HomeDesign.Spacing.md) {
             header
             deck.frame(height: deckHeight)
+            focalCaption
             if count > 1 && count <= 7 { pageDots }
         }
         // 카드가 가운데에 들어올 때마다 선택 햅틱 — 촉각으로 "한 장 떠올랐다".
@@ -101,6 +107,46 @@ struct RecallHeroView: View {
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("모찌가 고른 기록 \(count)개. 모두 보기")
+    }
+
+    // MARK: - 초점 캡션 (카테고리 · 저장 시각 / 제목 — 샤라락 focalPanel 과 같은 구조)
+
+    @ViewBuilder
+    private var focalCaption: some View {
+        if entries.indices.contains(focalIndex) {
+            let entry = entries[focalIndex]
+            VStack(spacing: 4) {
+                HStack(spacing: 6) {
+                    if let category = recallCategories[entry.itemID] {
+                        Text(category)
+                            .font(.system(size: 11, weight: .bold, design: .rounded))
+                            .foregroundStyle(categoryColor(category))
+                        Text("·")
+                            .font(.system(size: 11, weight: .medium, design: .rounded))
+                            .foregroundStyle(HomeDesign.Color.textFaint)
+                    }
+                    Text(entry.savedAt.mochiRelativeLabel)
+                        .font(.system(size: 11, weight: .medium, design: .rounded))
+                        .foregroundStyle(HomeDesign.Color.textMuted)
+                }
+                Text(entry.title)
+                    .font(.system(size: 16, weight: .heavy, design: .rounded))
+                    .foregroundStyle(HomeDesign.Color.textPrimary)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .id(entry.id)
+                    .transition(.opacity)
+            }
+            .frame(maxWidth: .infinity)
+            .animation(.easeInOut(duration: 0.25), value: focalIndex)
+        }
+    }
+
+    /// 카테고리 글자색 — 리포트가 그 카테고리에 부여한 `MochiCategoryPalette` 색을 그대로(`categoryTints`).
+    /// 리포트 상위 카테고리에 없으면 이름 기반 안정 인덱스로 같은 팔레트에서 색을 고른다.
+    private func categoryColor(_ name: String) -> Color {
+        let index = categoryTints[name] ?? name.unicodeScalars.reduce(into: 0) { $0 += Int($1.value) }
+        return MochiCategoryPalette.tint(index).strong
     }
 
     // MARK: - 페이지 인디케이터 (덱 아래 가운데 — 적을 때만, 많으면 이웃 카드가 어포던스를 대신)
@@ -424,18 +470,13 @@ private struct RecallCoverCard: View {
                 // 카드 → 상세 zoom 에서 이미지 내용이 위아래로 튀지 않는다(UX_SPEC §3.4: 세로=center fill).
                 alignment: .center
             ) { reasonWash }
-            // 하단 스크림 — 텍스트 대비. 위쪽(캡처 본문)은 건드리지 않는다.
+            // 하단 스크림 — reasonTag 대비. 제목은 덱 아래 캡션으로 내렸다(카드 커버에선 제거). 위쪽(캡처 본문)은 건드리지 않는다.
             LinearGradient(
-                colors: [.clear, .black.opacity(0.18), .black.opacity(0.66)],
+                colors: [.clear, .black.opacity(0.34)],
                 startPoint: .center, endPoint: .bottom
             )
             VStack(alignment: .leading, spacing: HomeDesign.Spacing.sm) {
                 reasonTag
-                Text(entry.title)
-                    .font(.system(size: 15.5, weight: .heavy, design: .rounded))
-                    .foregroundStyle(.white)
-                    .lineLimit(2)
-                    .fixedSize(horizontal: false, vertical: true)
             }
             .padding(14)
         }
@@ -544,6 +585,8 @@ private extension RecallReasonKind {
                   relatedCount: 1, recallEventID: UUID()),
         ],
         images: [:],
+        recallCategories: [:],
+        categoryTints: [:],
         onOpenAll: {},
         onOpenFocal: { _, _ in }
     )
