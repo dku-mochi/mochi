@@ -211,16 +211,9 @@ public struct CategoryCarouselView: View {
     private var focalPanel: some View {
         VStack(spacing: HomeDesign.Spacing.sm) {
             if let item = focalItem {
-                HStack(spacing: 6) {
-                    Image(systemName: item.viewKind.icon)
-                        .font(.system(size: 11, weight: .semibold))
-                    Text(item.viewKind.label)
-                        .font(.system(size: 11, weight: .bold, design: .rounded))
-                    Text("· \(item.relativeCapturedLabel)")
-                        .font(.system(size: 11, weight: .medium, design: .rounded))
-                        .foregroundStyle(HomeDesign.Color.textMuted)
-                }
-                .foregroundStyle(tint.strong)
+                Text(item.relativeCapturedLabel)
+                    .font(.system(size: 11, weight: .medium, design: .rounded))
+                    .foregroundStyle(HomeDesign.Color.textMuted)
 
                 Text(item.displayTitle)
                     .font(.system(size: 18, weight: .heavy, design: .rounded))
@@ -545,24 +538,5 @@ private struct CoverTransform3D: ViewModifier, Animatable {
             .opacity(p.opacity)
             .zIndex(p.zIndex)
             .allowsHitTesting(p.isFocal && p.opacity > 0.5)
-    }
-}
-
-// MARK: - 표시 헬퍼
-
-private extension MochiItem {
-    /// 커버·초점 패널이 쓰는 상대 시각(캡처 시각 기준).
-    var relativeCapturedLabel: String {
-        let interval = Date().timeIntervalSince(source.capturedAt)
-        if interval < 60 { return "방금" }
-        if interval < 3600 { return "\(Int(interval / 60))분 전" }
-        if interval < 86_400 { return "\(Int(interval / 3600))시간 전" }
-        let days = Int(interval / 86_400)
-        if days <= 7 { return "\(days)일 전" }
-        if days <= 30 { return "\(days / 7)주 전" }
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "ko_KR")
-        formatter.dateFormat = "M월 d일"
-        return formatter.string(from: source.capturedAt)
     }
 }

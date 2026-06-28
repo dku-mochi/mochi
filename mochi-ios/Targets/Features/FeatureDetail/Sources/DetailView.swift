@@ -276,13 +276,32 @@ private struct RecallHeader: View {
             VStack(alignment: .leading, spacing: HomeDesign.Spacing.sm) {
                 // 출처·시간 eyebrow — 제목 **위**에 둔다. 썸네일이 없는 기록(메모·URL)도
                 // 첫 텍스트 줄이 항상 같아, 어떤 조합을 열어도 "기록 상세"로 즉시 읽힌다.
-                HStack(spacing: 5) {
-                    Image(systemName: mochiItem.viewKind.icon)
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundStyle(HomeDesign.Color.textFaint)
-                    Text(mochiItem.displaySubtitle)
-                        .font(.system(size: 12, weight: .medium, design: .rounded))
-                        .foregroundStyle(HomeDesign.Color.textMuted)
+                if let category = mochiItem.analysis?.category?
+                    .trimmingCharacters(in: .whitespacesAndNewlines), !category.isEmpty {
+                    // 카테고리가 있으면 형식 대신 카테고리를 보여주고, 탭하면 그 카테고리 턴테이블(샤라락)로.
+                    Button { store.send(.categoryTapped) } label: {
+                        HStack(spacing: 4) {
+                            Text(category)
+                                .font(.system(size: 12, weight: .bold, design: .rounded))
+                                .foregroundStyle(HomeDesign.Color.purple600)
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 9, weight: .bold))
+                                .foregroundStyle(HomeDesign.Color.purple400)
+                            Text("· \(mochiItem.relativeCapturedLabel)")
+                                .font(.system(size: 12, weight: .medium, design: .rounded))
+                                .foregroundStyle(HomeDesign.Color.textMuted)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    HStack(spacing: 5) {
+                        Image(systemName: mochiItem.viewKind.icon)
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(HomeDesign.Color.textFaint)
+                        Text(mochiItem.displaySubtitle)
+                            .font(.system(size: 12, weight: .medium, design: .rounded))
+                            .foregroundStyle(HomeDesign.Color.textMuted)
+                    }
                 }
 
                 titleView
