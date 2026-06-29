@@ -1,22 +1,32 @@
 import SwiftUI
-import CoreDomain
 import DesignSystem
 
 /// 검색 결과 0 화면 (.empty phase).
 ///
-/// 구조: intent 필터칩 row + 모찌(?) + 메시지 + CTA(모찌에게 물어보기 — 채팅 의미 검색으로)
-/// + 고스트(intent 필터 걸렸을 때만 "전체에서 다시 찾기").
+/// 구조: 공용 필터 바(종류 + 카테고리 — idle/결과와 동일) + 모찌(?) + 메시지 +
+/// CTA(모찌에게 물어보기 — 채팅 의미 검색으로) + 고스트(필터 걸렸을 때만 "전체에서 다시 찾기").
 struct SearchEmptyResultView: View {
-    let selectedIntent: Intent?
-    let onIntent: (Intent?) -> Void
+    let typeFilter: SearchD5.TypeFilter
+    let categories: [String]
+    let selectedCategory: String?
+    /// 종류·카테고리 중 하나라도 걸려 있으면 "전체에서 다시 찾기" 고스트 노출.
+    let isFiltered: Bool
+    let onTypeFilter: (SearchD5.TypeFilter) -> Void
+    let onCategory: (String?) -> Void
     let onAskMochi: () -> Void
     let onRetryAll: () -> Void
 
     var body: some View {
         VStack(spacing: 0) {
-            IntentFilterChipsRow(selectedIntent: selectedIntent, onTap: onIntent)
-                .padding(.top, 10)
-                .padding(.bottom, 6)
+            SearchFilterBar(
+                typeFilter: typeFilter,
+                onTypeFilter: onTypeFilter,
+                categories: categories,
+                selectedCategory: selectedCategory,
+                onCategory: onCategory
+            )
+            .padding(.top, 10)
+            .padding(.bottom, 6)
 
             ScrollView {
                 VStack(spacing: 0) {
@@ -92,8 +102,8 @@ struct SearchEmptyResultView: View {
             }
             .buttonStyle(EmptyCTAPress())
 
-            // intent 필터로 좁혀서 0 인 경우에만 — 필터 풀고 전체에서 재검색.
-            if selectedIntent != nil {
+            // 종류·카테고리로 좁혀서 0 인 경우에만 — 필터 풀고 전체에서 재검색.
+            if isFiltered {
                 Button(action: onRetryAll) {
                     Text("전체에서 다시 찾기")
                         .font(.system(size: 17, weight: .semibold, design: .rounded))

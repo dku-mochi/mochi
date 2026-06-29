@@ -2,10 +2,10 @@ import SwiftUI
 import CoreDomain
 import DesignSystem
 
-/// 검색 탭 토큰 셋 — `HomeDesign` 위에 검색 전용(TypeFilter/IntentColor) 만 얹은 얇은 레이어.
+/// 검색 탭 토큰 셋 — `HomeDesign` 위에 검색 전용(TypeFilter) 만 얹은 얇은 레이어.
 ///
 /// D5 단계에선 별도 namespace 였지만 D6 에서 톤 일치를 위해 `HomeDesign` 을 단일 원천으로 삼고,
-/// 검색 고유의 *5축 출처/타입 필터* 색·*결과 화면 Intent 색* 만 여기서 정의.
+/// 검색 고유의 *5축 출처/타입 필터* 색만 여기서 정의(결과 화면도 동일 종류·카테고리 필터를 공유).
 public enum SearchD5 {
 
     // MARK: - Palette (HomeDesign 위임)
@@ -107,49 +107,13 @@ public enum SearchD5 {
         }
     }
 
-    // MARK: - Intent (결과 화면 — 일정/할일/지식/기록)
-
-    public enum IntentColor {
-        public static func bg(_ intent: Intent) -> Color {
-            switch intent {
-            case .schedule:  return HomeDesign.Color.sky100
-            case .todo:      return HomeDesign.Color.butter50
-            case .knowledge: return HomeDesign.Color.mint100
-            case .memo:      return HomeDesign.Color.blush100
-            }
-        }
-        public static func fg(_ intent: Intent) -> Color {
-            switch intent {
-            case .schedule:  return HomeDesign.Color.sky400
-            case .todo:      return HomeDesign.Color.peach400
-            case .knowledge: return HomeDesign.Color.mint400
-            case .memo:      return HomeDesign.Color.blush400
-            }
-        }
-        public static func label(_ intent: Intent) -> String {
-            switch intent {
-            case .schedule:  return "일정"
-            case .todo:      return "할일"
-            case .knowledge: return "지식"
-            case .memo:      return "기록"
-            }
-        }
-        public static func systemImage(_ intent: Intent) -> String {
-            switch intent {
-            case .schedule:  return "calendar"
-            case .todo:      return "checkmark.square"
-            case .knowledge: return "book.closed"
-            case .memo:      return "doc.text"
-            }
-        }
-    }
-
     // MARK: - Sizes
 
     public enum Sizes {
         static let pageH: CGFloat            = 14
-        static let searchBarHeight: CGFloat  = 48
-        static let searchBarRadius: CGFloat  = 24
+        // 검색바 — 48 은 다소 납작했다. 52 + full-pill radius(26)로 입력 영역에 숨통.
+        static let searchBarHeight: CGFloat  = 52
+        static let searchBarRadius: CGFloat  = 26
         static let filterChipHeight: CGFloat = 32
         static let filterChipRadius: CGFloat = 16
         // 모자이크 그리드 — 셀 간 6pt 이음새 + 좌우 10pt, 테두리·그림자 없이 radius 만.

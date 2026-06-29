@@ -4,32 +4,19 @@ import CoreDomain
 
 /// 검색 서비스 추상 — 로컬 literal 검색(키 입력 즉답)의 시그니처.
 ///
-/// 로컬: 실데이터 dataset 위에서 token-contains + intent EXISTS 필터.
+/// 로컬: 이미 종류 ∧ 카테고리로 좁혀진 dataset 위에서 token-contains 매칭.
 /// 서버 의미 검색(RAG citations)은 SearchFeature.semanticSearch 가 return 제출 시 보강한다.
 public protocol SearchService: Sendable {
-    func search(
-        query: String,
-        intent: Intent?,
-        in dataset: [MochiItem]
-    ) async -> [SearchResult]
+    func search(query: String, in dataset: [MochiItem]) async -> [SearchResult]
 }
 
 public struct LocalSearchService: SearchService {
     public init() {}
 
-    public func search(
-        query: String,
-        intent: Intent?,
-        in dataset: [MochiItem]
-    ) async -> [SearchResult] {
+    public func search(query: String, in dataset: [MochiItem]) async -> [SearchResult] {
         let tokens = Self.tokenize(query)
 
         let candidates = dataset.filter { item in
-            if let intent {
-                guard item.instances.contains(where: { $0.intentType == intent }) else {
-                    return false
-                }
-            }
             if tokens.isEmpty { return true }
             let haystack = Self.haystackText(for: item)
             return tokens.allSatisfy { haystack.localizedCaseInsensitiveContains($0) }
