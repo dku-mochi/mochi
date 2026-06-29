@@ -92,6 +92,8 @@ description: 시스템 토폴로지·iOS↔Backend 데이터흐름·API 계약�
 └───────────────────────────────────────────────────────────────────────┘
 ```
 
+> **심사위원용 데모 표면 — `mochi-web` (BFF)**: 무설치 체험을 위한 Next.js 데모 웹(`mochi-web/`, 진입점 `mochi-web/README.md`)이 같은 배포 백엔드(`34-64-104-136.nip.io`)를 **서버사이드 프록시**한다. 데모 유저 토큰(`MOCHI_DEMO_REFRESH_TOKEN`/`MOCHI_DEMO_ACCESS_TOKEN`)은 **서버 env 에만** 두고 `app/api/*` Route Handler 안에서만 `Authorization` 을 주입해 — 브라우저는 토큰을 보지 않는다(`refresh` 캐시 + 분당 ingest rate-limit). API 타입은 백엔드 `openapi.json` → `openapi-typescript` 로 동기화(생성물 `lib/api/schema.ts`)해 ⓪-tier 단일계약(§3.6·§4)을 상속하고, 라이브 호출 실패 시 입력 기반 가짜 SSE·씨드 폴백으로 graceful degrade 한다.
+
 ---
 
 ## 2. iOS — `mochi-ios`

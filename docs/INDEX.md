@@ -36,6 +36,7 @@ description: 모찌 docs/ 의 path-first 길잡이. AI 가 파일을 열기 전 
 | `docs/gcp-architecture.html` | L2 reference — 인프라 다이어그램 | 인프라 관련 작업 시 |
 | `journal/*.md` | L3 log — 하루 작업 로그·인수인계 | 어제/그저께 흐름 이어받을 때 |
 | `lab/*.py`, `lab/*.json` | L3 실험 — 벤치·프로토타입 | 비슷한 실험 결과가 필요할 때 |
+| `mochi-web/` (루트) | 심사위원용 BFF 데모 웹 (Next.js+TS, R3F/GSAP) — 배포 백엔드 라이브 프록시 | 데모 웹·BFF 라우트·토큰 프록시 변경 시 — 진입점 `mochi-web/README.md` |
 | `archive/` (루트) | 폐기된 이전 설계 | **read 금지 / skip** — `docs/ARCHITECTURE.md` 가 정본 |
 
 ## 두 축

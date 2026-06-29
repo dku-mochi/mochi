@@ -85,21 +85,25 @@ public struct SearchView: View {
     // MARK: - 검색바
 
     private var searchBar: some View {
-        HStack(spacing: 13) {
+        HStack(spacing: 10) {
+            // 텍스트(17)와 한 호흡으로 읽히도록 글래스는 18 — 22 는 텍스트를 압도했다.
+            // 포커스 시 잉크 → 퍼플로 옮겨 입력 상태를 색으로 알린다.
             Image(systemName: "magnifyingglass")
-                .font(.system(size: 22, weight: .medium, design: .rounded))
-                .foregroundStyle(SearchD5.Palette.primary)
+                .font(.system(size: 18, weight: .semibold, design: .rounded))
+                .foregroundStyle(isSearchFocused ? SearchD5.Palette.primary : SearchD5.Palette.textTertiary)
 
             ZStack(alignment: .leading) {
                 if queryText.isEmpty {
+                    // placeholder 와 TextField 폰트를 17 로 일치 — 타이핑 시작 때 글자가 리사이즈되며 튀던 현상 제거.
                     Text("기억나는 말로 찾아보세요")
-                        .font(.system(size: 16, weight: .regular, design: .rounded))
+                        .font(.system(size: 17, weight: .regular, design: .rounded))
                         .foregroundStyle(SearchD5.Palette.placeholder)
                         .allowsHitTesting(false)
                 }
                 TextField("", text: $queryText)
                     .font(.system(size: 17, weight: .regular, design: .rounded))
                     .foregroundStyle(SearchD5.Palette.textPrimary)
+                    .tint(SearchD5.Palette.primary)
                     .submitLabel(.search)
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.never)
@@ -119,16 +123,19 @@ public struct SearchView: View {
                     isSearchFocused = false
                 } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 18))
+                        .font(.system(size: 17, weight: .regular))
                         .foregroundStyle(SearchD5.Palette.textTertiary)
-                        // 아이콘(18)은 그대로, 터치 영역만 44 — 바 높이(48 고정)라 바는 안 커지고,
-                        // 인접 TextField 는 flexible 이라 겹침 없음.
+                        // 아이콘은 그대로, 터치 영역만 44. trailing -8 로 끌어와 글래스(18pt inset)와 광학 대칭.
                         .frame(width: 44, height: 44)
                         .contentShape(Circle())
+                        .padding(.trailing, -8)
+                        .transition(.scale(scale: 0.6).combined(with: .opacity))
                 }
             }
         }
-        .padding(.horizontal, 20)
+        .padding(.leading, 18)
+        // X 가 자체 hit-area(44)를 들고 있어, 있을 땐 trailing 여백을 줄여 아이콘이 가장자리에 붙지 않게.
+        .padding(.trailing, queryText.isEmpty ? 18 : 4)
         .frame(height: SearchD5.Sizes.searchBarHeight)
         .background(
             RoundedRectangle(cornerRadius: SearchD5.Sizes.searchBarRadius, style: .continuous)
@@ -143,7 +150,8 @@ public struct SearchView: View {
         )
         .shadow(color: SearchD5.Palette.cardShadow.opacity(isSearchFocused ? 0.8 : 0.5),
                 radius: isSearchFocused ? 14 : 10, x: 0, y: 6)
-        .animation(.easeInOut(duration: 0.18), value: isSearchFocused)
+        .animation(.smooth(duration: 0.2), value: isSearchFocused)
+        .animation(.snappy(duration: 0.22), value: queryText.isEmpty)
     }
 
     // MARK: - 최근 검색 칩 row (포커스 + query 빈 상태 — 그리드 위에 한 줄만)
@@ -200,9 +208,12 @@ public struct SearchView: View {
                 SearchResultsView(
                     query: store.query,
                     results: store.results,
-                    selectedIntent: store.selectedIntent,
+                    typeFilter: store.typeFilter,
+                    categories: store.availableCategories,
+                    selectedCategory: store.selectedCategory,
                     isSemanticSearching: store.isSemanticSearching,
-                    onIntent:     { store.send(.intentChipTapped($0)) },
+                    onTypeFilter: { store.send(.typeFilterTapped($0)) },
+                    onCategory:   { store.send(.categoryTapped($0)) },
                     onCardTap:    { id, hero in store.send(.recentTapped(id, hero)) },
                     onCardDelete: { store.send(.deleteTapped($0)) },
                     onCardToggleFavorite: { store.send(.favoriteToggled($0)) }
@@ -210,8 +221,12 @@ public struct SearchView: View {
 
             case .empty:
                 SearchEmptyResultView(
-                    selectedIntent: store.selectedIntent,
-                    onIntent:    { store.send(.intentChipTapped($0)) },
+                    typeFilter: store.typeFilter,
+                    categories: store.availableCategories,
+                    selectedCategory: store.selectedCategory,
+                    isFiltered: store.typeFilter != .all || store.selectedCategory != nil,
+                    onTypeFilter: { store.send(.typeFilterTapped($0)) },
+                    onCategory:   { store.send(.categoryTapped($0)) },
                     onAskMochi:  { store.send(.askMochiTapped) },
                     onRetryAll:  { store.send(.retryAllTapped) }
                 )
