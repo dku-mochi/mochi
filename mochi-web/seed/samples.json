@@ -1,0 +1,198 @@
+[
+  {
+    "id": "9393b19f-c06d-493e-85a4-3df4002fdd2b",
+    "owner_id": "71503fa8-d478-4a2c-b2ac-3d29b0498ccd",
+    "channel": "screenshot",
+    "url": null,
+    "summary": "참여 중인 데이콘 경진대회의 주요 제출 기한과 결과 발표 일정을 정리했습니다. 기획서 및 산출물 제출 마감과 예선 결과 발표일을 챙겨야 합니다.",
+    "category": "커리어 개발",
+    "user_memo": null,
+    "importance": 5,
+    "lifecycle_kind": "analyzed",
+    "intents": [
+      {
+        "intent_type": "schedule",
+        "label": "결과 발표 확인",
+        "payload": {
+          "date": "2026-07-27",
+          "time": "14:00",
+          "title": "데이콘 경진대회 예선 결과 발표 확인"
+        },
+        "lifecycle_kind": "active"
+      },
+      {
+        "intent_type": "todo",
+        "label": "기획서 제출",
+        "payload": {
+          "title": "데이콘 경진대회 예선 아이디어 기획서 제출",
+          "deadline": "2026-07-07 10:00"
+        },
+        "lifecycle_kind": "active"
+      },
+      {
+        "intent_type": "todo",
+        "label": "산출물 제출",
+        "payload": {
+          "title": "데이콘 경진대회 예선 최종 산출물 제출",
+          "deadline": "2026-07-15 10:00"
+        },
+        "lifecycle_kind": "active"
+      }
+    ],
+    "entities": [
+      {
+        "kind": "reference_url",
+        "value": "{\"url\":\"https://dacon.io/competitions\",\"title\":\"대회: 도전으로 기회를 얻으세요 - DACON\",\"label\":\"관련 사이트 보기\",\"role\":\"reference\",\"provider\":\"site\",\"rankProfile\":\"general\",\"source\":\"tavily\",\"subtitle\":\"Daker Daker 커뮤니티 대회 학습. 분석시각화 대회 코드 공유 게시물은. 제3회 풍력발전량 예측 AI 경진대회 - BARAM 2026. \",\"usefulness\":5}"
+      }
+    ],
+    "images": [
+      {
+        "object_key": "captures/71503fa8-d478-4a2c-b2ac-3d29b0498ccd/112ac1c74352f2b73e89a8e93845ad99887e1ae5d91467a378277ca6e557ed57.jpg",
+        "mime_type": "image/jpeg",
+        "byte_size": 67637,
+        "sha256": "112ac1c74352f2b73e89a8e93845ad99887e1ae5d91467a378277ca6e557ed57"
+      }
+    ],
+    "created_at": "2026-06-19T12:16:37.807481+00:00",
+    "captured_at": "2026-06-19T12:16:37.807423+00:00"
+  },
+  {
+    "id": "33c2d191-6005-43c7-9283-4f01610915b2",
+    "owner_id": "71503fa8-d478-4a2c-b2ac-3d29b0498ccd",
+    "channel": "screenshot",
+    "url": null,
+    "summary": "한국장학재단 학자금 대출 이자 납부 기한이 3일 앞으로 다가왔습니다. 납부 기한인 6월 19일까지 계좌 잔액을 확인하고 이자를 납부해야 합니다.",
+    "category": "투자",
+    "user_memo": null,
+    "importance": 5,
+    "lifecycle_kind": "analyzed",
+    "intents": [
+      {
+        "intent_type": "todo",
+        "label": "학자금 대출 이자 납부",
+        "payload": {
+          "note": "계좌 잔액을 미리 확인해주세요.",
+          "title": "한국장학재단 학자금 대출 이자 납부",
+          "deadline": "2026-06-19"
+        },
+        "lifecycle_kind": "archived"
+      }
+    ],
+    "entities": [
+      {
+        "kind": "deadline",
+        "value": "2026-06-19"
+      }
+    ],
+    "images": [
+      {
+        "object_key": "captures/71503fa8-d478-4a2c-b2ac-3d29b0498ccd/618978bcb719dc7e70d3c391cbb29f7bda8c39b8f1f0e098a285d7e2b9688a2b.jpg",
+        "mime_type": "image/jpeg",
+        "byte_size": 46582,
+        "sha256": "618978bcb719dc7e70d3c391cbb29f7bda8c39b8f1f0e098a285d7e2b9688a2b"
+      }
+    ],
+    "created_at": "2026-06-15T18:06:09.883245+00:00",
+    "captured_at": "2026-06-15T18:06:09.883115+00:00"
+  },
+  {
+    "id": "bdb69bf5-0500-43ed-8b57-40d4a6ae43bc",
+    "owner_id": "71503fa8-d478-4a2c-b2ac-3d29b0498ccd",
+    "channel": "screenshot",
+    "url": null,
+    "summary": "DNS의 정의, 계층적 구조, 질의 과정 및 리소스 레코드 형식 등 기술적 작동 원리를 설명하는 내용입니다. 추후 기술적 참고를 위해 저장했습니다.",
+    "category": "학업",
+    "user_memo": null,
+    "importance": 3,
+    "lifecycle_kind": "analyzed",
+    "intents": [
+      {
+        "intent_type": "knowledge",
+        "label": "DNS 작동 원리 참고",
+        "payload": {
+          "note": "DNS의 계층적 구조, 쿼리 방식, 리소스 레코드(RR) 타입 및 프로토콜(UDP/TCP 53)에 대한 기술적 설명입니다.",
+          "title": "DNS(Domain Name System) 작동 원리 및 구조"
+        },
+        "lifecycle_kind": "active"
+      }
+    ],
+    "entities": [],
+    "images": [
+      {
+        "object_key": "captures/71503fa8-d478-4a2c-b2ac-3d29b0498ccd/4c48a50fd944b924b2324ba7fc9080af0416f774e469b06e7fac87d06314c131.jpg",
+        "mime_type": "image/jpeg",
+        "byte_size": 243133,
+        "sha256": "4c48a50fd944b924b2324ba7fc9080af0416f774e469b06e7fac87d06314c131"
+      }
+    ],
+    "created_at": "2026-06-12T17:54:53.839679+00:00",
+    "captured_at": "2026-06-12T17:54:53.839633+00:00"
+  },
+  {
+    "id": "493a82fc-e79a-4a37-9727-b6085c235925",
+    "owner_id": "71503fa8-d478-4a2c-b2ac-3d29b0498ccd",
+    "channel": "youtube",
+    "url": "https://youtube.com/shorts/MXGs_GmIlgc?si=5MdFP2Lu8Tcmg-m6",
+    "summary": "스탬플리 앱을 사용하여 허니콤보를 무료로 이용하는 방법을 소개하는 영상입니다. 나중에 해당 혜택을 확인하고 활용하기 위해 저장했습니다.",
+    "category": "일상",
+    "user_memo": null,
+    "importance": 2,
+    "lifecycle_kind": "analyzed",
+    "intents": [
+      {
+        "intent_type": "memo",
+        "label": "나중에 확인",
+        "payload": {
+          "url": "https://www.youtube.com/watch?v=MXGs_GmIlgc",
+          "note": "스탬플리 앱을 통해 허니콤보를 무료로 먹을 수 있는 방법을 소개하는 영상입니다. 나중에 내용을 확인하기 위해 저장했습니다.",
+          "title": "허니콤보 공짜로 먹을 수 있는 #스탬플리"
+        },
+        "lifecycle_kind": "active"
+      }
+    ],
+    "entities": [
+      {
+        "kind": "reference_url",
+        "value": "{\"provider\":\"youtube\",\"url\":\"https://www.youtube.com/watch?v=MXGs_GmIlgc\",\"title\":\"허니콤보 공짜로 먹을 수 있는 #스탬플리\",\"author\":\"stamply\"}"
+      }
+    ],
+    "images": [],
+    "created_at": "2026-06-14T17:29:21.035056+00:00",
+    "captured_at": "2026-06-14T17:29:21.034994+00:00"
+  },
+  {
+    "id": "08d92295-e233-4b5a-bb44-79ca824ae83d",
+    "owner_id": "71503fa8-d478-4a2c-b2ac-3d29b0498ccd",
+    "channel": "screenshot",
+    "url": null,
+    "summary": "친구들과 6월 26일부터 27일까지 여행을 가기로 확정했습니다. 일정을 맞추고 준비하기 위해 저장했습니다.",
+    "category": "일상",
+    "user_memo": null,
+    "importance": 3,
+    "lifecycle_kind": "analyzed",
+    "intents": [
+      {
+        "intent_type": "schedule",
+        "label": "남양주 여행 (경환, 민수, 건희)",
+        "payload": {
+          "date": "2026-06-26",
+          "note": "경환, 민수, 건희와 함께하는 남양주 여행입니다.",
+          "title": "남양주 여행",
+          "end_date": "2026-06-27"
+        },
+        "lifecycle_kind": "active"
+      }
+    ],
+    "entities": [],
+    "images": [
+      {
+        "object_key": "captures/71503fa8-d478-4a2c-b2ac-3d29b0498ccd/bb0a20f05d016cae2140ec5268019a4bb8d428c46799615ef97a5bc8d9fd4bf0.jpg",
+        "mime_type": "image/jpeg",
+        "byte_size": 121078,
+        "sha256": "bb0a20f05d016cae2140ec5268019a4bb8d428c46799615ef97a5bc8d9fd4bf0"
+      }
+    ],
+    "created_at": "2026-06-16T04:42:14.375422+00:00",
+    "captured_at": "2026-06-16T04:42:14.375359+00:00"
+  }
+]
