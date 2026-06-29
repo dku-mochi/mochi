@@ -25,6 +25,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | --- | --- | --- |
 | `mochi-ios/` | iOS 클라이언트 (SwiftUI + TCA, Tuist) | `mochi-ios/README.md` |
 | `mochi-backend/` | FastAPI 백엔드 (Modular Monolith + Hexagonal) | `mochi-backend/README.md` |
+| `mochi-web/` | BFF 데모 웹사이트 (Next.js+TS, R3F/GSAP) — 심사위원 체험용 | `mochi-web/README.md` |
 | `docs/` | 시스템 전체 설계 · 도메인 · 보안 · 제품 정의 | 아래 §5 참고 |
 | `journal/` | 하루 작업 로그 · 세션 인수인계 (L3) | `journal/README.md` |
 | `lab/` | 실험 · 벤치마크 (lab-experimenter 전용 write 영역) | — |

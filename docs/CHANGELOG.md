@@ -10,6 +10,20 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-06-29 — infra
+- mochi-web: Hero R3F 코버플로우 최상급 재작성(`components/three/Coverflow.tsx`). **왜**: 심사 데모 첫인상인데 캡처 텍스처가 안 보이고(초점 카드 흰 면) 깊이감이 평면이었다. 원인 = 투명 머티리얼 draw-order로 흰 프레임이 사진을 덮음 + 수기 repeat/offset cover-fit 취약 + unlit·약한 tilt. 수정 = drei `<Image>`(sRGB·object-cover·둥근 모서리)로 캡처 또렷, lit backing + `Environment`/`ContactShadows`/ACES 톤매핑으로 진짜 깊이, 강한 yaw·Z 곡선 덱, 반응형 `CameraRig`(모바일 중앙 정렬), 드래그 관성+스냅+autoplay+속도연동 lean(motion.dev scroll-velocity-linked-offset 차용). build 통과.
+
+## 2026-06-28 — infra/docs
+- mochi-web: 심사위원용 BFF 데모 웹사이트 신규(Next.js 16 + R3F/GSAP/Framer). 배포 백엔드 라이브 프록시(토큰 서버 보관·rate-limit), openapi-typescript 타입 동기화, 라이브 실패 시 씨드 폴백. v2 전략(정직-증거) + codex 리뷰 반영.
+
+## 2026-06-28 — ios, docs (검색 탭 — 상단 필터 카테고리로 통일 + 카테고리 scope 검색 + 검색바·스크롤 폴리시)
+- **왜**: 검색을 시작하면 상단 칩이 idle 의 종류·카테고리 → 결과의 Intent 5칩으로 통째로 바뀌어 단절감이 컸다(사용자 피드백). 카테고리를 단일 필터 축으로 통일하고, 고른 카테고리 안에서만 검색되게 해 "회수" 동선을 일관화.
+- **공용 필터 바 추출(`SearchFilterBar`)**: 종류 드롭다운 + 카테고리 칩을 idle/results/empty **3 phase 가 동일하게** 사용 → 검색 시작 시 상단이 바뀌지 않는다. 결과/빈결과의 `IntentFilterChipsRow`·`IntentChip`·`SearchD5.IntentColor` 제거(고아).
+- **카테고리·종류 = 검색 scope**: `updateSearch` 가 `state.items` 대신 `filteredItems`(종류 ∧ 카테고리)를 dataset 으로 검색 → 칩을 고른 채 검색하면 그 안에서만 결과. 결과 화면에서 칩 변경 시 query 있으면 즉시 재검색. 서버 의미 검색 보강분도 `semanticResultsLoaded` 에서 같은 scope 로 클라 필터. `SearchService.search` 시그니처에서 `intent` 제거(이제 dataset 이 이미 좁혀짐), `selectedIntent`/`intentChipTapped`/`scope(for:)` 삭제.
+- **검색바 폴리시**: 돋보기 22→18(텍스트 17 과 한 호흡, 포커스 시 잉크→퍼플), placeholder·필드 폰트 16/17 → **둘 다 17**(타이핑 시작 때 글자 리사이즈 튐 제거), 간격 13→10, X 버튼 광학 대칭(trailing -8), 바 높이 48→52·radius 24→26.
+- **스크롤 하이라이트 제거**: 그리드 카드의 `.scrollTransition`(스크롤 중 opacity 0.55·scale 0.96) 제거 — 어색한 깜빡임 해소(results·default 양쪽).
+- 검증: `tuist build FeatureSearch`/`Mochi` 성공, `tuist test FeatureSearch` green. UX_SPEC §3.5 동기화.
+
 ## 2026-06-25 — ios, docs (민감 마스킹 한계 5종 해소 — 백탭 AppIntent 경로 제거 + OCR 전처리 + NER/SCA 범위 근거화)
 - **왜**: "민감 캡처 마스킹" 평가에서 드러난 한계 5종을, 다음 평가에 한계로 잡히지 않도록 코드·문서 상태를 바꿔 해소.
 - **백탭 죽은 AppIntent 경로 삭제(#1)**: 백탭은 `Take Screenshot → 앱과 공유 → ShareExtension` 단일 경로로 이관 완료(2026-06-02)였고, 옛 snippet/AppIntent 직행 경로가 죽은 코드로 남아 "백탭 캡처가 선감지를 안 거침" 한계의 원인이었다. `CommitBackTapCaptureIntent`·`OpenBackTapMemoIntent`·`CaptureScreenshotIntent`·`BackTapSnippetView`·`BackTapVerifiedSnippetView`·`BackTapModalFeature`·`BackTapModalView` 삭제 + `MochiShortcuts`(CaptureScreenshot 등록 제거)·`RootFeature`(메모모달·checkPendingMemo·sweepStalePNGs 배선 제거)·`AppGroup`(pendingBackTap PNG/Memo filename 제거; verify 마커·디렉터리는 ShareExt 가 써 유지) 정리. **모든 이미지 캡처가 ShareExtension 선감지를 거치게 됨**. 온보딩 백탭 검증은 무손상.

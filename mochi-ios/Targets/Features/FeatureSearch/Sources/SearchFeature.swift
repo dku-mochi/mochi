@@ -21,8 +21,8 @@ public struct SearchFeature: Sendable {
         public var isFocused: Bool = false
         public var typeFilter: SearchD5.TypeFilter = .all
         /// 카테고리 필터(주간 리포트와 같은 정규화 category). nil = 전체 카테고리.
+        /// idle 그리드와 검색 결과 양쪽의 단일 필터 축 — 고른 채 검색하면 그 카테고리 안에서만 찾는다.
         public var selectedCategory: String?
-        public var selectedIntent: Intent?
         public var items: [MochiItem] = []
         public var results: [SearchResult] = []
         public var isSearching: Bool = false
@@ -82,8 +82,7 @@ public struct SearchFeature: Sendable {
         // 검색바 / 필터
         case searchBarFocused(Bool)
         case typeFilterTapped(SearchD5.TypeFilter)
-        case categoryTapped(String?)           // 카테고리 칩 (nil = 전체)
-        case intentChipTapped(Intent?)
+        case categoryTapped(String?)           // 카테고리 칩 (nil = 전체) — 그리드·검색 공용 단일 필터
 
         // 최근 검색 칩 row (포커스 + query 빈 상태에서 검색바 아래 한 줄)
         case recentSearchTapped(String)        // 최근 검색 칩
@@ -150,6 +149,11 @@ public struct SearchFeature: Sendable {
 
             case let .itemsLoaded(items):
                 state.items = items
+                // 고른 카테고리의 마지막 항목이 삭제/재분류되면 그 칩이 칩 행에서 사라진다 —
+                // selectedCategory 만 남으면 활성 칩 없이 그리드가 비는 혼란. 사라진 카테고리는 전체로 정규화.
+                if let c = state.selectedCategory, !state.availableCategories.contains(c) {
+                    state.selectedCategory = nil
+                }
                 // 검색 중이었다면 새 dataset 위에서 결과 재계산.
                 if !state.query.isEmpty {
                     return self.updateSearch(&state)
@@ -169,21 +173,18 @@ public struct SearchFeature: Sendable {
 
             case let .typeFilterTapped(filter):
                 state.typeFilter = filter
-                return .none
+                // 검색 중이면 새 종류 scope 안에서 즉시 결과 재계산.
+                return state.query.isEmpty ? .none : self.updateSearch(&state)
 
             case let .categoryTapped(category):
                 // 같은 칩 재탭 = 해제(전체). 타입과 독립(AND).
                 state.selectedCategory = (state.selectedCategory == category) ? nil : category
-                return .none
-
-            case let .intentChipTapped(intent):
-                state.selectedIntent = (state.selectedIntent == intent) ? nil : intent
-                return self.updateSearch(&state)
+                // 검색 중이면 고른 카테고리 안에서만 결과가 남도록 재계산.
+                return state.query.isEmpty ? .none : self.updateSearch(&state)
 
             case let .recentSearchTapped(term):
                 state.query = term
                 state.isFocused = false
-                state.selectedIntent = nil
                 Self.saveRecentSearch(term, into: &state)
                 return .merge(self.updateSearch(&state), self.semanticSearch(&state))
 
@@ -241,14 +242,12 @@ public struct SearchFeature: Sendable {
             case .retryAllTapped:
                 state.typeFilter = .all
                 state.selectedCategory = nil
-                state.selectedIntent = nil
                 return .merge(self.updateSearch(&state), self.semanticSearch(&state))
 
             case .clearFiltersTapped:
                 state.query = ""
                 state.typeFilter = .all
                 state.selectedCategory = nil
-                state.selectedIntent = nil
                 state.results = []
                 state.isSearching = false
                 state.isSemanticSearching = false
@@ -273,10 +272,14 @@ public struct SearchFeature: Sendable {
                     }
                 }
                 let existing = Set(state.results.map(\.item.id))
+                let typeFilter = state.typeFilter
+                let category = state.selectedCategory
                 let additions = response.citations
                     .sorted { $0.score > $1.score }
                     .compactMap { byServerID[$0.mochiItemID] }
                     .filter { !existing.contains($0.id) }
+                    // 의미 검색 보강분도 현재 종류 ∧ 카테고리 scope 를 지킨다 — 칩 밖 항목이 섞이지 않게.
+                    .filter { typeFilter.matches($0) && (category == nil || $0.analysis?.category == category) }
                 state.results.append(contentsOf: additions.map { SearchResult(item: $0, isSemantic: true) })
                 return .none
 
@@ -300,8 +303,8 @@ public struct SearchFeature: Sendable {
         }
         state.isSearching = true
         let query = state.query
-        let intent = state.selectedIntent
-        let dataset = state.items
+        // 검색 대상은 종류 ∧ 카테고리로 이미 좁힌 집합 — 고른 칩 안에서만 토큰 매칭한다.
+        let dataset = state.filteredItems
         // 디바운스 200ms — 빠른 타이핑 중 글자마다 dataset 캡처 + 검색 + results 통째 교체
         // (보이는 카드 전부 diff)가 돌면 키 입력이 버벅인다. 멈췄을 때 1회만.
         // cancelInFlight: 늦게 도착한 stale 결과가 최신을 덮지 않게.
@@ -310,11 +313,7 @@ public struct SearchFeature: Sendable {
             .run { [searchService, clock] send in
                 try? await clock.sleep(for: .milliseconds(200))
                 guard !Task.isCancelled else { return }
-                let results = await searchService.search(
-                    query: query,
-                    intent: intent,
-                    in: dataset
-                )
+                let results = await searchService.search(query: query, in: dataset)
                 await send(.resultsLoaded(results))
             }
             .cancellable(id: CancelID.search, cancelInFlight: true)
@@ -323,26 +322,18 @@ public struct SearchFeature: Sendable {
 
     /// 서버 의미 검색(RAG citations) — return 제출·최근 검색 탭에서만. 실패/오프라인은 조용히 무시
     /// (로컬 literal 결과가 이미 떠 있다).
+    ///
+    /// scope 는 항상 `.all` — 카테고리는 서버 검색 파라미터가 아니라 정규화 라벨이므로,
+    /// 보강분의 카테고리 필터는 `semanticResultsLoaded` 에서 클라이언트가 적용한다.
     private func semanticSearch(_ state: inout State) -> Effect<Action> {
         let query = state.query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !query.isEmpty else { return .none }
         state.isSemanticSearching = true
-        let scope = Self.scope(for: state.selectedIntent)
         return .run { [apiClient] send in
-            let response = try? await apiClient.search(query: query, scope: scope)
+            let response = try? await apiClient.search(query: query, scope: .all)
             await send(.semanticResultsLoaded(response))
         }
         .cancellable(id: CancelID.semantic, cancelInFlight: true)
-    }
-
-    private static func scope(for intent: Intent?) -> SearchScope {
-        switch intent {
-        case .schedule:  return .schedule
-        case .todo:      return .todo
-        case .knowledge: return .knowledge
-        case .memo:      return .memo
-        case nil:        return .all
-        }
     }
 
     // MARK: - 최근 검색어 (UserDefaults)
