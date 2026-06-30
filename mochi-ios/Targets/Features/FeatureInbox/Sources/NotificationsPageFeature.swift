@@ -95,7 +95,7 @@ public struct NotificationsPageFeature: Sendable {
 
             case let .sentLoaded(entries):
                 state.isLoading = false
-                state.sent = entries
+                state.sent = Self.sortedSent(entries)
                 return resolveMetas(itemIDs: entries.compactMap(\.itemID))
 
             case let .metaResolved(thumbnails, categories):
@@ -136,6 +136,8 @@ public struct NotificationsPageFeature: Sendable {
                         dismissedAt: e.dismissedAt, title: e.title, body: e.body,
                         itemID: e.itemID, intentID: e.intentID
                     )
+                    // 읽음 처리된 카드는 즉시 아래로 — 안읽음을 위로 모은다(애니메이션 트랜잭션 안에서 재정렬돼 슬라이드).
+                    state.sent = Self.sortedSent(state.sent)
                 }
                 return .merge(
                     .run { _ in try? await apiClient.recordRecallReaction(eventID: entry.eventID, reaction: .opened) },
@@ -145,6 +147,16 @@ public struct NotificationsPageFeature: Sendable {
             case .delegate:
                 return .none
             }
+        }
+    }
+
+    /// 받은 알림 정렬 — 안읽음이 위, 읽음(opened/dismissed)은 아래로. 각 그룹 내에선 최신(sent_at) 순.
+    static func sortedSent(_ entries: [SentNotificationDTO]) -> [SentNotificationDTO] {
+        entries.sorted { a, b in
+            let aUnread = a.openedAt == nil && a.dismissedAt == nil
+            let bUnread = b.openedAt == nil && b.dismissedAt == nil
+            if aUnread != bUnread { return aUnread }
+            return a.sentAt > b.sentAt
         }
     }
 

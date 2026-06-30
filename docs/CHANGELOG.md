@@ -10,6 +10,9 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-06-30 — ios (받은 알림 — 읽음 카드 자동 하단 정렬)
+- 받은 알림 탭에서 **읽음(opened/dismissed) 카드를 리스트 아래로** 자동 정렬(안읽음이 위). 탭해 읽음 되는 순간 dim + 재정렬이 같은 애니메이션 트랜잭션에서 일어나 아래로 슬라이드. `NotificationsPageFeature.sortedSent`(안읽음 먼저, 그룹 내 sent_at 최신순) — 로드·읽음 처리 시 적용. `tuist test` 62 통과.
+
 ## 2026-06-25 — ios, docs (민감 마스킹 한계 5종 해소 — 백탭 AppIntent 경로 제거 + OCR 전처리 + NER/SCA 범위 근거화)
 - **왜**: "민감 캡처 마스킹" 평가에서 드러난 한계 5종을, 다음 평가에 한계로 잡히지 않도록 코드·문서 상태를 바꿔 해소.
 - **백탭 죽은 AppIntent 경로 삭제(#1)**: 백탭은 `Take Screenshot → 앱과 공유 → ShareExtension` 단일 경로로 이관 완료(2026-06-02)였고, 옛 snippet/AppIntent 직행 경로가 죽은 코드로 남아 "백탭 캡처가 선감지를 안 거침" 한계의 원인이었다. `CommitBackTapCaptureIntent`·`OpenBackTapMemoIntent`·`CaptureScreenshotIntent`·`BackTapSnippetView`·`BackTapVerifiedSnippetView`·`BackTapModalFeature`·`BackTapModalView` 삭제 + `MochiShortcuts`(CaptureScreenshot 등록 제거)·`RootFeature`(메모모달·checkPendingMemo·sweepStalePNGs 배선 제거)·`AppGroup`(pendingBackTap PNG/Memo filename 제거; verify 마커·디렉터리는 ShareExt 가 써 유지) 정리. **모든 이미지 캡처가 ShareExtension 선감지를 거치게 됨**. 온보딩 백탭 검증은 무손상.
