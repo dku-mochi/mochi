@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { AnalysisWireEvent, AnalyzedItemWire } from "@/lib/api/wire";
 import { parseSseStream, toTagged } from "@/lib/sse/parse";
 
@@ -29,10 +29,16 @@ export function useLiveAnalysis(personaSlug: string) {
   const [stage, setStage] = useState<AnalysisStage>("idle");
   const [result, setResult] = useState<AnalyzedItemWire | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  // state 클로저보다 빠른 동기 가드 — 같은 프레임 중복 run 방지
+  const runningRef = useRef(false);
+
+  useEffect(() => () => abortRef.current?.abort(), []);
 
   const run = useCallback(
     async (input: { text?: string; url?: string; memo?: string }) => {
+      if (runningRef.current) return;
       if (stage !== "idle" && stage !== "done" && stage !== "failed") return;
+      runningRef.current = true;
       setResult(null);
       setStage("sending");
       const ac = new AbortController();
@@ -48,7 +54,9 @@ export function useLiveAnalysis(personaSlug: string) {
         if (!ingest.ok) throw new Error(`ingest_http_${ingest.status}`);
         const { id } = (await ingest.json()) as { id: string };
 
-        const stream = await fetch(`/api/bff/ingest/${encodeURIComponent(id)}/stream`, {
+        // 라이브 id 는 서버가 페르소나 계정 토큰으로 프록시 — persona 를 쿼리로 동봉
+        const q = `?p=${encodeURIComponent(personaSlug)}`;
+        const stream = await fetch(`/api/bff/ingest/${encodeURIComponent(id)}/stream${q}`, {
           signal: ac.signal,
         });
         if (!stream.ok || !stream.body) throw new Error(`stream_http_${stream.status}`);
@@ -67,7 +75,7 @@ export function useLiveAnalysis(personaSlug: string) {
         }
 
         // final 수신 → 본문 재조회 (iOS 와 같은 순서)
-        const item = await fetch(`/api/bff/items/${encodeURIComponent(id)}`, {
+        const item = await fetch(`/api/bff/items/${encodeURIComponent(id)}${q}`, {
           signal: ac.signal,
         });
         if (!item.ok) throw new Error(`item_http_${item.status}`);
@@ -76,6 +84,7 @@ export function useLiveAnalysis(personaSlug: string) {
       } catch (err) {
         if ((err as Error).name !== "AbortError") setStage("failed");
       } finally {
+        runningRef.current = false;
         abortRef.current = null;
       }
     },

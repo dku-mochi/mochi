@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ChatWireEvent, ProposalType } from "@/lib/api/wire";
 import { parseSseStream, toTagged } from "@/lib/sse/parse";
 import backendIds from "@seed/backend-ids.json";
@@ -79,6 +79,10 @@ export function useChatStream(personaSlug: string, knownSlugs: Set<string>) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [streaming, setStreaming] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+  // state 클로저보다 빠른 동기 가드 — 같은 프레임 중복 send 방지
+  const streamingRef = useRef(false);
+
+  useEffect(() => () => abortRef.current?.abort(), []);
 
   const patchLast = useCallback(
     (fn: (m: AssistantMessage) => AssistantMessage) => {
@@ -94,8 +98,9 @@ export function useChatStream(personaSlug: string, knownSlugs: Set<string>) {
   const send = useCallback(
     async (text: string) => {
       const trimmed = text.trim();
-      if (!trimmed || streaming) return;
+      if (!trimmed || streamingRef.current) return;
 
+      streamingRef.current = true;
       setStreaming(true);
       setMessages((prev) => [
         ...prev,
@@ -189,11 +194,12 @@ export function useChatStream(personaSlug: string, knownSlugs: Set<string>) {
           }));
         }
       } finally {
+        streamingRef.current = false;
         setStreaming(false);
         abortRef.current = null;
       }
     },
-    [personaSlug, streaming, patchLast, knownSlugs],
+    [personaSlug, patchLast, knownSlugs],
   );
 
   const setProposalStatus = useCallback(

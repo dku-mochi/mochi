@@ -156,7 +156,8 @@ export function searchFallback(
     return {
       answer: best.answer,
       citations: best.citationSlugs.map((slug, i) => ({
-        mochiItemID: slug,
+        mochiItemId: slug,
+        snippet: persona.items.find((it) => it.slug === slug)?.summary ?? "",
         score: 0.95 - i * 0.07,
       })),
     };
@@ -180,7 +181,7 @@ export function searchFallback(
       hits.length > 0
         ? `‘${query}’와 닿아 있는 기록 ${hits.length}건을 찾았어요.`
         : `‘${query}’로 남긴 기록을 찾지 못했어요. 다른 말로 다시 찾아볼까요?`,
-    citations: hits.map((h, i) => ({ mochiItemID: h.slug, score: 0.8 - i * 0.08 })),
+    citations: hits.map((h, i) => ({ mochiItemId: h.slug, snippet: "", score: 0.8 - i * 0.08 })),
   };
 }
 
@@ -197,8 +198,11 @@ export function encodeFallbackId(input: IngestInput): string {
   return `fb.${Buffer.from(json, "utf8").toString("base64url")}`;
 }
 
+// ingest 입력 상한(600+500+300자, 한글 3바이트) 기준 여유 상한 — 초과분은 위조 id
+const MAX_FALLBACK_ID_LENGTH = 8192;
+
 export function decodeFallbackId(id: string): IngestInput | null {
-  if (!id.startsWith("fb.")) return null;
+  if (!id.startsWith("fb.") || id.length > MAX_FALLBACK_ID_LENGTH) return null;
   try {
     return JSON.parse(Buffer.from(id.slice(3), "base64url").toString("utf8"));
   } catch {

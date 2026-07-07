@@ -1,18 +1,20 @@
 import { NextRequest } from "next/server";
 import { chatWireEvents } from "@/lib/bff/fallback";
+import { takeToken } from "@/lib/bff/ratelimit";
 import { sseResponse } from "@/lib/bff/sse";
+import { isUuid, openLiveChat, prepareUpstream } from "@/lib/bff/upstream";
 
 export const dynamic = "force-dynamic";
 
 /*
  * POST-as-SSE 채팅 — 백엔드 POST /conversations/{id}/messages 와 같은 wire.
- * P4: 폴백 재생. P5 에서 라이브 프록시 + 타임아웃 이어붙임이 앞단에 붙는다.
+ * 라이브 우선, 실패·타임아웃은 서버가 폴백 이벤트를 이어붙여 완결 (클라는 모드를 모른다).
  */
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ conversationId: string }> },
 ) {
-  await params; // conversationId 는 클라 생성 — 폴백에서는 미사용
+  const { conversationId } = await params;
   let body: { text?: string; persona?: string };
   try {
     body = await req.json();
@@ -25,5 +27,17 @@ export async function POST(
     return Response.json({ error: "empty_text" }, { status: 422 });
   }
 
-  return sseResponse(chatWireEvents(persona, text), { mode: "fallback" });
+  // uuid allowlist — 클라 입력이 upstream URL path 에 실리므로 경로 주입 차단
+  const up = isUuid(conversationId) ? await prepareUpstream(persona) : null;
+  if (up && takeToken("chat")) {
+    const live = await openLiveChat({
+      ...up,
+      conversationId,
+      personaSlug: persona,
+      text,
+      signal: req.signal,
+    });
+    if (live) return sseResponse(live, { mode: "live", signal: req.signal });
+  }
+  return sseResponse(chatWireEvents(persona, text), { mode: "fallback", signal: req.signal });
 }

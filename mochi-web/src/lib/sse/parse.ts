@@ -17,6 +17,16 @@ export async function* parseSseStream(
   const decoder = new TextDecoder();
   let buffer = "";
 
+  // abort 가 pending read() 중에 와도 reader.cancel() 로 즉시 깨운다
+  const onAbort = () => {
+    void reader.cancel().catch(() => {});
+  };
+  if (signal?.aborted) {
+    onAbort();
+    return;
+  }
+  signal?.addEventListener("abort", onAbort, { once: true });
+
   try {
     while (true) {
       if (signal?.aborted) return;
@@ -36,6 +46,7 @@ export async function* parseSseStream(
     const tail = parseEventBlock(buffer);
     if (tail) yield tail;
   } finally {
+    signal?.removeEventListener("abort", onAbort);
     reader.releaseLock();
   }
 }

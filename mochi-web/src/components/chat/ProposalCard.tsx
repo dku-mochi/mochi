@@ -85,12 +85,14 @@ export function ProposalCard({
             >
               <button
                 onClick={onCancel}
+                aria-label={`${meta.label} 취소: ${payloadSummary(proposal)}`}
                 className="h-9 rounded-full border border-ink-100 bg-surface px-3.5 text-[12.5px] font-semibold text-ink-500"
               >
                 다음에
               </button>
               <button
                 onClick={onConfirm}
+                aria-label={`${meta.label} 확정: ${payloadSummary(proposal)}`}
                 className={cn(
                   "h-9 rounded-full px-4 text-[12.5px] font-bold text-white transition-transform active:scale-[0.97]",
                   meta.danger

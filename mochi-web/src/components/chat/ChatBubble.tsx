@@ -66,7 +66,9 @@ function AssistantBubble({
         {waiting &&
           (runningTool ? <ToolStatusPill label={runningTool.label} /> : <TypingDots />)}
 
-        {m.text.length > 0 && <ChatMarkup text={m.text} />}
+        {m.text.length > 0 && (
+          <ChatMarkup text={m.text} citations={m.citations} streaming={m.streaming} />
+        )}
 
         {m.streaming && m.text.length > 0 && (
           <span className="inline-block h-4 w-[3px] animate-pulse rounded-full bg-purple-400" aria-hidden />

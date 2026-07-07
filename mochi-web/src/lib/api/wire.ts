@@ -39,10 +39,10 @@ export type AnalysisWireEvent =
   | { kind: "final"; lifecycle_kind: string }
   | { kind: "failed"; message: string };
 
-/** POST /search 응답 (필요 필드만) */
+/** POST /search 응답 (필요 필드만 — CitationDTO 는 mochiItemId 케이싱) */
 export interface SearchWireResponse {
   answer: string;
-  citations: Array<{ mochiItemID: string; score: number }>;
+  citations: Array<{ mochiItemId: string; snippet?: string; score: number }>;
 }
 
 /** 폴백/라이브 공용 — 분석 완료 후 조회되는 아이템 요약 */
