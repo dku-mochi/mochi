@@ -1,4 +1,5 @@
 import type { SeedPersona } from "../schema";
+import { dohyunChat, dohyunSearch } from "../canned/dohyun";
 
 /*
  * 박도현 — 29, 3년차 백엔드 개발자.
@@ -457,8 +458,8 @@ const dohyun: SeedPersona = {
       gist: ["발표 목차 초안 마감이 다가와요", "재료 3건이 이미 모여 있어요"],
     },
   ],
-  cannedChat: [],
-  cannedSearch: [],
+  cannedChat: dohyunChat,
+  cannedSearch: dohyunSearch,
 };
 
 export default dohyun;

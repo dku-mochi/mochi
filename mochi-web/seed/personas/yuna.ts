@@ -1,4 +1,5 @@
 import type { SeedPersona } from "../schema";
+import { yunaChat, yunaSearch } from "../canned/yuna";
 
 /*
  * 이유나 — 26, 콘텐츠 마케터.
@@ -396,8 +397,8 @@ const yuna: SeedPersona = {
       gist: ["2차 예매 7/10(금) 14:00", "주말 회차 조기 매진 예상"],
     },
   ],
-  cannedChat: [],
-  cannedSearch: [],
+  cannedChat: yunaChat,
+  cannedSearch: yunaSearch,
 };
 
 export default yuna;

@@ -1,4 +1,5 @@
 import type { SeedPersona } from "../schema";
+import { senaChat, senaSearch } from "../canned/sena";
 
 /*
  * 김세나 — 23, 컴퓨터공학 4학년.
@@ -507,8 +508,8 @@ const sena: SeedPersona = {
       gist: ["최종 산출물 7/15 마감", "모델 성능 정리가 남아 있어요"],
     },
   ],
-  cannedChat: [],
-  cannedSearch: [],
+  cannedChat: senaChat,
+  cannedSearch: senaSearch,
 };
 
 export default sena;
