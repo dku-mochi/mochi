@@ -26,6 +26,8 @@ const STATIC_FRAGMENTS = [
 export function LandingHero() {
   const reduce = useReducedMotion();
   const [webgl, setWebgl] = useState<boolean | null>(null);
+  const [heroInView, setHeroInView] = useState(true);
+  const sectionRef = useRef<HTMLElement>(null);
   const gatherTarget = useRef(0);
   const pointer = useRef({ x: 0, y: 0 });
 
@@ -39,7 +41,11 @@ export function LandingHero() {
     }
   }, []);
 
+  const canvasOn = webgl === true && !reduce;
+
+  // 패럴랙스 포인터 수집 — 캔버스가 살아있을 때만 (폴백에선 전역 리스너 불필요)
   useEffect(() => {
+    if (!canvasOn) return;
     const onMove = (e: PointerEvent) => {
       pointer.current = {
         x: (e.clientX / window.innerWidth) * 2 - 1,
@@ -48,12 +54,21 @@ export function LandingHero() {
     };
     window.addEventListener("pointermove", onMove, { passive: true });
     return () => window.removeEventListener("pointermove", onMove);
-  }, []);
+  }, [canvasOn]);
 
-  const canvasOn = webgl === true && !reduce;
+  // 히어로가 화면 밖이면 프레임 루프 정지 — 아래 섹션을 읽는 동안 GPU 를 태우지 않는다
+  useEffect(() => {
+    if (!canvasOn || !sectionRef.current) return;
+    const io = new IntersectionObserver(
+      ([entry]) => setHeroInView(entry.isIntersecting),
+      { threshold: 0.05 },
+    );
+    io.observe(sectionRef.current);
+    return () => io.disconnect();
+  }, [canvasOn]);
 
   return (
-    <section className="relative flex min-h-dvh flex-col overflow-hidden">
+    <section ref={sectionRef} className="relative flex min-h-dvh flex-col overflow-hidden">
       {/* 배경 — 라벤더 안개 + 브랜드 글로우 */}
       <div
         className="absolute inset-0 bg-gradient-to-b from-lavender-200 via-lavender-300 to-bg"
@@ -75,7 +90,11 @@ export function LandingHero() {
           animate={{ opacity: 1 }}
           transition={{ duration: 1.1, ease: "easeOut" }}
         >
-          <LandingCanvas gatherTargetRef={gatherTarget} pointerRef={pointer} />
+          <LandingCanvas
+            gatherTargetRef={gatherTarget}
+            pointerRef={pointer}
+            paused={!heroInView}
+          />
         </motion.div>
       ) : (
         webgl !== null && (

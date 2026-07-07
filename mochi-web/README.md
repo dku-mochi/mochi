@@ -88,7 +88,8 @@ npm run seed:backend -- --smoke   # 채팅 1턴 스모크까지
 # 2) (사람) mochi-backend scripts/backfill_embeddings.py 실행 — 검색 인덱싱
 ```
 
-- Idempotency-Key `{persona}:{slug}:v1` — 재실행 안전(중복 생성 없음).
+- Idempotency-Key `{persona}:{slug}:{내용해시8}` — 재실행 멱등 + 시드 내용이 바뀌면 새 아이템(무음 stale 방지).
+  내용 변경 재시딩 시 구 아이템은 백엔드에 남으니 수동 정리. 매핑 파일은 전량 성공 시에만 기록된다.
 - `MochiItemCreateRequest` 에 `capturedAt` 이 없다 → **시간축(며칠 전·D-day)은 웹 시드 단독 소유**.
   시드는 전부 상대값(`capturedDaysAgo`/`dateInDays`/`deadlineInDays`)이고 절대화는 렌더/시딩 시점에만.
 

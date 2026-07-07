@@ -162,6 +162,7 @@ function PersonaCard({ card, index }: { card: PersonaCardData; index: number }) 
           <BorderBeam
             colorVariant="ocean"
             theme="light"
+	        size="pulse-outside"
             borderRadius={20}
             brightness={1.6}
             className="h-full"

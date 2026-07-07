@@ -1,7 +1,7 @@
 "use client";
 
  
-import { Suspense, useRef } from "react";
+import { Component, Suspense, useRef, type ReactNode } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Image as DreiImage, RoundedBox } from "@react-three/drei";
 import * as THREE from "three";
@@ -130,9 +130,22 @@ interface FieldProps {
   gatherTargetRef: React.RefObject<number>;
   /** 정규화 포인터(-1~1) — canvas 는 pointer-events:none 이라 window 에서 수집 */
   pointerRef: React.RefObject<{ x: number; y: number }>;
+  /** 히어로가 화면 밖일 때 프레임 루프 정지 */
+  paused?: boolean;
 }
 
-function FieldScene({ gatherTargetRef, pointerRef }: FieldProps) {
+/** 텍스처 로딩 실패가 Canvas 전체를 깨지 않게 — 파편은 장식이라 조용히 생략 */
+class FragmentBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  render() {
+    return this.state.failed ? null : this.props.children;
+  }
+}
+
+function FieldScene({ gatherTargetRef, pointerRef }: Omit<FieldProps, "paused">) {
   const rig = useRef<THREE.Group>(null);
   const gather = useRef(0);
 
@@ -153,29 +166,32 @@ function FieldScene({ gatherTargetRef, pointerRef }: FieldProps) {
       <ambientLight intensity={1.05} />
       <directionalLight position={[4, 6, 6]} intensity={1.1} />
       <directionalLight position={[-6, -3, 4]} intensity={0.4} color="#B49AFF" />
-      <Suspense fallback={null}>
-        <group ref={rig}>
-          {SLOTS.map((slot, i) => (
-            <FragmentCard
-              key={i}
-              slot={slot}
-              url={FRAGMENT_IMAGES[i % FRAGMENT_IMAGES.length]}
-              index={i}
-              gatherRef={gather}
-            />
-          ))}
-        </group>
-      </Suspense>
+      <FragmentBoundary>
+        <Suspense fallback={null}>
+          <group ref={rig}>
+            {SLOTS.map((slot, i) => (
+              <FragmentCard
+                key={i}
+                slot={slot}
+                url={FRAGMENT_IMAGES[i % FRAGMENT_IMAGES.length]}
+                index={i}
+                gatherRef={gather}
+              />
+            ))}
+          </group>
+        </Suspense>
+      </FragmentBoundary>
     </>
   );
 }
 
-export default function LandingCanvas(props: FieldProps) {
+export default function LandingCanvas({ paused, ...props }: FieldProps) {
   return (
     <Canvas
       gl={{ alpha: true, antialias: true }}
       dpr={[1, 1.5]}
       camera={{ fov: 42, position: [0, 0, 8] }}
+      frameloop={paused ? "never" : "always"}
       style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
       aria-hidden
     >

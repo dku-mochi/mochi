@@ -114,7 +114,7 @@ export function ChatScene({ initialQuery }: { initialQuery?: string }) {
             ))}
           </div>
         )}
-        <BorderBeam size="md" colorVariant="ocean" theme="light" borderRadius={22}>
+        <BorderBeam size="pulse-outside" colorVariant="ocean" theme="light" borderRadius={22}>
         <form
           onSubmit={(e) => {
             e.preventDefault();

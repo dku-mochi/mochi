@@ -406,10 +406,15 @@ function mapLiveItem(item: LiveItemResponse): AnalyzedItemWire {
     // 분석이 아직/실패 — 기록 자체는 남았다는 정직한 최소 표현
     intents.push({ intentType: "memo", label: title });
   }
+  // 분석 실패를 성공처럼 꾸미지 않는다 — 기록은 남았다는 사실만 정직하게
+  const fallbackSummary =
+    item.lifecycleKind === "failed"
+      ? "이번엔 정리에 실패했어요 — 기록 자체는 안전하게 남아 있어요."
+      : "맥락 그대로 기록해뒀어요. 정리가 끝나면 더 또렷해져요.";
   return {
     id: item.id,
     title,
-    summary: item.summary?.trim() || "맥락 그대로 기록해뒀어요. 정리가 끝나면 더 또렷해져요.",
+    summary: item.summary?.trim() || fallbackSummary,
     category: item.category?.trim() || "새 기록",
     intents,
   };

@@ -63,7 +63,8 @@ function CoverCard({
 
   return (
     <group ref={group}>
-      <RoundedBox args={[CARD_W + 0.1, CARD_H + 0.1, 0.05]} radius={0.05} smoothness={3}>
+      {/* 백킹 = 카드 두께 표현 — 이미지보다 살짝만 크게 (두꺼우면 액자처럼 투박해진다) */}
+      <RoundedBox args={[CARD_W + 0.024, CARD_H + 0.024, 0.035]} radius={0.055} smoothness={3}>
         <meshStandardMaterial
           ref={backingMat}
           color="#ffffff"

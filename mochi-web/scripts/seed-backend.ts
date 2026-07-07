@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { SignJWT } from "jose";
@@ -19,7 +20,9 @@ import yunaRaw from "../seed/personas/yuna";
  *
  * 규약:
  * - `confirmedInstances` 지정 → LLM 분석 우회, 결정론 시딩 (openapi MochiItemCreateRequest).
- * - Idempotency-Key `{persona}:{slug}:v1` — 재실행해도 중복 생성 없음.
+ * - Idempotency-Key `{persona}:{slug}:{내용해시8}` — 재실행 멱등 + 시드 내용이 바뀌면
+ *   키가 갈려 새 아이템이 생긴다(무음 stale 방지). 내용 변경 재시딩 시 구 아이템은
+ *   백엔드에 남으므로 리포트의 안내에 따라 정리한다.
  * - capturedAt 은 계약에 없다 — 시간축(며칠 전·D-day)은 웹 시드 단독 소유.
  *   payload 의 date/deadline 만 실행 시점 KST 기준으로 절대화해 보낸다.
  */
@@ -34,12 +37,19 @@ function loadEnvLocal() {
   const path = join(process.cwd(), ".env.local");
   if (!existsSync(path)) return;
   for (const line of readFileSync(path, "utf8").split("\n")) {
-    const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
+    const m = line.match(/^\s*(?:export\s+)?([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
     if (!m) continue;
-    const [, key, raw] = m;
-    if (process.env[key] === undefined) {
-      process.env[key] = raw.replace(/^["']|["']$/g, "");
+    const [, key, rawValue] = m;
+    if (process.env[key] !== undefined) continue;
+    let value = rawValue.trim();
+    if (/^".*"$/.test(value) || /^'.*'$/.test(value)) {
+      // 따옴표 값 — 내부 # 보존
+      value = value.slice(1, -1);
+    } else {
+      // 비따옴표 값 — 인라인 주석 제거 (# 가 값에 필요하면 따옴표로 감쌀 것)
+      value = value.replace(/\s+#.*$/, "").trim();
     }
+    process.env[key] = value;
   }
 }
 loadEnvLocal();
@@ -127,13 +137,15 @@ async function seedPersona(
       summary: item.summary,
       confirmedInstances: item.instances.map(toConfirmedInstance),
     };
+    // 내용 해시를 키에 포함 — 시드가 바뀌었는데 구 아이템을 조용히 재사용하지 않게
+    const contentHash = createHash("sha256").update(JSON.stringify(body)).digest("hex").slice(0, 8);
     try {
       const res = await fetch(`${base}/mochi_items`, {
         method: "POST",
         headers: {
           authorization: `Bearer ${token}`,
           "content-type": "application/json",
-          "Idempotency-Key": `${persona.slug}:${item.slug}:v1`,
+          "Idempotency-Key": `${persona.slug}:${item.slug}:${contentHash}`,
         },
         body: JSON.stringify(body),
         signal: AbortSignal.timeout(20_000),
@@ -226,15 +238,22 @@ async function main() {
     process.exit(1);
   }
 
-  const sorted = Object.fromEntries(Object.entries(idMap).sort(([, a], [, b]) => a.localeCompare(b)));
-  writeFileSync(idMapPath, `${JSON.stringify(sorted, null, 2)}\n`);
-  console.log(`\nbackend-ids.json 갱신 — 매핑 ${Object.keys(sorted).length}건 (커밋 대상)`);
-
   console.log("\n리포트:");
   for (const r of reports) {
     console.log(`  ${r.persona}: 생성 ${r.created} · 멱등재사용 ${r.reused} · 실패 ${r.failed.length}`);
     r.failed.forEach((f) => console.log(`    ✗ ${f}`));
   }
+
+  const failedTotal = reports.reduce((n, r) => n + r.failed.length, 0);
+  if (failedTotal > 0) {
+    // 부분 성공 매핑이 커밋되지 않게 — 전량 성공일 때만 기록
+    console.error(`\n✗ 실패 ${failedTotal}건 — backend-ids.json 미갱신. 위 로그 확인 후 재실행(멱등).`);
+    process.exit(1);
+  }
+
+  const sorted = Object.fromEntries(Object.entries(idMap).sort(([, a], [, b]) => a.localeCompare(b)));
+  writeFileSync(idMapPath, `${JSON.stringify(sorted, null, 2)}\n`);
+  console.log(`\nbackend-ids.json 갱신 — 매핑 ${Object.keys(sorted).length}건 (커밋 대상)`);
 
   console.log("\n스모크:");
   for (const persona of personas) {
@@ -242,11 +261,6 @@ async function main() {
     if (uuid) await smoke(base, persona, uuid, chatToo);
   }
 
-  const failedTotal = reports.reduce((n, r) => n + r.failed.length, 0);
-  if (failedTotal > 0) {
-    console.error(`\n✗ 실패 ${failedTotal}건 — 위 로그 확인`);
-    process.exit(1);
-  }
   console.log("\n✓ 시딩 완료. 다음: (사람) backfill_embeddings.py 실행 → backend-ids.json 커밋");
 }
 

@@ -65,8 +65,15 @@ export function JourneyRail() {
       if (e.key !== "ArrowRight" || e.metaKey || e.ctrlKey || e.altKey) return;
       const t = e.target as HTMLElement | null;
       if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
-      // 코버플로우 등 씬 내부 ←→ 소비 영역이면 건드리지 않는다
-      if (t && t.closest("[data-owns-arrows]")) return;
+      // 화살표를 자체 소비하는 위젯(코버플로우·셀렉트·슬라이더류)이면 양보
+      if (
+        t &&
+        t.closest(
+          "[data-owns-arrows], select, [role='slider'], [role='radiogroup'], [role='tablist'], [role='listbox'], [role='menu']",
+        )
+      )
+        return;
+      e.preventDefault(); // 수평 스크롤 등 기본 동작과의 중복 방지
       router.push(nextHref);
     };
     window.addEventListener("keydown", onKey);
