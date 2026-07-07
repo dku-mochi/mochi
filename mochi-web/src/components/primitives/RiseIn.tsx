@@ -9,19 +9,26 @@ import type { ReactNode } from "react";
  */
 export function RiseIn({
   index = 0,
+  inView = false,
   children,
   className,
 }: {
   index?: number;
+  /** true 면 마운트가 아니라 뷰포트 진입 시 1회 재생 (스크롤 아래 섹션용) */
+  inView?: boolean;
   children: ReactNode;
   className?: string;
 }) {
   const reduce = useReducedMotion();
+  const hidden = reduce ? { opacity: 0 } : { opacity: 0, y: 16 };
+  const shown = reduce ? { opacity: 1 } : { opacity: 1, y: 0 };
   return (
     <motion.div
       className={className}
-      initial={reduce ? { opacity: 0 } : { opacity: 0, y: 16 }}
-      animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0 }}
+      initial={hidden}
+      {...(inView
+        ? { whileInView: shown, viewport: { once: true, amount: 0.25 } }
+        : { animate: shown })}
       transition={{
         type: "spring",
         duration: 0.5,

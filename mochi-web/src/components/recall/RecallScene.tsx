@@ -128,6 +128,7 @@ export function RecallScene() {
           <div
             className="relative min-h-0 flex-1 cursor-grab touch-pan-y select-none active:cursor-grabbing"
             role="group"
+            data-owns-arrows
             aria-roledescription="캐러셀"
             aria-label={`떠오른 기록 ${deckItems.length}개 중 ${focal + 1}번째: ${deckItems[focal].title}`}
             tabIndex={0}

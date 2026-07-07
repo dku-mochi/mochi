@@ -108,3 +108,22 @@
 @utility tracking-head {
   letter-spacing: -0.03em;
 }
+
+/* S7 피날레 — MochiWalk 25프레임 스프라이트 (public/walk/sheet.png, 프레임 125×138 표시) */
+.mochi-walk {
+  width: 125px;
+  height: 138px;
+  background-image: url("/walk/sheet.png");
+  background-size: 3125px 138px;
+  animation: mochi-walk-cycle 1.15s steps(25) infinite;
+}
+@keyframes mochi-walk-cycle {
+  to {
+    background-position-x: -3125px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mochi-walk {
+    animation: none;
+  }
+}

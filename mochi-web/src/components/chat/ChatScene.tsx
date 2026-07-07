@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowUp } from "lucide-react";
+import { BorderBeam } from "border-beam";
 import { usePersona } from "@/components/journey/PersonaProvider";
 import { useChatStream } from "@/lib/hooks/useChatStream";
 import { RiseIn } from "@/components/primitives/RiseIn";
@@ -113,6 +114,7 @@ export function ChatScene({ initialQuery }: { initialQuery?: string }) {
             ))}
           </div>
         )}
+        <BorderBeam size="md" colorVariant="ocean" theme="light" borderRadius={22}>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -142,6 +144,7 @@ export function ChatScene({ initialQuery }: { initialQuery?: string }) {
             <ArrowUp className="size-4.5" strokeWidth={2.6} aria-hidden />
           </button>
         </form>
+        </BorderBeam>
       </div>
     </main>
   );

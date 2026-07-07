@@ -1,5 +1,7 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getPersona } from "@seed/index";
+import { JourneyRail } from "@/components/journey/JourneyRail";
 import { PersonaProvider } from "@/components/journey/PersonaProvider";
 import { SceneNav } from "@/components/journey/SceneNav";
 
@@ -25,6 +27,10 @@ export default async function PersonaLayout({
     <PersonaProvider persona={persona} now={now}>
       <SceneNav />
       {children}
+      {/* useSearchParams(guided 판독)는 Suspense 경계 요구 — 레일은 CSR 전용 */}
+      <Suspense fallback={null}>
+        <JourneyRail />
+      </Suspense>
     </PersonaProvider>
   );
 }
