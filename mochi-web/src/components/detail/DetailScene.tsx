@@ -10,6 +10,7 @@ import {
   relativeLabel,
   koreanDate,
   dday,
+  kstParts,
   type ResolvedItem,
 } from "@/lib/seedRuntime";
 import { RiseIn } from "@/components/primitives/RiseIn";
@@ -207,15 +208,15 @@ function ActionNow({ item }: { item: ResolvedItem }) {
       );
     }
     if (inst.intentType === "schedule" && inst.dueAt !== undefined) {
-      const date = new Date(inst.dueAt);
+      const date = kstParts(inst.dueAt);
       rows.push(
         <div key={`sch-${idx}`} className="flex items-center gap-3.5 rounded-2xl p-3">
           <span className="flex size-12 flex-none flex-col items-center justify-center rounded-xl bg-sky-100 leading-none">
             <span className="text-[10px] font-bold text-[#1D5FB8]">
-              {date.getMonth() + 1}월
+              {date.month}월
             </span>
             <span className="mt-0.5 text-[17px] font-extrabold text-[#1D5FB8] tnum">
-              {date.getDate()}
+              {date.day}
             </span>
           </span>
           <span className="min-w-0 flex-1">

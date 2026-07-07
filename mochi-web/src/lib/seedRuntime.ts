@@ -11,6 +11,31 @@ import type {
  */
 
 const DAY = 86_400_000;
+const KST_OFFSET = 9 * 3_600_000;
+
+/*
+ * 모든 달력 계산은 Asia/Seoul 고정 — Vercel(UTC) SSR 과 심사위원 브라우저(KST)가
+ * 같은 날짜를 보게 한다 (타임존 의존 시 하이드레이션 불일치·하루 밀림).
+ * 구현: epoch 을 +9h 시프트한 뒤 getUTC* 로 읽는다.
+ */
+export interface KstParts {
+  year: number;
+  month: number; // 1-12
+  day: number;
+  weekday: number; // 0=일
+  hours: number;
+}
+
+export function kstParts(ts: number): KstParts {
+  const d = new Date(ts + KST_OFFSET);
+  return {
+    year: d.getUTCFullYear(),
+    month: d.getUTCMonth() + 1,
+    day: d.getUTCDate(),
+    weekday: d.getUTCDay(),
+    hours: d.getUTCHours(),
+  };
+}
 
 export interface ResolvedInstance extends SeedInstance {
   /** schedule 시작일 or todo 마감일 (자정 기준) */
@@ -27,10 +52,11 @@ export interface ResolvedItem
 
 const INTENT_PRIORITY: IntentType[] = ["schedule", "todo", "knowledge", "memo"];
 
+/** KST 자정의 epoch */
 function midnight(now: number): number {
-  const d = new Date(now);
-  d.setHours(0, 0, 0, 0);
-  return d.getTime();
+  const shifted = new Date(now + KST_OFFSET);
+  shifted.setUTCHours(0, 0, 0, 0);
+  return shifted.getTime() - KST_OFFSET;
 }
 
 export function resolveItems(persona: SeedPersona, now: number): ResolvedItem[] {
@@ -110,9 +136,9 @@ export function calendarMap(
 ): Map<number, CalendarDay> {
   const map = new Map<number, CalendarDay>();
   const at = (ts: number) => {
-    const d = new Date(ts);
-    if (d.getFullYear() !== year || d.getMonth() + 1 !== month) return null;
-    return d.getDate();
+    const p = kstParts(ts);
+    if (p.year !== year || p.month !== month) return null;
+    return p.day;
   };
   const bump = (day: number | null, key: keyof CalendarDay) => {
     if (day === null) return;
@@ -142,10 +168,10 @@ export function categories(items: ResolvedItem[]): Array<{ name: string; count: 
 
 /** 이번 달 리포트 — intent 별 저장 수 */
 export function monthlyReport(items: ResolvedItem[], now: number) {
-  const d = new Date(now);
+  const p = kstParts(now);
   const monthItems = items.filter((i) => {
-    const c = new Date(i.capturedAt);
-    return c.getFullYear() === d.getFullYear() && c.getMonth() === d.getMonth();
+    const c = kstParts(i.capturedAt);
+    return c.year === p.year && c.month === p.month;
   });
   const byIntent = { schedule: 0, todo: 0, knowledge: 0, memo: 0 } as Record<IntentType, number>;
   for (const it of monthItems) byIntent[it.primaryIntent] += 1;
@@ -168,9 +194,9 @@ export function relativeLabel(ts: number, now: number): string {
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
 export function koreanDate(ts: number, withWeekday = true): string {
-  const d = new Date(ts);
-  const base = `${d.getMonth() + 1}월 ${d.getDate()}일`;
-  return withWeekday ? `${base} (${WEEKDAYS[d.getDay()]})` : base;
+  const p = kstParts(ts);
+  const base = `${p.month}월 ${p.day}일`;
+  return withWeekday ? `${base} (${WEEKDAYS[p.weekday]})` : base;
 }
 
 export function dday(ts: number, now: number): string {

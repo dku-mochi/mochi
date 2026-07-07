@@ -7,10 +7,11 @@ import {
   relativeLabel,
   dday,
   monthlyReport,
+  kstParts,
 } from "./seedRuntime";
 
-/* 2026-07-07 (화) 15:00 KST 고정 */
-const NOW = new Date(2026, 6, 7, 15, 0, 0).getTime();
+/* 2026-07-07 (화) 15:00 KST 고정 — 러너 타임존과 무관하게 UTC 로 구성 */
+const NOW = Date.UTC(2026, 6, 7, 6, 0, 0);
 const DAY = 86_400_000;
 
 const persona = {
@@ -67,11 +68,11 @@ describe("resolveItems", () => {
     expect(items.find((i) => i.slug === "c")!.primaryIntent).toBe("knowledge");
   });
 
-  it("상대 마감이 자정 기준 절대 시각으로 풀린다", () => {
+  it("상대 마감이 KST 자정 기준 절대 시각으로 풀린다", () => {
     const a = items.find((i) => i.slug === "a")!;
     const due = a.instances.find((x) => x.intentType === "todo")!.dueAt!;
-    const d = new Date(due);
-    expect([d.getMonth() + 1, d.getDate(), d.getHours()]).toEqual([7, 12, 0]);
+    const p = kstParts(due);
+    expect([p.month, p.day, p.hours]).toEqual([7, 12, 0]);
   });
 });
 

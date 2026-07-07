@@ -61,9 +61,10 @@ export function RecallScene() {
 
   useEffect(() => {
     if (phase !== "interstitial") return;
-    const t = setTimeout(() => setPhase("stage"), 2200);
+    // reduce-motion 사용자는 비필수 시간 연출을 건너뛴다
+    const t = setTimeout(() => setPhase("stage"), reduce ? 0 : 2200);
     return () => clearTimeout(t);
-  }, [phase]);
+  }, [phase, reduce]);
 
   const goTo = useCallback(
     (index: number) => {
@@ -222,12 +223,11 @@ export function RecallScene() {
               </motion.div>
             </AnimatePresence>
 
-            <div className="mt-5 flex items-center justify-center gap-2" role="tablist" aria-label="떠오른 기록 선택">
+            <div className="mt-5 flex items-center justify-center gap-2" role="group" aria-label="떠오른 기록 선택">
               {deckItems.map((it, i) => (
                 <button
                   key={it.slug}
-                  role="tab"
-                  aria-selected={i === focal}
+                  aria-current={i === focal ? "true" : undefined}
                   aria-label={`${i + 1}번째: ${it.title}`}
                   onClick={() => goTo(i)}
                   className={cn(

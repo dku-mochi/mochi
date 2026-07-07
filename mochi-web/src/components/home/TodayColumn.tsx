@@ -11,6 +11,7 @@ import {
   upcomingSchedules,
   dday,
   koreanDate,
+  kstParts,
 } from "@/lib/seedRuntime";
 import { cn } from "@/lib/cn";
 
@@ -117,14 +118,11 @@ function TodoCard() {
 /** 캘린더 점 3종 — sky=일정 · butter=마감 · purple=저장 (iOS 규약) */
 function CalendarCard() {
   const { items, now } = usePersona();
-  const d = new Date(now);
-  const year = d.getFullYear();
-  const month = d.getMonth() + 1;
-  const today = d.getDate();
+  const { year, month, day: today } = kstParts(now);
   const map = calendarMap(items, year, month);
 
-  const first = new Date(year, month - 1, 1).getDay();
-  const daysInMonth = new Date(year, month, 0).getDate();
+  const first = new Date(Date.UTC(year, month - 1, 1)).getUTCDay();
+  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
   const cells: Array<number | null> = [
     ...Array.from({ length: first }, () => null),
     ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
@@ -144,8 +142,21 @@ function CalendarCard() {
         ))}
         {cells.map((day, i) => {
           const dots = day ? map.get(day) : undefined;
+          const summary = dots
+            ? [
+                dots.schedule > 0 ? `일정 ${dots.schedule}개` : null,
+                dots.deadline > 0 ? `마감 ${dots.deadline}개` : null,
+                dots.saved > 0 ? `저장 ${dots.saved}개` : null,
+              ]
+                .filter(Boolean)
+                .join(", ")
+            : "";
           return (
-            <div key={i} className="flex h-9 flex-col items-center justify-start pt-1">
+            <div
+              key={i}
+              className="flex h-9 flex-col items-center justify-start pt-1"
+              aria-label={day ? `${month}월 ${day}일${summary ? ` — ${summary}` : ""}` : undefined}
+            >
               {day && (
                 <>
                   <span
@@ -202,7 +213,7 @@ function UpcomingCard() {
       <h2 className="text-[17px] font-extrabold tracking-snug">다가오는 일정</h2>
       <ul className="mt-3 space-y-2.5">
         {upcoming.map(({ item, inst }, i) => {
-          const date = new Date(inst.dueAt!);
+          const date = kstParts(inst.dueAt!);
           return (
             <li key={`${item.slug}-${i}`}>
               <Link
@@ -211,10 +222,10 @@ function UpcomingCard() {
               >
                 <span className="flex size-11 flex-none flex-col items-center justify-center rounded-xl bg-sky-100 leading-none">
                   <span className="text-[9.5px] font-bold text-[#1D5FB8]">
-                    {date.getMonth() + 1}월
+                    {date.month}월
                   </span>
                   <span className="mt-0.5 text-[16px] font-extrabold text-[#1D5FB8] tnum">
-                    {date.getDate()}
+                    {date.day}
                   </span>
                 </span>
                 <span className="min-w-0">
