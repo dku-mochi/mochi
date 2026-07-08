@@ -1,4 +1,4 @@
-.PHONY: install dev test lint typecheck format migrate revision db-up db-down clean openapi usage-report
+.PHONY: install dev test eval lint typecheck format migrate revision db-up db-down clean openapi usage-report
 
 UV ?= uv
 
@@ -12,6 +12,11 @@ dev:
 
 test:
 	$(UV) run pytest -q
+
+# 분석 에이전트 골든 eval (live Gemini, RUN_EVAL 가드). GOOGLE_CLOUD_PROJECT 필요. CASES/RUNS 오버라이드 가능.
+# 결정적 채점기 단위 테스트는 `make test`(tests/eval) 에 이미 포함된다 — 이건 live 측정용.
+eval:
+	RUN_EVAL=1 PYTHONPATH=. $(UV) run python eval/run_golden.py --cases $(or $(CASES),eval/golden/text_classification.json) --runs $(or $(RUNS),3)
 
 lint:
 	$(UV) run ruff check .
