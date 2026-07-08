@@ -2,7 +2,7 @@
 level: 2
 mode: reference
 status: active
-last_verified: 2026-06-08
+last_verified: 2026-07-09
 confidence: 1.0
 owners: [송준서, 이용찬, 박세현]
 description: mochi-backend GCP 배포·운영 런북. 서버를 처음부터 배포하는 절차, SSH 접근 정책(송준서 단독), 실제로 겪은 함정과 주의사항. 인프라 배포·운영·장애 대응 시 읽는다.
@@ -27,7 +27,7 @@ description: mochi-backend GCP 배포·운영 런북. 서버를 처음부터 배
 | 공개 도메인 | `https://34-64-104-136.nip.io` (Caddy 자동 Let's Encrypt) |
 | 런타임 SA | `mochi-backend-sa@axial-device-460408-i9.iam.gserviceaccount.com` |
 | 캡처 버킷 | `gs://mochi-captures-axial-device-460408-i9` |
-| 비밀값 | Secret Manager: `mochi-auth-access-secret`, `mochi-db-password`, `mochi-apns-p8-base64`, `mochi-voyage-api-key`, `mochi-youtube-api-key`, `mochi-naver-client-id`, `mochi-naver-client-secret` |
+| 비밀값 | Secret Manager: `mochi-auth-access-secret`, `mochi-db-password`, `mochi-apns-p8-base64`, `mochi-voyage-api-key`, `mochi-youtube-api-key`, `mochi-naver-client-id`, `mochi-naver-client-secret`, `mochi-google-places-api-key` |
 | 앱 | systemd `mochi.service` (uvicorn, `/opt/mochi`, `WORKER_CONCURRENCY=2`) |
 | DB | `pgvector/pgvector:pg16` 컨테이너 (`docker`, host volume `/var/lib/mochi-pg`) |
 
@@ -160,7 +160,7 @@ gcloud compute scp /tmp/mochi-backend.tar.gz mochi-svc:~/ \
 # 3) svc 셋업: uv 설치 → 코드 /opt/mochi → Secret 으로 .env → uv sync → alembic → systemd
 #    (세부는 §부록 mochi-svc-setup.sh. find /opt/mochi -name '._*' -delete 필수)
 ```
-`.env` 는 Secret Manager 값으로 svc 안에서 생성 (`ENVIRONMENT=production`, `DATABASE_URL=...@10.30.0.2:5432/mochi`, `GOOGLE_CLOUD_PROJECT`, `AUTH_ACCESS_SECRET`, `GCS_CAPTURE_BUCKET`, `GCS_SIGNER_SERVICE_ACCOUNT`, `WORKER_CONCURRENCY=2`, `DB_POOL_SIZE/MAX_OVERFLOW`, `TAVILY_API_KEY`, `VOYAGE_API_KEY`(Secret `mochi-voyage-api-key` — 검색·채팅 임베딩/리랭크, 2026-06-12), `VOYAGE_EMBEDDING_MODEL=voyage-4-large`(2026-07-09 voyage-3-large→voyage-4-large 정정 시 append. 코드 default 도 `voyage-4-large` 라 .env 가 재생성돼 이 키가 빠져도 안전 — §5.4 의 AUTH_GOOGLE_CLIENT_IDS 와 달리 fragile 하지 않음), `NAVER_CLIENT_ID`/`NAVER_CLIENT_SECRET`(findReferenceUrls tool — Secret `mochi-naver-client-id`/`mochi-naver-client-secret`, 2026-06-15), `YOUTUBE_API_KEY`(Secret `mochi-youtube-api-key` — recoverYoutubeUrl 무키검색 폴백, 2026-06-14)). `chmod 600 .env`.
+`.env` 는 Secret Manager 값으로 svc 안에서 생성 (`ENVIRONMENT=production`, `DATABASE_URL=...@10.30.0.2:5432/mochi`, `GOOGLE_CLOUD_PROJECT`, `AUTH_ACCESS_SECRET`, `GCS_CAPTURE_BUCKET`, `GCS_SIGNER_SERVICE_ACCOUNT`, `WORKER_CONCURRENCY=2`, `DB_POOL_SIZE/MAX_OVERFLOW`, `TAVILY_API_KEY`, `VOYAGE_API_KEY`(Secret `mochi-voyage-api-key` — 검색·채팅 임베딩/리랭크, 2026-06-12), `VOYAGE_EMBEDDING_MODEL=voyage-4-large`(2026-07-09 voyage-3-large→voyage-4-large 정정 시 append. 코드 default 도 `voyage-4-large` 라 .env 가 재생성돼 이 키가 빠져도 안전 — §5.4 의 AUTH_GOOGLE_CLIENT_IDS 와 달리 fragile 하지 않음), `NAVER_CLIENT_ID`/`NAVER_CLIENT_SECRET`(findReferenceUrls tool — Secret `mochi-naver-client-id`/`mochi-naver-client-secret`, 2026-06-15), `YOUTUBE_API_KEY`(Secret `mochi-youtube-api-key` — recoverYoutubeUrl 무키검색 폴백, 2026-06-14), `GOOGLE_PLACES_API_KEY`(Secret `mochi-google-places-api-key` — searchPlaceGeo 별점·매장사진 보강, 미설정 시 보강만 생략, 2026-07-09)). `chmod 600 .env`.
 
 ### 2.6 Caddy TLS (svc)
 ```bash
@@ -240,7 +240,7 @@ gcloud compute instances delete-access-config mochi-db --zone=asia-northeast3-c 
 재부팅해도 `--restart=always` 라 컨테이너는 자동 기동(startup-script 의 apt 단계는 외부망 없으면 실패하지만 컨테이너 동작엔 무관).
 
 ### 5.4 production = dev 로그인 차단
-`.env` 의 `ENVIRONMENT=production` 이라 `POST /auth/dev` 가 503 으로 막힌다(의도된 보안). **Apple 로그인은 운영 연결 완료**(`.env` `AUTH_APPLE_*` 명시 + iOS Release baseURL → 배포 백엔드, 2026-06-08). **Google 로그인도 운영 연결 완료**(2026-06-23): svc `/opt/mochi/.env` 에 `AUTH_GOOGLE_CLIENT_IDS`(iOS client id) append + `sudo systemctl restart mochi`, `/api/v1/health` ok. client id 는 공개 식별자라 Secret Manager 불필요·`.env` 직접. ⚠️ `.env` 가 재배포 setup 으로 재생성되면 이 키가 사라지므로, 재배포 스크립트(`mochi-svc-setup.sh`, repo 밖)의 `.env` 생성부에 `AUTH_GOOGLE_CLIENT_IDS` 를 포함해야 영속된다. 푸시(`APNS_AUTH_KEY_P8_BASE64`)는 `mochi-apns-p8-base64` Secret 으로 주입 완료(2026-06-08, key_id `CA6C3JCHW3`, EC 키 파싱 검증).
+`.env` 의 `ENVIRONMENT=production` 이라 `POST /auth/dev` 가 503 으로 막힌다(의도된 보안). **Apple 로그인은 운영 연결 완료**(`.env` `AUTH_APPLE_*` 명시 + iOS Release baseURL → 배포 백엔드, 2026-06-08). **Google 로그인도 운영 연결 완료**(2026-06-23): svc `/opt/mochi/.env` 에 `AUTH_GOOGLE_CLIENT_IDS`(iOS client id) append + `sudo systemctl restart mochi`, `/api/v1/health` ok. client id 는 공개 식별자라 Secret Manager 불필요·`.env` 직접. ⚠️ `.env` 가 재배포 setup 으로 재생성되면 이 키가 사라지므로, 재배포 스크립트(`mochi-svc-setup.sh`, repo 밖)의 `.env` 생성부에 `AUTH_GOOGLE_CLIENT_IDS` 를 포함해야 영속된다. `GOOGLE_PLACES_API_KEY`(2026-07-09 append, Secret `mochi-google-places-api-key`)도 같은 함정 — setup 스크립트 `.env` 생성부에 함께 포함할 것. 푸시(`APNS_AUTH_KEY_P8_BASE64`)는 `mochi-apns-p8-base64` Secret 으로 주입 완료(2026-06-08, key_id `CA6C3JCHW3`, EC 키 파싱 검증).
 
 ### 5.5 nip.io / static IP 결합
 TLS 도메인이 `34-64-104-136.nip.io` = svc IP 임베드. **IP 가 바뀌면 도메인·인증서가 통째로 바뀐다.** 그래서 svc 는 반드시 **static IP**(`mochi-svc-ip`)여야 한다. 운영 도메인을 따로 살 거면 그 도메인 A 레코드 → svc IP, Caddyfile 의 도메인만 교체하면 자동 재발급.

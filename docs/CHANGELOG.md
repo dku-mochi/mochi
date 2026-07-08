@@ -10,6 +10,9 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-07-09 — infra
+- 장소 별점·매장사진 backend prod 배포 — develop 765796c(PR #70, hybrid retrieval 단일화 동승)를 INFRA.md 런북대로 `mochi-svc` 에 배포. Secret Manager `mochi-google-places-api-key` 신설 → svc `.env` `GOOGLE_PLACES_API_KEY` 주입(값 무출력 파이프, VM SA fetch). alembic 신규 마이그레이션 없음(voyage 백필은 금일 기반영). 검증: health ok · 에러 로그 0 · prod OpenAPI `PlaceResponse.rating/ratingCount/imageUrl` 노출 · VM 스모크(몽탄 ★4.1/1,974) 통과. ⚠️ `.env` 재생성 시 키 소실 함정 — INFRA §5.4 병기.
+
 ## 2026-07-09 — backend, ios, docs (장소 카드 별점·매장사진 + 네이버 지도 타일)
 - backend: searchPlaceGeo 후보를 Google Places(New) 텍스트검색으로 1:1 매칭(좌표 300m 이내만 동일 가게 인정 — 남의 별점 방지)해 rating·ratingCount·imageUrl(photoUri) 을 place_entity 에 보강. `GOOGLE_PLACES_API_KEY` 미설정·실패 시 보강만 생략(좌표·주소 백본 불변 — tavily/youtube 와 같은 키-optional 원칙). projection 경계 재검증: rating 0~5·finite, ratingCount ≥0, imageUrl https+`.googleusercontent.com` suffix(붙임 호스트 차단) — 부가정보라 필드만 드롭, place 는 유지.
 - api: PlaceResponse.rating/ratingCount/imageUrl — ⓪ openapi 재생성 + iOS 생성 클라 재생성.
