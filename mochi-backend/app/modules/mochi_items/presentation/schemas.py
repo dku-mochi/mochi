@@ -230,6 +230,20 @@ class ReferenceLinkResponse(BaseModel):
     model_config = {"populate_by_name": True}
 
 
+class PlaceResponse(BaseModel):
+    """상세 화면 지도 섹션의 장소 — entities(kind='place') projection. 좌표는 WGS84."""
+
+    name: str
+    lat: float
+    lng: float
+    category: str | None = None
+    address: str | None = None
+    road_address: str | None = Field(default=None, alias="roadAddress")
+    map_url: str | None = Field(default=None, alias="mapUrl")
+
+    model_config = {"populate_by_name": True}
+
+
 class MochiItemResponse(BaseModel):
     id: UUID
     channel: IngestChannel
@@ -243,6 +257,7 @@ class MochiItemResponse(BaseModel):
     category: str | None = None
     shopping_product_query: str | None = Field(default=None, alias="shoppingProductQuery")
     reference_links: list[ReferenceLinkResponse] = Field(default_factory=list, alias="referenceLinks")
+    place: PlaceResponse | None = None
     importance: int
     is_favorite: bool = Field(default=False, alias="isFavorite")
     lifecycle_kind: str = Field(alias="lifecycleKind")

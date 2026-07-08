@@ -187,6 +187,14 @@ _RESOURCE_FINDER_PARAMS: dict[str, Any] = {
     "required": ["queries", "category"],
 }
 
+_SEARCH_PLACE_GEO_PARAMS: dict[str, Any] = {
+    "type": "object",
+    "properties": {
+        "queries": {"type": "array", "items": {"type": "string"}},
+    },
+    "required": ["queries"],
+}
+
 # intent_type enum 은 4-Intent(app.shared.intent.Intent)와 동기화 — 안정적이라 하드코딩.
 _HYBRID_SEARCH_PARAMS: dict[str, Any] = {
     "type": "object",
@@ -292,6 +300,30 @@ def _function_declarations(tools: list[Tool[Any, Any]]) -> list[types.FunctionDe
                         "entities(kind='reference_url') when useful."
                     ),
                     parameters=_RESOURCE_FINDER_PARAMS,
+                )
+            )
+        if tool.name is ToolName.SEARCH_PLACE_GEO:
+            decls.append(
+                types.FunctionDeclaration(
+                    name=ToolName.SEARCH_PLACE_GEO.value,
+                    description=(
+                        "Geocode the specific physical place this capture points at (Naver local "
+                        "keyword search → name, category, address, WGS84 coordinates), so the app "
+                        "can show it on a map with directions. Call it when the capture is about a "
+                        "concrete place the user could visit — a restaurant, cafe, shop, venue, "
+                        "exhibition, clinic, office — and you can name it. Pass the place name as "
+                        "'queries' (add spacing/branch variants and a region qualifier visible on "
+                        "screen, e.g. '로우키 성수'; later variants are fallbacks when the first "
+                        "returns nothing). Compare the returned candidates' address/category "
+                        "against the capture's evidence, pick the one that IS the captured place, "
+                        "and copy its place_entity string verbatim into entities as "
+                        "{\"kind\":\"place\",\"value\":<that exact string>} — at most one per "
+                        "capture, the place the record is about. If no candidate matches, store no "
+                        "place entity: a wrong pin is worse than none. Skip it for online-only "
+                        "targets, broad areas (a city, a neighborhood), or when no specific place "
+                        "is nameable."
+                    ),
+                    parameters=_SEARCH_PLACE_GEO_PARAMS,
                 )
             )
         if tool.name is ToolName.HYBRID_SEARCH:
