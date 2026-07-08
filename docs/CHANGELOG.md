@@ -10,6 +10,9 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-07-08 — infra
+- mochi-web 여정 데모 P5~P7 완성 — 심사위원용 체험 웹 전면 재구축 마감. **P5 라이브 연결**: BFF 가 페르소나 JWT(HS256, 백엔드 issuer 동형)를 직서명해 채팅(SSE 패스스루)·검색·라이브 분석을 실백엔드로 프록시. first-byte 8s/inter-event 15s 초과·오류 시 스트림을 끊지 않고 폴백 이벤트를 이어붙여 완결(fallback-first), rate limit 초과는 폴백 강등, 킬스위치 `MOCHI_FORCE_FALLBACK=1`. 계약 정합 — CitationDTO `mochiItemId` 케이싱 수정, iOS 와 동일한 `【item:uuid】` 본문 마커 정책 이식. codex 리뷰 2회(P4·P5) P1 3건 포함 전부 반영. **P6**: S0 랜딩(R3F 기억 파편 필드 — 실캡처 14장 부유, CTA hover 시 카피 둘레로 수렴), S1 페르소나 선택(캡처 스택 부채꼴·intent 분포·추천 border-beam), JourneyRail(우하단, ?guided=1), S7 피날레(MochiWalk 스프라이트·아키텍처·QR). **P7**: `scripts/seed-backend.ts`(confirmedInstances 결정론 시딩, Idempotency-Key `{persona}:{slug}:v1`, backend-ids.json 산출) + `mochi-web/README.md` 신설. 남은 사람 단계 — prod user row 3건 + env 등록 + 시더 실행 + backfill_embeddings + Vercel env·배포.
+
 ## 2026-06-29 — infra
 - mochi-web: Hero R3F 코버플로우 최상급 재작성(`components/three/Coverflow.tsx`). **왜**: 심사 데모 첫인상인데 캡처 텍스처가 안 보이고(초점 카드 흰 면) 깊이감이 평면이었다. 원인 = 투명 머티리얼 draw-order로 흰 프레임이 사진을 덮음 + 수기 repeat/offset cover-fit 취약 + unlit·약한 tilt. 수정 = drei `<Image>`(sRGB·object-cover·둥근 모서리)로 캡처 또렷, lit backing + `Environment`/`ContactShadows`/ACES 톤매핑으로 진짜 깊이, 강한 yaw·Z 곡선 덱, 반응형 `CameraRig`(모바일 중앙 정렬), 드래그 관성+스냅+autoplay+속도연동 lean(motion.dev scroll-velocity-linked-offset 차용). build 통과.
 
