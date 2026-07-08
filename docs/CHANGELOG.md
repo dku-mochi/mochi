@@ -10,6 +10,16 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-07-08 — backend, docs
+- 골든 eval 46→229 케이스 확장(분류 clear 135·boundary 48·날짜 40·표 6) + `eval/stats.py`(Wilson 95% CI) 신설 — 발표자료의 "모수 작음" 공격 차단이 목적. 저작·검증 프로토콜과 판정 로그는 `mochi-backend/eval/REPORT.md`.
+- 분석 프롬프트 v28→v29: 확장 실측에서 특정된 실패 클래스를 기준+why 로 반영(reading-too-low 가드 신설 등, 케이스 키워드 하드코딩 없음). 전체 run 수준 91.3→95.1%(687 run), 경계셋 75.7→88.9%, 회귀 0. 공휴일명 날짜 해석(0/9)은 알려진 한계로 유지.
+- PPT(`ppt/모찌_최종산출물_v1.html`) 슬라이드 12·요약의 eval 수치를 v29 실측 + 95% CI 병기로 교체.
+
+## 2026-06-30 — backend (분석 에이전트 프롬프트 v28 일반화 + eval 안전망 신설)
+- **분석 프롬프트 v28**: Class A overfit 케이스 일반화(`system_prompts.py`). category 예시 나열·명명 일관성 가공 시나리오(대학영어→대학수학)·course/car/place 예시 3쌍을 '기준+why'로 치환. **왜**: 특정 도메인 키워드 하드코딩이 27개 버전 누적돼 out-of-domain 분류를 약화(skill-creator 철학 위반). specificity·nuance illustration(검정원피스/'김 싸 먹어야지')은 boundary anchor라 보존(Gemini consult 검증). 32건 결정적 eval **무회귀(1.0)** 확인.
+- **eval 안전망 신설**: `mochi-backend/eval/` — `scorer.py`(lab `score_dacon` 8축을 케이스 구동 결정적 채점으로 일반화) + `run_golden.py`(production drift-0 러너) + golden 케이스(clear 27 ②CI·boundary 13 ③·date 5·table 1) + `tests/eval/`(hermetic ② 게이트) + `make eval`. Tier2 LLM-judge 50건(agent-golden, gitignore). **왜**: 27개 버전이 매 실패를 프롬프트 패치로 흡수해온 근본원인(회귀 안전망 부재) 제거 — 이제 일반화·변경을 결정적으로 검증한다.
+- `eval_dataset_version` 을 dangling `intent-schema-decision@2026-06-04`(archive 삭제됨) → 실재 `agent-golden@2026-06-30` 으로 repoint. DOMAIN_DESIGN §4.2 의 stale `ACTIVE_PROMPT=v16` → v28 정정.
+
 ## 2026-06-29 — infra
 - mochi-web: Hero R3F 코버플로우 최상급 재작성(`components/three/Coverflow.tsx`). **왜**: 심사 데모 첫인상인데 캡처 텍스처가 안 보이고(초점 카드 흰 면) 깊이감이 평면이었다. 원인 = 투명 머티리얼 draw-order로 흰 프레임이 사진을 덮음 + 수기 repeat/offset cover-fit 취약 + unlit·약한 tilt. 수정 = drei `<Image>`(sRGB·object-cover·둥근 모서리)로 캡처 또렷, lit backing + `Environment`/`ContactShadows`/ACES 톤매핑으로 진짜 깊이, 강한 yaw·Z 곡선 덱, 반응형 `CameraRig`(모바일 중앙 정렬), 드래그 관성+스냅+autoplay+속도연동 lean(motion.dev scroll-velocity-linked-offset 차용). build 통과.
 
