@@ -1,0 +1,762 @@
+{
+  "summary": {
+    "n": 26,
+    "agreement": "15/26",
+    "agreement_pct": 57.7,
+    "rule_dist": {
+      "heavy": 18,
+      "medium": 8
+    },
+    "llm_dist": {
+      "heavy": 16,
+      "light": 5,
+      "medium": 5
+    },
+    "n_disagree": 11,
+    "n_high_imp_but_light_or_medium": 6,
+    "n_low_imp_but_heavy": 3,
+    "n_llm_inconsistent_dup_groups": 2
+  },
+  "disagree": [
+    {
+      "key": "d9cbaafd",
+      "title": "SW아카데믹영작 5분반 Week 14 Activity Sheet 제출",
+      "intent_type": "todo",
+      "importance": 5,
+      "days_until": -1,
+      "rule_weight": "heavy",
+      "llm_weight": "light",
+      "agree": false,
+      "llm_schedule": [
+        "D-1"
+      ],
+      "llm_reasoning": "이미 마감일이 지난 과제 제출 건으로, 추가적인 준비가 필요 없는 단순 처리 업무이므로 당일 혹은 직전 알림으로 충분합니다."
+    },
+    {
+      "key": "99703c44",
+      "title": "나를브랜딩하는취업설계 1분반 기말고사 대체과제 제출",
+      "intent_type": "todo",
+      "importance": 5,
+      "days_until": 0,
+      "rule_weight": "heavy",
+      "llm_weight": "light",
+      "agree": false,
+      "llm_schedule": [
+        "D-0"
+      ],
+      "llm_reasoning": "당일 마감인 과제이므로, 이미 준비가 완료되었을 시점에 마지막으로 상기시키는 것이 가장 효율적입니다."
+    },
+    {
+      "key": "4d84dddb",
+      "title": "스마트카소프트웨어보안 1분반 BMW 커넥티드 드라이브 서비스 분석 과제 제출",
+      "intent_type": "todo",
+      "importance": 5,
+      "days_until": 1,
+      "rule_weight": "heavy",
+      "llm_weight": "medium",
+      "agree": false,
+      "llm_schedule": [
+        "D-1"
+      ],
+      "llm_reasoning": "마감이 하루 앞으로 다가온 과제이므로, 제출을 놓치지 않도록 당일 혹은 전날 집중적인 알림이 필요합니다."
+    },
+    {
+      "key": "92c29727",
+      "title": "민수와 만남",
+      "intent_type": "schedule",
+      "importance": 3,
+      "days_until": -4,
+      "rule_weight": "medium",
+      "llm_weight": "light",
+      "agree": false,
+      "llm_schedule": [
+        "D-1"
+      ],
+      "llm_reasoning": "이미 지난 일정이며, 단순한 지인과의 만남은 당일 혹은 하루 전 알림으로 충분합니다."
+    },
+    {
+      "key": "893ea7fe",
+      "title": "SW아카데믹영작 5분반 Week 14 Activity Sheet Submission 제출",
+      "intent_type": "todo",
+      "importance": 5,
+      "days_until": -1,
+      "rule_weight": "heavy",
+      "llm_weight": "medium",
+      "agree": false,
+      "llm_schedule": [
+        "D-3",
+        "D-1"
+      ],
+      "llm_reasoning": "학기 말 과제 제출은 성적에 직결되므로 마감 며칠 전부터 미리 준비 상황을 점검할 필요가 있습니다."
+    },
+    {
+      "key": "7fd9c8f7",
+      "title": "나를브랜딩하는취업설계 1분반 기말고사 대체과제 제출",
+      "intent_type": "todo",
+      "importance": 5,
+      "days_until": 0,
+      "rule_weight": "heavy",
+      "llm_weight": "light",
+      "agree": false,
+      "llm_schedule": [
+        "D-0"
+      ],
+      "llm_reasoning": "당일 마감인 과제이므로, 이미 준비가 완료되었을 시점에 마지막으로 상기시키는 것이 가장 효율적입니다."
+    },
+    {
+      "key": "b2e7e618",
+      "title": "스마트카소프트웨어보안 1분반 BMW 커넥티드 드라이브 분석 과제 제출",
+      "intent_type": "todo",
+      "importance": 5,
+      "days_until": 1,
+      "rule_weight": "heavy",
+      "llm_weight": "light",
+      "agree": false,
+      "llm_schedule": [
+        "D-1"
+      ],
+      "llm_reasoning": "마감이 하루 앞으로 다가온 과제이므로, 당일 제출을 놓치지 않도록 하루 전 알림으로 충분합니다."
+    },
+    {
+      "key": "70f88392",
+      "title": "2026 남산 서머 페스티벌 'Summer Night' 공연 예약",
+      "intent_type": "todo",
+      "importance": 4,
+      "days_until": -3,
+      "rule_weight": "medium",
+      "llm_weight": "heavy",
+      "agree": false,
+      "llm_schedule": [
+        "D-14",
+        "D-7",
+        "D-3",
+        "D-1"
+      ],
+      "llm_reasoning": "공연 예약은 선착순 마감 가능성이 높고 준비가 필요하므로 미리 인지하여 기회를 놓치지 않도록 해야 합니다."
+    },
+    {
+      "key": "f1ed8449",
+      "title": "엔트리55 예약하기",
+      "intent_type": "todo",
+      "importance": 3,
+      "days_until": -3,
+      "rule_weight": "medium",
+      "llm_weight": "heavy",
+      "agree": false,
+      "llm_schedule": [
+        "D-14",
+        "D-7",
+        "D-3",
+        "D-1"
+      ],
+      "llm_reasoning": "예약 마감일이 이미 지났으므로, 향후 유사한 예약 건에 대해 충분한 준비 기간을 확보할 수 있도록 미리 알림이 필요합니다."
+    },
+    {
+      "key": "4ecc9da2",
+      "title": "여자친구와 부산 여행",
+      "intent_type": "schedule",
+      "importance": 3,
+      "days_until": 5,
+      "rule_weight": "medium",
+      "llm_weight": "heavy",
+      "agree": false,
+      "llm_schedule": [
+        "D-5",
+        "D-3",
+        "D-1"
+      ],
+      "llm_reasoning": "여행은 숙소, 교통편, 일정 조율 등 사전 준비가 필수적이며 놓칠 경우 기회비용이 크기 때문에 미리 여러 번 알림이 필요합니다."
+    },
+    {
+      "key": "709f495b",
+      "title": "서울시 희망두배 청년통장 신청",
+      "intent_type": "todo",
+      "importance": 4,
+      "days_until": 4,
+      "rule_weight": "medium",
+      "llm_weight": "heavy",
+      "agree": false,
+      "llm_schedule": [
+        "D-4",
+        "D-2",
+        "D-1"
+      ],
+      "llm_reasoning": "신청 기간이 짧고 서류 준비와 자격 확인이 필수적인 공공 지원 사업이므로 놓치면 기회 손실이 매우 큽니다."
+    }
+  ],
+  "counterexample_high_imp_but_light_or_medium": [
+    {
+      "key": "d9cbaafd",
+      "title": "SW아카데믹영작 5분반 Week 14 Activity Sheet 제출",
+      "intent_type": "todo",
+      "importance": 5,
+      "days_until": -1,
+      "rule_weight": "heavy",
+      "llm_weight": "light",
+      "agree": false,
+      "llm_schedule": [
+        "D-1"
+      ],
+      "llm_reasoning": "이미 마감일이 지난 과제 제출 건으로, 추가적인 준비가 필요 없는 단순 처리 업무이므로 당일 혹은 직전 알림으로 충분합니다."
+    },
+    {
+      "key": "99703c44",
+      "title": "나를브랜딩하는취업설계 1분반 기말고사 대체과제 제출",
+      "intent_type": "todo",
+      "importance": 5,
+      "days_until": 0,
+      "rule_weight": "heavy",
+      "llm_weight": "light",
+      "agree": false,
+      "llm_schedule": [
+        "D-0"
+      ],
+      "llm_reasoning": "당일 마감인 과제이므로, 이미 준비가 완료되었을 시점에 마지막으로 상기시키는 것이 가장 효율적입니다."
+    },
+    {
+      "key": "4d84dddb",
+      "title": "스마트카소프트웨어보안 1분반 BMW 커넥티드 드라이브 서비스 분석 과제 제출",
+      "intent_type": "todo",
+      "importance": 5,
+      "days_until": 1,
+      "rule_weight": "heavy",
+      "llm_weight": "medium",
+      "agree": false,
+      "llm_schedule": [
+        "D-1"
+      ],
+      "llm_reasoning": "마감이 하루 앞으로 다가온 과제이므로, 제출을 놓치지 않도록 당일 혹은 전날 집중적인 알림이 필요합니다."
+    },
+    {
+      "key": "893ea7fe",
+      "title": "SW아카데믹영작 5분반 Week 14 Activity Sheet Submission 제출",
+      "intent_type": "todo",
+      "importance": 5,
+      "days_until": -1,
+      "rule_weight": "heavy",
+      "llm_weight": "medium",
+      "agree": false,
+      "llm_schedule": [
+        "D-3",
+        "D-1"
+      ],
+      "llm_reasoning": "학기 말 과제 제출은 성적에 직결되므로 마감 며칠 전부터 미리 준비 상황을 점검할 필요가 있습니다."
+    },
+    {
+      "key": "7fd9c8f7",
+      "title": "나를브랜딩하는취업설계 1분반 기말고사 대체과제 제출",
+      "intent_type": "todo",
+      "importance": 5,
+      "days_until": 0,
+      "rule_weight": "heavy",
+      "llm_weight": "light",
+      "agree": false,
+      "llm_schedule": [
+        "D-0"
+      ],
+      "llm_reasoning": "당일 마감인 과제이므로, 이미 준비가 완료되었을 시점에 마지막으로 상기시키는 것이 가장 효율적입니다."
+    },
+    {
+      "key": "b2e7e618",
+      "title": "스마트카소프트웨어보안 1분반 BMW 커넥티드 드라이브 분석 과제 제출",
+      "intent_type": "todo",
+      "importance": 5,
+      "days_until": 1,
+      "rule_weight": "heavy",
+      "llm_weight": "light",
+      "agree": false,
+      "llm_schedule": [
+        "D-1"
+      ],
+      "llm_reasoning": "마감이 하루 앞으로 다가온 과제이므로, 당일 제출을 놓치지 않도록 하루 전 알림으로 충분합니다."
+    }
+  ],
+  "counterexample_low_imp_but_heavy": [
+    {
+      "key": "b308fad4",
+      "title": "오사카 여행",
+      "intent_type": "schedule",
+      "importance": 3,
+      "days_until": 24,
+      "rule_weight": "heavy",
+      "llm_weight": "heavy",
+      "agree": true,
+      "llm_schedule": [
+        "D-21",
+        "D-14",
+        "D-7",
+        "D-3",
+        "D-1"
+      ],
+      "llm_reasoning": "해외 여행은 예약 확인, 환전, 짐 싸기 등 준비 과정이 길고 놓치면 금전적·시간적 손실이 크기 때문에 장기적인 알림이 필요합니다."
+    },
+    {
+      "key": "f1ed8449",
+      "title": "엔트리55 예약하기",
+      "intent_type": "todo",
+      "importance": 3,
+      "days_until": -3,
+      "rule_weight": "medium",
+      "llm_weight": "heavy",
+      "agree": false,
+      "llm_schedule": [
+        "D-14",
+        "D-7",
+        "D-3",
+        "D-1"
+      ],
+      "llm_reasoning": "예약 마감일이 이미 지났으므로, 향후 유사한 예약 건에 대해 충분한 준비 기간을 확보할 수 있도록 미리 알림이 필요합니다."
+    },
+    {
+      "key": "4ecc9da2",
+      "title": "여자친구와 부산 여행",
+      "intent_type": "schedule",
+      "importance": 3,
+      "days_until": 5,
+      "rule_weight": "medium",
+      "llm_weight": "heavy",
+      "agree": false,
+      "llm_schedule": [
+        "D-5",
+        "D-3",
+        "D-1"
+      ],
+      "llm_reasoning": "여행은 숙소, 교통편, 일정 조율 등 사전 준비가 필수적이며 놓칠 경우 기회비용이 크기 때문에 미리 여러 번 알림이 필요합니다."
+    }
+  ],
+  "llm_inconsistent_dup_groups": [
+    {
+      "title_norm": "sw아카데믹영작 5분반 week 14 activity sheet",
+      "n": 2,
+      "llm_weights": [
+        "light",
+        "medium"
+      ],
+      "titles": [
+        "SW아카데믹영작 5분반 Week 14 Activity Sheet 제출",
+        "SW아카데믹영작 5분반 Week 14 Activity Sheet Submission 제출"
+      ]
+    },
+    {
+      "title_norm": "스마트카소프트웨어보안 1분반 bmw 커넥티드 드라이브 분석 과제",
+      "n": 2,
+      "llm_weights": [
+        "medium",
+        "light"
+      ],
+      "titles": [
+        "스마트카소프트웨어보안 1분반 BMW 커넥티드 드라이브 서비스 분석 과제 제출",
+        "스마트카소프트웨어보안 1분반 BMW 커넥티드 드라이브 분석 과제 제출"
+      ]
+    }
+  ],
+  "all_rows": [
+    {
+      "key": "b1208248",
+      "title": "SW아카데믹영작 5분반 Final Essay Assignment Stage 2 제출",
+      "intent_type": "todo",
+      "importance": 5,
+      "days_until": -1,
+      "rule_weight": "heavy",
+      "llm_weight": "heavy",
+      "agree": true,
+      "llm_schedule": [
+        "D-7",
+        "D-3",
+        "D-1"
+      ],
+      "llm_reasoning": "학기말 최종 과제는 성적에 직결되는 중요한 결과물이므로 충분한 준비 기간을 두고 여러 번 상기시켜야 합니다."
+    },
+    {
+      "key": "d9cbaafd",
+      "title": "SW아카데믹영작 5분반 Week 14 Activity Sheet 제출",
+      "intent_type": "todo",
+      "importance": 5,
+      "days_until": -1,
+      "rule_weight": "heavy",
+      "llm_weight": "light",
+      "agree": false,
+      "llm_schedule": [
+        "D-1"
+      ],
+      "llm_reasoning": "이미 마감일이 지난 과제 제출 건으로, 추가적인 준비가 필요 없는 단순 처리 업무이므로 당일 혹은 직전 알림으로 충분합니다."
+    },
+    {
+      "key": "99703c44",
+      "title": "나를브랜딩하는취업설계 1분반 기말고사 대체과제 제출",
+      "intent_type": "todo",
+      "importance": 5,
+      "days_until": 0,
+      "rule_weight": "heavy",
+      "llm_weight": "light",
+      "agree": false,
+      "llm_schedule": [
+        "D-0"
+      ],
+      "llm_reasoning": "당일 마감인 과제이므로, 이미 준비가 완료되었을 시점에 마지막으로 상기시키는 것이 가장 효율적입니다."
+    },
+    {
+      "key": "4d84dddb",
+      "title": "스마트카소프트웨어보안 1분반 BMW 커넥티드 드라이브 서비스 분석 과제 제출",
+      "intent_type": "todo",
+      "importance": 5,
+      "days_until": 1,
+      "rule_weight": "heavy",
+      "llm_weight": "medium",
+      "agree": false,
+      "llm_schedule": [
+        "D-1"
+      ],
+      "llm_reasoning": "마감이 하루 앞으로 다가온 과제이므로, 제출을 놓치지 않도록 당일 혹은 전날 집중적인 알림이 필요합니다."
+    },
+    {
+      "key": "92c29727",
+      "title": "민수와 만남",
+      "intent_type": "schedule",
+      "importance": 3,
+      "days_until": -4,
+      "rule_weight": "medium",
+      "llm_weight": "light",
+      "agree": false,
+      "llm_schedule": [
+        "D-1"
+      ],
+      "llm_reasoning": "이미 지난 일정이며, 단순한 지인과의 만남은 당일 혹은 하루 전 알림으로 충분합니다."
+    },
+    {
+      "key": "01b074e1",
+      "title": "친구들과 여행",
+      "intent_type": "schedule",
+      "importance": 3,
+      "days_until": 4,
+      "rule_weight": "medium",
+      "llm_weight": "medium",
+      "agree": true,
+      "llm_schedule": [
+        "D-3",
+        "D-1"
+      ],
+      "llm_reasoning": "여행은 짐 싸기 및 동선 확인 등 사전 준비가 필요하지만, 시험이나 마감처럼 치명적인 기회 상실은 아니므로 3일 전부터 조율하는 것이 적절합니다."
+    },
+    {
+      "key": "2d466d7a",
+      "title": "친구들과 여행",
+      "intent_type": "schedule",
+      "importance": 3,
+      "days_until": 5,
+      "rule_weight": "medium",
+      "llm_weight": "medium",
+      "agree": true,
+      "llm_schedule": [
+        "D-5",
+        "D-3",
+        "D-1"
+      ],
+      "llm_reasoning": "여행은 준비물 확인과 동선 조율 등 사전 준비가 필요하지만, 시험이나 마감처럼 치명적인 기회 상실은 아니므로 며칠 전부터 단계적으로 알림이 적절합니다."
+    },
+    {
+      "key": "b308fad4",
+      "title": "오사카 여행",
+      "intent_type": "schedule",
+      "importance": 3,
+      "days_until": 24,
+      "rule_weight": "heavy",
+      "llm_weight": "heavy",
+      "agree": true,
+      "llm_schedule": [
+        "D-21",
+        "D-14",
+        "D-7",
+        "D-3",
+        "D-1"
+      ],
+      "llm_reasoning": "해외 여행은 예약 확인, 환전, 짐 싸기 등 준비 과정이 길고 놓치면 금전적·시간적 손실이 크기 때문에 장기적인 알림이 필요합니다."
+    },
+    {
+      "key": "105c45f8",
+      "title": "SW아카데믹영작 5분반 Final Essay Assignment Stage 2 제출",
+      "intent_type": "todo",
+      "importance": 5,
+      "days_until": -1,
+      "rule_weight": "heavy",
+      "llm_weight": "heavy",
+      "agree": true,
+      "llm_schedule": [
+        "D-7",
+        "D-3",
+        "D-1"
+      ],
+      "llm_reasoning": "학기말 최종 과제는 성적에 직결되는 중요한 결과물이므로 충분한 준비 기간을 두고 여러 번 상기시켜야 합니다."
+    },
+    {
+      "key": "893ea7fe",
+      "title": "SW아카데믹영작 5분반 Week 14 Activity Sheet Submission 제출",
+      "intent_type": "todo",
+      "importance": 5,
+      "days_until": -1,
+      "rule_weight": "heavy",
+      "llm_weight": "medium",
+      "agree": false,
+      "llm_schedule": [
+        "D-3",
+        "D-1"
+      ],
+      "llm_reasoning": "학기 말 과제 제출은 성적에 직결되므로 마감 며칠 전부터 미리 준비 상황을 점검할 필요가 있습니다."
+    },
+    {
+      "key": "7fd9c8f7",
+      "title": "나를브랜딩하는취업설계 1분반 기말고사 대체과제 제출",
+      "intent_type": "todo",
+      "importance": 5,
+      "days_until": 0,
+      "rule_weight": "heavy",
+      "llm_weight": "light",
+      "agree": false,
+      "llm_schedule": [
+        "D-0"
+      ],
+      "llm_reasoning": "당일 마감인 과제이므로, 이미 준비가 완료되었을 시점에 마지막으로 상기시키는 것이 가장 효율적입니다."
+    },
+    {
+      "key": "b2e7e618",
+      "title": "스마트카소프트웨어보안 1분반 BMW 커넥티드 드라이브 분석 과제 제출",
+      "intent_type": "todo",
+      "importance": 5,
+      "days_until": 1,
+      "rule_weight": "heavy",
+      "llm_weight": "light",
+      "agree": false,
+      "llm_schedule": [
+        "D-1"
+      ],
+      "llm_reasoning": "마감이 하루 앞으로 다가온 과제이므로, 당일 제출을 놓치지 않도록 하루 전 알림으로 충분합니다."
+    },
+    {
+      "key": "70f88392",
+      "title": "2026 남산 서머 페스티벌 'Summer Night' 공연 예약",
+      "intent_type": "todo",
+      "importance": 4,
+      "days_until": -3,
+      "rule_weight": "medium",
+      "llm_weight": "heavy",
+      "agree": false,
+      "llm_schedule": [
+        "D-14",
+        "D-7",
+        "D-3",
+        "D-1"
+      ],
+      "llm_reasoning": "공연 예약은 선착순 마감 가능성이 높고 준비가 필요하므로 미리 인지하여 기회를 놓치지 않도록 해야 합니다."
+    },
+    {
+      "key": "f1ed8449",
+      "title": "엔트리55 예약하기",
+      "intent_type": "todo",
+      "importance": 3,
+      "days_until": -3,
+      "rule_weight": "medium",
+      "llm_weight": "heavy",
+      "agree": false,
+      "llm_schedule": [
+        "D-14",
+        "D-7",
+        "D-3",
+        "D-1"
+      ],
+      "llm_reasoning": "예약 마감일이 이미 지났으므로, 향후 유사한 예약 건에 대해 충분한 준비 기간을 확보할 수 있도록 미리 알림이 필요합니다."
+    },
+    {
+      "key": "4ecc9da2",
+      "title": "여자친구와 부산 여행",
+      "intent_type": "schedule",
+      "importance": 3,
+      "days_until": 5,
+      "rule_weight": "medium",
+      "llm_weight": "heavy",
+      "agree": false,
+      "llm_schedule": [
+        "D-5",
+        "D-3",
+        "D-1"
+      ],
+      "llm_reasoning": "여행은 숙소, 교통편, 일정 조율 등 사전 준비가 필수적이며 놓칠 경우 기회비용이 크기 때문에 미리 여러 번 알림이 필요합니다."
+    },
+    {
+      "key": "463f0a6f",
+      "title": "기사 2회 필기시험 응시자격 서류 제출",
+      "intent_type": "todo",
+      "importance": 5,
+      "days_until": 4,
+      "rule_weight": "heavy",
+      "llm_weight": "heavy",
+      "agree": true,
+      "llm_schedule": [
+        "D-4",
+        "D-3",
+        "D-1"
+      ],
+      "llm_reasoning": "자격 요건 증빙 서류 제출은 누락 시 시험 응시 자체가 불가능해지는 치명적인 일정이므로 마감 직전까지 꼼꼼한 확인이 필요합니다."
+    },
+    {
+      "key": "006398ce",
+      "title": "토익 시험 응시 (2026-06-28)",
+      "intent_type": "schedule",
+      "importance": 5,
+      "days_until": 13,
+      "rule_weight": "heavy",
+      "llm_weight": "heavy",
+      "agree": true,
+      "llm_schedule": [
+        "D-13",
+        "D-7",
+        "D-3",
+        "D-1"
+      ],
+      "llm_reasoning": "시험은 준비 과정이 길고 놓칠 경우 기회비용이 매우 크므로 장기적인 대비와 반복적인 리마인드가 필요합니다."
+    },
+    {
+      "key": "709f495b",
+      "title": "서울시 희망두배 청년통장 신청",
+      "intent_type": "todo",
+      "importance": 4,
+      "days_until": 4,
+      "rule_weight": "medium",
+      "llm_weight": "heavy",
+      "agree": false,
+      "llm_schedule": [
+        "D-4",
+        "D-2",
+        "D-1"
+      ],
+      "llm_reasoning": "신청 기간이 짧고 서류 준비와 자격 확인이 필수적인 공공 지원 사업이므로 놓치면 기회 손실이 매우 큽니다."
+    },
+    {
+      "key": "2373b11f",
+      "title": "여자친구와 한강 가기",
+      "intent_type": "schedule",
+      "importance": 3,
+      "days_until": 12,
+      "rule_weight": "medium",
+      "llm_weight": "medium",
+      "agree": true,
+      "llm_schedule": [
+        "D-7",
+        "D-1"
+      ],
+      "llm_reasoning": "데이트 준비 및 날씨 확인 등 사전 조율이 필요하지만, 치명적인 마감은 아니므로 1주일 전과 전날 알림이 적절합니다."
+    },
+    {
+      "key": "beba048b",
+      "title": "용산베르디움프렌즈 청년안심주택 추가모집 접수",
+      "intent_type": "todo",
+      "importance": 5,
+      "days_until": 2,
+      "rule_weight": "heavy",
+      "llm_weight": "heavy",
+      "agree": true,
+      "llm_schedule": [
+        "D-2",
+        "D-1"
+      ],
+      "llm_reasoning": "주거 관련 접수는 기회 상실 시 타격이 매우 크고 서류 준비가 필요하므로 마감 직전까지 집중적인 알림이 필요합니다."
+    },
+    {
+      "key": "775f1525",
+      "title": "용산베르디움프렌즈 청년안심주택 추가모집 접수",
+      "intent_type": "todo",
+      "importance": 5,
+      "days_until": 2,
+      "rule_weight": "heavy",
+      "llm_weight": "heavy",
+      "agree": true,
+      "llm_schedule": [
+        "D-2",
+        "D-1"
+      ],
+      "llm_reasoning": "주거 관련 접수는 기회 상실 시 타격이 매우 크고 서류 준비가 필요하므로 마감 직전까지 집중적인 알림이 필요합니다."
+    },
+    {
+      "key": "1f4a5413",
+      "title": "용산베르디움프렌즈 청년안심주택 추가모집 접수",
+      "intent_type": "todo",
+      "importance": 5,
+      "days_until": 2,
+      "rule_weight": "heavy",
+      "llm_weight": "heavy",
+      "agree": true,
+      "llm_schedule": [
+        "D-2",
+        "D-1"
+      ],
+      "llm_reasoning": "주거 관련 접수는 기회 상실 시 타격이 매우 크고 서류 준비가 필요하므로 마감 직전까지 집중적인 알림이 필요합니다."
+    },
+    {
+      "key": "fc2f4144",
+      "title": "스마트카소프트웨어보안 1분반 기말고사",
+      "intent_type": "schedule",
+      "importance": 5,
+      "days_until": 3,
+      "rule_weight": "heavy",
+      "llm_weight": "heavy",
+      "agree": true,
+      "llm_schedule": [
+        "D-3",
+        "D-2",
+        "D-1"
+      ],
+      "llm_reasoning": "기말고사는 학점과 직결되는 중요한 시험이므로 3일 전부터 매일 집중적인 대비를 상기시켜야 합니다."
+    },
+    {
+      "key": "8ff47b82",
+      "title": "예선 아이디어 기획서 제출",
+      "intent_type": "todo",
+      "importance": 5,
+      "days_until": 22,
+      "rule_weight": "heavy",
+      "llm_weight": "heavy",
+      "agree": true,
+      "llm_schedule": [
+        "D-21",
+        "D-14",
+        "D-7",
+        "D-3",
+        "D-1"
+      ],
+      "llm_reasoning": "기획서 작성은 장기적인 준비와 검토가 필수적이며, 예선 통과 여부가 결정되는 중요한 일정이므로 단계적인 알림이 필요합니다."
+    },
+    {
+      "key": "c839fa2e",
+      "title": "멋쟁이사자처럼 AI 엔지니어 부트캠프 지원",
+      "intent_type": "todo",
+      "importance": 5,
+      "days_until": 7,
+      "rule_weight": "heavy",
+      "llm_weight": "heavy",
+      "agree": true,
+      "llm_schedule": [
+        "D-7",
+        "D-5",
+        "D-3",
+        "D-1"
+      ],
+      "llm_reasoning": "부트캠프 지원은 자기소개서 작성 등 준비 시간이 길고 합격 시 기회비용이 크므로 충분한 시간을 두고 여러 번 상기시켜야 합니다."
+    },
+    {
+      "key": "c03c137c",
+      "title": "제로베이스 IT 대기업 온라인 박람회 참여",
+      "intent_type": "todo",
+      "importance": 5,
+      "days_until": 9,
+      "rule_weight": "heavy",
+      "llm_weight": "heavy",
+      "agree": true,
+      "llm_schedule": [
+        "D-9",
+        "D-7",
+        "D-3",
+        "D-1"
+      ],
+      "llm_reasoning": "취업과 직결된 대규모 행사로 사전 이력서 준비 및 기업 분석 등 충분한 대비가 필요하여 여러 번의 알림이 필수적입니다."
+    }
+  ]
+}

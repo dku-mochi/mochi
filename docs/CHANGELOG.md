@@ -10,6 +10,9 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-07-09 — infra
+- `lab/` gitignore 완화 — 경진대회 제출 레포에는 raw 개인 스크린샷/데이터(`lab/data/`)만 계속 제외. `recall-notification-weight/planner` 결과와 `chat-memory-injection` 결과(개인 성향 프로필 포함, 팀원 확인 후 포함 결정)는 더 이상 ignore 하지 않음 — 실험 근거로 제출에 포함.
+
 ## 2026-07-08 — backend, ios (기록 상세 장소 지도 섹션)
 - **backend**: `searchPlaceGeo` agent tool 신설 — 캡처가 가리킨 장소를 네이버 지역검색 키워드 검색으로 지오코딩(상호·업종·주소·WGS84 좌표; mapx/mapy=경도/위도×1e7 은 라이브 실측으로 검증, 한국 bounds 밖 좌표는 드리프트로 간주해 폐기). 이미지를 본 메인 에이전트가 후보를 캡처 근거와 대조해 일치 후보의 JSON 만 `entities(kind='place')` 로 복사 — 불일치면 빈손("틀린 핀은 지도 없음보다 나쁘다", 좌표 발명 금지). 기존 `NAVER_CLIENT_ID` 재사용(신규 키 없음). 프롬프트 v29→v30(# Tools 1블록 추가만, 분류 ladder 불변).
 - **backend**: `entities(kind='place')` → `MochiItem.place` 도메인 파싱(reference_url projection 동형, 좌표 없으면 버림) → `MochiItemResponse.place`(⓪ openapi 재생성).

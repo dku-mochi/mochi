@@ -1,0 +1,629 @@
+[
+  {
+    "key": "b1208248",
+    "mochi_item_id": "183b3292",
+    "intent_type": "todo",
+    "title": "SW아카데믹영작 5분반 Final Essay Assignment Stage 2 제출",
+    "date_key": "deadline",
+    "raw_date": "2026-06-14 23:59",
+    "due_date": "2026-06-14",
+    "days_until": -1,
+    "importance": 5,
+    "category": "학업",
+    "summary": "LearningX 앱에 등록된 4개의 과제 마감 일정을 확인하고 관리하기 위해 저장했습니다. 각 과제별 마감 기한에 맞춰 제출을 완료해야 합니다.",
+    "is_future": false,
+    "rule_weight": "heavy",
+    "rule_full_schedule": [
+      "D-14",
+      "D-7",
+      "D-3",
+      "D-1"
+    ],
+    "rule_fireable": [
+      "D-0(즉시)"
+    ]
+  },
+  {
+    "key": "d9cbaafd",
+    "mochi_item_id": "183b3292",
+    "intent_type": "todo",
+    "title": "SW아카데믹영작 5분반 Week 14 Activity Sheet 제출",
+    "date_key": "deadline",
+    "raw_date": "2026-06-14 23:59",
+    "due_date": "2026-06-14",
+    "days_until": -1,
+    "importance": 5,
+    "category": "학업",
+    "summary": "LearningX 앱에 등록된 4개의 과제 마감 일정을 확인하고 관리하기 위해 저장했습니다. 각 과제별 마감 기한에 맞춰 제출을 완료해야 합니다.",
+    "is_future": false,
+    "rule_weight": "heavy",
+    "rule_full_schedule": [
+      "D-14",
+      "D-7",
+      "D-3",
+      "D-1"
+    ],
+    "rule_fireable": [
+      "D-0(즉시)"
+    ]
+  },
+  {
+    "key": "99703c44",
+    "mochi_item_id": "183b3292",
+    "intent_type": "todo",
+    "title": "나를브랜딩하는취업설계 1분반 기말고사 대체과제 제출",
+    "date_key": "deadline",
+    "raw_date": "2026-06-15 23:59",
+    "due_date": "2026-06-15",
+    "days_until": 0,
+    "importance": 5,
+    "category": "학업",
+    "summary": "LearningX 앱에 등록된 4개의 과제 마감 일정을 확인하고 관리하기 위해 저장했습니다. 각 과제별 마감 기한에 맞춰 제출을 완료해야 합니다.",
+    "is_future": true,
+    "rule_weight": "heavy",
+    "rule_full_schedule": [
+      "D-14",
+      "D-7",
+      "D-3",
+      "D-1"
+    ],
+    "rule_fireable": [
+      "D-0(즉시)"
+    ]
+  },
+  {
+    "key": "4d84dddb",
+    "mochi_item_id": "183b3292",
+    "intent_type": "todo",
+    "title": "스마트카소프트웨어보안 1분반 BMW 커넥티드 드라이브 서비스 분석 과제 제출",
+    "date_key": "deadline",
+    "raw_date": "2026-06-16 23:59",
+    "due_date": "2026-06-16",
+    "days_until": 1,
+    "importance": 5,
+    "category": "학업",
+    "summary": "LearningX 앱에 등록된 4개의 과제 마감 일정을 확인하고 관리하기 위해 저장했습니다. 각 과제별 마감 기한에 맞춰 제출을 완료해야 합니다.",
+    "is_future": true,
+    "rule_weight": "heavy",
+    "rule_full_schedule": [
+      "D-14",
+      "D-7",
+      "D-3",
+      "D-1"
+    ],
+    "rule_fireable": [
+      "D-1"
+    ]
+  },
+  {
+    "key": "92c29727",
+    "mochi_item_id": "1a1c5f11",
+    "intent_type": "schedule",
+    "title": "민수와 만남",
+    "date_key": "date",
+    "raw_date": "2026-06-11",
+    "due_date": "2026-06-11",
+    "days_until": -4,
+    "importance": 3,
+    "category": null,
+    "summary": "",
+    "is_future": false,
+    "rule_weight": "medium",
+    "rule_full_schedule": [
+      "D-3",
+      "D-1"
+    ],
+    "rule_fireable": [
+      "D-0(즉시)"
+    ]
+  },
+  {
+    "key": "01b074e1",
+    "mochi_item_id": "bfdc54a8",
+    "intent_type": "schedule",
+    "title": "친구들과 여행",
+    "date_key": "date",
+    "raw_date": "2026-06-19",
+    "due_date": "2026-06-19",
+    "days_until": 4,
+    "importance": 3,
+    "category": null,
+    "summary": "",
+    "is_future": true,
+    "rule_weight": "medium",
+    "rule_full_schedule": [
+      "D-3",
+      "D-1"
+    ],
+    "rule_fireable": [
+      "D-3",
+      "D-1"
+    ]
+  },
+  {
+    "key": "2d466d7a",
+    "mochi_item_id": "650533dc",
+    "intent_type": "schedule",
+    "title": "친구들과 여행",
+    "date_key": "date",
+    "raw_date": "2026-06-20",
+    "due_date": "2026-06-20",
+    "days_until": 5,
+    "importance": 3,
+    "category": null,
+    "summary": "",
+    "is_future": true,
+    "rule_weight": "medium",
+    "rule_full_schedule": [
+      "D-3",
+      "D-1"
+    ],
+    "rule_fireable": [
+      "D-3",
+      "D-1"
+    ]
+  },
+  {
+    "key": "b308fad4",
+    "mochi_item_id": "cd846ff1",
+    "intent_type": "schedule",
+    "title": "오사카 여행",
+    "date_key": "date",
+    "raw_date": "2026-07-09",
+    "due_date": "2026-07-09",
+    "days_until": 24,
+    "importance": 3,
+    "category": null,
+    "summary": "",
+    "is_future": true,
+    "rule_weight": "heavy",
+    "rule_full_schedule": [
+      "D-14",
+      "D-7",
+      "D-3",
+      "D-1"
+    ],
+    "rule_fireable": [
+      "D-14",
+      "D-7",
+      "D-3",
+      "D-1"
+    ]
+  },
+  {
+    "key": "105c45f8",
+    "mochi_item_id": "b6150322",
+    "intent_type": "todo",
+    "title": "SW아카데믹영작 5분반 Final Essay Assignment Stage 2 제출",
+    "date_key": "deadline",
+    "raw_date": "2026-06-14 23:59",
+    "due_date": "2026-06-14",
+    "days_until": -1,
+    "importance": 5,
+    "category": "학업",
+    "summary": "LearningX 앱의 '할 일' 목록에 등록된 4개의 학업 과제 마감 기한을 확인하고 관리하기 위해 저장했습니다. 각 과제별 마감 일자에 맞춰 제출을 완료해야 합니다.",
+    "is_future": false,
+    "rule_weight": "heavy",
+    "rule_full_schedule": [
+      "D-14",
+      "D-7",
+      "D-3",
+      "D-1"
+    ],
+    "rule_fireable": [
+      "D-0(즉시)"
+    ]
+  },
+  {
+    "key": "893ea7fe",
+    "mochi_item_id": "b6150322",
+    "intent_type": "todo",
+    "title": "SW아카데믹영작 5분반 Week 14 Activity Sheet Submission 제출",
+    "date_key": "deadline",
+    "raw_date": "2026-06-14 23:59",
+    "due_date": "2026-06-14",
+    "days_until": -1,
+    "importance": 5,
+    "category": "학업",
+    "summary": "LearningX 앱의 '할 일' 목록에 등록된 4개의 학업 과제 마감 기한을 확인하고 관리하기 위해 저장했습니다. 각 과제별 마감 일자에 맞춰 제출을 완료해야 합니다.",
+    "is_future": false,
+    "rule_weight": "heavy",
+    "rule_full_schedule": [
+      "D-14",
+      "D-7",
+      "D-3",
+      "D-1"
+    ],
+    "rule_fireable": [
+      "D-0(즉시)"
+    ]
+  },
+  {
+    "key": "7fd9c8f7",
+    "mochi_item_id": "b6150322",
+    "intent_type": "todo",
+    "title": "나를브랜딩하는취업설계 1분반 기말고사 대체과제 제출",
+    "date_key": "deadline",
+    "raw_date": "2026-06-15 23:59",
+    "due_date": "2026-06-15",
+    "days_until": 0,
+    "importance": 5,
+    "category": "학업",
+    "summary": "LearningX 앱의 '할 일' 목록에 등록된 4개의 학업 과제 마감 기한을 확인하고 관리하기 위해 저장했습니다. 각 과제별 마감 일자에 맞춰 제출을 완료해야 합니다.",
+    "is_future": true,
+    "rule_weight": "heavy",
+    "rule_full_schedule": [
+      "D-14",
+      "D-7",
+      "D-3",
+      "D-1"
+    ],
+    "rule_fireable": [
+      "D-0(즉시)"
+    ]
+  },
+  {
+    "key": "b2e7e618",
+    "mochi_item_id": "b6150322",
+    "intent_type": "todo",
+    "title": "스마트카소프트웨어보안 1분반 BMW 커넥티드 드라이브 분석 과제 제출",
+    "date_key": "deadline",
+    "raw_date": "2026-06-16 23:59",
+    "due_date": "2026-06-16",
+    "days_until": 1,
+    "importance": 5,
+    "category": "학업",
+    "summary": "LearningX 앱의 '할 일' 목록에 등록된 4개의 학업 과제 마감 기한을 확인하고 관리하기 위해 저장했습니다. 각 과제별 마감 일자에 맞춰 제출을 완료해야 합니다.",
+    "is_future": true,
+    "rule_weight": "heavy",
+    "rule_full_schedule": [
+      "D-14",
+      "D-7",
+      "D-3",
+      "D-1"
+    ],
+    "rule_fireable": [
+      "D-1"
+    ]
+  },
+  {
+    "key": "70f88392",
+    "mochi_item_id": "1849dab5",
+    "intent_type": "todo",
+    "title": "2026 남산 서머 페스티벌 'Summer Night' 공연 예약",
+    "date_key": "deadline",
+    "raw_date": "2026-06-12 10:00",
+    "due_date": "2026-06-12",
+    "days_until": -3,
+    "importance": 4,
+    "category": "일상",
+    "summary": "2026 남산 서머 페스티벌 'Summer Night' 공연 정보를 저장했습니다. 6월 12일 오전 10시부터 시작되는 선착순 무료 예약 신청을 위해 투두로 관리합니다.",
+    "is_future": false,
+    "rule_weight": "medium",
+    "rule_full_schedule": [
+      "D-3",
+      "D-1"
+    ],
+    "rule_fireable": [
+      "D-0(즉시)"
+    ]
+  },
+  {
+    "key": "f1ed8449",
+    "mochi_item_id": "7cc96ceb",
+    "intent_type": "todo",
+    "title": "엔트리55 예약하기",
+    "date_key": "date",
+    "raw_date": "2026-06-12",
+    "due_date": "2026-06-12",
+    "days_until": -3,
+    "importance": 3,
+    "category": "일상",
+    "summary": "내일 '엔트리55'를 예약하겠다는 사용자의 계획을 기록했습니다. 예약 실천을 위해 투두로 관리합니다.",
+    "is_future": false,
+    "rule_weight": "medium",
+    "rule_full_schedule": [
+      "D-3",
+      "D-1"
+    ],
+    "rule_fireable": [
+      "D-0(즉시)"
+    ]
+  },
+  {
+    "key": "4ecc9da2",
+    "mochi_item_id": "1573b615",
+    "intent_type": "schedule",
+    "title": "여자친구와 부산 여행",
+    "date_key": "date",
+    "raw_date": "2026-06-20",
+    "due_date": "2026-06-20",
+    "days_until": 5,
+    "importance": 3,
+    "category": null,
+    "summary": "",
+    "is_future": true,
+    "rule_weight": "medium",
+    "rule_full_schedule": [
+      "D-3",
+      "D-1"
+    ],
+    "rule_fireable": [
+      "D-3",
+      "D-1"
+    ]
+  },
+  {
+    "key": "463f0a6f",
+    "mochi_item_id": "b34bbf5f",
+    "intent_type": "todo",
+    "title": "기사 2회 필기시험 응시자격 서류 제출",
+    "date_key": "deadline",
+    "raw_date": "2026-06-19 18:00:00",
+    "due_date": "2026-06-19",
+    "days_until": 4,
+    "importance": 5,
+    "category": "학업",
+    "summary": "기사 2회 필기시험 응시자격 서류 미제출 안내 문자로, 합격 유지를 위해 6월 19일 18시까지 관련 서류를 제출해야 합니다.",
+    "is_future": true,
+    "rule_weight": "heavy",
+    "rule_full_schedule": [
+      "D-14",
+      "D-7",
+      "D-3",
+      "D-1"
+    ],
+    "rule_fireable": [
+      "D-3",
+      "D-1"
+    ]
+  },
+  {
+    "key": "006398ce",
+    "mochi_item_id": "f799f230",
+    "intent_type": "schedule",
+    "title": "토익 시험 응시 (2026-06-28)",
+    "date_key": "date",
+    "raw_date": "2026-06-28",
+    "due_date": "2026-06-28",
+    "days_until": 13,
+    "importance": 5,
+    "category": "학업",
+    "summary": "2026년 6월 28일 오전 9시 20분에 서울 대방중학교에서 치러지는 토익 시험 접수 완료 안내입니다. 시험 당일 신분증과 필기구 지참 등 준비 사항을 확인하기 위해 저장했습니다.",
+    "is_future": true,
+    "rule_weight": "heavy",
+    "rule_full_schedule": [
+      "D-14",
+      "D-7",
+      "D-3",
+      "D-1"
+    ],
+    "rule_fireable": [
+      "D-7",
+      "D-3",
+      "D-1"
+    ]
+  },
+  {
+    "key": "709f495b",
+    "mochi_item_id": "f1600aee",
+    "intent_type": "todo",
+    "title": "서울시 희망두배 청년통장 신청",
+    "date_key": "deadline",
+    "raw_date": "2026-06-19 18:00:00",
+    "due_date": "2026-06-19",
+    "days_until": 4,
+    "importance": 4,
+    "category": "투자",
+    "summary": "서울시 희망두배 청년통장 신청 안내입니다. 6월 19일 오후 6시까지 신청해야 하므로 마감 기한을 확인하고 신청하기 위해 저장했습니다.",
+    "is_future": true,
+    "rule_weight": "medium",
+    "rule_full_schedule": [
+      "D-3",
+      "D-1"
+    ],
+    "rule_fireable": [
+      "D-3",
+      "D-1"
+    ]
+  },
+  {
+    "key": "2373b11f",
+    "mochi_item_id": "131d5f39",
+    "intent_type": "schedule",
+    "title": "여자친구와 한강 가기",
+    "date_key": "date",
+    "raw_date": "2026-06-27",
+    "due_date": "2026-06-27",
+    "days_until": 12,
+    "importance": 3,
+    "category": null,
+    "summary": "",
+    "is_future": true,
+    "rule_weight": "medium",
+    "rule_full_schedule": [
+      "D-3",
+      "D-1"
+    ],
+    "rule_fireable": [
+      "D-3",
+      "D-1"
+    ]
+  },
+  {
+    "key": "beba048b",
+    "mochi_item_id": "6898d104",
+    "intent_type": "todo",
+    "title": "용산베르디움프렌즈 청년안심주택 추가모집 접수",
+    "date_key": "deadline",
+    "raw_date": "2026-06-17 23:59",
+    "due_date": "2026-06-17",
+    "days_until": 2,
+    "importance": 5,
+    "category": "주거 정보",
+    "summary": "용산베르디움프렌즈 청년안심주택 추가모집 공고입니다. 6월 17일 단 하루 동안 접수가 진행되므로, 해당 일자에 맞춰 접수를 완료하기 위해 저장했습니다.",
+    "is_future": true,
+    "rule_weight": "heavy",
+    "rule_full_schedule": [
+      "D-14",
+      "D-7",
+      "D-3",
+      "D-1"
+    ],
+    "rule_fireable": [
+      "D-1"
+    ]
+  },
+  {
+    "key": "775f1525",
+    "mochi_item_id": "06c55bf9",
+    "intent_type": "todo",
+    "title": "용산베르디움프렌즈 청년안심주택 추가모집 접수",
+    "date_key": "deadline",
+    "raw_date": "2026-06-17 23:59",
+    "due_date": "2026-06-17",
+    "days_until": 2,
+    "importance": 5,
+    "category": "주거 정보",
+    "summary": "용산베르디움프렌즈 청년안심주택 추가모집 공고입니다. 6월 17일 단 하루 동안 접수가 진행되므로, 해당 일자에 맞춰 접수를 완료하기 위해 저장했습니다.",
+    "is_future": true,
+    "rule_weight": "heavy",
+    "rule_full_schedule": [
+      "D-14",
+      "D-7",
+      "D-3",
+      "D-1"
+    ],
+    "rule_fireable": [
+      "D-1"
+    ]
+  },
+  {
+    "key": "1f4a5413",
+    "mochi_item_id": "401c4994",
+    "intent_type": "todo",
+    "title": "용산베르디움프렌즈 청년안심주택 추가모집 접수",
+    "date_key": "deadline",
+    "raw_date": "2026-06-17 23:59",
+    "due_date": "2026-06-17",
+    "days_until": 2,
+    "importance": 5,
+    "category": "주거 정보",
+    "summary": "용산베르디움프렌즈 청년안심주택 추가모집 공고입니다. 6월 17일 단 하루 동안 접수가 진행되므로, 해당 일자에 맞춰 접수를 완료하기 위해 저장했습니다.",
+    "is_future": true,
+    "rule_weight": "heavy",
+    "rule_full_schedule": [
+      "D-14",
+      "D-7",
+      "D-3",
+      "D-1"
+    ],
+    "rule_fireable": [
+      "D-1"
+    ]
+  },
+  {
+    "key": "fc2f4144",
+    "mochi_item_id": "83e33c16",
+    "intent_type": "schedule",
+    "title": "스마트카소프트웨어보안 1분반 기말고사",
+    "date_key": "date",
+    "raw_date": "2026-06-18T13:00:00",
+    "due_date": "2026-06-18",
+    "days_until": 3,
+    "importance": 5,
+    "category": "학사 일정",
+    "summary": "'스마트카소프트웨어보안 1분반'의 기말고사 안내 공지입니다. 6월 18일 오후 1시부터 2시 15분까지 인문관 211호에서 진행되므로, 시험 응시를 위해 일정을 저장합니다.",
+    "is_future": true,
+    "rule_weight": "heavy",
+    "rule_full_schedule": [
+      "D-14",
+      "D-7",
+      "D-3",
+      "D-1"
+    ],
+    "rule_fireable": [
+      "D-3",
+      "D-1"
+    ]
+  },
+  {
+    "key": "8ff47b82",
+    "mochi_item_id": "166e800f",
+    "intent_type": "todo",
+    "title": "예선 아이디어 기획서 제출",
+    "date_key": "deadline",
+    "raw_date": "2026-07-07 10:00",
+    "due_date": "2026-07-07",
+    "days_until": 22,
+    "importance": 5,
+    "category": "학업/공모전",
+    "summary": "대회 예선 아이디어 기획서 제출 마감 기한이 7월 7일 오전 10시로 명시되어 있어, 이를 준비하고 기한 내 제출하기 위해 저장했습니다.",
+    "is_future": true,
+    "rule_weight": "heavy",
+    "rule_full_schedule": [
+      "D-14",
+      "D-7",
+      "D-3",
+      "D-1"
+    ],
+    "rule_fireable": [
+      "D-14",
+      "D-7",
+      "D-3",
+      "D-1"
+    ]
+  },
+  {
+    "key": "c839fa2e",
+    "mochi_item_id": "30287d0c",
+    "intent_type": "todo",
+    "title": "멋쟁이사자처럼 AI 엔지니어 부트캠프 지원",
+    "date_key": "deadline",
+    "raw_date": "2026-06-22 23:59:59",
+    "due_date": "2026-06-22",
+    "days_until": 7,
+    "importance": 5,
+    "category": "커리어 개발",
+    "summary": "고용노동부와 멋쟁이사자처럼이 협력하는 AI 엔지니어 부트캠프 모집 공고입니다. 6월 22일 마감인 지원 일정을 확인하고 기한 내에 신청하기 위해 저장했습니다.",
+    "is_future": true,
+    "rule_weight": "heavy",
+    "rule_full_schedule": [
+      "D-14",
+      "D-7",
+      "D-3",
+      "D-1"
+    ],
+    "rule_fireable": [
+      "D-7",
+      "D-3",
+      "D-1"
+    ]
+  },
+  {
+    "key": "c03c137c",
+    "mochi_item_id": "5343d4d3",
+    "intent_type": "todo",
+    "title": "제로베이스 IT 대기업 온라인 박람회 참여",
+    "date_key": "deadline",
+    "raw_date": "2026-06-24 19:00:00+09:00",
+    "due_date": "2026-06-24",
+    "days_until": 9,
+    "importance": 5,
+    "category": "커리어 개발",
+    "summary": "제로베이스에서 주최하는 'IT 대기업 온라인 박람회' 안내입니다. 6월 24일 오후 7시에 쿠팡 인사담당자가 직접 참여하여 합격 전략을 공개할 예정이므로, 기한 내에 신청하고 참여하기 위해 저장했습니다.",
+    "is_future": true,
+    "rule_weight": "heavy",
+    "rule_full_schedule": [
+      "D-14",
+      "D-7",
+      "D-3",
+      "D-1"
+    ],
+    "rule_fireable": [
+      "D-7",
+      "D-3",
+      "D-1"
+    ]
+  }
+]

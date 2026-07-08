@@ -1,0 +1,2954 @@
+{
+  "model": "gemini-3.1-flash-lite",
+  "location": "global",
+  "temperature": 0.0,
+  "now": "2026-06-15T23:30:00",
+  "today": "2026-06-15",
+  "n_cases": 38,
+  "n_calls": 152,
+  "metrics": {
+    "nondeterminism": {
+      "A": {
+        "n_cases": 38,
+        "exact_match_rate": 1.0,
+        "dateset_match_rate": 1.0,
+        "count_match_rate": 1.0,
+        "mean_date_jaccard": 1.0,
+        "per_case": {
+          "R-memo-dc1297": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 1,
+            "n_shuffled": 1,
+            "date_jaccard": 1.0
+          },
+          "R-memo-b18c58": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 1,
+            "n_shuffled": 1,
+            "date_jaccard": 1.0
+          },
+          "R-todo-b12082": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 1,
+            "n_shuffled": 1,
+            "date_jaccard": 1.0
+          },
+          "R-todo-d9cbaa": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 1,
+            "n_shuffled": 1,
+            "date_jaccard": 1.0
+          },
+          "R-todo-99703c": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 2,
+            "n_shuffled": 2,
+            "date_jaccard": 1.0
+          },
+          "R-todo-4d84dd": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 2,
+            "n_shuffled": 2,
+            "date_jaccard": 1.0
+          },
+          "R-schedule-92c297": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 1,
+            "n_shuffled": 1,
+            "date_jaccard": 1.0
+          },
+          "R-schedule-01b074": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 2,
+            "n_shuffled": 2,
+            "date_jaccard": 1.0
+          },
+          "R-schedule-b308fa": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 2,
+            "n_shuffled": 2,
+            "date_jaccard": 1.0
+          },
+          "R-todo-3156b9": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 1,
+            "n_shuffled": 1,
+            "date_jaccard": 1.0
+          },
+          "G6-callmom": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 1,
+            "n_shuffled": 1,
+            "date_jaccard": 1.0
+          },
+          "R-schedule-4ecc9d": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 2,
+            "n_shuffled": 2,
+            "date_jaccard": 1.0
+          },
+          "G1-toeic": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 3,
+            "n_shuffled": 3,
+            "date_jaccard": 1.0
+          },
+          "R-todo-463f0a": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 3,
+            "n_shuffled": 3,
+            "date_jaccard": 1.0
+          },
+          "R-schedule-006398": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 3,
+            "n_shuffled": 3,
+            "date_jaccard": 1.0
+          },
+          "R-todo-709f49": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 3,
+            "n_shuffled": 3,
+            "date_jaccard": 1.0
+          },
+          "R-todo-28caa5": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 2,
+            "n_shuffled": 2,
+            "date_jaccard": 1.0
+          },
+          "R-schedule-2373b1": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 2,
+            "n_shuffled": 2,
+            "date_jaccard": 1.0
+          },
+          "G3-contest": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 3,
+            "n_shuffled": 3,
+            "date_jaccard": 1.0
+          },
+          "R-memo-c35603": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 1,
+            "n_shuffled": 1,
+            "date_jaccard": 1.0
+          },
+          "R-memo-443455": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 1,
+            "n_shuffled": 1,
+            "date_jaccard": 1.0
+          },
+          "R-todo-ede771": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 2,
+            "n_shuffled": 2,
+            "date_jaccard": 1.0
+          },
+          "R-memo-85c0b6": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 1,
+            "n_shuffled": 1,
+            "date_jaccard": 1.0
+          },
+          "G5-finals": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 3,
+            "n_shuffled": 3,
+            "date_jaccard": 1.0
+          },
+          "R-todo-c27892": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 2,
+            "n_shuffled": 2,
+            "date_jaccard": 1.0
+          },
+          "R-memo-83477f": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 1,
+            "n_shuffled": 1,
+            "date_jaccard": 1.0
+          },
+          "R-memo-4ea25c": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 1,
+            "n_shuffled": 1,
+            "date_jaccard": 1.0
+          },
+          "R-memo-878150": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 1,
+            "n_shuffled": 1,
+            "date_jaccard": 1.0
+          },
+          "R-schedule-fc2f41": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 3,
+            "n_shuffled": 3,
+            "date_jaccard": 1.0
+          },
+          "G7-coat": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 1,
+            "n_shuffled": 1,
+            "date_jaccard": 1.0
+          },
+          "R-todo-8ff47b": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 4,
+            "n_shuffled": 4,
+            "date_jaccard": 1.0
+          },
+          "R-todo-c839fa": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 3,
+            "n_shuffled": 3,
+            "date_jaccard": 1.0
+          },
+          "R-memo-c4c8e5": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 2,
+            "n_shuffled": 2,
+            "date_jaccard": 1.0
+          },
+          "R-memo-efc3b6": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 2,
+            "n_shuffled": 2,
+            "date_jaccard": 1.0
+          },
+          "R-memo-d462d2": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 1,
+            "n_shuffled": 1,
+            "date_jaccard": 1.0
+          },
+          "R-memo-1b924a": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 1,
+            "n_shuffled": 1,
+            "date_jaccard": 1.0
+          },
+          "G4-essay": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 3,
+            "n_shuffled": 3,
+            "date_jaccard": 1.0
+          },
+          "G2-minsu": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 1,
+            "n_shuffled": 1,
+            "date_jaccard": 1.0
+          }
+        }
+      },
+      "B": {
+        "n_cases": 38,
+        "exact_match_rate": 0.053,
+        "dateset_match_rate": 0.289,
+        "count_match_rate": 0.789,
+        "mean_date_jaccard": 0.393,
+        "per_case": {
+          "R-memo-dc1297": {
+            "exact": false,
+            "same_dates": false,
+            "n_chrono": 1,
+            "n_shuffled": 1,
+            "date_jaccard": 0.0
+          },
+          "R-memo-b18c58": {
+            "exact": false,
+            "same_dates": false,
+            "n_chrono": 1,
+            "n_shuffled": 1,
+            "date_jaccard": 0.0
+          },
+          "R-todo-b12082": {
+            "exact": false,
+            "same_dates": false,
+            "n_chrono": 1,
+            "n_shuffled": 1,
+            "date_jaccard": 0.0
+          },
+          "R-todo-d9cbaa": {
+            "exact": false,
+            "same_dates": false,
+            "n_chrono": 1,
+            "n_shuffled": 1,
+            "date_jaccard": 0.0
+          },
+          "R-todo-99703c": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 1,
+            "n_shuffled": 1,
+            "date_jaccard": 1.0
+          },
+          "R-todo-4d84dd": {
+            "exact": false,
+            "same_dates": true,
+            "n_chrono": 2,
+            "n_shuffled": 1,
+            "date_jaccard": 1.0
+          },
+          "R-schedule-92c297": {
+            "exact": false,
+            "same_dates": true,
+            "n_chrono": 1,
+            "n_shuffled": 1,
+            "date_jaccard": 1.0
+          },
+          "R-schedule-01b074": {
+            "exact": false,
+            "same_dates": false,
+            "n_chrono": 2,
+            "n_shuffled": 2,
+            "date_jaccard": 0.33
+          },
+          "R-schedule-b308fa": {
+            "exact": false,
+            "same_dates": false,
+            "n_chrono": 3,
+            "n_shuffled": 3,
+            "date_jaccard": 0.5
+          },
+          "R-todo-3156b9": {
+            "exact": false,
+            "same_dates": true,
+            "n_chrono": 1,
+            "n_shuffled": 1,
+            "date_jaccard": 1.0
+          },
+          "G6-callmom": {
+            "exact": false,
+            "same_dates": false,
+            "n_chrono": 1,
+            "n_shuffled": 1,
+            "date_jaccard": 0.0
+          },
+          "R-schedule-4ecc9d": {
+            "exact": false,
+            "same_dates": false,
+            "n_chrono": 2,
+            "n_shuffled": 1,
+            "date_jaccard": 0.5
+          },
+          "G1-toeic": {
+            "exact": false,
+            "same_dates": true,
+            "n_chrono": 2,
+            "n_shuffled": 2,
+            "date_jaccard": 1.0
+          },
+          "R-todo-463f0a": {
+            "exact": false,
+            "same_dates": false,
+            "n_chrono": 3,
+            "n_shuffled": 2,
+            "date_jaccard": 0.25
+          },
+          "R-schedule-006398": {
+            "exact": false,
+            "same_dates": true,
+            "n_chrono": 2,
+            "n_shuffled": 2,
+            "date_jaccard": 1.0
+          },
+          "R-todo-709f49": {
+            "exact": false,
+            "same_dates": false,
+            "n_chrono": 2,
+            "n_shuffled": 2,
+            "date_jaccard": 0.0
+          },
+          "R-todo-28caa5": {
+            "exact": false,
+            "same_dates": false,
+            "n_chrono": 3,
+            "n_shuffled": 1,
+            "date_jaccard": 0.33
+          },
+          "R-schedule-2373b1": {
+            "exact": false,
+            "same_dates": true,
+            "n_chrono": 2,
+            "n_shuffled": 2,
+            "date_jaccard": 1.0
+          },
+          "G3-contest": {
+            "exact": false,
+            "same_dates": false,
+            "n_chrono": 3,
+            "n_shuffled": 3,
+            "date_jaccard": 0.5
+          },
+          "R-memo-c35603": {
+            "exact": false,
+            "same_dates": false,
+            "n_chrono": 1,
+            "n_shuffled": 0,
+            "date_jaccard": 0.0
+          },
+          "R-memo-443455": {
+            "exact": false,
+            "same_dates": false,
+            "n_chrono": 1,
+            "n_shuffled": 1,
+            "date_jaccard": 0.0
+          },
+          "R-todo-ede771": {
+            "exact": false,
+            "same_dates": true,
+            "n_chrono": 1,
+            "n_shuffled": 1,
+            "date_jaccard": 1.0
+          },
+          "R-memo-85c0b6": {
+            "exact": false,
+            "same_dates": false,
+            "n_chrono": 1,
+            "n_shuffled": 1,
+            "date_jaccard": 0.0
+          },
+          "G5-finals": {
+            "exact": false,
+            "same_dates": false,
+            "n_chrono": 1,
+            "n_shuffled": 2,
+            "date_jaccard": 0.5
+          },
+          "R-todo-c27892": {
+            "exact": false,
+            "same_dates": true,
+            "n_chrono": 1,
+            "n_shuffled": 1,
+            "date_jaccard": 1.0
+          },
+          "R-memo-83477f": {
+            "exact": false,
+            "same_dates": false,
+            "n_chrono": 1,
+            "n_shuffled": 1,
+            "date_jaccard": 0.0
+          },
+          "R-memo-4ea25c": {
+            "exact": false,
+            "same_dates": false,
+            "n_chrono": 1,
+            "n_shuffled": 1,
+            "date_jaccard": 0.0
+          },
+          "R-memo-878150": {
+            "exact": false,
+            "same_dates": false,
+            "n_chrono": 1,
+            "n_shuffled": 1,
+            "date_jaccard": 0.0
+          },
+          "R-schedule-fc2f41": {
+            "exact": false,
+            "same_dates": false,
+            "n_chrono": 2,
+            "n_shuffled": 1,
+            "date_jaccard": 0.5
+          },
+          "G7-coat": {
+            "exact": false,
+            "same_dates": false,
+            "n_chrono": 1,
+            "n_shuffled": 1,
+            "date_jaccard": 0.0
+          },
+          "R-todo-8ff47b": {
+            "exact": false,
+            "same_dates": false,
+            "n_chrono": 3,
+            "n_shuffled": 3,
+            "date_jaccard": 0.5
+          },
+          "R-todo-c839fa": {
+            "exact": false,
+            "same_dates": true,
+            "n_chrono": 3,
+            "n_shuffled": 3,
+            "date_jaccard": 1.0
+          },
+          "R-memo-c4c8e5": {
+            "exact": false,
+            "same_dates": false,
+            "n_chrono": 1,
+            "n_shuffled": 2,
+            "date_jaccard": 0.0
+          },
+          "R-memo-efc3b6": {
+            "exact": false,
+            "same_dates": false,
+            "n_chrono": 1,
+            "n_shuffled": 1,
+            "date_jaccard": 0.0
+          },
+          "R-memo-d462d2": {
+            "exact": false,
+            "same_dates": false,
+            "n_chrono": 1,
+            "n_shuffled": 1,
+            "date_jaccard": 0.0
+          },
+          "R-memo-1b924a": {
+            "exact": false,
+            "same_dates": false,
+            "n_chrono": 1,
+            "n_shuffled": 1,
+            "date_jaccard": 0.0
+          },
+          "G4-essay": {
+            "exact": true,
+            "same_dates": true,
+            "n_chrono": 1,
+            "n_shuffled": 1,
+            "date_jaccard": 1.0
+          },
+          "G2-minsu": {
+            "exact": false,
+            "same_dates": false,
+            "n_chrono": 1,
+            "n_shuffled": 1,
+            "date_jaccard": 0.0
+          }
+        }
+      }
+    },
+    "gold7": {
+      "A": {
+        "summary": {
+          "O": 3,
+          "triangle": 3,
+          "X": 1
+        },
+        "per_gold": {
+          "G6-callmom": {
+            "title": "엄마에게 전화하기",
+            "expect": "periodic_nudge",
+            "verdict": "△",
+            "n_notifications": 1,
+            "has_repeat": false,
+            "has_D1": false,
+            "reasons": [
+              "단발만 — 주기성 약함"
+            ],
+            "reasoning": "마감 기한이 없는 일상적인 할 일이지만, 너무 늦지 않게 주말 전 평일 저녁 시간에 가볍게 상기시켜 드리는 것이 좋다고 판단했습니다."
+          },
+          "G1-toeic": {
+            "title": "토익 시험 응시",
+            "expect": "absolute_multistage",
+            "verdict": "O",
+            "n_notifications": 3,
+            "has_repeat": false,
+            "has_D1": true,
+            "reasons": [],
+            "reasoning": "시험 중요도가 5로 매우 높으므로, 일주일 전 준비 시작 알림, 전날 준비물 체크 알림, 당일 아침 응원 알림을 구성하여 차질 없이 시험에 응시할 수 있도록 계획했습니다."
+          },
+          "G3-contest": {
+            "title": "OO 대회 본선",
+            "expect": "absolute_multistage",
+            "verdict": "△",
+            "n_notifications": 3,
+            "has_repeat": false,
+            "has_D1": false,
+            "reasons": [
+              "다단 약함 n=3 D1=False"
+            ],
+            "reasoning": "중요도가 높은 학업 관련 일정으로, 대회 일주일 전부터 단계적으로 리마인드를 제공하여 준비를 돕고자 합니다."
+          },
+          "G5-finals": {
+            "title": "기말고사",
+            "expect": "absolute_multistage",
+            "verdict": "O",
+            "n_notifications": 3,
+            "has_repeat": false,
+            "has_D1": true,
+            "reasons": [],
+            "reasoning": "중요도가 5로 매우 높고 시험이 3일 앞으로 다가왔으므로, 학습 점검, 전날 준비, 당일 아침 응원 순으로 알림을 배치했습니다."
+          },
+          "G7-coat": {
+            "title": "월급 들어오면 이 코트 사기",
+            "expect": "light_periodic",
+            "verdict": "△",
+            "n_notifications": 1,
+            "has_repeat": false,
+            "has_D1": false,
+            "reasons": [
+              "단발만 — 주기성 약함"
+            ],
+            "reasoning": "일반적인 직장인의 월급날인 25일에 맞춰 코트 구매를 상기시키는 알림을 설정했습니다."
+          },
+          "G4-essay": {
+            "title": "과제 Final Essay 제출",
+            "expect": "relative_before_deadline",
+            "verdict": "O",
+            "n_notifications": 3,
+            "has_repeat": false,
+            "has_D1": false,
+            "reasons": [],
+            "reasoning": "마감일이 오늘이므로, 마감 직전까지 집중할 수 있도록 저녁 시간대에 3시간, 1시간 간격으로 알림을 설정하여 제출을 독려합니다."
+          },
+          "G2-minsu": {
+            "title": "민수와 만남",
+            "expect": "single_D1",
+            "verdict": "X",
+            "n_notifications": 1,
+            "has_repeat": false,
+            "has_D1": false,
+            "reasons": [
+              "D-1 없음"
+            ],
+            "reasoning": "내일 바로 예정된 약속이므로, 당일 아침에 일정을 상기시켜 준비할 수 있도록 알림을 설정했습니다."
+          }
+        }
+      },
+      "B": {
+        "summary": {
+          "O": 5,
+          "triangle": 1,
+          "X": 1
+        },
+        "per_gold": {
+          "G6-callmom": {
+            "title": "엄마에게 전화하기",
+            "expect": "periodic_nudge",
+            "verdict": "O",
+            "n_notifications": 1,
+            "has_repeat": true,
+            "has_D1": false,
+            "reasons": [],
+            "reasoning": "사용자의 활동 시간대인 오후 1시를 활용하여 부담 없이 안부를 물을 수 있도록 7일 간격의 주기적 알림을 설정했습니다. 기존 일정과 겹치지 않도록 6월 18일부터 시작합니다."
+          },
+          "G1-toeic": {
+            "title": "토익 시험 응시",
+            "expect": "absolute_multistage",
+            "verdict": "△",
+            "n_notifications": 2,
+            "has_repeat": false,
+            "has_D1": true,
+            "reasons": [
+              "다단 약함 n=2 D1=True"
+            ],
+            "reasoning": "시험까지 13일 남은 시점에서 학습 흐름을 유지하기 위해 일주일 전과 시험 전날로 나누어 알림을 배치했습니다. 사용자의 활동 시간대인 오후 1시와 밤 10시를 활용하여 효율적인 준"
+          },
+          "G3-contest": {
+            "title": "OO 대회 본선",
+            "expect": "absolute_multistage",
+            "verdict": "O",
+            "n_notifications": 3,
+            "has_repeat": false,
+            "has_D1": true,
+            "reasons": [],
+            "reasoning": "중요도 4의 대회 본선이므로 2주 전, 1주 전, 그리고 당일 전날로 나누어 점진적으로 알림을 배치했습니다. 기존 일정들과 겹치지 않도록 사용자의 활동 시간대인 오후 1시와 밤 1"
+          },
+          "G5-finals": {
+            "title": "기말고사",
+            "expect": "absolute_multistage",
+            "verdict": "X",
+            "n_notifications": 1,
+            "has_repeat": false,
+            "has_D1": true,
+            "reasons": [
+              "단발/부족 n=1"
+            ],
+            "reasoning": "기말고사 마감(6/18)까지 3일 남은 시점에서, 이미 6/16과 6/17에 다른 학업 관련 알림이 밀집되어 있어 6/17 밤에 최종 리마인드를 배치하여 부담을 최소화했습니다."
+          },
+          "G7-coat": {
+            "title": "월급 들어오면 이 코트 사기",
+            "expect": "light_periodic",
+            "verdict": "O",
+            "n_notifications": 1,
+            "has_repeat": true,
+            "has_D1": false,
+            "reasons": [],
+            "reasoning": "쇼핑 아이템은 긴급도가 낮으므로, 이미 등록된 다른 쇼핑 관련 알림(유니클로, 무신사 등)과 유사한 20일 주기로 설정하여 사용자의 쇼핑 계획을 주기적으로 환기합니다."
+          },
+          "G4-essay": {
+            "title": "과제 Final Essay 제출",
+            "expect": "relative_before_deadline",
+            "verdict": "O",
+            "n_notifications": 1,
+            "has_repeat": false,
+            "has_D1": false,
+            "reasons": [],
+            "reasoning": "마감 기한이 30분도 남지 않은 긴급한 과제이므로, 기존에 예정된 알림과 동일한 시간대에 배치하여 사용자가 마감 직전임을 인지하고 즉시 제출할 수 있도록 했습니다."
+          },
+          "G2-minsu": {
+            "title": "민수와 만남",
+            "expect": "single_D1",
+            "verdict": "O",
+            "n_notifications": 1,
+            "has_repeat": false,
+            "has_D1": true,
+            "reasons": [],
+            "reasoning": "내일 바로 예정된 일정이므로, 오늘 밤 활동 시간대에 맞춰 일정을 상기시키는 알림을 1회 배치했습니다. 이미 다른 알림들이 많이 잡혀 있어, 기존 알림들과 겹치지 않도록 23:55"
+          }
+        }
+      }
+    },
+    "cap_bundling": {
+      "A": {
+        "total_notifications": 70,
+        "days_with_notifications": 20,
+        "max_per_day": 13,
+        "days_over_2": 9,
+        "days_over_3": 6,
+        "dead_hour_placements": 34,
+        "multi_source_days": 12
+      },
+      "B": {
+        "total_notifications": 58,
+        "days_with_notifications": 20,
+        "max_per_day": 7,
+        "days_over_2": 9,
+        "days_over_3": 7,
+        "dead_hour_placements": 0,
+        "multi_source_days": 14
+      }
+    },
+    "initial_quality_B": {
+      "n_first": 6,
+      "reasonable_count": 6,
+      "rows": [
+        {
+          "key": "R-memo-dc1297",
+          "title": "박세현 님 카카오톡 알림 (SW중심대학 디지털 경진대회",
+          "n": 1,
+          "has_repeat": true,
+          "dead_hour": 0,
+          "reasonable": true,
+          "note": "no-deadline→nudge"
+        },
+        {
+          "key": "R-memo-b18c58",
+          "title": "친구들과의 모임 계획 (벼락부자 4)",
+          "n": 1,
+          "has_repeat": true,
+          "dead_hour": 0,
+          "reasonable": true,
+          "note": "no-deadline→nudge"
+        },
+        {
+          "key": "R-todo-b12082",
+          "title": "SW아카데믹영작 5분반 Final Essay Assig",
+          "n": 1,
+          "has_repeat": false,
+          "dead_hour": 0,
+          "reasonable": true,
+          "note": "dated→has reminder"
+        },
+        {
+          "key": "R-todo-d9cbaa",
+          "title": "SW아카데믹영작 5분반 Week 14 Activity ",
+          "n": 1,
+          "has_repeat": false,
+          "dead_hour": 0,
+          "reasonable": true,
+          "note": "dated→has reminder"
+        },
+        {
+          "key": "R-todo-99703c",
+          "title": "나를브랜딩하는취업설계 1분반 기말고사 대체과제 제출",
+          "n": 1,
+          "has_repeat": false,
+          "dead_hour": 0,
+          "reasonable": true,
+          "note": "dated→has reminder"
+        },
+        {
+          "key": "R-todo-4d84dd",
+          "title": "스마트카소프트웨어보안 1분반 BMW 커넥티드 드라이브 ",
+          "n": 2,
+          "has_repeat": false,
+          "dead_hour": 0,
+          "reasonable": true,
+          "note": "dated→has reminder"
+        }
+      ]
+    }
+  },
+  "raw_plans": {
+    "A_chrono": {
+      "R-memo-dc1297": {
+        "notifications": [
+          {
+            "date": "2026-06-16",
+            "time": "10:00",
+            "content": "박세현 님이 보낸 SW중심대학 디지털 경진대회 관련 카카오톡 알림을 확인하고 화면 잘림 문제를 해결하세요."
+          }
+        ],
+        "reasoning": "사용자가 중요한 경진대회 관련 알림을 놓치지 않도록 다음 날 오전 업무 시작 시간에 맞춰 확인 알림을 설정했습니다."
+      },
+      "R-memo-b18c58": {
+        "notifications": [
+          {
+            "date": "2026-06-16",
+            "time": "10:00",
+            "content": "친구들과의 모임(벼락부자 4) 상세 내용이 정해졌는지 확인해보세요."
+          }
+        ],
+        "reasoning": "모임 계획이 아직 구체화되지 않았으므로, 다음 날 오전에 대화방을 다시 확인하여 상세 일정을 파악하고 합류 여부를 결정할 수 있도록 알림을 설정했습니다."
+      },
+      "R-todo-b12082": {
+        "notifications": [
+          {
+            "date": "2026-06-15",
+            "time": "09:00",
+            "content": "SW아카데믹영작 Final Essay Stage 2 마감일이 지났습니다. 아직 제출하지 못했다면 교수님께 즉시 연락하세요."
+          }
+        ],
+        "reasoning": "과제 마감일인 2026-06-14가 이미 지났으므로, 사용자에게 마감 경과 사실을 알리고 미제출 시 조치를 취하도록 안내하는 긴급 알림을 설정했습니다."
+      },
+      "R-todo-d9cbaa": {
+        "notifications": [
+          {
+            "date": "2026-06-15",
+            "time": "09:00",
+            "content": "SW아카데믹영작 5분반 Week 14 Activity Sheet 제출 기한이 지났습니다. 교수님께 연락하여 지각 제출 가능 여부를 확인하세요."
+          }
+        ],
+        "reasoning": "마감 기한인 2026-06-14가 이미 지났으므로, 사용자에게 즉시 미제출 사실을 알리고 지각 제출을 위한 후속 조치를 취하도록 안내하는 것이 중요합니다."
+      },
+      "R-todo-99703c": {
+        "notifications": [
+          {
+            "date": "2026-06-15",
+            "time": "18:00",
+            "content": "오늘 23:59 마감인 '나를 브랜딩하는 취업설계' 기말고사 대체과제 제출을 잊지 마세요."
+          },
+          {
+            "date": "2026-06-15",
+            "time": "22:00",
+            "content": "마감까지 2시간 남았습니다. 과제 제출 상태를 최종 확인하세요."
+          }
+        ],
+        "reasoning": "오늘이 마감일이며 중요도가 매우 높으므로, 저녁 시간과 마감 2시간 전 두 차례에 걸쳐 제출을 독려하는 알림을 설정했습니다."
+      },
+      "R-todo-4d84dd": {
+        "notifications": [
+          {
+            "date": "2026-06-16",
+            "time": "09:00",
+            "content": "스마트카소프트웨어보안 과제 마감일입니다. 오늘 밤 23:59까지 제출하세요."
+          },
+          {
+            "date": "2026-06-16",
+            "time": "20:00",
+            "content": "과제 제출 마감까지 4시간 남았습니다. 최종 점검 후 제출해주세요."
+          }
+        ],
+        "reasoning": "마감 기한이 하루 앞으로 다가온 중요도 5의 과제이므로, 당일 아침에 일정을 상기시키고 마감 직전 저녁에 최종 제출을 독려하는 알림을 설정했습니다."
+      },
+      "R-schedule-92c297": {
+        "notifications": [
+          {
+            "date": "2026-06-15",
+            "time": "18:00",
+            "content": "민수와의 만남 일정이 이미 지났습니다. 일정을 다시 확인하거나 연락해보세요."
+          }
+        ],
+        "reasoning": "해당 일정은 2026-06-11로 이미 지난 과거의 날짜입니다. 사용자가 일정을 놓쳤을 가능성이 높으므로, 일정을 확인하거나 상대방에게 연락을 취하도록 안내하는 알림을 설정했습니다."
+      },
+      "R-schedule-01b074": {
+        "notifications": [
+          {
+            "date": "2026-06-17",
+            "time": "10:00",
+            "content": "친구들과의 여행이 2일 앞으로 다가왔습니다. 준비물은 다 챙기셨나요?"
+          },
+          {
+            "date": "2026-06-18",
+            "time": "20:00",
+            "content": "내일 친구들과의 여행을 위해 일찍 잠자리에 들고 짐을 최종 점검하세요."
+          }
+        ],
+        "reasoning": "여행 일정이 4일 남았으므로, 준비를 시작할 수 있도록 2일 전과 출발 전날 저녁에 알림을 설정하여 차질 없이 준비할 수 있도록 했습니다."
+      },
+      "R-schedule-b308fa": {
+        "notifications": [
+          {
+            "date": "2026-07-02",
+            "time": "10:00",
+            "content": "오사카 여행이 일주일 앞으로 다가왔습니다. 준비물 체크리스트를 확인해보세요."
+          },
+          {
+            "date": "2026-07-08",
+            "time": "18:00",
+            "content": "내일 떠나는 오사카 여행, 여권과 항공권 등 최종 짐 점검을 잊지 마세요."
+          }
+        ],
+        "reasoning": "여행 일주일 전 준비물 점검을 위한 알림과 출발 전날 최종 확인을 위한 알림을 설정하여 여행 준비를 돕고자 합니다."
+      },
+      "R-todo-3156b9": {
+        "notifications": [
+          {
+            "date": "2026-06-16",
+            "time": "07:30",
+            "content": "오늘 아침 식사 챙겨 드셨나요? 건강한 하루를 위해 꼭 챙겨 드세요!"
+          }
+        ],
+        "reasoning": "사용자가 내일 아침 식사를 실천하겠다고 다짐했으므로, 아침 식사 시간대에 맞춰 실천을 독려하는 알림을 설정했습니다."
+      },
+      "G6-callmom": {
+        "notifications": [
+          {
+            "date": "2026-06-17",
+            "time": "19:00",
+            "content": "이번 주에 엄마에게 안부 전화 한 통 드리는 건 어떨까요?"
+          }
+        ],
+        "reasoning": "마감 기한이 없는 일상적인 할 일이지만, 너무 늦지 않게 주말 전 평일 저녁 시간에 가볍게 상기시켜 드리는 것이 좋다고 판단했습니다."
+      },
+      "R-schedule-4ecc9d": {
+        "notifications": [
+          {
+            "date": "2026-06-17",
+            "time": "10:00",
+            "content": "부산 여행까지 3일 남았습니다. 필요한 짐을 미리 챙겨보세요."
+          },
+          {
+            "date": "2026-06-19",
+            "time": "19:00",
+            "content": "내일 부산 여행입니다. 기차표나 숙소 예약 정보를 다시 한번 확인하세요."
+          }
+        ],
+        "reasoning": "여행 3일 전과 출발 전날에 각각 준비물 점검과 예약 확인을 위한 알림을 설정하여 여행 준비를 돕고자 합니다."
+      },
+      "G1-toeic": {
+        "notifications": [
+          {
+            "date": "2026-06-21",
+            "time": "09:00",
+            "content": "토익 시험이 일주일 앞으로 다가왔습니다. 마지막 점검을 시작하세요."
+          },
+          {
+            "date": "2026-06-27",
+            "time": "20:00",
+            "content": "내일 토익 시험입니다. 수험표와 신분증, 연필을 미리 챙겨두세요."
+          },
+          {
+            "date": "2026-06-28",
+            "time": "07:00",
+            "content": "오늘 토익 시험일입니다. 컨디션 조절 잘 하시고 좋은 결과 있으시길 바랍니다."
+          }
+        ],
+        "reasoning": "시험 중요도가 5로 매우 높으므로, 일주일 전 준비 시작 알림, 전날 준비물 체크 알림, 당일 아침 응원 알림을 구성하여 차질 없이 시험에 응시할 수 있도록 계획했습니다."
+      },
+      "R-todo-463f0a": {
+        "notifications": [
+          {
+            "date": "2026-06-16",
+            "time": "10:00",
+            "content": "기사 2회 필기시험 응시자격 서류 제출 마감까지 3일 남았습니다. 미리 준비하세요."
+          },
+          {
+            "date": "2026-06-18",
+            "time": "14:00",
+            "content": "기사 2회 필기시험 응시자격 서류 제출 마감이 내일입니다. 서류를 확인하고 제출해주세요."
+          },
+          {
+            "date": "2026-06-19",
+            "time": "14:00",
+            "content": "오늘 18시가 기사 2회 필기시험 응시자격 서류 제출 마감입니다. 잊지 말고 제출하세요."
+          }
+        ],
+        "reasoning": "중요도가 5인 학업 관련 마감 기한이 4일 앞으로 다가왔으므로, 마감 3일 전, 1일 전, 그리고 당일 오후에 알림을 설정하여 제출을 놓치지 않도록 구성했습니다."
+      },
+      "R-schedule-006398": {
+        "notifications": [
+          {
+            "date": "2026-06-21",
+            "time": "10:00",
+            "content": "토익 시험이 일주일 앞으로 다가왔습니다. 공부 진도를 점검하고 부족한 부분을 보완하세요."
+          },
+          {
+            "date": "2026-06-27",
+            "time": "18:00",
+            "content": "내일 토익 시험입니다. 신분증, 연필, 지우개 등 준비물을 미리 챙겨두세요."
+          },
+          {
+            "date": "2026-06-28",
+            "time": "07:00",
+            "content": "토익 시험 당일입니다. 대방중학교까지 이동 시간을 고려해 여유 있게 출발하세요."
+          }
+        ],
+        "reasoning": "시험까지 13일 남은 시점에서 일주일 전 학습 점검, 전날 준비물 확인, 당일 아침 출발 알림으로 구성하여 시험 준비를 체계적으로 돕고자 합니다."
+      },
+      "R-todo-709f49": {
+        "notifications": [
+          {
+            "date": "2026-06-16",
+            "time": "10:00",
+            "content": "서울시 희망두배 청년통장 신청 마감이 3일 남았습니다. 미리 준비하세요."
+          },
+          {
+            "date": "2026-06-18",
+            "time": "14:00",
+            "content": "서울시 희망두배 청년통장 신청 마감이 내일 오후 6시입니다. 서류를 확인하세요."
+          },
+          {
+            "date": "2026-06-19",
+            "time": "14:00",
+            "content": "서울시 희망두배 청년통장 신청 마감 당일입니다. 오후 6시 전까지 꼭 신청하세요."
+          }
+        ],
+        "reasoning": "마감 기한이 4일 남은 중요한 금융 지원 사업이므로, 신청 준비를 위해 3일 전, 1일 전, 그리고 당일 오후에 알림을 설정하여 놓치지 않도록 구성했습니다."
+      },
+      "R-todo-28caa5": {
+        "notifications": [
+          {
+            "date": "2026-06-16",
+            "time": "09:00",
+            "content": "네이버 클라우드 Maps API 점검 안내 이메일을 확인하고 내용을 파악해 보세요."
+          },
+          {
+            "date": "2026-06-20",
+            "time": "14:00",
+            "content": "6월 22일 예정된 Maps API 점검에 대비해 관련 내용을 다시 한번 확인하세요."
+          }
+        ],
+        "reasoning": "6월 22일 점검 전까지 여유 있게 내용을 파악할 수 있도록 업무 시작 시간과 점검 이틀 전 오후에 알림을 설정했습니다."
+      },
+      "R-schedule-2373b1": {
+        "notifications": [
+          {
+            "date": "2026-06-25",
+            "time": "10:00",
+            "content": "여자친구와 한강 가기까지 2일 남았습니다. 준비물이나 계획을 미리 확인해보세요."
+          },
+          {
+            "date": "2026-06-27",
+            "time": "09:00",
+            "content": "오늘 여자친구와 한강에 가는 날입니다. 즐거운 시간 보내세요!"
+          }
+        ],
+        "reasoning": "약속 2일 전 준비를 위한 알림과 당일 아침 설레는 마음을 담은 알림을 설정하여 일정을 놓치지 않도록 구성했습니다."
+      },
+      "G3-contest": {
+        "notifications": [
+          {
+            "date": "2026-07-13",
+            "time": "09:00",
+            "content": "OO 대회 본선이 일주일 앞으로 다가왔습니다. 준비 상황을 점검하세요."
+          },
+          {
+            "date": "2026-07-18",
+            "time": "18:00",
+            "content": "OO 대회 본선이 이틀 남았습니다. 최종 준비물을 확인하고 컨디션을 조절하세요."
+          },
+          {
+            "date": "2026-07-20",
+            "time": "08:00",
+            "content": "오늘은 OO 대회 본선 당일입니다. 좋은 결과 있으시길 바랍니다!"
+          }
+        ],
+        "reasoning": "중요도가 높은 학업 관련 일정으로, 대회 일주일 전부터 단계적으로 리마인드를 제공하여 준비를 돕고자 합니다."
+      },
+      "R-memo-c35603": {
+        "notifications": [
+          {
+            "date": "2026-06-22",
+            "time": "10:00",
+            "content": "저장해두신 SOTSU 포터블 모니터, 구매 계획을 다시 한번 확인해보세요."
+          }
+        ],
+        "reasoning": "구매 고려 단계의 메모이므로, 일주일 뒤에 제품의 필요성을 다시 한번 상기시켜 구매 여부를 결정할 수 있도록 돕기 위해 알림을 설정했습니다."
+      },
+      "R-memo-443455": {
+        "notifications": [
+          {
+            "date": "2026-06-22",
+            "time": "10:00",
+            "content": "저장해두신 로프리(Lofree) EDGE 키보드 20% 할인 정보 다시 확인해보세요."
+          }
+        ],
+        "reasoning": "사용자가 구매를 고려하기 위해 저장한 쇼핑 정보이므로, 일주일 뒤에 다시 한번 상기시켜 구매 의사를 확인하도록 설정했습니다."
+      },
+      "R-todo-ede771": {
+        "notifications": [
+          {
+            "date": "2026-06-17",
+            "time": "10:00",
+            "content": "모찌 채팅탭 맞춤형 예시 질문 추가 계획을 구체화해보는 건 어떨까요?"
+          },
+          {
+            "date": "2026-06-20",
+            "time": "14:00",
+            "content": "모찌 채팅탭 예시 질문 추가 작업 진행 상황을 확인해보세요."
+          }
+        ],
+        "reasoning": "마감 기한이 없는 학업 관련 할 일임을 고려하여, 2일 뒤에 초기 계획 수립을 독려하고, 5일 뒤에 진행 상황을 점검하도록 알림을 설정했습니다."
+      },
+      "R-memo-85c0b6": {
+        "notifications": [
+          {
+            "date": "2026-06-22",
+            "time": "19:00",
+            "content": "저장해둔 유니클로 추천 아이템(셔츠, 와이드 진) 정보를 다시 확인해보세요."
+          }
+        ],
+        "reasoning": "쇼핑 정보는 즉각적인 마감 기한이 없으므로, 일주일 뒤 주말 저녁에 여유롭게 쇼핑 계획을 검토할 수 있도록 1회 알림을 설정했습니다."
+      },
+      "G5-finals": {
+        "notifications": [
+          {
+            "date": "2026-06-16",
+            "time": "09:00",
+            "content": "기말고사까지 2일 남았습니다. 학습 계획을 점검하세요."
+          },
+          {
+            "date": "2026-06-17",
+            "time": "20:00",
+            "content": "내일 기말고사입니다. 준비물을 챙기고 일찍 휴식을 취하세요."
+          },
+          {
+            "date": "2026-06-18",
+            "time": "07:00",
+            "content": "오늘 기말고사 당일입니다. 마지막까지 힘내세요!"
+          }
+        ],
+        "reasoning": "중요도가 5로 매우 높고 시험이 3일 앞으로 다가왔으므로, 학습 점검, 전날 준비, 당일 아침 응원 순으로 알림을 배치했습니다."
+      },
+      "R-todo-c27892": {
+        "notifications": [
+          {
+            "date": "2026-06-16",
+            "time": "20:00",
+            "content": "내일 용산베르디움프렌즈 청년안심주택 추가모집 접수일입니다. 서류를 미리 준비해두세요."
+          },
+          {
+            "date": "2026-06-17",
+            "time": "09:00",
+            "content": "오늘 용산베르디움프렌즈 청년안심주택 추가모집 접수 시작일입니다. 잊지 말고 신청하세요."
+          }
+        ],
+        "reasoning": "접수일이 6월 17일로 임박했으므로, 전날 저녁에 준비를 상기시키고 당일 아침에 접수를 독려하는 알림을 설정했습니다."
+      },
+      "R-memo-83477f": {
+        "notifications": [
+          {
+            "date": "2026-06-20",
+            "time": "11:30",
+            "content": "신대방삼거리역 근처에 계신가요? 저장해둔 '양은이네'에서 식사 어떠세요?"
+          }
+        ],
+        "reasoning": "맛집 정보는 근처에 방문할 가능성이 있을 때 알림을 주는 것이 가장 효과적입니다. 중요도가 낮으므로 과도한 알림보다는 주말이나 점심시간대에 한 번 정도 가볍게 상기시켜 드리는 것이 적절하다고 판단했습니다."
+      },
+      "R-memo-4ea25c": {
+        "notifications": [
+          {
+            "date": "2026-06-22",
+            "time": "19:00",
+            "content": "저장해두신 '무신사 스탠다드 헨리 넥 티셔츠' 구매를 고민해보시는 건 어떨까요?"
+          }
+        ],
+        "reasoning": "사용자가 구매를 고려하기 위해 저장한 상품이므로, 일주일 뒤에 다시 한번 상기시켜 구매 의사를 확인하도록 설정했습니다."
+      },
+      "R-memo-878150": {
+        "notifications": [
+          {
+            "date": "2026-06-22",
+            "time": "19:00",
+            "content": "스탬플리 앱으로 허니콤보 혜택을 받을 수 있는지 확인해보세요."
+          }
+        ],
+        "reasoning": "사용자가 혜택을 활용하기 위해 저장한 메모이므로, 일주일 뒤 여유로운 주말 저녁 시간에 혜택 확인을 상기시키는 알림을 설정했습니다."
+      },
+      "R-schedule-fc2f41": {
+        "notifications": [
+          {
+            "date": "2026-06-16",
+            "time": "09:00",
+            "content": "스마트카소프트웨어보안 기말고사 준비를 시작하세요. 시험은 6월 18일 오후 1시입니다."
+          },
+          {
+            "date": "2026-06-17",
+            "time": "20:00",
+            "content": "내일 오후 1시 스마트카소프트웨어보안 기말고사입니다. 준비물과 장소(인문관 211호)를 확인하세요."
+          },
+          {
+            "date": "2026-06-18",
+            "time": "11:30",
+            "content": "스마트카소프트웨어보안 기말고사 시작 1시간 30분 전입니다. 인문관 211호로 이동할 준비를 하세요."
+          }
+        ],
+        "reasoning": "시험 중요도가 매우 높으므로(5점), 학습 시작을 독려하는 알림, 전날 최종 점검 알림, 당일 이동을 위한 알림을 단계적으로 배치했습니다."
+      },
+      "G7-coat": {
+        "notifications": [
+          {
+            "date": "2026-06-25",
+            "time": "18:00",
+            "content": "월급날입니다! 찜해두었던 코트 구매를 고려해보세요."
+          }
+        ],
+        "reasoning": "일반적인 직장인의 월급날인 25일에 맞춰 코트 구매를 상기시키는 알림을 설정했습니다."
+      },
+      "R-todo-8ff47b": {
+        "notifications": [
+          {
+            "date": "2026-06-20",
+            "time": "10:00",
+            "content": "공모전 예선 기획서 작성을 시작할 시간입니다. 개요부터 잡아보세요.",
+            "repeat_rule": "3일마다 총 3회"
+          },
+          {
+            "date": "2026-07-01",
+            "time": "09:00",
+            "content": "예선 기획서 제출 마감이 일주일 남았습니다. 초안을 점검하세요."
+          },
+          {
+            "date": "2026-07-06",
+            "time": "20:00",
+            "content": "내일 오전 10시가 예선 기획서 제출 마감입니다. 최종 파일과 제출처를 확인하세요."
+          },
+          {
+            "date": "2026-07-07",
+            "time": "09:00",
+            "content": "제출 마감 1시간 전입니다. 지금 바로 제출을 완료하세요."
+          }
+        ],
+        "reasoning": "중요도가 5인 공모전 기획서이므로, 초기 단계부터 주기적인 리마인더를 통해 작업 진척을 돕고, 마감 직전에는 긴급 알림을 통해 제출 누락을 방지하도록 구성했습니다."
+      },
+      "R-todo-c839fa": {
+        "notifications": [
+          {
+            "date": "2026-06-18",
+            "time": "10:00",
+            "content": "멋쟁이사자처럼 AI 부트캠프 지원 마감이 4일 남았습니다. 자기소개서 작성을 시작하세요."
+          },
+          {
+            "date": "2026-06-21",
+            "time": "20:00",
+            "content": "멋쟁이사자처럼 AI 부트캠프 지원 마감이 내일입니다. 최종 검토 후 제출하세요."
+          },
+          {
+            "date": "2026-06-22",
+            "time": "18:00",
+            "content": "멋쟁이사자처럼 AI 부트캠프 지원 마감까지 6시간 남았습니다. 지금 바로 제출하세요."
+          }
+        ],
+        "reasoning": "중요도가 5로 매우 높고 마감이 7일 남은 시점이므로, 지원서 작성 시작을 독려하는 알림과 마감 직전 최종 제출을 확인하는 알림을 단계적으로 배치했습니다."
+      },
+      "R-memo-c4c8e5": {
+        "notifications": [
+          {
+            "date": "2026-06-16",
+            "time": "10:00",
+            "content": "무신사 무진장 여름 블랙프라이데이 기간입니다. 카테고리별 할인 일정을 확인하고 쇼핑 계획을 세워보세요."
+          },
+          {
+            "date": "2026-06-23",
+            "time": "18:00",
+            "content": "무신사 무진장 여름 블랙프라이데이 종료가 하루 남았습니다. 장바구니를 최종 점검하세요."
+          }
+        ],
+        "reasoning": "행사 기간이 6월 24일까지이므로, 행사 초반에 계획을 세울 수 있도록 알림을 설정하고, 종료 직전에 놓친 상품이 없는지 확인하도록 구성했습니다."
+      },
+      "R-memo-efc3b6": {
+        "notifications": [
+          {
+            "date": "2026-06-22",
+            "time": "19:00",
+            "content": "브론슨 1936 Lot 101J Cowboys Jacket 구매를 다시 한번 고민해보세요."
+          },
+          {
+            "date": "2026-07-06",
+            "time": "19:00",
+            "content": "저장해두신 브론슨 자켓, 아직 구매 의사가 있으신가요?"
+          }
+        ],
+        "reasoning": "구매 고려 중인 아이템이므로, 일주일 뒤와 2주 뒤에 각각 리마인드를 설정하여 사용자가 충분히 고민하고 구매 여부를 결정할 수 있도록 돕습니다."
+      },
+      "R-memo-d462d2": {
+        "notifications": [
+          {
+            "date": "2026-06-22",
+            "time": "19:00",
+            "content": "노운 헨리넥 티셔츠 구매 고민 중이시네요. 다시 한번 확인해보시겠어요?"
+          }
+        ],
+        "reasoning": "구매 고민 중인 상품이므로 일주일 뒤에 다시 한번 상기시켜 구매 여부를 결정할 수 있도록 돕고자 합니다."
+      },
+      "R-memo-1b924a": {
+        "notifications": [
+          {
+            "date": "2026-06-22",
+            "time": "10:00",
+            "content": "지난달 실현수익 내역을 다시 한번 확인하고 자산 흐름을 점검해보세요."
+          }
+        ],
+        "reasoning": "중요도가 낮고 단순 기록용 메모이므로, 일주일 뒤에 가볍게 내용을 상기시켜 자산 관리 흐름을 유지하도록 유도합니다."
+      },
+      "G4-essay": {
+        "notifications": [
+          {
+            "date": "2026-06-15",
+            "time": "18:00",
+            "content": "오늘 밤 23:59까지인 Final Essay 제출을 잊지 마세요."
+          },
+          {
+            "date": "2026-06-15",
+            "time": "21:00",
+            "content": "Final Essay 제출 마감이 3시간 남았습니다. 마무리 단계라면 지금 제출하세요."
+          },
+          {
+            "date": "2026-06-15",
+            "time": "23:00",
+            "content": "Final Essay 제출 마감이 1시간 남았습니다. 최종 검토 후 제출을 서둘러주세요."
+          }
+        ],
+        "reasoning": "마감일이 오늘이므로, 마감 직전까지 집중할 수 있도록 저녁 시간대에 3시간, 1시간 간격으로 알림을 설정하여 제출을 독려합니다."
+      },
+      "G2-minsu": {
+        "notifications": [
+          {
+            "date": "2026-06-16",
+            "time": "09:00",
+            "content": "오늘 민수와 만나는 날입니다. 약속 장소와 시간을 다시 한번 확인하세요."
+          }
+        ],
+        "reasoning": "내일 바로 예정된 약속이므로, 당일 아침에 일정을 상기시켜 준비할 수 있도록 알림을 설정했습니다."
+      }
+    },
+    "A_shuffled": {
+      "R-schedule-01b074": {
+        "notifications": [
+          {
+            "date": "2026-06-17",
+            "time": "10:00",
+            "content": "친구들과의 여행이 2일 앞으로 다가왔습니다. 준비물은 다 챙기셨나요?"
+          },
+          {
+            "date": "2026-06-18",
+            "time": "20:00",
+            "content": "내일 친구들과의 여행을 위해 일찍 잠자리에 들고 짐을 최종 점검하세요."
+          }
+        ],
+        "reasoning": "여행 일정이 4일 남았으므로, 준비를 시작할 수 있도록 2일 전과 출발 전날 저녁에 알림을 설정하여 차질 없이 준비할 수 있도록 했습니다."
+      },
+      "R-schedule-2373b1": {
+        "notifications": [
+          {
+            "date": "2026-06-25",
+            "time": "10:00",
+            "content": "여자친구와 한강 가기까지 2일 남았습니다. 준비물이나 계획을 미리 확인해보세요."
+          },
+          {
+            "date": "2026-06-27",
+            "time": "09:00",
+            "content": "오늘 여자친구와 한강에 가는 날입니다. 즐거운 시간 보내세요!"
+          }
+        ],
+        "reasoning": "약속 2일 전 준비를 위한 알림과 당일 아침 설레는 마음을 담은 알림을 설정하여 일정을 놓치지 않도록 구성했습니다."
+      },
+      "R-schedule-b308fa": {
+        "notifications": [
+          {
+            "date": "2026-07-02",
+            "time": "10:00",
+            "content": "오사카 여행이 일주일 앞으로 다가왔습니다. 준비물 체크리스트를 확인해보세요."
+          },
+          {
+            "date": "2026-07-08",
+            "time": "18:00",
+            "content": "내일 떠나는 오사카 여행, 여권과 항공권 등 최종 짐 점검을 잊지 마세요."
+          }
+        ],
+        "reasoning": "여행 일주일 전 준비물 점검을 위한 알림과 출발 전날 최종 확인을 위한 알림을 설정하여 여행 준비를 돕고자 합니다."
+      },
+      "G5-finals": {
+        "notifications": [
+          {
+            "date": "2026-06-16",
+            "time": "09:00",
+            "content": "기말고사까지 2일 남았습니다. 학습 계획을 점검하세요."
+          },
+          {
+            "date": "2026-06-17",
+            "time": "20:00",
+            "content": "내일 기말고사입니다. 준비물을 챙기고 일찍 휴식을 취하세요."
+          },
+          {
+            "date": "2026-06-18",
+            "time": "07:00",
+            "content": "오늘 기말고사 당일입니다. 마지막까지 힘내세요!"
+          }
+        ],
+        "reasoning": "중요도가 5로 매우 높고 시험이 3일 앞으로 다가왔으므로, 학습 점검, 전날 준비, 당일 아침 응원 순으로 알림을 배치했습니다."
+      },
+      "R-memo-dc1297": {
+        "notifications": [
+          {
+            "date": "2026-06-16",
+            "time": "10:00",
+            "content": "박세현 님이 보낸 SW중심대학 디지털 경진대회 관련 카카오톡 알림을 확인하고 화면 잘림 문제를 해결하세요."
+          }
+        ],
+        "reasoning": "사용자가 중요한 경진대회 관련 알림을 놓치지 않도록 다음 날 오전 업무 시작 시간에 맞춰 확인 알림을 설정했습니다."
+      },
+      "R-memo-85c0b6": {
+        "notifications": [
+          {
+            "date": "2026-06-22",
+            "time": "19:00",
+            "content": "저장해둔 유니클로 추천 아이템(셔츠, 와이드 진) 정보를 다시 확인해보세요."
+          }
+        ],
+        "reasoning": "쇼핑 정보는 즉각적인 마감 기한이 없으므로, 일주일 뒤 주말 저녁에 여유롭게 쇼핑 계획을 검토할 수 있도록 1회 알림을 설정했습니다."
+      },
+      "R-memo-efc3b6": {
+        "notifications": [
+          {
+            "date": "2026-06-22",
+            "time": "19:00",
+            "content": "브론슨 1936 Lot 101J Cowboys Jacket 구매를 다시 한번 고민해보세요."
+          },
+          {
+            "date": "2026-07-06",
+            "time": "19:00",
+            "content": "저장해두신 브론슨 자켓, 아직 구매 의사가 있으신가요?"
+          }
+        ],
+        "reasoning": "구매 고려 중인 아이템이므로, 일주일 뒤와 2주 뒤에 각각 리마인드를 설정하여 사용자가 충분히 고민하고 구매 여부를 결정할 수 있도록 돕습니다."
+      },
+      "R-todo-99703c": {
+        "notifications": [
+          {
+            "date": "2026-06-15",
+            "time": "18:00",
+            "content": "오늘 23:59 마감인 '나를 브랜딩하는 취업설계' 기말고사 대체과제 제출을 잊지 마세요."
+          },
+          {
+            "date": "2026-06-15",
+            "time": "22:00",
+            "content": "마감까지 2시간 남았습니다. 과제 제출 상태를 최종 확인하세요."
+          }
+        ],
+        "reasoning": "오늘이 마감일이며 중요도가 매우 높으므로, 저녁 시간과 마감 2시간 전 두 차례에 걸쳐 제출을 독려하는 알림을 설정했습니다."
+      },
+      "R-todo-709f49": {
+        "notifications": [
+          {
+            "date": "2026-06-16",
+            "time": "10:00",
+            "content": "서울시 희망두배 청년통장 신청 마감이 3일 남았습니다. 미리 준비하세요."
+          },
+          {
+            "date": "2026-06-18",
+            "time": "14:00",
+            "content": "서울시 희망두배 청년통장 신청 마감이 내일 오후 6시입니다. 서류를 확인하세요."
+          },
+          {
+            "date": "2026-06-19",
+            "time": "14:00",
+            "content": "서울시 희망두배 청년통장 신청 마감 당일입니다. 오후 6시 전까지 꼭 신청하세요."
+          }
+        ],
+        "reasoning": "마감 기한이 4일 남은 중요한 금융 지원 사업이므로, 신청 준비를 위해 3일 전, 1일 전, 그리고 당일 오후에 알림을 설정하여 놓치지 않도록 구성했습니다."
+      },
+      "R-schedule-4ecc9d": {
+        "notifications": [
+          {
+            "date": "2026-06-17",
+            "time": "10:00",
+            "content": "부산 여행까지 3일 남았습니다. 필요한 짐을 미리 챙겨보세요."
+          },
+          {
+            "date": "2026-06-19",
+            "time": "19:00",
+            "content": "내일 부산 여행입니다. 기차표나 숙소 예약 정보를 다시 한번 확인하세요."
+          }
+        ],
+        "reasoning": "여행 3일 전과 출발 전날에 각각 준비물 점검과 예약 확인을 위한 알림을 설정하여 여행 준비를 돕고자 합니다."
+      },
+      "R-todo-ede771": {
+        "notifications": [
+          {
+            "date": "2026-06-17",
+            "time": "10:00",
+            "content": "모찌 채팅탭 맞춤형 예시 질문 추가 계획을 구체화해보는 건 어떨까요?"
+          },
+          {
+            "date": "2026-06-20",
+            "time": "14:00",
+            "content": "모찌 채팅탭 예시 질문 추가 작업 진행 상황을 확인해보세요."
+          }
+        ],
+        "reasoning": "마감 기한이 없는 학업 관련 할 일임을 고려하여, 2일 뒤에 초기 계획 수립을 독려하고, 5일 뒤에 진행 상황을 점검하도록 알림을 설정했습니다."
+      },
+      "R-todo-4d84dd": {
+        "notifications": [
+          {
+            "date": "2026-06-16",
+            "time": "09:00",
+            "content": "스마트카소프트웨어보안 과제 마감일입니다. 오늘 밤 23:59까지 제출하세요."
+          },
+          {
+            "date": "2026-06-16",
+            "time": "20:00",
+            "content": "과제 제출 마감까지 4시간 남았습니다. 최종 점검 후 제출해주세요."
+          }
+        ],
+        "reasoning": "마감 기한이 하루 앞으로 다가온 중요도 5의 과제이므로, 당일 아침에 일정을 상기시키고 마감 직전 저녁에 최종 제출을 독려하는 알림을 설정했습니다."
+      },
+      "R-memo-d462d2": {
+        "notifications": [
+          {
+            "date": "2026-06-22",
+            "time": "19:00",
+            "content": "노운 헨리넥 티셔츠 구매 고민 중이시네요. 다시 한번 확인해보시겠어요?"
+          }
+        ],
+        "reasoning": "구매 고민 중인 상품이므로 일주일 뒤에 다시 한번 상기시켜 구매 여부를 결정할 수 있도록 돕고자 합니다."
+      },
+      "R-schedule-006398": {
+        "notifications": [
+          {
+            "date": "2026-06-21",
+            "time": "10:00",
+            "content": "토익 시험이 일주일 앞으로 다가왔습니다. 공부 진도를 점검하고 부족한 부분을 보완하세요."
+          },
+          {
+            "date": "2026-06-27",
+            "time": "18:00",
+            "content": "내일 토익 시험입니다. 신분증, 연필, 지우개 등 준비물을 미리 챙겨두세요."
+          },
+          {
+            "date": "2026-06-28",
+            "time": "07:00",
+            "content": "토익 시험 당일입니다. 대방중학교까지 이동 시간을 고려해 여유 있게 출발하세요."
+          }
+        ],
+        "reasoning": "시험까지 13일 남은 시점에서 일주일 전 학습 점검, 전날 준비물 확인, 당일 아침 출발 알림으로 구성하여 시험 준비를 체계적으로 돕고자 합니다."
+      },
+      "R-todo-28caa5": {
+        "notifications": [
+          {
+            "date": "2026-06-16",
+            "time": "09:00",
+            "content": "네이버 클라우드 Maps API 점검 안내 이메일을 확인하고 내용을 파악해 보세요."
+          },
+          {
+            "date": "2026-06-20",
+            "time": "14:00",
+            "content": "6월 22일 예정된 Maps API 점검에 대비해 관련 내용을 다시 한번 확인하세요."
+          }
+        ],
+        "reasoning": "6월 22일 점검 전까지 여유 있게 내용을 파악할 수 있도록 업무 시작 시간과 점검 이틀 전 오후에 알림을 설정했습니다."
+      },
+      "R-todo-d9cbaa": {
+        "notifications": [
+          {
+            "date": "2026-06-15",
+            "time": "09:00",
+            "content": "SW아카데믹영작 5분반 Week 14 Activity Sheet 제출 기한이 지났습니다. 교수님께 연락하여 지각 제출 가능 여부를 확인하세요."
+          }
+        ],
+        "reasoning": "마감 기한인 2026-06-14가 이미 지났으므로, 사용자에게 즉시 미제출 사실을 알리고 지각 제출을 위한 후속 조치를 취하도록 안내하는 것이 중요합니다."
+      },
+      "R-memo-4ea25c": {
+        "notifications": [
+          {
+            "date": "2026-06-22",
+            "time": "19:00",
+            "content": "저장해두신 '무신사 스탠다드 헨리 넥 티셔츠' 구매를 고민해보시는 건 어떨까요?"
+          }
+        ],
+        "reasoning": "사용자가 구매를 고려하기 위해 저장한 상품이므로, 일주일 뒤에 다시 한번 상기시켜 구매 의사를 확인하도록 설정했습니다."
+      },
+      "G2-minsu": {
+        "notifications": [
+          {
+            "date": "2026-06-16",
+            "time": "09:00",
+            "content": "오늘 민수와 만나는 날입니다. 약속 장소와 시간을 다시 한번 확인하세요."
+          }
+        ],
+        "reasoning": "내일 바로 예정된 약속이므로, 당일 아침에 일정을 상기시켜 준비할 수 있도록 알림을 설정했습니다."
+      },
+      "R-memo-b18c58": {
+        "notifications": [
+          {
+            "date": "2026-06-16",
+            "time": "10:00",
+            "content": "친구들과의 모임(벼락부자 4) 상세 내용이 정해졌는지 확인해보세요."
+          }
+        ],
+        "reasoning": "모임 계획이 아직 구체화되지 않았으므로, 다음 날 오전에 대화방을 다시 확인하여 상세 일정을 파악하고 합류 여부를 결정할 수 있도록 알림을 설정했습니다."
+      },
+      "G4-essay": {
+        "notifications": [
+          {
+            "date": "2026-06-15",
+            "time": "18:00",
+            "content": "오늘 밤 23:59까지인 Final Essay 제출을 잊지 마세요."
+          },
+          {
+            "date": "2026-06-15",
+            "time": "21:00",
+            "content": "Final Essay 제출 마감이 3시간 남았습니다. 마무리 단계라면 지금 제출하세요."
+          },
+          {
+            "date": "2026-06-15",
+            "time": "23:00",
+            "content": "Final Essay 제출 마감이 1시간 남았습니다. 최종 검토 후 제출을 서둘러주세요."
+          }
+        ],
+        "reasoning": "마감일이 오늘이므로, 마감 직전까지 집중할 수 있도록 저녁 시간대에 3시간, 1시간 간격으로 알림을 설정하여 제출을 독려합니다."
+      },
+      "R-memo-c4c8e5": {
+        "notifications": [
+          {
+            "date": "2026-06-16",
+            "time": "10:00",
+            "content": "무신사 무진장 여름 블랙프라이데이 기간입니다. 카테고리별 할인 일정을 확인하고 쇼핑 계획을 세워보세요."
+          },
+          {
+            "date": "2026-06-23",
+            "time": "18:00",
+            "content": "무신사 무진장 여름 블랙프라이데이 종료가 하루 남았습니다. 장바구니를 최종 점검하세요."
+          }
+        ],
+        "reasoning": "행사 기간이 6월 24일까지이므로, 행사 초반에 계획을 세울 수 있도록 알림을 설정하고, 종료 직전에 놓친 상품이 없는지 확인하도록 구성했습니다."
+      },
+      "R-todo-8ff47b": {
+        "notifications": [
+          {
+            "date": "2026-06-20",
+            "time": "10:00",
+            "content": "공모전 예선 기획서 작성을 시작할 시간입니다. 개요부터 잡아보세요.",
+            "repeat_rule": "3일마다 총 3회"
+          },
+          {
+            "date": "2026-07-01",
+            "time": "09:00",
+            "content": "예선 기획서 제출 마감이 일주일 남았습니다. 초안을 점검하세요."
+          },
+          {
+            "date": "2026-07-06",
+            "time": "20:00",
+            "content": "내일 오전 10시가 예선 기획서 제출 마감입니다. 최종 파일과 제출처를 확인하세요."
+          },
+          {
+            "date": "2026-07-07",
+            "time": "09:00",
+            "content": "제출 마감 1시간 전입니다. 지금 바로 제출을 완료하세요."
+          }
+        ],
+        "reasoning": "중요도가 5인 공모전 기획서이므로, 초기 단계부터 주기적인 리마인더를 통해 작업 진척을 돕고, 마감 직전에는 긴급 알림을 통해 제출 누락을 방지하도록 구성했습니다."
+      },
+      "R-memo-443455": {
+        "notifications": [
+          {
+            "date": "2026-06-22",
+            "time": "10:00",
+            "content": "저장해두신 로프리(Lofree) EDGE 키보드 20% 할인 정보 다시 확인해보세요."
+          }
+        ],
+        "reasoning": "사용자가 구매를 고려하기 위해 저장한 쇼핑 정보이므로, 일주일 뒤에 다시 한번 상기시켜 구매 의사를 확인하도록 설정했습니다."
+      },
+      "R-todo-c27892": {
+        "notifications": [
+          {
+            "date": "2026-06-16",
+            "time": "20:00",
+            "content": "내일 용산베르디움프렌즈 청년안심주택 추가모집 접수일입니다. 서류를 미리 준비해두세요."
+          },
+          {
+            "date": "2026-06-17",
+            "time": "09:00",
+            "content": "오늘 용산베르디움프렌즈 청년안심주택 추가모집 접수 시작일입니다. 잊지 말고 신청하세요."
+          }
+        ],
+        "reasoning": "접수일이 6월 17일로 임박했으므로, 전날 저녁에 준비를 상기시키고 당일 아침에 접수를 독려하는 알림을 설정했습니다."
+      },
+      "R-schedule-fc2f41": {
+        "notifications": [
+          {
+            "date": "2026-06-16",
+            "time": "09:00",
+            "content": "스마트카소프트웨어보안 기말고사 준비를 시작하세요. 시험은 6월 18일 오후 1시입니다."
+          },
+          {
+            "date": "2026-06-17",
+            "time": "20:00",
+            "content": "내일 오후 1시 스마트카소프트웨어보안 기말고사입니다. 준비물과 장소(인문관 211호)를 확인하세요."
+          },
+          {
+            "date": "2026-06-18",
+            "time": "11:30",
+            "content": "스마트카소프트웨어보안 기말고사 시작 1시간 30분 전입니다. 인문관 211호로 이동할 준비를 하세요."
+          }
+        ],
+        "reasoning": "시험 중요도가 매우 높으므로(5점), 학습 시작을 독려하는 알림, 전날 최종 점검 알림, 당일 이동을 위한 알림을 단계적으로 배치했습니다."
+      },
+      "G1-toeic": {
+        "notifications": [
+          {
+            "date": "2026-06-21",
+            "time": "09:00",
+            "content": "토익 시험이 일주일 앞으로 다가왔습니다. 마지막 점검을 시작하세요."
+          },
+          {
+            "date": "2026-06-27",
+            "time": "20:00",
+            "content": "내일 토익 시험입니다. 수험표와 신분증, 연필을 미리 챙겨두세요."
+          },
+          {
+            "date": "2026-06-28",
+            "time": "07:00",
+            "content": "오늘 토익 시험일입니다. 컨디션 조절 잘 하시고 좋은 결과 있으시길 바랍니다."
+          }
+        ],
+        "reasoning": "시험 중요도가 5로 매우 높으므로, 일주일 전 준비 시작 알림, 전날 준비물 체크 알림, 당일 아침 응원 알림을 구성하여 차질 없이 시험에 응시할 수 있도록 계획했습니다."
+      },
+      "G6-callmom": {
+        "notifications": [
+          {
+            "date": "2026-06-17",
+            "time": "19:00",
+            "content": "이번 주에 엄마에게 안부 전화 한 통 드리는 건 어떨까요?"
+          }
+        ],
+        "reasoning": "마감 기한이 없는 일상적인 할 일이지만, 너무 늦지 않게 주말 전 평일 저녁 시간에 가볍게 상기시켜 드리는 것이 좋다고 판단했습니다."
+      },
+      "R-todo-b12082": {
+        "notifications": [
+          {
+            "date": "2026-06-15",
+            "time": "09:00",
+            "content": "SW아카데믹영작 Final Essay Stage 2 마감일이 지났습니다. 아직 제출하지 못했다면 교수님께 즉시 연락하세요."
+          }
+        ],
+        "reasoning": "과제 마감일인 2026-06-14가 이미 지났으므로, 사용자에게 마감 경과 사실을 알리고 미제출 시 조치를 취하도록 안내하는 긴급 알림을 설정했습니다."
+      },
+      "R-todo-c839fa": {
+        "notifications": [
+          {
+            "date": "2026-06-18",
+            "time": "10:00",
+            "content": "멋쟁이사자처럼 AI 부트캠프 지원 마감이 4일 남았습니다. 자기소개서 작성을 시작하세요."
+          },
+          {
+            "date": "2026-06-21",
+            "time": "20:00",
+            "content": "멋쟁이사자처럼 AI 부트캠프 지원 마감이 내일입니다. 최종 검토 후 제출하세요."
+          },
+          {
+            "date": "2026-06-22",
+            "time": "18:00",
+            "content": "멋쟁이사자처럼 AI 부트캠프 지원 마감까지 6시간 남았습니다. 지금 바로 제출하세요."
+          }
+        ],
+        "reasoning": "중요도가 5로 매우 높고 마감이 7일 남은 시점이므로, 지원서 작성 시작을 독려하는 알림과 마감 직전 최종 제출을 확인하는 알림을 단계적으로 배치했습니다."
+      },
+      "R-schedule-92c297": {
+        "notifications": [
+          {
+            "date": "2026-06-15",
+            "time": "18:00",
+            "content": "민수와의 만남 일정이 이미 지났습니다. 일정을 다시 확인하거나 연락해보세요."
+          }
+        ],
+        "reasoning": "해당 일정은 2026-06-11로 이미 지난 과거의 날짜입니다. 사용자가 일정을 놓쳤을 가능성이 높으므로, 일정을 확인하거나 상대방에게 연락을 취하도록 안내하는 알림을 설정했습니다."
+      },
+      "G3-contest": {
+        "notifications": [
+          {
+            "date": "2026-07-13",
+            "time": "09:00",
+            "content": "OO 대회 본선이 일주일 앞으로 다가왔습니다. 준비 상황을 점검하세요."
+          },
+          {
+            "date": "2026-07-18",
+            "time": "18:00",
+            "content": "OO 대회 본선이 이틀 남았습니다. 최종 준비물을 확인하고 컨디션을 조절하세요."
+          },
+          {
+            "date": "2026-07-20",
+            "time": "08:00",
+            "content": "오늘은 OO 대회 본선 당일입니다. 좋은 결과 있으시길 바랍니다!"
+          }
+        ],
+        "reasoning": "중요도가 높은 학업 관련 일정으로, 대회 일주일 전부터 단계적으로 리마인드를 제공하여 준비를 돕고자 합니다."
+      },
+      "R-todo-3156b9": {
+        "notifications": [
+          {
+            "date": "2026-06-16",
+            "time": "07:30",
+            "content": "오늘 아침 식사 챙겨 드셨나요? 건강한 하루를 위해 꼭 챙겨 드세요!"
+          }
+        ],
+        "reasoning": "사용자가 내일 아침 식사를 실천하겠다고 다짐했으므로, 아침 식사 시간대에 맞춰 실천을 독려하는 알림을 설정했습니다."
+      },
+      "R-memo-1b924a": {
+        "notifications": [
+          {
+            "date": "2026-06-22",
+            "time": "10:00",
+            "content": "지난달 실현수익 내역을 다시 한번 확인하고 자산 흐름을 점검해보세요."
+          }
+        ],
+        "reasoning": "중요도가 낮고 단순 기록용 메모이므로, 일주일 뒤에 가볍게 내용을 상기시켜 자산 관리 흐름을 유지하도록 유도합니다."
+      },
+      "R-todo-463f0a": {
+        "notifications": [
+          {
+            "date": "2026-06-16",
+            "time": "10:00",
+            "content": "기사 2회 필기시험 응시자격 서류 제출 마감까지 3일 남았습니다. 미리 준비하세요."
+          },
+          {
+            "date": "2026-06-18",
+            "time": "14:00",
+            "content": "기사 2회 필기시험 응시자격 서류 제출 마감이 내일입니다. 서류를 확인하고 제출해주세요."
+          },
+          {
+            "date": "2026-06-19",
+            "time": "14:00",
+            "content": "오늘 18시가 기사 2회 필기시험 응시자격 서류 제출 마감입니다. 잊지 말고 제출하세요."
+          }
+        ],
+        "reasoning": "중요도가 5인 학업 관련 마감 기한이 4일 앞으로 다가왔으므로, 마감 3일 전, 1일 전, 그리고 당일 오후에 알림을 설정하여 제출을 놓치지 않도록 구성했습니다."
+      },
+      "R-memo-83477f": {
+        "notifications": [
+          {
+            "date": "2026-06-20",
+            "time": "11:30",
+            "content": "신대방삼거리역 근처에 계신가요? 저장해둔 '양은이네'에서 식사 어떠세요?"
+          }
+        ],
+        "reasoning": "맛집 정보는 근처에 방문할 가능성이 있을 때 알림을 주는 것이 가장 효과적입니다. 중요도가 낮으므로 과도한 알림보다는 주말이나 점심시간대에 한 번 정도 가볍게 상기시켜 드리는 것이 적절하다고 판단했습니다."
+      },
+      "R-memo-c35603": {
+        "notifications": [
+          {
+            "date": "2026-06-22",
+            "time": "10:00",
+            "content": "저장해두신 SOTSU 포터블 모니터, 구매 계획을 다시 한번 확인해보세요."
+          }
+        ],
+        "reasoning": "구매 고려 단계의 메모이므로, 일주일 뒤에 제품의 필요성을 다시 한번 상기시켜 구매 여부를 결정할 수 있도록 돕기 위해 알림을 설정했습니다."
+      },
+      "R-memo-878150": {
+        "notifications": [
+          {
+            "date": "2026-06-22",
+            "time": "19:00",
+            "content": "스탬플리 앱으로 허니콤보 혜택을 받을 수 있는지 확인해보세요."
+          }
+        ],
+        "reasoning": "사용자가 혜택을 활용하기 위해 저장한 메모이므로, 일주일 뒤 여유로운 주말 저녁 시간에 혜택 확인을 상기시키는 알림을 설정했습니다."
+      },
+      "G7-coat": {
+        "notifications": [
+          {
+            "date": "2026-06-25",
+            "time": "18:00",
+            "content": "월급날입니다! 찜해두었던 코트 구매를 고려해보세요."
+          }
+        ],
+        "reasoning": "일반적인 직장인의 월급날인 25일에 맞춰 코트 구매를 상기시키는 알림을 설정했습니다."
+      }
+    },
+    "B_chrono": {
+      "R-memo-dc1297": {
+        "notifications": [
+          {
+            "date": "2026-06-17",
+            "time": "14:00",
+            "content": "박세현 님 카톡: SW중심대학 경진대회 화면 잘림 문제 확인해보셨나요?",
+            "repeat_rule": "3일 간격으로 총 3회"
+          }
+        ],
+        "reasoning": "중요도가 보통인 업무 관련 메모이므로 사용자가 가장 활발한 오후 시간대에 3일 간격으로 총 3회 알림을 설정하여 잊지 않도록 유도했습니다."
+      },
+      "R-memo-b18c58": {
+        "notifications": [
+          {
+            "date": "2026-06-20",
+            "time": "14:00",
+            "content": "친구들과의 모임(벼락부자 4) 계획을 확인하고 상세 내용을 체크해보세요.",
+            "repeat_rule": "7일 간격으로 총 3회"
+          }
+        ],
+        "reasoning": "모임 날짜가 정해지지 않은 메모이므로 사용자가 잊지 않도록 1주일 간격으로 3회 알림을 설정했습니다. 활동량이 많은 오후 2시로 시간을 배치했습니다."
+      },
+      "R-todo-b12082": {
+        "notifications": [
+          {
+            "date": "2026-06-17",
+            "time": "14:00",
+            "content": "SW아카데믹영작 Final Essay Stage 2 과제 제출 기한이 지났습니다. LearningX에서 미제출 여부를 즉시 확인하세요."
+          }
+        ],
+        "reasoning": "이미 마감 기한이 지난 과제이므로, 사용자가 가장 활발한 시간대인 오후 2시에 즉시 확인을 독려하는 알림을 배치했습니다. 기존에 예정된 알림과 같은 날짜이므로 번들링하여 알림 수를 최소화했습니다."
+      },
+      "R-todo-d9cbaa": {
+        "notifications": [
+          {
+            "date": "2026-06-17",
+            "time": "14:00",
+            "content": "SW아카데믹영작 5분반 Week 14 Activity Sheet 제출 기한이 지났습니다. 확인 후 조치하세요."
+          }
+        ],
+        "reasoning": "이미 마감 기한이 지난 과제이므로, 사용자가 이미 예정된 다른 학업 알림(6월 17일)과 함께 확인하여 빠르게 처리할 수 있도록 해당 일자에 번들링하여 알림을 설정했습니다."
+      },
+      "R-todo-99703c": {
+        "notifications": [
+          {
+            "date": "2026-06-15",
+            "time": "23:45",
+            "content": "나를브랜딩하는취업설계 기말과제 마감까지 15분 남았습니다. 지금 바로 제출하세요!"
+          }
+        ],
+        "reasoning": "마감 기한이 오늘 23:59까지로 매우 임박하여, 활동 시간대인 23시를 활용해 즉시 제출을 독려하는 긴급 알림을 설정했습니다."
+      },
+      "R-todo-4d84dd": {
+        "notifications": [
+          {
+            "date": "2026-06-16",
+            "time": "13:00",
+            "content": "스마트카소프트웨어보안 BMW 과제 마감일입니다. 오늘 23:59까지 제출하세요."
+          },
+          {
+            "date": "2026-06-16",
+            "time": "22:00",
+            "content": "BMW 과제 마감까지 2시간 남았습니다. 최종 제출을 확인하세요."
+          }
+        ],
+        "reasoning": "마감 기한이 24시간 이내로 매우 촉박하여, 사용자의 활동 시간대인 오후 1시와 마감 직전인 밤 10시에 집중적으로 알림을 배치했습니다."
+      },
+      "R-schedule-92c297": {
+        "notifications": [
+          {
+            "date": "2026-06-15",
+            "time": "23:50",
+            "content": "민수와 만남 일정이 이미 지났습니다(6/11). 일정을 다시 확인하거나 조정이 필요한지 체크하세요."
+          }
+        ],
+        "reasoning": "이미 마감일(6/11)이 지난 과거 일정으로 확인되어, 사용자가 일정을 인지하고 정리할 수 있도록 즉시 알림을 설정했습니다. 기존 알림들과 겹치지 않도록 활동 시간대인 23시 50분에 배치했습니다."
+      },
+      "R-schedule-01b074": {
+        "notifications": [
+          {
+            "date": "2026-06-18",
+            "time": "22:00",
+            "content": "내일 친구들과의 여행이 예정되어 있습니다. 짐은 다 챙기셨나요?"
+          },
+          {
+            "date": "2026-06-19",
+            "time": "13:00",
+            "content": "오늘 친구들과의 여행 출발일입니다. 즐거운 시간 보내세요!"
+          }
+        ],
+        "reasoning": "여행까지 4일 남은 시점에서, 준비를 위해 전날 밤과 당일 오후에 알림을 배치했습니다. 사용자의 활동 시간대(22시, 13시)를 고려하여 가장 활발한 시간에 알림을 설정했습니다."
+      },
+      "R-schedule-b308fa": {
+        "notifications": [
+          {
+            "date": "2026-06-25",
+            "time": "13:00",
+            "content": "오사카 여행이 2주 앞으로 다가왔습니다. 항공권과 숙소를 다시 한번 확인해보세요."
+          },
+          {
+            "date": "2026-07-02",
+            "time": "13:00",
+            "content": "오사카 여행 준비는 잘 되어가시나요? 필요한 물품 리스트를 점검할 시간입니다."
+          },
+          {
+            "date": "2026-07-08",
+            "time": "22:00",
+            "content": "내일은 오사카 여행 출발일입니다. 여권과 짐을 최종적으로 확인하세요!"
+          }
+        ],
+        "reasoning": "여행까지 24일 남은 시점에서 2주 전, 1주 전, 그리고 출발 전날로 나누어 준비 상황을 점검하도록 배치했습니다. 사용자의 활동 시간대인 오후 1시와 밤 10시를 활용하여 알림을 설정했습니다."
+      },
+      "R-todo-3156b9": {
+        "notifications": [
+          {
+            "date": "2026-06-16",
+            "time": "13:00",
+            "content": "내일 아침 식사 실천하기로 한 날입니다. 오늘 아침은 챙겨 드셨나요? [3일마다 총 3회]"
+          }
+        ],
+        "reasoning": "사용자의 활동 시간대인 오후 1시를 활용하여 아침 식사 실천을 독려합니다. 3일 간격으로 총 3회 반복하여 습관 형성을 돕도록 설정했습니다."
+      },
+      "G6-callmom": {
+        "notifications": [
+          {
+            "date": "2026-06-18",
+            "time": "13:00",
+            "content": "엄마에게 전화드리기 좋은 시간입니다. 안부 전화 한 통 어떠세요?",
+            "repeat_rule": "7일 간격으로 총 3회"
+          }
+        ],
+        "reasoning": "사용자의 활동 시간대인 오후 1시를 활용하여 부담 없이 안부를 물을 수 있도록 7일 간격의 주기적 알림을 설정했습니다. 기존 일정과 겹치지 않도록 6월 18일부터 시작합니다."
+      },
+      "R-schedule-4ecc9d": {
+        "notifications": [
+          {
+            "date": "2026-06-18",
+            "time": "22:00",
+            "content": "여자친구와 부산 여행이 2일 앞으로 다가왔습니다. 준비물과 일정을 미리 체크해보세요."
+          },
+          {
+            "date": "2026-06-19",
+            "time": "22:00",
+            "content": "내일 여자친구와 부산 여행 출발일입니다. 짐을 최종 점검하고 즐거운 여행 준비하세요!"
+          }
+        ],
+        "reasoning": "여행까지 5일 남은 시점에서 사용자의 활동 시간대인 밤 22시를 활용해 2일 전과 전날에 알림을 배치했습니다. 기존 일정들과 겹치지 않도록 일일 알림 제한을 준수하여 구성했습니다."
+      },
+      "G1-toeic": {
+        "notifications": [
+          {
+            "date": "2026-06-21",
+            "time": "13:00",
+            "content": "토익 시험이 일주일 앞으로 다가왔습니다. 학습 계획을 점검하고 부족한 부분을 보완하세요."
+          },
+          {
+            "date": "2026-06-27",
+            "time": "22:00",
+            "content": "내일은 토익 시험일입니다. 수험표와 신분증, 필기구를 미리 챙겨두고 일찍 휴식을 취하세요."
+          }
+        ],
+        "reasoning": "시험까지 13일 남은 시점에서 학습 흐름을 유지하기 위해 일주일 전과 시험 전날로 나누어 알림을 배치했습니다. 사용자의 활동 시간대인 오후 1시와 밤 10시를 활용하여 효율적인 준비를 돕고자 합니다."
+      },
+      "R-todo-463f0a": {
+        "notifications": [
+          {
+            "date": "2026-06-16",
+            "time": "22:00",
+            "content": "기사 2회 필기시험 응시자격 서류 제출 마감이 3일 남았습니다. 서류를 미리 준비하세요."
+          },
+          {
+            "date": "2026-06-18",
+            "time": "13:00",
+            "content": "기사 2회 필기시험 서류 제출 마감이 내일입니다. 제출 여부를 확인하세요."
+          },
+          {
+            "date": "2026-06-19",
+            "time": "13:00",
+            "content": "기사 2회 필기시험 서류 제출 마감 당일입니다. 18시 전까지 반드시 제출하세요."
+          }
+        ],
+        "reasoning": "중요도가 높은 학업 관련 마감 건으로, 마감 3일 전부터 당일까지 사용자의 활동 시간대에 맞춰 단계적으로 알림을 배치했습니다. 기존 일정과 겹치지 않도록 16일, 18일, 19일로 나누어 리마인드합니다."
+      },
+      "R-schedule-006398": {
+        "notifications": [
+          {
+            "date": "2026-06-21",
+            "time": "13:00",
+            "content": "토익 시험이 일주일 앞으로 다가왔습니다. 학습 계획을 점검하고 부족한 부분을 보완하세요."
+          },
+          {
+            "date": "2026-06-27",
+            "time": "22:00",
+            "content": "내일은 토익 시험일입니다. 수험표와 신분증, 필기구를 미리 챙겨두고 일찍 휴식을 취하세요."
+          }
+        ],
+        "reasoning": "시험까지 13일 남은 시점에서 1주일 전 점검 알림과 시험 전날 준비물 확인 알림을 배치했습니다. 기존 스케줄과 겹치지 않도록 사용자의 활동 시간대인 13시와 22시에 맞춰 설정했습니다."
+      },
+      "R-todo-709f49": {
+        "notifications": [
+          {
+            "date": "2026-06-17",
+            "time": "14:00",
+            "content": "서울시 희망두배 청년통장 신청 마감이 2일 남았습니다. 서류를 미리 준비하세요."
+          },
+          {
+            "date": "2026-06-19",
+            "time": "13:00",
+            "content": "서울시 희망두배 청년통장 신청 마감 당일입니다. 18시 전까지 반드시 신청하세요."
+          }
+        ],
+        "reasoning": "마감까지 4일 남은 중요도가 높은 금융 지원 사업이므로, 2일 전과 당일 오후에 알림을 배치했습니다. 기존 알림 일정과 겹치지 않도록 활동 시간대인 13시와 14시를 활용하여 번들링을 고려했습니다."
+      },
+      "R-todo-28caa5": {
+        "notifications": [
+          {
+            "date": "2026-06-16",
+            "time": "22:00",
+            "content": "네이버 클라우드 Maps API 점검 안내 이메일을 확인하고 6/22 점검 내용을 파악하세요.",
+            "repeat_rule": "3일 간격으로 총 2회"
+          },
+          {
+            "date": "2026-06-19",
+            "time": "22:00",
+            "content": "네이버 클라우드 Maps API 점검(6/22) 관련 이메일 확인 및 후속 조치를 잊지 마세요."
+          },
+          {
+            "date": "2026-06-21",
+            "time": "22:00",
+            "content": "내일은 네이버 클라우드 Maps API 점검일입니다. 관련 이메일 내용을 최종 확인하세요."
+          }
+        ],
+        "reasoning": "6월 22일 서비스 점검 전까지 이메일을 확인하고 대비할 수 있도록, 사용자의 활동이 활발한 밤 시간대에 맞춰 3회에 걸쳐 알림을 배치했습니다. 기존 일정과 겹치지 않도록 16일, 19일, 21일로 분산했습니다."
+      },
+      "R-schedule-2373b1": {
+        "notifications": [
+          {
+            "date": "2026-06-22",
+            "time": "13:00",
+            "content": "여자친구와 한강 가기 일정이 5일 남았습니다. 데이트 코스를 미리 생각해보세요."
+          },
+          {
+            "date": "2026-06-26",
+            "time": "22:00",
+            "content": "내일은 여자친구와 한강 가는 날입니다. 날씨를 확인하고 즐거운 데이트 준비하세요."
+          }
+        ],
+        "reasoning": "중요도 3의 데이트 일정으로, 12일 전인 현재 시점부터 너무 잦은 알림은 지양했습니다. 5일 전 가벼운 리마인드와 당일 전날 최종 확인 알림으로 구성하여 부담 없이 준비할 수 있도록 했습니다."
+      },
+      "G3-contest": {
+        "notifications": [
+          {
+            "date": "2026-07-05",
+            "time": "13:00",
+            "content": "OO 대회 본선이 15일 남았습니다. 준비 상황을 점검해보세요."
+          },
+          {
+            "date": "2026-07-13",
+            "time": "13:00",
+            "content": "OO 대회 본선이 일주일 앞으로 다가왔습니다. 최종 준비에 집중하세요."
+          },
+          {
+            "date": "2026-07-19",
+            "time": "22:00",
+            "content": "내일은 OO 대회 본선입니다. 필요한 준비물을 최종 확인하고 일찍 휴식하세요."
+          }
+        ],
+        "reasoning": "중요도 4의 대회 본선이므로 2주 전, 1주 전, 그리고 당일 전날로 나누어 점진적으로 알림을 배치했습니다. 기존 일정들과 겹치지 않도록 사용자의 활동 시간대인 오후 1시와 밤 10시를 활용했습니다."
+      },
+      "R-memo-c35603": {
+        "notifications": [
+          {
+            "date": "2026-07-05",
+            "time": "13:00",
+            "content": "SOTSU 포터블 모니터(FlipAction TOUCH 14, GO 14) 구매를 고려해보세요.",
+            "repeat_rule": "14일마다 총 3회"
+          }
+        ],
+        "reasoning": "중요도가 낮은 쇼핑 메모이므로, 기존의 바쁜 일정들을 고려하여 2주 간격으로 가볍게 리마인드하여 사용자가 잊지 않도록 했습니다."
+      },
+      "R-memo-443455": {
+        "notifications": [
+          {
+            "date": "2026-06-25",
+            "time": "13:00",
+            "content": "로프리(Lofree) EDGE 키보드 20% 할인 정보 기억하시나요? 구매를 고려 중이라면 다시 확인해보세요.",
+            "repeat_rule": "20일마다 총 3회"
+          }
+        ],
+        "reasoning": "쇼핑 메모는 긴급도가 낮으므로 사용자의 활동 시간대인 오후 1시를 활용하여 20일 간격으로 총 3회 리마인드하여 잊지 않도록 설계했습니다. 기존 일정들과 겹치지 않도록 배치했습니다."
+      },
+      "R-todo-ede771": {
+        "notifications": [
+          {
+            "date": "2026-06-20",
+            "time": "14:00",
+            "content": "모찌 채팅탭 맞춤형 예시 질문 추가 계획을 검토해보세요.",
+            "repeat_rule": "10일마다 총 3회"
+          }
+        ],
+        "reasoning": "기한이 없는 학업 관련 아이디어이므로, 사용자의 활동 시간대인 오후 2시를 활용하여 10일 간격으로 총 3회 리마인드를 설정했습니다. 기존 일정들과 겹치지 않도록 배치하여 스팸을 방지했습니다."
+      },
+      "R-memo-85c0b6": {
+        "notifications": [
+          {
+            "date": "2026-06-23",
+            "time": "13:00",
+            "content": "유니클로 추천 아이템(셔츠, 와이드 진) 정보 기억하시나요? 쇼핑 시 참고해보세요.",
+            "repeat_rule": "20일마다 총 3회"
+          }
+        ],
+        "reasoning": "쇼핑 정보는 긴급하지 않으므로 사용자의 활동 시간대인 오후 1시를 활용하여 20일 간격으로 총 3회 리마인드하도록 설정했습니다. 기존 일정들과 겹치지 않도록 6월 23일부터 시작합니다."
+      },
+      "G5-finals": {
+        "notifications": [
+          {
+            "date": "2026-06-17",
+            "time": "22:00",
+            "content": "기말고사가 내일입니다. 마지막까지 컨디션 조절 잘 하시고 준비물 챙겨두세요."
+          }
+        ],
+        "reasoning": "기말고사 마감(6/18)까지 3일 남은 시점에서, 이미 6/16과 6/17에 다른 학업 관련 알림이 밀집되어 있어 6/17 밤에 최종 리마인드를 배치하여 부담을 최소화했습니다."
+      },
+      "R-todo-c27892": {
+        "notifications": [
+          {
+            "date": "2026-06-16",
+            "time": "22:00",
+            "content": "용산베르디움프렌즈 추가모집 접수가 내일입니다. 서류와 접수 사이트를 미리 확인하세요."
+          }
+        ],
+        "reasoning": "6월 17일 접수 예정인 단기 중요 일정으로, 마감 전날인 16일 밤에 알림을 배치하여 접수를 놓치지 않도록 했습니다. 기존 일정들과 겹치지 않도록 활동 시간대인 22시로 설정했습니다."
+      },
+      "R-memo-83477f": {
+        "notifications": [
+          {
+            "date": "2026-07-13",
+            "time": "13:00",
+            "content": "신대방삼거리역 근처에 계신가요? 맛집 '양은이네'를 방문해 보세요. [30일마다 총 3회]",
+            "repeat_rule": "30일마다 총 3회"
+          }
+        ],
+        "reasoning": "맛집 정보는 긴급하지 않으므로, 사용자가 평소 활동적인 오후 시간대에 30일 간격으로 총 3회 알림을 설정하여 잊지 않도록 했습니다. 기존 일정들과 겹치지 않도록 여유 있는 날짜를 선택했습니다."
+      },
+      "R-memo-4ea25c": {
+        "notifications": [
+          {
+            "date": "2026-06-23",
+            "time": "13:00",
+            "content": "무신사 스탠다드 헨리 넥 티셔츠 [미디엄 그레이] 구매를 고려해보세요.",
+            "repeat_rule": "20일마다 총 3회"
+          }
+        ],
+        "reasoning": "쇼핑 아이템으로 중요도가 높지 않아 기존의 다른 쇼핑 메모 알림 주기(20일)와 맞춰 잊지 않도록 주기적인 넛지를 설정했습니다. 사용자의 활동 시간대인 오후 1시를 선택했습니다."
+      },
+      "R-memo-878150": {
+        "notifications": [
+          {
+            "date": "2026-06-24",
+            "time": "13:00",
+            "content": "스탬플리 앱으로 허니콤보 무료 혜택 받는 방법, 기억하시나요? 나중에 활용해보세요.",
+            "repeat_rule": "20일마다 총 3회"
+          }
+        ],
+        "reasoning": "사용자의 쇼핑 및 혜택 관련 메모와 유사한 주기로 20일 간격의 알림을 설정했습니다. 기존 알림이 많은 날을 피해 사용자가 활동적인 오후 시간대에 배치하여 부담 없이 정보를 상기할 수 있도록 했습니다."
+      },
+      "R-schedule-fc2f41": {
+        "notifications": [
+          {
+            "date": "2026-06-17",
+            "time": "22:00",
+            "content": "스마트카소프트웨어보안 기말고사가 내일입니다. 인문관 211호, 오후 1시임을 다시 확인하세요."
+          },
+          {
+            "date": "2026-06-18",
+            "time": "12:00",
+            "content": "스마트카소프트웨어보안 기말고사 시작 1시간 전입니다. 인문관 211호로 이동하세요."
+          }
+        ],
+        "reasoning": "시험이 3일 앞으로 다가온 긴박한 일정이므로, 전날 밤 준비물 확인 알림과 당일 1시간 전 이동 알림을 배치하여 시험 응시를 완벽히 지원하도록 했습니다."
+      },
+      "G7-coat": {
+        "notifications": [
+          {
+            "date": "2026-06-25",
+            "time": "13:00",
+            "content": "월급날이 다가옵니다. 사고 싶었던 코트 정보를 다시 확인해보세요.",
+            "repeat_rule": "20일마다 총 3회"
+          }
+        ],
+        "reasoning": "쇼핑 아이템은 긴급도가 낮으므로, 이미 등록된 다른 쇼핑 관련 알림(유니클로, 무신사 등)과 유사한 20일 주기로 설정하여 사용자의 쇼핑 계획을 주기적으로 환기합니다."
+      },
+      "R-todo-8ff47b": {
+        "notifications": [
+          {
+            "date": "2026-06-27",
+            "time": "13:00",
+            "content": "대회 예선 아이디어 기획서 제출(7/7)까지 10일 남았습니다. 기획 방향을 점검하세요."
+          },
+          {
+            "date": "2026-07-04",
+            "time": "13:00",
+            "content": "대회 예선 아이디어 기획서 제출이 3일 앞으로 다가왔습니다. 최종 내용을 검토하세요."
+          },
+          {
+            "date": "2026-07-06",
+            "time": "22:00",
+            "content": "내일 오전 10시 대회 예선 기획서 제출 마감입니다. 최종 파일과 제출처를 확인하세요."
+          }
+        ],
+        "reasoning": "중요도가 높은 공모전 기획서 제출 건으로, 마감 10일 전부터 단계적으로 리마인드를 배치했습니다. 기존 일정과 겹치지 않도록 사용자의 활동 시간대인 오후 1시와 밤 10시를 활용했습니다."
+      },
+      "R-todo-c839fa": {
+        "notifications": [
+          {
+            "date": "2026-06-18",
+            "time": "13:00",
+            "content": "멋쟁이사자처럼 AI 엔지니어 부트캠프 지원 마감이 4일 남았습니다. 지원 요건을 미리 확인하세요."
+          },
+          {
+            "date": "2026-06-21",
+            "time": "13:00",
+            "content": "멋쟁이사자처럼 AI 엔지니어 부트캠프 지원 마감이 내일입니다. 지원서 작성을 마무리하세요."
+          },
+          {
+            "date": "2026-06-22",
+            "time": "22:00",
+            "content": "멋쟁이사자처럼 AI 엔지니어 부트캠프 지원 마감 당일입니다. 23:59 전까지 최종 제출하세요."
+          }
+        ],
+        "reasoning": "마감까지 7일 남은 중요도가 높은 커리어 관련 일정입니다. 4일 전, 1일 전, 그리고 마감 당일 밤에 알림을 배치하여 지원을 놓치지 않도록 구성했습니다."
+      },
+      "R-memo-c4c8e5": {
+        "notifications": [
+          {
+            "date": "2026-06-18",
+            "time": "13:00",
+            "content": "무신사 무진장 여름 블랙프라이데이(6/24까지) 할인 일정을 확인하고 쇼핑 계획을 세워보세요.",
+            "repeat_rule": "3일 간격으로 총 3회"
+          }
+        ],
+        "reasoning": "6월 24일까지 진행되는 프로모션이므로, 종료 전까지 사용자가 쇼핑 계획을 놓치지 않도록 3일 간격으로 총 3회 알림을 설정했습니다. 기존 알림 일정을 고려하여 활동 시간대인 13시에 배치했습니다."
+      },
+      "R-memo-efc3b6": {
+        "notifications": [
+          {
+            "date": "2026-06-26",
+            "time": "13:00",
+            "content": "브론슨 1936 Lot 101J Cowboys Jacket 구매를 고려해보세요.",
+            "repeat_rule": "20일마다 총 3회"
+          }
+        ],
+        "reasoning": "쇼핑 아이템으로 중요도가 높지 않고 마감 기한이 없는 메모이므로, 사용자의 다른 쇼핑 관련 알림 주기(20일)에 맞춰 부담 없이 상기시키는 주기를 설정했습니다."
+      },
+      "R-memo-d462d2": {
+        "notifications": [
+          {
+            "date": "2026-06-26",
+            "time": "13:00",
+            "content": "노운(NOUN) 헨리넥 티셔츠(멜란지 그레이) 구매 고민 중이셨죠? 디자인이 매력적이었는데 다시 한번 확인해보세요.",
+            "repeat_rule": "20일마다 총 3회"
+          }
+        ],
+        "reasoning": "사용자의 쇼핑 메모 습관과 기존 알림 일정을 고려하여, 너무 잦지 않게 20일 간격의 주기적 넛지를 설정했습니다. 활동이 활발한 오후 1시 시간대를 선택하여 쇼핑 정보를 자연스럽게 상기시킵니다."
+      },
+      "R-memo-1b924a": {
+        "notifications": [
+          {
+            "date": "2026-06-26",
+            "time": "13:00",
+            "content": "5월 실현수익 내역을 확인하고 자산 관리 현황을 점검해보세요.",
+            "repeat_rule": "20일마다 총 3회"
+          }
+        ],
+        "reasoning": "중요도가 낮은 자산 관리 메모이므로, 사용자의 쇼핑 관련 주기적 알림과 유사한 20일 간격의 넛지를 설정하여 부담 없이 수익 현황을 상기하도록 했습니다."
+      },
+      "G4-essay": {
+        "notifications": [
+          {
+            "date": "2026-06-15",
+            "time": "23:45",
+            "content": "과제 Final Essay 마감까지 15분 남았습니다. 지금 바로 제출하세요."
+          }
+        ],
+        "reasoning": "마감 기한이 30분도 남지 않은 긴급한 과제이므로, 기존에 예정된 알림과 동일한 시간대에 배치하여 사용자가 마감 직전임을 인지하고 즉시 제출할 수 있도록 했습니다."
+      },
+      "G2-minsu": {
+        "notifications": [
+          {
+            "date": "2026-06-15",
+            "time": "23:55",
+            "content": "내일 민수와 만남 일정이 있습니다. 장소와 시간을 다시 한번 확인하세요."
+          }
+        ],
+        "reasoning": "내일 바로 예정된 일정이므로, 오늘 밤 활동 시간대에 맞춰 일정을 상기시키는 알림을 1회 배치했습니다. 이미 다른 알림들이 많이 잡혀 있어, 기존 알림들과 겹치지 않도록 23:55에 배치하여 당일 준비를 돕습니다."
+      }
+    },
+    "B_shuffled": {
+      "R-schedule-01b074": {
+        "notifications": [
+          {
+            "date": "2026-06-17",
+            "time": "14:00",
+            "content": "친구들과의 여행이 2일 남았습니다. 준비물은 다 챙기셨나요?"
+          },
+          {
+            "date": "2026-06-18",
+            "time": "22:00",
+            "content": "내일 친구들과의 여행입니다. 설레는 마음으로 짐을 최종 점검해보세요!"
+          }
+        ],
+        "reasoning": "여행까지 4일 남은 상황으로, 준비를 위해 2일 전과 출발 전날 밤에 알림을 배치했습니다. 사용자의 활동 시간대인 오후와 밤 시간을 활용하여 알림을 설정했습니다."
+      },
+      "R-schedule-2373b1": {
+        "notifications": [
+          {
+            "date": "2026-06-22",
+            "time": "14:00",
+            "content": "여자친구와 한강 가기까지 5일 남았습니다. 미리 데이트 코스를 확인해보세요."
+          },
+          {
+            "date": "2026-06-26",
+            "time": "22:00",
+            "content": "내일 여자친구와 한강 가는 날입니다. 날씨를 확인하고 즐거운 데이트 준비하세요!"
+          }
+        ],
+        "reasoning": "중요도 3의 일정으로, 12일 전임을 고려해 5일 전과 하루 전으로 알림을 배치했습니다. 사용자의 활동 시간대인 오후 2시와 밤 10시를 활용하여 수면 시간을 피했습니다."
+      },
+      "R-schedule-b308fa": {
+        "notifications": [
+          {
+            "date": "2026-06-25",
+            "time": "14:00",
+            "content": "오사카 여행이 약 2주 남았습니다. 항공권과 숙소를 다시 한번 확인해보세요."
+          },
+          {
+            "date": "2026-07-05",
+            "time": "22:00",
+            "content": "오사카 여행이 4일 남았습니다. 필요한 준비물 리스트를 작성해보는 건 어떨까요?"
+          },
+          {
+            "date": "2026-07-08",
+            "time": "22:00",
+            "content": "내일은 오사카로 떠나는 날입니다! 짐을 최종 점검하고 설레는 마음으로 준비하세요."
+          }
+        ],
+        "reasoning": "여행까지 24일 남은 시점에서 사용자의 활동 시간대인 오후 2시와 밤 10시를 활용해 2주 전, 4일 전, 하루 전으로 나누어 점진적으로 알림을 배치했습니다."
+      },
+      "G5-finals": {
+        "notifications": [
+          {
+            "date": "2026-06-16",
+            "time": "14:00",
+            "content": "기말고사가 2일 남았습니다. 학습 계획을 최종 점검하고 부족한 부분을 보완하세요."
+          },
+          {
+            "date": "2026-06-17",
+            "time": "22:00",
+            "content": "내일 기말고사입니다. 준비물을 챙기고 일찍 휴식을 취해 최상의 컨디션을 유지하세요."
+          }
+        ],
+        "reasoning": "기말고사는 중요도가 높은 학업 일정으로, 시험 2일 전과 전날 밤에 집중적인 알림을 배치했습니다. 기존 알림 일정과 겹치지 않도록 사용자의 활동 시간대인 오후 2시와 밤 10시를 활용하여 최적화했습니다."
+      },
+      "R-memo-dc1297": {
+        "notifications": [
+          {
+            "date": "2026-06-18",
+            "time": "14:00",
+            "content": "박세현 님 카톡: SW중심대학 경진대회 화면 잘림 문제 확인해보세요.",
+            "repeat_rule": "3일마다 총 3회"
+          }
+        ],
+        "reasoning": "사용자의 활동 시간대인 오후 2시를 활용하여 알림을 설정했습니다. 기한이 없는 업무이므로 3일 간격으로 총 3회 리마인드하여 잊지 않도록 유도합니다."
+      },
+      "R-memo-85c0b6": {
+        "notifications": [
+          {
+            "date": "2026-06-20",
+            "time": "14:00",
+            "content": "유니클로 추천 아이템(옥스퍼드 셔츠, 와이드 진) 정보를 확인하고 쇼핑 계획을 세워보세요.",
+            "repeat_rule": "2주마다 총 3회"
+          }
+        ],
+        "reasoning": "쇼핑 정보는 긴급도가 낮으므로 사용자의 활동이 활발한 오후 시간대에 2주 간격으로 총 3회 알림을 설정하여 자연스럽게 상기시켰습니다. 기존 일정과 겹치지 않도록 6월 20일부터 시작합니다."
+      },
+      "R-memo-efc3b6": {
+        "notifications": [
+          {
+            "date": "2026-06-21",
+            "time": "14:00",
+            "content": "브론슨 1936 Cowboys Jacket 구매를 다시 한번 고려해보세요.",
+            "repeat_rule": "3주마다 총 3회"
+          }
+        ],
+        "reasoning": "쇼핑 아이템으로 중요도가 높지 않아 3주 간격의 주기적 넛지를 설정했습니다. 기존 알림이 없는 6월 21일을 선택하여 일일 알림 제한을 준수하고 사용자의 활동 시간대인 오후 2시에 배치했습니다."
+      },
+      "R-todo-99703c": {
+        "notifications": [
+          {
+            "date": "2026-06-15",
+            "time": "23:45",
+            "content": "오늘 마감인 '나를 브랜딩하는 취업설계' 과제 제출을 잊지 마세요. 지금 바로 확인하세요!"
+          }
+        ],
+        "reasoning": "마감 기한이 30분도 남지 않은 긴급한 상황이므로, 활동 시간대와 관계없이 즉시 알림을 발송하여 제출을 독려합니다."
+      },
+      "R-todo-709f49": {
+        "notifications": [
+          {
+            "date": "2026-06-16",
+            "time": "22:00",
+            "content": "서울시 희망두배 청년통장 신청 마감이 3일 남았습니다. 서류를 미리 준비하세요."
+          },
+          {
+            "date": "2026-06-18",
+            "time": "22:00",
+            "content": "서울시 희망두배 청년통장 신청 마감이 내일입니다. 18시 전까지 꼭 신청하세요."
+          }
+        ],
+        "reasoning": "마감까지 4일 남은 중요도가 높은 금융 지원 사업이므로, 사용자의 활동 시간대인 밤 22시를 활용하여 3일 전과 마감 전날 밤에 알림을 배치했습니다. 기존 일정과 겹치지 않도록 16일과 18일로 나누어 설정했습니다."
+      },
+      "R-schedule-4ecc9d": {
+        "notifications": [
+          {
+            "date": "2026-06-19",
+            "time": "22:00",
+            "content": "내일 여자친구와 부산 여행을 떠나는 날입니다. 짐을 최종 점검하고 즐거운 여행 준비하세요!"
+          }
+        ],
+        "reasoning": "여행까지 5일 남은 시점에서 이미 다른 일정들이 18일과 20일 사이에 밀집되어 있어, 여행 전날인 19일 밤에 알림을 배치하여 여행 준비를 상기시키는 것이 가장 효율적입니다."
+      },
+      "R-todo-ede771": {
+        "notifications": [
+          {
+            "date": "2026-06-20",
+            "time": "22:00",
+            "content": "모찌 채팅탭 맞춤형 예시 질문 추가 계획을 구체화해보세요.",
+            "repeat_rule": "10일마다 총 3회"
+          }
+        ],
+        "reasoning": "마감 기한이 없는 학업 관련 아이디어이므로, 사용자의 활동이 활발한 밤 시간대를 활용하여 10일 간격으로 총 3회 리마인드를 설정했습니다. 기존 일정과 겹치지 않도록 6월 20일 첫 알림을 배치했습니다."
+      },
+      "R-todo-4d84dd": {
+        "notifications": [
+          {
+            "date": "2026-06-16",
+            "time": "13:00",
+            "content": "스마트카소프트웨어보안 과제 마감이 오늘 23:59입니다. 제출을 서둘러주세요."
+          }
+        ],
+        "reasoning": "마감 기한이 24시간 이내로 매우 임박하여, 사용자가 가장 활발한 오후 시간대에 즉시 알림을 배치했습니다. 이미 다른 일정이 잡혀있으나 마감의 시급성을 고려해 단독 알림으로 설정했습니다."
+      },
+      "R-memo-d462d2": {
+        "notifications": [
+          {
+            "date": "2026-06-24",
+            "time": "14:00",
+            "content": "노운(NOUN) 헨리넥 티셔츠(멜란지 그레이) 구매를 다시 한번 고려해보세요.",
+            "repeat_rule": "3주마다 총 3회"
+          }
+        ],
+        "reasoning": "사용자의 활동 시간대인 오후 2시를 활용하여 쇼핑 아이템을 상기시킵니다. 기존에 저장된 유사한 쇼핑 아이템(브론슨 자켓)의 알림 주기와 겹치지 않도록 3주 간격으로 설정하여 부담을 줄였습니다."
+      },
+      "R-schedule-006398": {
+        "notifications": [
+          {
+            "date": "2026-06-21",
+            "time": "22:00",
+            "content": "토익 시험이 일주일 남았습니다. 신분증과 필기구 등 준비물을 미리 챙겨두세요."
+          },
+          {
+            "date": "2026-06-27",
+            "time": "22:00",
+            "content": "내일 토익 시험입니다. 대방중학교 위치와 시험 시간(09:20)을 다시 확인하고 일찍 휴식하세요."
+          }
+        ],
+        "reasoning": "시험까지 13일 남은 중요 일정으로, 일주일 전 준비물 점검 알림과 시험 전날 최종 확인 알림을 배치했습니다. 사용자의 활동 시간대(22시)를 고려하여 수면 시간을 피하고 기존 일정과 겹치지 않게 구성했습니다."
+      },
+      "R-todo-28caa5": {
+        "notifications": [
+          {
+            "date": "2026-06-16",
+            "time": "14:00",
+            "content": "네이버 클라우드 Maps API 점검(6/22) 안내 이메일을 확인하고 내용을 파악해두세요.",
+            "repeat_rule": "3일마다 총 2회"
+          }
+        ],
+        "reasoning": "6월 22일 서비스 점검 전 내용을 미리 파악할 수 있도록, 사용자의 활동 시간대인 오후 2시에 맞춰 3일 간격으로 2회 알림을 설정했습니다. 기존 일정과 겹치지 않도록 16일과 19일에 배치하여 점검 전 충분히 인지하도록 했습니다."
+      },
+      "R-todo-d9cbaa": {
+        "notifications": [
+          {
+            "date": "2026-06-16",
+            "time": "13:00",
+            "content": "SW아카데믹영작 5분반 Week 14 Activity Sheet 제출이 이미 지났습니다. 마감 확인 및 즉시 제출하세요."
+          }
+        ],
+        "reasoning": "이미 마감 기한(6/14)이 지난 과제이므로, 사용자가 인지하지 못했을 가능성을 고려하여 가장 빠른 활동 시간대에 즉시 알림을 배치했습니다."
+      },
+      "R-memo-4ea25c": {
+        "notifications": [
+          {
+            "date": "2026-07-01",
+            "time": "14:00",
+            "content": "무신사 스탠다드 헨리 넥 티셔츠 [미디엄 그레이] 구매를 다시 한번 고려해보세요.",
+            "repeat_rule": "3주마다 총 3회"
+          }
+        ],
+        "reasoning": "사용자의 쇼핑 메모임을 고려하여, 기존에 저장된 유사 의류 아이템(노운 헨리넥)의 알림 주기와 겹치지 않도록 7월 초부터 3주 간격으로 넛지를 배치했습니다. 활동량이 많은 오후 시간대를 선택하여 확인 가능성을 높였습니다."
+      },
+      "G2-minsu": {
+        "notifications": [
+          {
+            "date": "2026-06-16",
+            "time": "11:00",
+            "content": "오늘 민수와 만나는 날입니다. 약속 장소와 시간을 다시 한번 확인하세요."
+          }
+        ],
+        "reasoning": "내일(6/16) 예정된 약속으로, 당일 오전 활동 시작 시간대에 맞춰 리마인더를 배치했습니다. 이미 6/16에 다른 과제 알림이 13시와 14시에 집중되어 있어, 사용자의 활동 시간대인 11시로 설정하여 분산시켰습니다."
+      },
+      "R-memo-b18c58": {
+        "notifications": [
+          {
+            "date": "2026-06-23",
+            "time": "13:00",
+            "content": "친구들과의 모임 계획(벼락부자 4) 내용을 확인하고 합류 여부를 결정해보세요.",
+            "repeat_rule": "10일마다 총 3회"
+          }
+        ],
+        "reasoning": "기한이 없는 모임 계획이므로 사용자가 잊지 않도록 활동이 활발한 오후 시간대에 10일 간격으로 3회 알림을 설정하여 자연스럽게 상기시켰습니다."
+      },
+      "G4-essay": {
+        "notifications": [
+          {
+            "date": "2026-06-15",
+            "time": "23:45",
+            "content": "오늘 마감인 'Final Essay' 과제 제출을 잊지 마세요. 지금 바로 제출하세요!"
+          }
+        ],
+        "reasoning": "마감 시간이 30분도 남지 않은 긴급한 과제이므로, 이미 예정된 23:45 알림에 번들링하여 즉시 제출을 독려합니다."
+      },
+      "R-memo-c4c8e5": {
+        "notifications": [
+          {
+            "date": "2026-06-19",
+            "time": "14:00",
+            "content": "무신사 무진장 여름 블랙프라이데이(6/24까지) 할인 일정을 확인하고 쇼핑 계획을 세워보세요.",
+            "repeat_rule": "3일마다 총 2회"
+          },
+          {
+            "date": "2026-06-22",
+            "time": "14:00",
+            "content": "무신사 무진장 여름 블랙프라이데이 종료가 2일 남았습니다. 장바구니를 최종 점검하세요."
+          }
+        ],
+        "reasoning": "6월 24일 종료되는 프로모션이므로, 사용자의 활동 시간대인 14시를 활용해 19일과 22일 두 차례 알림을 배치했습니다. 22일 알림은 종료 직전 마지막 확인을 위해 추가했습니다."
+      },
+      "R-todo-8ff47b": {
+        "notifications": [
+          {
+            "date": "2026-06-27",
+            "time": "14:00",
+            "content": "대회 예선 아이디어 기획서 제출(7/7)까지 10일 남았습니다. 초안을 점검해보세요."
+          },
+          {
+            "date": "2026-07-03",
+            "time": "14:00",
+            "content": "대회 예선 아이디어 기획서 제출이 4일 남았습니다. 최종 내용을 다듬어보세요."
+          },
+          {
+            "date": "2026-07-06",
+            "time": "22:00",
+            "content": "내일 오전 10시 대회 예선 아이디어 기획서 제출 마감입니다. 최종 파일과 제출처를 확인하세요."
+          }
+        ],
+        "reasoning": "중요도가 높은 공모전 기획서이므로 마감 10일 전부터 단계적으로 알림을 배치했습니다. 사용자의 활동 시간대인 오후 2시와 밤 10시를 활용하여 수면 시간을 피했습니다."
+      },
+      "R-memo-443455": {
+        "notifications": [
+          {
+            "date": "2026-06-24",
+            "time": "14:00",
+            "content": "로프리(Lofree) EDGE 키보드 20% 할인 정보를 다시 확인하고 구매를 고려해보세요.",
+            "repeat_rule": "3주마다 총 3회"
+          }
+        ],
+        "reasoning": "쇼핑 메모는 긴급도가 낮으므로 기존 쇼핑 관련 알림들과 겹치지 않도록 3주 간격의 주기적 넛지를 설정했습니다. 사용자의 활동 시간대인 오후 2시를 활용하여 부담 없이 확인하도록 배치했습니다."
+      },
+      "R-todo-c27892": {
+        "notifications": [
+          {
+            "date": "2026-06-16",
+            "time": "13:00",
+            "content": "용산베르디움프렌즈 청년안심주택 추가모집 접수가 내일(6/17)입니다. 미리 공고를 확인하세요."
+          }
+        ],
+        "reasoning": "6월 17일 접수 예정인 단기성 중요 일정으로, 접수 전날인 6월 16일에 알림을 배치하여 준비를 돕습니다. 이미 16일 일정이 많아 기존 알림과 함께 확인하도록 구성했습니다."
+      },
+      "R-schedule-fc2f41": {
+        "notifications": [
+          {
+            "date": "2026-06-17",
+            "time": "22:00",
+            "content": "내일 스마트카소프트웨어보안 기말고사입니다. 인문관 211호, 오후 1시 시작이니 준비물을 챙기고 일찍 휴식하세요."
+          }
+        ],
+        "reasoning": "기말고사가 3일 남은 시점에서 이미 6월 16일과 17일에 다른 기말고사 관련 알림이 잡혀 있어, 중복을 피하고 시험 전날 밤에 최종 리마인드를 배치하여 효율성을 극대화했습니다."
+      },
+      "G1-toeic": {
+        "notifications": [
+          {
+            "date": "2026-06-21",
+            "time": "22:00",
+            "content": "토익 시험이 일주일 남았습니다. 신분증과 필기구 등 준비물을 미리 챙겨두세요."
+          },
+          {
+            "date": "2026-06-27",
+            "time": "22:00",
+            "content": "내일 토익 시험입니다. 대방중학교 위치와 시험 시간(09:20)을 다시 한번 확인하세요."
+          }
+        ],
+        "reasoning": "토익 시험은 중요도가 높은 학업 일정으로, 1주일 전과 시험 전날에 알림을 배치하여 준비를 돕습니다. 기존 일정과 충돌하지 않도록 21일과 27일 밤 시간대에 배치하였습니다."
+      },
+      "G6-callmom": {
+        "notifications": [
+          {
+            "date": "2026-06-20",
+            "time": "13:00",
+            "content": "엄마에게 안부 전화 한 통 드리는 건 어떨까요?",
+            "repeat_rule": "10일마다 총 3회"
+          }
+        ],
+        "reasoning": "기한이 없는 일상적인 연락이므로 사용자의 활동 시간대인 오후 1시를 활용하여 10일 간격으로 총 3회 알림을 설정했습니다. 기존 일정들과 겹치지 않도록 배치하여 부담을 최소화했습니다."
+      },
+      "R-todo-b12082": {
+        "notifications": [
+          {
+            "date": "2026-06-16",
+            "time": "13:00",
+            "content": "SW아카데믹영작 5분반 Final Essay 제출이 마감되었습니다. 미제출 시 즉시 교수님께 연락하세요."
+          }
+        ],
+        "reasoning": "이미 마감 기한(6/14)이 지난 과제이므로, 사용자가 제출 여부를 인지하고 즉시 조치할 수 있도록 가장 빠른 활동 시간대에 1회 알림을 배치했습니다."
+      },
+      "R-todo-c839fa": {
+        "notifications": [
+          {
+            "date": "2026-06-18",
+            "time": "14:00",
+            "content": "멋쟁이사자처럼 AI 엔지니어 부트캠프 지원 마감이 4일 남았습니다. 지원 요건을 미리 확인하세요."
+          },
+          {
+            "date": "2026-06-21",
+            "time": "14:00",
+            "content": "멋쟁이사자처럼 AI 엔지니어 부트캠프 지원 마감이 내일입니다. 지원서 작성을 마무리하세요."
+          },
+          {
+            "date": "2026-06-22",
+            "time": "22:00",
+            "content": "오늘 23:59 멋쟁이사자처럼 AI 엔지니어 부트캠프 지원 마감입니다. 최종 제출을 잊지 마세요!"
+          }
+        ],
+        "reasoning": "마감까지 7일 남은 고중요도 커리어 관련 일정으로, 4일 전 사전 안내와 마감 전날 및 당일 밤 알림을 통해 지원을 놓치지 않도록 구성했습니다. 기존 알림 일정을 고려하여 활동 시간대인 14시와 22시에 배치했습니다."
+      },
+      "R-schedule-92c297": {
+        "notifications": [
+          {
+            "date": "2026-06-15",
+            "time": "23:45",
+            "content": "민수와 만남 약속이 이미 지났습니다. 혹시 일정을 변경하셨나요? 확인이 필요합니다."
+          }
+        ],
+        "reasoning": "이미 마감일(6/11)이 지난 과거의 일정으로 확인되어, 사용자가 일정을 잊었거나 변경했는지 확인하기 위해 즉시 알림을 배치했습니다. 기존 알림들과 겹치지 않도록 23:45에 배치하였습니다."
+      },
+      "G3-contest": {
+        "notifications": [
+          {
+            "date": "2026-07-05",
+            "time": "14:00",
+            "content": "OO 대회 본선(7/20)이 15일 남았습니다. 준비 상황을 점검해보세요."
+          },
+          {
+            "date": "2026-07-15",
+            "time": "14:00",
+            "content": "OO 대회 본선이 5일 앞으로 다가왔습니다. 최종 준비에 집중할 시간입니다."
+          },
+          {
+            "date": "2026-07-19",
+            "time": "22:00",
+            "content": "내일 OO 대회 본선입니다. 필요한 준비물을 챙기고 컨디션을 조절하세요."
+          }
+        ],
+        "reasoning": "중요도 4의 대회 본선 일정으로, 35일 전부터 시작하여 15일 전, 5일 전, 그리고 당일 전날로 점진적으로 밀도를 높여 리마인드를 배치했습니다. 사용자의 활동 시간대인 오후 2시와 밤 10시를 활용하여 알림을 설정했습니다."
+      },
+      "R-todo-3156b9": {
+        "notifications": [
+          {
+            "date": "2026-06-16",
+            "time": "13:00",
+            "content": "내일 아침 식사 실천을 위해 오늘 저녁에 간단한 메뉴를 미리 생각해보세요.",
+            "repeat_rule": "7일마다 총 4회"
+          }
+        ],
+        "reasoning": "사용자의 아침 식사 실천 의지를 돕기 위해 활동이 활발한 오후 시간대에 주 1회 주기적인 넛지를 설정했습니다. 기존 알림들과 겹치지 않도록 13:00에 배치하여 부담 없이 실천을 상기하도록 했습니다."
+      },
+      "R-memo-1b924a": {
+        "notifications": [
+          {
+            "date": "2026-06-25",
+            "time": "14:00",
+            "content": "5월 실현수익 내역을 확인하고 자산 관리 현황을 점검해보세요.",
+            "repeat_rule": "20일마다 총 3회"
+          }
+        ],
+        "reasoning": "중요도가 낮은 자산 관리 메모이므로, 너무 잦은 알림보다는 20일 간격의 주기적인 넛지를 통해 사용자가 잊지 않고 자산 현황을 돌아볼 수 있도록 계획했습니다. 기존 알림들과 겹치지 않는 시간대를 선택했습니다."
+      },
+      "R-todo-463f0a": {
+        "notifications": [
+          {
+            "date": "2026-06-17",
+            "time": "14:00",
+            "content": "기사 2회 필기시험 응시자격 서류 제출(6/19 18시 마감)을 미리 준비하세요."
+          },
+          {
+            "date": "2026-06-19",
+            "time": "13:00",
+            "content": "기사 2회 필기시험 응시자격 서류 제출 마감(18시)입니다. 잊지 말고 제출하세요."
+          }
+        ],
+        "reasoning": "중요도가 높은 자격시험 관련 서류 제출 건으로, 마감 2일 전과 당일 오후에 알림을 배치했습니다. 기존 일정들과 겹치지 않도록 활동 시간대인 13~14시를 활용하여 제출을 독려합니다."
+      },
+      "R-memo-83477f": {
+        "notifications": [
+          {
+            "date": "2026-06-28",
+            "time": "14:00",
+            "content": "신대방삼거리역 근처에 계신가요? '양은이네' 맛집 탐방을 고려해보세요.",
+            "repeat_rule": "3주마다 총 3회"
+          }
+        ],
+        "reasoning": "맛집 정보는 긴급하지 않으므로 사용자의 활동 시간대인 오후 2시를 활용하여 3주 간격으로 총 3회 리마인드하여 잊지 않도록 배치했습니다."
+      },
+      "R-memo-c35603": {
+        "error": "429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'Resource exhausted. Please try again later. Please refer to https://cloud.google.com/vertex-ai/generative-ai/docs/error-code-429 for more de",
+        "notifications": [],
+        "reasoning": ""
+      },
+      "R-memo-878150": {
+        "notifications": [
+          {
+            "date": "2026-06-23",
+            "time": "13:00",
+            "content": "스탬플리 앱으로 허니콤보 무료 혜택을 받는 방법을 확인하고 활용해보세요.",
+            "repeat_rule": "14일마다 총 3회"
+          }
+        ],
+        "reasoning": "일상적인 혜택 정보로 중요도가 높지 않아, 사용자의 활동 시간대인 오후 1시를 활용해 2주 간격으로 총 3회 리마인드를 설정하여 잊지 않도록 유도했습니다."
+      },
+      "G7-coat": {
+        "notifications": [
+          {
+            "date": "2026-06-27",
+            "time": "14:00",
+            "content": "월급날입니다! 장바구니에 담아둔 코트 구매를 고려해보세요.",
+            "repeat_rule": "매월 27일마다 총 3회"
+          }
+        ],
+        "reasoning": "사용자의 월급날을 고려하여 매월 27일에 알림을 설정했습니다. 쇼핑 아이템의 중요도가 낮으므로, 너무 잦지 않게 월 1회 주기로 총 3회만 리마인드하여 부담을 줄였습니다."
+      }
+    }
+  },
+  "dataset_order_chrono": [
+    "R-memo-dc1297",
+    "R-memo-b18c58",
+    "R-todo-b12082",
+    "R-todo-d9cbaa",
+    "R-todo-99703c",
+    "R-todo-4d84dd",
+    "R-schedule-92c297",
+    "R-schedule-01b074",
+    "R-schedule-b308fa",
+    "R-todo-3156b9",
+    "G6-callmom",
+    "R-schedule-4ecc9d",
+    "G1-toeic",
+    "R-todo-463f0a",
+    "R-schedule-006398",
+    "R-todo-709f49",
+    "R-todo-28caa5",
+    "R-schedule-2373b1",
+    "G3-contest",
+    "R-memo-c35603",
+    "R-memo-443455",
+    "R-todo-ede771",
+    "R-memo-85c0b6",
+    "G5-finals",
+    "R-todo-c27892",
+    "R-memo-83477f",
+    "R-memo-4ea25c",
+    "R-memo-878150",
+    "R-schedule-fc2f41",
+    "G7-coat",
+    "R-todo-8ff47b",
+    "R-todo-c839fa",
+    "R-memo-c4c8e5",
+    "R-memo-efc3b6",
+    "R-memo-d462d2",
+    "R-memo-1b924a",
+    "G4-essay",
+    "G2-minsu"
+  ],
+  "dataset_order_shuffled": [
+    "R-schedule-01b074",
+    "R-schedule-2373b1",
+    "R-schedule-b308fa",
+    "G5-finals",
+    "R-memo-dc1297",
+    "R-memo-85c0b6",
+    "R-memo-efc3b6",
+    "R-todo-99703c",
+    "R-todo-709f49",
+    "R-schedule-4ecc9d",
+    "R-todo-ede771",
+    "R-todo-4d84dd",
+    "R-memo-d462d2",
+    "R-schedule-006398",
+    "R-todo-28caa5",
+    "R-todo-d9cbaa",
+    "R-memo-4ea25c",
+    "G2-minsu",
+    "R-memo-b18c58",
+    "G4-essay",
+    "R-memo-c4c8e5",
+    "R-todo-8ff47b",
+    "R-memo-443455",
+    "R-todo-c27892",
+    "R-schedule-fc2f41",
+    "G1-toeic",
+    "G6-callmom",
+    "R-todo-b12082",
+    "R-todo-c839fa",
+    "R-schedule-92c297",
+    "G3-contest",
+    "R-todo-3156b9",
+    "R-memo-1b924a",
+    "R-todo-463f0a",
+    "R-memo-83477f",
+    "R-memo-c35603",
+    "R-memo-878150",
+    "G7-coat"
+  ]
+}
