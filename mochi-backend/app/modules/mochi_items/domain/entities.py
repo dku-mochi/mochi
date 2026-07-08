@@ -72,6 +72,23 @@ class ReferenceLink:
     price_text: str | None = None  # shop 가격("18,900원"). shop 외엔 None.
 
 
+@dataclass(frozen=True, slots=True)
+class PlaceInfo:
+    """Agent 가 entities(kind='place') JSON 으로 저장한 장소 정보 — 상세 지도 섹션용.
+
+    좌표는 WGS84. ``searchPlaceGeo`` tool 이 네이버 지역검색 실매칭으로 완성한 값이라
+    발명된 좌표가 없다(후보 0건이면 entity 자체가 없다). item 당 최대 1개.
+    """
+
+    name: str
+    lat: float
+    lng: float
+    category: str | None = None  # 네이버 업종 경로 ("카페,디저트>카페"). 표시 가공은 클라이언트.
+    address: str | None = None
+    road_address: str | None = None
+    map_url: str | None = None  # 네이버 지도 검색 URL (지역검색이 place id 를 안 줘 직링크 불가).
+
+
 # ---------- Lifecycle (처리상태 — item 단위 분석 파이프라인) ----------
 # 의미 lifecycle(완료/만료/decay)은 intent instance 단위로 이동했다(2026-06-04 빅뱅).
 # 여기 LifecycleState 는 "분석 파이프라인이 어디까지 진행됐나"만 표현한다. archive_reason 없음.
@@ -129,6 +146,7 @@ class MochiItem:
     category: str | None = None
     shopping_product_query: str | None = None
     reference_links: tuple[ReferenceLink, ...] = ()
+    place: PlaceInfo | None = None
     importance: int = 3
     # 사용자가 "중요"라고 모찌에게 준 신호(분석결과 아님) — 모찌가 능동 회수에 활용한다.
     # 서버 동기화(userTitle 의 로컬전용과 반대). reanalyze 가 건드리지 않는 item 레벨 속성.

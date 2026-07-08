@@ -528,6 +528,7 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
             category: r.category,
             shoppingProductQuery: r.shoppingProductQuery,
             referenceLinks: (r.referenceLinks ?? []).map(mapReferenceLink),
+            place: r.place.map(mapPlace),
             importance: r.importance,
             isFavorite: r.isFavorite ?? false,
             intentInstances: (r.intentInstances ?? []).map(mapIntentInstance),
@@ -553,6 +554,18 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
             usefulness: l.usefulness,
             subtitle: l.subtitle,
             priceText: l.priceText
+        )
+    }
+
+    private static func mapPlace(_ p: Components.Schemas.PlaceResponse) -> PlaceDTO {
+        PlaceDTO(
+            name: p.name,
+            lat: p.lat,
+            lng: p.lng,
+            category: p.category,
+            address: p.address,
+            roadAddress: p.roadAddress,
+            mapUrl: p.mapUrl
         )
     }
 

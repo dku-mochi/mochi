@@ -66,6 +66,7 @@ from app.modules.mochi_items.presentation.schemas import (
     MonthlyCalendarResponse,
     MonthlyDigestGroupResponse,
     MonthlyDigestResponse,
+    PlaceResponse,
     PresignRequest,
     PresignResponse,
     ReanalyzeRequest,
@@ -192,6 +193,19 @@ def _to_response(item: MochiItem) -> MochiItemResponse:
             )
             for link in item.reference_links
         ],
+        place=(
+            PlaceResponse(
+                name=item.place.name,
+                lat=item.place.lat,
+                lng=item.place.lng,
+                category=item.place.category,
+                address=item.place.address,
+                road_address=item.place.road_address,
+                map_url=item.place.map_url,
+            )
+            if item.place is not None
+            else None
+        ),
         importance=item.importance,
         is_favorite=item.is_favorite,
         lifecycle_kind=item.lifecycle.kind.value,

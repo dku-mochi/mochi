@@ -12,7 +12,7 @@ import UIKit
 ///
 /// 정보 위계(UX_SPEC §3.8 과 같은 번호): ① 회수 헤더(썸네일 · 출처·시간 eyebrow · 정체성 제목) →
 /// ② 헷갈려요 배너(조건) → ③ 지금 할 수 있어요(할일 체크 / 일정 / 링크 — 전부 같은 행 문법) →
-/// ④ 모찌가 정리했어요(요약·원본).
+/// ③′ 장소(조건 — Agent 지오코딩 시 지도 프리뷰 + 네이버 길찾기) → ④ 모찌가 정리했어요(요약·원본).
 /// **어떤 intent·source 조합이든 골격이 같다** — eyebrow 가 항상 첫 텍스트 줄이고, 섹션 라벨이
 /// 카드 밖에 노출되며, ③ 의 행들은 leading 타일·제목·부제의 단일 문법을 공유한다(2026-06-11 통일).
 /// 제목은 탭 한 번으로 인라인 교정(로컬 `userTitle` 오버라이드).
@@ -143,6 +143,14 @@ public struct DetailView: View {
                 }
                 .riseIn(sectionsAppeared, index: bump)
 
+                // 장소(Agent searchPlaceGeo) — 지도 프리뷰 + 네이버 길찾기. 행동(②) 바로 아래에
+                // 둔다: "다시 찾아가기"는 이 기록의 가장 구체적인 다음 행동이라 링크보다 앞선다.
+                let plc = analysis.place == nil ? 0 : 1
+                if let place = analysis.place {
+                    PlaceMapSection(place: place)
+                        .riseIn(sectionsAppeared, index: bump + 1)
+                }
+
                 // 관련 링크(Agent ResourceFinder) — 메타 행카드. 위 "지금 할 수 있어요"의 원본
                 // 링크(primaryActionURL)와 같은 자료(같은 영상/URL)는 중복이라 숨긴다(백엔드 dedup 의
                 // 표시단 안전망 — 정규화 규칙은 URLCanonical 단일 기준). 회수>확장 우선이라 원본은 위에 남긴다.
@@ -153,18 +161,18 @@ public struct DetailView: View {
                 let ref = visibleRefs.isEmpty ? 0 : 1
                 if !visibleRefs.isEmpty {
                     ReferenceLinksSection(links: visibleRefs)
-                        .riseIn(sectionsAppeared, index: bump + 1)
+                        .riseIn(sectionsAppeared, index: bump + plc + 1)
                 }
 
                 GistCard(mochiItem: mochiItem, analysis: analysis)
-                    .riseIn(sectionsAppeared, index: bump + ref + 1)
+                    .riseIn(sectionsAppeared, index: bump + plc + ref + 1)
 
                 // ⑤ 비슷한 기록 — 결과 없으면(임계값 미달·미색인) 섹션 자체를 렌더하지 않는다.
                 if !store.similar.isEmpty {
                     SimilarSection(items: store.similar) { preview in
                         store.send(.similarItemTapped(preview.id))
                     }
-                    .riseIn(sectionsAppeared, index: bump + ref + 2)
+                    .riseIn(sectionsAppeared, index: bump + plc + ref + 2)
                 }
 
                 if let error = store.lastError {

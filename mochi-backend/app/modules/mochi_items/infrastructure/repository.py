@@ -1,5 +1,6 @@
 import hashlib
 import json
+import math
 from datetime import datetime
 from urllib.parse import parse_qs, urlparse
 from uuid import UUID
@@ -15,6 +16,7 @@ from app.modules.mochi_items.domain.entities import (
     LifecycleState,
     LifecycleStateKind,
     MochiItem,
+    PlaceInfo,
     ReferenceLink,
     SyncState,
 )
@@ -173,6 +175,71 @@ def _reference_links(row: MochiItemRow) -> tuple[ReferenceLink, ...]:
     return tuple(links)
 
 
+# place 좌표의 한국 bounds — searchPlaceGeo tool 과 동일 기준. entity value 는 LLM 이 복사한
+# 문자열이라 tool 검증을 통과했다고 믿을 수 없다(오복사·주입) — projection 경계에서 재검증한다.
+_PLACE_LAT_RANGE = (33.0, 39.5)
+_PLACE_LNG_RANGE = (124.0, 132.0)
+# mapUrl 은 iOS 가 그대로 openURL 하므로 네이버 지도 https 만 통과 — 그 외는 None 으로 떨어뜨려
+# iOS 가 장소명 검색 URL 을 재합성하게 한다(임의 URL open 표면 차단, codex P2).
+_PLACE_MAP_URL_HOSTS = frozenset({"map.naver.com", "place.naver.com"})
+
+
+def _place_coord(value: object, bounds: tuple[float, float]) -> float | None:
+    """LLM 복사 JSON 의 좌표 1개를 검증 — 숫자(bool 제외)·finite·bounds 안일 때만."""
+    if isinstance(value, bool) or not isinstance(value, int | float):
+        return None
+    coord = float(value)
+    if not math.isfinite(coord) or not (bounds[0] <= coord <= bounds[1]):
+        return None
+    return coord
+
+
+def _place_map_url(value: object) -> str | None:
+    if not isinstance(value, str) or not value:
+        return None
+    try:
+        parsed = urlparse(value)
+    except ValueError:
+        return None
+    host = (parsed.netloc or "").lower()
+    return value if parsed.scheme == "https" and host in _PLACE_MAP_URL_HOSTS else None
+
+
+def _place(row: MochiItemRow) -> PlaceInfo | None:
+    """entities(kind='place') JSON → PlaceInfo. 첫 유효 항목 1개만 — item 당 장소는 하나.
+
+    좌표(lat/lng)가 없거나·숫자가 아니거나·한국 bounds 밖이면 버린다 — 지도 섹션은 좌표가
+    본질이라 이름만 살리는 폴백이 없다(reference_url 의 bare-URL 폴백과 다른 점). 틀린 핀은
+    지도 없음보다 나쁘다.
+    """
+    for entity in row.entities:
+        if entity.kind != "place":
+            continue
+        try:
+            raw = json.loads(entity.value)
+        except (TypeError, ValueError):
+            continue
+        if not isinstance(raw, dict):
+            continue
+        name = raw.get("name")
+        if not isinstance(name, str) or not name:
+            continue
+        lat = _place_coord(raw.get("lat"), _PLACE_LAT_RANGE)
+        lng = _place_coord(raw.get("lng"), _PLACE_LNG_RANGE)
+        if lat is None or lng is None:
+            continue
+        return PlaceInfo(
+            name=name,
+            lat=lat,
+            lng=lng,
+            category=str(raw["category"]) if raw.get("category") else None,
+            address=str(raw["address"]) if raw.get("address") else None,
+            road_address=str(raw["roadAddress"]) if raw.get("roadAddress") else None,
+            map_url=_place_map_url(raw.get("mapUrl")),
+        )
+    return None
+
+
 def _row_to_entity(row: MochiItemRow) -> MochiItem:
     image_refs = tuple(
         ImageRef(
@@ -210,6 +277,7 @@ def _row_to_entity(row: MochiItemRow) -> MochiItem:
         category=row.category,
         shopping_product_query=next((e.value for e in row.entities if e.kind == "shopping_product"), None),
         reference_links=_reference_links(row),
+        place=_place(row),
         importance=row.importance,
         is_favorite=row.is_favorite,
         model_version=row.model_version,

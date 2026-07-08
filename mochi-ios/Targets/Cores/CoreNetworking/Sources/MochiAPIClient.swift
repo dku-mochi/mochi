@@ -495,6 +495,8 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
     public let shoppingProductQuery: String?
     /// Agent 가 찾아준 참고 링크 — entities(kind=reference_url) 서버 projection. 없으면 빈 배열.
     public let referenceLinks: [ReferenceLinkDTO]
+    /// 기록이 가리킨 장소 — entities(kind=place) 서버 projection. 장소성 없으면 nil.
+    public let place: PlaceDTO?
     public let importance: Int
     /// 사용자가 준 "중요" 즐겨찾기 신호 — 서버 동기화 상태. 기본 false.
     public let isFavorite: Bool
@@ -517,6 +519,7 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
         case shoppingProductQuery = "shoppingProductQuery"
         case isFavorite = "isFavorite"
         case referenceLinks = "referenceLinks"
+        case place
         case intentInstances = "intentInstances"
         case needsReview = "needsReview"
         case reviewOptions = "reviewOptions"
@@ -537,6 +540,7 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
         category: String?,
         shoppingProductQuery: String? = nil,
         referenceLinks: [ReferenceLinkDTO] = [],
+        place: PlaceDTO? = nil,
         importance: Int,
         isFavorite: Bool = false,
         intentInstances: [IntentInstanceDTO],
@@ -557,6 +561,7 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
         self.category = category
         self.shoppingProductQuery = shoppingProductQuery
         self.referenceLinks = referenceLinks
+        self.place = place
         self.importance = importance
         self.isFavorite = isFavorite
         self.intentInstances = intentInstances
@@ -580,6 +585,7 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
         category = try c.decodeIfPresent(String.self, forKey: .category)
         shoppingProductQuery = try c.decodeIfPresent(String.self, forKey: .shoppingProductQuery)
         referenceLinks = try c.decodeIfPresent([ReferenceLinkDTO].self, forKey: .referenceLinks) ?? []
+        place = try c.decodeIfPresent(PlaceDTO.self, forKey: .place)
         importance = try c.decode(Int.self, forKey: .importance)
         isFavorite = try c.decodeIfPresent(Bool.self, forKey: .isFavorite) ?? false
         intentInstances = try c.decodeIfPresent([IntentInstanceDTO].self, forKey: .intentInstances) ?? []
@@ -590,6 +596,41 @@ public struct MochiItemDTO: Sendable, Hashable, Codable, Identifiable {
         imageRefs = try c.decodeIfPresent([ImageRefDTO].self, forKey: .imageRefs) ?? []
         capturedAt = try c.decode(Date.self, forKey: .capturedAt)
         createdAt = try c.decode(Date.self, forKey: .createdAt)
+    }
+}
+
+/// 장소 응답 — `place` 필드. 서버 PlaceResponse 미러 (좌표 WGS84).
+public struct PlaceDTO: Sendable, Hashable, Codable {
+    public let name: String
+    public let lat: Double
+    public let lng: Double
+    public let category: String?
+    public let address: String?
+    public let roadAddress: String?
+    public let mapUrl: String?
+
+    public init(
+        name: String,
+        lat: Double,
+        lng: Double,
+        category: String? = nil,
+        address: String? = nil,
+        roadAddress: String? = nil,
+        mapUrl: String? = nil
+    ) {
+        self.name = name
+        self.lat = lat
+        self.lng = lng
+        self.category = category
+        self.address = address
+        self.roadAddress = roadAddress
+        self.mapUrl = mapUrl
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case name, lat, lng, category, address
+        case roadAddress = "roadAddress"
+        case mapUrl = "mapUrl"
     }
 }
 
