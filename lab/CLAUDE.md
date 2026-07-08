@@ -19,7 +19,8 @@
 
 - `data/` — 공유 입력 (**gitignore** — 개인 스크린샷·데이터셋은 git 미추적, 별도 공유)
   - `screenshot/` — 이미지 eval·RAG 검색 실험용 스크린샷 (파일명: `<intent...>_<actual_intention>.<ext>`)
-  - `text_memos.json` — 텍스트 메모 데이터셋 (gold label)
+  - `text_memos.json` — 텍스트 메모 데이터셋 (gold label). mochi-backend/eval 의 committed Tier1 분류 게이트(clear/boundary) 출처.
+  - `agent-golden/` — 분석 에이전트 eval **Tier 2** 입력 (prod 덤프 50 케이스, GCS 이미지 + macOS Vision OCR 백필) + `gold_draft.json`(LLM judge 라벨, dump self-label 14건 교정). `build_cases.py` 재현. committed 결정적 게이트(mochi-backend/eval)와 짝 — 실데이터라 여기(gitignore)에만 둔다.
 
 ## 실행 (공통)
 

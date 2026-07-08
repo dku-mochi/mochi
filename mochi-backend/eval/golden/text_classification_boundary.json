@@ -1,0 +1,827 @@
+{
+  "_meta": {
+    "tier": 1,
+    "gate": "③ threshold/알림 — 경계(goal형 다짐·schedule↔todo·schedule↔memo). 개별 hard-fail 금지, mean pass_rate 추적.",
+    "scoring": "mean pass_rate threshold",
+    "user_decision": "goal형 막연한 다짐/목표=memo (v27 유지). deadline 있는 errand=todo.",
+    "expansion": "2026-07-08 확장 — 저작: Claude(평가 대상 Gemini 와 독립), 라벨 정책: v28 프롬프트 intent 정의 + 기존 user_decision. 날짜·요일 gold 는 스크립트 산술 검증(scratchpad/expand_golden.py). 경계축: goal다짐8·deadline errand8·schedule↔todo4·schedule↔memo8·knowledge↔memo7 (13→48)."
+  },
+  "cases": [
+    {
+      "id": "tm01",
+      "input": {
+        "text": "금요일 코엑스",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "금요일에 코엑스에서 열리는 행사 참석"
+    },
+    {
+      "id": "tm03",
+      "input": {
+        "text": "엄마 생신 담주",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "다음 주 엄마 생신 챙기기"
+    },
+    {
+      "id": "tm08",
+      "input": {
+        "text": "31일 카드값",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "31일 카드 대금 결제일"
+    },
+    {
+      "id": "tm09",
+      "input": {
+        "text": "담달 초 제주",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "다음 달 초 제주 여행 [사용자결정 2026-07-08: 날짜 미정 계획=memo(회수는 proactive recall), 미기재 이벤트만 schedule]"
+    },
+    {
+      "id": "tm14",
+      "input": {
+        "text": "우산 챙기기",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "나갈 때 우산 챙기기"
+    },
+    {
+      "id": "tm18",
+      "input": {
+        "text": "올해 토익",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "올해 토익 점수 만들기 [사용자결정: 막연한 다짐/목표=memo, v27 유지]"
+    },
+    {
+      "id": "tm19",
+      "input": {
+        "text": "운동 시작",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "꾸준히 운동 시작하기 [사용자결정: 막연한 다짐/목표=memo, v27 유지]"
+    },
+    {
+      "id": "tm20",
+      "input": {
+        "text": "포폴 정리",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "포트폴리오 정리해두기 [사용자결정: 막연한 다짐/목표=memo, v27 유지]"
+    },
+    {
+      "id": "tm21",
+      "input": {
+        "text": "블로그 다시",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "미뤄둔 블로그 다시 시작하기 [사용자결정: 막연한 다짐/목표=memo, v27 유지]"
+    },
+    {
+      "id": "tm22",
+      "input": {
+        "text": "스페인어 깔짝",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "스페인어 공부 조금씩 해보기 [사용자결정: 막연한 다짐/목표=memo, v27 유지]"
+    },
+    {
+      "id": "tm23",
+      "input": {
+        "text": "이직 준비 슬슬",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "슬슬 이직 준비 시작하기 [사용자결정: 막연한 다짐/목표=memo, v27 유지]"
+    },
+    {
+      "id": "tm24",
+      "input": {
+        "text": "저축 습관",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "매달 저축하는 습관 만들기 [사용자결정: 막연한 다짐/목표=memo, v27 유지]"
+    },
+    {
+      "id": "tm27",
+      "input": {
+        "text": "전세 확정일자",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "knowledge"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "전세 확정일자 받는 절차"
+    },
+    {
+      "id": "tm149",
+      "input": {
+        "text": "다이어트 진짜 시작",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "막연한 다짐 [사용자결정: goal형 다짐=memo]"
+    },
+    {
+      "id": "tm150",
+      "input": {
+        "text": "한 달에 책 두 권",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "독서 목표 다짐 [사용자결정: goal형 다짐=memo]"
+    },
+    {
+      "id": "tm151",
+      "input": {
+        "text": "미라클모닝 도전",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "생활습관 다짐 [사용자결정: goal형 다짐=memo]"
+    },
+    {
+      "id": "tm152",
+      "input": {
+        "text": "올해 안에 5kg 감량",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "체중 감량 목표 [사용자결정: goal형 다짐=memo]"
+    },
+    {
+      "id": "tm153",
+      "input": {
+        "text": "매일 영어 단어 30개",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "학습 습관 다짐 [사용자결정: goal형 다짐=memo]"
+    },
+    {
+      "id": "tm154",
+      "input": {
+        "text": "코테 준비 슬슬",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "막연한 준비 시작 [사용자결정: goal형 다짐=memo]"
+    },
+    {
+      "id": "tm155",
+      "input": {
+        "text": "용돈기입장 쓰기 시작",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "습관 형성 다짐 [사용자결정: goal형 다짐=memo]"
+    },
+    {
+      "id": "tm156",
+      "input": {
+        "text": "일주일에 세 번 헬스",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "운동 빈도 목표 [사용자결정: goal형 다짐=memo]"
+    },
+    {
+      "id": "tm157",
+      "input": {
+        "text": "금요일까지 과제 제출",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "deadline 있는 errand=todo"
+    },
+    {
+      "id": "tm158",
+      "input": {
+        "text": "25일까지 장학금 신청",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "deadline 있는 errand=todo"
+    },
+    {
+      "id": "tm159",
+      "input": {
+        "text": "이번 주까지 발표자료 초안",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "deadline 있는 errand=todo"
+    },
+    {
+      "id": "tm160",
+      "input": {
+        "text": "월말까지 관리비 납부",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "deadline 있는 errand=todo"
+    },
+    {
+      "id": "tm161",
+      "input": {
+        "text": "내일까지 설문 응답",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "deadline 있는 errand=todo"
+    },
+    {
+      "id": "tm162",
+      "input": {
+        "text": "담주 월요일까지 견적서 회신",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "deadline 있는 errand=todo"
+    },
+    {
+      "id": "tm163",
+      "input": {
+        "text": "6/30까지 자동차세 연납 신청",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "deadline 있는 errand=todo"
+    },
+    {
+      "id": "tm164",
+      "input": {
+        "text": "수요일 3시까지 서류 제출",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "'까지'=마감 → todo (schedule 아님)"
+    },
+    {
+      "id": "tm165",
+      "input": {
+        "text": "토요일 오전 이케아 픽업",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "시간 지정 방문 약속 → schedule"
+    },
+    {
+      "id": "tm166",
+      "input": {
+        "text": "담주 화요일 차 정기점검 예약돼 있음",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "이미 예약된 방문 → schedule"
+    },
+    {
+      "id": "tm167",
+      "input": {
+        "text": "금요일 오후 반차 상신하기",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "상신(행동)이 본질 → todo"
+    },
+    {
+      "id": "tm168",
+      "input": {
+        "text": "26일 공과금 자동이체 빠짐",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "결제일 인지 → schedule (tm08 카드값과 일관)"
+    },
+    {
+      "id": "tm169",
+      "input": {
+        "text": "지난 토요일 한강 피크닉",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "과거 일은 schedule 불가 → memo"
+    },
+    {
+      "id": "tm170",
+      "input": {
+        "text": "언젠가 오로라 보러 가기",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "막연한 희망 → memo"
+    },
+    {
+      "id": "tm171",
+      "input": {
+        "text": "7월에 세일한다더라",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "세일 기간=세상 정보, 사용자의 순간 아님 → memo"
+    },
+    {
+      "id": "tm172",
+      "input": {
+        "text": "8월 초 부모님 제주 모시고 가기",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "대략적이지만 계획된 여행 → schedule (tm09 담달초 제주와 일관) [사용자결정 2026-07-08: 날짜 미정 계획=memo(회수는 proactive recall), 미기재 이벤트만 schedule]"
+    },
+    {
+      "id": "tm173",
+      "input": {
+        "text": "어제 회식 2차까지 갔다",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "과거 기록 → memo"
+    },
+    {
+      "id": "tm174",
+      "input": {
+        "text": "신곡 티저 금요일 공개래",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "콘텐츠 공개일=세상 정보 → memo"
+    },
+    {
+      "id": "tm175",
+      "input": {
+        "text": "다음주 폭염 온대",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "날씨 정보 → 사용자의 일정 아님 → memo"
+    },
+    {
+      "id": "tm176",
+      "input": {
+        "text": "성수 팝업 다음 달까지 한대",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "팝업 가용 기간 → schedule 아님, 방문 후보 memo (프롬프트 명문 예시)"
+    },
+    {
+      "id": "tm177",
+      "input": {
+        "text": "부동산 취득세율 표",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "knowledge"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "재열람할 정보 자체 → knowledge"
+    },
+    {
+      "id": "tm178",
+      "input": {
+        "text": "제주 흑돼지 맛집 리스트",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "여행지 후보 리스트 → memo (프롬프트: 맛집·카페는 memo 쪽)"
+    },
+    {
+      "id": "tm179",
+      "input": {
+        "text": "노션 템플릿 공유글",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "knowledge"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "재사용할 콘텐츠 → knowledge"
+    },
+    {
+      "id": "tm180",
+      "input": {
+        "text": "필라테스 원데이 클래스 후기",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "체험 후보에 대한 관심 → memo"
+    },
+    {
+      "id": "tm181",
+      "input": {
+        "text": "샤워기 필터 추천글",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "구매 후보(미결정) → memo"
+    },
+    {
+      "id": "tm182",
+      "input": {
+        "text": "청약 가점 계산 예시",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "knowledge"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "계산법 콘텐츠 → knowledge"
+    },
+    {
+      "id": "tm183",
+      "input": {
+        "text": "월세 계약 전 체크리스트",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "knowledge"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "절차성 콘텐츠 → knowledge"
+    }
+  ]
+}
