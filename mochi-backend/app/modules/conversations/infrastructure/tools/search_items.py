@@ -5,7 +5,7 @@
 
 - **키워드**: 단어별 substring(ILIKE AND) — 'simple' tsvector 토큰 동일성은 조사 붙은
   한국어("민수와" vs "민수")가 0건이 되기 때문(2026-06-10). 고유명사 exact 질의의 보험.
-- **의미(vector)**: voyage-3-large 쿼리 임베딩 → pgvector 코사인 — 기록은 저장 당시
+- **의미(vector)**: voyage-4-large 쿼리 임베딩 → pgvector 코사인 — 기록은 저장 당시
   어휘로 말하므로, 질문 어휘가 달라도 의미로 회수한다 (어휘 불일치를 프롬프트의
   재검색 지시 대신 retrieval 이 흡수).
 
@@ -19,8 +19,10 @@ voyage 미설정·일시 장애 시 키워드 단독으로 degrade 한다 — �
 질문에 저장 시각 필터를 쓰면 미래에 캡처된 기록을 찾는 셈이라 항상 0건이다 (실기기 버그
 2026-06-10).
 
-기존 ``search/postgres_index.py`` BM25 패턴을 따르되 ``deleted_at IS NULL`` (§3 불변식)
-+ 구조화 필터를 더한다. detached run task 에서 불리므로 호출마다 자체 세션을 연다.
+키워드 매칭식·RRF·vector 직렬화는 ``app.shared.retrieval`` 공유 커널이 단일 원천이다
+(``/search`` RAG 경로와 문자 그대로 같은 구현). 여기서 더하는 것은 ``deleted_at IS NULL``
+(§3 불변식) + 구조화 필터 + 멀티쿼리 융합이다. detached run task 에서 불리므로 호출마다
+자체 세션을 연다.
 """
 
 from collections.abc import Callable
@@ -35,6 +37,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from app.core.logging import get_logger
 from app.modules.conversations.domain.ports import ChatToolResult
 from app.shared.intent import Intent
+from app.shared.retrieval import keyword_match, reciprocal_rank_fusion, vector_literal
 from app.shared.voyage import VoyageClient, VoyageError
 
 log = get_logger("chat.search_items")
@@ -101,19 +104,12 @@ _PARAMETERS: dict[str, Any] = {
 
 _KST = ZoneInfo("Asia/Seoul")
 
-#: 키워드 매칭 대상 — 검색 가능한 텍스트 전부.
+#: 키워드 매칭 대상 — 검색 가능한 텍스트 전부. (매칭식·RRF 자체는 app.shared.retrieval 단일 원천)
 _HAYSTACK_SQL = "coalesce(m.summary,'') || ' ' || coalesce(m.text,'') || ' ' || coalesce(m.user_memo,'')"
-
-#: 키워드당 substring 매칭 상한 — 그 이상은 노이즈 (plainto 의 AND 의미는 유지).
-_MAX_KEYWORDS = 5
 
 #: 한 호출에 받는 query 상한 — 여러 정보 욕구를 한 번에(resource_finder `_MAX_QUERIES` 선례).
 #: 그 이상 분해는 비용만 늘고 RRF 융합 변별력이 떨어진다.
 _MAX_QUERIES = 4
-
-#: RRF(Reciprocal Rank Fusion) 상수 — query별 (키워드·벡터) 순위 리스트를 단일 점수로 합친다.
-#: 60 은 RRF 표준값(rank 차이를 부드럽게 흡수). search/postgres_index 의 BM25+vector 융합과 동일 철학.
-_RRF_K = 60
 
 #: instance 의 "발생 시작일" — deadline 우선, 없으면 date (``ListUpcomingActionables`` 와 동일 우선순위).
 #: payload 값이 free-text 라 앞 10자를 ISO 모양으로 정규화('/'·'.' → '-')해 사전식 비교한다.
@@ -159,21 +155,6 @@ def _parse_queries(args: dict[str, Any]) -> list[str]:
     return out
 
 
-def _rrf_fuse(ranked_lists: list[list[Any]]) -> list[Any]:
-    """Reciprocal Rank Fusion — 여러 순위 리스트를 id별 점수 Σ 1/(k+rank) 로 합쳐 내림차순.
-
-    각 리스트는 한 갈래(query별 키워드·벡터)의 순위(1-based, RRF 표준)다. 같은 item 이 여러
-    리스트 상위에 들수록 점수가 누적돼 위로 온다. row 객체는 첫 출현본을 보존한다(snippet 등 동일).
-    """
-    scores: dict[Any, float] = {}
-    rows_by_id: dict[Any, Any] = {}
-    for ranked in ranked_lists:
-        for rank, row in enumerate(ranked, start=1):
-            scores[row.id] = scores.get(row.id, 0.0) + 1.0 / (_RRF_K + rank)
-            rows_by_id.setdefault(row.id, row)
-    return [rows_by_id[item_id] for item_id in sorted(scores, key=lambda i: scores[i], reverse=True)]
-
-
 def _parse_dt(raw: Any) -> datetime | None:
     if not isinstance(raw, str) or not raw:
         return None
@@ -186,11 +167,6 @@ def _parse_dt(raw: Any) -> datetime | None:
     if parsed.tzinfo is None:
         parsed = parsed.replace(tzinfo=_KST)
     return parsed
-
-
-def _like_pattern(word: str) -> str:
-    escaped = word.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
-    return f"%{escaped}%"
 
 
 def _parse_date_only(raw: Any) -> str | None:
@@ -323,7 +299,8 @@ class SearchItemsTool:
                                 session, base_clauses, base_params, query_vectors[q], fanout
                             )
                         )
-                merged = _rrf_fuse(ranked_lists)
+                fused = reciprocal_rank_fusion(ranked_lists, id_of=lambda row: row.id)
+                merged = [row for row, _ in fused]
 
         # 의미 갈래가 있을 때만 rerank — 융합 query 는 모든 query 를 합쳐 멀티 측면을 함께 본다.
         if semantic and queries and len(merged) > 1:
@@ -356,21 +333,17 @@ class SearchItemsTool:
         k: int,
     ) -> list[Any]:
         """단어별 substring(ILIKE AND) 매칭 — 'simple' tsvector 가 조사 붙은 한국어("민수와" vs
-        "민수")를 0건 만드는 회귀(2026-06-10)의 보험. 랭킹은 BM25 근사(ts_rank_cd)."""
-        clauses = list(base_clauses)
-        params = dict(base_params)
-        for idx, word in enumerate(query.split()[:_MAX_KEYWORDS]):
-            clauses.append(f"{_HAYSTACK_SQL} ILIKE :kw{idx}")
-            params[f"kw{idx}"] = _like_pattern(word)
-        params["q"] = query
-        params["k"] = k
+        "민수")를 0건 만드는 회귀(2026-06-10)의 보험. 랭킹은 BM25 근사(ts_rank_cd).
+        매칭식은 공유 커널(app.shared.retrieval.keyword_match) 단일 원천 — /search 와 동일."""
+        km = keyword_match(_HAYSTACK_SQL, query)
+        clauses = [*base_clauses, *km.clauses]
+        params = {**base_params, **km.params, "k": k}
         sql = text(
             f"""
             SELECT {_SELECT_COLUMNS}
             FROM mochi_items m
             WHERE {" AND ".join(clauses)}
-            ORDER BY ts_rank_cd(to_tsvector('simple', {_HAYSTACK_SQL}),
-                                plainto_tsquery('simple', :q)) DESC, m.captured_at DESC
+            ORDER BY {km.rank_sql} DESC, m.captured_at DESC
             LIMIT :k
             """
         ).bindparams(*[bindparam(key, value) for key, value in params.items()])
@@ -387,7 +360,7 @@ class SearchItemsTool:
         """voyage 쿼리 임베딩 → pgvector 코사인. 기록은 저장 당시 어휘로 말하므로 질문
         어휘가 달라도 의미로 회수한다."""
         params = dict(base_params)
-        params["qvec"] = _vector_literal(query_vector)
+        params["qvec"] = vector_literal(query_vector)
         params["k"] = k
         sql = text(
             f"""
@@ -436,8 +409,3 @@ class SearchItemsTool:
             log.warning("chat.search_rerank_failed", exception=str(exc))
             return candidates[:limit]
         return [candidates[r.index] for r in ranked if 0 <= r.index < len(candidates)]
-
-
-def _vector_literal(embedding: list[float]) -> str:
-    """pgvector text-form 직렬화 — ``CAST(:qvec AS vector)`` 바인드용 (search 모듈과 동일 경로)."""
-    return "[" + ",".join(map(str, embedding)) + "]"

@@ -355,6 +355,9 @@ public enum RealmMochiItemMapper {
         row.address = place.address
         row.roadAddress = place.roadAddress
         row.mapURLString = place.mapURL?.absoluteString
+        row.rating = place.rating
+        row.ratingCount = place.ratingCount
+        row.imageURLString = place.imageURL?.absoluteString
         return row
     }
 
@@ -366,7 +369,10 @@ public enum RealmMochiItemMapper {
             category: row.category,
             address: row.address,
             roadAddress: row.roadAddress,
-            mapURL: row.mapURLString.flatMap(URL.init(string:))
+            mapURL: row.mapURLString.flatMap(URL.init(string:)),
+            rating: row.rating,
+            ratingCount: row.ratingCount,
+            imageURL: row.imageURLString.flatMap(URL.init(string:))
         )
     }
 

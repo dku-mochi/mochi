@@ -98,6 +98,9 @@ let project = Project(
         .remote(url: "https://github.com/realm/realm-swift.git", requirement: .exact("10.54.6")),
         .remote(url: "https://github.com/onevcat/Kingfisher.git", requirement: .exact("8.1.3")),
         .remote(url: "https://github.com/JiongXing/PhotoBrowser", requirement: .upToNextMajor(from: "4.0.3")),
+        // 네이버 지도 SDK (공식 SPM 미러, binary xcframework) — 기록상세 장소 카드의 지도 프리뷰.
+        // 키는 App Info.plist `NMFNcpKeyId` (NCP 콘솔 Maps > Mobile Dynamic Map, 무료).
+        .remote(url: "https://github.com/navermaps/SPM-NMapsMap.git", requirement: .exact("3.23.3")),
         // Sign In with Google + transitive (AppAuth / GTM*) — packageSettings 에서 framework 화.
         .remote(url: "https://github.com/google/GoogleSignIn-iOS.git", requirement: .exact("8.0.0")),
         .remote(url: "https://github.com/openid/AppAuth-iOS.git", requirement: .upToNextMajor(from: "1.7.5")),
@@ -294,6 +297,9 @@ let project = Project(
                 .package(product: "CasePaths"),
                 .package(product: "IdentifiedCollections"),
                 .package(product: "JXPhotoBrowser"),
+                // 장소 카드의 네이버 지도 프리뷰. binary xcframework 의 .app embed 는 App 타겟의
+                // 직접 link 가 보장한다(아래 App dependencies 참고).
+                .package(product: "NMapsMap"),
                 .package(product: "Perception"),
                 .package(product: "PerceptionCore"),
                 .package(product: "SwiftNavigation"),
@@ -467,6 +473,9 @@ let project = Project(
                 // metadata 가 MochiApp 에서 참조되므로 App 타겟에서 직접 link.
                 .package(product: "RealmSwift"),
                 .package(product: "GoogleSignIn"),
+                // FeatureDetail(dynamic framework)이 import 하는 binary xcframework — 프레임워크는
+                // 중첩 embed 를 못 하므로 App 타겟이 직접 link 해 .app/Frameworks embed 를 보장한다.
+                .package(product: "NMapsMap"),
                 .package(product: "AppAuth"),
                 .package(product: "AppAuthCore"),
                 .package(product: "GTMAppAuth"),

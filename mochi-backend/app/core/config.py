@@ -41,11 +41,12 @@ class Settings(BaseSettings):
     gcs_signed_url_ttl_seconds: int = 900  # 15분
     gemini_model: str = "gemini-3.5-flash"
 
-    # Embedding / Rerank — Voyage AI (lab/active/rag-rerank-eval 2026-06-12 확정).
-    # voyage-3-large@1024 + rerank-2.5: vector 단독 대비 R@1 0.15→0.43, MRR 0.56→0.88.
+    # Embedding / Rerank — Voyage AI. 모델 선정: lab/archive/rag-search
+    # (voyage-4-large@1024 × summary+labels, nDCG@5 0.925). 리랭커: lab/archive/rag-rerank-eval
+    # (2026-06-12, rerank-2.5). voyage-4-large@1024 + rerank-2.5: vector 단독 대비 R@1 0.15→0.43, MRR 0.56→0.88.
     # 키 미설정 시 vector·rerank 경로만 비활성(BM25/키워드 검색으로 degrade) — 서버는 정상 기동.
     voyage_api_key: str | None = None
-    voyage_embedding_model: str = "voyage-3-large"
+    voyage_embedding_model: str = "voyage-4-large"
     voyage_embedding_dim: int = 1024
     voyage_rerank_model: str = "rerank-2.5"
 
@@ -101,6 +102,11 @@ class Settings(BaseSettings):
     # 무키 youtube 검색의 confidence 가 낮을 때(인덱스 지연·봇차단) 폴백: 채널 식별→uploads
     # playlist 직접 조회(인덱스 무관)→search.list. 미설정 시 무키 검색만 동작(폴백·채널주소 비활성).
     youtube_api_key: str | None = None
+
+    # searchPlaceGeo 보강 — Google Places(New) 별점·리뷰수·매장사진 (네이버는 별점 공개 API 가
+    # 없다). 미설정 시 enrichment 만 생략되고 tool 은 좌표·주소 백본만으로 정상 동작한다
+    # (키 발급이 머지를 블록하지 않게 — tavily/youtube 와 같은 원칙).
+    google_places_api_key: str | None = None
 
     # PlatformContext tool — Instagram 공식 oEmbed 는 Meta app token + review 가 필요하다.
     instagram_oembed_access_token: str | None = None

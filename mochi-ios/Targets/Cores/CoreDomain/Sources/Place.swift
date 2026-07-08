@@ -19,6 +19,12 @@ public struct Place: Equatable, Sendable, Hashable, Codable {
     public let roadAddress: String?
     /// 네이버 지도 검색 URL (지역검색이 place id 를 안 줘 직링크 대신 검색 URL). 없을 수 있다.
     public let mapURL: URL?
+    /// 별점 0~5 — Google Places 보강 값(서버가 네이버 후보와 좌표 매칭됐을 때만 내려준다). 없을 수 있다.
+    public let rating: Double?
+    /// 리뷰 수. `rating` 있을 때만 의미. 없을 수 있다.
+    public let ratingCount: Int?
+    /// 매장 사진 URL (googleusercontent — 서버 projection 에서 host 검증 완료). 없을 수 있다.
+    public let imageURL: URL?
 
     /// 업종 경로의 마지막 마디 — 카드에 보여줄 짧은 업종명 ("카페,디저트>카페" → "카페").
     public var categoryLeaf: String? {
@@ -33,6 +39,17 @@ public struct Place: Equatable, Sendable, Hashable, Codable {
         return nil
     }
 
+    /// 카드에 보여줄 별점 문자열 ("4.6") — 소수 1자리 고정. rating 없으면 nil.
+    public var ratingText: String? {
+        rating.map { String(format: "%.1f", $0) }
+    }
+
+    /// 리뷰 수 표기 ("1,234") — 천 단위 구분. ratingCount 없으면 nil.
+    public var ratingCountText: String? {
+        guard let ratingCount else { return nil }
+        return ratingCount.formatted(.number.grouping(.automatic))
+    }
+
     public init(
         name: String,
         lat: Double,
@@ -40,7 +57,10 @@ public struct Place: Equatable, Sendable, Hashable, Codable {
         category: String? = nil,
         address: String? = nil,
         roadAddress: String? = nil,
-        mapURL: URL? = nil
+        mapURL: URL? = nil,
+        rating: Double? = nil,
+        ratingCount: Int? = nil,
+        imageURL: URL? = nil
     ) {
         self.name = name
         self.lat = lat
@@ -49,5 +69,8 @@ public struct Place: Equatable, Sendable, Hashable, Codable {
         self.address = address
         self.roadAddress = roadAddress
         self.mapURL = mapURL
+        self.rating = rating
+        self.ratingCount = ratingCount
+        self.imageURL = imageURL
     }
 }

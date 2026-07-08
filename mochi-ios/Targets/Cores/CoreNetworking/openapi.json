@@ -2905,6 +2905,21 @@
             "title": "Mapurl",
             "type": "string",
             "nullable": true
+          },
+          "rating": {
+            "title": "Rating",
+            "type": "number",
+            "nullable": true
+          },
+          "ratingCount": {
+            "title": "Ratingcount",
+            "type": "integer",
+            "nullable": true
+          },
+          "imageUrl": {
+            "title": "Imageurl",
+            "type": "string",
+            "nullable": true
           }
         },
         "type": "object",
