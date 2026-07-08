@@ -13,6 +13,9 @@ public struct MochiItemAnalysis: Equatable, Sendable, Hashable, Codable {
     /// Agent 가 찾아준 참고 링크 (아이템당 최대 3개, relevance judge 통과분). 상세의 URL 카드가 쓴다.
     /// 서버 entities(kind=reference_url) projection, 없으면 빈 배열.
     public let referenceLinks: [ReferenceLink]
+    /// 기록이 가리킨 장소 (WGS84 좌표 포함) — 상세의 지도 섹션이 쓴다.
+    /// 서버 entities(kind=place) projection, 장소성 없는 기록은 nil.
+    public let place: Place?
     /// 복수 의도 instance (저장된 것은 곧 active). 비어 있을 수 있다(분석 실패/폴백).
     public let instances: [IntentInstance]
     /// 모찌가 분류를 확신 못 해 사용자에게 물을지 — 서버 boolean 직접 미러 (LLM holistic, threshold 아님).
@@ -31,6 +34,7 @@ public struct MochiItemAnalysis: Equatable, Sendable, Hashable, Codable {
         category: String? = nil,
         shoppingProductQuery: String? = nil,
         referenceLinks: [ReferenceLink] = [],
+        place: Place? = nil,
         instances: [IntentInstance],
         needsReview: Bool = false,
         reviewOptions: [ReviewOption] = [],
@@ -45,6 +49,7 @@ public struct MochiItemAnalysis: Equatable, Sendable, Hashable, Codable {
         self.category = category
         self.shoppingProductQuery = shoppingProductQuery
         self.referenceLinks = referenceLinks
+        self.place = place
         self.instances = instances
         self.needsReview = needsReview
         self.reviewOptions = reviewOptions
@@ -91,6 +96,7 @@ public struct MochiItemAnalysis: Equatable, Sendable, Hashable, Codable {
             category: newCategory,
             shoppingProductQuery: shoppingProductQuery,
             referenceLinks: referenceLinks,
+            place: place,
             instances: instances,
             needsReview: needsReview,
             reviewOptions: reviewOptions,
@@ -110,6 +116,7 @@ public struct MochiItemAnalysis: Equatable, Sendable, Hashable, Codable {
             category: category,
             shoppingProductQuery: shoppingProductQuery,
             referenceLinks: referenceLinks,
+            place: place,
             instances: newInstances,
             needsReview: needsReview,
             reviewOptions: reviewOptions,

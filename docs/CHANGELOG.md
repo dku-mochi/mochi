@@ -10,6 +10,11 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-07-08 — backend, ios (기록 상세 장소 지도 섹션)
+- **backend**: `searchPlaceGeo` agent tool 신설 — 캡처가 가리킨 장소를 네이버 지역검색 키워드 검색으로 지오코딩(상호·업종·주소·WGS84 좌표; mapx/mapy=경도/위도×1e7 은 라이브 실측으로 검증, 한국 bounds 밖 좌표는 드리프트로 간주해 폐기). 이미지를 본 메인 에이전트가 후보를 캡처 근거와 대조해 일치 후보의 JSON 만 `entities(kind='place')` 로 복사 — 불일치면 빈손("틀린 핀은 지도 없음보다 나쁘다", 좌표 발명 금지). 기존 `NAVER_CLIENT_ID` 재사용(신규 키 없음). 프롬프트 v29→v30(# Tools 1블록 추가만, 분류 ladder 불변).
+- **backend**: `entities(kind='place')` → `MochiItem.place` 도메인 파싱(reference_url projection 동형, 좌표 없으면 버림) → `MochiItemResponse.place`(⓪ openapi 재생성).
+- **ios**: 기록 상세에 "장소" 섹션 신설(`PlaceMapSection`) — MapKit 지도 프리뷰(모찌 퍼플 핀 annotation, POI 제거) + 장소 이름·업종·주소 + **네이버 지도 길찾기** CTA(`nmap://route/public` 딥링크, 미설치 시 웹 지도 폴백 — `openURL` 완료 핸들러 판정이라 Info.plist 스킴 등록 불요). 지도 탭 → 네이버 지도에서 장소 열기. 계약 폭포: Generated Client/Types 재생성 + `PlaceDTO`/`Place` 도메인 + Realm v14→v15(`RealmPlace`).
+
 ## 2026-07-08 — backend, docs
 - 골든 eval 46→229 케이스 확장(분류 clear 135·boundary 48·날짜 40·표 6) + `eval/stats.py`(Wilson 95% CI) 신설 — 발표자료의 "모수 작음" 공격 차단이 목적. 저작·검증 프로토콜과 판정 로그는 `mochi-backend/eval/REPORT.md`.
 - 분석 프롬프트 v28→v29: 확장 실측에서 특정된 실패 클래스를 기준+why 로 반영(reading-too-low 가드 신설 등, 케이스 키워드 하드코딩 없음). 전체 run 수준 91.3→95.1%(687 run), 경계셋 75.7→88.9%, 회귀 0. 공휴일명 날짜 해석(0/9)은 알려진 한계로 유지.

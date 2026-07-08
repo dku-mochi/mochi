@@ -14,6 +14,7 @@ class ToolName(StrEnum):
     WEB_SEARCH = "webSearch"
     PLATFORM_CONTEXT = "platformContext"
     RESOURCE_FINDER = "findReferenceUrls"
+    SEARCH_PLACE_GEO = "searchPlaceGeo"
     RECOVER_YOUTUBE_URL = "recoverYoutubeUrl"
     EMBED = "embed"
     HYBRID_SEARCH = "hybridSearch"

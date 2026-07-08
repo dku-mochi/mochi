@@ -100,6 +100,42 @@ private enum DetailPreviewData {
         syncState: .uploaded(serverID: UUID(), at: Date())
     )
 
+    /// 장소가 지오코딩된 기록 — "장소" 지도 섹션(핀·길찾기)이 붙는 골격 확인용.
+    static let placeMemo = MochiItem(
+        source: IngestSource(
+            channel: .instagram,
+            text: "용산 몽탄 — 우대갈비 웨이팅 필수라는데 평일 오픈런 노려보기",
+            capturedAt: Date()
+        ),
+        analysis: MochiItemAnalysis(
+            summary: "용산 몽탄에 가보고 싶어 저장한 기록이에요. 우대갈비가 대표 메뉴이고 웨이팅이 길다는 정보가 있어요.",
+            place: Place(
+                name: "몽탄",
+                lat: 37.5360103,
+                lng: 126.97225,
+                category: "한식>육류,고기요리",
+                address: "서울특별시 용산구 한강로1가 251-1",
+                roadAddress: "서울특별시 용산구 백범로99길 50",
+                mapURL: URL(string: "https://map.naver.com/p/search/%EB%AA%BD%ED%83%84")
+            ),
+            instances: [
+                IntentInstance(
+                    intentType: .memo,
+                    payload: IntentPayload(title: "몽탄 우대갈비"),
+                    reasoning: "가보고 싶은 장소 후보로 보여요."
+                )
+            ],
+            entities: [],
+            actionCandidates: [],
+            tags: ["맛집"],
+            importance: .medium,
+            modelVersion: "preview",
+            analyzedAt: Date()
+        ),
+        lifecycleState: .analyzed,
+        syncState: .uploaded(serverID: UUID(), at: Date())
+    )
+
     static let processing = MochiItem(
         source: IngestSource(
             channel: .screenshot,
@@ -132,6 +168,10 @@ private enum DetailPreviewData {
 
 #Preview("메모 · 행동 없음") {
     NavigationStack { DetailView(store: DetailPreviewData.store(DetailPreviewData.memoOnly)) }
+}
+
+#Preview("장소 · 지도 섹션") {
+    NavigationStack { DetailView(store: DetailPreviewData.store(DetailPreviewData.placeMemo)) }
 }
 
 #Preview("분석 중") {

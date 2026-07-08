@@ -23,6 +23,8 @@ public final class RealmMochiItem: Object, Identifiable {
     @Persisted public var shoppingProductQuery: String?
     /// Agent 가 찾아준 참고 링크 — 상세 URL 카드용 (서버 분석 미러, 아이템당 최대 3개).
     @Persisted public var referenceLinks: List<RealmReferenceLink>
+    /// 기록이 가리킨 장소 — 상세 지도 섹션용 (서버 분석 미러, 아이템당 최대 1개). nil = 장소성 없음.
+    @Persisted public var place: RealmPlace?
     @Persisted public var importance: Int = 3
     /// 모찌가 분류를 확신 못 함 — "헷갈려요" 버킷 (서버 boolean 미러).
     @Persisted public var needsReview: Bool = false
@@ -88,6 +90,17 @@ public final class RealmReferenceLink: EmbeddedObject {
     @Persisted public var usefulness: Int?
     @Persisted public var subtitle: String?
     @Persisted public var priceText: String?
+}
+
+public final class RealmPlace: EmbeddedObject {
+    @Persisted public var name: String
+    /// WGS84 위도/경도.
+    @Persisted public var lat: Double
+    @Persisted public var lng: Double
+    @Persisted public var category: String?
+    @Persisted public var address: String?
+    @Persisted public var roadAddress: String?
+    @Persisted public var mapURLString: String?
 }
 
 public final class RealmReviewOption: EmbeddedObject {

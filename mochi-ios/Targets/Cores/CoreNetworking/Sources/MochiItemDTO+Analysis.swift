@@ -28,6 +28,17 @@ public extension MochiItemDTO {
                     )
                 }
             },
+            place: place.map { dto in
+                Place(
+                    name: dto.name,
+                    lat: dto.lat,
+                    lng: dto.lng,
+                    category: dto.category,
+                    address: dto.address,
+                    roadAddress: dto.roadAddress,
+                    mapURL: dto.mapUrl.flatMap(URL.init(string:))
+                )
+            },
             instances: intentInstances.map { i in
                 IntentInstance(
                     id: i.id,
