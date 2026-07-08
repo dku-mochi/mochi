@@ -47,7 +47,7 @@ CHAT_PROFILE_SUMMARY_SYSTEM = (
 
 
 ACTIVE_PROMPT = PromptVersion(
-    name="classify_and_act@v29",
+    name="classify_and_act@v30",
     body=(
         "# Context\n"
         "MOCHI organizes the things a person quickly saves during the day — screenshots, links, "
@@ -362,6 +362,22 @@ ACTIVE_PROMPT = PromptVersion(
         "(it is a small JSON object) — don't pull out just the url or rewrite it. That JSON carries "
         "the provider, label, and match score the app needs to render the link as a rich card; if "
         "you store only a bare URL, the app falls back to a plain link and loses all of that.\n"
+        "- searchPlaceGeo — geocode the place the capture is about (Naver local keyword search → "
+        "name, category, address, coordinates), so the app can show it on a map with directions. A "
+        "saved place the user can't find their way back to defeats the reason it was saved, so "
+        "call this whenever the capture points at one concrete physical place the user could stand "
+        "in front of — a restaurant, cafe, shop, venue, exhibition, clinic — and you can name it. "
+        "This is independent of intent_type, and worth doing even when findReferenceUrls already "
+        "found links: links reopen pages, coordinates put the place on the map. Pass the place "
+        "name as 'queries', adding spacing/branch variants and any region qualifier visible on "
+        "screen ('로우키 성수' style — later variants are fallbacks when the first returns "
+        "nothing). Then compare the candidates' address/category against what the capture shows, "
+        "and copy the matching candidate's place_entity string into entities as "
+        '{"kind":"place","value":<that exact string>} — the whole string verbatim, at most ONE '
+        "per capture (the place the record is about). If no candidate is that place, store no "
+        "place entity: a wrong pin misleads worse than no map. Skip it when the target is "
+        "online-only, a broad area (a city, a neighborhood mood), or nothing place-like is "
+        "nameable.\n"
         "- hybridSearch — search the user's OWN saved records while analyzing, to notice a similar "
         "past capture, connect related records, or check what is already planned/due on a day "
         "(intent_type + occurs_from/occurs_to). This never gates saving — even a duplicate is still "
@@ -395,6 +411,12 @@ ACTIVE_PROMPT = PromptVersion(
     eval_dataset_version="golden@2026-07-08 (229 cases)",
     revised_on=date(2026, 7, 8),
     rationale=(
+        "V29 → V30: searchPlaceGeo(네이버 지역검색 → WGS84 좌표) tool 추가 — 기록 상세 지도 섹션용. "
+        "# Tools 에 1블록: 캡처가 '사용자가 앞에 설 수 있는 구체적 한 장소'를 가리키면 intent_type 무관 호출, "
+        "이미지를 본 메인이 후보 주소·업종을 캡처 근거와 대조해 일치 후보의 place_entity 를 "
+        "entities(kind='place')로 그대로 복사(reference_url 규약 동형, item 당 최대 1개). 불일치면 빈손 — "
+        "'틀린 핀은 지도 없음보다 나쁘다'(좌표 발명 금지, 기준+why · 케이스 키워드 하드코딩 없음). "
+        "분류 ladder·payload·eval_dataset 불변(도구 추가만 — V26 hybridSearch/webSearch 추가와 동형).\n"
         "V28 → V29: 골든셋 46→229 확장 실측에서 특정된 실패 클래스를 기준+why 로 반영 (케이스 키워드 하드코딩 없음). "
         "(1) reading-too-low 가드 신설 — 낮은 시간 해상도(담주·요일만)의 본인 계획은 schedule 유지, 자동 금전 이벤트"
         "(결제일·자동이체·월급)=schedule, 단문 행동구(이체·납부·주문)=todo, 앵커 이벤트(결혼식 가기 전…)는 파생 todo 와 "

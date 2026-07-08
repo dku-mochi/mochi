@@ -77,6 +77,8 @@ public enum RealmMochiItemMapper {
         for link in mochiItem.analysis?.referenceLinks ?? [] {
             row.referenceLinks.append(encode(referenceLink: link))
         }
+
+        row.place = (mochiItem.analysis?.place).map(encode(place:))
         return row
     }
 
@@ -102,6 +104,7 @@ public enum RealmMochiItemMapper {
                 category: row.category,
                 shoppingProductQuery: row.shoppingProductQuery,
                 referenceLinks: row.referenceLinks.compactMap(decode(referenceLink:)),
+                place: row.place.map(decode(place:)),
                 instances: row.intentInstances.compactMap(decode(intentInstance:)),
                 needsReview: row.needsReview,
                 reviewOptions: row.reviewOptions.compactMap(decode(reviewOption:)),
@@ -338,6 +341,32 @@ public enum RealmMochiItemMapper {
             usefulness: row.usefulness,
             subtitle: row.subtitle,
             priceText: row.priceText
+        )
+    }
+
+    // MARK: - Place encoding
+
+    private static func encode(place: Place) -> RealmPlace {
+        let row = RealmPlace()
+        row.name = place.name
+        row.lat = place.lat
+        row.lng = place.lng
+        row.category = place.category
+        row.address = place.address
+        row.roadAddress = place.roadAddress
+        row.mapURLString = place.mapURL?.absoluteString
+        return row
+    }
+
+    private static func decode(place row: RealmPlace) -> Place {
+        Place(
+            name: row.name,
+            lat: row.lat,
+            lng: row.lng,
+            category: row.category,
+            address: row.address,
+            roadAddress: row.roadAddress,
+            mapURL: row.mapURLString.flatMap(URL.init(string:))
         )
     }
 
