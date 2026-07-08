@@ -1,4 +1,4 @@
-"""기존 mochi_items 를 voyage-3-large@1024 로 (재)색인하는 배치.
+"""기존 mochi_items 를 voyage-4-large@1024 로 (재)색인하는 배치.
 
 대상: ``deleted_at IS NULL`` 이고, 임베딩 행이 없거나 ``model_version`` 이 현재 설정과
 다른 아이템. 멱등 — 이미 현재 모델로 색인된 아이템은 건너뛰므로 재실행이 안전하다.

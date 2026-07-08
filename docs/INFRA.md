@@ -160,7 +160,7 @@ gcloud compute scp /tmp/mochi-backend.tar.gz mochi-svc:~/ \
 # 3) svc 셋업: uv 설치 → 코드 /opt/mochi → Secret 으로 .env → uv sync → alembic → systemd
 #    (세부는 §부록 mochi-svc-setup.sh. find /opt/mochi -name '._*' -delete 필수)
 ```
-`.env` 는 Secret Manager 값으로 svc 안에서 생성 (`ENVIRONMENT=production`, `DATABASE_URL=...@10.30.0.2:5432/mochi`, `GOOGLE_CLOUD_PROJECT`, `AUTH_ACCESS_SECRET`, `GCS_CAPTURE_BUCKET`, `GCS_SIGNER_SERVICE_ACCOUNT`, `WORKER_CONCURRENCY=2`, `DB_POOL_SIZE/MAX_OVERFLOW`, `TAVILY_API_KEY`, `VOYAGE_API_KEY`(Secret `mochi-voyage-api-key` — 검색·채팅 임베딩/리랭크, 2026-06-12), `NAVER_CLIENT_ID`/`NAVER_CLIENT_SECRET`(findReferenceUrls tool — Secret `mochi-naver-client-id`/`mochi-naver-client-secret`, 2026-06-15), `YOUTUBE_API_KEY`(Secret `mochi-youtube-api-key` — recoverYoutubeUrl 무키검색 폴백, 2026-06-14)). `chmod 600 .env`.
+`.env` 는 Secret Manager 값으로 svc 안에서 생성 (`ENVIRONMENT=production`, `DATABASE_URL=...@10.30.0.2:5432/mochi`, `GOOGLE_CLOUD_PROJECT`, `AUTH_ACCESS_SECRET`, `GCS_CAPTURE_BUCKET`, `GCS_SIGNER_SERVICE_ACCOUNT`, `WORKER_CONCURRENCY=2`, `DB_POOL_SIZE/MAX_OVERFLOW`, `TAVILY_API_KEY`, `VOYAGE_API_KEY`(Secret `mochi-voyage-api-key` — 검색·채팅 임베딩/리랭크, 2026-06-12), `VOYAGE_EMBEDDING_MODEL=voyage-4-large`(2026-07-09 voyage-3-large→voyage-4-large 정정 시 append. 코드 default 도 `voyage-4-large` 라 .env 가 재생성돼 이 키가 빠져도 안전 — §5.4 의 AUTH_GOOGLE_CLIENT_IDS 와 달리 fragile 하지 않음), `NAVER_CLIENT_ID`/`NAVER_CLIENT_SECRET`(findReferenceUrls tool — Secret `mochi-naver-client-id`/`mochi-naver-client-secret`, 2026-06-15), `YOUTUBE_API_KEY`(Secret `mochi-youtube-api-key` — recoverYoutubeUrl 무키검색 폴백, 2026-06-14)). `chmod 600 .env`.
 
 ### 2.6 Caddy TLS (svc)
 ```bash

@@ -565,7 +565,10 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
             category: p.category,
             address: p.address,
             roadAddress: p.roadAddress,
-            mapUrl: p.mapUrl
+            mapUrl: p.mapUrl,
+            rating: p.rating,
+            ratingCount: p.ratingCount,
+            imageUrl: p.imageUrl
         )
     }
 

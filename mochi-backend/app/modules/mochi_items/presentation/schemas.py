@@ -240,6 +240,10 @@ class PlaceResponse(BaseModel):
     address: str | None = None
     road_address: str | None = Field(default=None, alias="roadAddress")
     map_url: str | None = Field(default=None, alias="mapUrl")
+    # Google Places(New) 보강 — 네이버 후보와 좌표 매칭됐을 때만 실린다.
+    rating: float | None = None
+    rating_count: int | None = Field(default=None, alias="ratingCount")
+    image_url: str | None = Field(default=None, alias="imageUrl")
 
     model_config = {"populate_by_name": True}
 

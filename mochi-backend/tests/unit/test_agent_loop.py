@@ -120,7 +120,7 @@ class _FakeGateway:
 
 
 class _FakeEmbedder:
-    model_version = "voyage-3-large@1024"
+    model_version = "voyage-4-large@1024"
 
     def __init__(self):
         self.calls = []
@@ -131,7 +131,7 @@ class _FakeEmbedder:
 
 
 class _ExplodingEmbedder:
-    model_version = "voyage-3-large@1024"
+    model_version = "voyage-4-large@1024"
 
     async def embed_documents(self, texts):
         raise RuntimeError("voyage down")
@@ -215,7 +215,7 @@ async def test_indexed_node_embeds_summary_and_labels():
     assert embedder.calls == [["할 일 요약 후보"]]
     assert gateway.indexed["chunk_text"] == "할 일 요약 후보"
     assert gateway.indexed["embedding"] == [0.1] * 4
-    assert gateway.indexed["model_version"] == "voyage-3-large@1024"
+    assert gateway.indexed["model_version"] == "voyage-4-large@1024"
 
 
 @pytest.mark.asyncio
@@ -246,7 +246,7 @@ async def test_indexed_timeout_is_best_effort(monkeypatch):
     monkeypatch.setattr(orch_mod, "_INDEX_EMBED_TIMEOUT_SECONDS", 0.01)
 
     class _SlowEmbedder:
-        model_version = "voyage-3-large@1024"
+        model_version = "voyage-4-large@1024"
 
         async def embed_documents(self, texts):
             await asyncio.sleep(0.2)

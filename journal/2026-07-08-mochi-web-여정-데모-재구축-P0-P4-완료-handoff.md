@@ -1,3 +1,13 @@
+---
+level: 3
+mode: handoff
+status: active
+last_verified: 2026-07-08
+confidence: 1.0
+owners: [송준서]
+description: mochi-web 여정 데모 백지 재구축 P0~P4 완료 핸드오프 — P5~P7 남음, feat/web-journey 브랜치.
+---
+
 # mochi-web 여정 데모 전면 재구축 — Handoff (2026-07-08)
 
 ## 0. TL;DR (한 화면)

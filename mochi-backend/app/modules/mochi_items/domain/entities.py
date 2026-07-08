@@ -87,6 +87,10 @@ class PlaceInfo:
     address: str | None = None
     road_address: str | None = None
     map_url: str | None = None  # 네이버 지도 검색 URL (지역검색이 place id 를 안 줘 직링크 불가).
+    # 아래 셋은 Google Places(New) 보강 값 — tool 이 네이버 후보와 좌표 매칭됐을 때만 싣는다.
+    rating: float | None = None  # 별점 0~5.
+    rating_count: int | None = None  # 리뷰 수. rating 있을 때만 의미.
+    image_url: str | None = None  # 매장 사진 URL (googleusercontent 호스트만).
 
 
 # ---------- Lifecycle (처리상태 — item 단위 분석 파이프라인) ----------

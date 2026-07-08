@@ -1,4 +1,4 @@
-"""검색 파이프라인 A/B/C 비교 — voyage-3-large 임베딩 + voyage reranker.
+"""검색 파이프라인 A/B/C 비교 — voyage-4-large 임베딩 + voyage reranker.
 
 파이프라인:
   A  Vector → Top10
@@ -6,7 +6,7 @@
   C  Vector Top60 + BM25 Top60 → RRF Top50 → Reranker → Top10
      (RRF 는 recall 단계 통합용, 최종 순위는 reranker 점수)
 
-임베딩:  voyage-3-large @ 1024,  doc/query input = summary + labels (input_type 구분)
+임베딩:  voyage-4-large @ 1024,  doc/query input = summary + labels (input_type 구분)
 Reranker: rerank-2.5, rerank-2.5-lite 비교
 BM25:    char bi-gram 토크나이저 (한국어 조사 영향 최소화)
 RRF k:   60
@@ -34,7 +34,7 @@ DATA = ROOT / "data"
 ART = ROOT / "artifacts"
 RESULTS = ROOT / "results"
 
-EMB_MODEL = "voyage-3-large"
+EMB_MODEL = "voyage-4-large"
 DIM = 1024
 RERANKERS = ["rerank-2.5", "rerank-2.5-lite"]
 RRF_K = 60
@@ -129,7 +129,7 @@ def embed_docs(vo: voyageai.Client, corpus: list[dict]) -> dict[str, list[float]
         if set(cached) == {it["id"] for it in corpus}:
             print(f"[cache] doc embeddings 재사용 ({len(cached)})")
             return cached
-    print(f"[embed] {len(corpus)} docs … (voyage-3-large@{DIM})")
+    print(f"[embed] {len(corpus)} docs … ({EMB_MODEL}@{DIM})")
     out: dict[str, list[float]] = {}
     ids = [it["id"] for it in corpus]
     texts = [doc_text(it) for it in corpus]

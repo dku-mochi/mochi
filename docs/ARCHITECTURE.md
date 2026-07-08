@@ -88,7 +88,7 @@ description: 시스템 토폴로지·iOS↔Backend 데이터흐름·API 계약�
 │  (materialize+가드+종료연동 / send+APNs, killswitch)                   │
 │                                                                       │
 │  Vertex AI │ gemini-3.1-flash-lite (multimodal function calling)      │
-│  Voyage AI │ voyage-3-large@1024 (embedding) + rerank-2.5 (reranker)  │
+│  Voyage AI │ voyage-4-large@1024 (embedding) + rerank-2.5 (reranker)  │
 └───────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -186,7 +186,7 @@ App  ──► ShareExtension       (NSItemProvider → InboundIngestPayload; �
 - **언어/Runtime**: Python 3.12, FastAPI, uv 패키지 관리
 - **아키텍처**: Modular Monolith + Hexagonal (per-module `domain / application / infrastructure / presentation`)
 - **DB**: Postgres 16 + pgvector (HNSW + cosine), async SQLAlchemy 2 + asyncpg, Alembic
-- **AI**: Vertex AI · `gemini-3.1-flash-lite` (multimodal function calling, streaming) / Voyage AI · `voyage-3-large@1024` (임베딩) + `rerank-2.5` (리랭커)
+- **AI**: Vertex AI · `gemini-3.1-flash-lite` (multimodal function calling, streaming) / Voyage AI · `voyage-4-large@1024` (임베딩) + `rerank-2.5` (리랭커)
 - **관측**: structlog (JSON, contextvars 로 request_id/idempotency_key/path 바인딩)
 - **인증**: 자체 발행 access JWT (HS256, TTL 30분, `AUTH_ACCESS_SECRET`) + 회전 refresh token(30일, reuse 감지 시 family revoke) + **capture-scoped token**(`mct_` opaque, sliding 180일, ingest+presign 한정 — ShareExt 직접 전송용). JWKS(PyJWKClient)는 Apple/Google **ID token 검증에만** 사용. dev mode 는 `Bearer dev:<subject>` (environment=local 한정)
 
@@ -359,9 +359,9 @@ POST /search (Bearer)
 SearchQuery(text, scope, owner_id=user)
   ↓
 HybridSearch.execute
-  ├─ PostgresHybridIndex.bm25  (owner_id + deleted_at IS NULL, ts_rank_cd)
+  ├─ PostgresHybridIndex.bm25  (owner_id + deleted_at IS NULL, 단어별 ILIKE substring + ts_rank_cd 랭킹)
   ├─ PostgresHybridIndex.vector (owner_id + deleted_at IS NULL,
-  │     voyage-3-large 쿼리 임베딩(input_type=query, 1024d) <=> embeddings HNSW)
+  │     voyage-4-large 쿼리 임베딩(input_type=query, 1024d) <=> embeddings HNSW)
   ├─ reciprocal_rank_fusion(k=60)
   ├─ VoyageReranker (rerank-2.5, reranker_enabled)
   └─ AnswerSynthesizer.synthesize → answer + citations
@@ -369,7 +369,7 @@ HybridSearch.execute
 SearchResponse
 ```
 
-**임베딩·리랭크 (2026-06-12, `lab/active/rag-rerank-eval` 확정)**: 모델 `voyage-3-large@1024`,
+**임베딩·리랭크 (2026-06-12, `lab/active/rag-rerank-eval` 확정)**: 모델 `voyage-4-large@1024`,
 문서 임베딩 input = `summary + intent labels`(`app/shared/voyage.build_embedding_text` 단일
 원천 — INDEXED 노드·backfill 공용), doc/query `input_type` 비대칭. reranker `rerank-2.5`
 (vector 단독 대비 R@1 0.15→0.43, MRR 0.56→0.88). 색인은 agent orchestrator 의 **INDEXED
@@ -382,6 +382,14 @@ SearchResponse
 
 채팅 `search_items` 도 같은 인프라를 쓴다: 키워드(ILIKE AND) + 의미(vector) 두 갈래 후보를
 구조화 필터(intent·시간 2축) 공통 적용으로 모은 뒤 rerank-2.5 가 최종 순위 (갈래당 후보 24).
+
+**공유 retrieval 커널 (2026-07-09)**: 키워드 매칭식(단어별 ILIKE substring + `ts_rank_cd` 랭킹)·
+RRF 융합·pgvector 직렬화는 `app/shared/retrieval.py` 가 **단일 원천**이다 — `/search`(A,
+`HybridSearch`+`PostgresHybridIndex`)와 채팅/분석 agent(B, `search_items`)가 문자 그대로 같은
+구현을 쓴다. 이전엔 두 경로가 코드가 갈라져, 한국어 조사 회귀(2026-06-10) 수정이 B 에만
+들어가고 A 의 `bm25` 는 tsvector `@@` 로 남아 같은 버그를 유지했다(커널 단일화로 구조적 재발
+방지). 경로별로 정당하게 다른 것(출력 = RAG 답변 vs 아이템 리스트, 필터 모델, query 수 = 단일
+vs 다중 융합, haystack 컬럼)은 호출부가 주입하며 커널이 강제하지 않는다.
 
 **유사 회수 (similar, 2026-06-13)**: 같은 `embeddings` HNSW 인프라를 **seed-vector** 로 재사용한다 —
 대상 item 의 저장된 벡터로 cosine 이웃 top-k(자기 제외·owner-scoped·임계값 미달 시 빈 배열).
@@ -463,7 +471,7 @@ iOS `CoreNetworking.MochiAPIClient` 의 DTO 가 backend `openapi.json` 의 스�
 - **`GeminiAgentClient(LLMClient)`** (`gemini-3.1-flash-lite`/global) — function-calling 루프. LLM 이 분석가: `finalizeAnalysis`(V7, boolean instances) 로 가변 개수 `intent_instances`(`intent_type`·`payload`(typed)·`label`·`reasoning`) + `needs_review` + `review_options` + summary·entities 를 직접 저술한다. **서버 derive 없음**(점수·대표·위계 폐기 — `_to_analysis_result` 가 DTO→instance 1:1 분해). `platformContext`/`webFetch` 로 URL 그라운딩. `AgentOrchestrator` 가 첫 user turn 에 `# 시간 컨텍스트`(Asia/Seoul 현재시각)를 주입한다. orchestrator 의 `ANALYZED` 노드가 루프를, `PERSISTED` 노드가 `MochiItemGateway.apply_analysis` write-back(intent_instances delete-reinsert + 처리상태 `→analyzed`)을 담당.
 - **개인화**: `user_profiles` 에 유저 특성 요약을 sliding-window 로 적립(`RefreshUserProfile`, 디바운스) → 쓸수록 정확. 두 관점 — `summary`(분류 성향)는 **분석** system prompt 에, `chat_summary`(페르소나)는 **채팅** system prompt 에 배경·톤으로 주입(`conversations` → `agent.application.load_chat_profile`, chat@v11). 도메인 위치: `DOMAIN_DESIGN.md` §3, 최소전송 `PRIVACY_SENSITIVE_CAPTURE.md` §2.1.
 - text+URL+이미지(gs:// 첨부 — Vertex 직접 read) = 실연결. 임베딩 적재(INDEXED)는 design-ahead.
-- **장소 지오코딩 도구(2026-07-08)**: `searchPlaceGeo` — 캡처가 가리킨 구체적 장소(식당·카페·매장 등)를 네이버 지역검색으로 키워드 검색해 상호·업종·주소·**WGS84 좌표**(mapx/mapy = 경도/위도×1e7, 라이브 실측 검증)를 회수한다. 이미지를 본 메인 에이전트가 후보 주소·업종을 캡처 근거와 대조해 일치 후보의 `place_entity` JSON 을 `entities(kind='place')` 로 복사(reference_url 규약 동형, item 당 최대 1개; 불일치면 빈손 — 좌표 발명 금지). repository 가 `MochiItem.place` 로 파싱 → `MochiItemResponse.place`(⓪ openapi) → iOS 상세 "장소" 섹션(MapKit 프리뷰 + 네이버 지도 길찾기 `nmap://` 딥링크, 미설치 시 웹 폴백). 키는 기존 `NAVER_CLIENT_ID/SECRET` 재사용(신규 외부 설정 없음), 키 없으면 tool 미노출.
+- **장소 지오코딩 도구(2026-07-08)**: `searchPlaceGeo` — 캡처가 가리킨 구체적 장소(식당·카페·매장 등)를 네이버 지역검색으로 키워드 검색해 상호·업종·주소·**WGS84 좌표**(mapx/mapy = 경도/위도×1e7, 라이브 실측 검증)를 회수한다. 이미지를 본 메인 에이전트가 후보 주소·업종을 캡처 근거와 대조해 일치 후보의 `place_entity` JSON 을 `entities(kind='place')` 로 복사(reference_url 규약 동형, item 당 최대 1개; 불일치면 빈손 — 좌표 발명 금지). **별점·매장사진 보강(2026-07-09)**: 후보를 Google Places(New) 텍스트검색으로 1:1 매칭(좌표 300m 이내일 때만 같은 가게로 인정 — 남의 별점 방지)해 rating·ratingCount·imageUrl(photoUri, googleusercontent)을 `place_entity` 에 추가 — `GOOGLE_PLACES_API_KEY` 미설정·호출 실패 시 보강만 생략(좌표·주소 백본 불변). repository 가 `MochiItem.place` 로 파싱(보강 필드도 projection 재검증: rating 0~5·imageUrl https+googleusercontent suffix) → `MochiItemResponse.place`(⓪ openapi) → iOS 상세 "장소" 섹션(NCP 키 있으면 **네이버 지도 NMapsMap 프리뷰**·없으면 MapKit 폴백 + 별점 라인 + 매장사진 타일 + 네이버 지도 길찾기 `nmap://` 딥링크, 미설치 시 웹 폴백). 키: 지오코딩은 기존 `NAVER_CLIENT_ID/SECRET` 재사용(없으면 tool 미노출), 보강은 `GOOGLE_PLACES_API_KEY`(선택), iOS 지도는 Info.plist `NMFNcpKeyId`(선택 — 발급 절차 docs/TODO.md §2.5·§3.6).
 - **능동 검색 도구(2026-06-24)**: 분석 중 LLM 이 `hybridSearch`(자기 과거 기록 hybrid 검색 — 채팅 `search_items` 단일 구현을 owner_id 주입 어댑터로 공유)·`webSearch`(외부 사실, Tavily)를 능동 호출한다. `hybridSearch` 는 **저장 게이트가 아니라 분석 보강 신호** — 중복이어도 항상 저장하고(미션), 발견한 연결/중복/일정충돌은 summary·needs_review 에만 반영한다. 이는 분석 *후* 알림용 능동 회수(트랙C `generate_recall_candidates`, 임베딩 ANN→`notification_outbox`)와 **다른 단계**다: 전자는 분석 품질 보강(분석 중, LLM 이 과거를 떠올려 연결), 후자는 알림 발송 판단(분석 done 후 worker). owner_id 는 `ToolContext` 로 orchestrator 가 주입(LLM args 불신 — cross-tenant 방어), `conversations.application` 팩토리 경유 + duck-typing 으로 모듈 경계(§3.3) 준수.
 
 ---

@@ -177,7 +177,7 @@ ACTIVE_CHAT_PROMPT = PromptVersion(
         "기본값으로 먼저 내놓고 빈칸을 답 안에서 드러낸다. 톤 규칙도 '결과물 자체가 버블에 안 담기는 요청'까지 확장 허용. '플랜/추천이면 …' 식 과제 유형 "
         "분류 대신 기준+why 로 일반화(지엽성 회피 — 사용자 피드백 2026-06-13). 트레이드오프: 합성 요청에서 툴콜 1→3~5회 증가(사용자 승인, "
         "콜 예산 8 이 상한). 같은 변경에서 chat thinking_budget 0→512 — 정보 단위 분해·재료 취사선택 판단 보강.\n"
-        "V7 → V8: search_items 가 hybrid retrieval(키워드 ILIKE + voyage-3-large 의미검색 → rerank-2.5)로 "
+        "V7 → V8: search_items 가 hybrid retrieval(키워드 ILIKE + voyage-4-large 의미검색 → rerank-2.5)로 "
         "업그레이드됨(lab/active/rag-rerank-eval 2026-06-12 — reranker 가 R@1 0.15→0.43 의 승부처). V6 의 '어휘 "
         "변주를 여러 콜로 발행' 지시는 어휘 불일치를 LLM 의 추가 툴콜(토큰·지연·라운드 예산)로 보상하던 것 — 이제 의미검색이 동의어·패러프레이즈를 "
         "retrieval 단에서 흡수하므로 해당 불릿을 교체: ⑴ 쿼리는 '기록이 무엇에 관한 것인지'를 자연어로 서술(저장 어휘 추측 불필요) ⑵ 빈 결과 후 "

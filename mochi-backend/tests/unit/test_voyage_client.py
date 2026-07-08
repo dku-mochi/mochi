@@ -20,7 +20,7 @@ DIM = 4
 def _client(handler: Any, **kwargs: Any) -> VoyageClient:
     return VoyageClient(
         "test-key",
-        embedding_model="voyage-3-large",
+        embedding_model="voyage-4-large",
         embedding_dim=DIM,
         rerank_model="rerank-2.5",
         transport=httpx.MockTransport(handler),
@@ -50,7 +50,7 @@ async def test_embed_query_sends_query_input_type_and_dimension() -> None:
     assert vector == [0.1] * DIM
     assert captured[0]["input_type"] == "query"
     assert captured[0]["output_dimension"] == DIM
-    assert captured[0]["model"] == "voyage-3-large"
+    assert captured[0]["model"] == "voyage-4-large"
 
 
 async def test_embed_documents_batches_over_api_limit() -> None:

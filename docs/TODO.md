@@ -77,6 +77,15 @@ description: 외부 설정·비밀값 체크리스트 + 활성 작업·다음 sp
 - [ ] Scopes: `email`, `profile`, `openid` 만
 - [ ] Test users (개발 단계): 팀원 Google 계정 추가
 
+### 2.5 Places API (New) — 장소 별점·매장사진 보강 (2026-07-09)
+- [x] `gcloud services enable places.googleapis.com` (axial-device-460408-i9, 2026-07-09)
+  - 반드시 "(New)" — 구 Places API 와 별개 서비스. `places.googleapis.com/v1` 만 쓴다.
+- [x] API key `mochi-places-api` 생성 — `--api-target=service=places.googleapis.com` 로 Places(New) 전용 제한 (2026-07-09)
+- [x] 발급 키를 backend `.env` `GOOGLE_PLACES_API_KEY` 로 설정 + 라이브 검증(몽탄 ★4.1·1,974 리뷰·photoUri lh3) (2026-07-09)
+- 미설정이어도 동작: searchPlaceGeo 의 별점·사진 보강만 생략, 좌표·주소·지도는 정상.
+- 비용: Text Search Enterprise SKU(rating 포함) + Place Photos — 월 무료 호출 안에서 데모 커버
+  (캡처당 후보 ≤5 × 검색 1회 + 매칭 시 사진 1회). 청구 알림만 걸어두면 안전.
+
 ---
 
 ## 3. iOS — Xcode/Tuist 후속 작업
@@ -133,6 +142,12 @@ ShareExtension/`MochiItemSyncWorker` 가 영구 `captures/<captureID>.png` 로 �
 
 백엔드·iOS 측 모두 2026-05-30 완료. 남은 후속은 민감 캡처 정책(`CorePrivacy`)이 들어온 뒤 업로드 파생본 생성 지점에서 `local_only/text_only/redacted_image/original_allowed` 분기를 거는 일이다.
 
+### 3.6 네이버 지도 SDK — NCP Maps Client ID (`NMFNcpKeyId`, 2026-07-09)
+기록상세 장소 카드의 지도 타일을 실제 네이버 지도로 그린다. 키가 비어 있으면 MapKit 폴백으로 동작하므로 머지를 블록하지 않는다.
+- [x] [네이버 클라우드 플랫폼](https://console.ncloud.com) 가입 + Maps Application 등록(Mobile Dynamic Map, 번들ID `app.mochi`) (2026-07-09)
+- [x] 발급된 **Client ID** 를 `mochi-ios/Targets/App/Support/Info.plist` 의 `NMFNcpKeyId` 값에 입력 (2026-07-09)
+  - GIDClientID 처럼 비밀값 아닌 앱 식별자(번들ID 바인딩) — plist 커밋 OK.
+
 ---
 
 ## 4. Backend — `.env`
@@ -180,6 +195,10 @@ APNS_AUTH_KEY_P8_BASE64=<base64 of AuthKey_CA6C3JCHW3.p8>
 # === 채팅 web_search — Tavily ===
 # 미설정 시 web_search 툴만 채팅 레지스트리에서 제외 — 서버·머지 블록 없음.
 TAVILY_API_KEY=<tavily.com 발급 키>
+
+# === 장소 별점·매장사진 보강 — Google Places (New) (2026-07-09, §2.5) ===
+# 미설정 시 searchPlaceGeo 보강만 생략(좌표·주소·지도 정상) — 서버·머지 블록 없음.
+GOOGLE_PLACES_API_KEY=<GCP 콘솔 Places API (New) 전용 키>
 
 # === 검색·채팅 임베딩/리랭크 — Voyage AI (2026-06-12) ===
 # 미설정 시 vector·rerank 경로만 비활성(BM25/키워드 degrade) — 서버·머지 블록 없음.

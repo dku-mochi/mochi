@@ -2,7 +2,7 @@
 experiment: rag-rerank-eval
 status: done
 started: 2026-06-12
-last_verified: 2026-06-12
+last_verified: 2026-07-09
 ---
 
 # rag-rerank-eval — FINDINGS
@@ -10,11 +10,41 @@ last_verified: 2026-06-12
 검색 파이프라인 A/B/C 성능 비교. 임베딩 설정(모델·차원·input)은 **고정**하고
 reranker / hybrid 추가가 Recall@10 을 실제로 개선하는지 측정.
 
+## 2026-07-09 재실행 — voyage-4-large 정정 (⚠️ 우선 읽기)
+
+**배경.** 본 실험의 "고정 조건" 임베딩 모델이 `voyage-3-large` 로 들어갔으나, 모델 선정
+실험(`lab/archive/rag-search`)의 결론은 `voyage-4-large@1024`(nDCG@5 0.925, 전 후보 1위)였다.
+`voyage-3-large` 는 잘못 들어간 값이라 프로덕션까지 그대로 반영돼 있었다 → `voyage-4-large` 로 정정.
+
+**재실행.** 동일 코퍼스(391)·gold(24)·리랭커로 임베딩만 `voyage-4-large@1024` 로 바꿔 재측정.
+voyage-3-large 비교값은 아래 표에 기록. voyage-3-large 문서 임베딩 캐시(`artifacts/doc_emb_voyage-3-large@1024.json`)가 남아 있어 `run_eval.py` 의 `EMB_MODEL` 만 되돌리면 재현된다.
+
+| 파이프라인 | 지표 | voyage-4-large | voyage-3-large | Δ |
+|---|---|---|---|---|
+| A (Vector) | R@1 | 0.1181 | 0.1528 | -0.035 |
+| A (Vector) | R@3 | 0.5868 | 0.4757 | **+0.111** |
+| A (Vector) | R@5 | 0.7812 | 0.8160 | -0.035 |
+| A (Vector) | MRR | 0.5108 | 0.5604 | -0.050 |
+| **B/rerank-2.5** | R@1 | **0.4271** | **0.4271** | **0.000** |
+| **B/rerank-2.5** | R@3 | **0.8715** | **0.8715** | **0.000** |
+| **B/rerank-2.5** | R@5 | **0.9688** | **0.9688** | **0.000** |
+| **B/rerank-2.5** | MRR | **0.8819** | **0.8819** | **0.000** |
+| C/rerank-2.5 | 전 지표 | (B 와 동일) | (B 와 동일) | 0.000 |
+
+**결론.**
+1. **프로덕션 파이프라인(Vector+rerank-2.5)에서 두 모델은 완전 동일** — 무회귀. 두 모델 모두
+   정답을 vec_top50 후보에 100% 넣고(candidate recall 100%), rerank-2.5 가 동일하게 재정렬해
+   raw 임베딩 순위 차이를 흡수한다. **교체는 안전.**
+2. raw Vector 단독(A)에선 혼재 — voyage-4-large 가 R@3 은 +0.111 우세, R@1/R@5/MRR 은 소폭 열세.
+   이 합성 코퍼스는 @10 천장이라 A 단계 미세차는 최종 품질에 영향 없음(리랭커가 동일화).
+3. voyage-4-large 채택 근거는 이 실험이 아니라 **실데이터 모델 선정(`rag-search`, nDCG@5 0.925)** 이며,
+   본 재실행은 "리랭크 파이프라인에서 회귀가 없다" 는 안전성 확인이다.
+
 ## 고정 조건 (사용자 결정)
 
 | 항목 | 값 |
 |------|-----|
-| 임베딩 모델 | `voyage-3-large` |
+| 임베딩 모델 | `voyage-4-large` (2026-07-09 정정 — 원 실행은 잘못 들어간 `voyage-3-large`, 위 §정정 참조) |
 | 차원 | 1024 |
 | 임베딩 input | `summary + labels` (doc=`RETRIEVAL_DOCUMENT`/`input_type=document`, query=`query`) |
 | Reranker 비교군 | `rerank-2.5`, `rerank-2.5-lite` |
@@ -49,7 +79,7 @@ reranker / hybrid 추가가 Recall@10 을 실제로 개선하는지 측정.
 | **C / rerank-2.5** | **1.0000** | 1.0000 |
 | C / rerank-2.5-lite | 0.9896 | 1.0000 |
 
-→ **Recall@10 은 전 파이프라인이 0.99~1.0 (천장 효과).** voyage-3-large 가 391개 코퍼스에서
+→ **Recall@10 은 전 파이프라인이 0.99~1.0 (천장 효과).** voyage-4-large 가 391개 코퍼스에서
 정답을 거의 다 top10 안에 넣어, @10 만으로는 파이프라인 변별이 안 된다.
 
 ### 더 엄격한 지표 (천장 아래 실차이)
@@ -100,9 +130,12 @@ reranker / hybrid 추가가 Recall@10 을 실제로 개선하는지 측정.
 - 프로덕션 반영 관점: **Vector + `rerank-2.5`** 가 비용 대비 최적. Hybrid 는 현 데이터분포에선 보류,
   키워드성 쿼리 비중이 높아지면 재평가.
 
-## 프로덕션 반영 (2026-06-12)
+## 프로덕션 반영 (2026-06-12, 2026-07-09 모델 정정)
 
-확정값(voyage-3-large@1024 · input=summary+labels · rerank-2.5)이 `mochi-backend` 에 반영됨:
+> **2026-07-09**: 임베딩 모델을 `voyage-3-large` → `voyage-4-large` 로 정정(위 §정정). input·차원·리랭커는 불변.
+> 프로덕션 재색인은 `scripts/backfill_embeddings.py`(model_version `voyage-4-large@1024`)로 백필.
+
+확정값(voyage-4-large@1024 · input=summary+labels · rerank-2.5)이 `mochi-backend` 에 반영됨:
 - `app/shared/voyage.py` (클라이언트 + `build_embedding_text`), 마이그레이션 0018(768→1024)
 - 검색탭 `POST /search`: 기존 BM25+RRF **유지** + rerank-2.5 — 검색탭은 짧은 키워드·고유명사
   질의 분포라 BM25 가 보험(본 실험이 "무해함"을 검증, rescue 는 그 분포에서 재평가).

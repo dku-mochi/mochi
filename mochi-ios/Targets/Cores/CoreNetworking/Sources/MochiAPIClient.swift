@@ -608,6 +608,10 @@ public struct PlaceDTO: Sendable, Hashable, Codable {
     public let address: String?
     public let roadAddress: String?
     public let mapUrl: String?
+    /// Google Places 보강 (별점·리뷰수·매장사진) — 서버가 좌표 매칭됐을 때만 내려준다.
+    public let rating: Double?
+    public let ratingCount: Int?
+    public let imageUrl: String?
 
     public init(
         name: String,
@@ -616,7 +620,10 @@ public struct PlaceDTO: Sendable, Hashable, Codable {
         category: String? = nil,
         address: String? = nil,
         roadAddress: String? = nil,
-        mapUrl: String? = nil
+        mapUrl: String? = nil,
+        rating: Double? = nil,
+        ratingCount: Int? = nil,
+        imageUrl: String? = nil
     ) {
         self.name = name
         self.lat = lat
@@ -625,12 +632,17 @@ public struct PlaceDTO: Sendable, Hashable, Codable {
         self.address = address
         self.roadAddress = roadAddress
         self.mapUrl = mapUrl
+        self.rating = rating
+        self.ratingCount = ratingCount
+        self.imageUrl = imageUrl
     }
 
     private enum CodingKeys: String, CodingKey {
-        case name, lat, lng, category, address
+        case name, lat, lng, category, address, rating
         case roadAddress = "roadAddress"
         case mapUrl = "mapUrl"
+        case ratingCount = "ratingCount"
+        case imageUrl = "imageUrl"
     }
 }
 

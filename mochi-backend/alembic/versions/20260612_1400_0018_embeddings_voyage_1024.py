@@ -1,6 +1,7 @@
-"""embeddings — text-embedding-005(768) → voyage-3-large(1024).
+"""embeddings — text-embedding-005(768) → voyage-4-large(1024).
 
-``lab/active/rag-rerank-eval``(2026-06-12) 확정: voyage-3-large @ 1024 + rerank-2.5.
+임베딩 모델 선정: ``lab/archive/rag-search`` (voyage-4-large@1024). 리랭커: ``lab/archive/rag-rerank-eval``
+(2026-06-12) rerank-2.5. 컬럼은 1024차원 고정이라 모델과 무관 — 이 마이그레이션의 DDL 은 동일하다.
 기존 행은 EmbedTool 이 wire 되기 전의 zero-vector placeholder 뿐이라 TRUNCATE 가
 데이터 손실이 아니다. 재색인은 신규 ingestion(INDEXED 노드) + 기존분
 ``scripts/backfill_embeddings.py`` 가 담당한다.

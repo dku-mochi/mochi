@@ -10,6 +10,27 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-07-09 — backend, ios, docs (장소 카드 별점·매장사진 + 네이버 지도 타일)
+- backend: searchPlaceGeo 후보를 Google Places(New) 텍스트검색으로 1:1 매칭(좌표 300m 이내만 동일 가게 인정 — 남의 별점 방지)해 rating·ratingCount·imageUrl(photoUri) 을 place_entity 에 보강. `GOOGLE_PLACES_API_KEY` 미설정·실패 시 보강만 생략(좌표·주소 백본 불변 — tavily/youtube 와 같은 키-optional 원칙). projection 경계 재검증: rating 0~5·finite, ratingCount ≥0, imageUrl https+`.googleusercontent.com` suffix(붙임 호스트 차단) — 부가정보라 필드만 드롭, place 는 유지.
+- api: PlaceResponse.rating/ratingCount/imageUrl — ⓪ openapi 재생성 + iOS 생성 클라 재생성.
+- ios: 장소 카드 지도 타일을 **네이버 지도**(공식 SPM-NMapsMap 3.23.3, binary xcframework — App 타겟 직접 link 로 embed 보장)로 전환. Info.plist `NMFNcpKeyId` 비면 MapKit 폴백(키 발급이 머지를 블록하지 않게, 절차 TODO §3.6). 매장사진은 지도 좌하단 폴라로이드 타일(핀과 같은 흰 링+layered shadow 언어, DesignSystem `RemotePhotoTile` 신설 — Kingfisher 는 DesignSystem 단일 링크 유지), 별점은 상호 아래 "★ 4.6 (1,234) · 업종" 라인(butter 별). Realm v15→v16.
+- docs: ARCHITECTURE §5.5 / DOMAIN_DESIGN Entity(place) / UX_SPEC §3.8(4. 장소) / TODO §2.5(Google Places 키)·§3.6(NCP Maps 키) 동기화.
+
+## 2026-07-09 — backend, docs (hybrid retrieval 커널 단일화 + /search 한국어 키워드 버그 수정)
+- **배경(코드 드리프트).** hybrid search 가 두 곳에 복붙돼 있었다 — `/search` RAG(`search/HybridSearch`+`PostgresHybridIndex`)와 채팅/분석 agent 툴(`conversations/search_items`). 키워드 매칭식·RRF·pgvector 직렬화가 각자 구현이라, 한국어 조사 회귀(2026-06-10) 수정이 `search_items`(ILIKE substring)에만 들어가고 `/search` 의 `bm25` 는 tsvector `@@` 로 남아 **같은 버그를 유지**(조사 붙은 한국어 "민수와" 검색이 표제어 "민수" 0건)했다. RRF `k` 도 `settings.rrf_k_constant`(A) vs 하드코딩 `_RRF_K`(B) 이원화.
+- **공유 커널.** `app/shared/retrieval.py` 신설 — `keyword_match`(단어별 ILIKE substring + `ts_rank_cd` 랭킹)·`reciprocal_rank_fusion`(제네릭, id 추출·대표선택 주입)·`vector_literal`·`RRF_K`/`MAX_KEYWORDS` 상수를 **단일 원천**으로. `search/rrf.py` 는 Citation 어댑터로 축소, `search_items` 의 `_rrf_fuse`/`_like_pattern`/`_vector_literal`/`_RRF_K`/`_MAX_KEYWORDS` 는 커널 위임으로 제거.
+- **버그 수정(outward-facing).** `/search` 의 `bm25` 를 tsvector `@@` → 단어별 ILIKE substring 으로 전환(랭킹은 `ts_rank_cd` 유지) — 채팅 툴과 동일. 한국어 조사 recall 회복. ORDER 에 `captured_at DESC` 타이브레이크 추가(rank 동률 결정성).
+- **테스트.** 종전 무테스트였던 `/search` `bm25` 키워드 동작을 못 박는 `test_postgres_index_bm25.py`(한국어 substring·owner 가드·공백쿼리 0건) + 공유 커널 `test_retrieval.py` 신설. 전체 522 passed, lint/typecheck green.
+- **경로별 정당한 차이는 유지**(강제 병합 안 함): 출력 계약(RAG 답변 vs 아이템 리스트), 필터 모델(scope vs 구조화 필터), query 수(단일 vs 다중 융합), haystack 컬럼. 상세 `ARCHITECTURE.md` §3.4 "공유 retrieval 커널".
+
+## 2026-07-09 — backend, docs, infra (임베딩 voyage-3-large → voyage-4-large 전면 정정)
+- **배경(정합성 갈라짐 수정).** 모델 선정 실험 `lab/archive/rag-search` 의 결론은 `voyage-4-large@1024`(nDCG@5 0.925, 전 후보 1위)였으나, 후속 `rag-rerank-eval`(2026-06-12)의 "고정 조건"에 `voyage-3-large` 가 **잘못 들어가** 그대로 프로덕션까지 반영돼 있었다. 문서(선정 결론)와 배포(고정값)가 갈라진 상태 → `voyage-4-large` 로 통일.
+- **실험 재실행 검증.** `rag-rerank-eval` 을 임베딩만 `voyage-4-large@1024` 로 바꿔 동일 코퍼스(391)·gold(24)로 재측정. **프로덕션 파이프라인(Vector+rerank-2.5)에서 voyage-3-large 와 완전 동일**(R@1 0.4271 · R@3 0.8715 · MRR 0.8819) — 두 모델 모두 정답을 vec_top50 후보에 100% 넣고 rerank-2.5 가 동일 재정렬해 raw 순위차를 흡수(무회귀). raw Vector 단독(A)에선 voyage-4-large 가 R@3 +0.111 우세. voyage-3-large 문서 임베딩 캐시가 남아 있어 재현 가능, 상세 `lab/archive/rag-rerank-eval/FINDINGS.md`.
+- **코드/설정 교체.** `config.py`(default `voyage_embedding_model=voyage-4-large` + 출처 주석 정정: 모델 선정은 rag-search), `app/shared/voyage.py`(docstring·default). 차원 1024 불변 → **스키마 마이그레이션 없음**(model_version 만 `voyage-4-large@1024` 로 바뀜, backfill 이 재색인).
+- **주석·프롬프트·문서·테스트 동기화.** `orm.py`(출처 rag-rerank-eval→rag-search), `search/presentation/router.py`, `conversations/prompts/chat_prompts.py`, `conversations/.../tools/search_items.py`, 마이그레이션 0018 docstring, `README.md`, `docs/ARCHITECTURE.md`, `docs/DOMAIN_DESIGN.md`, `docs/BUSINESS_MODEL.md`, `tests/unit/test_voyage_client.py`·`test_agent_loop.py`. lint·typecheck·test(512 passed) 통과.
+- **프로덕션 백필(IAP 터널 경유).** `mochi-svc -L 15432:10.30.0.2:5432` 터널로 로컬에서 prod DB 접속 → `scripts/backfill_embeddings.py` 로 live 318건 `voyage-4-large@1024` 재색인 → soft-deleted 항목의 stale `voyage-3-large@1024` 32행 제거(검색 미노출·단일 model_version 정리) → DB 는 `voyage-4-large@1024` 318행 단일. 실질 gap 0(전 live 아이템 커버).
+- **서버 flip.** svc `/opt/mochi/.env` 에 `VOYAGE_EMBEDDING_MODEL=voyage-4-large` append + `systemctl restart mochi`(클린 스타트업, 에러 0, health ok). end-to-end 검증: voyage-4-large 쿼리 임베딩 → prod 코사인 검색 상위 결과가 정확히 관련 항목(경진대회 카톡 0.505 / 어깨운동 유튜브 0.624 / 관심종목 시세 0.55). INFRA.md §2.5 동기화.
+
 ## 2026-07-09 — infra
 - `lab/` gitignore 완화 — 경진대회 제출 레포에는 raw 개인 스크린샷/데이터(`lab/data/`)만 계속 제외. `recall-notification-weight/planner` 결과와 `chat-memory-injection` 결과(개인 성향 프로필 포함, 팀원 확인 후 포함 결정)는 더 이상 ignore 하지 않음 — 실험 근거로 제출에 포함.
 
