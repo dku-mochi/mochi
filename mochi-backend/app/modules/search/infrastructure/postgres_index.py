@@ -1,4 +1,5 @@
 from collections.abc import Awaitable, Callable
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy import bindparam, text
@@ -12,9 +13,13 @@ from app.modules.search.domain.entities import (
     SimilarReasonKind,
 )
 from app.modules.search.domain.ports import RetrievalIndex
+from app.shared.retrieval import keyword_match, vector_literal
 
 # 같은 출처 URL 이 여러 번 저장된 중복을 접고도 limit 을 채우도록 넉넉히 후보를 뽑는다.
 _SIMILAR_CANDIDATE_FANOUT = 4
+
+#: BM25 근사의 키워드 매칭 대상 — 이 엔드포인트가 색인하는 텍스트(summary + text).
+_HAYSTACK = "coalesce(summary,'') || ' ' || coalesce(text,'')"
 
 
 class PostgresHybridIndex(RetrievalIndex):
@@ -39,33 +44,38 @@ class PostgresHybridIndex(RetrievalIndex):
         self._embed = query_embedding_provider
 
     async def bm25(self, query: SearchQuery) -> list[Citation]:
+        # 키워드 매칭은 단어별 substring(ILIKE AND) — 'simple' tsvector 토큰 동일성은 조사 붙은
+        # 한국어("민수와" vs "민수")를 0건 만든다(2026-06-10 회귀). 랭킹만 ts_rank_cd 로 근사.
+        # 매칭식은 채팅 툴(search_items)과 공유 커널(app.shared.retrieval)로 단일화한다.
         if query.owner_id is None:
             return []
+        km = keyword_match(_HAYSTACK, query.text)
+        if not km.clauses:  # 공백 쿼리 — 매칭 없음 (기존 빈 tsquery 와 동일하게 0건)
+            return []
+        clauses = [
+            "owner_id = :owner_id",
+            "deleted_at IS NULL",
+            *km.clauses,
+            "(:scope = 'all' OR EXISTS (SELECT 1 FROM intent_instances ii "
+            "WHERE ii.mochi_item_id = mochi_items.id AND ii.intent_type = :scope))",
+        ]
+        params: dict[str, Any] = {
+            **km.params,
+            "owner_id": query.owner_id,
+            "scope": query.scope.value,
+            "k": query.bm25_k,
+        }
         sql = text(
-            """
+            f"""
             SELECT id,
-                   ts_rank_cd(
-                       to_tsvector('simple', coalesce(summary,'') || ' ' || coalesce(text,'')),
-                       plainto_tsquery('simple', :q)
-                   ) AS score,
+                   {km.rank_sql} AS score,
                    left(coalesce(summary, text, ''), 240) AS snippet
             FROM mochi_items
-            WHERE owner_id = :owner_id
-              AND deleted_at IS NULL
-              AND to_tsvector('simple', coalesce(summary,'') || ' ' || coalesce(text,''))
-                  @@ plainto_tsquery('simple', :q)
-              AND (:scope = 'all'
-                   OR EXISTS (SELECT 1 FROM intent_instances ii
-                              WHERE ii.mochi_item_id = mochi_items.id AND ii.intent_type = :scope))
-            ORDER BY score DESC
+            WHERE {" AND ".join(clauses)}
+            ORDER BY score DESC, captured_at DESC
             LIMIT :k
             """
-        ).bindparams(
-            bindparam("q", query.text),
-            bindparam("owner_id", query.owner_id),
-            bindparam("scope", query.scope.value),
-            bindparam("k", query.bm25_k),
-        )
+        ).bindparams(*[bindparam(key, value) for key, value in params.items()])
         rows = (await self._session.execute(sql)).all()
         return [
             Citation(mochi_item_id=row.id, snippet=row.snippet or "", score=float(row.score)) for row in rows
@@ -184,12 +194,3 @@ class PostgresHybridIndex(RetrievalIndex):
                 SimilarItem(mochi_item_id=row.mochi_item_id, score=float(row.score), reasons=reasons)
             )
         return results
-
-
-def vector_literal(embedding: list[float]) -> str:
-    """pgvector text-form 직렬화 — ``CAST(:param AS vector)`` 에 문자열로 바인드한다.
-
-    asyncpg 의 float 배열 바인드는 pgvector 확장 버전에 따라 array→vector cast 가
-    없을 수 있어, 모든 버전에서 동작하는 canonical 경로(text→vector)를 쓴다.
-    """
-    return "[" + ",".join(map(str, embedding)) + "]"

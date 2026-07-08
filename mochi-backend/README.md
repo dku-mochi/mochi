@@ -24,7 +24,7 @@ description: FastAPI 백엔드 진입점·빌드 가이드·모듈 구조. 백�
 | 비동기 ORM | SQLAlchemy 2 (asyncio, typed `MappedAsDataclass`) + asyncpg |
 | 마이그레이션 | Alembic (autogenerate + compare_type) |
 | DB | Postgres 16 + pgvector (HNSW + cosine) |
-| AI | Vertex AI · `gemini-3.1-flash-lite` (multimodal function calling, streaming) / Voyage AI · `voyage-3-large@1024` (임베딩) + `rerank-2.5` (리랭커) |
+| AI | Vertex AI · `gemini-3.1-flash-lite` (multimodal function calling, streaming) / Voyage AI · `voyage-4-large@1024` (임베딩) + `rerank-2.5` (리랭커) |
 | 로깅 / 관측 | structlog (JSON, bound contextvars: request_id, idempotency_key) |
 
 ## 모듈 구조 — Modular Monolith + Hexagonal
@@ -193,7 +193,7 @@ ingested → normalized → analyzed → routed → persisted → indexed → sy
 ### Hybrid Search RAG
 - `bm25_k=80`, `vector_k=80` 두 후보를 만들어 RRF (`k=60`) 융합
 - recall@50 가 90% 이상 측정될 때만 cross-encoder reranker 활성화 (settings.toggleable)
-- 임베딩 voyage-3-large@1024 (input=summary+labels, doc/query input_type 비대칭), `HNSW (m=16, ef_construction=64) cosine`. `VOYAGE_API_KEY` 미설정 시 vector·rerank 만 비활성(BM25 degrade). 기존 데이터 재색인: `scripts/backfill_embeddings.py`
+- 임베딩 voyage-4-large@1024 (input=summary+labels, doc/query input_type 비대칭), `HNSW (m=16, ef_construction=64) cosine`. `VOYAGE_API_KEY` 미설정 시 vector·rerank 만 비활성(BM25 degrade). 기존 데이터 재색인: `scripts/backfill_embeddings.py`
 
 ### WebFetch SSRF 가드
 - 정책·페치는 `tools/safe_fetch.py` 단일 지점 — `WebFetchTool`·`PlatformContextTool` 공유(fix-drift 방지).

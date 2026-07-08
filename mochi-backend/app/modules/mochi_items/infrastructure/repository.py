@@ -182,6 +182,11 @@ _PLACE_LNG_RANGE = (124.0, 132.0)
 # mapUrl 은 iOS 가 그대로 openURL 하므로 네이버 지도 https 만 통과 — 그 외는 None 으로 떨어뜨려
 # iOS 가 장소명 검색 URL 을 재합성하게 한다(임의 URL open 표면 차단, codex P2).
 _PLACE_MAP_URL_HOSTS = frozenset({"map.naver.com", "place.naver.com"})
+# 별점·매장사진(Google Places 보강 값)도 좌표와 같은 원칙으로 projection 경계에서 재검증한다.
+_PLACE_RATING_RANGE = (0.0, 5.0)
+# imageUrl 은 iOS 가 그대로 이미지 로드하는 URL — Places photoUri 호스트(lh3.googleusercontent.com
+# 류)만 통과. 앞점 포함 suffix 비교라 "evilgoogleusercontent.com" 은 걸러진다.
+_PLACE_IMAGE_URL_HOST_SUFFIX = ".googleusercontent.com"
 
 
 def _place_coord(value: object, bounds: tuple[float, float]) -> float | None:
@@ -203,6 +208,32 @@ def _place_map_url(value: object) -> str | None:
         return None
     host = (parsed.netloc or "").lower()
     return value if parsed.scheme == "https" and host in _PLACE_MAP_URL_HOSTS else None
+
+
+def _place_rating(value: object) -> float | None:
+    if isinstance(value, bool) or not isinstance(value, int | float):
+        return None
+    rating = float(value)
+    if not math.isfinite(rating) or not (_PLACE_RATING_RANGE[0] <= rating <= _PLACE_RATING_RANGE[1]):
+        return None
+    return rating
+
+
+def _place_rating_count(value: object) -> int | None:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        return None
+    return value
+
+
+def _place_image_url(value: object) -> str | None:
+    if not isinstance(value, str) or not value:
+        return None
+    try:
+        parsed = urlparse(value)
+    except ValueError:
+        return None
+    host = (parsed.netloc or "").lower()
+    return value if parsed.scheme == "https" and host.endswith(_PLACE_IMAGE_URL_HOST_SUFFIX) else None
 
 
 def _place(row: MochiItemRow) -> PlaceInfo | None:
@@ -236,6 +267,9 @@ def _place(row: MochiItemRow) -> PlaceInfo | None:
             address=str(raw["address"]) if raw.get("address") else None,
             road_address=str(raw["roadAddress"]) if raw.get("roadAddress") else None,
             map_url=_place_map_url(raw.get("mapUrl")),
+            rating=_place_rating(raw.get("rating")),
+            rating_count=_place_rating_count(raw.get("ratingCount")),
+            image_url=_place_image_url(raw.get("imageUrl")),
         )
     return None
 

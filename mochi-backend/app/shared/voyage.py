@@ -1,8 +1,9 @@
-"""Voyage AI 어댑터 — 임베딩(voyage-3-large) + 리랭크(rerank-2.5).
+"""Voyage AI 어댑터 — 임베딩(voyage-4-large) + 리랭크(rerank-2.5).
 
-모델·차원·입력 구성은 ``lab/active/rag-rerank-eval``(2026-06-12) 확정값:
+모델은 ``lab/archive/rag-search`` 선정(voyage-4-large@1024 × summary+labels, nDCG@5 0.925),
+리랭커·입력 구성은 ``lab/archive/rag-rerank-eval``(2026-06-12) 확정값:
 
-- 임베딩: ``voyage-3-large`` @ 1024, 문서는 ``input_type=document`` / 쿼리는 ``query``
+- 임베딩: ``voyage-4-large`` @ 1024, 문서는 ``input_type=document`` / 쿼리는 ``query``
 - 임베딩 input: summary + intent labels (``build_embedding_text``)
 - 리랭커: ``rerank-2.5`` — vector 단독 대비 R@1 0.15→0.43, MRR 0.56→0.88.
   lite 는 어려운 케이스에서 정답을 놓쳐 비채택.
@@ -82,7 +83,7 @@ class VoyageClient:
         self,
         api_key: str,
         *,
-        embedding_model: str = "voyage-3-large",
+        embedding_model: str = "voyage-4-large",
         embedding_dim: int = 1024,
         rerank_model: str = "rerank-2.5",
         timeout_seconds: float = 10.0,

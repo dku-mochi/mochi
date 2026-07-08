@@ -101,6 +101,10 @@ public final class RealmPlace: EmbeddedObject {
     @Persisted public var address: String?
     @Persisted public var roadAddress: String?
     @Persisted public var mapURLString: String?
+    /// Google Places 보강 (별점 0~5 / 리뷰수 / 매장사진 URL) — 서버 projection 미러. nil = 미보강.
+    @Persisted public var rating: Double?
+    @Persisted public var ratingCount: Int?
+    @Persisted public var imageURLString: String?
 }
 
 public final class RealmReviewOption: EmbeddedObject {

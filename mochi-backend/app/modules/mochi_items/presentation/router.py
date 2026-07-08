@@ -202,6 +202,9 @@ def _to_response(item: MochiItem) -> MochiItemResponse:
                 address=item.place.address,
                 road_address=item.place.road_address,
                 map_url=item.place.map_url,
+                rating=item.place.rating,
+                rating_count=item.place.rating_count,
+                image_url=item.place.image_url,
             )
             if item.place is not None
             else None

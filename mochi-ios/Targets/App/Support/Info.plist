@@ -70,6 +70,11 @@
 			</array>
 		</dict>
 	</array>
+	<!-- 네이버 지도 SDK 인증 키 (NCP 콘솔 > Maps > Application 의 Client ID, 번들ID app.mochi 등록 필수).
+	     비어 있으면 기록상세 장소 카드가 MapKit 프리뷰로 폴백한다(PlaceMapSection.hasNaverMapKey).
+	     GIDClientID 처럼 비밀값이 아닌 앱 식별자 — 번들ID 바인딩으로 보호된다. 절차: docs/TODO.md. -->
+	<key>NMFNcpKeyId</key>
+	<string>tp1cgegjns</string>
 	<!-- iOS 26 Liquid Glass 전역 opt-out — 탭바 등 시스템 UI 를 iOS 18 레거시 디자인으로 고정.
 	     빌드 SDK 가 iOS 26.2 라 UITabBarAppearance 만으로는 탭바 리퀴드가 남아 전역 비활성화.
 	     Apple 이 향후 deprecate 예정인 임시 호환 플래그. -->
