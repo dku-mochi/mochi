@@ -37,6 +37,9 @@ htmlcov/
 # Docker volumes (local)
 docker-data/
 
+# Eval run snapshots (per-run outputs, regenerable via `make eval`)
+eval/snapshots/
+
 # Logs
 *.log
 

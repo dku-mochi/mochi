@@ -1,0 +1,2311 @@
+{
+  "_meta": {
+    "tier": 1,
+    "gate": "②CI — 명확(논쟁 없음, baseline v27 일치). 개별 hard-fail 가능.",
+    "scoring": "deterministic intent_set + count_band",
+    "expansion": "2026-07-08 확장 — 저작: Claude(평가 대상 Gemini 와 독립), 라벨 정책: v28 프롬프트 intent 정의 + 기존 user_decision. 날짜·요일 gold 는 스크립트 산술 검증(scratchpad/expand_golden.py). 카테고리 균형 schedule/todo/knowledge/memo 각 25 + 복합 8 (27→135)."
+  },
+  "cases": [
+    {
+      "id": "tm02",
+      "input": {
+        "text": "3시 치과",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "오후 3시 치과 예약"
+    },
+    {
+      "id": "tm04",
+      "input": {
+        "text": "월욜 9시 발표",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "월요일 오전 9시 발표 일정"
+    },
+    {
+      "id": "tm05",
+      "input": {
+        "text": "주말 본가",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "이번 주말 본가 내려가기"
+    },
+    {
+      "id": "tm06",
+      "input": {
+        "text": "수욜 디자인팀 리뷰",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "수요일 디자인팀 리뷰 미팅"
+    },
+    {
+      "id": "tm07",
+      "input": {
+        "text": "내일 새벽 손흥민",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "내일 새벽 손흥민 경기 보기"
+    },
+    {
+      "id": "tm10",
+      "input": {
+        "text": "오늘 7시 약속",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "오늘 저녁 7시 약속"
+    },
+    {
+      "id": "tm11",
+      "input": {
+        "text": "세제 떨어짐",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "세제 다 떨어져서 사야 함"
+    },
+    {
+      "id": "tm12",
+      "input": {
+        "text": "지원이 답장",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "지원이한테 답장 보내기"
+    },
+    {
+      "id": "tm13",
+      "input": {
+        "text": "택배 반품",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "주문한 택배 반품 신청하기"
+    },
+    {
+      "id": "tm15",
+      "input": {
+        "text": "약 처방 받기",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "병원에서 약 처방 받기"
+    },
+    {
+      "id": "tm16",
+      "input": {
+        "text": "전구 갈기",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "나간 전구 새로 갈기"
+    },
+    {
+      "id": "tm17",
+      "input": {
+        "text": "회비 입금",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "모임 회비 입금하기"
+    },
+    {
+      "id": "tm25",
+      "input": {
+        "text": "ReAct 구조",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "knowledge"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "ReAct 에이전트 추론 구조 개념"
+    },
+    {
+      "id": "tm26",
+      "input": {
+        "text": "환율 계산법",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "knowledge"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "환율 계산하는 방법"
+    },
+    {
+      "id": "tm28",
+      "input": {
+        "text": "연말정산 공제 항목",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "knowledge"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "연말정산에서 공제되는 항목 정리"
+    },
+    {
+      "id": "tm29",
+      "input": {
+        "text": "마늘 보관",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "knowledge"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "마늘 오래 보관하는 법"
+    },
+    {
+      "id": "tm30",
+      "input": {
+        "text": "git rebase 차이",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "knowledge"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "git rebase 와 merge 차이"
+    },
+    {
+      "id": "tm31",
+      "input": {
+        "text": "복리 72법칙",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "knowledge"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "복리 두 배 되는 72법칙"
+    },
+    {
+      "id": "tm32",
+      "input": {
+        "text": "비행기 좌석 명당",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "knowledge"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "비행기에서 좋은 좌석 고르는 기준"
+    },
+    {
+      "id": "tm33",
+      "input": {
+        "text": "노을 이뻤다",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "오늘 노을이 예뻤던 순간"
+    },
+    {
+      "id": "tm34",
+      "input": {
+        "text": "오늘 기분 별로",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "오늘 기분이 별로였던 기록"
+    },
+    {
+      "id": "tm35",
+      "input": {
+        "text": "그 카페 분위기 좋네",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "분위기 좋았던 카페에 대한 인상"
+    },
+    {
+      "id": "tm36",
+      "input": {
+        "text": "요즘 좀 지친다",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "요즘 지쳐 있는 마음 상태"
+    },
+    {
+      "id": "tm37",
+      "input": {
+        "text": "이 노래 계속 듣는 중",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "요즘 빠져서 반복해 듣는 노래"
+    },
+    {
+      "id": "tm38",
+      "input": {
+        "text": "오랜만에 잘 잤다",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "오랜만에 푹 잔 기분 좋은 기록"
+    },
+    {
+      "id": "tm39",
+      "input": {
+        "text": "걍 문득 옛날 생각",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "문득 떠오른 옛날 생각"
+    },
+    {
+      "id": "tm40",
+      "input": {
+        "text": "오늘 점심 존맛",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "오늘 점심이 정말 맛있었던 기록"
+    },
+    {
+      "id": "tm41",
+      "input": {
+        "text": "담주 화요일 팀 회식",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "다음 주 화요일 저녁 팀 회식"
+    },
+    {
+      "id": "tm42",
+      "input": {
+        "text": "토요일 2시 결혼식",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "토요일 오후 2시 결혼식 참석"
+    },
+    {
+      "id": "tm43",
+      "input": {
+        "text": "6/30 건강검진",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "6월 30일 건강검진 예약일"
+    },
+    {
+      "id": "tm44",
+      "input": {
+        "text": "다음주 목요일 치과 검진",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "다음 주 목요일 치과 정기검진"
+    },
+    {
+      "id": "tm45",
+      "input": {
+        "text": "금요일 저녁 동창회",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "금요일 저녁 동창회 모임"
+    },
+    {
+      "id": "tm46",
+      "input": {
+        "text": "7월 3일 콘서트",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "7월 3일 콘서트 관람"
+    },
+    {
+      "id": "tm47",
+      "input": {
+        "text": "내일 아침 9시 스탠드업",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "내일 오전 9시 팀 스탠드업 미팅"
+    },
+    {
+      "id": "tm48",
+      "input": {
+        "text": "모레 오후 2시 부동산 계약",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "모레 오후 2시 부동산 계약 약속"
+    },
+    {
+      "id": "tm49",
+      "input": {
+        "text": "일요일 교회 봉사",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "일요일 교회 봉사활동"
+    },
+    {
+      "id": "tm50",
+      "input": {
+        "text": "수요일 11시 면접",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "수요일 오전 11시 면접"
+    },
+    {
+      "id": "tm51",
+      "input": {
+        "text": "담주 금요일 프로젝트 발표",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "다음 주 금요일 프로젝트 발표"
+    },
+    {
+      "id": "tm52",
+      "input": {
+        "text": "내일 저녁 야구 직관",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "내일 저녁 야구장 직관"
+    },
+    {
+      "id": "tm53",
+      "input": {
+        "text": "7/10 워크숍",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "7월 10일 회사 워크숍"
+    },
+    {
+      "id": "tm54",
+      "input": {
+        "text": "토요일 10시 미용실",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "토요일 오전 10시 미용실 방문"
+    },
+    {
+      "id": "tm55",
+      "input": {
+        "text": "6월 28일 마라톤 대회",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "6월 28일 마라톤 대회 참가"
+    },
+    {
+      "id": "tm56",
+      "input": {
+        "text": "담주 월요일 개강",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "다음 주 월요일 계절학기 개강"
+    },
+    {
+      "id": "tm57",
+      "input": {
+        "text": "금요일 4시 교수님 면담",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "금요일 오후 4시 교수님 면담"
+    },
+    {
+      "id": "tm58",
+      "input": {
+        "text": "내일 점심 지현이랑 파스타",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "내일 점심 지현이와 식사 약속"
+    },
+    {
+      "id": "tm59",
+      "input": {
+        "text": "7/1 첫 출근",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "7월 1일 새 회사 첫 출근일"
+    },
+    {
+      "id": "tm60",
+      "input": {
+        "text": "일욜 8시 뮤지컬",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "일요일 저녁 8시 뮤지컬 관람"
+    },
+    {
+      "id": "tm61",
+      "input": {
+        "text": "26일 종강",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "26일 종강일"
+    },
+    {
+      "id": "tm62",
+      "input": {
+        "text": "담주 수요일 백신 2차",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "다음 주 수요일 백신 2차 접종"
+    },
+    {
+      "id": "tm63",
+      "input": {
+        "text": "6/24 저녁 7시 반상회",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "6월 24일 저녁 7시 아파트 반상회"
+    },
+    {
+      "id": "tm64",
+      "input": {
+        "text": "모레 낮 12시 조카 돌잔치",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "모레 정오 조카 돌잔치"
+    },
+    {
+      "id": "tm65",
+      "input": {
+        "text": "화요일 오전 스터디 발제",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "화요일 오전 스터디 발제 담당"
+    },
+    {
+      "id": "tm66",
+      "input": {
+        "text": "휴지 주문",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "휴지 떨어져서 주문하기"
+    },
+    {
+      "id": "tm67",
+      "input": {
+        "text": "엄마한테 전화",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "엄마한테 전화 드리기"
+    },
+    {
+      "id": "tm68",
+      "input": {
+        "text": "도서관 책 반납",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "빌린 책 도서관에 반납하기"
+    },
+    {
+      "id": "tm69",
+      "input": {
+        "text": "자소서 마무리",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "쓰던 자기소개서 마무리하기"
+    },
+    {
+      "id": "tm70",
+      "input": {
+        "text": "공과금 납부",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "이번 달 공과금 납부하기"
+    },
+    {
+      "id": "tm71",
+      "input": {
+        "text": "여권 갱신 신청",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "만료된 여권 갱신 신청하기"
+    },
+    {
+      "id": "tm72",
+      "input": {
+        "text": "세탁소 옷 찾기",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "세탁소에 맡긴 옷 찾아오기"
+    },
+    {
+      "id": "tm73",
+      "input": {
+        "text": "렌즈 새로 주문",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "콘택트렌즈 재주문하기"
+    },
+    {
+      "id": "tm74",
+      "input": {
+        "text": "민수한테 5만원 보내기",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "민수에게 5만원 송금하기"
+    },
+    {
+      "id": "tm75",
+      "input": {
+        "text": "차 엔진오일 교체",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "차량 엔진오일 교체하기"
+    },
+    {
+      "id": "tm76",
+      "input": {
+        "text": "에어컨 필터 청소",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "에어컨 필터 청소하기"
+    },
+    {
+      "id": "tm77",
+      "input": {
+        "text": "프린터 잉크 사기",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "프린터 잉크 구매하기"
+    },
+    {
+      "id": "tm78",
+      "input": {
+        "text": "보험료 이체",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "보험료 이체하기"
+    },
+    {
+      "id": "tm79",
+      "input": {
+        "text": "강아지 사료 주문",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "강아지 사료 주문하기"
+    },
+    {
+      "id": "tm80",
+      "input": {
+        "text": "회의록 정리해서 공유",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "회의록 정리 후 팀에 공유하기"
+    },
+    {
+      "id": "tm81",
+      "input": {
+        "text": "분리수거 내놓기",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "분리수거 내놓기"
+    },
+    {
+      "id": "tm82",
+      "input": {
+        "text": "은행 가서 통장 재발급",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "은행 방문해 통장 재발급 받기"
+    },
+    {
+      "id": "tm83",
+      "input": {
+        "text": "핸드폰 요금제 변경",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "휴대폰 요금제 변경하기"
+    },
+    {
+      "id": "tm84",
+      "input": {
+        "text": "약국 들러서 밴드 사기",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "약국에서 밴드 사기"
+    },
+    {
+      "id": "tm85",
+      "input": {
+        "text": "노트북 수리 맡기기",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "고장난 노트북 수리 맡기기"
+    },
+    {
+      "id": "tm86",
+      "input": {
+        "text": "화분 물주기",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "화분에 물 주기"
+    },
+    {
+      "id": "tm87",
+      "input": {
+        "text": "이력서 사진 찍기",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "이력서용 증명사진 찍기"
+    },
+    {
+      "id": "tm88",
+      "input": {
+        "text": "택배 편의점에서 찾아오기",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "편의점 택배 찾아오기"
+    },
+    {
+      "id": "tm89",
+      "input": {
+        "text": "정수기 필터 교체 신청",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "정수기 필터 교체 신청하기"
+    },
+    {
+      "id": "tm90",
+      "input": {
+        "text": "교보에서 책 픽업",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "교보문고 바로드림 책 픽업하기"
+    },
+    {
+      "id": "tm91",
+      "input": {
+        "text": "파이썬 async 개념",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "knowledge"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "파이썬 비동기 개념 정리"
+    },
+    {
+      "id": "tm92",
+      "input": {
+        "text": "청년도약계좌 조건",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "knowledge"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "청년도약계좌 가입 조건"
+    },
+    {
+      "id": "tm93",
+      "input": {
+        "text": "전입신고 하는 법",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "knowledge"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "전입신고 절차"
+    },
+    {
+      "id": "tm94",
+      "input": {
+        "text": "OAuth 흐름 정리",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "knowledge"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "OAuth 인증 흐름 정리"
+    },
+    {
+      "id": "tm95",
+      "input": {
+        "text": "김치찌개 황금레시피",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "knowledge"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "김치찌개 레시피"
+    },
+    {
+      "id": "tm96",
+      "input": {
+        "text": "ISA 계좌 장단점",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "knowledge"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "ISA 계좌의 장단점 정리"
+    },
+    {
+      "id": "tm97",
+      "input": {
+        "text": "면접 단골 질문 모음",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "knowledge"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "면접 단골 질문 정리글"
+    },
+    {
+      "id": "tm98",
+      "input": {
+        "text": "자취방 곰팡이 제거법",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "knowledge"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "곰팡이 제거 방법"
+    },
+    {
+      "id": "tm99",
+      "input": {
+        "text": "Docker 볼륨 개념",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "knowledge"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "도커 볼륨 개념"
+    },
+    {
+      "id": "tm100",
+      "input": {
+        "text": "주휴수당 계산법",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "knowledge"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "주휴수당 계산 방법"
+    },
+    {
+      "id": "tm101",
+      "input": {
+        "text": "와인 보관 온도",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "knowledge"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "와인 적정 보관 온도"
+    },
+    {
+      "id": "tm102",
+      "input": {
+        "text": "심폐소생술 순서",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "knowledge"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "CPR 순서 정리"
+    },
+    {
+      "id": "tm103",
+      "input": {
+        "text": "연차수당 지급 기준",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "knowledge"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "연차수당 지급 기준"
+    },
+    {
+      "id": "tm104",
+      "input": {
+        "text": "타입스크립트 제네릭 문법",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "knowledge"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "TS 제네릭 문법 정리"
+    },
+    {
+      "id": "tm105",
+      "input": {
+        "text": "국민연금 수령 나이",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "knowledge"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "국민연금 수령 개시 연령"
+    },
+    {
+      "id": "tm106",
+      "input": {
+        "text": "홈트 루틴 정리글",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "knowledge"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "홈트레이닝 루틴 정리글"
+    },
+    {
+      "id": "tm107",
+      "input": {
+        "text": "카페인 반감기",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "knowledge"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "카페인 반감기 상식"
+    },
+    {
+      "id": "tm108",
+      "input": {
+        "text": "전세보증보험 가입 절차",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "knowledge"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "전세보증보험 가입 절차"
+    },
+    {
+      "id": "tm109",
+      "input": {
+        "text": "SQL 인덱스 원리",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "knowledge"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "SQL 인덱스 동작 원리"
+    },
+    {
+      "id": "tm110",
+      "input": {
+        "text": "다림질 온도 표시 의미",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "knowledge"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "의류 다림질 표시 기호 의미"
+    },
+    {
+      "id": "tm111",
+      "input": {
+        "text": "퇴직금 계산 공식",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "knowledge"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "퇴직금 계산 공식"
+    },
+    {
+      "id": "tm112",
+      "input": {
+        "text": "비염에 좋은 음식",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "knowledge"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "비염 완화에 좋은 음식"
+    },
+    {
+      "id": "tm113",
+      "input": {
+        "text": "영수증 경비처리 기준",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "knowledge"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "경비처리 인정 기준"
+    },
+    {
+      "id": "tm114",
+      "input": {
+        "text": "맥북 단축키 모음",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "knowledge"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "맥 단축키 모음"
+    },
+    {
+      "id": "tm115",
+      "input": {
+        "text": "제로콜라 감미료 차이",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "knowledge"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "제로 음료 감미료 종류 차이"
+    },
+    {
+      "id": "tm116",
+      "input": {
+        "text": "비 오는 소리 좋다",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "비 오는 소리가 좋았던 순간"
+    },
+    {
+      "id": "tm117",
+      "input": {
+        "text": "오늘 발표 잘한 듯",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "오늘 발표 잘한 것 같은 뿌듯함"
+    },
+    {
+      "id": "tm118",
+      "input": {
+        "text": "그 식당 웨이팅 실화냐",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "웨이팅 길던 식당에 대한 인상"
+    },
+    {
+      "id": "tm119",
+      "input": {
+        "text": "머리 자를까 말까",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "머리 자를지 고민 중 (미결정)"
+    },
+    {
+      "id": "tm120",
+      "input": {
+        "text": "요즘 커피를 너무 마심",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "커피 과다 섭취 자각 기록"
+    },
+    {
+      "id": "tm121",
+      "input": {
+        "text": "지하철에서 본 강아지 귀여웠다",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "지하철에서 본 강아지 기록"
+    },
+    {
+      "id": "tm122",
+      "input": {
+        "text": "이 향수 냄새 뭐지 좋다",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "좋았던 향수에 대한 인상"
+    },
+    {
+      "id": "tm123",
+      "input": {
+        "text": "부산 갈 때 그 숙소 괜찮았는데",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "부산 숙소에 대한 기억 (후보)"
+    },
+    {
+      "id": "tm124",
+      "input": {
+        "text": "팀장님 오늘 기분 좋아 보임",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "팀장님 기분 관찰 기록"
+    },
+    {
+      "id": "tm125",
+      "input": {
+        "text": "새로 나온 아이스크림 궁금",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "신상 아이스크림 궁금증 (후보)"
+    },
+    {
+      "id": "tm126",
+      "input": {
+        "text": "옆집 인테리어 감성 좋다",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "이웃집 인테리어에 대한 인상"
+    },
+    {
+      "id": "tm127",
+      "input": {
+        "text": "오늘 러닝 5km 완주",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "오늘 5km 러닝 완주 기록"
+    },
+    {
+      "id": "tm128",
+      "input": {
+        "text": "면접 때 말 너무 빨랐다",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "면접 복기 — 말이 빨랐음"
+    },
+    {
+      "id": "tm129",
+      "input": {
+        "text": "이 브랜드 자켓 느낌 있네",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "눈에 들어온 자켓 (구매 미결정)"
+    },
+    {
+      "id": "tm130",
+      "input": {
+        "text": "성수동 그 카페 다시 가고 싶다",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "성수동 카페 재방문 희망 (막연)"
+    },
+    {
+      "id": "tm131",
+      "input": {
+        "text": "왠지 가을 냄새 남",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "가을 느낌이 난 순간"
+    },
+    {
+      "id": "tm132",
+      "input": {
+        "text": "드라마 마지막화 여운 미쳤다",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "드라마 결말 여운 기록"
+    },
+    {
+      "id": "tm133",
+      "input": {
+        "text": "체중 68.2",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "체중 기록"
+    },
+    {
+      "id": "tm134",
+      "input": {
+        "text": "오늘따라 코드가 잘 풀림",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "코딩이 잘 풀린 날 기록"
+    },
+    {
+      "id": "tm135",
+      "input": {
+        "text": "엄마가 해준 김치찌개 최고",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "엄마 김치찌개에 대한 기록"
+    },
+    {
+      "id": "tm136",
+      "input": {
+        "text": "밤산책 루틴 좋다",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "밤산책이 좋다는 소감"
+    },
+    {
+      "id": "tm137",
+      "input": {
+        "text": "앞집 고양이 이름 궁금함",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "앞집 고양이에 대한 궁금증"
+    },
+    {
+      "id": "tm138",
+      "input": {
+        "text": "오늘 하늘 진짜 파랬다",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "파란 하늘 감상 기록"
+    },
+    {
+      "id": "tm139",
+      "input": {
+        "text": "회의 너무 길었다 진 빠짐",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "긴 회의에 지친 상태 기록"
+    },
+    {
+      "id": "tm140",
+      "input": {
+        "text": "새 키보드 타건감 미쳤다",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "memo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 1
+        }
+      },
+      "note": "새 키보드 타건감 감상"
+    },
+    {
+      "id": "tm141",
+      "input": {
+        "text": "내일 3시 회의, 끝나고 우유 사기",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule",
+          "todo"
+        ],
+        "count_band": {
+          "min": 2,
+          "max": 2
+        }
+      },
+      "note": "회의(schedule) + 우유 구매(todo) 분해"
+    },
+    {
+      "id": "tm142",
+      "input": {
+        "text": "토요일 결혼식 가기 전에 정장 세탁 맡기기",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule",
+          "todo"
+        ],
+        "count_band": {
+          "min": 2,
+          "max": 2
+        }
+      },
+      "note": "결혼식 참석(schedule) + 정장 세탁(todo)"
+    },
+    {
+      "id": "tm143",
+      "input": {
+        "text": "6/27 캠핑. 버너랑 랜턴 주문하기",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule",
+          "todo"
+        ],
+        "count_band": {
+          "min": 2,
+          "max": 3
+        }
+      },
+      "note": "캠핑(schedule) + 버너·랜턴 주문(todo, 1~2개 분해 허용)"
+    },
+    {
+      "id": "tm144",
+      "input": {
+        "text": "월요일 9시 치과, 수요일 저녁 동호회",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule"
+        ],
+        "count_band": {
+          "min": 2,
+          "max": 2
+        }
+      },
+      "note": "서로 다른 두 일정 분해"
+    },
+    {
+      "id": "tm145",
+      "input": {
+        "text": "휴지랑 물티슈 주문",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "todo"
+        ],
+        "count_band": {
+          "min": 1,
+          "max": 2
+        }
+      },
+      "note": "한 번의 주문 행위 — 1개 또는 품목별 2개 허용"
+    },
+    {
+      "id": "tm146",
+      "input": {
+        "text": "내일 오전 반차, 은행 가서 적금 해지",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule",
+          "todo"
+        ],
+        "count_band": {
+          "min": 2,
+          "max": 2
+        }
+      },
+      "note": "반차(schedule) + 적금 해지(todo)"
+    },
+    {
+      "id": "tm147",
+      "input": {
+        "text": "다음주 목요일 이사. 주말에 짐 싸기 시작",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule",
+          "todo"
+        ],
+        "count_band": {
+          "min": 2,
+          "max": 2
+        }
+      },
+      "note": "이사일(schedule) + 짐 싸기(todo)"
+    },
+    {
+      "id": "tm148",
+      "input": {
+        "text": "26일 시사회 당첨! 같이 갈 사람 물어보기",
+        "pinned_now": "2026-06-19T15:38:00+09:00"
+      },
+      "expected": {
+        "intent_set": [
+          "schedule",
+          "todo"
+        ],
+        "count_band": {
+          "min": 2,
+          "max": 2
+        }
+      },
+      "note": "시사회(schedule) + 동행 섭외(todo)"
+    }
+  ]
+}

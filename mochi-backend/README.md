@@ -127,7 +127,10 @@ make test
 make lint
 make format
 make typecheck
+make eval       # 분석 에이전트 golden eval (live Gemini, RUN_EVAL 가드). 결정적 채점기 단위테스트는 make test(tests/eval) 에 이미 포함
 ```
+
+> **eval 안전망** (`eval/`): `scorer.py`(결정적 8축 채점) + `run_golden.py`(production drift-0 러너) + `golden/`(케이스) + `tests/eval/`(hermetic ② 게이트). `make eval CASES=eval/golden/<name>.json RUNS=3` 로 live 측정. golden 정본 버전은 `system_prompts.ACTIVE_PROMPT.eval_dataset_version`.
 
 ### Vertex AI 인증
 ```bash
