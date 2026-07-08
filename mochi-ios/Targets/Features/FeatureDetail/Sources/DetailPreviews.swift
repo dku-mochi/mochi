@@ -116,7 +116,10 @@ private enum DetailPreviewData {
                 category: "한식>육류,고기요리",
                 address: "서울특별시 용산구 한강로1가 251-1",
                 roadAddress: "서울특별시 용산구 백범로99길 50",
-                mapURL: URL(string: "https://map.naver.com/p/search/%EB%AA%BD%ED%83%84")
+                mapURL: URL(string: "https://map.naver.com/p/search/%EB%AA%BD%ED%83%84"),
+                rating: 4.6,
+                ratingCount: 1234,
+                imageURL: URL(string: "https://lh3.googleusercontent.com/place-photos/preview")
             ),
             instances: [
                 IntentInstance(

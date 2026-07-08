@@ -110,6 +110,57 @@ def test_row_to_entity_place_optional_meta_defaults_none() -> None:
     assert place.road_address is None and place.map_url is None
 
 
+def test_row_to_entity_place_rating_and_image() -> None:
+    row = _row(
+        entities=[
+            (
+                "place",
+                _place_json(
+                    rating=4.6,
+                    ratingCount=1234,
+                    imageUrl="https://lh3.googleusercontent.com/place-photos/abc",
+                ),
+            )
+        ]
+    )
+
+    place = _row_to_entity(row).place
+
+    assert place is not None
+    assert place.rating == 4.6 and place.rating_count == 1234
+    assert place.image_url == "https://lh3.googleusercontent.com/place-photos/abc"
+
+
+def test_row_to_entity_place_revalidates_rating_and_image() -> None:
+    """보강 필드도 LLM 복사 경로 — 범위 밖 rating·음수 리뷰수·비 googleusercontent 이미지는
+    해당 필드만 None 으로 떨어뜨리고 place 는 살린다(좌표와 달리 부가정보라 카드가 지도·주소만 그린다).
+    imageUrl 은 앞점 포함 suffix 비교 — evil'googleusercontent.com' 붙임 호스트도 걸러진다."""
+    row = _row(
+        entities=[
+            (
+                "place",
+                _place_json(rating=6.0, ratingCount=-3, imageUrl="https://evilgoogleusercontent.com/x.jpg"),
+            )
+        ]
+    )
+
+    place = _row_to_entity(row).place
+
+    assert place is not None
+    assert place.rating is None and place.rating_count is None and place.image_url is None
+
+
+def test_row_to_entity_place_rating_rejects_bool_string_and_http_image() -> None:
+    bool_rating = _row(entities=[("place", _place_json(rating=True))])
+    str_rating = _row(entities=[("place", _place_json(rating="4.5"))])
+    http_image = _row(entities=[("place", _place_json(imageUrl="http://lh3.googleusercontent.com/x"))])
+
+    assert _row_to_entity(bool_rating).place is not None
+    assert _row_to_entity(bool_rating).place.rating is None
+    assert _row_to_entity(str_rating).place.rating is None
+    assert _row_to_entity(http_image).place.image_url is None
+
+
 def test_to_response_exposes_place_with_camel_aliases() -> None:
     item = MochiItem(
         id=uuid4(),
@@ -131,6 +182,27 @@ def test_to_response_exposes_place_with_camel_aliases() -> None:
     assert dumped["place"]["lat"] == 37.5360103
     assert dumped["place"]["roadAddress"] == "서울특별시 용산구 백범로99길 50"
     assert dumped["place"]["mapUrl"].startswith("https://map.naver.com/")
+
+
+def test_to_response_exposes_rating_with_camel_aliases() -> None:
+    item = MochiItem(
+        id=uuid4(),
+        source=IngestSource(channel=IngestChannel.SCREENSHOT, captured_at=datetime.now(UTC)),
+        place=PlaceInfo(
+            name="몽탄",
+            lat=37.5360103,
+            lng=126.97225,
+            rating=4.6,
+            rating_count=1234,
+            image_url="https://lh3.googleusercontent.com/place-photos/abc",
+        ),
+    )
+
+    dumped = _to_response(item).model_dump(by_alias=True)
+
+    assert dumped["place"]["rating"] == 4.6
+    assert dumped["place"]["ratingCount"] == 1234
+    assert dumped["place"]["imageUrl"] == "https://lh3.googleusercontent.com/place-photos/abc"
 
 
 def test_to_response_place_none_when_absent() -> None:

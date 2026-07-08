@@ -22,7 +22,7 @@ router = APIRouter(prefix="/search", tags=["search"])
 # (mochi_items 라우터가 search.infrastructure 를 import 하면 모듈 경계 위반이라 여기 둔다).
 similar_router = APIRouter(prefix="/mochi_items", tags=["search"])
 
-# voyage-3-large cosine 유사도 보수적 임계 — lab 벤치(rag-rerank-eval)로 튜닝 (DOMAIN_DESIGN §10.5).
+# voyage-4-large cosine 유사도 보수적 임계 — lab 벤치(rag-rerank-eval)로 튜닝 (DOMAIN_DESIGN §10.5).
 # 0.6→0.7 상향: 0.6 은 의미상 약하게 가까운 항목까지 통과시켜 "관련 없는 기록"이 섞였다(사용자 리포트).
 _SIMILAR_MIN_SCORE = 0.7
 

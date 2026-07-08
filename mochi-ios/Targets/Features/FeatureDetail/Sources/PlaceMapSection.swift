@@ -8,13 +8,34 @@ import DesignSystem
 /// "저장한 가게를 다시 찾아가는 길"이 이 섹션의 존재 이유라, 지도는 조작 대상이 아니라 **프리뷰**다
 /// (스크롤 제스처 충돌도 없앤다): 지도를 탭하면 네이버 지도에서 그 장소를 열고, 길찾기 버튼은
 /// 네이버 지도 앱의 대중교통 길찾기로 바로 딥링크한다(미설치면 웹 지도로 폴백).
+/// 지도 타일은 NCP 키가 있으면 실제 네이버 지도(NMapsMap), 없으면 MapKit 폴백 — 탭의 목적지가
+/// 네이버 지도라 프리뷰도 같은 지도 언어를 쓴다. Google Places 보강 값이 있으면 매장 사진은
+/// 지도 위 폴라로이드 타일(핀과 같은 흰 링 + layered shadow 언어)로, 별점은 상호 아래 한 줄로 앉는다.
 /// 카드 문법은 회수 헤더와 동일 — 미디어(지도)가 카드 상단을 edge-to-edge 로 채우고 본문이 받친다.
 struct PlaceMapSection: View {
     let place: Place
     @Environment(\.openURL) private var openURL
 
+    /// NCP 키(App Info.plist `NMFNcpKeyId`) 존재 여부 — 비어 있으면(공백 포함) MapKit 폴백.
+    /// 키 발급 후 plist 값만 채우면 코드는 불변 (발급 절차: docs/TODO.md).
+    private static let hasNaverMapKey: Bool = {
+        let key = (Bundle.main.object(forInfoDictionaryKey: "NMFNcpKeyId") as? String) ?? ""
+        return !key.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }()
+
     private var coordinate: CLLocationCoordinate2D {
         CLLocationCoordinate2D(latitude: place.lat, longitude: place.lng)
+    }
+
+    /// 매장 사진 표시단 안전망 — 서버 projection(https + googleusercontent)이 정본 가드지만,
+    /// 로컬 DB 재주입·미래 경로를 대비해 표시 직전 한 번 더 거른다(URLCanonical 표시단 안전망 선례).
+    private var trustedImageURL: URL? {
+        guard let url = place.imageURL,
+              url.scheme == "https",
+              let host = url.host?.lowercased(),
+              host.hasSuffix(".googleusercontent.com")
+        else { return nil }
+        return url
     }
 
     var body: some View {
@@ -47,23 +68,42 @@ struct PlaceMapSection: View {
     // MARK: - 지도 프리뷰 (탭 → 네이버 지도)
 
     private var mapPreview: some View {
-        Map(initialPosition: .region(region), interactionModes: []) {
-            Annotation(place.name, coordinate: coordinate) {
-                pin
+        mapTiles
+            .frame(height: 168)
+            .overlay(alignment: .bottomLeading) {
+                if let imageURL = trustedImageURL {
+                    photoTile(url: imageURL)
+                        .padding(HomeDesign.Spacing.sm)
+                        .allowsHitTesting(false)  // 타일도 어포던스 — 탭은 지도 전체가 받는다
+                }
             }
+            .overlay(alignment: .bottomTrailing) {
+                naverChip
+                    .padding(HomeDesign.Spacing.sm)
+                    .allowsHitTesting(false)  // 칩은 어포던스 표시 — 탭은 지도 전체가 받는다
+            }
+            .contentShape(Rectangle())
+            .onTapGesture { openNaverMap() }
+            // onTapGesture 는 VoiceOver 가 버튼으로 못 읽으므로 트레잇·라벨을 직접 부여한다(회수 헤더 이미지와 동일).
+            .accessibilityAddTraits(.isButton)
+            .accessibilityLabel("네이버 지도에서 \(place.name) 보기")
+    }
+
+    /// 네이버 지도 우선, NCP 키 부재 시 MapKit — 두 경로 모두 조작 없는 프리뷰.
+    /// NMapsMap 은 터치를 통째로 껐고 카메라 target == 뷰 중심이라 핀을 center 오버레이로 앉힌다.
+    @ViewBuilder
+    private var mapTiles: some View {
+        if Self.hasNaverMapKey {
+            NaverMapPreview(lat: place.lat, lng: place.lng)
+                .overlay { pin }
+        } else {
+            Map(initialPosition: .region(region), interactionModes: []) {
+                Annotation(place.name, coordinate: coordinate) {
+                    pin
+                }
+            }
+            .mapStyle(.standard(pointsOfInterest: .excludingAll))  // 주변 POI 를 지워 핀이 주인공
         }
-        .mapStyle(.standard(pointsOfInterest: .excludingAll))  // 주변 POI 를 지워 핀이 주인공
-        .frame(height: 168)
-        .overlay(alignment: .bottomTrailing) {
-            naverChip
-                .padding(HomeDesign.Spacing.sm)
-                .allowsHitTesting(false)  // 칩은 어포던스 표시 — 탭은 지도 전체가 받는다
-        }
-        .contentShape(Rectangle())
-        .onTapGesture { openNaverMap() }
-        // onTapGesture 는 VoiceOver 가 버튼으로 못 읽으므로 트레잇·라벨을 직접 부여한다(회수 헤더 이미지와 동일).
-        .accessibilityAddTraits(.isButton)
-        .accessibilityLabel("네이버 지도에서 \(place.name) 보기")
     }
 
     /// 400m 남짓 반경 — 골목 이름까지 읽히는 배율로 "어디쯤인지"가 한눈에 잡힌다.
@@ -86,6 +126,18 @@ struct PlaceMapSection: View {
         .overlay(Circle().stroke(.white, lineWidth: 2.5))
         .shadow(color: HomeDesign.Color.ink900.opacity(0.18), radius: 4, x: 0, y: 2)
         .shadow(color: HomeDesign.Color.ink900.opacity(0.10), radius: 10, x: 0, y: 5)
+    }
+
+    /// 매장 사진 — 지도 위 폴라로이드 타일. "이 가게(사진)가 여기(지도)"를 한 프레임에 잇는다.
+    /// 핀과 같은 시각 언어(흰 링 + layered shadow)로 띄워 지도 타일과 분리한다.
+    private func photoTile(url: URL) -> some View {
+        RemotePhotoTile(url: url, size: 58, cornerRadius: 16)
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(.white, lineWidth: 2.5)
+            )
+            .shadow(color: HomeDesign.Color.ink900.opacity(0.18), radius: 4, x: 0, y: 2)
+            .shadow(color: HomeDesign.Color.ink900.opacity(0.10), radius: 10, x: 0, y: 5)
     }
 
     /// "탭하면 네이버 지도" 어포던스 칩 — 지도 위라 Material 로 얹는다(사진 위 '캡처' 배지 컨벤션).
@@ -112,11 +164,14 @@ struct PlaceMapSection: View {
                     .font(.system(size: 15, weight: .bold, design: .rounded))
                     .foregroundStyle(HomeDesign.Color.textPrimary)
                     .lineLimit(1)
-                if let subtitle {
-                    Text(subtitle)
-                        .font(.system(size: 11.5, weight: .medium))
-                        .foregroundStyle(HomeDesign.Color.textMuted)
-                        .lineLimit(1)
+                if let ratingText = place.ratingText {
+                    ratingLine(ratingText)
+                } else if let subtitle {
+                    mutedLine(subtitle)
+                }
+                // 별점이 부제 자리를 차지하면 주소는 셋째 줄로 내려온다.
+                if place.rating != nil, let address = place.displayAddress {
+                    mutedLine(address)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -124,6 +179,45 @@ struct PlaceMapSection: View {
             directionsButton
         }
         .padding(HomeDesign.Spacing.md)
+    }
+
+    /// "★ 4.6 (1,234) · 카페" — 별점은 다시 갈지 판단의 첫 단서라 상호 바로 아래 한 줄.
+    private func ratingLine(_ value: String) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: "star.fill")
+                .font(.system(size: 10.5, weight: .heavy))
+                .foregroundStyle(HomeDesign.Color.butter400)
+            Text(value)
+                .font(.system(size: 12.5, weight: .heavy, design: .rounded))
+                .foregroundStyle(HomeDesign.Color.textPrimary)
+            if let count = place.ratingCountText {
+                Text("(\(count))")
+                    .font(.system(size: 11.5, weight: .medium))
+                    .foregroundStyle(HomeDesign.Color.textMuted)
+            }
+            if let leaf = place.categoryLeaf {
+                Text("· \(leaf)")
+                    .font(.system(size: 11.5, weight: .medium))
+                    .foregroundStyle(HomeDesign.Color.textMuted)
+                    .lineLimit(1)
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(ratingAccessibilityLabel(value))
+    }
+
+    private func ratingAccessibilityLabel(_ value: String) -> String {
+        var label = "별점 \(value)점"
+        if let count = place.ratingCountText { label += ", 리뷰 \(count)개" }
+        if let leaf = place.categoryLeaf { label += ", \(leaf)" }
+        return label
+    }
+
+    private func mutedLine(_ text: String) -> some View {
+        Text(text)
+            .font(.system(size: 11.5, weight: .medium))
+            .foregroundStyle(HomeDesign.Color.textMuted)
+            .lineLimit(1)
     }
 
     /// "업종 · 주소" 한 줄 — 관련 링크 카드의 local subtitle("업종 · 지역")과 같은 독법.
@@ -195,7 +289,28 @@ struct PlaceMapSection: View {
     }
 }
 
-#Preview {
+#Preview("별점·매장사진 보강") {
+    ScrollView {
+        PlaceMapSection(
+            place: Place(
+                name: "몽탄",
+                lat: 37.5360103,
+                lng: 126.97225,
+                category: "한식>육류,고기요리",
+                address: "서울특별시 용산구 한강로1가 251-1",
+                roadAddress: "서울특별시 용산구 백범로99길 50",
+                mapURL: URL(string: "https://map.naver.com/p/search/%EB%AA%BD%ED%83%84"),
+                rating: 4.6,
+                ratingCount: 1234,
+                imageURL: URL(string: "https://lh3.googleusercontent.com/place-photos/preview")
+            )
+        )
+        .padding(HomeDesign.Spacing.lg)
+    }
+    .background(HomeDesign.Color.bg)
+}
+
+#Preview("보강 없음 (좌표·주소만)") {
     ScrollView {
         PlaceMapSection(
             place: Place(

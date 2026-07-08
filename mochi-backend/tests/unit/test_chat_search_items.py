@@ -20,7 +20,6 @@ from app.modules.conversations.infrastructure.tools.search_items import (
     _PARAMETERS,
     RERANK_CANDIDATES,
     SearchItemsTool,
-    _like_pattern,
     _parse_date_only,
 )
 from app.shared.voyage import RerankedDocument, VoyageError
@@ -177,12 +176,6 @@ async def test_keyword_matches_by_substring_not_token_equality() -> None:
     assert params["kw0"] == "%민수%" and params["kw1"] == "%홍대%"
     # 랭킹은 유지 + rank 0(조사 매칭) 동률은 최신순.
     assert "ts_rank_cd" in sql and "m.captured_at DESC" in sql
-
-
-def test_like_pattern_escapes_wildcards() -> None:
-    assert _like_pattern("100%") == "%100\\%%"
-    assert _like_pattern("a_b") == "%a\\_b%"
-    assert _like_pattern("back\\slash") == "%back\\\\slash%"
 
 
 def test_parameters_schema_exposes_two_time_axes() -> None:

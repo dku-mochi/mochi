@@ -36,7 +36,10 @@ public extension MochiItemDTO {
                     category: dto.category,
                     address: dto.address,
                     roadAddress: dto.roadAddress,
-                    mapURL: dto.mapUrl.flatMap(URL.init(string:))
+                    mapURL: dto.mapUrl.flatMap(URL.init(string:)),
+                    rating: dto.rating,
+                    ratingCount: dto.ratingCount,
+                    imageURL: dto.imageUrl.flatMap(URL.init(string:))
                 )
             },
             instances: intentInstances.map { i in

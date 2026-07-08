@@ -45,6 +45,9 @@ let package = Package(
         // 이미지 캐싱 (캡처 썸네일/원본 미리보기)
         .package(url: "https://github.com/onevcat/Kingfisher.git", exact: "8.1.3"),
 
+        // 네이버 지도 SDK (공식 SPM 미러, binary xcframework) — 기록상세 장소 지도 프리뷰
+        .package(url: "https://github.com/navermaps/SPM-NMapsMap.git", exact: "3.23.3"),
+
         // 사진 뷰어 — 기록상세 스크린샷 확대(zoom transition / pinch / drag dismiss)
         .package(url: "https://github.com/JiongXing/PhotoBrowser", from: "4.0.3"),
 
