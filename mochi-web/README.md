@@ -1,101 +1,104 @@
-# mochi-web — 심사위원용 BFF 데모 웹
-
-> 모찌(MOCHI) 를 **설치 없이 브라우저에서 체험**시키기 위한 데모 사이트.
-> 캡처를 담으면 분석이 흘러가고("정직-증거": 무엇을·왜 그렇게 판단했는지 보임), 회수 피드가 "왜 지금 떠올랐는지" 를 규칙 칩으로 증명한다.
-> 같은 배포 백엔드(`34-64-104-136.nip.io`)를 **서버사이드 프록시**하므로 라이브 데이터를 쓰되, 백엔드가 막히면 씨드로 graceful degrade 한다.
-
-이 README 가 mochi-web 의 빌드·실행·BFF 구조의 정본이다. 시스템 토폴로지에서의 위치는 [`../docs/ARCHITECTURE.md`](../docs/ARCHITECTURE.md) §1.
-
-> ⚠️ 이 Next.js 는 학습데이터의 버전과 다르다(breaking changes). 코드를 쓰기 전 `node_modules/next/dist/docs/` 의 해당 가이드를 먼저 읽는다 (`AGENTS.md`).
-
+---
+level: 2
+mode: doc
+status: active
+last_verified: 2026-07-08
+confidence: 1.0
+owners: [송준서]
+description: mochi-web(심사위원용 여정 데모 + BFF)의 빌드·아키텍처·env·시딩 정본. 웹 데모를 만지기 전 여기부터.
 ---
 
-## 스택
+# mochi-web — 심사위원용 여정 데모 (Next.js 16 + BFF)
 
-- **Next.js 16** (App Router) + **TypeScript** / React 19
-- **Tailwind CSS v4** (`@tailwindcss/postcss`)
-- **React Three Fiber** (`@react-three/fiber` + `@react-three/drei`) — 3D
-- **GSAP** (ScrollTrigger) — 스크롤 연출
-- **Framer Motion** — 트랜지션·마이크로 인터랙션
-- `openapi-typescript` — 백엔드 계약 타입 생성 (dev 도구)
+무설치 5분 여정으로 모찌의 미션("놓치기 쉬운 순간은 쉽게 남기고, 필요한 기억은 쉽게 떠오른다")을 체험시키는 데모 웹.
+심사위원이 페르소나(sena/dohyun/yuna)를 골라 그 사람의 일주일치 기록으로 **기록 → 홈 → 검색 → 질문 → 떠오름(클라이맥스) → 피날레**를 밟는다.
 
----
-
-## 설치 · 실행
-
-```bash
-npm install
-npm run dev      # 개발 서버 (http://localhost:3000)
-npm run build    # 프로덕션 빌드
-npm run start    # 빌드 결과 실행
-npm run lint     # eslint
-```
-
-토큰 env 없이도 돈다 — `liveEnabled=false` 로 떨어져 씨드 폴백으로 동작한다(아래 [라이브 실패 시 폴백](#라이브-실패-시-폴백) 참고).
-
----
-
-## BFF 구조
-
-브라우저는 백엔드를 **직접 호출하지 않는다.** 모든 백엔드 호출은 서버에서만 도는 `app/api/*` Route Handler 를 통한다.
-
-| 라우트 | 역할 |
-| --- | --- |
-| `app/api/analyze` | 캡처 입력(text/url/image) 접수 → 분석 진행을 **SSE** 로 흘림 (`data: {stage, result?}\n\n`) |
-| `app/api/recall` | 회수 피드 — "왜 지금 떠올랐는지" 규칙 칩 포함 |
-| `app/api/samples` | 샘플 카드 목록 (홈/갤러리용) |
-
-- `lib/api/backend.ts` — 서버 전용 백엔드 클라이언트. 데모 유저 토큰을 보관·refresh(access TTL 30분 → 25분 안전마진 캐시)하고 모든 호출에 `Authorization: Bearer` 주입. ingest 는 `Idempotency-Key` 헤더 필수.
-- `lib/env.ts` — **서버 전용** env (브라우저 노출 금지 — `'use client'` 에서 import 금지). 토큰·rate-limit·라이브 플래그.
-- `lib/ratelimit.ts` — 인메모리 슬라이딩 윈도(1분) rate-limit. Vercel 인스턴스별 메모리라 데모용으로 충분.
-- `lib/types.ts` — 백엔드 OpenAPI(`lib/api/schema.ts`)를 화면이 쓰기 쉽게 정제한 UI 도메인 타입.
-- `seed/` — 라이브 실패 시 쓰는 씨드 데이터.
-
-**토큰은 서버에만.** `MOCHI_DEMO_*` 토큰은 Route Handler 안에서만 읽혀 `Authorization` 으로 주입되고, 브라우저로는 절대 내려가지 않는다.
-
----
-
-## 환경변수
-
-`lib/env.ts` 가 정본. 전부 **서버 전용**.
-
-| 변수 | 기본값 | 의미 |
+| 씬 | 라우트 | 비고 |
 | --- | --- | --- |
-| `MOCHI_BACKEND_URL` | `https://34-64-104-136.nip.io` | 배포된 모찌 백엔드 (끝 슬래시 없음) |
-| `MOCHI_DEMO_REFRESH_TOKEN` | `""` | 데모 유저 refresh token (180일). svc 에서 1회 발급해 주입 |
-| `MOCHI_DEMO_ACCESS_TOKEN` | `""` | (선택) 미리 발급한 access token — refresh 실패 시 폴백 |
-| `MOCHI_INGEST_PER_MINUTE` | `6` | BFF rate-limit: 세션당 분당 ingest 허용 수 |
-| `MOCHI_LIVE_DISABLED` | (unset) | `1` 이면 라이브 프록시 끄고 씨드 폴백만 |
+| S0 랜딩 | `/` | R3F 기억 파편 필드 — CTA hover 시 카피 둘레로 수렴 |
+| S1 페르소나 선택 | `/p` | 추천 카드 1장에만 border-beam |
+| S2 기록 | `/p/[persona]/capture` | 시나리오 3건 + **라이브 AI 분석**(직접 입력) |
+| S3 홈 | `/p/[persona]` | 자유 탐색 허브 |
+| S4 검색 | `/p/[persona]/search` | 실검색(라이브) + canned 폴백 |
+| S5 질문 | `/p/[persona]/chat` | POST-as-SSE, citation·proposal |
+| S6 떠오름 | `/p/[persona]/recall` | 풀스크린 R3F 코버플로우 — 데모의 클라이맥스 |
+| S7 피날레 | `/finale` | 여정 요약·아키텍처·QR·재선택 |
 
-`liveEnabled` 는 `MOCHI_LIVE_DISABLED !== "1"` **이고** refresh/access 토큰 중 하나라도 있을 때 true.
+guided 여정은 `?guided=1` 로 진입(페르소나 카드 CTA)하며 `JourneyRail`(우하단)이 순서를 안내한다. sessionStorage 유지, → 키 지원.
 
----
-
-## OpenAPI 타입 생성
-
-API 계약의 단일 원천은 백엔드 `mochi-backend/openapi.json` (⓪-tier — `../docs/ARCHITECTURE.md` §3.6·§4). 그 스펙에서 타입을 생성한다.
+## 실행·검증
 
 ```bash
-npx openapi-typescript ../mochi-backend/openapi.json -o lib/api/schema.ts
+npm run dev             # 개발 서버 (기본 3000)
+npm run typecheck && npm run lint && npm test   # 타입·린트·vitest
+npm run build           # prebuild 에서 validate:seed 자동 실행
+npx tsx scripts/capture-mocks/shoot.ts [필터]   # 목업 캡처 재촬영
 ```
 
-`lib/api/schema.ts` 는 생성물이라 **직접 수정 금지**. 백엔드 계약이 바뀌면 재생성하고, 화면이 쓰는 정제 타입은 `lib/types.ts` 에서 손본다.
+Next.js 16 주의: 이 레포의 Next 는 학습 데이터와 다를 수 있다 — 코드 작성 전 `node_modules/next/dist/docs/` 해당 가이드를 읽는다(`AGENTS.md` 규약). `middleware` 는 `proxy.ts`, 동적 params 는 `await params`.
 
----
+## fallback-first BFF (핵심 규약)
 
-## 라이브 실패 시 폴백
+**화면에 보이는 모든 피드는 웹 내장 시드다.** 네트워크는 딱 3개(채팅·검색·라이브 분석)이고,
+셋 다 라이브와 **완전히 같은 wire 포맷의 폴백**이 뒤에 선다 — 심사 당일 백엔드·네트워크가 어떤 상태여도 여정은 완결된다.
+클라이언트는 라이브/폴백을 구분하지 않는다(`x-mochi-mode: live|fallback` 응답 헤더가 유일한 흔적).
 
-라이브 호출(ingest → SSE stream)이 막히면 — 토큰 없음·`MOCHI_LIVE_DISABLED=1`·백엔드 4xx/5xx·네트워크 실패 — 데모가 죽지 않도록 graceful degrade 한다.
+```
+클라 훅(useChatStream·useSearch·useLiveAnalysis)
+  → /api/bff/*  ── 라이브 가능? ──> 백엔드 프록시 (페르소나 JWT 직서명)
+                └─ 불가/실패/초과 ─> 폴백 엔진 (seed/canned — 같은 wire 재생)
+```
 
-- **`/api/analyze`**: 입력 텍스트/URL 을 기반으로 그럴듯한 `AnalysisResult` 를 추정해 **같은 SSE 포맷**으로 가짜 진행을 흘린다(ingested → normalized → analyzing → analyzed).
-- **`/api/recall`·`/api/samples`**: `seed/` 의 씨드 카드로 폴백.
+- **채팅** `POST /api/bff/chat/[conversationId]` (POST-as-SSE): upstream `POST /conversations/{cid}/messages` 패스스루.
+  개시(first-byte) 8초 실패 → 폴백 대본으로 응답(헤더도 fallback). 개시 후 inter-event 15초 스톨·오류 →
+  **스트림을 끊지 않고 서버가 폴백 이벤트를 이어붙여 완결**(본문이 이미 나갔으면 `done` 만 이어붙임).
+  409(동시 run) → 새 conversationId 로 1회 재시도. conversationId 는 uuid allowlist(경로 주입 차단).
+- **검색** `POST /api/bff/search`: upstream `POST /search`(12s 타임아웃) 실패 시 canned 폴백.
+  citations 의 `mochiItemId`(uuid)는 클라가 `seed/backend-ids.json` 으로 시드 slug 에 매핑해 타일로 렌더.
+- **라이브 분석** `POST /api/bff/ingest` → `GET /api/bff/ingest/{id}/stream?p={persona}` → `GET /api/bff/items/{id}?p={persona}`:
+  실 ingest(Idempotency-Key 는 입력 내용 해시 — 재전송 중복 방지) → 진행 SSE 프록시(스톨 시 `final` 이어붙임) →
+  본문 재조회(분석 완료 전이면 짧게 폴링). 폴백 id 는 `fb.` prefix 에 입력을 인코딩 — 서버 무상태.
+- **rate limit**(`lib/bff/ratelimit.ts`): 인메모리 토큰버킷(chat 6/분·search 10/분·ingest 4/분, `MOCHI_INGEST_PER_MINUTE` 오버라이드).
+  초과는 429 가 아니라 **폴백 강등**.
+- **킬스위치**: `MOCHI_FORCE_FALLBACK=1` — 전 라우트가 라이브를 건너뛴다.
 
-폴백은 포맷이 동일해 클라이언트는 라이브/씨드를 구분하지 않는다.
+wire 계약 정본은 `mochi-backend/openapi.json`(⓪-tier). 수기 미러는 `src/lib/api/wire.ts`,
+본문 citation 마커(`【item:uuid】`, 반각 허용)는 iOS `ChatMarkup` 과 동일 정책(`src/components/chat/ChatMarkup.tsx`).
 
----
+## env 계약 (`.env.local`, 전부 서버 전용 — 클라 비노출)
 
-## Vercel 배포
+| 키 | 용도 |
+| --- | --- |
+| `MOCHI_BACKEND_URL` | 백엔드 오리진(`/api/v1` 유무 무관 — 자동 정규화) |
+| `MOCHI_JWT_SECRET` | 백엔드 `AUTH_ACCESS_SECRET` 와 동일값 — HS256 직서명 |
+| `MOCHI_PERSONA_UUID_SENA/_DOHYUN/_YUNA` | 페르소나 실계정 user UUID |
+| `MOCHI_DEMO_USER_ID` | (dev 편의) 페르소나 UUID 미설정 시 공용 폴백 계정 |
+| `MOCHI_FORCE_FALLBACK` | `1` 이면 라이브 전면 차단 |
+| `MOCHI_INGEST_PER_MINUTE` | ingest 버킷 용량 (기본 4) |
 
-- Vercel 에 연결하고 위 env 를 **Vercel Environment Variables** 로 주입한다(특히 `MOCHI_DEMO_REFRESH_TOKEN`). 토큰은 코드/클라이언트에 두지 않는다.
-- `npm run build` 가 빌드 커맨드. App Router 기본 설정으로 배포.
-- rate-limit 은 인메모리라 인스턴스마다 별도 — 데모 부하엔 충분하지만 강한 보장이 필요하면 외부 스토어로 교체한다.
+미설정이면 해당 경로만 자동 폴백 — **env 없이도 데모는 완주 가능**(오프라인 완결).
+
+## 백엔드 시딩 (P7 — 페르소나 계정에 실데이터)
+
+```bash
+# 0) (사람) prod DB 에 user row 3건 삽입 → UUID 를 위 env 에 등록
+npm run seed:backend              # confirmedInstances 결정론 시딩 + 건수·검색 스모크
+npm run seed:backend -- --smoke   # 채팅 1턴 스모크까지
+# 1) 산출된 seed/backend-ids.json(uuid↔slug) 커밋
+# 2) (사람) mochi-backend scripts/backfill_embeddings.py 실행 — 검색 인덱싱
+```
+
+- Idempotency-Key `{persona}:{slug}:{내용해시8}` — 재실행 멱등 + 시드 내용이 바뀌면 새 아이템(무음 stale 방지).
+  내용 변경 재시딩 시 구 아이템은 백엔드에 남으니 수동 정리. 매핑 파일은 전량 성공 시에만 기록된다.
+- `MochiItemCreateRequest` 에 `capturedAt` 이 없다 → **시간축(며칠 전·D-day)은 웹 시드 단독 소유**.
+  시드는 전부 상대값(`capturedDaysAgo`/`dateInDays`/`deadlineInDays`)이고 절대화는 렌더/시딩 시점에만.
+
+## 시드·디자인 규칙 (요약)
+
+- 시드 계약: `seed/schema.ts`(zod) — 렌더와 시더 겸용. `npm run validate:seed` 가 빌드 게이트.
+- 날짜 계산은 무조건 `kstParts()`/`midnight()`(`src/lib/seedRuntime.ts`) — 로컬 타임존 API 직접 호출 금지.
+- 색은 `src/app/globals.css @theme` 브랜드 토큰만(iOS `HomeDesign.swift` 1:1). 새 색 금지.
+- 피드 카드는 `tiles/ItemTile`, intent 칩은 `INTENT_META`, 회수 이유는 `REASON_META`, 등장 모션은 `RiseIn`.
+- 4-Intent 메타 비노출 — "분류했어요" 카피 금지, 분류는 행동(체크리스트·캘린더·서재에 꽂힘)으로만.
+- R3F: 텍스트를 WebGL 에 넣지 않는다. `Environment` preset 금지(CDN 페치 — 오프라인 데모 깨짐), 조명은 라이트 3개.
+  reduce-motion·no-WebGL 은 전 씬 정적 폴백(기능 손실 0).

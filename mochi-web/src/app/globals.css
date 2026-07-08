@@ -1,0 +1,129 @@
+@import "tailwindcss";
+
+/*
+ * 모찌 디자인 토큰 — 정본: mochi-ios Targets/Cores/DesignSystem/Sources/HomeDesign.swift
+ * (RGB 0-1 → hex 변환, 라이트 모드 고정)
+ */
+@theme {
+  /* 기본 팔레트 전체 제거 — 브랜드 색만 사용 가능하게 */
+  --color-*: initial;
+  --color-white: #ffffff;
+  --color-black: #000000;
+
+  /* 모찌 퍼플 (브랜드) */
+  --color-purple-50: #f4efff;
+  --color-purple-100: #ede7ff;
+  --color-purple-200: #d8cbff;
+  --color-purple-400: #a084ff;
+  --color-purple-500: #8b6cff;
+  --color-purple-600: #6f50e8;
+  --color-glow: #b49aff;
+
+  /* 잉크 (텍스트·보더) */
+  --color-ink-900: #17172a;
+  --color-ink-700: #373750;
+  --color-ink-500: #7a7a90;
+  --color-ink-300: #b8b8c8;
+  --color-ink-100: #ececf4;
+
+  /* 면 */
+  --color-bg: #f2f4f7;
+  --color-surface: #ffffff;
+
+  /* 크림 (따뜻한 면) */
+  --color-cream-50: #fffdf8;
+  --color-cream-100: #fff9f1;
+  --color-cream-200: #f7ecdd;
+
+  /* Intent 의미색 — 색만으로 구분 금지, 항상 아이콘+라벨 동반 */
+  --color-sky-100: #ddeeff; /* 일정 */
+  --color-sky-400: #6ba9ff;
+  --color-butter-50: #fff8de; /* 할일 */
+  --color-butter-100: #ffefc4;
+  --color-butter-400: #e5b435;
+  --color-mint-100: #dff8ec; /* 지식 */
+  --color-mint-400: #4ccb8f;
+  --color-blush-100: #ffe0e4; /* 기록 */
+  --color-blush-400: #ef7e91;
+  --color-peach-400: #ff9b73; /* 확인필요·회수(fadingValue) */
+
+  /* 라벤더 (랜딩·인트로 전용 — iOS 온보딩 팔레트) */
+  --color-lavender-100: #d6d4f5;
+  --color-lavender-200: #e3def5;
+  --color-lavender-300: #ede0f0;
+  --color-lavender-500: #8c75ed;
+  --color-lavender-900: #353373;
+
+  /* 반경 — HomeDesign.Radius */
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 20px;
+  --radius-xl: 24px;
+
+  /* 그림자 — HomeDesign.cardShadow 등 */
+  --shadow-card: 0 6px 18px rgb(23 23 42 / 0.06);
+  --shadow-card-lift: 0 12px 28px rgb(23 23 42 / 0.1);
+  --shadow-fab: 0 8px 14px rgb(139 108 255 / 0.35);
+
+  /* 폰트 */
+  --font-sans: var(--font-pretendard), "Pretendard Variable", -apple-system,
+    "Apple SD Gothic Neo", sans-serif;
+  --font-display: var(--font-cafe24), var(--font-pretendard), sans-serif;
+}
+
+@layer base {
+  html {
+    color-scheme: light only;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-ink-900);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background-color: var(--color-purple-200);
+    color: var(--color-ink-900);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-purple-500);
+    outline-offset: 2px;
+  }
+}
+
+@utility tnum {
+  font-feature-settings: "tnum";
+  font-variant-numeric: tabular-nums;
+}
+
+/* iOS tracking(-0.2 ~ -0.6pt) 대응 */
+@utility tracking-snug {
+  letter-spacing: -0.02em;
+}
+@utility tracking-head {
+  letter-spacing: -0.03em;
+}
+
+/* S7 피날레 — MochiWalk 25프레임 스프라이트 (public/walk/sheet.png, 프레임 125×138 표시) */
+.mochi-walk {
+  width: 125px;
+  height: 138px;
+  background-image: url("/walk/sheet.png");
+  background-size: 3125px 138px;
+  animation: mochi-walk-cycle 1.15s steps(25) infinite;
+}
+@keyframes mochi-walk-cycle {
+  to {
+    background-position-x: -3125px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mochi-walk {
+    animation: none;
+  }
+}

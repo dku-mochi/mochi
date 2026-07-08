@@ -15,6 +15,9 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 - 분석 프롬프트 v28→v29: 확장 실측에서 특정된 실패 클래스를 기준+why 로 반영(reading-too-low 가드 신설 등, 케이스 키워드 하드코딩 없음). 전체 run 수준 91.3→95.1%(687 run), 경계셋 75.7→88.9%, 회귀 0. 공휴일명 날짜 해석(0/9)은 알려진 한계로 유지.
 - PPT(`ppt/모찌_최종산출물_v1.html`) 슬라이드 12·요약의 eval 수치를 v29 실측 + 95% CI 병기로 교체.
 
+## 2026-07-08 — infra
+- mochi-web 여정 데모 P5~P7 완성 — 심사위원용 체험 웹 전면 재구축 마감. **P5 라이브 연결**: BFF 가 페르소나 JWT(HS256, 백엔드 issuer 동형)를 직서명해 채팅(SSE 패스스루)·검색·라이브 분석을 실백엔드로 프록시. first-byte 8s/inter-event 15s 초과·오류 시 스트림을 끊지 않고 폴백 이벤트를 이어붙여 완결(fallback-first), rate limit 초과는 폴백 강등, 킬스위치 `MOCHI_FORCE_FALLBACK=1`. 계약 정합 — CitationDTO `mochiItemId` 케이싱 수정, iOS 와 동일한 `【item:uuid】` 본문 마커 정책 이식. codex 리뷰 2회(P4·P5) P1 3건 포함 전부 반영. **P6**: S0 랜딩(R3F 기억 파편 필드 — 실캡처 14장 부유, CTA hover 시 카피 둘레로 수렴), S1 페르소나 선택(캡처 스택 부채꼴·intent 분포·추천 border-beam), JourneyRail(우하단, ?guided=1), S7 피날레(MochiWalk 스프라이트·아키텍처·QR). **P7**: `scripts/seed-backend.ts`(confirmedInstances 결정론 시딩, Idempotency-Key `{persona}:{slug}:v1`, backend-ids.json 산출) + `mochi-web/README.md` 신설. 남은 사람 단계 — prod user row 3건 + env 등록 + 시더 실행 + backfill_embeddings + Vercel env·배포.
+
 ## 2026-06-30 — backend (분석 에이전트 프롬프트 v28 일반화 + eval 안전망 신설)
 - **분석 프롬프트 v28**: Class A overfit 케이스 일반화(`system_prompts.py`). category 예시 나열·명명 일관성 가공 시나리오(대학영어→대학수학)·course/car/place 예시 3쌍을 '기준+why'로 치환. **왜**: 특정 도메인 키워드 하드코딩이 27개 버전 누적돼 out-of-domain 분류를 약화(skill-creator 철학 위반). specificity·nuance illustration(검정원피스/'김 싸 먹어야지')은 boundary anchor라 보존(Gemini consult 검증). 32건 결정적 eval **무회귀(1.0)** 확인.
 - **eval 안전망 신설**: `mochi-backend/eval/` — `scorer.py`(lab `score_dacon` 8축을 케이스 구동 결정적 채점으로 일반화) + `run_golden.py`(production drift-0 러너) + golden 케이스(clear 27 ②CI·boundary 13 ③·date 5·table 1) + `tests/eval/`(hermetic ② 게이트) + `make eval`. Tier2 LLM-judge 50건(agent-golden, gitignore). **왜**: 27개 버전이 매 실패를 프롬프트 패치로 흡수해온 근본원인(회귀 안전망 부재) 제거 — 이제 일반화·변경을 결정적으로 검증한다.
