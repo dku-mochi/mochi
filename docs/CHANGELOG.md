@@ -18,6 +18,9 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 - **검증.** codex 리뷰(P0/P1 없음; P3 2건 반영 — invalid fire_window 는 error 반환, join 된 plan owner 가드 defense-in-depth). 537 passed · lint·typecheck green.
 - **잔여(공유표면).** SSE proposal 2종 wire 계약 → iOS `ChatStreamEvent` 파서·카드 렌더·확정 핸들러 배선(openapi 무관, 기존 recall REST client 재사용). 프롬프트 가이드(③)는 후속.
 
+## 2026-07-09 — backend
+- `searchPlaceGeo` Google Places 보강에서 photo media 400 이 별점·리뷰수까지 함께 버리던 문제 수정. `X-Goog-FieldMask` 는 searchText 요청에만 붙이고, 사진 fetch 실패는 `imageUrl` 만 생략해 `rating/ratingCount` 는 place entity 에 남긴다. 운영 DB 확인 결과 최근 장소 3건의 place JSON 에 보강 필드가 없었고, journal 로그에 photo media 400 이 찍혀 있었다.
+
 ## 2026-07-09 — backend, docs (채팅 기록 회수 표면 확장 + 검색 상한 상향)
 - **배경.** 채팅이 mochi item 을 읽는 두 툴(`search_items`·`get_item_detail`)이 aggregate 의 절반만 노출해 회수 갭이 있었다 — 능동 회수 신호로 코드에 못박힌 `is_favorite`·`importance` 를 정작 회수 주체인 채팅이 못 봤고, `place`(좌표·주소·별점)·`reference_links` 도 빠져 "그 카페 어디?"·"살 링크?" 에 답 못 했다.
 - **get_item_detail.** item 레벨 `category`·`importance`·`is_favorite`·`place`·`reference_links`·`shopping_product_query`·`has_images` + instance 레벨 `reasoning`·`archive_reason` 노출. entities 유래 항목은 값 있을 때만 싣는다(빈 키 오독 방지). repository 가 이미 로드하던 걸 툴이 버리던 문제라 DB/repo 무변경(순수 도구계층).
