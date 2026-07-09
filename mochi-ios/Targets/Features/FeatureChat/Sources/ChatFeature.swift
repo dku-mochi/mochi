@@ -520,6 +520,15 @@ public struct ChatFeature: Sendable {
                     fireAt: payload.fireAt,
                     relatedMochiItemID: payload.relatedMochiItemID
                 )
+
+            case let .rescheduleNotification(payload):
+                // 서버 예정 알림 시각 이동 — 홈탭 reschedule 과 같은 REST. pending 아니면(발송·취소됨)
+                // 404 → 아래 catch 가 .expired 로 만료 카드 처리.
+                try await apiClient.rescheduleUpcoming(eventID: payload.eventID, fireAt: payload.fireAt)
+
+            case let .cancelNotification(payload):
+                // 끄기 — kind 별 cascade(deadline/nudge=시리즈 정지, spaced=이번 회차)는 서버 veto 가 처리.
+                try await apiClient.vetoUpcoming(eventID: payload.eventID)
             }
             return .confirmed
         } catch let error as APIErrorEnvelope where error.code.hasSuffix(".not_found") {

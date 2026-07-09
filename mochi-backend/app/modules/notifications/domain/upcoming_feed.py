@@ -39,10 +39,21 @@ class UpcomingFeedRepositoryPort(ABC):
     """다가오는 예정 알림 조회. owner-scoped, 읽기 전용 단순 SELECT(이 모듈 테이블만)."""
 
     @abstractmethod
-    async def list_upcoming(self, *, owner_id: UUID, limit: int) -> list[UpcomingNotification]:
+    async def list_upcoming(
+        self,
+        *,
+        owner_id: UUID,
+        limit: int,
+        item_id: UUID | None = None,
+        fire_from: datetime | None = None,
+        fire_to: datetime | None = None,
+    ) -> list[UpcomingNotification]:
         """owner 의 pending 미래 알림(kind IN ('deadline','nudge','spaced'), fire_at>now) fire_at 오름차순.
 
         active plan 에 연결된 것만(LEFT JOIN status='active') — veto 로 cancel 된 plan 의 잔여는
         worker/cancel 이 skipped 로 치우므로 status='pending' 만으로도 충분하나 안전하게 가드한다.
+        ``item_id`` 를 주면 그 기록에 걸린 알림만 — 채팅이 "이 기록에 무슨 알림 걸려 있지?" 를
+        답할 때 쓴다(홈탭은 owner 전체). ``fire_from``/``fire_to`` 는 발송 시각 범위(fire_to
+        exclusive) — 채팅이 "내일/이번주 알림?" 을 서버에서 좁힐 때 쓴다(홈탭은 미지정=전체).
         빈손이면 [](정상 — cold-start·전부 발송됨).
         """

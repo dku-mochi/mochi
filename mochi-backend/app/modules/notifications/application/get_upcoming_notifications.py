@@ -5,6 +5,7 @@
 """
 
 from dataclasses import dataclass
+from datetime import datetime
 from uuid import UUID
 
 from app.modules.notifications.domain.upcoming_feed import (
@@ -19,5 +20,15 @@ class GetUpcomingNotifications:
 
     feed: UpcomingFeedRepositoryPort
 
-    async def execute(self, *, owner_id: UUID, limit: int) -> list[UpcomingNotification]:
-        return await self.feed.list_upcoming(owner_id=owner_id, limit=limit)
+    async def execute(
+        self,
+        *,
+        owner_id: UUID,
+        limit: int,
+        item_id: UUID | None = None,
+        fire_from: datetime | None = None,
+        fire_to: datetime | None = None,
+    ) -> list[UpcomingNotification]:
+        return await self.feed.list_upcoming(
+            owner_id=owner_id, limit=limit, item_id=item_id, fire_from=fire_from, fire_to=fire_to
+        )

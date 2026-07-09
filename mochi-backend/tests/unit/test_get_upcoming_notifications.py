@@ -20,7 +20,7 @@ class _FeedRepo:
         self._items = items
         self.calls: list[tuple] = []
 
-    async def list_upcoming(self, *, owner_id, limit):  # type: ignore[no-untyped-def]
+    async def list_upcoming(self, *, owner_id, limit, item_id=None, fire_from=None, fire_to=None):  # type: ignore[no-untyped-def]
         self.calls.append((owner_id, limit))
         return self._items
 
