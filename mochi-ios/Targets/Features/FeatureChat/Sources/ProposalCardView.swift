@@ -159,6 +159,9 @@ struct ProposalCardView: View {
         case .createSchedule: ("calendar.badge.plus", HomeDesign.Color.mint400, "일정을 추가할까요?")
         case .createMemo: ("square.and.pencil", HomeDesign.Color.sky400, "이 내용을 기록해둘까요?")
         case .reminder: ("bell.badge", HomeDesign.Color.purple500, "알림을 맞출까요?")
+        case .rescheduleNotification:
+            ("clock.arrow.circlepath", HomeDesign.Color.purple500, "알림 시각을 바꿀까요?")
+        case .cancelNotification: ("bell.slash", HomeDesign.Color.blush400, "이 알림을 끌까요?")
         }
     }
 }

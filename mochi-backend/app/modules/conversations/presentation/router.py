@@ -40,14 +40,18 @@ from app.modules.conversations.domain.run_events import ChatEvent
 from app.modules.conversations.infrastructure.gemini_schedule_meta import GeminiScheduleMeta
 from app.modules.conversations.infrastructure.run_registry import get_run_registry
 from app.modules.conversations.infrastructure.tools.get_item_detail import GetItemDetailTool
+from app.modules.conversations.infrastructure.tools.list_notifications import ListNotificationsTool
 from app.modules.conversations.infrastructure.tools.propose import (
+    ProposeCancelNotificationTool,
     ProposeCreateMemoTool,
     ProposeCreateScheduleTool,
     ProposeItemDeleteTool,
     ProposeItemUpdateTool,
     ProposeReminderTool,
+    ProposeRescheduleNotificationTool,
     make_category_reader,
     make_item_reader,
+    make_upcoming_reader,
 )
 from app.modules.conversations.infrastructure.tools.search_items import SearchItemsTool
 from app.modules.conversations.infrastructure.tools.view_item_image import ViewItemImageTool
@@ -88,14 +92,18 @@ def _build_chat_tools(
     모델을 오도한다 (web_search 와 같은 원리).
     voyage 는 search_items 의 의미검색·리랭크용 — 미설정 시 키워드 단독 degrade."""
     item_reader = make_item_reader(session_factory)
+    upcoming_reader = make_upcoming_reader(session_factory)
     tools: list[ChatTool] = [
         SearchItemsTool(session_factory, voyage=voyage),
         GetItemDetailTool(session_factory),
+        ListNotificationsTool(session_factory),
         ProposeItemUpdateTool(item_reader),
         ProposeItemDeleteTool(item_reader),
         ProposeCreateScheduleTool(GeminiScheduleMeta(), make_category_reader(session_factory)),
         ProposeReminderTool(),
         ProposeCreateMemoTool(),
+        ProposeRescheduleNotificationTool(upcoming_reader),
+        ProposeCancelNotificationTool(upcoming_reader),
         WebFetchChatTool(make_web_fetch_tool()),
     ]
     if gcs_capture_bucket:
@@ -139,7 +147,7 @@ async def send_message(
     tool_started   {run_id, name, label}
     tool_finished  {run_id, name, summary}
     citation       {run_id, index, item_id, title, snippet}
-    proposal       {run_id, id, type, payload}        (type: item_update|item_delete|create_schedule|reminder|create_memo)
+    proposal       {run_id, id, type, payload}        (type: item_update|item_delete|create_schedule|reminder|create_memo|notification_reschedule|notification_cancel)
     done           {run_id, message_id}               (assistant 메시지 행 id)
     error          {run_id, code, message}
     ```

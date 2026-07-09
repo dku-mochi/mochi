@@ -16,6 +16,7 @@ from app.modules.mochi_items.application.queries import (
     GetMochiItemForOwner,
     make_mochi_item_repository,
 )
+from app.modules.mochi_items.domain.entities import PlaceInfo, ReferenceLink
 
 _PARAMETERS: dict[str, Any] = {
     "type": "object",
@@ -29,13 +30,53 @@ _PARAMETERS: dict[str, Any] = {
 }
 
 
+def _place_dict(place: PlaceInfo) -> dict[str, Any]:
+    """PlaceInfo → 값 있는 키만. 상세 지도 섹션이 저장해 둔 좌표·주소·별점을 채팅이 읽는다."""
+    return {
+        key: value
+        for key, value in {
+            "name": place.name,
+            "lat": place.lat,
+            "lng": place.lng,
+            "category": place.category,
+            "address": place.address,
+            "road_address": place.road_address,
+            "map_url": place.map_url,
+            "rating": place.rating,
+            "rating_count": place.rating_count,
+            "image_url": place.image_url,
+        }.items()
+        if value is not None
+    }
+
+
+def _reference_dict(link: ReferenceLink) -> dict[str, Any]:
+    """ReferenceLink → 사용자-facing 필드만. 랭킹 내부값(rank_profile/source)은 채팅에 무의미해 제외."""
+    return {
+        key: value
+        for key, value in {
+            "url": link.url,
+            "title": link.title,
+            "label": link.label,
+            "role": link.role,
+            "provider": link.provider,
+            "subtitle": link.subtitle,
+            "price_text": link.price_text,
+            "usefulness": link.usefulness,
+        }.items()
+        if value is not None
+    }
+
+
 class GetItemDetailTool:
     name = "get_item_detail"
     label = "기록을 자세히 보고 있어요"
     description = (
-        "Read one record in full: text, memo, url, summary, and its intent instances "
-        "(with instance ids and payload). Use after search_items when the snippet is not "
-        "enough to answer, or before proposing a change to the record."
+        "Read one record in full: text, memo, url, summary, category, importance, whether "
+        "it's a favorite, any saved place (coordinates, address, rating, photo) and reference "
+        "links, plus its intent instances (with instance ids, reasoning, and payload). Use "
+        "after search_items when the snippet is not enough to answer — this is the only way to "
+        "reach a record's place, links, and full plan details — or before proposing a change."
     )
     parameters = _PARAMETERS
 
@@ -69,6 +110,10 @@ class GetItemDetailTool:
                 "intent_type": instance.intent_type.value,
                 "label": instance.label,
                 "lifecycle": instance.lifecycle.kind.value,
+                "archive_reason": (
+                    instance.lifecycle.archive_reason.value if instance.lifecycle.archive_reason else None
+                ),
+                "reasoning": instance.reasoning or None,
                 "payload": {
                     key: value
                     for key, value in {
@@ -88,17 +133,31 @@ class GetItemDetailTool:
             }
             for instance in item.intent_instances
         ]
+        payload: dict[str, Any] = {
+            "id": str(item.id),
+            "channel": item.source.channel.value,
+            "url": item.source.url,
+            "text": item.source.text,
+            "user_memo": item.source.user_memo,
+            "summary": item.summary,
+            "category": item.category,
+            "importance": item.importance,
+            "is_favorite": item.is_favorite,
+            "captured_at": item.source.captured_at.isoformat(),
+            "instances": instances,
+        }
+        # entities 유래 항목은 값이 있을 때만 싣는다 — 없는 키를 None 으로 채우지 않는다(토큰·오독 방지).
+        if item.place is not None:
+            payload["place"] = _place_dict(item.place)
+        if item.reference_links:
+            payload["reference_links"] = [_reference_dict(link) for link in item.reference_links]
+        if item.shopping_product_query:
+            payload["shopping_product_query"] = item.shopping_product_query
+        # 이미지 본문은 view_item_image 가 준다 — 여기선 "볼 이미지가 있다"만 알려 그 호출을 유도한다.
+        if any(image.object_key for image in item.source.image_refs):
+            payload["has_images"] = True
         return ChatToolResult(
-            payload={
-                "id": str(item.id),
-                "channel": item.source.channel.value,
-                "url": item.source.url,
-                "text": item.source.text,
-                "user_memo": item.source.user_memo,
-                "summary": item.summary,
-                "captured_at": item.source.captured_at.isoformat(),
-                "instances": instances,
-            },
+            payload=payload,
             summary="기록을 자세히 읽었어요",
             compact={"id": str(item.id), "summary": (item.summary or "")[:60]},
         )
