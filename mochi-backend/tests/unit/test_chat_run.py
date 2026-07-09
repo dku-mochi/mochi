@@ -466,11 +466,14 @@ def test_router_tool_registry_is_read_only() -> None:
     base = {
         "search_items",
         "get_item_detail",
+        "list_notifications",
         "propose_item_update",
         "propose_item_delete",
         "propose_create_schedule",
         "propose_reminder",
         "propose_create_memo",
+        "propose_reschedule_notification",
+        "propose_cancel_notification",
         "web_fetch",
     }
     session_factory: Any = object()  # 빌더는 팩토리를 보관만 한다 — 호출 없음

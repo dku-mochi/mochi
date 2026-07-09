@@ -18,11 +18,13 @@ from app.modules.conversations.domain.entities import MessageRole, RunStatus
 from app.modules.conversations.domain.ports import ChatLLMChunk, ScheduleMeta
 from app.modules.conversations.infrastructure.run_registry import RunRegistry
 from app.modules.conversations.infrastructure.tools.propose import (
+    ProposeCancelNotificationTool,
     ProposeCreateMemoTool,
     ProposeCreateScheduleTool,
     ProposeItemDeleteTool,
     ProposeItemUpdateTool,
     ProposeReminderTool,
+    ProposeRescheduleNotificationTool,
 )
 from app.modules.mochi_items.application.ingest import Ingest, IngestCommand
 from app.modules.mochi_items.application.update_mochi_item import (
@@ -43,6 +45,7 @@ from app.modules.mochi_items.domain.value_objects import (
     IntentInstance,
     IntentPayload,
 )
+from app.modules.notifications.domain.upcoming_feed import UpcomingNotification
 from app.shared.intent import Intent
 from tests.unit.test_chat_run import FakeLLM, FakeStore, _drain, _runner
 
@@ -222,9 +225,7 @@ async def test_propose_schedule_creates_card_when_meta_empty() -> None:
     # 메타 도출 실패(GeminiScheduleMeta 가 graceful 로 빈 ScheduleMeta 반환)·빈 window 여도
     # 일정 카드는 생성된다 — 메타는 부가, 카드 생성을 막지 않는다(§5.2 graceful).
     tool = ProposeCreateScheduleTool(_StubScheduleMeta(ScheduleMeta()), _stub_categories())
-    result = await tool.run(
-        owner_id=_OWNER, args={"title": "치과 예약", "date": "2026-06-25", **_DISPLAY}
-    )
+    result = await tool.run(owner_id=_OWNER, args={"title": "치과 예약", "date": "2026-06-25", **_DISPLAY})
     assert result.proposal is not None
     payload = result.proposal["payload"]
     # category/summary 가 None 이면 키 자체를 싣지 않는다 — SSE 옵셔널 디코드 안전.
@@ -242,6 +243,82 @@ async def test_propose_reminder_rejects_past_fire_at() -> None:
     future = (datetime.now(ZoneInfo("Asia/Seoul")) + timedelta(hours=1)).isoformat()
     result = await tool.run(owner_id=_OWNER, args={"fire_at": future, "title": "알림", **_DISPLAY})
     assert result.proposal is not None
+
+
+def _upcoming(*, kind: str = "deadline", title: str = "치과 예약") -> UpcomingNotification:
+    return UpcomingNotification(
+        event_id=uuid4(),
+        kind=kind,
+        fire_at=datetime.now(ZoneInfo("Asia/Seoul")) + timedelta(days=1),
+        title=title,
+        body="본문",
+        original_fire_at=None,
+        item_id=uuid4(),
+        intent_id=None,
+    )
+
+
+def _upcoming_reader_for(notifications: list[UpcomingNotification]):
+    async def _read(owner_id: UUID) -> list[UpcomingNotification]:
+        return notifications
+
+    return _read
+
+
+async def test_propose_reschedule_builds_card_for_future_event() -> None:
+    event = _upcoming()
+    tool = ProposeRescheduleNotificationTool(_upcoming_reader_for([event]))
+    future = (datetime.now(ZoneInfo("Asia/Seoul")) + timedelta(hours=3)).isoformat()
+    result = await tool.run(
+        owner_id=_OWNER, args={"event_id": str(event.event_id), "fire_at": future, **_DISPLAY}
+    )
+    assert result.proposal is not None
+    assert result.proposal["type"] == "notification_reschedule"
+    assert result.proposal["payload"]["event_id"] == str(event.event_id)
+
+
+async def test_propose_reschedule_rejects_past_fire_at() -> None:
+    event = _upcoming()
+    tool = ProposeRescheduleNotificationTool(_upcoming_reader_for([event]))
+    past = (datetime.now(ZoneInfo("Asia/Seoul")) - timedelta(hours=1)).isoformat()
+    result = await tool.run(
+        owner_id=_OWNER, args={"event_id": str(event.event_id), "fire_at": past, **_DISPLAY}
+    )
+    assert result.proposal is None
+
+
+async def test_propose_reschedule_rejects_unknown_event() -> None:
+    # event_id 가 owner 의 예정 알림에 없으면(남의 것·발송됨·취소됨) 카드 안 만듦 — cross-tenant 방어 포함.
+    tool = ProposeRescheduleNotificationTool(_upcoming_reader_for([_upcoming()]))
+    future = (datetime.now(ZoneInfo("Asia/Seoul")) + timedelta(hours=3)).isoformat()
+    result = await tool.run(owner_id=_OWNER, args={"event_id": str(uuid4()), "fire_at": future, **_DISPLAY})
+    assert result.proposal is None
+
+
+async def test_propose_cancel_spaced_skips_single_occurrence() -> None:
+    event = _upcoming(kind="spaced", title="다시 볼 지식")
+    tool = ProposeCancelNotificationTool(_upcoming_reader_for([event]))
+    result = await tool.run(owner_id=_OWNER, args={"event_id": str(event.event_id)})
+    assert result.proposal is not None
+    assert result.proposal["type"] == "notification_cancel"
+    assert result.proposal["payload"]["kind"] == "spaced"
+    # 카피가 "이번 회차"를 알린다 — 시리즈 전체 정지로 오해 방지(kind 분기).
+    assert "이번 회차" in result.proposal["payload"]["display"]["title"]
+
+
+async def test_propose_cancel_deadline_stops_whole_series() -> None:
+    event = _upcoming(kind="deadline", title="마감")
+    tool = ProposeCancelNotificationTool(_upcoming_reader_for([event]))
+    result = await tool.run(owner_id=_OWNER, args={"event_id": str(event.event_id)})
+    assert result.proposal is not None
+    assert result.proposal["payload"]["kind"] == "deadline"
+    assert "모두 정지" in result.proposal["payload"]["display"]["title"]
+
+
+async def test_propose_cancel_rejects_unknown_event() -> None:
+    tool = ProposeCancelNotificationTool(_upcoming_reader_for([_upcoming()]))
+    result = await tool.run(owner_id=_OWNER, args={"event_id": str(uuid4())})
+    assert result.proposal is None
 
 
 async def test_propose_memo_requires_text() -> None:

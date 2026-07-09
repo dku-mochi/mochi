@@ -10,6 +10,20 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-07-09 — backend, docs (채팅에서 능동 회수 알림 읽기·조정 — iOS 배선 후속)
+- **배경.** Recall Planner 가 자동 설계한 예정 알림(`notification_plan`)은 홈탭에서만 보고 조정할 수 있었다. 채팅에서 "내 알림 뭐 있어?"·"내일 오는 알림?"·"그거 저녁으로 미뤄줘"·"이 알림 꺼줘" 를 못 했다.
+- **읽기(`list_notifications`, read-only 툴).** owner 의 예정 알림(마감/주기/예약 회수)을 `event_id`·`kind`·`fire_at`·`title`·`body` 로 조회. `mochi_item_id`(그 기록의 알림만)·`fire_from`/`fire_to`(발송 시각 범위 — "내일/이번주 알림?" 서버 필터) 인자. `notifications.application` 팩토리(`make_upcoming_feed_repository`) 경유 — conversations 는 notifications.infrastructure 직접 import 안 함(§3.3).
+- **수정/삭제(propose 카드 2종).** `propose_reschedule_notification`(시각 이동)·`propose_cancel_notification`(끄기). 채팅 read-only 불변식대로 카드 payload 만 반환하고, 확정 탭 → **기존** `POST /recall/upcoming/{event_id}/reschedule`·`/veto` 실행(REST 재사용이라 openapi 무변경). cancel copy 는 kind 분기 — spaced=이번 회차만, deadline/nudge=시리즈 전체 정지. 새 도메인 전이 0(기존 veto cascade 재사용) → DOMAIN_DESIGN 스키마 무변경.
+- **필터 관통.** `UpcomingFeedRepositoryPort.list_upcoming` 에 `item_id`/`fire_from`/`fire_to`(fire_to exclusive) 추가 — 홈탭(`/recall/upcoming`)은 미지정=전체라 무영향.
+- **검증.** codex 리뷰(P0/P1 없음; P3 2건 반영 — invalid fire_window 는 error 반환, join 된 plan owner 가드 defense-in-depth). 537 passed · lint·typecheck green.
+- **잔여(공유표면).** SSE proposal 2종 wire 계약 → iOS `ChatStreamEvent` 파서·카드 렌더·확정 핸들러 배선(openapi 무관, 기존 recall REST client 재사용). 프롬프트 가이드(③)는 후속.
+
+## 2026-07-09 — backend, docs (채팅 기록 회수 표면 확장 + 검색 상한 상향)
+- **배경.** 채팅이 mochi item 을 읽는 두 툴(`search_items`·`get_item_detail`)이 aggregate 의 절반만 노출해 회수 갭이 있었다 — 능동 회수 신호로 코드에 못박힌 `is_favorite`·`importance` 를 정작 회수 주체인 채팅이 못 봤고, `place`(좌표·주소·별점)·`reference_links` 도 빠져 "그 카페 어디?"·"살 링크?" 에 답 못 했다.
+- **get_item_detail.** item 레벨 `category`·`importance`·`is_favorite`·`place`·`reference_links`·`shopping_product_query`·`has_images` + instance 레벨 `reasoning`·`archive_reason` 노출. entities 유래 항목은 값 있을 때만 싣는다(빈 키 오독 방지). repository 가 이미 로드하던 걸 툴이 버리던 문제라 DB/repo 무변경(순수 도구계층).
+- **search_items.** 결과에 회수 신호 `importance`·`is_favorite` 추가. `TOP_K` 8→25 · `RERANK_CANDIDATES` 24→50 · 과거 턴 재주입 compact 3×60자→10×120자 — Gemini 100만+ 컨텍스트에서 상위 8 컷이 회상·브라우징 재현율 병목이었다. `RERANK_CANDIDATES 50` 은 `rag-rerank-eval` 파이프라인 C(RRF Top50→rerank)가 검증한 폭. `TOP_K` 는 현 eval 코퍼스가 **@10 천장**이라 이 축 실측 불가(FINDINGS 한계 (c) — 코퍼스 1000+ 확장 후 재평가) → 재현율 우선 방침으로 상향.
+- **검증.** codex 리뷰(reasoning=기존 상세 API 노출값·usefulness=iOS 신뢰UI 값이라 유지, 빈 dict 는 place/reference 필수필드로 불가 — 근거 대조 판정). 524 passed · lint·typecheck green · openapi 무영향(채팅 툴 내부).
+
 ## 2026-07-09 — infra
 - 장소 별점·매장사진 backend prod 배포 — develop 765796c(PR #70, hybrid retrieval 단일화 동승)를 INFRA.md 런북대로 `mochi-svc` 에 배포. Secret Manager `mochi-google-places-api-key` 신설 → svc `.env` `GOOGLE_PLACES_API_KEY` 주입(값 무출력 파이프, VM SA fetch). alembic 신규 마이그레이션 없음(voyage 백필은 금일 기반영). 검증: health ok · 에러 로그 0 · prod OpenAPI `PlaceResponse.rating/ratingCount/imageUrl` 노출 · VM 스모크(몽탄 ★4.1/1,974) 통과. ⚠️ `.env` 재생성 시 키 소실 함정 — INFRA §5.4 병기.
 

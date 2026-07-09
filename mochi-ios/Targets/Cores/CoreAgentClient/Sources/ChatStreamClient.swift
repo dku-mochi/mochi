@@ -45,7 +45,9 @@ public struct ChatCitation: Equatable, Sendable, Identifiable {
 ///
 /// `action` 이 kind 별 typed 실행 payload — 백엔드 `propose.py` 의 proposal payload 와 1:1.
 /// 실행 경로 매핑(서버 docstring 정본): item_update→PATCH, item_delete→DELETE,
-/// create_schedule→POST+confirmedInstances, create_memo→일반 ingestion, reminder→iOS 로컬 알림.
+/// create_schedule→POST+confirmedInstances, create_memo→일반 ingestion, reminder→iOS 로컬 알림,
+/// notification_reschedule/notification_cancel→POST /recall/upcoming/{event_id}/reschedule·/veto
+/// (모찌가 자동 설계한 예정 알림 조정 — 기존 recall REST 재사용, openapi 무변경).
 public struct ChatProposal: Equatable, Sendable, Identifiable {
     public enum Kind: String, Equatable, Sendable {
         case updateItem = "item_update"
@@ -53,6 +55,8 @@ public struct ChatProposal: Equatable, Sendable, Identifiable {
         case createSchedule = "create_schedule"
         case createMemo = "create_memo"
         case reminder = "reminder"
+        case rescheduleNotification = "notification_reschedule"
+        case cancelNotification = "notification_cancel"
     }
 
     public struct InstanceChange: Equatable, Sendable {
@@ -136,12 +140,38 @@ public struct ChatProposal: Equatable, Sendable, Identifiable {
         }
     }
 
+    /// 예정 알림 시각 이동 — 확정 시 `POST /recall/upcoming/{event_id}/reschedule`. eventID 는 서버가
+    /// list_notifications 로 발급한 outbox event_id 다(로컬 reminder id 와 별개).
+    public struct RescheduleNotificationPayload: Equatable, Sendable {
+        public let eventID: UUID
+        public let fireAt: Date
+
+        public init(eventID: UUID, fireAt: Date) {
+            self.eventID = eventID
+            self.fireAt = fireAt
+        }
+    }
+
+    /// 예정 알림 끄기 — 확정 시 `POST /recall/upcoming/{event_id}/veto`. kind(deadline/nudge/spaced)로
+    /// 취소 의미가 갈린다(spaced=이번 회차만) — 카피 분기는 서버 display 가 이미 완성해 보낸다.
+    public struct CancelNotificationPayload: Equatable, Sendable {
+        public let eventID: UUID
+        public let kind: String
+
+        public init(eventID: UUID, kind: String) {
+            self.eventID = eventID
+            self.kind = kind
+        }
+    }
+
     public enum ProposedAction: Equatable, Sendable {
         case updateItem(UpdateItemPayload)
         case deleteItem(mochiItemID: UUID)
         case createSchedule(CreateSchedulePayload)
         case createMemo(text: String)
         case reminder(ReminderPayload)
+        case rescheduleNotification(RescheduleNotificationPayload)
+        case cancelNotification(CancelNotificationPayload)
     }
 
     public let id: UUID
@@ -158,6 +188,8 @@ public struct ChatProposal: Equatable, Sendable, Identifiable {
         case .createSchedule: .createSchedule
         case .createMemo: .createMemo
         case .reminder: .reminder
+        case .rescheduleNotification: .rescheduleNotification
+        case .cancelNotification: .cancelNotification
         }
     }
 
@@ -242,6 +274,24 @@ public extension ChatProposal {
             let related = UUID(uuidString: payload["related_mochi_item_id"] as? String ?? "")
             action = .reminder(
                 ReminderPayload(fireAt: fireAt, title: reminderTitle, relatedMochiItemID: related)
+            )
+
+        case .rescheduleNotification:
+            guard let eventID = UUID(uuidString: payload["event_id"] as? String ?? ""),
+                  let rawFireAt = payload["fire_at"] as? String,
+                  let fireAt = ISO8601DateFormatter.chatProposal.date(from: rawFireAt)
+                    ?? ISO8601DateFormatter.chatProposalNoFraction.date(from: rawFireAt)
+            else { return nil }
+            action = .rescheduleNotification(
+                RescheduleNotificationPayload(eventID: eventID, fireAt: fireAt)
+            )
+
+        case .cancelNotification:
+            guard let eventID = UUID(uuidString: payload["event_id"] as? String ?? ""),
+                  let notificationKind = payload["kind"] as? String
+            else { return nil }
+            action = .cancelNotification(
+                CancelNotificationPayload(eventID: eventID, kind: notificationKind)
             )
         }
 

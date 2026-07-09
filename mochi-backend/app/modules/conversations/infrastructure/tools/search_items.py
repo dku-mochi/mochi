@@ -42,10 +42,15 @@ from app.shared.voyage import VoyageClient, VoyageError
 
 log = get_logger("chat.search_items")
 
-TOP_K = 8
+#: 한 검색이 회수하는 상한. Gemini 100만+ 컨텍스트에서 8은 회상·브라우징(정답 다수) 질문의 재현율
+#: 병목이라 상향했다 — 후보를 넓게 돌려 모델이 스스로 취사하게 한다(기록은 값진 컨텍스트). 실측은
+#: rag-rerank-eval 코퍼스가 @10 천장이라 이 축을 못 재므로(FINDINGS 한계), 코퍼스 1000+ 확장 후로 미룸.
+TOP_K = 25
 SNIPPET_CHARS = 300
-#: rerank 입력 후보 수 (갈래당) — 키워드 24 + 의미 24 를 합쳐 rerank-2.5 가 최종 limit 을 뽑는다.
-RERANK_CANDIDATES = 24
+#: rerank 입력 후보 수 (갈래당) — 키워드 50 + 의미 50 을 합쳐 rerank-2.5 가 최종 limit 을 뽑는다.
+#: 후보 50 은 rag-rerank-eval 파이프라인 C(RRF Top50→rerank)가 이미 검증한 폭이다. 확대 비용은
+#: DB LIMIT + rerank 입력 토큰(최대 100 문서)뿐 — 재현율 이득이 이를 정당화한다.
+RERANK_CANDIDATES = 50
 
 _PARAMETERS: dict[str, Any] = {
     "type": "object",
@@ -185,6 +190,8 @@ _SELECT_COLUMNS = f"""m.id,
                    left(coalesce(m.summary, m.text, m.user_memo, ''), {SNIPPET_CHARS}) AS snippet,
                    m.captured_at,
                    m.channel,
+                   m.importance,
+                   m.is_favorite,
                    (SELECT coalesce(array_agg(DISTINCT ii.intent_type), ARRAY[]::varchar[])
                     FROM intent_instances ii WHERE ii.mochi_item_id = m.id) AS intents,
                    (SELECT coalesce(array_agg(ii.label), ARRAY[]::varchar[])
@@ -209,8 +216,9 @@ class SearchItemsTool:
         "event happens or is due — asks about a period's plans or due work need occurs_*, "
         "because a plan for tomorrow was usually saved earlier. If a call comes back empty, "
         "one reframed retry (describe what the record is about, or relax filters) is enough "
-        "for that need before concluding nothing is saved. Returns id, snippet, intents, and "
-        "captured time per record."
+        "for that need before concluding nothing is saved. Returns id, snippet, intents, "
+        "captured time, importance, and whether the user favorited it per record — a favorited "
+        "or high-importance record is a strong signal the user cares about it."
     )
     parameters = _PARAMETERS
 
@@ -315,13 +323,16 @@ class SearchItemsTool:
                 "captured_at": row.captured_at.isoformat(),
                 "channel": row.channel,
                 "intents": list(row.intents or []),
+                "importance": row.importance,
+                "is_favorite": row.is_favorite,
             }
             for row in merged
         ]
         return ChatToolResult(
             payload={"items": items, "count": len(items)},
             summary=f"기록 {len(items)}개를 찾았어요" if items else "맞는 기록을 못 찾았어요",
-            compact={"items": [{"id": i["id"], "snippet": i["snippet"][:60]} for i in items[:3]]},
+            # 과거 턴 재주입본 — full 결과는 현재 턴에만 남으므로 compact 가 멀티턴 회수의 실질 창이다.
+            compact={"items": [{"id": i["id"], "snippet": i["snippet"][:120]} for i in items[:10]]},
         )
 
     async def _keyword_candidates(

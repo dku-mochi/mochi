@@ -63,6 +63,8 @@ class _Row:
         self.channel = "appDirectInput"
         self.intents = ["memo"]
         self.labels = labels or []
+        self.importance = 3
+        self.is_favorite = False
 
 
 class _FakeVoyage:
@@ -231,7 +233,8 @@ async def test_multi_query_fuses_candidates_and_reranks_once() -> None:
     voyage = _FakeVoyage(ranked=[RerankedDocument(index=0, relevance_score=0.9)])
     tool = SearchItemsTool(
         session_factory=lambda: _FakeSession(
-            captured, results=[[a], [a], [b], [b]]  # q1 키워드/벡터=a, q2 키워드/벡터=b
+            captured,
+            results=[[a], [a], [b], [b]],  # q1 키워드/벡터=a, q2 키워드/벡터=b
         ),
         voyage=voyage,  # type: ignore[arg-type]
     )
