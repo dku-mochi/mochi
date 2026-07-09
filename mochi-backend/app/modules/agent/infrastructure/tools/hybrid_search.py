@@ -45,9 +45,7 @@ class HybridSearchTool(ContextAwareTool[HybridSearchInput, HybridSearchOutput]):
     async def run_with_context(
         self, payload: HybridSearchInput, *, context: ToolContext
     ) -> tuple[HybridSearchOutput, ToolUsage]:
-        result = await self._search.run(
-            owner_id=context.owner_id, args=payload.model_dump(exclude_none=True)
-        )
+        result = await self._search.run(owner_id=context.owner_id, args=payload.model_dump(exclude_none=True))
         raw = result.payload if isinstance(result.payload, dict) else {}
         items = raw.get("items", [])
         return HybridSearchOutput(items=items, count=len(items)), ToolUsage()

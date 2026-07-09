@@ -102,8 +102,10 @@ def main() -> int:
     grand_runs = [0, 0]
     for d in dirs:
         st = suite_stats(d / "_summary.json")
-        print(f"\n## {st['name']}  (model={st['model']}, prompt={st['prompt']}, "
-              f"n={st['n_cases']} cases x {st['runs_per_case']} runs)")
+        print(
+            f"\n## {st['name']}  (model={st['model']}, prompt={st['prompt']}, "
+            f"n={st['n_cases']} cases x {st['runs_per_case']} runs)"
+        )
         print(f"  케이스 strict(3/3) : {fmt(*st['strict'])}")
         print(f"  run 수준           : {fmt(*st['runs'])}")
         print(f"  케이스 mean pass   : {st['mean_case_pass'] * 100:.1f}%")

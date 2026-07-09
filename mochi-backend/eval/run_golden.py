@@ -120,9 +120,7 @@ def run_once(client, model: str, system_prompt: str, user_text: str, image_path:
         max_output_tokens=4096,
         thinking_config=types.ThinkingConfig(thinking_budget=0),
         tools=[types.Tool(function_declarations=[_finalize_decl()])],
-        tool_config=types.ToolConfig(
-            function_calling_config=types.FunctionCallingConfig(mode="ANY")
-        ),
+        tool_config=types.ToolConfig(function_calling_config=types.FunctionCallingConfig(mode="ANY")),
     )
     parts: list[types.Part] = [types.Part(text=user_text)]
     if image_path is not None:
@@ -153,7 +151,10 @@ def main() -> int:
     args = ap.parse_args()
 
     if not os.environ.get("RUN_EVAL"):
-        print("BLOCKER: live eval 은 RUN_EVAL=1 가드가 필요하다(비용·네트워크). 의도적이면 RUN_EVAL=1 로 실행.", file=sys.stderr)
+        print(
+            "BLOCKER: live eval 은 RUN_EVAL=1 가드가 필요하다(비용·네트워크). 의도적이면 RUN_EVAL=1 로 실행.",
+            file=sys.stderr,
+        )
         return 2
     project = os.environ.get("GOOGLE_CLOUD_PROJECT")
     model = os.environ.get("GEMINI_MODEL", ACTIVE_PROMPT.model_target)

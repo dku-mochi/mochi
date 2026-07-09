@@ -26,9 +26,7 @@ class LogItemAccess:
         self._repo = repository
 
     async def execute(self, command: LogItemAccessCommand) -> None:
-        item = await self._repo.find_by_id(
-            owner_id=command.owner_id, mochi_item_id=command.mochi_item_id
-        )
+        item = await self._repo.find_by_id(owner_id=command.owner_id, mochi_item_id=command.mochi_item_id)
         if item is None:
             return  # best-effort no-op — 없는/타 owner item 은 조용히 무시
         await self._repo.log_access(
