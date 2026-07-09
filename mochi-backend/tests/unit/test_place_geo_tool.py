@@ -157,10 +157,13 @@ async def test_run_returns_empty_with_guidance_when_no_match(monkeypatch: pytest
 
 
 class _FakeResponse:
-    def __init__(self, payload: dict[str, Any]) -> None:
+    def __init__(self, payload: dict[str, Any], *, error: httpx.HTTPError | None = None) -> None:
         self._payload = payload
+        self._error = error
 
     def raise_for_status(self) -> None:
+        if self._error is not None:
+            raise self._error
         return None
 
     def json(self) -> dict[str, Any]:
@@ -170,15 +173,28 @@ class _FakeResponse:
 class _FakeHttp:
     """searchText(post) / photo media(get) 응답을 주입하는 최소 스텁."""
 
-    def __init__(self, *, search: dict[str, Any] | None = None, photo: dict[str, Any] | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        search: dict[str, Any] | None = None,
+        photo: dict[str, Any] | None = None,
+        photo_error: httpx.HTTPError | None = None,
+    ) -> None:
         self._search = search or {}
         self._photo = photo or {}
+        self._photo_error = photo_error
 
-    async def post(self, url: str, json: dict[str, Any] | None = None) -> _FakeResponse:
+    async def post(
+        self,
+        url: str,
+        json: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> _FakeResponse:
+        assert headers and headers["X-Goog-FieldMask"]
         return _FakeResponse(self._search)
 
     async def get(self, url: str, params: dict[str, Any] | None = None) -> _FakeResponse:
-        return _FakeResponse(self._photo)
+        return _FakeResponse(self._photo, error=self._photo_error)
 
 
 def _google_place(lat: float = 37.5360103, lng: float = 126.97225, **over: object) -> dict[str, Any]:
@@ -211,6 +227,26 @@ async def test_enrich_candidate_adds_rating_and_image_to_entity() -> None:
     assert entity["ratingCount"] == 1234
     assert entity["imageUrl"] == "https://lh3.googleusercontent.com/place-photos/abc"
     assert entity["name"] == "몽탄" and entity["lat"] == pytest.approx(37.5360103)
+
+
+@pytest.mark.asyncio
+async def test_enrich_candidate_keeps_rating_when_photo_media_fails() -> None:
+    """photo media 400 은 사진만 포기한다 — 검색 응답의 별점·리뷰수까지 버리면 UI 별점이 사라진다."""
+    cand = _to_candidate(_item())
+    assert cand is not None
+    request = httpx.Request("GET", "https://places.googleapis.com/v1/places/x/photos/y/media")
+    response = httpx.Response(400, request=request)
+    http = _FakeHttp(
+        search={"places": [_google_place()]},
+        photo_error=httpx.HTTPStatusError("bad request", request=request, response=response),
+    )
+
+    out = await _enrich_candidate(http, cand)  # type: ignore[arg-type]
+
+    entity = json.loads(out.place_entity)
+    assert entity["rating"] == 4.6
+    assert entity["ratingCount"] == 1234
+    assert "imageUrl" not in entity
 
 
 @pytest.mark.asyncio
@@ -254,7 +290,12 @@ async def test_enrich_candidate_survives_google_failure() -> None:
     """보강은 부가정보 — Google 호출 실패가 좌표·주소 백본 후보를 죽이지 않는다."""
 
     class _BoomHttp:
-        async def post(self, url: str, json: dict[str, Any] | None = None) -> _FakeResponse:
+        async def post(
+            self,
+            url: str,
+            json: dict[str, Any] | None = None,
+            headers: dict[str, str] | None = None,
+        ) -> _FakeResponse:
             raise httpx.ConnectError("boom")
 
     cand = _to_candidate(_item())
@@ -284,7 +325,12 @@ async def test_first_photo_uri_rejects_malformed_photo_name() -> None:
     fragment·중복 segment)이면 요청 자체를 만들지 않는다(codex P2)."""
     http = _FakeHttp(photo={"photoUri": "https://lh3.googleusercontent.com/x"})
 
-    for bad in ("../../evil", "places/abc/photos/xyz?maxWidthPx=1", "places/abc/photos/xyz#f", "places/a/b/photos/c"):
+    for bad in (
+        "../../evil",
+        "places/abc/photos/xyz?maxWidthPx=1",
+        "places/abc/photos/xyz#f",
+        "places/a/b/photos/c",
+    ):
         assert await _first_photo_uri(http, _google_place(photos=[{"name": bad}])) is None  # type: ignore[arg-type]
 
 
@@ -304,7 +350,9 @@ async def test_run_enriches_when_google_key_present(monkeypatch: pytest.MonkeyPa
     monkeypatch.setattr(
         "app.modules.agent.infrastructure.tools.place_geo.get_settings",
         lambda: type(
-            "S", (), {"naver_client_id": "id", "naver_client_secret": "secret", "google_places_api_key": "g-key"}
+            "S",
+            (),
+            {"naver_client_id": "id", "naver_client_secret": "secret", "google_places_api_key": "g-key"},
         )(),
     )
 
