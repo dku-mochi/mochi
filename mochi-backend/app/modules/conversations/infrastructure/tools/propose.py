@@ -34,6 +34,7 @@ from app.modules.mochi_items.domain.value_objects import (
     InstanceLifecycleKind,
     InstanceLifecycleState,
 )
+from app.modules.notifications.domain.upcoming_feed import UpcomingNotification
 
 _KST = ZoneInfo("Asia/Seoul")
 
@@ -81,6 +82,32 @@ def make_category_reader(
         except Exception as exc:  # noqa: BLE001 — window 조회 실패는 카드 생성을 막지 않는다(메타 도출 graceful 과 일관)
             logger.warning("schedule_meta_category_window_failed", error=str(exc))
             return []
+
+    return _read
+
+
+#: owner-scoped 예정 알림 조회 — reschedule/cancel proposal 이 대상 event 실재·kind 확인용.
+UpcomingReader = Callable[[UUID], Awaitable[list[UpcomingNotification]]]
+
+
+def make_upcoming_reader(
+    session_factory: Callable[[], AsyncSession] | async_sessionmaker[AsyncSession],
+    *,
+    limit: int = 50,
+) -> UpcomingReader:
+    async def _read(owner_id: UUID) -> list[UpcomingNotification]:
+        # cross-module 진입은 notifications.application 까지(ARCHITECTURE §3.3) — infra 직접 reach 금지.
+        from app.modules.notifications.application.get_upcoming_notifications import (
+            GetUpcomingNotifications,
+        )
+        from app.modules.notifications.application.repositories import (
+            make_upcoming_feed_repository,
+        )
+
+        async with session_factory() as session:
+            return await GetUpcomingNotifications(feed=make_upcoming_feed_repository(session)).execute(
+                owner_id=owner_id, limit=limit
+            )
 
     return _read
 
@@ -411,6 +438,96 @@ class ProposeCreateMemoTool:
         )
 
 
+class ProposeRescheduleNotificationTool:
+    name = "propose_reschedule_notification"
+    label = "알림 시각 변경 카드를 준비하고 있어요"
+    description = (
+        "Propose moving a scheduled notification (from a list_notifications result) to a new "
+        "time. event_id must come from list_notifications; fire_at must be a future ISO datetime "
+        "resolved against the current KST time. Confirming reschedules the server push — nothing "
+        "changes until the user taps confirm."
+    )
+    parameters: dict[str, Any] = {
+        "type": "object",
+        "properties": {
+            "event_id": {
+                "type": "string",
+                "description": "Notification event_id from a list_notifications result.",
+            },
+            "fire_at": {"type": "string", "description": "New ISO datetime, KST assumed if no offset."},
+            "display": _DISPLAY_PROPS,
+        },
+        "required": ["event_id", "fire_at"],
+    }
+
+    def __init__(self, upcoming_reader: UpcomingReader):
+        self._upcoming_reader = upcoming_reader
+
+    async def run(self, *, owner_id: UUID, args: dict[str, Any]) -> ChatToolResult:
+        event_id = _parse_uuid(args.get("event_id"))
+        if event_id is None:
+            return _error("event_id must be a UUID from a list_notifications result")
+        fire_at = _parse_iso(str(args.get("fire_at") or ""))
+        if fire_at is None:
+            return _error("fire_at must be ISO datetime")
+        if fire_at <= datetime.now(_KST):
+            return _error("fire_at is in the past — resolve against current time first")
+        target = await _find_upcoming(self._upcoming_reader, owner_id, event_id)
+        if target is None:
+            return _error("that notification isn't in the upcoming list — it may have been sent or cancelled")
+        payload: dict[str, Any] = {
+            "event_id": str(event_id),
+            # microsecond 절삭 — iOS ISO8601 파서가 6자리 fractional 이면 proposal 을 drop (reminder 선례).
+            "fire_at": fire_at.replace(microsecond=0).isoformat(),
+            "display": _display(args, f"'{target.title}' 알림을 옮길까요?"),
+        }
+        return _card("notification_reschedule", payload, summary="알림 시각 변경 카드를 준비했어요")
+
+
+class ProposeCancelNotificationTool:
+    name = "propose_cancel_notification"
+    label = "알림 끄기 카드를 준비하고 있어요"
+    description = (
+        "Propose turning off a scheduled notification (from a list_notifications result). For a "
+        "spaced recall this skips only the next occurrence; for a deadline/nudge it stops the "
+        "whole series — the card copy reflects which, so pass the event you got from "
+        "list_notifications. Nothing changes until the user taps confirm."
+    )
+    parameters: dict[str, Any] = {
+        "type": "object",
+        "properties": {
+            "event_id": {
+                "type": "string",
+                "description": "Notification event_id from a list_notifications result.",
+            },
+            "display": _DISPLAY_PROPS,
+        },
+        "required": ["event_id"],
+    }
+
+    def __init__(self, upcoming_reader: UpcomingReader):
+        self._upcoming_reader = upcoming_reader
+
+    async def run(self, *, owner_id: UUID, args: dict[str, Any]) -> ChatToolResult:
+        event_id = _parse_uuid(args.get("event_id"))
+        if event_id is None:
+            return _error("event_id must be a UUID from a list_notifications result")
+        target = await _find_upcoming(self._upcoming_reader, owner_id, event_id)
+        if target is None:
+            return _error("that notification isn't in the upcoming list — it may have been sent or cancelled")
+        # 취소 의미가 kind 로 갈린다 — spaced 는 이번 회차만 skip, deadline/nudge 는 시리즈 전체 정지.
+        if target.kind == "spaced":
+            fallback = f"'{target.title}' 이번 회차 알림만 건너뛸까요? (다음 회차는 예정대로)"
+        else:
+            fallback = f"'{target.title}' 알림을 끌까요? (남은 단계도 모두 정지)"
+        payload: dict[str, Any] = {
+            "event_id": str(event_id),
+            "kind": target.kind,
+            "display": _display(args, fallback),
+        }
+        return _card("notification_cancel", payload, summary="알림 끄기 카드를 준비했어요")
+
+
 def _parse_iso(raw: str) -> datetime | None:
     try:
         parsed = datetime.fromisoformat(raw)
@@ -419,6 +536,25 @@ def _parse_iso(raw: str) -> datetime | None:
     if parsed.tzinfo is None:
         parsed = parsed.replace(tzinfo=_KST)
     return parsed
+
+
+def _parse_uuid(raw: Any) -> UUID | None:
+    if not isinstance(raw, str):
+        return None
+    try:
+        return UUID(raw)
+    except ValueError:
+        return None
+
+
+async def _find_upcoming(
+    reader: UpcomingReader, owner_id: UUID, event_id: UUID
+) -> UpcomingNotification | None:
+    """owner 예정 알림에서 event_id 매칭 1건 — owner-scoped 조회라 남의 event 는 자연 배제(cross-tenant 방어)."""
+    for notification in await reader(owner_id):
+        if notification.event_id == event_id:
+            return notification
+    return None
 
 
 def _parse_lifecycle(raw: dict[str, Any]) -> InstanceLifecycleState | None:
