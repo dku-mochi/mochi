@@ -103,9 +103,7 @@ class ItemAccessLogRow(Base):
         PgUUIDColumn(as_uuid=True), ForeignKey("mochi_items.id", ondelete="CASCADE")
     )
     source: Mapped[str] = mapped_column(String(16))
-    accessed_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default_factory=datetime.utcnow
-    )
+    accessed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default_factory=datetime.utcnow)
 
     __table_args__ = (
         Index("ix_item_access_log_owner_accessed", "owner_id", "accessed_at"),

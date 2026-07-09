@@ -92,7 +92,9 @@ def test_row_to_entity_place_map_url_allowlist() -> None:
 
 
 def test_row_to_entity_takes_first_valid_place() -> None:
-    row = _row(entities=[("place", "{bad json"), ("place", _place_json()), ("place", _place_json(name="둘째"))])
+    row = _row(
+        entities=[("place", "{bad json"), ("place", _place_json()), ("place", _place_json(name="둘째"))]
+    )
 
     place = _row_to_entity(row).place
 

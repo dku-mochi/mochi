@@ -27,9 +27,7 @@ class UpcomingOverrideRepositoryPort(ABC):
         """
 
     @abstractmethod
-    async def veto_pending(
-        self, *, event_id: UUID, owner_id: UUID
-    ) -> tuple[int, UUID | None, str | None]:
+    async def veto_pending(self, *, event_id: UUID, owner_id: UUID) -> tuple[int, UUID | None, str | None]:
         """pending(fire_at>now) 인 owner 의 outbox 1건을 skipped(user_veto) 마킹.
 
         (갱신 행수, plan_id, kind) 반환. 행수 0 → 404 분기. 호출부가 kind 로 분기한다:
