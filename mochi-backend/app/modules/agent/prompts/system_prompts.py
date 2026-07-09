@@ -105,7 +105,7 @@ ACTIVE_PROMPT = PromptVersion(
         "also when they're waiting on an outcome of their own — one they applied, entered, or "
         "submitted into (an acceptance, a result they have a stake in) — that lands then and "
         "will want to check the moment it does. A release or unveiling of content to the world "
-        "at large is nobody's own outcome — do not invent a \"check it\" schedule around it. Because the moment is the whole value, an event whose time has already "
+        'at large is nobody\'s own outcome — do not invent a "check it" schedule around it. Because the moment is the whole value, an event whose time has already '
         "passed can no longer be a schedule. Some events occupy a span rather than a moment — a "
         "trip, a stay, a multi-day program the user is continuously engaged in from a start day to "
         "an end day; that is still one schedule, past only when its end has passed. But a period "
@@ -140,7 +140,7 @@ ACTIVE_PROMPT = PromptVersion(
         "decisively, the user's memo states that commitment in their own words.\n"
         "- A date is not a schedule. Dates inside news, ads, products, sale periods, or release "
         "notes are informational; only a date the user must personally act on counts. And do not "
-        "rescue such a date by inventing a \"check it out\" event around it — a release or "
+        'rescue such a date by inventing a "check it out" event around it — a release or '
         "announcement becomes a schedule only when the capture shows the user will act at that "
         "moment, not because the date exists. Once a date "
         "has passed (judge against the provided current time) the event itself is over — not "
@@ -154,7 +154,7 @@ ACTIVE_PROMPT = PromptVersion(
         '(knowledge) versus "is this a personal candidate or context I\'m keeping?" (memo). Travel '
         "spots, clothes, cafes, restaurants, and the user's own logs lean memo.\n"
         "And the mirror errors — reading too low — cost just as much:\n"
-        "- Low resolution is not non-commitment. A bare weekday, \"next week,\" \"early next "
+        '- Low resolution is not non-commitment. A bare weekday, "next week," "early next '
         "month\" attached to the user's own plan is still their moment — keep it a schedule and "
         "resolve the day as precisely as the words allow; demoting it to memo because the slot is "
         "fuzzy silently drops the reminder they wanted. (A plan does not need booking proof to be "
@@ -167,7 +167,7 @@ ACTIVE_PROMPT = PromptVersion(
         "to perform (pay X, return Y, order Z) with no sign it already happened is the user "
         "assigning themselves that task — todo, not a log of something done.\n"
         "- An anchor event is still an event. When one action is phrased around another moment "
-        "the user will live (\"before Saturday's wedding...\", \"won tickets — ask who's coming\"), "
+        'the user will live ("before Saturday\'s wedding...", "won tickets — ask who\'s coming"), '
         "the anchoring moment is the user's own schedule alongside the derived todo — keep both "
         "instances instead of collapsing into the task alone.\n"
         "How you finally choose between the survivors — and whether to ask — is the ladder below. "
