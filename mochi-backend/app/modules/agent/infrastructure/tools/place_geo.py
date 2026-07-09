@@ -196,7 +196,7 @@ async def _enrich_with_google(candidates: list[PlaceCandidate], api_key: str) ->
     실패는 후보 단위로 삼킨다(_enrich_candidate) — 보강은 부가정보라 어떤 실패도
     좌표·주소 백본을 해치지 않는다. 후보는 최대 5개, 동시 실행으로 왕복 1회분 latency.
     """
-    headers = {"X-Goog-Api-Key": api_key, "X-Goog-FieldMask": _GOOGLE_FIELD_MASK}
+    headers = {"X-Goog-Api-Key": api_key}
     async with httpx.AsyncClient(headers=headers, timeout=10) as http:
         return list(await asyncio.gather(*(_enrich_candidate(http, c) for c in candidates)))
 
@@ -214,9 +214,12 @@ async def _enrich_candidate(http: httpx.AsyncClient, cand: PlaceCandidate) -> Pl
             # 리뷰 수는 별점 없이는 의미가 없다 — rating 이 실릴 때만 함께 싣는다.
             if isinstance(count, int) and not isinstance(count, bool) and count >= 0:
                 extras["ratingCount"] = count
-        image_url = await _first_photo_uri(http, place)
-        if image_url:
-            extras["imageUrl"] = image_url
+        try:
+            image_url = await _first_photo_uri(http, place)
+            if image_url:
+                extras["imageUrl"] = image_url
+        except (httpx.HTTPError, ValueError) as exc:
+            log.warning("tool.place_geo.google_photo_failed", place=cand.name, error=str(exc))
         if not extras:
             return cand
         entity = json.loads(cand.place_entity)
@@ -243,7 +246,7 @@ async def _google_search_text(http: httpx.AsyncClient, cand: PlaceCandidate) -> 
             }
         },
     }
-    resp = await http.post(_GOOGLE_SEARCH_URL, json=body)
+    resp = await http.post(_GOOGLE_SEARCH_URL, json=body, headers={"X-Goog-FieldMask": _GOOGLE_FIELD_MASK})
     resp.raise_for_status()
     places = resp.json().get("places")
     if not isinstance(places, list) or not places or not isinstance(places[0], dict):
