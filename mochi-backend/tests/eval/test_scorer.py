@@ -33,14 +33,18 @@ def test_overcount_fails():
 
 
 def test_recall_all_core_and_dates_passes():
-    out = {"intent_instances": [
-        _inst("todo", "기획서 제출", deadline="2026-07-07"),
-        _inst("schedule", "결과발표 확인", date="2026-07-27"),
-    ]}
-    exp = {"core": [
-        {"name": "기획서", "kw": ["기획서"], "type": "todo", "date": "2026-07-07"},
-        {"name": "결과발표", "kw": ["결과발표"], "type": "schedule", "date": "2026-07-27"},
-    ]}
+    out = {
+        "intent_instances": [
+            _inst("todo", "기획서 제출", deadline="2026-07-07"),
+            _inst("schedule", "결과발표 확인", date="2026-07-27"),
+        ]
+    }
+    exp = {
+        "core": [
+            {"name": "기획서", "kw": ["기획서"], "type": "todo", "date": "2026-07-07"},
+            {"name": "결과발표", "kw": ["결과발표"], "type": "schedule", "date": "2026-07-27"},
+        ]
+    }
     r = score_case(out, exp)
     assert r["recall"] == "2/2"
     assert r["date_accuracy"] is True
@@ -50,10 +54,12 @@ def test_recall_all_core_and_dates_passes():
 
 def test_missing_core_fails_recall():
     out = {"intent_instances": [_inst("todo", "기획서 제출", deadline="2026-07-07")]}
-    exp = {"core": [
-        {"name": "기획서", "kw": ["기획서"]},
-        {"name": "결과발표", "kw": ["결과발표"]},
-    ]}
+    exp = {
+        "core": [
+            {"name": "기획서", "kw": ["기획서"]},
+            {"name": "결과발표", "kw": ["결과발표"]},
+        ]
+    }
     assert score_case(out, exp)["passed"] is False
 
 

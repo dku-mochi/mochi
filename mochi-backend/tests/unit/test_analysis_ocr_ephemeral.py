@@ -48,9 +48,7 @@ def test_ocr_injected_as_block_separate_from_source_text() -> None:
 
 
 def test_no_ocr_block_when_absent() -> None:
-    text = _initial_user_text(
-        AnalysisInput(text="t", url=None, user_memo=None, analysis_ocr_text=None)
-    )
+    text = _initial_user_text(AnalysisInput(text="t", url=None, user_memo=None, analysis_ocr_text=None))
     assert "# 화면 텍스트 (OCR)" not in text
 
 

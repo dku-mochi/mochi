@@ -94,7 +94,9 @@ class ListNotificationsTool:
         # (search_items 의 occurs graceful 과 갈라지는 이유: 여기선 시각이 질문의 본질이다.)
         if args.get("fire_from") and fire_from is None:
             return ChatToolResult(
-                payload={"error": "fire_from must be ISO datetime — resolve '내일/이번주' against current KST"},
+                payload={
+                    "error": "fire_from must be ISO datetime — resolve '내일/이번주' against current KST"
+                },
                 summary="알림을 확인하지 못했어요",
             )
         if args.get("fire_to") and fire_to is None:

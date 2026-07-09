@@ -317,7 +317,7 @@ def _function_declarations(tools: list[Tool[Any, Any]]) -> list[types.FunctionDe
                         "returns nothing). Compare the returned candidates' address/category "
                         "against the capture's evidence, pick the one that IS the captured place, "
                         "and copy its place_entity string verbatim into entities as "
-                        "{\"kind\":\"place\",\"value\":<that exact string>} — at most one per "
+                        '{"kind":"place","value":<that exact string>} — at most one per '
                         "capture, the place the record is about. If no candidate matches, store no "
                         "place entity: a wrong pin is worse than none. Skip it for online-only "
                         "targets, broad areas (a city, a neighborhood), or when no specific place "

@@ -46,9 +46,7 @@ class PostgresUpcomingOverrideRepository(UpcomingOverrideRepositoryPort):
         await self._session.flush()
         return result.rowcount or 0
 
-    async def veto_pending(
-        self, *, event_id: UUID, owner_id: UUID
-    ) -> tuple[int, UUID | None, str | None]:
+    async def veto_pending(self, *, event_id: UUID, owner_id: UUID) -> tuple[int, UUID | None, str | None]:
         # 대상 pending 1건을 skipped(user_veto). RETURNING 으로 plan_id+kind 회수 → 호출부가 kind 로
         # 분기(spaced=다음 회차 전진 / deadline·nudge=cancel_plan 시리즈 중단).
         stmt = (
