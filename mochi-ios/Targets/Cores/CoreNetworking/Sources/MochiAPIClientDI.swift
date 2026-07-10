@@ -83,6 +83,9 @@ public struct NotConfiguredAPIClient: MochiAPIClient {
     public func recordRecallReaction(eventID: UUID, reaction: RecallReaction) async throws {
         throw Self.error
     }
+    public func recordRecallItemReaction(itemID: UUID, reaction: RecallReaction) async throws {
+        throw Self.error
+    }
     public func upcomingNotifications(limit: Int) async throws -> [UpcomingNotificationDTO] {
         throw Self.error
     }

@@ -1785,7 +1785,7 @@ public struct Client: APIProtocol {
     /// tool_started   {run_id, name, label}
     /// tool_finished  {run_id, name, summary}
     /// citation       {run_id, index, item_id, title, snippet}
-    /// proposal       {run_id, id, type, payload}        (type: item_update|item_delete|create_schedule|reminder|create_memo)
+    /// proposal       {run_id, id, type, payload}        (type: item_update|item_delete|create_schedule|reminder|create_memo|notification_reschedule|notification_cancel)
     /// done           {run_id, message_id}               (assistant 메시지 행 id)
     /// error          {run_id, code, message}
     /// ```
@@ -2453,6 +2453,60 @@ public struct Client: APIProtocol {
                     template: "/api/v1/recall/events/{}/reaction",
                     parameters: [
                         input.path.event_id
+                    ]
+                )
+                var request: HTTPTypes.HTTPRequest = .init(
+                    soar_path: path,
+                    method: .post
+                )
+                suppressMutabilityWarning(&request)
+                let body: OpenAPIRuntime.HTTPBody?
+                switch input.body {
+                case let .json(value):
+                    body = try converter.setRequiredRequestBodyAsJSON(
+                        value,
+                        headerFields: &request.headerFields,
+                        contentType: "application/json; charset=utf-8"
+                    )
+                }
+                return (request, body)
+            },
+            deserializer: { response, responseBody in
+                switch response.status.code {
+                case 204:
+                    return .noContent(.init())
+                default:
+                    return .undocumented(
+                        statusCode: response.status.code,
+                        .init(
+                            headerFields: response.headerFields,
+                            body: responseBody
+                        )
+                    )
+                }
+            }
+        )
+    }
+    /// Record Recall Item Reaction
+    ///
+    /// 피드 표면(홈 한 칸·자세히·회수 상세) 반응 보고 — item 기준 (owner-scoped, 멱등).
+    ///
+    /// 피드 카드는 event 유무와 무관하게 존재해(트랙 A: sent event 없음 가능, 트랙 C: pending 노출)
+    /// event 기준 보고가 유실됐다 — 그 유실이 "열어본 카드가 재fetch 마다 부활"의 원인. `opened` 는
+    /// 트랙 C 행 종결/기록 + spaced knowledge 소생, `stop` 은 spaced plan cancel + 트랙 C 행 종결.
+    /// `dismissed` 는 피드 제스처가 아니라 400. item 없음/남의 item 은 404.
+    ///
+    /// - Remark: HTTP `POST /api/v1/recall/items/{item_id}/reaction`.
+    /// - Remark: Generated from `#/paths//api/v1/recall/items/{item_id}/reaction/post(record_recall_item_reaction_api_v1_recall_items__item_id__reaction_post)`.
+    public func record_recall_item_reaction_api_v1_recall_items__item_id__reaction_post(_ input: Operations.record_recall_item_reaction_api_v1_recall_items__item_id__reaction_post.Input) async throws -> Operations.record_recall_item_reaction_api_v1_recall_items__item_id__reaction_post.Output {
+        try await client.send(
+            input: input,
+            forOperation: Operations.record_recall_item_reaction_api_v1_recall_items__item_id__reaction_post.id,
+            serializer: { input in
+                let path = try converter.renderedPath(
+                    template: "/api/v1/recall/items/{}/reaction",
+                    parameters: [
+                        input.path.item_id
                     ]
                 )
                 var request: HTTPTypes.HTTPRequest = .init(
