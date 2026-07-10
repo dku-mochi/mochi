@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 import { ArrowLeft, ArrowRight, ArrowUpRight } from "lucide-react";
 import type { SeedRecallEntry } from "@seed/schema";
 import type { ResolvedItem } from "@/lib/seedRuntime";
@@ -11,7 +12,7 @@ import { cn } from "@/lib/cn";
 
 /*
  * 코버플로우 폴백 — prefers-reduced-motion / WebGL 불가 환경.
- * 카드 1장 + 페이지네이션. 기능 손실 0 원칙.
+ * 카드 1장 + 페이지네이션. 기능 손실 0 원칙 — ← → 키도 코버플로우와 동일하게 동작.
  */
 export function RecallFallback({
   entries,
@@ -25,12 +26,35 @@ export function RecallFallback({
   onFocalChange: (i: number) => void;
 }) {
   const { persona } = usePersona();
+  const rootRef = useRef<HTMLDivElement>(null);
   const item = items[focal];
   const entry = entries[focal];
   const count = items.length;
 
+  // 진입 시 포커스 — 레일 힌트("← → 는 카드 넘기기")가 폴백에서도 참이 되게
+  useEffect(() => {
+    rootRef.current?.focus({ preventScroll: true });
+  }, []);
+
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center justify-center gap-5 px-5 pb-8 text-center">
+    <div
+      ref={rootRef}
+      role="group"
+      data-owns-arrows
+      aria-roledescription="캐러셀"
+      aria-label={`떠오른 기록 ${count}개 중 ${focal + 1}번째: ${item.title}`}
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key !== "ArrowRight" && e.key !== "ArrowLeft" && e.key !== "Enter") return;
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.key === "ArrowRight") onFocalChange((focal + 1) % count);
+        if (e.key === "ArrowLeft") onFocalChange((focal - 1 + count) % count);
+        if (e.key === "Enter")
+          window.location.assign(`/p/${persona.slug}/items/${item.slug}`);
+      }}
+      className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center justify-center gap-5 px-5 pb-8 text-center"
+    >
       <div className="w-[240px] overflow-hidden rounded-2xl shadow-card-lift ring-1 ring-black/10">
         {item.image ? (
           <Image

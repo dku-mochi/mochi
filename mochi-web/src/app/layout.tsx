@@ -18,7 +18,7 @@ const cafe24 = localFont({
 
 export const metadata: Metadata = {
   title: {
-    default: "모찌 — 필요한 기억은 쉽게 떠오른다",
+    default: "모찌, 필요한 기억은 쉽게 떠오른다",
     template: "%s · 모찌",
   },
   description:

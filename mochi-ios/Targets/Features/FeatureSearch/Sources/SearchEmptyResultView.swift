@@ -16,6 +16,9 @@ struct SearchEmptyResultView: View {
     let onAskMochi: () -> Void
     let onRetryAll: () -> Void
 
+    /// 마스코트 → 메시지 → CTA 순서로 떠오르는 내부 시차 — 홈 `riseIn` 패턴 재사용.
+    @State private var hasEntered = false
+
     var body: some View {
         VStack(spacing: 0) {
             SearchFilterBar(
@@ -33,19 +36,23 @@ struct SearchEmptyResultView: View {
                     mascot
                         .padding(.top, 60)
                         .padding(.bottom, 28)
+                        .riseIn(hasEntered, index: 0)
 
                     headings
                         .padding(.bottom, 36)
+                        .riseIn(hasEntered, index: 1)
 
                     ctas
                         .padding(.horizontal, SearchD5.Sizes.pageH)
                         .padding(.bottom, 16)
+                        .riseIn(hasEntered, index: 2)
                 }
                 .frame(maxWidth: .infinity)
             }
             .scrollIndicators(.hidden)
             .scrollDismissesKeyboard(.immediately)
         }
+        .onAppear { hasEntered = true }
     }
 
     // MARK: - 모찌(?) + halo
@@ -100,7 +107,7 @@ struct SearchEmptyResultView: View {
                 )
                 .shadow(color: SearchD5.Palette.primary.opacity(0.28), radius: 14, x: 0, y: 8)
             }
-            .buttonStyle(EmptyCTAPress())
+            .buttonStyle(PressableStyle())
 
             // 종류·카테고리로 좁혀서 0 인 경우에만 — 필터 풀고 전체에서 재검색.
             if isFiltered {
@@ -120,16 +127,9 @@ struct SearchEmptyResultView: View {
                                 .stroke(SearchD5.Palette.cardBorder, lineWidth: 1)
                         )
                 }
-                .buttonStyle(EmptyCTAPress())
+                .buttonStyle(PressableStyle())
             }
         }
     }
 }
-
-private struct EmptyCTAPress: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
-            .animation(.easeOut(duration: 0.14), value: configuration.isPressed)
-    }
-}
+// EmptyCTAPress 삭제(2026-07-10) — Reduce Motion 을 존중하는 공용 PressableStyle 로 통일.

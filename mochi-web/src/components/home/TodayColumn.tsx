@@ -3,16 +3,18 @@
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import { Check } from "lucide-react";
+import { useMemo } from "react";
 import { usePersona } from "@/components/journey/PersonaProvider";
 import {
   activeTodos,
   doneTodos,
-  calendarMap,
+  calendarEntries,
   upcomingSchedules,
   dday,
   koreanDate,
   kstParts,
 } from "@/lib/seedRuntime";
+import { MiniCalendar } from "@/components/primitives/MiniCalendar";
 import { cn } from "@/lib/cn";
 
 /*
@@ -115,18 +117,14 @@ function TodoCard() {
   );
 }
 
-/** 캘린더 점 3종 — sky=일정 · butter=마감 · purple=저장 (iOS 규약) */
+/** 캘린더 점 3종 — sky=일정 · butter=마감 · purple=저장 (iOS 규약). 날짜 클릭 → 그 날 항목. */
 function CalendarCard() {
-  const { items, now } = usePersona();
-  const { year, month, day: today } = kstParts(now);
-  const map = calendarMap(items, year, month);
-
-  const first = new Date(Date.UTC(year, month - 1, 1)).getUTCDay();
-  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
-  const cells: Array<number | null> = [
-    ...Array.from({ length: first }, () => null),
-    ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
-  ];
+  const { persona, items, now } = usePersona();
+  const { year, month } = kstParts(now);
+  const entries = useMemo(
+    () => calendarEntries(items, year, month),
+    [items, year, month],
+  );
 
   return (
     <section
@@ -134,67 +132,13 @@ function CalendarCard() {
       className="rounded-2xl border border-ink-100 bg-surface p-5 shadow-card"
     >
       <h2 className="text-[17px] font-extrabold tracking-snug">{month}월</h2>
-      <div className="mt-3 grid grid-cols-7 gap-y-1 text-center">
-        {["일", "월", "화", "수", "목", "금", "토"].map((w) => (
-          <span key={w} className="text-[10.5px] font-semibold text-ink-300">
-            {w}
-          </span>
-        ))}
-        {cells.map((day, i) => {
-          const dots = day ? map.get(day) : undefined;
-          const summary = dots
-            ? [
-                dots.schedule > 0 ? `일정 ${dots.schedule}개` : null,
-                dots.deadline > 0 ? `마감 ${dots.deadline}개` : null,
-                dots.saved > 0 ? `저장 ${dots.saved}개` : null,
-              ]
-                .filter(Boolean)
-                .join(", ")
-            : "";
-          return (
-            <div
-              key={i}
-              className="flex h-9 flex-col items-center justify-start pt-1"
-              aria-label={day ? `${month}월 ${day}일${summary ? ` — ${summary}` : ""}` : undefined}
-            >
-              {day && (
-                <>
-                  <span
-                    className={cn(
-                      "flex size-6 items-center justify-center rounded-full text-[12px] font-semibold tnum",
-                      day === today ? "bg-purple-500 text-white" : "text-ink-700",
-                    )}
-                  >
-                    {day}
-                  </span>
-                  <span className="mt-0.5 flex gap-[3px]" aria-hidden>
-                    {dots && dots.schedule > 0 && (
-                      <i className="size-[4.5px] rounded-full bg-sky-400" />
-                    )}
-                    {dots && dots.deadline > 0 && (
-                      <i className="size-[4.5px] rounded-full bg-butter-400" />
-                    )}
-                    {dots && dots.saved > 0 && (
-                      <i className="size-[4.5px] rounded-full bg-purple-400" />
-                    )}
-                  </span>
-                </>
-              )}
-            </div>
-          );
-        })}
-      </div>
-      <div className="mt-3 flex gap-4 border-t border-ink-100 pt-3">
-        {[
-          ["일정", "bg-sky-400"],
-          ["마감", "bg-butter-400"],
-          ["저장", "bg-purple-400"],
-        ].map(([label, color]) => (
-          <span key={label} className="flex items-center gap-1.5 text-[11px] font-medium text-ink-500">
-            <i className={`size-[5px] rounded-full ${color}`} aria-hidden />
-            {label}
-          </span>
-        ))}
+      <div className="mt-3">
+        <MiniCalendar
+          now={now}
+          entries={entries}
+          hrefFor={(slug) => `/p/${persona.slug}/items/${slug}`}
+          legend
+        />
       </div>
     </section>
   );

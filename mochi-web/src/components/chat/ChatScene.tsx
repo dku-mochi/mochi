@@ -56,14 +56,20 @@ export function ChatScene({ initialQuery }: { initialQuery?: string }) {
         {empty ? (
           <div className="flex h-full flex-col items-center justify-center text-center">
             <RiseIn index={0}>
-              <Image
-                src="/brand/mochi-chat.png"
-                alt=""
-                width={88}
-                height={88}
-                className="mx-auto h-[76px] w-auto"
-                priority
-              />
+              <div className="relative">
+                <div
+                  className="absolute left-1/2 top-1/2 size-52 -translate-x-1/2 -translate-y-1/2 rounded-full bg-glow/20 blur-3xl"
+                  aria-hidden
+                />
+                <Image
+                  src="/brand/mochi-chat.png"
+                  alt=""
+                  width={88}
+                  height={88}
+                  className="relative mx-auto h-[76px] w-auto"
+                  priority
+                />
+              </div>
             </RiseIn>
             <RiseIn index={1}>
               <h1 className="mt-4 font-display text-[24px] tracking-head">
@@ -78,7 +84,7 @@ export function ChatScene({ initialQuery }: { initialQuery?: string }) {
                 <button
                   key={q}
                   onClick={() => submit(q)}
-                  className="rounded-full border border-purple-100 bg-purple-50 px-4 py-2.5 text-[13.5px] font-semibold text-purple-600 transition-transform active:scale-[0.97]"
+                  className="rounded-full border border-purple-100 bg-purple-50 px-4 py-2.5 text-[13.5px] font-semibold text-purple-600 transition-[background-color,border-color,transform] hover:border-purple-200 hover:bg-purple-100 active:scale-[0.97]"
                 >
                   {q}
                 </button>
@@ -114,7 +120,8 @@ export function ChatScene({ initialQuery }: { initialQuery?: string }) {
             ))}
           </div>
         )}
-        <BorderBeam size="pulse-outside" colorVariant="ocean" theme="light" borderRadius={22}>
+        {/* hueRange 기본 30 은 ocean 블루를 초록까지 회전시킨다 — 브랜드 퍼플-블루 안에 묶는다 */}
+        <BorderBeam size="pulse-outside" colorVariant="ocean" theme="light" borderRadius={22} hueRange={10}>
         <form
           onSubmit={(e) => {
             e.preventDefault();

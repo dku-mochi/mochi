@@ -2,12 +2,13 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Search } from "lucide-react";
+import { Search, Sparkles } from "lucide-react";
 import type { IntentType } from "@seed/schema";
 import { usePersona } from "@/components/journey/PersonaProvider";
 import { useSearch } from "@/lib/hooks/useSearch";
+import { resolveItemSlug } from "@/lib/hooks/useChatStream";
 import { findItem, type ResolvedItem } from "@/lib/seedRuntime";
 import { ItemTile } from "@/components/tiles/ItemTile";
 import { RiseIn } from "@/components/primitives/RiseIn";
@@ -17,7 +18,8 @@ import { cn } from "@/lib/cn";
 
 /*
  * S4 검색 씬 — "뭐라고 저장했는지 기억 안 나도" 자연어로 다시 찾는다.
- * idle 은 전체 모자이크(브라우징), 제출 시 의미검색 → AnswerCard + 근거 리플로우.
+ * 검색의 답은 기록 타일이다: 문구 일치(literal)를 앞세우고 의미검색(citations)으로
+ * 보강한다 — iOS SearchFeature 와 같은 규칙. 문장 답변은 채팅(S5)의 몫.
  */
 
 const SCOPES: Array<{ key: IntentType | "all"; label: string }> = [
@@ -28,10 +30,43 @@ const SCOPES: Array<{ key: IntentType | "all"; label: string }> = [
   { key: "memo", label: "기록" },
 ];
 
+/** 문구 일치 — 토큰 부분일치 수로 점수화 (폴백 엔진과 같은 규칙, 클라 즉시 실행) */
+function literalMatch(items: ResolvedItem[], query: string): string[] {
+  const tokens = query
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((t) => t.length > 1);
+  if (tokens.length === 0) return [];
+  return items
+    .map((item) => {
+      const hay = [
+        item.title,
+        item.summary,
+        item.category,
+        item.ocrText ?? "",
+        item.text ?? "",
+        item.userMemo ?? "",
+      ]
+        .join(" ")
+        .toLowerCase();
+      return { slug: item.slug, score: tokens.reduce((n, t) => (hay.includes(t) ? n + 1 : n), 0) };
+    })
+    .filter((h) => h.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .map((h) => h.slug);
+}
+
 export function SearchScene() {
-  const { persona, items, now } = usePersona();
+  const { persona, items, liveIdToSlug, liveSlugs, now } = usePersona();
   const knownSlugs = useMemo(() => new Set(items.map((i) => i.slug)), [items]);
-  const search = useSearch(persona.slug, knownSlugs);
+
+  // citation id 해석 — 시드 uuid 매핑에 더해, 이 세션의 내 라이브 기록도 되살린다.
+  // 매핑에 없는 id(다른 방문자의 기록)는 버려진다.
+  const resolveSlug = useCallback(
+    (id: string) => resolveItemSlug(id, knownSlugs) ?? liveIdToSlug.get(id) ?? null,
+    [knownSlugs, liveIdToSlug],
+  );
+  const search = useSearch(persona.slug, resolveSlug);
   const [input, setInput] = useState("");
   const [scope, setScope] = useState<IntentType | "all">("all");
 
@@ -43,16 +78,27 @@ export function SearchScene() {
   const inScope = (item: ResolvedItem) =>
     scope === "all" || item.instances.some((x) => x.intentType === scope);
 
-  const resultItems =
-    search.status === "done"
-      ? search.slugs
-          .map((s) => findItem(items, s))
-          .filter((x): x is ResolvedItem => Boolean(x))
-          .filter(inScope)
-      : [];
+  // literal 우선 + semantic 추가 (중복 제거) — 오류 시에도 literal 은 성립한다
+  const mergedSlugs = useMemo(() => {
+    if (search.status !== "done" && search.status !== "error") return [];
+    return [...new Set([...literalMatch(items, search.query), ...search.slugs])];
+  }, [search.status, search.query, search.slugs, items]);
+
+  const resultItems = mergedSlugs
+    .map((s) => findItem(items, s))
+    .filter((x): x is ResolvedItem => Boolean(x))
+    .filter(inScope);
 
   const idleItems = items.filter(inScope);
-  const showResults = search.status === "done" || search.status === "loading";
+  const settled = search.status === "done" || search.status === "error";
+  const showResults = settled || search.status === "loading";
+
+  // 결과 중 모찌가 이미 먼저 떠올려둔 것 — 리마인드(클라이맥스)를 미리 심는다
+  const recallSlugs = useMemo(
+    () => new Set(persona.recall.map((r) => r.itemSlug)),
+    [persona.recall],
+  );
+  const rememberedCount = resultItems.filter((i) => recallSlugs.has(i.slug)).length;
 
   return (
     <main className="mx-auto max-w-6xl px-5 py-8">
@@ -68,7 +114,7 @@ export function SearchScene() {
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="기억나는 대로 검색해보세요 — 정확하지 않아도 돼요"
+            placeholder="기억나는 대로 검색해보세요. 정확하지 않아도 돼요"
             aria-label="기록 검색"
             className="min-w-0 flex-1 bg-transparent py-2.5 text-[14.5px] outline-none placeholder:text-ink-300"
           />
@@ -93,7 +139,7 @@ export function SearchScene() {
             <button
               key={q}
               onClick={() => submit(q)}
-              className="rounded-full border border-purple-100 bg-purple-50 px-3.5 py-2 text-[13px] font-semibold text-purple-600 transition-transform active:scale-[0.97]"
+              className="rounded-full border border-purple-100 bg-purple-50 px-3.5 py-2 text-[13px] font-semibold text-purple-600 transition-[background-color,border-color,transform] hover:border-purple-200 hover:bg-purple-100 active:scale-[0.97]"
             >
               {q}
             </button>
@@ -103,8 +149,13 @@ export function SearchScene() {
 
       <RiseIn index={2}>
         <div className="mt-6 flex items-center justify-between gap-3">
-          <h1 className="text-[17px] font-extrabold tracking-snug">
+          <h1 className="flex items-baseline gap-2 text-[17px] font-extrabold tracking-snug">
             {showResults ? "찾아온 기록" : "모든 기록"}
+            {settled && (
+              <span className="text-[13px] font-bold text-ink-500 tnum">
+                {resultItems.length}건
+              </span>
+            )}
           </h1>
           <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1" role="group" aria-label="종류 필터">
             {SCOPES.map(({ key, label }) => {
@@ -151,37 +202,51 @@ export function SearchScene() {
             </motion.div>
           )}
 
-          {search.status === "done" && (
+          {search.status === "error" && (
+            <motion.p
+              key="error"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="mt-4 rounded-2xl border border-ink-100 bg-surface px-4 py-3 text-[13px] font-medium text-ink-500 shadow-card"
+            >
+              연결이 잠시 고르지 않아요. 문구가 일치하는 기록부터 보여드릴게요.
+            </motion.p>
+          )}
+
+          {search.status === "done" && rememberedCount > 0 && (
             <motion.div
-              key={`ans-${search.query}`}
-              initial={{ opacity: 0, y: 10 }}
+              key={`recall-${search.query}`}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ type: "spring", duration: 0.45, bounce: 0 }}
-              className="mt-4"
+              className="mt-4 flex items-center gap-2.5 rounded-2xl border border-purple-100 bg-purple-50/70 px-4 py-3"
             >
-              <div className="rounded-2xl border border-ink-100 bg-surface p-5 shadow-card">
-                <p className="flex items-center gap-2 text-[12.5px] font-bold text-ink-500">
-                  <Image src="/brand/mochi2.png" alt="" width={18} height={18} aria-hidden />
-                  모찌의 답
-                </p>
-                <p className="mt-2 text-[15px] leading-relaxed [text-wrap:pretty]">
-                  <Highlight text={search.answer} query={search.query} />
-                </p>
-              </div>
+              <Sparkles className="size-4 flex-none text-purple-500" aria-hidden />
+              <p className="min-w-0 text-[13px] font-medium text-ink-700">
+                이 중 <b className="font-bold text-purple-600">{rememberedCount}건</b>은 찾기 전에
+                모찌가 이미 떠올려뒀어요.{" "}
+                <Link
+                  href={`/p/${persona.slug}/recall`}
+                  className="font-bold text-purple-600 underline-offset-2 hover:underline"
+                >
+                  리마인드 보기
+                </Link>
+              </p>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      {search.status === "done" && resultItems.length === 0 ? (
+      {settled && resultItems.length === 0 ? (
         <div className="flex flex-col items-center py-14 text-center">
           <Image
             src="/brand/mochi-question.png"
             alt=""
             width={84}
             height={84}
-            className="h-[72px] w-auto"
+            className="h-[76px] w-auto"
           />
           <p className="mt-3 text-[16px] font-bold">찾는 기록이 없어요</p>
           <p className="mt-1 text-[13px] text-ink-500">
@@ -189,7 +254,7 @@ export function SearchScene() {
           </p>
           <Link
             href={`/p/${persona.slug}/chat?q=${encodeURIComponent(search.query)}`}
-            className="mt-4 inline-flex h-10 items-center rounded-full bg-ink-900 px-5 text-[13.5px] font-bold text-white"
+            className="mt-4 inline-flex h-10 items-center rounded-full bg-ink-900 px-5 text-[13.5px] font-bold text-white transition-colors hover:bg-ink-700"
           >
             모찌에게 물어보기
           </Link>
@@ -205,37 +270,11 @@ export function SearchScene() {
               item={item}
               now={now}
               href={`/p/${persona.slug}/items/${item.slug}`}
+              highlight={!showResults && liveSlugs.has(item.slug)}
             />
           ))}
         </motion.div>
       )}
     </main>
-  );
-}
-
-/** 검색어 토큰을 butter 하이라이트 (iOS 규칙) */
-function Highlight({ text, query }: { text: string; query: string }) {
-  const tokens = query
-    .toLowerCase()
-    .split(/\s+/)
-    .filter((t) => t.length > 1);
-  if (tokens.length === 0) return <>{text}</>;
-
-  const re = new RegExp(
-    `(${tokens.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})`,
-    "gi",
-  );
-  return (
-    <>
-      {text.split(re).map((part, i) =>
-        re.test(part) ? (
-          <mark key={i} className="rounded-sm bg-butter-100 px-0.5 text-ink-900">
-            {part}
-          </mark>
-        ) : (
-          <span key={i}>{part}</span>
-        ),
-      )}
-    </>
   );
 }

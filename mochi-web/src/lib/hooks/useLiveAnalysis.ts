@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { AnalysisWireEvent, AnalyzedItemWire } from "@/lib/api/wire";
 import { parseSseStream, toTagged } from "@/lib/sse/parse";
+import { recordMode } from "@/lib/liveStats";
 
 /*
  * S2 라이브 분석 훅 — ingest → 진행 SSE(node…final) → 본문 재조회.
@@ -20,7 +21,7 @@ export type AnalysisStage =
 
 export const STAGE_LABEL: Record<Exclude<AnalysisStage, "idle" | "done" | "failed">, string> = {
   sending: "모찌에게 보내는 중…",
-  ingested: "받았어요 — 읽고 있어요…",
+  ingested: "받았어요. 읽고 있어요…",
   normalized: "내용을 간추리고 있어요…",
   analyzing: "무엇을 해둘지 정하고 있어요…",
 };
@@ -35,7 +36,7 @@ export function useLiveAnalysis(personaSlug: string) {
   useEffect(() => () => abortRef.current?.abort(), []);
 
   const run = useCallback(
-    async (input: { text?: string; url?: string; memo?: string }) => {
+    async (input: { text?: string; url?: string; memo?: string; imageFile?: Blob }) => {
       if (runningRef.current) return;
       if (stage !== "idle" && stage !== "done" && stage !== "failed") return;
       runningRef.current = true;
@@ -45,13 +46,28 @@ export function useLiveAnalysis(personaSlug: string) {
       abortRef.current = ac;
 
       try {
-        const ingest = await fetch("/api/bff/ingest", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...input, persona: personaSlug }),
-          signal: ac.signal,
-        });
+        let ingest: Response;
+        if (input.imageFile) {
+          // 이미지는 multipart — BFF 가 presign→GCS PUT→imageRefs ingest 를 대행
+          const form = new FormData();
+          form.append("image", input.imageFile);
+          form.append("persona", personaSlug);
+          if (input.memo) form.append("memo", input.memo);
+          ingest = await fetch("/api/bff/ingest/image", {
+            method: "POST",
+            body: form,
+            signal: ac.signal,
+          });
+        } else {
+          ingest = await fetch("/api/bff/ingest", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ...input, persona: personaSlug }),
+            signal: ac.signal,
+          });
+        }
         if (!ingest.ok) throw new Error(`ingest_http_${ingest.status}`);
+        recordMode(ingest.headers.get("x-mochi-mode"));
         const { id } = (await ingest.json()) as { id: string };
 
         // 라이브 id 는 서버가 페르소나 계정 토큰으로 프록시 — persona 를 쿼리로 동봉
@@ -60,6 +76,7 @@ export function useLiveAnalysis(personaSlug: string) {
           signal: ac.signal,
         });
         if (!stream.ok || !stream.body) throw new Error(`stream_http_${stream.status}`);
+        recordMode(stream.headers.get("x-mochi-mode"));
 
         for await (const raw of parseSseStream(stream.body, ac.signal)) {
           const e = toTagged<AnalysisWireEvent>(raw);
@@ -79,6 +96,7 @@ export function useLiveAnalysis(personaSlug: string) {
           signal: ac.signal,
         });
         if (!item.ok) throw new Error(`item_http_${item.status}`);
+        recordMode(item.headers.get("x-mochi-mode"));
         setResult((await item.json()) as AnalyzedItemWire);
         setStage("done");
       } catch (err) {

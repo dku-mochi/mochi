@@ -3,11 +3,13 @@ import { GreetingHeader } from "@/components/home/GreetingHeader";
 import { RecentMosaic } from "@/components/home/RecentMosaic";
 import { MonthlyMiniReport } from "@/components/home/MonthlyMiniReport";
 import { TodayColumn } from "@/components/home/TodayColumn";
+import { RecallSpotlight } from "@/components/home/RecallSpotlight";
 
 /* S3 홈 — 쌓인 기록이 생활 동선(할일·마감·최근)으로 정돈된 상태를 증명 */
 export default function HomeScenePage() {
   return (
     <main className="mx-auto grid max-w-6xl grid-cols-1 gap-8 px-5 py-8 lg:grid-cols-12">
+      <RecallSpotlight />
       <div className="space-y-8 lg:col-span-8">
         <RiseIn index={0}>
           <GreetingHeader />

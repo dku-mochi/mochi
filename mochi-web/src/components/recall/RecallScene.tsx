@@ -47,6 +47,11 @@ export function RecallScene() {
   const deck = useRef<DeckHandle>({ rotation: -0.85, target: 0, dragging: false });
   const drag = useRef({ startX: 0, startRot: 0, lastX: 0, lastT: 0, vel: 0 });
   const wheelLock = useRef(0);
+  const stageRef = useRef<HTMLDivElement>(null);
+  // 손을 대는 순간 자동 넘김 영구 정지 — 조작권은 사용자에게
+  const interacted = useRef(false);
+  // 포인터가 무대 위에 있는 동안은 일시정지 — 읽는 중에 카드가 바뀌지 않게
+  const hovering = useRef(false);
 
   useEffect(() => {
     // 마운트 후 1회 WebGL 프로브 — SSR 에서는 document 가 없어 lazy init 불가
@@ -81,16 +86,33 @@ export function RecallScene() {
     d.target = Math.round(d.rotation) + dir;
   }, []);
 
+  const useFallbackDeck = reduce || webgl === false;
+
+  // 무대 진입 시 코버플로우에 포커스 — ← → 가 처음부터 카드를 넘긴다 (전역 단축키 침범 방지)
+  useEffect(() => {
+    if (phase === "stage" && !useFallbackDeck)
+      stageRef.current?.focus({ preventScroll: true });
+  }, [phase, useFallbackDeck]);
+
+  // 조작이 없으면 8초마다 다음 카드 — 심사위원이 손대지 않아도 회수 이유 3종이 보인다
+  useEffect(() => {
+    if (phase !== "stage" || useFallbackDeck) return;
+    const t = setInterval(() => {
+      if (!interacted.current && !hovering.current && !document.hidden) step(1);
+    }, 8000);
+    return () => clearInterval(t);
+  }, [phase, useFallbackDeck, step]);
+
   if (deckItems.length === 0) return null;
   const entry = entries[focal];
   const meta = REASON_META[entry.kind];
 
-  const useFallback = reduce || webgl === false;
+  const useFallback = useFallbackDeck;
 
   return (
     <main
       className="relative h-[calc(100dvh-57px)] min-h-[560px] overflow-hidden"
-      aria-label="떠오름 — 모찌가 먼저 떠올린 기록"
+      aria-label="리마인드 — 모찌가 먼저 떠올린 기록"
     >
       {/* focalGlow — 덱 뒤 공간이 이유 색으로 물든다 (iOS 확장) */}
       <AnimatePresence initial={false}>
@@ -111,9 +133,9 @@ export function RecallScene() {
 
       <div className="relative z-10 flex h-full flex-col">
         <div className="mx-auto w-full max-w-6xl px-5 pt-6">
-          <h1 className="font-display text-[22px] tracking-head">떠오름</h1>
+          <h1 className="font-display text-[22px] tracking-head">리마인드</h1>
           <p className="mt-1 text-[13.5px] font-medium text-ink-500">
-            찾지 않아도 — 모찌가 이유와 함께 먼저 떠올려요
+            찾지 않아도 모찌가 이유와 함께 먼저 떠올려요
           </p>
         </div>
 
@@ -126,13 +148,20 @@ export function RecallScene() {
           />
         ) : (
           <div
-            className="relative min-h-0 flex-1 cursor-grab touch-pan-y select-none active:cursor-grabbing"
+            ref={stageRef}
+            /* 기본 :focus-visible 아웃라인은 풀블리드 무대를 가로지르는 선이 된다 —
+               라운드 인셋 프레임으로 대체 (키보드 사용자 표식은 유지) */
+            className="relative min-h-0 flex-1 cursor-grab touch-pan-y select-none outline-none after:pointer-events-none after:absolute after:inset-x-5 after:inset-y-2 after:rounded-3xl after:border-2 after:border-transparent after:content-[''] focus-visible:after:border-purple-500 active:cursor-grabbing"
             role="group"
             data-owns-arrows
             aria-roledescription="캐러셀"
             aria-label={`떠오른 기록 ${deckItems.length}개 중 ${focal + 1}번째: ${deckItems[focal].title}`}
             tabIndex={0}
             onKeyDown={(e) => {
+              if (e.key !== "ArrowRight" && e.key !== "ArrowLeft" && e.key !== "Enter") return;
+              e.preventDefault();
+              e.stopPropagation();
+              interacted.current = true;
               if (e.key === "ArrowRight") step(1);
               if (e.key === "ArrowLeft") step(-1);
               if (e.key === "Enter")
@@ -140,7 +169,14 @@ export function RecallScene() {
                   `/p/${persona.slug}/items/${deckItems[focal].slug}`,
                 );
             }}
+            onPointerEnter={() => {
+              hovering.current = true;
+            }}
+            onPointerLeave={() => {
+              hovering.current = false;
+            }}
             onPointerDown={(e) => {
+              interacted.current = true;
               const d = deck.current;
               e.currentTarget.setPointerCapture(e.pointerId);
               d.dragging = true;
@@ -176,6 +212,7 @@ export function RecallScene() {
               d.target = Math.round(d.rotation);
             }}
             onWheel={(e) => {
+              interacted.current = true;
               const now = performance.now();
               if (now - wheelLock.current < 320) return;
               const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
@@ -209,15 +246,26 @@ export function RecallScene() {
                 transition={{ type: "spring", duration: 0.4, bounce: 0 }}
               >
                 <ReasonChip kind={entry.kind} />
+                {/* "왜 지금"이 또박또박 맺히는 word-stagger — 클라이맥스의 감정 비트 */}
                 <h2 className="mt-2.5 font-display text-[22px] leading-snug tracking-head [text-wrap:balance]">
-                  {entry.oneline}
+                  {entry.oneline.split(" ").map((word, i) => (
+                    <motion.span
+                      key={`${focal}-${i}`}
+                      className="inline-block whitespace-pre"
+                      initial={reduce ? false : { opacity: 0, y: 8, filter: "blur(3px)" }}
+                      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                      transition={{ duration: 0.3, ease: "easeOut", delay: 0.1 + i * 0.05 }}
+                    >
+                      {word}{" "}
+                    </motion.span>
+                  ))}
                 </h2>
                 <p className="mt-1.5 text-[13.5px] leading-relaxed text-ink-500">
                   {entry.gist.join(" · ")}
                 </p>
                 <Link
                   href={`/p/${persona.slug}/items/${deckItems[focal].slug}`}
-                  className="mt-3.5 inline-flex h-10 items-center gap-1 rounded-full bg-ink-900 px-5 text-[13.5px] font-bold text-white shadow-card transition-transform active:scale-[0.97]"
+                  className="mt-3.5 inline-flex h-10 items-center gap-1 rounded-full bg-ink-900 px-5 text-[13.5px] font-bold text-white shadow-card transition-[background-color,transform] hover:bg-ink-700 active:scale-[0.97]"
                 >
                   이 기록 열기 <ArrowUpRight className="size-4" aria-hidden />
                 </Link>
@@ -230,7 +278,10 @@ export function RecallScene() {
                   key={it.slug}
                   aria-current={i === focal ? "true" : undefined}
                   aria-label={`${i + 1}번째: ${it.title}`}
-                  onClick={() => goTo(i)}
+                  onClick={() => {
+                    interacted.current = true;
+                    goTo(i);
+                  }}
                   className={cn(
                     "relative h-2 rounded-full transition-all duration-300 after:absolute after:-inset-2.5 after:content-['']",
                     i === focal ? "w-6 bg-ink-900" : "w-2 bg-ink-300 hover:bg-ink-500",
@@ -261,7 +312,7 @@ export function RecallScene() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: "easeOut", delay: 0.15 }}
             >
-              그리고 며칠 뒤 아침 —
+              며칠 뒤 아침
             </motion.p>
           </motion.button>
         )}

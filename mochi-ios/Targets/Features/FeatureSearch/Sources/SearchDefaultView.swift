@@ -19,6 +19,9 @@ struct SearchDefaultView: View {
     let onCardToggleFavorite: (MochiItem.ID) -> Void
     let onRefresh: () async -> Void
 
+    /// 빈 상태 마스코트 → 제목 → 부제 시차 등장 — empty 화면과 같은 `riseIn` 패턴.
+    @State private var emptyEntered = false
+
     var body: some View {
         VStack(spacing: 0) {
             SearchFilterBar(
@@ -89,11 +92,13 @@ struct SearchDefaultView: View {
             Spacer(minLength: 0)
             FloatingMascot(imageName: "mochi-question", size: 150)
                 .padding(.bottom, 20)
+                .riseIn(emptyEntered, index: 0)
             Text(typeFilter == .all ? "아직 저장된 모찌가 없어요" : "\(typeFilter.label) 모찌가 없어요")
                 .font(.system(size: 19, weight: .bold, design: .rounded))
                 .tracking(-0.4)
                 .foregroundStyle(SearchD5.Palette.textPrimary)
                 .padding(.bottom, 6)
+                .riseIn(emptyEntered, index: 1)
             Text(typeFilter == .all
                  ? "스크린샷·링크·메모를 모찌에게 보내면\n여기에 차곡차곡 모여요"
                  : "다른 종류에서 찾아보세요")
@@ -102,9 +107,11 @@ struct SearchDefaultView: View {
                 .lineSpacing(3)
                 .foregroundStyle(SearchD5.Palette.textSecondary)
                 .multilineTextAlignment(.center)
+                .riseIn(emptyEntered, index: 2)
             Spacer(minLength: 0)
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity)
+        .onAppear { emptyEntered = true }
     }
 }

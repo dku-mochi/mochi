@@ -9,7 +9,10 @@ export default async function ItemDetailPage({
 }) {
   const { persona: personaSlug, slug } = await params;
   const persona = getPersona(personaSlug);
-  if (!persona || !persona.items.some((i) => i.slug === slug)) notFound();
+  // `live-` slug 는 세션 오버레이(브라우저에만 있는 내 기록) — 클라이언트가 해석한다
+  if (!persona || !(persona.items.some((i) => i.slug === slug) || slug.startsWith("live-"))) {
+    notFound();
+  }
 
   return <DetailScene slug={slug} />;
 }

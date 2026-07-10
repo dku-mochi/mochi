@@ -97,6 +97,14 @@ struct SearchGridCard: View {
                     .fill(tileBackground)
             )
             .clipShape(RoundedRectangle(cornerRadius: SearchD5.Sizes.gridCardRadius, style: .continuous))
+            // 이미지 타일만 1pt 인셋 헤어라인 — 흰 배경 스크린샷(모찌의 다수)이 셀 경계를 잃지 않게.
+            // 파스텔 텍스트 타일은 자체 색이 경계라 두르지 않는다.
+            .overlay {
+                if hasThumbnail {
+                    RoundedRectangle(cornerRadius: SearchD5.Sizes.gridCardRadius, style: .continuous)
+                        .strokeBorder(Color.black.opacity(0.08), lineWidth: 1)
+                }
+            }
             // 즐겨찾기 상태 표시(토글은 컨텍스트 메뉴) — 풀블리드 이미지 위라 material 로 가독성 확보.
             .overlay(alignment: .topTrailing) {
                 if item.isFavorite {
@@ -106,8 +114,11 @@ struct SearchGridCard: View {
                         .padding(5)
                         .background(.ultraThinMaterial, in: Circle())
                         .padding(8)
+                        // 토글 순간 별이 통통하게 자라난다 — 컨텍스트 메뉴 액션의 유일한 시각 피드백.
+                        .transition(.scale(scale: 0.4).combined(with: .opacity))
                 }
             }
+            .animation(.bouncy(duration: 0.4), value: item.isFavorite)
         }
         .buttonStyle(PressableStyle())
         .background(

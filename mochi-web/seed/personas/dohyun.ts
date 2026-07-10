@@ -15,9 +15,9 @@ const dohyun: SeedPersona = {
   name: "박도현",
   age: 29,
   job: "백엔드 개발자 · 3년차",
-  tagline: "카톡으로 받은 링크는 다시 찾으면 없다",
+  tagline: "카톡으로 받은 링크는 다시 찾으면 없더라고요",
   intro:
-    "아티클은 열심히 담아두는데, 정작 필요할 때는 어느 채팅방이었는지부터 뒤진다.",
+    "아티클은 열심히 담아두는데, 정작 필요할 때는 어느 채팅방이었는지부터 뒤져요.",
   uuidEnvKey: "MOCHI_PERSONA_UUID_DOHYUN",
   accent: "mint",
   heroSlugs: ["blog-pgvector", "k8s-cheatsheet", "slack-api-migration"],
@@ -43,7 +43,7 @@ const dohyun: SeedPersona = {
       userMemo: "우리 검색 느린 거 이걸로 잡아보자",
       category: "개발·검색",
       summary:
-        "pgvector HNSW 튜닝 — m·ef_construction 조합별 recall/latency 실측. 검색 지연 개선 후보 1순위.",
+        "pgvector HNSW 튜닝 글이에요. m·ef_construction 조합별 recall/latency 실측이 있어요. 검색 지연 개선 후보 1순위예요.",
       instances: [
         {
           intentType: "knowledge",
@@ -65,7 +65,7 @@ const dohyun: SeedPersona = {
       text: "키워드 정확도와 의미 검색을 RRF로 합치는 구조",
       category: "개발·검색",
       summary:
-        "하이브리드 검색 설계 — BM25와 벡터 결과를 RRF로 융합. 정확 일치 질의가 무너지는 문제의 해법.",
+        "BM25와 벡터 결과를 RRF로 융합하는 하이브리드 검색 설계 글이에요. 정확 일치 질의가 무너지는 문제의 해법이 될 수 있어요.",
       instances: [
         {
           intentType: "knowledge",
@@ -83,10 +83,10 @@ const dohyun: SeedPersona = {
       source: "Safari",
       title: "리랭커 붙이면 뭐가 달라지나",
       url: "https://www.sbert.net/examples/applications/retrieve_rerank/README.html",
-      text: "cross-encoder 리랭킹으로 top-k 품질 올리기 — 비용은 얼마나 드는지",
+      text: "cross-encoder 리랭킹으로 top-k 품질 올리기 - 비용은 얼마나 드는지",
       category: "개발·검색",
       summary:
-        "cross-encoder 리랭킹 정리 — top-k 품질 향상 폭과 추가 지연 비용. 2차 개선 후보.",
+        "cross-encoder 리랭킹을 정리한 글이에요. top-k 품질 향상 폭과 추가 지연 비용을 다뤄요. 2차 개선 후보예요.",
       instances: [
         {
           intentType: "knowledge",
@@ -104,11 +104,11 @@ const dohyun: SeedPersona = {
       source: "카카오톡",
       title: "Grafana로 API 지연 잡아낸 이야기",
       url: "https://grafana.com/blog/",
-      text: "선배가 보내준 글 — p99 지연 원인을 대시보드로 좁혀가는 과정",
+      text: "선배가 보내준 글 - p99 지연 원인을 대시보드로 좁혀가는 과정",
       userMemo: "선배가 준 링크. 나중에 정독",
       category: "개발·모니터링",
       summary:
-        "Grafana 대시보드로 p99 지연 원인을 좁혀가는 실전기 — 카톡으로 받아서 저장.",
+        "Grafana 대시보드로 p99 지연 원인을 좁혀가는 실전기예요. 카카오톡으로 받아서 저장해뒀어요.",
       instances: [
         {
           intentType: "knowledge",
@@ -128,7 +128,7 @@ const dohyun: SeedPersona = {
       ocrText:
         "kubectl get pods -A / logs -f --tail=100 / describe pod / rollout restart deploy / exec -it -- sh / top pods",
       category: "개발·인프라",
-      summary: "자주 쓰는 kubectl 명령 모음 — 로그, 롤아웃 재시작, 리소스 확인.",
+      summary: "자주 쓰는 kubectl 명령 모음이에요. 로그, 롤아웃 재시작, 리소스 확인까지 있어요.",
       instances: [
         {
           intentType: "knowledge",
@@ -147,10 +147,10 @@ const dohyun: SeedPersona = {
       source: "스크린샷",
       title: "OOMKilled 트러블슈팅",
       ocrText:
-        "Last State: Terminated, Reason: OOMKilled — requests/limits 재계산, 힙 덤프 확보, JVM Xmx는 limit의 75%",
+        "Last State: Terminated, Reason: OOMKilled - requests/limits 재계산, 힙 덤프 확보, JVM Xmx는 limit의 75%",
       category: "개발·인프라",
       summary:
-        "파드 OOMKilled 대응 절차 — 메모리 limit 재계산과 힙 덤프 확보 순서.",
+        "파드 OOMKilled 대응 절차예요. 메모리 limit 재계산과 힙 덤프 확보 순서를 정리했어요.",
       instances: [
         {
           intentType: "knowledge",
@@ -171,7 +171,7 @@ const dohyun: SeedPersona = {
       url: "https://www.youtube.com/results?search_query=system+design+url+shortener",
       text: "해싱 충돌·캐시 전략·읽기 폭주 대응을 30분에 정리",
       category: "개발·학습",
-      summary: "시스템 디자인 연습 — URL 단축기 사례로 캐시·샤딩 전략 정리.",
+      summary: "URL 단축기 사례로 캐시·샤딩 전략을 정리한 시스템 디자인 연습이에요.",
       instances: [
         {
           intentType: "knowledge",
@@ -186,12 +186,12 @@ const dohyun: SeedPersona = {
       kind: "screenshot",
       channel: "screenshot",
       source: "스크린샷",
-      title: "DDIA — 파티셔닝 챕터",
+      title: "DDIA - 파티셔닝 챕터",
       ocrText:
         "키 범위 파티셔닝은 스캔에 유리하지만 핫스팟 위험. 해시 파티셔닝은 균등하지만 범위 질의를 잃는다.",
       category: "개발·학습",
       summary:
-        "『데이터 중심 애플리케이션 설계』 파티셔닝 — 키 범위 vs 해시의 트레이드오프.",
+        "『데이터 중심 애플리케이션 설계』 파티셔닝 장이에요. 키 범위 vs 해시의 트레이드오프를 다뤄요.",
       instances: [
         {
           intentType: "knowledge",
@@ -213,7 +213,7 @@ const dohyun: SeedPersona = {
         "#backend 지현: 결제 API v2 마이그레이션 PR 올렸습니다. 도현님 이번 주 안에 리뷰 부탁드려요! 스키마 변경 포함이라 꼼꼼히 봐주세요.",
       category: "회사·업무",
       summary:
-        "결제 API v2 마이그레이션 PR 리뷰 요청 — 스키마 변경 포함, 이번 주 내 리뷰 필요.",
+        "결제 API v2 마이그레이션 PR 리뷰 요청이에요. 스키마 변경이 들어 있어 이번 주 안에 리뷰해야 해요.",
       instances: [
         {
           intentType: "todo",
@@ -232,7 +232,7 @@ const dohyun: SeedPersona = {
       title: "정기 배포",
       text: "이번 스프린트 정기 배포 금요일 11시. 배포 전 마이그레이션 리허설 목요일에.",
       category: "회사·업무",
-      summary: "정기 배포 금요일 11:00 — 목요일에 마이그레이션 리허설 선행.",
+      summary: "정기 배포가 금요일 11:00에 있어요. 목요일에 마이그레이션 리허설을 먼저 해야 해요.",
       instances: [
         {
           intentType: "schedule",
@@ -256,7 +256,7 @@ const dohyun: SeedPersona = {
       text: "다다음주 수요일 사내 스터디에서 '우리 팀 검색 개선기' 발표. 모아둔 자료로 목차부터.",
       category: "회사·스터디",
       summary:
-        "사내 스터디 발표 '검색 개선기' — 다다음주 수요일. 저장해둔 검색 자료 3건이 재료.",
+        "사내 스터디 발표 '검색 개선기'가 다다음주 수요일이에요. 저장해둔 검색 자료 3건이 재료예요.",
       instances: [
         {
           intentType: "schedule",
@@ -281,7 +281,7 @@ const dohyun: SeedPersona = {
       text: "커넥션 풀 고갈 원인은 재시도 폭주. 백오프 없는 재시도가 문제였고, 서킷브레이커 도입 논의로 마무리.",
       category: "회사·업무",
       summary:
-        "6월 장애 회고 — 백오프 없는 재시도가 커넥션 풀 고갈 유발. 서킷브레이커 도입 논의.",
+        "6월 장애 회고예요. 백오프 없는 재시도가 커넥션 풀 고갈을 일으켰고, 서킷브레이커 도입을 논의 중이에요.",
       instances: [{ intentType: "memo", label: "장애 회고" }],
       capturedDaysAgo: 13,
     },
@@ -293,7 +293,7 @@ const dohyun: SeedPersona = {
       title: "코드리뷰 체크리스트",
       text: "1) 롤백 가능한가 2) 인덱스 타는가 3) 트랜잭션 경계 4) 에러 메시지에 컨텍스트 5) 테스트가 실패를 증명하는가",
       category: "개발·습관",
-      summary: "리뷰 때 매번 확인하는 5가지 — 롤백·인덱스·트랜잭션·에러 컨텍스트·테스트.",
+      summary: "리뷰 때 매번 확인하는 5가지를 적어뒀어요. 롤백·인덱스·트랜잭션·에러 컨텍스트·테스트예요.",
       instances: [
         {
           intentType: "knowledge",
@@ -310,10 +310,10 @@ const dohyun: SeedPersona = {
       source: "스크린샷",
       title: "GPU 인스턴스 가격 비교",
       ocrText:
-        "L4 시간당 $0.71 / A100 40GB $2.93 / spot 적용 시 60% 절감 — 배치 추론은 spot + 체크포인트 조합 추천",
+        "L4 시간당 $0.71 / A100 40GB $2.93 / spot 적용 시 60% 절감 - 배치 추론은 spot + 체크포인트 조합 추천",
       category: "개발·인프라",
       summary:
-        "GPU 인스턴스 가격 비교 — 배치 추론은 spot(60% 절감)+체크포인트 조합이 유리.",
+        "GPU 인스턴스 가격을 비교한 글이에요. 배치 추론은 spot(60% 절감)+체크포인트 조합이 유리해요.",
       instances: [
         {
           intentType: "knowledge",
@@ -332,9 +332,9 @@ const dohyun: SeedPersona = {
       source: "Safari",
       title: "파이콘 한국 2026 티켓 오픈",
       url: "https://pycon.kr/",
-      text: "얼리버드 티켓 7/10(금) 오전 10시 오픈 — 작년엔 이틀 만에 마감",
+      text: "얼리버드 티켓 7/10(금) 오전 10시 오픈 - 작년엔 이틀 만에 마감",
       category: "커뮤니티",
-      summary: "파이콘 얼리버드 티켓 — 7/10(금) 10:00 오픈. 작년 이틀 만에 마감.",
+      summary: "파이콘 얼리버드 티켓이 7/10(금) 10:00에 열려요. 작년엔 이틀 만에 마감됐어요.",
       instances: [
         {
           intentType: "schedule",
@@ -353,7 +353,7 @@ const dohyun: SeedPersona = {
       ocrText:
         "팀장: 다음 주 금요일 저녁 팀 회식입니다. 장소는 회사 앞 양꼬치, 7시! 불참자는 미리 알려주세요.",
       category: "회사·모임",
-      summary: "팀 회식 — 다음 주 금요일 19:00, 회사 앞 양꼬치.",
+      summary: "팀 회식은 다음 주 금요일 19:00, 회사 앞 양꼬치집이에요.",
       instances: [
         {
           intentType: "schedule",
@@ -373,7 +373,7 @@ const dohyun: SeedPersona = {
       text: "러닝 기록을 주간 리포트로 만들어주는 봇. 스트라바 API + 주 1회 요약 메일. 주말에 프로토타입.",
       category: "사이드 프로젝트",
       summary:
-        "러닝 주간 리포트 봇 아이디어 — 스트라바 API 연동, 주 1회 요약. 주말 프로토타입 목표.",
+        "러닝 주간 리포트 봇 아이디어예요. 스트라바 API 연동으로 주 1회 요약, 주말 프로토타입이 목표예요.",
       instances: [{ intentType: "memo", label: "아이디어 기록" }],
       capturedDaysAgo: 8,
     },
@@ -385,7 +385,7 @@ const dohyun: SeedPersona = {
       title: "치과 스케일링",
       text: "다음 주 월요일 저녁 6시 반 치과 스케일링. 미루면 또 반년 밀린다.",
       category: "생활·건강",
-      summary: "치과 스케일링 — 다음 주 월요일 18:30.",
+      summary: "치과 스케일링이 다음 주 월요일 18:30에 있어요.",
       instances: [
         {
           intentType: "schedule",
@@ -403,7 +403,7 @@ const dohyun: SeedPersona = {
       title: "이사 준비",
       text: "이사 8월 초 확정. 전입신고, 인터넷 이전 신청, 입주 청소 견적 2곳 비교까지 이번 달 안에.",
       category: "생활",
-      summary: "8월 초 이사 — 전입신고·인터넷 이전·청소 견적을 이번 달 내 처리.",
+      summary: "8월 초 이사 준비예요. 전입신고·인터넷 이전·청소 견적을 이번 달 안에 처리해야 해요.",
       instances: [
         {
           intentType: "todo",
@@ -421,7 +421,7 @@ const dohyun: SeedPersona = {
       title: "PT 재개",
       text: "수요일 저녁 8시 PT 재개. 이번엔 3개월 끊었으니 최소 주 1회는 지키기.",
       category: "생활·건강",
-      summary: "PT 수요일 20:00 재개 — 주 1회 최소 유지 목표.",
+      summary: "PT를 수요일 20:00에 다시 시작해요. 주 1회는 지키는 게 목표예요.",
       instances: [
         {
           intentType: "schedule",

@@ -20,6 +20,8 @@ const ANALYSIS_FIRST_BYTE_MS = 8_000;
 // 분석 node 사이 간격은 LLM 파이프라인 대기 포함 — 백엔드 자체 deadline 이 있어 넉넉히
 const ANALYSIS_INTER_EVENT_MS = 75_000;
 const JSON_TIMEOUT_MS = 12_000;
+// GCS PUT 은 이미지 bytes 전송 — JSON 왕복보다 넉넉히
+const UPLOAD_TIMEOUT_MS = 30_000;
 const ITEM_POLL_RETRIES = 4;
 const ITEM_POLL_INTERVAL_MS = 1_200;
 
@@ -256,6 +258,85 @@ export async function liveIngest(
         text: input.text ?? null,
         url: input.url ?? null,
         userMemo: input.memo ?? null,
+      }),
+      signal: AbortSignal.timeout(JSON_TIMEOUT_MS),
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    const body = (await res.json()) as { id?: string };
+    return typeof body.id === "string" && isLiveItemId(body.id) ? body.id : null;
+  } catch {
+    return null;
+  }
+}
+
+/* ── 이미지 ingest: presign → GCS PUT → imageRefs ingest ─────────────────────────────── */
+
+interface ImageIngestInput {
+  bytes: Uint8Array<ArrayBuffer>;
+  mimeType: string;
+  memo?: string;
+}
+
+/**
+ * 라이브 이미지 ingest — 백엔드 presign 으로 Signed PUT URL 을 받아 서버가 bytes 를
+ * 대신 올리고(브라우저 직PUT 은 버킷 CORS 필요), imageRefs 로 본 ingest 를 완결한다.
+ * 어느 단이라도 실패하면 null (호출부가 폴백 강등).
+ */
+export async function liveImageIngest(
+  up: Upstream,
+  personaSlug: string,
+  input: ImageIngestInput,
+): Promise<string | null> {
+  try {
+    const sha256 = createHash("sha256").update(input.bytes).digest("hex");
+    const presignRes = await fetch(`${up.base}/mochi_items/presign`, {
+      method: "POST",
+      headers: authHeaders(up),
+      body: JSON.stringify({ sha256, mimeType: input.mimeType }),
+      signal: AbortSignal.timeout(JSON_TIMEOUT_MS),
+      cache: "no-store",
+    });
+    if (!presignRes.ok) return null;
+    const presign = (await presignRes.json()) as { objectKey?: string; uploadURL?: string };
+    // 업로드 대상은 신뢰하는 백엔드가 발급한 GCS 서명 URL 만 (SSRF 여지 차단)
+    if (!presign.objectKey || !presign.uploadURL?.startsWith("https://storage.googleapis.com/")) {
+      return null;
+    }
+
+    const put = await fetch(presign.uploadURL, {
+      method: "PUT",
+      // content-type 은 V4 서명에 바인딩 — presign 요청과 동일값이어야 한다
+      headers: { "content-type": input.mimeType },
+      body: input.bytes,
+      signal: AbortSignal.timeout(UPLOAD_TIMEOUT_MS),
+      cache: "no-store",
+    });
+    if (!put.ok) return null;
+
+    // 같은 이미지+메모의 재전송이 중복 기록이 되지 않게 — 텍스트 경로처럼 입력 전체 기반
+    // 멱등키 (memo 가 다르면 새 아이템: 백엔드 replay 는 payload 를 비교하지 않는다)
+    const idempotencyKey = `web:${personaSlug}:img:${createHash("sha256")
+      .update(`${sha256}:${input.memo?.trim() ?? ""}`)
+      .digest("hex")
+      .slice(0, 28)}`;
+    const res = await fetch(`${up.base}/mochi_items`, {
+      method: "POST",
+      headers: {
+        ...authHeaders(up),
+        "Idempotency-Key": idempotencyKey,
+      },
+      body: JSON.stringify({
+        channel: "screenshot",
+        userMemo: input.memo?.trim() || null,
+        imageRefs: [
+          {
+            objectKey: presign.objectKey,
+            mimeType: input.mimeType,
+            byteSize: input.bytes.byteLength,
+            sha256,
+          },
+        ],
       }),
       signal: AbortSignal.timeout(JSON_TIMEOUT_MS),
       cache: "no-store",

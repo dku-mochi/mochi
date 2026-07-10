@@ -29,6 +29,8 @@ public struct SearchView: View {
                     .padding(.horizontal, SearchD5.Sizes.pageH)
                     .padding(.top, 16)
                     .padding(.bottom, 14)
+                    // 검색바가 반 박자 먼저(index 0), 콘텐츠가 따라(index 1) — 한 덩어리 페이드보다 살아 있는 진입.
+                    .riseIn(hasEntered, index: 0)
 
                 if showsRecentChips {
                     recentChipsRow
@@ -49,6 +51,10 @@ public struct SearchView: View {
         }
         .toolbar(.hidden, for: .navigationBar)
         .preferredColorScheme(.light)
+        // 결과가 손에 잡히는 순간(→results)만 soft 틱 — idle/empty 로 빠질 땐 무음 (실패에 진동은 소음).
+        .sensoryFeedback(trigger: store.phase) { _, newPhase in
+            newPhase == .results ? .impact(flexibility: .soft, intensity: 0.7) : nil
+        }
         .onAppear {
             store.send(.onAppear)
             queryText = store.query
@@ -148,8 +154,9 @@ public struct SearchView: View {
                     lineWidth: isSearchFocused ? 1.5 : 1
                 )
         )
-        .shadow(color: SearchD5.Palette.cardShadow.opacity(isSearchFocused ? 0.8 : 0.5),
-                radius: isSearchFocused ? 14 : 10, x: 0, y: 6)
+        // 포커스 시 잉크 그림자 → 브랜드 퍼플 halo — 색(아이콘·스트로크)과 빛이 같은 말을 한다.
+        .shadow(color: isSearchFocused ? SearchD5.Palette.primary.opacity(0.22) : SearchD5.Palette.cardShadow.opacity(0.5),
+                radius: isSearchFocused ? 16 : 10, x: 0, y: 6)
         .animation(.smooth(duration: 0.2), value: isSearchFocused)
         .animation(.snappy(duration: 0.22), value: queryText.isEmpty)
     }
@@ -194,10 +201,10 @@ public struct SearchView: View {
                 SearchDefaultView(
                     items: store.filteredItems,
                     typeFilter: store.typeFilter,
-                    onTypeFilter: { store.send(.typeFilterTapped($0)) },
+                    onTypeFilter: { store.send(.typeFilterTapped($0), animation: .smooth(duration: 0.3)) },
                     categories: store.availableCategories,
                     selectedCategory: store.selectedCategory,
-                    onCategory: { store.send(.categoryTapped($0)) },
+                    onCategory: { store.send(.categoryTapped($0), animation: .smooth(duration: 0.3)) },
                     onCardTap:    { id, hero in store.send(.recentTapped(id, hero)) },
                     onCardDelete: { store.send(.deleteTapped($0)) },
                     onCardToggleFavorite: { store.send(.favoriteToggled($0)) },
@@ -212,8 +219,8 @@ public struct SearchView: View {
                     categories: store.availableCategories,
                     selectedCategory: store.selectedCategory,
                     isSemanticSearching: store.isSemanticSearching,
-                    onTypeFilter: { store.send(.typeFilterTapped($0)) },
-                    onCategory:   { store.send(.categoryTapped($0)) },
+                    onTypeFilter: { store.send(.typeFilterTapped($0), animation: .smooth(duration: 0.3)) },
+                    onCategory:   { store.send(.categoryTapped($0), animation: .smooth(duration: 0.3)) },
                     onCardTap:    { id, hero in store.send(.recentTapped(id, hero)) },
                     onCardDelete: { store.send(.deleteTapped($0)) },
                     onCardToggleFavorite: { store.send(.favoriteToggled($0)) }
@@ -225,14 +232,16 @@ public struct SearchView: View {
                     categories: store.availableCategories,
                     selectedCategory: store.selectedCategory,
                     isFiltered: store.typeFilter != .all || store.selectedCategory != nil,
-                    onTypeFilter: { store.send(.typeFilterTapped($0)) },
-                    onCategory:   { store.send(.categoryTapped($0)) },
+                    onTypeFilter: { store.send(.typeFilterTapped($0), animation: .smooth(duration: 0.3)) },
+                    onCategory:   { store.send(.categoryTapped($0), animation: .smooth(duration: 0.3)) },
                     onAskMochi:  { store.send(.askMochiTapped) },
-                    onRetryAll:  { store.send(.retryAllTapped) }
+                    onRetryAll:  { store.send(.retryAllTapped, animation: .smooth(duration: 0.3)) }
                 )
             }
         }
-        .riseIn(hasEntered, index: 0)
+        // phase 스위치(idle↔results↔empty)가 뚝 끊기지 않게 — 짧은 crossfade 하나면 충분하다.
+        .animation(.easeInOut(duration: 0.22), value: store.phase)
+        .riseIn(hasEntered, index: 1)
     }
 }
 
@@ -254,6 +263,7 @@ private struct RecentChip: View {
                 .overlay(Capsule().stroke(SearchD5.Palette.cardBorder, lineWidth: 1))
                 .shadow(color: SearchD5.Palette.cardShadow, radius: 6, x: 0, y: 3)
         }
-        .buttonStyle(.plain)
+        // .plain 은 눌러도 무반응이었다 — 공용 press 스타일(스케일+딤, Reduce Motion 대응)로 손맛 통일.
+        .buttonStyle(PressableStyle())
     }
 }

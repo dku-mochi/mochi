@@ -92,7 +92,7 @@ description: 시스템 토폴로지·iOS↔Backend 데이터흐름·API 계약�
 └───────────────────────────────────────────────────────────────────────┘
 ```
 
-> **심사위원용 데모 표면 — `mochi-web` (여정 데모 + BFF, 2026-07-08 전면 재구축)**: 무설치 5분 여정(랜딩→페르소나 선택→기록→홈→검색→질문→떠오름→피날레)을 주는 Next.js 16 데모 웹(`mochi-web/`, 정본 `mochi-web/README.md`). **fallback-first** — 보이는 모든 피드는 웹 내장 페르소나 시드(`seed/`)이고, 네트워크는 채팅·검색·라이브 분석 3개뿐이며 셋 다 라이브와 **같은 wire 포맷의 폴백**이 뒤에 선다(클라이언트는 `x-mochi-mode` 헤더 외엔 모드를 모른다). 라이브는 `app/api/bff/*` Route Handler 가 페르소나 계정 JWT(HS256, `MOCHI_JWT_SECRET`·`MOCHI_PERSONA_UUID_*` — 서버 env 전용)를 직접 서명해 백엔드(`MOCHI_BACKEND_URL`)로 프록시한다. 채팅 SSE 는 패스스루하되 first-byte 8s/inter-event 15s 초과·오류 시 **스트림을 끊지 않고 폴백 이벤트를 이어붙여 완결**하고, rate limit 초과는 429 가 아니라 폴백 강등, 킬스위치는 `MOCHI_FORCE_FALLBACK=1`. wire 계약(§3.6 SSE·`mochiItemId` 케이싱·`【item:uuid】` 마커)은 `openapi.json` 정본을 따르며 라이브 citation uuid ↔ 시드 slug 매핑은 시더 산출물 `seed/backend-ids.json` 이 잇는다.
+> **심사위원용 데모 표면 — `mochi-web` (여정 데모 + BFF, 2026-07-08 전면 재구축)**: 무설치 5분 체험(랜딩→페르소나 선택→기록→홈→검색→질문→리마인드→마무리)을 주는 Next.js 16 데모 웹(`mochi-web/`, 정본 `mochi-web/README.md`). **fallback-first** — 보이는 모든 피드는 웹 내장 페르소나 시드(`seed/`)이고, 네트워크는 채팅·검색·라이브 분석 3개뿐이며 셋 다 라이브와 **같은 wire 포맷의 폴백**이 뒤에 선다(클라이언트는 `x-mochi-mode` 헤더 외엔 모드를 모른다). 라이브는 `app/api/bff/*` Route Handler 가 페르소나 계정 JWT(HS256, `MOCHI_JWT_SECRET`·`MOCHI_PERSONA_UUID_*` — 서버 env 전용)를 직접 서명해 백엔드(`MOCHI_BACKEND_URL`)로 프록시한다. 채팅 SSE 는 패스스루하되 first-byte 8s/inter-event 15s 초과·오류 시 **스트림을 끊지 않고 폴백 이벤트를 이어붙여 완결**하고, rate limit 초과는 429 가 아니라 폴백 강등, 킬스위치는 `MOCHI_FORCE_FALLBACK=1`. wire 계약(§3.6 SSE·`mochiItemId` 케이싱·`【item:uuid】` 마커)은 `openapi.json` 정본을 따르며 라이브 citation uuid ↔ 시드 slug 매핑은 시더 산출물 `seed/backend-ids.json` 이 잇는다.
 
 ---
 

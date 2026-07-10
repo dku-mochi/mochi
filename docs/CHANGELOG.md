@@ -10,13 +10,85 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
-## 2026-07-10 — backend (회수 피드 stop 신호 유실 + worker 되엎기 레이스 — 리뷰 후속)
-- code-reviewer 서브에이전트 리뷰(P1·P2) 후속 2건. ① **stop 의 dismissed_at 을 status 무관 스탬프로 분리** — 피드 stop 은 opened(상세 진입 onAppear)가 항상 선행해 pending 행이 이미 skipped(opened) 로 종결된 뒤라, sent 행 없는 item(dry_run 환경 등)은 dismiss-cooldown 신호가 어디에도 안 남아 "그만 보기" 한 카드가 새 앵커 저장 때 재생성으로 부활할 수 있었다(P1). ② **worker `_close` 에 `AND status='pending'` 가드** — 실발송 진행 중 사용자 stop 이 종결한 행을 발송 완료가 sent 로 되엎어 피드에 재등장하던 레이스 차단(P2). 잔여 P2(재생성 dedup 백스톱이 skipped 행을 안 셈)·nit(지난 알림 opened 표시 과잉)는 후속 판단.
+## 2026-07-10 — web (전 페이지 디자인 폴리시 — 인터랙션 피드백·포커스·브랜드 색 정합)
+- **리마인드(S6) 무대의 풀블리드 포커스 아웃라인 제거.** 코버플로우 스테이지가 프로그램 포커스를 받으며 전역 `:focus-visible` 2px 퍼플 아웃라인이 하이라이트 씬을 가로지르는 선 2개로 그려지던 것 — `outline-none` + 라운드 인셋 프레임(`focus-visible` 시에만 표시)으로 대체. 키보드 사용자 표식은 유지.
+- **전역 버튼 커서 복원.** Tailwind v4 preflight 가 `button` 을 `cursor: default` 로 두어 전 페이지 버튼(제안 칩·필터·점 네비 등)이 클릭 불가처럼 보이던 것 — globals.css base 에 `cursor: pointer` 규칙 1건.
+- **BorderBeam 초록 드리프트 고정.** `hueRange` 기본 30 이 ocean 블루를 초록까지 회전시켜 채팅 컴포저·추천 카드가 브랜드 밖 색으로 빛나던 것 — 두 사용처 모두 `hueRange={10}`.
+- **hover 피드백 일괄 추가.** 채팅·검색 제안 칩(purple-100 배경 전이), 캡처 첨부·"하나 더 보내기"(finale 칩과 동일 문법), 잉크 필 CTA 4곳(`hover:bg-ink-700`) — active:scale 만 있고 hover 가 없던 곳들.
+- **캡처(S2) 빈 보드 격상.** 회색 점선 placeholder → 그 칸의 intent 틴트(butter/mint/purple) + 고스트 아이콘 resting 상태 — "여기에 꽂힌다"를 미리 보여준다.
+- **채팅(S5) 빈 상태 글로우.** 마스코트 뒤 라벤더 radial(brand `--color-glow`) — 랜딩 분위기와 톤 통일.
+- **리마인드(S6) 코버플로우 화질 복구.** 랜딩 파편 필드에서 잡았던 3종 원인이 이 캔버스에 그대로 남아 있었다 — (1) `dpr [1,1.5]` 캡이 레티나에서 1.33x 업스케일 블러(→ `[1,2]`), (2) drei Image url 로딩이 colorSpace 미지정이라 sRGB 캡처가 물빠짐(→ `useTexture`+`SRGBColorSpace` 직접 로드로 교체), (3) anisotropy 부재로 미니피케이션·틸트 카드가 뭉개짐(→ 이미지·캔버스 텍스처 모두 8, 렌더러가 하드웨어 상한 클램프). 전/후 초점 카드 크롭 비교로 본문 텍스트 가독 확인.
+- 검증: typecheck·lint·vitest 32 통과 + Playwright 로 S2·S5·S6·랜딩 하단·guided rail 실렌더 확인(1440·375).
+
+## 2026-07-10 — web, infra (토스 톤앤매너 기반 카피 전면 개선 + AI-티 말투 제거)
+- **토스 톤앤매너 스킬 설치(`.claude/skills/toss-tone-and-manner/`).** 공식 `toss/apps-in-toss-skills` 레포에 톤 스킬이 없어, 토스가 공개한 지침 2종(앱인토스 UX 라이팅 가이드 + toss.tech 8가지 라이팅 원칙)을 스킬로 채록 — 해요체·능동·긍정·캐주얼 경어·명사 나열 금지 + 예외 규칙(사용자 행동 추정 경어 등).
+- **AI-티 말투 제거(anti-ai-writing 기준).** 은유 헤딩 "방금 데이터가 지나온 길"→"방금 응답을 처리한 시스템", 조각문 프레이밍 "계약 하나로 묶인 시스템."→직접 주장 "같은 OpenAPI 명세 하나를 써요"(하방 방어=구조 강점 프레이밍은 유지), 추상 의인화 "기억이 일하는 순서"→"모찌가 일하는 순서", 드라마틱 조각문("방금 이 체험에서." / "찾기 전에 먼저." / "그리고 며칠 뒤 아침…")을 문장에 합류.
+- **번역투·연출 어휘 교체(사용자 노출 문자열 전량, 코드 주석·라우트명은 유지).** 여정→체험, 씬→화면, 피날레→마무리, 클라이맥스→하이라이트, "생활 동선"→구체 서술, 페르소나→"(체험할) 사람". CTA "5분 여정 시작"→"5분 만에 체험하기".
+- **해요체 통일.** 랜딩·마무리·선택·기록 화면과 BFF 폴백 멘트의 합니다체 혼용("없습니다/꽂힙니다/올라갑니다/제품입니다" 등) 제거. 카톡·슬랙 원문 캡처(사용자 데이터)는 예외 유지.
+- **과도한 경어 정리.** 권유문의 '~시'("보셔도/시작해보시거나/결정하실")만 캐주얼로. 사용자 과거 행동 언급("메모해두셨어요")·회수 확인 질문 톤(UX_SPEC §3.11 oneline)은 토스 예외 규칙에 정확히 해당해 유지.
+- **"모찌가 정리했어요" summary 60건 재작성.** 페르소나 시드의 개조식 요약("풀고 가야 함", "알림 맞춰둘 것")을 모찌 보이스 문장으로 — 검색 코퍼스 키워드 보존. ⚠️ 백엔드 계정 시드와 어긋남: 심사 전 `npm run seed:backend` 재실행 필요.
+- 라벨 폭포: `mochi-web/README.md`(S7 마무리·하이라이트) + `ARCHITECTURE.md` 여정 나열 동기화.
+- 검증: validate:seed(60건)·typecheck·lint·vitest 32 통과.
+
+## 2026-07-10 — web (랜딩 히어로 파편 필드 재구축 — 회색 테두리·물빠진 색·계단현상·카피 겹침 해결)
+- **회색 테두리 근본 제거.** 백킹 프레임(meshStandardMaterial)만 조명·ACES 톤매핑·fog(원경 카드는 30~50% 블렌딩)에 물들고 drei Image 셰이더(fog 미지원·toneMapped=false)는 안 물들어 프레임이 회색 띠처럼 어긋나던 것 — 조명·fog 를 전부 걷어내고 unlit(meshBasicMaterial + Canvas flat)로 통일. 깊이감은 프레임·이미지에 **동일하게** 곱하는 depth tint(원경일수록 라벤더)로 대체해 어긋남이 구조적으로 불가능.
+- **물빠진 색 수정.** drei useTexture 가 colorSpace 를 지정하지 않아 sRGB 캡처가 linear 취급→출력단 재변환으로 전체가 바래 보였다 — SRGBColorSpace 명시(onLoad 콜백, initTexture 업로드 전).
+- **계단현상 제거.** dpr [1,1.5]→[1,2](레티나 업스케일 소멸) + anisotropy 8(기울어진 카드의 텍스처) + Image `transparent`(라운드 코너가 opaque 로 뭉개지던 것 알파 블렌딩) + 백킹 curveSegments 16.
+- **슬롯 NDC 재설계.** 월드좌표 수기 배치가 투영되면 헤드라인("떠오른다" 우측)·CTA 캡션 뒤를 카드가 지나가던 것 — 슬롯을 스크린공간(NDC, 좌우 각 7장 아크)으로 정의하고 런타임 aspect 반영(MIN_ASPECT 1.45 클램프 — 좁은 창에선 카피 쪽으로 밀지 않고 화면 밖으로 잘림). 카피 블록(x ±0.62)·헤더 밴드(y>0.885 — px 고정이라 해상도마다 NDC 가 떠다녀 y 상한으로만 분리 가능) 불침범을 투영 계산으로 보장, 1440×900·1920×1080 실측.
+- **수렴 링 등호(等弧) 분배.** 타원 등각 분배는 좌우 측면에서 점이 수직으로 뭉쳐 카드 2장이 한 장처럼 붙었다 — arc-length 균등 분배(`ringTargets`) + 링 반경도 NDC 로 화면비 추종.
+- 검증: lint·typecheck·vitest 32 통과 + Playwright 실브라우저 부유/수렴 2상태 × 2해상도 + 엣지 확대 크롭. codex 리뷰는 usage limit 로 미실시(자체 정밀 리뷰로 갈음).
 
 ## 2026-07-10 — backend, ios (회수 피드 카드 부활 버그 — 피드 반응을 item 기준으로)
 - **증상.** 홈 "모찌가 골라봤어요" 카드를 열면(또는 "그만 보기") iOS 에선 사라지는데 재fetch(새로고침·재시작)마다 부활.
 - **원인.** 피드 open/stop 보고가 event 기준(`POST /recall/events/{id}/reaction`)인데 피드 카드는 event 유무와 무관하게 존재 — ① 트랙 A(spaced) 후보는 sent event 없으면 `recall_event_id=NULL` 이라 iOS 가 보고 생략(dry_run 환경은 sent 가 아예 없어 항상 NULL), ② 트랙 C 는 pending event 를 노출하는데 reaction 의 `status='sent'` 가드에 걸려 404(iOS `try?` 가 삼킴), ③ 기록이 돼도 트랙 C 피드 쿼리가 `opened_at` 을 안 봄. 어느 쪽도 서버에 안 남아 다음 피드에 그대로.
 - **수정.** 피드 표면(홈 한 칸·자세히·회수 상세) 반응은 item 기준 `POST /recall/items/{item_id}/reaction`(opened/stop) 신설로 — opened 는 spaced knowledge 소생 + kind=recall 행 opened 종결(pending 은 skipped(opened) 로 뒷북 푸시도 방지), stop 은 active spaced plan 전부 cancel + kind=recall 행 skipped(cancelled)+dismissed_at(재생성 쿨다운 신호 보존). 트랙 C 피드 후보는 item 별 최신 event 가 opened 면 제외. 알림 표면(푸시 탭 landing·지난 알림)은 계속 event 기준(발송 1건과 1:1 학습 신호). iOS 는 홈 카드 탭·상세 onAppear·기억났어요·그만 보기 4곳을 item 기준 호출로 전환(openapi 재생성).
+
+## 2026-07-10 — web (기록 씬 전면 재구축 + 세션 오버레이로 "보낸 것이 홈에 쌓임" 완결 + 검색 답변카드 제거 + 브랜드 에셋 재단)
+- **세션 오버레이 신설(`src/lib/liveOverlay.ts`).** 직접 보낸 라이브 기록이 화면 어디에도 안 쌓이던 문제 — 분석 결과를 sessionStorage 에 얹어 이 브라우저의 홈(모자이크 "방금 모찌가 받았어요"·할일·캘린더·주간 카운트)·검색·상세(`live-` slug)에 시드처럼 합성. 페르소나 계정은 방문자 공유라 **남의 기록은 절대 화면에 안 얹는다**(내 세션 것만). 스크린샷은 업로드 전 로컬 썸네일(data URL)로 홈 타일에 실이미지 렌더. `seed:cleanup` 스크립트 신설 — 심사 전 공용 계정의 방문자 기록 일괄 정리(dry-run 기본).
+- **S2 기록 씬 재구축.** (왜: 카드 높이 제각각·업로드 어색·캘린더 클릭 불가·"서재" 웹 전용 어휘·memo 가 화면에서 소실) 좌 무대(시나리오 3건 → 통합 컴포저: 텍스트·링크·스크린샷 + ⌘V 붙여넣기·드래그앤드롭·미리보기 + 4단 진행 타임라인) / 우 등고 보드 4칸(할일·캘린더·지식·기록). "기록" 칸은 intent 무관 전량 수집 — 사라지는 캡처 없음. "서재"→"지식"(검색 필터·랜딩 카피와 통일).
+- **클릭되는 캘린더(`MiniCalendar` 공유 프리미티브).** 홈·기록 보드 공용 — 점 있는 날짜가 버튼이 되어 그 날의 일정·마감·저장 리스트를 펼치고 상세로 링크. `calendarMap`→`calendarEntries`(점 렌더·클릭 상세 단일 원천).
+- **검색 답변카드 제거.** `/search` wire 의 `answer`(백엔드 `_ExtractiveSynthesizer` placeholder)를 화면에 올리던 "모찌의 답" 삭제 — iOS 와 동일하게 citations 타일만. 문구 일치(literal) 우선 + 의미검색 보강, 내 세션 라이브 uuid 도 slug 로 되살려 "방금 보낸 게 바로 검색됨". 의미검색 실패 시 literal 로 정직 강등.
+- **브랜드 에셋 재단.** mochi2(1024² 중 캐릭터 55%×41% + 반투명 글로우 배경)·hello·cheer·question 4종을 글로우 제거 + 타이트 크롭(92% 채움) — 같은 렌더 크기에서 캐릭터 ~1.8배. mochi-hello 는 사용처 제거(컴포저에서 마스코트 삭제 — 절제 톤).
+- **카피 AI-티 제거 스윕.** 사용자 노출 문자열(컴포넌트 + 시드 발화 106줄)의 em dash(—)를 마침표·쉼표·하이픈으로 교체, 조사 오류("직접 입력로")를 받침 감지 헬퍼로 수정. README 디자인 규칙에 "노출 카피 —·원문자 금지" 명문화.
+- **3D 카드 회색 코너 수정.** 코버플로우·랜딩 파편 카드의 백킹 `RoundedBox` 는 radius 가 두께 절반(0.0175)으로 클램프되어 앞면의 둥근 코너(0.05~0.146) 밖으로 각진 코너가 삐져나와 회색 귀처럼 보였다. 백킹을 rounded-rect `extrudeGeometry`(XY 반경이 두께와 독립, 앞면 반경 + 림 여백의 평행 곡선)로 교체하고 이미지·텍스처 카드 앞면 반경을 44px/512 비율로 통일 (`src/lib/roundedRectShape.ts`).
+- **긴 텍스트 무음 절단 수정.** BFF ingest 가 text 를 600자에서 조용히 잘라 이후 내용이 통째로 유실됐다(601자째 마커가 분석에 안 잡히는 것 실측). 수용 상한을 2000자로 올리고 컴포저 `maxLength` + 1800자부터 카운터로 입력단에서 정직하게 막는다. 폴백 id(URL 탑재)는 인코딩 전 400자 자체 상한 — 원문 전체는 세션 오버레이가 가진다. 수정 후 618자 입력의 601자째 "자전거 헬멧"이 todo 로 추출됨을 실백엔드로 확인.
+- **피날레 카피 재프레이밍.** "백엔드가 멈춰도 폴백이…"(실패 가정 = 약점 고백으로 읽힘)를 "계약 하나로 묶인 시스템"(iOS·웹·백엔드 단일 openapi 계약)으로 교체, LiveEvidence 폴백 문구도 "같은 계약 포맷으로 즉시 완결"로 — 하방 방어를 구조 강점으로 말한다.
+- **검증.** typecheck·lint·vitest(32) ·prod build + 실브라우저 E2E: 시나리오 3건 → 텍스트 라이브 전송(실백엔드 분석 "북클럽 준비" 할일 착지) → 이미지 업로드(Gemini 비전이 일정 추출, 캘린더 점) → 홈 합성·캘린더 날짜 클릭·검색 literal 1위·`live-` 상세 열림 확인.
+
+## 2026-07-10 — web, docs (데모 웹 심사 전 결함 일괄 수정 + "떠오름"→"리마인드" 리네이밍 + 여정 연출 강화)
+- **리네이밍.** 씬/네비 라벨 "떠오름"(어색한 명사화)을 일상어 "리마인드"로 교체 — 미션 동사형("떠오른다/떠올려요")은 카피에 유지. 코드 라벨 + `mochi-web/README.md` + `ARCHITECTURE.md` 여정 나열 동기화.
+- **결함 수정(심사 여정 차단급).** (1) guided 리마인드 씬에서 → 키가 코버플로우 넘김 대신 피날레로 점프 — 코버플로우 자동 포커스 + 키 소유(`stopPropagation`) + `JourneyRail` 이 recall 라우트에서 → 단축키 양보·힌트 교체. (2) 라이브 분석 D-day "NaN일 지남" — deadline/date 를 `YYYY-MM-DD` 접두만 신뢰하는 `parseKstDate` 가드. (3) 검색 하이라이트가 "LangChain" 내부 "ai"까지 칠함 — 라틴 토큰 단어경계 + `re.test` lastIndex 오판을 split 홀수 인덱스 판정으로 교체. (4) 상세 페이지 진입 시 JourneyRail 이 1단계로 리셋 — 마지막 씬을 sessionStorage 로 기억. (5) 추천 칩 "지난주에 저장한/본 …"이 라이브 답변("오늘 저장하신")과 시간축 모순 — 칩·canned 를 시간 중립 문구로(백엔드 `capturedAt` 시딩은 별도 결정 사항). (6) 모바일 헤드라인 단어 중간 줄바꿈 — body `word-break: keep-all`. (7) 채팅 "과정 보기" 동일 라벨 반복 — 순번 칩으로 로그화.
+- **여정 연출(왜: "떠오른다" 차별점이 S6 전까지 안 보였다).** 랜딩 파편 수렴을 hover 뒤에 숨기지 않고 진입 3.2s 후 1회 + 18s 유휴 반복 자동 재생. 홈 진입 시 "모찌가 먼저 떠올렸어요" 스포트라이트 1회(세션당, 좌하단). 검색 답변에 "이 중 N건은 찾기 전에 떠올려뒀어요 → 리마인드 보기" 크로스링크. 리마인드 씬 캡션 word-stagger + 무조작 8s 자동 넘김(조작 시 영구 정지). 피날레에 라이브/폴백 응답 집계 증거 라인(`x-mochi-mode` 헤더 세션 집계). S2 기록 씬 세로 중앙 정렬(하단 공백 제거) + 스킵 라벨을 "한 번에 정리하고 직접 보내보기"로.
+- **검증.** typecheck·lint·vitest(25)·validate:seed + 실브라우저 E2E 전 여정 재주행(수렴 자동재생·NaN 재현 입력 D-6 착지·→ 키 카드 넘김·스포트라이트·크로스링크·증거 라인 "3건 중 3건 라이브" 확인).
+
+## 2026-07-10 — web, infra (데모 웹 페르소나 계정 분리 + 이미지 캡처 업로드 신설)
+- **증상.** 리뉴얼된 데모 웹에서 (1) 이미지 업로드 경로 부재, (2) 검색·채팅이 페르소나가 아닌 남의 기록으로 답변.
+- **원인.** `MOCHI_PERSONA_UUID_*` 3건 전부 미설정 + `token.ts` 가 공용 `MOCHI_DEMO_USER_ID`(실사용 계정, 244건)로 조용히 폴백 — 세 페르소나 모두 그 계정으로 라이브 검색·채팅·ingest. 페르소나 시딩(P7)도 실행된 적 없었다(`backend-ids.json = {}`).
+- **수정(계정).** prod DB 에 페르소나 user 3건 생성(yuna/dohyun/sena) → env 등록 → `seed:backend` 60건 전량 시딩 → 서버에서 `backfill_embeddings.py` 색인(60건). `token.ts` 의 공용 계정 폴백은 **제거** — UUID 미설정이면 남의 기록 대신 canned 폴백으로 강등(교차 계정 누수 원천 차단).
+- **수정(이미지).** `POST /api/bff/ingest/image` 신설 — 서버가 백엔드 `presign → GCS PUT → imageRefs ingest` 3단 대행(버킷 CORS 불필요), 클라는 업로드 전 2000px JPEG 다운스케일(`captureImage.ts`). S2 기록 씬에 "스크린샷 보내기" 버튼 추가, 진행 SSE·본문 재조회는 기존 라이브 분석 경로 재사용.
+- **검증.** typecheck·lint·vitest(25) + 실브라우저 E2E: 이미지 업로드 → Gemini 비전이 픽셀에서 일정 추출 → yuna 계정 착지(imageRef 1건, DB 확인). yuna 검색이 본인 성수 카페 기록으로 답변(이전: 공용 계정 해방촌·동작구 기록). 검증 프로브 아이템·대화는 전부 삭제.
+
+## 2026-07-10 — ios (검색 탭 최상급 마감 폴리시 — 구조 변경 없는 finishing pass)
+- 검색바 포커스 시 잉크 그림자 → 브랜드 퍼플 glow, 진입 시 검색바→콘텐츠 riseIn 시차(0→1).
+- phase(idle↔results↔empty) 전환 crossfade + results 진입 순간만 soft 햅틱(실패 전환은 무음).
+- 종류/카테고리 필터 변경을 `send(animation: .smooth)` 로 — masonry 그리드가 스냅 대신 스프링 재배치.
+- 결과 요약 카운트 `numericText` 롤링 + monospacedDigit(의미 검색이 N 을 보탤 때 숫자만 굴러감), semantic 검색 중 sparkles `variableColor` 반짝임.
+- 그리드 이미지 타일 1pt 인셋 헤어라인(black 8%) — 흰 스크린샷이 셀 경계를 잃던 문제. 즐겨찾기 별 bouncy 등장.
+- empty/빈 상태 마스코트→제목→CTA riseIn 시차. private press 스타일 2종(EmptyCTAPress·TypeChipPress) 삭제 → Reduce Motion 존중하는 공용 `PressableStyle` 로 통일.
+
+## 2026-07-09 — backend, infra (기록 상세 지도 안 뜨던 원인 = entities.value 512 절단 → Text)
+- **증상.** 최근 기록 상세에서 장소 지도 섹션이 안 떴다(예전 기록은 정상). iOS 파싱·배포 키 문제 아님 — 서버 데이터 문제.
+- **원인.** `entities.value` = `String(512)` + repository `value[:512]`. `searchPlaceGeo` 의 place entity 에 Google 매장사진 URL(`imageUrl`, googleusercontent 400자+)이 붙어 JSON 이 512 를 넘겼고, 슬라이스가 imageUrl 중간을 잘라 **JSON 을 깨뜨려** projection `json.loads` 실패 → `place=None` → 좌표(지도)까지 통째로 사라졌다. "보강 실패가 백본(좌표)을 해치지 않는다"는 place_geo 원칙이 저장단에서 깨진 회귀. (DB 실측: 절단 2건 len=512 PARSE FAIL, 정상 기록 332~376자.)
+- **수정.** `orm.py` `String(512)`→`Text`, `repository.py` `value[:512]`→`value`, alembic `0027`(varchar→text, 무손실 확대). `reference_url` entity 도 같은 컬럼이라 함께 완화.
+- **배포.** fix 코드 `mochi-svc` 재배포(tar→IAP scp→uv sync --no-dev→`alembic 0026→0027`→restart, health ok). 깨진 2건(갓포아키·두툼) reanalyze → place entity len 615·528 로 **절단 없이 저장·파싱 OK**(imageUrl 포함 10필드) 확인.
+- **검증.** `make lint`/`typecheck`/`test`(537 passed).
+
+## 2026-07-09 — infra, docs (재배포 스크립트 .env 생성부 완성 — 키 소실 함정 제거 + develop 배포)
+- **문제.** `mochi-svc-setup.sh`(재배포 시 `.env` 재생성)가 Secret 2개(auth·db)만 fetch 해, 운영에 수동 append 된 나머지 키(VOYAGE·TAVILY·NAVER id/secret·YOUTUBE·GOOGLE_PLACES·APNS p8·AUTH_GOOGLE_CLIENT_IDS 등)가 재실행 시 전부 소실될 구조였다(INFRA §5.4 함정). live `.env` 26키 중 10키 미배선 — 재배포 한 번이면 검색(voyage)·web_search(tavily)·장소/유튜브 회수·푸시·Google 로그인이 조용히 죽는다.
+- **검증(값 무노출).** live `.env` ↔ Secret Manager 8키 전부 해시 MATCH + DATABASE_URL 재구성 MATCH 확인. `TAVILY_API_KEY`(58자, Secret 없던 유일 키)는 `mochi-tavily-api-key` 신설 — live 값을 VM→파이프로만 주입(모델 컨텍스트 무노출). `--env-only` dry-run 으로 재생성본이 live 와 **값까지 26/26 동일**(공통키 불일치 0).
+- **스크립트.** `.env` 생성부를 26키 완전본으로 확장(8 Secret fetch + Apple/Google/GCS/APNs 공개식별자 직접), 재실행 안전용 `.env` 자동 백업 + `--env-only`/`ENV_OUT` dry-run 모드 추가. `mochi-backend/scripts/mochi-svc-setup.sh` 로 repo 편입하되 `.gitignore` 미추적(DB 내부 IP·SA email·client id 를 git 히스토리에 안 남김). 실배포본은 VM `~/mochi-svc-setup.sh`.
+- **배포.** develop `b2d4809` 를 `mochi-svc` 재배포(사전 `make test` 537 passed → COPYFILE_DISABLE tar → IAP scp → app 백업 → setup 실행: 코드교체 + .env 재생성(백업) + uv sync --no-dev + alembic(0026 head, no-op) + restart). 검증: 외부 HTTPS `/api/v1/health` ok · openapi 200 · 재생성 `.env` 26키 잔존 · `recall_worker.started` · 3분 ERROR 0 · 델타(채팅 알림 CRUD 툴·place-geo photo 400 fix) 배포 확인.
+- **동기화.** INFRA §5.4(함정 해결)·§2.5(스크립트 위치·`mochi-tavily-api-key` 신설).
 
 ## 2026-07-09 — backend, docs (채팅에서 능동 회수 알림 읽기·조정 — iOS 배선 후속)
 - **배경.** Recall Planner 가 자동 설계한 예정 알림(`notification_plan`)은 홈탭에서만 보고 조정할 수 있었다. 채팅에서 "내 알림 뭐 있어?"·"내일 오는 알림?"·"그거 저녁으로 미뤄줘"·"이 알림 꺼줘" 를 못 했다.

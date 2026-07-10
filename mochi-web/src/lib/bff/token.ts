@@ -17,14 +17,15 @@ const REFRESH_MARGIN_MS = 5 * 60_000;
 
 const cache = new Map<string, { token: string; expiresAt: number }>();
 
-/** 페르소나 실계정 UUID — env `MOCHI_PERSONA_UUID_{SLUG}`, 없으면 dev 공용 계정 */
+/**
+ * 페르소나 실계정 UUID — env `MOCHI_PERSONA_UUID_{SLUG}` 단독.
+ * 공용 폴백 계정은 두지 않는다: UUID 미설정이면 라이브를 포기하고 canned 폴백으로
+ * 강등하는 게, 다른 계정의 기록으로 답하는 것보다 낫다 (교차 계정 누수 차단).
+ */
 export function personaUuid(personaSlug: string): string | null {
   const persona = getPersona(personaSlug);
   if (!persona) return null;
-  const uuid =
-    process.env[persona.uuidEnvKey]?.trim() ||
-    process.env.MOCHI_DEMO_USER_ID?.trim();
-  return uuid || null;
+  return process.env[persona.uuidEnvKey]?.trim() || null;
 }
 
 export async function personaToken(personaSlug: string): Promise<string | null> {

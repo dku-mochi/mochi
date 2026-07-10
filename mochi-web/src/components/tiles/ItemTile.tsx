@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
-import { Link2 } from "lucide-react";
+import { Link2, Sparkles } from "lucide-react";
 import type { ResolvedItem } from "@/lib/seedRuntime";
 import { relativeLabel } from "@/lib/seedRuntime";
 import { IntentChip } from "@/components/primitives/IntentChip";
@@ -27,14 +27,19 @@ export function ItemTile({
   now,
   href,
   showIntent = true,
+  highlight = false,
 }: {
   item: ResolvedItem;
   now: number;
   href: string;
   showIntent?: boolean;
+  /** 이 세션에서 방금 보낸 기록 — 홈에 실제로 쌓였음을 한 번 더 짚는다 */
+  highlight?: boolean;
 }) {
   const reduce = useReducedMotion();
   const time = relativeLabel(item.capturedAt, now);
+  // 세션 오버레이 썸네일은 data URL — 옵티마이저를 거치지 않는다
+  const unoptimized = item.image?.file.startsWith("data:") ?? false;
 
   return (
     <motion.div
@@ -43,10 +48,19 @@ export function ItemTile({
       transition={{ type: "spring", duration: 0.3, bounce: 0 }}
       className="group"
     >
+      {highlight && (
+        <p className="mb-1.5 flex items-center gap-1 text-[11px] font-bold text-purple-600">
+          <Sparkles className="size-3" aria-hidden /> 방금 모찌가 받았어요
+        </p>
+      )}
       <Link
         href={href}
         aria-label={`${item.title} — ${time}`}
-        className="block overflow-hidden rounded-2xl shadow-card transition-shadow duration-300 group-hover:shadow-card-lift"
+        className={
+          highlight
+            ? "block overflow-hidden rounded-2xl shadow-card ring-2 ring-purple-200 transition-shadow duration-300 group-hover:shadow-card-lift"
+            : "block overflow-hidden rounded-2xl shadow-card transition-shadow duration-300 group-hover:shadow-card-lift"
+        }
       >
         {item.image ? (
           <div className="relative aspect-[2/3]">
@@ -59,6 +73,7 @@ export function ItemTile({
                   fill
                   sizes="260px"
                   className="scale-125 object-cover blur-xl saturate-150"
+                  unoptimized={unoptimized}
                   aria-hidden
                 />
                 <Image
@@ -67,6 +82,7 @@ export function ItemTile({
                   fill
                   sizes="(max-width: 768px) 50vw, 260px"
                   className="object-contain px-2"
+                  unoptimized={unoptimized}
                 />
               </>
             ) : (
@@ -76,6 +92,7 @@ export function ItemTile({
                 fill
                 sizes="(max-width: 768px) 50vw, 260px"
                 className="object-cover object-top"
+                unoptimized={unoptimized}
               />
             )}
             <div
@@ -83,7 +100,7 @@ export function ItemTile({
               aria-hidden
             />
             <div
-              className="absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-t from-ink-900/75 via-ink-900/30 to-transparent"
+              className="absolute inset-x-0 bottom-0 h-[55%] bg-gradient-to-t from-ink-900/85 via-ink-900/35 to-transparent"
               aria-hidden
             />
             {showIntent && (

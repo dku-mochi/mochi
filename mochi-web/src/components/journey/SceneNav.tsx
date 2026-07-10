@@ -14,7 +14,7 @@ const TABS = [
   { seg: "capture", label: "기록" },
   { seg: "search", label: "검색" },
   { seg: "chat", label: "질문" },
-  { seg: "recall", label: "떠오름" },
+  { seg: "recall", label: "리마인드" },
 ] as const;
 
 export function SceneNav() {
@@ -28,20 +28,20 @@ export function SceneNav() {
         <Link
           href="/p"
           className="flex flex-none items-center gap-2 whitespace-nowrap"
-          aria-label="페르소나 선택으로"
+          aria-label="체험할 사람 선택으로"
         >
           <Image src="/brand/mochi2.png" alt="" width={28} height={28} priority />
           <span className="font-display text-[17px] tracking-head">모찌</span>
         </Link>
         <span
           className="ml-1 flex-none whitespace-nowrap rounded-full bg-purple-50 px-2.5 py-1 text-[12px] font-semibold text-purple-600"
-          aria-label={`현재 페르소나 ${persona.name}`}
+          aria-label={`현재 체험 중인 사람 ${persona.name}`}
         >
           {persona.name}
         </span>
         <nav
           className="-mx-1 flex w-full items-center gap-1 overflow-x-auto whitespace-nowrap px-1 py-1.5 md:ml-auto md:w-auto md:overflow-visible md:py-0"
-          aria-label="씬 이동"
+          aria-label="화면 이동"
         >
           {TABS.map(({ seg, label }) => {
             const href = seg ? `${base}/${seg}` : base;

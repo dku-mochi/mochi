@@ -97,6 +97,7 @@ export function makeCardTexture(item: ResolvedItem): THREE.CanvasTexture {
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
-  texture.anisotropy = 4;
+  // 렌더러가 하드웨어 상한으로 클램프한다 — 기울어진 카드의 텍스트 선명도 (랜딩과 동일값)
+  texture.anisotropy = 8;
   return texture;
 }

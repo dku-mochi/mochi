@@ -13,20 +13,20 @@ const STEPS = [
   {
     icon: "/intents/cat-document.png",
     title: "남긴다",
-    body: "스크린샷·링크·메모를 보내면 끝. 폴더도, 태그도, 정리 규칙도 없습니다.",
-    scene: "기록 씬 — 직접 남겨보고 AI 분석을 지켜봅니다",
+    body: "스크린샷·링크·메모를 보내면 끝이에요. 폴더도, 태그도, 정리 규칙도 없어요.",
+    scene: "기록 화면에서 직접 남겨보고 AI 분석을 지켜봐요",
   },
   {
     icon: "/intents/cat-checklist.png",
     title: "정돈된다",
-    body: "남긴 것이 체크리스트·캘린더·서재로 알아서 꽂힙니다. 마감과 일정은 놓치지 않게.",
-    scene: "홈 씬 — 일주일치 기록이 생활 동선으로",
+    body: "남긴 것이 할 일·캘린더·지식으로 알아서 꽂혀요. 마감과 일정은 놓치지 않게.",
+    scene: "홈 화면에서 일주일치 기록이 정돈된 모습을 봐요",
   },
   {
     icon: "/intents/cat-book.png",
     title: "떠오른다",
-    body: "찾기 전에 먼저. 잊혀가던 기록이 “왜 지금인지” 이유와 함께 떠오릅니다.",
-    scene: "떠오름 씬 — 이 데모의 클라이맥스",
+    body: "잊혀가던 기록이 찾기 전에 먼저, “왜 지금인지” 이유와 함께 떠올라요.",
+    scene: "리마인드 화면, 이 데모의 하이라이트",
   },
 ];
 
@@ -35,13 +35,13 @@ export default function LandingPage() {
     <main>
       <LandingHero />
 
-      <section className="mx-auto max-w-5xl px-6 py-24" aria-label="여정 미리 보기">
+      <section className="mx-auto max-w-5xl px-6 py-24" aria-label="체험 미리 보기">
         <RiseIn index={0} inView>
           <p className="text-center text-[13px] font-bold tracking-wide text-purple-500">
-            5분 여정에서 보게 될 것
+            5분 체험에서 보게 될 것
           </p>
           <h2 className="mt-3 text-center font-display text-[clamp(22px,3.4vw,32px)] tracking-head [text-wrap:balance]">
-            기억이 일하는 순서
+            모찌가 일하는 순서
           </h2>
         </RiseIn>
 
@@ -69,7 +69,7 @@ export default function LandingPage() {
               href="/p"
               className="group inline-flex h-12 items-center gap-2 rounded-full bg-ink-900 px-7 text-[14.5px] font-bold text-white shadow-card transition-transform hover:scale-[1.03] active:scale-[0.98]"
             >
-              페르소나 고르러 가기
+              체험할 사람 고르러 가기
               <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
             </Link>
           </div>
@@ -82,7 +82,7 @@ export default function LandingPage() {
             <Image src="/brand/mochi2.png" alt="" width={20} height={20} />
             <span className="font-semibold text-ink-700">모찌 · 팀 세얼간이</span>
           </span>
-          <span>2026 SW중심대학 디지털 경진대회 — 심사위원용 체험 데모</span>
+          <span>2026 SW중심대학 디지털 경진대회 · 심사위원용 체험 데모</span>
         </div>
       </footer>
     </main>

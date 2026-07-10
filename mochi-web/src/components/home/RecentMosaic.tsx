@@ -20,7 +20,7 @@ const FILTERS: Array<{ key: IntentType | "all"; label: string }> = [
 ];
 
 export function RecentMosaic() {
-  const { persona, items, now } = usePersona();
+  const { persona, items, liveSlugs, now } = usePersona();
   const [filter, setFilter] = useState<IntentType | "all">("all");
 
   const filtered =
@@ -75,6 +75,7 @@ export function RecentMosaic() {
             item={item}
             now={now}
             href={`/p/${persona.slug}/items/${item.slug}`}
+            highlight={liveSlugs.has(item.slug)}
           />
         ))}
       </motion.div>

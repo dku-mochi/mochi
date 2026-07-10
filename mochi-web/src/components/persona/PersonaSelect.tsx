@@ -156,7 +156,7 @@ function PersonaCard({ card, index }: { card: PersonaCardData; index: number }) 
       <Link
         href={`/p/${card.slug}/capture?guided=1`}
         className="block h-full rounded-lg focus-visible:outline-2"
-        aria-label={`${card.name} — ${card.tagline}. 이 페르소나로 여정 시작`}
+        aria-label={`${card.name} — ${card.tagline}. 이 사람으로 체험 시작`}
       >
         {card.recommended ? (
           <BorderBeam
@@ -165,6 +165,7 @@ function PersonaCard({ card, index }: { card: PersonaCardData; index: number }) 
 	        size="pulse-outside"
             borderRadius={20}
             brightness={1.6}
+            hueRange={10}
             className="h-full"
           >
             {inner}
@@ -196,14 +197,14 @@ export function PersonaSelect({ cards }: { cards: PersonaCardData[] }) {
       <div className="relative mx-auto max-w-6xl px-6 pb-20 pt-14">
         <RiseIn index={0}>
           <p className="text-center text-[13px] font-bold tracking-wide text-purple-500">
-            모찌는 계정마다 다르게 일합니다
+            모찌는 계정마다 다르게 일해요
           </p>
           <h1 className="mt-3 text-center font-display text-[clamp(24px,4vw,38px)] tracking-head [text-wrap:balance]">
             누구의 일주일로 체험할까요?
           </h1>
           <p className="mx-auto mt-3 max-w-xl text-center text-[14px] leading-relaxed text-ink-500">
             세 사람 모두 실제로 쌓인 일주일치 기록을 갖고 있어요.
-            고른 사람의 기록으로 홈·검색·질문·떠오름까지 이어집니다.
+            고른 사람의 기록으로 홈·검색·질문·리마인드까지 이어져요.
           </p>
         </RiseIn>
 

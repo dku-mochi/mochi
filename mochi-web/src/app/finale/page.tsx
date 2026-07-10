@@ -4,8 +4,9 @@ import Link from "next/link";
 import { ArrowRight, MoveRight, RotateCcw } from "lucide-react";
 import { PERSONAS } from "@seed/index";
 import { RiseIn } from "@/components/primitives/RiseIn";
+import { LiveEvidence } from "@/components/finale/LiveEvidence";
 
-export const metadata: Metadata = { title: "피날레" };
+export const metadata: Metadata = { title: "마무리" };
 
 /*
  * S7 피날레 — "데모가 아니라 작동하는 제품".
@@ -17,17 +18,17 @@ const SUMMARY = [
   {
     icon: "/intents/cat-document.png",
     title: "남겼다",
-    body: "기록 씬에서 직접 남긴 캡처가 실제 AI 분석을 거쳐 저장됐어요. 폴더도 태그도 고르지 않았습니다.",
+    body: "기록 화면에서 직접 남긴 캡처가 실제 AI 분석을 거쳐 저장됐어요. 폴더도 태그도 고르지 않았어요.",
   },
   {
     icon: "/intents/cat-checklist.png",
-    title: "꺼내졌다",
-    body: "검색과 질문의 답은 언제나 실제 기록 근거와 함께 왔어요. 쓰기는 제안 카드에서 사용자가 확정했습니다.",
+    title: "찾았다",
+    body: "검색과 질문의 답은 언제나 실제 기록 근거와 함께 왔어요. 기록을 바꾸는 일은 제안 카드에서 직접 확정했어요.",
   },
   {
     icon: "/intents/cat-book.png",
     title: "떠올랐다",
-    body: "잊혀가던 기록이 “왜 지금인지” 이유와 함께 먼저 떠올랐어요 — 회수의 주체는 사용자가 아니라 모찌입니다.",
+    body: "잊혀가던 기록이 “왜 지금인지” 이유와 함께 먼저 떠올랐어요. 먼저 떠올린 쪽은 사용자가 아니라 모찌예요.",
   },
 ];
 
@@ -73,11 +74,11 @@ export default function FinalePage() {
               <br />
               필요할 때{" "}
               <span className="bg-gradient-to-r from-purple-500 to-purple-600 bg-clip-text text-transparent">
-                떠올랐습니다
+                떠올랐어요
               </span>
             </h1>
             <p className="mt-4 max-w-lg text-[14.5px] leading-relaxed text-ink-700">
-              방금 보신 여정은 목업이 아니라 작동하는 제품입니다.
+              방금 보신 건 목업이 아니라 작동하는 제품이에요.
               채팅·검색·라이브 분석은 실제 백엔드가 응답했어요.
             </p>
           </div>
@@ -105,12 +106,12 @@ export default function FinalePage() {
             aria-label="시스템 아키텍처"
           >
             <h2 className="font-display text-[20px] tracking-head">
-              방금 데이터가 지나온 길
+              방금 응답을 처리한 시스템
             </h2>
             <div className="mt-6 grid items-center gap-3 md:grid-cols-[1fr_auto_1fr_auto_1fr]">
               <div className="space-y-3">
-                <ArchNode name="iOS 앱 (정본)" detail="SwiftUI · TCA — 캡처·회수 알림" />
-                <ArchNode name="데모 웹" detail="Next.js BFF — 지금 이 화면" />
+                <ArchNode name="iOS 앱 (정본)" detail="SwiftUI · TCA, 캡처와 회수 알림" />
+                <ArchNode name="데모 웹" detail="Next.js BFF, 지금 이 화면" />
               </div>
               <MoveRight className="mx-auto size-5 rotate-90 text-ink-300 md:rotate-0" aria-hidden />
               <ArchNode
@@ -125,10 +126,10 @@ export default function FinalePage() {
               </div>
             </div>
             <p className="mt-5 rounded-xl bg-bg px-4 py-3 text-[12.5px] leading-relaxed text-ink-500">
-              <span className="font-bold text-ink-700">fallback-first.</span>{" "}
-              백엔드가 멈춰도 같은 wire 포맷의 폴백이 스트림을 이어붙여 여정은 끝까지
-              완결됩니다 — 심사 당일의 네트워크는 변수에서 제외했어요.
+              <span className="font-bold text-ink-700">iOS 앱·데모 웹·백엔드가 같은 OpenAPI 명세 하나를 써요.</span>{" "}
+              방금 보신 채팅·검색·분석 응답도 실제 제품과 같은 포맷이에요.
             </p>
+            <LiveEvidence />
           </section>
         </RiseIn>
 
@@ -147,7 +148,7 @@ export default function FinalePage() {
                 <h2 className="font-display text-[18px] tracking-head">코드로 확인하기</h2>
                 <p className="mt-1.5 text-[13px] leading-relaxed text-ink-500">
                   iOS · 백엔드 · 이 데모 웹까지 한 저장소에 있어요.
-                  iOS 앱은 시연 기기에서 함께 보실 수 있습니다.
+                  iOS 앱은 시연 기기에서 바로 볼 수 있어요.
                 </p>
                 <p className="mt-2 text-[12px] font-semibold text-purple-500">
                   github.com/dku-mochi/mochi

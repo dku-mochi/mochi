@@ -111,16 +111,9 @@ private struct CategoryChip: View {
             .frame(height: 44)
             .contentShape(Rectangle())
         }
-        .buttonStyle(TypeChipPress())
+        .buttonStyle(PressableStyle())
         .accessibilityLabel("\(label) 카테고리 필터")
         .accessibilityAddTraits(isActive ? [.isSelected] : [])
     }
 }
-
-private struct TypeChipPress: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
-            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
-    }
-}
+// TypeChipPress 삭제(2026-07-10) — Reduce Motion 을 존중하는 공용 PressableStyle 로 통일.

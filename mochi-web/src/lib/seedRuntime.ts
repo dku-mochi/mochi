@@ -52,6 +52,15 @@ export interface ResolvedItem
 
 const INTENT_PRIORITY: IntentType[] = ["schedule", "todo", "knowledge", "memo"];
 
+/** iOS representativeIntent 규칙 — schedule > todo > knowledge > memo */
+export function pickPrimaryIntent(
+  instances: ReadonlyArray<{ intentType: IntentType }>,
+): IntentType {
+  return (
+    INTENT_PRIORITY.find((t) => instances.some((i) => i.intentType === t)) ?? "memo"
+  );
+}
+
 /** KST 자정의 epoch */
 function midnight(now: number): number {
   const shifted = new Date(now + KST_OFFSET);
@@ -67,14 +76,11 @@ export function resolveItems(persona: SeedPersona, now: number): ResolvedItem[] 
         const days = inst.payload?.dateInDays ?? inst.payload?.deadlineInDays;
         return { ...inst, dueAt: days === undefined ? undefined : base + days * DAY };
       });
-      const primaryIntent =
-        INTENT_PRIORITY.find((t) => instances.some((i) => i.intentType === t)) ??
-        "memo";
       return {
         ...item,
         capturedAt: now - item.capturedDaysAgo * DAY,
         instances,
-        primaryIntent,
+        primaryIntent: pickPrimaryIntent(instances),
       };
     })
     .sort((a, b) => b.capturedAt - a.capturedAt);
@@ -123,36 +129,78 @@ export function upcomingSchedules(items: ResolvedItem[], now: number) {
 }
 
 /** 캘린더 점 3종 — sky=일정 · butter=마감 · purple=저장 (iOS 별도 팔레트 규약) */
-export interface CalendarDay {
-  schedule: number;
-  deadline: number;
-  saved: number;
+export type CalendarEntryKind = "schedule" | "deadline" | "saved";
+
+export interface CalendarEntry {
+  key: string;
+  kind: CalendarEntryKind;
+  title: string;
+  time?: string;
+  slug: string;
 }
 
-export function calendarMap(
+const CALENDAR_KIND_ORDER: Record<CalendarEntryKind, number> = {
+  schedule: 0,
+  deadline: 1,
+  saved: 2,
+};
+
+/** 일자별 캘린더 항목 — 점 렌더와 날짜 클릭 상세의 단일 원천 */
+export function calendarEntries(
   items: ResolvedItem[],
   year: number,
   month: number, // 1-12
-): Map<number, CalendarDay> {
-  const map = new Map<number, CalendarDay>();
-  const at = (ts: number) => {
+  kinds: ReadonlyArray<CalendarEntryKind> = ["schedule", "deadline", "saved"],
+): Map<number, CalendarEntry[]> {
+  const map = new Map<number, CalendarEntry[]>();
+  const dayOf = (ts: number) => {
     const p = kstParts(ts);
     if (p.year !== year || p.month !== month) return null;
     return p.day;
   };
-  const bump = (day: number | null, key: keyof CalendarDay) => {
+  const push = (day: number | null, entry: CalendarEntry) => {
     if (day === null) return;
-    const cur = map.get(day) ?? { schedule: 0, deadline: 0, saved: 0 };
-    cur[key] += 1;
-    map.set(day, cur);
+    const list = map.get(day) ?? [];
+    list.push(entry);
+    map.set(day, list);
   };
   for (const item of items) {
-    bump(at(item.capturedAt), "saved");
-    for (const inst of item.instances) {
-      if (inst.dueAt === undefined) continue;
-      if (inst.intentType === "schedule") bump(at(inst.dueAt), "schedule");
-      if (inst.intentType === "todo" && !inst.done) bump(at(inst.dueAt), "deadline");
+    if (kinds.includes("saved")) {
+      push(dayOf(item.capturedAt), {
+        key: `${item.slug}-cap`,
+        kind: "saved",
+        title: item.title,
+        slug: item.slug,
+      });
     }
+    item.instances.forEach((inst, idx) => {
+      if (inst.dueAt === undefined) return;
+      const title = inst.payload?.title ?? inst.label ?? item.title;
+      if (inst.intentType === "schedule" && kinds.includes("schedule")) {
+        push(dayOf(inst.dueAt), {
+          key: `${item.slug}-s${idx}`,
+          kind: "schedule",
+          title,
+          time: inst.payload?.time,
+          slug: item.slug,
+        });
+      }
+      if (inst.intentType === "todo" && !inst.done && kinds.includes("deadline")) {
+        push(dayOf(inst.dueAt), {
+          key: `${item.slug}-d${idx}`,
+          kind: "deadline",
+          title,
+          slug: item.slug,
+        });
+      }
+    });
+  }
+  for (const list of map.values()) {
+    list.sort(
+      (a, b) =>
+        CALENDAR_KIND_ORDER[a.kind] - CALENDAR_KIND_ORDER[b.kind] ||
+        (a.time ?? "￿").localeCompare(b.time ?? "￿"),
+    );
   }
   return map;
 }

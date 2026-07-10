@@ -3,7 +3,7 @@ import { PERSONAS } from "@seed/index";
 import type { IntentType } from "@seed/schema";
 import { PersonaSelect, type PersonaCardData } from "@/components/persona/PersonaSelect";
 
-export const metadata: Metadata = { title: "페르소나 선택" };
+export const metadata: Metadata = { title: "체험할 사람 선택" };
 
 /*
  * S1 — 특정 계정이 아니라 "삶의 패턴이 다른 사람들"에게 작동함을 보여주는 선택 씬.

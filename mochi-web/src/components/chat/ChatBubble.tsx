@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Check, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import type { AssistantMessage, ChatMessage } from "@/lib/hooks/useChatStream";
 import { usePersona } from "@/components/journey/PersonaProvider";
 import { ToolStatusPill, TypingDots } from "@/components/primitives/ToolStatusPill";
@@ -158,9 +158,12 @@ function ProcessDisclosure({ m }: { m: AssistantMessage }) {
         <ul className="mt-2 space-y-1.5">
           {steps.map((t, i) => (
             <li key={i} className="flex items-center gap-2 text-[12.5px] text-ink-500">
-              <Check className="size-3.5 flex-none text-mint-400" strokeWidth={3} aria-hidden />
+              {/* 같은 도구를 여러 번 밟아도(재검색) 순번이 로그처럼 읽히게 */}
+              <span className="flex size-[18px] flex-none items-center justify-center rounded-full bg-mint-100 text-[10px] font-bold text-[#187A4E] tnum">
+                {i + 1}
+              </span>
               <span className="font-semibold text-ink-700">{t.label}</span>
-              {t.summary && <span className="truncate">— {t.summary}</span>}
+              {t.summary && <span className="truncate">· {t.summary}</span>}
             </li>
           ))}
         </ul>

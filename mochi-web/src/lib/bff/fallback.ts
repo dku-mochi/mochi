@@ -60,7 +60,7 @@ export function chatWireEvents(
       delayMs: 1100,
     });
     const msg =
-      "말씀하신 내용과 딱 맞는 기록을 찾지 못했어요. 아래 추천 질문으로 시작해보시거나, 기록에 있을 법한 단어로 조금 더 구체적으로 물어봐 주세요.";
+      "질문과 딱 맞는 기록을 찾지 못했어요. 아래 추천 질문으로 시작하거나, 기록에 있을 법한 단어로 다시 물어봐 주세요.";
     for (const chunk of chunkText(msg)) {
       out.push({ event: "message_delta", data: { run_id, text: chunk }, delayMs: 22 });
     }
@@ -194,11 +194,17 @@ export interface IngestInput {
 }
 
 export function encodeFallbackId(input: IngestInput): string {
-  const json = JSON.stringify(input);
+  // id 는 URL path 에 실린다 — 휴리스틱 분석은 앞부분이면 충분하니 인코딩 전에 자른다
+  // (원문 전체는 클라이언트 세션 오버레이가 갖고 있다)
+  const json = JSON.stringify({
+    ...input,
+    text: input.text?.slice(0, 400),
+    memo: input.memo?.slice(0, 200),
+  });
   return `fb.${Buffer.from(json, "utf8").toString("base64url")}`;
 }
 
-// ingest 입력 상한(600+500+300자, 한글 3바이트) 기준 여유 상한 — 초과분은 위조 id
+// encode 자체 상한(400+500+200자, 한글 3바이트) 기준 여유 상한 — 초과분은 위조 id
 const MAX_FALLBACK_ID_LENGTH = 8192;
 
 export function decodeFallbackId(id: string): IngestInput | null {
@@ -303,9 +309,9 @@ export function analyzeHeuristic(input: IngestInput): AnalyzedItemWire {
 
   const primary = intents[0].intentType;
   const summaryByIntent: Record<string, string> = {
-    schedule: `일정으로 정리했어요 — ${toKorean(intents[0].date)}${intents[0].time ? ` ${intents[0].time}` : ""}, 캘린더에 올라갑니다.`,
-    todo: `할 일로 정리했어요${intents.find((i) => i.deadline)?.deadline ? ` — 마감 ${toKorean(intents.find((i) => i.deadline)!.deadline)}` : ""}. 체크리스트에서 완료할 수 있어요.`,
-    knowledge: "다시 참고할 지식으로 보관했어요. 나중에 자연어로 검색하면 떠오릅니다.",
+    schedule: `일정으로 정리했어요. ${toKorean(intents[0].date)}${intents[0].time ? ` ${intents[0].time}` : ""}, 캘린더에 올려뒀어요.`,
+    todo: `할 일로 정리했어요${intents.find((i) => i.deadline)?.deadline ? `, 마감은 ${toKorean(intents.find((i) => i.deadline)!.deadline)}` : ""}. 체크리스트에서 완료할 수 있어요.`,
+    knowledge: "다시 참고할 지식으로 보관했어요. 나중에 기억나는 대로 검색하면 떠올라요.",
     memo: "맥락 그대로 기록해뒀어요. 타임라인에서 다시 만날 수 있어요.",
   };
 

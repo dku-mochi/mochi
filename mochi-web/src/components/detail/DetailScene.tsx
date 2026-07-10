@@ -24,7 +24,24 @@ import { cn } from "@/lib/cn";
 export function DetailScene({ slug }: { slug: string }) {
   const { persona, items, now } = usePersona();
   const item = findItem(items, slug);
-  if (!item) return null;
+  if (!item) {
+    // 세션 오버레이 slug 를 다른 브라우저/탭에서 연 경우 — 정직하게 안내
+    return (
+      <main className="mx-auto flex max-w-3xl flex-col items-center px-5 py-24 text-center">
+        <Image src="/brand/mochi-question.png" alt="" width={84} height={84} className="h-[76px] w-auto" />
+        <p className="mt-4 text-[16px] font-bold">이 기록은 보낸 브라우저에만 있어요</p>
+        <p className="mt-1.5 text-[13px] leading-relaxed text-ink-500">
+          다른 브라우저나 새 세션에서는 보이지 않아요.
+        </p>
+        <Link
+          href={`/p/${persona.slug}`}
+          className="mt-5 inline-flex h-10 items-center gap-1.5 rounded-full bg-ink-900 px-5 text-[13.5px] font-bold text-white transition-colors hover:bg-ink-700"
+        >
+          <ArrowLeft className="size-4" aria-hidden /> 홈으로
+        </Link>
+      </main>
+    );
+  }
 
   const related = (item.relatedSlugs ?? [])
     .map((s) => findItem(items, s))
@@ -86,6 +103,15 @@ export function DetailScene({ slug }: { slug: string }) {
   );
 }
 
+/** "~로/으로" 조사 — 마지막 한글 음절의 받침 유무 (ㄹ 받침은 "로") */
+function withRo(word: string): string {
+  const last = word.trim().at(-1) ?? "";
+  const code = last.charCodeAt(0);
+  if (code < 0xac00 || code > 0xd7a3) return "로";
+  const jong = (code - 0xac00) % 28;
+  return jong === 0 || jong === 8 ? "로" : "으로";
+}
+
 function DetailHero({ item }: { item: ResolvedItem }) {
   if (item.image) {
     const landscape = item.image.width > item.image.height;
@@ -97,6 +123,7 @@ function DetailHero({ item }: { item: ResolvedItem }) {
           width={item.image.width}
           height={item.image.height}
           priority
+          unoptimized={item.image.file.startsWith("data:")}
           className={cn(
             "rounded-2xl shadow-card-lift ring-1 ring-black/10",
             landscape ? "h-auto w-[86%]" : "h-[396px] w-auto",
@@ -144,7 +171,7 @@ function DetailHero({ item }: { item: ResolvedItem }) {
         )}
       >
         {isUrl ? <Link2 className="size-4" aria-hidden /> : null}
-        {isUrl ? domainOf(item.url) : `${item.source}로 남긴 기록`}
+        {isUrl ? domainOf(item.url) : `${item.source}${withRo(item.source)} 남긴 기록`}
       </span>
     </div>
   );
@@ -294,7 +321,7 @@ function MochiSummary({ item }: { item: ResolvedItem }) {
       )}
       {item.userMemo && (
         <p className="mt-4 rounded-xl bg-butter-50 px-4 py-3 text-[14px] font-medium text-[#6b5210]">
-          내 메모 — {item.userMemo}
+          내 메모: {item.userMemo}
         </p>
       )}
     </section>

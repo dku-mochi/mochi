@@ -13,7 +13,8 @@
     "e2e": "playwright test",
     "gen:api": "openapi-typescript ../mochi-backend/openapi.json -o src/lib/api/types.gen.ts",
     "validate:seed": "tsx scripts/validate-seed.ts",
-    "seed:backend": "tsx scripts/seed-backend.ts"
+    "seed:backend": "tsx scripts/seed-backend.ts",
+    "seed:cleanup": "tsx scripts/cleanup-backend.ts"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",

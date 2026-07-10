@@ -30,6 +30,7 @@ export function LandingHero() {
   const sectionRef = useRef<HTMLElement>(null);
   const gatherTarget = useRef(0);
   const pointer = useRef({ x: 0, y: 0 });
+  const hovering = useRef(false); // CTA hover 가 자동 사이클보다 우선
 
   useEffect(() => {
     try {
@@ -65,6 +66,28 @@ export function LandingHero() {
     );
     io.observe(sectionRef.current);
     return () => io.disconnect();
+  }, [canvasOn]);
+
+  // 자동 수렴 데모 — hover 를 발견하지 못해도 "떠오른다"가 한 번은 눈앞에서 일어난다.
+  // 헤드라인을 읽을 시간 뒤 1회, 이후 긴 유휴에만 반복. reduce-motion 은 캔버스 자체가 꺼져 있다.
+  useEffect(() => {
+    if (!canvasOn) return;
+    let pending = 0; // 사이클당 timeout 1개만 산다 — 새 사이클이 이전 것을 교체
+    const cycle = () => {
+      if (hovering.current) return;
+      gatherTarget.current = 1;
+      clearTimeout(pending);
+      pending = window.setTimeout(() => {
+        if (!hovering.current) gatherTarget.current = 0;
+      }, 2600);
+    };
+    const first = window.setTimeout(cycle, 3200);
+    const loop = window.setInterval(cycle, 18000);
+    return () => {
+      clearTimeout(first);
+      clearTimeout(pending);
+      clearInterval(loop);
+    };
   }, [canvasOn]);
 
   return (
@@ -155,8 +178,8 @@ export function LandingHero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut", delay: 0.16 }}
         >
-          보내기만 하면 정리는 모찌가 합니다. 그리고 필요한 순간 —
-          찾기 전에 이유와 함께 먼저 떠올라요.
+          보내기만 하면 정리는 모찌가 해요.
+          필요한 순간엔 찾기 전에 이유와 함께 먼저 떠올라요.
         </motion.p>
         <motion.div
           className="mt-9 flex flex-col items-center gap-3"
@@ -164,23 +187,35 @@ export function LandingHero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut", delay: 0.24 }}
           /* 수렴 트리거 — Link 는 prefetch 용으로 pointer 이벤트를 소비하므로 컨테이너에 건다 */
-          onPointerEnter={() => (gatherTarget.current = 1)}
-          onPointerLeave={() => (gatherTarget.current = 0)}
-          onFocus={() => (gatherTarget.current = 1)}
-          onBlur={() => (gatherTarget.current = 0)}
+          onPointerEnter={() => {
+            hovering.current = true;
+            gatherTarget.current = 1;
+          }}
+          onPointerLeave={() => {
+            hovering.current = false;
+            gatherTarget.current = 0;
+          }}
+          onFocus={() => {
+            hovering.current = true;
+            gatherTarget.current = 1;
+          }}
+          onBlur={() => {
+            hovering.current = false;
+            gatherTarget.current = 0;
+          }}
         >
           <Link
             href="/p"
             className="group inline-flex h-13 items-center gap-2 rounded-full bg-gradient-to-r from-purple-400 to-purple-600 px-8 text-[15.5px] font-bold text-white shadow-fab transition-transform hover:scale-[1.03] active:scale-[0.98]"
           >
-            5분 여정 시작
+            5분 만에 체험하기
             <ArrowRight
               className="size-4.5 transition-transform group-hover:translate-x-0.5"
               aria-hidden
             />
           </Link>
           <p className="text-[12.5px] font-medium text-ink-500">
-            페르소나 3명 중 하나의 일주일을 체험합니다 — 설치 없음
+            설치 없이 세 사람 중 한 명의 일주일을 체험해요
           </p>
         </motion.div>
       </div>
@@ -195,7 +230,7 @@ export function LandingHero() {
           animate={reduce ? undefined : { y: [0, 5, 0] }}
           transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
         >
-          ↓ 여정 미리 보기
+          ↓ 미리 보기
         </motion.span>
       </div>
     </section>

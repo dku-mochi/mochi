@@ -128,7 +128,7 @@ export function ProposalCard({
           )}
           {cancelled && (
             <span key="cancelled" className="text-[12.5px] font-semibold text-ink-300">
-              취소됨
+              다음에 할게요
             </span>
           )}
         </AnimatePresence>

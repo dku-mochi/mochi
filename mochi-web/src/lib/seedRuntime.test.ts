@@ -3,7 +3,7 @@ import type { SeedPersona } from "@seed/schema";
 import {
   resolveItems,
   activeTodos,
-  calendarMap,
+  calendarEntries,
   relativeLabel,
   dday,
   monthlyReport,
@@ -83,13 +83,21 @@ describe("파생 셀렉터", () => {
     expect(activeTodos(items).map((t) => t.item.slug)).toEqual(["b", "a"]);
   });
 
-  it("calendarMap 점 3종 — 일정/마감/저장", () => {
-    const map = calendarMap(items, 2026, 7);
-    expect(map.get(10)?.schedule).toBe(1); // 7/7 + 3일
-    expect(map.get(12)?.deadline).toBe(1); // 7/7 + 5일
-    expect(map.get(8)?.deadline).toBe(1); // 급한 할일 D+1
-    expect(map.get(7)?.saved).toBe(1); // b (12시간 전)
-    expect(map.get(5)?.saved).toBe(1); // a (2일 전)
+  it("calendarEntries — 일자별 일정/마감/저장 항목", () => {
+    const map = calendarEntries(items, 2026, 7);
+    const kindsAt = (d: number) => (map.get(d) ?? []).map((e) => e.kind);
+    expect(kindsAt(10)).toEqual(["schedule"]); // 7/7 + 3일
+    expect(kindsAt(12)).toEqual(["deadline"]); // 7/7 + 5일
+    expect(kindsAt(8)).toEqual(["deadline"]); // 급한 할일 D+1
+    expect(kindsAt(7)).toEqual(["saved"]); // b (12시간 전)
+    expect(kindsAt(5)).toEqual(["saved"]); // a (2일 전)
+  });
+
+  it("calendarEntries kinds 필터 — 기록 보드는 저장 점을 뺀다", () => {
+    const map = calendarEntries(items, 2026, 7, ["schedule", "deadline"]);
+    const all = [...map.values()].flat();
+    expect(all.length).toBeGreaterThan(0);
+    expect(all.every((e) => e.kind !== "saved")).toBe(true);
   });
 
   it("monthlyReport 는 이번 달 캡처만 센다", () => {

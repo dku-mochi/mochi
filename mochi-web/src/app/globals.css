@@ -83,6 +83,9 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    /* 한국어 단어 중간 줄바꿈 방지 — 긴 URL 류는 overflow-wrap 이 받는다 */
+    word-break: keep-all;
+    overflow-wrap: break-word;
   }
 
   ::selection {
@@ -93,6 +96,12 @@
   :focus-visible {
     outline: 2px solid var(--color-purple-500);
     outline-offset: 2px;
+  }
+
+  /* Tailwind v4 preflight 는 button 을 cursor: default 로 둔다 — 웹에서는 클릭 가능성이 손끝에 보여야 한다 */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
   }
 }
 

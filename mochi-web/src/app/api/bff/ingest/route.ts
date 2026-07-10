@@ -16,10 +16,11 @@ export async function POST(req: NextRequest) {
   } catch {
     return Response.json({ error: "invalid_body" }, { status: 400 });
   }
+  // 컴포저 maxLength(2000)와 동일값 — 여기서 더 자르면 사용자 모르게 내용이 유실된다
   const input: IngestInput = {
-    text: body.text?.slice(0, 600),
+    text: body.text?.slice(0, 2000),
     url: body.url?.slice(0, 500),
-    memo: body.memo?.slice(0, 300),
+    memo: body.memo?.slice(0, 500),
   };
   if (!input.text?.trim() && !input.url?.trim()) {
     return Response.json({ error: "empty_input" }, { status: 422 });

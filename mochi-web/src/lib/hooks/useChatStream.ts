@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ChatWireEvent, ProposalType } from "@/lib/api/wire";
 import { parseSseStream, toTagged } from "@/lib/sse/parse";
+import { recordMode } from "@/lib/liveStats";
 import backendIds from "@seed/backend-ids.json";
 
 /*
@@ -127,6 +128,7 @@ export function useChatStream(personaSlug: string, knownSlugs: Set<string>) {
           signal: ac.signal,
         });
         if (!res.ok || !res.body) throw new Error(`chat_http_${res.status}`);
+        recordMode(res.headers.get("x-mochi-mode"));
 
         for await (const raw of parseSseStream(res.body, ac.signal)) {
           const e = toTagged<ChatWireEvent>(raw);

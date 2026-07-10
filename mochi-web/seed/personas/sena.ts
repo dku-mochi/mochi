@@ -15,19 +15,19 @@ const sena: SeedPersona = {
   name: "김세나",
   age: 23,
   job: "컴퓨터공학과 4학년",
-  tagline: "과제 공지는 캡처했는데, 마감은 놓칠 뻔한다",
+  tagline: "과제 공지는 캡처해놓고, 마감은 놓칠 뻔했어요",
   intro:
-    "수업·팀플·공모전이 겹치는 학기말. 스크린샷은 쌓이는데 다시 열어보는 건 늘 마감 직전이다.",
+    "수업·팀플·공모전이 겹치는 학기말이에요. 스크린샷은 쌓이는데 다시 열어보는 건 늘 마감 직전이에요.",
   uuidEnvKey: "MOCHI_PERSONA_UUID_SENA",
   accent: "sky",
   heroSlugs: ["lms-os-assignment", "youtube-langchain", "dacon-contest"],
   suggestedSearch: [
-    "지난주에 저장한 AI 에이전트 자료",
+    "저장해둔 AI 에이전트 자료",
     "이번 주 마감인 것",
     "데이콘 일정",
   ],
   suggestedChat: [
-    "지난주에 저장한 AI Agent 관련 자료 정리해줘",
+    "저장해둔 AI Agent 관련 자료 정리해줘",
     "이번 주에 해야 할 일 뭐가 남았지?",
   ],
   items: [
@@ -39,10 +39,10 @@ const sena: SeedPersona = {
       source: "스크린샷",
       title: "운영체제 4차 과제 공지",
       ocrText:
-        "[운영체제] 과제 4 공지 — 페이지 교체 알고리즘 시뮬레이터 구현. 제출: 7월 12일(일) 23:59, LMS 업로드. 지연 제출 시 일당 10% 감점.",
+        "[운영체제] 과제 4 공지 - 페이지 교체 알고리즘 시뮬레이터 구현. 제출: 7월 12일(일) 23:59, LMS 업로드. 지연 제출 시 일당 10% 감점.",
       category: "학교·과제",
       summary:
-        "운영체제 4차 과제 — 페이지 교체 알고리즘 시뮬레이터. 7/12(일) 23:59 LMS 제출, 지연 시 일당 10% 감점.",
+        "운영체제 4차 과제는 페이지 교체 알고리즘 시뮬레이터예요. 7/12(일) 23:59까지 LMS 제출, 늦으면 하루마다 10% 감점이에요.",
       instances: [
         {
           intentType: "schedule",
@@ -68,7 +68,7 @@ const sena: SeedPersona = {
       text: "다음 주까지 발표 대본 수정하기. 도입부 데모 영상 먼저 → 아키텍처 설명 순서로 바꾸기.",
       category: "학교·팀플",
       summary:
-        "팀플 발표 대본 수정 — 도입부를 데모 영상 먼저 보여주는 구성으로 변경. 다음 주까지.",
+        "팀플 발표 대본을 고치기로 했어요. 도입부는 데모 영상을 먼저 보여주는 구성으로, 다음 주까지예요.",
       instances: [
         {
           intentType: "todo",
@@ -89,7 +89,7 @@ const sena: SeedPersona = {
         "지우: 그럼 세나가 발표, 내가 슬라이드, 현우가 데모 영상 / 현우: ㅇㅋ 목요일까지 초안 올릴게 / 지우: 발표는 다음 주 화요일 3시 확정!",
       category: "학교·팀플",
       summary:
-        "팀플 역할 확정 — 세나 발표, 지우 슬라이드, 현우 데모 영상(목요일 초안). 발표는 다음 주 화요일 15:00.",
+        "팀플 역할이 정해졌어요. 세나 발표, 지우 슬라이드, 현우 데모 영상(목요일 초안). 발표는 다음 주 화요일 15:00이에요.",
       instances: [
         {
           intentType: "schedule",
@@ -108,9 +108,9 @@ const sena: SeedPersona = {
       channel: "screenshot",
       source: "스크린샷",
       title: "데이콘 경진대회 일정",
-      ocrText: "데이콘 AI 경진대회 — 기획서 7/7 마감 · 최종 산출물 7/15 마감",
+      ocrText: "데이콘 AI 경진대회 - 기획서 7/7 마감 · 최종 산출물 7/15 마감",
       category: "커리어",
-      summary: "데이콘 AI 경진대회 — 최종 산출물 7/15 마감. 기획서는 제출 완료.",
+      summary: "데이콘 AI 경진대회 최종 산출물이 7/15 마감이에요. 기획서는 이미 냈어요.",
       instances: [
         {
           intentType: "schedule",
@@ -138,9 +138,9 @@ const sena: SeedPersona = {
       source: "Safari",
       title: "백준 1로 만들기 2",
       url: "https://www.acmicpc.net/problem/12852",
-      text: "DP 기본 문제 — 스터디 이번 주 과제",
+      text: "DP 기본 문제 - 스터디 이번 주 과제",
       category: "학교·스터디",
-      summary: "알고리즘 스터디 이번 주 문제 — DP 역추적. 풀고 가야 함.",
+      summary: "알고리즘 스터디 이번 주 문제는 DP 역추적이에요. 풀고 가야 해요.",
       instances: [
         {
           intentType: "todo",
@@ -161,10 +161,10 @@ const sena: SeedPersona = {
       source: "스크린샷",
       title: "asyncio RuntimeError 해결법",
       ocrText:
-        "RuntimeError: This event loop is already running — Jupyter에서는 nest_asyncio.apply() 또는 await 직접 사용",
+        "RuntimeError: This event loop is already running - Jupyter에서는 nest_asyncio.apply() 또는 await 직접 사용",
       category: "개발 지식",
       summary:
-        "Jupyter에서 asyncio 이벤트 루프 중복 실행 에러 — nest_asyncio 적용 또는 top-level await로 해결.",
+        "Jupyter의 asyncio 이벤트 루프 중복 실행 에러는 nest_asyncio 적용이나 top-level await로 풀 수 있어요.",
       instances: [
         {
           intentType: "knowledge",
@@ -182,9 +182,9 @@ const sena: SeedPersona = {
       source: "스크린샷",
       title: "DNS는 어떻게 동작하나",
       ocrText:
-        "DNS 계층 구조 — 루트 → TLD → 권한 네임서버. 재귀 질의와 반복 질의의 차이, 캐시 TTL.",
+        "DNS 계층 구조 - 루트 → TLD → 권한 네임서버. 재귀 질의와 반복 질의의 차이, 캐시 TTL.",
       category: "개발 지식",
-      summary: "DNS 계층 구조와 질의 과정 정리 — 네트워크 기말 대비 저장.",
+      summary: "네트워크 기말 대비로 DNS 계층 구조와 질의 과정을 정리해뒀어요.",
       instances: [
         {
           intentType: "knowledge",
@@ -205,13 +205,13 @@ const sena: SeedPersona = {
       kind: "url",
       channel: "youtube",
       source: "YouTube",
-      title: "LangChain으로 AI 에이전트 만들기 — 입문 강의",
+      title: "LangChain으로 AI 에이전트 만들기 - 입문 강의",
       url: "https://www.youtube.com/results?search_query=langchain+agent+tutorial",
       text: "에이전트 루프(계획→도구 호출→관찰)를 40분 만에 훑는 강의",
       userMemo: "졸업 프로젝트 참고용",
       category: "AI 학습",
       summary:
-        "LangChain 에이전트 입문 강의 — 계획→도구 호출→관찰 루프, 실습 코드 링크 포함. 졸업 프로젝트 참고용으로 저장.",
+        "LangChain 에이전트 입문 강의예요. 계획→도구 호출→관찰 루프에 실습 코드 링크까지 있어요. 졸업 프로젝트 참고용으로 담아뒀어요.",
       instances: [
         {
           intentType: "knowledge",
@@ -235,10 +235,10 @@ const sena: SeedPersona = {
       source: "Safari",
       title: "RAG 구조 한 번에 이해하기",
       url: "https://python.langchain.com/docs/tutorials/rag/",
-      text: "검색 증강 생성 — 인덱싱(로드·분할·임베딩)과 검색·생성 두 단계",
+      text: "검색 증강 생성 - 인덱싱(로드·분할·임베딩)과 검색·생성 두 단계",
       category: "AI 학습",
       summary:
-        "RAG 파이프라인 정리 — 인덱싱(로드→분할→임베딩→저장)과 런타임(검색→생성) 두 축. 졸프 검색 기능 설계 참고.",
+        "RAG 파이프라인을 인덱싱(로드→분할→임베딩→저장)과 런타임(검색→생성) 두 축으로 정리한 글이에요. 졸프 검색 기능 설계에 참고하기 좋아요.",
       instances: [
         {
           intentType: "knowledge",
@@ -259,7 +259,7 @@ const sena: SeedPersona = {
       text: "멀티 에이전트 협업, 도구 사용 벤치마크, 평가 프레임워크 소식",
       category: "AI 학습",
       summary:
-        "AI 에이전트 주간 동향 — 멀티 에이전트 협업 사례와 도구 사용 벤치마크. 졸프 관련 레퍼런스 후보.",
+        "AI 에이전트 주간 동향이에요. 멀티 에이전트 협업 사례와 도구 사용 벤치마크가 실려 있어요. 졸프 레퍼런스 후보예요.",
       instances: [
         {
           intentType: "knowledge",
@@ -278,9 +278,9 @@ const sena: SeedPersona = {
       source: "Safari",
       title: "여름 체험형 인턴 모집 공고",
       url: "https://www.wanted.co.kr/wdlist/518",
-      text: "백엔드 개발 체험형 인턴 — 서류 마감 7/17, 자소서 2문항",
+      text: "백엔드 개발 체험형 인턴 - 서류 마감 7/17, 자소서 2문항",
       category: "커리어",
-      summary: "백엔드 체험형 인턴 공고 — 서류 마감 7/17. 자소서 2문항 준비 필요.",
+      summary: "백엔드 체험형 인턴 공고예요. 서류 마감은 7/17, 자소서 2문항을 준비해야 해요.",
       instances: [
         {
           intentType: "todo",
@@ -297,9 +297,9 @@ const sena: SeedPersona = {
       source: "스크린샷",
       title: "교내 창업 아이디어 공모전",
       ocrText:
-        "제10회 교내 창업 아이디어 공모전 — 접수 7/27까지, 팀 단위(1~4인), 총상금 500만원",
+        "제10회 교내 창업 아이디어 공모전 - 접수 7/27까지, 팀 단위(1~4인), 총상금 500만원",
       category: "커리어",
-      summary: "교내 창업 공모전 — 접수 7/27 마감, 1~4인 팀. 팀플 주제 확장해서 낼지 고민.",
+      summary: "교내 창업 공모전은 접수가 7/27 마감이고 1~4인 팀이에요. 팀플 주제를 확장해서 낼지 고민 중이에요.",
       instances: [
         {
           intentType: "schedule",
@@ -316,9 +316,9 @@ const sena: SeedPersona = {
       channel: "screenshot",
       source: "스크린샷",
       title: "학자금 이자 납부",
-      ocrText: "학자금 대출 이자 납부 안내 — 납부 기한 6월 19일",
+      ocrText: "학자금 대출 이자 납부 안내 - 납부 기한 6월 19일",
       category: "생활·금융",
-      summary: "학자금 대출 이자 납부 — 기한 내 납부 완료.",
+      summary: "학자금 대출 이자는 기한 안에 냈어요.",
       instances: [
         {
           intentType: "todo",
@@ -341,9 +341,9 @@ const sena: SeedPersona = {
       channel: "screenshot",
       source: "스크린샷",
       title: "여름 페스티벌 티켓 오픈",
-      ocrText: "SUMMER SOUND 2026 — 1차 티켓 오픈 7/9(목) 20:00, 인터파크 단독",
+      ocrText: "SUMMER SOUND 2026 - 1차 티켓 오픈 7/9(목) 20:00, 인터파크 단독",
       category: "일상·문화",
-      summary: "여름 페스티벌 1차 티켓팅 — 7/9(목) 20:00 오픈. 알림 맞춰둘 것.",
+      summary: "여름 페스티벌 1차 티켓팅이 7/9(목) 20:00에 열려요. 알림을 맞춰두면 좋아요.",
       instances: [
         {
           intentType: "schedule",
@@ -361,9 +361,9 @@ const sena: SeedPersona = {
       source: "카카오톡",
       title: "동아리 여름 MT 공지",
       ocrText:
-        "[중앙동아리] 여름 MT — 7/19(일)~20(월) 가평. 회비 45,000원, 참석 투표는 이번 주까지!",
+        "[중앙동아리] 여름 MT - 7/19(일)~20(월) 가평. 회비 45,000원, 참석 투표는 이번 주까지!",
       category: "일상·모임",
-      summary: "동아리 MT 7/19~20 가평 — 회비 4.5만원, 참석 투표 이번 주까지.",
+      summary: "동아리 MT는 7/19~20 가평이에요. 회비 4.5만원, 참석 투표는 이번 주까지예요.",
       instances: [
         {
           intentType: "schedule",
@@ -387,7 +387,7 @@ const sena: SeedPersona = {
       title: "교수님 면담",
       text: "금요일 2시 졸업 프로젝트 중간 점검 면담. 진행 상황 슬라이드 3장 준비.",
       category: "학교·졸프",
-      summary: "졸프 중간 점검 면담 — 금요일 14:00, 진행 상황 슬라이드 3장 준비.",
+      summary: "졸프 중간 점검 면담이 금요일 14:00에 있어요. 진행 상황 슬라이드 3장을 준비해야 해요.",
       instances: [
         {
           intentType: "schedule",
@@ -411,7 +411,7 @@ const sena: SeedPersona = {
       url: "https://www.notion.com/templates/category/portfolio",
       text: "프로젝트 카드형 정리 + 이력 타임라인 템플릿 모음",
       category: "커리어",
-      summary: "포트폴리오 노션 템플릿 모음 — 인턴 지원 전에 프로젝트 정리할 때 쓸 것.",
+      summary: "포트폴리오 노션 템플릿 모음이에요. 인턴 지원 전에 프로젝트 정리할 때 쓰기 좋아요.",
       instances: [
         {
           intentType: "knowledge",
@@ -429,7 +429,7 @@ const sena: SeedPersona = {
       title: "아침 운동 루틴",
       text: "기상 후 스트레칭 10분 → 러닝 20분 → 샤워. 주 3회만 지켜도 성공.",
       category: "일상·건강",
-      summary: "아침 운동 루틴 메모 — 스트레칭 10분, 러닝 20분, 주 3회 목표.",
+      summary: "아침 운동 루틴 메모예요. 스트레칭 10분, 러닝 20분, 주 3회가 목표예요.",
       instances: [{ intentType: "memo", label: "운동 루틴" }],
       capturedDaysAgo: 10,
     },
@@ -439,9 +439,9 @@ const sena: SeedPersona = {
       channel: "appDirectInput",
       source: "직접 입력",
       title: "계절학기 수강신청",
-      text: "확률과통계 계절학기 — 수강신청 7/16 오전 10시. 서버 열리자마자 잡아야 함.",
+      text: "확률과통계 계절학기 - 수강신청 7/16 오전 10시. 서버 열리자마자 잡아야 함.",
       category: "학교·수강",
-      summary: "계절학기(확률과통계) 수강신청 — 7/16 10:00 오픈.",
+      summary: "계절학기(확률과통계) 수강신청이 7/16 10:00에 열려요.",
       instances: [
         {
           intentType: "schedule",
@@ -459,7 +459,7 @@ const sena: SeedPersona = {
       title: "스터디 시간 변경",
       text: "알고리즘 스터디 목요일 7시 → 토요일 오전 10시로 변경. 장소는 그대로 중도 스터디룸.",
       category: "학교·스터디",
-      summary: "알고리즘 스터디가 토요일 10:00으로 변경 — 장소는 중앙도서관 스터디룸.",
+      summary: "알고리즘 스터디가 토요일 10:00으로 바뀌었어요. 장소는 중앙도서관 스터디룸이에요.",
       instances: [{ intentType: "memo", label: "스터디 변경 기록" }],
       capturedDaysAgo: 7,
     },
@@ -469,9 +469,9 @@ const sena: SeedPersona = {
       channel: "appDirectInput",
       source: "직접 입력",
       title: "종강하면 갈 맛집",
-      text: "학교 앞 마라탕 신상 / 연남동 파스타 오마카세 / 성수 베이글 — 지우랑 가기로 함.",
+      text: "학교 앞 마라탕 신상 / 연남동 파스타 오마카세 / 성수 베이글 - 지우랑 가기로 함.",
       category: "일상",
-      summary: "종강 기념 맛집 리스트 — 마라탕·파스타·베이글. 지우와 약속.",
+      summary: "종강 기념 맛집 리스트예요. 마라탕·파스타·베이글, 지우와 가기로 했어요.",
       instances: [{ intentType: "memo", label: "맛집 리스트" }],
       capturedDaysAgo: 20,
     },
