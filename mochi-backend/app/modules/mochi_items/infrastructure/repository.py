@@ -626,7 +626,10 @@ class PostgresMochiItemRepository(MochiItemRepository):
                 EntityRow(
                     mochi_item_id=mochi_item_id,
                     kind=kind[:16],
-                    value=value[:512],
+                    # value 는 Text — searchPlaceGeo 의 place entity 는 Google 매장사진 URL(imageUrl,
+                    # googleusercontent, 400자+)까지 실려 512 를 넘긴다. 자르면 JSON 이 깨져 좌표(지도)까지
+                    # 사라졌다(구 String(512)+value[:512] 회귀). 넓힌 컬럼에 통짜로 싣는다.
+                    value=value,
                     mochi_item=row,
                 )
             )

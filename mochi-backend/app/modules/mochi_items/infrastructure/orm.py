@@ -3,7 +3,7 @@ from typing import Any
 from uuid import UUID, uuid4
 
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import JSON, BigInteger, Boolean, DateTime, ForeignKey, Index, Integer, String
+from sqlalchemy import JSON, BigInteger, Boolean, DateTime, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import (
     UUID as PgUUIDColumn,  # noqa: N811 (Postgres UUID column constructor)
@@ -151,7 +151,9 @@ class EntityRow(Base):
         PgUUIDColumn(as_uuid=True), ForeignKey("mochi_items.id", ondelete="CASCADE"), index=True
     )
     kind: Mapped[str] = mapped_column(String(16))
-    value: Mapped[str] = mapped_column(String(512))
+    # Text — place entity 는 Google 매장사진 URL(imageUrl, 400자+)까지 실려 512 를 넘긴다.
+    # String(512) 절단은 JSON 을 깨 좌표까지 날렸다(마이그레이션 0027).
+    value: Mapped[str] = mapped_column(Text)
     mochi_item: Mapped["MochiItemRow"] = relationship(back_populates="entities", default=None)
 
 

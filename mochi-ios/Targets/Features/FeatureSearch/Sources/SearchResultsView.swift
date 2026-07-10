@@ -90,21 +90,29 @@ struct SearchResultsView: View {
             Image(systemName: "sparkles")
                 .font(.system(size: 14, weight: .semibold, design: .rounded))
                 .foregroundStyle(SearchD5.Palette.primary)
+                // 의미 검색이 도는 동안 sparkles 가 실제로 반짝인다 — 스피너와 같은 말을 아이콘이 한 번 더.
+                .symbolEffect(.variableColor.iterative, options: .repeating, isActive: isSemanticSearching)
             Text(summaryText)
                 .font(.system(size: 14, weight: .medium, design: .rounded))
                 .tracking(-0.2)
                 .foregroundStyle(SearchD5.Palette.textSecondary)
                 .lineLimit(2)
                 .multilineTextAlignment(.leading)
+                // 의미 검색이 결과를 보태면 N 이 점프한다 — 숫자만 굴려서(numericText) 변화를 보여준다.
+                .contentTransition(.numericText())
+                .animation(.snappy(duration: 0.3), value: results.count)
             if isSemanticSearching {
                 ProgressView()
                     .controlSize(.mini)
                 Text("더 찾는 중")
                     .font(.system(size: 12.5, weight: .medium, design: .rounded))
                     .foregroundStyle(SearchD5.Palette.textTertiary)
+                    .transition(.opacity)
             }
             Spacer(minLength: 0)
         }
+        // "더 찾는 중" 이 뚝 사라지지 않게 — 종료는 등장보다 조용히.
+        .animation(.easeOut(duration: 0.2), value: isSemanticSearching)
     }
 
     private var summaryText: AttributedString {
@@ -120,7 +128,8 @@ struct SearchResultsView: View {
         s.append(tail)
 
         var count = AttributedString("\(results.count)개")
-        count.font = .system(size: 14, weight: .bold)
+        // 자릿수 변해도 폭이 안 흔들리게 — numericText 롤링과 한 세트.
+        count.font = Font.system(size: 14, weight: .bold).monospacedDigit()
         count.foregroundColor = SearchD5.Palette.primaryDeep
         s.append(count)
         return s
