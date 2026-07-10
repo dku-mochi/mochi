@@ -1082,7 +1082,7 @@
           "conversations"
         ],
         "summary": "Send Message",
-        "description": "메시지 전송 — 응답이 곧 run 의 SSE 스트림 (POST-as-SSE).\n\nconversationID 는 클라이언트 생성 — 첫 메시지가 대화를 암묵 생성한다. 동일 대화에\n진행 중 run 이 있으면 409(`conversation.run_in_progress`). 클라이언트가 중간에 끊겨도\nrun 은 완주하며 모든 단계가 영속된다 — 복귀 시 스냅샷 재조회.\n\n이벤트 wire format (서버 정본 — ARCHITECTURE §3.6, iOS `ChatStreamEvent` 와 1:1.\n모든 payload 에 ``run_id`` 동봉):\n```\nmessage_delta  {run_id, text}\ntool_started   {run_id, name, label}\ntool_finished  {run_id, name, summary}\ncitation       {run_id, index, item_id, title, snippet}\nproposal       {run_id, id, type, payload}        (type: item_update|item_delete|create_schedule|reminder|create_memo)\ndone           {run_id, message_id}               (assistant 메시지 행 id)\nerror          {run_id, code, message}\n```",
+        "description": "메시지 전송 — 응답이 곧 run 의 SSE 스트림 (POST-as-SSE).\n\nconversationID 는 클라이언트 생성 — 첫 메시지가 대화를 암묵 생성한다. 동일 대화에\n진행 중 run 이 있으면 409(`conversation.run_in_progress`). 클라이언트가 중간에 끊겨도\nrun 은 완주하며 모든 단계가 영속된다 — 복귀 시 스냅샷 재조회.\n\n이벤트 wire format (서버 정본 — ARCHITECTURE §3.6, iOS `ChatStreamEvent` 와 1:1.\n모든 payload 에 ``run_id`` 동봉):\n```\nmessage_delta  {run_id, text}\ntool_started   {run_id, name, label}\ntool_finished  {run_id, name, summary}\ncitation       {run_id, index, item_id, title, snippet}\nproposal       {run_id, id, type, payload}        (type: item_update|item_delete|create_schedule|reminder|create_memo|notification_reschedule|notification_cancel)\ndone           {run_id, message_id}               (assistant 메시지 행 id)\nerror          {run_id, code, message}\n```",
         "operationId": "send_message_api_v1_conversations__conversation_id__messages_post",
         "parameters": [
           {
@@ -1591,6 +1591,53 @@
               "type": "string",
               "format": "uuid",
               "title": "Event Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "Authorization",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordRecallReactionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        }
+      }
+    },
+    "/api/v1/recall/items/{item_id}/reaction": {
+      "post": {
+        "tags": [
+          "recall"
+        ],
+        "summary": "Record Recall Item Reaction",
+        "description": "피드 표면(홈 한 칸·자세히·회수 상세) 반응 보고 — item 기준 (owner-scoped, 멱등).\n\n피드 카드는 event 유무와 무관하게 존재해(트랙 A: sent event 없음 가능, 트랙 C: pending 노출)\nevent 기준 보고가 유실됐다 — 그 유실이 \"열어본 카드가 재fetch 마다 부활\"의 원인. `opened` 는\n트랙 C 행 종결/기록 + spaced knowledge 소생, `stop` 은 spaced plan cancel + 트랙 C 행 종결.\n`dismissed` 는 피드 제스처가 아니라 400. item 없음/남의 item 은 404.",
+        "operationId": "record_recall_item_reaction_api_v1_recall_items__item_id__reaction_post",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Item Id"
             }
           },
           {

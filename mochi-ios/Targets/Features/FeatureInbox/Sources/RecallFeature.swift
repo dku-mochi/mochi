@@ -145,11 +145,16 @@ public struct RecallDetailFeature: Sendable {
         Reduce { state, action in
             switch action {
             case .onAppear:
-                // 탭하여 상세 진입 = opened(행동 신호 우선). recallEventID 없으면 보고 생략.
-                guard !state.hasReportedOpen, let eventID = state.entry.recallEventID else { return .none }
+                // 탭하여 상세 진입 = opened(행동 신호 우선). item 기준 보고 — recallEventID 는
+                // 없거나 pending 일 수 있어(event 기준이면 유실 → 열어본 카드가 재fetch 마다 부활).
+                // 푸시 landing 은 MainTab 이 event 기준으로 이미 보고(alreadyReportedOpen).
+                guard !state.hasReportedOpen else { return .none }
+                let openedItemID = state.entry.itemID
                 return .merge(
                     .send(.markReportedOpen),
-                    .run { _ in try? await apiClient.recordRecallReaction(eventID: eventID, reaction: .opened) }
+                    .run { _ in
+                        try? await apiClient.recordRecallItemReaction(itemID: openedItemID, reaction: .opened)
+                    }
                 )
 
             case .markReportedOpen:
@@ -164,27 +169,27 @@ public struct RecallDetailFeature: Sendable {
 
             case .rememberedTapped:
                 // "기억났어요" — 양성 신호(opened). primary 가 아니라 보조 피드백(codex-8).
-                let eventID = state.entry.recallEventID
+                // item 기준 — event 없는 카드에서도 신호가 서버에 남는다.
+                let rememberedItemID = state.entry.itemID
                 return .merge(
                     .send(.showToast("좋아요 · 다음엔 더 늦게 꺼낼게요")),
                     .run { _ in
-                        guard let eventID else { return }
-                        try? await apiClient.recordRecallReaction(eventID: eventID, reaction: .opened)
+                        try? await apiClient.recordRecallItemReaction(itemID: rememberedItemID, reaction: .opened)
                     }
                 )
 
             case .stopTapped:
                 // "그만 보기" = stop(영구, plan cancel). destructive — 1:1 매핑(codex-7).
+                // item 기준 — event 없는 카드에서 event 기준 stop 이 유실되면 카드가 부활한다.
                 guard !state.didStop else { return .none }
                 state.didStop = true
-                let eventID = state.entry.recallEventID
+                let stoppedItemID = state.entry.itemID
                 return .merge(
                     .send(.showToast("이 기억은 더 꺼내지 않을게요")),
                     // 홈 회수 히어로에서 이 카드를 빼라고 상위에 알린다(낙관적 — reaction 성패와 무관).
                     .send(.delegate(.stopped(itemID: state.entry.itemID))),
                     .run { _ in
-                        guard let eventID else { return }
-                        try? await apiClient.recordRecallReaction(eventID: eventID, reaction: .stop)
+                        try? await apiClient.recordRecallItemReaction(itemID: stoppedItemID, reaction: .stop)
                     }
                 )
 

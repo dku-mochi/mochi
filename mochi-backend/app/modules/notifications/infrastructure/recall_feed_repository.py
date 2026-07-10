@@ -75,15 +75,18 @@ class PostgresRecallFeedRepository(RecallFeedRepositoryPort):
 
     async def _recall_candidates(self, *, owner_id: UUID, limit: int) -> list[RecallFeedCandidate]:
         # kind=recall outbox(pending/sent) → source_item_id 별 최신 event, fire_at desc. 직행이라 plan 없음.
+        # opened 필터는 바깥(최신 event 기준) — item 의 최신 event 를 열어봤으면 item 자체를 제외한다
+        # ("열어본 회수는 피드에서 빠진다"). 안쪽에서 거르면 그 아래 옛 미open 행이 재부상해 카드가 부활.
         sql = text(
             """
             SELECT source_item_id AS item_id, event_id FROM (
-              SELECT DISTINCT ON (source_item_id) source_item_id, event_id, fire_at
+              SELECT DISTINCT ON (source_item_id) source_item_id, event_id, fire_at, opened_at
               FROM notification_outbox
               WHERE owner_id = :owner AND kind = 'recall'
                 AND status IN ('pending','sent') AND source_item_id IS NOT NULL
               ORDER BY source_item_id, fire_at DESC
             ) x
+            WHERE x.opened_at IS NULL
             ORDER BY x.fire_at DESC
             LIMIT :limit
             """

@@ -204,7 +204,7 @@ ingested → analyzing → analyzed
 | `knowledge` | `active ↔ decaying`, `decaying → reviewRequested`, `reviewRequested → active`(회수로 소생), `reviewRequested → archived` |
 | `memo` | `active → archived` |
 
-> **`reviewRequested → active`(회수로 소생) 트리거**: 능동 회수 알림 트랙 A(`spaced`) 의 알림을 사용자가 **열면**(`opened` 반응, `POST /recall/events/{id}/reaction`) 그 knowledge instance 가 `decaying`/`reviewRequested` 상태면 `active` 로 소생한다(`lifecycle_policy.is_allowed` 통과 — 이미 합법 전이). "안 누름 ≠ negative"(무페널티). 상세 `journal/proactive-recall/notification-agent.md` §6.
+> **`reviewRequested → active`(회수로 소생) 트리거**: 능동 회수 알림 트랙 A(`spaced`) 의 알림을 사용자가 **열면**(`opened` 반응, `POST /recall/events/{id}/reaction`) 그 knowledge instance 가 `decaying`/`reviewRequested` 상태면 `active` 로 소생한다(`lifecycle_policy.is_allowed` 통과 — 이미 합법 전이). "안 누름 ≠ negative"(무페널티). 상세 `journal/proactive-recall/notification-agent.md` §6. **회수 피드에서 열어도 동일하게 소생한다(2026-07-10)** — 피드 카드는 event 유무와 무관하게 존재해(sent event 없는 spaced 후보·pending 트랙 C) event 기준 보고가 유실됐고, 열어본 카드가 재fetch 마다 부활했다. 피드 표면(홈 한 칸·자세히·회수 상세)의 opened/stop 은 item 기준 `POST /recall/items/{item_id}/reaction` 으로 받는다(opened → 소생 + 트랙 C 행 opened 종결 / stop → active spaced plan 전부 cancel + 트랙 C 행 skipped(cancelled)).
 
 > **spaced 예정 노출 + veto "이번 회차만"(2026-06-21)**: spaced 미래 pending 알림은 예정 탭(`GET /recall/upcoming`)에도 노출된다(RecallHero 와 별개 표면, "다시 보기" 배지). 예정 탭에서 spaced 를 veto 하면 그 occurrence 만 `skipped(user_veto)` 처리하고 **plan 은 active 유지** — occurrence-math(`next_spaced_occurrence`)가 user_veto 칸을 "opened 없이도 다음 칸으로 전진"(전진 base = veto 된 칸 fire_at)으로 인식해 **다음 회차는 예정대로** 진행한다(deadline/nudge veto = plan 영구 cancel 과 구별). spaced 전진 불변식 "전진은 반응(opened) 기준"의 명시적 예외.
 

@@ -36,6 +36,10 @@ from app.modules.notifications.application.override_upcoming_notification import
     VetoUpcomingCommand,
     VetoUpcomingNotification,
 )
+from app.modules.notifications.application.record_recall_item_reaction import (
+    RecordRecallItemReaction,
+    RecordRecallItemReactionCommand,
+)
 from app.modules.notifications.application.record_recall_reaction import (
     RecordRecallReaction,
     RecordRecallReactionCommand,
@@ -154,6 +158,35 @@ async def record_recall_reaction(
         RecordRecallReactionCommand(
             owner_id=user,
             event_id=event_id,
+            reaction=payload.reaction,
+        )
+    )
+    await db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/items/{item_id}/reaction", status_code=status.HTTP_204_NO_CONTENT)
+async def record_recall_item_reaction(
+    item_id: UUID,
+    payload: RecordRecallReactionRequest,
+    db: DBSession,
+    user: CurrentUser,
+) -> Response:
+    """피드 표면(홈 한 칸·자세히·회수 상세) 반응 보고 — item 기준 (owner-scoped, 멱등).
+
+    피드 카드는 event 유무와 무관하게 존재해(트랙 A: sent event 없음 가능, 트랙 C: pending 노출)
+    event 기준 보고가 유실됐다 — 그 유실이 "열어본 카드가 재fetch 마다 부활"의 원인. `opened` 는
+    트랙 C 행 종결/기록 + spaced knowledge 소생, `stop` 은 spaced plan cancel + 트랙 C 행 종결.
+    `dismissed` 는 피드 제스처가 아니라 400. item 없음/남의 item 은 404.
+    """
+    use_case = RecordRecallItemReaction(
+        reactions=PostgresRecallReactionRepository(db),
+        mochi_items=make_mochi_item_repository(db),
+    )
+    await use_case.execute(
+        RecordRecallItemReactionCommand(
+            owner_id=user,
+            item_id=item_id,
             reaction=payload.reaction,
         )
     )

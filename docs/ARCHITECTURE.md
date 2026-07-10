@@ -239,6 +239,7 @@ app/
 │   │   │                          + NotificationPlanRow/NotificationOutboxRow · GeminiRecallPlanner(tool-loop, flash-lite)
 │   │   │                          · recall_plan/context/reaction/feed repositories
 │   │   └── presentation/          POST /devices/push-token · POST /recall/events/{id}/reaction
+│   │                              · POST /recall/items/{id}/reaction(피드 표면, item 기준)
 │   │                              · GET /recall/feed · GET /recall/events/{id}(landing fallback)
 │   └── conversations/                   채팅 탭 — LLM 루프 read-only + proposal (journal 2026-06-10)
 │       ├── domain/                Conversation/Message/MessageCitation, ChatTool·ChatLLMClient·ChatTurnStore ports, run_events
@@ -345,10 +346,15 @@ AgentOrchestrator(persistence=AgentRunPersistence(session)).run(mochi_item_id)
        APNs alert(payload mochiItemID·sourceIntentID·routeType·recallEventID·kind)
        410/Unregistered→토큰 무효화+dead_letter / 5xx→backoff
   ↓
-[반응] POST /recall/events/{id}/reaction (opened/dismissed/stop)
+[반응] POST /recall/events/{id}/reaction (opened/dismissed/stop) — 알림 표면(푸시 탭 landing·지난 알림), 발송 1건과 1:1
   → outbox.opened_at/dismissed_at (first-write-wins) + opened+spaced+knowledge → instance 소생(reviewRequested/decaying→active, savepoint 격리)
   → stop → plan cancelled(user_dismiss)
+[피드 반응] POST /recall/items/{item_id}/reaction (opened/stop, 2026-07-10) — 피드 표면(홈 한 칸·자세히·회수 상세), item 기준
+  피드 카드는 event 유무와 무관하게 존재해(트랙 A: sent event 없음 가능, 트랙 C: pending 노출) event 기준 보고가
+  유실됐다 — "열어본/그만 카드가 재fetch 마다 부활" 원인. opened → kind=recall 행 opened_at(+pending 은 skipped(opened))
+  + knowledge 소생 / stop → active spaced plan 전부 cancelled + kind=recall 행 skipped(cancelled)+dismissed_at
 [회수 화면] GET /recall/feed(홈 한 칸·자세히) · GET /recall/events/{id}(알림 landing fallback)
+  피드 후보(트랙 C)는 item 별 최신 event 가 opened 면 제외("열어본 회수는 피드에서 빠진다")
 ```
 
 #### 자연어 검색

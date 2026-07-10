@@ -111,6 +111,13 @@ public protocol MochiAPIClient: Sendable {
     /// `opened`(양성·탭/열기) / `dismissed`(soft 부정) / `stop`("이 기억 그만" → plan cancel).
     func recordRecallReaction(eventID: UUID, reaction: RecallReaction) async throws
 
+    /// `POST /api/v1/recall/items/{item_id}/reaction` — 피드 표면(홈 한 칸·자세히·회수 상세) 반응
+    /// 보고(204). 멱등. 피드 카드는 event 유무와 무관하게 존재해(`recallEventID` nil·pending 가능)
+    /// event 기준 보고가 유실됐다 — item 기준이라 항상 서버에 남는다("열어본/그만 카드가 재fetch
+    /// 마다 부활" 수정). 푸시 탭·지난 알림(발송 1건과 1:1)은 계속 `recordRecallReaction`.
+    /// `dismissed` 는 피드 제스처가 아니라 서버가 400.
+    func recordRecallItemReaction(itemID: UUID, reaction: RecallReaction) async throws
+
     /// `GET /api/v1/recall/upcoming?limit=` — 홈 "예정된 알림"(모찌가 보낼 예정인 미래 마감·일정 알림).
     /// owner 의 pending outbox 를 fire_at 오름차순으로 돌려준다. 빈손은 정상(`[]`).
     func upcomingNotifications(limit: Int) async throws -> [UpcomingNotificationDTO]
