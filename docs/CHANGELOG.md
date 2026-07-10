@@ -10,6 +10,9 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-07-10 — backend (회수 피드 stop 신호 유실 + worker 되엎기 레이스 — 리뷰 후속)
+- code-reviewer 서브에이전트 리뷰(P1·P2) 후속 2건. ① **stop 의 dismissed_at 을 status 무관 스탬프로 분리** — 피드 stop 은 opened(상세 진입 onAppear)가 항상 선행해 pending 행이 이미 skipped(opened) 로 종결된 뒤라, sent 행 없는 item(dry_run 환경 등)은 dismiss-cooldown 신호가 어디에도 안 남아 "그만 보기" 한 카드가 새 앵커 저장 때 재생성으로 부활할 수 있었다(P1). ② **worker `_close` 에 `AND status='pending'` 가드** — 실발송 진행 중 사용자 stop 이 종결한 행을 발송 완료가 sent 로 되엎어 피드에 재등장하던 레이스 차단(P2). 잔여 P2(재생성 dedup 백스톱이 skipped 행을 안 셈)·nit(지난 알림 opened 표시 과잉)는 후속 판단.
+
 ## 2026-07-10 — backend, ios (회수 피드 카드 부활 버그 — 피드 반응을 item 기준으로)
 - **증상.** 홈 "모찌가 골라봤어요" 카드를 열면(또는 "그만 보기") iOS 에선 사라지는데 재fetch(새로고침·재시작)마다 부활.
 - **원인.** 피드 open/stop 보고가 event 기준(`POST /recall/events/{id}/reaction`)인데 피드 카드는 event 유무와 무관하게 존재 — ① 트랙 A(spaced) 후보는 sent event 없으면 `recall_event_id=NULL` 이라 iOS 가 보고 생략(dry_run 환경은 sent 가 아예 없어 항상 NULL), ② 트랙 C 는 pending event 를 노출하는데 reaction 의 `status='sent'` 가드에 걸려 404(iOS `try?` 가 삼킴), ③ 기록이 돼도 트랙 C 피드 쿼리가 `opened_at` 을 안 봄. 어느 쪽도 서버에 안 남아 다음 피드에 그대로.
