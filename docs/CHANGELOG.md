@@ -10,6 +10,11 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-07-10 — backend, ios (회수 피드 카드 부활 버그 — 피드 반응을 item 기준으로)
+- **증상.** 홈 "모찌가 골라봤어요" 카드를 열면(또는 "그만 보기") iOS 에선 사라지는데 재fetch(새로고침·재시작)마다 부활.
+- **원인.** 피드 open/stop 보고가 event 기준(`POST /recall/events/{id}/reaction`)인데 피드 카드는 event 유무와 무관하게 존재 — ① 트랙 A(spaced) 후보는 sent event 없으면 `recall_event_id=NULL` 이라 iOS 가 보고 생략(dry_run 환경은 sent 가 아예 없어 항상 NULL), ② 트랙 C 는 pending event 를 노출하는데 reaction 의 `status='sent'` 가드에 걸려 404(iOS `try?` 가 삼킴), ③ 기록이 돼도 트랙 C 피드 쿼리가 `opened_at` 을 안 봄. 어느 쪽도 서버에 안 남아 다음 피드에 그대로.
+- **수정.** 피드 표면(홈 한 칸·자세히·회수 상세) 반응은 item 기준 `POST /recall/items/{item_id}/reaction`(opened/stop) 신설로 — opened 는 spaced knowledge 소생 + kind=recall 행 opened 종결(pending 은 skipped(opened) 로 뒷북 푸시도 방지), stop 은 active spaced plan 전부 cancel + kind=recall 행 skipped(cancelled)+dismissed_at(재생성 쿨다운 신호 보존). 트랙 C 피드 후보는 item 별 최신 event 가 opened 면 제외. 알림 표면(푸시 탭 landing·지난 알림)은 계속 event 기준(발송 1건과 1:1 학습 신호). iOS 는 홈 카드 탭·상세 onAppear·기억났어요·그만 보기 4곳을 item 기준 호출로 전환(openapi 재생성).
+
 ## 2026-07-09 — backend, docs (채팅에서 능동 회수 알림 읽기·조정 — iOS 배선 후속)
 - **배경.** Recall Planner 가 자동 설계한 예정 알림(`notification_plan`)은 홈탭에서만 보고 조정할 수 있었다. 채팅에서 "내 알림 뭐 있어?"·"내일 오는 알림?"·"그거 저녁으로 미뤄줘"·"이 알림 꺼줘" 를 못 했다.
 - **읽기(`list_notifications`, read-only 툴).** owner 의 예정 알림(마감/주기/예약 회수)을 `event_id`·`kind`·`fire_at`·`title`·`body` 로 조회. `mochi_item_id`(그 기록의 알림만)·`fire_from`/`fire_to`(발송 시각 범위 — "내일/이번주 알림?" 서버 필터) 인자. `notifications.application` 팩토리(`make_upcoming_feed_repository`) 경유 — conversations 는 notifications.infrastructure 직접 import 안 함(§3.3).

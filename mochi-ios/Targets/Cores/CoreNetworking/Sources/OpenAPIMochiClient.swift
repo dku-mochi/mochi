@@ -389,6 +389,21 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
         }
     }
 
+    public func recordRecallItemReaction(itemID: UUID, reaction: RecallReaction) async throws {
+        // recordRecallReaction 과 동일 — 변환 실패 시 throw(강등하면 stop 이 opened 로 오염).
+        guard let kind = Components.Schemas.ReactionKind(rawValue: reaction.rawValue) else {
+            throw Self.clientError("client.invalid_reaction", reaction.rawValue)
+        }
+        let output = try await client.record_recall_item_reaction_api_v1_recall_items__item_id__reaction_post(
+            path: .init(item_id: itemID.uuidString),
+            body: .json(.init(reaction: kind))
+        )
+        switch output {
+        case .noContent: return
+        case let .undocumented(status, payload): throw await Self.error(status: status, payload: payload)
+        }
+    }
+
     public func upcomingNotifications(limit: Int) async throws -> [UpcomingNotificationDTO] {
         let output = try await client.get_upcoming_notifications_api_v1_recall_upcoming_get(
             query: .init(limit: limit)

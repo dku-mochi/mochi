@@ -211,15 +211,14 @@ public struct MochiHomeFeature: Sendable {
             case let .recallEntryOpened(entry, hero):
                 // 열어본 회수는 피드에서 빠지지만(제품 규칙), 즉시가 아니라 상세를 닫고 돌아온 뒤
                 // (recallDetailClosed) 빠진다 — hero zoom 으로 카드 자리에 착지한 다음 우아하게 사라지게.
-                // opened 반응은 지금 보고한다(학습·소생, recallEventID 있을 때). 이 보고가 없으면 서버는
-                // "안 열렸다"고 알아 다음 피드에도 그대로 남는다. 원본 상세로 hero 직행. 어떤 카드를 닫을지는
+                // opened 는 item 기준으로 보고한다(학습·소생) — 피드 카드는 event 유무와 무관하게
+                // 존재해(recallEventID nil·pending 가능) event 기준 보고가 유실됐고, 그 유실이
+                // "열어본 카드가 재fetch 마다 부활"의 원인이었다. 원본 상세로 hero 직행. 어떤 카드를 닫을지는
                 // 상위(MainTab)가 server PK 로 추적한다 — 닫을 때 정확히 그 itemID 만 빼도록(여러 카드 연속 열기 안전).
-                let eventID = entry.recallEventID
+                let itemID = entry.itemID
                 return .merge(
                     .run { _ in
-                        if let eventID {
-                            try? await apiClient.recordRecallReaction(eventID: eventID, reaction: .opened)
-                        }
+                        try? await apiClient.recordRecallItemReaction(itemID: itemID, reaction: .opened)
                     },
                     .send(.delegate(.recallItemOpened(itemID: entry.itemID, hero: hero)))
                 )

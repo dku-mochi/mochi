@@ -12,7 +12,7 @@ from datetime import datetime
 from typing import Any, cast
 from uuid import UUID
 
-from sqlalchemy import CursorResult, select, update
+from sqlalchemy import CursorResult, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.notifications.domain.recall_reaction import (
@@ -130,6 +130,66 @@ class PostgresRecallReactionRepository(RecallReactionRepositoryPort):
         )
         await self._session.execute(stmt)
         await self._session.flush()
+
+    async def open_recall_rows_for_item(self, *, owner_id: UUID, item_id: UUID) -> int:
+        # 피드 open(item 기준) — kind='recall' 행 전부: pending 은 skipped(opened) 종결(뒷북 푸시
+        # 방지), sent 는 opened_at 만. 최신 행만 치면 옛 sent 미open 행이 피드 후보로 재부상한다.
+        now = datetime.utcnow()
+        pending = (
+            update(NotificationOutboxRow)
+            .where(
+                NotificationOutboxRow.owner_id == owner_id,
+                NotificationOutboxRow.source_item_id == item_id,
+                NotificationOutboxRow.kind == "recall",
+                NotificationOutboxRow.status == "pending",
+            )
+            .values(status="skipped", skip_reason="opened", opened_at=now)
+        )
+        sent = (
+            update(NotificationOutboxRow)
+            .where(
+                NotificationOutboxRow.owner_id == owner_id,
+                NotificationOutboxRow.source_item_id == item_id,
+                NotificationOutboxRow.kind == "recall",
+                NotificationOutboxRow.status == "sent",
+                NotificationOutboxRow.opened_at.is_(None),
+            )
+            .values(opened_at=now)
+        )
+        pending_result = cast(CursorResult[Any], await self._session.execute(pending))
+        sent_result = cast(CursorResult[Any], await self._session.execute(sent))
+        await self._session.flush()
+        return (pending_result.rowcount or 0) + (sent_result.rowcount or 0)
+
+    async def list_active_spaced_plan_ids(self, *, owner_id: UUID, source_item_id: UUID) -> list[UUID]:
+        stmt = select(NotificationPlanRow.id).where(
+            NotificationPlanRow.owner_id == owner_id,
+            NotificationPlanRow.source_item_id == source_item_id,
+            NotificationPlanRow.plan_kind == "spaced",
+            NotificationPlanRow.status == "active",
+        )
+        return list((await self._session.execute(stmt)).scalars().all())
+
+    async def stop_recall_rows_for_item(self, *, owner_id: UUID, item_id: UUID) -> int:
+        # 피드 stop(item 기준) — kind='recall' pending/sent 전부 skipped(cancelled) 종결.
+        # dismissed_at 을 채워 재생성 dismiss-cooldown(last_dismissed_for_intent) 신호를 보존한다.
+        stmt = (
+            update(NotificationOutboxRow)
+            .where(
+                NotificationOutboxRow.owner_id == owner_id,
+                NotificationOutboxRow.source_item_id == item_id,
+                NotificationOutboxRow.kind == "recall",
+                NotificationOutboxRow.status.in_(("pending", "sent")),
+            )
+            .values(
+                status="skipped",
+                skip_reason="cancelled",
+                dismissed_at=func.coalesce(NotificationOutboxRow.dismissed_at, datetime.utcnow()),
+            )
+        )
+        result = cast(CursorResult[Any], await self._session.execute(stmt))
+        await self._session.flush()
+        return result.rowcount or 0
 
     async def skip_recall_outbox(self, *, event_id: UUID, owner_id: UUID) -> None:
         # 트랙 C stop — sent recall outbox 행을 skipped(cancelled) 로 종결해 피드에서 영구 제외.
