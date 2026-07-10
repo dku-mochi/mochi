@@ -86,6 +86,31 @@ class RecallReactionRepositoryPort(ABC):
         안 뜬다(codex-7 stop=영구). owner-scope + status='sent' 가드.
         """
 
+    # ---- 피드 반응(item 기준) — event 가 없거나 pending 인 피드 카드용 (부활 버그 수정) ----
+
+    @abstractmethod
+    async def open_recall_rows_for_item(self, *, owner_id: UUID, item_id: UUID) -> int:
+        """피드 open 시 그 item 의 kind='recall' pending/sent 행 전부에 opened_at 기록.
+
+        pending 행은 skipped(opened) 로 종결까지 — 이미 열어본 카드의 뒷북 푸시 방지 + 피드
+        후보(status IN pending/sent)에서 제외. sent 행은 opened_at 만(피드 쿼리의 opened 필터가
+        제외). 전부를 치는 이유: 최신 행만 치면 그 아래 옛 sent 미open 행이 후보로 재부상한다.
+        갱신된 행수 반환(0=칠 행 없음, 정상)."""
+
+    @abstractmethod
+    async def list_active_spaced_plan_ids(self, *, owner_id: UUID, source_item_id: UUID) -> list[UUID]:
+        """그 item 을 소스로 갖는 active spaced plan id 목록 — 피드 stop 의 트랙 A plan cancel 용.
+
+        plan_kind='spaced' 한정 — deadline/nudge plan 은 회수 피드가 아닌 예정 알림 표면의
+        veto 가 담당한다(표면 1:1)."""
+
+    @abstractmethod
+    async def stop_recall_rows_for_item(self, *, owner_id: UUID, item_id: UUID) -> int:
+        """피드 stop 시 그 item 의 kind='recall' pending/sent 행 전부를 skipped(cancelled) 종결.
+
+        dismissed_at 도 채워 트랙 C 재생성 dismiss-cooldown 신호(last_dismissed_for_intent)를
+        보존한다. 갱신된 행수 반환."""
+
     @abstractmethod
     def savepoint(self) -> AbstractAsyncContextManager[None]:
         """best-effort 부수효과(spaced 소생)를 감쌀 트랜잭션 savepoint(중첩 트랜잭션).
