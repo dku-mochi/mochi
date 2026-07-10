@@ -936,10 +936,15 @@ class NotificationWorker:
     ) -> None:
         async with session_factory() as session:
             sent_clause = ", sent_at=now()" if set_sent_at else ""
+            # status='pending' 가드 — claim 은 locked_until 만 잡고 status 를 안 바꾸므로(행 lock 없음)
+            # 발송 진행 중 사용자 반응(피드 stop/open)이 행을 skipped 로 종결할 수 있다. 무가드면
+            # 그 종결을 sent 로 되엎어 opened_at 없는 sent 행이 되고, 피드 쿼리(opened 필터만 봄)에
+            # stop 한 카드가 재등장한다. 정상 경로의 claimed 행은 항상 pending 이라 영향 없음.
             await session.execute(
                 text(
                     f"UPDATE notification_outbox SET status=:s, skip_reason=:r, last_error=:e, "
-                    f"locked_until=NULL{sent_clause}, updated_at=now() WHERE id=:id"
+                    f"locked_until=NULL{sent_clause}, updated_at=now() "
+                    f"WHERE id=:id AND status='pending'"
                 ).bindparams(
                     bindparam("s", status),
                     bindparam("r", skip_reason),

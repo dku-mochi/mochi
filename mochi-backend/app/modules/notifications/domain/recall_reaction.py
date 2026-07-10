@@ -108,8 +108,10 @@ class RecallReactionRepositoryPort(ABC):
     async def stop_recall_rows_for_item(self, *, owner_id: UUID, item_id: UUID) -> int:
         """피드 stop 시 그 item 의 kind='recall' pending/sent 행 전부를 skipped(cancelled) 종결.
 
-        dismissed_at 도 채워 트랙 C 재생성 dismiss-cooldown 신호(last_dismissed_for_intent)를
-        보존한다. 갱신된 행수 반환."""
+        dismissed_at 은 status "무관"으로 스탬프해 트랙 C 재생성 dismiss-cooldown 신호
+        (last_dismissed_for_intent)를 보존한다 — 피드 stop 은 opened(상세 진입) 뒤라 pending 이
+        이미 skipped(opened) 로 종결된 상태일 수 있고, 종결 행에 안 찍으면 신호가 유실된다.
+        dismissed_at 을 새로 찍은 행수 반환."""
 
     @abstractmethod
     def savepoint(self) -> AbstractAsyncContextManager[None]:
