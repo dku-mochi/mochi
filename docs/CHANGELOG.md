@@ -10,11 +10,12 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
-## 2026-07-13 — backend (채팅 알림 예약 시각 KST 정합 — "1분 뒤"가 다음날 오던 버그)
+## 2026-07-13 — backend, infra (채팅 알림 예약 시각 KST 정합 — "1분 뒤"가 다음날 오던 버그)
 - **근본원인**: 채팅 프롬프트의 현재시각(`{now}`)이 offset 없는 벽시계(`2026-07-13 Monday 18:30`)라, 모델이 "1분 뒤"를 벽시계로 옳게 계산해 놓고 offset 만 `Z`/`+00:00` 로 잘못 붙여 내면 iOS 가 절대시각으로 해석 → +9h → **다음날 새벽 발화**. 기존 `_parse_iso` 는 naive 만 KST 로 보정하고 모델이 붙인 (틀린) offset 은 그대로 신뢰했다.
 - **수정 두 겹** (`propose.py`, `run_chat_turn.py`): (1) 프롬프트 `{now}` 에 `%z`(+0900) 앵커를 실어 모델이 애초에 KST 로 내도록 유도. (2) `_parse_iso` 는 naive→KST 유지하되 **KST(+09:00) 아닌 offset 은 거부**(None→에러→모델 재시도). 벽시계 재해석(offset 강제)은 반대 케이스(모델이 실제 UTC 산술을 한 경우)를 조용히 +9h 틀리게 만들어(내일/장기 예약은 과거검증도 통과해 silent) 채택하지 않음 — 추측 대신 거부. reminder·notification_reschedule 공통. `create_schedule` 은 date-only 검증만이고 비-KST offset 은 거부되어 무영향.
 - 동반: 두 툴 `fire_at` description·에러메시지를 "KST(+09:00) 또는 offset 없이; UTC 거부"로 계약 명시. 회귀 테스트 2건(reminder·reschedule: `+00:00` 거부, naive→KST 통과).
 - **날짜만 준 알림은 자정 대신 오전 10시로 fallback** (`propose.py` `_default_time_if_dateonly`). "내일 알림해줘"처럼 시각 없이 날짜만(`2026-07-14`) 오면 `fromisoformat` 이 자정으로 잡던 것 → 오전 10시. 시각을 명시하면(원문에 `T`·`:`) 명시적 자정 포함 그대로 존중 — 날짜만과 명시적 자정은 파싱값이 같아 원문으로만 구별. reminder·reschedule 공통, 툴 description 에도 규칙 명시. 회귀 테스트 1건.
+- **배포.** develop `90ed42d` 를 `mochi-svc` 재배포(INFRA §2.5 런북: 사전 `make test` 550 passed → COPYFILE_DISABLE tar → IAP scp → `~/mochi-svc-setup.sh`: 코드교체 + .env 재생성(백업) + `uv sync --frozen --no-dev` + `alembic upgrade head`(신규 마이그레이션 없음, no-op) + restart). 검증: 외부 HTTPS `/api/v1/health` `{"status":"ok"}` · `worker.started`(2)·`recall_worker.started` 기동 · 재시작 후 ERROR 0. 코드-온리 변경이라 스키마·의존성 무변경.
 
 ## 2026-07-10 — web (전 페이지 디자인 폴리시 — 인터랙션 피드백·포커스·브랜드 색 정합)
 - **리마인드(S6) 무대의 풀블리드 포커스 아웃라인 제거.** 코버플로우 스테이지가 프로그램 포커스를 받으며 전역 `:focus-visible` 2px 퍼플 아웃라인이 하이라이트 씬을 가로지르는 선 2개로 그려지던 것 — `outline-none` + 라운드 인셋 프레임(`focus-visible` 시에만 표시)으로 대체. 키보드 사용자 표식은 유지.
