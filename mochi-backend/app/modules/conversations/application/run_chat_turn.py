@@ -325,7 +325,10 @@ class RunChatTurn:
         # str.format 은 본문의 다른 중괄호와 충돌할 수 있어 명시 replace.
         return (
             self.prompt.body.replace("{profile}", _profile_block(profile))
-            .replace("{now}", now.strftime("%Y-%m-%d %A %H:%M"))
+            # offset(+0900)을 실어 준다 — 이게 없으면 모델이 "1분 뒤" 같은 상대시각을 벽시계로
+            # 옳게 계산해 놓고 offset 만 Z/+00:00 로 잘못 붙여 낼 여지가 생겨, 알림이 +9h 밀려
+            # "다음날" 발화한다. 숫자 offset 을 보여 KST 로 내도록 유도한다.
+            .replace("{now}", now.strftime("%Y-%m-%d %A %H:%M %z"))
             .replace("{timezone}", _TIMEZONE)
         )
 

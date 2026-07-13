@@ -18,7 +18,7 @@ proposal payload 를 반환할 뿐이고, 실행은 사용자 확정 탭 → RES
 
 from collections.abc import Awaitable, Callable
 from contextlib import suppress
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 from uuid import UUID, uuid4
 from zoneinfo import ZoneInfo
@@ -383,7 +383,7 @@ class ProposeReminderTool:
     parameters: dict[str, Any] = {
         "type": "object",
         "properties": {
-            "fire_at": {"type": "string", "description": "ISO datetime, KST assumed if no offset"},
+            "fire_at": {"type": "string", "description": "Future ISO datetime in KST — output with +09:00 or no offset (naive = KST). Do NOT convert to UTC; a non-KST offset (Z/+00:00) is rejected. If the user gives no time of day, a date-only value (YYYY-MM-DD) defaults to 10:00 KST"},
             "title": {"type": "string"},
             "related_mochi_item_id": {"type": "string"},
             "display": _DISPLAY_PROPS,
@@ -393,11 +393,13 @@ class ProposeReminderTool:
 
     async def run(self, *, owner_id: UUID, args: dict[str, Any]) -> ChatToolResult:
         title = args.get("title")
-        fire_at = _parse_iso(str(args.get("fire_at") or ""))
+        raw_fire_at = str(args.get("fire_at") or "")
+        fire_at = _parse_iso(raw_fire_at)
         if not isinstance(title, str) or not title.strip():
             return _error("title is required")
         if fire_at is None:
-            return _error("fire_at must be ISO datetime")
+            return _error("fire_at must be an ISO datetime in KST (+09:00) or without offset — not UTC")
+        fire_at = _default_time_if_dateonly(raw_fire_at, fire_at)
         if fire_at <= datetime.now(_KST):
             return _error("fire_at is in the past — resolve against current time first")
         payload: dict[str, Any] = {
@@ -454,7 +456,7 @@ class ProposeRescheduleNotificationTool:
                 "type": "string",
                 "description": "Notification event_id from a list_notifications result.",
             },
-            "fire_at": {"type": "string", "description": "New ISO datetime, KST assumed if no offset."},
+            "fire_at": {"type": "string", "description": "New future ISO datetime in KST — output with +09:00 or no offset (naive = KST). Do NOT convert to UTC; a non-KST offset (Z/+00:00) is rejected. If the user gives no time of day, a date-only value (YYYY-MM-DD) defaults to 10:00 KST."},
             "display": _DISPLAY_PROPS,
         },
         "required": ["event_id", "fire_at"],
@@ -467,9 +469,11 @@ class ProposeRescheduleNotificationTool:
         event_id = _parse_uuid(args.get("event_id"))
         if event_id is None:
             return _error("event_id must be a UUID from a list_notifications result")
-        fire_at = _parse_iso(str(args.get("fire_at") or ""))
+        raw_fire_at = str(args.get("fire_at") or "")
+        fire_at = _parse_iso(raw_fire_at)
         if fire_at is None:
-            return _error("fire_at must be ISO datetime")
+            return _error("fire_at must be an ISO datetime in KST (+09:00) or without offset — not UTC")
+        fire_at = _default_time_if_dateonly(raw_fire_at, fire_at)
         if fire_at <= datetime.now(_KST):
             return _error("fire_at is in the past — resolve against current time first")
         target = await _find_upcoming(self._upcoming_reader, owner_id, event_id)
@@ -529,13 +533,33 @@ class ProposeCancelNotificationTool:
 
 
 def _parse_iso(raw: str) -> datetime | None:
+    # 채팅 propose 의 모든 시각은 사용자 로컬(KST)이다. naive 는 KST 로 해석한다.
+    # aware 인데 KST(+09:00)가 아니면 거부한다 — 조용히 고치지 않는다. 모델이 "1분 뒤"를 벽시계로
+    # 옳게 계산해 놓고 offset 만 Z 로 잘못 붙였는지(→ 벽시계 재해석이 맞음), 실제로 UTC 산술을 해서
+    # 절대시각으로 보냈는지(→ 변환이 맞음) 코드는 알 수 없고 둘은 반대 결과다. 어느 쪽으로든 추측하면
+    # 다른 쪽을 조용히 +9h 틀리게 만든다(내일/장기 예약은 과거검증도 통과해 silent). 그래서 거부해
+    # 모델이 KST 로 다시 내게 한다 — 프롬프트 {now} 가 이미 +0900 앵커를 줘서 흔치 않다.
     try:
         parsed = datetime.fromisoformat(raw)
     except ValueError:
         return None
     if parsed.tzinfo is None:
-        parsed = parsed.replace(tzinfo=_KST)
+        return parsed.replace(tzinfo=_KST)
+    if parsed.utcoffset() != timedelta(hours=9):
+        return None
     return parsed
+
+
+_DEFAULT_REMINDER_HOUR = 10  # 시각 미지정(날짜만) 알림의 기본 발화 시각 — 자정보다 오전 10시가 자연스럽다.
+
+
+def _default_time_if_dateonly(raw: str, parsed: datetime) -> datetime:
+    # "내일 알림해줘"처럼 날짜만 오면 fromisoformat 이 자정(00:00)으로 잡는데, 알림에 자정은
+    # 부자연스러워 오전 10시로 올린다. 시각을 명시했으면(문자열에 T·: 존재) 그대로 존중한다 —
+    # 명시적 자정(2026-07-14T00:00)과 날짜만(2026-07-14)은 파싱값이 같아 원문으로만 구별된다.
+    if "T" in raw or ":" in raw:
+        return parsed
+    return parsed.replace(hour=_DEFAULT_REMINDER_HOUR)
 
 
 def _parse_uuid(raw: Any) -> UUID | None:

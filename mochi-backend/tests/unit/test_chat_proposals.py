@@ -245,6 +245,40 @@ async def test_propose_reminder_rejects_past_fire_at() -> None:
     assert result.proposal is not None
 
 
+async def test_propose_reminder_rejects_non_kst_offset() -> None:
+    # 회귀: 모델이 "1분 뒤"를 벽시계로 옳게 계산해 놓고 offset 만 UTC(Z/+00:00)로 잘못 붙이거나,
+    # 반대로 실제 UTC 산술을 해서 보내는지 코드는 구분할 수 없다 — 둘은 반대 결과라 추측하면 한쪽을
+    # 조용히 +9h 틀리게 만든다(다음날 발화). 그래서 KST(+09:00)가 아닌 offset 은 거부해 모델이
+    # KST 로 다시 내게 한다. naive·+09:00 은 정상 통과.
+    tool = ProposeReminderTool()
+    now_kst = datetime.now(ZoneInfo("Asia/Seoul"))
+    wall = (now_kst + timedelta(hours=1)).replace(microsecond=0, tzinfo=None)
+    # UTC offset → 거부(카드 없음). 그대로 신뢰했다면 iOS 가 +9h 밀어 다음날 발화했을 값.
+    utc_labeled = wall.isoformat() + "+00:00"
+    result = await tool.run(owner_id=_OWNER, args={"fire_at": utc_labeled, "title": "알림", **_DISPLAY})
+    assert result.proposal is None
+    # naive → KST 로 해석해 통과.
+    result = await tool.run(owner_id=_OWNER, args={"fire_at": wall.isoformat(), "title": "알림", **_DISPLAY})
+    assert result.proposal is not None
+    assert datetime.fromisoformat(result.proposal["payload"]["fire_at"]).utcoffset() == timedelta(hours=9)
+
+
+async def test_propose_reminder_dateonly_defaults_to_10am() -> None:
+    # "내일 알림해줘" → 날짜만 오면 자정이 아니라 오전 10시로 잡는다. 명시적 자정은 존중.
+    tool = ProposeReminderTool()
+    tomorrow = (datetime.now(ZoneInfo("Asia/Seoul")) + timedelta(days=1)).date().isoformat()
+    result = await tool.run(owner_id=_OWNER, args={"fire_at": tomorrow, "title": "알림", **_DISPLAY})
+    assert result.proposal is not None
+    fired = datetime.fromisoformat(result.proposal["payload"]["fire_at"])
+    assert (fired.hour, fired.minute) == (10, 0)
+    assert fired.utcoffset() == timedelta(hours=9)
+    # 시각을 명시하면(자정 포함) 그대로 존중 — 날짜만 fallback 과 구별.
+    midnight = f"{tomorrow}T00:00:00"
+    result = await tool.run(owner_id=_OWNER, args={"fire_at": midnight, "title": "알림", **_DISPLAY})
+    assert result.proposal is not None
+    assert datetime.fromisoformat(result.proposal["payload"]["fire_at"]).hour == 0
+
+
 def _upcoming(*, kind: str = "deadline", title: str = "치과 예약") -> UpcomingNotification:
     return UpcomingNotification(
         event_id=uuid4(),
@@ -283,6 +317,18 @@ async def test_propose_reschedule_rejects_past_fire_at() -> None:
     past = (datetime.now(ZoneInfo("Asia/Seoul")) - timedelta(hours=1)).isoformat()
     result = await tool.run(
         owner_id=_OWNER, args={"event_id": str(event.event_id), "fire_at": past, **_DISPLAY}
+    )
+    assert result.proposal is None
+
+
+async def test_propose_reschedule_rejects_non_kst_offset() -> None:
+    # reminder 와 같은 이음새 — reschedule fire_at 도 KST(+09:00) 아닌 offset 은 거부해 +9h 밀림을 막는다.
+    event = _upcoming()
+    tool = ProposeRescheduleNotificationTool(_upcoming_reader_for([event]))
+    wall = (datetime.now(ZoneInfo("Asia/Seoul")) + timedelta(hours=3)).replace(microsecond=0, tzinfo=None)
+    utc_labeled = wall.isoformat() + "+00:00"
+    result = await tool.run(
+        owner_id=_OWNER, args={"event_id": str(event.event_id), "fire_at": utc_labeled, **_DISPLAY}
     )
     assert result.proposal is None
 
