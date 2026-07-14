@@ -1,0 +1,585 @@
+[
+ {
+  "id": "f04_000",
+  "type": "screenshot",
+  "summary": "다음 주 분기별 마케팅 리포트 초안입니다. 수치 데이터 검토를 위해 캡처해 두었습니다.",
+  "labels": [
+   "업무",
+   "리포트"
+  ],
+  "entities": [
+   {
+    "kind": "date",
+    "value": "2024-05-15"
+   }
+  ],
+  "category": "업무 문서·미팅 메모",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-02-10",
+  "occurs": "2024-05-15",
+  "dup_of": null
+ },
+ {
+  "id": "f04_001",
+  "type": "screenshot",
+  "summary": "강남역 인근 신규 오픈한 비스트로 메뉴판입니다. 다음 팀 회식 장소로 적당할지 고민 중입니다.",
+  "labels": [
+   "회식",
+   "맛집"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "강남역"
+   }
+  ],
+  "category": "업무 문서·미팅 메모",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-22",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f04_002",
+  "type": "memo",
+  "summary": "오전 미팅 중 언급된 캠페인 KPI 핵심 지표 정리. ROAS랑 신규 유입자 비율 중심으로 다시 챙기기.",
+  "labels": [
+   "미팅",
+   "KPI"
+  ],
+  "entities": [],
+  "category": "업무 문서·미팅 메모",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-04",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f04_003",
+  "type": "link",
+  "summary": "Google Analytics 4 이벤트 설정 가이드 아티클입니다. 나중에 세팅할 때 참고하려고 저장했습니다.",
+  "labels": [
+   "학습",
+   "GA4"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "GA4"
+   }
+  ],
+  "category": "업무 문서·미팅 메모",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-03-17",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f04_004",
+  "type": "screenshot",
+  "summary": "부산 출장 시 방문할 비즈니스 호텔 객실 사진입니다. 가격 대비 시설이 깔끔해서 여기로 예약할까 합니다.",
+  "labels": [
+   "출장",
+   "숙소"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "부산"
+   }
+  ],
+  "category": "업무 문서·미팅 메모",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-03-01",
+  "occurs": "2024-05-20",
+  "dup_of": null
+ },
+ {
+  "id": "f04_005",
+  "type": "screenshot",
+  "summary": "이번 달 인스타 광고 효율 쉐어 시트입니다. 지난주 대비 CPC가 조금 올랐네요. 원인 파악 필요.",
+  "labels": [
+   "광고",
+   "데이터"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "Instagram"
+   }
+  ],
+  "category": "업무 문서·미팅 메모",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-03-30",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f04_006",
+  "type": "screenshot",
+  "summary": "경쟁사 신규 런칭한 랜딩 페이지 시안. 레이아웃이랑 카피라이팅 스타일이 우리 쪽이랑 비교해 볼 만해요.",
+  "labels": [
+   "벤치마킹"
+  ],
+  "entities": [],
+  "category": "업무 문서·미팅 메모",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-03-14",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f04_007",
+  "type": "link",
+  "summary": "마케팅 트렌드 뉴스레터. Z세대 소비 패턴 분석 내용이 흥미로워서 나중에 공유하려고요.",
+  "labels": [
+   "트렌드",
+   "스터디"
+  ],
+  "entities": [],
+  "category": "업무 문서·미팅 메모",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-07",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f04_008",
+  "type": "screenshot",
+  "summary": "업무용 슬랙 채널에 올라온 캘린더 일정 캡처본. 22일에 외부 미팅이 있어서 미리 체크했습니다.",
+  "labels": [
+   "일정",
+   "업무"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "Slack"
+   }
+  ],
+  "category": "업무 문서·미팅 메모",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-13",
+  "occurs": "2024-05-22",
+  "dup_of": null
+ },
+ {
+  "id": "f04_009",
+  "type": "memo",
+  "summary": "사무실 간식 부족함. 다음주 월요일에 탕비실 비품 주문 리스트 챙기기. 믹스커피랑 견과류 필수.",
+  "labels": [
+   "잡무"
+  ],
+  "entities": [],
+  "category": "업무 문서·미팅 메모",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-05",
+  "occurs": "2024-05-13",
+  "dup_of": null
+ },
+ {
+  "id": "f04_010",
+  "type": "screenshot",
+  "summary": "신규 브랜드 런칭을 위한 폰트 레퍼런스. 가독성이 좋고 모던한 느낌이라 디자인팀에 제안해볼 예정입니다.",
+  "labels": [
+   "디자인",
+   "브랜딩"
+  ],
+  "entities": [],
+  "category": "업무 문서·미팅 메모",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-10",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f04_011",
+  "type": "screenshot",
+  "summary": "출장지 근처에서 먹을만한 점심 맛집 리스트 캡처. 웨이팅이 길다는 후기가 있어서 예약되는지 확인해야 함.",
+  "labels": [
+   "출장",
+   "식사"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "부산"
+   }
+  ],
+  "category": "업무 문서·미팅 메모",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-22",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f04_012",
+  "type": "memo",
+  "summary": "A/B 테스트 대시보드 오류 해결책. 브라우저 캐시 삭제하고 다시 접속해보니 해결됨. 나중에 까먹을까봐 기록함.",
+  "labels": [
+   "트러블슈팅",
+   "IT"
+  ],
+  "entities": [],
+  "category": "업무 문서·미팅 메모",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-29",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f04_013",
+  "type": "screenshot",
+  "summary": "팀원들이랑 공유할 마케팅 툴 가격 비교표. 구독형 플랜이 복잡해서 표로 정리된 거 저장해둠.",
+  "labels": [
+   "업무",
+   "비용"
+  ],
+  "entities": [],
+  "category": "업무 문서·미팅 메모",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-31",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f04_014",
+  "type": "screenshot",
+  "summary": "오늘 점심에 먹은 샐러드집. 소스가 맛있어서 나중에 재방문 각.",
+  "labels": [
+   "일상",
+   "맛집"
+  ],
+  "entities": [],
+  "category": "업무 문서·미팅 메모",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-03-10",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f04_015",
+  "type": "screenshot",
+  "summary": "업데이트된 브랜드 가이드라인 1페이지입니다. 로고 배치 규정 다시 확인하라고 공유 받았어요.",
+  "labels": [
+   "브랜딩"
+  ],
+  "entities": [],
+  "category": "업무 문서·미팅 메모",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-12",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f04_016",
+  "type": "memo",
+  "summary": "다음 달부터는 퍼포먼스 마케팅 예산을 좀 더 타이트하게 관리해야함. ROI 떨어지는 매체는 바로 컷.",
+  "labels": [
+   "업무",
+   "예산"
+  ],
+  "entities": [],
+  "category": "업무 문서·미팅 메모",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-04",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f04_017",
+  "type": "screenshot",
+  "summary": "사내 워크샵 장소 후보군 2번. 펜션이랑 회의실 같이 있어서 괜찮아 보임. 팀원들 투표 받을 예정.",
+  "labels": [
+   "워크샵"
+  ],
+  "entities": [],
+  "category": "업무 문서·미팅 메모",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f04_018",
+  "type": "screenshot",
+  "summary": "이메일 마케팅 캠페인 오픈율 통계 화면. 오픈율이 30%를 넘겨서 이번 시즌 성과가 좋은 편임.",
+  "labels": [
+   "데이터",
+   "마케팅"
+  ],
+  "entities": [],
+  "category": "업무 문서·미팅 메모",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-24",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f04_019",
+  "type": "screenshot",
+  "summary": "MacBook Pro M3 신형 사양 확인 중. 업무용으로 바꿔도 될지 예산 검토 해봐야겠다.",
+  "labels": [
+   "지름신",
+   "업무"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "MacBook Pro M3"
+   }
+  ],
+  "category": "업무 문서·미팅 메모",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f04_020",
+  "type": "memo",
+  "summary": "이번주 마감인 제안서 초안 꼼꼼히 체크. 오타 없는지 꼭 확인할 것. 클라이언트가 꼼꼼해서 신경 쓰임.",
+  "labels": [
+   "업무",
+   "마감"
+  ],
+  "entities": [
+   {
+    "kind": "date",
+    "value": "2024-05-17"
+   }
+  ],
+  "category": "업무 문서·미팅 메모",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-03-30",
+  "occurs": "2024-05-17",
+  "dup_of": null
+ },
+ {
+  "id": "f04_021",
+  "type": "screenshot",
+  "summary": "고객 문의 응대 스크립트 수정본. CS팀이랑 협의해서 더 부드러운 말투로 바꿨음.",
+  "labels": [
+   "고객관리",
+   "CS"
+  ],
+  "entities": [],
+  "category": "업무 문서·미팅 메모",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-07",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f04_022",
+  "type": "screenshot",
+  "summary": "유튜브 광고 크리에이티브 시안. 5초 내에 시선을 잡는 문구로 변경 요청 드림.",
+  "labels": [
+   "광고",
+   "업무"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "YouTube"
+   }
+  ],
+  "category": "업무 문서·미팅 메모",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-21",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f04_023",
+  "type": "screenshot",
+  "summary": "공항 리무진 버스 시간표 캡처. 출장 갈 때 이용하려고 저장해둠. 놓치지 말자.",
+  "labels": [
+   "출장",
+   "교통"
+  ],
+  "entities": [],
+  "category": "업무 문서·미팅 메모",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-29",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f04_024",
+  "type": "memo",
+  "summary": "영업팀 미팅 끝나고 정리한 내용. 신규 리드 유입 경로가 다변화되어 마케팅 지원이 더 필요할 듯.",
+  "labels": [
+   "미팅",
+   "영업"
+  ],
+  "entities": [],
+  "category": "업무 문서·미팅 메모",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-07",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f04_025",
+  "type": "screenshot",
+  "summary": "무료 이미지 사이트에서 찾은 고화질 소스. 블로그 포스팅 썸네일용으로 쓰기 좋음.",
+  "labels": [
+   "리소스"
+  ],
+  "entities": [],
+  "category": "업무 문서·미팅 메모",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-19",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f04_026",
+  "type": "screenshot",
+  "summary": "마케팅팀 단톡방에 올라온 점심 메뉴 투표 결과. 오늘도 햄버거네. 흑흑.",
+  "labels": [
+   "일상"
+  ],
+  "entities": [],
+  "category": "업무 문서·미팅 메모",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-25",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f04_027",
+  "type": "screenshot",
+  "summary": "SEO 최적화 체크리스트. 메타 태그랑 키워드 세팅할 때 보려고 저장함.",
+  "labels": [
+   "SEO",
+   "학습"
+  ],
+  "entities": [],
+  "category": "업무 문서·미팅 메모",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-11",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f04_028",
+  "type": "memo",
+  "summary": "이번 프로젝트 롸이트(write) 마무리 단계. 문맥이랑 어조 좀 더 다듬어야함.",
+  "labels": [
+   "작업"
+  ],
+  "entities": [],
+  "category": "업무 문서·미팅 메모",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-02",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f04_029",
+  "type": "screenshot",
+  "summary": "업무 시간 종료 직전 도착한 피드백 메일. 수정 사항 많아서 내일 아침 1순위로 처리해야함.",
+  "labels": [
+   "업무",
+   "마감"
+  ],
+  "entities": [],
+  "category": "업무 문서·미팅 메모",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-26",
+  "occurs": "2024-05-14",
+  "dup_of": null
+ }
+]

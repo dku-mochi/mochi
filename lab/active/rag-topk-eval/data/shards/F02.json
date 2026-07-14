@@ -1,0 +1,592 @@
+[
+ {
+  "id": "f02_000",
+  "type": "screenshot",
+  "summary": "다음 학기 수강 신청 강의 시간표 캡처본. 이번엔 전공 필수랑 교양 시간을 안 겹치게 짜는 게 핵심이라 저장함.",
+  "labels": [
+   "시간표",
+   "학업"
+  ],
+  "entities": [
+   {
+    "kind": "date",
+    "value": "2024-09-01"
+   }
+  ],
+  "category": "알바·시간표·학식",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-26",
+  "occurs": "2024-09-01",
+  "dup_of": null
+ },
+ {
+  "id": "f02_001",
+  "type": "screenshot",
+  "summary": "알바 중인 카페 신메뉴 레시피 매뉴얼. 내일 오픈인데 아직 순서를 다 못 외워서 퇴근길에 보려고 저장했음.",
+  "labels": [
+   "알바",
+   "업무"
+  ],
+  "entities": [],
+  "category": "알바·시간표·학식",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-14",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f02_002",
+  "type": "link",
+  "summary": "이번주 학식 메뉴표 확인 링크. 학생회관 메뉴가 별로면 정문 쪽에 뭐 먹으러 갈지 고민하려고 저장함.",
+  "labels": [
+   "식단",
+   "학식"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "학교 홈페이지"
+   }
+  ],
+  "category": "알바·시간표·학식",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-23",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f02_003",
+  "type": "memo",
+  "summary": "팀플 회의록: 3조 기획안 수정사항. 서론이랑 결론 부분을 좀 더 보강해야 함. 다음주까지 수정본 올리기.",
+  "labels": [
+   "과제",
+   "팀플"
+  ],
+  "entities": [],
+  "category": "알바·시간표·학식",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-09",
+  "occurs": "2024-10-15",
+  "dup_of": null
+ },
+ {
+  "id": "f02_004",
+  "type": "screenshot",
+  "summary": "맥북 Pro 배터리 효율 확인 캡처. 수리 센터 가기 전에 효율이 어느 정도인지 비교해보려고 찍어둠.",
+  "labels": [
+   "전자기기",
+   "수리"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "MacBook Pro"
+   }
+  ],
+  "category": "알바·시간표·학식",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-17",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f02_005",
+  "type": "screenshot",
+  "summary": "동아리 신입 부원 모집 포스터 디자인 시안. 색감이 너무 쨍해서 수정이 좀 필요할 듯함.",
+  "labels": [
+   "동아리",
+   "디자인"
+  ],
+  "entities": [],
+  "category": "알바·시간표·학식",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-17",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f02_006",
+  "type": "screenshot",
+  "summary": "알바비 입금 내역 뱅킹 앱 화면. 이번달 월급이 생각보다 적게 들어온 것 같아서 확인차 저장함.",
+  "labels": [
+   "알바",
+   "금융"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "토스"
+   }
+  ],
+  "category": "알바·시간표·학식",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-14",
+  "occurs": "2024-10-25",
+  "dup_of": null
+ },
+ {
+  "id": "f02_007",
+  "type": "link",
+  "summary": "교양 과제에 참고할 만한 아티클 링크. 디지털 리터러시 관련 주제인데 요약하기 딱 좋음.",
+  "labels": [
+   "과제",
+   "자료"
+  ],
+  "entities": [],
+  "category": "알바·시간표·학식",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-03-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f02_008",
+  "type": "screenshot",
+  "summary": "도서관 자리 예약 화면. 시험기간이라 자리 잡기가 너무 힘들어서 예약 성공한 김에 캡처함.",
+  "labels": [
+   "도서관",
+   "시험"
+  ],
+  "entities": [],
+  "category": "알바·시간표·학식",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-27",
+  "occurs": "2024-11-10",
+  "dup_of": null
+ },
+ {
+  "id": "f02_009",
+  "type": "memo",
+  "summary": "담주까지 사야할 것들: A4 용지, 커피 믹스, 다이소에서 살 것들. 알바 끝나고 다이소 들러야 함.",
+  "labels": [
+   "쇼핑",
+   "할일"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "다이소"
+   }
+  ],
+  "category": "알바·시간표·학식",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-18",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f02_010",
+  "type": "screenshot",
+  "summary": "팀플 과제 마감 기한 타임라인. 조원들이랑 톡한 내용 캡처했는데 다들 언제쯤 끝낼지 확실히 정해야 함.",
+  "labels": [
+   "과제",
+   "팀플"
+  ],
+  "entities": [],
+  "category": "알바·시간표·학식",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-06",
+  "occurs": "2024-11-20",
+  "dup_of": null
+ },
+ {
+  "id": "f02_011",
+  "type": "screenshot",
+  "summary": "학식 가격 인상 공지사항. 학생식당 가격이 오르다니 너무 속상해서 친구들한테 보여주려고 저장.",
+  "labels": [
+   "학식",
+   "학교생활"
+  ],
+  "entities": [],
+  "category": "알바·시간표·학식",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-05",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f02_012",
+  "type": "memo",
+  "summary": "알바 대타 구함. 목요일 오후 4시 타임인데 급하게 자리를 메워야 해서 단톡방에 물어봐야 함.",
+  "labels": [
+   "알바",
+   "급구"
+  ],
+  "entities": [],
+  "category": "알바·시간표·학식",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-07",
+  "occurs": "2024-10-12",
+  "dup_of": null
+ },
+ {
+  "id": "f02_013",
+  "type": "screenshot",
+  "summary": "동아리 회식 장소 지도 캡처. 애들이 다 같이 가기 좋은 곳으로 예약하려고 찾아봄.",
+  "labels": [
+   "동아리",
+   "회식"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "학교 앞 삼겹살집"
+   }
+  ],
+  "category": "알바·시간표·학식",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-31",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f02_014",
+  "type": "screenshot",
+  "summary": "졸업 요건 확인용 학사정보시스템 화면. 토익 점수 언제까지 제출해야 하는지 확인하려고 찍음.",
+  "labels": [
+   "학업",
+   "졸업"
+  ],
+  "entities": [],
+  "category": "알바·시간표·학식",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-03-17",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f02_015",
+  "type": "screenshot",
+  "summary": "인터넷 강의 배속 재생 팁 블로그 글. 너무 지루해서 배속하는 법 찾다가 캡처함.",
+  "labels": [
+   "꿀팁",
+   "학업"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "네이버 블로그"
+   }
+  ],
+  "category": "알바·시간표·학식",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-26",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f02_016",
+  "type": "memo",
+  "summary": "내일 시험 범위: 3장부터 7장까지. PPT 내용 위주로 공부하고 단어는 영어로 외우기.",
+  "labels": [
+   "시험",
+   "공부"
+  ],
+  "entities": [],
+  "category": "알바·시간표·학식",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-09",
+  "occurs": "2024-11-15",
+  "dup_of": null
+ },
+ {
+  "id": "f02_017",
+  "type": "screenshot",
+  "summary": "오늘 학식 메뉴 사진. 김치찌개랑 제육볶음인데 맛나보여서 찍어둠.",
+  "labels": [
+   "학식",
+   "먹방"
+  ],
+  "entities": [],
+  "category": "알바·시간표·학식",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-04",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f02_018",
+  "type": "screenshot",
+  "summary": "에타 자유게시판 글 캡처. 교수님 강의평이 너무 좋아서 수강신청 고민중.",
+  "labels": [
+   "수강신청",
+   "에타"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "에브리타임"
+   }
+  ],
+  "category": "알바·시간표·학식",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-27",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f02_019",
+  "type": "screenshot",
+  "summary": "카페 마감 청소 순서 적힌 종이. 사장님이 안계실 때 확인하려고 찍어둠. 오타가 쫌 있네.",
+  "labels": [
+   "알바",
+   "업무"
+  ],
+  "entities": [],
+  "category": "알바·시간표·학식",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-03-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f02_020",
+  "type": "screenshot",
+  "summary": "수업 시간표 겹치는 거 수정 중. 화요일 공강 만들기가 이렇게 힘드나.",
+  "labels": [
+   "시간표",
+   "학교생활"
+  ],
+  "entities": [],
+  "category": "알바·시간표·학식",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-02-05",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f02_021",
+  "type": "memo",
+  "summary": "다음 동아리 미팅 때 발표할 기획안 아이디어 메모. 유튜브 콘텐츠 제작 관련.",
+  "labels": [
+   "동아리",
+   "아이디어"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "YouTube"
+   }
+  ],
+  "category": "알바·시간표·학식",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-14",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f02_022",
+  "type": "screenshot",
+  "summary": "알바 대타 가능자 목록 정리. 단톡방 내용 캡처해서 나중에 참조하려고 함.",
+  "labels": [
+   "알바",
+   "관리"
+  ],
+  "entities": [],
+  "category": "알바·시간표·학식",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-03",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f02_023",
+  "type": "screenshot",
+  "summary": "무신사 장바구니 캡처. 시험 끝나면 사고 싶은 옷들 모아두기.",
+  "labels": [
+   "쇼핑",
+   "위시리스트"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "무신사"
+   }
+  ],
+  "category": "알바·시간표·학식",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-10",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f02_024",
+  "type": "screenshot",
+  "summary": "학교 도서관 대출 현황. 연체료가 얼마인지 확인해야 함. 아차, 책 반납 늦었네.",
+  "labels": [
+   "도서관",
+   "반납"
+  ],
+  "entities": [],
+  "category": "알바·시간표·학식",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-05",
+  "occurs": "2024-10-30",
+  "dup_of": null
+ },
+ {
+  "id": "f02_025",
+  "type": "screenshot",
+  "summary": "이번주 식단표. 수요일에는 돈까스 나오니까 학식 꼭 먹어야지.",
+  "labels": [
+   "학식",
+   "식단"
+  ],
+  "entities": [],
+  "category": "알바·시간표·학식",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f02_026",
+  "type": "memo",
+  "summary": "영어 발표 준비. Script 다 짰는데 발음이 너무 안 좋아서 연습 필요.",
+  "labels": [
+   "과제",
+   "발표"
+  ],
+  "entities": [],
+  "category": "알바·시간표·학식",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-11",
+  "occurs": "2024-11-05",
+  "dup_of": null
+ },
+ {
+  "id": "f02_027",
+  "type": "screenshot",
+  "summary": "카페 오픈 시간 알바 스케줄 캡처. 다음주는 오전 7시 출근이라니 너무 힘들 듯.",
+  "labels": [
+   "알바",
+   "스케줄"
+  ],
+  "entities": [],
+  "category": "알바·시간표·학식",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-06",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f02_028",
+  "type": "screenshot",
+  "summary": "동아리 예산안 엑셀 화면. 이번 학기 행사비용이 너무 많이 잡힌 것 같음.",
+  "labels": [
+   "동아리",
+   "예산"
+  ],
+  "entities": [],
+  "category": "알바·시간표·학식",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-04",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f02_029",
+  "type": "screenshot",
+  "summary": "과제 공지사항 캡처. PDF 파일로 제출하라고 적혀있는데 확인 안 했다가 큰일 날 뻔함.",
+  "labels": [
+   "과제",
+   "공지"
+  ],
+  "entities": [],
+  "category": "알바·시간표·학식",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-12",
+  "occurs": "2024-12-01",
+  "dup_of": null
+ }
+]

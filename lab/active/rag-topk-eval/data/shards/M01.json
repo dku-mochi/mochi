@@ -1,0 +1,192 @@
+[
+ {
+  "id": "m01_000",
+  "type": "screenshot",
+  "summary": "인스타그램 광고로 뜬 푸드올로지 콜레올로지 티. 잔티젠 성분이 다이어트에 도움 된다는데 진짜 효과 있을지 후기들 좀 더 찾아봐야겠다.",
+  "labels": [
+   "구매 고민",
+   "다이어트"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "푸드올로지"
+   },
+   {
+    "kind": "product",
+    "value": "콜레올로지 티"
+   }
+  ],
+  "category": "건강",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "다이어트 보조제",
+  "tier": "M",
+  "captured_at": "2026-04-25",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m01_001",
+  "type": "link",
+  "summary": "내돈내산으로 유명한 닥터린 식물성 다이어트 보조제 상세페이지. 성분 분석표 보니까 가르시니아 함량이 높아서 운동 전후로 챙겨 먹으면 좋을 듯.",
+  "labels": [
+   "쇼핑리스트"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "닥터린"
+   }
+  ],
+  "category": "건강",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "다이어트 보조제",
+  "tier": "M",
+  "captured_at": "2026-04-18",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m01_002",
+  "type": "memo",
+  "summary": "오늘 올리브영 세일할 때 비비랩(BB LAB) 가르시니아 1+1 겟함. 점심 먹고 까먹지 말고 꼭 챙겨먹기. 효과 있으면 재구매 의사 있음.",
+  "labels": [
+   "일상",
+   "건강"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "비비랩"
+   },
+   {
+    "kind": "place",
+    "value": "올리브영"
+   }
+  ],
+  "category": "건강",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "다이어트 보조제",
+  "tier": "M",
+  "captured_at": "2026-03-29",
+  "occurs": "2023-11-20",
+  "dup_of": null
+ },
+ {
+  "id": "m01_003",
+  "type": "screenshot",
+  "summary": "직구 사이트에서 발견한 GNC 린세이프. 해외 후기는 좋은데 배송비가 좀 비싸다. 가격 비교 좀 더 해보고 큐텐에서 살지 결정하자.",
+  "labels": [
+   "구매 고민",
+   "직구"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "GNC"
+   },
+   {
+    "kind": "product",
+    "value": "린세이프"
+   }
+  ],
+  "category": "건강",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "다이어트 보조제",
+  "tier": "M",
+  "captured_at": "2026-03-23",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m01_004",
+  "type": "screenshot",
+  "summary": "회사 근처 샐러드 맛집 '그린스미스' 메뉴판 캡쳐. 맨날 닭가슴살만 먹기 물리는데 이번 주 점심은 여기서 연어 샐러드 포케 먹어야지.",
+  "labels": [
+   "맛집",
+   "식단 관리"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "그린스미스"
+   }
+  ],
+  "category": "건강",
+  "persona": "marketer",
+  "role": "hard_neg",
+  "for_query": "다이어트 보조제",
+  "tier": "M",
+  "captured_at": "2026-04-12",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m01_005",
+  "type": "screenshot",
+  "summary": "유튜브에서 본 30일 홈트 챌린지 루틴. 덤벨 운동 위주인데 퇴근하고 집에서 20분씩만 따라해도 확실히 체력이 느는 기분임.",
+  "labels": [
+   "운동",
+   "루틴"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "유튜브"
+   }
+  ],
+  "category": "건강",
+  "persona": "marketer",
+  "role": "hard_neg",
+  "for_query": "다이어트 보조제",
+  "tier": "M",
+  "captured_at": "2026-04-20",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m01_006",
+  "type": "link",
+  "summary": "저탄고지 식단용 마켓컬리 장바구니. 아보카도 오일이랑 냉동 브로콜리 등등 샀음. 키토제닉 시작할 때 참고하려고 저장해둠.",
+  "labels": [
+   "식단",
+   "장보기"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "마켓컬리"
+   }
+  ],
+  "category": "건강",
+  "persona": "marketer",
+  "role": "hard_neg",
+  "for_query": "다이어트 보조제",
+  "tier": "M",
+  "captured_at": "2026-04-08",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m01_007",
+  "type": "memo",
+  "summary": "필라테스 스튜디오 연장 결제 완료. 주 3회 꼬박꼬박 나가서 체지방률 25% 밑으로 낯추는 게 목표임. 화이팅!",
+  "labels": [
+   "운동",
+   "다짐"
+  ],
+  "entities": [],
+  "category": "건강",
+  "persona": "marketer",
+  "role": "hard_neg",
+  "for_query": "다이어트 보조제",
+  "tier": "M",
+  "captured_at": "2026-03-18",
+  "occurs": "2023-12-01",
+  "dup_of": null
+ }
+]

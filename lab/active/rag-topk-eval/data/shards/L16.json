@@ -1,0 +1,386 @@
+[
+ {
+  "id": "l16_000",
+  "type": "screenshot",
+  "summary": "유튜브 '자취요리신' 채널의 원팬 파스타 레시피 캡처. 설거지 줄이면서 10분 만에 끝낼 수 있는 점이 맘에 들어서 저장함.",
+  "labels": [
+   "레시피",
+   "꿀팁"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "YouTube"
+   },
+   {
+    "kind": "brand",
+    "value": "자취요리신"
+   }
+  ],
+  "category": "요리",
+  "persona": "student",
+  "role": "answer",
+  "for_query": "자취 요리",
+  "tier": "L",
+  "captured_at": "2026-07-02",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l16_001",
+  "type": "link",
+  "summary": "쿠팡에서 주문할 오뚜기 진라면 매운맛 멀티팩 상세페이지 링크. 요리할 때 베이스로 쓰기 좋아서 쟁여두려고 함.",
+  "labels": [
+   "쇼핑",
+   "식재료"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "Coupang"
+   },
+   {
+    "kind": "brand",
+    "value": "오뚜기"
+   }
+  ],
+  "category": "요리",
+  "persona": "student",
+  "role": "answer",
+  "for_query": "자취 요리",
+  "tier": "L",
+  "captured_at": "2026-06-25",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l16_002",
+  "type": "memo",
+  "summary": "다이소에서 산 5천원짜리 전자레인지용 찜기 사용법. 냉동 만두 말고 계란찜도 잘 된다니까 내일 아침에 해봐야지.",
+  "labels": [
+   "살림",
+   "일상"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "다이소"
+   }
+  ],
+  "category": "요리",
+  "persona": "student",
+  "role": "answer",
+  "for_query": "자취 요리",
+  "tier": "L",
+  "captured_at": "2026-05-31",
+  "occurs": "2023-11-05",
+  "dup_of": null
+ },
+ {
+  "id": "l16_003",
+  "type": "screenshot",
+  "summary": "SSG닷컴 노브랜드 냉동 닭가슴살 가격표. 가성비 최고인듯, 알바비 들어오면 5팩 쟁여놔야겠다.",
+  "labels": [
+   "쇼핑",
+   "식단"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "SSG.com"
+   },
+   {
+    "kind": "brand",
+    "value": "노브랜드"
+   }
+  ],
+  "category": "요리",
+  "persona": "student",
+  "role": "answer",
+  "for_query": "자취 요리",
+  "tier": "L",
+  "captured_at": "2026-06-09",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l16_004",
+  "type": "screenshot",
+  "summary": "마켓컬리에서 본 채소 믹스. 씻어 나오니까 손질 귀찮은 자취생한테 딱임. 샐러드나 볶음밥 할 때 넣기 좋을 듯.",
+  "labels": [
+   "식단",
+   "장보기"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "마켓컬리"
+   }
+  ],
+  "category": "요리",
+  "persona": "student",
+  "role": "answer",
+  "for_query": "자취 요리",
+  "tier": "L",
+  "captured_at": "2026-06-29",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l16_005",
+  "type": "memo",
+  "summary": "백종원 유튜브 김치볶음밥 레시피: 1. 파기름 먼저 내기 2. 설탕 한 숟갈 넣고 볶기 3. 간장 눌려서 풍미 살리기. 까먹지 말자.",
+  "labels": [
+   "레시피",
+   "요리"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "백종원"
+   }
+  ],
+  "category": "요리",
+  "persona": "student",
+  "role": "answer",
+  "for_query": "자취 요리",
+  "tier": "L",
+  "captured_at": "2026-06-24",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l16_006",
+  "type": "screenshot",
+  "summary": "이마트에서 발견한 CJ 제일제당 햇반 컵반. 시험 기간에 요리하기 넘 귀찮을 때 비상식량으로 먹으려고 캡처함.",
+  "labels": [
+   "식량",
+   "비상용"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "이마트"
+   },
+   {
+    "kind": "brand",
+    "value": "CJ 제일제당"
+   }
+  ],
+  "category": "요리",
+  "persona": "student",
+  "role": "answer",
+  "for_query": "자취 요리",
+  "tier": "L",
+  "captured_at": "2026-05-30",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l16_007",
+  "type": "link",
+  "summary": "오늘의집에서 본 1인용 인덕션. 좁은 자취방에 하나 두면 라면 끓이거나 고기 구울 때 유용할 듯함.",
+  "labels": [
+   "위시리스트",
+   "주방용품"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "오늘의집"
+   }
+  ],
+  "category": "요리",
+  "persona": "student",
+  "role": "answer",
+  "for_query": "자취 요리",
+  "tier": "L",
+  "captured_at": "2026-05-31",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l16_008",
+  "type": "screenshot",
+  "summary": "인스타그램 '꿀키' 계정의 간단 토스트 레시피 캡처. 재료도 간단하고 아침 대용으로 뚝딱 만들 수 있을 것 같아서 저장.",
+  "labels": [
+   "브런치",
+   "레시피"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "Instagram"
+   }
+  ],
+  "category": "요리",
+  "persona": "student",
+  "role": "answer",
+  "for_query": "자취 요리",
+  "tier": "L",
+  "captured_at": "2026-06-17",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l16_009",
+  "type": "memo",
+  "summary": "쿠팡에서 산 '곰곰' 사골 육수 팩. 이거 있으면 떡국이나 부대찌개 국물 내기 쉬움. 담에 마라탕 소스 넣어서 마라탕 해먹어야징.",
+  "labels": [
+   "식재료",
+   "메모"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "곰곰"
+   }
+  ],
+  "category": "요리",
+  "persona": "student",
+  "role": "answer",
+  "for_query": "자취 요리",
+  "tier": "L",
+  "captured_at": "2026-06-23",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l16_010",
+  "type": "screenshot",
+  "summary": "배달의민족에서 본 마라탕 맛집. 요리하기 너무 지친 날에 시켜 먹으려고 찜해둠.",
+  "labels": [
+   "배달",
+   "맛집"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "배달의민족"
+   }
+  ],
+  "category": "요리",
+  "persona": "student",
+  "role": "hard_neg",
+  "for_query": "자취 요리",
+  "tier": "L",
+  "captured_at": "2026-06-05",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l16_011",
+  "type": "screenshot",
+  "summary": "집 근처 맘스터치 싸이버거 세트 메뉴판. 시험 끝나고 알바 끝나면 친구랑 여기서 저녁 해결해야지.",
+  "labels": [
+   "외식",
+   "찜"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "맘스터치"
+   }
+  ],
+  "category": "요리",
+  "persona": "student",
+  "role": "hard_neg",
+  "for_query": "자취 요리",
+  "tier": "L",
+  "captured_at": "2026-05-30",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l16_012",
+  "type": "link",
+  "summary": "요기요에서 발견한 동네 분식점 떡볶이. 리뷰 보니까 완전 매콤하고 맛있다는데 주말에 시켜봐야겠다.",
+  "labels": [
+   "배달",
+   "야식"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "요기요"
+   }
+  ],
+  "category": "요리",
+  "persona": "student",
+  "role": "hard_neg",
+  "for_query": "자취 요리",
+  "tier": "L",
+  "captured_at": "2026-06-28",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l16_013",
+  "type": "screenshot",
+  "summary": "스타벅스 신메뉴 케이크 캡처. 공강 시간에 동기들이랑 가서 먹으려고 함. 당 충전 필요함.",
+  "labels": [
+   "카페",
+   "외식"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "스타벅스"
+   }
+  ],
+  "category": "요리",
+  "persona": "student",
+  "role": "hard_neg",
+  "for_query": "자취 요리",
+  "tier": "L",
+  "captured_at": "2026-06-18",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l16_014",
+  "type": "memo",
+  "summary": "학교 앞 김밥천국 메뉴판. 1교시 수업 있는 날 아침에 여기서 밥 먹고 가야지. 치즈라면이 진리임.",
+  "labels": [
+   "외식",
+   "식당"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "김밥천국"
+   }
+  ],
+  "category": "요리",
+  "persona": "student",
+  "role": "hard_neg",
+  "for_query": "자취 요리",
+  "tier": "L",
+  "captured_at": "2026-06-04",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l16_015",
+  "type": "memo",
+  "summary": "아 맞다, 예전에 찜해둔 그 '자취요리신' 원팬 파스타. 낼 저녁 메뉴 이걸로 확정. 설거지 귀차느니까 이걸로 해야지.",
+  "labels": [
+   "레시피",
+   "저녁"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "자취요리신"
+   }
+  ],
+  "category": "요리",
+  "persona": "student",
+  "role": "answer",
+  "for_query": "자취 요리",
+  "tier": "L",
+  "captured_at": "2026-07-14",
+  "occurs": "2023-11-10",
+  "dup_of": "l16_000"
+ }
+]

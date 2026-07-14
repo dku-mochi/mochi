@@ -1,0 +1,144 @@
+[
+ {
+  "id": "m13_000",
+  "type": "screenshot",
+  "summary": "인스타에서 발견한 연남동 '오븐 앤 메이트' 원데이 클래스 일정. 주말에 마들렌이랑 휘낭시에 만드는 법 배우러 가고 싶어서 캡처함.",
+  "labels": [
+   "가보고 싶은 곳",
+   "주말 계획"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "오븐 앤 메이트"
+   },
+   {
+    "kind": "date",
+    "value": "2024-11-23"
+   }
+  ],
+  "category": "취미",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "베이킹 클래스",
+  "tier": "M",
+  "captured_at": "2026-03-04",
+  "occurs": "2024-11-23",
+  "dup_of": null
+ },
+ {
+  "id": "m13_001",
+  "type": "link",
+  "summary": "성수동 '르 꼬르동 블루' 출신 파티셰가 운영하는 베이킹 공방 '스윗랩' 커리큘럼 페이지. 커플 클래스도 있다는데 담달에 예약할까 고민 중.",
+  "labels": [
+   "취미",
+   "데이트 코스"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "스윗랩"
+   }
+  ],
+  "category": "취미",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "베이킹 클래스",
+  "tier": "M",
+  "captured_at": "2026-03-06",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m13_002",
+  "type": "memo",
+  "summary": "한남동 '글루텐프리 베이킹 스튜디오' 예약 완료. 쌀가루로 만드는 케이크 수업이라 기대됨. 준비물로 앞치마 챙겨야 한다고 함.",
+  "labels": [
+   "예약 완료",
+   "취미"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "글루텐프리 베이킹 스튜디오"
+   }
+  ],
+  "category": "취미",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "베이킹 클래스",
+  "tier": "M",
+  "captured_at": "2026-03-31",
+  "occurs": "2024-12-05",
+  "dup_of": null
+ },
+ {
+  "id": "m13_003",
+  "type": "screenshot",
+  "summary": "프랑스 가정식 요리 수업 모집 안내. 뵈프 부르기뇽 만드는 법 배우고 싶어서 저장. 베이킹이랑은 좀 다르지만 여튼 요리 배우고 싶으니까.",
+  "labels": [
+   "요리",
+   "관심사"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "르 꼬르동 요리학교"
+   }
+  ],
+  "category": "취미",
+  "persona": "marketer",
+  "role": "hard_neg",
+  "for_query": "베이킹 클래스",
+  "tier": "M",
+  "captured_at": "2026-03-26",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m13_004",
+  "type": "link",
+  "summary": "홈베이킹 필수템 키친에이드 반죽기 핫딜. 고민 중인데 너무 비싸다... 일단 장바구니에 담아두고 나중에 세일할 때 살지 말지 정해야지.",
+  "labels": [
+   "구매 고민",
+   "쇼핑"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "키친에이드"
+   }
+  ],
+  "category": "취미",
+  "persona": "marketer",
+  "role": "hard_neg",
+  "for_query": "베이킹 클래스",
+  "tier": "M",
+  "captured_at": "2026-03-09",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m13_005",
+  "type": "memo",
+  "summary": "쿠킹 클래스 재료 사러 방산시장 가야함. 버터랑 밀가루 종류가 많아서 헷갈리니까 사장님한테 추천받을 것. 베이킹 도구도 좀 더 사야되나.",
+  "labels": [
+   "쇼핑 리스트",
+   "준비물"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "방산시장"
+   }
+  ],
+  "category": "취미",
+  "persona": "marketer",
+  "role": "hard_neg",
+  "for_query": "베이킹 클래스",
+  "tier": "M",
+  "captured_at": "2026-03-25",
+  "occurs": "2024-11-15",
+  "dup_of": null
+ }
+]

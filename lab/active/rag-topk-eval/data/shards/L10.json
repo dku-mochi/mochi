@@ -1,0 +1,369 @@
+[
+ {
+  "id": "l10_000",
+  "type": "screenshot",
+  "summary": "역삼동 가성비 점심 맛집으로 유명한 '미도인' 메뉴판 캡처. 스테이크 덮밥 가격대가 괜찮아서 팀원들이랑 가볍게 먹으러 가기 좋을 듯.",
+  "labels": [
+   "점심 리스트",
+   "역삼 맛집"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "미도인 역삼점"
+   }
+  ],
+  "category": "장소",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "회사 근처 점심",
+  "tier": "L",
+  "captured_at": "2026-04-29",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l10_001",
+  "type": "screenshot",
+  "summary": "회사 근처 '진대감' 차돌삼합 런치가 괜찮아 보여서 저장. 점심 특선 구성이 생각보다 알차서 미팅 없는 날 다녀와야지.",
+  "labels": [
+   "직장인 점심",
+   "가보고 싶은 곳"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "진대감 역삼점"
+   }
+  ],
+  "category": "장소",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "회사 근처 점심",
+  "tier": "L",
+  "captured_at": "2026-03-13",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l10_002",
+  "type": "memo",
+  "summary": "강남역 2번 출구 쪽 '무스비' 김밥집. 혼밥하기 딱 좋고 회전율 빨라서 바쁜 날 점심으로 제격임.",
+  "labels": [
+   "혼밥",
+   "기록"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "무스비 강남점"
+   }
+  ],
+  "category": "장소",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "회사 근처 점심",
+  "tier": "L",
+  "captured_at": "2026-04-12",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l10_003",
+  "type": "link",
+  "summary": "신논현역 인근 '소바공방' 리뷰 블로그. 여기 텐동 세트가 가성비 좋다고 해서 조만간 가보려고 링크 저장.",
+  "labels": [
+   "맛집 탐방"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "소바공방"
+   }
+  ],
+  "category": "장소",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "회사 근처 점심",
+  "tier": "L",
+  "captured_at": "2026-04-01",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l10_004",
+  "type": "screenshot",
+  "summary": "언주역 근처 새로 생긴 '더블린 샐러드'. 다이어트 중이라 가벼운 런치 메뉴 찾다가 저장함. 샌드위치도 파는듯.",
+  "labels": [
+   "다이어트",
+   "샐러드"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "더블린 샐러드"
+   }
+  ],
+  "category": "장소",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "회사 근처 점심",
+  "tier": "L",
+  "captured_at": "2026-04-26",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l10_005",
+  "type": "screenshot",
+  "summary": "회사 지하 1층 '한우곰탕'집. 날 추울 때 뜨끈하게 한 그릇 하기 좋음. 김치가 존맛탱이라 재방문 의사 200%.",
+  "labels": [
+   "겨울 메뉴",
+   "직장인 점심"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "한우곰탕"
+   }
+  ],
+  "category": "장소",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "회사 근처 점심",
+  "tier": "L",
+  "captured_at": "2026-03-24",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l10_006",
+  "type": "memo",
+  "summary": "도곡동 방면 '중화식탁' 점심 세트 메뉴. 짬뽕이랑 짜장 구성 알차서 팀장님이랑 가기에 무난함.",
+  "labels": [
+   "중식",
+   "회사 근처"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "중화식탁"
+   }
+  ],
+  "category": "장소",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "회사 근처 점심",
+  "tier": "L",
+  "captured_at": "2026-03-29",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l10_007",
+  "type": "screenshot",
+  "summary": "선릉역 '고든램지 버거' 런치 세트 가격이랑 구성 확인. 가격대는 좀 있지만 가끔 기분 내고 싶을 때 가볼 만함.",
+  "labels": [
+   "버거",
+   "특별한 날"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "고든램지 버거"
+   }
+  ],
+  "category": "장소",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "회사 근처 점심",
+  "tier": "L",
+  "captured_at": "2026-05-05",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l10_008",
+  "type": "link",
+  "summary": "강남 테헤란로 '베트남 쌀국수 포호아'. 12시 땡 하고 나가면 자리 꽉 차니까 미리 예약하거나 11시 40분쯤 나가는 게 꿀팁.",
+  "labels": [
+   "쌀국수",
+   "팁"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "포호아"
+   }
+  ],
+  "category": "장소",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "회사 근처 점심",
+  "tier": "L",
+  "captured_at": "2026-04-20",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l10_009",
+  "type": "screenshot",
+  "summary": "역삼 근처 '고향 순대국'. 국물이 진하고 양 많음. 점심 웨이팅 주의. 아재 입맛 저격 제대로임.",
+  "labels": [
+   "해장",
+   "로컬 맛집"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "고향 순대국"
+   }
+  ],
+  "category": "장소",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "회사 근처 점심",
+  "tier": "L",
+  "captured_at": "2026-04-01",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l10_010",
+  "type": "screenshot",
+  "summary": "팀 회식 장소로 점찍어둔 '강남 숯불갈비'. 저녁 메뉴판 찍어둠. 회식 때 예약하려면 미리 전화해야 할 듯.",
+  "labels": [
+   "회식",
+   "고깃집"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "강남 숯불갈비"
+   }
+  ],
+  "category": "장소",
+  "persona": "marketer",
+  "role": "hard_neg",
+  "for_query": "회사 근처 점심",
+  "tier": "L",
+  "captured_at": "2026-04-26",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l10_011",
+  "type": "memo",
+  "summary": "회사 근처 새로 생긴 힙한 카페 '블루웨이브'. 점심 먹고 커피 마시러 가기 좋을 듯. 분위기 좋아서 업무 미팅도 가능.",
+  "labels": [
+   "카페",
+   "미팅"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "블루웨이브"
+   }
+  ],
+  "category": "장소",
+  "persona": "marketer",
+  "role": "hard_neg",
+  "for_query": "회사 근처 점심",
+  "tier": "L",
+  "captured_at": "2026-04-27",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l10_012",
+  "type": "link",
+  "summary": "금요일 저녁에 가기 좋은 강남역 이자카야 추천 리스트. 하이볼 맛집이 많아서 팀 회식 후보지로 저장.",
+  "labels": [
+   "회식",
+   "저녁"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "강남 이자카야"
+   }
+  ],
+  "category": "장소",
+  "persona": "marketer",
+  "role": "hard_neg",
+  "for_query": "회사 근처 점심",
+  "tier": "L",
+  "captured_at": "2026-04-16",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l10_013",
+  "type": "screenshot",
+  "summary": "주말에 친구랑 가려고 저장한 역삼동 예쁜 카페. 커피랑 케이크 조합 좋음. 평일 점심엔 사람이 너무 많아서 패스.",
+  "labels": [
+   "카페",
+   "주말"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "카페 테르"
+   }
+  ],
+  "category": "장소",
+  "persona": "marketer",
+  "role": "hard_neg",
+  "for_query": "회사 근처 점심",
+  "tier": "L",
+  "captured_at": "2026-04-12",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l10_014",
+  "type": "memo",
+  "summary": "퇴근하고 들를 만한 저녁 파스타집. 분위기 깡패라 데이트 코스로도 손색없음. 점심엔 안 함.",
+  "labels": [
+   "저녁",
+   "이탈리안"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "루나 파스타"
+   }
+  ],
+  "category": "장소",
+  "persona": "marketer",
+  "role": "hard_neg",
+  "for_query": "회사 근처 점심",
+  "tier": "L",
+  "captured_at": "2026-04-03",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l10_015",
+  "type": "memo",
+  "summary": "저번에 봤던 그 미도인 역삼점 다시 확인. 메뉴가 바뀌었나 체크해봐야지. 담주에 팀원들이랑 점심 회식 여기서 할까?",
+  "labels": [
+   "점심 리스트",
+   "재확인"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "미도인 역삼점"
+   }
+  ],
+  "category": "장소",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "회사 근처 점심",
+  "tier": "L",
+  "captured_at": "2026-06-11",
+  "occurs": "2023-11-20",
+  "dup_of": "l10_000"
+ }
+]

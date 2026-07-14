@@ -1,0 +1,239 @@
+[
+ {
+  "id": "m16_000",
+  "type": "screenshot",
+  "summary": "교수님이 강의 시간에 언급하신 '현대 문학의 이해' 필수 도서 리스트 캡쳐본. 기말 과제 참고용으로 서점 들를 때 확인하려고 저장함.",
+  "labels": [
+   "학업",
+   "도서"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "소년이 온다"
+   },
+   {
+    "kind": "product",
+    "value": "채식주의자"
+   }
+  ],
+  "category": "문화",
+  "persona": "student",
+  "role": "answer",
+  "for_query": "책 추천",
+  "tier": "M",
+  "captured_at": "2026-06-26",
+  "occurs": "2024-05-12",
+  "dup_of": null
+ },
+ {
+  "id": "m16_001",
+  "type": "screenshot",
+  "summary": "인스타에서 본 '밤에 읽기 좋은 에세이' 추천 피드. 베스트셀러 말고 좀 감성적인거 읽고 싶어서 저장해둠. 알라딘에서 검색해봐야지.",
+  "labels": [
+   "독서",
+   "취미"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "지극히 사적인 네덜란드"
+   },
+   {
+    "kind": "platform",
+    "value": "인스타그램"
+   }
+  ],
+  "category": "문화",
+  "persona": "student",
+  "role": "answer",
+  "for_query": "책 추천",
+  "tier": "M",
+  "captured_at": "2026-06-12",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m16_002",
+  "type": "screenshot",
+  "summary": "동아리 선배가 추천해준 인문학 입문서들. 나중에 교양 세미나 할 때 필요한 도서라 캡쳐해뒀음. 까먹지 말자.",
+  "labels": [
+   "동아리",
+   "학습"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "사피엔스"
+   },
+   {
+    "kind": "product",
+    "value": "총 균 쇠"
+   }
+  ],
+  "category": "문화",
+  "persona": "student",
+  "role": "answer",
+  "for_query": "책 추천",
+  "tier": "M",
+  "captured_at": "2026-06-24",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m16_003",
+  "type": "screenshot",
+  "summary": "알바 대타하면서 심심해서 찾아본 베스트셀러 목록. 요즘 대학생들이 많이 읽는 트렌드 도서가 뭔지 알 수 있음.",
+  "labels": [
+   "독서",
+   "참고"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "교보문고"
+   }
+  ],
+  "category": "문화",
+  "persona": "student",
+  "role": "answer",
+  "for_query": "책 추천",
+  "tier": "M",
+  "captured_at": "2026-06-09",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m16_004",
+  "type": "link",
+  "summary": "밀리의 서재에서 이번 달 읽어야 할 '자기계발서' 큐레이션 링크. 맘에 드는 제목이 많아서 정리용으로 저장.",
+  "labels": [
+   "독서",
+   "자기계발"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "밀리의 서재"
+   }
+  ],
+  "category": "문화",
+  "persona": "student",
+  "role": "answer",
+  "for_query": "책 추천",
+  "tier": "M",
+  "captured_at": "2026-06-19",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m16_005",
+  "type": "memo",
+  "summary": "교양 수업 '서양미술사' 과제할 때 참고할만한 아트 북들 리스트. 도서관가서 대출해오기. 목록: '곰브리치 서양미술사', '발칙한 현대미술사'. 잊지말구 가기!",
+  "labels": [
+   "학업",
+   "과제"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "학교 도서관"
+   }
+  ],
+  "category": "문화",
+  "persona": "student",
+  "role": "answer",
+  "for_query": "책 추천",
+  "tier": "M",
+  "captured_at": "2026-06-23",
+  "occurs": "2024-05-20",
+  "dup_of": null
+ },
+ {
+  "id": "m16_006",
+  "type": "screenshot",
+  "summary": "넷플릭스에서 이번 주말에 꼭 봐야할 영화 리스트 캡쳐. 과제 끝내고 힐링할 때 참고하려고 저장함.",
+  "labels": [
+   "문화",
+   "영화"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "넷플릭스"
+   }
+  ],
+  "category": "문화",
+  "persona": "student",
+  "role": "hard_neg",
+  "for_query": "책 추천",
+  "tier": "M",
+  "captured_at": "2026-06-26",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m16_007",
+  "type": "link",
+  "summary": "요즘 출퇴근 길에 듣기 좋은 팟캐스트 추천 리스트. 사회학 관련 이슈들 다뤄서 공부에도 도움될듯.",
+  "labels": [
+   "지식",
+   "팟캐스트"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "팟빵"
+   }
+  ],
+  "category": "문화",
+  "persona": "student",
+  "role": "hard_neg",
+  "for_query": "책 추천",
+  "tier": "M",
+  "captured_at": "2026-06-26",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m16_008",
+  "type": "screenshot",
+  "summary": "영화 유튜버가 분석해준 '다크나이트' 명장면 정리본. 영화 다시 볼 때 참고하려고 저장.",
+  "labels": [
+   "영화",
+   "취미"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "다크나이트"
+   }
+  ],
+  "category": "문화",
+  "persona": "student",
+  "role": "hard_neg",
+  "for_query": "책 추천",
+  "tier": "M",
+  "captured_at": "2026-07-04",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m16_009",
+  "type": "memo",
+  "summary": "팟캐스트 '지대넓얕'에서 소개한 최근 개봉 영화 리스트. 주말에 영화관 갈 때 볼거 없으면 이거 참고해서 봐야지.",
+  "labels": [
+   "문화",
+   "팟캐스트"
+  ],
+  "entities": [],
+  "category": "문화",
+  "persona": "student",
+  "role": "hard_neg",
+  "for_query": "책 추천",
+  "tier": "M",
+  "captured_at": "2026-06-22",
+  "occurs": null,
+  "dup_of": null
+ }
+]

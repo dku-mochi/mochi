@@ -1,0 +1,336 @@
+[
+ {
+  "id": "l15_000",
+  "type": "screenshot",
+  "summary": "인스타에서 본 강아지 노즈워크 매트인데 디자인이 깔끔해서 거실 인테리어랑 잘 어울릴 듯. 아기가 기어다니기 시작하면 같이 써도 괜찮을지 고민됨.",
+  "labels": [
+   "구매 고민",
+   "인테리어"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "베니즈 노즈워크 매트"
+   }
+  ],
+  "category": "반려",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "강아지 용품",
+  "tier": "L",
+  "captured_at": "2026-04-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l15_001",
+  "type": "screenshot",
+  "summary": "유튜브 브이로그에 나온 강아지 자동급식기. 외출할 때나 여행 갈 때 필요할 것 같아서 저장. 모델명 체크해두기.",
+  "labels": [
+   "육아템 병행",
+   "쇼핑리스트"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "펫킷 프레쉬 엘리먼트 솔로"
+   }
+  ],
+  "category": "반려",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "강아지 용품",
+  "tier": "L",
+  "captured_at": "2026-04-21",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l15_002",
+  "type": "memo",
+  "summary": "반려견 전용 카시트 알아보기. 기존에 쓰던건 너무 작아서 아이랑 같이 타면 좁음. 튼튼한 하드 프레임 위주로 찾아볼 것.",
+  "labels": [
+   "정보 수집",
+   "차량용품"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "로얄테일즈"
+   }
+  ],
+  "category": "반려",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "강아지 용품",
+  "tier": "L",
+  "captured_at": "2026-04-24",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l15_003",
+  "type": "link",
+  "summary": "가성비 좋은 강아지 배변패드 대량 구매처. 매달 고정 지출이라 싼 곳 링크 모아둠.",
+  "labels": [
+   "생활비",
+   "반려견"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "쿠팡"
+   }
+  ],
+  "category": "반려",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "강아지 용품",
+  "tier": "L",
+  "captured_at": "2026-06-05",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l15_004",
+  "type": "screenshot",
+  "summary": "강아지 샴푸가 똑 떨어져서 급하게 찾아본 성분 착한 샴푸. 향이 강하지 않아서 아이랑 같이 생활하는 공간에 쓰기 좋다고 함.",
+  "labels": [
+   "구매 예정",
+   "생활용품"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "아인솝 강아지 샴푸바"
+   }
+  ],
+  "category": "반려",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "강아지 용품",
+  "tier": "L",
+  "captured_at": "2026-05-28",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l15_005",
+  "type": "memo",
+  "summary": "여름용 강아지 쿨매트. 댕댕이가 더위를 너무 많이 타서 쿨링 방석 알아봐야 함. 인스타 공구 기간 확인.",
+  "labels": [
+   "계절 아이템",
+   "반려견"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "펫트리움 쿨링 하우스"
+   }
+  ],
+  "category": "반려",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "강아지 용품",
+  "tier": "L",
+  "captured_at": "2026-05-08",
+  "occurs": "2024-06-15",
+  "dup_of": null
+ },
+ {
+  "id": "l15_006",
+  "type": "screenshot",
+  "summary": "강아지 이동장 가방. 병원 갈 때나 친정갈 때 필수템. 지금 쓰는건 어깨가 너무 아파서 편한걸로 바꾸고 싶음.",
+  "labels": [
+   "구매 고민"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "밀리옹 겟어웨이"
+   }
+  ],
+  "category": "반려",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "강아지 용품",
+  "tier": "L",
+  "captured_at": "2026-06-06",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l15_007",
+  "type": "link",
+  "summary": "강아지 실리콘 밥그릇 세트. 높이 조절이 돼서 관절에 무리 안가고 세척도 편할 것 같음. 주말에 결제 예정.",
+  "labels": [
+   "구매 예정"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "누누와 강아지 식기"
+   }
+  ],
+  "category": "반려",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "강아지 용품",
+  "tier": "L",
+  "captured_at": "2026-06-12",
+  "occurs": "2024-05-20",
+  "dup_of": null
+ },
+ {
+  "id": "l15_008",
+  "type": "screenshot",
+  "summary": "우리집 댕댕이 겨울 산책용 패딩 조끼. 가볍고 따뜻해서 만족도 높음. 나중에 사이즈 기억 안날까봐 캡쳐해둠.",
+  "labels": [
+   "기록"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "퍼피아 패딩 조끼"
+   }
+  ],
+  "category": "반려",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "강아지 용품",
+  "tier": "L",
+  "captured_at": "2026-06-13",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l15_009",
+  "type": "screenshot",
+  "summary": "고양이 원목 캣타워인데 구성이 너무 예뻐서 저장. 근데 울집은 강아지라 패스.",
+  "labels": [
+   "고양이",
+   "아이쇼핑"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "가또블랑코 캣타워"
+   }
+  ],
+  "category": "반려",
+  "persona": "parent",
+  "role": "hard_neg",
+  "for_query": "강아지 용품",
+  "tier": "L",
+  "captured_at": "2026-04-29",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l15_010",
+  "type": "link",
+  "summary": "냥이 사료 추천 링크. 기호성 좋다는 성분 분석글이라 냥이 키우는 친구한테 공유할 것.",
+  "labels": [
+   "고양이"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "로얄캐닌"
+   }
+  ],
+  "category": "반려",
+  "persona": "parent",
+  "role": "hard_neg",
+  "for_query": "강아지 용품",
+  "tier": "L",
+  "captured_at": "2026-04-18",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l15_011",
+  "type": "screenshot",
+  "summary": "강아지 예방접종 안내문. 이번 달에 가야할 동물병원 진료시간이랑 위치 체크용.",
+  "labels": [
+   "반려견",
+   "병원"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "행복한 동물병원"
+   }
+  ],
+  "category": "반려",
+  "persona": "parent",
+  "role": "hard_neg",
+  "for_query": "강아지 용품",
+  "tier": "L",
+  "captured_at": "2026-04-25",
+  "occurs": "2024-05-25",
+  "dup_of": null
+ },
+ {
+  "id": "l15_012",
+  "type": "memo",
+  "summary": "냥이 모래 갈아줄 때가 됐다. 먼지 적은 벤토나이트 어디꺼지?",
+  "labels": [
+   "고양이"
+  ],
+  "entities": [],
+  "category": "반려",
+  "persona": "parent",
+  "role": "hard_neg",
+  "for_query": "강아지 용품",
+  "tier": "L",
+  "captured_at": "2026-05-13",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l15_013",
+  "type": "memo",
+  "summary": "주말에 강아지 건강검진 예약 완료. 동물병원 주소랑 전화번호 저장.",
+  "labels": [
+   "병원"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "24시 스카이 동물병원"
+   }
+  ],
+  "category": "반려",
+  "persona": "parent",
+  "role": "hard_neg",
+  "for_query": "강아지 용품",
+  "tier": "L",
+  "captured_at": "2026-04-13",
+  "occurs": "2024-05-28",
+  "dup_of": null
+ },
+ {
+  "id": "l15_014",
+  "type": "memo",
+  "summary": "지난번에 봤던 베니즈 노즈워크 매트, 디자인 다시 봐도 맘에 드네. 이번달에 꼭 사야지.",
+  "labels": [
+   "구매 고민",
+   "인테리어"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "베니즈 노즈워크 매트"
+   }
+  ],
+  "category": "반려",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "강아지 용품",
+  "tier": "L",
+  "captured_at": "2026-05-20",
+  "occurs": null,
+  "dup_of": "l15_000"
+ }
+]

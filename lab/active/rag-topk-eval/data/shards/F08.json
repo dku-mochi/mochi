@@ -1,0 +1,583 @@
+[
+ {
+  "id": "f08_000",
+  "type": "screenshot",
+  "summary": "신혼여행에서 묵었던 파리 호텔 조식 메뉴판. 나중에 집에서 브런치 차릴 때 참고하려고 찍어둠.",
+  "labels": [
+   "레시피",
+   "신혼여행"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "파리"
+   }
+  ],
+  "category": "신혼여행 후기·가계부",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-03-18",
+  "occurs": "2024-05-12",
+  "dup_of": null
+ },
+ {
+  "id": "f08_001",
+  "type": "link",
+  "summary": "요즘 핫한 삼성 비스포크 AI 콤보 세탁기 리뷰 영상. 건조기 일체형이라 공간 활용도 좋아서 위시리스트에 추가함.",
+  "labels": [
+   "가전",
+   "구매 고민"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "삼성 비스포크 AI 콤보"
+   }
+  ],
+  "category": "신혼여행 후기·가계부",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-26",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f08_002",
+  "type": "memo",
+  "summary": "이번 달 식비 80만 원 초과함. 외식 줄이고 다음 달부터는 무조건 집밥 챌린지 하기로 남편이랑 약속함.",
+  "labels": [
+   "가계부",
+   "절약"
+  ],
+  "entities": [],
+  "category": "신혼여행 후기·가계부",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-06",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f08_003",
+  "type": "screenshot",
+  "summary": "거실 인테리어 잡지 속 모듈 소파 사진. 디자인은 예쁜데 가격이 사악해서 고민 중임..",
+  "labels": [
+   "인테리어",
+   "구매 고민"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "모듈 소파"
+   }
+  ],
+  "category": "신혼여행 후기·가계부",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-02",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f08_004",
+  "type": "screenshot",
+  "summary": "신혼여행 항공권 취소 수수료 안내문. 갑작스런 일정 변경 때문에 꼼꼼히 확인하려고 캡처함.",
+  "labels": [
+   "여행",
+   "예약"
+  ],
+  "entities": [],
+  "category": "신혼여행 후기·가계부",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-27",
+  "occurs": "2024-06-01",
+  "dup_of": null
+ },
+ {
+  "id": "f08_005",
+  "type": "screenshot",
+  "summary": "주식 계좌 수익률. 이번에 예적금 만기된 거 다 주식으로 옮겼는데 파란불이라 맘이 좀 아프네.",
+  "labels": [
+   "재테크"
+  ],
+  "entities": [],
+  "category": "신혼여행 후기·가계부",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-18",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f08_006",
+  "type": "link",
+  "summary": "신혼부부 전용 청약 통장 가입 혜택 정리 블로그. 2세 계획 있으니까 미리미리 체크해둬야지.",
+  "labels": [
+   "재테크",
+   "정보"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "블로그"
+   }
+  ],
+  "category": "신혼여행 후기·가계부",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-12",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f08_007",
+  "type": "memo",
+  "summary": "다이슨 에어랩 핫딜 떴다길래 링크 확인. 이번에 신세계몰에서 할인 많이 한다는데 지금 사야하나?",
+  "labels": [
+   "쇼핑",
+   "위시리스트"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "다이슨"
+   }
+  ],
+  "category": "신혼여행 후기·가계부",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-02-07",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f08_008",
+  "type": "screenshot",
+  "summary": "인스타에서 본 예쁜 그릇 세트. 신혼집 집들이용으로 딱일 것 같아서 판매처 이름 가억해두려고 저장.",
+  "labels": [
+   "주방용품",
+   "집들이"
+  ],
+  "entities": [],
+  "category": "신혼여행 후기·가계부",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-12",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f08_009",
+  "type": "screenshot",
+  "summary": "반려식물 몬스테라 물주기 스케줄. 신혼집 거실 분위기 살리려고 샀는데 벌써 잎 끝이 갈색이라 걱정됨 ㅠㅠ",
+  "labels": [
+   "취미",
+   "인테리어"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "몬스테라"
+   }
+  ],
+  "category": "신혼여행 후기·가계부",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-16",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f08_010",
+  "type": "memo",
+  "summary": "이번주 가계부 정리 완료. 꽁돈 들어온 거 저축 계좌로 이체함. 뿌듯하다!",
+  "labels": [
+   "가계부"
+  ],
+  "entities": [],
+  "category": "신혼여행 후기·가계부",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-26",
+  "occurs": "2024-06-15",
+  "dup_of": null
+ },
+ {
+  "id": "f08_011",
+  "type": "screenshot",
+  "summary": "커피 머신 브레빌 870 청소 방법 매뉴얼. 아침마다 커피 내리는 게 우리 부부 낙인데 관리가 은근 까다롭네.",
+  "labels": [
+   "가전",
+   "청소"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "브레빌 870"
+   }
+  ],
+  "category": "신혼여행 후기·가계부",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-01",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f08_012",
+  "type": "screenshot",
+  "summary": "신혼여행 가서 찍은 야경 사진. 보정 좀 해서 액자로 만들고 싶다. 퀄리티 좋아서 캡처함.",
+  "labels": [
+   "추억"
+  ],
+  "entities": [],
+  "category": "신혼여행 후기·가계부",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-20",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f08_013",
+  "type": "memo",
+  "summary": "로봇청소기 로보락 S8 살지 고민중... 샤오미랑 고민하다가 역시 비싼게 좋은거 같기도 하고 흠.",
+  "labels": [
+   "가전",
+   "구매 고민"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "로보락 S8"
+   }
+  ],
+  "category": "신혼여행 후기·가계부",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-30",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f08_014",
+  "type": "screenshot",
+  "summary": "오늘의 증시 상황. 나스닥이 조금 올랐는데 내 포트폴리오는 언제쯤 탈출할 수 있을지..",
+  "labels": [
+   "재테크"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "나스닥"
+   }
+  ],
+  "category": "신혼여행 후기·가계부",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-25",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f08_015",
+  "type": "screenshot",
+  "summary": "공기청정기 필터 교체 주기 알림. 필터값이 꽤 비싸서 최저가 사이트 비교하려고 찜해둠.",
+  "labels": [
+   "가전",
+   "쇼핑"
+  ],
+  "entities": [],
+  "category": "신혼여행 후기·가계부",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-03",
+  "occurs": "2024-07-01",
+  "dup_of": null
+ },
+ {
+  "id": "f08_016",
+  "type": "link",
+  "summary": "신혼부부 가구 배치 꿀팁 기사. 30평대 아파트 구조에 맞게 거실을 넓어보이게 하는 방법이 유용함.",
+  "labels": [
+   "인테리어"
+  ],
+  "entities": [],
+  "category": "신혼여행 후기·가계부",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-03",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f08_017",
+  "type": "screenshot",
+  "summary": "주말에 가볼만한 근교 드라이브 코스. 남편이 주말에 콧바람 쐬러 가자고 해서 저장함.",
+  "labels": [
+   "데이트"
+  ],
+  "entities": [],
+  "category": "신혼여행 후기·가계부",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-19",
+  "occurs": "2024-06-22",
+  "dup_of": null
+ },
+ {
+  "id": "f08_018",
+  "type": "memo",
+  "summary": "전기세랑 가스비가 생각보다 많이 나왔다. 여름 다가오는데 에어컨 관리비 겁나네.",
+  "labels": [
+   "생활비",
+   "가계부"
+  ],
+  "entities": [],
+  "category": "신혼여행 후기·가계부",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-20",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f08_019",
+  "type": "screenshot",
+  "summary": "호텔 예약 사이트 쿠폰 정보. 다음 기념일에 호캉스 가려고 알림 설정해둠.",
+  "labels": [
+   "여행",
+   "할인"
+  ],
+  "entities": [],
+  "category": "신혼여행 후기·가계부",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-13",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f08_020",
+  "type": "screenshot",
+  "summary": "주방 인테리어 포인트 조명. 식탁 위에 달면 예쁠 것 같아서 모델명 저장.",
+  "labels": [
+   "인테리어",
+   "구매 고민"
+  ],
+  "entities": [],
+  "category": "신혼여행 후기·가계부",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-24",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f08_021",
+  "type": "screenshot",
+  "summary": "ETF 투자 수익률표. 장기 투자로 생각하고 매달 조금씩 적립 중인데 결과가 어떨지 궁금함.",
+  "labels": [
+   "재테크"
+  ],
+  "entities": [],
+  "category": "신혼여행 후기·가계부",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-25",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f08_022",
+  "type": "memo",
+  "summary": "오늘 마트에서 장본 거 기록. 과일값 너무 비싸다 흑흑..",
+  "labels": [
+   "가계부",
+   "생활"
+  ],
+  "entities": [],
+  "category": "신혼여행 후기·가계부",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-17",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f08_023",
+  "type": "link",
+  "summary": "무드등 기능 있는 가습기. 침실 분위기 바꿀겸 샀는데 너무 예뻐서 공유하려고 가져옴.",
+  "labels": [
+   "인테리어",
+   "추천"
+  ],
+  "entities": [],
+  "category": "신혼여행 후기·가계부",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-01",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f08_024",
+  "type": "screenshot",
+  "summary": "넷플릭스 신작 목록. 주말에 남편이랑 몰아보기 할 예정.",
+  "labels": [
+   "엔터"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "넷플릭스"
+   }
+  ],
+  "category": "신혼여행 후기·가계부",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-08",
+  "occurs": "2024-06-23",
+  "dup_of": null
+ },
+ {
+  "id": "f08_025",
+  "type": "screenshot",
+  "summary": "다이어트 도시락 할인 정보. 결혼하고 3키로 쪄서 다시 식단 관리 시작함.",
+  "labels": [
+   "자기관리"
+  ],
+  "entities": [],
+  "category": "신혼여행 후기·가계부",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-27",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f08_026",
+  "type": "memo",
+  "summary": "세탁기 청소 업체 예약 완료! 2년 지나니까 냄새나는거 같아서 전문가 부름.",
+  "labels": [
+   "청소",
+   "생활"
+  ],
+  "entities": [],
+  "category": "신혼여행 후기·가계부",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-01",
+  "occurs": "2024-07-05",
+  "dup_of": null
+ },
+ {
+  "id": "f08_027",
+  "type": "screenshot",
+  "summary": "카드사 포인트 현금 전환 방법. 잊고 있던 포인트가 5만점이나 있어서 바로 입금 신청함.",
+  "labels": [
+   "재테크",
+   "팁"
+  ],
+  "entities": [],
+  "category": "신혼여행 후기·가계부",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-11",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f08_028",
+  "type": "screenshot",
+  "summary": "신혼 여행지에서 산 기념품 리스트. 친구들 줄 선물 예산 짜느라 찍어둔 사진.",
+  "labels": [
+   "신혼여행",
+   "여행"
+  ],
+  "entities": [],
+  "category": "신혼여행 후기·가계부",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-16",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f08_029",
+  "type": "screenshot",
+  "summary": "침대 프레임 고르는 법. 호텔 스타일로 꾸미고 싶어서 여러 브랜드 비교해봄.",
+  "labels": [
+   "인테리어",
+   "구매 고민"
+  ],
+  "entities": [],
+  "category": "신혼여행 후기·가계부",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-14",
+  "occurs": null,
+  "dup_of": null
+ }
+]

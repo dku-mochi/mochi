@@ -1,0 +1,217 @@
+[
+ {
+  "id": "s07_000",
+  "type": "screenshot",
+  "summary": "에어팟 프로 3세대 전용으로 출시된 컴플라이(Comply) 폼팁 비교 차트. 지금 쓰는 2세대용이랑 호환 안 된다고 해서 사이즈 확인용으로 저장함.",
+  "labels": [
+   "구매 고민",
+   "전자기기"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "Comply"
+   },
+   {
+    "kind": "product",
+    "value": "AirPods Pro 3"
+   }
+  ],
+  "category": "전자기기",
+  "persona": "student",
+  "role": "answer",
+  "for_query": "에어팟 프로3 이어팁",
+  "tier": "S",
+  "captured_at": "2026-06-21",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s07_001",
+  "type": "link",
+  "summary": "Apple 공홈의 AirPods Pro 3세대 액세서리 페이지. 이어팁 재질이 기존 실리콘이랑 다르다는데 나중에 알바비 들어오면 주문할 예정.",
+  "labels": [
+   "쇼핑",
+   "위시리스트"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "Apple"
+   },
+   {
+    "kind": "product",
+    "value": "AirPods Pro 3"
+   }
+  ],
+  "category": "전자기기",
+  "persona": "student",
+  "role": "filler",
+  "for_query": "에어팟 프로3 이어팁",
+  "tier": "S",
+  "captured_at": "2026-06-21",
+  "occurs": "2024-11-20",
+  "dup_of": null
+ },
+ {
+  "id": "s07_002",
+  "type": "memo",
+  "summary": "에어팟 프로 3세대용 교체 이어팁. 3세대 노캔 성능 최적화하려면 정품 이어팁 써야함. 쿠팡 말고 공홈에서 주문하기.",
+  "labels": [
+   "기록"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "AirPods Pro 3"
+   }
+  ],
+  "category": "전자기기",
+  "persona": "student",
+  "role": "filler",
+  "for_query": "에어팟 프로3 이어팁",
+  "tier": "S",
+  "captured_at": "2026-06-20",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s07_003",
+  "type": "screenshot",
+  "summary": "기존에 쓰던 AirPods Pro 2세대용 메모리폼 팁. 3세대에는 사이즈가 안 맞아서 억지로 끼우면 헐거워짐. 호환성 체크 필요.",
+  "labels": [
+   "기기 점검"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "AirPods Pro 2"
+   }
+  ],
+  "category": "전자기기",
+  "persona": "student",
+  "role": "hard_neg",
+  "for_query": "에어팟 프로3 이어팁",
+  "tier": "S",
+  "captured_at": "2026-06-13",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s07_004",
+  "type": "screenshot",
+  "summary": "소니 WF-1000XM5 전용 이어팁 셋트. 에어팟 팁이랑 헷갈려서 저장함. 폼팁 재질이 비슷해 보여서 나중에 구매할 때 주의할 것.",
+  "labels": [
+   "구매 고민"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "Sony"
+   },
+   {
+    "kind": "product",
+    "value": "WF-1000XM5"
+   }
+  ],
+  "category": "전자기기",
+  "persona": "student",
+  "role": "hard_neg",
+  "for_query": "에어팟 프로3 이어팁",
+  "tier": "S",
+  "captured_at": "2026-06-20",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s07_005",
+  "type": "screenshot",
+  "summary": "AirPods Pro 2용 실리콘 이어팁 사이즈 가이드. 3세대랑 호환 안 됨. 오타 수정: 사이즈 측정 다시 확인.",
+  "labels": [
+   "정보 정리"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "AirPods Pro 2"
+   }
+  ],
+  "category": "전자기기",
+  "persona": "student",
+  "role": "hard_neg",
+  "for_query": "에어팟 프로3 이어팁",
+  "tier": "S",
+  "captured_at": "2026-06-17",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s07_006",
+  "type": "screenshot",
+  "summary": "이어폰 폼팁 범용 브랜드인 아즈라(AZLA)의 2세대 전용 크리스탈 팁. 3세대용 아직 안 나왔음. 나중에 3세대 버전 나오면 확인해야 함.",
+  "labels": [
+   "전자기기"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "AZLA"
+   },
+   {
+    "kind": "product",
+    "value": "AirPods Pro 2"
+   }
+  ],
+  "category": "전자기기",
+  "persona": "student",
+  "role": "hard_neg",
+  "for_query": "에어팟 프로3 이어팁",
+  "tier": "S",
+  "captured_at": "2026-06-24",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s07_007",
+  "type": "screenshot",
+  "summary": "AirPods Pro 2세대와 1세대 이어팁 호환성 표. 3세대용이랑은 규격 자체가 다르니 절대 사지 말기.",
+  "labels": [
+   "주의사항"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "AirPods Pro 1"
+   },
+   {
+    "kind": "product",
+    "value": "AirPods Pro 2"
+   }
+  ],
+  "category": "전자기기",
+  "persona": "student",
+  "role": "hard_neg",
+  "for_query": "에어팟 프로3 이어팁",
+  "tier": "S",
+  "captured_at": "2026-06-26",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s07_008",
+  "type": "link",
+  "summary": "무선 이어폰 노이즈 캔슬링 최적화 팁. 폼팁 말고 이어팁 본체 실리콘 밀폐력이 중요하다고 함. 나중에 과제하다가 다시 읽기.",
+  "labels": [
+   "꿀팁"
+  ],
+  "entities": [],
+  "category": "전자기기",
+  "persona": "student",
+  "role": "filler",
+  "for_query": "에어팟 프로3 이어팁",
+  "tier": "S",
+  "captured_at": "2026-06-12",
+  "occurs": null,
+  "dup_of": null
+ }
+]

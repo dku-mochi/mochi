@@ -1,0 +1,617 @@
+[
+ {
+  "id": "f07_000",
+  "type": "screenshot",
+  "summary": "오늘의 집에서 본 화이트 톤의 라운드 식탁. 20평대 거실에 두면 딱 예쁠 것 같아서 저장. 사이즈 실측 필수.",
+  "labels": [
+   "인테리어",
+   "식탁"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "라운드 식탁"
+   }
+  ],
+  "category": "인테리어·가구",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-17",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f07_001",
+  "type": "screenshot",
+  "summary": "핀터레스트에서 발견한 미드센추리 모던 거실 인테리어. 모듈형 소파 배치 참고용.",
+  "labels": [
+   "거실",
+   "참고"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "핀터레스트"
+   }
+  ],
+  "category": "인테리어·가구",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-20",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f07_002",
+  "type": "memo",
+  "summary": "주방 인테리어 포인트로 펜던트 조명 교체 고려. 루이스폴센 PH5 가격대가 좀 높긴 한데 감성값 제대로 할 듯.",
+  "labels": [
+   "조명",
+   "위시리스트"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "루이스폴센"
+   }
+  ],
+  "category": "인테리어·가구",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-07",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f07_003",
+  "type": "screenshot",
+  "summary": "침실에 둘 협탁 디자인. 다리가 얇은 디자인이 청소하기 편할 것 같아서 킵.",
+  "labels": [
+   "침실",
+   "가구"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "협탁"
+   }
+  ],
+  "category": "인테리어·가구",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-13",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f07_004",
+  "type": "link",
+  "summary": "호텔식 욕실 인테리어 시공 사례 모음. 줄눈 색상까지 꼼꼼히 체크하기.",
+  "labels": [
+   "욕실",
+   "시공"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "블로그"
+   }
+  ],
+  "category": "인테리어·가구",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-19",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f07_005",
+  "type": "screenshot",
+  "summary": "거실 커튼 암막률 테스트 캡처. 낮에도 영화 보기 좋게 암막 커튼 달까 고민 중.",
+  "labels": [
+   "거실",
+   "구매고민"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "암막 커튼"
+   }
+  ],
+  "category": "인테리어·가구",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-14",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f07_006",
+  "type": "memo",
+  "summary": "현관 신발장 하부 띄움 시공 예산 대략 50만원 잡아야 함. 신발 자주 신는거 아래 두면 편할듯.",
+  "labels": [
+   "인테리어",
+   "현관"
+  ],
+  "entities": [],
+  "category": "인테리어·가구",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f07_007",
+  "type": "screenshot",
+  "summary": "무인양품 수납함 사이즈 표. 팬트리 정리할 때 딱 맞을 것 같아서 스크린샷 찰칵.",
+  "labels": [
+   "수납",
+   "정리"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "무인양품"
+   }
+  ],
+  "category": "인테리어·가구",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-05",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f07_008",
+  "type": "link",
+  "summary": "이케아 쇼룸 투어 영상. 수납 아이디어 진짜 좋은게 많음.",
+  "labels": [
+   "아이디어",
+   "이케아"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "이케아"
+   }
+  ],
+  "category": "인테리어·가구",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-08",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f07_009",
+  "type": "screenshot",
+  "summary": "안방에 배치할 전신거울. 우드 프레임이 따뜻한 느낌이라 우리집 컨셉이랑 잘 맞을듯.",
+  "labels": [
+   "침실",
+   "가구"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "전신거울"
+   }
+  ],
+  "category": "인테리어·가구",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-20",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f07_010",
+  "type": "memo",
+  "summary": "거실 러그는 먼지 덜 나는 재질로 사야 함. 르마블 대리석 테이블이랑 잘 어울릴만한 무채색 계열 찾기.",
+  "labels": [
+   "거실",
+   "위시리스트"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "르마블"
+   }
+  ],
+  "category": "인테리어·가구",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-06",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f07_011",
+  "type": "screenshot",
+  "summary": "발코니 확장 공사 주의사항. 단열 처리가 제일 중요하대서 업체 컨택할 때 물어봐야 함.",
+  "labels": [
+   "인테리어",
+   "주의사항"
+  ],
+  "entities": [],
+  "category": "인테리어·가구",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-25",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f07_012",
+  "type": "memo",
+  "summary": "서재 책상 위에 둘 데스크테리어 소품. 조명은 조명은 무조건 따뜻한 전구색으로. 아, 그리고 스탠드 조명도 알아봐야지.",
+  "labels": [
+   "데스크테리어",
+   "업무공간"
+  ],
+  "entities": [],
+  "category": "인테리어·가구",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-30",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f07_013",
+  "type": "screenshot",
+  "summary": "주방 상판 연마 코팅 시공 전후 비교 사진. 오염 관리가 쉬워진다니까 이건 꼭 해야겠다.",
+  "labels": [
+   "주방",
+   "시공"
+  ],
+  "entities": [],
+  "category": "인테리어·가구",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-04",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f07_014",
+  "type": "screenshot",
+  "summary": "거실 실링팬 설치 예시. 층고 낮아도 되는 모델인지 확인 필요함.",
+  "labels": [
+   "거실",
+   "가전"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "실링팬"
+   }
+  ],
+  "category": "인테리어·가구",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-14",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f07_015",
+  "type": "link",
+  "summary": "오늘의집 집들이 콘텐츠. 24평 아파트인데 수납이 대박임. 벤치형 수납장 참고용.",
+  "labels": [
+   "인테리어",
+   "정보"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "오늘의집"
+   }
+  ],
+  "category": "인테리어·가구",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-03-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f07_016",
+  "type": "screenshot",
+  "summary": "벽지 페인트 컬러칩. 연그레이랑 베이지 사이에서 3일째 고민 중인데 그냥 샘플 북 주문할까.",
+  "labels": [
+   "인테리어",
+   "컬러"
+  ],
+  "entities": [],
+  "category": "인테리어·가구",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-03-18",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f07_017",
+  "type": "memo",
+  "summary": "드레스룸 행거 말고 시스템 가구로 짜는 게 깔끔할듯. 공간 활용도도 높고 옷 찾기 쉬우니까.",
+  "labels": [
+   "드레스룸",
+   "가구"
+  ],
+  "entities": [],
+  "category": "인테리어·가구",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-20",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f07_018",
+  "type": "screenshot",
+  "summary": "다이닝룸 의자 디자인 모음. 벨벳 소재는 예쁘지만 관리 힘들까 봐 패브릭이랑 고민중.",
+  "labels": [
+   "의자",
+   "구매고민"
+  ],
+  "entities": [],
+  "category": "인테리어·가구",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-27",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f07_019",
+  "type": "screenshot",
+  "summary": "세탁실 선반 정리 비포 애프터. 좁은 공간 활용이 핵심. 나중에 이사갈 때 참고하려고 저장.",
+  "labels": [
+   "정리",
+   "수납"
+  ],
+  "entities": [],
+  "category": "인테리어·가구",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-02",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f07_020",
+  "type": "memo",
+  "summary": "스마트홈 가전 리스트 작성. 로봇청소기는 로보락으로 거의 확정. 에어드레서는 고민 좀 더 해봐야겠음.",
+  "labels": [
+   "가전",
+   "위시리스트"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "로보락"
+   }
+  ],
+  "category": "인테리어·가구",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-18",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f07_021",
+  "type": "screenshot",
+  "summary": "침대 프레임 높이 계산. 로봇청소기가 밑으로 지나가려면 최소 12cm는 확보되어야 함.",
+  "labels": [
+   "침실",
+   "가구"
+  ],
+  "entities": [],
+  "category": "인테리어·가구",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f07_022",
+  "type": "link",
+  "summary": "가구 단지 세일 정보. 다음주 주말에 남편이랑 드라이브 겸 가구 보러 가기로 함.",
+  "labels": [
+   "쇼핑",
+   "일정"
+  ],
+  "entities": [
+   {
+    "kind": "date",
+    "value": "다음주 주말"
+   }
+  ],
+  "category": "인테리어·가구",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-12",
+  "occurs": "2024-11-23",
+  "dup_of": null
+ },
+ {
+  "id": "f07_023",
+  "type": "screenshot",
+  "summary": "거실 소파 쿠션 컬러 배치 가이드. 파스텔 톤 믹스매치 완전 내 스타일.",
+  "labels": [
+   "인테리어",
+   "패브릭"
+  ],
+  "entities": [],
+  "category": "인테리어·가구",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-14",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f07_024",
+  "type": "memo",
+  "summary": "식물 인테리어 관심 급상승. 거실 구석에 몬스테라 큰 거 하나 두면 공기정화도 되고 분위기 살듯.",
+  "labels": [
+   "식물",
+   "거실"
+  ],
+  "entities": [],
+  "category": "인테리어·가구",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-03-05",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f07_025",
+  "type": "screenshot",
+  "summary": "조명 스위치 교체 튜토리얼. 르그랑 스위치로 바꾸면 고급질 것 같아서 셀프 설치 방법 검색.",
+  "labels": [
+   "조명",
+   "DIY"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "르그랑"
+   }
+  ],
+  "category": "인테리어·가구",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-02-07",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f07_026",
+  "type": "screenshot",
+  "summary": "현관 중문 설치 전후 이미지. 3연동 중문 보다는 원슬라이딩이 확실히 더 세련된 느낌.",
+  "labels": [
+   "현관",
+   "인테리어"
+  ],
+  "entities": [],
+  "category": "인테리어·가구",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-14",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f07_027",
+  "type": "link",
+  "summary": "아파트 평면도 기반 가구 배치 시뮬레이션 사이트. 가구 크기 미리 맞춰볼 수 있어서 꿀팁임.",
+  "labels": [
+   "인테리어",
+   "정보"
+  ],
+  "entities": [],
+  "category": "인테리어·가구",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-23",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f07_028",
+  "type": "screenshot",
+  "summary": "카페트 세탁법 정리. 러그 샀을 때를 대비해서 미리 캡쳐해둠. 오타 났네 카페트 말고 카펫인가.",
+  "labels": [
+   "청소",
+   "생활정보"
+  ],
+  "entities": [],
+  "category": "인테리어·가구",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-08",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f07_029",
+  "type": "memo",
+  "summary": "침실 조명 간접등 설치 고민중. 벽지 손상 없는 테이프형 LED 스트립 알아보기.",
+  "labels": [
+   "조명",
+   "침실"
+  ],
+  "entities": [],
+  "category": "인테리어·가구",
+  "persona": "newlywed",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-03-20",
+  "occurs": null,
+  "dup_of": null
+ }
+]

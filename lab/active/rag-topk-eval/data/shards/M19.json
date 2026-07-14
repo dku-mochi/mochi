@@ -1,0 +1,161 @@
+[
+ {
+  "id": "m19_000",
+  "type": "screenshot",
+  "summary": "다이소에서 구매한 상추 씨앗과 배양토 세트입니다. 베란다 텃밭을 시작하려고 정리해둔 재료 목록인데, 이번 주말에 다이소 다녀오면서 꼭 챙겨야겠어요.",
+  "labels": [
+   "준비물",
+   "구매 목록"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "다이소"
+   }
+  ],
+  "category": "취미",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "베란다 텃밭",
+  "tier": "M",
+  "captured_at": "2026-01-17",
+  "occurs": "2024-05-18",
+  "dup_of": null
+ },
+ {
+  "id": "m19_001",
+  "type": "link",
+  "summary": "오늘의집에 올라온 베란다 텃밭 선반 배치 가이드입니다. 좁은 베란다 공간을 효율적으로 활용해서 상추랑 방울토마토 키우기 좋은 구조가 많아 저장했습니다.",
+  "labels": [
+   "참고",
+   "인테리어"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "오늘의집"
+   }
+  ],
+  "category": "취미",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "베란다 텃밭",
+  "tier": "M",
+  "captured_at": "2026-01-20",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m19_002",
+  "type": "memo",
+  "summary": "쿠팡에서 주문한 흙먼지 방지용 화분 받침대 모델명: 그린홈 플라스틱 4호. 3개입이라 넉넉할 듯. 다음주 수요일 배송 예정이니 까먹지 말기.",
+  "labels": [
+   "쇼핑",
+   "기록"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "그린홈 플라스틱 4호"
+   },
+   {
+    "kind": "brand",
+    "value": "쿠팡"
+   }
+  ],
+  "category": "취미",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "베란다 텃밭",
+  "tier": "M",
+  "captured_at": "2026-01-19",
+  "occurs": "2024-05-22",
+  "dup_of": null
+ },
+ {
+  "id": "m19_003",
+  "type": "screenshot",
+  "summary": "베란다 텃밭용 식물 성장 LED 등 스펙입니다. 필립스 제품이 확실히 빛이 잘 들어오는 것 같아서 고민 중인데 가격대가 좀 있네요.",
+  "labels": [
+   "구매 고민"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "필립스"
+   }
+  ],
+  "category": "취미",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "베란다 텃밭",
+  "tier": "M",
+  "captured_at": "2026-01-28",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m19_004",
+  "type": "screenshot",
+  "summary": "실내 거실 인테리어 화분 배치 팁. 몬스테라랑 여인초를 거실에 두니까 분위기 확 사네요. 베란다랑은 다르게 관상용으로 예쁜 것들 모음.",
+  "labels": [
+   "인테리어",
+   "취미"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "몬스테라"
+   }
+  ],
+  "category": "취미",
+  "persona": "parent",
+  "role": "hard_neg",
+  "for_query": "베란다 텃밭",
+  "tier": "M",
+  "captured_at": "2026-01-25",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m19_005",
+  "type": "link",
+  "summary": "남양주 주말농장 분양 공고입니다. 아이들 자연 체험하기엔 베란다보단 역시 흙을 만질 수 있는 야외 농장이 좋을 것 같아서 알아보고 있어요.",
+  "labels": [
+   "가보고 싶은 곳",
+   "아이 교육"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "남양주"
+   }
+  ],
+  "category": "취미",
+  "persona": "parent",
+  "role": "hard_neg",
+  "for_query": "베란다 텃밭",
+  "tier": "M",
+  "captured_at": "2026-01-23",
+  "occurs": "2024-06-01",
+  "dup_of": null
+ },
+ {
+  "id": "m19_006",
+  "type": "memo",
+  "summary": "거실 창가쪽 인테리어 화분들 식물 영양제 주기. 한달에 한번 잊지 말것. 베란다 텃밭 식물들 말고 거실 식물들 잎 닦아주기 잊지 말자.",
+  "labels": [
+   "루틴",
+   "식물 관리"
+  ],
+  "entities": [],
+  "category": "취미",
+  "persona": "parent",
+  "role": "hard_neg",
+  "for_query": "베란다 텃밭",
+  "tier": "M",
+  "captured_at": "2026-01-17",
+  "occurs": null,
+  "dup_of": null
+ }
+]

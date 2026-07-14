@@ -1,0 +1,232 @@
+[
+ {
+  "id": "m20_000",
+  "type": "screenshot",
+  "summary": "굿노트(GoodNotes 6) 펜 툴과 제스처 기능 비교 캡처. 강의 필기할 때 레이아웃 정리하기 편할 것 같아서 저장해둠.",
+  "labels": [
+   "필기 앱 비교",
+   "학업"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "GoodNotes 6"
+   }
+  ],
+  "category": "전자기기",
+  "persona": "student",
+  "role": "answer",
+  "for_query": "아이패드 필기 앱",
+  "tier": "M",
+  "captured_at": "2026-01-23",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m20_001",
+  "type": "link",
+  "summary": "노타빌리티(Notability) 자동 녹음 동기화 기능 설명 블로그 포스트. 교수님 말씀 놓쳤을 때 다시 듣기 좋을 듯.",
+  "labels": [
+   "강의 필기",
+   "도구"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "Notability"
+   }
+  ],
+  "category": "전자기기",
+  "persona": "student",
+  "role": "answer",
+  "for_query": "아이패드 필기 앱",
+  "tier": "M",
+  "captured_at": "2026-01-22",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m20_002",
+  "type": "memo",
+  "summary": "대학생 커뮤니티에서 본 네이버 컬러노트(ColorNote) 평. 간단한 아이디어 스케치나 과제 마감일 적기엔 나쁘지 않은듯.",
+  "labels": [
+   "메모 앱",
+   "추천"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "ColorNote"
+   }
+  ],
+  "category": "전자기기",
+  "persona": "student",
+  "role": "answer",
+  "for_query": "아이패드 필기 앱",
+  "tier": "M",
+  "captured_at": "2026-01-25",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m20_003",
+  "type": "screenshot",
+  "summary": "대학생 전용 할인으로 아이패드용 플렉슬(Flexcil) 평생 이용권 구매 고민 중. PDF랑 노트를 한 화면에 띄우는게 장점인 듯.",
+  "labels": [
+   "구매 고민",
+   "공부"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "Flexcil"
+   }
+  ],
+  "category": "전자기기",
+  "persona": "student",
+  "role": "answer",
+  "for_query": "아이패드 필기 앱",
+  "tier": "M",
+  "captured_at": "2026-01-27",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m20_004",
+  "type": "link",
+  "summary": "아이패드용 원노트(OneNote) 태그 기능 활용법. 여러 디바이스에서 과제 자료 동기화할 때 유용해보임.",
+  "labels": [
+   "학업 효율",
+   "정리"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "OneNote"
+   }
+  ],
+  "category": "전자기기",
+  "persona": "student",
+  "role": "answer",
+  "for_query": "아이패드 필기 앱",
+  "tier": "M",
+  "captured_at": "2026-01-17",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m20_005",
+  "type": "screenshot",
+  "summary": "애플펜슬 2세대 펜촉이랑 그립감 좋은 케이스 추천샷. 필기할 때 손이 너무 아파서 이거 사야지.",
+  "labels": [
+   "액세서리",
+   "쇼핑"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "애플펜슬 2세대"
+   }
+  ],
+  "category": "전자기기",
+  "persona": "student",
+  "role": "hard_neg",
+  "for_query": "아이패드 필기 앱",
+  "tier": "M",
+  "captured_at": "2026-01-27",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m20_006",
+  "type": "memo",
+  "summary": "맥북(MacBook)에서 쓸만한 깔끔한 메모 앱 옵시디언(Obsidian). 서술형 과제 초안 잡을 때 문장 구조 짜기 좋겠다.",
+  "labels": [
+   "맥 앱",
+   "글쓰기"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "Obsidian"
+   }
+  ],
+  "category": "전자기기",
+  "persona": "student",
+  "role": "hard_neg",
+  "for_query": "아이패드 필기 앱",
+  "tier": "M",
+  "captured_at": "2026-01-16",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m20_007",
+  "type": "screenshot",
+  "summary": "아이패드 매직키보드 호환성 정보. 과제 리포트 많이 쓰는 기간이라 키보드 케이스가 꼬옥 필요할 것 같음.",
+  "labels": [
+   "장비병",
+   "쇼핑"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "매직키보드"
+   }
+  ],
+  "category": "전자기기",
+  "persona": "student",
+  "role": "hard_neg",
+  "for_query": "아이패드 필기 앱",
+  "tier": "M",
+  "captured_at": "2026-01-22",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m20_008",
+  "type": "memo",
+  "summary": "맥 OS용 노션(Notion) 단축키 모음. 동아리 회의록이랑 일정 관리할 때 속도 높여보자.",
+  "labels": [
+   "생산성",
+   "동아리"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "Notion"
+   }
+  ],
+  "category": "전자기기",
+  "persona": "student",
+  "role": "hard_neg",
+  "for_query": "아이패드 필기 앱",
+  "tier": "M",
+  "captured_at": "2026-01-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m20_009",
+  "type": "memo",
+  "summary": "굿노트6 새로 결제할까 고민. 예전보다 펜 인식 좋아졌나? 텡블릿 필기 앱 뭐쓸지 다시 고민중.",
+  "labels": [
+   "학업",
+   "도구"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "GoodNotes 6"
+   }
+  ],
+  "category": "전자기기",
+  "persona": "student",
+  "role": "answer",
+  "for_query": "아이패드 필기 앱",
+  "tier": "M",
+  "captured_at": "2026-03-07",
+  "occurs": null,
+  "dup_of": "m20_000"
+ }
+]

@@ -1,0 +1,158 @@
+[
+ {
+  "id": "m21_000",
+  "type": "screenshot",
+  "summary": "여의도 물빛광장에서 시작해서 반포까지 이어지는 러닝 코스 지도. 취준 중 체력 관리를 위해 주말에 뛰러 가야지.",
+  "labels": [
+   "운동",
+   "러닝코스"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "여의도 물빛광장"
+   }
+  ],
+  "category": "건강",
+  "persona": "jobseeker",
+  "role": "answer",
+  "for_query": "한강 러닝",
+  "tier": "M",
+  "captured_at": "2026-06-16",
+  "occurs": "2024-05-18",
+  "dup_of": null
+ },
+ {
+  "id": "m21_001",
+  "type": "link",
+  "summary": "러닝 크루 '언리미트'의 목요일 저녁 정기 런닝 공지. 혼자 뛰는 것보다 동기부여가 될 것 같아 참여 신청 링크 저장.",
+  "labels": [
+   "취미",
+   "동기부여"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "언리미트"
+   }
+  ],
+  "category": "건강",
+  "persona": "jobseeker",
+  "role": "answer",
+  "for_query": "한강 러닝",
+  "tier": "M",
+  "captured_at": "2026-06-18",
+  "occurs": "2024-05-23",
+  "dup_of": null
+ },
+ {
+  "id": "m21_002",
+  "type": "memo",
+  "summary": "가민 포러너 265(Garmin Forerunner 265) 살까 고민중. 취준 스트레스 해소용이자 러닝 페이스 기록용. 예산 확인 필요.",
+  "labels": [
+   "장비",
+   "위시리스트"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "가민 포러너 265"
+   }
+  ],
+  "category": "건강",
+  "persona": "jobseeker",
+  "role": "answer",
+  "for_query": "한강 러닝",
+  "tier": "M",
+  "captured_at": "2026-06-22",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m21_003",
+  "type": "screenshot",
+  "summary": "NRC(Nike Run Club) 어플에 찍힌 나의 5km 기록 인증샷. 1km당 6분 30초 페이스 달성! 담번엔 6분 안쪽으로 땡겨야지.",
+  "labels": [
+   "운동기록",
+   "목표달성"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "NRC"
+   }
+  ],
+  "category": "건강",
+  "persona": "jobseeker",
+  "role": "answer",
+  "for_query": "한강 러닝",
+  "tier": "M",
+  "captured_at": "2026-06-30",
+  "occurs": "2024-05-15",
+  "dup_of": null
+ },
+ {
+  "id": "m21_004",
+  "type": "screenshot",
+  "summary": "북한산 비봉코스 등반 인증. 역시 산을 타야 하체 근력이 좋아지는 느낌임. 다음 면접 체력을 위해 틈틈히 등산 가야겠다.",
+  "labels": [
+   "등산",
+   "체력관리"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "북한산"
+   }
+  ],
+  "category": "건강",
+  "persona": "jobseeker",
+  "role": "hard_neg",
+  "for_query": "한강 러닝",
+  "tier": "M",
+  "captured_at": "2026-06-25",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m21_005",
+  "type": "link",
+  "summary": "동네 헬스장 1:1 PT 30회 할인 프로모션 페이지. 러닝만으로는 부족한 근력 보완을 위해 pt 상담 받아볼까 생각중.",
+  "labels": [
+   "운동",
+   "고민중"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "PT샵"
+   }
+  ],
+  "category": "건강",
+  "persona": "jobseeker",
+  "role": "hard_neg",
+  "for_query": "한강 러닝",
+  "tier": "M",
+  "captured_at": "2026-07-01",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m21_006",
+  "type": "memo",
+  "summary": "주말 등산 준비물 체크: 등산화, 무릎 보호대, 이온음료. 한강 코스보다 훨씬 빡세니까 준비 잘해서 가야지.",
+  "labels": [
+   "등산",
+   "준비물"
+  ],
+  "entities": [],
+  "category": "건강",
+  "persona": "jobseeker",
+  "role": "hard_neg",
+  "for_query": "한강 러닝",
+  "tier": "M",
+  "captured_at": "2026-07-04",
+  "occurs": "2024-05-25",
+  "dup_of": null
+ }
+]

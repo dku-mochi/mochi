@@ -1,0 +1,231 @@
+[
+ {
+  "id": "m10_000",
+  "type": "screenshot",
+  "summary": "인물 중심의 깨끗하고 화사한 무드. 루미에르 스튜디오 샘플 컷인데 자연광 활용이 마음에 들어서 저장해둠.",
+  "labels": [
+   "웨딩 스튜디오",
+   "업체 비교"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "루미에르 스튜디오"
+   }
+  ],
+  "category": "행사",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "웨딩 스튜디오",
+  "tier": "M",
+  "captured_at": "2026-05-22",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m10_001",
+  "type": "screenshot",
+  "summary": "온뜰에피움 스튜디오 촬영 구성표. 야외 가든 씬이 예뻐서 눈여겨보는 중인데 가격대도 나쁘지 않은 듯.",
+  "labels": [
+   "스튜디오 견적",
+   "야외 촬영"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "온뜰에피움"
+   }
+  ],
+  "category": "행사",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "웨딩 스튜디오",
+  "tier": "M",
+  "captured_at": "2026-05-18",
+  "occurs": "2024-11-15",
+  "dup_of": null
+ },
+ {
+  "id": "m10_002",
+  "type": "link",
+  "summary": "테라스 스튜디오 2025 뉴 샘플 공개. 클래식한 인물 위주 배경이라 유행 안 탈 것 같음. 블로그 리뷰 꼼꼼히 체크하기.",
+  "labels": [
+   "스튜디오 투어",
+   "리뷰"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "테라스 스튜디오"
+   }
+  ],
+  "category": "행사",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "웨딩 스튜디오",
+  "tier": "M",
+  "captured_at": "2026-05-28",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m10_003",
+  "type": "memo",
+  "summary": "비비엔다 스튜디오 상담 다녀옴. 배경이 심플하고 힙한 느낌. 작가님 지적사항 메모 잘해둬야지.",
+  "labels": [
+   "상담 기록",
+   "비교"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "비비엔다 스튜디오"
+   }
+  ],
+  "category": "행사",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "웨딩 스튜디오",
+  "tier": "M",
+  "captured_at": "2026-05-20",
+  "occurs": "2024-12-05",
+  "dup_of": null
+ },
+ {
+  "id": "m10_004",
+  "type": "screenshot",
+  "summary": "플라워 디렉팅이 포함된 클로드유 스튜디오 패키지. 배경이 깔끔해서 인물 위주 사진 좋아하는 우리 취향에 딱 맞음.",
+  "labels": [
+   "스튜디오 결정",
+   "인물 중심"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "클로드유 스튜디오"
+   }
+  ],
+  "category": "행사",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "웨딩 스튜디오",
+  "tier": "M",
+  "captured_at": "2026-05-18",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m10_005",
+  "type": "screenshot",
+  "summary": "시그니엘 웨딩홀 대관 안내. 샹들리에가 너무 화려하고 예쁜데 예산 범위랑 비교해서 다시 고민해봐야겠다.",
+  "labels": [
+   "예식장",
+   "결혼준비"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "시그니엘 서울"
+   }
+  ],
+  "category": "행사",
+  "persona": "newlywed",
+  "role": "hard_neg",
+  "for_query": "웨딩 스튜디오",
+  "tier": "M",
+  "captured_at": "2026-05-27",
+  "occurs": "2025-05-20",
+  "dup_of": null
+ },
+ {
+  "id": "m10_006",
+  "type": "link",
+  "summary": "엔조최재훈 드레스 투어 일정 정리. 비즈감 화려한 걸로 입어봐야지. 본식 드레스 고르는 거 너무 어렵다 ㅠㅠ",
+  "labels": [
+   "드레스 투어",
+   "본식 준비"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "엔조최재훈"
+   }
+  ],
+  "category": "행사",
+  "persona": "newlywed",
+  "role": "hard_neg",
+  "for_query": "웨딩 스튜디오",
+  "tier": "M",
+  "captured_at": "2026-05-21",
+  "occurs": "2024-12-10",
+  "dup_of": null
+ },
+ {
+  "id": "m10_007",
+  "type": "memo",
+  "summary": "더 화이트 엘리자베스 드레스 상담. 신상 위주로 피팅 가능하다고 하니 기대됨. 드레스샵 예약은 미리미리 해두기.",
+  "labels": [
+   "드레스 상담",
+   "투어 리스트"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "더 화이트 엘리자베스"
+   }
+  ],
+  "category": "행사",
+  "persona": "newlywed",
+  "role": "hard_neg",
+  "for_query": "웨딩 스튜디오",
+  "tier": "M",
+  "captured_at": "2026-05-23",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m10_008",
+  "type": "screenshot",
+  "summary": "반얀트리 예식장 견적서. 야외 결혼식 로망이 있어서 확인했는데 가격대가 생각보다 많이 높네..",
+  "labels": [
+   "예식장 비교",
+   "견적"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "반얀트리 호텔"
+   }
+  ],
+  "category": "행사",
+  "persona": "newlywed",
+  "role": "hard_neg",
+  "for_query": "웨딩 스튜디오",
+  "tier": "M",
+  "captured_at": "2026-05-30",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m10_009",
+  "type": "memo",
+  "summary": "루미에르 다시 확인. 여기 인물 보정 깔끔해서 자꾸 눈이 가네. 나중에 상담 예약할 때 캡쳐본 보여주면서 상담받자.",
+  "labels": [
+   "스튜디오 최종 후보"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "루미에르 스튜디오"
+   }
+  ],
+  "category": "행사",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "웨딩 스튜디오",
+  "tier": "M",
+  "captured_at": "2026-06-08",
+  "occurs": null,
+  "dup_of": "m10_000"
+ }
+]

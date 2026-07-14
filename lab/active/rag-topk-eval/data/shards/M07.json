@@ -1,0 +1,238 @@
+[
+ {
+  "id": "m07_000",
+  "type": "screenshot",
+  "summary": "브레빌 바리스타 익스프레스 BES870 모델 블랙 색상. 신혼집 인테리어랑 딱 어울릴 것 같아서 남편이랑 계속 고민 중인 모델인데 공구 뜨면 바로 사야지.",
+  "labels": [
+   "가전 쇼핑",
+   "위시리스트"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "브레빌 바리스타 익스프레스"
+   },
+   {
+    "kind": "brand",
+    "value": "Breville"
+   }
+  ],
+  "category": "취미",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "홈카페 장비",
+  "tier": "M",
+  "captured_at": "2026-06-29",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m07_001",
+  "type": "screenshot",
+  "summary": "펠로우 Stagg EKG 전기 드립포트. 온도 조절 정밀하고 디자인이 너무 깔끔함. 핸드드립 입문용으로 이거만큼 예쁜 게 없는 듯. 인테리어 포인트로 딱.",
+  "labels": [
+   "홈카페",
+   "구매 후보"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "펠로우 Stagg EKG"
+   },
+   {
+    "kind": "brand",
+    "value": "Fellow"
+   }
+  ],
+  "category": "취미",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "홈카페 장비",
+  "tier": "M",
+  "captured_at": "2026-06-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m07_002",
+  "type": "link",
+  "summary": "말코닉 홈 그라인더 X54 상세 스펙 정리. 에스프레소부터 브루잉까지 다 커버된다는데 가격대가 좀 있어서 고민되네. 퀄리티 하나는 진짜 끝판왕인듯.",
+  "labels": [
+   "장비 비교",
+   "지름신"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "말코닉 X54"
+   },
+   {
+    "kind": "brand",
+    "value": "Mahlkonig"
+   }
+  ],
+  "category": "취미",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "홈카페 장비",
+  "tier": "M",
+  "captured_at": "2026-06-27",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m07_003",
+  "type": "memo",
+  "summary": "아카이아 루나(Acaia Lunar) 저울. 방수 기능 확실하고 반응속도 짱 빠름. 에스프레소 추출할 때 필수템이라고 해서 장바구니에 넣어둠.",
+  "labels": [
+   "장비",
+   "구매 리스트"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "아카이아 루나"
+   },
+   {
+    "kind": "brand",
+    "value": "Acaia"
+   }
+  ],
+  "category": "취미",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "홈카페 장비",
+  "tier": "M",
+  "captured_at": "2026-06-16",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m07_004",
+  "type": "screenshot",
+  "summary": "코만단테 C40 니트로 블레이드 그라인더. 수동이라 좀 힘들긴 하겠지만 균일도 하나는 최강이라길래. 캠핑갈때 들고다니기도 좋을 듯.",
+  "labels": [
+   "홈카페",
+   "취미생활"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "코만단테 C40"
+   }
+  ],
+  "category": "취미",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "홈카페 장비",
+  "tier": "M",
+  "captured_at": "2026-06-19",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m07_005",
+  "type": "screenshot",
+  "summary": "이번 주말에 다녀온 성수동 카페 투어. 분위기도 좋고 라떼 아트가 너무 예뻐서 사진 저장함. 나중에 우리집 홈카페 만들 때 참고해야지.",
+  "labels": [
+   "카페 투어",
+   "인테리어 영감"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "성수동"
+   }
+  ],
+  "category": "취미",
+  "persona": "newlywed",
+  "role": "hard_neg",
+  "for_query": "홈카페 장비",
+  "tier": "M",
+  "captured_at": "2026-06-16",
+  "occurs": "2023-10-14",
+  "dup_of": null
+ },
+ {
+  "id": "m07_006",
+  "type": "link",
+  "summary": "매달 집으로 신선한 원두를 보내주는 정기 구독 서비스. 싱글오리진 종류가 다양해서 좋음. 산미 있는 거 위주로 주문해봐야지.",
+  "labels": [
+   "원두 구독",
+   "식료품"
+  ],
+  "entities": [],
+  "category": "취미",
+  "persona": "newlywed",
+  "role": "hard_neg",
+  "for_query": "홈카페 장비",
+  "tier": "M",
+  "captured_at": "2026-06-21",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m07_007",
+  "type": "memo",
+  "summary": "연희동에 있는 로스터리 샵 방문. 사장님이 직접 로스팅한 원두 종류가 많음. 여기서 산 에티오피아 원두 향이 진짜 미쳤다.",
+  "labels": [
+   "로스터리",
+   "커피"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "연희동"
+   }
+  ],
+  "category": "취미",
+  "persona": "newlywed",
+  "role": "hard_neg",
+  "for_query": "홈카페 장비",
+  "tier": "M",
+  "captured_at": "2026-06-25",
+  "occurs": "2023-10-20",
+  "dup_of": null
+ },
+ {
+  "id": "m07_008",
+  "type": "screenshot",
+  "summary": "요즘 핫한 로컬 원두 편집샵. 시음해봤는데 산미 밸런스 좋음. 정기배송하면 할인도 된다는데 일단 한 번 시켜봐야겠다.",
+  "labels": [
+   "원두",
+   "정기구독"
+  ],
+  "entities": [],
+  "category": "취미",
+  "persona": "newlywed",
+  "role": "hard_neg",
+  "for_query": "홈카페 장비",
+  "tier": "M",
+  "captured_at": "2026-06-23",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m07_009",
+  "type": "memo",
+  "summary": "브레빌 870 블랙 다시 찾아봄. 오늘 공홈 가격 확인했는데 생각보다 비싸네. 해외 직구랑 비교해봐야 할 듯. 역시 블랙이 예쁘긴 함.",
+  "labels": [
+   "구매 고민",
+   "가전"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "브레빌 870"
+   }
+  ],
+  "category": "취미",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "홈카페 장비",
+  "tier": "M",
+  "captured_at": "2026-07-14",
+  "occurs": null,
+  "dup_of": "m07_000"
+ }
+]

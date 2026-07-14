@@ -1,0 +1,286 @@
+[
+ {
+  "id": "l13_000",
+  "type": "screenshot",
+  "summary": "성수동 에스팩토리에서 열리는 '에드워드 호퍼: 도시의 고독' 회화전. 팝업이랑 전시 일정이 겹쳐서 동선 짜려고 캡쳐해둠.",
+  "labels": [
+   "가보고 싶은 곳",
+   "주말 일정"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "성수동 에스팩토리"
+   },
+   {
+    "kind": "brand",
+    "value": "에드워드 호퍼"
+   }
+  ],
+  "category": "문화",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "전시회",
+  "tier": "L",
+  "captured_at": "2026-02-26",
+  "occurs": "2024-05-15",
+  "dup_of": null
+ },
+ {
+  "id": "l13_001",
+  "type": "screenshot",
+  "summary": "국립현대미술관 MMCA에서 하는 '올해의 작가상' 기획전. 평일 낮에 널널하게 다녀오기 좋을 듯.",
+  "labels": [
+   "문화생활",
+   "영감 수집"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "국립현대미술관"
+   },
+   {
+    "kind": "brand",
+    "value": "MMCA"
+   }
+  ],
+  "category": "문화",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "전시회",
+  "tier": "L",
+  "captured_at": "2026-02-24",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l13_002",
+  "type": "screenshot",
+  "summary": "디뮤지엄 한남에서 진행하는 브랜드 비주얼 아카이브 전시. 공간 디자인 레퍼런스로 참고할 만한 사진이 많음.",
+  "labels": [
+   "레퍼런스",
+   "디자인"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "디뮤지엄 한남"
+   }
+  ],
+  "category": "문화",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "전시회",
+  "tier": "L",
+  "captured_at": "2026-02-25",
+  "occurs": "2024-06-01",
+  "dup_of": null
+ },
+ {
+  "id": "l13_003",
+  "type": "screenshot",
+  "summary": "DDP 디자인페어 입구 포스터. 올해는 어떤 신진 디자이너들 작품이 올라왔는지 확인차 저장.",
+  "labels": [
+   "시장 조사",
+   "트렌드"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "DDP"
+   }
+  ],
+  "category": "문화",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "전시회",
+  "tier": "L",
+  "captured_at": "2026-02-26",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l13_004",
+  "type": "screenshot",
+  "summary": "그라운드시소 서촌에서 열리는 '어노니머스 프로젝트'. 필름 카메라 색감이 너무 예뻐서 찜해둠.",
+  "labels": [
+   "문화생활",
+   "감성"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "그라운드시소 서촌"
+   }
+  ],
+  "category": "문화",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "전시회",
+  "tier": "L",
+  "captured_at": "2026-03-06",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l13_005",
+  "type": "screenshot",
+  "summary": "피크닉(piknic) '커피사회' 앵콜전. 공간 활용이랑 오브제 배치 진짜 잘하는 듯. 담번 작업 때 참고.",
+  "labels": [
+   "영감 수집",
+   "디자인"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "피크닉"
+   }
+  ],
+  "category": "문화",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "전시회",
+  "tier": "L",
+  "captured_at": "2026-03-06",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l13_006",
+  "type": "link",
+  "summary": "헬로우뮤지엄 어린이 전시 티켓 예매 링크. 조카 데리고 가려고 저장함. 어른이 가도 괜찮을 거 같다.",
+  "labels": [
+   "가족나들이",
+   "예매"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "헬로우뮤지엄"
+   }
+  ],
+  "category": "문화",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "전시회",
+  "tier": "L",
+  "captured_at": "2026-03-08",
+  "occurs": "2024-05-20",
+  "dup_of": null
+ },
+ {
+  "id": "l13_007",
+  "type": "memo",
+  "summary": "아라리오뮤지엄 탑동시네마 전시 일정 확인해야함. 제주도 출장갈때 비는 시간에 들러보기.",
+  "labels": [
+   "제주도",
+   "여행 계획"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "아라리오뮤지엄 탑동시네마"
+   }
+  ],
+  "category": "문화",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "전시회",
+  "tier": "L",
+  "captured_at": "2026-02-28",
+  "occurs": "2024-07-10",
+  "dup_of": null
+ },
+ {
+  "id": "l13_008",
+  "type": "screenshot",
+  "summary": "올림픽공원 KSPO DOME에서 하는 재즈 페스티벌 라인업. 야외무대라 날씨 영향 많이 받을듯. 예매 성공 기원.",
+  "labels": [
+   "공연",
+   "예매"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "KSPO DOME"
+   }
+  ],
+  "category": "문화",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "전시회",
+  "tier": "L",
+  "captured_at": "2026-03-08",
+  "occurs": "2024-06-15",
+  "dup_of": null
+ },
+ {
+  "id": "l13_009",
+  "type": "link",
+  "summary": "예스24 티켓, 뷰티풀 민트 라이프 콘서트. 날씨 좋은 날 가기 딱인데 티케팅 빡세네 ㅠㅠ",
+  "labels": [
+   "공연",
+   "음악"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "예스24 티켓"
+   }
+  ],
+  "category": "문화",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "전시회",
+  "tier": "L",
+  "captured_at": "2026-03-01",
+  "occurs": "2024-05-12",
+  "dup_of": null
+ },
+ {
+  "id": "l13_010",
+  "type": "memo",
+  "summary": "자라섬 재즈페스티벌 셔틀버스 정보. 공연장이 멀어서 교통편 미리 찾아놔야 함.",
+  "labels": [
+   "페스티벌",
+   "교통"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "자라섬"
+   }
+  ],
+  "category": "문화",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "전시회",
+  "tier": "L",
+  "captured_at": "2026-03-09",
+  "occurs": "2024-10-05",
+  "dup_of": null
+ },
+ {
+  "id": "l13_011",
+  "type": "screenshot",
+  "summary": "인터파크 티켓, 내한 공연 공지. 이번엔 꼭 스탠딩 앞열 사수하고 싶다. 잇템들 미리 체크.",
+  "labels": [
+   "공연",
+   "내한"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "인터파크 티켓"
+   }
+  ],
+  "category": "문화",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "전시회",
+  "tier": "L",
+  "captured_at": "2026-02-28",
+  "occurs": "2024-08-20",
+  "dup_of": null
+ }
+]

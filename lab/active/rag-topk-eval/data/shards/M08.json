@@ -1,0 +1,152 @@
+[
+ {
+  "id": "m08_000",
+  "type": "screenshot",
+  "summary": "연남동 카페 '코지모먼트'의 빈티지한 인테리어와 조명 배치. 블로그 포스팅 시 '감성 공간 추천' 큐레이션 글에 포함할 사진 자료로 활용할 예정.",
+  "labels": [
+   "블로그 사진",
+   "공간 기록"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "연남동 코지모먼트"
+   }
+  ],
+  "category": "업무",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "블로그 글감",
+  "tier": "M",
+  "captured_at": "2026-03-20",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m08_001",
+  "type": "screenshot",
+  "summary": "유튜브 조명 세팅법 정리한 핀터레스트 아카이빙. 신규 장비 구매 후 '1인 크리에이터 조명 셋업 가이드' 포스팅 작성할 때 참고하자.",
+  "labels": [
+   "장비 고민",
+   "블로그 자료"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "Pinterest"
+   }
+  ],
+  "category": "업무",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "블로그 글감",
+  "tier": "M",
+  "captured_at": "2026-03-18",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m08_002",
+  "type": "link",
+  "summary": "프리랜서 표준 계약서의 핵심 독소 조항 정리글. 나중에 계약 관련 리뷰나 주의사항을 담은 블로그 정보성 글 쓸 때 인용하기 좋음.",
+  "labels": [
+   "계약 공부",
+   "업무 자료"
+  ],
+  "entities": [],
+  "category": "업무",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "블로그 글감",
+  "tier": "M",
+  "captured_at": "2026-02-25",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m08_003",
+  "type": "memo",
+  "summary": "Sony A7M4 바디 + 24-70mm 렌즈 조합 리뷰. 블로그에 '업무 효율 높이는 장비빨' 컨셉으로 상세 후기 작성해보기, 렌즈 선예도 위주로.",
+  "labels": [
+   "장비 구매",
+   "블로그 기획"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "Sony A7M4"
+   },
+   {
+    "kind": "product",
+    "value": "24-70mm GM"
+   }
+  ],
+  "category": "업무",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "블로그 글감",
+  "tier": "M",
+  "captured_at": "2026-03-17",
+  "occurs": "2023-11-20",
+  "dup_of": null
+ },
+ {
+  "id": "m08_004",
+  "type": "screenshot",
+  "summary": "최근 유행하는 숏폼 감성 트랜지션 모음. 인스타 릴스 만들 때 쓸 영상 편집 템플릿과 컷 전환 타이밍 저장함. 릴스 챌린지 참고용.",
+  "labels": [
+   "릴스 아이디어",
+   "영상 편집"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "Instagram"
+   }
+  ],
+  "category": "업무",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "블로그 글감",
+  "tier": "M",
+  "captured_at": "2026-03-26",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m08_005",
+  "type": "screenshot",
+  "summary": "요즘 인스타에서 핫한 언박싱 릴스 구도. 제품을 상자에서 꺼내는 3초 컷인데, 다음번 영상 콘텐츠 제작 시 참고해서 촬영할 예정.",
+  "labels": [
+   "릴스 구도",
+   "영상 제작"
+  ],
+  "entities": [],
+  "category": "업무",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "블로그 글감",
+  "tier": "M",
+  "captured_at": "2026-03-25",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m08_006",
+  "type": "memo",
+  "summary": "릴스용 BGM 플레이리스트 정리. 힙한 분위기의 인스타 영상 만들 때 배경음악으로 쓰기 좋은 곡들 리스트업.",
+  "labels": [
+   "영상 기획",
+   "릴스 음악"
+  ],
+  "entities": [],
+  "category": "업무",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "블로그 글감",
+  "tier": "M",
+  "captured_at": "2026-02-17",
+  "occurs": null,
+  "dup_of": null
+ }
+]

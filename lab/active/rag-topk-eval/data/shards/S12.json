@@ -1,0 +1,233 @@
+[
+ {
+  "id": "s12_000",
+  "type": "screenshot",
+  "summary": "5월 종소세 신고를 위한 홈택스(Hometax) 단순경비율 신고 화면 캡처. 작년 프리랜서 수입 금액이 적어 간편장부 대상자임을 확인하고 저장함.",
+  "labels": [
+   "세금 준비",
+   "종소세"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "국세청 홈택스"
+   },
+   {
+    "kind": "date",
+    "value": "2024-05-15"
+   }
+  ],
+  "category": "금융",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "프리랜서 종소세 신고",
+  "tier": "S",
+  "captured_at": "2026-07-10",
+  "occurs": "2024-05-15",
+  "dup_of": null
+ },
+ {
+  "id": "s12_001",
+  "type": "screenshot",
+  "summary": "삼쩜삼 환급 예상 금액 조회 결과 페이지. 작년 3.3% 떼고 받은 프리랜서 소득에 대한 환급금 확인용으로 캡쳐해둠.",
+  "labels": [
+   "환급 확인",
+   "세금"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "삼쩜삼"
+   }
+  ],
+  "category": "금융",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "프리랜서 종소세 신고",
+  "tier": "S",
+  "captured_at": "2026-06-30",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s12_002",
+  "type": "link",
+  "summary": "2024년 사업자 부가가치세 신고 안내 가이드 블로그. 부가세 신고 기간이랑 매입세액 공제 항목 헷갈려서 북마크함.",
+  "labels": [
+   "부가세",
+   "공부"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "네이버 블로그"
+   }
+  ],
+  "category": "금융",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "프리랜서 종소세 신고",
+  "tier": "S",
+  "captured_at": "2026-07-02",
+  "occurs": "2024-07-25",
+  "dup_of": null
+ },
+ {
+  "id": "s12_003",
+  "type": "screenshot",
+  "summary": "회사에서 보내준 근로소득 원천징수영수증. 작년에 짧게 알바했던 곳인데, 연말정산 서류 요청와서 찍어둔거.",
+  "labels": [
+   "연말정산",
+   "서류"
+  ],
+  "entities": [
+   {
+    "kind": "date",
+    "value": "2024-02-10"
+   }
+  ],
+  "category": "금융",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "프리랜서 종소세 신고",
+  "tier": "S",
+  "captured_at": "2026-07-09",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s12_004",
+  "type": "memo",
+  "summary": "개인사업자 부가세 예정고지 납부 기한 정리. 4월 25일까지인데 잊지말고 계좌에 잔고 채워둘 것. 잊지말기!",
+  "labels": [
+   "세금 일정"
+  ],
+  "entities": [
+   {
+    "kind": "date",
+    "value": "2024-04-25"
+   }
+  ],
+  "category": "금융",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "프리랜서 종소세 신고",
+  "tier": "S",
+  "captured_at": "2026-07-01",
+  "occurs": "2024-04-25",
+  "dup_of": null
+ },
+ {
+  "id": "s12_005",
+  "type": "screenshot",
+  "summary": "세무대리인 카톡 상담 내역. 프리랜서 비용 처리 관련해서 복식부기 의무자인지 물어봤던 내용임.",
+  "labels": [
+   "세무 상담",
+   "기록"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "카카오톡"
+   }
+  ],
+  "category": "금융",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "프리랜서 종소세 신고",
+  "tier": "S",
+  "captured_at": "2026-07-04",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s12_006",
+  "type": "screenshot",
+  "summary": "노란우산공제 소득공제 혜택 안내 이미지. 종소세 신고할 때 공제 혜택 챙기려고 저장해둠.",
+  "labels": [
+   "절세",
+   "필수템"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "노란우산"
+   }
+  ],
+  "category": "금융",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": "프리랜서 종소세 신고",
+  "tier": "S",
+  "captured_at": "2026-07-07",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s12_007",
+  "type": "link",
+  "summary": "국세청 유튜브 종소세 신고 따라하기 영상. 5월 되기 전에 미리 봐둬야겠음.",
+  "labels": [
+   "교육 영상"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "YouTube"
+   }
+  ],
+  "category": "금융",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": "프리랜서 종소세 신고",
+  "tier": "S",
+  "captured_at": "2026-07-05",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s12_008",
+  "type": "memo",
+  "summary": "프리랜서 경비 처리 리스트: 장비(MacBook Pro 14), 카페 작업비(업무용), 공유오피스 월세. 세금 신고용 영수증 꼭 챙기기.",
+  "labels": [
+   "지출 증빙",
+   "프리랜서"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "MacBook Pro 14"
+   }
+  ],
+  "category": "금융",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": "프리랜서 종소세 신고",
+  "tier": "S",
+  "captured_at": "2026-07-04",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s12_009",
+  "type": "screenshot",
+  "summary": "종소세 신고 기간에 홈택스 접속대기 화면. 렉 심해서 캡쳐해둠. 나중에 증빙 자료로 쓸까 싶어서...",
+  "labels": [
+   "기록용"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "국세청 홈택스"
+   }
+  ],
+  "category": "금융",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": "프리랜서 종소세 신고",
+  "tier": "S",
+  "captured_at": "2026-07-01",
+  "occurs": "2024-05-31",
+  "dup_of": null
+ }
+]

@@ -16,6 +16,9 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 - **docs**: UX_SPEC §1.5 known-drift 재작성(남는 한계 = 단방향·silent push 미보장 창·재설치 이중 등록 가능)·§3.4d 연동 섹션·§3.8·§3.10, ARCHITECTURE silent push 흐름, PRODUCT §3 MVP 표 "EventKit 추후" 줄 현행화(L1 — 사용자 결정 근거 명기).
 - **journal**: `2026-07-14-device-e2e-checklist.md` 신설 — 실기기 검증 목록(채팅 알림 CRUD·회수 reaction·알림 선호 토글·캘린더 자동 관리·앱 미실행 silent push/강제종료 백스톱·프롬프트 가이드 ③ 관찰 방침).
 
+## 2026-07-14 — docs (lab: TOP_K=25 실측 근거 확보 — rag-topk-eval 4V 코퍼스 1,045)
+- `lab/active/rag-topk-eval` 신설 — 4V(Volume 1,045·Variety 페르소나6×도메인12·Velocity 6개월 수집창+재저장 dup·Veracity 독립 모델 감사 demote 43/promote 21) 증강 코퍼스에서 TOP_K 8→25 첫 실측. 채팅 형상(C) recall@8 0.800 → @25 0.958(+15.8pt), 이득 원천은 정답 8~13개 컬렉션 질의(L-tier +26.9pt, recall@8 은 슬롯 부족의 구조적 천장 — 이론상한 0.892). 설계/감사 양 라벨셋에서 동일 결론(민감도 런). 다음 병목은 K 가 아니라 RERANK_CANDIDATES=50(rrf_top50 후보 recall 0.952 포화). 2026-07-09 "TOP_K=25 방침 상향"의 근거 공백(@10 천장) 해소 — 정본 `lab/active/rag-topk-eval/FINDINGS.md`.
+
 ## 2026-07-14 — backend, ios, docs (알림 전역 선호 신설 — 회수/분석 확인 푸시 on/off + 설정 토글)
 - **왜**: 능동 회수 제품인데 전역 알림 밸브가 OS 설정뿐이었다(UX_SPEC §3.4d "서버 선호 API 미존재로 후속" 갭). 개별 조정(예정 알림 veto/미루기)만으론 "다 조용히 해줘"를 표현할 수 없다.
 - backend: `users.notify_recall_enabled`/`notify_analysis_enabled`(기본 둘 다 on, 마이그레이션 0028) + `GET/PATCH /api/v1/users/me/notification-preferences`(부분 수정). **게이트는 발송 시점만** — recall send pass(`_send_one` 서두, 트랙 A/B/C 공용)는 off 면 `skipped(preference_off)`(spaced 회차 비소모 — 켜면 그 단계부터 재개), 분석 confirm push 는 `push.notify_skipped(reason=preference_off)` 로그 후 미발송. plan/outbox 적재·인앱 표면 불변(가역 밸브). 게이트 테스트 6건 포함 `make test` 558 passed·lint·typecheck green. `make openapi` 재수출.

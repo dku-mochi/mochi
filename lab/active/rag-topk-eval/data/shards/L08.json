@@ -1,0 +1,268 @@
+[
+ {
+  "id": "l08_000",
+  "type": "screenshot",
+  "summary": "주 3회 헬스장 루틴. 벤치프레스 30kg 15회 4세트, 스쿼트 40kg 15회 4세트. 기록해두고 점진적 과부하 체크하려고 찍어둠.",
+  "labels": [
+   "운동기록",
+   "루틴"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "벤치프레스"
+   },
+   {
+    "kind": "product",
+    "value": "스쿼트"
+   }
+  ],
+  "category": "건강",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "운동 루틴",
+  "tier": "L",
+  "captured_at": "2026-07-01",
+  "occurs": "2023-11-05",
+  "dup_of": null
+ },
+ {
+  "id": "l08_001",
+  "type": "screenshot",
+  "summary": "Nike Training Club 앱에서 확인한 20분 고강도 홈트레이닝 스케줄. 출장 가서 호텔방에서 할 거 없어서 따라하려고 캡처함.",
+  "labels": [
+   "홈트",
+   "출장준비"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "Nike Training Club"
+   }
+  ],
+  "category": "건강",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "운동 루틴",
+  "tier": "L",
+  "captured_at": "2026-06-27",
+  "occurs": "2023-11-12",
+  "dup_of": null
+ },
+ {
+  "id": "l08_002",
+  "type": "screenshot",
+  "summary": "성수동 F45 스튜디오 시간표. 아침 7시 수업이 주 2회 고정이라 신청하려구 저장함.",
+  "labels": [
+   "운동등록",
+   "가보고싶은곳"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "F45 성수"
+   }
+  ],
+  "category": "건강",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "운동 루틴",
+  "tier": "L",
+  "captured_at": "2026-06-24",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l08_003",
+  "type": "screenshot",
+  "summary": "필라테스 1대1 레슨 10회차 진행상황. 흉곽 호흡이랑 코어 잡기 위주로 쌤이 정리해준 팁 잊지말자.",
+  "labels": [
+   "운동기록"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "필라테스"
+   }
+  ],
+  "category": "건강",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "운동 루틴",
+  "tier": "L",
+  "captured_at": "2026-06-30",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l08_004",
+  "type": "screenshot",
+  "summary": "오늘부터 시작할 런닝 루틴. 가민 워치에 세팅할 인터벌 모드 시간표(달리기 2분, 걷기 1분 반복).",
+  "labels": [
+   "런닝",
+   "아이템"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "가민"
+   }
+  ],
+  "category": "건강",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "운동 루틴",
+  "tier": "L",
+  "captured_at": "2026-06-20",
+  "occurs": "2023-10-20",
+  "dup_of": null
+ },
+ {
+  "id": "l08_005",
+  "type": "screenshot",
+  "summary": "유튜브에서 본 집에서 하는 요가 스트레칭 15분 루틴. 퇴근하고 몸 찌뿌둥할 때 틀어놓고 따라해야지.",
+  "labels": [
+   "요가",
+   "홈트"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "유튜브"
+   }
+  ],
+  "category": "건강",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "운동 루틴",
+  "tier": "L",
+  "captured_at": "2026-06-16",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l08_006",
+  "type": "link",
+  "summary": "집 근처 크로스핏 박스 원데이 클래스 신청 링크. 3개월 등록할지 고민중인데 시간표랑 와드(WOD) 구성 보려고 저장함.",
+  "labels": [
+   "운동고민",
+   "가보고싶은곳"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "크로스핏"
+   }
+  ],
+  "category": "건강",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "운동 루틴",
+  "tier": "L",
+  "captured_at": "2026-06-26",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l08_007",
+  "type": "memo",
+  "summary": "점심시간 틈틈히 걷기. 회사 근처 공원 한바퀴 돌면 20분 소요. 주 5일 런치타임 걷기루틴 루틴 지키기!",
+  "labels": [
+   "일상"
+  ],
+  "entities": [],
+  "category": "건강",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "운동 루틴",
+  "tier": "L",
+  "captured_at": "2026-06-19",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l08_008",
+  "type": "screenshot",
+  "summary": "직구한 오쏘몰 이뮨 비타민. 아침마다 1병씩 마시는거 까먹지 말자. 공복에 먹으면 속 쓰린가?",
+  "labels": [
+   "영양제",
+   "구매"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "오쏘몰 이뮨"
+   }
+  ],
+  "category": "건강",
+  "persona": "marketer",
+  "role": "hard_neg",
+  "for_query": "운동 루틴",
+  "tier": "L",
+  "captured_at": "2026-06-22",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l08_009",
+  "type": "screenshot",
+  "summary": "오늘부터 1일 1샐러드 챌린지! 점심 샐러드 식단표. 연어, 닭가슴살 샐러드 번갈아가면서 먹기.",
+  "labels": [
+   "식단",
+   "다이어트"
+  ],
+  "entities": [],
+  "category": "건강",
+  "persona": "marketer",
+  "role": "hard_neg",
+  "for_query": "운동 루틴",
+  "tier": "L",
+  "captured_at": "2026-06-11",
+  "occurs": "2023-11-01",
+  "dup_of": null
+ },
+ {
+  "id": "l08_010",
+  "type": "link",
+  "summary": "프로틴 파우더 쉐이크 비교 정리글. 마이프로틴이랑 셀렉스 성분 차이 꼼꼼하게 따져보자.",
+  "labels": [
+   "영양제",
+   "구매고민"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "마이프로틴"
+   },
+   {
+    "kind": "brand",
+    "value": "셀렉스"
+   }
+  ],
+  "category": "건강",
+  "persona": "marketer",
+  "role": "hard_neg",
+  "for_query": "운동 루틴",
+  "tier": "L",
+  "captured_at": "2026-06-25",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l08_011",
+  "type": "memo",
+  "summary": "저녁 식단 조절: 닭가슴살 100g, 고구마 1개, 방울토마토 10알. 야식 금지!! 배고프면 아몬드 5알만 먹기.",
+  "labels": [
+   "식단"
+  ],
+  "entities": [],
+  "category": "건강",
+  "persona": "marketer",
+  "role": "hard_neg",
+  "for_query": "운동 루틴",
+  "tier": "L",
+  "captured_at": "2026-06-28",
+  "occurs": null,
+  "dup_of": null
+ }
+]

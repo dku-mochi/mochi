@@ -1,0 +1,249 @@
+[
+ {
+  "id": "m22_000",
+  "type": "screenshot",
+  "summary": "한국산업인력공단 큐넷 정보처리기사 정기 제1회 필기 원서접수 공고 캡처. 원서 접수 기간 놓치지 말고 꼭 체크하기! 2월 20일부터 23일까지임.",
+  "labels": [
+   "자격증 일정",
+   "중요"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "큐넷"
+   },
+   {
+    "kind": "date",
+    "value": "2024-02-20"
+   }
+  ],
+  "category": "취업",
+  "persona": "jobseeker",
+  "role": "answer",
+  "for_query": "자격증 접수",
+  "tier": "M",
+  "captured_at": "2026-03-24",
+  "occurs": "2024-02-20",
+  "dup_of": null
+ },
+ {
+  "id": "m22_001",
+  "type": "link",
+  "summary": "대한상공회의소 자격평가사업단 사이트. 컴활 1급 실기 정기시험 접수 오픈 날짜 확인하러 들어감. 이번에 꼭 딴다..",
+  "labels": [
+   "자격증 일정",
+   "취업 준비"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "대한상공회의소"
+   },
+   {
+    "kind": "product",
+    "value": "컴활 1급"
+   }
+  ],
+  "category": "취업",
+  "persona": "jobseeker",
+  "role": "answer",
+  "for_query": "자격증 접수",
+  "tier": "M",
+  "captured_at": "2026-04-01",
+  "occurs": "2024-03-15",
+  "dup_of": null
+ },
+ {
+  "id": "m22_002",
+  "type": "memo",
+  "summary": "토익 스피킹 시험 접수 완료. ETS 사이트 서버 터질까봐 조마조마했네. 시험장 남은 자리 확인하고 광진구 쪽으로 결제 마침.",
+  "labels": [
+   "어학 시험",
+   "자기계발"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "ETS"
+   },
+   {
+    "kind": "place",
+    "value": "광진구"
+   }
+  ],
+  "category": "취업",
+  "persona": "jobseeker",
+  "role": "answer",
+  "for_query": "자격증 접수",
+  "tier": "M",
+  "captured_at": "2026-03-04",
+  "occurs": "2024-04-10",
+  "dup_of": null
+ },
+ {
+  "id": "m22_003",
+  "type": "screenshot",
+  "summary": "한국금융연수원 테샛(TESAT) 시험 접수 안내 화면. 이번 달 접수 마감일이 18일까지라 서둘러야 함.",
+  "labels": [
+   "자격증 일정",
+   "금융권"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "한국금융연수원"
+   },
+   {
+    "kind": "product",
+    "value": "TESAT"
+   }
+  ],
+  "category": "취업",
+  "persona": "jobseeker",
+  "role": "answer",
+  "for_query": "자격증 접수",
+  "tier": "M",
+  "captured_at": "2026-03-03",
+  "occurs": "2024-05-18",
+  "dup_of": null
+ },
+ {
+  "id": "m22_004",
+  "type": "link",
+  "summary": "KBS 한국어능력시험 공식 홈페이지 접수 탭. 다음 회차 접수 시작일이 언제인지 캘린더에 적어두려고 링크 따둠.",
+  "labels": [
+   "스펙 관리"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "KBS"
+   },
+   {
+    "kind": "product",
+    "value": "한국어능력시험"
+   }
+  ],
+  "category": "취업",
+  "persona": "jobseeker",
+  "role": "answer",
+  "for_query": "자격증 접수",
+  "tier": "M",
+  "captured_at": "2026-02-25",
+  "occurs": "2024-06-05",
+  "dup_of": null
+ },
+ {
+  "id": "m22_005",
+  "type": "memo",
+  "summary": "정보처리기사 실기 공부 방법 정리: 시나공 요약본 3회독, 기출문제 위주로 암기. 프로그래밍 문제는 디버깅 연습 필수.",
+  "labels": [
+   "공부법",
+   "팁"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "정보처리기사"
+   }
+  ],
+  "category": "취업",
+  "persona": "jobseeker",
+  "role": "hard_neg",
+  "for_query": "자격증 접수",
+  "tier": "M",
+  "captured_at": "2026-03-22",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m22_006",
+  "type": "screenshot",
+  "summary": "컴활 1급 엑셀 꿀팁 모음 캡처. VLOOKUP이랑 INDEX MATCH 함수는 무조건 외우기. 함수 식 오타 주의!",
+  "labels": [
+   "공부 팁"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "컴활 1급"
+   }
+  ],
+  "category": "취업",
+  "persona": "jobseeker",
+  "role": "hard_neg",
+  "for_query": "자격증 접수",
+  "tier": "M",
+  "captured_at": "2026-03-08",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m22_007",
+  "type": "memo",
+  "summary": "토익 스피킹 파트 5 후기: 생각보다 답변 시간이 짧아서 템플릿 외운 게 다 안 들어감. 다음엔 키워드 중심으로 말하기.",
+  "labels": [
+   "시험 후기",
+   "오답노트"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "ETS"
+   }
+  ],
+  "category": "취업",
+  "persona": "jobseeker",
+  "role": "hard_neg",
+  "for_query": "자격증 접수",
+  "tier": "M",
+  "captured_at": "2026-03-31",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m22_008",
+  "type": "screenshot",
+  "summary": "TESAT 경제용어 암기 노트. 금융권 취업 준비하면서 틈틈히 외우는 중. 어휘가 너무 어려움 ㅠㅠ",
+  "labels": [
+   "자기계발"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "TESAT"
+   }
+  ],
+  "category": "취업",
+  "persona": "jobseeker",
+  "role": "hard_neg",
+  "for_query": "자격증 접수",
+  "tier": "M",
+  "captured_at": "2026-03-29",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m22_009",
+  "type": "memo",
+  "summary": "정보처리기사 1회차 원서접수 까먹지 말자. 큐넷에서 하니까 미리 로그인 해두기.",
+  "labels": [
+   "자격증",
+   "일정확인"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "큐넷"
+   }
+  ],
+  "category": "취업",
+  "persona": "jobseeker",
+  "role": "answer",
+  "for_query": "자격증 접수",
+  "tier": "M",
+  "captured_at": "2026-04-11",
+  "occurs": "2024-02-20",
+  "dup_of": "m22_000"
+ }
+]

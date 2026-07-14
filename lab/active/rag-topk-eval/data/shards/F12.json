@@ -1,0 +1,597 @@
+[
+ {
+  "id": "f12_000",
+  "type": "screenshot",
+  "summary": "토익스피킹 파트 5 답변 템플릿 모음집 캡처. 시험 직전에 빠르게 훑어보기 위해 저장함.",
+  "labels": [
+   "토스",
+   "시험대비"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "토익스피킹"
+   }
+  ],
+  "category": "스터디·국비지원·멘토링",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-02-26",
+  "occurs": "2024-05-20",
+  "dup_of": null
+ },
+ {
+  "id": "f12_001",
+  "type": "screenshot",
+  "summary": "스터디 그룹 모집 공고. 다음주부터 시작하는 데이터 분석 프로젝트 팀원 모집이라 합류 고민 중.",
+  "labels": [
+   "스터디",
+   "네트워킹"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "데이터분석"
+   }
+  ],
+  "category": "스터디·국비지원·멘토링",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-14",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f12_002",
+  "type": "link",
+  "summary": "국민내일배움카드 신청 자격 안내 페이지. 직업훈련포털에서 지원금 확인하려고 즐겨찾기 함.",
+  "labels": [
+   "국비지원",
+   "자기계발"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "HRD-Net"
+   }
+  ],
+  "category": "스터디·국비지원·멘토링",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-13",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f12_003",
+  "type": "memo",
+  "summary": "멘토링 3회차 질문 리스트 정리. 직무 역량 어필할 때 포트폴리오 프로젝트의 기여도를 어떻게 녹여야 할지 물어볼 것.",
+  "labels": [
+   "멘토링",
+   "취업준비"
+  ],
+  "entities": [],
+  "category": "스터디·국비지원·멘토링",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-22",
+  "occurs": "2024-05-22",
+  "dup_of": null
+ },
+ {
+  "id": "f12_004",
+  "type": "screenshot",
+  "summary": "기업 채용 공고의 자격 요건 부분. SQL 활용 능력이 필수라 학습 계획에 추가해야 함.",
+  "labels": [
+   "채용",
+   "학습계획"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "SQL"
+   }
+  ],
+  "category": "스터디·국비지원·멘토링",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-30",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f12_005",
+  "type": "screenshot",
+  "summary": "자소서 항목 중 '지원동기' 작성 가이드 캡처. 매번 어려워서 참고하려고 저장함.",
+  "labels": [
+   "자소서",
+   "팁"
+  ],
+  "entities": [],
+  "category": "스터디·국비지원·멘토링",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-17",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f12_006",
+  "type": "screenshot",
+  "summary": "카페에서 공부하다 발견한 오픈소스 프로젝트 깃허브 페이지. 나중에 코드 리뷰 해보고 싶어서 찍어둠.",
+  "labels": [
+   "개발",
+   "스터디"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "GitHub"
+   }
+  ],
+  "category": "스터디·국비지원·멘토링",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-02",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f12_007",
+  "type": "memo",
+  "summary": "오늘 스터디에서 나온 피드백 정리. 발표할 때 말이 너무 빠르다는 지적을 받음. 내일은 천천히 말하기 연습하자.",
+  "labels": [
+   "스터디",
+   "개인성장"
+  ],
+  "entities": [],
+  "category": "스터디·국비지원·멘토링",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-03",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f12_008",
+  "type": "link",
+  "summary": "현직자 멘토링 매칭 서비스 링크. 링크드인에서 추천받은 멘토님이 여는 오픈 세션.",
+  "labels": [
+   "멘토링",
+   "네트워킹"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "LinkedIn"
+   }
+  ],
+  "category": "스터디·국비지원·멘토링",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-01",
+  "occurs": "2024-05-25",
+  "dup_of": null
+ },
+ {
+  "id": "f12_009",
+  "type": "screenshot",
+  "summary": "온라인 강의 수강 현황 대시보드. 국비지원 교육과정 진도율 체크용으로 캡처함.",
+  "labels": [
+   "국비지원",
+   "진도관리"
+  ],
+  "entities": [],
+  "category": "스터디·국비지원·멘토링",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-07",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f12_010",
+  "type": "screenshot",
+  "summary": "기업 분석 레포트 1페이지. 산업군 트렌드 파악이 안되서 일단 저장해두고 나중에 읽기로 함.",
+  "labels": [
+   "기업분석",
+   "취업"
+  ],
+  "entities": [],
+  "category": "스터디·국비지원·멘토링",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-09",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f12_011",
+  "type": "memo",
+  "summary": "이번주 할 일: CS 스터디 자료 정리, 자소서 2개 완성, 코딩테스트 3문제 풀기. 잊지말자 파이팅.",
+  "labels": [
+   "할일",
+   "자기계발"
+  ],
+  "entities": [],
+  "category": "스터디·국비지원·멘토링",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-10",
+  "occurs": "2024-05-23",
+  "dup_of": null
+ },
+ {
+  "id": "f12_012",
+  "type": "screenshot",
+  "summary": "채용 사이트의 합격 자소서 샘플. 문항 구성이 깔끔해서 참고용으로 찍어뒀음.",
+  "labels": [
+   "자소서",
+   "합격수기"
+  ],
+  "entities": [],
+  "category": "스터디·국비지원·멘토링",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-11",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f12_013",
+  "type": "screenshot",
+  "summary": "스터디원들이 추천해준 ADsP 자격증 교재 리스트. 교보문고 갔을 때 헷갈리지 않게 저장함.",
+  "labels": [
+   "자격증",
+   "공부"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "교보문고"
+   }
+  ],
+  "category": "스터디·국비지원·멘토링",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-16",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f12_014",
+  "type": "screenshot",
+  "summary": "코딩테스트 5번 문제 풀이 과정 캡처. 시간초과 나서 나중에 다시 풀어봐야함(힌트 봄).",
+  "labels": [
+   "코테",
+   "학습"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "Python"
+   }
+  ],
+  "category": "스터디·국비지원·멘토링",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f12_015",
+  "type": "screenshot",
+  "summary": "국비지원 부트캠프 커리큘럼 이미지. 포트폴리오 만들 때 필요한 기술 스택이 다 있어서 좋아보임.",
+  "labels": [
+   "국비지원",
+   "고민"
+  ],
+  "entities": [],
+  "category": "스터디·국비지원·멘토링",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-02-07",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f12_016",
+  "type": "memo",
+  "summary": "멘토님께서 알려주신 면접 꿀팁. '직무에 대한 열정을 말하기보다 기여할 수 있는 구체적인 행동을 말할 것'.",
+  "labels": [
+   "멘토링",
+   "면접"
+  ],
+  "entities": [],
+  "category": "스터디·국비지원·멘토링",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-16",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f12_017",
+  "type": "screenshot",
+  "summary": "기업 연봉 정보를 정리한 커뮤니티 게시글 캡처. 산업군별 초봉 평균 데이터라 나중에 참고할 예정.",
+  "labels": [
+   "취업",
+   "정보"
+  ],
+  "entities": [],
+  "category": "스터디·국비지원·멘토링",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-10",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f12_018",
+  "type": "screenshot",
+  "summary": "스터디 모임 장소인 공유오피스 위치. 다음주 첫 모임이라 미리 확인해둠.",
+  "labels": [
+   "스터디",
+   "오프라인"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "공유오피스"
+   }
+  ],
+  "category": "스터디·국비지원·멘토링",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-03-07",
+  "occurs": "2024-05-24",
+  "dup_of": null
+ },
+ {
+  "id": "f12_019",
+  "type": "link",
+  "summary": "IT 채용 트렌드 아티클. 요즘 채용 시장 상황이 하이링 프리즈라고 하던데 진짜인지 확인해봐야겠다.",
+  "labels": [
+   "채용",
+   "업계동향"
+  ],
+  "entities": [],
+  "category": "스터디·국비지원·멘토링",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-23",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f12_020",
+  "type": "screenshot",
+  "summary": "오늘 공부한 자바 스프링 개념 정리 캡처. 포트폴리오 아키텍처 그릴 때 보고 쓰려고 저장함.",
+  "labels": [
+   "개발",
+   "자기계발"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "Spring"
+   }
+  ],
+  "category": "스터디·국비지원·멘토링",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-03",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f12_021",
+  "type": "screenshot",
+  "summary": "자격증 응시료 지원 관련 안내문. 내일배움카드로 결제하면 혜택 있는지 확인해야함.",
+  "labels": [
+   "자격증",
+   "국비지원"
+  ],
+  "entities": [],
+  "category": "스터디·국비지원·멘토링",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-29",
+  "occurs": "2024-05-28",
+  "dup_of": null
+ },
+ {
+  "id": "f12_022",
+  "type": "memo",
+  "summary": "스터디 모임 규칭: 1. 지각비 5천원, 2. 결석시 1만원, 3. 과제 미제출 시 강퇴. 빡세다 ㄷㄷ",
+  "labels": [
+   "스터디",
+   "규칙"
+  ],
+  "entities": [],
+  "category": "스터디·국비지원·멘토링",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-04",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f12_023",
+  "type": "screenshot",
+  "summary": "멘토링 신청 양식 작성 캡처. 자기소개서 내용 너무 길게 쓴 것 같아서 줄여야함.",
+  "labels": [
+   "멘토링",
+   "자기관리"
+  ],
+  "entities": [],
+  "category": "스터디·국비지원·멘토링",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-12",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f12_024",
+  "type": "screenshot",
+  "summary": "채용 박람회 부스 배치도. 관심 있는 기업 위치 미리 파악해서 동선 짜려고 캡처함.",
+  "labels": [
+   "채용",
+   "정보"
+  ],
+  "entities": [],
+  "category": "스터디·국비지원·멘토링",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-16",
+  "occurs": "2024-05-30",
+  "dup_of": null
+ },
+ {
+  "id": "f12_025",
+  "type": "screenshot",
+  "summary": "코딩테스트 연습 사이트 메인화면. 하루에 최소 1문제는 꼭 풀기 목표.",
+  "labels": [
+   "코테",
+   "자기계발"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "프로그래머스"
+   }
+  ],
+  "category": "스터디·국비지원·멘토링",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-03-18",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f12_026",
+  "type": "screenshot",
+  "summary": "국비지원 수업 관련 교재 목록. 품절이라 재입고 알림 신청해둠.",
+  "labels": [
+   "국비지원",
+   "공부"
+  ],
+  "entities": [],
+  "category": "스터디·국비지원·멘토링",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-01",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f12_027",
+  "type": "link",
+  "summary": "취업 준비생을 위한 멘토링 커뮤니티 글. 자소서 1분 자기소개 문항 어떻게 썼는지 참고할만함.",
+  "labels": [
+   "자소서",
+   "멘토링"
+  ],
+  "entities": [],
+  "category": "스터디·국비지원·멘토링",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-03-16",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f12_028",
+  "type": "screenshot",
+  "summary": "스터디원들이 정리한 기술 면접 질문 리스트 캡처. CS 지식 부족한거 티나서 일단 다 찍어둠.",
+  "labels": [
+   "스터디",
+   "기술면접"
+  ],
+  "entities": [],
+  "category": "스터디·국비지원·멘토링",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-05",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f12_029",
+  "type": "memo",
+  "summary": "오늘 하루 요약: 스터디 과제 끝내고 멘토링 신청완료! 내일은 모의면접 준비하자.",
+  "labels": [
+   "일기",
+   "취업준비"
+  ],
+  "entities": [],
+  "category": "스터디·국비지원·멘토링",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-04",
+  "occurs": "2024-05-21",
+  "dup_of": null
+ }
+]

@@ -1,0 +1,148 @@
+[
+ {
+  "id": "s01_000",
+  "type": "screenshot",
+  "summary": "발뮤다 더 토스터(K05B-BK) 구매 후 발생한 초기 불량으로 인해 고객센터에 반품 요청을 남긴 캡처화면입니다. 환불 처리 절차와 택배 회수 날짜를 확인하려고 저장했어요.",
+  "labels": [
+   "가전 반품",
+   "AS 기록"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "발뮤다 더 토스터"
+   },
+   {
+    "kind": "brand",
+    "value": "발뮤다"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "토스터 환불",
+  "tier": "S",
+  "captured_at": "2026-04-28",
+  "occurs": "2024-05-20",
+  "dup_of": null
+ },
+ {
+  "id": "s01_001",
+  "type": "screenshot",
+  "summary": "발뮤다 더 토스터 2주 사용 후기 및 장단점 정리. 디자인은 예쁘지만 빵 굽는 속도가 느려서 고민되는데, 다른 사람들은 이 제품을 어떻게 쓰는지 참고하려고 저장함.",
+  "labels": [
+   "구매 고민"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "발뮤다 더 토스터"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "newlywed",
+  "role": "hard_neg",
+  "for_query": "토스터 환불",
+  "tier": "S",
+  "captured_at": "2026-04-26",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s01_002",
+  "type": "screenshot",
+  "summary": "삼성전자 비스포크 냉장고 공식 홈페이지의 반품 및 교환 정책 안내문입니다. 가전제품 구매 후 단순 변심으로 인한 환불 시 발생하는 위약금 규정을 미리 체크해두었습니다.",
+  "labels": [
+   "재테크",
+   "가전 정보"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "삼성전자"
+   },
+   {
+    "kind": "product",
+    "value": "비스포크 냉장고"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "newlywed",
+  "role": "hard_neg",
+  "for_query": "토스터 환불",
+  "tier": "S",
+  "captured_at": "2026-04-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s01_003",
+  "type": "link",
+  "summary": "LG 오브제컬렉션 식기세척기 환불 규정과 관련한 공식 서비스 센터 페이지입니다. 가전 렌탈 및 구매 취소 시 적용되는 감가상각 비용이 얼마인지 확인하려고 저장함.",
+  "labels": [
+   "가전 공부"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "LG"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "newlywed",
+  "role": "hard_neg",
+  "for_query": "토스터 환불",
+  "tier": "S",
+  "captured_at": "2026-04-05",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s01_004",
+  "type": "memo",
+  "summary": "오늘 산 다이슨 에어랩 환불 접수함. 상담원 말로는 7일 이내라 전액 환불 가능하대. 카드 취소는 영업일 기준 3~5일 정도 걸린다고 하니 달력에 메모해두자.",
+  "labels": [
+   "소비 기록"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "다이슨 에어랩"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "newlywed",
+  "role": "hard_neg",
+  "for_query": "토스터 환불",
+  "tier": "S",
+  "captured_at": "2026-04-20",
+  "occurs": "2024-05-25",
+  "dup_of": null
+ },
+ {
+  "id": "s01_005",
+  "type": "screenshot",
+  "summary": "쿠팡에서 구매한 드롱기 아이코나 빈티지 토스터기 반품 신청 승인 내역. 박스 훼손으로 인한 감가상각 금액이 안내되어 있어서 나중에 카드 내역이랑 대조해보려고 캡쳐.",
+  "labels": [
+   "쇼핑 기록"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "드롱기"
+   },
+   {
+    "kind": "platform",
+    "value": "쿠팡"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "newlywed",
+  "role": "hard_neg",
+  "for_query": "토스터 환불",
+  "tier": "S",
+  "captured_at": "2026-04-21",
+  "occurs": null,
+  "dup_of": null
+ }
+]

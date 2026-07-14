@@ -1,0 +1,306 @@
+[
+ {
+  "id": "l06_000",
+  "type": "screenshot",
+  "summary": "르크루제 무쇠냄비 20cm 펄핑크. 신혼부부들이 필수로 들이는 아이템이라는데 실물 색감이 너무 예뻐서 나중에 가격 비교용으로 캡처함.",
+  "labels": [
+   "구매 고민",
+   "주방 용품"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "르크루제"
+   },
+   {
+    "kind": "product",
+    "value": "무쇠냄비"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "집들이 선물",
+  "tier": "L",
+  "captured_at": "2026-05-29",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l06_001",
+  "type": "screenshot",
+  "summary": "발뮤다 더 토스터 화이트. 신혼집 인테리어에 딱인 듯. 다가오는 철수네 집들이에 이거 사가면 센스 있다고 칭찬받을 것 같음.",
+  "labels": [
+   "선물 후보",
+   "위시리스트"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "발뮤다"
+   },
+   {
+    "kind": "product",
+    "value": "더 토스터"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "집들이 선물",
+  "tier": "L",
+  "captured_at": "2026-06-04",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l06_002",
+  "type": "link",
+  "summary": "이솝 핸드워시&핸드밤 듀오 세트 공홈. 패키지가 고급스러워서 무난하게 선물하기 젤 좋은 듯. 카카오톡 선물하기보다 공식몰이 배송 더 깔끔할까 고민중.",
+  "labels": [
+   "선물 고민",
+   "인테리어 소품"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "이솝"
+   },
+   {
+    "kind": "platform",
+    "value": "공식몰"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "집들이 선물",
+  "tier": "L",
+  "captured_at": "2026-05-24",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l06_003",
+  "type": "screenshot",
+  "summary": "드롱기 아이코나 빈티지 커피머신 그린. 색감이 유니크해서 포인트 주기 딱임. 지인들 초대했을 때 홈카페 분위기 내기 좋을 거 같아서 저장함.",
+  "labels": [
+   "인테리어",
+   "구매 고민"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "드롱기"
+   },
+   {
+    "kind": "product",
+    "value": "아이코나 빈티지"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "집들이 선물",
+  "tier": "L",
+  "captured_at": "2026-06-09",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l06_004",
+  "type": "screenshot",
+  "summary": "조말론 런던 디퓨저 라임 바질 앤 만다린. 향도 호불호 없고 디자인이 깔끔해서 거실이나 현관에 두기 좋음. 집들이용으로 젤 무난한 선택지.",
+  "labels": [
+   "선물 추천",
+   "향기템"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "조말론 런던"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "집들이 선물",
+  "tier": "L",
+  "captured_at": "2026-05-05",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l06_005",
+  "type": "memo",
+  "summary": "네스프레소 버츄오 플러스 구매 고려. 다른 브랜드보다 커피맛이 일정해서 선물용으로도 실패가 적음. 하이마트 세일 기간 잘 노려봐야지.",
+  "labels": [
+   "재테크",
+   "가전"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "네스프레소"
+   },
+   {
+    "kind": "place",
+    "value": "하이마트"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "집들이 선물",
+  "tier": "L",
+  "captured_at": "2026-06-16",
+  "occurs": "2024-11-20",
+  "dup_of": null
+ },
+ {
+  "id": "l06_006",
+  "type": "screenshot",
+  "summary": "까사미아 캄포 소파 세일 정보. 거실 인테리어 바꾸고 싶은데 가격이 좀 쎄네. 일단 찜해두고 나중에 우리집에 어울릴지 다시 보기.",
+  "labels": [
+   "가구",
+   "인테리어"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "까사미아"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "집들이 선물",
+  "tier": "L",
+  "captured_at": "2026-06-12",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l06_007",
+  "type": "link",
+  "summary": "마샬 엠버튼2 블루투스 스피커. 음질도 괜찮고 디자인이 예뻐서 집들이 가져가면 다들 좋아할 아이템임. 색상은 크림으로 픽.",
+  "labels": [
+   "선물 리스트",
+   "가전"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "마샬"
+   },
+   {
+    "kind": "product",
+    "value": "엠버튼2"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "집들이 선물",
+  "tier": "L",
+  "captured_at": "2026-05-14",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l06_008",
+  "type": "screenshot",
+  "summary": "조카 돌잔치 선물로 금수저 세트 알아봄. 금값이 요즘 너무 올라서 부담스럽지만 애기 건강 빌어주는 맘으로 준비해야겠음.",
+  "labels": [
+   "돌잔치",
+   "선물 고민"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "금수저"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "newlywed",
+  "role": "hard_neg",
+  "for_query": "집들이 선물",
+  "tier": "L",
+  "captured_at": "2026-05-31",
+  "occurs": "2024-12-05",
+  "dup_of": null
+ },
+ {
+  "id": "l06_009",
+  "type": "screenshot",
+  "summary": "엄마 생신 선물로 고민 중인 스카프. 구찌나 버버리 쪽으로 보고 있는데 패턴이 너무 화려하지 않은 게 좋을 것 같음.",
+  "labels": [
+   "생일",
+   "패션"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "구찌"
+   },
+   {
+    "kind": "brand",
+    "value": "버버리"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "newlywed",
+  "role": "hard_neg",
+  "for_query": "집들이 선물",
+  "tier": "L",
+  "captured_at": "2026-05-14",
+  "occurs": "2024-12-15",
+  "dup_of": null
+ },
+ {
+  "id": "l06_010",
+  "type": "memo",
+  "summary": "직장 동료 생일 선물 리스트 정리. 올리브영 기프트카드나 핸드크림 세트가 제일 무난한 거 같음. 너무 부담스럽지 않게 준비하기.",
+  "labels": [
+   "생일",
+   "직장"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "올리브영"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "newlywed",
+  "role": "hard_neg",
+  "for_query": "집들이 선물",
+  "tier": "L",
+  "captured_at": "2026-05-14",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l06_011",
+  "type": "link",
+  "summary": "돌잔치 답례품으로 돌릴 수건 제작 업체 리스트. 호텔급 수건으로 하면 받는 사람들도 조아할 듯. 로고 박는거 잊지말기.",
+  "labels": [
+   "돌잔치",
+   "준비"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "호텔 수건"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "newlywed",
+  "role": "hard_neg",
+  "for_query": "집들이 선물",
+  "tier": "L",
+  "captured_at": "2026-05-29",
+  "occurs": null,
+  "dup_of": null
+ }
+]

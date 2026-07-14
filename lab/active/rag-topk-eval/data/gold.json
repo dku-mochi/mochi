@@ -1,0 +1,722 @@
+[
+ {
+  "query": "성수 카페",
+  "qid": "L01",
+  "tier": "L",
+  "expected_ids": [
+   "l01_000",
+   "l01_001",
+   "l01_002",
+   "l01_003",
+   "l01_004",
+   "l01_005",
+   "l01_006",
+   "l01_007",
+   "l01_008",
+   "l01_009",
+   "l01_010",
+   "l01_011",
+   "l01_018"
+  ],
+  "single_answer": false,
+  "n_hard_neg": 6
+ },
+ {
+  "query": "제주 여행 가볼 곳",
+  "qid": "L02",
+  "tier": "L",
+  "expected_ids": [
+   "l02_000",
+   "l02_001",
+   "l02_002",
+   "l02_003",
+   "l02_004",
+   "l02_005",
+   "l02_006",
+   "l02_007",
+   "l02_008",
+   "l02_009",
+   "l02_015"
+  ],
+  "single_answer": false,
+  "n_hard_neg": 5
+ },
+ {
+  "query": "면접 준비 자료",
+  "qid": "L03",
+  "tier": "L",
+  "expected_ids": [
+   "l03_000",
+   "l03_001",
+   "l03_002",
+   "l03_003",
+   "l03_004",
+   "l03_005",
+   "l03_006",
+   "l03_007",
+   "l03_008",
+   "l03_014"
+  ],
+  "single_answer": false,
+  "n_hard_neg": 5
+ },
+ {
+  "query": "캠핑 용품",
+  "qid": "L04",
+  "tier": "L",
+  "expected_ids": [
+   "l04_000",
+   "l04_001",
+   "l04_002",
+   "l04_003",
+   "l04_004",
+   "l04_005",
+   "l04_006",
+   "l04_007"
+  ],
+  "single_answer": false,
+  "n_hard_neg": 5
+ },
+ {
+  "query": "아기 이유식",
+  "qid": "L05",
+  "tier": "L",
+  "expected_ids": [
+   "l05_000",
+   "l05_001",
+   "l05_002",
+   "l05_003",
+   "l05_004",
+   "l05_005",
+   "l05_006",
+   "l05_007",
+   "l05_008",
+   "l05_009",
+   "l05_015"
+  ],
+  "single_answer": false,
+  "n_hard_neg": 5
+ },
+ {
+  "query": "집들이 선물",
+  "qid": "L06",
+  "tier": "L",
+  "expected_ids": [
+   "l06_000",
+   "l06_001",
+   "l06_002",
+   "l06_003",
+   "l06_004",
+   "l06_005",
+   "l06_006",
+   "l06_007"
+  ],
+  "single_answer": false,
+  "n_hard_neg": 4
+ },
+ {
+  "query": "노트북 비교",
+  "qid": "L07",
+  "tier": "L",
+  "expected_ids": [
+   "l07_000",
+   "l07_001",
+   "l07_002",
+   "l07_003",
+   "l07_004",
+   "l07_005",
+   "l07_006",
+   "l07_007",
+   "l07_008",
+   "l07_014"
+  ],
+  "single_answer": false,
+  "n_hard_neg": 5
+ },
+ {
+  "query": "운동 루틴",
+  "qid": "L08",
+  "tier": "L",
+  "expected_ids": [
+   "l08_000",
+   "l08_001",
+   "l08_002",
+   "l08_003",
+   "l08_004",
+   "l08_005",
+   "l08_006",
+   "l08_007"
+  ],
+  "single_answer": false,
+  "n_hard_neg": 4
+ },
+ {
+  "query": "청약 공고",
+  "qid": "L09",
+  "tier": "L",
+  "expected_ids": [
+   "l09_000",
+   "l09_001",
+   "l09_002",
+   "l09_003",
+   "l09_004",
+   "l09_005",
+   "l09_006",
+   "l09_007",
+   "l09_012"
+  ],
+  "single_answer": false,
+  "n_hard_neg": 4
+ },
+ {
+  "query": "회사 근처 점심",
+  "qid": "L10",
+  "tier": "L",
+  "expected_ids": [
+   "l10_000",
+   "l10_001",
+   "l10_002",
+   "l10_003",
+   "l10_004",
+   "l10_005",
+   "l10_006",
+   "l10_007",
+   "l10_008",
+   "l10_009",
+   "l10_015"
+  ],
+  "single_answer": false,
+  "n_hard_neg": 5
+ },
+ {
+  "query": "영어 공부 자료",
+  "qid": "L11",
+  "tier": "L",
+  "expected_ids": [
+   "l11_000",
+   "l11_001",
+   "l11_002",
+   "l11_003",
+   "l11_004",
+   "l11_005",
+   "l11_006",
+   "l11_007",
+   "l11_008"
+  ],
+  "single_answer": false,
+  "n_hard_neg": 4
+ },
+ {
+  "query": "원피스",
+  "qid": "L12",
+  "tier": "L",
+  "expected_ids": [
+   "l12_000",
+   "l12_001",
+   "l12_002",
+   "l12_003",
+   "l12_004",
+   "l12_005",
+   "l12_006",
+   "l12_007",
+   "l12_008",
+   "l12_009",
+   "l12_015"
+  ],
+  "single_answer": false,
+  "n_hard_neg": 5
+ },
+ {
+  "query": "전시회",
+  "qid": "L13",
+  "tier": "L",
+  "expected_ids": [
+   "l13_000",
+   "l13_001",
+   "l13_002",
+   "l13_003",
+   "l13_004",
+   "l13_005",
+   "l13_006",
+   "l13_007"
+  ],
+  "single_answer": false,
+  "n_hard_neg": 4
+ },
+ {
+  "query": "부업",
+  "qid": "L14",
+  "tier": "L",
+  "expected_ids": [
+   "l14_000",
+   "l14_001",
+   "l14_002",
+   "l14_003",
+   "l14_004",
+   "l14_005",
+   "l14_006",
+   "l14_007"
+  ],
+  "single_answer": false,
+  "n_hard_neg": 4
+ },
+ {
+  "query": "강아지 용품",
+  "qid": "L15",
+  "tier": "L",
+  "expected_ids": [
+   "l15_000",
+   "l15_001",
+   "l15_002",
+   "l15_003",
+   "l15_004",
+   "l15_005",
+   "l15_006",
+   "l15_007",
+   "l15_008",
+   "l15_014"
+  ],
+  "single_answer": false,
+  "n_hard_neg": 5
+ },
+ {
+  "query": "자취 요리",
+  "qid": "L16",
+  "tier": "L",
+  "expected_ids": [
+   "l16_000",
+   "l16_001",
+   "l16_002",
+   "l16_003",
+   "l16_004",
+   "l16_005",
+   "l16_006",
+   "l16_007",
+   "l16_008",
+   "l16_009",
+   "l16_015"
+  ],
+  "single_answer": false,
+  "n_hard_neg": 5
+ },
+ {
+  "query": "다이어트 보조제",
+  "qid": "M01",
+  "tier": "M",
+  "expected_ids": [
+   "m01_000",
+   "m01_001",
+   "m01_002",
+   "m01_003"
+  ],
+  "single_answer": false,
+  "n_hard_neg": 4
+ },
+ {
+  "query": "겨울 코트",
+  "qid": "M02",
+  "tier": "M",
+  "expected_ids": [
+   "m02_000",
+   "m02_001",
+   "m02_002",
+   "m02_003",
+   "m02_004",
+   "m02_009"
+  ],
+  "single_answer": false,
+  "n_hard_neg": 4
+ },
+ {
+  "query": "동아리 엠티 장소",
+  "qid": "M03",
+  "tier": "M",
+  "expected_ids": [
+   "m03_000",
+   "m03_001",
+   "m03_002",
+   "m03_003"
+  ],
+  "single_answer": false,
+  "n_hard_neg": 4
+ },
+ {
+  "query": "포트폴리오 레퍼런스",
+  "qid": "M04",
+  "tier": "M",
+  "expected_ids": [
+   "m04_000",
+   "m04_001",
+   "m04_002",
+   "m04_003",
+   "m04_004",
+   "m04_005",
+   "m04_010"
+  ],
+  "single_answer": false,
+  "n_hard_neg": 4
+ },
+ {
+  "query": "적금 금리",
+  "qid": "M05",
+  "tier": "M",
+  "expected_ids": [
+   "m05_000",
+   "m05_001",
+   "m05_002",
+   "m05_003"
+  ],
+  "single_answer": false,
+  "n_hard_neg": 4
+ },
+ {
+  "query": "아이 예방접종",
+  "qid": "M06",
+  "tier": "M",
+  "expected_ids": [
+   "m06_000",
+   "m06_001",
+   "m06_002"
+  ],
+  "single_answer": false,
+  "n_hard_neg": 4
+ },
+ {
+  "query": "홈카페 장비",
+  "qid": "M07",
+  "tier": "M",
+  "expected_ids": [
+   "m07_000",
+   "m07_001",
+   "m07_002",
+   "m07_003",
+   "m07_004",
+   "m07_009"
+  ],
+  "single_answer": false,
+  "n_hard_neg": 4
+ },
+ {
+  "query": "블로그 글감",
+  "qid": "M08",
+  "tier": "M",
+  "expected_ids": [
+   "m08_000",
+   "m08_001",
+   "m08_002",
+   "m08_003"
+  ],
+  "single_answer": false,
+  "n_hard_neg": 3
+ },
+ {
+  "query": "명함 디자인",
+  "qid": "M09",
+  "tier": "M",
+  "expected_ids": [
+   "m09_000",
+   "m09_001",
+   "m09_002"
+  ],
+  "single_answer": false,
+  "n_hard_neg": 3
+ },
+ {
+  "query": "웨딩 스튜디오",
+  "qid": "M10",
+  "tier": "M",
+  "expected_ids": [
+   "m10_000",
+   "m10_001",
+   "m10_002",
+   "m10_003",
+   "m10_004",
+   "m10_009"
+  ],
+  "single_answer": false,
+  "n_hard_neg": 4
+ },
+ {
+  "query": "크리스마스 선물",
+  "qid": "M11",
+  "tier": "M",
+  "expected_ids": [
+   "m11_000",
+   "m11_001",
+   "m11_002",
+   "m11_003",
+   "m11_004",
+   "m11_005"
+  ],
+  "single_answer": false,
+  "n_hard_neg": 4
+ },
+ {
+  "query": "발표 템플릿",
+  "qid": "M12",
+  "tier": "M",
+  "expected_ids": [
+   "m12_000",
+   "m12_001",
+   "m12_002",
+   "m12_003"
+  ],
+  "single_answer": false,
+  "n_hard_neg": 3
+ },
+ {
+  "query": "베이킹 클래스",
+  "qid": "M13",
+  "tier": "M",
+  "expected_ids": [
+   "m13_000",
+   "m13_001",
+   "m13_002"
+  ],
+  "single_answer": false,
+  "n_hard_neg": 3
+ },
+ {
+  "query": "중고차 시세",
+  "qid": "M14",
+  "tier": "M",
+  "expected_ids": [
+   "m14_000",
+   "m14_001",
+   "m14_002",
+   "m14_003"
+  ],
+  "single_answer": false,
+  "n_hard_neg": 4
+ },
+ {
+  "query": "피부과 시술",
+  "qid": "M15",
+  "tier": "M",
+  "expected_ids": [
+   "m15_000",
+   "m15_001",
+   "m15_002",
+   "m15_003",
+   "m15_008"
+  ],
+  "single_answer": false,
+  "n_hard_neg": 4
+ },
+ {
+  "query": "책 추천",
+  "qid": "M16",
+  "tier": "M",
+  "expected_ids": [
+   "m16_000",
+   "m16_001",
+   "m16_002",
+   "m16_003",
+   "m16_004",
+   "m16_005"
+  ],
+  "single_answer": false,
+  "n_hard_neg": 4
+ },
+ {
+  "query": "일본 출장 준비물",
+  "qid": "M17",
+  "tier": "M",
+  "expected_ids": [
+   "m17_000",
+   "m17_001",
+   "m17_002",
+   "m17_003"
+  ],
+  "single_answer": false,
+  "n_hard_neg": 3
+ },
+ {
+  "query": "결혼식 축가",
+  "qid": "M18",
+  "tier": "M",
+  "expected_ids": [
+   "m18_000",
+   "m18_001",
+   "m18_002"
+  ],
+  "single_answer": false,
+  "n_hard_neg": 3
+ },
+ {
+  "query": "베란다 텃밭",
+  "qid": "M19",
+  "tier": "M",
+  "expected_ids": [
+   "m19_000",
+   "m19_001",
+   "m19_002",
+   "m19_003"
+  ],
+  "single_answer": false,
+  "n_hard_neg": 3
+ },
+ {
+  "query": "아이패드 필기 앱",
+  "qid": "M20",
+  "tier": "M",
+  "expected_ids": [
+   "m20_000",
+   "m20_001",
+   "m20_002",
+   "m20_003",
+   "m20_004",
+   "m20_009"
+  ],
+  "single_answer": false,
+  "n_hard_neg": 4
+ },
+ {
+  "query": "한강 러닝",
+  "qid": "M21",
+  "tier": "M",
+  "expected_ids": [
+   "m21_000",
+   "m21_001",
+   "m21_002",
+   "m21_003"
+  ],
+  "single_answer": false,
+  "n_hard_neg": 3
+ },
+ {
+  "query": "자격증 접수",
+  "qid": "M22",
+  "tier": "M",
+  "expected_ids": [
+   "m22_000",
+   "m22_001",
+   "m22_002",
+   "m22_003",
+   "m22_004",
+   "m22_009"
+  ],
+  "single_answer": false,
+  "n_hard_neg": 4
+ },
+ {
+  "query": "토스터 환불",
+  "qid": "S01",
+  "tier": "S",
+  "expected_ids": [
+   "s01_000"
+  ],
+  "single_answer": true,
+  "n_hard_neg": 5
+ },
+ {
+  "query": "치과 예약 변경",
+  "qid": "S02",
+  "tier": "S",
+  "expected_ids": [
+   "s02_000"
+  ],
+  "single_answer": true,
+  "n_hard_neg": 5
+ },
+ {
+  "query": "공유기 비밀번호 바꾸는 법",
+  "qid": "S03",
+  "tier": "S",
+  "expected_ids": [
+   "s03_000"
+  ],
+  "single_answer": true,
+  "n_hard_neg": 5
+ },
+ {
+  "query": "회의실 예약 링크",
+  "qid": "S04",
+  "tier": "S",
+  "expected_ids": [
+   "s04_000"
+  ],
+  "single_answer": true,
+  "n_hard_neg": 5
+ },
+ {
+  "query": "세탁기 에러코드 4C",
+  "qid": "S05",
+  "tier": "S",
+  "expected_ids": [
+   "s05_000"
+  ],
+  "single_answer": true,
+  "n_hard_neg": 5
+ },
+ {
+  "query": "맥북 M4 Pro 스펙",
+  "qid": "S06",
+  "tier": "S",
+  "expected_ids": [
+   "s06_000"
+  ],
+  "single_answer": true,
+  "n_hard_neg": 6
+ },
+ {
+  "query": "에어팟 프로3 이어팁",
+  "qid": "S07",
+  "tier": "S",
+  "expected_ids": [
+   "s07_000"
+  ],
+  "single_answer": true,
+  "n_hard_neg": 5
+ },
+ {
+  "query": "닌텐도 스위치2 예판",
+  "qid": "S08",
+  "tier": "S",
+  "expected_ids": [
+   "s08_000"
+  ],
+  "single_answer": true,
+  "n_hard_neg": 5
+ },
+ {
+  "query": "챗지피티 팀 요금제",
+  "qid": "S09",
+  "tier": "S",
+  "expected_ids": [
+   "s09_000"
+  ],
+  "single_answer": true,
+  "n_hard_neg": 5
+ },
+ {
+  "query": "글램핑 위약금",
+  "qid": "S10",
+  "tier": "S",
+  "expected_ids": [
+   "s10_000"
+  ],
+  "single_answer": true,
+  "n_hard_neg": 5
+ },
+ {
+  "query": "자소서 항목별 글자수",
+  "qid": "S11",
+  "tier": "S",
+  "expected_ids": [
+   "s11_000"
+  ],
+  "single_answer": true,
+  "n_hard_neg": 5
+ },
+ {
+  "query": "프리랜서 종소세 신고",
+  "qid": "S12",
+  "tier": "S",
+  "expected_ids": [
+   "s12_000"
+  ],
+  "single_answer": true,
+  "n_hard_neg": 5
+ }
+]

@@ -1,0 +1,235 @@
+[
+ {
+  "id": "m04_000",
+  "type": "screenshot",
+  "summary": "Framer로 제작된 미니멀한 웹사이트 레이아웃. 프로젝트 섹션의 인터렉션이 부드러워 이번 개인 브랜딩 포트폴리오 메인 페이지 구성 시 참고하려고 캡쳐함.",
+  "labels": [
+   "웹 디자인",
+   "참고 자료"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "Framer"
+   }
+  ],
+  "category": "업무",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "포트폴리오 레퍼런스",
+  "tier": "M",
+  "captured_at": "2026-03-24",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m04_001",
+  "type": "screenshot",
+  "summary": "애프터 이펙트로 작업한 모션 그래픽 샘플 모음집. 타이포그래피 애니메이션 속도가 인상적이라 나중에 영상 편집 작업할 때 참고할 예정.",
+  "labels": [
+   "모션 그래픽",
+   "레퍼런스"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "After Effects"
+   }
+  ],
+  "category": "업무",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "포트폴리오 레퍼런스",
+  "tier": "M",
+  "captured_at": "2026-04-01",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m04_002",
+  "type": "memo",
+  "summary": "베를린 기반 스튜디오의 프로젝트 페이지 구성 방식. 각 프로젝트별로 '문제-해결-결과'를 다이어그램으로 도식화한게 너무 깔끔해서 벤치마킹 필요함.",
+  "labels": [
+   "포트폴리오 구성",
+   "기획"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "Berlin"
+   }
+  ],
+  "category": "업무",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "포트폴리오 레퍼런스",
+  "tier": "M",
+  "captured_at": "2026-04-01",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m04_003",
+  "type": "link",
+  "summary": "Behance에 올라온 UI/UX 케이스 스터디. 앱 전반적인 컬러 팔레트가 세련돼서 차기 프로젝트 제안서 작업할 때 메인 컬러 레퍼런스로 활용할 계획.",
+  "labels": [
+   "UI 디자인",
+   "컬러 팔레트"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "Behance"
+   }
+  ],
+  "category": "업무",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "포트폴리오 레퍼런스",
+  "tier": "M",
+  "captured_at": "2026-03-23",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m04_004",
+  "type": "screenshot",
+  "summary": "Notion을 활용한 텍스트 기반의 아카이빙 포트폴리오. 디자인 툴 없이도 가독성 좋게 정보를 정리하는 방식이 흥미로워 저장.",
+  "labels": [
+   "아카이빙",
+   "아이디어"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "Notion"
+   }
+  ],
+  "category": "업무",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "포트폴리오 레퍼런스",
+  "tier": "M",
+  "captured_at": "2026-03-26",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m04_005",
+  "type": "screenshot",
+  "summary": "Dribbble에 있는 브랜드 아이덴티티 시스템 페이지. 로고 활용 가이드라인과 폰트 시스템을 보여주는 방식이 프로페셔널해서 나중에 작업할 때 참고할 듯.",
+  "labels": [
+   "브랜딩",
+   "작업 참고"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "Dribbble"
+   }
+  ],
+  "category": "업무",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "포트폴리오 레퍼런스",
+  "tier": "M",
+  "captured_at": "2026-03-25",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m04_006",
+  "type": "link",
+  "summary": "신입 디자이너를 위한 이력서 작성 팁. 이력서 레이아웃이랑 필수 포함 항목들이 정리되어 있는데 나중에 내꺼 업데이트 할때 봐야지.",
+  "labels": [
+   "이력서",
+   "취업 준비"
+  ],
+  "entities": [],
+  "category": "업무",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "포트폴리오 레퍼런스",
+  "tier": "M",
+  "captured_at": "2026-03-27",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m04_007",
+  "type": "memo",
+  "summary": "요즘 디자인 트렌드에 대한 긴 아티클. 브랜드가 어떻게 스토리를 담아야 하는지 이론적인 내용 위주라 나중에 시간날때 정독해야함.",
+  "labels": [
+   "브랜딩",
+   "독서"
+  ],
+  "entities": [],
+  "category": "업무",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "포트폴리오 레퍼런스",
+  "tier": "M",
+  "captured_at": "2026-03-29",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m04_008",
+  "type": "screenshot",
+  "summary": "경력직 이력서 양식 샘플. 최근에 업계에서 선호하는 간결한 스타일의 템플릿이라 나중에 포트폴리오 PDF 만들 때 구조 참고용으로 적합함.",
+  "labels": [
+   "이력서",
+   "템플릿"
+  ],
+  "entities": [],
+  "category": "업무",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "포트폴리오 레퍼런스",
+  "tier": "M",
+  "captured_at": "2026-03-30",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m04_009",
+  "type": "link",
+  "summary": "브랜딩 에이전시의 연간 회고 아티클. 브랜드 철학이랑 운영 방식에 대한 담론인데 포트폴리오 작업이랑은 결이 좀 달라서 나중에 심심할 때 읽을 것.",
+  "labels": [
+   "브랜딩",
+   "인사이트"
+  ],
+  "entities": [],
+  "category": "업무",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "포트폴리오 레퍼런스",
+  "tier": "M",
+  "captured_at": "2026-03-22",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m04_010",
+  "type": "memo",
+  "summary": "아까 본 그 Framer 사이트 레퍼런스. 인터렉션 구현이 진짜 맘에 들어서 다시 기록함. 담에 사이트 리뉴얼할때 꼭 써먹어야지.",
+  "labels": [
+   "웹 디자인",
+   "다시 확인"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "Framer"
+   }
+  ],
+  "category": "업무",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "포트폴리오 레퍼런스",
+  "tier": "M",
+  "captured_at": "2026-04-05",
+  "occurs": null,
+  "dup_of": "m04_000"
+ }
+]

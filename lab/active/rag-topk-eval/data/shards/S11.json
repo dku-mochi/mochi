@@ -1,0 +1,212 @@
+[
+ {
+  "id": "s11_000",
+  "type": "screenshot",
+  "summary": "카카오뱅크 신입 채용 공고의 자소서 항목별 글자수 제한 가이드라인 캡처. 지원서 작성 전 필수 체크 리스트로 쓰려고 저장함.",
+  "labels": [
+   "채용 정보",
+   "자소서 작성"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "카카오뱅크"
+   }
+  ],
+  "category": "취업",
+  "persona": "jobseeker",
+  "role": "answer",
+  "for_query": "자소서 항목별 글자수",
+  "tier": "S",
+  "captured_at": "2026-03-30",
+  "occurs": "2024-05-15",
+  "dup_of": null
+ },
+ {
+  "id": "s11_001",
+  "type": "screenshot",
+  "summary": "현대자동차 생산직 공채 페이지의 자소서 문항별 바이트(byte) 제한 사항. 공백 포함/제외 기준이 헷갈려서 따로 캡처해둠.",
+  "labels": [
+   "자소서 작성",
+   "공채"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "현대자동차"
+   }
+  ],
+  "category": "취업",
+  "persona": "jobseeker",
+  "role": "hard_neg",
+  "for_query": "자소서 항목별 글자수",
+  "tier": "S",
+  "captured_at": "2026-04-04",
+  "occurs": "2024-05-20",
+  "dup_of": null
+ },
+ {
+  "id": "s11_002",
+  "type": "screenshot",
+  "summary": "사람인 플랫폼에서 제공하는 자소서 글자수 계산기 툴 화면. 이거 쓰면 미리 작성해서 검토하기 편할 것 같아서 저장함.",
+  "labels": [
+   "도구",
+   "작성 팁"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "사람인"
+   }
+  ],
+  "category": "취업",
+  "persona": "jobseeker",
+  "role": "hard_neg",
+  "for_query": "자소서 항목별 글자수",
+  "tier": "S",
+  "captured_at": "2026-04-08",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s11_003",
+  "type": "screenshot",
+  "summary": "삼성전자 직무수행계획서 작성 가이드 캡처. 항목별 글자수 제한은 없지만 가독성 맞추는 팁이 정리되어 있어서 나중에 참고할 예정.",
+  "labels": [
+   "자소서 작성",
+   "직무 역량"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "삼성전자"
+   }
+  ],
+  "category": "취업",
+  "persona": "jobseeker",
+  "role": "hard_neg",
+  "for_query": "자소서 항목별 글자수",
+  "tier": "S",
+  "captured_at": "2026-05-03",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s11_004",
+  "type": "screenshot",
+  "summary": "취업 커뮤니티에서 본 자소서 항목별 소제목 달기 꿀팁. 글자수 제한에 걸릴 때 핵심 키워드만 남기는 노하우가 좋아서 저장.",
+  "labels": [
+   "작성 팁",
+   "자기계발"
+  ],
+  "entities": [],
+  "category": "취업",
+  "persona": "jobseeker",
+  "role": "hard_neg",
+  "for_query": "자소서 항목별 글자수",
+  "tier": "S",
+  "captured_at": "2026-04-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s11_005",
+  "type": "screenshot",
+  "summary": "스터디 카페에서 확인한 대기업 자소서 문항별 글자수 표. 각 기업마다 제한이 달라서 헷갈렸는데 표로 잘 정리된 거 같아서 캡처.",
+  "labels": [
+   "작성 팁",
+   "취업 자료"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "스터디카페"
+   }
+  ],
+  "category": "취업",
+  "persona": "jobseeker",
+  "role": "hard_neg",
+  "for_query": "자소서 항목별 글자수",
+  "tier": "S",
+  "captured_at": "2026-05-09",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s11_006",
+  "type": "link",
+  "summary": "금융권 취업 준비생들을 위한 자소서 작성법 블로그 포스팅. 지원하려는 회사들 자소서 항목별 글자수 제한 정리해둔거 보고 도움 많이 됨.",
+  "labels": [
+   "금융권",
+   "취업 팁"
+  ],
+  "entities": [],
+  "category": "취업",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": "자소서 항목별 글자수",
+  "tier": "S",
+  "captured_at": "2026-04-26",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s11_007",
+  "type": "link",
+  "summary": "공기업 NCS 기반 자기소개서 글자수 제한 사항 업데이트 안내. 공고 올라오면 매번 확인하기 번거로워서 즐겨찾기 해둠.",
+  "labels": [
+   "공기업",
+   "정보 수집"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "NCS"
+   }
+  ],
+  "category": "취업",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": "자소서 항목별 글자수",
+  "tier": "S",
+  "captured_at": "2026-04-12",
+  "occurs": "2024-06-01",
+  "dup_of": null
+ },
+ {
+  "id": "s11_008",
+  "type": "memo",
+  "summary": "다음주 면접 볼 회사들 자소서 항목별 글자수 제한 다시 확인하기. 너무 뺵빽하게 채우지 말고 가독성 신경쓰자! 오타 확인 필수.",
+  "labels": [
+   "일정",
+   "할 일"
+  ],
+  "entities": [],
+  "category": "취업",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": "자소서 항목별 글자수",
+  "tier": "S",
+  "captured_at": "2026-05-12",
+  "occurs": "2024-05-30",
+  "dup_of": null
+ },
+ {
+  "id": "s11_009",
+  "type": "memo",
+  "summary": "자소서 쓸 때 글자수 제한 때문에 애먹는 중. 문장 쭐이는거 너무 어렵다... 담주까진 무조건 다 끝내야지.",
+  "labels": [
+   "일기",
+   "마음가짐"
+  ],
+  "entities": [],
+  "category": "취업",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": "자소서 항목별 글자수",
+  "tier": "S",
+  "captured_at": "2026-04-10",
+  "occurs": null,
+  "dup_of": null
+ }
+]

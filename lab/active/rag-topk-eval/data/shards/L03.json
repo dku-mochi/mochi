@@ -1,0 +1,332 @@
+[
+ {
+  "id": "l03_000",
+  "type": "screenshot",
+  "summary": "삼성전자 신입 공채 면접 후기 모음집 캡처. 직무 면접에서 전공 질문 비중이 높다는 내용을 확인하고 리마인드용으로 저장.",
+  "labels": [
+   "면접준비",
+   "삼성전자"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "삼성전자"
+   }
+  ],
+  "category": "취업",
+  "persona": "jobseeker",
+  "role": "answer",
+  "for_query": "면접 준비 자료",
+  "tier": "L",
+  "captured_at": "2026-03-18",
+  "occurs": "2024-05-12",
+  "dup_of": null
+ },
+ {
+  "id": "l03_001",
+  "type": "screenshot",
+  "summary": "카카오 기술 면접 빈출 CS 질문 리스트. 운영체제랑 네트워크 기본기를 복습하려고 저장해둠. 꼼꼼히 정리해서 외워야지.",
+  "labels": [
+   "면접준비",
+   "CS공부"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "카카오"
+   }
+  ],
+  "category": "취업",
+  "persona": "jobseeker",
+  "role": "answer",
+  "for_query": "면접 준비 자료",
+  "tier": "L",
+  "captured_at": "2026-02-19",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l03_002",
+  "type": "link",
+  "summary": "유튜브 '면접왕이형' 영상. 1분 자기소개 할 때 지원동기랑 성격 장단점을 매끄럽게 연결하는 구조가 핵심이라 공유함.",
+  "labels": [
+   "면접준비",
+   "꿀팁"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "유튜브"
+   }
+  ],
+  "category": "취업",
+  "persona": "jobseeker",
+  "role": "answer",
+  "for_query": "면접 준비 자료",
+  "tier": "L",
+  "captured_at": "2026-02-23",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l03_003",
+  "type": "screenshot",
+  "summary": "네이버 신입 채용 면접 기출 질문지. 인성 면접에서 갈등 해결 경험을 구체적으로 물어본다는데, 내 경험이랑 매칭 시켜봐야 함.",
+  "labels": [
+   "면접준비",
+   "네이버"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "네이버"
+   }
+  ],
+  "category": "취업",
+  "persona": "jobseeker",
+  "role": "answer",
+  "for_query": "면접 준비 자료",
+  "tier": "L",
+  "captured_at": "2026-03-31",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l03_004",
+  "type": "memo",
+  "summary": "쿠팡 물류기획팀 면접 대비. 데이터 분석 툴 활용 능력 강조할 것. SQL 기초 문법이랑 파이썬 라이브러리 사용 경험 정리하기.",
+  "labels": [
+   "면접준비",
+   "쿠팡"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "쿠팡"
+   }
+  ],
+  "category": "취업",
+  "persona": "jobseeker",
+  "role": "answer",
+  "for_query": "면접 준비 자료",
+  "tier": "L",
+  "captured_at": "2026-03-24",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l03_005",
+  "type": "screenshot",
+  "summary": "현대자동차 모빌리티 직무 면접 질문. 자동차 산업 트렌드랑 전기차 충전 인프라 관련 질문이 많아서 뉴스 스크랩 필수.",
+  "labels": [
+   "면접준비",
+   "현대차"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "현대자동차"
+   }
+  ],
+  "category": "취업",
+  "persona": "jobseeker",
+  "role": "answer",
+  "for_query": "면접 준비 자료",
+  "tier": "L",
+  "captured_at": "2026-03-31",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l03_006",
+  "type": "link",
+  "summary": "토스(Toss) 인터뷰 가이드. 문화 적합성을 중요하게 본다고 해서 토스 피드랑 블로그 아티클 쭉 읽어보고 저장함.",
+  "labels": [
+   "면접준비",
+   "기업문화"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "토스"
+   }
+  ],
+  "category": "취업",
+  "persona": "jobseeker",
+  "role": "answer",
+  "for_query": "면접 준비 자료",
+  "tier": "L",
+  "captured_at": "2026-03-16",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l03_007",
+  "type": "screenshot",
+  "summary": "아모레퍼시픽 마케팅 직무 면접 준비 체크리스트. SNS 채널 운영 경험이랑 뷰티 트렌드 분석 내용이 잘 정리되어 있어서 캡처.",
+  "labels": [
+   "면접준비",
+   "아모레퍼시픽"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "아모레퍼시픽"
+   }
+  ],
+  "category": "취업",
+  "persona": "jobseeker",
+  "role": "answer",
+  "for_query": "면접 준비 자료",
+  "tier": "L",
+  "captured_at": "2026-02-20",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l03_008",
+  "type": "memo",
+  "summary": "CJ올리브영 MD 면접 대비. 최근 올영세일 프로모션 기획안 본 것들 생각하면서 나만의 개선 아이디어 3가지 정도 준비하기.",
+  "labels": [
+   "면접준비",
+   "올리브영"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "CJ올리브영"
+   }
+  ],
+  "category": "취업",
+  "persona": "jobseeker",
+  "role": "answer",
+  "for_query": "면접 준비 자료",
+  "tier": "L",
+  "captured_at": "2026-03-21",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l03_009",
+  "type": "screenshot",
+  "summary": "자소서 항목별 글자수 제한 체크표. 문항이 너무 많아서 소제목 다는 것만 3시간 걸림. 오타 없는지 나중에 다시 확인하자.",
+  "labels": [
+   "자소서",
+   "채용준비"
+  ],
+  "entities": [],
+  "category": "취업",
+  "persona": "jobseeker",
+  "role": "hard_neg",
+  "for_query": "면접 준비 자료",
+  "tier": "L",
+  "captured_at": "2026-02-19",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l03_010",
+  "type": "memo",
+  "summary": "SKCT 인적성 검사 수리 영역 풀이법. 도표 해석이랑 자료 분석이 너무 어렵다. 인강 보면서 2배속으로 스킵해가며 정리함.",
+  "labels": [
+   "인적성",
+   "SKCT"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "SK"
+   }
+  ],
+  "category": "취업",
+  "persona": "jobseeker",
+  "role": "hard_neg",
+  "for_query": "면접 준비 자료",
+  "tier": "L",
+  "captured_at": "2026-03-11",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l03_011",
+  "type": "screenshot",
+  "summary": "공기업 NCS 의사소통 능력 예제 50선. 언어 추론 파트가 약해서 매일 5문제씩 풀기로 계획 세움. 다 풀면 체크해야지.",
+  "labels": [
+   "NCS",
+   "공기업"
+  ],
+  "entities": [],
+  "category": "취업",
+  "persona": "jobseeker",
+  "role": "hard_neg",
+  "for_query": "면접 준비 자료",
+  "tier": "L",
+  "captured_at": "2026-03-26",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l03_012",
+  "type": "link",
+  "summary": "자소서 첨삭 서비스 추천 리스트. 크몽에서 평점 높은 에디터들 찾아놨는데, 이번 주말에 포트폴리오랑 같이 의뢰해 볼 예정.",
+  "labels": [
+   "자소서",
+   "첨삭"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "크몽"
+   }
+  ],
+  "category": "취업",
+  "persona": "jobseeker",
+  "role": "hard_neg",
+  "for_query": "면접 준비 자료",
+  "tier": "L",
+  "captured_at": "2026-03-22",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l03_013",
+  "type": "screenshot",
+  "summary": "인적성 검사 최신 트렌드 요약. 요즘 대기업들은 AI 역량검사를 도입하는 추세라는데 카메라 보고 말하는 연습을 좀 해야 할 듯.",
+  "labels": [
+   "인적성",
+   "AI면접"
+  ],
+  "entities": [],
+  "category": "취업",
+  "persona": "jobseeker",
+  "role": "hard_neg",
+  "for_query": "면접 준비 자료",
+  "tier": "L",
+  "captured_at": "2026-03-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l03_014",
+  "type": "memo",
+  "summary": "예전에 캡쳐해둔 삼성전자 면접 정보 다시 꺼내봄. 전공 지식 관련해서 질문 들어오면 대답할 거 정리한 것들 다시 보니 보충할 내용이 보이네.",
+  "labels": [
+   "면접준비",
+   "삼성전자"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "삼성전자"
+   }
+  ],
+  "category": "취업",
+  "persona": "jobseeker",
+  "role": "answer",
+  "for_query": "면접 준비 자료",
+  "tier": "L",
+  "captured_at": "2026-04-06",
+  "occurs": null,
+  "dup_of": "l03_000"
+ }
+]

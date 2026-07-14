@@ -1,0 +1,652 @@
+[
+ {
+  "id": "f17_000",
+  "type": "screenshot",
+  "summary": "인스타그램에서 본 강남 요가 스튜디오의 1:1 개인 레슨 시간표 캡처. 퇴근 후 주 2회 운동 루틴을 만들기 위해 저장함.",
+  "labels": [
+   "운동",
+   "자기계발"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "강남 요가"
+   },
+   {
+    "kind": "platform",
+    "value": "인스타그램"
+   }
+  ],
+  "category": "운동 클래스·문화생활",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-03",
+  "occurs": "2023-11-15",
+  "dup_of": null
+ },
+ {
+  "id": "f17_001",
+  "type": "screenshot",
+  "summary": "이번 주말 잠실 롯데월드몰 팝업 스토어 오픈 안내 페이지. 요즘 핫한 브랜드라 구경 갈 겸 트렌드 체크하려고 저장.",
+  "labels": [
+   "문화생활",
+   "트렌드"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "잠실 롯데월드몰"
+   },
+   {
+    "kind": "brand",
+    "value": "팝업스토어"
+   }
+  ],
+  "category": "운동 클래스·문화생활",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-23",
+  "occurs": "2023-11-18",
+  "dup_of": null
+ },
+ {
+  "id": "f17_002",
+  "type": "link",
+  "summary": "유튜브에 올라온 30분 홈트레이닝 영상. 헬스장 가기 귀찮은 날 집에서 따라 할 용도로 북마크.",
+  "labels": [
+   "운동",
+   "홈트"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "유튜브"
+   }
+  ],
+  "category": "운동 클래스·문화생활",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-07",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f17_003",
+  "type": "memo",
+  "summary": "필라테스 등록 고민 중. 3개월 30회권이 55만원이면 꽤 합리적인 듯? 다음주 방문상담 예약 잊지말기.",
+  "labels": [
+   "운동",
+   "구매고민"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "필라테스"
+   },
+   {
+    "kind": "date",
+    "value": "다음주"
+   }
+  ],
+  "category": "운동 클래스·문화생활",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-14",
+  "occurs": "2023-11-20",
+  "dup_of": null
+ },
+ {
+  "id": "f17_004",
+  "type": "screenshot",
+  "summary": "최근 읽기 시작한 '원씽' 독서 기록 캡처. 책 내용 중 좋았던 문장을 따로 메모해둠.",
+  "labels": [
+   "독서",
+   "성장"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "원씽"
+   }
+  ],
+  "category": "운동 클래스·문화생활",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-03-25",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f17_005",
+  "type": "screenshot",
+  "summary": "아이패드 프로 M2 모델 스펙 비교 페이지. 업무용으로 쓸지 고민되서 저장함. 사고싶다ㅠㅠ",
+  "labels": [
+   "구매고민",
+   "업무장비"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "iPad Pro M2"
+   }
+  ],
+  "category": "운동 클래스·문화생활",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-03-18",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f17_006",
+  "type": "screenshot",
+  "summary": "이번 출장 때 방문할 성수동 카페 리스트. 클라이언트 미팅 끝나고 가볼만한 감성 카페들.",
+  "labels": [
+   "출장",
+   "카페투어"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "성수동"
+   }
+  ],
+  "category": "운동 클래스·문화생활",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-07",
+  "occurs": "2023-11-25",
+  "dup_of": null
+ },
+ {
+  "id": "f17_007",
+  "type": "link",
+  "summary": "넷플릭스 신작 영화 예고편. 주말에 푹 쉬면서 볼 예정인데 평점도 괜찮은 듯.",
+  "labels": [
+   "문화생활",
+   "영화"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "넷플릭스"
+   }
+  ],
+  "category": "운동 클래스·문화생활",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-03",
+  "occurs": "2023-11-26",
+  "dup_of": null
+ },
+ {
+  "id": "f17_008",
+  "type": "memo",
+  "summary": "점심 외식 리스트 정리: 회사 근처 샐러드 맛집이랑 마라탕집. 담주 월요일은 샐러드 ㄱㄱ",
+  "labels": [
+   "외식",
+   "맛집"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "샐러드집"
+   }
+  ],
+  "category": "운동 클래스·문화생활",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-16",
+  "occurs": "2023-11-27",
+  "dup_of": null
+ },
+ {
+  "id": "f17_009",
+  "type": "screenshot",
+  "summary": "지그재그에서 본 겨울용 니트 세일 중. 컬러가 너무 이뻐서 장바구니에 담아둠.",
+  "labels": [
+   "쇼핑"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "지그재그"
+   }
+  ],
+  "category": "운동 클래스·문화생활",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f17_010",
+  "type": "screenshot",
+  "summary": "사내 워크샵 장소로 추천받은 가평 펜션 사진. 시설 깔끔하고 미팅룸도 있어서 괜찮아 보임.",
+  "labels": [
+   "업무",
+   "워크샵"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "가평"
+   }
+  ],
+  "category": "운동 클래스·문화생활",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-21",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f17_011",
+  "type": "screenshot",
+  "summary": "테니스 클럽 정기 모임 안내문. 레벨업을 위해 레슨을 더 들어야 할지 고민중.",
+  "labels": [
+   "운동",
+   "취미"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "테니스"
+   }
+  ],
+  "category": "운동 클래스·문화생활",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-18",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f17_012",
+  "type": "screenshot",
+  "summary": "무신사 스탠다드 블랙프라이데이 할인 목록. 셔츠랑 슬랙스 몇 개 장만해야겠다.",
+  "labels": [
+   "쇼핑",
+   "세일"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "무신사 스탠다드"
+   }
+  ],
+  "category": "운동 클래스·문화생활",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-03-03",
+  "occurs": "2023-11-30",
+  "dup_of": null
+ },
+ {
+  "id": "f17_013",
+  "type": "screenshot",
+  "summary": "오늘의 점심 메뉴 캡처. 김치찌게(오타)집인데 너무 맛있어서 다음에 또 가려고 기록.",
+  "labels": [
+   "맛집",
+   "외식"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "김치찌개집"
+   }
+  ],
+  "category": "운동 클래스·문화생활",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-09",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f17_014",
+  "type": "memo",
+  "summary": "이번 달 마케팅 성과 리뷰 준비. KPI 지표들 정리할 것. 데이터 덤프 따두기.",
+  "labels": [
+   "업무",
+   "마케팅"
+  ],
+  "entities": [],
+  "category": "운동 클래스·문화생활",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-03",
+  "occurs": "2023-12-01",
+  "dup_of": null
+ },
+ {
+  "id": "f17_015",
+  "type": "screenshot",
+  "summary": "요즘 유행하는 러닝 크루 모집글. 주 1회 아침 러닝 시작해보고 싶어서 저장함.",
+  "labels": [
+   "운동",
+   "자기관리"
+  ],
+  "entities": [],
+  "category": "운동 클래스·문화생활",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-03-25",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f17_016",
+  "type": "screenshot",
+  "summary": "서울 전시회 일정 리스트. 이번 주말에 혼자 조용히 다녀올 만한 곳 체크.",
+  "labels": [
+   "문화생활",
+   "전시회"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "서울"
+   }
+  ],
+  "category": "운동 클래스·문화생활",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-13",
+  "occurs": "2023-12-02",
+  "dup_of": null
+ },
+ {
+  "id": "f17_017",
+  "type": "screenshot",
+  "summary": "비행기 티켓 예매 사이트. 내년 초 제주도 출장 겸 휴가 계획 세우는 중.",
+  "labels": [
+   "여행",
+   "출장"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "제주도"
+   }
+  ],
+  "category": "운동 클래스·문화생활",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-24",
+  "occurs": "2024-01-10",
+  "dup_of": null
+ },
+ {
+  "id": "f17_018",
+  "type": "screenshot",
+  "summary": "애플워치 울트라 스트랩 스타일링 캡처. 운동할 때 차기 좋은 밴드 조합 찾기.",
+  "labels": [
+   "운동",
+   "패션"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "Apple Watch Ultra"
+   }
+  ],
+  "category": "운동 클래스·문화생활",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-02-09",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f17_019",
+  "type": "screenshot",
+  "summary": "오늘 마신 스페셜티 커피 정보. 맛이 독특해서 메모해두고 나중에 또 마시러 가려고.",
+  "labels": [
+   "커피",
+   "카페"
+  ],
+  "entities": [],
+  "category": "운동 클래스·문화생활",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f17_020",
+  "type": "screenshot",
+  "summary": "디자인 레퍼런스 모음. 이번 광고 기획안 제작할 때 참고하려고 캡처한 이미지.",
+  "labels": [
+   "업무",
+   "디자인"
+  ],
+  "entities": [],
+  "category": "운동 클래스·문화생활",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-10",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f17_021",
+  "type": "screenshot",
+  "summary": "집 앞 마라탕 맛집 메뉴판. 담엔 2단계로 시켜야겠다 맵기 조절 필수.",
+  "labels": [
+   "외식",
+   "맛집"
+  ],
+  "entities": [],
+  "category": "운동 클래스·문화생활",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-02",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f17_022",
+  "type": "screenshot",
+  "summary": "새로 오픈한 요가복 브랜드 인스타 광고. 레깅스 질이 좋아보여서 관심 있음.",
+  "labels": [
+   "쇼핑",
+   "운동"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "요가복 브랜드"
+   }
+  ],
+  "category": "운동 클래스·문화생활",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-12",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f17_023",
+  "type": "screenshot",
+  "summary": "야구 경기 관람 정보. 담주 금요일 저녁 직관 갈까 고민 중.",
+  "labels": [
+   "문화생활",
+   "스포츠"
+  ],
+  "entities": [],
+  "category": "운동 클래스·문화생활",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-30",
+  "occurs": "2023-12-08",
+  "dup_of": null
+ },
+ {
+  "id": "f17_024",
+  "type": "screenshot",
+  "summary": "오늘의 업무 할일 목록(Todo). 회의 3개랑 리포트 마감까지 빡빡하다.",
+  "labels": [
+   "업무"
+  ],
+  "entities": [],
+  "category": "운동 클래스·문화생활",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-18",
+  "occurs": "2023-12-05",
+  "dup_of": null
+ },
+ {
+  "id": "f17_025",
+  "type": "screenshot",
+  "summary": "강남역 근처 분위기 좋은 와인바. 팀 회식 장소로 건의해볼까?",
+  "labels": [
+   "외식",
+   "회식"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "강남역"
+   }
+  ],
+  "category": "운동 클래스·문화생활",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-30",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f17_026",
+  "type": "screenshot",
+  "summary": "다이어트 도시락 밀프렙 구성 사진. 영양 성분 비율이 좋아서 나도 따라해보려고 저장.",
+  "labels": [
+   "운동",
+   "식단"
+  ],
+  "entities": [],
+  "category": "운동 클래스·문화생활",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f17_027",
+  "type": "screenshot",
+  "summary": "부산 출장 시 묵을 숙소 리스트. 출장비 예산 내에서 가성비 최고인 호텔들.",
+  "labels": [
+   "출장",
+   "숙소"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "부산"
+   }
+  ],
+  "category": "운동 클래스·문화생활",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-06",
+  "occurs": "2023-12-15",
+  "dup_of": null
+ },
+ {
+  "id": "f17_028",
+  "type": "screenshot",
+  "summary": "영화제 티켓팅 안내 정보. 예매 성공 기원! 연차 쓰고 다녀와야지.",
+  "labels": [
+   "문화생활",
+   "영화제"
+  ],
+  "entities": [],
+  "category": "운동 클래스·문화생활",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-16",
+  "occurs": "2023-12-20",
+  "dup_of": null
+ },
+ {
+  "id": "f17_029",
+  "type": "memo",
+  "summary": "연말 파티 컨셉 아이디어: 드레스코드 블랙 & 골드. 장소 대관 알아볼것.",
+  "labels": [
+   "문화생활",
+   "파티"
+  ],
+  "entities": [],
+  "category": "운동 클래스·문화생활",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-01",
+  "occurs": "2023-12-24",
+  "dup_of": null
+ }
+]

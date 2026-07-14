@@ -1,0 +1,278 @@
+[
+ {
+  "id": "l14_000",
+  "type": "screenshot",
+  "summary": "숨고에서 제공하는 퍼포먼스 마케팅 레슨 커리큘럼 캡처. 퇴근 후 주말을 활용해 광고 집행 노하우를 과외로 가르쳐보려고 찜해둠.",
+  "labels": [
+   "수익화",
+   "재능마켓"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "숨고"
+   }
+  ],
+  "category": "재테크",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "부업",
+  "tier": "L",
+  "captured_at": "2026-03-22",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l14_001",
+  "type": "link",
+  "summary": "크몽에 전자책 판매를 위한 가이드라인. 마케터 실무 꿀팁을 PDF로 정리해서 패시브 인컴을 만들어보자는 생각에 저장함.",
+  "labels": [
+   "부수입",
+   "콘텐츠제작"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "크몽"
+   }
+  ],
+  "category": "재테크",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "부업",
+  "tier": "L",
+  "captured_at": "2026-03-19",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l14_002",
+  "type": "memo",
+  "summary": "스마트스토어 위탁판매 리스트 정리. 동대문 도매 사이트에서 사입할 아이템 리스트업. 마케팅 경험 살려서 상세페이지 직접 깎아보자.",
+  "labels": [
+   "스마트스토어",
+   "창업"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "스마트스토어"
+   }
+  ],
+  "category": "재테크",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "부업",
+  "tier": "L",
+  "captured_at": "2026-02-27",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l14_003",
+  "type": "screenshot",
+  "summary": "우버이츠와 쿠팡이츠 배달 파트너 모집 공고 캡처. 주말에 서울 시내 자전거로 배달알바하면 운동도 되고 쏠쏠할 것 같아서 저장함.",
+  "labels": [
+   "알바",
+   "운동"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "쿠팡이츠"
+   }
+  ],
+  "category": "재테크",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "부업",
+  "tier": "L",
+  "captured_at": "2026-01-26",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l14_004",
+  "type": "screenshot",
+  "summary": "에어비앤비 호스트 모집 안내문. 본가 방 하나 비는데 이걸로 세컨 인컴 만들어볼까 고민중. 뷰가 좋아서 게스트 하우스로 딱일듯.",
+  "labels": [
+   "공유경제",
+   "세컨하우스"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "Airbnb"
+   }
+  ],
+  "category": "재테크",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "부업",
+  "tier": "L",
+  "captured_at": "2026-01-29",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l14_005",
+  "type": "screenshot",
+  "summary": "탈잉에서 모집하는 SNS 마케팅 온라인 튜터 채용 공고. 직장인 투잡으로 괜찮을거 같아서 일단 킵해둠. 포폴 업뎃해서 지원해봐야지.",
+  "labels": [
+   "강의",
+   "투잡"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "탈잉"
+   }
+  ],
+  "category": "재테크",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "부업",
+  "tier": "L",
+  "captured_at": "2026-02-03",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l14_006",
+  "type": "screenshot",
+  "summary": "블로그 체험단 모집 사이트 리스트. 맛집 방문하고 포스팅해주면 식비 아낄 수 있어서 저장. 마케터 실력 발휘해서 상위노출 노려봐야지.",
+  "labels": [
+   "체험단",
+   "절약"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "블로그"
+   }
+  ],
+  "category": "재테크",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "부업",
+  "tier": "L",
+  "captured_at": "2026-03-03",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l14_007",
+  "type": "memo",
+  "summary": "유튜브 쇼츠 편집 알바 구인글. 프리미어프로 다룰 줄 아니까 저녁에 영상 편집 1~2개씩 해주면 월 30은 더 벌듯. 꿀알바 찾아보자.",
+  "labels": [
+   "영상편집",
+   "프리랜서"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "유튜브"
+   }
+  ],
+  "category": "재테크",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "부업",
+  "tier": "L",
+  "captured_at": "2026-02-11",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l14_008",
+  "type": "screenshot",
+  "summary": "삼성전자 주식 분할 매수 전략 캡처. 매달 월급의 10%는 무조건 적립식으로 사모으는 중. 주식 수익률 관리가 필요해 저장함.",
+  "labels": [
+   "재테크",
+   "주식"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "삼성전자"
+   }
+  ],
+  "category": "재테크",
+  "persona": "marketer",
+  "role": "hard_neg",
+  "for_query": "부업",
+  "tier": "L",
+  "captured_at": "2026-01-27",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l14_009",
+  "type": "link",
+  "summary": "비트코인 반감기 관련 뉴스 기사. 코인 투자 비중을 좀 늘려볼까 고민중인데 공부가 더 필요할 듯. 차트분석 공부해야겠음.",
+  "labels": [
+   "가상화폐",
+   "투자"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "비트코인"
+   }
+  ],
+  "category": "재테크",
+  "persona": "marketer",
+  "role": "hard_neg",
+  "for_query": "부업",
+  "tier": "L",
+  "captured_at": "2026-03-21",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l14_010",
+  "type": "memo",
+  "summary": "미국 ETF 배당주 포트폴리오 리스트. 배당금 재투자해서 스노우볼 굴리는게 목표. 5년 뒤 은퇴 자금 모으기 프로젝트.",
+  "labels": [
+   "미국주식",
+   "은퇴준비"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "ETF"
+   }
+  ],
+  "category": "재테크",
+  "persona": "marketer",
+  "role": "hard_neg",
+  "for_query": "부업",
+  "tier": "L",
+  "captured_at": "2026-02-28",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l14_011",
+  "type": "screenshot",
+  "summary": "부동산 경매 사이트 검색 화면. 이번 달 경매 물건 중 괜찮은 빌라가 있는지 확인중. 임장가서 집 상태 꼼꼼히 체크해봐야겠다.",
+  "labels": [
+   "부동산",
+   "경매"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "지지옥션"
+   }
+  ],
+  "category": "재테크",
+  "persona": "marketer",
+  "role": "hard_neg",
+  "for_query": "부업",
+  "tier": "L",
+  "captured_at": "2026-03-17",
+  "occurs": "2024-11-20",
+  "dup_of": null
+ }
+]

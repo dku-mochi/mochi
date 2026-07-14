@@ -1,0 +1,337 @@
+[
+ {
+  "id": "l05_000",
+  "type": "screenshot",
+  "summary": "초기 이유식 준비물 리스트. 베이비무브 쿡마스터기랑 릴리팟 냄비 등 필수템 정리된 캡쳐. 구성품 꼼꼼히 체크해서 당근할지 새거 살지 정해야 함.",
+  "labels": [
+   "준비물",
+   "구매 고민"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "베이비무브 쿡마스터기"
+   },
+   {
+    "kind": "product",
+    "value": "릴리팟 냄비"
+   }
+  ],
+  "category": "육아",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "아기 이유식",
+  "tier": "L",
+  "captured_at": "2026-05-18",
+  "occurs": "2023-11-15",
+  "dup_of": null
+ },
+ {
+  "id": "l05_001",
+  "type": "link",
+  "summary": "쌀미음부터 시작하는 6개월 아기 이유식 식단표. 영양가 고려해서 잡곡 섞는 시기까지 상세히 나와있어서 북마크함.",
+  "labels": [
+   "정보 수집"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "맘카페"
+   }
+  ],
+  "category": "육아",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "아기 이유식",
+  "tier": "L",
+  "captured_at": "2026-05-05",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l05_002",
+  "type": "screenshot",
+  "summary": "우리아기 첫 턱받이로 좋은 베이비뵨 소프트 턱받이 후기. 세척 편하고 목둘레 조절 잘 된다길래 위시리스트에 저장.",
+  "labels": [
+   "육아템",
+   "구매 희망"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "베이비뵨"
+   }
+  ],
+  "category": "육아",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "아기 이유식",
+  "tier": "L",
+  "captured_at": "2026-06-07",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l05_003",
+  "type": "screenshot",
+  "summary": "닥터브라운 실리콘 스파우트컵. 빨대컵 연습용으로 좋다는데 디자인도 깔끔해서 맘에 듬. 다음주 쿠팡 세일때 사야지.",
+  "labels": [
+   "육아템"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "닥터브라운"
+   }
+  ],
+  "category": "육아",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "아기 이유식",
+  "tier": "L",
+  "captured_at": "2026-05-09",
+  "occurs": "2023-11-20",
+  "dup_of": null
+ },
+ {
+  "id": "l05_004",
+  "type": "memo",
+  "summary": "푸드케어 이유식 배달 정기배송 시작하기. 초기 1단계 2팩씩 오는거 신청해야 함. 직접 만들기 힘들 때 비상용으로 필수.",
+  "labels": [
+   "배달 서비스"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "푸드케어"
+   }
+  ],
+  "category": "육아",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "아기 이유식",
+  "tier": "L",
+  "captured_at": "2026-05-28",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l05_005",
+  "type": "screenshot",
+  "summary": "글라스락 베이비 눈금 이유식 용기 210ml. 냉동실 사용도 가능하고 뚜껑 밀폐력 좋아서 맘카페 추천글 캡쳐해둠.",
+  "labels": [
+   "보관 용기"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "글라스락"
+   }
+  ],
+  "category": "육아",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "아기 이유식",
+  "tier": "L",
+  "captured_at": "2026-06-10",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l05_006",
+  "type": "screenshot",
+  "summary": "오쿠 이유식 마스터기 조리법. 버튼 하나로 쪄지고 갈아져서 엄청 편해보임. 가격대 좀 있지만 삶의 질 수직상승템 인정.",
+  "labels": [
+   "가전",
+   "위시리스트"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "오쿠"
+   }
+  ],
+  "category": "육아",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "아기 이유식",
+  "tier": "L",
+  "captured_at": "2026-05-08",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l05_007",
+  "type": "link",
+  "summary": "중기 이유식 소고기 큐브 만드는 법. 핏물 빼는 시간이랑 익히는 시간 자세히 설명됨. 주말에 남편이랑 같이 대량 생산 하기.",
+  "labels": [
+   "레시피"
+  ],
+  "entities": [],
+  "category": "육아",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "아기 이유식",
+  "tier": "L",
+  "captured_at": "2026-05-23",
+  "occurs": "2023-11-25",
+  "dup_of": null
+ },
+ {
+  "id": "l05_008",
+  "type": "screenshot",
+  "summary": "얌얌밀 이유식 카페 메뉴판. 나중에 아기 데리고 외출할 때 여기서 시판꺼 사먹여도 될 것 같아서 위치랑 메뉴 캡쳐함.",
+  "labels": [
+   "외식",
+   "나들이"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "얌얌밀"
+   }
+  ],
+  "category": "육아",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "아기 이유식",
+  "tier": "L",
+  "captured_at": "2026-05-11",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l05_009",
+  "type": "memo",
+  "summary": "브라운 믹서기 써서 야채 다지기 해봄. 입자가 너무 굵어서 담엔 더 곱게 갈아야 할듯. 초기이유식 입자감 조절 팁 찾아보기.",
+  "labels": [
+   "엄마의 기록"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "브라운"
+   }
+  ],
+  "category": "육아",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "아기 이유식",
+  "tier": "L",
+  "captured_at": "2026-05-28",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l05_010",
+  "type": "screenshot",
+  "summary": "초록마을 유기농 쌀가루. 이유식 만들 때 이거 쓰면 편하다는데 가까운 매장 재고 확인해봐야겠다.",
+  "labels": [
+   "식재료"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "초록마을"
+   }
+  ],
+  "category": "육아",
+  "persona": "parent",
+  "role": "hard_neg",
+  "for_query": "아기 이유식",
+  "tier": "L",
+  "captured_at": "2026-05-03",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l05_011",
+  "type": "link",
+  "summary": "다이어트용 닭가슴살 야채 볶음 레시피. 저녁으로 가볍게 먹기 좋음. 남편 다이어트 식단용으로 저장.",
+  "labels": [
+   "성인식단"
+  ],
+  "entities": [],
+  "category": "육아",
+  "persona": "parent",
+  "role": "hard_neg",
+  "for_query": "아기 이유식",
+  "tier": "L",
+  "captured_at": "2026-05-21",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l05_012",
+  "type": "screenshot",
+  "summary": "아이들 간식용 고구마 치즈볼 만들기. 에어프라이어에 돌리면 초간단 영양 간식 완성. 어린이집 하원후 간식으로 딱임.",
+  "labels": [
+   "유아간식"
+  ],
+  "entities": [],
+  "category": "육아",
+  "persona": "parent",
+  "role": "hard_neg",
+  "for_query": "아기 이유식",
+  "tier": "L",
+  "captured_at": "2026-06-10",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l05_013",
+  "type": "memo",
+  "summary": "아침 대용 오트밀 죽. 견과류랑 블루베리 넣으면 맛남. 건강식 챙겨먹기 프로젝트 시작.",
+  "labels": [
+   "건강식"
+  ],
+  "entities": [],
+  "category": "육아",
+  "persona": "parent",
+  "role": "hard_neg",
+  "for_query": "아기 이유식",
+  "tier": "L",
+  "captured_at": "2026-05-18",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l05_014",
+  "type": "screenshot",
+  "summary": "유기농 과일 퓨레 간식. 외출용으로 쟁여두면 좋을듯. 시중 판매제품 성분표 확인 완료.",
+  "labels": [
+   "유아간식"
+  ],
+  "entities": [],
+  "category": "육아",
+  "persona": "parent",
+  "role": "hard_neg",
+  "for_query": "아기 이유식",
+  "tier": "L",
+  "captured_at": "2026-05-04",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l05_015",
+  "type": "memo",
+  "summary": "베이비무브 쿡마스터기 진짜 필수인듯. 당근에서 매물 알람 걸어놨는데 상태 좋은거 올라오면 바로 겟해야지. 가격 넘 비싸서 새거 사긴 좀 부담됨.",
+  "labels": [
+   "구매 고민"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "베이비무브 쿡마스터기"
+   }
+  ],
+  "category": "육아",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "아기 이유식",
+  "tier": "L",
+  "captured_at": "2026-06-19",
+  "occurs": null,
+  "dup_of": "l05_000"
+ }
+]

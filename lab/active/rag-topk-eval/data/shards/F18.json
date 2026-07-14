@@ -1,0 +1,622 @@
+[
+ {
+  "id": "f18_000",
+  "type": "screenshot",
+  "summary": "서촌에 새로 오픈한 미니멀리즘 카페 인테리어 사진. 우드와 화이트 톤 조합이 작업실 레이아웃 짤 때 영감이 될 것 같아 저장함.",
+  "labels": [
+   "카페 투어",
+   "인테리어 영감"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "서촌"
+   }
+  ],
+  "category": "레퍼런스 아카이브(디자인 외 분야)",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-27",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f18_001",
+  "type": "screenshot",
+  "summary": "Logitech MX Master 3S 마우스 상세 스펙 캡처. 손목 통증이 좀 있어서 버티컬로 갈아탈지 고민 중인데 가격대가 좀 있네.",
+  "labels": [
+   "장비 고민",
+   "쇼핑리스트"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "Logitech MX Master 3S"
+   }
+  ],
+  "category": "레퍼런스 아카이브(디자인 외 분야)",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-21",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f18_002",
+  "type": "link",
+  "summary": "프리랜서 표준 계약서 작성 가이드 아티클. 법적 분쟁을 방지하기 위해 클라이언트와 계약하기 전 꼭 체크해야 할 조항들이 정리되어 있음.",
+  "labels": [
+   "계약",
+   "업무 가이드"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "Medium"
+   }
+  ],
+  "category": "레퍼런스 아카이브(디자인 외 분야)",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-14",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f18_003",
+  "type": "memo",
+  "summary": "오늘 마감인 외주 건 1차 시안 발송 완료. 피드백 오기 전에 일단 좀 쉬어야겠다. 넷플릭스 뭐 볼지 고민중.",
+  "labels": [
+   "업무 일지",
+   "오늘의 생각"
+  ],
+  "entities": [],
+  "category": "레퍼런스 아카이브(디자인 외 분야)",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-02-27",
+  "occurs": "2023-10-25",
+  "dup_of": null
+ },
+ {
+  "id": "f18_004",
+  "type": "screenshot",
+  "summary": "핀터레스트에서 찾은 80년대 빈티지 포스터 컬러 팔레트. 메인 프로젝트의 그래픽 작업 때 활용할 레퍼런스로 딱임.",
+  "labels": [
+   "디자인 레퍼런스",
+   "컬러 조합"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "Pinterest"
+   }
+  ],
+  "category": "레퍼런스 아카이브(디자인 외 분야)",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-05",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f18_005",
+  "type": "screenshot",
+  "summary": "커피 머신 브레빌 870 청소 방법 메뉴얼 캡쳐본. 요즘 샷 내릴 때 물줄기가 좀 튀는 것 같아서 조만간 디스케일링 해야함.",
+  "labels": [
+   "장비 관리",
+   "홈카페"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "Breville 870"
+   }
+  ],
+  "category": "레퍼런스 아카이브(디자인 외 분야)",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-09",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f18_006",
+  "type": "screenshot",
+  "summary": "노션 프로젝트 관리 템플릿 스크린샷. 복잡한 클라이언트 요청을 효율적으로 정리하는 구조가 맘에 들어서 나중에 따라해봐야지.",
+  "labels": [
+   "생산성",
+   "워크플로우"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "Notion"
+   }
+  ],
+  "category": "레퍼런스 아카이브(디자인 외 분야)",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-25",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f18_007",
+  "type": "memo",
+  "summary": "내일 오전에 세무서 방문 예정. 프리랜서 종합소득세 신고 관련해서 서류 빠진 거 없는지 한번 더 더블체크하기.",
+  "labels": [
+   "행정",
+   "업무 할일"
+  ],
+  "entities": [],
+  "category": "레퍼런스 아카이브(디자인 외 분야)",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-03-14",
+  "occurs": "2023-10-26",
+  "dup_of": null
+ },
+ {
+  "id": "f18_008",
+  "type": "screenshot",
+  "summary": "아이패드 프로 12.9인치용 매직 키보드 중고 매물 스크린샷. 신품은 넘 비싼데 이정도 상태면 살만한가? 고민 좀 됨.",
+  "labels": [
+   "장비 고민",
+   "중고 거래"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "iPad Pro 12.9"
+   }
+  ],
+  "category": "레퍼런스 아카이브(디자인 외 분야)",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f18_009",
+  "type": "link",
+  "summary": "인디펜던트 크리에이터를 위한 브랜딩 전략 강의. 1인 기업으로 살아남기 위해 어떻게 포트폴리오를 구성해야 할지 고민되는 부분들 많음.",
+  "labels": [
+   "커리어",
+   "브랜딩"
+  ],
+  "entities": [],
+  "category": "레퍼런스 아카이브(디자인 외 분야)",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-11",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f18_010",
+  "type": "screenshot",
+  "summary": "강남역 인근 24시간 공유 오피스 요금표. 집에서만 작업하니까 가끔 답답해서 주말에 집중할 공간으로 쓸까 고려 중.",
+  "labels": [
+   "공간",
+   "작업실"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "강남역"
+   }
+  ],
+  "category": "레퍼런스 아카이브(디자인 외 분야)",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-14",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f18_011",
+  "type": "memo",
+  "summary": "클라이언트 미팅 때 쓸 아이패드 케이스 좀 바꿔야겠다. 지금꺼 너무 낡아서 신뢰감 떨어져 보임. 가죽 소재로 알아보기.",
+  "labels": [
+   "쇼핑",
+   "업무 준비"
+  ],
+  "entities": [],
+  "category": "레퍼런스 아카이브(디자인 외 분야)",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-03-27",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f18_012",
+  "type": "screenshot",
+  "summary": "비핸스에서 본 타이포그래피 작업물 캡쳐. 한글 폰트 조합이 굉장히 세련되서 영감용으로 보관함.",
+  "labels": [
+   "타이포그래피",
+   "레퍼런스"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "Behance"
+   }
+  ],
+  "category": "레퍼런스 아카이브(디자인 외 분야)",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-04",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f18_013",
+  "type": "screenshot",
+  "summary": "맥북 프로 M2 칩 벤치마크 결과. 지금 쓰는 구형 모델이랑 차이가 심한지 확인하려고 저장함. 역시 업그레이드가 답인가?",
+  "labels": [
+   "장비 업그레이드",
+   "테크"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "MacBook Pro M2"
+   }
+  ],
+  "category": "레퍼런스 아카이브(디자인 외 분야)",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-20",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f18_014",
+  "type": "memo",
+  "summary": "오후 3시에 A클라이언트랑 줌 미팅. 요구사항 명확히 듣고 견적서 초안 넘기기. 이번에는 꼭 수정 횟수 제한 걸어야함.",
+  "labels": [
+   "미팅",
+   "업무 일정"
+  ],
+  "entities": [],
+  "category": "레퍼런스 아카이브(디자인 외 분야)",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-03",
+  "occurs": "2023-10-27",
+  "dup_of": null
+ },
+ {
+  "id": "f18_015",
+  "type": "screenshot",
+  "summary": "드롭박스 용량 다 찼다고 뜨는 알림. 아카이빙 정리 좀 해야겠네. 사진은 백업용이라 지우기 아까우니 외장하드 사야할듯.",
+  "labels": [
+   "디지털 정리",
+   "스토리지"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "Dropbox"
+   }
+  ],
+  "category": "레퍼런스 아카이브(디자인 외 분야)",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-03-20",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f18_016",
+  "type": "screenshot",
+  "summary": "연남동 감성 카페 스콘 사진. 나중에 미팅이나 촬영용으로 가볼만한 곳 목록에 넣어둠. 인테리어가 깔끔해서 좋음.",
+  "labels": [
+   "카페 투어",
+   "맛집"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "연남동"
+   }
+  ],
+  "category": "레퍼런스 아카이브(디자인 외 분야)",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f18_017",
+  "type": "memo",
+  "summary": "이번주 마감인 건들 리스트: 1. 패키지 디자인 2. 로고 시안 3. 상세페이지 기획. 아 시간이 넘 모자르다 ㅠㅠ",
+  "labels": [
+   "업무 정리",
+   "할일"
+  ],
+  "entities": [],
+  "category": "레퍼런스 아카이브(디자인 외 분야)",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-21",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f18_018",
+  "type": "screenshot",
+  "summary": "어도비 프리미어 프로 단축키 정리된 이미지. 영상 편집 자주 안하니까 자꾸 까먹어서 바탕화면에 띄워놓고 써야지.",
+  "labels": [
+   "꿀팁",
+   "편집"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "Adobe Premiere"
+   }
+  ],
+  "category": "레퍼런스 아카이브(디자인 외 분야)",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-07",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f18_019",
+  "type": "screenshot",
+  "summary": "해외 사이트에서 본 UX 인터렉션 영상. 모바일 앱 프로토타이핑 할 때 이런 느낌으로 구현해보면 재밌을듯.",
+  "labels": [
+   "UX",
+   "UI"
+  ],
+  "entities": [],
+  "category": "레퍼런스 아카이브(디자인 외 분야)",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-25",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f18_020",
+  "type": "memo",
+  "summary": "건강 검진 결과 나옴. 거북목 증후군 조심하라고 함. 모니터 암 달아서 눈높이 맞추는 게 시급함.",
+  "labels": [
+   "건강",
+   "장비"
+  ],
+  "entities": [],
+  "category": "레퍼런스 아카이브(디자인 외 분야)",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-11",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f18_021",
+  "type": "screenshot",
+  "summary": "올해 연말에 가고 싶은 제주도 숙소 인스타그램 캡쳐. 작업실 말고 새로운 곳에서 워케이션 하고 싶어서 저장함.",
+  "labels": [
+   "여행",
+   "워케이션"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "제주도"
+   }
+  ],
+  "category": "레퍼런스 아카이브(디자인 외 분야)",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-01",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f18_022",
+  "type": "screenshot",
+  "summary": "뱅크샐러드 지출 리포트. 지난달에 카페랑 장비에 너무 많이 씀. 담달부터는 쫌 아껴쓰자 진짜.",
+  "labels": [
+   "가계부",
+   "반성"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "뱅크샐러드"
+   }
+  ],
+  "category": "레퍼런스 아카이브(디자인 외 분야)",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-27",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f18_023",
+  "type": "memo",
+  "summary": "A 프로젝트 계약금 들어옴. 입금 확인 완료. 이제 세금계산서 발행 처리 해야함.",
+  "labels": [
+   "금융",
+   "업무"
+  ],
+  "entities": [],
+  "category": "레퍼런스 아카이브(디자인 외 분야)",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-14",
+  "occurs": "2023-10-28",
+  "dup_of": null
+ },
+ {
+  "id": "f18_024",
+  "type": "screenshot",
+  "summary": "필름 카메라 스타일의 프리셋 판매 페이지. 결과물이 몽글몽글해서 SNS 업로드용으로 구매할까 고민중.",
+  "labels": [
+   "사진",
+   "쇼핑"
+  ],
+  "entities": [],
+  "category": "레퍼런스 아카이브(디자인 외 분야)",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-18",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f18_025",
+  "type": "screenshot",
+  "summary": "무료 폰트 라이선스 안내 페이지. 상업적 이용 가능한지 꼼꼼하게 따져봐야 나중에 문제가 안 생김.",
+  "labels": [
+   "저작권",
+   "디자인"
+  ],
+  "entities": [],
+  "category": "레퍼런스 아카이브(디자인 외 분야)",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-03-28",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f18_026",
+  "type": "memo",
+  "summary": "내일은 하루 종일 폰 끄고 작업만 하기. 이메일 답장도 최소화. 집중 모드 돌입.",
+  "labels": [
+   "다짐",
+   "업무"
+  ],
+  "entities": [],
+  "category": "레퍼런스 아카이브(디자인 외 분야)",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-07",
+  "occurs": "2023-10-29",
+  "dup_of": null
+ },
+ {
+  "id": "f18_027",
+  "type": "screenshot",
+  "summary": "요즘 유행하는 오피스룩 코디 사진. 미팅 나갈 때 너무 프리하게 입고 가는 것 같아서 좀 신경쓰기로 함.",
+  "labels": [
+   "패션",
+   "자기관리"
+  ],
+  "entities": [],
+  "category": "레퍼런스 아카이브(디자인 외 분야)",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-06",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f18_028",
+  "type": "screenshot",
+  "summary": "유튜브에서 본 1인 프리랜서의 작업실 투어 영상 캡쳐. 조명 배치랑 데스크테리어 참고하기 좋음.",
+  "labels": [
+   "데스크테리어",
+   "영감"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "YouTube"
+   }
+  ],
+  "category": "레퍼런스 아카이브(디자인 외 분야)",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-02-24",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f18_029",
+  "type": "memo",
+  "summary": "오늘의 루틴: 아침 7시 기상 - 커피 한잔 - 이메일 확인 - 10시까지 집중 작업. 굿.",
+  "labels": [
+   "루틴",
+   "일상"
+  ],
+  "entities": [],
+  "category": "레퍼런스 아카이브(디자인 외 분야)",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-02",
+  "occurs": null,
+  "dup_of": null
+ }
+]

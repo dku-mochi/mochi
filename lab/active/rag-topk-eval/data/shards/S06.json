@@ -1,0 +1,165 @@
+[
+ {
+  "id": "s06_000",
+  "type": "screenshot",
+  "summary": "애플 공홈에서 확인한 MacBook Pro 14인치 M4 Pro 칩셋 사양. 12코어 CPU, 18코어 GPU 구성으로 이번 모델 성능 향상이 눈에 띄어 구매 리스트에 추가함.",
+  "labels": [
+   "장비 고민",
+   "작업용 PC"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "MacBook Pro 14 M4 Pro"
+   },
+   {
+    "kind": "brand",
+    "value": "Apple"
+   }
+  ],
+  "category": "전자기기",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "맥북 M4 Pro 스펙",
+  "tier": "S",
+  "captured_at": "2026-02-14",
+  "occurs": "2024-11-15",
+  "dup_of": null
+ },
+ {
+  "id": "s06_001",
+  "type": "screenshot",
+  "summary": "MacBook Pro 14인치 M4 기본 모델 스펙표. Pro 칩셋과 비교하려고 캡처했는데 CPU 코어 수랑 GPU 성능 차이가 생각보다 커서 고민 중.",
+  "labels": [
+   "장비 고민"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "MacBook Pro 14 M4"
+   },
+   {
+    "kind": "brand",
+    "value": "Apple"
+   }
+  ],
+  "category": "전자기기",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "맥북 M4 Pro 스펙",
+  "tier": "S",
+  "captured_at": "2026-02-27",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s06_002",
+  "type": "link",
+  "summary": "작년 모델인 MacBook Pro M3 Pro 사양 비교 리뷰. 현재 쓰는 M2 모델에서 넘어갈 가치가 있는지 벤치마크 점수 확인용.",
+  "labels": [
+   "장비 고민"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "MacBook Pro M3 Pro"
+   }
+  ],
+  "category": "전자기기",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "맥북 M4 Pro 스펙",
+  "tier": "S",
+  "captured_at": "2026-02-25",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s06_003",
+  "type": "screenshot",
+  "summary": "새 맥북에 사용할 Satechi USB-C 멀티 허브 상세 페이지. M4 Pro 모델로 바꾸면 포트 구성 고려해서 이거 하나 사야 할 듯.",
+  "labels": [
+   "구매 예정"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "Satechi"
+   },
+   {
+    "kind": "product",
+    "value": "USB-C Multi-Port Hub"
+   }
+  ],
+  "category": "전자기기",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "맥북 M4 Pro 스펙",
+  "tier": "S",
+  "captured_at": "2026-02-23",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s06_004",
+  "type": "memo",
+  "summary": "맥북 M4 Pro 16인치 모델 상세 스펙 메모. 휴대성 땜에 14인치 살지 16인치 살지 계속 갈등됨. 램 업글 비용도 만만치 않네.",
+  "labels": [
+   "장비 고민"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "MacBook Pro 16 M4 Pro"
+   }
+  ],
+  "category": "전자기기",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "맥북 M4 Pro 스펙",
+  "tier": "S",
+  "captured_at": "2026-01-24",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s06_005",
+  "type": "screenshot",
+  "summary": "애플 M4 Pro 칩셋의 싱글/멀티코어 벤치마크 결과 비교 이미지. 기존 랩탑이랑 작업 속도 비교하려고 저장해둠.",
+  "labels": [
+   "장비 고민"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "M4 Pro Chip"
+   }
+  ],
+  "category": "전자기기",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "맥북 M4 Pro 스펙",
+  "tier": "S",
+  "captured_at": "2026-02-10",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s06_006",
+  "type": "link",
+  "summary": "맥북 M4 Pro 모델 전용 가죽 파우치 검색 결과. 장비 보호용으로 필수인데 디자인이 깔끔해서 나중에 결제할 때 보려고 저장함.",
+  "labels": [
+   "장비 고민",
+   "구매 예정"
+  ],
+  "entities": [],
+  "category": "전자기기",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "맥북 M4 Pro 스펙",
+  "tier": "S",
+  "captured_at": "2026-02-24",
+  "occurs": null,
+  "dup_of": null
+ }
+]

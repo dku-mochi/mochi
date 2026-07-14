@@ -1,0 +1,754 @@
+{
+ "judge_model": "gemini-3.5-flash",
+ "n_demote": 43,
+ "n_promote": 21,
+ "per_query": [
+  {
+   "qid": "L01",
+   "query": "성수 카페",
+   "fixes": [
+    {
+     "id": "l01_011",
+     "fix": "demote",
+     "reason": "성수동 복합문화공간 '쎈느'의 팝업 행사 및 공간 기획 레퍼런스 기록으로, 카페 탐색 목적과 무관함."
+    },
+    {
+     "id": "l01_004",
+     "fix": "demote",
+     "reason": "성수동 '공간 와디즈'는 협업 공간 및 기획전시 공간이며, 일반적인 카페 탐색 목적과 무관함."
+    }
+   ],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 13,
+   "n_expected_after": 11
+  },
+  {
+   "qid": "L02",
+   "query": "제주 여행 가볼 곳",
+   "fixes": [
+    {
+     "id": "l02_002",
+     "fix": "demote",
+     "reason": "제주 여행 중 '가볼 곳(관광지/명소)'이라기보다는 숙박을 위한 숙소 예약 정보에 가깝습니다."
+    },
+    {
+     "id": "l02_006",
+     "fix": "demote",
+     "reason": "제주 여행을 위한 이동 수단(렌트카) 비교 정보로, '가볼 곳(목적지)'으로 보기 어렵습니다."
+    }
+   ],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 11,
+   "n_expected_after": 9
+  },
+  {
+   "qid": "L03",
+   "query": "면접 준비 자료",
+   "fixes": [
+    {
+     "id": "l03_013",
+     "fix": "promote",
+     "reason": "AI 면접을 포함한 인적성 검사 트렌드 및 카메라 답변 연습에 관한 면접 준비 자료입니다."
+    }
+   ],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 10,
+   "n_expected_after": 11
+  },
+  {
+   "qid": "L04",
+   "query": "캠핑 용품",
+   "fixes": [],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 8,
+   "n_expected_after": 8
+  },
+  {
+   "qid": "L05",
+   "query": "아기 이유식",
+   "fixes": [
+    {
+     "id": "l05_010",
+     "fix": "promote",
+     "reason": "이유식을 만들 때 사용하는 유기농 쌀가루 식재료에 대한 기록이므로 관련성이 높음."
+    },
+    {
+     "id": "l05_003",
+     "fix": "demote",
+     "reason": "이유식 자체가 아닌 물이나 음료를 마시기 위한 빨대컵 연습용 스파우트컵에 대한 기록임."
+    }
+   ],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 11,
+   "n_expected_after": 11
+  },
+  {
+   "qid": "L06",
+   "query": "집들이 선물",
+   "fixes": [
+    {
+     "id": "l06_000",
+     "fix": "demote",
+     "reason": "신혼부부 필수 아이템이지만, 본인이 나중에 구매하기 위한 가격 비교용 기록이므로 집들이 선물 목적과는 거리가 있습니다."
+    },
+    {
+     "id": "l06_006",
+     "fix": "demote",
+     "reason": "본인 집의 거실 인테리어를 바꾸기 위해 소파 세일 정보를 저장한 기록입니다."
+    },
+    {
+     "id": "l06_003",
+     "fix": "demote",
+     "reason": "지인들을 초대했을 때 홈카페 분위기를 내기 위해 본인이 구매를 고민하는 기록입니다."
+    }
+   ],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 8,
+   "n_expected_after": 5
+  },
+  {
+   "qid": "L07",
+   "query": "노트북 비교",
+   "fixes": [
+    {
+     "id": "l07_014",
+     "fix": "demote",
+     "reason": "맥북 에어의 실물 확인 및 무게 체감에 대한 메모로, 노트북 간의 비교 정보를 담은 기록은 아닙니다."
+    },
+    {
+     "id": "l07_004",
+     "fix": "demote",
+     "reason": "특정 노트북 단일 모델의 특가 정보와 구매 고민으로, 노트북 비교에 관한 기록이 아닙니다."
+    },
+    {
+     "id": "l07_001",
+     "fix": "demote",
+     "reason": "특정 노트북 단일 모델의 스펙 시트 캡처본으로, 노트북 비교에 관한 기록이 아닙니다."
+    },
+    {
+     "id": "l07_003",
+     "fix": "demote",
+     "reason": "특정 노트북 단일 모델의 특징과 실물 확인 계획에 대한 메모로, 노트북 비교에 관한 기록이 아닙니다."
+    },
+    {
+     "id": "l07_006",
+     "fix": "demote",
+     "reason": "대학생 노트북 추천 리스트 및 특정 모델 언급으로, 노트북 간의 비교 분석을 다룬 기록은 아닙니다."
+    }
+   ],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 10,
+   "n_expected_after": 5
+  },
+  {
+   "qid": "L08",
+   "query": "운동 루틴",
+   "fixes": [
+    {
+     "id": "l08_006",
+     "fix": "demote",
+     "reason": "크로스핏 박스의 시간표 및 와드 구성 확인용 링크로, 본인의 운동 루틴 기록이라 보기 어렵습니다."
+    },
+    {
+     "id": "l08_003",
+     "fix": "demote",
+     "reason": "필라테스 레슨 중 강사에게 받은 자세 피드백 및 팁 기록으로, 반복 수행할 루틴 정보는 아닙니다."
+    },
+    {
+     "id": "l08_002",
+     "fix": "demote",
+     "reason": "특정 운동 센터의 수업 시간표 및 등록용 메모로, 개인의 운동 루틴이 아닙니다."
+    }
+   ],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 8,
+   "n_expected_after": 5
+  },
+  {
+   "qid": "L09",
+   "query": "청약 공고",
+   "fixes": [
+    {
+     "id": "l09_002",
+     "fix": "demote",
+     "reason": "청약 일정 및 신청 자격 요약에 관한 내용으로, 구체적인 공고문/공고 자체를 찾는 쿼리와는 다소 거리가 있습니다."
+    },
+    {
+     "id": "l09_003",
+     "fix": "demote",
+     "reason": "공공분양 안내서 및 소득/자산 기준 계산에 관한 내용으로 청약 공고 자체와는 다릅니다."
+    },
+    {
+     "id": "l09_001",
+     "fix": "demote",
+     "reason": "분양가 및 공급 세대수, 실거주 의무 기간 확인에 관한 내용으로 공고문 자체를 가리키지 않습니다."
+    },
+    {
+     "id": "l09_006",
+     "fix": "demote",
+     "reason": "잠실 르엘 공공분양 소식 및 커뮤니티 반응에 관한 내용으로 청약 공고와는 거리가 있습니다."
+    }
+   ],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 9,
+   "n_expected_after": 5
+  },
+  {
+   "qid": "L10",
+   "query": "회사 근처 점심",
+   "fixes": [],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 11,
+   "n_expected_after": 11
+  },
+  {
+   "qid": "L11",
+   "query": "영어 공부 자료",
+   "fixes": [
+    {
+     "id": "l11_005",
+     "fix": "demote",
+     "reason": "전화영어 레벨 테스트 결과 및 가격 비교에 관한 기록으로, 영어 공부를 위한 학습 자료 자체로 보기 어렵습니다."
+    },
+    {
+     "id": "l11_003",
+     "fix": "demote",
+     "reason": "영문법 교정 서비스(Grammarly) 결제 고민 및 할인 코드에 관한 기록으로, 영어 공부 자료가 아닙니다."
+    },
+    {
+     "id": "l11_002",
+     "fix": "demote",
+     "reason": "어학원 수강신청 시간표 및 일정 확인용 기록으로, 영어 공부 자료가 아닙니다."
+    },
+    {
+     "id": "l11_007",
+     "fix": "demote",
+     "reason": "토익스피킹 시험 접수 내역 및 준비물에 관한 일정 기록으로, 영어 공부 자료가 아닙니다."
+    }
+   ],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 9,
+   "n_expected_after": 5
+  },
+  {
+   "qid": "L12",
+   "query": "원피스",
+   "fixes": [
+    {
+     "id": "l12_003",
+     "fix": "demote",
+     "reason": "아웃핏과 실루엣에 대한 설명만 있을 뿐, 원피스인지 여부가 불분명합니다."
+    },
+    {
+     "id": "l12_014",
+     "fix": "promote",
+     "reason": "텍스트에 '원피스'라는 키워드가 직접 언급되어 있으며, 관련 의상을 찾으려는 목적에 부합합니다."
+    },
+    {
+     "id": "l12_012",
+     "fix": "promote",
+     "reason": "애니메이션 '원피스'에 대한 기록으로, 동음이의어인 '원피스' 검색어에 직접적으로 부합합니다."
+    }
+   ],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 11,
+   "n_expected_after": 12
+  },
+  {
+   "qid": "L13",
+   "query": "전시회",
+   "fixes": [],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 8,
+   "n_expected_after": 8
+  },
+  {
+   "qid": "L14",
+   "query": "부업",
+   "fixes": [],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 8,
+   "n_expected_after": 8
+  },
+  {
+   "qid": "L15",
+   "query": "강아지 용품",
+   "fixes": [],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 10,
+   "n_expected_after": 10
+  },
+  {
+   "qid": "L16",
+   "query": "자취 요리",
+   "fixes": [
+    {
+     "id": "l16_003",
+     "fix": "demote",
+     "reason": "단순 닭가슴살 가격표 및 구매 계획으로, 자취 요리 자체에 대한 정보나 레시피가 아님."
+    },
+    {
+     "id": "l16_006",
+     "fix": "demote",
+     "reason": "요리를 대체하기 위한 즉석식품(햇반 컵반) 구매 기록임."
+    },
+    {
+     "id": "l16_007",
+     "fix": "demote",
+     "reason": "자취방용 주방 가전제품 위시리스트로, 요리법이나 요리 기록이 아님."
+    },
+    {
+     "id": "l16_001",
+     "fix": "demote",
+     "reason": "단순 라면 멀티팩 쇼핑 링크로 구체적인 자취 요리 정보로 보기 어려움."
+    }
+   ],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 11,
+   "n_expected_after": 7
+  },
+  {
+   "qid": "M01",
+   "query": "다이어트 보조제",
+   "fixes": [],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 4,
+   "n_expected_after": 4
+  },
+  {
+   "qid": "M02",
+   "query": "겨울 코트",
+   "fixes": [],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 6,
+   "n_expected_after": 6
+  },
+  {
+   "qid": "M03",
+   "query": "동아리 엠티 장소",
+   "fixes": [],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 4,
+   "n_expected_after": 4
+  },
+  {
+   "qid": "M04",
+   "query": "포트폴리오 레퍼런스",
+   "fixes": [
+    {
+     "id": "m04_008",
+     "fix": "promote",
+     "reason": "포트폴리오 PDF를 만들 때 구조 참고용으로 활용하려는 이력서 양식 샘플이므로 관련성이 높습니다."
+    },
+    {
+     "id": "m04_001",
+     "fix": "demote",
+     "reason": "영상 편집 및 모션 그래픽 작업을 위한 기술적 참고용 샘플로, 포트폴리오 자체의 레퍼런스로 보기는 어렵습니다."
+    },
+    {
+     "id": "m04_003",
+     "fix": "demote",
+     "reason": "제안서 작업 시 컬러 팔레트를 참고하기 위한 UI/UX 케이스 스터디로, 포트폴리오 레퍼런스와는 목적이 다릅니다."
+    },
+    {
+     "id": "m04_005",
+     "fix": "demote",
+     "reason": "브랜드 가이드라인 및 시스템 페이지 참고용으로, 포트폴리오 구성이나 제작을 위한 레퍼런스가 아닙니다."
+    }
+   ],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 7,
+   "n_expected_after": 5
+  },
+  {
+   "qid": "M05",
+   "query": "적금 금리",
+   "fixes": [],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 4,
+   "n_expected_after": 4
+  },
+  {
+   "qid": "M06",
+   "query": "아이 예방접종",
+   "fixes": [],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 3,
+   "n_expected_after": 3
+  },
+  {
+   "qid": "M07",
+   "query": "홈카페 장비",
+   "fixes": [],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 6,
+   "n_expected_after": 6
+  },
+  {
+   "qid": "M08",
+   "query": "블로그 글감",
+   "fixes": [],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 4,
+   "n_expected_after": 4
+  },
+  {
+   "qid": "M09",
+   "query": "명함 디자인",
+   "fixes": [],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 3,
+   "n_expected_after": 3
+  },
+  {
+   "qid": "M10",
+   "query": "웨딩 스튜디오",
+   "fixes": [],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 6,
+   "n_expected_after": 6
+  },
+  {
+   "qid": "M11",
+   "query": "크리스마스 선물",
+   "fixes": [
+    {
+     "id": "m11_001",
+     "fix": "demote",
+     "reason": "겨울철 아이 선물로 고민 중이나 크리스마스 선물과의 직접적인 연관성이 언급되지 않았습니다."
+    },
+    {
+     "id": "m11_005",
+     "fix": "demote",
+     "reason": "겨울왕국 드레스 구매 고민 기록으로, 크리스마스 선물과의 직접적인 연관성이 나타나지 않습니다."
+    },
+    {
+     "id": "m11_000",
+     "fix": "demote",
+     "reason": "조카와 아이를 위한 장난감 구매 고민 기록이나, 크리스마스 선물과의 직접적인 연관성은 확인하기 어렵습니다."
+    }
+   ],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 6,
+   "n_expected_after": 3
+  },
+  {
+   "qid": "M12",
+   "query": "발표 템플릿",
+   "fixes": [],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 4,
+   "n_expected_after": 4
+  },
+  {
+   "qid": "M13",
+   "query": "베이킹 클래스",
+   "fixes": [],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 3,
+   "n_expected_after": 3
+  },
+  {
+   "qid": "M14",
+   "query": "중고차 시세",
+   "fixes": [],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 4,
+   "n_expected_after": 4
+  },
+  {
+   "qid": "M15",
+   "query": "피부과 시술",
+   "fixes": [],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 5,
+   "n_expected_after": 5
+  },
+  {
+   "qid": "M16",
+   "query": "책 추천",
+   "fixes": [],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 6,
+   "n_expected_after": 6
+  },
+  {
+   "qid": "M17",
+   "query": "일본 출장 준비물",
+   "fixes": [
+    {
+     "id": "m17_001",
+     "fix": "demote",
+     "reason": "호텔 예약 확정 내역 및 바우처 확인 메모로, 준비물 자체를 가리키는 기록은 아닙니다."
+    }
+   ],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 4,
+   "n_expected_after": 3
+  },
+  {
+   "qid": "M18",
+   "query": "결혼식 축가",
+   "fixes": [],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 3,
+   "n_expected_after": 3
+  },
+  {
+   "qid": "M19",
+   "query": "베란다 텃밭",
+   "fixes": [
+    {
+     "id": "m19_006",
+     "fix": "promote",
+     "reason": "베란다 텃밭 식물들과 거실 식물들의 관리 루틴을 다루고 있어 베란다 텃밭 관리 정보로 유효합니다."
+    },
+    {
+     "id": "m19_002",
+     "fix": "demote",
+     "reason": "일반적인 화분 받침대 구매 기록으로, 베란다 텃밭과의 직접적인 연관성이 명시되어 있지 않습니다."
+    }
+   ],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 4,
+   "n_expected_after": 4
+  },
+  {
+   "qid": "M20",
+   "query": "아이패드 필기 앱",
+   "fixes": [
+    {
+     "id": "m20_002",
+     "fix": "demote",
+     "reason": "아이패드 필기 앱이 아닌, 간단한 메모 및 일정 관리용 앱인 컬러노트에 대한 기록임."
+    }
+   ],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 6,
+   "n_expected_after": 5
+  },
+  {
+   "qid": "M21",
+   "query": "한강 러닝",
+   "fixes": [
+    {
+     "id": "m21_002",
+     "fix": "demote",
+     "reason": "러닝 스마트워치 구매 고민에 관한 기록으로, 한강 러닝이라는 특정 활동이나 장소와는 거리가 있습니다."
+    },
+    {
+     "id": "m21_001",
+     "fix": "demote",
+     "reason": "러닝 크루 참여 공지에 관한 기록으로, 한강이라는 구체적인 장소 정보가 없습니다."
+    },
+    {
+     "id": "m21_003",
+     "fix": "demote",
+     "reason": "개인 5km 러닝 페이스 기록 인증으로, 한강 러닝과의 직접적인 연관성이 나타나지 않습니다."
+    }
+   ],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 4,
+   "n_expected_after": 1
+  },
+  {
+   "qid": "M22",
+   "query": "자격증 접수",
+   "fixes": [],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 6,
+   "n_expected_after": 6
+  },
+  {
+   "qid": "S01",
+   "query": "토스터 환불",
+   "fixes": [
+    {
+     "id": "s01_005",
+     "fix": "promote",
+     "reason": "드롱기 토스터기의 반품 신청 및 감가상각 금액 안내 내역으로, 토스터 환불 관련 기록에 부합합니다."
+    }
+   ],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 1,
+   "n_expected_after": 2
+  },
+  {
+   "qid": "S02",
+   "query": "치과 예약 변경",
+   "fixes": [],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 1,
+   "n_expected_after": 1
+  },
+  {
+   "qid": "S03",
+   "query": "공유기 비밀번호 바꾸는 법",
+   "fixes": [
+    {
+     "id": "s03_001",
+     "fix": "promote",
+     "reason": "와이파이 공유기의 SSID 변경 및 암호화(비밀번호) 설정 안내 페이지이므로 쿼리와 부합합니다."
+    },
+    {
+     "id": "s03_005",
+     "fix": "promote",
+     "reason": "공유기 무선 보안 설정 매뉴얼로, 비밀번호를 변경하는 법을 정리해 둔 기록이므로 쿼리와 직접적으로 부합합니다."
+    }
+   ],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 1,
+   "n_expected_after": 3
+  },
+  {
+   "qid": "S04",
+   "query": "회의실 예약 링크",
+   "fixes": [
+    {
+     "id": "s04_003",
+     "fix": "promote",
+     "reason": "세미나룸(회의실)을 예약하기 위한 폼 링크를 저장해 둔 기록이므로 쿼리 목적에 정확히 부합합니다."
+    }
+   ],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 1,
+   "n_expected_after": 2
+  },
+  {
+   "qid": "S05",
+   "query": "세탁기 에러코드 4C",
+   "fixes": [
+    {
+     "id": "s05_005",
+     "fix": "promote",
+     "reason": "세탁기 4C 에러코드 발생 상황과 원인 분석을 직접적으로 다루고 있습니다."
+    }
+   ],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 1,
+   "n_expected_after": 2
+  },
+  {
+   "qid": "S06",
+   "query": "맥북 M4 Pro 스펙",
+   "fixes": [
+    {
+     "id": "s06_004",
+     "fix": "promote",
+     "reason": "맥북 M4 Pro 16인치 모델의 상세 스펙과 램 업그레이드 관련 내용을 담고 있어 쿼리에 직접적으로 부합합니다."
+    },
+    {
+     "id": "s06_005",
+     "fix": "promote",
+     "reason": "M4 Pro 칩셋의 싱글/멀티코어 벤치마크 결과는 핵심 성능 스펙에 해당하므로 사용자가 찾고자 하는 정보에 부합합니다."
+    }
+   ],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 1,
+   "n_expected_after": 3
+  },
+  {
+   "qid": "S07",
+   "query": "에어팟 프로3 이어팁",
+   "fixes": [],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 1,
+   "n_expected_after": 1
+  },
+  {
+   "qid": "S08",
+   "query": "닌텐도 스위치2 예판",
+   "fixes": [
+    {
+     "id": "s08_001",
+     "fix": "promote",
+     "reason": "닌텐도 스위치 2세대 콘솔의 사전 예약(예판) 일정 신청에 관한 직접적인 기록이므로 매우 관련성이 높습니다."
+    },
+    {
+     "id": "s08_000",
+     "fix": "demote",
+     "reason": "발매일 루머에 관한 기록으로, 구체적인 '예판(예약 판매)' 관련 정보가 아닙니다."
+    }
+   ],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 1,
+   "n_expected_after": 1
+  },
+  {
+   "qid": "S09",
+   "query": "챗지피티 팀 요금제",
+   "fixes": [
+    {
+     "id": "s09_004",
+     "fix": "promote",
+     "reason": "챗지피티 팀즈(Teams) 플랜 도입 시의 보안 이슈와 관리 방식을 다루고 있어 쿼리와 밀접하게 연관됩니다."
+    }
+   ],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 1,
+   "n_expected_after": 2
+  },
+  {
+   "qid": "S10",
+   "query": "글램핑 위약금",
+   "fixes": [
+    {
+     "id": "s10_000",
+     "fix": "demote",
+     "reason": "글램핑이 아닌 캠프(캠핑장)의 예약 취소 규정이므로 쿼리 대상과 일치하지 않습니다."
+    },
+    {
+     "id": "s10_003",
+     "fix": "promote",
+     "reason": "양평 글램핑장의 예약 취소 위약금(20%) 정보를 직접적으로 다루고 있어 검색 의도에 부합합니다."
+    },
+    {
+     "id": "s10_001",
+     "fix": "promote",
+     "reason": "포천 글램핑장의 예약 확정 및 취소 규정 링크를 포함하고 있어 위약금 확인 목적에 부합합니다."
+    }
+   ],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 1,
+   "n_expected_after": 2
+  },
+  {
+   "qid": "S11",
+   "query": "자소서 항목별 글자수",
+   "fixes": [
+    {
+     "id": "s11_005",
+     "fix": "promote",
+     "reason": "대기업 자소서의 문항별(항목별) 글자수 제한을 정리해 놓은 표이므로 쿼리 의도에 정확히 부합합니다."
+    },
+    {
+     "id": "s11_001",
+     "fix": "promote",
+     "reason": "현대자동차 자소서 문항별(항목별) 바이트(글자수) 제한 사항을 담고 있으므로 표현은 다르지만 대상이 맞습니다."
+    }
+   ],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 1,
+   "n_expected_after": 3
+  },
+  {
+   "qid": "S12",
+   "query": "프리랜서 종소세 신고",
+   "fixes": [
+    {
+     "id": "s12_001",
+     "fix": "promote",
+     "reason": "프리랜서의 3.3% 원천징수 세금 환급은 종합소득세(종소세) 신고를 통해 이루어지므로 직접적인 연관성이 있습니다."
+    },
+    {
+     "id": "s12_005",
+     "fix": "promote",
+     "reason": "프리랜서의 종합소득세 신고 시 장부 기장 의무(복식부기) 및 비용 처리에 관한 세무 상담 내용이므로 관련성이 높습니다."
+    }
+   ],
+   "kept_all_despite_empty": false,
+   "n_expected_before": 1,
+   "n_expected_after": 3
+  }
+ ]
+}

@@ -1,0 +1,316 @@
+[
+ {
+  "id": "l09_000",
+  "type": "screenshot",
+  "summary": "판교 테크노밸리 중흥S-클래스 입주자 모집 공고문. 분양가가 주변 시세보다 2억 저렴해서 신혼부부 특공 노려볼만함.",
+  "labels": [
+   "청약 전략",
+   "내집마련"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "판교 중흥S-클래스"
+   },
+   {
+    "kind": "date",
+    "value": "2024-11-20"
+   }
+  ],
+  "category": "금융",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "청약 공고",
+  "tier": "L",
+  "captured_at": "2026-01-27",
+  "occurs": "2024-11-20",
+  "dup_of": null
+ },
+ {
+  "id": "l09_001",
+  "type": "screenshot",
+  "summary": "래미안 원펜타스 분양가 및 공급 세대수 확인. 33평형 실거주 의무 기간 체크 필수.",
+  "labels": [
+   "분양 정보",
+   "관심 단지"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "래미안 원펜타스"
+   }
+  ],
+  "category": "금융",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "청약 공고",
+  "tier": "L",
+  "captured_at": "2026-01-28",
+  "occurs": "2024-12-05",
+  "dup_of": null
+ },
+ {
+  "id": "l09_002",
+  "type": "link",
+  "summary": "힐스테이트 수원 광교 청약 일정 및 신청 자격 요약. 주택소유 여부 판단 기준이 헷갈려서 저장함.",
+  "labels": [
+   "청약 자격",
+   "공부"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "힐스테이트 수원 광교"
+   }
+  ],
+  "category": "금융",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "청약 공고",
+  "tier": "L",
+  "captured_at": "2026-01-22",
+  "occurs": "2024-11-15",
+  "dup_of": null
+ },
+ {
+  "id": "l09_003",
+  "type": "screenshot",
+  "summary": "과천 지식정보타운 공공분양 안내서. 신혼특공 소득 기준이랑 자산 기준 다시 계산해봐야 함.",
+  "labels": [
+   "청약 계산",
+   "부부 재테크"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "과천"
+   },
+   {
+    "kind": "product",
+    "value": "지식정보타운"
+   }
+  ],
+  "category": "금융",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "청약 공고",
+  "tier": "L",
+  "captured_at": "2026-01-27",
+  "occurs": "2024-11-28",
+  "dup_of": null
+ },
+ {
+  "id": "l09_004",
+  "type": "memo",
+  "summary": "디에이치 방배 입주자 모집공고 요약. 분양가 상한제 적용 단지라 안전마진은 확실한 듯.",
+  "labels": [
+   "분양 분석",
+   "투자 리스트"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "디에이치 방배"
+   }
+  ],
+  "category": "금융",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "청약 공고",
+  "tier": "L",
+  "captured_at": "2026-01-17",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l09_005",
+  "type": "screenshot",
+  "summary": "청약홈 공고문 확인. 위례 자이 더 시티 잔여세대 분양 공고인데 경쟁률 박터질 듯..",
+  "labels": [
+   "관심 단지"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "위례 자이 더 시티"
+   },
+   {
+    "kind": "platform",
+    "value": "청약홈"
+   }
+  ],
+  "category": "금융",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "청약 공고",
+  "tier": "L",
+  "captured_at": "2026-01-26",
+  "occurs": "2024-12-10",
+  "dup_of": null
+ },
+ {
+  "id": "l09_006",
+  "type": "link",
+  "summary": "잠실 르엘 공공분양 소식. 커뮤니티 평이 좋아서 이번에 도전해볼까 함.",
+  "labels": [
+   "관심 단지",
+   "내집마련"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "잠실 르엘"
+   }
+  ],
+  "category": "금융",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "청약 공고",
+  "tier": "L",
+  "captured_at": "2026-01-22",
+  "occurs": "2024-12-15",
+  "dup_of": null
+ },
+ {
+  "id": "l09_007",
+  "type": "screenshot",
+  "summary": "마포 프레스티지 자이 무순위 청약 공고. 이게 무순위로 나왔다니 대박인데?",
+  "labels": [
+   "줍줍",
+   "기회"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "마포 프레스티지 자이"
+   }
+  ],
+  "category": "금융",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "청약 공고",
+  "tier": "L",
+  "captured_at": "2026-01-19",
+  "occurs": "2024-11-22",
+  "dup_of": null
+ },
+ {
+  "id": "l09_008",
+  "type": "screenshot",
+  "summary": "신혼부부 전용 디딤돌 대출 금리 비교표. 이율 0.1%라도 낮출 수 있는 은행 찾아보자.",
+  "labels": [
+   "주거 재테크",
+   "대출"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "디딤돌 대출"
+   }
+  ],
+  "category": "금융",
+  "persona": "newlywed",
+  "role": "hard_neg",
+  "for_query": "청약 공고",
+  "tier": "L",
+  "captured_at": "2026-01-24",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l09_009",
+  "type": "memo",
+  "summary": "전세 보증금 반환보증 보험 가입 절차. HUG랑 HF 중 어디가 싼지 견적 비교해야함.",
+  "labels": [
+   "전세",
+   "보험"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "HUG"
+   },
+   {
+    "kind": "brand",
+    "value": "HF"
+   }
+  ],
+  "category": "금융",
+  "persona": "newlywed",
+  "role": "hard_neg",
+  "for_query": "청약 공고",
+  "tier": "L",
+  "captured_at": "2026-01-21",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l09_010",
+  "type": "link",
+  "summary": "시중은행 주택담보대출 금리 비교 리포트. 요즘 변동금리가 다시 오르는 추세인가?",
+  "labels": [
+   "주담대",
+   "재테크"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "주택담보대출"
+   }
+  ],
+  "category": "금융",
+  "persona": "newlywed",
+  "role": "hard_neg",
+  "for_query": "청약 공고",
+  "tier": "L",
+  "captured_at": "2026-01-16",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l09_011",
+  "type": "screenshot",
+  "summary": "적금 특판 정보. 1년 5%대 금리인데 한도가 작아서 아쉽네.",
+  "labels": [
+   "적금",
+   "저축"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "특판 적금"
+   }
+  ],
+  "category": "금융",
+  "persona": "newlywed",
+  "role": "hard_neg",
+  "for_query": "청약 공고",
+  "tier": "L",
+  "captured_at": "2026-01-26",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l09_012",
+  "type": "memo",
+  "summary": "판교 중흥S-클래스 입주자 모집 공고 다시 확인. 이번주 마감이니까 서류 미리 챙겨두기.",
+  "labels": [
+   "청약",
+   "마감 체크"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "판교 중흥S-클래스"
+   }
+  ],
+  "category": "금융",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "청약 공고",
+  "tier": "L",
+  "captured_at": "2026-03-07",
+  "occurs": "2024-11-20",
+  "dup_of": "l09_000"
+ }
+]

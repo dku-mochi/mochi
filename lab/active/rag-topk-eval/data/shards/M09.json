@@ -1,0 +1,117 @@
+[
+ {
+  "id": "m09_000",
+  "type": "screenshot",
+  "summary": "프리랜서 비즈니스 카드 제작을 위해 참고 중인 미니멀한 텍스트 기반 레이아웃. '스튜디오 오유'의 폰트 배치와 여백 활용이 깔끔해서 내 명함 디자인에도 적용해볼 예정.",
+  "labels": [
+   "브랜딩",
+   "디자인 레퍼런스"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "스튜디오 오유"
+   }
+  ],
+  "category": "업무",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "명함 디자인",
+  "tier": "M",
+  "captured_at": "2026-03-24",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m09_001",
+  "type": "link",
+  "summary": "무광 코팅과 박 처리를 고급스럽게 구현하는 인쇄 업체 '레드프린팅'의 주문 가이드 페이지. 명함 디자인 파일 업로드 시 주의사항과 도련 설정을 확인하려고 저장함.",
+  "labels": [
+   "업무",
+   "제작 의뢰"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "레드프린팅"
+   }
+  ],
+  "category": "업무",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "명함 디자인",
+  "tier": "M",
+  "captured_at": "2026-04-02",
+  "occurs": "2023-11-20",
+  "dup_of": null
+ },
+ {
+  "id": "m09_002",
+  "type": "memo",
+  "summary": "개인 프리랜서용 명함 시안 2번 수정사항. 전면에는 영문 이름이랑 인스타 아이디만 넣고, 뒷면에는 QR코드 넣기로함. 폰트는 산세리프 계열로 수정 필요.",
+  "labels": [
+   "작업 노트"
+  ],
+  "entities": [],
+  "category": "업무",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "명함 디자인",
+  "tier": "M",
+  "captured_at": "2026-03-29",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m09_003",
+  "type": "screenshot",
+  "summary": "지나가다 본 팝업스토어 홍보용 포스터 레이아웃 캡쳐. 타이포그래피가 강렬해서 나중에 전시회 브로셔나 이벤트 포스터 디자인 작업을 할 때 참고하면 좋을 듯.",
+  "labels": [
+   "영감",
+   "디자인 소스"
+  ],
+  "entities": [],
+  "category": "업무",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "명함 디자인",
+  "tier": "M",
+  "captured_at": "2026-03-29",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m09_004",
+  "type": "link",
+  "summary": "인스타그램 광고로 뜬 감각적인 카페 로고 디자인 포트폴리오 모음. 식음료 브랜드 로고 디자인의 트렌드를 파악하고 클라이언트 제안용으로 북마크함.",
+  "labels": [
+   "로고 참고"
+  ],
+  "entities": [],
+  "category": "업무",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "명함 디자인",
+  "tier": "M",
+  "captured_at": "2026-05-08",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m09_005",
+  "type": "memo",
+  "summary": "지역 문화 축제 포스터 디자인 의뢰건. 메인 컬러는 오렌지랑 블루로 가져가고, 레이아웃은 텍스트보다는 메인 이미지가 강조되게 배치할 것.",
+  "labels": [
+   "외주 업무"
+  ],
+  "entities": [],
+  "category": "업무",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "명함 디자인",
+  "tier": "M",
+  "captured_at": "2026-03-24",
+  "occurs": "2023-12-05",
+  "dup_of": null
+ }
+]

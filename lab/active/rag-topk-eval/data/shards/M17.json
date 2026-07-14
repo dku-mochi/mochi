@@ -1,0 +1,191 @@
+[
+ {
+  "id": "m17_000",
+  "type": "screenshot",
+  "summary": "일본 출장 때 쓸 멀티 어댑터. 220v-110v 변환이랑 usb 포트 3개 달려 있어서 노트북이랑 아이폰 충전하기 딱 좋을 듯. 이거 사야지.",
+  "labels": [
+   "구매예정",
+   "출장준비"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "프리볼트 멀티 어댑터"
+   },
+   {
+    "kind": "brand",
+    "value": "아이무버"
+   }
+  ],
+  "category": "여행",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "일본 출장 준비물",
+  "tier": "M",
+  "captured_at": "2026-03-22",
+  "occurs": "2024-05-12",
+  "dup_of": null
+ },
+ {
+  "id": "m17_001",
+  "type": "screenshot",
+  "summary": "도쿄 오피스 근처 비즈니스 호텔 예약 확정 내역. 2박 일정이고 조식 포함이라 아침 든든하게 먹고 출근하기 좋음. 까먹지 말고 바우처 챙겨가기.",
+  "labels": [
+   "일본출장",
+   "숙소"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "호텔 그레이서리 신주쿠"
+   },
+   {
+    "kind": "date",
+    "value": "2024-06-15"
+   }
+  ],
+  "category": "여행",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "일본 출장 준비물",
+  "tier": "M",
+  "captured_at": "2026-04-25",
+  "occurs": "2024-06-15",
+  "dup_of": null
+ },
+ {
+  "id": "m17_002",
+  "type": "link",
+  "summary": "일본 현지 유심(eSIM) 구매 사이트. 도코모 망이라 속도 빠르다해서 이거로 결정함. 3일간 업무용으로 데이터 넉넉히 써야하니까 무제한 요금제 확인.",
+  "labels": [
+   "데이터로밍",
+   "구매완료"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "도시락eSIM"
+   },
+   {
+    "kind": "platform",
+    "value": "네이버쇼핑"
+   }
+  ],
+  "category": "여행",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "일본 출장 준비물",
+  "tier": "M",
+  "captured_at": "2026-04-28",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m17_003",
+  "type": "memo",
+  "summary": "출장 가방 리스트: 여권, 법인카드, 명함 50장, 보조배터리(샤오미 20000), 유니버설 어댑터, 넥타이 2개. 아, 렌즈 세척액도 꼭 챙기자 까먹지 말기!",
+  "labels": [
+   "체크리스트",
+   "업무"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "샤오미 보조배터리"
+   },
+   {
+    "kind": "product",
+    "value": "명함"
+   }
+  ],
+  "category": "여행",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "일본 출장 준비물",
+  "tier": "M",
+  "captured_at": "2026-04-05",
+  "occurs": "2024-06-14",
+  "dup_of": null
+ },
+ {
+  "id": "m17_004",
+  "type": "screenshot",
+  "summary": "오모테산도 근처에서 핫하다는 카페 리스트. 이번에 가면 꼭 가보고 싶은데 저녁에 영업하는지 확인 필요함. 분위기 좋아보여서 개인 여행 때 가도 좋을 듯.",
+  "labels": [
+   "가고싶은곳",
+   "도쿄여행"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "오모테산도"
+   },
+   {
+    "kind": "place",
+    "value": "카페 키츠네"
+   }
+  ],
+  "category": "여행",
+  "persona": "marketer",
+  "role": "hard_neg",
+  "for_query": "일본 출장 준비물",
+  "tier": "M",
+  "captured_at": "2026-04-16",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m17_005",
+  "type": "screenshot",
+  "summary": "친구한테 추천받은 도쿄 디즈니랜드 입장권 정보. 퍼레이드 시간이랑 패스트패스 예매법 정리되어 있음. 주말에 짬내서 다녀오면 완전 힐링될 듯.",
+  "labels": [
+   "힐링",
+   "도쿄여행"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "도쿄 디즈니랜드"
+   },
+   {
+    "kind": "brand",
+    "value": "디즈니"
+   }
+  ],
+  "category": "여행",
+  "persona": "marketer",
+  "role": "hard_neg",
+  "for_query": "일본 출장 준비물",
+  "tier": "M",
+  "captured_at": "2026-04-20",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m17_006",
+  "type": "memo",
+  "summary": "교토 맛집 정리: 1. 규카츠 모토무라, 2. 이치란 라멘. 주말에 개인적으로 방문할 곳들 미리 저장. 맛집 웨이팅 팁도 나중에 정리해서 올려야징.",
+  "labels": [
+   "맛집",
+   "개인여행"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "교토"
+   },
+   {
+    "kind": "brand",
+    "value": "이치란 라멘"
+   }
+  ],
+  "category": "여행",
+  "persona": "marketer",
+  "role": "hard_neg",
+  "for_query": "일본 출장 준비물",
+  "tier": "M",
+  "captured_at": "2026-04-21",
+  "occurs": null,
+  "dup_of": null
+ }
+]

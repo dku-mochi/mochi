@@ -1,0 +1,678 @@
+[
+ {
+  "id": "f10_000",
+  "type": "screenshot",
+  "summary": "어린이집에서 보내준 이번 주 식단표 캡처. 알레르기 유발 식품 여부와 영양 균형을 확인하려고 저장함.",
+  "labels": [
+   "어린이집",
+   "식단"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "키즈노트"
+   }
+  ],
+  "category": "가족 행사·건강검진",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-05",
+  "occurs": "2023-10-23",
+  "dup_of": null
+ },
+ {
+  "id": "f10_001",
+  "type": "screenshot",
+  "summary": "가족 건강검진 예약 안내 페이지. 위내시경 전 주의사항이 적혀 있어서 나중에 다시 보려고 캡처함.",
+  "labels": [
+   "건강검진",
+   "병원"
+  ],
+  "entities": [
+   {
+    "kind": "date",
+    "value": "2023-11-05"
+   }
+  ],
+  "category": "가족 행사·건강검진",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-27",
+  "occurs": "2023-11-05",
+  "dup_of": null
+ },
+ {
+  "id": "f10_002",
+  "type": "link",
+  "summary": "온라인 서점에서 본 아이들 창의력 교구 세트. 다음 주말 가족 나들이 때 챙겨가면 좋을 듯해서 저장함.",
+  "labels": [
+   "구매 고민",
+   "육아템"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "교원"
+   }
+  ],
+  "category": "가족 행사·건강검진",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-18",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f10_003",
+  "type": "memo",
+  "summary": "첫째 치과 정기검진 11월 10일 오후 4시 예약. 잊지 말고 미리 어린이집 하원 시간 확인하기.",
+  "labels": [
+   "일정",
+   "치과"
+  ],
+  "entities": [
+   {
+    "kind": "date",
+    "value": "2023-11-10"
+   }
+  ],
+  "category": "가족 행사·건강검진",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-15",
+  "occurs": "2023-11-10",
+  "dup_of": null
+ },
+ {
+  "id": "f10_004",
+  "type": "screenshot",
+  "summary": "인스타그램에서 본 온가족 패밀리룩 쇼핑몰. 다가오는 가족사진 촬영 때 입을 옷 구경하려고 캡처.",
+  "labels": [
+   "가족행사",
+   "패션"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "Instagram"
+   }
+  ],
+  "category": "가족 행사·건강검진",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-27",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f10_005",
+  "type": "screenshot",
+  "summary": "환절기 아이들 면역력 영양제 정보. 성분 분석표가 잘 나와 있어서 비교해보고 구매하려고 스샷.",
+  "labels": [
+   "건강",
+   "육아 정보"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "비타민D"
+   }
+  ],
+  "category": "가족 행사·건강검진",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-03-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f10_006",
+  "type": "screenshot",
+  "summary": "주말에 다녀올 키즈 카페 운영 시간표. 사람이 붐비지 않는 시간대에 가려고 운영시간 확인용으로 저장함.",
+  "labels": [
+   "나들이",
+   "장소"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "챔피언1250"
+   }
+  ],
+  "category": "가족 행사·건강검진",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-15",
+  "occurs": "2023-10-28",
+  "dup_of": null
+ },
+ {
+  "id": "f10_007",
+  "type": "screenshot",
+  "summary": "아이가 갑자기 열날 때 대처법 인포그래픽. 초보 부모라 당황하지 않게 중요 항목 위주로 캡처.",
+  "labels": [
+   "건강",
+   "육아 꿀팁"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "해열제"
+   }
+  ],
+  "category": "가족 행사·건강검진",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f10_008",
+  "type": "screenshot",
+  "summary": "가족 여행지 숙소 리뷰 스크린샷. 후기가 좋고 아이들 놀이방이 따로 있어서 찜해둠.",
+  "labels": [
+   "여행",
+   "숙소"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "한화리조트"
+   }
+  ],
+  "category": "가족 행사·건강검진",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-13",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f10_009",
+  "type": "link",
+  "summary": "육아 커뮤니티에서 발견한 유아용 실내 자전거. 아이들 성장판 자극에 좋다길래 나중에 사려고 링크 저장.",
+  "labels": [
+   "구매 고민",
+   "육아템"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "마이크로킥보드"
+   }
+  ],
+  "category": "가족 행사·건강검진",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-22",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f10_010",
+  "type": "memo",
+  "summary": "이번주 토요일 시댁 식사 모임. 케이크는 미리 예약 주문(딸기 생크림) 해두는거 잊지말자. 현금 인출도!",
+  "labels": [
+   "가족행사"
+  ],
+  "entities": [
+   {
+    "kind": "date",
+    "value": "2023-10-28"
+   }
+  ],
+  "category": "가족 행사·건강검진",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-06",
+  "occurs": "2023-10-28",
+  "dup_of": null
+ },
+ {
+  "id": "f10_011",
+  "type": "screenshot",
+  "summary": "아이들 겨울 내복 공구 정보. 가격이 저렴하고 디자인이 예뻐서 사이즈 고민중이라 저장.",
+  "labels": [
+   "구매 고민",
+   "쇼핑"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "내복"
+   }
+  ],
+  "category": "가족 행사·건강검진",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-25",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f10_012",
+  "type": "screenshot",
+  "summary": "동네 소아과 예방접종 시간표. 독감 주사 맞히러 가야 하는데 시간이 헷갈려서 캡처본 보고 가려고.",
+  "labels": [
+   "병원",
+   "육아"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "연세소아과"
+   }
+  ],
+  "category": "가족 행사·건강검진",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-02",
+  "occurs": "2023-11-01",
+  "dup_of": null
+ },
+ {
+  "id": "f10_013",
+  "type": "screenshot",
+  "summary": "가족 사진 촬영 스튜디오 패키지 안내. 컨셉이 깔끔해서 마음에 듬. 가격 비교용.",
+  "labels": [
+   "가족행사"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "시현하다"
+   }
+  ],
+  "category": "가족 행사·건강검진",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-09",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f10_014",
+  "type": "memo",
+  "summary": "건강검진 결과지 확인 완료. 혈당이 약간 높게 나왔음. 다음주부터 밀가루 줄이고 식단 조절 시작하기.",
+  "labels": [
+   "건강",
+   "다이어트"
+  ],
+  "entities": [
+   {
+    "kind": "date",
+    "value": "2023-11-12"
+   }
+  ],
+  "category": "가족 행사·건강검진",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-22",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f10_015",
+  "type": "screenshot",
+  "summary": "마트 할인 행사 전단지. 기저귀랑 우유 가격이 착해서 주말에 장볼 때 리스트 참고용으로 캡처함.",
+  "labels": [
+   "생활",
+   "쇼핑"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "이마트"
+   }
+  ],
+  "category": "가족 행사·건강검진",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-16",
+  "occurs": "2023-10-27",
+  "dup_of": null
+ },
+ {
+  "id": "f10_016",
+  "type": "screenshot",
+  "summary": "아이들 영어 도서관 프로그램 안내. 집이랑 가까워서 방학 때 보내보면 좋을 것 같음.",
+  "labels": [
+   "교육",
+   "육아"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "공공도서관"
+   }
+  ],
+  "category": "가족 행사·건강검진",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-18",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f10_017",
+  "type": "memo",
+  "summary": "둘째가 어제부터 계속 콧물을 흘린다. 병원 가기 전에 상비약 있나 확인해보자. 아세타미노펜 어딨더라.",
+  "labels": [
+   "건강",
+   "육아"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "타이레놀"
+   }
+  ],
+  "category": "가족 행사·건강검진",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-25",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f10_018",
+  "type": "screenshot",
+  "summary": "유튜브에서 본 초간단 이유식 레시피. 재료 준비가 쉬워서 이번 주말에 꼭 도전해봐야지.",
+  "labels": [
+   "레시피",
+   "육아"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "YouTube"
+   }
+  ],
+  "category": "가족 행사·건강검진",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-30",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f10_019",
+  "type": "screenshot",
+  "summary": "내년 1월 가족 해외여행 항공권 가격. 지금 예매하는게 싼지 나중에 보는게 좋은지 서치 중.",
+  "labels": [
+   "여행",
+   "예약"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "스카이스캐너"
+   }
+  ],
+  "category": "가족 행사·건강검진",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-13",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f10_020",
+  "type": "screenshot",
+  "summary": "운동센터 11월 시간표. 요가 수업 다시 등록해야 하는데 시간 맞는지 확인용.",
+  "labels": [
+   "건강",
+   "취미"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "문화센터"
+   }
+  ],
+  "category": "가족 행사·건강검진",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-07",
+  "occurs": "2023-11-01",
+  "dup_of": null
+ },
+ {
+  "id": "f10_021",
+  "type": "link",
+  "summary": "가족 캠핑용 텐트 추천 리스트. 부피가 작고 설치가 쉬운 모델들 정리된 블로그 링크.",
+  "labels": [
+   "구매 고민",
+   "캠핑"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "콜맨"
+   }
+  ],
+  "category": "가족 행사·건강검진",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-19",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f10_022",
+  "type": "screenshot",
+  "summary": "가족 대청소 체크리스트 이미지. 주말마다 하나씩 지워가면서 청소하려고 저장함.",
+  "labels": [
+   "생활",
+   "살림"
+  ],
+  "entities": [],
+  "category": "가족 행사·건강검진",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-12",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f10_023",
+  "type": "memo",
+  "summary": "결혼기념일 12월 5일. 올해는 근사한 레스토랑 가고 싶은데, 아이 맡길 곳이 있을지 모르겠다.. 시어머니께 부탁해봐야지.",
+  "labels": [
+   "가족행사"
+  ],
+  "entities": [
+   {
+    "kind": "date",
+    "value": "2023-12-05"
+   }
+  ],
+  "category": "가족 행사·건강검진",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-29",
+  "occurs": "2023-12-05",
+  "dup_of": null
+ },
+ {
+  "id": "f10_024",
+  "type": "screenshot",
+  "summary": "키성장 영양제 이벤트 캡처. 지금 할인 중이라 쟁여두면 좋을듯한데 리뷰 더 찾아봐야겠다.",
+  "labels": [
+   "건강",
+   "구매 고민"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "종근당"
+   }
+  ],
+  "category": "가족 행사·건강검진",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-23",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f10_025",
+  "type": "screenshot",
+  "summary": "아이들 체험학습 신청 사이트 캡처. 인기 많은 프로그램이라 알람 맞춰두고 신청해야 함.",
+  "labels": [
+   "교육",
+   "체험"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "웹사이트"
+   }
+  ],
+  "category": "가족 행사·건강검진",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-15",
+  "occurs": "2023-11-15",
+  "dup_of": null
+ },
+ {
+  "id": "f10_026",
+  "type": "screenshot",
+  "summary": "동네 맛집 파스타집 메뉴판. 다음달 아이 생일 때 외식하러 가기로 함. 예약 전화 번호 저장.",
+  "labels": [
+   "가족행사",
+   "맛집"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "라라코스트"
+   }
+  ],
+  "category": "가족 행사·건강검진",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-03-16",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f10_027",
+  "type": "memo",
+  "summary": "오늘 운동화 빨기, 세탁기 돌리기, 냉장고 정리 끝. 헉헉.. 너무 힘든 하루. 이제 아이들 재우고 티비좀 봐야지.",
+  "labels": [
+   "생활"
+  ],
+  "entities": [],
+  "category": "가족 행사·건강검진",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-04",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f10_028",
+  "type": "screenshot",
+  "summary": "독감 예방접종 안내 문자 스크린샷. 오늘 오후 5시까지니까 늦지 않게 가야함.",
+  "labels": [
+   "건강",
+   "병원"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "보건소"
+   }
+  ],
+  "category": "가족 행사·건강검진",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-05",
+  "occurs": "2023-10-25",
+  "dup_of": null
+ },
+ {
+  "id": "f10_029",
+  "type": "screenshot",
+  "summary": "신상 아동복 룩북. 조카 생일 선물로 고민 중인 옷인데 디자인 너무 귀엽다.",
+  "labels": [
+   "쇼핑",
+   "선물"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "블루독"
+   }
+  ],
+  "category": "가족 행사·건강검진",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-15",
+  "occurs": null,
+  "dup_of": null
+ }
+]

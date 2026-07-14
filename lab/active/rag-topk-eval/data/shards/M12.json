@@ -1,0 +1,147 @@
+[
+ {
+  "id": "m12_000",
+  "type": "screenshot",
+  "summary": "캔바(Canva)에서 발견한 깔끔한 비즈니스 프레젠테이션 레이아웃. 조별과제 기말 발표때 가독성 좋게 쓰려고 저장해둠. 폰트랑 배치 참고할 것.",
+  "labels": [
+   "과제 참고",
+   "발표 자료"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "Canva"
+   }
+  ],
+  "category": "교육",
+  "persona": "student",
+  "role": "answer",
+  "for_query": "발표 템플릿",
+  "tier": "M",
+  "captured_at": "2026-05-26",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m12_001",
+  "type": "screenshot",
+  "summary": "핀터레스트에서 본 미니멀한 PPT 디자인 레퍼런스. 데이터 시각화 스타일이 맘에 들어서 담음. 이번 데이터 분석론 피피티에 써야지.",
+  "labels": [
+   "디자인 레퍼런스"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "Pinterest"
+   }
+  ],
+  "category": "교육",
+  "persona": "student",
+  "role": "answer",
+  "for_query": "발표 템플릿",
+  "tier": "M",
+  "captured_at": "2026-06-11",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m12_002",
+  "type": "link",
+  "summary": "Slidesgo의 무료 학술 발표용 구글 슬라이드 테마 모음집. 교수님한테 꺠지지 않으려면 무난하고 깔끔한 서식이 최고임.",
+  "labels": [
+   "발표 준비"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "Slidesgo"
+   }
+  ],
+  "category": "교육",
+  "persona": "student",
+  "role": "answer",
+  "for_query": "발표 템플릿",
+  "tier": "M",
+  "captured_at": "2026-05-27",
+  "occurs": "2024-06-15",
+  "dup_of": null
+ },
+ {
+  "id": "m12_003",
+  "type": "memo",
+  "summary": "미리캔버스 유료 플랜 결제해서 쓸만한 심플한 인포그래픽 피피티 테마 찾기. 텍스트 위주 말고 이미지 많이 들어가는 스타일로.",
+  "labels": [
+   "아이디어"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "미리캔버스"
+   }
+  ],
+  "category": "교육",
+  "persona": "student",
+  "role": "answer",
+  "for_query": "발표 템플릿",
+  "tier": "M",
+  "captured_at": "2026-06-14",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m12_004",
+  "type": "screenshot",
+  "summary": "노션에서 제공하는 기본 프로젝트 관리용 페이지 구성. 뱔표 준비 말고 팀원들이랑 할일 목록 공유할 때 써야겠음.",
+  "labels": [
+   "협업 툴"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "Notion"
+   }
+  ],
+  "category": "교육",
+  "persona": "student",
+  "role": "hard_neg",
+  "for_query": "발표 템플릿",
+  "tier": "M",
+  "captured_at": "2026-06-18",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m12_005",
+  "type": "link",
+  "summary": "학과 사무실에서 배포한 공식 레포트 표지 양식. 과제 제출할 때 이거 안 쓰면 감점이라길래 북마크 해둠.",
+  "labels": [
+   "학교 행정"
+  ],
+  "entities": [],
+  "category": "교육",
+  "persona": "student",
+  "role": "hard_neg",
+  "for_query": "발표 템플릿",
+  "tier": "M",
+  "captured_at": "2026-06-26",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m12_006",
+  "type": "memo",
+  "summary": "졸업 논문용 워드 서식 파일 다운로드 경로. 서식 맞춰야해서 중요함. 나중에 다시 찾기 힘드니까 잘 보관하기.",
+  "labels": [
+   "졸업 준비"
+  ],
+  "entities": [],
+  "category": "교육",
+  "persona": "student",
+  "role": "hard_neg",
+  "for_query": "발표 템플릿",
+  "tier": "M",
+  "captured_at": "2026-06-26",
+  "occurs": null,
+  "dup_of": null
+ }
+]

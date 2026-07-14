@@ -1,0 +1,592 @@
+[
+ {
+  "id": "f05_000",
+  "type": "screenshot",
+  "summary": "커피챗 제안이 들어온 링크드인 프로필 캡처. 마케팅 자동화 툴 활용 경험이 풍부하신 분이라 인사이트 얻으러 연락해봐야지.",
+  "labels": [
+   "네트워킹",
+   "업무 참고"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "LinkedIn"
+   }
+  ],
+  "category": "커피챗·업계 뉴스레터",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-15",
+  "occurs": "2023-11-05",
+  "dup_of": null
+ },
+ {
+  "id": "f05_001",
+  "type": "screenshot",
+  "summary": "오늘 아침 뉴스레터에서 본 새로운 브랜딩 캠페인 레퍼런스. 컬러 팔레트랑 폰트 구성이 깔끔해서 담아둠.",
+  "labels": [
+   "레퍼런스",
+   "디자인"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "Notion"
+   }
+  ],
+  "category": "커피챗·업계 뉴스레터",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-19",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f05_002",
+  "type": "link",
+  "summary": "주니어 마케터들을 위한 데이터 분석 입문 웨비나. 다음주 월요일인데 시간 되면 꼭 들어야 할듯.",
+  "labels": [
+   "교육",
+   "업무 역량"
+  ],
+  "entities": [
+   {
+    "kind": "date",
+    "value": "2023-11-06"
+   }
+  ],
+  "category": "커피챗·업계 뉴스레터",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-28",
+  "occurs": "2023-11-06",
+  "dup_of": null
+ },
+ {
+  "id": "f05_003",
+  "type": "screenshot",
+  "summary": "강남역 신상 카페 인테리어 사진. 팀원들이랑 담주에 커피챗하러 가기 좋은 분위기다.",
+  "labels": [
+   "카페",
+   "가보고 싶은 곳"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "강남역"
+   }
+  ],
+  "category": "커피챗·업계 뉴스레터",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-11",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f05_004",
+  "type": "screenshot",
+  "summary": "업계 동향 리포트 요약. 요즘 숏폼 광고 효율이 다시 오르는 중이라는데 수치 꼼꼼히 확인하기.",
+  "labels": [
+   "인사이트",
+   "마케팅"
+  ],
+  "entities": [],
+  "category": "커피챗·업계 뉴스레터",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-09",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f05_005",
+  "type": "memo",
+  "summary": "오후 3시 미팅 전에 슬랙으로 어제 보내준 기획안 피드백 정리해두기. 이번 캠페인 예산 조정이 좀 필요할 거 같다.",
+  "labels": [
+   "업무",
+   "할일"
+  ],
+  "entities": [],
+  "category": "커피챗·업계 뉴스레터",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-26",
+  "occurs": "2023-11-07",
+  "dup_of": null
+ },
+ {
+  "id": "f05_006",
+  "type": "screenshot",
+  "summary": "출장지 근처 호텔 리뷰 캡쳐. 공항이랑 가깝고 조식이 맛있다던데 위치 확인용으로 저장함.",
+  "labels": [
+   "출장",
+   "여행"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "제주도"
+   }
+  ],
+  "category": "커피챗·업계 뉴스레터",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-20",
+  "occurs": "2023-11-15",
+  "dup_of": null
+ },
+ {
+  "id": "f05_007",
+  "type": "screenshot",
+  "summary": "최근 핫한 팝업스토어 인스타그램 게시물. 오프라인 마케팅 사례 조사용으로 찍어뒀음.",
+  "labels": [
+   "마케팅",
+   "팝업스토어"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "성수동"
+   }
+  ],
+  "category": "커피챗·업계 뉴스레터",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-25",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f05_008",
+  "type": "link",
+  "summary": "이번주 뉴스레터 중 인상 깊었던 AI 마케팅 트렌드 글. 나중에 캠페인 기획할 때 써먹을 거 많다.",
+  "labels": [
+   "뉴스레터",
+   "AI"
+  ],
+  "entities": [],
+  "category": "커피챗·업계 뉴스레터",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-08",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f05_009",
+  "type": "memo",
+  "summary": "점심에 먹은 곳 리스트업. 여기 김치찌게 맛집인데 담에 거래처 미팅 때 가야지. 아, 오타 수정: 김치찌개.",
+  "labels": [
+   "외식",
+   "맛집"
+  ],
+  "entities": [],
+  "category": "커피챗·업계 뉴스레터",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-29",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f05_010",
+  "type": "screenshot",
+  "summary": "협업 툴 유료 결제 내역 영수증. 비용 정산할 때 쓰려고 캡처해둠.",
+  "labels": [
+   "정산",
+   "업무"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "Figma"
+   }
+  ],
+  "category": "커피챗·업계 뉴스레터",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-05",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f05_011",
+  "type": "screenshot",
+  "summary": "커피챗 제안 문구 초안. 너무 딱딱하지 않으면서도 정중하게 보내는 템플릿 정리.",
+  "labels": [
+   "네트워킹",
+   "기록"
+  ],
+  "entities": [],
+  "category": "커피챗·업계 뉴스레터",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-02",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f05_012",
+  "type": "screenshot",
+  "summary": "요즘 쓰는 무선 이어폰이 자꾸 끊겨서 새로 살까 고민 중. 소니 모델인데 스펙 비교하려고 캡쳐함.",
+  "labels": [
+   "구매 고민",
+   "전자제품"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "Sony WF-1000XM5"
+   }
+  ],
+  "category": "커피챗·업계 뉴스레터",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-12",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f05_013",
+  "type": "screenshot",
+  "summary": "지하철 광고 캠페인 카피. 직관적이고 메시지가 잘 들어와서 영감 얻으려고 저장.",
+  "labels": [
+   "광고",
+   "카피라이팅"
+  ],
+  "entities": [],
+  "category": "커피챗·업계 뉴스레터",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-01",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f05_014",
+  "type": "screenshot",
+  "summary": "출장 갈 때 가져갈 짐 리스트. 노트북 충전기랑 보조배터리 챙기는 거 잊지 말자.",
+  "labels": [
+   "출장",
+   "준비물"
+  ],
+  "entities": [],
+  "category": "커피챗·업계 뉴스레터",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-21",
+  "occurs": "2023-11-20",
+  "dup_of": null
+ },
+ {
+  "id": "f05_015",
+  "type": "screenshot",
+  "summary": "팀 빌딩으로 가고 싶은 볼링장 운영 시간. 팀원들 스케줄 확인하고 예약 잡기.",
+  "labels": [
+   "팀빌딩",
+   "예약"
+  ],
+  "entities": [],
+  "category": "커피챗·업계 뉴스레터",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-02-07",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f05_016",
+  "type": "memo",
+  "summary": "다음 달부터는 컨텐츠 발행 주기를 2회에서 3회로 늘려야 함. 퍼포먼스 데이터 확인 필요.",
+  "labels": [
+   "업무",
+   "전략"
+  ],
+  "entities": [],
+  "category": "커피챗·업계 뉴스레터",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-12",
+  "occurs": "2023-12-01",
+  "dup_of": null
+ },
+ {
+  "id": "f05_017",
+  "type": "screenshot",
+  "summary": "인플루언서 마케팅 대행사 리스트. 담달 예산 집행할 때 컨텍해볼 곳들 모아둔 것.",
+  "labels": [
+   "마케팅",
+   "업무"
+  ],
+  "entities": [],
+  "category": "커피챗·업계 뉴스레터",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-11",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f05_018",
+  "type": "screenshot",
+  "summary": "회사 근처 비건 베이커리. 오늘 커피챗 상대가 비건이라 미리 알아봄.",
+  "labels": [
+   "비건",
+   "카페"
+  ],
+  "entities": [],
+  "category": "커피챗·업계 뉴스레터",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-02-13",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f05_019",
+  "type": "screenshot",
+  "summary": "온라인 강의 결제 내역. 퍼포먼스 마케팅 실무 과정인데 이번 달부터 열공 모드 시작.",
+  "labels": [
+   "자기계발",
+   "교육"
+  ],
+  "entities": [],
+  "category": "커피챗·업계 뉴스레터",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-08",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f05_020",
+  "type": "screenshot",
+  "summary": "새로 나온 노트북 상세 페이지. 성능이 너무 좋아서 지름신 올 뻔함. 일단 장바구니만...",
+  "labels": [
+   "구매 고민",
+   "노트북"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "MacBook Pro"
+   }
+  ],
+  "category": "커피챗·업계 뉴스레터",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-22",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f05_021",
+  "type": "screenshot",
+  "summary": "업계 컨퍼런스 안내문. 네트워킹하기 좋은 행사라 팀장님한테 보고하고 참석 신청해야지.",
+  "labels": [
+   "컨퍼런스",
+   "업무"
+  ],
+  "entities": [],
+  "category": "커피챗·업계 뉴스레터",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-03-17",
+  "occurs": "2023-12-15",
+  "dup_of": null
+ },
+ {
+  "id": "f05_022",
+  "type": "memo",
+  "summary": "오늘의 커피챗 노트: 타겟 오디언스 정의할 때 연령대보단 관심사 기반으로 세그먼트 나누는 게 효율적이라는 조언.",
+  "labels": [
+   "커피챗",
+   "인사이트"
+  ],
+  "entities": [],
+  "category": "커피챗·업계 뉴스레터",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-21",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f05_023",
+  "type": "screenshot",
+  "summary": "이번 달 마케팅 예산 계획표. 엑셀파일 캡쳐본인데 수정할 사항들 표시해둠.",
+  "labels": [
+   "예산",
+   "업무"
+  ],
+  "entities": [],
+  "category": "커피챗·업계 뉴스레터",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-07",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f05_024",
+  "type": "screenshot",
+  "summary": "디자인 에이전시 포트폴리오 사이트. 우리 브랜드 리브랜딩 할 때 참고할 만한 스타일이 많다.",
+  "labels": [
+   "디자인",
+   "레퍼런스"
+  ],
+  "entities": [],
+  "category": "커피챗·업계 뉴스레터",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-06",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f05_025",
+  "type": "screenshot",
+  "summary": "지하철역 근처 맛있는 샌드위치 가게. 출장 갈 때 아침으로 포장해서 가기 딱 좋음.",
+  "labels": [
+   "맛집",
+   "출장"
+  ],
+  "entities": [],
+  "category": "커피챗·업계 뉴스레터",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-03-20",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f05_026",
+  "type": "screenshot",
+  "summary": "클라우드 서비스 구독 요금제 비교. 회사에서 쓰는 거랑 비교해보는데 이게 더 저렴함.",
+  "labels": [
+   "업무",
+   "비용"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "AWS"
+   }
+  ],
+  "category": "커피챗·업계 뉴스레터",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-29",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f05_027",
+  "type": "screenshot",
+  "summary": "오늘의 뉴스레터 제목. 오픈율 높았던 메일 사례라는데 벤치마킹 해보자.",
+  "labels": [
+   "뉴스레터",
+   "카피"
+  ],
+  "entities": [],
+  "category": "커피챗·업계 뉴스레터",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f05_028",
+  "type": "memo",
+  "summary": "커피챗 1분 자기소개 스크립트. 조금 더 자연스럽게 수정 필요함. 다시 다듬기.",
+  "labels": [
+   "커피챗",
+   "네트워킹"
+  ],
+  "entities": [],
+  "category": "커피챗·업계 뉴스레터",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-19",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f05_029",
+  "type": "screenshot",
+  "summary": "이번주 회의 안건 리스트. 미리 준비 안 하면 털릴듯... 꼼꼼히 정리하자.",
+  "labels": [
+   "회의",
+   "업무"
+  ],
+  "entities": [],
+  "category": "커피챗·업계 뉴스레터",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-24",
+  "occurs": "2023-11-10",
+  "dup_of": null
+ }
+]

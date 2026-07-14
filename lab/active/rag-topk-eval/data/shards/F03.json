@@ -1,0 +1,617 @@
+[
+ {
+  "id": "f03_000",
+  "type": "screenshot",
+  "summary": "교양 수업 '서양미술사' 강의안 캡처. 교수님이 시험에 나온다고 강조한 르네상스 파트라 따로 저장해둠.",
+  "labels": [
+   "공부",
+   "시험대비"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "LMS"
+   }
+  ],
+  "category": "게임·유튜브·밈",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-12",
+  "occurs": "2024-05-12",
+  "dup_of": null
+ },
+ {
+  "id": "f03_001",
+  "type": "screenshot",
+  "summary": "유튜브에서 본 꿀잼 롤(LoL) 매드무비 장면. 제드 컨트롤 미쳤다... 나중에 이렇게 연습하려고 박제.",
+  "labels": [
+   "게임",
+   "연습"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "YouTube"
+   }
+  ],
+  "category": "게임·유튜브·밈",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-14",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f03_002",
+  "type": "memo",
+  "summary": "동아리 회식 장소 물색 중. 강남역 근처 삼겹살집 3군데 리스트업 완료. 가성비랑 예약 가능 여부 확인 필요.",
+  "labels": [
+   "동아리",
+   "회식"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "강남역"
+   }
+  ],
+  "category": "게임·유튜브·밈",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-15",
+  "occurs": "2024-05-15",
+  "dup_of": null
+ },
+ {
+  "id": "f03_003",
+  "type": "screenshot",
+  "summary": "오늘자 트위터에서 유행하는 밈 '고양이 짤'. 너무 귀여워서 힐링용으로 저장함 ㅋㅋㅋ.",
+  "labels": [
+   "힐링",
+   "밈"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "Twitter"
+   }
+  ],
+  "category": "게임·유튜브·밈",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-13",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f03_004",
+  "type": "link",
+  "summary": "맥북 프로 M3 스펙 비교 분석 기사. 이번 알바비 모아서 살까 고민 중인데 고민좀 더 해봐야지.",
+  "labels": [
+   "구매고민",
+   "IT"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "MacBook Pro"
+   }
+  ],
+  "category": "게임·유튜브·밈",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-30",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f03_005",
+  "type": "screenshot",
+  "summary": "과제 리서치 하다가 찾은 통계 자료. 인구 변화 추이 그래프라 레포트 작성할 때 인용하면 좋을 듯.",
+  "labels": [
+   "과제",
+   "리서치"
+  ],
+  "entities": [],
+  "category": "게임·유튜브·밈",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-12",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f03_006",
+  "type": "screenshot",
+  "summary": "편의점 알바하면서 본 신상 젤리 패키지. 디자인이 힙해서 나중에 마케팅 과제 아이디어로 참고하려고.",
+  "labels": [
+   "아이디어",
+   "디자인"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "GS25"
+   }
+  ],
+  "category": "게임·유튜브·밈",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-02",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f03_007",
+  "type": "link",
+  "summary": "스팀(Steam) 여름 할인 목록 정리글. 사고 싶었던 게임들이 많아서 위시리스트 체크하려고 저장.",
+  "labels": [
+   "게임",
+   "쇼핑"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "Steam"
+   }
+  ],
+  "category": "게임·유튜브·밈",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-03-21",
+  "occurs": "2024-06-01",
+  "dup_of": null
+ },
+ {
+  "id": "f03_008",
+  "type": "memo",
+  "summary": "오늘 점심 학식 메뉴: 김치찌개. 맛은 그냥저냥인데 양은 많음. 담엔 제육 먹어야지 냠.",
+  "labels": [
+   "일상",
+   "기록"
+  ],
+  "entities": [],
+  "category": "게임·유튜브·밈",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-29",
+  "occurs": "2024-05-10",
+  "dup_of": null
+ },
+ {
+  "id": "f03_009",
+  "type": "screenshot",
+  "summary": "인스타그램 광고에서 본 카페. 인테리어 분위기 쩔어서 친구들이랑 주말에 가보고 싶다.",
+  "labels": [
+   "카페",
+   "위시리스트"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "Instagram"
+   }
+  ],
+  "category": "게임·유튜브·밈",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-06",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f03_010",
+  "type": "screenshot",
+  "summary": "팀플 단톡방 공지사항 캡처. 중간발표 날짜랑 준비할 목록 적혀있음. 안보면 까먹을듯 ㅠㅠ.",
+  "labels": [
+   "팀플",
+   "학사"
+  ],
+  "entities": [],
+  "category": "게임·유튜브·밈",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-27",
+  "occurs": "2024-05-20",
+  "dup_of": null
+ },
+ {
+  "id": "f03_011",
+  "type": "screenshot",
+  "summary": "게임 '발로란트' 캐릭터 스킬 영상. 에임 연습용으로 참고하기 좋을 것 같아서 찍어둠.",
+  "labels": [
+   "게임",
+   "취미"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "VALORANT"
+   }
+  ],
+  "category": "게임·유튜브·밈",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-22",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f03_012",
+  "type": "memo",
+  "summary": "알바비 입금 확인. 이번달 월세랑 통신비 빠져나가는거 계산해서 예산 짜야함.",
+  "labels": [
+   "금융",
+   "알바"
+  ],
+  "entities": [],
+  "category": "게임·유튜브·밈",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-02-20",
+  "occurs": "2024-05-25",
+  "dup_of": null
+ },
+ {
+  "id": "f03_013",
+  "type": "screenshot",
+  "summary": "웹사이트 UI 디자인 참고용 레퍼런스. 과제 웹 프로그래밍 프로젝트할 때 레이아웃 이렇게 잡으면 깔끔할 듯.",
+  "labels": [
+   "과제",
+   "디자인"
+  ],
+  "entities": [],
+  "category": "게임·유튜브·밈",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-14",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f03_014",
+  "type": "screenshot",
+  "summary": "오늘 보게 된 유튜브 숏츠. 요리 레시피가 간단해서 나중에 혼자 자취요리 할 때 시도해봐야겠다.",
+  "labels": [
+   "요리",
+   "꿀팁"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "YouTube"
+   }
+  ],
+  "category": "게임·유튜브·밈",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-03-18",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f03_015",
+  "type": "screenshot",
+  "summary": "동아리 정기 공연 포스터. 디자인 컨셉이 예뻐서 참고용으로 남겨둔다. 폰트 뭐 썼지?",
+  "labels": [
+   "동아리",
+   "디자인"
+  ],
+  "entities": [],
+  "category": "게임·유튜브·밈",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f03_016",
+  "type": "memo",
+  "summary": "내일 아침 9시 수업. 절대 늦잠자지 말기. 알람 3개 맞춰놓음.",
+  "labels": [
+   "학사",
+   "다짐"
+  ],
+  "entities": [],
+  "category": "게임·유튜브·밈",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-25",
+  "occurs": "2024-05-14",
+  "dup_of": null
+ },
+ {
+  "id": "f03_017",
+  "type": "screenshot",
+  "summary": "커뮤니티에서 발견한 웃긴 짤. 친구들 단톡방에 뿌렸더니 다들 터짐 ㅋㅋㅋㅋㅋ.",
+  "labels": [
+   "밈",
+   "일상"
+  ],
+  "entities": [],
+  "category": "게임·유튜브·밈",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-05",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f03_018",
+  "type": "screenshot",
+  "summary": "알바 스케줄표 캡처. 이번 주 금요일 대타 뛰기로 해서 확인용으로 저장.",
+  "labels": [
+   "알바",
+   "스케줄"
+  ],
+  "entities": [],
+  "category": "게임·유튜브·밈",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-28",
+  "occurs": "2024-05-17",
+  "dup_of": null
+ },
+ {
+  "id": "f03_019",
+  "type": "screenshot",
+  "summary": "전공 서적 목차 사진. 기말고사 범위 체크하려고 찍어둠. 공부 양이 생각보다 많네;;",
+  "labels": [
+   "공부",
+   "학사"
+  ],
+  "entities": [],
+  "category": "게임·유튜브·밈",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-23",
+  "occurs": "2024-06-10",
+  "dup_of": null
+ },
+ {
+  "id": "f03_020",
+  "type": "screenshot",
+  "summary": "노션(Notion) 대시보드 템플릿 예시. 내 정리 습관을 개선하고 싶어서 참고하려고 캡처함.",
+  "labels": [
+   "자기계발",
+   "도구"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "Notion"
+   }
+  ],
+  "category": "게임·유튜브·밈",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-13",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f03_021",
+  "type": "screenshot",
+  "summary": "운동 루틴 영상. 헬스장 끊어놓고 자꾸 안가게 되는데 이거라도 보면서 자극받아야 함.",
+  "labels": [
+   "운동",
+   "건강"
+  ],
+  "entities": [],
+  "category": "게임·유튜브·밈",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-09",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f03_022",
+  "type": "screenshot",
+  "summary": "온라인 쇼핑몰 신발 할인 목록. 가격 착한데 사이즈 고민중. 품절되기 전에 사야하나.",
+  "labels": [
+   "쇼핑",
+   "고민"
+  ],
+  "entities": [],
+  "category": "게임·유튜브·밈",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-25",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f03_023",
+  "type": "screenshot",
+  "summary": "교수님이 공유해주신 참고 문헌 링크 목록. 나중에 논문 쓸 때 유용할 것 같아서 일단 캡처.",
+  "labels": [
+   "공부",
+   "과제"
+  ],
+  "entities": [],
+  "category": "게임·유튜브·밈",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-22",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f03_024",
+  "type": "memo",
+  "summary": "동아리 뒤풀이 비용 정산. 총 12만원, 4명이서 3만원씩 n빵.",
+  "labels": [
+   "동아리",
+   "정산"
+  ],
+  "entities": [],
+  "category": "게임·유튜브·밈",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-02-15",
+  "occurs": "2024-05-18",
+  "dup_of": null
+ },
+ {
+  "id": "f03_025",
+  "type": "screenshot",
+  "summary": "유튜브 브이로그에서 본 인테리어 소품. 내 책상에 두면 분위기 바뀔 듯.",
+  "labels": [
+   "인테리어",
+   "쇼핑"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "YouTube"
+   }
+  ],
+  "category": "게임·유튜브·밈",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-03-19",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f03_026",
+  "type": "screenshot",
+  "summary": "과제 제출 마감 시간 캡처. 이번주 금요일 밤 12시까지. 늦으면 감점이니까 미리 해둬야지.",
+  "labels": [
+   "학사",
+   "과제"
+  ],
+  "entities": [],
+  "category": "게임·유튜브·밈",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-03",
+  "occurs": "2024-05-24",
+  "dup_of": null
+ },
+ {
+  "id": "f03_027",
+  "type": "memo",
+  "summary": "에어팟 프로 한쪽 잃어버림... 아 진짜 정신머리하고는. 어디다 둔거지?",
+  "labels": [
+   "분실",
+   "속상"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "AirPods Pro"
+   }
+  ],
+  "category": "게임·유튜브·밈",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-28",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f03_028",
+  "type": "screenshot",
+  "summary": "최신 넷플릭스 드라마 추천 리스트. 시험 끝나면 넷플릭스 정주행 할거임.",
+  "labels": [
+   "넷플릭스",
+   "휴식"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "Netflix"
+   }
+  ],
+  "category": "게임·유튜브·밈",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-18",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f03_029",
+  "type": "screenshot",
+  "summary": "동네 맛집 지도. 나중에 데이트 할 때나 친구 만날 때 참고하려고 모아둠.",
+  "labels": [
+   "맛집",
+   "위시리스트"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "학교 근처"
+   }
+  ],
+  "category": "게임·유튜브·밈",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-12",
+  "occurs": null,
+  "dup_of": null
+ }
+]

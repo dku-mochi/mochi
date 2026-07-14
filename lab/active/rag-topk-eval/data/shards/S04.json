@@ -1,0 +1,144 @@
+[
+ {
+  "id": "s04_000",
+  "type": "screenshot",
+  "summary": "사내 오피스 관리 솔루션 '워크플레이스' 내 3층 대회의실 4번 예약 페이지입니다. 오후 2시 주간 팀 회의를 위해 주말에 미리 캡처해둔 화면이에요.",
+  "labels": [
+   "업무",
+   "회의 준비"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "워크플레이스"
+   },
+   {
+    "kind": "place",
+    "value": "3층 대회의실"
+   }
+  ],
+  "category": "업무",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "회의실 예약 링크",
+  "tier": "S",
+  "captured_at": "2026-04-21",
+  "occurs": "2023-11-20",
+  "dup_of": null
+ },
+ {
+  "id": "s04_001",
+  "type": "link",
+  "summary": "구글 밋(Google Meet) 원격 회의 접속 주소입니다. 클라이언트사와의 화상 미팅을 위해 캘린더에서 복사해온 링크예요.",
+  "labels": [
+   "화상회의",
+   "업무"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "Google Meet"
+   }
+  ],
+  "category": "업무",
+  "persona": "marketer",
+  "role": "hard_neg",
+  "for_query": "회의실 예약 링크",
+  "tier": "S",
+  "captured_at": "2026-03-24",
+  "occurs": "2023-11-20",
+  "dup_of": null
+ },
+ {
+  "id": "s04_002",
+  "type": "screenshot",
+  "summary": "사내 사내 사내 IT 자산 관리 시스템의 빔프로젝터 대여 신청 폼입니다. 다음 주 프로젝트 런칭 발표회 때 쓸 장비 미리 신청하려고 찍어뒀어요.",
+  "labels": [
+   "자산 관리",
+   "장비 대여"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "빔프로젝터"
+   }
+  ],
+  "category": "업무",
+  "persona": "marketer",
+  "role": "hard_neg",
+  "for_query": "회의실 예약 링크",
+  "tier": "S",
+  "captured_at": "2026-04-20",
+  "occurs": "2023-11-24",
+  "dup_of": null
+ },
+ {
+  "id": "s04_003",
+  "type": "memo",
+  "summary": "마케팅팀 공유 캘린더에 있는 2층 세미나룸 예약 폼입니다. 담주 월욜 오전 10시로 예약 완료해야 함. 링크 미리 따둠.",
+  "labels": [
+   "업무",
+   "회의"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "2층 세미나룸"
+   }
+  ],
+  "category": "업무",
+  "persona": "marketer",
+  "role": "hard_neg",
+  "for_query": "회의실 예약 링크",
+  "tier": "S",
+  "captured_at": "2026-04-03",
+  "occurs": "2023-11-21",
+  "dup_of": null
+ },
+ {
+  "id": "s04_004",
+  "type": "screenshot",
+  "summary": "사내 ERP 시스템 내 회의실 관리 탭 캡처. '스마트 회의실 1호점' 예약 현황 조회 화면입니다. 팀원들 자리가 좁아서 여기서 회의 잡아야 함.",
+  "labels": [
+   "업무",
+   "회의 예약"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "스마트 회의실 1호점"
+   }
+  ],
+  "category": "업무",
+  "persona": "marketer",
+  "role": "hard_neg",
+  "for_query": "회의실 예약 링크",
+  "tier": "S",
+  "captured_at": "2026-03-20",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s04_005",
+  "type": "link",
+  "summary": "회사 보안 VPN 접속 가이드 및 줌(Zoom) 회의실 생성 매뉴얼 링크. 재택근무 때 회의실 비번 까먹을까봐 저장함.",
+  "labels": [
+   "업무",
+   "메뉴얼"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "Zoom"
+   }
+  ],
+  "category": "업무",
+  "persona": "marketer",
+  "role": "hard_neg",
+  "for_query": "회의실 예약 링크",
+  "tier": "S",
+  "captured_at": "2026-03-16",
+  "occurs": null,
+  "dup_of": null
+ }
+]

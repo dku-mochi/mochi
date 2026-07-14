@@ -1,0 +1,167 @@
+[
+ {
+  "id": "s03_000",
+  "type": "screenshot",
+  "summary": "자취방 iptime N604V 공유기 관리자 페이지 접속 주소와 비밀번호 설정 경로를 캡처했다. 인터넷 연결이 불안정해서 초기화 후 보안 설정이 필요함.",
+  "labels": [
+   "자취방",
+   "인터넷"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "iptime N604V"
+   }
+  ],
+  "category": "생활",
+  "persona": "student",
+  "role": "answer",
+  "for_query": "공유기 비밀번호 바꾸는 법",
+  "tier": "S",
+  "captured_at": "2026-01-22",
+  "occurs": "2024-05-15",
+  "dup_of": null
+ },
+ {
+  "id": "s03_001",
+  "type": "link",
+  "summary": "KT 기가와이파이 홈 허브의 SSID 변경 및 암호화 방식 설정 안내 페이지. 기사님 방문 없이 직접 보안 설정을 강화하려고 저장해둠.",
+  "labels": [
+   "정보",
+   "공부"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "KT"
+   }
+  ],
+  "category": "생활",
+  "persona": "student",
+  "role": "hard_neg",
+  "for_query": "공유기 비밀번호 바꾸는 법",
+  "tier": "S",
+  "captured_at": "2026-03-12",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s03_002",
+  "type": "screenshot",
+  "summary": "NIA 스피드 인터넷 속도 측정 결과 이미지. 핑이 튀어서 렉이 걸리는지 확인하려고 테스트해봤는데 생각보다 속도가 느리게 나옴.",
+  "labels": [
+   "체크리스트"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "NIA"
+   }
+  ],
+  "category": "생활",
+  "persona": "student",
+  "role": "hard_neg",
+  "for_query": "공유기 비밀번호 바꾸는 법",
+  "tier": "S",
+  "captured_at": "2026-02-23",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s03_003",
+  "type": "screenshot",
+  "summary": "현재 사용 중인 SK브로드밴드 요금제 혜택과 잔여 약정 기간 캡처. 매달 나가는 통신비가 적절한지 나중에 따져봐야겠다.",
+  "labels": [
+   "생활비",
+   "가계부"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "SK브로드밴드"
+   }
+  ],
+  "category": "생활",
+  "persona": "student",
+  "role": "hard_neg",
+  "for_query": "공유기 비밀번호 바꾸는 법",
+  "tier": "S",
+  "captured_at": "2026-01-21",
+  "occurs": "2024-12-01",
+  "dup_of": null
+ },
+ {
+  "id": "s03_004",
+  "type": "memo",
+  "summary": "와이파이 신호 세기랑 채널 간섭 문제 점검하기. 공유기 위치를 방 중앙으로 옮기면 속도 빨라질지 체크해볼 것. 채널 변경법도 찾아야 함.",
+  "labels": [
+   "할일"
+  ],
+  "entities": [],
+  "category": "생활",
+  "persona": "student",
+  "role": "hard_neg",
+  "for_query": "공유기 비밀번호 바꾸는 법",
+  "tier": "S",
+  "captured_at": "2026-02-01",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s03_005",
+  "type": "screenshot",
+  "summary": "인터넷 공유기 무선 보안 설정 관련 매뉴얼 캡처. 암호화 방식을 WPA2로 바꾸고 비밀번호를 더 복잡하게 변경하는법을 정리해둠.",
+  "labels": [
+   "꿀팁"
+  ],
+  "entities": [],
+  "category": "생활",
+  "persona": "student",
+  "role": "hard_neg",
+  "for_query": "공유기 비밀번호 바꾸는 법",
+  "tier": "S",
+  "captured_at": "2026-02-17",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s03_006",
+  "type": "screenshot",
+  "summary": "카페 알바처에 있는 TP-Link 공유기 설정 창 캡처. 손님들 와이파이 비번이 너무 쉬워서 사장님께 말씀드리기 전에 미리 관리자 페이지 로그인법 익혀둠.",
+  "labels": [
+   "알바",
+   "공유기설정"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "TP-Link"
+   }
+  ],
+  "category": "생활",
+  "persona": "student",
+  "role": "filler",
+  "for_query": "공유기 비밀번호 바꾸는 법",
+  "tier": "S",
+  "captured_at": "2026-03-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s03_007",
+  "type": "memo",
+  "summary": "어제 자취방 와이파이 렉걸려서 iptime admin 페이지에서 비번바꾸기 완료! 비번 잊지말자, 1234아님ㅋㅋ 좀 더 복잡한걸로 바꿨음.",
+  "labels": [
+   "메모"
+  ],
+  "entities": [],
+  "category": "생활",
+  "persona": "student",
+  "role": "filler",
+  "for_query": "공유기 비밀번호 바꾸는 법",
+  "tier": "S",
+  "captured_at": "2026-03-15",
+  "occurs": "2024-05-16",
+  "dup_of": null
+ }
+]

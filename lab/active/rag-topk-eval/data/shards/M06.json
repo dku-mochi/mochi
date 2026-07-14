@@ -1,0 +1,171 @@
+[
+ {
+  "id": "m06_000",
+  "type": "screenshot",
+  "summary": "우리아이들소아청소년과의원 5월 접종 스케줄표. 1차 영유아 검진과 4개월차 폐구균, 로타바이러스 접종 예약을 위해 저장함.",
+  "labels": [
+   "아이 예방접종",
+   "병원 예약"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "우리아이들소아청소년과의원"
+   },
+   {
+    "kind": "date",
+    "value": "2024-05-15"
+   }
+  ],
+  "category": "육아",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "아이 예방접종",
+  "tier": "M",
+  "captured_at": "2026-01-16",
+  "occurs": "2024-05-15",
+  "dup_of": null
+ },
+ {
+  "id": "m06_001",
+  "type": "link",
+  "summary": "질병관리청 예방접종도우미 사이트의 표준 예방접종 일정표. 아이 성장 발달에 맞춰 빠뜨린 접종 없는지 체크하려고 즐겨찾기 해둠.",
+  "labels": [
+   "건강 정보",
+   "육아 필수"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "질병관리청 예방접종도우미"
+   }
+  ],
+  "category": "육아",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "아이 예방접종",
+  "tier": "M",
+  "captured_at": "2026-01-28",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m06_002",
+  "type": "memo",
+  "summary": "다음주 화요일 오전 10시, 세브란스 소아과 방문. DTaP 3차랑 B형 간염 접종 예정. 수첩 챙길 것!",
+  "labels": [
+   "육아 기록",
+   "일정"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "세브란스 소아과"
+   },
+   {
+    "kind": "date",
+    "value": "2024-06-11"
+   }
+  ],
+  "category": "육아",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "아이 예방접종",
+  "tier": "M",
+  "captured_at": "2026-01-20",
+  "occurs": "2024-06-11",
+  "dup_of": null
+ },
+ {
+  "id": "m06_003",
+  "type": "screenshot",
+  "summary": "본인 독감 백신 접종 안내 문구. 10월부터 접종 가능하니 미리 예약해야겠음. 작년보다 일찍 맞으라는데 잘 기억해두자.",
+  "labels": [
+   "건강 관리",
+   "성인 독감"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "독감 백신"
+   }
+  ],
+  "category": "육아",
+  "persona": "parent",
+  "role": "hard_neg",
+  "for_query": "아이 예방접종",
+  "tier": "M",
+  "captured_at": "2026-01-26",
+  "occurs": "2024-10-01",
+  "dup_of": null
+ },
+ {
+  "id": "m06_004",
+  "type": "memo",
+  "summary": "아기 오늘 갑자기 열 나서 평일 야간진료하는 소아과 다녀옴. 목이 좀 부었다고 하심. 약 처방받은거 3일치 꼼꼼히 먹이자.",
+  "labels": [
+   "육아 일기",
+   "소아과 진료"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "소아과"
+   }
+  ],
+  "category": "육아",
+  "persona": "parent",
+  "role": "hard_neg",
+  "for_query": "아이 예방접종",
+  "tier": "M",
+  "captured_at": "2026-01-23",
+  "occurs": "2024-04-20",
+  "dup_of": null
+ },
+ {
+  "id": "m06_005",
+  "type": "screenshot",
+  "summary": "동네 이비인후과 비급여 진료비 안내 캡쳐. 아기 중이염 의심되어서 일반 진료 비용 확인하려고 찍어둠.",
+  "labels": [
+   "병원 진료",
+   "비용 확인"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "이비인후과"
+   }
+  ],
+  "category": "육아",
+  "persona": "parent",
+  "role": "hard_neg",
+  "for_query": "아이 예방접종",
+  "tier": "M",
+  "captured_at": "2026-01-28",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m06_006",
+  "type": "link",
+  "summary": "독감 예방접종 4가 백신 접종 이벤트 안내. 할인된 가격으로 성인용 접종 가능한 곳 리스트업 된 링크.",
+  "labels": [
+   "성인 독감주사",
+   "정보 공유"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "네이버 블로그"
+   }
+  ],
+  "category": "육아",
+  "persona": "parent",
+  "role": "hard_neg",
+  "for_query": "아이 예방접종",
+  "tier": "M",
+  "captured_at": "2026-01-17",
+  "occurs": null,
+  "dup_of": null
+ }
+]

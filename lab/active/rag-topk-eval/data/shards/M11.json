@@ -1,0 +1,241 @@
+[
+ {
+  "id": "m11_000",
+  "type": "screenshot",
+  "summary": "레고 듀플로 기차 세트 10874 상세 페이지. 조카랑 아이가 좋아할 것 같아서 눈여겨봄, 가격 비교 필요.",
+  "labels": [
+   "구매 고민",
+   "장난감"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "레고 듀플로 10874"
+   },
+   {
+    "kind": "brand",
+    "value": "레고"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "크리스마스 선물",
+  "tier": "M",
+  "captured_at": "2026-05-23",
+  "occurs": "2024-12-25",
+  "dup_of": null
+ },
+ {
+  "id": "m11_001",
+  "type": "screenshot",
+  "summary": "마이크로 킥보드 맥시 디럭스 모델 정보. 5살 아이들 필수템이라는데 겨울이라 고민 중.",
+  "labels": [
+   "아이템 조사"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "맥시 디럭스"
+   },
+   {
+    "kind": "brand",
+    "value": "마이크로"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "크리스마스 선물",
+  "tier": "M",
+  "captured_at": "2026-06-12",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m11_002",
+  "type": "screenshot",
+  "summary": "블루래빗 전집 세트 연말 할인 캡처. 책 선물은 호불호가 없으니 이번 연휴 대비용으로 딱일 듯.",
+  "labels": [
+   "쇼핑 리스트"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "블루래빗"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "크리스마스 선물",
+  "tier": "M",
+  "captured_at": "2026-06-30",
+  "occurs": "2024-12-20",
+  "dup_of": null
+ },
+ {
+  "id": "m11_003",
+  "type": "link",
+  "summary": "오로라월드 핑크퐁 인형 신상. 품절대란이라는데 입고 알림 신청해둠. 산타 할배 선물로 준비해야지.",
+  "labels": [
+   "위시리스트"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "핑크퐁 인형"
+   },
+   {
+    "kind": "brand",
+    "value": "오로라월드"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "크리스마스 선물",
+  "tier": "M",
+  "captured_at": "2026-05-28",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m11_004",
+  "type": "link",
+  "summary": "토이저러스 12월 이벤트 페이지. 12월 24일까지 20퍼 할인이라니 늦기 전에 가봐야 함.",
+  "labels": [
+   "오프라인 매장",
+   "할인 정보"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "토이저러스"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "크리스마스 선물",
+  "tier": "M",
+  "captured_at": "2026-05-30",
+  "occurs": "2024-12-24",
+  "dup_of": null
+ },
+ {
+  "id": "m11_005",
+  "type": "memo",
+  "summary": "디즈니 주니어 겨울왕국 드레스. 엘사 옷 찾는 중인데 사이즈 품절이 넘 많다. 120 사이즈 입고 알림 켜두기.",
+  "labels": [
+   "구매 고민",
+   "의류"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "겨울왕국 드레스"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "크리스마스 선물",
+  "tier": "M",
+  "captured_at": "2026-06-07",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m11_006",
+  "type": "screenshot",
+  "summary": "카네이션 꽃바구니 제작 업체 포트폴리오. 양가 어르신 어버이날 선물용으로 저장해둠. 5월 되기 전에 미리 예약해야지.",
+  "labels": [
+   "기념일",
+   "부모님 선물"
+  ],
+  "entities": [
+   {
+    "kind": "date",
+    "value": "05-08"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "parent",
+  "role": "hard_neg",
+  "for_query": "크리스마스 선물",
+  "tier": "M",
+  "captured_at": "2026-06-12",
+  "occurs": "2025-05-08",
+  "dup_of": null
+ },
+ {
+  "id": "m11_007",
+  "type": "screenshot",
+  "summary": "할머니 생신 선물로 봐둔 스카프 브랜드. 실크 소재라 고급스럽고 엄마도 좋아할 듯.",
+  "labels": [
+   "선물",
+   "생신"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "실크 스카프"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "parent",
+  "role": "hard_neg",
+  "for_query": "크리스마스 선물",
+  "tier": "M",
+  "captured_at": "2026-05-29",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m11_008",
+  "type": "link",
+  "summary": "아빠 생신용 골프웨어 세일 링크. 타이틀리스트 바지 사이즈 확인해야 하는데 까먹지 말자.",
+  "labels": [
+   "생일 선물",
+   "골프"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "타이틀리스트"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "parent",
+  "role": "hard_neg",
+  "for_query": "크리스마스 선물",
+  "tier": "M",
+  "captured_at": "2026-05-30",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m11_009",
+  "type": "memo",
+  "summary": "어버이날 용돈 박스 주문하기. 작년에 했던 곳이 퀄리티 괸찮았는데(괜찮았는데) 다시 찾아봐야 함.",
+  "labels": [
+   "기념일",
+   "쇼핑"
+  ],
+  "entities": [
+   {
+    "kind": "date",
+    "value": "05-08"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "parent",
+  "role": "hard_neg",
+  "for_query": "크리스마스 선물",
+  "tier": "M",
+  "captured_at": "2026-06-18",
+  "occurs": "2025-05-08",
+  "dup_of": null
+ }
+]

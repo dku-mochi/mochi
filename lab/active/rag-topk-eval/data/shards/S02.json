@@ -1,0 +1,179 @@
+[
+ {
+  "id": "s02_000",
+  "type": "screenshot",
+  "summary": "아이 치아 교정 때문에 다니는 '연세바른치과' 예약 변경 안내 문자 캡처. 원래 목요일이었는데 선생님 휴가로 일요일 오전 10시로 옮김. 늦지 않게 달력 등록 완료.",
+  "labels": [
+   "육아",
+   "일정관리"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "연세바른치과"
+   },
+   {
+    "kind": "date",
+    "value": "2024-05-19"
+   }
+  ],
+  "category": "건강",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "치과 예약 변경",
+  "tier": "S",
+  "captured_at": "2026-06-16",
+  "occurs": "2024-05-19",
+  "dup_of": null
+ },
+ {
+  "id": "s02_001",
+  "type": "screenshot",
+  "summary": "지난주 소아과 진료비 영수증. 비급여 항목이 꽤 나와서 확인차 저장함. 다음 진료 때 진단서 발급 비용이랑 비교해볼 것.",
+  "labels": [
+   "의료비",
+   "가계부"
+  ],
+  "entities": [
+   {
+    "kind": "date",
+    "value": "2024-05-10"
+   }
+  ],
+  "category": "건강",
+  "persona": "parent",
+  "role": "hard_neg",
+  "for_query": "치과 예약 변경",
+  "tier": "S",
+  "captured_at": "2026-06-04",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s02_002",
+  "type": "link",
+  "summary": "어린이 정기 검진 예약을 위한 '똑닥' 앱 내 이안치과 예약 페이지. 예약 버튼 눌렀는데 대기자가 많아서 우선 저장해둠.",
+  "labels": [
+   "병원예약",
+   "아이건강"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "똑닥"
+   },
+   {
+    "kind": "place",
+    "value": "이안치과"
+   }
+  ],
+  "category": "건강",
+  "persona": "parent",
+  "role": "hard_neg",
+  "for_query": "치과 예약 변경",
+  "tier": "S",
+  "captured_at": "2026-06-10",
+  "occurs": "2024-06-01",
+  "dup_of": null
+ },
+ {
+  "id": "s02_003",
+  "type": "memo",
+  "summary": "이번주 금요일 오후 3시, 튼튼소아과 예방접종 예약 완료! 30분 전 알람 설정해두기. 잊지말고 아기수첩 챙길 것.",
+  "labels": [
+   "일정",
+   "육아"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "튼튼소아과"
+   }
+  ],
+  "category": "건강",
+  "persona": "parent",
+  "role": "hard_neg",
+  "for_query": "치과 예약 변경",
+  "tier": "S",
+  "captured_at": "2026-05-29",
+  "occurs": "2024-05-24",
+  "dup_of": null
+ },
+ {
+  "id": "s02_004",
+  "type": "screenshot",
+  "summary": "치과 치료 받고 받은 진료비 내역서. 레진 치료비가 생각보다 많이 나옴. 꼼꼼히 확인하고 나중에 실비 청구 서류 미리 받아두자.",
+  "labels": [
+   "의료비",
+   "보험청구"
+  ],
+  "entities": [],
+  "category": "건강",
+  "persona": "parent",
+  "role": "hard_neg",
+  "for_query": "치과 예약 변경",
+  "tier": "S",
+  "captured_at": "2026-06-28",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s02_005",
+  "type": "screenshot",
+  "summary": "예약변경 말고 그냥 일반 치과 예약 문자 캡처. 담달 초에 정기검진 받으러 가야 해서 날짜 확인용으로 저장함.",
+  "labels": [
+   "검진",
+   "일정"
+  ],
+  "entities": [],
+  "category": "건강",
+  "persona": "parent",
+  "role": "hard_neg",
+  "for_query": "치과 예약 변경",
+  "tier": "S",
+  "captured_at": "2026-05-27",
+  "occurs": "2024-06-05",
+  "dup_of": null
+ },
+ {
+  "id": "s02_006",
+  "type": "link",
+  "summary": "서울아산병원 치과 예약 변경 안내 페이지. 전화 연결이 너무 어려워서 홈페이지 챗봇으로 일정 변경하는 방법 찾아봄.",
+  "labels": [
+   "병원예약",
+   "정보"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "서울아산병원"
+   }
+  ],
+  "category": "건강",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": "치과 예약 변경",
+  "tier": "S",
+  "captured_at": "2026-05-30",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s02_007",
+  "type": "memo",
+  "summary": "아기 구강검진 예약. 치과가 화욜 휴무라 수욜 오후 4시로 바꿨음. 이번엔 꼭 늦지말자.",
+  "labels": [
+   "육아",
+   "일정"
+  ],
+  "entities": [],
+  "category": "건강",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": "치과 예약 변경",
+  "tier": "S",
+  "captured_at": "2026-06-13",
+  "occurs": "2024-05-22",
+  "dup_of": null
+ }
+]

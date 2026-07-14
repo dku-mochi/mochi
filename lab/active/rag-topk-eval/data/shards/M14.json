@@ -1,0 +1,204 @@
+[
+ {
+  "id": "m14_000",
+  "type": "screenshot",
+  "summary": "엔카에서 확인한 아반떼 CN7 21년식 매물. 주행거리 3만km 이하에 무사고 차량이라 적정 가격대인지 확인하려고 캡처함.",
+  "labels": [
+   "중고차 구매",
+   "모델 비교"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "아반떼 CN7"
+   },
+   {
+    "kind": "platform",
+    "value": "엔카"
+   }
+  ],
+  "category": "모빌리티",
+  "persona": "jobseeker",
+  "role": "answer",
+  "for_query": "중고차 시세",
+  "tier": "M",
+  "captured_at": "2026-05-11",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m14_001",
+  "type": "screenshot",
+  "summary": "K카 앱에서 조회한 쏘나타 DN8 실매물 시세. 직영점이라 믿을만한 거 같아서 대략적인 예산 잡으려고 저장.",
+  "labels": [
+   "구매 예산",
+   "중고차 구매"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "쏘나타 DN8"
+   },
+   {
+    "kind": "platform",
+    "value": "K카"
+   }
+  ],
+  "category": "모빌리티",
+  "persona": "jobseeker",
+  "role": "answer",
+  "for_query": "중고차 시세",
+  "tier": "M",
+  "captured_at": "2026-05-18",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m14_002",
+  "type": "link",
+  "summary": "헤이딜러 제로에서 제공하는 아이오닉5 22년식 평균 중고 거래 가격표. 시세 추이 보면서 구매 타이밍 잴 예정.",
+  "labels": [
+   "시세 모니터링"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "아이오닉5"
+   },
+   {
+    "kind": "platform",
+    "value": "헤이딜러"
+   }
+  ],
+  "category": "모빌리티",
+  "persona": "jobseeker",
+  "role": "answer",
+  "for_query": "중고차 시세",
+  "tier": "M",
+  "captured_at": "2026-05-21",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m14_003",
+  "type": "memo",
+  "summary": "첫차 앱에서 본 더 뉴 모닝 23년식 시세 정보. 사고유무에 따라 100-200 정도 차이나는 거 같은데 꼼꼼히 봐야지.",
+  "labels": [
+   "중고차 구매"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "더 뉴 모닝"
+   },
+   {
+    "kind": "platform",
+    "value": "첫차"
+   }
+  ],
+  "category": "모빌리티",
+  "persona": "jobseeker",
+  "role": "answer",
+  "for_query": "중고차 시세",
+  "tier": "M",
+  "captured_at": "2026-05-14",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m14_004",
+  "type": "screenshot",
+  "summary": "현대자동차 공식 홈페이지에 올라온 신형 코나 신차 프로모션 안내. 60개월 무이자 할부 혜택이 꽤 쏠쏠해보여서 고민중.",
+  "labels": [
+   "신차 구매",
+   "할부 조건"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "현대자동차"
+   },
+   {
+    "kind": "product",
+    "value": "코나"
+   }
+  ],
+  "category": "모빌리티",
+  "persona": "jobseeker",
+  "role": "hard_neg",
+  "for_query": "중고차 시세",
+  "tier": "M",
+  "captured_at": "2026-05-15",
+  "occurs": "2024-05-30",
+  "dup_of": null
+ },
+ {
+  "id": "m14_005",
+  "type": "screenshot",
+  "summary": "장기 렌트 카 견적서인데 월 납입금이 생각보다 저렴하게 나왔음. 지금 타는 것보다 이게 더 효율적일지 따져봐야 함.",
+  "labels": [
+   "리스",
+   "렌트 비교"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "롯데렌터카"
+   }
+  ],
+  "category": "모빌리티",
+  "persona": "jobseeker",
+  "role": "hard_neg",
+  "for_query": "중고차 시세",
+  "tier": "M",
+  "captured_at": "2026-05-18",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m14_006",
+  "type": "screenshot",
+  "summary": "기아 EV6 신차 장기 리스 견적 비교표. 월 40만원대라니 생각보다 싼데 옵션 빠진거 아닌지 확인 필요함.",
+  "labels": [
+   "리스",
+   "신차 비교"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "EV6"
+   }
+  ],
+  "category": "모빌리티",
+  "persona": "jobseeker",
+  "role": "hard_neg",
+  "for_query": "중고차 시세",
+  "tier": "M",
+  "captured_at": "2026-05-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m14_007",
+  "type": "memo",
+  "summary": "신차 구매시 카드사 캐시백 프로모션 정리. 1.2% 포인트 적립이라는데 중고차는 해당 안되겠지? 꼼꼼히 체크해봐야댐.",
+  "labels": [
+   "자기계발",
+   "금융 정보"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "카드사"
+   }
+  ],
+  "category": "모빌리티",
+  "persona": "jobseeker",
+  "role": "hard_neg",
+  "for_query": "중고차 시세",
+  "tier": "M",
+  "captured_at": "2026-05-20",
+  "occurs": null,
+  "dup_of": null
+ }
+]

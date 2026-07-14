@@ -1,0 +1,205 @@
+[
+ {
+  "id": "m05_000",
+  "type": "screenshot",
+  "summary": "토스뱅크 굴리기 적금 연 3.0% 상품 안내 페이지. 지금 가입하면 우대금리 포함해서 연 3%까지 가능하다는데, 우리 1년 뒤 이사 자금용으로 괜찮을지 체크해보기.",
+  "labels": [
+   "재테크",
+   "저축 계획"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "토스뱅크"
+   },
+   {
+    "kind": "product",
+    "value": "굴리기 적금"
+   }
+  ],
+  "category": "금융",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "적금 금리",
+  "tier": "M",
+  "captured_at": "2026-03-14",
+  "occurs": "2024-11-30",
+  "dup_of": null
+ },
+ {
+  "id": "m05_001",
+  "type": "screenshot",
+  "summary": "카카오뱅크 26주적금 특판 정보 캡처. 매주 증액하는 방식이라 부담도 적고, 금리도 3.5%라 꽤 쏠쏠한 편. 신혼여행 경비 모으기로 딱일 듯.",
+  "labels": [
+   "신혼여행",
+   "재테크"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "카카오뱅크"
+   },
+   {
+    "kind": "product",
+    "value": "26주적금"
+   }
+  ],
+  "category": "금융",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "적금 금리",
+  "tier": "M",
+  "captured_at": "2026-03-29",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m05_002",
+  "type": "link",
+  "summary": "KB국민은행 KB스타적금 이율 확인. 이번달 최고 연 6%까지 가능한데 조건이 까다롭지 않아서 바로 가입할까 고민중임. 신랑이랑 같이 알아봐야지.",
+  "labels": [
+   "부부 재테크"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "KB국민은행"
+   },
+   {
+    "kind": "product",
+    "value": "KB스타적금"
+   }
+  ],
+  "category": "금융",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "적금 금리",
+  "tier": "M",
+  "captured_at": "2026-03-06",
+  "occurs": "2024-12-15",
+  "dup_of": null
+ },
+ {
+  "id": "m05_003",
+  "type": "memo",
+  "summary": "신한은행 신한슈퍼SOL 정기예금 vs 적금 금리 비교 메모. 예금은 목돈 거치용이고 적금은 월 50만원씩 넣기 좋은데, 연 3.2%면 정기적금치고는 나쁘지 않은 조건인 듯.",
+  "labels": [
+   "가계부",
+   "자산관리"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "신한은행"
+   },
+   {
+    "kind": "product",
+    "value": "신한슈퍼SOL"
+   }
+  ],
+  "category": "금융",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "적금 금리",
+  "tier": "M",
+  "captured_at": "2026-03-30",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m05_004",
+  "type": "screenshot",
+  "summary": "우리은행 파킹통장(CMA) 금리 연 2.2% 안내. 적금은 묶여서 답답한데 이건 수시입출금 되면서 금리도 주니까 비상금 넣어둘 용도로 찜해둠.",
+  "labels": [
+   "비상금",
+   "파킹통장"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "우리은행"
+   }
+  ],
+  "category": "금융",
+  "persona": "newlywed",
+  "role": "hard_neg",
+  "for_query": "적금 금리",
+  "tier": "M",
+  "captured_at": "2026-03-27",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m05_005",
+  "type": "screenshot",
+  "summary": "주택담보대출 고정금리 하향 조정 공고. 아파트 입주할 때 필요한 주담대 금리가 3%대로 떨어졌다는데, 지금 미리 받아두는게 이득일지 계산이 좀 필요함.",
+  "labels": [
+   "내집마련",
+   "대출 정보"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "주택담보대출"
+   }
+  ],
+  "category": "금융",
+  "persona": "newlywed",
+  "role": "hard_neg",
+  "for_query": "적금 금리",
+  "tier": "M",
+  "captured_at": "2026-03-27",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m05_006",
+  "type": "link",
+  "summary": "토스뱅크 외화통장 금리 혜택 정리. 달러 환테크 하려고 알아봤는데, 적금은 아니지만 이자 붙는 조건이 꽤 괜찮음. 틈틈히 환전해서 넣어두기.",
+  "labels": [
+   "환테크",
+   "재테크"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "토스뱅크"
+   }
+  ],
+  "category": "금융",
+  "persona": "newlywed",
+  "role": "hard_neg",
+  "for_query": "적금 금리",
+  "tier": "M",
+  "captured_at": "2026-03-29",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m05_007",
+  "type": "memo",
+  "summary": "NH농협은행 전세자금대출 변동금리 확인. 이자가 매달 나가니까 너무 부담스러움. 금리가 좀 더 내려가야 대환할텐데 언제쯤 인하될지 체크할것.",
+  "labels": [
+   "대출",
+   "가계지출"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "NH농협은행"
+   },
+   {
+    "kind": "product",
+    "value": "전세자금대출"
+   }
+  ],
+  "category": "금융",
+  "persona": "newlywed",
+  "role": "hard_neg",
+  "for_query": "적금 금리",
+  "tier": "M",
+  "captured_at": "2026-03-16",
+  "occurs": null,
+  "dup_of": null
+ }
+]

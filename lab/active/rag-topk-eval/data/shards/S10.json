@@ -1,0 +1,143 @@
+[
+ {
+  "id": "s10_000",
+  "type": "screenshot",
+  "summary": "가평 '포레스트 캠프' 예약 취소 관련 규정 캡처. 7일 전 취소 시 50% 위약금 발생한다고 적혀있어서 저장함. 애기 열나면 못 갈 수도 있어서 미리 체크해둠.",
+  "labels": [
+   "여행 정보",
+   "위약금 확인"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "가평 포레스트 캠프"
+   }
+  ],
+  "category": "여행",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "글램핑 위약금",
+  "tier": "S",
+  "captured_at": "2026-06-25",
+  "occurs": "2024-05-20",
+  "dup_of": null
+ },
+ {
+  "id": "s10_001",
+  "type": "link",
+  "summary": "아이와 가기 좋은 포천 럭셔리 글램핑장 예약 확정 메일. 취소 규정 링크가 포함되어 있음. 예약 완료했으니 나중에 일정 꼬이면 다시 확인해야지.",
+  "labels": [
+   "예약 완료",
+   "가족 여행"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "포천 글램핑장"
+   },
+   {
+    "kind": "platform",
+    "value": "네이버 예약"
+   }
+  ],
+  "category": "여행",
+  "persona": "parent",
+  "role": "hard_neg",
+  "for_query": "글램핑 위약금",
+  "tier": "S",
+  "captured_at": "2026-06-14",
+  "occurs": "2024-06-15",
+  "dup_of": null
+ },
+ {
+  "id": "s10_002",
+  "type": "screenshot",
+  "summary": "제주도 서귀포 근처 키즈 펜션 이용 약관 캡처. 당일 취소는 100% 환불 불가라는데, 혹시 몰라 저장해둠. 펜션 위약금 규정은 꼼꼼히 봐야함.",
+  "labels": [
+   "여행 준비",
+   "펜션 정보"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "서귀포 펜션"
+   }
+  ],
+  "category": "여행",
+  "persona": "parent",
+  "role": "hard_neg",
+  "for_query": "글램핑 위약금",
+  "tier": "S",
+  "captured_at": "2026-06-08",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s10_003",
+  "type": "memo",
+  "summary": "양평 글램핑장 2박3일 예약 확정 완료! 체크인 전날까지 취소하면 20% 위약금 떼니까 절대 잊지말기. 아기 컨디션 난조시 3일전 필수 체크.",
+  "labels": [
+   "여행 계획",
+   "잊지말기"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "양평"
+   }
+  ],
+  "category": "여행",
+  "persona": "parent",
+  "role": "hard_neg",
+  "for_query": "글램핑 위약금",
+  "tier": "S",
+  "captured_at": "2026-06-18",
+  "occurs": "2024-07-10",
+  "dup_of": null
+ },
+ {
+  "id": "s10_004",
+  "type": "screenshot",
+  "summary": "캠핑장 예약 사이트의 '환불 규정' 페이지. 3일 전 취소 시 수수료 30% 부과된다는 문구 강조되어 있음. 예약 변경할 일 생길까봐 캡쳐함.",
+  "labels": [
+   "여행 정보"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "캠핑지도"
+   }
+  ],
+  "category": "여행",
+  "persona": "parent",
+  "role": "hard_neg",
+  "for_query": "글램핑 위약금",
+  "tier": "S",
+  "captured_at": "2026-06-10",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s10_005",
+  "type": "memo",
+  "summary": "강원도 평창 캠핑장 위약금 규정 확인. 이용일 5일 전 취소 시 30% 차감. 급하게 예약했는데 혹시 애기 아프면 낭패니까 위약금 규정 캡쳐해둔거 다시 확인하기.",
+  "labels": [
+   "여행 정보",
+   "위약금 확인"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "평창"
+   }
+  ],
+  "category": "여행",
+  "persona": "parent",
+  "role": "hard_neg",
+  "for_query": "글램핑 위약금",
+  "tier": "S",
+  "captured_at": "2026-05-20",
+  "occurs": "2024-08-01",
+  "dup_of": null
+ }
+]

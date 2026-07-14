@@ -1,0 +1,642 @@
+[
+ {
+  "id": "f01_000",
+  "type": "screenshot",
+  "summary": "교양 수업 공지사항 캡처. 중간고사 범위가 예상보다 늘어나서 당황스럽지만 일단 저장해둠.",
+  "labels": [
+   "학교",
+   "학업"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "e-class"
+   }
+  ],
+  "category": "학사 일정·과제 공지",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-11",
+  "occurs": "2023-11-05",
+  "dup_of": null
+ },
+ {
+  "id": "f01_001",
+  "type": "screenshot",
+  "summary": "다음 주 동아리 회식 장소 투표 결과. 후보지가 많아서 고민인데 일단 애들이 정한 곳 캡처함.",
+  "labels": [
+   "동아리",
+   "회식"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "대학로"
+   }
+  ],
+  "category": "학사 일정·과제 공지",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-02-19",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f01_002",
+  "type": "link",
+  "summary": "과제에 필요한 논문 사이트 링크. 나중에 분석할 때 참고하려고 저장함.",
+  "labels": [
+   "과제",
+   "참고"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "RISS"
+   }
+  ],
+  "category": "학사 일정·과제 공지",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-16",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f01_003",
+  "type": "screenshot",
+  "summary": "알바 대타 구하는 단톡방 공지. 꿀알바 같아서 시간표 확인하려고 찍어둠.",
+  "labels": [
+   "알바",
+   "대타"
+  ],
+  "entities": [],
+  "category": "학사 일정·과제 공지",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-26",
+  "occurs": "2023-11-12",
+  "dup_of": null
+ },
+ {
+  "id": "f01_004",
+  "type": "screenshot",
+  "summary": "이번 학기 장학금 신청 안내문. 학점 커트라인이 생각보다 낮아서 희망이 보임.",
+  "labels": [
+   "장학금",
+   "학교"
+  ],
+  "entities": [
+   {
+    "kind": "date",
+    "value": "11월 20일"
+   }
+  ],
+  "category": "학사 일정·과제 공지",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-06",
+  "occurs": "2023-11-20",
+  "dup_of": null
+ },
+ {
+  "id": "f01_005",
+  "type": "memo",
+  "summary": "팀플 아이디어 메모. A조 발표 주제가 너무 평범해서 조금 더 참신한 걸 찾아야 할 듯.",
+  "labels": [
+   "팀플",
+   "아이디어"
+  ],
+  "entities": [],
+  "category": "학사 일정·과제 공지",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-12",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f01_006",
+  "type": "screenshot",
+  "summary": "교내 창업 경진대회 포스터. 상금이 꽤 커서 관심이 생김. 친구랑 같이 해볼까 고민 중.",
+  "labels": [
+   "대외활동",
+   "창업"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "학교 본부"
+   }
+  ],
+  "category": "학사 일정·과제 공지",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-13",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f01_007",
+  "type": "screenshot",
+  "summary": "도서관 좌석 예약 시스템 캡처. 시험기간이라 자리 잡기가 하늘에 별따기라 미리 확인용.",
+  "labels": [
+   "도서관",
+   "공부"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "중앙도서관"
+   }
+  ],
+  "category": "학사 일정·과제 공지",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-14",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f01_008",
+  "type": "link",
+  "summary": "전공 수업 교재 PDF 다운로드 링크. 무거워서 들고 다니기 힘드니까 아이패드로 봐야지.",
+  "labels": [
+   "과제",
+   "교재"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "iPad"
+   }
+  ],
+  "category": "학사 일정·과제 공지",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-24",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f01_009",
+  "type": "screenshot",
+  "summary": "스터디 그룹 모집 글. 데이터 분석 역량 키우고 싶어서 참여할지 고민 중.",
+  "labels": [
+   "자기계발",
+   "스터디"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "에브리타임"
+   }
+  ],
+  "category": "학사 일정·과제 공지",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-01",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f01_010",
+  "type": "screenshot",
+  "summary": "기말고사 시간표 공지. 3일 연속 시험이라니 진짜 죽을 맛이다.",
+  "labels": [
+   "학사",
+   "시험"
+  ],
+  "entities": [
+   {
+    "kind": "date",
+    "value": "12월 10일"
+   }
+  ],
+  "category": "학사 일정·과제 공지",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-11",
+  "occurs": "2023-12-10",
+  "dup_of": null
+ },
+ {
+  "id": "f01_011",
+  "type": "memo",
+  "summary": "알바 급여 들어오는 날. 이번 달은 월세 내고 나면 생활비가 얼마나 남을지 계산해보기.",
+  "labels": [
+   "알바",
+   "생활비"
+  ],
+  "entities": [],
+  "category": "학사 일정·과제 공지",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-10",
+  "occurs": "2023-11-25",
+  "dup_of": null
+ },
+ {
+  "id": "f01_012",
+  "type": "screenshot",
+  "summary": "학과 사무실 근로장학생 모집 공고. 공강 시간에 할 수 있어서 개꿀인 듯.",
+  "labels": [
+   "알바",
+   "근로"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "학과사무실"
+   }
+  ],
+  "category": "학사 일정·과제 공지",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-20",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f01_013",
+  "type": "screenshot",
+  "summary": "졸업 요건 어학 성적 안내. 영어 점수 지금 만들어야 안 늦는다는데 막막하네.",
+  "labels": [
+   "졸업",
+   "어학"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "TOEIC"
+   }
+  ],
+  "category": "학사 일정·과제 공지",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-24",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f01_014",
+  "type": "memo",
+  "summary": "교수님 면담 준비사항. 논문 주제 컨펌받으려면 자료 더 찾아봐야 함.",
+  "labels": [
+   "학업",
+   "과제"
+  ],
+  "entities": [],
+  "category": "학사 일정·과제 공지",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-25",
+  "occurs": "2023-11-15",
+  "dup_of": null
+ },
+ {
+  "id": "f01_015",
+  "type": "screenshot",
+  "summary": "학식 메뉴판 캡처. 오늘 학식 김치제육 나온대서 찍어둠.",
+  "labels": [
+   "학식",
+   "식단"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "학생식당"
+   }
+  ],
+  "category": "학사 일정·과제 공지",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-12",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f01_016",
+  "type": "screenshot",
+  "summary": "동아리 공연 포스터. 우리 동아리 애들이 열심히 준비한 거라 홍보해주려고 캡처함.",
+  "labels": [
+   "동아리",
+   "공연"
+  ],
+  "entities": [],
+  "category": "학사 일정·과제 공지",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-15",
+  "occurs": "2023-12-01",
+  "dup_of": null
+ },
+ {
+  "id": "f01_017",
+  "type": "screenshot",
+  "summary": "수강신청 연습 사이트 공지. 다음 학기 올클을 위해 서버 시간 확인하는 법 저장.",
+  "labels": [
+   "수강신청",
+   "꿀팁"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "서버시간"
+   }
+  ],
+  "category": "학사 일정·과제 공지",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-17",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f01_018",
+  "type": "memo",
+  "summary": "팀플 조별과제 역할 분담 내용. 정리가 잘 안 되네. 나중에 다시 체계적으로 적어야지.",
+  "labels": [
+   "팀플",
+   "회의"
+  ],
+  "entities": [],
+  "category": "학사 일정·과제 공지",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-02-16",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f01_019",
+  "type": "screenshot",
+  "summary": "중고 거래 사이트 캡처. 전공 서적 싸게 올라와서 바로 구매할지 고민 중.",
+  "labels": [
+   "쇼핑",
+   "절약"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "당근마켓"
+   }
+  ],
+  "category": "학사 일정·과제 공지",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-24",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f01_020",
+  "type": "screenshot",
+  "summary": "학교 셔틀버스 시간표. 아침 수업 늦지 않으려면 이거 캡처해두고 봐야함.",
+  "labels": [
+   "등교",
+   "교통"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "셔틀버스"
+   }
+  ],
+  "category": "학사 일정·과제 공지",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-02-02",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f01_021",
+  "type": "screenshot",
+  "summary": "스터디 카페 쿠폰 할인 정보. 시험기간에 맨날 가야하니까 50시간권 끊어둘까 생각.",
+  "labels": [
+   "공부",
+   "할인"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "스터디카페"
+   }
+  ],
+  "category": "학사 일정·과제 공지",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-03-23",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f01_022",
+  "type": "screenshot",
+  "summary": "자격증 시험 접수 기간 공지. 컴활 1급 따야하는데 접수하는거 자꾸 까먹음 ㅠ",
+  "labels": [
+   "자격증",
+   "일정"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "컴활1급"
+   }
+  ],
+  "category": "학사 일정·과제 공지",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-17",
+  "occurs": "2023-11-30",
+  "dup_of": null
+ },
+ {
+  "id": "f01_023",
+  "type": "memo",
+  "summary": "과제 마감기한 정리. 이번 주는 과제 폭탄이라서 주말 삭제해야함 ㅠㅠ",
+  "labels": [
+   "과제",
+   "일정"
+  ],
+  "entities": [],
+  "category": "학사 일정·과제 공지",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-23",
+  "occurs": "2023-11-10",
+  "dup_of": null
+ },
+ {
+  "id": "f01_024",
+  "type": "screenshot",
+  "summary": "세미나 강연 안내. 취업 관련이라 도움 될 것 같아서 신청 링크 저장하려고 캡처.",
+  "labels": [
+   "취업",
+   "세미나"
+  ],
+  "entities": [],
+  "category": "학사 일정·과제 공지",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-17",
+  "occurs": "2023-12-05",
+  "dup_of": null
+ },
+ {
+  "id": "f01_025",
+  "type": "screenshot",
+  "summary": "학과 동기들이랑 가는 엠티 장소 공지. 펜션 예약 번호 미리 저장해두기.",
+  "labels": [
+   "엠티",
+   "놀이"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "가평"
+   }
+  ],
+  "category": "학사 일정·과제 공지",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-13",
+  "occurs": "2023-12-15",
+  "dup_of": null
+ },
+ {
+  "id": "f01_026",
+  "type": "screenshot",
+  "summary": "교수님 피드백 메일 캡처. 수정한 레포트 다시 확인받기 위해 내용 요약함.",
+  "labels": [
+   "과제",
+   "피드백"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "Gmail"
+   }
+  ],
+  "category": "학사 일정·과제 공지",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-16",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f01_027",
+  "type": "screenshot",
+  "summary": "편의점 신상 간식 캡처. 시험기간 당 떨어지는데 이거 먹으면 행볻할듯.",
+  "labels": [
+   "간식",
+   "소소한행복"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "CU"
+   }
+  ],
+  "category": "학사 일정·과제 공지",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-02-04",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f01_028",
+  "type": "screenshot",
+  "summary": "졸업 연주회 티켓 예매 공지. 선배 연주회라 꼭 가야하는데 예매창 열리는 시간 체크.",
+  "labels": [
+   "학교행사",
+   "예술"
+  ],
+  "entities": [],
+  "category": "학사 일정·과제 공지",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-11",
+  "occurs": "2023-11-28",
+  "dup_of": null
+ },
+ {
+  "id": "f01_029",
+  "type": "memo",
+  "summary": "주말 알바 시간 변경 요청 메모. 사장님께 문자드리기 전에 뭐라 말할지 정리.",
+  "labels": [
+   "알바",
+   "소통"
+  ],
+  "entities": [],
+  "category": "학사 일정·과제 공지",
+  "persona": "student",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-20",
+  "occurs": null,
+  "dup_of": null
+ }
+]

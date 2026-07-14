@@ -1,0 +1,426 @@
+[
+ {
+  "id": "l01_000",
+  "type": "screenshot",
+  "summary": "성수동 묘사서울, 한국적인 디저트 모양이 특이해서 촬영. 공간이 협소해서 작업용보다는 가벼운 미팅이나 아이디어 스케치용으로 적합함.",
+  "labels": [
+   "가보고 싶은 곳",
+   "영감"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "묘사서울"
+   }
+  ],
+  "category": "장소",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "성수 카페",
+  "tier": "L",
+  "captured_at": "2026-03-07",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l01_001",
+  "type": "screenshot",
+  "summary": "성수 어니언 주말에 사람 너무 많아서 입구만 찍고 퇴각. 다음엔 평일 오픈런 노려볼 것. 인더스트리얼 인테리어 소품 참고용.",
+  "labels": [
+   "장소 탐색",
+   "디자인 레퍼런스"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "어니언 성수"
+   }
+  ],
+  "category": "장소",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "성수 카페",
+  "tier": "L",
+  "captured_at": "2026-03-02",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l01_002",
+  "type": "memo",
+  "summary": "센터커피 성수점: 뷰가 탁 트여서 혼자 작업하기 좋음. 콘센트 자리는 별로 없지만 커피 맛이 좋아서 재방문 의사 있음.",
+  "labels": [
+   "작업 장소"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "센터커피"
+   }
+  ],
+  "category": "장소",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "성수 카페",
+  "tier": "L",
+  "captured_at": "2026-03-02",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l01_003",
+  "type": "link",
+  "summary": "로우커피스탠드 인스타그램. 테이크아웃 전문인데 가격대 착하고 분위기 좋아서 조만간 촬영하러 갈 예정.",
+  "labels": [
+   "가보고 싶은 곳"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "로우커피스탠드"
+   }
+  ],
+  "category": "장소",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "성수 카페",
+  "tier": "L",
+  "captured_at": "2026-03-07",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l01_004",
+  "type": "screenshot",
+  "summary": "성수 공간 와디즈, 기획전시 중인데 조명 세팅 참고하기 좋음. 1층 카페 공간은 노트북 들고 업무보는 사람들 꽤 있음.",
+  "labels": [
+   "업무 환경",
+   "공간 레퍼런스"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "공간와디즈"
+   }
+  ],
+  "category": "장소",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "성수 카페",
+  "tier": "L",
+  "captured_at": "2026-03-13",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l01_005",
+  "type": "screenshot",
+  "summary": "아우프글렛 성수, 크로플 맛집으로 유명. 조명 어두운 편이라 작업보다는 미팅이나 인터뷰 촬영 장소로 고려 중.",
+  "labels": [
+   "미팅 장소"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "아우프글렛"
+   }
+  ],
+  "category": "장소",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "성수 카페",
+  "tier": "L",
+  "captured_at": "2026-03-07",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l01_006",
+  "type": "link",
+  "summary": "성수 카멜커피 웨이팅 실화냐... 일단 저장해두고 나중에 미팅 잡힐 때 근처 카페로 고려하기.",
+  "labels": [
+   "가보고 싶은 곳",
+   "미팅 장소"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "카멜커피"
+   }
+  ],
+  "category": "장소",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "성수 카페",
+  "tier": "L",
+  "captured_at": "2026-02-27",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l01_007",
+  "type": "memo",
+  "summary": "오르에르(or.er) 입구쪽 정원이 예쁨. 조용하게 글 쓰거나 작업할 때 방문하기 좋은 곳으로 메모.",
+  "labels": [
+   "작업 장소"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "오르에르"
+   }
+  ],
+  "category": "장소",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "성수 카페",
+  "tier": "L",
+  "captured_at": "2026-03-09",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l01_008",
+  "type": "screenshot",
+  "summary": "성수 글로우(glow), 루프탑 분위기 좋다. 밤에 노트북 켜고 글 쓰면 집중 잘 될 듯.",
+  "labels": [
+   "작업 장소"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "글로우"
+   }
+  ],
+  "category": "장소",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "성수 카페",
+  "tier": "L",
+  "captured_at": "2026-02-24",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l01_009",
+  "type": "screenshot",
+  "summary": "성수동 옹근달, 베이커리 라인업이 좋아서 클라이언트 만날 때 들러볼 예정. 공간이 넓어서 쾌적함.",
+  "labels": [
+   "미팅 장소"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "옹근달"
+   }
+  ],
+  "category": "장소",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "성수 카페",
+  "tier": "L",
+  "captured_at": "2026-02-25",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l01_010",
+  "type": "memo",
+  "summary": "성수 블루보틀, 층고가 높아서 그런가 소리가 좀 울림. 가볍게 미팅하거나 숏폼 콘텐츠 짤 때 괜찮을 듯.",
+  "labels": [
+   "미팅 장소"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "블루보틀"
+   }
+  ],
+  "category": "장소",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "성수 카페",
+  "tier": "L",
+  "captured_at": "2026-03-10",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l01_011",
+  "type": "screenshot",
+  "summary": "성수동 쎈느(Scene) 1층 대형 공간, 팝업 행사 많이 열림. 공간 기획할 때 레퍼런스로 활용하려고 캡쳐.",
+  "labels": [
+   "영감",
+   "공간 레퍼런스"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "쎈느"
+   }
+  ],
+  "category": "장소",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "성수 카페",
+  "tier": "L",
+  "captured_at": "2026-03-02",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l01_012",
+  "type": "screenshot",
+  "summary": "망원동 어글리베이커리, 웨이팅 너무 길어서 일단 패스. 다음엔 평일에 가봐야지.",
+  "labels": [
+   "가보고 싶은 곳"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "어글리베이커리"
+   }
+  ],
+  "category": "장소",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "성수 카페",
+  "tier": "L",
+  "captured_at": "2026-03-10",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l01_013",
+  "type": "screenshot",
+  "summary": "연남동 연남토마, 분위기 좋은 식당이라 나중에 미팅 장소로 가볼까 함.",
+  "labels": [
+   "미팅 장소"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "연남토마"
+   }
+  ],
+  "category": "장소",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "성수 카페",
+  "tier": "L",
+  "captured_at": "2026-03-05",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l01_014",
+  "type": "link",
+  "summary": "성수동 LCDC, 카페 말고 편집숍 구경하러 갈 곳. 제품 촬영하기 좋은 스팟 있는지 체크.",
+  "labels": [
+   "편집숍",
+   "쇼핑"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "LCDC서울"
+   }
+  ],
+  "category": "장소",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "성수 카페",
+  "tier": "L",
+  "captured_at": "2026-03-05",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l01_015",
+  "type": "screenshot",
+  "summary": "성수동 피치스 도원, 자동차 브랜드 팝업인데 공간 구성이 힙함. 카페는 아니지만 인테리어 아이디어 얻기 좋음.",
+  "labels": [
+   "공간 레퍼런스"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "피치스도원"
+   }
+  ],
+  "category": "장소",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "성수 카페",
+  "tier": "L",
+  "captured_at": "2026-03-11",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l01_016",
+  "type": "memo",
+  "summary": "망원동 카페 부부, 예전에 가봤던 곳인데 분위기 괜찮았음. 나중에 잊지 않게 저장.",
+  "labels": [
+   "장소 탐색"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "카페부부"
+   }
+  ],
+  "category": "장소",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "성수 카페",
+  "tier": "L",
+  "captured_at": "2026-03-02",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l01_017",
+  "type": "screenshot",
+  "summary": "연남동 레이어드, 스콘 맛집인데 공간 인테리어 소품 사진 찍기 좋음. 카페보다는 인테리어 위주로 참고.",
+  "labels": [
+   "디자인 레퍼런스"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "레이어드"
+   }
+  ],
+  "category": "장소",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "성수 카페",
+  "tier": "L",
+  "captured_at": "2026-03-03",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l01_018",
+  "type": "memo",
+  "summary": "묘사서울 다시 확인. 여기 디저트 모양 진짜 특이하네. 담에 성수 쪽 가면 꼭 들러서 촬영해야지.",
+  "labels": [
+   "가보고 싶은 곳"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "묘사서울"
+   }
+  ],
+  "category": "장소",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "성수 카페",
+  "tier": "L",
+  "captured_at": "2026-04-12",
+  "occurs": "2024-05-20",
+  "dup_of": "l01_000"
+ }
+]

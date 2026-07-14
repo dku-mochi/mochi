@@ -1,0 +1,134 @@
+[
+ {
+  "id": "m18_000",
+  "type": "screenshot",
+  "summary": "유튜브에서 본 '신랑을 울리는 감동적인 결혼식 축가 베스트' 리스트. 김동률의 '감사'가 1위라니 연습곡으로 찜해두기.",
+  "labels": [
+   "축가 연습",
+   "레퍼런스"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "YouTube"
+   },
+   {
+    "kind": "product",
+    "value": "김동률-감사"
+   }
+  ],
+  "category": "행사",
+  "persona": "student",
+  "role": "answer",
+  "for_query": "결혼식 축가",
+  "tier": "M",
+  "captured_at": "2026-05-21",
+  "occurs": "2024-05-12",
+  "dup_of": null
+ },
+ {
+  "id": "m18_001",
+  "type": "link",
+  "summary": "합정역 인근 '루아르 스튜디오' 보컬 레슨 원데이 클래스. 1:1로 축가 한 곡 마스터 가능하다고 해서 담아둠. 가격도 대학생 할인이 되나 확인해봐야지.",
+  "labels": [
+   "보컬 레슨",
+   "예약"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "루아르 스튜디오"
+   }
+  ],
+  "category": "행사",
+  "persona": "student",
+  "role": "answer",
+  "for_query": "결혼식 축가",
+  "tier": "M",
+  "captured_at": "2026-04-13",
+  "occurs": "2024-05-20",
+  "dup_of": null
+ },
+ {
+  "id": "m18_002",
+  "type": "memo",
+  "summary": "축가 MR 구하기: '너에게 난 나에게 넌' 어쿠스틱 버전. 멜론에서 구매하거나 유튜브 음원 추출 없이 정식으로 다운받을 사이트 찾아볼 것.",
+  "labels": [
+   "준비물",
+   "음원"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "Melon"
+   }
+  ],
+  "category": "행사",
+  "persona": "student",
+  "role": "answer",
+  "for_query": "결혼식 축가",
+  "tier": "M",
+  "captured_at": "2026-05-10",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m18_003",
+  "type": "screenshot",
+  "summary": "친구 결혼식 축의금 액수 가이드 표. 학생이니까 5만원은 좀 적고 10만원이 적당할 듯. 위치는 강남 더채플인데 밥값이 비싸서 고민되네.",
+  "labels": [
+   "축의금",
+   "결혼식 준비"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "더채플"
+   }
+  ],
+  "category": "행사",
+  "persona": "student",
+  "role": "hard_neg",
+  "for_query": "결혼식 축가",
+  "tier": "M",
+  "captured_at": "2026-05-01",
+  "occurs": "2024-06-01",
+  "dup_of": null
+ },
+ {
+  "id": "m18_004",
+  "type": "screenshot",
+  "summary": "결혼식 하객룩 코디 캡처. 베이지톤 슬랙스랑 네이비 블레이저 조합이 무난할듯. 셔츠 다림질 미리 해두기.",
+  "labels": [
+   "코디",
+   "데일리룩"
+  ],
+  "entities": [],
+  "category": "행사",
+  "persona": "student",
+  "role": "hard_neg",
+  "for_query": "결혼식 축가",
+  "tier": "M",
+  "captured_at": "2026-04-09",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m18_005",
+  "type": "memo",
+  "summary": "지인 결혼식 축의금 봉투 쓰는 법. 앞면에는 축결혼, 뒷면 왼쪽 하단에 이름 쓰기. 펜 챙겨가기 귀찮으니까 미리 써두는게 좋겠따.",
+  "labels": [
+   "에티켓",
+   "메모"
+  ],
+  "entities": [],
+  "category": "행사",
+  "persona": "student",
+  "role": "hard_neg",
+  "for_query": "결혼식 축가",
+  "tier": "M",
+  "captured_at": "2026-05-16",
+  "occurs": null,
+  "dup_of": null
+ }
+]

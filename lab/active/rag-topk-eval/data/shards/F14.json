@@ -1,0 +1,583 @@
+[
+ {
+  "id": "f14_000",
+  "type": "screenshot",
+  "summary": "새로 구매한 기계식 키보드 키캡의 컬러 조합. 텐키리스 배열에 잘 어울릴지 고민 중이라 일단 캡처.",
+  "labels": [
+   "장비",
+   "데스크테리어"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "키보드 키캡"
+   }
+  ],
+  "category": "장비 세팅·작업실",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-31",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f14_001",
+  "type": "screenshot",
+  "summary": "작업실 조명으로 쓰기 좋은 LED 바 리뷰. 색온도 조절이 가능해서 영상 촬영 때 쓰면 좋을 듯.",
+  "labels": [
+   "장비",
+   "구매 고민"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "LED 바"
+   }
+  ],
+  "category": "장비 세팅·작업실",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f14_002",
+  "type": "screenshot",
+  "summary": "모니터 암 설치 가이드 영상 캡처. 책상 상판 두께 때문에 설치가 까다로울까 봐 미리 찾아봄.",
+  "labels": [
+   "작업실",
+   "설치 정보"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "모니터 암"
+   }
+  ],
+  "category": "장비 세팅·작업실",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-07",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f14_003",
+  "type": "screenshot",
+  "summary": "오브제 느낌의 스피커 배치 사진. 현재 작업실 구성이랑 비슷해서 영감 얻으려고 저장함.",
+  "labels": [
+   "데스크테리어"
+  ],
+  "entities": [],
+  "category": "장비 세팅·작업실",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-18",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f14_004",
+  "type": "screenshot",
+  "summary": "노트북 쿨링 패드 비교 벤치마크. 영상 편집 돌리면 놋북이 너무 뜨거워져서 구매각인가..",
+  "labels": [
+   "장비",
+   "구매 고민"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "쿨링 패드"
+   }
+  ],
+  "category": "장비 세팅·작업실",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f14_005",
+  "type": "screenshot",
+  "summary": "케이블 정리용 타이다. 책상 아래 지저분한 선들을 깔끔하게 정리하고 싶어서 기록함.",
+  "labels": [
+   "작업실"
+  ],
+  "entities": [],
+  "category": "장비 세팅·작업실",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-07",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f14_006",
+  "type": "link",
+  "summary": "프리랜서 표준 계약서 가이드. 매번 클라이언트랑 협의할 때마다 불안해서 체크리스트로 활용 예정.",
+  "labels": [
+   "계약",
+   "업무 팁"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "법률정보"
+   }
+  ],
+  "category": "장비 세팅·작업실",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-10",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f14_007",
+  "type": "link",
+  "summary": "분위기 좋은 성수동 작업 카페 리스트. 콘센트 많고 의자 편한 곳 위주라 주말 작업하기 좋을 듯.",
+  "labels": [
+   "카페",
+   "작업실"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "성수동"
+   }
+  ],
+  "category": "장비 세팅·작업실",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-03",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f14_008",
+  "type": "memo",
+  "summary": "내일 오후 2시 미팅 전에 계약서 초안 검토 완료해야 함. 수정 사항 꼼꼼히 체크하자.",
+  "labels": [
+   "계약"
+  ],
+  "entities": [
+   {
+    "kind": "date",
+    "value": "2023-11-15"
+   }
+  ],
+  "category": "장비 세팅·작업실",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-02",
+  "occurs": "2023-11-15",
+  "dup_of": null
+ },
+ {
+  "id": "f14_009",
+  "type": "memo",
+  "summary": "USB-C 허브 연결 끊김 현상 발생. 포트 문제인지 케이블 문제인지 내일 테스트해볼 것.",
+  "labels": [
+   "장비"
+  ],
+  "entities": [],
+  "category": "장비 세팅·작업실",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-28",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f14_010",
+  "type": "screenshot",
+  "summary": "아이패드 거치대 신제품 출시. 각도 조절이 자유로워서 드로잉할 때 진짜 편해 보임.",
+  "labels": [
+   "장비",
+   "구매 고민"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "아이패드 거치대"
+   }
+  ],
+  "category": "장비 세팅·작업실",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-26",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f14_011",
+  "type": "screenshot",
+  "summary": "영상 편집용 SSD 외장 하드 추천. 용량이 부족해서 2TB 정도 하나 더 살까 고민 중.",
+  "labels": [
+   "장비"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "SSD"
+   }
+  ],
+  "category": "장비 세팅·작업실",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-07",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f14_012",
+  "type": "screenshot",
+  "summary": "작업실 선반 스타일링 팁. 모듈 가구 배치법이 나와 있는데 나중에 인테리어 바꿀 때 참고해야지.",
+  "labels": [
+   "작업실",
+   "인테리어"
+  ],
+  "entities": [],
+  "category": "장비 세팅·작업실",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-19",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f14_013",
+  "type": "screenshot",
+  "summary": "마우스 센서 정밀도 테스트 차트. 디자인 작업할 때 정확도가 중요해서 지금 쓰는 거랑 비교 중.",
+  "labels": [
+   "장비"
+  ],
+  "entities": [],
+  "category": "장비 세팅·작업실",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-29",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f14_014",
+  "type": "screenshot",
+  "summary": "폰트 라이선스 관련 Q&A. 상업적 이용 가능 여부 헷갈릴 때 다시 보려고 캡처.",
+  "labels": [
+   "계약",
+   "작업 정보"
+  ],
+  "entities": [],
+  "category": "장비 세팅·작업실",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-08",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f14_015",
+  "type": "screenshot",
+  "summary": "블루투스 기계식 키보드 펌웨어 업데이트 알림. 연결 끊김 현상이 좀 줄어들까 해서 캡처.",
+  "labels": [
+   "장비"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "키보드"
+   }
+  ],
+  "category": "장비 세팅·작업실",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-02-04",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f14_016",
+  "type": "memo",
+  "summary": "이번주 마감인 프로젝트 계약금 입금 확인 완료. 세금 계산서 발행은 내일까지.",
+  "labels": [
+   "계약"
+  ],
+  "entities": [],
+  "category": "장비 세팅·작업실",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-19",
+  "occurs": "2023-11-17",
+  "dup_of": null
+ },
+ {
+  "id": "f14_017",
+  "type": "memo",
+  "summary": "작업실 조명이 너무 어두운 것 같음. 웜톤 스탠드 하나 추가로 구매해야 겠다.",
+  "labels": [
+   "작업실",
+   "구매 고민"
+  ],
+  "entities": [],
+  "category": "장비 세팅·작업실",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-03-03",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f14_018",
+  "type": "screenshot",
+  "summary": "노트북 파우치 디자인. 외부 미팅 나갈 때 쓸 거라 좀 튼튼하고 심플한 걸로 찾는 중.",
+  "labels": [
+   "장비"
+  ],
+  "entities": [],
+  "category": "장비 세팅·작업실",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-03-27",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f14_019",
+  "type": "screenshot",
+  "summary": "무선 충전 패드 출력 속도 비교. 아이폰이랑 에어팟 같이 충전되는 걸로 보고 있음.",
+  "labels": [
+   "장비",
+   "데스크테리어"
+  ],
+  "entities": [],
+  "category": "장비 세팅·작업실",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-02",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f14_020",
+  "type": "screenshot",
+  "summary": "카페에서 작업할 때 필요한 준비물 체크리스트. 멀티탭 안 챙겨서 고생한 적 있어서 저장함.",
+  "labels": [
+   "카페",
+   "작업실"
+  ],
+  "entities": [],
+  "category": "장비 세팅·작업실",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-11",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f14_021",
+  "type": "screenshot",
+  "summary": "맥북 보호 필름 붙이는 법. 기포 없이 깔끔하게 붙이려고 유튜브 튜토리얼 저장.",
+  "labels": [
+   "장비"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "맥북"
+   }
+  ],
+  "category": "장비 세팅·작업실",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-11",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f14_022",
+  "type": "screenshot",
+  "summary": "프리랜서 플랫폼 비교 정보. 수수료 낮은 곳으로 옮길지 고민이라 일단 정러 해둠.",
+  "labels": [
+   "계약",
+   "플랫폼"
+  ],
+  "entities": [],
+  "category": "장비 세팅·작업실",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-11",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f14_023",
+  "type": "screenshot",
+  "summary": "작업실 대청소 전후 비교 샷. 나도 이렇게 깔끔하게 꾸미고 싶은데 현실은 텅장...",
+  "labels": [
+   "작업실",
+   "데스크테리어"
+  ],
+  "entities": [],
+  "category": "장비 세팅·작업실",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f14_024",
+  "type": "screenshot",
+  "summary": "포트폴리오 웹사이트 템플릿. 레이아웃이 깔끔해서 나중에 리뉴얼할 때 참고할 예정.",
+  "labels": [
+   "작업 정보"
+  ],
+  "entities": [],
+  "category": "장비 세팅·작업실",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-03-12",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f14_025",
+  "type": "screenshot",
+  "summary": "무선 마우스 클릭음 비교 영상. 조용한 카페에서 일하려면 저소음이 답인가.",
+  "labels": [
+   "장비",
+   "카페"
+  ],
+  "entities": [],
+  "category": "장비 세팅·작업실",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-13",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f14_026",
+  "type": "link",
+  "summary": "재택 근무자를 위한 업무 효율 높이는 글. 나도 집에 있으면 자꾸 눕게 돼서 읽어봄.",
+  "labels": [
+   "작업실"
+  ],
+  "entities": [],
+  "category": "장비 세팅·작업실",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-29",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f14_027",
+  "type": "memo",
+  "summary": "오늘 작업한 영상 렌더링 걸어두고 늦은 점심 먹으러 가야지. 3시까지 끝내자.",
+  "labels": [
+   "업무"
+  ],
+  "entities": [],
+  "category": "장비 세팅·작업실",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-19",
+  "occurs": "2023-11-20",
+  "dup_of": null
+ },
+ {
+  "id": "f14_028",
+  "type": "screenshot",
+  "summary": "헤드셋 거치대 가격 비교. desk setup 완성하려면 이것도 필수템인 듯.",
+  "labels": [
+   "장비",
+   "데스크테리어"
+  ],
+  "entities": [],
+  "category": "장비 세팅·작업실",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-30",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f14_029",
+  "type": "screenshot",
+  "summary": "프로젝트 계약금 미입금 독촉 메일 예시. 다행히 아직 써본 적은 없지만 비상용으로 저장.",
+  "labels": [
+   "계약"
+  ],
+  "entities": [],
+  "category": "장비 세팅·작업실",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-06",
+  "occurs": null,
+  "dup_of": null
+ }
+]

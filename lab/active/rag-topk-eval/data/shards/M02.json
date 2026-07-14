@@ -1,0 +1,229 @@
+[
+ {
+  "id": "m02_000",
+  "type": "screenshot",
+  "summary": "인스타그램 광고로 본 아더에러(ADER ERROR) 24FW 울 블렌드 오버사이즈 싱글 코트. 핏이 완전 내 스타일이라 이번 겨울 아우터로 후보군에 찜해둠.",
+  "labels": [
+   "구매 고민",
+   "위시리스트"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "ADER ERROR"
+   },
+   {
+    "kind": "product",
+    "value": "울 블렌드 오버사이즈 싱글 코트"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "겨울 코트",
+  "tier": "M",
+  "captured_at": "2026-01-20",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m02_001",
+  "type": "screenshot",
+  "summary": "무신사 랭킹 상위권인 Lemaire(르메르) 랩 코트 블랙 컬러. 가격대가 좀 잇지만 오래 입을 생각으로 투자할 가치가 있을지 고민 중이다.",
+  "labels": [
+   "구매 고민",
+   "쇼핑"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "Lemaire"
+   },
+   {
+    "kind": "platform",
+    "value": "무신사"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "겨울 코트",
+  "tier": "M",
+  "captured_at": "2026-02-18",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m02_002",
+  "type": "link",
+  "summary": "르메르 스타일의 미니멀한 롱 코트를 찾는다면 괜찮은 대안. 토마스모어(THOMAS MORE) 핸드메이드 싱글 코트 상세 페이지 저장.",
+  "labels": [
+   "정보 수집",
+   "비교"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "THOMAS MORE"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "겨울 코트",
+  "tier": "M",
+  "captured_at": "2026-02-04",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m02_003",
+  "type": "screenshot",
+  "summary": "인플루언서가 착용한 폴로 랄프로렌(Polo Ralph Lauren) 더블 브레스티드 울 코트. 클래식한 무드가 좋아서 출근룩으로 딱일 듯.",
+  "labels": [
+   "위시리스트"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "Polo Ralph Lauren"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "겨울 코트",
+  "tier": "M",
+  "captured_at": "2026-02-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m02_004",
+  "type": "memo",
+  "summary": "이번 겨울 메인 아우터 후보: 아크네 스튜디오(Acne Studios) 핸드메이드 코트. 깔끔하고 소재가 탄탄해서 데일리로 제격일 것 같음. 11월 세일 기간 노리기.",
+  "labels": [
+   "구매 고민",
+   "계획"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "Acne Studios"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "겨울 코트",
+  "tier": "M",
+  "captured_at": "2026-02-02",
+  "occurs": "2024-11-15",
+  "dup_of": null
+ },
+ {
+  "id": "m02_005",
+  "type": "screenshot",
+  "summary": "겨울 데일리 패딩으로 봐둔 노스페이스 눕시 블랙. 작년보다 핏이 예쁘게 나온 듯해서 사야 할지 고민중.",
+  "labels": [
+   "구매 고민"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "The North Face"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "겨울 코트",
+  "tier": "M",
+  "captured_at": "2026-02-12",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m02_006",
+  "type": "link",
+  "summary": "따뜻한 겨울용 헤비 울 니트 가디건 추천 목록. 아우터 안에 레이어드하기 좋은 스타일들 정리해둠.",
+  "labels": [
+   "쇼핑"
+  ],
+  "entities": [],
+  "category": "쇼핑",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "겨울 코트",
+  "tier": "M",
+  "captured_at": "2026-01-19",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m02_007",
+  "type": "screenshot",
+  "summary": "가성비 좋은 스파오 경량 패딩 조끼. 셔츠나 자켓 위에 껴입기 좋아서 작업실용으로 하나 구비할 생각.",
+  "labels": [
+   "작업실"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "SPAO"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "겨울 코트",
+  "tier": "M",
+  "captured_at": "2026-02-12",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m02_008",
+  "type": "memo",
+  "summary": "메종키츠네 터틀넥 니트 착샷 보고 저장. 겨울에 코트랑 매치하면 좋을 것 같아서 미리 찜해두기.",
+  "labels": [
+   "위시리스트"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "Maison Kitsune"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "겨울 코트",
+  "tier": "M",
+  "captured_at": "2026-01-23",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m02_009",
+  "type": "screenshot",
+  "summary": "아크네 스튜디오 울 코트 재확인. 11월 세일 알림 떳길래 공홈 다시 들어왔는데 역시 디자인이 젤 깔끔함.",
+  "labels": [
+   "구매 결정"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "Acne Studios"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "겨울 코트",
+  "tier": "M",
+  "captured_at": "2026-03-14",
+  "occurs": "2024-11-18",
+  "dup_of": "m02_004"
+ }
+]

@@ -1,0 +1,626 @@
+[
+ {
+  "id": "f13_000",
+  "type": "screenshot",
+  "summary": "오늘 받은 프리랜서 용역 계약서 초안입니다. 검토해야 할 독소 조항이 있는지 꼼꼼히 확인하고 수정 요청 보낼 예정입니다.",
+  "labels": [
+   "계약",
+   "업무"
+  ],
+  "entities": [
+   {
+    "kind": "document",
+    "value": "용역 계약서"
+   }
+  ],
+  "category": "계약·세금계산서·클라이언트",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-01",
+  "occurs": "2024-05-20",
+  "dup_of": null
+ },
+ {
+  "id": "f13_001",
+  "type": "screenshot",
+  "summary": "이번 달 마감해야 할 영상 편집 프로젝트의 클라이언트 가이드라인 캡처입니다. 레퍼런스 스타일이랑 톤앤매너 체크용으로 저장함.",
+  "labels": [
+   "프로젝트",
+   "레퍼런스"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "YouTube"
+   }
+  ],
+  "category": "계약·세금계산서·클라이언트",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-18",
+  "occurs": "2024-05-22",
+  "dup_of": null
+ },
+ {
+  "id": "f13_002",
+  "type": "memo",
+  "summary": "A사 클라이언트 세금계산서 발행 완료. 6월 10일까지 입금 확인하기.",
+  "labels": [
+   "세금",
+   "일정"
+  ],
+  "entities": [
+   {
+    "kind": "date",
+    "value": "2024-06-10"
+   }
+  ],
+  "category": "계약·세금계산서·클라이언트",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-16",
+  "occurs": "2024-06-10",
+  "dup_of": null
+ },
+ {
+  "id": "f13_003",
+  "type": "screenshot",
+  "summary": "작업실 인테리어 바꾸고 싶어서 찾아본 모니터 암 상세 페이지. 현재 책상 구성이랑 호환되는지 확인 필요.",
+  "labels": [
+   "장비",
+   "구매 고민"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "고든 모니터암"
+   }
+  ],
+  "category": "계약·세금계산서·클라이언트",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-20",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f13_004",
+  "type": "link",
+  "summary": "프리랜서 종합소득세 신고 방법 정리된 블로그 글. 5월이라 미리 읽어두고 대비하려고 링크 킵해둠.",
+  "labels": [
+   "세금",
+   "공부"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "Blog"
+   }
+  ],
+  "category": "계약·세금계산서·클라이언트",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-08",
+  "occurs": "2024-05-15",
+  "dup_of": null
+ },
+ {
+  "id": "f13_005",
+  "type": "screenshot",
+  "summary": "노트북 쿨러가 너무 시끄러워서 교체할 제품들 검색 중. 쿨러마스터 모델 평이 좋아서 장바구니에 담아두려 함.",
+  "labels": [
+   "장비",
+   "구매"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "Cooler Master"
+   }
+  ],
+  "category": "계약·세금계산서·클라이언트",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f13_006",
+  "type": "screenshot",
+  "summary": "작업하기 좋은 조용한 카페 발견. 와이파이 속도랑 콘센트 유무가 핵심이라 체크해둠. 분위기 굿.",
+  "labels": [
+   "카페",
+   "작업실"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "성수동 카페"
+   }
+  ],
+  "category": "계약·세금계산서·클라이언트",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-10",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f13_007",
+  "type": "screenshot",
+  "summary": "비대면 계약 서명 서비스 캡처. 앞으로는 전자계약으로 진행하는게 맘 편할 듯. 사인 프로세스 간소화됨.",
+  "labels": [
+   "계약",
+   "팁"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "DocuSign"
+   }
+  ],
+  "category": "계약·세금계산서·클라이언트",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-09",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f13_008",
+  "type": "memo",
+  "summary": "지난주 미팅한 B사 견적서 수정사항: 추가 수정 2회 포함으로 변경 요청하기.",
+  "labels": [
+   "계약",
+   "업무"
+  ],
+  "entities": [],
+  "category": "계약·세금계산서·클라이언트",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-14",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f13_009",
+  "type": "link",
+  "summary": "맥북 M3 칩 성능 비교 벤치마크 사이트. 지금 내 컴 너무 느려져서 기변 고민 중인데 정보 모으는 중임.",
+  "labels": [
+   "장비",
+   "고민"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "MacBook M3"
+   }
+  ],
+  "category": "계약·세금계산서·클라이언트",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-27",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f13_010",
+  "type": "screenshot",
+  "summary": "홈택스에서 세금계산서 발급하다가 오류난 화면. 캡처해뒀으니 고객센터에 문의할 때 첨부해야지.",
+  "labels": [
+   "세금",
+   "오류"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "Hometax"
+   }
+  ],
+  "category": "계약·세금계산서·클라이언트",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-07",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f13_011",
+  "type": "screenshot",
+  "summary": "클라이언트가 보내준 참고 영상 리스트 캡처. 영상미가 너무 좋아서 나중에 나도 꼭 써먹어보고 싶은 연출 기법.",
+  "labels": [
+   "레퍼런스",
+   "영감"
+  ],
+  "entities": [],
+  "category": "계약·세금계산서·클라이언트",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f13_012",
+  "type": "memo",
+  "summary": "내일 오후 2시 C사 미팅. 계약서 원본 지참할 것. 늦지 말자 ㅡㅡ",
+  "labels": [
+   "미팅",
+   "계약"
+  ],
+  "entities": [
+   {
+    "kind": "date",
+    "value": "2024-05-25"
+   }
+  ],
+  "category": "계약·세금계산서·클라이언트",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-17",
+  "occurs": "2024-05-25",
+  "dup_of": null
+ },
+ {
+  "id": "f13_013",
+  "type": "screenshot",
+  "summary": "신규 프로젝트 기획안 초안. 레이아웃 배치가 너무 정적인 거 같아서 좀 더 다이나믹하게 수정이 필요함.",
+  "labels": [
+   "프로젝트",
+   "업무"
+  ],
+  "entities": [],
+  "category": "계약·세금계산서·클라이언트",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f13_014",
+  "type": "screenshot",
+  "summary": "새로 나온 무선 키보드 모델명. 타건감 좋다길래 유튜브 리뷰 캡처함. 나중에 사야지.",
+  "labels": [
+   "장비",
+   "구매 고민"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "Logitech MX Keys"
+   }
+  ],
+  "category": "계약·세금계산서·클라이언트",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-30",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f13_015",
+  "type": "screenshot",
+  "summary": "클라이언트로부터 받은 계약 해지 관련 메일. 법적 문제 없는지 확인하려고 일단 캡처해서 보관함.",
+  "labels": [
+   "계약",
+   "법률"
+  ],
+  "entities": [],
+  "category": "계약·세금계산서·클라이언트",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-05",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f13_016",
+  "type": "screenshot",
+  "summary": "커피 맛있다는 후기 보고 저장한 카페 위치. 이번 주말에 작업하러 가봐야지.",
+  "labels": [
+   "카페",
+   "작업실"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "연남동 카페"
+   }
+  ],
+  "category": "계약·세금계산서·클라이언트",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-19",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f13_017",
+  "type": "memo",
+  "summary": "세금계산서 발행용 사업자등록증 파일 찾기... 어딨는지 모르겠음. 폴더 정리 시급.",
+  "labels": [
+   "세금",
+   "정리"
+  ],
+  "entities": [],
+  "category": "계약·세금계산서·클라이언트",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f13_018",
+  "type": "screenshot",
+  "summary": "거래처 담당자 명함 캡처. 나중에 연락처 등록해야 하는데 일단 귀찮아서 스샷만 찍어둠.",
+  "labels": [
+   "업무",
+   "명함"
+  ],
+  "entities": [],
+  "category": "계약·세금계산서·클라이언트",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-09",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f13_019",
+  "type": "screenshot",
+  "summary": "재택근무용 조명 세팅 캡처. 피부톤이 잘 나와야 영상 작업할 때 좋은데 이게 딱 좋아보임.",
+  "labels": [
+   "장비",
+   "업무"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "Godox"
+   }
+  ],
+  "category": "계약·세금계산서·클라이언트",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-16",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f13_020",
+  "type": "screenshot",
+  "summary": "이번 프로젝트 타임라인 엑셀 시트. 마감일 맞춰서 세부 일정 조정해야 함.",
+  "labels": [
+   "프로젝트",
+   "일정"
+  ],
+  "entities": [],
+  "category": "계약·세금계산서·클라이언트",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-11",
+  "occurs": "2024-06-30",
+  "dup_of": null
+ },
+ {
+  "id": "f13_021",
+  "type": "screenshot",
+  "summary": "계약서상 지불 기간 넘긴 클라이언트 연락처. 입금 독촉 메일 쓰기 전에 미리 캡처해둠.",
+  "labels": [
+   "계약",
+   "수금"
+  ],
+  "entities": [],
+  "category": "계약·세금계산서·클라이언트",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-27",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f13_022",
+  "type": "screenshot",
+  "summary": "아이패드 프로용 거치대 상세 정보. 카페에서 작업할 때 필수템인 듯. 가격대 좀 있는데 디자인이 이쁨.",
+  "labels": [
+   "장비",
+   "구매"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "iPad Pro"
+   }
+  ],
+  "category": "계약·세금계산서·클라이언트",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-30",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f13_023",
+  "type": "memo",
+  "summary": "프리랜서 세금 신고 준비. 5월말까지 소득 금액 정리 필수.",
+  "labels": [
+   "세금",
+   "일정"
+  ],
+  "entities": [
+   {
+    "kind": "date",
+    "value": "2024-05-31"
+   }
+  ],
+  "category": "계약·세금계산서·클라이언트",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-25",
+  "occurs": "2024-05-31",
+  "dup_of": null
+ },
+ {
+  "id": "f13_024",
+  "type": "screenshot",
+  "summary": "작업 도중 맥북 시스템 오류 뜬 화면. 다시 켰더니 괜찮긴 한데 혹시 몰라서 저장해둠.",
+  "labels": [
+   "장비",
+   "오류"
+  ],
+  "entities": [],
+  "category": "계약·세금계산서·클라이언트",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-17",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f13_025",
+  "type": "screenshot",
+  "summary": "클라이언트 미팅 때 논의한 수정사항 리스트. 빠짐없이 체크해야 함.",
+  "labels": [
+   "프로젝트",
+   "업무"
+  ],
+  "entities": [],
+  "category": "계약·세금계산서·클라이언트",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-13",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f13_026",
+  "type": "screenshot",
+  "summary": "카페 메뉴판인데 가격이 합리적이라 찜. 노트북 쓰기 눈치 안 보이는 분위기.",
+  "labels": [
+   "카페"
+  ],
+  "entities": [],
+  "category": "계약·세금계산서·클라이언트",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f13_027",
+  "type": "screenshot",
+  "summary": "용역 계약서 조항 캡처. 손해배상 관련 문구가 좀 모호해서 법률 카페에 질문 올릴 예정.",
+  "labels": [
+   "계약",
+   "질문"
+  ],
+  "entities": [],
+  "category": "계약·세금계산서·클라이언트",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-02",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f13_028",
+  "type": "link",
+  "summary": "클라우드 서비스 비교. 대용량 영상 파일 보관용으로 뭐가 나을지 비교하는 기사. 구글 드라이브보다 나은거 있나?",
+  "labels": [
+   "장비",
+   "업무"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "Google Drive"
+   }
+  ],
+  "category": "계약·세금계산서·클라이언트",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-02-13",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f13_029",
+  "type": "screenshot",
+  "summary": "계약 완료 후 받은 땡큐 메일. 기분 좋아서 캡처함. 나중에 포트폴리오용으로 쓸까 함.",
+  "labels": [
+   "계약",
+   "보람"
+  ],
+  "entities": [],
+  "category": "계약·세금계산서·클라이언트",
+  "persona": "freelancer",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-04",
+  "occurs": null,
+  "dup_of": null
+ }
+]

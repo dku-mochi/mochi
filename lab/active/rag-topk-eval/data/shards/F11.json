@@ -1,0 +1,627 @@
+[
+ {
+  "id": "f11_000",
+  "type": "screenshot",
+  "summary": "IT 서비스 기획 직무 공고 캡처. 우대사항에 SQL 활용 능력과 데이터 분석 툴 경험이 강조되어 있어서 포트폴리오에 어떤 프로젝트를 녹일지 고민하며 저장함.",
+  "labels": [
+   "직무 분석",
+   "채용 공고"
+  ],
+  "entities": [
+   {
+    "kind": "job",
+    "value": "IT 서비스 기획"
+   }
+  ],
+  "category": "채용 공고 스크랩(비면접)",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-09",
+  "occurs": "2024-05-20",
+  "dup_of": null
+ },
+ {
+  "id": "f11_001",
+  "type": "screenshot",
+  "summary": "스타트업 마케팅 팀 인턴 공고. 신입보다는 퍼포먼스 마케팅 실무 경험을 원하는데 GA4 자격증이 필수라고 써있어서 얼른 따야겠다고 생각함.",
+  "labels": [
+   "자격증",
+   "마케팅"
+  ],
+  "entities": [
+   {
+    "kind": "skill",
+    "value": "GA4"
+   }
+  ],
+  "category": "채용 공고 스크랩(비면접)",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-05",
+  "occurs": "2024-05-22",
+  "dup_of": null
+ },
+ {
+  "id": "f11_002",
+  "type": "link",
+  "summary": "대기업 영업지원 직무 채용 공고 링크. 자소소 문항이 생각보다 구체적이라서 미리 항목별로 키워드 뽑아두려고 저장함.",
+  "labels": [
+   "자소서",
+   "공고"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "사람인"
+   }
+  ],
+  "category": "채용 공고 스크랩(비면접)",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-28",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f11_003",
+  "type": "memo",
+  "summary": "오늘 본 물류센터 운영관리 공고. 비전공자도 가능하다고 되어있지만 엑셀이랑 SAP 스킬이 필수인듯. 주말에 유투브 강의라도 찾아봐야지.",
+  "labels": [
+   "자기계발",
+   "스킬업"
+  ],
+  "entities": [
+   {
+    "kind": "skill",
+    "value": "SAP"
+   }
+  ],
+  "category": "채용 공고 스크랩(비면접)",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f11_004",
+  "type": "screenshot",
+  "summary": "금융권 공채 요강. 직무 역량 기술서 비중이 높아져서 경제 신문 스크랩한 거 다시 정리해서 넣어야 할 듯. 꼼꼼히 읽어보려고 캡처함.",
+  "labels": [
+   "금융권",
+   "취업 준비"
+  ],
+  "entities": [
+   {
+    "kind": "industry",
+    "value": "금융"
+   }
+  ],
+  "category": "채용 공고 스크랩(비면접)",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-18",
+  "occurs": "2024-05-25",
+  "dup_of": null
+ },
+ {
+  "id": "f11_005",
+  "type": "screenshot",
+  "summary": "UI/UX 디자이너 신입 채용 공고. 포트폴리오에 들어갈 프로토타이핑 툴로 Figma를 확실히 다룰 줄 알아야 할 것 같음.",
+  "labels": [
+   "디자인",
+   "포트폴리오"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "Figma"
+   }
+  ],
+  "category": "채용 공고 스크랩(비면접)",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-06",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f11_006",
+  "type": "screenshot",
+  "summary": "외국계 기업 Sales coordinator 공고. 비지니스 영어 필수라는데 이메일 작문 실력을 키워야 할지 고민됨.",
+  "labels": [
+   "외국계",
+   "직무 역량"
+  ],
+  "entities": [],
+  "category": "채용 공고 스크랩(비면접)",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-29",
+  "occurs": "2024-05-28",
+  "dup_of": null
+ },
+ {
+  "id": "f11_007",
+  "type": "memo",
+  "summary": "공기업 사무직 공고. 전공 시험 범위가 생각보다 넓어서 ncs 공부랑 병행할 수 있을지 체크해야 함.",
+  "labels": [
+   "공기업",
+   "스터디"
+  ],
+  "entities": [
+   {
+    "kind": "exam",
+    "value": "NCS"
+   }
+  ],
+  "category": "채용 공고 스크랩(비면접)",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-15",
+  "occurs": "2024-06-01",
+  "dup_of": null
+ },
+ {
+  "id": "f11_008",
+  "type": "screenshot",
+  "summary": "콘텐츠 에디터 채용 공고 캡처. 요즘은 숏폼 영상 편집 능력을 우대하는 경우가 많아서 프리미어 프로 연습 좀 더 해야겠다.",
+  "labels": [
+   "콘텐츠",
+   "자기계발"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "Adobe Premiere"
+   }
+  ],
+  "category": "채용 공고 스크랩(비면접)",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-09",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f11_009",
+  "type": "screenshot",
+  "summary": "인사관리(HR) 신입 채용. 노무사 자격증이 있으면 가점이라고 적혀있는데, 단기 합격은 어려울 것 같고 관련 인턴 경험부터 쌓아야 할 듯.",
+  "labels": [
+   "HR",
+   "커리어 로드맵"
+  ],
+  "entities": [],
+  "category": "채용 공고 스크랩(비면접)",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-07",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f11_010",
+  "type": "link",
+  "summary": "게임 QA 직무 공고. 테스트 시나리오 작성 경험을 우대해서 게임 테스트 관련 블로그 글이랑 같이 보려고 북마크.",
+  "labels": [
+   "게임업계",
+   "취업 준비"
+  ],
+  "entities": [
+   {
+    "kind": "job",
+    "value": "QA"
+   }
+  ],
+  "category": "채용 공고 스크랩(비면접)",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-01",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f11_011",
+  "type": "screenshot",
+  "summary": "반도체 장비 제조사 공정기술팀 공고. 전공기초 지식 묻는 문항이 빡세보여서 기사 자격증 책 폈음.",
+  "labels": [
+   "반도체",
+   "엔지니어링"
+  ],
+  "entities": [],
+  "category": "채용 공고 스크랩(비면접)",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-04",
+  "occurs": "2024-06-05",
+  "dup_of": null
+ },
+ {
+  "id": "f11_012",
+  "type": "screenshot",
+  "summary": "홍보팀 채용 공고. 보도자료 작성법이랑 위기관리 매뉴얼 관련 질문이 있어서 스터디때 가져가야지.",
+  "labels": [
+   "PR",
+   "취업 스터디"
+  ],
+  "entities": [],
+  "category": "채용 공고 스크랩(비면접)",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-05",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f11_013",
+  "type": "memo",
+  "summary": "오늘 본 IT기업 백엔드 개발 공고. 도커랑 쿠버네티스 경험을 우대한다고 적혀있는데, 내 플젝에 적용가능할지 고민해봐야겠음.",
+  "labels": [
+   "개발",
+   "기술 스택"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "Docker"
+   }
+  ],
+  "category": "채용 공고 스크랩(비면접)",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-02-12",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f11_014",
+  "type": "screenshot",
+  "summary": "호텔 프론트 데스크 채용. 영어랑 일본어 회화 실력이 중요하다고 적혀있음. 자격증은 OPIc 위주로 준비하자.",
+  "labels": [
+   "서비스직",
+   "어학"
+  ],
+  "entities": [
+   {
+    "kind": "exam",
+    "value": "OPIc"
+   }
+  ],
+  "category": "채용 공고 스크랩(비면접)",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-07",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f11_015",
+  "type": "screenshot",
+  "summary": "식품 회사 구매팀 공고. 원가 분석 역량이랑 공급망 관리 지식이 필요한 것 같음. 자격증 하나 따두면 좋을듯.",
+  "labels": [
+   "구매관리",
+   "취업"
+  ],
+  "entities": [],
+  "category": "채용 공고 스크랩(비면접)",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-15",
+  "occurs": "2024-06-10",
+  "dup_of": null
+ },
+ {
+  "id": "f11_016",
+  "type": "screenshot",
+  "summary": "영업관리 직무 채용 공고. 데이터 시각화 능력을 우대한다고 함. 태블로(Tableau) 좀 만져봐야겠음.",
+  "labels": [
+   "영업",
+   "자기계발"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "Tableau"
+   }
+  ],
+  "category": "채용 공고 스크랩(비면접)",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-05",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f11_017",
+  "type": "memo",
+  "summary": "방송사 영상 편집팀 공고 발견. 자소서에 넣을 에피소드로 학교 축제 영상 편집했던 거 다시 정리해야겠다.",
+  "labels": [
+   "미디어",
+   "자소서"
+  ],
+  "entities": [],
+  "category": "채용 공고 스크랩(비면접)",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-20",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f11_018",
+  "type": "screenshot",
+  "summary": "건축 설계사무소 인턴 공고. 캐드랑 레빗 능숙자 찾는데 레빗(Revit)은 아직 서툴러서 인강 좀 더 들어야함.",
+  "labels": [
+   "건축",
+   "스킬업"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "Revit"
+   }
+  ],
+  "category": "채용 공고 스크랩(비면접)",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-24",
+  "occurs": "2024-06-12",
+  "dup_of": null
+ },
+ {
+  "id": "f11_019",
+  "type": "screenshot",
+  "summary": "IT 교육 스타트업 기획자 공고. 에듀테크 관심 많아서 저장. 커리큘럼 설계 경험을 우대한다고 함.",
+  "labels": [
+   "에듀테크",
+   "직무"
+  ],
+  "entities": [],
+  "category": "채용 공고 스크랩(비면접)",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-03",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f11_020",
+  "type": "screenshot",
+  "summary": "화장품 유통사 온라인 MD 공고. 프로모션 기획 경험이 중요해서 카페24 활용 능력 키워야 할 것 같다.",
+  "labels": [
+   "MD",
+   "이커머스"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "Cafe24"
+   }
+  ],
+  "category": "채용 공고 스크랩(비면접)",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-14",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f11_021",
+  "type": "screenshot",
+  "summary": "생산관리직 공고 캡처. ISO9001 자격증 있으면 가점인데 지금 딸 수 있을지 알아봐야겠다.",
+  "labels": [
+   "생산관리",
+   "자격증"
+  ],
+  "entities": [],
+  "category": "채용 공고 스크랩(비면접)",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-21",
+  "occurs": "2024-06-15",
+  "dup_of": null
+ },
+ {
+  "id": "f11_022",
+  "type": "screenshot",
+  "summary": "법률 사무소 사무원 공고. 꼼꼼한 성격이 장점이라서 나랑 잘 맞을 것 같음. 엑셀 함수 능숙자 필수라 연습 좀 해야 함.",
+  "labels": [
+   "사무직",
+   "취업"
+  ],
+  "entities": [],
+  "category": "채용 공고 스크랩(비면접)",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-26",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f11_023",
+  "type": "memo",
+  "summary": "번역가 채용 공고. 트라도스(Trados) 툴 경험 필수라니 급하게 무료 체험판이라도 깔아야겠음.",
+  "labels": [
+   "번역",
+   "기술"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "Trados"
+   }
+  ],
+  "category": "채용 공고 스크랩(비면접)",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-03",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f11_024",
+  "type": "screenshot",
+  "summary": "홍보 대행사 공고. 언론홍보 기사 작성 연습 필요해서 관련 공고 캡처함. 어휘력이 중요하다.",
+  "labels": [
+   "홍보",
+   "역량"
+  ],
+  "entities": [],
+  "category": "채용 공고 스크랩(비면접)",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-18",
+  "occurs": "2024-06-18",
+  "dup_of": null
+ },
+ {
+  "id": "f11_025",
+  "type": "screenshot",
+  "summary": "네트워크 엔지니어 공고. CCNA 자격증 있는게 확실히 유리해보임. 6월 안에 따는 거 목표로 잡아야지.",
+  "labels": [
+   "IT",
+   "자격증"
+  ],
+  "entities": [
+   {
+    "kind": "exam",
+    "value": "CCNA"
+   }
+  ],
+  "category": "채용 공고 스크랩(비면접)",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-19",
+  "occurs": "2024-06-20",
+  "dup_of": null
+ },
+ {
+  "id": "f11_026",
+  "type": "screenshot",
+  "summary": "비서직 공고 캡처. 의전 역량보다 문서작성 능력이 더 우선인 것 같음. 파워포인트 템플릿 예쁜거 찾아봐야지.",
+  "labels": [
+   "비서",
+   "사무"
+  ],
+  "entities": [],
+  "category": "채용 공고 스크랩(비면접)",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f11_027",
+  "type": "screenshot",
+  "summary": "데이터 분석가 인턴. 파이썬 라이브러리 판다스(Pandas) 활용 능력 우대. 실무 데이터 만져볼 기회라 꼭 지원하고 싶음.",
+  "labels": [
+   "데이터",
+   "인턴"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "Pandas"
+   }
+  ],
+  "category": "채용 공고 스크랩(비면접)",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-03-19",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f11_028",
+  "type": "memo",
+  "summary": "사회복지사 공고. 관련 실습 경험이 400시간 이상이라서 자격 요건은 충분한 것 같다. 자기소개서만 잘 쓰면 될 듯.",
+  "labels": [
+   "사회복지",
+   "취업"
+  ],
+  "entities": [],
+  "category": "채용 공고 스크랩(비면접)",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-15",
+  "occurs": "2024-06-25",
+  "dup_of": null
+ },
+ {
+  "id": "f11_029",
+  "type": "screenshot",
+  "summary": "웹 퍼블리셔 공고. 반응형 웹 제작이 필수라 미디어쿼리 개념 다시 복습해야겠다. 헷갈리는게 좀 있음.",
+  "labels": [
+   "웹",
+   "코딩"
+  ],
+  "entities": [],
+  "category": "채용 공고 스크랩(비면접)",
+  "persona": "jobseeker",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-10",
+  "occurs": null,
+  "dup_of": null
+ }
+]

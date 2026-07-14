@@ -1,0 +1,301 @@
+[
+ {
+  "id": "l11_000",
+  "type": "screenshot",
+  "summary": "ETS 토익 정기시험 기출문제집 1000제 3탄의 오답 노트. LC 파트에서 계속 틀리는 영국 발음 유형을 따로 정리해두었음.",
+  "labels": [
+   "취업 준비",
+   "토익 공부"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "ETS 토익 기출문제집"
+   }
+  ],
+  "category": "교육",
+  "persona": "jobseeker",
+  "role": "answer",
+  "for_query": "영어 공부 자료",
+  "tier": "L",
+  "captured_at": "2026-02-13",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l11_001",
+  "type": "link",
+  "summary": "링글(Ringle) 화상영어 1:1 수업 후기 및 추천 강사 리스트. 비즈니스 영어 회화 실력을 높이기 위해 튜터별 스타일을 메모함.",
+  "labels": [
+   "자기계발",
+   "회화"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "링글"
+   }
+  ],
+  "category": "교육",
+  "persona": "jobseeker",
+  "role": "answer",
+  "for_query": "영어 공부 자료",
+  "tier": "L",
+  "captured_at": "2026-02-10",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l11_002",
+  "type": "screenshot",
+  "summary": "해커스어학원 900점 목표반 수강신청 시간표. 다음 달 개강 일정이랑 강의실 위치 확인하려고 저장함. 시간표 짜기 귀찮다.",
+  "labels": [
+   "강의 수강",
+   "일정"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "해커스어학원"
+   }
+  ],
+  "category": "교육",
+  "persona": "jobseeker",
+  "role": "answer",
+  "for_query": "영어 공부 자료",
+  "tier": "L",
+  "captured_at": "2026-01-20",
+  "occurs": "2024-05-01",
+  "dup_of": null
+ },
+ {
+  "id": "l11_003",
+  "type": "memo",
+  "summary": "Grammarly 프리미엄 결제할지 고민중. 자소서 작성할 때 문법 교정 필수인듯. 1년 구독 할인 코드가 있었는데 어디갔지.",
+  "labels": [
+   "영어 라이팅",
+   "구매 고민"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "Grammarly"
+   }
+  ],
+  "category": "교육",
+  "persona": "jobseeker",
+  "role": "answer",
+  "for_query": "영어 공부 자료",
+  "tier": "L",
+  "captured_at": "2026-01-20",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l11_004",
+  "type": "screenshot",
+  "summary": "TED Talks에서 비즈니스 프레젠테이션 스킬 관련 영상 리스트 캡처. 영어 듣기 훈련하면서 동시에 직무 역량도 키우기 좋음.",
+  "labels": [
+   "영어 공부",
+   "직무 역량"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "TED Talks"
+   }
+  ],
+  "category": "교육",
+  "persona": "jobseeker",
+  "role": "answer",
+  "for_query": "영어 공부 자료",
+  "tier": "L",
+  "captured_at": "2026-01-29",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l11_005",
+  "type": "link",
+  "summary": "민병철유폰 전화영어 레벨 테스트 결과 및 커리큘럼 제안. 매일 10분씩 꾸준히 하기에는 괜찮아 보이는데 가격비교 좀 더 해봐야지.",
+  "labels": [
+   "영어 회화",
+   "가격 비교"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "민병철유폰"
+   }
+  ],
+  "category": "교육",
+  "persona": "jobseeker",
+  "role": "answer",
+  "for_query": "영어 공부 자료",
+  "tier": "L",
+  "captured_at": "2026-01-20",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l11_006",
+  "type": "screenshot",
+  "summary": "아이엘츠(IELTS) 라이팅 Task 2 템플릿 모음집. 서론-본론-결론 구조 외우기용. 시험장 가기 직전에 훑어볼 핵심 내용들.",
+  "labels": [
+   "아이엘츠",
+   "시험 대비"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "IELTS"
+   }
+  ],
+  "category": "교육",
+  "persona": "jobseeker",
+  "role": "answer",
+  "for_query": "영어 공부 자료",
+  "tier": "L",
+  "captured_at": "2026-02-09",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l11_007",
+  "type": "memo",
+  "summary": "오늘 토익스피킹 시험 접수 완료. 종로 캠퍼스 10시 타임. 준비물: 신분증, 연필, 지우개. 제발 레벨 7 이상 나오길!!",
+  "labels": [
+   "시험 접수",
+   "일정"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "종로"
+   }
+  ],
+  "category": "교육",
+  "persona": "jobseeker",
+  "role": "answer",
+  "for_query": "영어 공부 자료",
+  "tier": "L",
+  "captured_at": "2026-02-01",
+  "occurs": "2024-06-15",
+  "dup_of": null
+ },
+ {
+  "id": "l11_008",
+  "type": "screenshot",
+  "summary": "시원스쿨 영어기초 회화 강의 커리큘럼. 왕초보탈출 1탄부터 시작할지 고민. 무료 체험 영상 보고 결정해야게따.",
+  "labels": [
+   "기초 회화",
+   "자기계발"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "시원스쿨"
+   }
+  ],
+  "category": "교육",
+  "persona": "jobseeker",
+  "role": "answer",
+  "for_query": "영어 공부 자료",
+  "tier": "L",
+  "captured_at": "2026-01-21",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l11_009",
+  "type": "screenshot",
+  "summary": "해커스 일본어 JLPT N2 정규 강의 시간표. 다음 학기에 꼭 딸 수 있을까? 공부할거 산더미네...",
+  "labels": [
+   "일본어",
+   "자격증"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "해커스 일본어"
+   }
+  ],
+  "category": "교육",
+  "persona": "jobseeker",
+  "role": "hard_neg",
+  "for_query": "영어 공부 자료",
+  "tier": "L",
+  "captured_at": "2026-01-24",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l11_010",
+  "type": "link",
+  "summary": "파이썬 데이터 분석 강의 커리큘럼(인프런). 취업 포트폴리오 만들려면 SQL이랑 파이썬은 필수라던데 이거부터 시작해야하나.",
+  "labels": [
+   "코딩",
+   "포트폴리오"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "인프런"
+   }
+  ],
+  "category": "교육",
+  "persona": "jobseeker",
+  "role": "hard_neg",
+  "for_query": "영어 공부 자료",
+  "tier": "L",
+  "captured_at": "2026-01-16",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l11_011",
+  "type": "memo",
+  "summary": "JPT 시험 접수기간 확인하기. JLPT랑 겹치지 않게 주의. 일본어 어휘 정리가 너무 안되서 빡공해야함.",
+  "labels": [
+   "일본어",
+   "시험 대비"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "JPT"
+   }
+  ],
+  "category": "교육",
+  "persona": "jobseeker",
+  "role": "hard_neg",
+  "for_query": "영어 공부 자료",
+  "tier": "L",
+  "captured_at": "2026-01-28",
+  "occurs": "2024-07-20",
+  "dup_of": null
+ },
+ {
+  "id": "l11_012",
+  "type": "screenshot",
+  "summary": "노마드코더 리액트(React) 강의 챕터 목차. 백엔드 공부하다가 프론트엔드도 좀 알아야 할 것 같아서 저장해둠.",
+  "labels": [
+   "코딩",
+   "웹개발"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "노마드코더"
+   }
+  ],
+  "category": "교육",
+  "persona": "jobseeker",
+  "role": "hard_neg",
+  "for_query": "영어 공부 자료",
+  "tier": "L",
+  "captured_at": "2026-02-05",
+  "occurs": null,
+  "dup_of": null
+ }
+]

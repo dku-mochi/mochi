@@ -1,0 +1,222 @@
+[
+ {
+  "id": "s09_000",
+  "type": "screenshot",
+  "summary": "ChatGPT Enterprise 및 Team 플랜 도입 시 계정 관리 및 워크스페이스 공유 기능 비교 캡처. 법인 카드 결제 처리를 위해 요금 정책 및 최소 사용자 수 체크가 필요함.",
+  "labels": [
+   "업무 도구",
+   "도입 검토"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "ChatGPT Team"
+   },
+   {
+    "kind": "brand",
+    "value": "OpenAI"
+   }
+  ],
+  "category": "업무",
+  "persona": "marketer",
+  "role": "answer",
+  "for_query": "챗지피티 팀 요금제",
+  "tier": "S",
+  "captured_at": "2026-04-06",
+  "occurs": "2024-05-20",
+  "dup_of": null
+ },
+ {
+  "id": "s09_001",
+  "type": "screenshot",
+  "summary": "개인용 ChatGPT Plus 구독 결제 내역서. 매월 자동 결제되는 개인 계정이라 부서 협업용으로 쓰기엔 기능이 제한적임. 나중에 회사 지원비 신청용으로 저장.",
+  "labels": [
+   "개인 결제",
+   "증빙"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "ChatGPT Plus"
+   }
+  ],
+  "category": "업무",
+  "persona": "marketer",
+  "role": "hard_neg",
+  "for_query": "챗지피티 팀 요금제",
+  "tier": "S",
+  "captured_at": "2026-03-29",
+  "occurs": "2024-04-15",
+  "dup_of": null
+ },
+ {
+  "id": "s09_002",
+  "type": "link",
+  "summary": "Claude Pro 요금제 및 팀 멤버십 안내 페이지. GPT랑 비교해보려고 저장. 연간 결제 시 할인폭이 커서 상사 보고용으로 정리해둬야 함.",
+  "labels": [
+   "비교 연구",
+   "마케팅 툴"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "Claude"
+   },
+   {
+    "kind": "product",
+    "value": "Claude Pro"
+   }
+  ],
+  "category": "업무",
+  "persona": "marketer",
+  "role": "hard_neg",
+  "for_query": "챗지피티 팀 요금제",
+  "tier": "S",
+  "captured_at": "2026-03-19",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s09_003",
+  "type": "screenshot",
+  "summary": "퍼플렉시티 프로(Perplexity Pro) 연간 구독 플랜 상세. 팀원들이랑 같이 쓰기에는 챗지피티 보단 서치 기능이 낫지 않을까 고민 중이라 저장해둠.",
+  "labels": [
+   "비교 연구",
+   "구매 고민"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "Perplexity Pro"
+   }
+  ],
+  "category": "업무",
+  "persona": "marketer",
+  "role": "hard_neg",
+  "for_query": "챗지피티 팀 요금제",
+  "tier": "S",
+  "captured_at": "2026-03-04",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s09_004",
+  "type": "memo",
+  "summary": "챗지피티 팀즈(Teams) 플랜 도입할 때 보안 이슈 체크. 회사 데이터 유출 방지 설정 필수. 갠적으로 쓰는 plus랑은 관리 방식이 달라서 좀 헷갈림.",
+  "labels": [
+   "업무 메모",
+   "보안 체크"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "ChatGPT Team"
+   }
+  ],
+  "category": "업무",
+  "persona": "marketer",
+  "role": "hard_neg",
+  "for_query": "챗지피티 팀 요금제",
+  "tier": "S",
+  "captured_at": "2026-04-03",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s09_005",
+  "type": "screenshot",
+  "summary": "GPT-4 API 사용량 및 비용 청구서. 챗지피티 팀 요금제랑 별개로 우리 팀이 개발하는 봇 관련 비용이라 헷갈리지 않게 분류해둠.",
+  "labels": [
+   "비용 관리",
+   "개발 확인"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "GPT-4 API"
+   }
+  ],
+  "category": "업무",
+  "persona": "marketer",
+  "role": "hard_neg",
+  "for_query": "챗지피티 팀 요금제",
+  "tier": "S",
+  "captured_at": "2026-03-28",
+  "occurs": "2024-05-01",
+  "dup_of": null
+ },
+ {
+  "id": "s09_006",
+  "type": "screenshot",
+  "summary": "사내 워크샵용 커피 케이터링 견적서. 챗지피티 팀 요금제 도입 논의할 때 같이 결제해야 하는지 확인하려고 캡처한 이미지.",
+  "labels": [
+   "업무 외",
+   "예산"
+  ],
+  "entities": [],
+  "category": "업무",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": "챗지피티 팀 요금제",
+  "tier": "S",
+  "captured_at": "2026-04-06",
+  "occurs": "2024-06-10",
+  "dup_of": null
+ },
+ {
+  "id": "s09_007",
+  "type": "screenshot",
+  "summary": "마케팅팀 신규 도입 툴 검토 시트. ChatGPT Team 도입 건은 5월 20일자로 다시 확인 예정. 잊지말자.",
+  "labels": [
+   "업무 체크리스트"
+  ],
+  "entities": [],
+  "category": "업무",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": "챗지피티 팀 요금제",
+  "tier": "S",
+  "captured_at": "2026-02-28",
+  "occurs": "2024-05-20",
+  "dup_of": null
+ },
+ {
+  "id": "s09_008",
+  "type": "link",
+  "summary": "강남역 점심 맛집 리스트 공유 링크. 나중에 팀원들이랑 회식할 때 참고하려고 저장함.",
+  "labels": [
+   "외식"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "강남역"
+   }
+  ],
+  "category": "업무",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": "챗지피티 팀 요금제",
+  "tier": "S",
+  "captured_at": "2026-03-27",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s09_009",
+  "type": "memo",
+  "summary": "이번 출장 때 가져갈 아이패드 챙기기. 챗지피티 팀 요금제 관련해서 최종 보고할 PPT 파일 담아두는 것 잊지 말자.",
+  "labels": [
+   "출장"
+  ],
+  "entities": [],
+  "category": "업무",
+  "persona": "marketer",
+  "role": "filler",
+  "for_query": "챗지피티 팀 요금제",
+  "tier": "S",
+  "captured_at": "2026-04-16",
+  "occurs": "2024-06-01",
+  "dup_of": null
+ }
+]

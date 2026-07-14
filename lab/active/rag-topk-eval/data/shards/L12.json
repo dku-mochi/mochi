@@ -1,0 +1,364 @@
+[
+ {
+  "id": "l12_000",
+  "type": "screenshot",
+  "summary": "프리랜서 촬영용으로 봐둔 린넨 소재의 시원한 롱 드레스. 핏이 여유로워서 미팅 때 입기 딱 좋을 듯, 장바구니 담아둠.",
+  "labels": [
+   "의상 구매",
+   "미팅 룩"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "시야쥬"
+   },
+   {
+    "kind": "product",
+    "value": "린넨 롱 드레스"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "원피스",
+  "tier": "L",
+  "captured_at": "2026-01-15",
+  "occurs": "2024-05-15",
+  "dup_of": null
+ },
+ {
+  "id": "l12_001",
+  "type": "screenshot",
+  "summary": "촬영 스튜디오 조명 테스트할 때 입을 편안한 셔츠형 미디 기장 드레스. 디자인 깔끔하고 주머니 있어서 편리해보임.",
+  "labels": [
+   "촬영 의상"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "아카이브앱크"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "원피스",
+  "tier": "L",
+  "captured_at": "2026-01-20",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l12_002",
+  "type": "link",
+  "summary": "여름 시즌용으로 적당한 블랙 컬러 슬립 드레스. 휴양지 가서 촬영할 때 레이어드 해서 입기 좋겠는데 고민 중.",
+  "labels": [
+   "쇼핑리스트",
+   "여행 준비"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "29CM"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "원피스",
+  "tier": "L",
+  "captured_at": "2026-01-16",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l12_003",
+  "type": "memo",
+  "summary": "오늘 마켓에서 본 아웃핏 너무 예뻤음. 허리라인 강조되는 A라인 실루엣인데 가격대가 좀 있어서 월급날까지 킵.",
+  "labels": [
+   "위시리스트"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "더오픈프로덕트"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "원피스",
+  "tier": "L",
+  "captured_at": "2026-01-28",
+  "occurs": "2024-05-25",
+  "dup_of": null
+ },
+ {
+  "id": "l12_004",
+  "type": "screenshot",
+  "summary": "인스타 광고에 뜬 에스닉 패턴의 랩 드레스. 카페 촬영 갈 때 입으면 사진 잘 나올 스타일이라 즐겨찾기 함.",
+  "labels": [
+   "스냅 촬영"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "마리떼 프랑소와 저버"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "원피스",
+  "tier": "L",
+  "captured_at": "2026-01-19",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l12_005",
+  "type": "screenshot",
+  "summary": "간절기용 니트 소재 롱 드레스, 베이지 컬러가 차분해 보임. 거래처 미팅 때 격식 차리기 딱 좋은 느낌.",
+  "labels": [
+   "비즈니스 캐주얼"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "니트 드레스"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "원피스",
+  "tier": "L",
+  "captured_at": "2026-01-24",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l12_006",
+  "type": "link",
+  "summary": "플리츠 디자인 들어간 셔츠형 드레스. 활동성이 좋아보여서 장시간 촬영할 때 입기 적합할 것 같음.",
+  "labels": [
+   "구매 고민"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "COS"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "원피스",
+  "tier": "L",
+  "captured_at": "2026-01-27",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l12_007",
+  "type": "screenshot",
+  "summary": "세일 들어간 실크 소재 맥시 드레스. 결혼식 하객룩으로 입을만한 고급진 텍스쳐라 쟁여두면 든든할 듯.",
+  "labels": [
+   "하객룩",
+   "쇼핑"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "렉토"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "원피스",
+  "tier": "L",
+  "captured_at": "2026-01-15",
+  "occurs": "2024-06-01",
+  "dup_of": null
+ },
+ {
+  "id": "l12_008",
+  "type": "memo",
+  "summary": "여름 대비용으로 린넨 혼방 스트라이프 드레스 구매. 기장이 좀 길어서 수선집 가야할듯. 수선비 고려해야함.",
+  "labels": [
+   "구매 완료"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "스트라이프 셔츠 드레스"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "원피스",
+  "tier": "L",
+  "captured_at": "2026-01-24",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l12_009",
+  "type": "screenshot",
+  "summary": "미니멀한 디자인의 화이트 코튼 드레스. 깨끗한 느낌이라 스튜디오에서 촬영 소품들이랑 매치하면 찰떡일 듯.",
+  "labels": [
+   "촬영 의상",
+   "장비 셋팅"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "유어네임히어"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "원피스",
+  "tier": "L",
+  "captured_at": "2026-01-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l12_010",
+  "type": "screenshot",
+  "summary": "가을에 입을 트렌치 코트인데 디자인이 드레스처럼 예쁘게 빠짐. 아우터지만 코디 활용도가 높을 것 같아서 일단 저장.",
+  "labels": [
+   "가을 준비"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "트렌치 코트"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "원피스",
+  "tier": "L",
+  "captured_at": "2026-01-24",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l12_011",
+  "type": "screenshot",
+  "summary": "메리제인 구두 샀는데 이거랑 어울리는 의상 매치 고민중. 굽 높이가 딱 적당해서 자주 신게 될 것 같다.",
+  "labels": [
+   "스타일링"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "메리제인 슈즈"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "원피스",
+  "tier": "L",
+  "captured_at": "2026-01-17",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l12_012",
+  "type": "link",
+  "summary": "애니메이션 원피스 최신화 에피소드 몰아보기 리스트. 작업 끝나고 주말에 맥주 마시면서 정주행할 거임.",
+  "labels": [
+   "휴식",
+   "덕질"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "넷플릭스"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "원피스",
+  "tier": "L",
+  "captured_at": "2026-01-28",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l12_013",
+  "type": "screenshot",
+  "summary": "최근 핫한 가죽 소재 아우터, 라이더 자켓 스타일인데 라인이 예쁘게 떨어져서 구매 리스트에 추가함.",
+  "labels": [
+   "아우터 쇼핑"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "레더 자켓"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "원피스",
+  "tier": "L",
+  "captured_at": "2026-01-21",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l12_014",
+  "type": "memo",
+  "summary": "이번에 새로 나온 가죽 롱부츠랑 매치할만한 치마나 원피스류 찾아봐야지. 슈즈 먼저 사니까 코디가 어렵네.",
+  "labels": [
+   "쇼핑 기록"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "가죽 롱부츠"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "freelancer",
+  "role": "hard_neg",
+  "for_query": "원피스",
+  "tier": "L",
+  "captured_at": "2026-01-19",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l12_015",
+  "type": "link",
+  "summary": "저번에 봤던 시야쥬 린넨 롱 드레스, 아무래도 역시 살까말까 망설여지네. 상세 페이지 다시 확인하려고 링크 남김.",
+  "labels": [
+   "구매 고민",
+   "쇼핑"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "시야쥬"
+   }
+  ],
+  "category": "쇼핑",
+  "persona": "freelancer",
+  "role": "answer",
+  "for_query": "원피스",
+  "tier": "L",
+  "captured_at": "2026-02-06",
+  "occurs": null,
+  "dup_of": "l12_000"
+ }
+]

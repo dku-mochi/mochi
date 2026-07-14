@@ -1,0 +1,360 @@
+[
+ {
+  "id": "l02_000",
+  "type": "screenshot",
+  "summary": "제주 서쪽 해안도로에 위치한 카페 레이지펌프. 빈티지한 분위기와 오션뷰가 예뻐서 이번 여행 때 커피 마시러 가려고 저장함.",
+  "labels": [
+   "제주 여행",
+   "카페 투어"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "레이지펌프"
+   }
+  ],
+  "category": "여행",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "제주 여행 가볼 곳",
+  "tier": "L",
+  "captured_at": "2026-01-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l02_001",
+  "type": "screenshot",
+  "summary": "금오름은 일몰이 예술이라길래 꼭 가보려고 체크. 정상까지 코스가 험하지 않아서 부부끼리 산책하기 좋을 듯.",
+  "labels": [
+   "가볼 곳",
+   "제주도"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "금오름"
+   }
+  ],
+  "category": "여행",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "제주 여행 가볼 곳",
+  "tier": "L",
+  "captured_at": "2026-01-19",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l02_002",
+  "type": "link",
+  "summary": "제주 동쪽 숙소로 찜해둔 숙성도 근처 독채 펜션. 인테리어가 깔끔하고 어메니티가 잘 되어 있어서 예약 고민 중.",
+  "labels": [
+   "숙소 예약"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "숙성도"
+   }
+  ],
+  "category": "여행",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "제주 여행 가볼 곳",
+  "tier": "L",
+  "captured_at": "2026-01-27",
+  "occurs": "2024-11-20",
+  "dup_of": null
+ },
+ {
+  "id": "l02_003",
+  "type": "screenshot",
+  "summary": "비자림 숲길 산책로 지도. 피톤치드 맡으면서 힐링하고 싶어서 일정에 넣었음. 길이 평탄해서 부모님 모시고 가기에도 딱일 듯.",
+  "labels": [
+   "제주 여행",
+   "가볼 곳"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "비자림"
+   }
+  ],
+  "category": "여행",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "제주 여행 가볼 곳",
+  "tier": "L",
+  "captured_at": "2026-01-26",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l02_004",
+  "type": "memo",
+  "summary": "우도 들어가서 꼭 먹어봐야 할 땅콩아이스크림이랑 해물라면 맛집 리스트. '안녕육지사람'이랑 '파도소리해녀촌'은 꼭 가보기.",
+  "labels": [
+   "맛집 리스트"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "우도"
+   }
+  ],
+  "category": "여행",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "제주 여행 가볼 곳",
+  "tier": "L",
+  "captured_at": "2026-01-27",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l02_005",
+  "type": "screenshot",
+  "summary": "제주 아르떼뮤지엄 전시 정보. 날씨 안 좋을 때 실내 데이트 코스로 방문하면 좋을 것 같아서 저장함.",
+  "labels": [
+   "실내 데이트"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "아르떼뮤지엄"
+   }
+  ],
+  "category": "여행",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "제주 여행 가볼 곳",
+  "tier": "L",
+  "captured_at": "2026-01-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l02_006",
+  "type": "link",
+  "summary": "제주 렌트카 비교 앱에서 본 전기차 모델. 신혼여행이라 좀 더 편한걸로 할지 고민 중인데 IONIQ 5 모델 대여료가 괜찮네.",
+  "labels": [
+   "렌트카",
+   "가전"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "IONIQ 5"
+   }
+  ],
+  "category": "여행",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "제주 여행 가볼 곳",
+  "tier": "L",
+  "captured_at": "2026-01-16",
+  "occurs": "2024-12-01",
+  "dup_of": null
+ },
+ {
+  "id": "l02_007",
+  "type": "screenshot",
+  "summary": "제주 동문시장 야시장 푸드트럭 위치 정보. 여기서 저녁거리 사서 숙소에서 와인 한 잔 하면 낭만적일 듯.",
+  "labels": [
+   "야식",
+   "제주 여행"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "동문시장"
+   }
+  ],
+  "category": "여행",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "제주 여행 가볼 곳",
+  "tier": "L",
+  "captured_at": "2026-01-22",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l02_008",
+  "type": "memo",
+  "summary": "섭지코지 근처 카페 '민트'. 건축물이 멋지다고 해서 가보고 싶은 곳인데, 예약이 빡세서 미리 확인해야 함.",
+  "labels": [
+   "가보고 싶은 곳"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "섭지코지"
+   }
+  ],
+  "category": "여행",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "제주 여행 가볼 곳",
+  "tier": "L",
+  "captured_at": "2026-01-18",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l02_009",
+  "type": "screenshot",
+  "summary": "함덕 해수욕장 근처 델문도 카페. 에메랄드빛 바다 바로 앞이라 사진 찍기 좋다고 함. 제주도 여행 필수 코스.",
+  "labels": [
+   "제주 여행",
+   "오션뷰"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "델문도"
+   }
+  ],
+  "category": "여행",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "제주 여행 가볼 곳",
+  "tier": "L",
+  "captured_at": "2026-01-17",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l02_010",
+  "type": "screenshot",
+  "summary": "부산 광안리 드론쇼 시간표. 지난번에 갔을 때 사람 너무 많아서 제대로 못 봤는데 이번에 다시 도전할까 생각중.",
+  "labels": [
+   "부산 여행"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "광안리"
+   }
+  ],
+  "category": "여행",
+  "persona": "newlywed",
+  "role": "hard_neg",
+  "for_query": "제주 여행 가볼 곳",
+  "tier": "L",
+  "captured_at": "2026-01-21",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l02_011",
+  "type": "screenshot",
+  "summary": "강릉 테라로사 본점 방문 인증샷. 1년 전 여행 때 찍은 사진인데 커피 맛이 너무 좋았어서 추억용으로 남겨둠.",
+  "labels": [
+   "지난 여행"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "강릉 테라로사"
+   }
+  ],
+  "category": "여행",
+  "persona": "newlywed",
+  "role": "hard_neg",
+  "for_query": "제주 여행 가볼 곳",
+  "tier": "L",
+  "captured_at": "2026-01-24",
+  "occurs": "2023-05-15",
+  "dup_of": null
+ },
+ {
+  "id": "l02_012",
+  "type": "link",
+  "summary": "부산 해운대 블루라인파크 예약 내역. 지난달에 이미 다녀와서 만족스러웠던 기억. 담에 또 갈 일 있으면 참고해야지.",
+  "labels": [
+   "지난 여행"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "해운대"
+   }
+  ],
+  "category": "여행",
+  "persona": "newlywed",
+  "role": "hard_neg",
+  "for_query": "제주 여행 가볼 곳",
+  "tier": "L",
+  "captured_at": "2026-01-16",
+  "occurs": "2024-09-10",
+  "dup_of": null
+ },
+ {
+  "id": "l02_013",
+  "type": "memo",
+  "summary": "제주도 함덕 해변에서 찍은 바다 사진. 너무 좋아서 작년에 친구들이랑 다녀왔던 곳인데 또 가고 싶어서 폴더에 넣어둠.",
+  "labels": [
+   "여행 추억"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "함덕해수욕장"
+   }
+  ],
+  "category": "여행",
+  "persona": "newlywed",
+  "role": "hard_neg",
+  "for_query": "제주 여행 가볼 곳",
+  "tier": "L",
+  "captured_at": "2026-01-24",
+  "occurs": "2023-08-20",
+  "dup_of": null
+ },
+ {
+  "id": "l02_014",
+  "type": "screenshot",
+  "summary": "강릉 아르떼뮤지엄 전시 관람 기록. 2년 전 겨울 여행 때 봤던 전시회. 인상 깊어서 티켓 챙겨둔거 스캔함.",
+  "labels": [
+   "여행 기록"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "강릉 아르떼뮤지엄"
+   }
+  ],
+  "category": "여행",
+  "persona": "newlywed",
+  "role": "hard_neg",
+  "for_query": "제주 여행 가볼 곳",
+  "tier": "L",
+  "captured_at": "2026-01-17",
+  "occurs": "2022-12-10",
+  "dup_of": null
+ },
+ {
+  "id": "l02_015",
+  "type": "memo",
+  "summary": "오션뷰가 예쁜 델문도 카페, 나중에 제주 가면 여기 꼭 다시 들르자고 남편이랑 약속함. 담에 갈 때 참고!",
+  "labels": [
+   "다시 가볼 곳"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "델문도"
+   }
+  ],
+  "category": "여행",
+  "persona": "newlywed",
+  "role": "answer",
+  "for_query": "제주 여행 가볼 곳",
+  "tier": "L",
+  "captured_at": "2026-02-11",
+  "occurs": null,
+  "dup_of": "l02_009"
+ }
+]

@@ -1,0 +1,341 @@
+[
+ {
+  "id": "l04_000",
+  "type": "screenshot",
+  "summary": "헬리녹스 체어원 블랙 컬러. 가볍고 수납이 좋아서 아기랑 캠핑 다닐 때 필수템이라는데 남편이랑 상의하고 결정할 것.",
+  "labels": [
+   "구매 고민",
+   "캠핑 장비"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "헬리녹스"
+   },
+   {
+    "kind": "product",
+    "value": "체어원"
+   }
+  ],
+  "category": "취미",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "캠핑 용품",
+  "tier": "L",
+  "captured_at": "2026-06-17",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l04_001",
+  "type": "screenshot",
+  "summary": "스노우피크 엔트리 2룸 엘필드. 거실형 텐트라 아이들 공간 분리하기 좋아 보임. 가격대가 좀 있어서 이번달 카드값 보고 결정하자.",
+  "labels": [
+   "위시리스트",
+   "구매 고민"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "스노우피크"
+   },
+   {
+    "kind": "product",
+    "value": "엘필드"
+   }
+  ],
+  "category": "취미",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "캠핑 용품",
+  "tier": "L",
+  "captured_at": "2026-05-20",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l04_002",
+  "type": "screenshot",
+  "summary": "크레모아 울트라3.0 랜턴. 밤에 애들 재우고 불멍할 때 필수인 듯. 밝기 조절 잘 되고 디자인도 예뻐서 찜.",
+  "labels": [
+   "조명",
+   "구매 고민"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "크레모아"
+   },
+   {
+    "kind": "product",
+    "value": "울트라3.0"
+   }
+  ],
+  "category": "취미",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "캠핑 용품",
+  "tier": "L",
+  "captured_at": "2026-06-03",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l04_003",
+  "type": "screenshot",
+  "summary": "콜맨 스틸벨트 쿨러 레드. 여름 캠핑에 음료랑 아이들 간식 신선하게 보관하려면 꼭 필요할 것 같아서 저장함.",
+  "labels": [
+   "여름 캠핑",
+   "구매 고민"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "콜맨"
+   },
+   {
+    "kind": "product",
+    "value": "스틸벨트 쿨러"
+   }
+  ],
+  "category": "취미",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "캠핑 용품",
+  "tier": "L",
+  "captured_at": "2026-06-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l04_004",
+  "type": "screenshot",
+  "summary": "네이처하이크 자충매트 더블. 아이들이랑 바닥에서 잘 때 등 배기지 않게 하려고 찾아봄. 가성비 좋은 거 같음.",
+  "labels": [
+   "잠자리",
+   "가성비템"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "네이처하이크"
+   },
+   {
+    "kind": "product",
+    "value": "자충매트"
+   }
+  ],
+  "category": "취미",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "캠핑 용품",
+  "tier": "L",
+  "captured_at": "2026-05-17",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l04_005",
+  "type": "link",
+  "summary": "이소가스 워머랑 랜턴 갓 세트. 감성 캠핑 분위기 내기에 딱 좋은 아이템들이라 장바구니에 담아둠.",
+  "labels": [
+   "감성 캠핑",
+   "인테리어"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "이소가스 워머"
+   }
+  ],
+  "category": "취미",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "캠핑 용품",
+  "tier": "L",
+  "captured_at": "2026-06-03",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l04_006",
+  "type": "link",
+  "summary": "스탠리 워터저그 7.5L. 캠핑장에서 물 떠다 마시기 귀찮은데 이거 하나 있으면 세상 편할 듯. 깔맞춤 고민중.",
+  "labels": [
+   "구매 고민",
+   "육아 꿀템"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "스탠리"
+   },
+   {
+    "kind": "product",
+    "value": "워터저그"
+   }
+  ],
+  "category": "취미",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "캠핑 용품",
+  "tier": "L",
+  "captured_at": "2026-06-10",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l04_007",
+  "type": "memo",
+  "summary": "코베아 구이바다 아이보리 컬러. 애들 볶음밥이랑 라면 끓여주기 제일 편하다고 함. 다음 달 캠핑 가기 전 꼭 사야지.",
+  "labels": [
+   "필수템",
+   "구매 예정"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "코베아"
+   },
+   {
+    "kind": "product",
+    "value": "구이바다"
+   }
+  ],
+  "category": "취미",
+  "persona": "parent",
+  "role": "answer",
+  "for_query": "캠핑 용품",
+  "tier": "L",
+  "captured_at": "2026-05-25",
+  "occurs": "2024-05-15",
+  "dup_of": null
+ },
+ {
+  "id": "l04_008",
+  "type": "screenshot",
+  "summary": "블랙야크 경량 등산 스틱. 담주 산행 갈 때 써야지. 가볍고 그립감 좋아서 손목 부담 덜 할 듯함.",
+  "labels": [
+   "등산",
+   "운동"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "블랙야크"
+   },
+   {
+    "kind": "product",
+    "value": "등산 스틱"
+   }
+  ],
+  "category": "취미",
+  "persona": "parent",
+  "role": "hard_neg",
+  "for_query": "캠핑 용품",
+  "tier": "L",
+  "captured_at": "2026-06-21",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l04_009",
+  "type": "screenshot",
+  "summary": "시마노 낚시대 베이트릴 세트. 아빠가 낚시 가고 싶다고 노래를 불러서 알아본 제품. 초보자용으로 적당한가?",
+  "labels": [
+   "낚시",
+   "선물"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "시마노"
+   },
+   {
+    "kind": "product",
+    "value": "베이트릴"
+   }
+  ],
+  "category": "취미",
+  "persona": "parent",
+  "role": "hard_neg",
+  "for_query": "캠핑 용품",
+  "tier": "L",
+  "captured_at": "2026-06-19",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "l04_010",
+  "type": "link",
+  "summary": "가평 자라섬 오토캠핑장 예약 사이트. 다음달 주말 예약 빡세니까 날짜 확인하고 알람 맞춰두자.",
+  "labels": [
+   "캠핑장",
+   "예약"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "자라섬"
+   },
+   {
+    "kind": "platform",
+    "value": "캠핑장 예약 사이트"
+   }
+  ],
+  "category": "취미",
+  "persona": "parent",
+  "role": "hard_neg",
+  "for_query": "캠핑 용품",
+  "tier": "L",
+  "captured_at": "2026-05-18",
+  "occurs": "2024-06-01",
+  "dup_of": null
+ },
+ {
+  "id": "l04_011",
+  "type": "memo",
+  "summary": "이번주 영월 캠핑장 예약 완료. 뷰가 좋다고 해서 기대중. 애들이랑 놀만한 프로그램 있는지 다시 확인하기.",
+  "labels": [
+   "캠핑 일정",
+   "예약 완료"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "영월"
+   }
+  ],
+  "category": "취미",
+  "persona": "parent",
+  "role": "hard_neg",
+  "for_query": "캠핑 용품",
+  "tier": "L",
+  "captured_at": "2026-06-22",
+  "occurs": "2024-05-20",
+  "dup_of": null
+ },
+ {
+  "id": "l04_012",
+  "type": "screenshot",
+  "summary": "고어텍스 등산화 사이즈 표. 새로 산 등산화가 좀 끼는데 널널한 거 살 걸 그랬나? 교환 고민 좀 되네.",
+  "labels": [
+   "등산",
+   "신발"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "등산화"
+   }
+  ],
+  "category": "취미",
+  "persona": "parent",
+  "role": "hard_neg",
+  "for_query": "캠핑 용품",
+  "tier": "L",
+  "captured_at": "2026-05-16",
+  "occurs": null,
+  "dup_of": null
+ }
+]

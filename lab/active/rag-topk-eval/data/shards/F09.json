@@ -1,0 +1,582 @@
+[
+ {
+  "id": "f09_000",
+  "type": "screenshot",
+  "summary": "어린이집 식단표 캡처. 이번 주 아이가 먹을 메뉴들 확인하고 편식하는 재료가 있는지 체크하기 위해 저장함.",
+  "labels": [
+   "식단 관리",
+   "어린이집"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "키즈노트"
+   }
+  ],
+  "category": "어린이집 알림장·키즈카페",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-08",
+  "occurs": "2023-10-23",
+  "dup_of": null
+ },
+ {
+  "id": "f09_001",
+  "type": "screenshot",
+  "summary": "키즈카페 '플레이타임' 이용권 할인 페이지. 다음 주말에 아이들 데리고 가려고 저장함.",
+  "labels": [
+   "나들이",
+   "할인 정보"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "플레이타임"
+   }
+  ],
+  "category": "어린이집 알림장·키즈카페",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-06",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f09_002",
+  "type": "memo",
+  "summary": "오늘 어린이집에서 하원할 때 갑자기 떼를 써서 당황함. 내일은 좀 더 일찍 가서 마중 나가야겠음.",
+  "labels": [
+   "육아 기록",
+   "반성"
+  ],
+  "entities": [],
+  "category": "어린이집 알림장·키즈카페",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-13",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f09_003",
+  "type": "screenshot",
+  "summary": "소아과 대기 접수 화면. 아침 일찍 예약했는데도 대기 번호 15번이라니.. 꼼꼼히 챙겨야지.",
+  "labels": [
+   "병원",
+   "건강"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "똑닥"
+   }
+  ],
+  "category": "어린이집 알림장·키즈카페",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-07",
+  "occurs": "2023-10-24",
+  "dup_of": null
+ },
+ {
+  "id": "f09_004",
+  "type": "link",
+  "summary": "놀이방 매트 세일 정보. 지금 쓰는 매트가 너무 낡아서 교체 고민 중인데 가성비가 좋아 보임.",
+  "labels": [
+   "쇼핑",
+   "육아템"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "알집매트"
+   }
+  ],
+  "category": "어린이집 알림장·키즈카페",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-14",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f09_005",
+  "type": "screenshot",
+  "summary": "키즈카페 다녀온 후 남은 쿠폰 사진. 다음번에 올 때 잊지 말고 꼭 챙겨가야지.",
+  "labels": [
+   "쿠폰",
+   "기억하기"
+  ],
+  "entities": [],
+  "category": "어린이집 알림장·키즈카페",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-30",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f09_006",
+  "type": "memo",
+  "summary": "아이 감기약 복용 시간 기록: 아침 8시, 저녁 8시. 3일치 다 먹어야함.",
+  "labels": [
+   "건강",
+   "육아 기록"
+  ],
+  "entities": [],
+  "category": "어린이집 알림장·키즈카페",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-16",
+  "occurs": "2023-10-25",
+  "dup_of": null
+ },
+ {
+  "id": "f09_007",
+  "type": "screenshot",
+  "summary": "어린이집 선생님이 올려주신 우리 아이 활동 사진. 너무 귀엽게 웃고 있어서 바로 저장함.",
+  "labels": [
+   "일상",
+   "추억"
+  ],
+  "entities": [],
+  "category": "어린이집 알림장·키즈카페",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-03-25",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f09_008",
+  "type": "link",
+  "summary": "유아용 영양제 직구 사이트 추천 링크. 요즘 애들이 자꾸 입병이 나서 비타민을 좀 챙겨줘야 할 것 같음.",
+  "labels": [
+   "건강",
+   "쇼핑"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "아이허브"
+   }
+  ],
+  "category": "어린이집 알림장·키즈카페",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-29",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f09_009",
+  "type": "screenshot",
+  "summary": "키즈카페 시설 내 안전 수칙 안내문. 시설 관리 꼼꼼히 확인하고 나중에 리뷰 남길 때 참고하려고 찎어둠.",
+  "labels": [
+   "정보",
+   "리뷰"
+  ],
+  "entities": [],
+  "category": "어린이집 알림장·키즈카페",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-23",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f09_010",
+  "type": "memo",
+  "summary": "가족 여행 계획. 11월 첫째 주말 강원도 펜션 예약 필요. 수영장 있는지 꼭 확인해야 함.",
+  "labels": [
+   "여행",
+   "일정"
+  ],
+  "entities": [],
+  "category": "어린이집 알림장·키즈카페",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-03",
+  "occurs": "2023-11-04",
+  "dup_of": null
+ },
+ {
+  "id": "f09_011",
+  "type": "screenshot",
+  "summary": "아이가 갑자기 열이 나서 체온 기록 중인 앱 화면. 해열제 먹인 시간 체크 완료.",
+  "labels": [
+   "건강",
+   "육아 기록"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "챔프시럽"
+   }
+  ],
+  "category": "어린이집 알림장·키즈카페",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-15",
+  "occurs": "2023-10-26",
+  "dup_of": null
+ },
+ {
+  "id": "f09_012",
+  "type": "screenshot",
+  "summary": "이번 주 어린이집 행사 안내 공지. 준비물: 돗자리, 간식, 개인 텀블러. 잊지 말자.",
+  "labels": [
+   "일정",
+   "준비물"
+  ],
+  "entities": [],
+  "category": "어린이집 알림장·키즈카페",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-11",
+  "occurs": "2023-10-27",
+  "dup_of": null
+ },
+ {
+  "id": "f09_013",
+  "type": "memo",
+  "summary": "유치원 입학 설명회 날짜 확인. 캘린더에 기입 완료. 경쟁률이 높다니 걱정됨.",
+  "labels": [
+   "교육",
+   "일정"
+  ],
+  "entities": [],
+  "category": "어린이집 알림장·키즈카페",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-05",
+  "occurs": "2023-11-01",
+  "dup_of": null
+ },
+ {
+  "id": "f09_014",
+  "type": "screenshot",
+  "summary": "새로 오픈한 키즈카페 블로그 후기. 시설이 깔끔해보여서 주말에 한 번 가볼까 함.",
+  "labels": [
+   "나들이",
+   "정보"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "릴리펏"
+   }
+  ],
+  "category": "어린이집 알림장·키즈카페",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-19",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f09_015",
+  "type": "screenshot",
+  "summary": "아이 내복 세일 정보. 사이즈가 금방 바뀌어서 이번에 넉넉하게 120으로 몇 벌 사둬야겠음.",
+  "labels": [
+   "쇼핑",
+   "육아템"
+  ],
+  "entities": [],
+  "category": "어린이집 알림장·키즈카페",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-04-27",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f09_016",
+  "type": "link",
+  "summary": "아이 정서 발달 관련 칼럼. 요즘 고집이 세져서 어떻게 대처해야 할지 고민인데 도움될 듯.",
+  "labels": [
+   "교육",
+   "정보"
+  ],
+  "entities": [],
+  "category": "어린이집 알림장·키즈카페",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-21",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f09_017",
+  "type": "screenshot",
+  "summary": "키즈카페 메뉴판. 아이들이 좋아하는 돈가스랑 파스타 가격 확인. 비싸지만 맛은 있겠지.",
+  "labels": [
+   "나들이",
+   "맛집"
+  ],
+  "entities": [],
+  "category": "어린이집 알림장·키즈카페",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-01-15",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f09_018",
+  "type": "memo",
+  "summary": "오늘 저녁은 간단하게 카레. 아이가 좋아하니까 다행이다. 담엔 감자를 더 많이 넣어야지.",
+  "labels": [
+   "일상",
+   "요리"
+  ],
+  "entities": [],
+  "category": "어린이집 알림장·키즈카페",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-23",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f09_019",
+  "type": "screenshot",
+  "summary": "어린이집 알림장 알림. 오늘 아이가 낮잠을 3시간이나 잤다니.. 밤에 잠 안 오면 어떡하지.",
+  "labels": [
+   "육아 기록",
+   "일상"
+  ],
+  "entities": [],
+  "category": "어린이집 알림장·키즈카페",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-23",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f09_020",
+  "type": "link",
+  "summary": "유아 안전 카시트 설치 가이드 영상. 차 바꾸면서 다시 설치해야 하는데 참고해야 함.",
+  "labels": [
+   "안전",
+   "정보"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "다이치"
+   }
+  ],
+  "category": "어린이집 알림장·키즈카페",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-06",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f09_021",
+  "type": "screenshot",
+  "summary": "주말 가족 행사 사진. 애들이 너무 즐거워해서 뿌듯함. 나중에 포토북으로 만들어야지.",
+  "labels": [
+   "기록",
+   "추억"
+  ],
+  "entities": [],
+  "category": "어린이집 알림장·키즈카페",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-17",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f09_022",
+  "type": "screenshot",
+  "summary": "아이 영유아 검진 결과표. 키가 상위 90%라니 너무 잘 크고 있어서 대견함.",
+  "labels": [
+   "건강",
+   "기록"
+  ],
+  "entities": [],
+  "category": "어린이집 알림장·키즈카페",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-24",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f09_023",
+  "type": "memo",
+  "summary": "이번 주말 할 일: 놀이터, 장보기, 밀린 빨래, 애들 머리 자르기.",
+  "labels": [
+   "계획",
+   "일상"
+  ],
+  "entities": [],
+  "category": "어린이집 알림장·키즈카페",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-11",
+  "occurs": "2023-10-28",
+  "dup_of": null
+ },
+ {
+  "id": "f09_024",
+  "type": "screenshot",
+  "summary": "어린이집 준비물 리스트 사진. 이름표 붙이는 거 까먹지 않게 미리 캡처해둠.",
+  "labels": [
+   "일정",
+   "준비물"
+  ],
+  "entities": [],
+  "category": "어린이집 알림장·키즈카페",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-31",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f09_025",
+  "type": "screenshot",
+  "summary": "키즈카페 멤버십 가입 이벤트. 포인트 적립해주니까 가입해두는 게 이득일 듯.",
+  "labels": [
+   "정보",
+   "혜택"
+  ],
+  "entities": [],
+  "category": "어린이집 알림장·키즈카페",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-12",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f09_026",
+  "type": "link",
+  "summary": "아이들 실내화 추천 리스트. 어린이집에서 신는 실내화가 너무 더러워져서 새 걸로 사야함.",
+  "labels": [
+   "쇼핑",
+   "육아템"
+  ],
+  "entities": [],
+  "category": "어린이집 알림장·키즈카페",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-06-24",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f09_027",
+  "type": "screenshot",
+  "summary": "가족 사진 스튜디오 예약 안내. 12월 이벤트로 할인한다길래 저장함.",
+  "labels": [
+   "가족",
+   "할인"
+  ],
+  "entities": [],
+  "category": "어린이집 알림장·키즈카페",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-05-22",
+  "occurs": "2023-12-05",
+  "dup_of": null
+ },
+ {
+  "id": "f09_028",
+  "type": "memo",
+  "summary": "오늘 아이 기분이 별로 안 좋아 보임. 엄마가 더 많이 안아줘야지. 사랑해 우리 아들.",
+  "labels": [
+   "육아 기록",
+   "감성"
+  ],
+  "entities": [],
+  "category": "어린이집 알림장·키즈카페",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-07",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "f09_029",
+  "type": "screenshot",
+  "summary": "어린이집 알림장 하원 공지. 오늘 날씨가 추우니까 따뜻하게 입혀서 보내달라는 당부 글.",
+  "labels": [
+   "육아",
+   "일상"
+  ],
+  "entities": [],
+  "category": "어린이집 알림장·키즈카페",
+  "persona": "parent",
+  "role": "filler",
+  "for_query": null,
+  "tier": null,
+  "captured_at": "2026-07-04",
+  "occurs": null,
+  "dup_of": null
+ }
+]

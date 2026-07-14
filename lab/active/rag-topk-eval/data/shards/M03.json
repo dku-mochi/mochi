@@ -1,0 +1,190 @@
+[
+ {
+  "id": "m03_000",
+  "type": "screenshot",
+  "summary": "가평군 북한강 인근 '리버뷰 펜션' 캡처. 동아리 인원이 많아도 수용 가능한 대형 독채라 엠티 장소 후보로 찍어둠. 복층 구조라 공간 활용도 좋아보임.",
+  "labels": [
+   "엠티장소",
+   "가평여행"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "리버뷰 펜션"
+   }
+  ],
+  "category": "장소",
+  "persona": "student",
+  "role": "answer",
+  "for_query": "동아리 엠티 장소",
+  "tier": "M",
+  "captured_at": "2026-05-23",
+  "occurs": "2024-05-15",
+  "dup_of": null
+ },
+ {
+  "id": "m03_001",
+  "type": "screenshot",
+  "summary": "양평 '포레스트 캠프' 예약 페이지 캡처. 동아리원들이 자연속에서 바베큐 파티 하고싶다해서 찾아본 곳. 족구장이랑 수영장도 있어서 놀기 딱이다.",
+  "labels": [
+   "동아리",
+   "예약후보"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "포레스트 캠프"
+   }
+  ],
+  "category": "장소",
+  "persona": "student",
+  "role": "answer",
+  "for_query": "동아리 엠티 장소",
+  "tier": "M",
+  "captured_at": "2026-06-03",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m03_002",
+  "type": "link",
+  "summary": "에어비앤비 링크: 강촌역 근처 '메이플 하우스'. 역이랑 가까워서 뚜벅이들이 이동하기 편할 것 같음. 15명 이상 숙박 가능하고 거실이 넓어서 레크레이션하기 최적.",
+  "labels": [
+   "가성비숙소",
+   "엠티준비"
+  ],
+  "entities": [
+   {
+    "kind": "platform",
+    "value": "에어비앤비"
+   },
+   {
+    "kind": "place",
+    "value": "메이플 하우스"
+   }
+  ],
+  "category": "장소",
+  "persona": "student",
+  "role": "answer",
+  "for_query": "동아리 엠티 장소",
+  "tier": "M",
+  "captured_at": "2026-05-30",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m03_003",
+  "type": "memo",
+  "summary": "강화도 '바다소리 펜션' 메모. 사장님 친절하시고 단체 바베큐장 완비됨. 1인당 5만원 꼴이라 예산 범위안에 들어옴. 전화로 미리 견적 받아봐야지.",
+  "labels": [
+   "엠티장소",
+   "예산"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "바다소리 펜션"
+   }
+  ],
+  "category": "장소",
+  "persona": "student",
+  "role": "answer",
+  "for_query": "동아리 엠티 장소",
+  "tier": "M",
+  "captured_at": "2026-05-28",
+  "occurs": "2024-06-01",
+  "dup_of": null
+ },
+ {
+  "id": "m03_004",
+  "type": "screenshot",
+  "summary": "부모님 환갑 기념으로 예약할 제주도 '서귀포 독채 풀빌라' 정보. 4인 가족이 묵기에 프라이빗하고 시설이 깔끔해서 저장함.",
+  "labels": [
+   "가족여행",
+   "숙소"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "서귀포 풀빌라"
+   }
+  ],
+  "category": "장소",
+  "persona": "student",
+  "role": "hard_neg",
+  "for_query": "동아리 엠티 장소",
+  "tier": "M",
+  "captured_at": "2026-05-30",
+  "occurs": "2024-08-10",
+  "dup_of": null
+ },
+ {
+  "id": "m03_005",
+  "type": "screenshot",
+  "summary": "회사 팀빌딩용 강남역 근처 '더 모임' 공간 대여 정보. 빔프로젝터랑 화이트보드 구비되어 있어서 워크숍 장소로 적합한듯.",
+  "labels": [
+   "워크숍",
+   "회의실"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "더 모임"
+   }
+  ],
+  "category": "장소",
+  "persona": "student",
+  "role": "hard_neg",
+  "for_query": "동아리 엠티 장소",
+  "tier": "M",
+  "captured_at": "2026-05-24",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m03_006",
+  "type": "link",
+  "summary": "강원도 평창 '올림픽 리조트' 가족 패키지 정보. 방 3개짜리 룸이라 대가족 여행 가기에 적절해 보임. 가격이 좀 쎄지만 시설은 굿.",
+  "labels": [
+   "가족여행",
+   "휴가"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "올림픽 리조트"
+   }
+  ],
+  "category": "장소",
+  "persona": "student",
+  "role": "hard_neg",
+  "for_query": "동아리 엠티 장소",
+  "tier": "M",
+  "captured_at": "2026-06-02",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "m03_007",
+  "type": "memo",
+  "summary": "서울 근교 기업 워크샵 장소 리스트 정리. 연수원 분위기 나는 곳 위주로 서치함. 조용한 회의실이랑 식당 있는 곳이 필수 조건.",
+  "labels": [
+   "워크숍",
+   "기획"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "서울 근교"
+   }
+  ],
+  "category": "장소",
+  "persona": "student",
+  "role": "hard_neg",
+  "for_query": "동아리 엠티 장소",
+  "tier": "M",
+  "captured_at": "2026-06-03",
+  "occurs": "2024-07-20",
+  "dup_of": null
+ }
+]

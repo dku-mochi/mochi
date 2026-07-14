@@ -1,0 +1,154 @@
+[
+ {
+  "id": "s08_000",
+  "type": "screenshot",
+  "summary": "닌텐도 스위치 2 후속기 발매일 관련 루머 유출본 캡처. 하반기 출시설이 유력해 보여서 알바비 모아둔 거 쓰기 전에 일단 저장함.",
+  "labels": [
+   "구매 예정",
+   "게임"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "Nintendo Switch 2"
+   },
+   {
+    "kind": "date",
+    "value": "2024-11-20"
+   }
+  ],
+  "category": "취미",
+  "persona": "student",
+  "role": "answer",
+  "for_query": "닌텐도 스위치2 예판",
+  "tier": "S",
+  "captured_at": "2026-01-25",
+  "occurs": "2024-11-20",
+  "dup_of": null
+ },
+ {
+  "id": "s08_001",
+  "type": "screenshot",
+  "summary": "닌텐도 공식 홈페이지 공지사항 캡처. 2세대 콘솔 사전 예약 일정 알림 신청 페이지임. 늦지 않게 신청 완료함.",
+  "labels": [
+   "구매 예정"
+  ],
+  "entities": [
+   {
+    "kind": "brand",
+    "value": "Nintendo"
+   },
+   {
+    "kind": "product",
+    "value": "Switch 2"
+   }
+  ],
+  "category": "취미",
+  "persona": "student",
+  "role": "hard_neg",
+  "for_query": "닌텐도 스위치2 예판",
+  "tier": "S",
+  "captured_at": "2026-01-26",
+  "occurs": "2024-12-01",
+  "dup_of": null
+ },
+ {
+  "id": "s08_002",
+  "type": "link",
+  "summary": "루리웹 게시판에 올라온 닌텐도 스위치 1세대 중고 시세 글. 2세대 나오면 기존꺼 팔아야 하는데 가격 방어가 잘 되는지 체크하려고 북마크함.",
+  "labels": [
+   "판매 고민"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "Nintendo Switch"
+   },
+   {
+    "kind": "platform",
+    "value": "루리웹"
+   }
+  ],
+  "category": "취미",
+  "persona": "student",
+  "role": "hard_neg",
+  "for_query": "닌텐도 스위치2 예판",
+  "tier": "S",
+  "captured_at": "2026-01-23",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s08_003",
+  "type": "memo",
+  "summary": "PS5 프로 예판 날짜 확인. 품절이 워낙 빨라서 닌텐도 차세대기 나오면 여기서 참고해서 광클해야지. 수강신청보다 빡세다 ㄷㄷ.",
+  "labels": [
+   "쇼핑",
+   "팁"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "PS5 Pro"
+   }
+  ],
+  "category": "취미",
+  "persona": "student",
+  "role": "hard_neg",
+  "for_query": "닌텐도 스위치2 예판",
+  "tier": "S",
+  "captured_at": "2026-01-19",
+  "occurs": "2024-10-15",
+  "dup_of": null
+ },
+ {
+  "id": "s08_004",
+  "type": "screenshot",
+  "summary": "용산 아이파크몰 게임기 매장 닌텐도 섹션 캡처. 스위치 2 입고되면 오프라인 물량도 풀릴지 물어보려고 저장해둠.",
+  "labels": [
+   "가보고 싶은 곳",
+   "정보"
+  ],
+  "entities": [
+   {
+    "kind": "place",
+    "value": "용산 아이파크몰"
+   },
+   {
+    "kind": "brand",
+    "value": "Nintendo"
+   }
+  ],
+  "category": "취미",
+  "persona": "student",
+  "role": "hard_neg",
+  "for_query": "닌텐도 스위치2 예판",
+  "tier": "S",
+  "captured_at": "2026-01-24",
+  "occurs": null,
+  "dup_of": null
+ },
+ {
+  "id": "s08_005",
+  "type": "link",
+  "summary": "해외 IT 커뮤니티의 닌텐도 차세대기 루머 정리글. 2세대 스펙이랑 하위호환 여부 확인용. 영어라 읽기 빡셈...",
+  "labels": [
+   "정보",
+   "게임"
+  ],
+  "entities": [
+   {
+    "kind": "product",
+    "value": "Nintendo Next Gen"
+   }
+  ],
+  "category": "취미",
+  "persona": "student",
+  "role": "hard_neg",
+  "for_query": "닌텐도 스위치2 예판",
+  "tier": "S",
+  "captured_at": "2026-01-18",
+  "occurs": null,
+  "dup_of": null
+ }
+]
