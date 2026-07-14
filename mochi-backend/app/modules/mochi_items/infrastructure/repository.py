@@ -9,6 +9,7 @@ from sqlalchemy import ColumnElement, delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.core.logging import get_logger
 from app.modules.mochi_items.domain.entities import (
     ImageRef,
     IngestChannel,
@@ -40,6 +41,8 @@ from app.modules.mochi_items.infrastructure.orm import (
     MochiItemRow,
 )
 from app.shared.intent import Intent
+
+log = get_logger("mochi_items.repository")
 
 _PAYLOAD_FIELDS = (
     "title",
@@ -236,28 +239,74 @@ def _place_image_url(value: object) -> str | None:
     return value if parsed.scheme == "https" and host.endswith(_PLACE_IMAGE_URL_HOST_SUFFIX) else None
 
 
+def _parse_place_value(value: str) -> tuple[dict[str, object] | None, str]:
+    """place entity value 의 백본 검증 코어 — (parsed, "") 또는 (None, 드롭 사유).
+
+    읽기(projection `_place`)와 쓰기(`apply_analysis` 영속 게이트)가 같은 기준을 쓴다 —
+    두 경계가 갈라지면 "저장은 되는데 지도만 없는" 침묵 상태가 되살아난다(2026-07-11 회귀).
+    """
+    try:
+        raw = json.loads(value)
+    except (TypeError, ValueError):
+        return None, "invalid_json"
+    if not isinstance(raw, dict):
+        return None, "not_object"
+    name = raw.get("name")
+    if not isinstance(name, str) or not name:
+        return None, "missing_name"
+    lat = _place_coord(raw.get("lat"), _PLACE_LAT_RANGE)
+    lng = _place_coord(raw.get("lng"), _PLACE_LNG_RANGE)
+    if lat is None or lng is None:
+        return None, "invalid_coords"
+    return raw, ""
+
+
+def _persistable_entities(mochi_item_id: UUID, entities: tuple[tuple[str, str], ...]) -> list[tuple[str, str]]:
+    """영속 게이트 — 깨진 place 는 저장하지 않는다(프롬프트의 '그대로 복사' 계약은 ③이라
+    어겨질 수 있고, 실제로 절단·꼬리 덧붙임·자작이 DB 에 눌러앉아 상세 지도만 조용히
+    사라졌다). 값은 신뢰 불가 문자열이라 로그에 원문을 싣지 않는다(사유·길이만)."""
+    kept: list[tuple[str, str]] = []
+    for kind, value in entities:
+        if kind == "place":
+            _, drop_reason = _parse_place_value(value)
+            if drop_reason:
+                log.warning(
+                    "mochi_items.place_entity_rejected",
+                    mochi_item_id=str(mochi_item_id),
+                    reason=drop_reason,
+                    value_len=len(value),
+                )
+                continue
+        kept.append((kind, value))
+    return kept
+
+
 def _place(row: MochiItemRow) -> PlaceInfo | None:
     """entities(kind='place') JSON → PlaceInfo. 첫 유효 항목 1개만 — item 당 장소는 하나.
 
     좌표(lat/lng)가 없거나·숫자가 아니거나·한국 bounds 밖이면 버린다 — 지도 섹션은 좌표가
     본질이라 이름만 살리는 폴백이 없다(reference_url 의 bare-URL 폴백과 다른 점). 틀린 핀은
-    지도 없음보다 나쁘다.
+    지도 없음보다 나쁘다. 쓰기 게이트(`_persistable_entities`)가 같은 기준으로 선차단하지만,
+    게이트 이전의 구 데이터·코드 회귀(절단 등)를 위해 읽기에서도 재검증하고 드롭을 로깅한다 —
+    조용히 버리면 지도 소실이 "에러 0" 배포 검증을 통과한다(2026-07-11 회귀가 이틀 무증상).
     """
     for entity in row.entities:
         if entity.kind != "place":
             continue
-        try:
-            raw = json.loads(entity.value)
-        except (TypeError, ValueError):
+        raw, drop_reason = _parse_place_value(entity.value)
+        if raw is None:
+            log.warning(
+                "mochi_items.place_entity_dropped",
+                mochi_item_id=str(row.id),
+                reason=drop_reason,
+                value_len=len(entity.value),
+            )
             continue
-        if not isinstance(raw, dict):
-            continue
+        # _parse_place_value 가 이미 보장한 값들 — 아래 재추출은 타입 좁히기용.
         name = raw.get("name")
-        if not isinstance(name, str) or not name:
-            continue
         lat = _place_coord(raw.get("lat"), _PLACE_LAT_RANGE)
         lng = _place_coord(raw.get("lng"), _PLACE_LNG_RANGE)
-        if lat is None or lng is None:
+        if not isinstance(name, str) or lat is None or lng is None:
             continue
         return PlaceInfo(
             name=name,
@@ -617,9 +666,9 @@ class PostgresMochiItemRepository(MochiItemRepository):
         for inst_row in _instance_rows(owner_id, row, intent_instances):
             self._session.add(inst_row)
 
-        # entities 재적재 — 동일 멱등 패턴.
+        # entities 재적재 — 동일 멱등 패턴. 깨진 place 는 영속 게이트에서 소리 내고 버린다.
         await self._session.execute(delete(EntityRow).where(EntityRow.mochi_item_id == mochi_item_id))
-        for kind, value in entities:
+        for kind, value in _persistable_entities(mochi_item_id, entities):
             # mochi_item=row 를 함께 줘야 한다 — MappedAsDataclass + relationship(default=None) 조합에서
             # FK 만 주면 relationship 의 None 이 flush 시 mochi_item_id 를 NULL 로 덮어쓴다(NotNullViolation).
             self._session.add(

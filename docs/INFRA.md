@@ -2,7 +2,7 @@
 level: 2
 mode: reference
 status: active
-last_verified: 2026-07-09
+last_verified: 2026-07-14
 confidence: 1.0
 owners: [송준서, 이용찬, 박세현]
 description: mochi-backend GCP 배포·운영 런북. 서버를 처음부터 배포하는 절차, SSH 접근 정책(송준서 단독), 실제로 겪은 함정과 주의사항. 인프라 배포·운영·장애 대응 시 읽는다.
@@ -145,11 +145,18 @@ gcloud compute instances create mochi-svc \
 
 ### 2.5 앱 배포 (svc)
 ```bash
-# 1) 코드 tar — ⚠️ macOS 는 COPYFILE_DISABLE=1 로 AppleDouble 차단 (§5.1)
+# 1) git clean 확인 + 코드 tar — clean 일 때만 tar 가 만들어진다 (fail-closed: dirty 면 tar 부재로
+#    이후 scp 가 물리적으로 불가. §5.9 — uncommitted 배포는 다음 배포가 조용히 롤백한다)
+#    ⚠️ macOS 는 COPYFILE_DISABLE=1 로 AppleDouble 차단 (§5.1)
 cd mochi-backend
-COPYFILE_DISABLE=1 tar czf /tmp/mochi-backend.tar.gz \
-  --exclude=.venv --exclude=__pycache__ --exclude='.*_cache' \
-  --exclude=.git --exclude=.env --exclude=.DS_Store .
+rm -f /tmp/mochi-backend.tar.gz                         # 이전 tar 잔존 재사용 차단
+[ -z "$(git status --porcelain)" ] \
+  && git rev-parse --short HEAD \
+  && COPYFILE_DISABLE=1 tar czf /tmp/mochi-backend.tar.gz \
+     --exclude=.venv --exclude=__pycache__ --exclude='.*_cache' \
+     --exclude=.git --exclude=.env --exclude=.DS_Store . \
+  || echo "⛔ 배포 중단 — uncommitted 변경(커밋 후 재시도) 또는 tar 실패"
+# 위에 출력된 커밋 해시를 CHANGELOG 배포 기록에 남긴다.
 gzip -t /tmp/mochi-backend.tar.gz                       # 무결성 검증 (전송 손상 방지)
 
 # 2) IAP scp → svc
@@ -254,6 +261,9 @@ JWT secret·DB 비번은 Secret Manager 에만. VM 에 키파일 없음(SA + met
 
 ### 5.8 DB 백업·데이터 영속 (후속 권장)
 현재 db 데이터는 boot 디스크의 host volume(`/var/lib/mochi-pg`)에 있다. VM 삭제 시 소실. prod 강건성을 위해 **별도 데이터 디스크 분리 + 스냅샷 스케줄**을 후속 권장.
+
+### 5.9 uncommitted 배포 → 다음 배포가 조용히 롤백 (실사고 2026-07-11)
+tar 배포는 working tree 를 그대로 싣는다 — **커밋 안 된 수정을 배포하면 그 수정은 git 에 없고**, 다음 사람(또는 다음 날의 나)이 committed develop 로 재배포하는 순간 소리 없이 사라진다. 실사고: 7/9 `entities.value` 512 절단 fix 를 uncommitted 로 배포(검증까지 통과) → 7/10 밤 회수 피드 fix 재배포(committed 기준)가 fix 를 롤백 → 7/11 하루 place entity 15건 재절단(기록 상세 지도 소실) → fix 커밋이 포함된 7/13 재배포로 복구. 이틀간 무증상이었던 건 projection 이 깨진 place 를 조용히 버렸기 때문(현재는 `mochi_items.place_entity_dropped` warning 로그 신호 있음). **예방**: §2.5 0단계 — 배포 전 `git status --porcelain` clean 확인 + 배포 커밋 해시를 CHANGELOG 배포 기록에 남긴다. 마이그레이션(alembic)은 DB 에 남아 롤백되지 않으므로 "스키마는 신버전, 코드는 구버전" 조합이 생길 수 있음도 유의.
 
 ---
 

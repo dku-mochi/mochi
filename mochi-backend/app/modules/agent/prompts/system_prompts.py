@@ -47,7 +47,7 @@ CHAT_PROFILE_SUMMARY_SYSTEM = (
 
 
 ACTIVE_PROMPT = PromptVersion(
-    name="classify_and_act@v30",
+    name="classify_and_act@v31",
     body=(
         "# Context\n"
         "MOCHI organizes the things a person quickly saves during the day — screenshots, links, "
@@ -371,11 +371,20 @@ ACTIVE_PROMPT = PromptVersion(
         "found links: links reopen pages, coordinates put the place on the map. Pass the place "
         "name as 'queries', adding spacing/branch variants and any region qualifier visible on "
         "screen ('로우키 성수' style — later variants are fallbacks when the first returns "
-        "nothing). Then compare the candidates' address/category against what the capture shows, "
+        "nothing). What you geocode is where the user would travel to: when the capture is an "
+        "event held somewhere — an exhibition, pop-up, screening, show — and the hosting venue's "
+        "name is on screen, query that venue (an event's own title is often not a place-search "
+        "entry); when no venue is named, don't guess one — try the event name itself only if it "
+        "plausibly names the physical spot. Then compare the candidates' address/category "
+        "against what the capture shows, "
         "and copy the matching candidate's place_entity string into entities as "
-        '{"kind":"place","value":<that exact string>} — the whole string verbatim, at most ONE '
-        "per capture (the place the record is about). If no candidate is that place, store no "
-        "place entity: a wrong pin misleads worse than no map. Skip it when the target is "
+        '{"kind":"place","value":<that exact string>} — at most ONE '
+        "per capture (the place the record is about). The tool's place_entity output is the ONLY "
+        "source a place value can come from, and it must arrive whole and unchanged: it is "
+        "machine-parsed JSON, so pasting it with anything added before or after it, or writing a "
+        "location phrase or hand-built JSON yourself, breaks the map exactly like a wrong pin — "
+        "if the capture's place isn't among the candidates, store no place entity: a wrong pin "
+        "misleads worse than no map. Skip the tool when the target is "
         "online-only, a broad area (a city, a neighborhood mood), or nothing place-like is "
         "nameable.\n"
         "- hybridSearch — search the user's OWN saved records while analyzing, to notice a similar "
@@ -409,8 +418,22 @@ ACTIVE_PROMPT = PromptVersion(
     ),
     model_target="gemini-3.1-flash-lite",
     eval_dataset_version="golden@2026-07-08 (229 cases)",
-    revised_on=date(2026, 7, 8),
+    revised_on=date(2026, 7, 14),
     rationale=(
+        "V30 → V31: searchPlaceGeo 잔여 실패 2클래스를 운영 DB 전수 실측으로 특정해 기준+why 로 반영 "
+        "(지도 안 뜸 피드백의 주원인이던 512 절단 회귀 15건은 코드·데이터로 별도 해결 — 프롬프트 무관). "
+        "(1) place entity 복사 충실성 — value 뒤에 finalize 페이로드 꼬리가 붙어 JSON 이 깨진 오복사 2건 + "
+        "좌표 없는 장소 문구 자작 1건: value 의 유일 소스는 tool 반환 place_entity 이며 앞뒤에 아무것도 "
+        "덧붙이지 않고 자작하지 않는다(machine-parsed JSON — 깨진 값은 틀린 핀과 같다)를 프롬프트와 "
+        "function schema 양쪽에 명시. 동반: 같은 기준의 영속 게이트(repository `_persistable_entities`, "
+        "③ 프롬프트 계약의 ② 기계 백스톱 — 깨진 place 는 저장 대신 warning). (2) 행사(전시·팝업·상영) "
+        "캡처의 지오코딩 — 전시 캡처가 tool 호출에도 place 미저장(행사명 검색 추정) 실측: 화면에 개최 "
+        "장소명이 보이면 그것으로 검색(행사명은 장소 검색 엔트리가 아닌 경우가 많다), 화면에 없는 venue 는 "
+        "추측 금지(발명 금지와 동일 원칙 — codex 리뷰로 'always venue' 단정을 근거 수준으로 완화). "
+        "분류 ladder·도구·payload·eval_dataset 불변(searchPlaceGeo 블록 문구 보강만, 케이스 키워드 "
+        "하드코딩 없음 — skill-creator·Gemini 가이드 준수). clear 135건 eval mean 0.99(v28 스냅샷 "
+        "0.983 대비 무회귀 — 잔차는 문서화된 기존 실패 tm78 0.0 + run 변동 1건, RUNS=3 2회 측정 "
+        "모두 동형).\n"
         "V29 → V30: searchPlaceGeo(네이버 지역검색 → WGS84 좌표) tool 추가 — 기록 상세 지도 섹션용. "
         "# Tools 에 1블록: 캡처가 '사용자가 앞에 설 수 있는 구체적 한 장소'를 가리키면 intent_type 무관 호출, "
         "이미지를 본 메인이 후보 주소·업종을 캡처 근거와 대조해 일치 후보의 place_entity 를 "

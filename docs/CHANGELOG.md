@@ -10,6 +10,15 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-07-14 — backend, infra, docs (기록 상세 지도 간헐 소실 — 절단 회귀 수복 + 영속 게이트 + 프롬프트 v31)
+- **증상.** "위치정보(지도 뷰)가 간헐적으로 안 뜬다" 피드백. 운영 DB 전수 실측으로 place entity 손상 3클래스 특정 — 지도 섹션은 `entities(kind=place)` JSON 이 깨지면 projection 이 조용히 버려서 안 뜬다.
+- **주원인(15건, 7/11 하루).** `entities.value` 512 절단 fix(7/9 배포·검증 완료)가 **커밋 전 working tree 로 배포**된 상태에서, 7/10 밤 회수 피드 fix 재배포(committed develop 기준)가 fix 를 조용히 롤백 → 7/11 분석분부터 재절단 → fix 커밋(b5dcc2a)이 포함된 7/13 재배포로 재발 종료. "간헐"의 실체: 같은 날에도 place JSON 이 512자 이하(매장사진 URL 無)면 정상, 초과면 절단 — 가게마다 지도가 뜨락말락.
+- **부원인(LLM 오복사 3건).** place JSON 뒤에 finalize 페이로드 꼬리를 이어붙여 JSON 파괴(2건: 화목순대국 7/9·신동궁감자탕 7/10), 좌표 없는 장소 문구 자작(1건). tool 호출율 자체는 건강(7/11 실사용 맛집 캡처 12/12 호출).
+- **데이터 수복.** 절단 15 + 꼬리 2 = 17건을 결정적 복원(절단분은 마지막 완전 필드까지 — 백본+별점·리뷰수 회복, imageUrl 만 소실; 꼬리분은 첫 유효 JSON prefix). 수복 후 place 35건 중 32건 projection-ready 실측(잔여 3건은 좌표 없는 문자열 — 애초 지도 대상 아님). 원본은 UPDATE 전 백업.
+- **영속 게이트 + 관측성(backend).** `_persistable_entities` — 깨진 place 는 저장 전에 `place_entity_rejected` warning 을 남기고 버린다(③ 프롬프트 '그대로 복사' 계약의 ② 기계 백스톱). projection `_place` 도 같은 검증 코어(`_parse_place_value`)로 드롭 시 `place_entity_dropped` warning — 이번 회귀가 "에러 로그 0" 배포 검증을 이틀 통과한 관측성 구멍을 막는다. 로그엔 사유·길이·item id 만(신뢰 불가 원문 미탑재). 실사고 패턴 회귀 테스트 2건(552 passed·lint·typecheck green).
+- **프롬프트 v30→v31**(+function schema 대칭): place value 의 유일 소스 = tool 반환 place_entity(앞뒤 덧붙임·자작 금지 — 깨진 값은 틀린 핀과 같다), 행사 캡처는 화면에 보이는 개최 장소명으로 검색(없는 venue 추측 금지). 기준+why·케이스 하드코딩 없음. clear 135건 eval 무회귀(mean 0.99, v28 스냅샷 0.983 대비 — 잔차는 기존 실패 tm78 + run 변동 1건, RUNS=3 2회 측정 동형).
+- **infra.** INFRA §2.5 0단계(배포 전 `git status` clean fail-closed 확인 + 배포 커밋 해시 기록) + §5.9 함정 신설(uncommitted 배포 → 다음 배포가 조용히 롤백, 실사고 타임라인).
+
 ## 2026-07-13 — backend, infra (채팅 알림 예약 시각 KST 정합 — "1분 뒤"가 다음날 오던 버그)
 - **근본원인**: 채팅 프롬프트의 현재시각(`{now}`)이 offset 없는 벽시계(`2026-07-13 Monday 18:30`)라, 모델이 "1분 뒤"를 벽시계로 옳게 계산해 놓고 offset 만 `Z`/`+00:00` 로 잘못 붙여 내면 iOS 가 절대시각으로 해석 → +9h → **다음날 새벽 발화**. 기존 `_parse_iso` 는 naive 만 KST 로 보정하고 모델이 붙인 (틀린) offset 은 그대로 신뢰했다.
 - **수정 두 겹** (`propose.py`, `run_chat_turn.py`): (1) 프롬프트 `{now}` 에 `%z`(+0900) 앵커를 실어 모델이 애초에 KST 로 내도록 유도. (2) `_parse_iso` 는 naive→KST 유지하되 **KST(+09:00) 아닌 offset 은 거부**(None→에러→모델 재시도). 벽시계 재해석(offset 강제)은 반대 케이스(모델이 실제 UTC 산술을 한 경우)를 조용히 +9h 틀리게 만들어(내일/장기 예약은 과거검증도 통과해 silent) 채택하지 않음 — 추측 대신 거부. reminder·notification_reschedule 공통. `create_schedule` 은 date-only 검증만이고 비-KST offset 은 거부되어 무영향.

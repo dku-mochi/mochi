@@ -10,9 +10,11 @@ import json
 from datetime import UTC, datetime
 from uuid import uuid4
 
+from structlog.testing import capture_logs
+
 from app.modules.mochi_items.domain.entities import IngestChannel, IngestSource, MochiItem, PlaceInfo
 from app.modules.mochi_items.infrastructure.orm import EntityRow, MochiItemRow
-from app.modules.mochi_items.infrastructure.repository import _row_to_entity
+from app.modules.mochi_items.infrastructure.repository import _persistable_entities, _row_to_entity
 from app.modules.mochi_items.presentation.router import _to_response
 
 
@@ -77,6 +79,49 @@ def test_row_to_entity_place_revalidates_bounds_at_projection() -> None:
     row = _row(entities=[("place", unscaled), ("place", nan), ("place", bool_coords), ("place", overseas)])
 
     assert _row_to_entity(row).place is None
+
+
+def test_row_to_entity_place_drop_leaves_warning_signal() -> None:
+    """드롭이 조용하면 지도 소실이 '에러 로그 0' 배포 검증을 통과한다(2026-07-11 절단 회귀가
+    이틀 무증상이던 관측성 구멍). 실사고 패턴 — 512 절단, JSON 뒤 꼬리 문자열(finalize 페이로드
+    유출 오복사), 좌표 없는 장소 문구 자작 — 각각 드롭 사유 warning 이 남는지 패턴별로 고정하고,
+    신뢰 불가 원문(value)은 로그에 싣지 않는다(사유·길이·item id 만)."""
+    cases = [
+        (_place_json(imageUrl="https://lh3.googleusercontent.com/p/" + "a" * 600)[:512], "invalid_json"),
+        (_place_json() + "}],importance:3,intent_instances:[{intent_type:", "invalid_json"),
+        ("공학관 5층 세미나실", "invalid_json"),
+        (json.dumps({"name": "몽탄"}), "invalid_coords"),
+    ]
+    for value, expected_reason in cases:
+        with capture_logs() as logs:
+            assert _row_to_entity(_row(entities=[("place", value)])).place is None
+        dropped = [e for e in logs if e["event"] == "mochi_items.place_entity_dropped"]
+        # 개수는 고정하지 않는다 — _row 픽스처의 back_populates 가 entities 를 중복 등록한다.
+        assert dropped and {e["reason"] for e in dropped} == {expected_reason}, value[:40]
+        assert all(
+            set(e) <= {"event", "log_level", "mochi_item_id", "reason", "value_len"} for e in dropped
+        )
+
+
+def test_persistable_entities_rejects_broken_place_keeps_rest() -> None:
+    """영속 게이트 — 프롬프트의 '그대로 복사' 계약(③)이 어겨져도 깨진 place 가 DB 에 눌러앉지
+    않는다(②): 저장 전에 warning 을 남기고 버리며, 다른 kind 와 유효 place 는 그대로 통과한다."""
+    item_id = uuid4()
+    valid = _place_json()
+    entities = (
+        ("deadline", "2026-07-20"),
+        ("place", valid),
+        ("place", "공학관 5층 세미나실"),
+        ("place", _place_json() + "}],importance:3,intent_instances:[{intent_type:"),
+    )
+
+    with capture_logs() as logs:
+        kept = _persistable_entities(item_id, entities)
+
+    assert kept == [("deadline", "2026-07-20"), ("place", valid)]
+    rejected = [e for e in logs if e["event"] == "mochi_items.place_entity_rejected"]
+    assert [e["reason"] for e in rejected] == ["invalid_json", "invalid_json"]
+    assert all(e["mochi_item_id"] == str(item_id) for e in rejected)
 
 
 def test_row_to_entity_place_map_url_allowlist() -> None:
