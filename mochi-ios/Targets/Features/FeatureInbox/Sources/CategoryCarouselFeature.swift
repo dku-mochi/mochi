@@ -5,7 +5,7 @@ import DesignSystem
 
 /// 홈 "이런 걸 모아두셨어요" 한 칸이 들고 다니는 카테고리 묶음.
 ///
-/// 홈에서 한 번 집계해(`HomeFeature.categoryBuckets`) 카드 그리드를 그리고, 카드를 누르면 이 값을
+/// 호출부(`MainTabFeature`·`MonthlyDigestFeature`)에서 한 번 집계하고, 진입 시 이 값을
 /// 그대로 ``CategoryCarouselFeature`` 에 넘겨 즉시 턴테이블을 띄운다(별도 재조회 없이 스냅샷 표시 —
 /// 회수 목록(`RecallListFeature`)이 홈 피드를 그대로 넘겨받는 패턴과 동일).
 ///

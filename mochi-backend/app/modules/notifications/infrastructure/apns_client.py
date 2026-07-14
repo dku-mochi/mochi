@@ -76,7 +76,8 @@ class HttpxAPNsClient(APNsClient):
             "authorization": f"bearer {self._provider_token()}",
             "apns-topic": topic,
             "apns-push-type": push_type.value,
-            "apns-priority": "10",
+            # background(silent) push 는 Apple 규격상 priority 5 필수 — 10 이면 스로틀/미전달 위험.
+            "apns-priority": "5" if push_type == APNsPushType.BACKGROUND else "10",
         }
         if collapse_id is not None:
             headers["apns-collapse-id"] = collapse_id[:64]

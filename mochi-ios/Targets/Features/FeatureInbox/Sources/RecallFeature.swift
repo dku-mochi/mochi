@@ -6,11 +6,11 @@ import CoreNetworking
 /// 능동 회수 — "다시 볼 가치 있는 기억을 모찌가 먼저 떠올려준다"(분류 아님, journal/proactive-recall/ux-ui §1).
 ///
 /// 3단 구조를 두 reducer 로 나눈다:
-///  - ``RecallListFeature`` — ② 자세히(통일 카드 목록). 홈 "한 칸"에서 진입.
+///  - ``RecallListFeature`` — ② 자세히(통일 카드 목록). 홈 회수 히어로의 "모두 보기"에서 진입.
 ///  - ``RecallDetailFeature`` — ③ 기록 상세(kind별 디테일 + 응답 액션). 목록 탭 / 알림 landing 직행.
 ///
-/// 홈 "한 칸"(① count + 최상위 1개 미리보기)은 별도 화면이 아니라 ``HomeFeature`` 의 slice 로 둔다
-/// (고정 틀·레이아웃 안정, ux-ui §6). 회수=가변이므로 목록·상세만 화면을 갖고 홈엔 요약만 둔다.
+/// 홈 회수 히어로(① 3D 코버플로우)는 별도 화면이 아니라 ``MochiHomeFeature`` 의 state(`recall`)로 둔다
+/// (고정 틀·레이아웃 안정, ux-ui §6). 회수=가변이므로 목록·상세만 화면을 갖는다.
 ///
 /// 응답 액션 ↔ 서버 reaction 1:1(codex-7): 탭 진입/열기/기억남=`opened`, "그만 보기"=`stop`(plan cancel).
 /// 학습은 행동 신호(open) 우선 — primary 는 "목적 수행"이고 피드백은 보조(codex-8, ux-ui §4).

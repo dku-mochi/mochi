@@ -17,6 +17,7 @@ public struct SettingsView: View {
             VStack(alignment: .leading, spacing: 0) {
                 accountSection
                 notificationSection
+                integrationSection
                 privacySection
                 infoSection
                 logoutSection
@@ -47,6 +48,14 @@ public struct SettingsView: View {
             Button("확인", role: .cancel) {}
         } message: {
             Text("계정은 그대로 있어요. 잠시 후 다시 시도해 주세요.")
+        }
+        .alert(
+            "알림 설정을 저장하지 못했어요",
+            isPresented: Binding(get: { store.preferenceSaveFailed }, set: { if !$0 { store.send(.preferenceErrorDismissed) } })
+        ) {
+            Button("확인", role: .cancel) {}
+        } message: {
+            Text("이전 설정으로 되돌렸어요. 잠시 후 다시 시도해 주세요.")
         }
         .legalSheet(item: $legalPage)
     }
@@ -116,6 +125,35 @@ public struct SettingsView: View {
                     icon: "bell.fill", iconFg: HomeDesign.Color.butter400, iconBg: HomeDesign.Color.butter50,
                     title: "알림 권한"
                 ) { notificationStatusPill }
+                // 서버 전역 선호 — 로드 성공 시에만 표시(실패해도 권한 칩·딥링크는 그대로).
+                if let preferences = store.notificationPreferences {
+                    rowDivider
+                    row(
+                        icon: "sparkles", iconFg: HomeDesign.Color.purple500, iconBg: HomeDesign.Color.purple100,
+                        title: "먼저 떠올려주는 알림",
+                        subtitle: "마감이나 일정, 다시 보면 좋을 기억을 모찌가 먼저 알려드려요"
+                    ) {
+                        Toggle("", isOn: Binding(
+                            get: { preferences.recallEnabled },
+                            set: { store.send(.recallNotificationsToggled($0)) }
+                        ))
+                        .labelsHidden()
+                        .tint(HomeDesign.Color.purple500)
+                    }
+                    rowDivider
+                    row(
+                        icon: "questionmark.bubble.fill", iconFg: HomeDesign.Color.sky400, iconBg: HomeDesign.Color.sky100,
+                        title: "헷갈릴 때 물어보는 알림",
+                        subtitle: "어떻게 남길지 애매한 기록만 모찌가 물어봐요"
+                    ) {
+                        Toggle("", isOn: Binding(
+                            get: { preferences.analysisEnabled },
+                            set: { store.send(.analysisNotificationsToggled($0)) }
+                        ))
+                        .labelsHidden()
+                        .tint(HomeDesign.Color.purple500)
+                    }
+                }
                 rowDivider
                 Button { openSystemSettings() } label: {
                     row(icon: "gearshape.fill", iconFg: HomeDesign.Color.ink500, iconBg: HomeDesign.Color.ink100,
@@ -135,6 +173,29 @@ public struct SettingsView: View {
             pill("꺼짐", fg: HomeDesign.Color.blush400, bg: HomeDesign.Color.blush100)
         case .notDetermined, .unknown:
             pill("미설정", fg: HomeDesign.Color.textMuted, bg: HomeDesign.Color.ink100)
+        }
+    }
+
+    // MARK: - 연동
+
+    /// 시스템 캘린더·미리알림 자동 등록 밸브(§1.5 자동 관리) — 설정 재설계 때 빠졌던 토글이
+    /// 이번엔 실배선으로 부활. off 는 신규 등록·갱신 중단만(기존 EK 항목 불가침).
+    private var integrationSection: some View {
+        section("연동") {
+            card {
+                row(
+                    icon: "calendar.badge.checkmark", iconFg: HomeDesign.Color.mint400, iconBg: HomeDesign.Color.mint100,
+                    title: "캘린더·미리알림 자동 등록",
+                    subtitle: "확정된 일정은 캘린더에, 할 일은 미리알림에 자동으로 등록해요"
+                ) {
+                    Toggle("", isOn: Binding(
+                        get: { store.calendarAutoRegistration },
+                        set: { store.send(.calendarAutoRegistrationToggled($0)) }
+                    ))
+                    .labelsHidden()
+                    .tint(HomeDesign.Color.purple500)
+                }
+            }
         }
     }
 

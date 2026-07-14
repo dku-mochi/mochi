@@ -7,6 +7,7 @@ from app.modules.mochi_items.domain.value_objects import ReviewOption
 from app.modules.notifications.application.send_notification import (
     AnalysisNotification,
     SendAnalysisNotification,
+    SendCalendarSyncPush,
 )
 from app.modules.notifications.domain.entities import (
     APNsEnvironment,
@@ -53,6 +54,32 @@ def _device_token(owner: UUID) -> DevicePushToken:
 def _la_start_token(owner: UUID) -> DevicePushToken:
     # push-to-start 토큰은 owner 단위(item 무관) — mochi_item_id 없음.
     return DevicePushToken(owner, "la-start-tok", PushTokenType.LA_START, APNsEnvironment.SANDBOX)
+
+
+async def test_calendar_sync_push_sends_silent_background():
+    # silent 동기화 push — background 타입 + content-available 만(문구·소리·배지 없음).
+    # 2026-06-17 "저장완료 alert 금지" 결정과의 정합: alert 가 아니라 충돌하지 않는다(§1.5 자동 관리).
+    owner, item = uuid4(), uuid4()
+    apns = _FakeAPNs()
+    repo = _FakeRepo(device=[_device_token(owner)])
+    await SendCalendarSyncPush(tokens=repo, apns=apns).run(owner_id=owner, mochi_item_id=item)
+    assert len(apns.sent) == 1
+    sent = apns.sent[0]
+    assert sent["push_type"] == APNsPushType.BACKGROUND
+    assert sent["payload"]["aps"] == {"content-available": 1}
+    assert sent["payload"]["mochiItemID"] == str(item)
+
+
+async def test_calendar_sync_push_noop_without_apns_or_tokens():
+    owner, item = uuid4(), uuid4()
+    # 토큰 없음 → 발송 없음.
+    apns = _FakeAPNs()
+    await SendCalendarSyncPush(tokens=_FakeRepo(), apns=apns).run(owner_id=owner, mochi_item_id=item)
+    assert apns.sent == []
+    # APNs 미설정(local dev) → no-op (예외 없이 조용히).
+    await SendCalendarSyncPush(tokens=_FakeRepo(device=[_device_token(owner)]), apns=None).run(
+        owner_id=owner, mochi_item_id=item
+    )
 
 
 async def test_no_push_when_not_needs_review():

@@ -60,6 +60,7 @@ description: 시스템 토폴로지·iOS↔Backend 데이터흐름·API 계약�
 │  │  POST /auth/{apple,google,refresh,logout}          │               │
 │  │  POST /auth/capture-tokens (ShareExt 직접전송용)    │               │
 │  │  GET  /users/me     GET /health                    │               │
+│  │  GET/PATCH /users/me/notification-preferences      │               │
 │  │  GET  /mochi_items(list)  …/images/download-url    │               │
 │  │  POST /search   /conversations/{id}/messages (SSE) │               │
 │  │  planned(no route): /sync                          │               │
@@ -230,7 +231,7 @@ app/
 │   ├── notifications/                   APNs background push (PR-B) + 능동 회수 알림 (트랙 A/B 구현·C 설계)
 │   │   ├── domain/                APNsClient/PushTokenRepository port, DevicePushToken
 │   │   │                          + recall_plan(stages DSL Pydantic), recall_planning/reaction/feed ports
-│   │   ├── application/           RegisterPushToken, SendAnalysisNotification, make_push_token_repository
+│   │   ├── application/           RegisterPushToken, SendAnalysisNotification, SendCalendarSyncPush(silent), make_push_token_repository
 │   │   │                          + PlanRecallNotifications(eligibility 게이트 + LLM 플래너) · NotificationWorker
 │   │   │                            (cron: materialize+하드가드+종료연동 / send+APNs 410 분류, dry-run·killswitch)
 │   │   │                          · SendRecallNotification · RecordRecallReaction(opened/dismissed/stop + spaced 소생)
@@ -314,7 +315,8 @@ AgentOrchestrator(persistence=AgentRunPersistence(session)).run(mochi_item_id)
   └─ (도중 실패하면 예외 re-raise → worker 가 outbox 재시도/DLQ 분기 결정)
   ↓
 성공: mochi_item_outbox status='done'
-  └─ (done 커밋 직후, 분석 try 밖, best-effort) SendAnalysisNotification → APNs alert(전 단말, 완료/needs_review 분기 문구) + needs_review=true 면 LA **push-to-start**(`la_start` 토큰으로 background LA 시작). push 실패는 격리(done 유지) — 누락은 iOS reconcile 이 메움
+  └─ (done 커밋 직후, 분석 try 밖, best-effort) SendAnalysisNotification → APNs alert(전 단말, 완료/needs_review 분기 문구) + needs_review=true 면 LA **push-to-start**(`la_start` 토큰으로 background LA 시작). push 실패는 격리(done 유지) — 누락은 iOS reconcile 이 메움. **전역 선호 게이트(2026-07-14)**: `users.notify_analysis_enabled=false` 면 needs_review confirm push 를 `push.notify_skipped(reason=preference_off)` 로그 후 미발송(발송 시점 게이트만 — 분석·인앱 헷갈려요 버킷 불변)
+  └─ (같은 훅) 확정(needs_review=false) schedule/todo 포함 시 **silent push**(`SendCalendarSyncPush` — apns-push-type=background·priority 5·`content-available:1`+`mochiItemID`, alert 없음) → iOS `didReceiveRemoteNotification` 이 해당 item reconcile 후 `SystemCalendarSyncEngine` 이 시스템 캘린더·미리알림 반영(UX_SPEC §1.5 자동 관리, 2026-07-14). 사용자 노출 알림이 아니라 **알림 선호 게이트 미적용**. 미도달(OS 스로틀·강제종료)은 앱 실행/복귀 reconcile 백스톱이 따라잡는다
 실패 + attempt<max: status='pending' (재시도)
 실패 + attempt=max: status='dead_letter' + mochi_items.lifecycle_kind='failed'
 ```
@@ -324,7 +326,7 @@ AgentOrchestrator(persistence=AgentRunPersistence(session)).run(mochi_item_id)
 처리완료를 iOS 가 받는 경로는 **프로세스 상태**로 3분담된다(캡처 채널 무관):
 
 - **foreground = SSE**: iOS `AgentStreamClient` 가 `GET /mochi_items/{id}/stream` 구독. 서버는 worker 의 `mochi_items.lifecycle_kind` 를 read-only 폴링(1s)해 `node`/`final`/`failed` emit — 실제 분석은 worker 단독(이중 실행 방지). iOS 는 `final` 수신 시 `GET /mochi_items/{serverID}` 재조회로 분석결과 fetch.
-- **background/종료 = APNs**: SSE 소켓이 suspend 되므로 worker push 훅이 인계 — 완료 alert(전 단말) + needs_review=true 면 LA **push-to-start**(잠금화면에서 후보 선택, 탭하면 위젯이 reanalyze 직접 호출).
+- **background/종료 = APNs**: SSE 소켓이 suspend 되므로 worker push 훅이 인계 — 완료 alert(전 단말) + needs_review=true 면 LA **push-to-start**(잠금화면에서 후보 선택, 탭하면 위젯이 reanalyze 직접 호출) + 확정 schedule/todo 포함 시 **silent push**(content-available → iOS background reconcile + `SystemCalendarSyncEngine` 의 시스템 캘린더·미리알림 반영, 2026-07-14).
 - **fallback = 폴링**: SSE 실패/끊김 시 3초 폴링(`GET /mochi_items/{serverID}`, 제거 금지). scenePhase active 복귀 시 reconcile(SSE 재연결 + 1회 폴링).
 
 #### 능동 회수 알림 (트랙 A/B/C)
@@ -342,7 +344,9 @@ AgentOrchestrator(persistence=AgentRunPersistence(session)).run(mochi_item_id)
        → occurrence 계산(relative/recurring/spaced; spaced 는 반응 기준 전진) → 하드 가드
        (cap·야간무음·dismiss cooldown·트랙B 양보, per-owner advisory lock, KST) → outbox lazy materialize
        (deferred=cap/야간/트랙B 는 next_retry_at 도달 시 재평가로 회생)
-  ② send: status='pending' AND fire_at<=now claim(plan active JOIN, expires 가드) → dry-run/실발송
+  ② send: status='pending' AND fire_at<=now claim(plan active JOIN, expires 가드)
+       → 전역 선호 게이트(users.notify_recall_enabled=false → skipped(preference_off), A/B/C 공용,
+         발송 시점만 — plan/materialize 불변, 다시 켜면 다음 fire_at 재개) → dry-run/실발송
        APNs alert(payload mochiItemID·sourceIntentID·routeType·recallEventID·kind)
        410/Unregistered→토큰 무효화+dead_letter / 5xx→backoff
   ↓
@@ -369,10 +373,9 @@ HybridSearch.execute
   ├─ PostgresHybridIndex.vector (owner_id + deleted_at IS NULL,
   │     voyage-4-large 쿼리 임베딩(input_type=query, 1024d) <=> embeddings HNSW)
   ├─ reciprocal_rank_fusion(k=60)
-  ├─ VoyageReranker (rerank-2.5, reranker_enabled)
-  └─ AnswerSynthesizer.synthesize → answer + citations
+  └─ VoyageReranker (rerank-2.5, reranker_enabled)
   ↓
-SearchResponse
+SearchResponse (citations — 문장 답변 없음: 질문·답변은 채팅 탭 소관, 2026-07-14 answer 필드 제거)
 ```
 
 **임베딩·리랭크 (2026-06-12, `lab/active/rag-rerank-eval` 확정)**: 모델 `voyage-4-large@1024`,
@@ -394,7 +397,7 @@ RRF 융합·pgvector 직렬화는 `app/shared/retrieval.py` 가 **단일 원천*
 `HybridSearch`+`PostgresHybridIndex`)와 채팅/분석 agent(B, `search_items`)가 문자 그대로 같은
 구현을 쓴다. 이전엔 두 경로가 코드가 갈라져, 한국어 조사 회귀(2026-06-10) 수정이 B 에만
 들어가고 A 의 `bm25` 는 tsvector `@@` 로 남아 같은 버그를 유지했다(커널 단일화로 구조적 재발
-방지). 경로별로 정당하게 다른 것(출력 = RAG 답변 vs 아이템 리스트, 필터 모델, query 수 = 단일
+방지). 경로별로 정당하게 다른 것(출력 = citations vs 아이템 리스트, 필터 모델, query 수 = 단일
 vs 다중 융합, haystack 컬럼)은 호출부가 주입하며 커널이 강제하지 않는다.
 
 **유사 회수 (similar, 2026-06-13)**: 같은 `embeddings` HNSW 인프라를 **seed-vector** 로 재사용한다 —

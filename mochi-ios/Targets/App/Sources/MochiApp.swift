@@ -16,6 +16,7 @@ struct MochiApp: App {
     private let inboundConsumer: InboundQueueConsumer
     private let syncWorker: MochiItemSyncWorker
     private let liveActivity: LiveActivityCoordinatorLive
+    private let calendarSyncEngine: SystemCalendarSyncEngine
 
     init() {
         // **순서 중요**: bootstrap 을 먼저 호출해 라이브 DI 값들을 prepareDependencies 로 등록한 뒤
@@ -46,7 +47,11 @@ struct MochiApp: App {
         #endif
         self.liveActivity = LiveActivityCoordinatorLive(apiClient: api, environment: pushEnvironment)
 
-        // Feature 레이어 (InboxFeature·HomeFeature) 가 pull-to-refresh / quick memo 저장 시 즉시 sync 를
+        // 시스템 캘린더·미리알림 자동 동기화(§1.5) — bootstrap 이 등록한 엔진을 앱 수명 동안 붙든다.
+        // (아래 prepareDependencies 클로저가 self 를 캡처하므로 이 앞에서 초기화해야 한다.)
+        self.calendarSyncEngine = DependencyValues._current.systemCalendarSyncEngine
+
+        // Feature 레이어 (InboxFeature·MochiHomeFeature) 가 pull-to-refresh / quick memo 저장 시 즉시 sync 를
         // 트리거할 수 있게 노출.
         prepareDependencies {
             $0.syncTrigger = self.syncWorker
@@ -60,6 +65,8 @@ struct MochiApp: App {
                 .task {
                     await tick()
                     await syncWorker.startForegroundPolling()
+                    // EK 자동 동기화 시작 — Realm 관찰 + 초기 따라잡기(silent push 를 놓친 창의 백스톱).
+                    await calendarSyncEngine.start()
                     // 팝업 없이 등록만 — 권한 팝업은 인증 후 RootFeature 가 띄운다(미인증 콜드스타트 팝업 회피).
                     PushAuthorization.registerForRemoteNotificationsIfAuthorized()
                 }
@@ -68,6 +75,8 @@ struct MochiApp: App {
                         Task {
                             await tick()
                             await syncWorker.startForegroundPolling()
+                            // 복귀 백스톱 — Realm 쓰기 없이 바뀐 조건(설정 앱 권한 허용 등)도 따라잡는다.
+                            await calendarSyncEngine.syncNow()
                         }
                         PushAuthorization.registerForRemoteNotificationsIfAuthorized()
                     } else {

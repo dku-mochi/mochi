@@ -137,6 +137,21 @@ public final class RealmExtractedEntity: EmbeddedObject {
     @Persisted public var ocrHeight: Double?
 }
 
+/// intent instance ↔ EK 항목 링크 (기기 로컬 전용 — 서버 미전송). `SystemCalendarSyncEngine` 전용.
+///
+/// `RealmMochiItem` 에 embed 하지 않는 독립 테이블: 서버 미러 merge(upsert)가 분석 필드를 통째로
+/// 갈아끼워도 링크가 함께 증발하지 않게 격리한다(userTitle 식 필드별 보존 로직이 필요 없다).
+public final class RealmSystemCalendarLink: Object {
+    @Persisted(primaryKey: true) public var instanceID: String
+    /// "event" | "reminder" (`SystemCalendarLink.Kind` rawValue).
+    @Persisted public var kindRawValue: String
+    @Persisted public var ekIdentifier: String
+    @Persisted public var createdAt: Date
+    /// EK 항목 소실 확인 시각(묘비) — nil 이면 살아있는 링크. 재등록(중복 생성)을 막는 표식이라
+    /// 행을 지우지 않고 남긴다(엔진 규약: 소실 보고 = 사용자 삭제 존중 + 식별자 재발급 중복 방지).
+    @Persisted public var tombstonedAt: Date?
+}
+
 public final class RealmActionCandidate: EmbeddedObject {
     /// "calendar" | "reminder" | "openURL" | "followUp"
     @Persisted public var kind: String

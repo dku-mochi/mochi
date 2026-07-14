@@ -10,6 +10,12 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-07-14 — ios, backend, docs (시스템 캘린더 자동 관리 + 옛 홈 데드코드 삭제 + 실기기 E2E 체크리스트)
+- **ios: 옛 홈 데드코드 삭제** — `FeatureInbox/HomeFeature.swift`(549줄)·`HomeView.swift`(1,385줄) 제거. **왜**: `MainTab` 은 `MochiHomeFeature` 를 쓰고 참조 0(주석 5곳뿐)으로 확인 — UX_SPEC §3.4 각주의 "정리는 회수 개선 일단락 후" 시점 도래. 전용 타입(`HomeSuggestion`/`WeeklyCategoryStat`) 동반 제거, stale 주석 5곳 실제 타입으로 정정, §3.11 ① 표기를 실코드(`MochiHomeFeature`+`RecallHeroView`)로 현행화.
+- **ios+backend: 시스템 캘린더·미리알림 완전 자동 관리** (§1.5 known-drift 해소). **왜**: 사용자 결정(2026-07-14)으로 원래의 동의 스코프컷(2026-06-10) 폐기 — "회수의 능동 주체는 모찌" 미션 정합. call-site 등록 배선(drift 원인) 대신 **`SystemCalendarSyncEngine`**(CorePersistence, Realm observeChanges 관찰) 단일 엔진이 확정(needs_review=false) schedule/todo 를 EKEvent/EKReminder 로 생성·갱신(날짜·제목)·완료·제거까지 멱등 동기화. EK 링크는 Realm v16→17 `RealmSystemCalendarLink`(instanceID PK, 기기 로컬 — 서버 계약 불변). 중복 0 보장: 선영속 잠금 + 단일 비행 + 소실 보고 시 tombstone(사용자 삭제 존중·iCloud 식별자 재발급 오인 방지) + 전수 instanceID 삭제 판정. 엔진은 권한을 묻지 않음(프롬프트는 채팅 확정·캘린더 탭·설정 토글 순간). 설정 "연동 — 캘린더·미리알림 자동 등록" 토글(기본 on, off=신규 중단만). 앱 미실행은 backend silent push(`SendCalendarSyncPush` — `APNsPushType.BACKGROUND`+priority 5+content-available, 알림 선호 게이트 미적용: 데이터 신호) → iOS `didReceiveRemoteNotification` reconcile, 최종 보증은 실행/복귀 reconcile 백스톱(+`UIBackgroundModes: remote-notification`). openapi 무변경(push 는 계약 밖). codex 리뷰 2회(P1 5건 수정: 스캔 밖 오삭제·생성-저장 크래시 중복·링크 조회 실패 중복·제목 손상·stale 링크) 후 PASS. `tuist build`·`make test`(560)·lint·typecheck green.
+- **docs**: UX_SPEC §1.5 known-drift 재작성(남는 한계 = 단방향·silent push 미보장 창·재설치 이중 등록 가능)·§3.4d 연동 섹션·§3.8·§3.10, ARCHITECTURE silent push 흐름, PRODUCT §3 MVP 표 "EventKit 추후" 줄 현행화(L1 — 사용자 결정 근거 명기).
+- **journal**: `2026-07-14-device-e2e-checklist.md` 신설 — 실기기 검증 목록(채팅 알림 CRUD·회수 reaction·알림 선호 토글·캘린더 자동 관리·앱 미실행 silent push/강제종료 백스톱·프롬프트 가이드 ③ 관찰 방침).
+
 ## 2026-07-14 — backend, ios, docs (알림 전역 선호 신설 — 회수/분석 확인 푸시 on/off + 설정 토글)
 - **왜**: 능동 회수 제품인데 전역 알림 밸브가 OS 설정뿐이었다(UX_SPEC §3.4d "서버 선호 API 미존재로 후속" 갭). 개별 조정(예정 알림 veto/미루기)만으론 "다 조용히 해줘"를 표현할 수 없다.
 - backend: `users.notify_recall_enabled`/`notify_analysis_enabled`(기본 둘 다 on, 마이그레이션 0028) + `GET/PATCH /api/v1/users/me/notification-preferences`(부분 수정). **게이트는 발송 시점만** — recall send pass(`_send_one` 서두, 트랙 A/B/C 공용)는 off 면 `skipped(preference_off)`(spaced 회차 비소모 — 켜면 그 단계부터 재개), 분석 confirm push 는 `push.notify_skipped(reason=preference_off)` 로그 후 미발송. plan/outbox 적재·인앱 표면 불변(가역 밸브). 게이트 테스트 6건 포함 `make test` 558 passed·lint·typecheck green. `make openapi` 재수출.

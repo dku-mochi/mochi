@@ -71,6 +71,13 @@ enum AppDependencies {
 
         prepareDependencies {
             $0.mochiItemRepository = RealmMochiItemRepository()
+            // 시스템 캘린더·미리알림 자동 동기화 엔진(§1.5 자동 관리) — Realm 관찰 단일 소유자.
+            // silent push 핸들러(MochiAppDelegate)·백스톱(MochiApp scenePhase)이 같은 인스턴스를 쓴다.
+            $0.systemCalendarSyncEngine = SystemCalendarSyncEngine(
+                repository: RealmMochiItemRepository(),
+                linkStore: RealmSystemCalendarLinkStore(),
+                syncer: LiveCalendarSyncer()
+            )
             $0.mochiAPIClient    = liveAPI
             $0.authCoordinator   = coordinator
             $0.agentStreamClient = liveStream

@@ -120,6 +120,18 @@ public actor RealmMochiItemRepository: MochiItemRepository {
         }
     }
 
+    public func allIntentInstanceIDs() async throws -> Set<UUID> {
+        try await read { realm in
+            var ids = Set<UUID>()
+            for row in realm.objects(RealmMochiItem.self) {
+                for instance in row.intentInstances {
+                    if let id = UUID(uuidString: instance.instanceID) { ids.insert(id) }
+                }
+            }
+            return ids
+        }
+    }
+
     public func listByIntent(_ intent: Intent, limit: Int) async throws -> [MochiItem] {
         try await read { realm in
             realm.objects(RealmMochiItem.self)

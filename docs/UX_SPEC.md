@@ -61,8 +61,8 @@ description: 화면·시나리오·IA·디자인 톤·데모 시나리오의 com
 
 1. 채팅 탭 랜딩의 입력바 모양 버튼(또는 능력 칩)에 자연어 입력 — 홈에는 입력바가 없다(검색은 검색 탭, 질문은 채팅 탭으로 역할 분리, §3.4 2026-06-19)
 2. **대화 풀스크린(push)의 첫 메시지**로 전환 (2026-06-10 라우팅 전환 — 칩이 광고하는 추천·수정·요약은 검색 탭이 수행 불가. back 으로 랜딩에 그대로 복귀)
-3. 모찌가 기록을 뒤져 답변 — 본문 위첨자 출처 뱃지(¹²) + 근거 미니카드(탭 → 상세) + 접힌 "과정 보기". 수정/삭제/일정/알림/메모 요청은 proposal 확인 카드로 — 사용자 확정 탭 전까지 아무 일도 일어나지 않는다. 확정 결과는 로컬 미러에 바로 merge 돼 캘린더·홈에 즉시 보이고, 일정 확정은 **실제 iOS 캘린더(EKEvent, 시간 없으면 종일, `end_date` 있으면 기간 이벤트)·미리알림(todo→EKReminder)에도 등록**된다(권한 거부 시 카드가 설정 링크 안내, 재확정 안전 — ingest 멱등. 권한 확보 후 EK save 실패는 best-effort — 기록 생성이 본질).
-   > ⚠️ **known-drift (스코프 컷 2026-06-10)**: ① 채팅 `updateItem` 으로 날짜를 수정해도 이미 등록된 EKEvent 는 따라가지 않는다(EK 식별자 미영속). ② 메모 확정(`create_memo`)이 분석 후 schedule/todo 로 분류돼도 시스템 캘린더엔 등록되지 않는다(무확정 자동 등록은 동의 문제 — **사용자가 명시 확정한 직행 생성만 등록**: 채팅 일정 확정 + 캘린더 탭 "일정 추가"(2026-06-15)). 등록 로직은 `CoreIntegrations.SystemCalendarRegistrar` 공용(채팅 전용 아님 — 2026-06-15 추출). 필요해지면 EK 식별자 영속 + 분석 완료 시 동의 UI 로 확장.
+3. 모찌가 기록을 뒤져 답변 — 본문 위첨자 출처 뱃지(¹²) + 근거 미니카드(탭 → 상세) + 접힌 "과정 보기". 수정/삭제/일정/알림/메모 요청은 proposal 확인 카드로 — 사용자 확정 탭 전까지 아무 일도 일어나지 않는다. 확정 결과는 로컬 미러에 바로 merge 돼 캘린더·홈에 즉시 보이고, **시스템 캘린더·미리알림 반영은 `CorePersistence.SystemCalendarSyncEngine` 이 전담**한다(2026-07-14 **자동 관리 전환** — 사용자 결정으로 원래의 동의 스코프컷 폐기, "회수의 능동 주체는 모찌" 미션 정합): 로컬 Realm 의 확정(needs_review=false) schedule/todo instance 집합을 관찰(observeChanges)해 EKEvent(시간 없으면 종일, `end_date` 기간)·EKReminder 를 **자동 생성·갱신(날짜·제목)·완료(todo 체크→EKReminder 완료)·제거(기록 삭제 시)** 로 멱등 동기화한다 — 채팅 확정이든 캡처 분석(ShareExtension 포함)이든 재분석이든 **어떤 경로로 저장돼도 EK 가 따라온다**(EK 식별자는 기기 로컬 Realm 링크로 영속, 중복 등록 0). 확정 순간의 EK 권한 프롬프트는 유지(거부 시 카드가 설정 링크 안내, 재확정 안전 — ingest 멱등)하되 엔진 자신은 권한을 묻지 않고, 권한 확보 후 다음 동기화가 일괄 따라잡는다. 앱 미실행 시엔 분석 완료 서버가 **silent push**(content-available)로 깨워 background reconcile + EK 반영(§3.10), 최종 보증은 앱 실행/복귀 reconcile 백스톱. 로컬 통제 밸브는 설정 "캘린더·미리알림 자동 등록" 토글(§3.4d, 기본 on).
+   > ⚠️ **known-drift**: EK 자동 관리의 남은 한계 — ① **단방향**(모찌→EK): 캘린더·미리알림 앱에서의 수정·삭제는 모찌로 되돌아오지 않고, 사용자가 EK 항목을 직접 지우면 그 항목은 다시 세우지 않는다(tombstone — 사용자 삭제 존중 + iCloud 식별자 재발급을 삭제로 오인한 중복 생성 방지). ② silent push 는 OS 스로틀·강제종료 시 미보장 — 그 창은 다음 앱 실행/복귀 reconcile 이 따라잡는다. ③ EK 링크는 기기 로컬(Realm)이라 재설치 시 소실 — reconcile 이 다시 등록하나 이전 EK 항목과 이중이 될 수 있다(재설치는 허용 범위). (원 known-drift 2026-06-10 ①식별자 미영속 ②미등록 갭은 2026-07-14 자동 관리 전환으로 해소)
 
 > 채팅 탭 = **랜딩**(2026-06-10 push 전환 — 입력 독이 탭바 위에 상주하면 이중 바로 읽히고, TabView 안 입력바는 키보드 inset 이 어긋나는 고질 버그가 있다): 모찌 인사 + 능력 칩 4종(홈과 동일 문구) + 입력바 *모양* 버튼(진짜 TextField 아님). 어떤 진입이든 **대화 풀스크린을 push** — 탭바가 사라지고 입력 독이 키보드에 정확히 붙는다(메신저 표준: 카카오톡·X DM). 대화 중 스크롤은 **일반 메신저식 bottom anchored** — 전송 후 질문을 화면 상단에 고정하지 않고, 사용자가 바닥 근처에 있을 때만 새 메시지·스트리밍 답변·키보드 변화가 최신 내용으로 따라간다. 입력 중 전송해도 키보드는 유지한다. 입력바 버튼 탭 = 활성 세션 복원 + 컴포저 자동 포커스, 칩 = 첫 메시지 즉시 전송, 지난 대화(랜딩·대화 양쪽 시계 아이콘) → 시트(스와이프 삭제, 탭 재개). assistant 버블의 미니 모찌 아바타는 제거(26pt 로 뭉개짐). 세션은 비활성 30분이 지나면 조용히 새 대화로 분리(사용자가 세션을 관리하지 않는다 — 미션). 서버 live 배선 완료(POST-as-SSE + 워치독 75초) — 백그라운드로 스트림이 끊겨도 run 은 서버에서 완주하고, 복귀 시 스냅샷 재조회(+running 2초 폴링)로 "돌아왔더니 답이 와 있다".
 
@@ -124,7 +124,7 @@ description: 화면·시나리오·IA·디자인 톤·데모 시나리오의 com
 
 우하단 + FAB = 빠른 입력(메모·링크·사진·카메라). "모찌가 정리하고 있어요"(analyzing) 접힘 섹션은 새 홈에서 제외 — 분석 대기는 사용자 행동이 불필요해 시각 비중을 두지 않는다.
 
-> 옛 `HomeFeature`/`HomeView`("자동성의 예외 처리 인박스")는 코드상 아직 공존하나 비활성 — `MainTab` 은 `MochiHomeFeature` 를 쓴다. 정리(삭제)는 회수 기반 추가 개선 일단락 후.
+> 옛 `HomeFeature`/`HomeView`("자동성의 예외 처리 인박스")는 회수 기반 추가 개선 일단락에 따라 삭제 완료(2026-07-14) — `MainTab` 은 `MochiHomeFeature` 를 쓴다.
 
 ### 3.4a 즐겨찾기 (2026-06-14)
 
@@ -152,10 +152,11 @@ description: 화면·시나리오·IA·디자인 톤·데모 시나리오의 com
 
 ### 3.4d 설정 (2026-06-22 재설계)
 
-홈 상단 설정(gearshape) → push 되는 화면(`SettingsView`/`SettingsFeature`, 즐겨찾기·알림 페이지와 같은 path 패턴). 회색 시스템 `Form` → **앱 톤 카드 섹션**(HomeDesign 토큰·`cardShadow`, 다른 회수 표면과 같은 시각 언어)으로 재설계. 죽은 컨트롤(Server Endpoint·캘린더/미리알림 동기화 토글 — base URL 하드코딩·미배선)은 제거.
+홈 상단 설정(gearshape) → push 되는 화면(`SettingsView`/`SettingsFeature`, 즐겨찾기·알림 페이지와 같은 path 패턴). 회색 시스템 `Form` → **앱 톤 카드 섹션**(HomeDesign 토큰·`cardShadow`, 다른 회수 표면과 같은 시각 언어)으로 재설계. 죽은 컨트롤(Server Endpoint·캘린더/미리알림 동기화 토글 — base URL 하드코딩·미배선)은 제거(캘린더 토글은 2026-07-14 **실배선으로 부활** — 아래 연동 섹션).
 
 - **계정** — 아바타(이름 이니셜) + 이메일·이름. Keychain `AuthSession`(`authCoordinator.currentSession`)에서 읽음. 이름 비면 "모찌 사용자" 폴백. Apple 비공개 릴레이 이메일(`@privaterelay.appleid.com`)은 의미 없는 주소 대신 **"Apple로 로그인"** 표시.
-- **알림** — 권한 상태 칩(허용됨/꺼짐/미설정, `UNUserNotificationCenter` 조회) + "iOS 설정에서 관리"(`openSettingsURLString` 딥링크). 앱 내 회수/분석 알림 on/off 토글은 서버 선호 API 미존재로 후속.
+- **알림** — 권한 상태 칩(허용됨/꺼짐/미설정, `UNUserNotificationCenter` 조회) + **서버 전역 선호 토글 2개**(2026-07-14): "먼저 떠올려주는 알림"(능동 회수 푸시 — 마감·일정·다시 보기·관련 기억)과 "헷갈릴 때 물어보는 알림"(분석 확인 needs_review). `GET/PATCH /api/v1/users/me/notification-preferences`, 기본 둘 다 on. 낙관 반영 + 실패 시 이전 값 롤백·alert("이전 설정으로 되돌렸어요"). 발송 시점 게이트만 바꾸는 가역 밸브 — 끄면 조용해지고 다시 켜면 다음 예정부터 재개, 인앱 표면(홈 회수 히어로·예정 알림 페이지·헷갈려요 버킷)은 불변. 서버 로드 실패 시 토글만 비표시(권한 칩·딥링크는 유지) + "iOS 설정에서 관리"(`openSettingsURLString` 딥링크).
+- **연동**(2026-07-14) — "캘린더·미리알림 자동 등록" 토글("확정된 일정은 캘린더에, 할 일은 미리알림에 자동으로 등록해요"). `SystemCalendarSyncEngine`(§1.5) 의 기기 로컬 밸브(AppGroup UserDefaults, 서버 계약 무관), 기본 on. **off 는 신규 등록·갱신·제거 중단만 — 이미 등록된 EK 항목은 건드리지 않는다.** 켜는 순간이 EK 권한 프롬프트 시점(엔진은 스스로 묻지 않음) + 밀린 확정 일정·할 일 즉시 따라잡기.
 - **프라이버시** — "민감 캡처는 항상 이 기기에만" 토글(PRIVACY §5.3 이행). 켜면 고신뢰 민감 감지 시 선택 시트 없이 `localOnly`. `SensitiveCapturePreference`(AppGroup 공유)로 ShareExtension 이 읽는다.
 - **정보** — 온보딩 다시 보기(기존) · **이용약관·개인정보처리방침**(2026-06-23, 공개 repo `dku-mochi/legal` GitHub Pages → 외부 Safari 아닌 인앱 `LegalWebView`(WKWebView) 공통 `.sheet(item:)` 표시) · 앱 버전(`Bundle`).
 - **로그아웃** — destructive. 기존 경로(`delegate → RootFeature.requestSignOut`).
@@ -218,7 +219,7 @@ description: 화면·시나리오·IA·디자인 톤·데모 시나리오의 com
 구성(정보 위계, `DetailView`). **어떤 intent·source·payload 조합을 열어도 골격이 같다**(2026-06-11) — 출처·시간 eyebrow 가 항상 첫 텍스트 줄, 섹션 라벨은 카드 밖에 노출, ③의 행들은 단일 행 문법(leading 타일/체크 + 제목 + 부제 + 독립 흰 카드)을 공유한다. 의도별 차이는 행의 *내용*으로만 드러난다:
 1. **회수 헤더** — hero(시각 회상) + 출처·시간 eyebrow + 정체성 제목(연필 아이콘 탭 → 인라인 교정, 로컬 `userTitle` 오버라이드). hero 는 스크린샷이면 캡처 이미지(세로=center fill / 가로=fit+blur, **카드 풀폭**), 메모·URL 이면 정체성 색 밴드(메모=버터/크림, URL=보라)로 **빈 흰칸 없이 풀폭**을 채운다(2026-06-15 — 이전엔 메모·URL 헤더가 비어 좌우 흰 여백). 분석중 상태도 **같은 hero 렌더러**(`ScreenshotPreviewImage`/`DetailIdentityHero`)를 써 분석이 끝나도 이미지가 튀지 않는다. eyebrow 를 제목 위에 두어 어떤 조합을 열어도 같은 첫인상을 갖는다
 2. **헷갈려요 배너** — needs_review=true 일 때만, 후보 칩 + "다른 의도"(자연어 재분석)
-3. **지금 할 수 있어요** (섹션 라벨 노출) — 분류를 라벨이 아니라 *형태*로, **캘린더 탭과 같은 시각 언어**(2026-06-11 정합): 할 일=체크 토글(완료↔미완료 양방향, 완료는 strikethrough 로 아래에 남음) + 할 일 이름(`payload.title`) + D-day 라벨(마감 시각이 있으면 "오늘 마감 · 오후 9:00"처럼 덧붙임 — todo 시각은 deadline 안에 담김), 일정=날짜 타일(월/일) + 일정 이름 + 상대 라벨(오늘/내일/요일/D-n + 시각, 기간 일정은 "시작 ~ 끝"), 링크=보라 타일 + "원본에서 보기"(host 부제) 행 — 그라데이션 CTA 폐기, 같은 행 문법으로. 의도가 여럿이면 행이 여럿, 하나도 없으면 섹션 숨김. 토글은 캘린더 탭과 공용 경로(낙관 반영 + 서버 push + 레거시 치유/롤백, `TodoLifecycleSync`)
+3. **지금 할 수 있어요** (섹션 라벨 노출) — 분류를 라벨이 아니라 *형태*로, **캘린더 탭과 같은 시각 언어**(2026-06-11 정합): 할 일=체크 토글(완료↔미완료 양방향, 완료는 strikethrough 로 아래에 남음) + 할 일 이름(`payload.title`) + D-day 라벨(마감 시각이 있으면 "오늘 마감 · 오후 9:00"처럼 덧붙임 — todo 시각은 deadline 안에 담김), 일정=날짜 타일(월/일) + 일정 이름 + 상대 라벨(오늘/내일/요일/D-n + 시각, 기간 일정은 "시작 ~ 끝"), 링크=보라 타일 + "원본에서 보기"(host 부제) 행 — 그라데이션 CTA 폐기, 같은 행 문법으로. 의도가 여럿이면 행이 여럿, 하나도 없으면 섹션 숨김. 토글은 캘린더 탭과 공용 경로(낙관 반영 + 서버 push + 레거시 치유/롤백, `TodoLifecycleSync`). 시스템 캘린더·미리알림 반영은 상세에 별도 컨트롤 없이 **자동**(§1.5 `SystemCalendarSyncEngine`, 2026-07-14) — 완료 체크는 연결된 EKReminder 완료로, 날짜·제목 수정은 EKEvent/EKReminder 갱신으로 Realm 관찰을 통해 따라간다
 4. **장소** (섹션 라벨 노출, 2026-07-08 — Agent searchPlaceGeo `place`) — 캡처가 가리킨 장소가 지오코딩됐을 때만, 지도 프리뷰 카드(조작 없음 — **네이버 지도 타일**(NMapsMap, NCP 키 부재 시 MapKit 폴백. 탭 목적지가 네이버 지도라 프리뷰도 같은 지도 언어) + 모찌 퍼플 핀 + 우하단 "네이버 지도" Material 칩 + 좌하단 **매장사진 폴라로이드 타일**(Google Places 보강, 흰 링+layered shadow — 핀과 같은 언어, 사진 있을 때만)) + 장소 이름·**별점 라인**("★ 4.6 (1,234) · 업종" — butter 별 + 리뷰수, 별점 있으면 주소는 셋째 줄. 별점 없으면 기존 "업종 · 주소" 한 줄) + **길찾기** 민트 캡슐 CTA. 지도 탭 → 네이버 지도에서 그 장소 열기(서버 `mapUrl`), 길찾기 → 네이버 지도 앱 대중교통 딥링크(`nmap://route/public`, 미설치 시 웹 폴백). "다시 찾아가기"가 이 기록의 가장 구체적 다음 행동이라 ③ 바로 아래 — 링크보다 앞선다. 장소 없으면 섹션 숨김 (별점·사진·네이버 지도 타일 2026-07-09)
 5. **관련 링크** (섹션 라벨 노출, 2026-06-15 — Agent ResourceFinder `referenceLinks`) — 캡처가 가리킨 상품·장소·자료를 모찌가 찾아 **메타 행카드**(브랜드 favicon 타일 + provider 이름 + 제목 + "업종·지역/요약문/브랜드" 부제·쇼핑 가격 한 줄)로, usefulness 5 는 "딱 맞아요" 뱃지. 탭 → 지도·예약·구매·리뷰 링크. 결과 없으면 섹션 숨김 — 회수의 능동 주체를 모찌로(PRODUCT §1.5 미션). 이전 `shoppingProductQuery` 기반 "쿠팡·네이버 검색" 행을 대체한다(ResourceFinder 가 쇼핑 검색 URL 도 함께 생성). 카드 변형 A~E 비교 끝에 **메타 행카드(D)** 확정(2026-06-15)
 6. **모찌가 정리했어요** (섹션 라벨 노출) — AI 요약(제목과 다른 정보) + 원본(텍스트 인용·내 메모 카드)
@@ -267,7 +268,7 @@ UI (`ShareEntryView` / `BackTapShareView`, 토큰은 `ShareDesign`) — 콘텐�
 
 **실시간 분담**:
 - foreground = **SSE 즉시 반영** + **3초 폴링 fallback** + **완료 푸시 즉시 reconcile**(앱 active 일 때 완료 알림을 받으면 폴링 tick 을 기다리지 않고 그 항목을 바로 가져온다, 2026-06-15). 셋 다 결과를 Realm 에 쓰면 `observeChanges` 로 홈·캘린더·**열어둔 상세**가 함께 갱신된다 — **분석중 상세를 열어둔 채 완료되면 화면이 자동으로 완료 뷰로 전환**(항목별 폴링은 분석 반영 시 자동 종료).
-- background/종료 = **APNs** (LA push-to-start + 완료 알림). SSE 는 background 에서 소켓이 끊기므로 이 구멍을 APNs 가 메운다.
+- background/종료 = **APNs** (LA push-to-start + 완료 알림). SSE 는 background 에서 소켓이 끊기므로 이 구멍을 APNs 가 메운다. 추가로 확정(needs_review=false) schedule/todo 를 포함한 분석 완료엔 **silent push**(content-available, alert 없음 — 2026-06-17 "저장완료 alert 금지"와 충돌 없음, 문구·소리·배지 없는 데이터 신호)가 와서 앱을 깨워 해당 항목 reconcile + 시스템 캘린더·미리알림 자동 반영(§1.5 `SystemCalendarSyncEngine`). 알림 전역 선호 게이트(§3.4d)는 사용자 노출 알림 전용이라 silent 동기화 push 엔 적용하지 않는다(2026-07-14).
 - 앱 복귀 시 reconcile — background 중 놓친 상태를 1회 동기화.
 
 **always-on fallback**: 알림 권한을 거부하거나 푸시를 놓쳐도, 홈의 **"지금 확인해 주세요" 버킷**(§3.4)이 진실원천이라 헷갈려요 처리는 언제든 앱 안에서 가능하다.
@@ -278,7 +279,7 @@ UI (`ShareEntryView` / `BackTapShareView`, 토큰은 `ShareDesign`) — 콘텐�
 
 "다시 볼 가치 있는 기억을 모찌가 먼저 떠올려준다." **회수 = 분류가 아니다** — category 통계·주제 묶음 라벨은 회수 화면에 노출하지 않는다(리마인더이지 회고가 아님). 회수의 능동 주체는 사용자가 아니라 모찌(PRODUCT §1.5 미션). cold start 빈손은 결함이 아니라 정상(리마인드할 게 없으면 안 보여주는 게 옳다). **3단 구조**(`RecallFeature` / `RecallView`):
 
-**① 홈 "회수 한 칸"** (§3.4-4, `HomeFeature` slice) — 고정 자리·고정 틀. "다시 보면 좋을 기억 N개" + **가장 가치 높은 1개 미리보기 한 줄**(안 눌러도 떠오르게). 비면 "지금은 없어요"로 채워 레이아웃이 출렁이지 않게(미션 "앱 켜면 바로"). needsReview 다음 상단 배치. 회수=가변이라 별도 화면을 갖지 않고 홈엔 요약(count + top-1)만 둔다. 탭 → ②.
+**① 홈 회수 히어로** (§3.4-1, `MochiHomeFeature` state(`recall`) + `RecallHeroView`) — 홈 최상단 고정 자리의 3D 코버플로우(화면 정본은 §3.4-1). 비면(cold-start) 마스코트 일러스트 카드("모찌가 곧 골라드릴게요")로 채워 레이아웃이 출렁이지 않게(미션 "앱 켜면 바로"). 회수=가변이라 홈에선 별도 화면 없이 홈 state 로 둔다. 헤더 "모두 보기" → ②, 카드 탭 → 원본 상세 hero zoom.
 
 **② 자세히 보기** (`RecallListFeature`) — **통일 카드 목록**(썸네일=실제 캡처 이미지 + 이유 칩 + 제목 + 한 줄 + 시점). 지식/관련/맥락이 모두 같은 틀 — 묶음은 "관련 기억 N개"만 덧붙이고 **카테고리로 승격하지 않는다**(분류로 안 읽히게). 카드 탭 → ③.
 
@@ -289,11 +290,11 @@ UI (`ShareEntryView` / `BackTapShareView`, 토큰은 `ShareDesign`) — 콘텐�
 
 **이유 칩 4종** ("왜 지금 떠올렸나" — 회수 신호의 표현이지 분류가 아니다, `RecallReasonKind`): **잊기 전에 한 번**(fadingValue) / **관련해서 여러 번**(relatedCluster) / **요즘 자주 보시던**(revisitedOften) / **지금 맥락과 이어져요**(linkedToRecent). 색·아이콘은 iOS 매핑(비계약).
 
-**알림 landing** — 단건 회수 알림(routeType="detail" + `recallEventID`) 탭 → ③ 상세 직행(기존 `mochiItemID`/`sourceIntentID` deep-link 재사용, server→local 역매핑). **로컬 역매핑 실패 시 `recallEventID`로 서버 fetch fallback**(`GET /recall/events/{id}`, 빈 상세 금지). 진입 경로(App 레이어): `MochiAppDelegate` → `RootFeature` → `MainTabFeature` 가 ③ 회수 상세 push. 홈 한 칸은 알림이 아닌 in-app 진입.
+**알림 landing** — 단건 회수 알림(routeType="detail" + `recallEventID`) 탭 → ③ 상세 직행(기존 `mochiItemID`/`sourceIntentID` deep-link 재사용, server→local 역매핑). **로컬 역매핑 실패 시 `recallEventID`로 서버 fetch fallback**(`GET /recall/events/{id}`, 빈 상세 금지). 진입 경로(App 레이어): `MochiAppDelegate` → `RootFeature` → `MainTabFeature` 가 ③ 회수 상세 push. 홈 회수 히어로는 알림이 아닌 in-app 진입.
 
 **응답 액션** — primary 는 **사용자 목적 수행**(열기·원본 보기·완료)이지 "모찌 품질 평가"가 아니다(미션 정합 — "필요한 기억은 *떠오른다*"). 학습은 행동 신호(open/탭 진입 = `opened`)를 우선으로 삼고, 명시 피드백은 보조/dismiss 사유로 낮춘다. 액션 ↔ 서버 reaction 1:1: **기억났어요/탭 진입/열기** = `opened`(spaced+knowledge 면 instance 소생) · **원본 보기** = 원본 mochiItem 상세 · **그만 보기** = `stop`(destructive — primary confirm 과 시각 분리). reaction 보고는 `POST /recall/events/{id}/reaction`. **"그만 보기"는 토스트 확인과 함께 그 카드를 홈 회수 히어로에서도 제거**한다(opened-close 의 `recallDetailClosed` 재사용 — "그만 보겠다"는데 화면에 남으면 미션 위반, 2026-06-21). 서버도 영구 억제해 재출현 없음: 트랙 A 는 plan cancel, **트랙 C(plan 없는 직행)는 sent outbox 행을 종결(skipped)** — 안 그러면 피드가 `dismissed_at` 을 무시해 앱 재시작마다 부활(`DOMAIN_DESIGN.md` §3).
 
-**접근성**: 이유 칩은 VoiceOver 에서 "회수 이유: 잊기 전에 한 번"처럼 의미가 읽히게 라벨링(색·아이콘만으론 불충분). 홈 한 칸 preview 는 Dynamic Type 확대 시 2줄까지 확장(레이아웃 안정은 유지하되 텍스트는 안 자름). 상세 액션은 큰 글자에서 가로 버튼이 잘리면 세로 스택으로 전환.
+**접근성**: 이유 칩은 VoiceOver 에서 "회수 이유: 잊기 전에 한 번"처럼 의미가 읽히게 라벨링(색·아이콘만으론 불충분). 홈 회수 히어로 캡션은 Dynamic Type 확대 시에도 텍스트를 안 자름(레이아웃 안정 유지). 상세 액션은 큰 글자에서 가로 버튼이 잘리면 세로 스택으로 전환.
 
 > 발송 정책·스키마는 백엔드 — `DOMAIN_DESIGN.md` §3(notification_plan/outbox)·§5.4(종료 연동)·§5.2(소생), `ARCHITECTURE.md` §1·§3.4(Recall Worker 흐름). 화면 정본 소스는 `journal/proactive-recall/ux-ui.md`.
 
