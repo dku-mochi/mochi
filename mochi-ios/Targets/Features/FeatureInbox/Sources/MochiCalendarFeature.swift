@@ -211,8 +211,8 @@ public struct MochiCalendarFeature: Sendable {
                 return .none
 
             case .saveDraftTapped:
-                // 저장 중 재탭 차단 — ingest 는 idempotencyKey 로 멱등이나 EventKit save 는 비멱등이라
-                // 더블탭 시 시스템 캘린더에 같은 일정이 중복 등록된다(SystemCalendarRegistrar 주석 경고).
+                // 저장 중 재탭 차단 — ingest 는 idempotencyKey 로 멱등이라 이중 생성은 없지만,
+                // 진행 중 UI 이중 제출을 막는다(EK 등록은 SystemCalendarSyncEngine 이 링크로 dedup).
                 guard let draft = state.addScheduleDraft, !draft.isSaving else { return .none }
                 let title = draft.title.trimmingCharacters(in: .whitespacesAndNewlines)
                 guard !title.isEmpty else { return .none }   // 폼 버튼도 비활성 병행
@@ -239,13 +239,13 @@ public struct MochiCalendarFeature: Sendable {
                         return
                     }
                     await syncTrigger.pullRemote()   // 캘린더 점·DaySheet 즉시 반영(1a 가 sheet 갱신)
-                    // 시스템 캘린더 등록은 best-effort — iOS 권한 프롬프트가 동의를 받고, 거부 시 모찌
-                    // 기록은 이미 저장됐으므로 조용히 건너뛴다(채팅 createEvent 의 try? 규약과 동일).
-                    try? await SystemCalendarRegistrar.register(
-                        instances: [.init(intentType: "schedule", payload: payload)],
-                        fallbackTitle: title,
-                        using: calendarSyncer
-                    )
+                    // 시스템 캘린더 등록은 SystemCalendarSyncEngine 이 위 pullRemote 의 Realm 쓰기를
+                    // 관찰해 수행한다(§1.5 자동 관리 — call-site 등록 배선 제거, 2026-07-14). 엔진은
+                    // 권한을 묻지 않는 규약이라 명시 저장 순간인 여기서 프롬프트만 확보한다 — 거부 시
+                    // 조용히 진행(기존 try? 규약: 모찌 기록은 이미 저장됐다).
+                    if SystemCalendarAutoRegistrationPreference.load() {
+                        try? await calendarSyncer.requestEventAccess()
+                    }
                     await send(.draftSaveFinished(nil))
                 }
 

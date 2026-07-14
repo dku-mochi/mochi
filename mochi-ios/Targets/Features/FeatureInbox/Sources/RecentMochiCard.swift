@@ -10,7 +10,7 @@ struct RecentMochiCard: View {
     let mochiItem: MochiItem
     /// 탭 시 카드 전체의 글로벌 frame 을 넘긴다 — hero 확대(카드 통째 → 상세 헤더)의 시작점.
     let onTap: (HeroSourceFrames) -> Void
-    /// 롱프레스 메뉴의 삭제 — soft delete 를 상위(HomeFeature)로 위임.
+    /// 롱프레스 메뉴의 삭제 — soft delete 를 상위(MochiHomeFeature·FavoritesFeature)로 위임.
     let onDelete: () -> Void
     /// 즐겨찾기 카드에 우상단 별 배지 표시. 즐겨찾기 화면처럼 전부 favorite 인 곳에선 false 로 끈다(중복 노출 회피).
     var showsFavoriteBadge: Bool = true

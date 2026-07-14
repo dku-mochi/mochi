@@ -35,7 +35,9 @@ from app.modules.notifications.application.repositories import make_push_token_r
 from app.modules.notifications.application.send_notification import (
     AnalysisNotification,
     SendAnalysisNotification,
+    SendCalendarSyncPush,
 )
+from app.shared.intent import Intent
 
 log = get_logger("agent.worker")
 
@@ -295,6 +297,17 @@ class MochiItemWorker:
                         review_options=item.review_options,
                     ),
                 )
+                # silent 동기화 push — 확정(needs_review=False) schedule/todo 포함 시에만. 앱 미실행
+                # 상태에서도 iOS 가 시스템 캘린더·미리알림을 따라잡게 한다(UX_SPEC §1.5 자동 관리).
+                # 알림 선호 게이트(preference_off)를 타지 않는 근거는 SendCalendarSyncPush docstring.
+                if not item.needs_review and any(
+                    instance.intent_type in (Intent.SCHEDULE, Intent.TODO)
+                    for instance in item.intent_instances
+                ):
+                    await SendCalendarSyncPush(
+                        tokens=make_push_token_repository(push_session),
+                        apns=apns,
+                    ).run(owner_id=owner_id, mochi_item_id=mochi_item_id)
                 log.info(
                     "push.notify_finished",
                     owner_id=str(owner_id),

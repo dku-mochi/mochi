@@ -297,7 +297,9 @@ final class ChatProposalTests: XCTestCase {
         )
     }
 
-    func test_confirm_schedule_registers_system_calendar_and_reminders() async {
+    /// 확정은 EK **권한 프롬프트만** 담당한다 — 생성·갱신·제거는 SystemCalendarSyncEngine(Realm 관찰)
+    /// 소관이라 call-site 에선 아무것도 만들지 않는다(§1.5 자동 관리 전환, 2026-07-14).
+    func test_confirm_schedule_requests_permissions_without_direct_registration() async {
         let api = StubAPIClient()
         await api.setIngestResult(schedulePayloadDTO())
         let syncer = SpyCalendarSyncer()
@@ -316,12 +318,14 @@ final class ChatProposalTests: XCTestCase {
             $0.messages[id: self.messageID]?.proposals[id: UUID(14)]?.status = .confirmed
         }
 
+        let eventRequests = await syncer.eventAccessRequests
+        let reminderRequests = await syncer.reminderAccessRequests
+        XCTAssertEqual(eventRequests, 1)      // schedule 포함 → 캘린더 권한 프롬프트
+        XCTAssertEqual(reminderRequests, 1)   // todo 포함 → 미리알림 권한 프롬프트
         let events = await syncer.events
-        XCTAssertEqual(events.map { $0.title }, ["팀 회식", "워크숍"])
-        XCTAssertEqual(events.map { $0.allDay }, [false, true])   // time 있으면 시각, 없으면 종일
         let reminders = await syncer.reminders
-        XCTAssertEqual(reminders.map { $0.title }, ["선물 사기"])
-        XCTAssertNotNil(reminders.first?.due)
+        XCTAssertTrue(events.isEmpty)         // 등록은 엔진 소관 — 확정 경로는 직접 만들지 않는다
+        XCTAssertTrue(reminders.isEmpty)
     }
 
     func test_scheduleEnd_parses_range_and_degrades_invalid_to_nil() {
@@ -513,20 +517,27 @@ private actor SpySyncTrigger: SyncTrigger {
     func reconcile(serverID: UUID) async {}
 }
 
-/// 시스템 캘린더·미리알림 등록 기록 스파이 — EventKit 은 절대 부르지 않는다.
+/// 시스템 캘린더·미리알림 스파이 — EventKit 은 절대 부르지 않는다.
+/// 확정 경로는 권한 프롬프트만 담당하므로(등록은 엔진 소관) 요청 횟수를 기록한다.
 private actor SpyCalendarSyncer: CalendarSyncing {
     var events: [(title: String, start: Date, allDay: Bool)] = []
     var reminders: [(title: String, due: Date?)] = []
+    var eventAccessRequests = 0
+    var reminderAccessRequests = 0
     private var denyAccess = false
 
     func setDenyAccess() { denyAccess = true }
 
     func requestEventAccess() async throws {
+        eventAccessRequests += 1
         if denyAccess { throw CalendarSyncError.accessDenied }
     }
     func requestReminderAccess() async throws {
+        reminderAccessRequests += 1
         if denyAccess { throw CalendarSyncError.accessDenied }
     }
+    func hasEventAccess() async -> Bool { !denyAccess }
+    func hasReminderAccess() async -> Bool { !denyAccess }
     func createEvent(title: String, start: Date, end: Date?, allDay: Bool) async throws -> String {
         events.append((title, start, allDay))
         return "event-\(events.count)"
@@ -535,4 +546,12 @@ private actor SpyCalendarSyncer: CalendarSyncing {
         reminders.append((title, due))
         return "reminder-\(reminders.count)"
     }
+    func updateEvent(identifier: String, title: String, start: Date, end: Date?, allDay: Bool) async throws -> Bool {
+        true
+    }
+    func updateReminder(identifier: String, title: String, due: Date?, completed: Bool) async throws -> Bool {
+        true
+    }
+    func removeEvent(identifier: String) async throws {}
+    func removeReminder(identifier: String) async throws {}
 }

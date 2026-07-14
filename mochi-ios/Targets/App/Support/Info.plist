@@ -24,6 +24,12 @@
 	     `Activity<...>.request()` 가 거부되지 않으려면 필수. iOS 16.1+. -->
 	<key>NSSupportsLiveActivities</key>
 	<true/>
+	<!-- silent 동기화 push (content-available) — 분석 완료된 확정 schedule/todo 를 앱을 열지 않아도
+	     시스템 캘린더·미리알림에 반영(SystemCalendarSyncEngine). UX_SPEC §1.5 자동 관리. -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>

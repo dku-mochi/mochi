@@ -242,6 +242,80 @@ class SendAnalysisNotification:
         return payload
 
 
+class SendCalendarSyncPush:
+    """silent 동기화 push (content-available, alert 없음) — 확정(needs_review=False) schedule/todo 를
+    포함한 분석 완료를 iOS 에 background 로 깨워 알린다. 앱을 열지 않아도 background handler 가 해당
+    item 을 reconcile 하고 SystemCalendarSyncEngine 이 시스템 캘린더·미리알림에 반영한다
+    (UX_SPEC §1.5 자동 관리, 2026-07-14).
+
+    사용자 노출 알림이 아니라 **데이터 동기화 신호**라 알림 전역 선호 게이트(preference_off, 0028)를
+    타지 않는다 — 게이트는 사용자 노출 push 전용이다. 2026-06-17 "저장완료(needs_review=false) alert
+    금지" 결정은 alert 에 한한 것으로, 문구·소리·배지가 없는 background push 와 충돌하지 않는다.
+    OS 스로틀·강제종료 시 미도달 가능 — 최종 보증은 앱 실행/복귀 시 iOS 엔진 reconcile 백스톱.
+    """
+
+    def __init__(self, *, tokens: PushTokenRepository, apns: APNsClient | None) -> None:
+        self._tokens = tokens
+        self._apns = apns
+
+    async def run(self, *, owner_id: UUID, mochi_item_id: UUID) -> None:
+        if self._apns is None:
+            return  # APNs 미설정(local dev) — no-op.
+        device_tokens = await self._tokens.list_for_owner(
+            owner_id=owner_id, token_type=PushTokenType.APNS_DEVICE
+        )
+        if not device_tokens:
+            return
+        payload = {"aps": {"content-available": 1}, "mochiItemID": str(mochi_item_id)}
+        for tok in device_tokens:
+            try:
+                await self._apns.send(
+                    token=tok.token,
+                    environment=tok.environment,
+                    push_type=APNsPushType.BACKGROUND,
+                    topic=get_settings().apns_bundle_id,
+                    payload=payload,
+                )
+                log.info(
+                    "push.calendar_sync_sent",
+                    owner_id=str(owner_id),
+                    mochi_item_id=str(mochi_item_id),
+                    token=_mask_token(tok.token),
+                    environment=tok.environment.value,
+                )
+            except APNsError as exc:
+                # 죽은 토큰 무효화 — alert/회수 경로와 동일 정책(codex-5).
+                if _is_invalid_token(exc):
+                    await self._tokens.delete(token=tok.token)
+                    log.info(
+                        "push.token_invalidated",
+                        owner_id=str(owner_id),
+                        token=_mask_token(tok.token),
+                        environment=tok.environment.value,
+                        reason=exc.reason or str(exc.status_code),
+                    )
+                else:
+                    log.warning(
+                        "push.calendar_sync_failed",
+                        owner_id=str(owner_id),
+                        mochi_item_id=str(mochi_item_id),
+                        token=_mask_token(tok.token),
+                        environment=tok.environment.value,
+                        exception=str(exc),
+                        exc_info=True,
+                    )
+            except Exception as exc:  # noqa: BLE001
+                log.warning(
+                    "push.calendar_sync_failed",
+                    owner_id=str(owner_id),
+                    mochi_item_id=str(mochi_item_id),
+                    token=_mask_token(tok.token),
+                    environment=tok.environment.value,
+                    exception=str(exc),
+                    exc_info=True,
+                )
+
+
 def _mask_token(token: str) -> str:
     if len(token) <= 14:
         return f"{token[:4]}...{token[-4:]}"

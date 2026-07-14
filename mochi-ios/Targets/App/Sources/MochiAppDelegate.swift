@@ -2,6 +2,7 @@ import UIKit
 import UserNotifications
 import Dependencies
 import CoreNetworking
+import CorePersistence
 
 /// APNs 토큰 등록 + 알림 핸들러. `@UIApplicationDelegateAdaptor` 로 SwiftUI `MochiApp` 에 부착.
 ///
@@ -43,6 +44,29 @@ public final class MochiAppDelegate: NSObject, UIApplicationDelegate, UNUserNoti
         didFailToRegisterForRemoteNotificationsWithError error: Error
     ) {
         // 폴링 fallback 이 있으므로 fatal 아님 — 등록 실패는 무시(다음 진입에서 재시도 가능).
+    }
+
+    /// silent 동기화 push (content-available, alert 없음) — 분석 완료가 확정 schedule/todo 를 포함하면
+    /// 서버가 보낸다(§1.5 자동 관리). 앱을 열지 않아도 해당 항목을 reconcile(단건 fetch·Realm 반영)하고
+    /// EK 동기화 엔진이 따라잡아, 몇 분 내 아이폰 캘린더·미리알림에 선다. 사용자 노출 알림이 아니라
+    /// 데이터 동기화 신호라 알림 선호(preference_off) 게이트와 무관하다. OS 스로틀·강제종료로 미도달할 수
+    /// 있으므로 최종 보증은 앱 실행/복귀 시 엔진 reconcile 백스톱(MochiApp).
+    public func application(
+        _ application: UIApplication,
+        didReceiveRemoteNotification userInfo: [AnyHashable: Any],
+        fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void
+    ) {
+        guard let raw = userInfo["mochiItemID"] as? String, let id = UUID(uuidString: raw) else {
+            completionHandler(.noData)
+            return
+        }
+        let syncTrigger = DependencyValues._current.syncTrigger
+        let engine = DependencyValues._current.systemCalendarSyncEngine
+        Task {
+            await syncTrigger.reconcile(serverID: id)
+            await engine.syncNow()
+            completionHandler(.newData)
+        }
     }
 
     // MARK: - 알림 핸들러

@@ -34,6 +34,9 @@ public protocol MochiItemRepository: Sendable {
     /// 를 가지므로 그 값으로 매칭한다. 미업로드(아직 매핑 불가) 항목은 nil.
     func find(serverID: UUID) async throws -> MochiItem?
     func listRecent(limit: Int) async throws -> [MochiItem]
+    /// 저장소 **전체**의 intent instance id 집합 — 시스템 캘린더 동기화 엔진이 "기록 삭제" 판정에 쓴다.
+    /// `listRecent` 상한 밖의 오래된 항목을 삭제로 오인해 EK 항목을 지우지 않기 위한 전수 조회(id 만 뽑아 가볍다).
+    func allIntentInstanceIDs() async throws -> Set<UUID>
     func listByIntent(_ intent: Intent, limit: Int) async throws -> [MochiItem]
     /// 분석 응답을 아직 못 받은 (analysis 미수신) 항목. 홈 "모찌가 분석 중이에요" 섹션의 원본.
     func listAnalyzing(limit: Int) async throws -> [MochiItem]
@@ -236,6 +239,10 @@ public actor InMemoryMochiItemRepository: MochiItemRepository {
 
     public func listRecent(limit: Int) async throws -> [MochiItem] {
         Array(storage.values.sorted { $0.createdAt > $1.createdAt }.prefix(limit))
+    }
+
+    public func allIntentInstanceIDs() async throws -> Set<UUID> {
+        Set(storage.values.flatMap { ($0.analysis?.instances ?? []).map(\.id) })
     }
 
     public func listByIntent(_ intent: Intent, limit: Int) async throws -> [MochiItem] {

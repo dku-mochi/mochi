@@ -5,7 +5,7 @@ import DesignSystem
 /// "모찌가 헷갈려요" 카드 덱 — 미분류 항목을 한 장씩 넘기며 후보 의도를 고른다.
 ///
 /// 후보 칩 선택 = 그 의도(label)를 hint 로 **재분석**(`onReanalyze`) — intent 라벨만 박지 않고
-/// payload·날짜를 보강해 캘린더/할일로 쓸 수 있게 한다(로컬 즉시확정 폐기, HomeFeature 참고).
+/// payload·날짜를 보강해 캘린더/할일로 쓸 수 있게 한다(로컬 즉시확정 폐기, MochiHomeFeature 참고).
 /// 앞 카드만 인터랙티브하고 뒤 카드는 쌓임으로 비친다. 좌우 드래그로 분류를 미루고 다음을 먼저 본다.
 struct NeedsReviewCard: View {
     let mochiItems: [MochiItem]

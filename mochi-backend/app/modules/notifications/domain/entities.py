@@ -36,6 +36,8 @@ class APNsPushType(StrEnum):
 
     ALERT = "alert"
     LIVEACTIVITY = "liveactivity"
+    # silent push (content-available, alert 없음) — 데이터 동기화 신호. priority 5 필수(클라이언트가 분기).
+    BACKGROUND = "background"
 
 
 @dataclass(frozen=True, slots=True)

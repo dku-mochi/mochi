@@ -478,6 +478,8 @@ public struct ChatFeature: Sendable {
                 // SSE/폴링도 analysis 가 이미 붙은 항목은 건드리지 않아 여기 말곤 반영 경로가 없다
                 // (날짜 수정이 캘린더에 안 보이던 2026-06-10 버그).
                 await applyServerItem(updated)
+                // 시스템 캘린더·미리알림 갱신은 SystemCalendarSyncEngine 이 위 로컬 merge 를
+                // observeChanges 로 감지해 따라간다(§1.5 자동 관리) — call-site 배선 없음.
 
             case let .createSchedule(payload):
                 // 분석 생략 직행 생성 (§5.2 예외). proposal id 가 Idempotency-Key — 재탭 멱등.
@@ -495,16 +497,17 @@ public struct ChatFeature: Sendable {
                     idempotencyKey: proposal.id.uuidString
                 )
                 await syncTrigger.pullRemote()   // 캘린더·검색에 바로 보이게 로컬 미러 채움
-                // 시스템 캘린더(schedule→EKEvent)·미리알림(todo→EKReminder) 등록 (2026-06-10 요청).
-                // 권한 거부 시 failed 카드 — ingest 가 멱등이라 권한 허용 후 재확정해도 안전.
-                // 등록 로직은 CoreIntegrations 공용(캘린더 탭 일정 추가와 공유, 2026-06-15 추출).
-                try await SystemCalendarRegistrar.register(
-                    instances: payload.instances.map {
-                        .init(intentType: $0.intentType, payload: $0.payload)
-                    },
-                    fallbackTitle: payload.text,
-                    using: calendarSyncer
-                )
+                // 시스템 캘린더(schedule→EKEvent)·미리알림(todo→EKReminder) 반영은
+                // SystemCalendarSyncEngine 이 위 pullRemote 의 Realm 쓰기를 관찰해 수행한다
+                // (§1.5 자동 관리 — call-site 등록 배선 제거, 2026-07-14). 엔진은 권한을 묻지 않는
+                // 규약이라 **확정 순간인 여기서만 프롬프트**를 띄운다. 거부 시 기존 규약대로 failed
+                // 카드 + 설정 링크 — 기록은 이미 생성됐고 ingest 멱등이라 재확정도, 권한 허용 후
+                // 다음 동기화의 자동 따라잡기도 안전하다.
+                if SystemCalendarAutoRegistrationPreference.load() {
+                    let types = Set(payload.instances.map(\.intentType))
+                    if types.contains("schedule") { try await calendarSyncer.requestEventAccess() }
+                    if types.contains("todo") { try await calendarSyncer.requestReminderAccess() }
+                }
 
             case let .createMemo(text):
                 // 일반 캡처와 동일 경로: 로컬 upsert(.pendingUpload) → worker 가 ingest(분석 경유).

@@ -3,6 +3,8 @@ import UserNotifications
 import ComposableArchitecture
 import CoreAuth
 import CoreDomain
+import CoreIntegrations
+import CoreNetworking
 import CorePersistence
 
 @Reducer
@@ -13,8 +15,16 @@ public struct SettingsFeature: Sendable {
         public var account: Account?
         /// 푸시 알림 권한 상태(onAppear 에서 시스템 조회). 켜기 CTA·상태 칩 분기에 쓴다.
         public var notificationStatus: NotificationStatus = .unknown
+        /// 서버 알림 전역 선호(회수 푸시 / 분석 확인). nil = 미로드(로드 실패 포함) — 토글 비표시.
+        /// 발송 시점 게이트만 바꾸는 가역 밸브라 끄면 조용해지고 다시 켜면 재개된다.
+        public var notificationPreferences: NotificationPreferencesDTO?
+        /// 선호 저장 실패 — 낙관 반영을 롤백한 뒤 alert 로 알린다.
+        public var preferenceSaveFailed: Bool = false
         /// 민감 캡처를 항상 이 기기에만 저장할지(AppGroup 공유, ShareExtension 이 읽음).
         public var sensitiveAlwaysLocalOnly: Bool
+        /// 확정 일정·할 일의 시스템 캘린더·미리알림 자동 등록(기기 로컬 밸브, 기본 on — §1.5 자동 관리).
+        /// off 는 신규 등록·갱신 중단만 — 이미 등록된 EK 항목은 건드리지 않는다.
+        public var calendarAutoRegistration: Bool
         /// 회원 탈퇴 확인 다이얼로그 표시 여부.
         public var confirmingDelete: Bool = false
         /// 탈퇴 진행 중 — 중복 탭·이중 호출 차단.
@@ -24,6 +34,7 @@ public struct SettingsFeature: Sendable {
 
         public init() {
             self.sensitiveAlwaysLocalOnly = SensitiveCapturePreference.load()
+            self.calendarAutoRegistration = SystemCalendarAutoRegistrationPreference.load()
         }
     }
 
@@ -52,7 +63,14 @@ public struct SettingsFeature: Sendable {
         case onAppear
         case accountResolved(Account?)
         case notificationStatusResolved(NotificationStatus)
+        case notificationPreferencesResolved(NotificationPreferencesDTO?)
+        case recallNotificationsToggled(Bool)
+        case analysisNotificationsToggled(Bool)
+        case recallPreferenceRollback(Bool)
+        case analysisPreferenceRollback(Bool)
+        case preferenceErrorDismissed
         case sensitiveLocalOnlyChanged(Bool)
+        case calendarAutoRegistrationToggled(Bool)
         case deleteAccountTapped
         case confirmingDeleteChanged(Bool)
         case deleteAccountConfirmed
@@ -72,6 +90,11 @@ public struct SettingsFeature: Sendable {
     }
 
     @Dependency(\.authCoordinator) var authCoordinator
+    @Dependency(\.mochiAPIClient) var apiClient
+    @Dependency(\.calendarSyncer) var calendarSyncer
+    @Dependency(\.systemCalendarSyncEngine) var calendarSyncEngine
+
+    private enum CancelID { case recallPreference, analysisPreference }
 
     public init() {}
 
@@ -79,11 +102,14 @@ public struct SettingsFeature: Sendable {
         Reduce { state, action in
             switch action {
             case .onAppear:
-                return .run { send in
+                return .run { [apiClient] send in
                     let session = await authCoordinator.currentSession()
                     await send(.accountResolved(session.map { Account(user: $0.user) }))
                     let settings = await UNUserNotificationCenter.current().notificationSettings()
                     await send(.notificationStatusResolved(NotificationStatus(settings.authorizationStatus)))
+                    // 서버 선호는 best-effort — 실패하면 nil 유지(토글 비표시), 권한 칩·딥링크는 그대로.
+                    let preferences = try? await apiClient.notificationPreferences()
+                    await send(.notificationPreferencesResolved(preferences))
                 }
 
             case let .accountResolved(account):
@@ -94,10 +120,82 @@ public struct SettingsFeature: Sendable {
                 state.notificationStatus = status
                 return .none
 
+            case let .notificationPreferencesResolved(preferences):
+                state.notificationPreferences = preferences
+                return .none
+
+            case let .recallNotificationsToggled(enabled):
+                guard let current = state.notificationPreferences else { return .none }
+                // 낙관 반영 → 서버 PATCH(해당 필드만), 실패 시 그 필드만 롤백(FavoriteSync 관례의 축소판).
+                // 롤백은 현재 상태 위에 얹는다 — 병행 중인 다른 토글의 성공을 덮어쓰지 않게(codex P1).
+                // 같은 필드 연타는 cancelInFlight 로 마지막 요청만 살아 stale 롤백이 없다(취소는 catch 미호출).
+                let previousValue = current.recallEnabled
+                state.notificationPreferences = NotificationPreferencesDTO(
+                    recallEnabled: enabled, analysisEnabled: current.analysisEnabled
+                )
+                return .run { [apiClient] _ in
+                    _ = try await apiClient.updateNotificationPreferences(
+                        recallEnabled: enabled, analysisEnabled: nil
+                    )
+                } catch: { _, send in
+                    await send(.recallPreferenceRollback(previousValue))
+                }
+                .cancellable(id: CancelID.recallPreference, cancelInFlight: true)
+
+            case let .analysisNotificationsToggled(enabled):
+                guard let current = state.notificationPreferences else { return .none }
+                let previousValue = current.analysisEnabled
+                state.notificationPreferences = NotificationPreferencesDTO(
+                    recallEnabled: current.recallEnabled, analysisEnabled: enabled
+                )
+                return .run { [apiClient] _ in
+                    _ = try await apiClient.updateNotificationPreferences(
+                        recallEnabled: nil, analysisEnabled: enabled
+                    )
+                } catch: { _, send in
+                    await send(.analysisPreferenceRollback(previousValue))
+                }
+                .cancellable(id: CancelID.analysisPreference, cancelInFlight: true)
+
+            case let .recallPreferenceRollback(previousValue):
+                if let current = state.notificationPreferences {
+                    state.notificationPreferences = NotificationPreferencesDTO(
+                        recallEnabled: previousValue, analysisEnabled: current.analysisEnabled
+                    )
+                }
+                state.preferenceSaveFailed = true
+                return .none
+
+            case let .analysisPreferenceRollback(previousValue):
+                if let current = state.notificationPreferences {
+                    state.notificationPreferences = NotificationPreferencesDTO(
+                        recallEnabled: current.recallEnabled, analysisEnabled: previousValue
+                    )
+                }
+                state.preferenceSaveFailed = true
+                return .none
+
+            case .preferenceErrorDismissed:
+                state.preferenceSaveFailed = false
+                return .none
+
             case let .sensitiveLocalOnlyChanged(value):
                 state.sensitiveAlwaysLocalOnly = value
                 SensitiveCapturePreference.save(value)
                 return .none
+
+            case let .calendarAutoRegistrationToggled(enabled):
+                state.calendarAutoRegistration = enabled
+                SystemCalendarAutoRegistrationPreference.save(enabled)
+                // off 는 신규 등록·갱신 중단만 — 이미 등록된 EK 항목은 건드리지 않는다(§3.4d).
+                guard enabled else { return .none }
+                return .run { [calendarSyncer, calendarSyncEngine] _ in
+                    // 켜는 순간이 자연스러운 권한 프롬프트 시점(엔진은 스스로 묻지 않는 규약).
+                    // 거부해도 토글은 유지 — 이후 권한이 열리면 다음 동기화가 따라잡는다(best-effort).
+                    try? await calendarSyncer.requestEventAccess()
+                    try? await calendarSyncer.requestReminderAccess()
+                    await calendarSyncEngine.syncNow()   // 밀린 확정 일정·할 일 즉시 따라잡기
+                }
 
             case .deleteAccountTapped:
                 state.confirmingDelete = true

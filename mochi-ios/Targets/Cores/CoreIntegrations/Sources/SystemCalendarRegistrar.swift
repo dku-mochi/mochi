@@ -1,52 +1,23 @@
 import Foundation
 import CoreDomain
 
-/// 확정된 instance 를 실제 iOS 캘린더(schedule→EKEvent)·미리알림(todo→EKReminder)에 등록한다 —
-/// 일정·할 일이 모찌 안에만 머물지 않게(미션: "필요한 기억은 쉽게 떠오른다").
+/// intent payload → EKEvent/EKReminder 시각 해석의 **단일 원천**.
 ///
-/// 채팅 일정 확정과 캘린더 탭 "일정 추가"가 공유한다(2026-06-15 추출 — 이전엔 ChatFeature private).
-/// payload 는 LLM/폼이 만든 string-key 맵을 그대로 받는다(키: title/date/time/end_date/end_time/deadline).
+/// 원래 확정 시점 call-site 등록(register)의 집이었으나, 2026-07-14 자동 관리 전환으로 생성·갱신·제거
+/// 실행은 `CorePersistence.SystemCalendarSyncEngine`(Realm 관찰) 이 전담한다 — 여기엔 payload 파싱
+/// 규칙만 남긴다(엔진·과거 등록분이 같은 해석을 공유해야 시각이 어긋나지 않는다).
+/// payload 는 LLM/폼이 만든 string-key 맵(키: title/date/time/end_date/end_time/deadline).
 public enum SystemCalendarRegistrar {
-    public struct Instance: Sendable {
-        public let intentType: String
-        public let payload: [String: String]
-        public init(intentType: String, payload: [String: String]) {
-            self.intentType = intentType
-            self.payload = payload
-        }
-    }
-
-    /// **권한을 전부 먼저 확보**하고 나서 생성한다 — 일부만 만들어진 채 권한으로 실패하면
-    /// 재시도 시 EK 항목이 중복 등록된다(EventKit save 는 멱등이 아님).
-    /// 권한 확보 후의 save 실패(기본 캘린더 부재 등)는 best-effort 로 삼킨다 — 모찌 기록은
-    /// 이미 생성됐고(확정의 본질), 실패로 재시도를 유도하면 앞서 만든 EK 항목만 중복된다.
-    public static func register(
-        instances: [Instance],
-        fallbackTitle: String?,
-        using syncer: any CalendarSyncing
-    ) async throws {
-        let schedules = instances.filter {
-            $0.intentType == "schedule" && scheduleStart(from: $0.payload) != nil
-        }
-        let todos = instances.filter { $0.intentType == "todo" }
-        if !schedules.isEmpty { try await syncer.requestEventAccess() }
-        if !todos.isEmpty { try await syncer.requestReminderAccess() }
-
-        for instance in schedules {
-            guard let (start, allDay) = scheduleStart(from: instance.payload) else { continue }
-            _ = try? await syncer.createEvent(
-                title: instance.payload["title"] ?? fallbackTitle ?? "모찌 일정",
-                start: start,
-                end: scheduleEnd(from: instance.payload, start: start),
-                allDay: allDay
-            )
-        }
-        for instance in todos {
-            _ = try? await syncer.createReminder(
-                title: instance.payload["title"] ?? fallbackTitle ?? "모찌 할 일",
-                due: PayloadDate.parse(instance.payload["deadline"])
-            )
-        }
+    /// 도메인 typed payload → string-key 맵. 엔진이 `scheduleStart`/`scheduleEnd` 에 넘기기 위한 변환.
+    public static func stringMap(_ payload: IntentPayload) -> [String: String] {
+        var map: [String: String] = [:]
+        map["title"] = payload.title
+        map["date"] = payload.date
+        map["time"] = payload.time
+        map["end_date"] = payload.endDate
+        map["end_time"] = payload.endTime
+        map["deadline"] = payload.deadline
+        return map
     }
 
     /// payload end_date(+end_time) → 기간 일정의 이벤트 종료 시각.

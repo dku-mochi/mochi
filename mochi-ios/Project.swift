@@ -124,6 +124,9 @@ let project = Project(
                 // MochiItemSyncWorker 가 foreground 분석 완료를 SSE 로 받는다(`@Dependency(\.agentStreamClient)`).
                 // CoreAgentClient → CoreNetworking/CoreDomain 만 의존하므로 사이클 없음.
                 .target(name: "CoreAgentClient"),
+                // SystemCalendarSyncEngine 이 EventKit 포트(CalendarSyncing)를 쓴다.
+                // CoreIntegrations → CoreDomain 만 의존하므로 사이클 없음.
+                .target(name: "CoreIntegrations"),
                 .package(product: "RealmSwift"),
                 .package(product: "Dependencies"),
             ]
@@ -311,7 +314,10 @@ let project = Project(
             layer: .feature,
             dependencies: [
                 .target(name: "CoreDomain"),
+                .target(name: "CoreNetworking"),
                 .target(name: "CorePersistence"),
+                // 캘린더·미리알림 자동 등록 토글이 켜지는 순간 EK 권한 프롬프트(calendarSyncer)를 띄운다.
+                .target(name: "CoreIntegrations"),
                 .target(name: "CoreAuth"),
                 .target(name: "DesignSystem"),
                 .package(product: "ComposableArchitecture"),
