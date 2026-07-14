@@ -3014,8 +3014,6 @@ public enum Components {
         }
         /// - Remark: Generated from `#/components/schemas/SearchResponse`.
         public struct SearchResponse: Codable, Hashable, Sendable {
-            /// - Remark: Generated from `#/components/schemas/SearchResponse/answer`.
-            public var answer: Swift.String
             /// - Remark: Generated from `#/components/schemas/SearchResponse/citations`.
             public var citations: [Components.Schemas.CitationDTO]
             /// - Remark: Generated from `#/components/schemas/SearchResponse/totalTokens`.
@@ -3025,23 +3023,19 @@ public enum Components {
             /// Creates a new `SearchResponse`.
             ///
             /// - Parameters:
-            ///   - answer:
             ///   - citations:
             ///   - totalTokens:
             ///   - agentRunId:
             public init(
-                answer: Swift.String,
                 citations: [Components.Schemas.CitationDTO],
                 totalTokens: Swift.Int? = nil,
                 agentRunId: Swift.String? = nil
             ) {
-                self.answer = answer
                 self.citations = citations
                 self.totalTokens = totalTokens
                 self.agentRunId = agentRunId
             }
             public enum CodingKeys: String, CodingKey {
-                case answer
                 case citations
                 case totalTokens
                 case agentRunId

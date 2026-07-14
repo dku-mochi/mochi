@@ -141,7 +141,6 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
         case let .ok(response):
             let dto = try response.body.json
             return SearchResponse(
-                answer: dto.answer,
                 citations: try dto.citations.map(Self.mapCitation),
                 totalTokens: dto.totalTokens ?? 0,
                 agentRunID: dto.agentRunId.flatMap { UUID(uuidString: $0) }
