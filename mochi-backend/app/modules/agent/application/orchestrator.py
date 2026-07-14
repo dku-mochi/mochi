@@ -43,6 +43,7 @@ log = get_logger("agent")
 #: 침범해 run 전체가 CancelledError 로 죽는 것을 막는다 (리뷰 P1: best-effort 계약 위반 경로).
 #: 분석이 예산 근접까지 쓴 턴에서도 색인은 이 안에서 끝나거나 포기된다.
 _INDEX_EMBED_TIMEOUT_SECONDS = 15.0
+_CATEGORY_VOCABULARY_LIMIT = 50
 
 
 @dataclass(slots=True)
@@ -178,6 +179,12 @@ class AgentOrchestrator:
             has_profile=bool(profile_summary),
             profile_length=len(profile_summary or ""),
         )
+        category_vocabulary = tuple(
+            await self._gateway.list_category_vocabulary(
+                owner_id=owner_id,
+                limit=_CATEGORY_VOCABULARY_LIMIT,
+            )
+        )
         recent_context = await self._recent_analysis_context(
             owner_id=owner_id,
             current_item_id=mochi_item_id,
@@ -186,7 +193,12 @@ class AgentOrchestrator:
 
         first_user: dict[str, Any] = {
             "role": "user",
-            "text": _initial_user_text(source, reanalysis_hint, recent_context),
+            "text": _initial_user_text(
+                source,
+                reanalysis_hint,
+                recent_context,
+                category_vocabulary,
+            ),
         }
         if source.images:
             first_user["images"] = list(source.images)
@@ -614,6 +626,7 @@ def _initial_user_text(
     source: AnalysisInput,
     reanalysis_hint: str | None = None,
     recent_context: tuple[str, ...] = (),
+    category_vocabulary: tuple[str, ...] = (),
 ) -> str:
     blocks: list[str] = []
     blocks.append(_korea_time_context())
@@ -634,6 +647,16 @@ def _initial_user_text(
             "첨부 이미지와 교차확인해 항목을 빠짐없이 분해하는 데 쓰되, 이미지를 대체하지 말고 보완하세요 — "
             "오인식·잡음이 있을 수 있으니 이미지가 보여주는 근거를 우선합니다.\n" + source.analysis_ocr_text
         )
+    if category_vocabulary:
+        labels = ", ".join(" ".join(label.split()) for label in category_vocabulary if label.strip())
+        if labels:
+            blocks.append(
+                "# 기존 카테고리 어휘 (전체 기록)\n"
+                "같은 사용자의 전체 기록에서 이미 사용한 category 라벨입니다. 앞쪽일수록 정규화를 "
+                "거쳤거나 자주 반복된 라벨입니다. 현재 캡처와 주제가 실제로 같을 때만 기존 철자를 "
+                "그대로 재사용하고, 맞는 라벨이 없으면 새로 만드세요. 이 목록은 약한 힌트이며 현재 "
+                "캡처의 근거를 덮어쓰지 않습니다.\n" + labels
+            )
     if recent_context:
         blocks.append(
             "# 최근 기록 컨텍스트 (최근 1달)\n"

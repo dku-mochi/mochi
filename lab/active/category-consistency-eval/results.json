@@ -1,0 +1,254 @@
+{
+  "metric_scope": "exact prior-label availability; not semantic correctness or LLM reuse accuracy",
+  "data": {
+    "recall_snapshot": {
+      "source_rows": 114,
+      "active_categorized": 98,
+      "captured_min": "2026-06-10T13:40:06.260248+00:00",
+      "captured_max": "2026-06-15T12:00:37.647319+00:00",
+      "distinct_categories": 17,
+      "normalized": {
+        "items": 69,
+        "distinct": 7,
+        "singleton_labels": 1
+      },
+      "raw": {
+        "items": 29,
+        "distinct": 11,
+        "singleton_labels": 8,
+        "items_exactly_covered_by_normalized_vocabulary": 6,
+        "normalized_vocabulary_exact_coverage_pct": 20.7
+      }
+    },
+    "prod_snapshot": {
+      "rows": 97,
+      "categorized": 91,
+      "distinct_categories": 17,
+      "singleton_labels": 7,
+      "singleton_item_share_pct": 7.7,
+      "clear_alias_lower_bound": {
+        "labels": [
+          "쇼핑",
+          "쇼핑 후보"
+        ],
+        "counts": [
+          19,
+          9
+        ],
+        "cluster_total": 28,
+        "alternate_label_share_pct": 32.1
+      }
+    }
+  },
+  "observed_stream": {
+    "current_recent18_30d": {
+      "repeat_events": 81,
+      "hits": 80,
+      "coverage_pct": 98.8
+    },
+    "recent40_30d": {
+      "repeat_events": 81,
+      "hits": 81,
+      "coverage_pct": 100.0
+    },
+    "recent40_all_time": {
+      "repeat_events": 81,
+      "hits": 81,
+      "coverage_pct": 100.0
+    },
+    "lifetime50": {
+      "repeat_events": 81,
+      "hits": 81,
+      "coverage_pct": 100.0
+    }
+  },
+  "controlled_probes": {
+    "31d_dormancy": {
+      "current_recent18_30d": {
+        "queries": 8,
+        "hits": 0,
+        "coverage_pct": 0.0
+      },
+      "recent40_30d": {
+        "queries": 8,
+        "hits": 0,
+        "coverage_pct": 0.0
+      },
+      "recent40_all_time": {
+        "queries": 8,
+        "hits": 8,
+        "coverage_pct": 100.0
+      },
+      "lifetime50": {
+        "queries": 8,
+        "hits": 8,
+        "coverage_pct": 100.0
+      }
+    },
+    "25_intervening_saves": {
+      "current_recent18_30d": {
+        "queries": 8,
+        "hits": 0,
+        "coverage_pct": 0.0
+      },
+      "recent40_30d": {
+        "queries": 8,
+        "hits": 8,
+        "coverage_pct": 100.0
+      },
+      "recent40_all_time": {
+        "queries": 8,
+        "hits": 8,
+        "coverage_pct": 100.0
+      },
+      "lifetime50": {
+        "queries": 8,
+        "hits": 8,
+        "coverage_pct": 100.0
+      }
+    },
+    "60_intervening_saves": {
+      "current_recent18_30d": {
+        "queries": 8,
+        "hits": 0,
+        "coverage_pct": 0.0
+      },
+      "recent40_30d": {
+        "queries": 8,
+        "hits": 0,
+        "coverage_pct": 0.0
+      },
+      "recent40_all_time": {
+        "queries": 8,
+        "hits": 0,
+        "coverage_pct": 0.0
+      },
+      "lifetime50": {
+        "queries": 8,
+        "hits": 8,
+        "coverage_pct": 100.0
+      }
+    }
+  },
+  "fuzzy_label_probe": {
+    "0.35": {
+      "pair_count": 4,
+      "pairs": [
+        [
+          "쇼핑",
+          "쇼핑 후보",
+          0.571
+        ],
+        [
+          "쇼핑 후보",
+          "스포츠 정보",
+          0.364
+        ],
+        [
+          "취미 및 관심사",
+          "취미 및 자기계발",
+          0.588
+        ],
+        [
+          "학업",
+          "학업 프로젝트",
+          0.444
+        ]
+      ]
+    },
+    "0.4": {
+      "pair_count": 3,
+      "pairs": [
+        [
+          "쇼핑",
+          "쇼핑 후보",
+          0.571
+        ],
+        [
+          "취미 및 관심사",
+          "취미 및 자기계발",
+          0.588
+        ],
+        [
+          "학업",
+          "학업 프로젝트",
+          0.444
+        ]
+      ]
+    },
+    "0.55": {
+      "pair_count": 2,
+      "pairs": [
+        [
+          "쇼핑",
+          "쇼핑 후보",
+          0.571
+        ],
+        [
+          "취미 및 관심사",
+          "취미 및 자기계발",
+          0.588
+        ]
+      ]
+    },
+    "0.65": {
+      "pair_count": 0,
+      "pairs": []
+    }
+  },
+  "live_ab_followup": {
+    "model": "gemini-3.1-flash-lite",
+    "cases": 3,
+    "variants": 2,
+    "runs_per_cell": 3,
+    "successful_runs": 18,
+    "target_definition": "exact match to an existing canonical label supplied only to lifetime_vocab",
+    "baseline": {
+      "target_matches": 0,
+      "runs": 9,
+      "target_match_pct": 0.0,
+      "categories_by_case": {
+        "investment": [
+          "투자 공부",
+          "투자 공부",
+          "투자 공부"
+        ],
+        "academic": [
+          "학사 일정",
+          "학사 일정",
+          "학사 일정"
+        ],
+        "shopping": [
+          "쇼핑 고민",
+          "쇼핑 계획",
+          "쇼핑 계획"
+        ]
+      },
+      "median_latency_ms": 1970.3
+    },
+    "lifetime_vocab": {
+      "target_matches": 9,
+      "runs": 9,
+      "target_match_pct": 100.0,
+      "categories_by_case": {
+        "investment": [
+          "투자",
+          "투자",
+          "투자"
+        ],
+        "academic": [
+          "학업",
+          "학업",
+          "학업"
+        ],
+        "shopping": [
+          "쇼핑",
+          "쇼핑",
+          "쇼핑"
+        ]
+      },
+      "median_latency_ms": 1791.0
+    },
+    "caveat": "small hand-authored stress set; not a general category-accuracy estimate"
+  }
+}

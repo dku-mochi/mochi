@@ -103,5 +103,8 @@ class MochiItemGatewayAdapter(MochiItemGateway):
             for it in recent
         ]
 
+    async def list_category_vocabulary(self, *, owner_id: UUID, limit: int) -> list[str]:
+        return await self._repo.list_category_vocabulary(owner_id=owner_id, limit=limit)
+
     async def count_items(self, *, owner_id: UUID) -> int:
         return await self._repo.count(owner_id=owner_id)

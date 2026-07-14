@@ -10,6 +10,9 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-07-14 — backend, docs (저장 시 전체기간 카테고리 어휘로 장기 명명 일관성 보강)
+- 저장 분석에 owner-scoped 전체기간 category 어휘를 약한 컨텍스트로 추가했다. 정규화 라벨 우선→사용빈도→최근 사용순 최대 50개이며 raw 라벨도 fallback으로 포함해, 월간 digest 미실행·30일 휴면·최근 18건 eviction에도 기존 철자를 재사용할 수 있다. 추가 LLM/cron/API/DB 변경은 없고, 월간 정규화는 이미 생긴 alias를 실제 write로 합치는 repair 역할을 유지한다. 실제 활성 98건 exact-label 노출은 현행 98.8%였지만 31일/60건 통제 probe는 0%→100%로 회수했다(`lab/active/category-consistency-eval/REPORT.md`).
+
 ## 2026-07-14 — infra (mochi-svc 배포 — 지도 수복 게이트 · 검색 answer 제거 · 알림 전역 선호 0028 · 캘린더 silent push)
 - develop `11bc5f1` 을 `mochi-svc` 배포 (INFRA §2.5 런북: 0단계 tracked-clean 게이트 + 배포 커밋 해시 기록 → 사전 `make test` 560 passed → COPYFILE_DISABLE tar → IAP scp(원격 `gzip -t` 재검증) → `~/mochi-svc-setup.sh`: 코드 교체 + .env 재생성(백업) + `uv sync --frozen --no-dev` + `alembic upgrade head` **0027→0028 신규 적용**(users.notify_recall_enabled/notify_analysis_enabled) + restart).
 - 검증: 외부 HTTPS `/api/v1/health` `{"status":"ok"}` · openapi 200(SearchResponse `answer` 부재 + `/users/me/notification-preferences` 라우트·스키마 라이브) · `worker.started`(2)·`recall_worker.started` 기동 · `alembic current` = 0028 (head) · 재시작 후 15분 창 ERROR 0·warning 0.

@@ -69,6 +69,14 @@ class MochiItemRepository(Protocol):
         """
         ...
 
+    async def list_category_vocabulary(self, *, owner_id: UUID, limit: int) -> list[str]:
+        """전체 기간 distinct category 라벨(정규화 여부 → 사용빈도 → 최근 사용순).
+
+        저장 시 분석이 월간 digest 실행 여부와 무관하게 기존 라벨을 재사용하도록 돕는다.
+        raw 라벨도 포함하되, 한 번이라도 정규화된 라벨을 먼저 반환한다.
+        """
+        ...
+
     async def bulk_update_category(self, *, owner_id: UUID, categories: dict[UUID, str]) -> None:
         """여러 item 의 ``category`` 를 일괄 갱신(주간 정리 정규화 write). owner-scoped."""
         ...

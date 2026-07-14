@@ -164,10 +164,12 @@ intent 를 `mochi_items` 컬럼이 아니라 별도 `intent_instances` 행으로
 
 API 응답은 `intentInstances`(intentType/payload/label/reasoning/lifecycleKind/instanceId) + `needsReview` + `reviewOptions` projection. 옛 `intent`/`secondaryIntents`/`confidence`/`candidates` 는 제거됐다.
 
-### 4.4 카테고리 정규화 — read projection 아닌 **write** (월간 정리)
+### 4.4 카테고리 일관성 — 저장 시 예방 + 월간 **write repair**
 
 `mochi_items.category` 는 캡처마다 LLM 이 개별로 뽑아 파편화되기 쉽다("여행"/"여행 준비"/"여행 계획"). **월간 정리(`POST /mochi_items/monthly_digest`)** 가 그 달(KST 1일~말일) 항목의 category 를 LLM 1회(flash-lite structured output)로 더 큰 묶음(coarse)으로 **정규화해 DB 에 write** 한다 — read projection 과 달리 실제 컬럼을 재작성한다. 같은 호출이 "모찌의 한마디"(greeting) 도 생성한다. `monthStart` 가 어긋나도 서버가 KST 그 달 1일로 재정규화한다(상한 30 item 을 LLM 컨텍스트로).
 
+- **저장 시 예방**: 매 분석은 같은 owner가 전체 기간에 사용한 category 어휘를 약한 컨텍스트로 받는다. 월간 정리를 실행한 라벨을 우선하되 아직 정리되지 않은 raw 라벨도 fallback으로 포함해, 클라이언트가 digest를 한 번도 호출하지 않았거나 30일 넘게 주제가 휴면해도 같은 주제면 기존 철자를 재사용할 수 있게 한다. 이 경로는 category를 강제 매핑하거나 DB를 재작성하지 않는다.
+- **월간 repair**: 저장 시 예방이 놓쳤거나 이미 생긴 fine alias를 coarse 라벨로 실제 병합하는 책임은 계속 월간 정리가 가진다. 즉 저장 경로는 새 파편화의 확률을 낮추고, digest는 기존 파편화를 수렴시킨다.
 - **연쇄 톤앤매너**: 정규화한 item 은 `category_normalized_at` 마커를 찍는다. 다음 달 digest 는 **정규화된 라벨만** "기존 카테고리" 컨텍스트로 LLM 에 넘겨 재사용을 유도한다 — raw fine 은 제외해 달별 흔들림을 줄인다.
 - **iOS 반영**: 응답 그룹의 `itemIds`(서버 id)를 클라가 로컬 id 역매핑해 Realm `category` 를 갱신 → 홈 월간 리포트가 정규화 라벨로 자동 반영. (돌아보기 화면은 **현재 달만** 이 호출을 트리거하고, 과거 달은 로컬 집계만 보여줘 재정규화·LLM 비용을 막는다.)
 - LLM 은 item id 를 다루지 않는다(fine→coarse 매핑만 반환, 서버가 적용). 매핑 누락 fine 은 원본 유지(결정론·유실 0). 그 달 항목 3건 미만이면 LLM 미호출 + 정적 greeting.

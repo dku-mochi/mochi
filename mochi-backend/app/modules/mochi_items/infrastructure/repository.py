@@ -5,7 +5,7 @@ from datetime import datetime
 from urllib.parse import parse_qs, urlparse
 from uuid import UUID
 
-from sqlalchemy import ColumnElement, delete, func, select, update
+from sqlalchemy import ColumnElement, case, delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -611,6 +611,32 @@ class PostgresMochiItemRepository(MochiItemRepository):
         )
         rows = (await self._session.scalars(stmt)).all()
         return [category for category in rows if category]
+
+    async def list_category_vocabulary(self, *, owner_id: UUID, limit: int) -> list[str]:
+        # 월간 digest 를 한 번이라도 거친 라벨을 먼저 두고, 각 묶음 안에서는 사용빈도와
+        # 마지막 사용시각 순으로 정렬한다. raw 도 포함해야 digest 미실행 사용자에게도 어휘가 생긴다.
+        normalized_rank = case(
+            (func.count(MochiItemRow.category_normalized_at) > 0, 1),
+            else_=0,
+        )
+        stmt = (
+            select(MochiItemRow.category)
+            .where(
+                MochiItemRow.owner_id == owner_id,
+                MochiItemRow.deleted_at.is_(None),
+                MochiItemRow.category.is_not(None),
+                MochiItemRow.category != "",
+            )
+            .group_by(MochiItemRow.category)
+            .order_by(
+                normalized_rank.desc(),
+                func.count(MochiItemRow.id).desc(),
+                func.max(MochiItemRow.captured_at).desc(),
+            )
+            .limit(limit)
+        )
+        rows = (await self._session.scalars(stmt)).all()
+        return [category.strip() for category in rows if category and category.strip()]
 
     async def bulk_update_category(self, *, owner_id: UUID, categories: dict[UUID, str]) -> None:
         now = datetime.utcnow()

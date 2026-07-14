@@ -1,7 +1,7 @@
 """Agent ↔ MochiItem 모듈 사이의 얇은 outbound port.
 
 orchestrator 는 이 포트에만 의존해 (1) 분석 입력을 로드하고, (2) 분석 결과를
-write-back 하고, (3) 개인화 프로필용 최근 window 를 읽는다. 구현체
+write-back 하고, (3) 개인화 프로필용 최근 window 와 기존 category 어휘를 읽는다. 구현체
 (`infrastructure/mochi_item_gateway.py`)가 `mochi_items.application` 경계를 통해
 실제 저장소에 접근한다 — orchestrator 는 infrastructure 를 모른다 (테스트는 fake 주입).
 
@@ -50,5 +50,7 @@ class MochiItemGateway(Protocol):
         ...
 
     async def list_recent_window(self, *, owner_id: UUID, limit: int) -> list[ProfileWindowItem]: ...
+
+    async def list_category_vocabulary(self, *, owner_id: UUID, limit: int) -> list[str]: ...
 
     async def count_items(self, *, owner_id: UUID) -> int: ...

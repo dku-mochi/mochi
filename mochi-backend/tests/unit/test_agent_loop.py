@@ -94,10 +94,12 @@ class _Registry:
 
 
 class _FakeGateway:
-    def __init__(self, source: AnalysisInput):
+    def __init__(self, source: AnalysisInput, category_vocabulary: list[str] | None = None):
         self._source = source
+        self._category_vocabulary = category_vocabulary or []
         self.applied = None
         self.indexed = None
+        self.category_vocabulary_calls = []
 
     async def load_source(self, *, owner_id, mochi_item_id):
         return self._source
@@ -114,6 +116,10 @@ class _FakeGateway:
 
     async def list_recent_window(self, *, owner_id, limit):
         return []
+
+    async def list_category_vocabulary(self, *, owner_id, limit):
+        self.category_vocabulary_calls.append((owner_id, limit))
+        return self._category_vocabulary[:limit]
 
     async def count_items(self, *, owner_id):
         return 0
@@ -197,6 +203,30 @@ async def test_no_url_single_turn_finalize_writes_back():
     assert gateway.applied.summary == "할 일 요약"
     assert any(e.kind == "final" for e in events)
     assert "# 시간 컨텍스트" in llm.calls[0]["user_parts"][0]["text"]
+
+
+@pytest.mark.asyncio
+async def test_lifetime_category_vocabulary_is_injected_as_weak_context():
+    owner_id = uuid4()
+    gateway = _FakeGateway(
+        AnalysisInput(text="ETF 공부 자료", url=None, user_memo=None),
+        category_vocabulary=["투자", "학업", "쇼핑"],
+    )
+    llm = _ScriptedLLM([_finalize_chunk(intent="knowledge")])
+    orch = AgentOrchestrator(
+        llm=llm,
+        tools=_Registry(),
+        max_steps=8,
+        gateway=gateway,
+    )
+
+    await _drain(orch, uuid4(), owner_id)
+
+    prompt = llm.calls[0]["user_parts"][0]["text"]
+    assert "# 기존 카테고리 어휘 (전체 기록)" in prompt
+    assert "투자, 학업, 쇼핑" in prompt
+    assert "약한 힌트" in prompt
+    assert gateway.category_vocabulary_calls == [(owner_id, 50)]
 
 
 @pytest.mark.asyncio
