@@ -141,7 +141,7 @@ export function searchFallback(
   query: string,
 ): SearchWireResponse {
   const persona = getPersona(personaSlug);
-  if (!persona) return { answer: "", citations: [] };
+  if (!persona) return { citations: [] };
 
   let best = null as null | (typeof persona.cannedSearch)[number];
   let bestScore = 0;
@@ -154,7 +154,6 @@ export function searchFallback(
   }
   if (best) {
     return {
-      answer: best.answer,
       citations: best.citationSlugs.map((slug, i) => ({
         mochiItemId: slug,
         snippet: persona.items.find((it) => it.slug === slug)?.summary ?? "",
@@ -177,10 +176,6 @@ export function searchFallback(
     .slice(0, 6);
 
   return {
-    answer:
-      hits.length > 0
-        ? `‘${query}’와 닿아 있는 기록 ${hits.length}건을 찾았어요.`
-        : `‘${query}’로 남긴 기록을 찾지 못했어요. 다른 말로 다시 찾아볼까요?`,
     citations: hits.map((h, i) => ({ mochiItemId: h.slug, snippet: "", score: 0.8 - i * 0.08 })),
   };
 }

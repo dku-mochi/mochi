@@ -145,7 +145,6 @@ export const seedCannedChatSchema = z.object({
 export const seedCannedSearchSchema = z.object({
   id: z.string(),
   triggers: z.array(z.string()).min(1),
-  answer: z.string(),
   citationSlugs: z.array(z.string()).min(1),
 });
 

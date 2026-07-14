@@ -6,7 +6,7 @@ import { recordMode } from "@/lib/liveStats";
 
 /*
  * 검색 훅 — POST /api/bff/search 의 citations 만 소비한다.
- * wire 의 answer(문장 합성)는 채팅(S5)의 역할이라 화면에 올리지 않는다 (iOS 와 동일).
+ * 문장 답변은 채팅(S5)의 역할 — /search 계약에서 answer 필드가 제거됐다 (iOS 와 동일).
  * citation id → 시드/오버레이 slug 해석은 호출부가 resolver 로 주입한다.
  */
 

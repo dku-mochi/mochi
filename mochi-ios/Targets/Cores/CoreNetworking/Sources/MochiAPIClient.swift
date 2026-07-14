@@ -791,7 +791,6 @@ public enum SearchScope: String, Codable, Sendable, CaseIterable {
 }
 
 public struct SearchResponse: Equatable, Sendable, Hashable, Codable {
-    public let answer: String
     public let citations: [Citation]
     public let totalTokens: Int
     public let agentRunID: UUID?
@@ -808,7 +807,7 @@ public struct SearchResponse: Equatable, Sendable, Hashable, Codable {
     }
 
     private enum CodingKeys: String, CodingKey {
-        case answer, citations
+        case citations
         case totalTokens = "totalTokens"
         case agentRunID = "agentRunId"
     }

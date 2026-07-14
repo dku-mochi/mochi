@@ -30,7 +30,6 @@ class Citation:
 
 @dataclass(slots=True)
 class SearchResult:
-    answer: str
     citations: list[Citation] = field(default_factory=list)
     total_tokens: int = 0
     agent_run_id: UUID | None = None

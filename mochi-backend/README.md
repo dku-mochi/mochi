@@ -57,8 +57,8 @@ app/
 │   │   ├── prompts/system_prompts.py     버전 관리되는 system prompt
 │   │   └── presentation/router.py        SSE 스트림 엔드포인트
 │   ├── search/
-│   │   ├── domain/                SearchQuery, Citation, RetrievalIndex/Reranker/AnswerSynthesizer ports
-│   │   ├── application/           HybridSearch use case (BM25 + 벡터 → RRF → reranker → synthesizer)
+│   │   ├── domain/                SearchQuery, Citation, RetrievalIndex/Reranker ports
+│   │   ├── application/           HybridSearch use case (BM25 + 벡터 → RRF → reranker)
 │   │   ├── infrastructure/        PostgresHybridIndex, rrf
 │   │   └── presentation/router.py
 │   ├── conversations/             채팅(질문 탭) 멀티턴 대화 — 설계: journal/2026-06-10-chat-tab-design.md

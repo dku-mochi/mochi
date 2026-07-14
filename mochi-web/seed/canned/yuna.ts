@@ -50,19 +50,16 @@ export const yunaSearch: SeedCannedSearch[] = [
   {
     id: "yuna-search-dress",
     triggers: ["원피스", "옷", "쇼핑"],
-    answer: "봐두신 원피스 - 린넨 미디, 8.9만원. 쿠폰이 7/10까지예요.",
     citationSlugs: ["shop-linen-dress"],
   },
   {
     id: "yuna-search-cafe",
     triggers: ["성수", "카페", "빵"],
-    answer: "성수 카페 3곳이 모여 있어요 - 소금빵·통창 뷰·브런치. 주말 코스로 묶기 좋아요.",
     citationSlugs: ["insta-cafe-bakery", "insta-cafe-window", "insta-cafe-brunch"],
   },
   {
     id: "yuna-search-gift",
     triggers: ["선물", "엄마", "생신", "생일"],
-    answer: "엄마 생신(7/18) 선물 메모 - 스카프·홍삼·애프터눈티 후보, 주문은 7/14까지.",
     citationSlugs: ["gift-mom"],
   },
 ];

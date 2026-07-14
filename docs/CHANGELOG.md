@@ -19,6 +19,12 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 - **프롬프트 v30→v31**(+function schema 대칭): place value 의 유일 소스 = tool 반환 place_entity(앞뒤 덧붙임·자작 금지 — 깨진 값은 틀린 핀과 같다), 행사 캡처는 화면에 보이는 개최 장소명으로 검색(없는 venue 추측 금지). 기준+why·케이스 하드코딩 없음. clear 135건 eval 무회귀(mean 0.99, v28 스냅샷 0.983 대비 — 잔차는 기존 실패 tm78 + run 변동 1건, RUNS=3 2회 측정 동형).
 - **infra.** INFRA §2.5 0단계(배포 전 `git status` clean fail-closed 확인 + 배포 커밋 해시 기록) + §5.9 함정 신설(uncommitted 배포 → 다음 배포가 조용히 롤백, 실사고 타임라인).
 
+## 2026-07-14 — backend, ios, web (POST /search 계약에서 `answer` 필드 제거 — 죽은 표면 정리)
+- **왜**: 질문·답변은 채팅 탭 소관으로 역할이 갈렸고(UX_SPEC §3.4·§3.5) 세 클라이언트 모두 `answer` 를 렌더하지 않아(iOS 매핑만, web 은 07-10 표시 제거) placeholder `_ExtractiveSynthesizer`(snippet 이어붙이기)가 ⓪ openapi 계약에만 살아 있었다. 합성기 배선이 아니라 제거로 결정.
+- backend: `SearchResponse.answer`·`_ExtractiveSynthesizer`·`AnswerSynthesizer` port·`HybridSearch` synthesizer 경로·`SearchResult.answer` 제거. 하이브리드 retrieval·citations 동작 불변 (`make test` 551 passed·lint·typecheck green). `make openapi` 재수출.
+- ios: `CodeGen/generate.sh` 재생성(Types.swift) + `SearchResponse` 도메인 타입·`OpenAPIMochiClient` 매핑에서 answer 제거. FeatureSearch 는 원래 citations 만 소비 — 영향 0.
+- web: `SearchWireResponse.answer`·`searchFallback` answer 반환·seed `cannedSearch[].answer`(스키마+페르소나 3명 9건) 제거, `gen:api` 재생성. `useSearch` 는 citations 만 소비라 무변경 (typecheck·vitest 32·seed 검증 통과).
+
 ## 2026-07-13 — backend, infra (채팅 알림 예약 시각 KST 정합 — "1분 뒤"가 다음날 오던 버그)
 - **근본원인**: 채팅 프롬프트의 현재시각(`{now}`)이 offset 없는 벽시계(`2026-07-13 Monday 18:30`)라, 모델이 "1분 뒤"를 벽시계로 옳게 계산해 놓고 offset 만 `Z`/`+00:00` 로 잘못 붙여 내면 iOS 가 절대시각으로 해석 → +9h → **다음날 새벽 발화**. 기존 `_parse_iso` 는 naive 만 KST 로 보정하고 모델이 붙인 (틀린) offset 은 그대로 신뢰했다.
 - **수정 두 겹** (`propose.py`, `run_chat_turn.py`): (1) 프롬프트 `{now}` 에 `%z`(+0900) 앵커를 실어 모델이 애초에 KST 로 내도록 유도. (2) `_parse_iso` 는 naive→KST 유지하되 **KST(+09:00) 아닌 offset 은 거부**(None→에러→모델 재시도). 벽시계 재해석(offset 강제)은 반대 케이스(모델이 실제 UTC 산술을 한 경우)를 조용히 +9h 틀리게 만들어(내일/장기 예약은 과거검증도 통과해 silent) 채택하지 않음 — 추측 대신 거부. reminder·notification_reschedule 공통. `create_schedule` 은 date-only 검증만이고 비-KST offset 은 거부되어 무영향.

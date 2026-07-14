@@ -55,21 +55,16 @@ export const senaSearch: SeedCannedSearch[] = [
   {
     id: "sena-search-ai",
     triggers: ["ai", "에이전트", "agent", "langchain", "rag"],
-    answer:
-      "저장해둔 AI 에이전트 자료 3건 - LangChain 입문 강의, RAG 구조 정리, 동향 뉴스레터가 이어져 있어요.",
     citationSlugs: ["youtube-langchain", "blog-rag-intro", "newsletter-agents"],
   },
   {
     id: "sena-search-deadline",
     triggers: ["마감", "이번 주", "제출", "과제"],
-    answer:
-      "이번 주 마감은 운영체제 과제 4(일요일 23:59)가 가장 급하고, 발표 대본과 인턴 서류가 그 뒤를 따라요.",
     citationSlugs: ["lms-os-assignment", "memo-presentation-script", "intern-notice"],
   },
   {
     id: "sena-search-dacon",
     triggers: ["데이콘", "경진", "공모"],
-    answer: "데이콘 경진대회 - 최종 산출물이 7/15 마감이에요. 창업 공모전 접수는 7/27까지.",
     citationSlugs: ["dacon-contest", "contest-poster"],
   },
 ];

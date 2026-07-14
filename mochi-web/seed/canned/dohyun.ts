@@ -51,21 +51,16 @@ export const dohyunSearch: SeedCannedSearch[] = [
   {
     id: "dohyun-search-improve",
     triggers: ["검색", "pgvector", "리랭", "하이브리드"],
-    answer:
-      "검색 개선 자료 3건 - HNSW 튜닝, 하이브리드 설계, 리랭커 비교가 스터디 발표 재료로 모여 있어요.",
     citationSlugs: ["blog-pgvector", "blog-hybrid-search", "blog-reranker"],
   },
   {
     id: "dohyun-search-monitoring",
     triggers: ["모니터링", "카톡", "grafana", "지연"],
-    answer: "카카오톡으로 받은 Grafana 실전기 1건 - 아직 안 읽으셨어요.",
     citationSlugs: ["kakao-monitoring-link"],
   },
   {
     id: "dohyun-search-schedule",
     triggers: ["일정", "다음 주", "이번 주"],
-    answer:
-      "가까운 일정 - 파이콘 티켓팅(금 10:00), 정기 배포(금 11:00), 치과(월 18:30) 순이에요.",
     citationSlugs: ["pycon-ticket", "deploy-schedule", "dentist"],
   },
 ];

@@ -41,7 +41,6 @@ export type AnalysisWireEvent =
 
 /** POST /search 응답 (필요 필드만 — CitationDTO 는 mochiItemId 케이싱) */
 export interface SearchWireResponse {
-  answer: string;
   citations: Array<{ mochiItemId: string; snippet?: string; score: number }>;
 }
 

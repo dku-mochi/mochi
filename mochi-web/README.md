@@ -19,7 +19,7 @@ description: mochi-web(심사위원용 여정 데모 + BFF)의 빌드·아키텍
 | S1 페르소나 선택 | `/p` | 추천 카드 1장에만 border-beam |
 | S2 기록 | `/p/[persona]/capture` | 시나리오 3건 + 직접 보내기 컴포저(붙여넣기·드롭·이미지) + 꽂히는 보드 4칸 |
 | S3 홈 | `/p/[persona]` | 자유 탐색 허브 — 내 세션 오버레이가 합성된다 |
-| S4 검색 | `/p/[persona]/search` | 실검색(라이브) + canned 폴백 — answer 미표시, 타일 랭킹만 |
+| S4 검색 | `/p/[persona]/search` | 실검색(라이브) + canned 폴백 — citations 타일 랭킹만 |
 | S5 질문 | `/p/[persona]/chat` | POST-as-SSE, citation·proposal |
 | S6 리마인드 | `/p/[persona]/recall` | 풀스크린 R3F 코버플로우 — 데모의 하이라이트 |
 | S7 마무리 | `/finale` | 체험 요약·아키텍처·QR·재선택 |
@@ -62,7 +62,7 @@ Next.js 16 주의: 이 레포의 Next 는 학습 데이터와 다를 수 있다 
 - **검색** `POST /api/bff/search`: upstream `POST /search`(12s 타임아웃) 실패 시 canned 폴백.
   citations 의 `mochiItemId`(uuid)는 클라가 `seed/backend-ids.json` 으로 시드 slug 에 매핑해 타일로 렌더
   (내 세션 오버레이의 라이브 uuid 도 slug 로 되살린다 — 매핑에 없는 id, 즉 남의 기록은 버린다).
-  wire 의 `answer` 는 화면에 올리지 않는다: 문장 답변은 S5 채팅의 몫이고 iOS 검색도 citations 만 쓴다.
+  문장 답변은 S5 채팅의 몫 — `/search` 계약에 `answer` 필드가 없다(2026-07-14 제거, iOS 도 citations 만 쓴다).
   클라는 문구 일치(literal)를 앞세우고 citations 로 보강하며, 라이브 실패 시 literal 만으로 정직 강등.
 - **라이브 분석** `POST /api/bff/ingest` → `GET /api/bff/ingest/{id}/stream?p={persona}` → `GET /api/bff/items/{id}?p={persona}`:
   실 ingest(Idempotency-Key 는 입력 내용 해시 — 재전송 중복 방지) → 진행 SSE 프록시(스톨 시 `final` 이어붙임) →

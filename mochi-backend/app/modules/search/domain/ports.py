@@ -23,7 +23,3 @@ class RetrievalIndex(Protocol):
 
 class Reranker(Protocol):
     async def rerank(self, query: str, candidates: list[Citation], top_n: int) -> list[Citation]: ...
-
-
-class AnswerSynthesizer(Protocol):
-    async def synthesize(self, query: str, citations: list[Citation], owner_id: UUID | None) -> str: ...

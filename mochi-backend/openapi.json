@@ -3368,10 +3368,6 @@
       },
       "SearchResponse": {
         "properties": {
-          "answer": {
-            "type": "string",
-            "title": "Answer"
-          },
           "citations": {
             "items": {
               "$ref": "#/components/schemas/CitationDTO"
@@ -3393,7 +3389,6 @@
         },
         "type": "object",
         "required": [
-          "answer",
           "citations"
         ],
         "title": "SearchResponse"

@@ -1610,8 +1610,6 @@ export interface components {
         };
         /** SearchResponse */
         SearchResponse: {
-            /** Answer */
-            answer: string;
             /** Citations */
             citations: components["schemas"]["CitationDTO"][];
             /**
