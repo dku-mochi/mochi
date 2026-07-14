@@ -865,6 +865,20 @@ class NotificationWorker:
             attempts=row.attempts,
         )
 
+    async def _recall_push_enabled(
+        self, session_factory: async_sessionmaker[AsyncSession], owner_id: UUID
+    ) -> bool:
+        """``users.notify_recall_enabled`` 조회 — 명시적 False 만 off (행 없음은 on 취급, 0028)."""
+        async with session_factory() as session:
+            enabled = (
+                await session.execute(
+                    text("SELECT notify_recall_enabled FROM users WHERE id=:owner").bindparams(
+                        bindparam("owner", owner_id)
+                    )
+                )
+            ).scalar_one_or_none()
+        return enabled is not False
+
     async def _send_one(
         self,
         session_factory: async_sessionmaker[AsyncSession],
@@ -872,6 +886,19 @@ class NotificationWorker:
         apns: APNsClient | None,
         claimed: "ClaimedNotification",
     ) -> None:
+        # 사용자 전역 회수 알림 선호 off → skipped(preference_off) terminal (0028). 발송 시점 게이트만 —
+        # plan/materialize 불변이라 다시 켜면 다음 fire_at 부터 재개되고, spaced 전진 필터(user_veto 만
+        # 전진 인정)에 안 걸려 회차도 소모하지 않는다. dry-run 보다 앞 — off 사용자는 튜닝 로그에도 안 남긴다.
+        if not await self._recall_push_enabled(session_factory, claimed.owner_id):
+            log.info(
+                "recall_worker.preference_off",
+                event_id=str(claimed.event_id),
+                owner_id=str(claimed.owner_id),
+                kind=claimed.kind,
+            )
+            await self._close(session_factory, claimed.id, status="skipped", skip_reason="preference_off")
+            return
+
         # dry-run(기본 True, §6/§7): 실제 APNs 호출 없이 payload 로깅 + skipped(dry_run) terminal.
         if settings.recall_notifications_dry_run:
             log.info(

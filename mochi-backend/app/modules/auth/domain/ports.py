@@ -60,6 +60,20 @@ class UserRepository(ABC):
     async def update_display_name_if_empty(self, *, user_id: UserID, display_name: str) -> None: ...
 
     @abstractmethod
+    async def update_notification_preferences(
+        self,
+        *,
+        user_id: UserID,
+        recall_enabled: bool | None,
+        analysis_enabled: bool | None,
+    ) -> User | None:
+        """알림 전역 선호 부분 수정 — ``None`` 필드는 건드리지 않는다. user 없으면 ``None``.
+
+        발송 시점 게이트만 바꾸는 가역 밸브 — plan/outbox 적재는 불변이라 다시 켜면
+        다음 fire_at 부터 그대로 재개된다."""
+        ...
+
+    @abstractmethod
     async def mark_deleted(self, *, user_id: UserID, deleted_at: datetime) -> None:
         """계정 soft delete — ``deleted_at`` 마킹(이미 삭제됐으면 no-op). sign-in/refresh 가
         ``deleted_at`` 을 거부하므로 이후 인증이 막힌다(mochi_item soft delete 와 동일 패턴)."""

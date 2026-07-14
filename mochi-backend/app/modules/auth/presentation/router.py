@@ -42,6 +42,8 @@ from app.modules.auth.presentation.schemas import (
     DevSignInRequest,
     GoogleSignInRequest,
     LogoutRequest,
+    NotificationPreferencesResponse,
+    NotificationPreferencesUpdateRequest,
     RefreshRequest,
     SignInResponse,
     TokensResponse,
@@ -265,6 +267,49 @@ async def get_me(db: DBSession, user: CurrentUser) -> UserResponse:
         display_name=found.display_name,
         locale=found.locale,
         onboarding_completed_at=found.onboarding_completed_at,
+    )
+
+
+@users_router.get("/me/notification-preferences", response_model=NotificationPreferencesResponse)
+async def get_notification_preferences(db: DBSession, user: CurrentUser) -> NotificationPreferencesResponse:
+    """알림 전역 선호 조회 — 회수 푸시(recall) / 분석 확인(analysis, needs_review) on/off."""
+    repo = PostgresUserRepository(db)
+    found = await repo.find_user(user_id=user)
+    if found is None:
+        raise NotFoundError("User not found", code="user.not_found")
+    if found.deleted_at is not None:
+        raise NotFoundError("User has been deleted", code="user.deleted")
+    return NotificationPreferencesResponse(
+        recall_enabled=found.notify_recall_enabled,
+        analysis_enabled=found.notify_analysis_enabled,
+    )
+
+
+@users_router.patch("/me/notification-preferences", response_model=NotificationPreferencesResponse)
+async def update_notification_preferences(
+    payload: NotificationPreferencesUpdateRequest,
+    db: DBSession,
+    user: CurrentUser,
+) -> NotificationPreferencesResponse:
+    """알림 전역 선호 부분 수정 — 보낸 필드만 반영, 갱신된 전체 선호를 반환한다.
+
+    발송 시점 게이트만 바꾸는 가역 밸브: 끄면 recall worker 발송·분석 confirm push 가
+    조용해지고(plan/outbox 적재·인앱 표면 불변), 다시 켜면 다음 fire_at 부터 재개된다.
+    """
+    repo = PostgresUserRepository(db)
+    updated = await repo.update_notification_preferences(
+        user_id=user,
+        recall_enabled=payload.recall_enabled,
+        analysis_enabled=payload.analysis_enabled,
+    )
+    if updated is None:
+        raise NotFoundError("User not found", code="user.not_found")
+    if updated.deleted_at is not None:
+        raise NotFoundError("User has been deleted", code="user.deleted")
+    await db.commit()
+    return NotificationPreferencesResponse(
+        recall_enabled=updated.notify_recall_enabled,
+        analysis_enabled=updated.notify_analysis_enabled,
     )
 
 

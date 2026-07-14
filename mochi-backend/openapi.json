@@ -329,6 +329,82 @@
         }
       }
     },
+    "/api/v1/users/me/notification-preferences": {
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Get Notification Preferences",
+        "description": "알림 전역 선호 조회 — 회수 푸시(recall) / 분석 확인(analysis, needs_review) on/off.",
+        "operationId": "get_notification_preferences_api_v1_users_me_notification_preferences_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "Authorization",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationPreferencesResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Update Notification Preferences",
+        "description": "알림 전역 선호 부분 수정 — 보낸 필드만 반영, 갱신된 전체 선호를 반환한다.\n\n발송 시점 게이트만 바꾸는 가역 밸브: 끄면 recall worker 발송·분석 confirm push 가\n조용해지고(plan/outbox 적재·인앱 표면 불변), 다시 켜면 다음 fire_at 부터 재개된다.",
+        "operationId": "update_notification_preferences_api_v1_users_me_notification_preferences_patch",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "Authorization",
+              "type": "string",
+              "nullable": true
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotificationPreferencesUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationPreferencesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/mochi_items": {
       "post": {
         "tags": [
@@ -2918,6 +2994,42 @@
         ],
         "title": "MonthlyDigestResponse",
         "description": "이번 달 정리 — 모찌 한마디 + 정규화된 카테고리 그룹.\n\n``generated`` 가 false 면 그 달 항목이 적어 LLM 을 돌리지 않은 정적 폴백이다(클라가 캐시 정책에 활용).\n카테고리 정규화는 서버가 item.category 를 write 한 결과이므로, 클라는 응답의 itemIds 로 로컬 캐시를\n함께 갱신한다."
+      },
+      "NotificationPreferencesResponse": {
+        "properties": {
+          "recallEnabled": {
+            "type": "boolean",
+            "title": "Recallenabled"
+          },
+          "analysisEnabled": {
+            "type": "boolean",
+            "title": "Analysisenabled"
+          }
+        },
+        "type": "object",
+        "required": [
+          "recallEnabled",
+          "analysisEnabled"
+        ],
+        "title": "NotificationPreferencesResponse",
+        "description": "``/users/me/notification-preferences`` — 알림 전역 선호(회수 푸시 / 분석 확인)."
+      },
+      "NotificationPreferencesUpdateRequest": {
+        "properties": {
+          "recallEnabled": {
+            "title": "Recallenabled",
+            "type": "boolean",
+            "nullable": true
+          },
+          "analysisEnabled": {
+            "title": "Analysisenabled",
+            "type": "boolean",
+            "nullable": true
+          }
+        },
+        "type": "object",
+        "title": "NotificationPreferencesUpdateRequest",
+        "description": "PATCH 부분 수정 — 보낸 필드만 반영한다."
       },
       "PlaceResponse": {
         "properties": {

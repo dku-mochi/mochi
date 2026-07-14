@@ -6,7 +6,7 @@ DOMAIN_DESIGN §4.2 + 마이그레이션 0004 와 1:1 매칭. domain entity 와�
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from sqlalchemy import DateTime, ForeignKey, String
+from sqlalchemy import Boolean, DateTime, ForeignKey, String
 from sqlalchemy.dialects.postgresql import (
     UUID as PgUUIDColumn,  # noqa: N811
 )
@@ -25,6 +25,9 @@ class UserRow(Base):
     display_name: Mapped[str] = mapped_column(String(128), default="")
     locale: Mapped[str] = mapped_column(String(16), default="ko-KR")
     onboarding_completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+    # 알림 전역 선호(2026-07-14, 마이그레이션 0028) — 발송 시점 게이트만. plan/outbox 적재·인앱 표면 불변.
+    notify_recall_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    notify_analysis_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default_factory=datetime.utcnow)
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
 

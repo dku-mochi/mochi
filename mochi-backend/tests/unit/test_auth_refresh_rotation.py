@@ -89,6 +89,16 @@ class _InMemoryUsers(UserRepository):
         if not user.display_name:
             user.display_name = display_name
 
+    async def update_notification_preferences(self, *, user_id, recall_enabled, analysis_enabled):
+        user = self.users.get(user_id)
+        if user is None:
+            return None
+        if recall_enabled is not None:
+            user.notify_recall_enabled = recall_enabled
+        if analysis_enabled is not None:
+            user.notify_analysis_enabled = analysis_enabled
+        return user
+
     async def mark_deleted(self, *, user_id, deleted_at):
         user = self.users.get(user_id)
         if user is not None:

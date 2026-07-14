@@ -619,6 +619,142 @@ public struct Client: APIProtocol {
             }
         )
     }
+    /// Get Notification Preferences
+    ///
+    /// 알림 전역 선호 조회 — 회수 푸시(recall) / 분석 확인(analysis, needs_review) on/off.
+    ///
+    /// - Remark: HTTP `GET /api/v1/users/me/notification-preferences`.
+    /// - Remark: Generated from `#/paths//api/v1/users/me/notification-preferences/get(get_notification_preferences_api_v1_users_me_notification_preferences_get)`.
+    public func get_notification_preferences_api_v1_users_me_notification_preferences_get(_ input: Operations.get_notification_preferences_api_v1_users_me_notification_preferences_get.Input) async throws -> Operations.get_notification_preferences_api_v1_users_me_notification_preferences_get.Output {
+        try await client.send(
+            input: input,
+            forOperation: Operations.get_notification_preferences_api_v1_users_me_notification_preferences_get.id,
+            serializer: { input in
+                let path = try converter.renderedPath(
+                    template: "/api/v1/users/me/notification-preferences",
+                    parameters: []
+                )
+                var request: HTTPTypes.HTTPRequest = .init(
+                    soar_path: path,
+                    method: .get
+                )
+                suppressMutabilityWarning(&request)
+                converter.setAcceptHeader(
+                    in: &request.headerFields,
+                    contentTypes: input.headers.accept
+                )
+                return (request, nil)
+            },
+            deserializer: { response, responseBody in
+                switch response.status.code {
+                case 200:
+                    let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
+                    let body: Operations.get_notification_preferences_api_v1_users_me_notification_preferences_get.Output.Ok.Body
+                    let chosenContentType = try converter.bestContentType(
+                        received: contentType,
+                        options: [
+                            "application/json"
+                        ]
+                    )
+                    switch chosenContentType {
+                    case "application/json":
+                        body = try await converter.getResponseBodyAsJSON(
+                            Components.Schemas.NotificationPreferencesResponse.self,
+                            from: responseBody,
+                            transforming: { value in
+                                .json(value)
+                            }
+                        )
+                    default:
+                        preconditionFailure("bestContentType chose an invalid content type.")
+                    }
+                    return .ok(.init(body: body))
+                default:
+                    return .undocumented(
+                        statusCode: response.status.code,
+                        .init(
+                            headerFields: response.headerFields,
+                            body: responseBody
+                        )
+                    )
+                }
+            }
+        )
+    }
+    /// Update Notification Preferences
+    ///
+    /// 알림 전역 선호 부분 수정 — 보낸 필드만 반영, 갱신된 전체 선호를 반환한다.
+    ///
+    /// 발송 시점 게이트만 바꾸는 가역 밸브: 끄면 recall worker 발송·분석 confirm push 가
+    /// 조용해지고(plan/outbox 적재·인앱 표면 불변), 다시 켜면 다음 fire_at 부터 재개된다.
+    ///
+    /// - Remark: HTTP `PATCH /api/v1/users/me/notification-preferences`.
+    /// - Remark: Generated from `#/paths//api/v1/users/me/notification-preferences/patch(update_notification_preferences_api_v1_users_me_notification_preferences_patch)`.
+    public func update_notification_preferences_api_v1_users_me_notification_preferences_patch(_ input: Operations.update_notification_preferences_api_v1_users_me_notification_preferences_patch.Input) async throws -> Operations.update_notification_preferences_api_v1_users_me_notification_preferences_patch.Output {
+        try await client.send(
+            input: input,
+            forOperation: Operations.update_notification_preferences_api_v1_users_me_notification_preferences_patch.id,
+            serializer: { input in
+                let path = try converter.renderedPath(
+                    template: "/api/v1/users/me/notification-preferences",
+                    parameters: []
+                )
+                var request: HTTPTypes.HTTPRequest = .init(
+                    soar_path: path,
+                    method: .patch
+                )
+                suppressMutabilityWarning(&request)
+                converter.setAcceptHeader(
+                    in: &request.headerFields,
+                    contentTypes: input.headers.accept
+                )
+                let body: OpenAPIRuntime.HTTPBody?
+                switch input.body {
+                case let .json(value):
+                    body = try converter.setRequiredRequestBodyAsJSON(
+                        value,
+                        headerFields: &request.headerFields,
+                        contentType: "application/json; charset=utf-8"
+                    )
+                }
+                return (request, body)
+            },
+            deserializer: { response, responseBody in
+                switch response.status.code {
+                case 200:
+                    let contentType = converter.extractContentTypeIfPresent(in: response.headerFields)
+                    let body: Operations.update_notification_preferences_api_v1_users_me_notification_preferences_patch.Output.Ok.Body
+                    let chosenContentType = try converter.bestContentType(
+                        received: contentType,
+                        options: [
+                            "application/json"
+                        ]
+                    )
+                    switch chosenContentType {
+                    case "application/json":
+                        body = try await converter.getResponseBodyAsJSON(
+                            Components.Schemas.NotificationPreferencesResponse.self,
+                            from: responseBody,
+                            transforming: { value in
+                                .json(value)
+                            }
+                        )
+                    default:
+                        preconditionFailure("bestContentType chose an invalid content type.")
+                    }
+                    return .ok(.init(body: body))
+                default:
+                    return .undocumented(
+                        statusCode: response.status.code,
+                        .init(
+                            headerFields: response.headerFields,
+                            body: responseBody
+                        )
+                    )
+                }
+            }
+        )
+    }
     /// List Mochi Items
     ///
     /// 캘린더 탭 — captured_at 구간 내 owner 모찌 목록(특정 날짜 선택 시 그날 sheet).

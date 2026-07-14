@@ -39,6 +39,8 @@ def _to_user(row: UserRow) -> User:
         display_name=row.display_name,
         locale=row.locale,
         onboarding_completed_at=row.onboarding_completed_at,
+        notify_recall_enabled=row.notify_recall_enabled,
+        notify_analysis_enabled=row.notify_analysis_enabled,
         created_at=row.created_at,
         deleted_at=row.deleted_at,
     )
@@ -152,6 +154,24 @@ class PostgresUserRepository(UserRepositoryPort):
             .values(display_name=display_name)
         )
         await self._session.execute(stmt)
+
+    async def update_notification_preferences(
+        self,
+        *,
+        user_id: UserID,
+        recall_enabled: bool | None,
+        analysis_enabled: bool | None,
+    ) -> User | None:
+        stmt = select(UserRow).where(UserRow.id == user_id).limit(1)
+        row = (await self._session.execute(stmt)).scalar_one_or_none()
+        if row is None:
+            return None
+        if recall_enabled is not None:
+            row.notify_recall_enabled = recall_enabled
+        if analysis_enabled is not None:
+            row.notify_analysis_enabled = analysis_enabled
+        await self._session.flush()
+        return _to_user(row)
 
     async def mark_deleted(self, *, user_id: UserID, deleted_at: datetime) -> None:
         stmt = (
