@@ -133,6 +133,28 @@ public protocol MochiAPIClient: Sendable {
     /// `GET /api/v1/recall/history?limit=` — 알림 페이지 "지난 알림"(모찌가 이미 보낸 알림).
     /// owner 의 sent outbox 를 sent_at 내림차순으로 돌려준다. 빈손은 정상(`[]`). 읽기 전용.
     func sentNotifications(limit: Int) async throws -> [SentNotificationDTO]
+
+    /// `GET /api/v1/users/me/notification-preferences` — 알림 전역 선호(회수 푸시 / 분석 확인).
+    func notificationPreferences() async throws -> NotificationPreferencesDTO
+
+    /// `PATCH /api/v1/users/me/notification-preferences` — 부분 수정(nil 필드 불변), 갱신 결과 반환.
+    /// 발송 시점 게이트만 바꾸는 가역 밸브 — 끄면 조용해지고 다시 켜면 다음 예정부터 재개된다.
+    func updateNotificationPreferences(
+        recallEnabled: Bool?,
+        analysisEnabled: Bool?
+    ) async throws -> NotificationPreferencesDTO
+}
+
+/// 알림 전역 선호 — 백엔드 `NotificationPreferencesResponse` 미러. 기본 둘 다 on.
+/// `recallEnabled` 능동 회수 푸시(마감·일정·다시 보기·관련 기억), `analysisEnabled` 분석 확인(헷갈려요) 알림.
+public struct NotificationPreferencesDTO: Sendable, Hashable, Codable {
+    public let recallEnabled: Bool
+    public let analysisEnabled: Bool
+
+    public init(recallEnabled: Bool, analysisEnabled: Bool) {
+        self.recallEnabled = recallEnabled
+        self.analysisEnabled = analysisEnabled
+    }
 }
 
 /// 알림 페이지 "지난 알림" 1건 — 백엔드 `SentNotificationEntry` 미러. 모찌가 이미 보낸 알림(읽기 전용).

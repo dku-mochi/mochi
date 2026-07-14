@@ -30,6 +30,9 @@ class User:
     display_name: str = ""
     locale: str = "ko-KR"
     onboarding_completed_at: datetime | None = None
+    # 알림 전역 선호 — 회수 푸시(트랙 A/B/C) / 분석 확인(needs_review) 알림. 기본 둘 다 on.
+    notify_recall_enabled: bool = True
+    notify_analysis_enabled: bool = True
     created_at: datetime = field(default_factory=lambda: datetime.utcnow())
     deleted_at: datetime | None = None
 

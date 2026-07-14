@@ -72,6 +72,23 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `DELETE /api/v1/users/me`.
     /// - Remark: Generated from `#/paths//api/v1/users/me/delete(delete_me_api_v1_users_me_delete)`.
     func delete_me_api_v1_users_me_delete(_ input: Operations.delete_me_api_v1_users_me_delete.Input) async throws -> Operations.delete_me_api_v1_users_me_delete.Output
+    /// Get Notification Preferences
+    ///
+    /// 알림 전역 선호 조회 — 회수 푸시(recall) / 분석 확인(analysis, needs_review) on/off.
+    ///
+    /// - Remark: HTTP `GET /api/v1/users/me/notification-preferences`.
+    /// - Remark: Generated from `#/paths//api/v1/users/me/notification-preferences/get(get_notification_preferences_api_v1_users_me_notification_preferences_get)`.
+    func get_notification_preferences_api_v1_users_me_notification_preferences_get(_ input: Operations.get_notification_preferences_api_v1_users_me_notification_preferences_get.Input) async throws -> Operations.get_notification_preferences_api_v1_users_me_notification_preferences_get.Output
+    /// Update Notification Preferences
+    ///
+    /// 알림 전역 선호 부분 수정 — 보낸 필드만 반영, 갱신된 전체 선호를 반환한다.
+    ///
+    /// 발송 시점 게이트만 바꾸는 가역 밸브: 끄면 recall worker 발송·분석 confirm push 가
+    /// 조용해지고(plan/outbox 적재·인앱 표면 불변), 다시 켜면 다음 fire_at 부터 재개된다.
+    ///
+    /// - Remark: HTTP `PATCH /api/v1/users/me/notification-preferences`.
+    /// - Remark: Generated from `#/paths//api/v1/users/me/notification-preferences/patch(update_notification_preferences_api_v1_users_me_notification_preferences_patch)`.
+    func update_notification_preferences_api_v1_users_me_notification_preferences_patch(_ input: Operations.update_notification_preferences_api_v1_users_me_notification_preferences_patch.Input) async throws -> Operations.update_notification_preferences_api_v1_users_me_notification_preferences_patch.Output
     /// List Mochi Items
     ///
     /// 캘린더 탭 — captured_at 구간 내 owner 모찌 목록(특정 날짜 선택 시 그날 sheet).
@@ -524,6 +541,33 @@ extension APIProtocol {
     /// - Remark: Generated from `#/paths//api/v1/users/me/delete(delete_me_api_v1_users_me_delete)`.
     public func delete_me_api_v1_users_me_delete() async throws -> Operations.delete_me_api_v1_users_me_delete.Output {
         try await delete_me_api_v1_users_me_delete(Operations.delete_me_api_v1_users_me_delete.Input())
+    }
+    /// Get Notification Preferences
+    ///
+    /// 알림 전역 선호 조회 — 회수 푸시(recall) / 분석 확인(analysis, needs_review) on/off.
+    ///
+    /// - Remark: HTTP `GET /api/v1/users/me/notification-preferences`.
+    /// - Remark: Generated from `#/paths//api/v1/users/me/notification-preferences/get(get_notification_preferences_api_v1_users_me_notification_preferences_get)`.
+    public func get_notification_preferences_api_v1_users_me_notification_preferences_get(headers: Operations.get_notification_preferences_api_v1_users_me_notification_preferences_get.Input.Headers = .init()) async throws -> Operations.get_notification_preferences_api_v1_users_me_notification_preferences_get.Output {
+        try await get_notification_preferences_api_v1_users_me_notification_preferences_get(Operations.get_notification_preferences_api_v1_users_me_notification_preferences_get.Input(headers: headers))
+    }
+    /// Update Notification Preferences
+    ///
+    /// 알림 전역 선호 부분 수정 — 보낸 필드만 반영, 갱신된 전체 선호를 반환한다.
+    ///
+    /// 발송 시점 게이트만 바꾸는 가역 밸브: 끄면 recall worker 발송·분석 confirm push 가
+    /// 조용해지고(plan/outbox 적재·인앱 표면 불변), 다시 켜면 다음 fire_at 부터 재개된다.
+    ///
+    /// - Remark: HTTP `PATCH /api/v1/users/me/notification-preferences`.
+    /// - Remark: Generated from `#/paths//api/v1/users/me/notification-preferences/patch(update_notification_preferences_api_v1_users_me_notification_preferences_patch)`.
+    public func update_notification_preferences_api_v1_users_me_notification_preferences_patch(
+        headers: Operations.update_notification_preferences_api_v1_users_me_notification_preferences_patch.Input.Headers = .init(),
+        body: Operations.update_notification_preferences_api_v1_users_me_notification_preferences_patch.Input.Body
+    ) async throws -> Operations.update_notification_preferences_api_v1_users_me_notification_preferences_patch.Output {
+        try await update_notification_preferences_api_v1_users_me_notification_preferences_patch(Operations.update_notification_preferences_api_v1_users_me_notification_preferences_patch.Input(
+            headers: headers,
+            body: body
+        ))
     }
     /// List Mochi Items
     ///
@@ -2457,6 +2501,56 @@ public enum Components {
                 case greeting
                 case groups
                 case generated
+            }
+        }
+        /// ``/users/me/notification-preferences`` — 알림 전역 선호(회수 푸시 / 분석 확인).
+        ///
+        /// - Remark: Generated from `#/components/schemas/NotificationPreferencesResponse`.
+        public struct NotificationPreferencesResponse: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/NotificationPreferencesResponse/recallEnabled`.
+            public var recallEnabled: Swift.Bool
+            /// - Remark: Generated from `#/components/schemas/NotificationPreferencesResponse/analysisEnabled`.
+            public var analysisEnabled: Swift.Bool
+            /// Creates a new `NotificationPreferencesResponse`.
+            ///
+            /// - Parameters:
+            ///   - recallEnabled:
+            ///   - analysisEnabled:
+            public init(
+                recallEnabled: Swift.Bool,
+                analysisEnabled: Swift.Bool
+            ) {
+                self.recallEnabled = recallEnabled
+                self.analysisEnabled = analysisEnabled
+            }
+            public enum CodingKeys: String, CodingKey {
+                case recallEnabled
+                case analysisEnabled
+            }
+        }
+        /// PATCH 부분 수정 — 보낸 필드만 반영한다.
+        ///
+        /// - Remark: Generated from `#/components/schemas/NotificationPreferencesUpdateRequest`.
+        public struct NotificationPreferencesUpdateRequest: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/NotificationPreferencesUpdateRequest/recallEnabled`.
+            public var recallEnabled: Swift.Bool?
+            /// - Remark: Generated from `#/components/schemas/NotificationPreferencesUpdateRequest/analysisEnabled`.
+            public var analysisEnabled: Swift.Bool?
+            /// Creates a new `NotificationPreferencesUpdateRequest`.
+            ///
+            /// - Parameters:
+            ///   - recallEnabled:
+            ///   - analysisEnabled:
+            public init(
+                recallEnabled: Swift.Bool? = nil,
+                analysisEnabled: Swift.Bool? = nil
+            ) {
+                self.recallEnabled = recallEnabled
+                self.analysisEnabled = analysisEnabled
+            }
+            public enum CodingKeys: String, CodingKey {
+                case recallEnabled
+                case analysisEnabled
             }
         }
         /// 상세 화면 지도 섹션의 장소 — entities(kind='place') projection. 좌표는 WGS84.
@@ -4633,6 +4727,244 @@ public enum Operations {
             ///
             /// A response with a code that is not documented in the OpenAPI document.
             case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+    }
+    /// Get Notification Preferences
+    ///
+    /// 알림 전역 선호 조회 — 회수 푸시(recall) / 분석 확인(analysis, needs_review) on/off.
+    ///
+    /// - Remark: HTTP `GET /api/v1/users/me/notification-preferences`.
+    /// - Remark: Generated from `#/paths//api/v1/users/me/notification-preferences/get(get_notification_preferences_api_v1_users_me_notification_preferences_get)`.
+    public enum get_notification_preferences_api_v1_users_me_notification_preferences_get {
+        public static let id: Swift.String = "get_notification_preferences_api_v1_users_me_notification_preferences_get"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/api/v1/users/me/notification-preferences/GET/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.get_notification_preferences_api_v1_users_me_notification_preferences_get.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.get_notification_preferences_api_v1_users_me_notification_preferences_get.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.get_notification_preferences_api_v1_users_me_notification_preferences_get.Input.Headers
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - headers:
+            public init(headers: Operations.get_notification_preferences_api_v1_users_me_notification_preferences_get.Input.Headers = .init()) {
+                self.headers = headers
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/users/me/notification-preferences/GET/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/api/v1/users/me/notification-preferences/GET/responses/200/content/application\/json`.
+                    case json(Components.Schemas.NotificationPreferencesResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.NotificationPreferencesResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.get_notification_preferences_api_v1_users_me_notification_preferences_get.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.get_notification_preferences_api_v1_users_me_notification_preferences_get.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Successful Response
+            ///
+            /// - Remark: Generated from `#/paths//api/v1/users/me/notification-preferences/get(get_notification_preferences_api_v1_users_me_notification_preferences_get)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.get_notification_preferences_api_v1_users_me_notification_preferences_get.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.get_notification_preferences_api_v1_users_me_notification_preferences_get.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
+        }
+    }
+    /// Update Notification Preferences
+    ///
+    /// 알림 전역 선호 부분 수정 — 보낸 필드만 반영, 갱신된 전체 선호를 반환한다.
+    ///
+    /// 발송 시점 게이트만 바꾸는 가역 밸브: 끄면 recall worker 발송·분석 confirm push 가
+    /// 조용해지고(plan/outbox 적재·인앱 표면 불변), 다시 켜면 다음 fire_at 부터 재개된다.
+    ///
+    /// - Remark: HTTP `PATCH /api/v1/users/me/notification-preferences`.
+    /// - Remark: Generated from `#/paths//api/v1/users/me/notification-preferences/patch(update_notification_preferences_api_v1_users_me_notification_preferences_patch)`.
+    public enum update_notification_preferences_api_v1_users_me_notification_preferences_patch {
+        public static let id: Swift.String = "update_notification_preferences_api_v1_users_me_notification_preferences_patch"
+        public struct Input: Sendable, Hashable {
+            /// - Remark: Generated from `#/paths/api/v1/users/me/notification-preferences/PATCH/header`.
+            public struct Headers: Sendable, Hashable {
+                public var accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.update_notification_preferences_api_v1_users_me_notification_preferences_patch.AcceptableContentType>]
+                /// Creates a new `Headers`.
+                ///
+                /// - Parameters:
+                ///   - accept:
+                public init(accept: [OpenAPIRuntime.AcceptHeaderContentType<Operations.update_notification_preferences_api_v1_users_me_notification_preferences_patch.AcceptableContentType>] = .defaultValues()) {
+                    self.accept = accept
+                }
+            }
+            public var headers: Operations.update_notification_preferences_api_v1_users_me_notification_preferences_patch.Input.Headers
+            /// - Remark: Generated from `#/paths/api/v1/users/me/notification-preferences/PATCH/requestBody`.
+            @frozen public enum Body: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/users/me/notification-preferences/PATCH/requestBody/content/application\/json`.
+                case json(Components.Schemas.NotificationPreferencesUpdateRequest)
+            }
+            public var body: Operations.update_notification_preferences_api_v1_users_me_notification_preferences_patch.Input.Body
+            /// Creates a new `Input`.
+            ///
+            /// - Parameters:
+            ///   - headers:
+            ///   - body:
+            public init(
+                headers: Operations.update_notification_preferences_api_v1_users_me_notification_preferences_patch.Input.Headers = .init(),
+                body: Operations.update_notification_preferences_api_v1_users_me_notification_preferences_patch.Input.Body
+            ) {
+                self.headers = headers
+                self.body = body
+            }
+        }
+        @frozen public enum Output: Sendable, Hashable {
+            public struct Ok: Sendable, Hashable {
+                /// - Remark: Generated from `#/paths/api/v1/users/me/notification-preferences/PATCH/responses/200/content`.
+                @frozen public enum Body: Sendable, Hashable {
+                    /// - Remark: Generated from `#/paths/api/v1/users/me/notification-preferences/PATCH/responses/200/content/application\/json`.
+                    case json(Components.Schemas.NotificationPreferencesResponse)
+                    /// The associated value of the enum case if `self` is `.json`.
+                    ///
+                    /// - Throws: An error if `self` is not `.json`.
+                    /// - SeeAlso: `.json`.
+                    public var json: Components.Schemas.NotificationPreferencesResponse {
+                        get throws {
+                            switch self {
+                            case let .json(body):
+                                return body
+                            }
+                        }
+                    }
+                }
+                /// Received HTTP response body
+                public var body: Operations.update_notification_preferences_api_v1_users_me_notification_preferences_patch.Output.Ok.Body
+                /// Creates a new `Ok`.
+                ///
+                /// - Parameters:
+                ///   - body: Received HTTP response body
+                public init(body: Operations.update_notification_preferences_api_v1_users_me_notification_preferences_patch.Output.Ok.Body) {
+                    self.body = body
+                }
+            }
+            /// Successful Response
+            ///
+            /// - Remark: Generated from `#/paths//api/v1/users/me/notification-preferences/patch(update_notification_preferences_api_v1_users_me_notification_preferences_patch)/responses/200`.
+            ///
+            /// HTTP response code: `200 ok`.
+            case ok(Operations.update_notification_preferences_api_v1_users_me_notification_preferences_patch.Output.Ok)
+            /// The associated value of the enum case if `self` is `.ok`.
+            ///
+            /// - Throws: An error if `self` is not `.ok`.
+            /// - SeeAlso: `.ok`.
+            public var ok: Operations.update_notification_preferences_api_v1_users_me_notification_preferences_patch.Output.Ok {
+                get throws {
+                    switch self {
+                    case let .ok(response):
+                        return response
+                    default:
+                        try throwUnexpectedResponseStatus(
+                            expectedStatus: "ok",
+                            response: self
+                        )
+                    }
+                }
+            }
+            /// Undocumented response.
+            ///
+            /// A response with a code that is not documented in the OpenAPI document.
+            case undocumented(statusCode: Swift.Int, OpenAPIRuntime.UndocumentedPayload)
+        }
+        @frozen public enum AcceptableContentType: AcceptableProtocol {
+            case json
+            case other(Swift.String)
+            public init?(rawValue: Swift.String) {
+                switch rawValue.lowercased() {
+                case "application/json":
+                    self = .json
+                default:
+                    self = .other(rawValue)
+                }
+            }
+            public var rawValue: Swift.String {
+                switch self {
+                case let .other(string):
+                    return string
+                case .json:
+                    return "application/json"
+                }
+            }
+            public static var allCases: [Self] {
+                [
+                    .json
+                ]
+            }
         }
     }
     /// List Mochi Items

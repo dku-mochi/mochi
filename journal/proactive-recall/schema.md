@@ -82,7 +82,7 @@ notification_outbox
   body            String                 -- 문구 snapshot(생성시점 고정 — plan 바뀌어도 보낸 건 불변)
   collapse_id     String nullable        -- apns_client.send 가 이미 지원
   status          String(16) 'pending', index  -- pending | sent | deferred | skipped | dead_letter
-  skip_reason     String nullable        -- [deferred 재시도] cap | night | yielded_to_b  /  [terminal] superseded | cancelled | stale | dismissed_cooldown | bundled | no_valid_token  (cancelled=plan 취소: intent_archived·user stop. superseded=재평가 교체와 구별)
+  skip_reason     String nullable        -- [deferred 재시도] cap | night | yielded_to_b  /  [terminal] superseded | cancelled | stale | dismissed_cooldown | bundled | no_valid_token | preference_off(전역 회수 선호 off, users.notify_recall_enabled=false, 0028)  (cancelled=plan 취소: intent_archived·user stop. superseded=재평가 교체와 구별)
   next_retry_at   DateTime(tz) nullable  -- deferred occurrence 재평가 시각(D-1이 cap에 영구 소실 안 되게, codex-4)
   attempts        Integer 0
   locked_until    DateTime(tz) nullable

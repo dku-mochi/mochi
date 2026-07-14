@@ -68,6 +68,24 @@ class DevSignInRequest(BaseModel):
     model_config = {"populate_by_name": True}
 
 
+class NotificationPreferencesResponse(BaseModel):
+    """``/users/me/notification-preferences`` — 알림 전역 선호(회수 푸시 / 분석 확인)."""
+
+    recall_enabled: bool = Field(alias="recallEnabled")
+    analysis_enabled: bool = Field(alias="analysisEnabled")
+
+    model_config = {"populate_by_name": True}
+
+
+class NotificationPreferencesUpdateRequest(BaseModel):
+    """PATCH 부분 수정 — 보낸 필드만 반영한다."""
+
+    recall_enabled: bool | None = Field(default=None, alias="recallEnabled")
+    analysis_enabled: bool | None = Field(default=None, alias="analysisEnabled")
+
+    model_config = {"populate_by_name": True}
+
+
 class UserResponse(BaseModel):
     id: UUID
     email: str

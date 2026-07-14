@@ -489,7 +489,7 @@ export interface paths {
          *     tool_started   {run_id, name, label}
          *     tool_finished  {run_id, name, summary}
          *     citation       {run_id, index, item_id, title, snippet}
-         *     proposal       {run_id, id, type, payload}        (type: item_update|item_delete|create_schedule|reminder|create_memo)
+         *     proposal       {run_id, id, type, payload}        (type: item_update|item_delete|create_schedule|reminder|create_memo|notification_reschedule|notification_cancel)
          *     done           {run_id, message_id}               (assistant 메시지 행 id)
          *     error          {run_id, code, message}
          *     ```
@@ -728,6 +728,31 @@ export interface paths {
          *     pending·이미 종료). 이미 같은 반응이 기록돼 있으면 멱등 no-op(중복 탭 → 204).
          */
         post: operations["record_recall_reaction_api_v1_recall_events__event_id__reaction_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/recall/items/{item_id}/reaction": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record Recall Item Reaction
+         * @description 피드 표면(홈 한 칸·자세히·회수 상세) 반응 보고 — item 기준 (owner-scoped, 멱등).
+         *
+         *     피드 카드는 event 유무와 무관하게 존재해(트랙 A: sent event 없음 가능, 트랙 C: pending 노출)
+         *     event 기준 보고가 유실됐다 — 그 유실이 "열어본 카드가 재fetch 마다 부활"의 원인. `opened` 는
+         *     트랙 C 행 종결/기록 + spaced knowledge 소생, `stop` 은 spaced plan cancel + 트랙 C 행 종결.
+         *     `dismissed` 는 피드 제스처가 아니라 400. item 없음/남의 item 은 404.
+         */
+        post: operations["record_recall_item_reaction_api_v1_recall_items__item_id__reaction_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1302,6 +1327,7 @@ export interface components {
             shoppingProductQuery?: string | null;
             /** Referencelinks */
             referenceLinks?: components["schemas"]["ReferenceLinkResponse"][];
+            place?: components["schemas"]["PlaceResponse"];
             /** Importance */
             importance: number;
             /**
@@ -1382,6 +1408,32 @@ export interface components {
              * @default true
              */
             generated: boolean;
+        };
+        /**
+         * PlaceResponse
+         * @description 상세 화면 지도 섹션의 장소 — entities(kind='place') projection. 좌표는 WGS84.
+         */
+        PlaceResponse: {
+            /** Name */
+            name: string;
+            /** Lat */
+            lat: number;
+            /** Lng */
+            lng: number;
+            /** Category */
+            category?: string | null;
+            /** Address */
+            address?: string | null;
+            /** Roadaddress */
+            roadAddress?: string | null;
+            /** Mapurl */
+            mapUrl?: string | null;
+            /** Rating */
+            rating?: number | null;
+            /** Ratingcount */
+            ratingCount?: number | null;
+            /** Imageurl */
+            imageUrl?: string | null;
         };
         /**
          * PresignRequest
@@ -2771,6 +2823,32 @@ export interface operations {
             };
             path: {
                 event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecordRecallReactionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    record_recall_item_reaction_api_v1_recall_items__item_id__reaction_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                item_id: string;
             };
             cookie?: never;
         };

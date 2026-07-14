@@ -46,6 +46,18 @@ LOCK_DURATION_SECONDS = 180
 MAX_ATTEMPTS = 5
 
 
+async def _analysis_push_enabled(session: AsyncSession, owner_id: UUID) -> bool:
+    """``users.notify_analysis_enabled`` 조회 — 명시적 False 만 off (행 없음은 on 취급, 0028)."""
+    enabled = (
+        await session.execute(
+            text("SELECT notify_analysis_enabled FROM users WHERE id=:owner").bindparams(
+                bindparam("owner", owner_id)
+            )
+        )
+    ).scalar_one_or_none()
+    return enabled is not False
+
+
 class MochiItemWorker:
     def __init__(self, *, max_steps: int):
         self._max_steps = max_steps
@@ -258,6 +270,17 @@ class MochiItemWorker:
                         owner_id=str(owner_id),
                         mochi_item_id=str(mochi_item_id),
                         reason="item_not_found",
+                    )
+                    return
+                # 알림 전역 선호(분석 확인) off → skip (0028). needs_review confirm push 만 게이트 —
+                # needs_review=False 는 애초에 발송 안 함(SendAnalysisNotification 조기 return)이라
+                # 그 경로엔 스킵 로그를 남기지 않는다(관측 정확성).
+                if item.needs_review and not await _analysis_push_enabled(push_session, owner_id):
+                    log.info(
+                        "push.notify_skipped",
+                        owner_id=str(owner_id),
+                        mochi_item_id=str(mochi_item_id),
+                        reason="preference_off",
                     )
                     return
                 await SendAnalysisNotification(

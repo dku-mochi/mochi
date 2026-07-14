@@ -446,6 +446,41 @@ public final class OpenAPIMochiClient: MochiAPIClient, @unchecked Sendable {
         }
     }
 
+    public func notificationPreferences() async throws -> NotificationPreferencesDTO {
+        let output = try await client.get_notification_preferences_api_v1_users_me_notification_preferences_get()
+        switch output {
+        case let .ok(response):
+            let dto = try response.body.json
+            return NotificationPreferencesDTO(
+                recallEnabled: dto.recallEnabled,
+                analysisEnabled: dto.analysisEnabled
+            )
+        case let .undocumented(status, payload): throw await Self.error(status: status, payload: payload)
+        }
+    }
+
+    public func updateNotificationPreferences(
+        recallEnabled: Bool?,
+        analysisEnabled: Bool?
+    ) async throws -> NotificationPreferencesDTO {
+        let body = Components.Schemas.NotificationPreferencesUpdateRequest(
+            recallEnabled: recallEnabled,
+            analysisEnabled: analysisEnabled
+        )
+        let output = try await client.update_notification_preferences_api_v1_users_me_notification_preferences_patch(
+            body: .json(body)
+        )
+        switch output {
+        case let .ok(response):
+            let dto = try response.body.json
+            return NotificationPreferencesDTO(
+                recallEnabled: dto.recallEnabled,
+                analysisEnabled: dto.analysisEnabled
+            )
+        case let .undocumented(status, payload): throw await Self.error(status: status, payload: payload)
+        }
+    }
+
     /// 생성 `UpcomingNotificationEntry` → ``UpcomingNotificationDTO``. 필수 `eventId` 는 파싱 실패 시
     /// throw, optional `itemId`/`intentId` 는 계약상 nilable 이라 파싱 실패 시 nil 강등한다(`mapRecallEntry` 패턴).
     private static func mapUpcoming(_ e: Components.Schemas.UpcomingNotificationEntry) throws -> UpcomingNotificationDTO {

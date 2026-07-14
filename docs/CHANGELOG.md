@@ -10,6 +10,12 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-07-14 — backend, ios, docs (알림 전역 선호 신설 — 회수/분석 확인 푸시 on/off + 설정 토글)
+- **왜**: 능동 회수 제품인데 전역 알림 밸브가 OS 설정뿐이었다(UX_SPEC §3.4d "서버 선호 API 미존재로 후속" 갭). 개별 조정(예정 알림 veto/미루기)만으론 "다 조용히 해줘"를 표현할 수 없다.
+- backend: `users.notify_recall_enabled`/`notify_analysis_enabled`(기본 둘 다 on, 마이그레이션 0028) + `GET/PATCH /api/v1/users/me/notification-preferences`(부분 수정). **게이트는 발송 시점만** — recall send pass(`_send_one` 서두, 트랙 A/B/C 공용)는 off 면 `skipped(preference_off)`(spaced 회차 비소모 — 켜면 그 단계부터 재개), 분석 confirm push 는 `push.notify_skipped(reason=preference_off)` 로그 후 미발송. plan/outbox 적재·인앱 표면 불변(가역 밸브). 게이트 테스트 6건 포함 `make test` 558 passed·lint·typecheck green. `make openapi` 재수출.
+- ios: `CodeGen/generate.sh` 재생성 + `MochiAPIClient.notificationPreferences/updateNotificationPreferences` 배선(`NotificationPreferencesDTO`). 설정 알림 섹션에 토글 2개("먼저 떠올려주는 알림"/"헷갈릴 때 물어보는 알림") — 낙관 반영 + 실패 롤백·alert, 로드 실패 시 토글만 비표시. FeatureSettings 에 CoreNetworking 의존 추가. `tuist build` green.
+- docs: UX_SPEC §3.4d 후속 문구 해소, ARCHITECTURE 라우트·양 발송 경로 게이트, DOMAIN_DESIGN §3 선호 게이트, recall schema.md skip_reason 어휘에 `preference_off`.
+
 ## 2026-07-14 — backend, infra, docs (기록 상세 지도 간헐 소실 — 절단 회귀 수복 + 영속 게이트 + 프롬프트 v31)
 - **증상.** "위치정보(지도 뷰)가 간헐적으로 안 뜬다" 피드백. 운영 DB 전수 실측으로 place entity 손상 3클래스 특정 — 지도 섹션은 `entities(kind=place)` JSON 이 깨지면 projection 이 조용히 버려서 안 뜬다.
 - **주원인(15건, 7/11 하루).** `entities.value` 512 절단 fix(7/9 배포·검증 완료)가 **커밋 전 working tree 로 배포**된 상태에서, 7/10 밤 회수 피드 fix 재배포(committed develop 기준)가 fix 를 조용히 롤백 → 7/11 분석분부터 재절단 → fix 커밋(b5dcc2a)이 포함된 7/13 재배포로 재발 종료. "간헐"의 실체: 같은 날에도 place JSON 이 512자 이하(매장사진 URL 無)면 정상, 초과면 절단 — 가게마다 지도가 뜨락말락.
