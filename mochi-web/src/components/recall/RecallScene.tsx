@@ -13,11 +13,13 @@ import {
 import { ArrowUpRight } from "lucide-react";
 import { usePersona } from "@/components/journey/PersonaProvider";
 import { findItem, type ResolvedItem } from "@/lib/seedRuntime";
+import { liveRecallEntries } from "@/lib/liveOverlay";
 import { snapTarget, circularOffset } from "@/lib/coverflowMath";
 import { ReasonChip, REASON_META } from "@/components/primitives/ReasonChip";
 import type { DeckHandle } from "./CoverflowCanvas";
 import { RecallFallback } from "./RecallFallback";
 import { cn } from "@/lib/cn";
+import { markJourneyStep } from "@/lib/journeySession";
 
 const CoverflowCanvas = dynamic(() => import("./CoverflowCanvas"), {
   ssr: false,
@@ -27,10 +29,13 @@ const CoverflowCanvas = dynamic(() => import("./CoverflowCanvas"), {
 const STEP_PX = 260;
 
 export function RecallScene() {
-  const { persona, items } = usePersona();
-  const reduce = useReducedMotion();
+  const { persona, items, liveItems } = usePersona();
+  const prefersReducedMotion = useReducedMotion();
 
-  const entries = persona.recall;
+  const entries = useMemo(
+    () => [...liveRecallEntries(liveItems), ...persona.recall],
+    [liveItems, persona.recall],
+  );
   const deckItems = useMemo(
     () =>
       entries
@@ -42,6 +47,9 @@ export function RecallScene() {
   const [phase, setPhase] = useState<"interstitial" | "stage">("interstitial");
   const [focal, setFocal] = useState(0);
   const [webgl, setWebgl] = useState<boolean | null>(null);
+  // useReducedMotion은 서버와 브라우저 첫 값이 다를 수 있다. WebGL 프로브가 끝난 뒤부터
+  // 선호값을 적용하면 첫 hydration 속성은 같고 이후 접근성 폴백도 그대로 동작한다.
+  const reduce = webgl !== null && prefersReducedMotion;
 
   // 진입 연출 — iOS 첫 진입처럼 한 칸 굴러 들어온다
   const deck = useRef<DeckHandle>({ rotation: -0.85, target: 0, dragging: false });
@@ -71,6 +79,12 @@ export function RecallScene() {
     return () => clearTimeout(t);
   }, [phase, reduce]);
 
+  useEffect(() => {
+    if (phase !== "stage") return;
+    const timer = setTimeout(() => markJourneyStep(persona.slug, "recall"), reduce ? 0 : 650);
+    return () => clearTimeout(timer);
+  }, [persona.slug, phase, reduce]);
+
   const goTo = useCallback(
     (index: number) => {
       const d = deck.current;
@@ -86,7 +100,9 @@ export function RecallScene() {
     d.target = Math.round(d.rotation) + dir;
   }, []);
 
-  const useFallbackDeck = reduce || webgl === false;
+  // SSR·첫 hydration 은 둘 다 WebGL 무대로 고정한다. 마운트 뒤 프로브가 끝난 다음에만
+  // reduced-motion/미지원 폴백으로 전환해야 서버와 클라이언트 트리가 어긋나지 않는다.
+  const useFallbackDeck = webgl !== null && (reduce || webgl === false);
 
   // 무대 진입 시 코버플로우에 포커스 — ← → 가 처음부터 카드를 넘긴다 (전역 단축키 침범 방지)
   useEffect(() => {

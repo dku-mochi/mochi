@@ -2,7 +2,18 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, ArrowUpRight, Camera, Check, Link2 } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowUpRight,
+  Camera,
+  Check,
+  Link2,
+  MapPin,
+  ShoppingBag,
+  Sparkles,
+  Star,
+  type LucideIcon,
+} from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { usePersona } from "@/components/journey/PersonaProvider";
 import {
@@ -16,10 +27,12 @@ import {
 import { RiseIn } from "@/components/primitives/RiseIn";
 import { ItemTile, domainOf } from "@/components/tiles/ItemTile";
 import { cn } from "@/lib/cn";
+import { purchaseSearchFallback } from "@/lib/purchaseSearch";
+import { NaverMapPreview } from "./NaverMapPreview";
 
 /*
  * iOS DetailView 이식 — "검수가 아니라 회수".
- * 회수 헤더 → 지금 할 수 있어요 → 모찌가 정리했어요 → 비슷한 기록.
+ * 회수 헤더 → 지금 할 수 있어요 → 장소 → 관련 링크 → 모찌가 정리했어요 → 비슷한 기록.
  */
 export function DetailScene({ slug }: { slug: string }) {
   const { persona, items, now } = usePersona();
@@ -46,6 +59,10 @@ export function DetailScene({ slug }: { slug: string }) {
   const related = (item.relatedSlugs ?? [])
     .map((s) => findItem(items, s))
     .filter((x): x is ResolvedItem => Boolean(x));
+  const originalKey = canonicalUrlKey(item.url);
+  const references = (item.referenceLinks ?? []).filter(
+    (reference) => safeHttpUrl(reference.url) && canonicalUrlKey(reference.url) !== originalKey,
+  );
 
   return (
     <main className="mx-auto max-w-3xl px-5 py-6">
@@ -76,11 +93,19 @@ export function DetailScene({ slug }: { slug: string }) {
       </RiseIn>
 
       <RiseIn index={4}>
+        {item.place && <PlaceSection place={item.place} />}
+      </RiseIn>
+
+      <RiseIn index={5}>
+        {references.length > 0 && <ReferenceLinksSection links={references} />}
+      </RiseIn>
+
+      <RiseIn index={6}>
         <MochiSummary item={item} />
       </RiseIn>
 
       {related.length > 0 && (
-        <RiseIn index={5}>
+        <RiseIn index={7}>
           <section aria-label="비슷한 기록" className="mt-8">
             <h2 className="text-[17px] font-extrabold tracking-snug">
               비슷한 기록
@@ -110,6 +135,26 @@ function withRo(word: string): string {
   if (code < 0xac00 || code > 0xd7a3) return "로";
   const jong = (code - 0xac00) % 28;
   return jong === 0 || jong === 8 ? "로" : "으로";
+}
+
+function safeHttpUrl(value?: string): string | undefined {
+  if (!value) return undefined;
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:" ? url.toString() : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function canonicalUrlKey(value?: string): string | undefined {
+  const safe = safeHttpUrl(value);
+  if (!safe) return undefined;
+  const url = new URL(safe);
+  url.hash = "";
+  url.hostname = url.hostname.toLowerCase();
+  url.pathname = url.pathname.replace(/\/$/, "") || "/";
+  return url.toString();
 }
 
 function DetailHero({ item }: { item: ResolvedItem }) {
@@ -261,28 +306,29 @@ function ActionNow({ item }: { item: ResolvedItem }) {
     }
   });
 
-  if (item.url) {
+  const originalUrl = safeHttpUrl(item.url);
+  if (originalUrl) {
     rows.push(
-      <a
+      <ActionLinkRow
         key="url"
-        href={item.url}
-        target="_blank"
-        rel="noreferrer"
-        className="flex items-center gap-3.5 rounded-2xl p-3 transition-colors hover:bg-bg"
-      >
-        <span className="flex size-12 flex-none items-center justify-center rounded-xl bg-purple-50">
-          <Link2 className="size-5 text-purple-500" aria-hidden />
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block text-[15px] font-semibold text-ink-900">
-            원본 열기
-          </span>
-          <span className="mt-0.5 block truncate text-[12.5px] text-ink-500">
-            {domainOf(item.url)}
-          </span>
-        </span>
-        <ArrowUpRight className="size-4 flex-none text-ink-300" aria-hidden />
-      </a>,
+        href={originalUrl}
+        label={sourceActionLabel(originalUrl)}
+        subtitle={domainOf(originalUrl)}
+        Icon={Link2}
+      />,
+    );
+  }
+
+  const purchaseSearch = purchaseSearchFallback(item);
+  if (purchaseSearch) {
+    rows.push(
+      <ActionLinkRow
+        key="purchase-search"
+        href={purchaseSearch.url}
+        label={purchaseSearch.label}
+        subtitle={purchaseSearch.query}
+        Icon={ShoppingBag}
+      />,
     );
   }
 
@@ -300,6 +346,224 @@ function ActionNow({ item }: { item: ResolvedItem }) {
   );
 }
 
+function ActionLinkRow({
+  href,
+  label,
+  subtitle,
+  Icon,
+}: {
+  href: string;
+  label: string;
+  subtitle: string;
+  Icon: LucideIcon;
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="flex items-center gap-3.5 rounded-2xl p-3 transition-colors hover:bg-bg"
+    >
+      <span className="flex size-12 flex-none items-center justify-center rounded-xl bg-purple-50">
+        <Icon className="size-5 text-purple-500" aria-hidden />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-[15px] font-semibold text-ink-900">{label}</span>
+        <span className="mt-0.5 block truncate text-[12.5px] text-ink-500">
+          {subtitle}
+        </span>
+      </span>
+      <ArrowUpRight className="size-4 flex-none text-ink-300" aria-hidden />
+    </a>
+  );
+}
+
+function sourceActionLabel(url: string): string {
+  const host = domainOf(url).toLowerCase();
+  if (host.includes("youtu")) return "YouTube에서 보기";
+  if (host.includes("instagram")) return "Instagram에서 보기";
+  if (host === "x.com" || host.includes("twitter")) return "X에서 보기";
+  if (host.includes("tiktok")) return "TikTok에서 보기";
+  return "원본에서 보기";
+}
+
+type ReferenceLink = NonNullable<ResolvedItem["referenceLinks"]>[number];
+type Place = NonNullable<ResolvedItem["place"]>;
+
+function referenceStyle(reference: ReferenceLink): {
+  name: string;
+  tile: string;
+  accent: string;
+} {
+  const { provider } = reference;
+  const brands: Record<string, { name: string; tile: string; accent: string }> = {
+    oliveyoung: { name: "올리브영", tile: "bg-mint-100", accent: "text-mint-400" },
+    naver_map: { name: "네이버 지도", tile: "bg-mint-100", accent: "text-mint-400" },
+    naver_shopping: { name: "네이버쇼핑", tile: "bg-mint-100", accent: "text-mint-400" },
+    smartstore: { name: "스마트스토어", tile: "bg-mint-100", accent: "text-mint-400" },
+    coupang: { name: "쿠팡", tile: "bg-blush-100", accent: "text-blush-400" },
+    catchtable: { name: "캐치테이블", tile: "bg-peach-100", accent: "text-peach-400" },
+    zigzag: { name: "지그재그", tile: "bg-blush-100", accent: "text-blush-400" },
+    musinsa: { name: "무신사", tile: "bg-ink-100", accent: "text-ink-700" },
+    "29cm": { name: "29CM", tile: "bg-ink-100", accent: "text-ink-700" },
+    wconcept: { name: "W컨셉", tile: "bg-ink-100", accent: "text-ink-700" },
+    openmarket: { name: "오픈마켓", tile: "bg-butter-100", accent: "text-[#8A6410]" },
+    info: { name: "블로그·아티클", tile: "bg-sky-100", accent: "text-[#1D5FB8]" },
+    social: { name: "SNS", tile: "bg-peach-100", accent: "text-peach-400" },
+    official: { name: "공식 사이트", tile: "bg-purple-50", accent: "text-purple-500" },
+    visible_url: { name: "화면 속 링크", tile: "bg-purple-50", accent: "text-purple-600" },
+    original_url: { name: "원본 링크", tile: "bg-purple-50", accent: "text-purple-600" },
+  };
+  return brands[provider] ?? { name: "관련 링크", tile: "bg-purple-50", accent: "text-purple-500" };
+}
+
+function ReferenceFaviconTile({ href, tile }: { href: string; tile: string }) {
+  const host = new URL(href).hostname;
+  const letter = host.replace(/^www\./, "").charAt(0).toUpperCase() || "L";
+  const favicon = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=64`;
+  return (
+    <span
+      className={cn(
+        "relative flex size-[50px] flex-none items-center justify-center overflow-hidden rounded-[14px] border border-black/5 text-[18px] font-extrabold text-purple-600",
+        tile,
+      )}
+      aria-hidden
+    >
+      {letter}
+      {/* eslint-disable-next-line @next/next/no-img-element -- same Google favicon service as iOS FaviconTile */}
+      <img
+        src={favicon}
+        alt=""
+        className="absolute size-7 rounded-lg bg-white object-cover"
+        onError={(event) => event.currentTarget.remove()}
+      />
+    </span>
+  );
+}
+
+function ReferenceLinksSection({ links }: { links: ReferenceLink[] }) {
+  return (
+    <section aria-label="관련 링크" className="mt-6">
+      <h2 className="flex items-center gap-1.5 px-1 text-[14px] font-extrabold tracking-snug">
+        <Sparkles className="size-3.5 text-purple-500" aria-hidden /> 관련 링크
+      </h2>
+      <div className="mt-3 space-y-2.5">
+        {links.map((reference) => {
+          const href = safeHttpUrl(reference.url)!;
+          const style = referenceStyle(reference);
+          return (
+            <a
+              key={href}
+              href={href}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-3 rounded-2xl border border-ink-100 bg-surface p-3.5 shadow-card transition-[border-color,transform] hover:-translate-y-0.5 hover:border-purple-200"
+            >
+              <ReferenceFaviconTile href={href} tile={style.tile} />
+              <span className="min-w-0 flex-1">
+                <span className="flex flex-wrap items-center gap-1.5">
+                  <span className={cn("text-[11px] font-bold", style.accent)}>{style.name}</span>
+                  {(reference.usefulness ?? 0) >= 5 && (
+                    <span className="rounded-full bg-purple-50 px-2 py-0.5 text-[9.5px] font-bold text-purple-600">
+                      딱 맞아요
+                    </span>
+                  )}
+                </span>
+                <span className="mt-0.5 block truncate text-[14px] font-semibold text-ink-900">
+                  {reference.title || reference.label}
+                </span>
+                <span className="mt-0.5 flex min-w-0 items-center gap-2 text-[11.5px] text-ink-500">
+                  <span className="truncate">{reference.subtitle ?? domainOf(href)}</span>
+                  {reference.priceText && (
+                    <span className={cn("flex-none font-extrabold", style.accent)}>
+                      {reference.priceText}
+                    </span>
+                  )}
+                </span>
+              </span>
+              <ArrowUpRight className="size-4 flex-none text-ink-300" aria-hidden />
+            </a>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function PlaceSection({ place }: { place: Place }) {
+  const mapHref =
+    safeHttpUrl(place.mapUrl) ??
+    `https://map.naver.com/p/search/${encodeURIComponent(place.name)}`;
+  const category = place.category?.split(">").at(-1);
+  const address = place.roadAddress ?? place.address;
+  const placeImage = trustedPlaceImage(place.imageUrl);
+
+  return (
+    <section aria-label="장소" className="mt-6">
+      <h2 className="flex items-center gap-1.5 px-1 text-[14px] font-extrabold tracking-snug">
+        <MapPin className="size-3.5 text-purple-500" aria-hidden /> 장소
+      </h2>
+      <div className="mt-3 overflow-hidden rounded-3xl border border-ink-100 bg-surface shadow-card">
+        <a
+          href={mapHref}
+          target="_blank"
+          rel="noreferrer"
+          aria-label={`네이버 지도에서 ${place.name} 보기`}
+          className="relative block h-[168px] overflow-hidden bg-sky-100"
+        >
+          <NaverMapPreview lat={place.lat} lng={place.lng} />
+          {placeImage && (
+            // eslint-disable-next-line @next/next/no-img-element -- backend-validated googleusercontent place photo
+            <img
+              src={placeImage}
+              alt=""
+              className="absolute bottom-3 left-3 size-16 rounded-2xl border-[3px] border-white object-cover shadow-card-lift"
+            />
+          )}
+          <span className="absolute bottom-3 right-3 inline-flex items-center gap-1 rounded-full bg-surface/90 px-3 py-1.5 text-[10.5px] font-bold text-ink-900 shadow-card backdrop-blur">
+            네이버 지도 <ArrowUpRight className="size-3" aria-hidden />
+          </span>
+        </a>
+        <div className="flex items-center gap-3 p-4">
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-[15px] font-bold">{place.name}</span>
+            {(place.rating !== undefined || category) && (
+              <span className="mt-1 flex items-center gap-1.5 text-[11.5px] text-ink-500">
+                {place.rating !== undefined && (
+                  <>
+                    <Star className="size-3 fill-butter-400 text-butter-400" aria-hidden />
+                    <span className="font-bold text-ink-700">{place.rating.toFixed(1)}</span>
+                    {place.ratingCount !== undefined && (
+                      <span>리뷰 {place.ratingCount.toLocaleString("ko-KR")}</span>
+                    )}
+                  </>
+                )}
+                {category && <span>{category}</span>}
+              </span>
+            )}
+            {address && <span className="mt-1 block truncate text-[11.5px] text-ink-500">{address}</span>}
+          </span>
+          <a
+            href={mapHref}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex h-9 flex-none items-center gap-1 rounded-full bg-purple-50 px-3.5 text-[12px] font-bold text-purple-600 transition-colors hover:bg-purple-100"
+          >
+            길찾기 <ArrowUpRight className="size-3.5" aria-hidden />
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function trustedPlaceImage(value?: string): string | undefined {
+  const safe = safeHttpUrl(value);
+  if (!safe) return undefined;
+  const host = new URL(safe).hostname.toLowerCase();
+  return host.endsWith(".googleusercontent.com") ? safe : undefined;
+}
+
 function MochiSummary({ item }: { item: ResolvedItem }) {
   const original = item.ocrText ?? item.text;
   return (
@@ -315,7 +579,7 @@ function MochiSummary({ item }: { item: ResolvedItem }) {
         {item.summary}
       </p>
       {original && (
-        <blockquote className="mt-4 border-l-[3px] border-purple-200 pl-4 text-[13.5px] leading-relaxed text-ink-500">
+        <blockquote className="mt-4 whitespace-pre-wrap border-l-[3px] border-purple-200 pl-4 text-[13.5px] leading-relaxed text-ink-500">
           {original}
         </blockquote>
       )}

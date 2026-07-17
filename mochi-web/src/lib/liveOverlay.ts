@@ -1,5 +1,6 @@
-import type { AnalyzedItemWire } from "@/lib/api/wire";
+import type { AnalyzedItemWire, PlaceWire } from "@/lib/api/wire";
 import type { CaptureThumb } from "@/lib/captureImage";
+import type { SeedRecallEntry } from "@seed/schema";
 import {
   pickPrimaryIntent,
   type ResolvedInstance,
@@ -22,6 +23,8 @@ export interface LiveCaptureEntry {
   url?: string;
   memo?: string;
   thumb?: CaptureThumb;
+  /** 예시 카드의 사람이 읽는 제목. 분석 결과를 덮지 않고 회수 추천에만 보탠다. */
+  retrievalHint?: string;
 }
 
 const storageKey = (personaSlug: string) => `mochi-live-captures-${personaSlug}`;
@@ -125,12 +128,31 @@ export function addLiveCapture(personaSlug: string, entry: LiveCaptureEntry): vo
   listeners.get(personaSlug)?.forEach((fn) => fn());
 }
 
+/** 새 데모 방문자 시작 — 이전 방문자의 탭 로컬 기록과 메모리 캐시를 함께 비운다. */
+export function clearAllLiveCaptures(): void {
+  if (typeof window === "undefined") return;
+  const affected = new Set([...cache.keys(), ...listeners.keys()]);
+  for (let i = sessionStorage.length - 1; i >= 0; i--) {
+    const key = sessionStorage.key(i);
+    if (!key?.startsWith("mochi-live-captures-")) continue;
+    affected.add(key.slice("mochi-live-captures-".length));
+    sessionStorage.removeItem(key);
+  }
+  affected.forEach((personaSlug) => {
+    cache.set(personaSlug, EMPTY);
+    listeners.get(personaSlug)?.forEach((fn) => fn());
+  });
+}
+
 export interface LiveCaptureInput {
   kind: LiveCaptureEntry["kind"];
   text?: string;
   url?: string;
   memo?: string;
   thumb?: CaptureThumb;
+  retrievalHint?: string;
+  /** 예시 레일의 검증된 장소 메타 — 분석 폴백에서도 지도 상세를 보존한다. */
+  place?: PlaceWire;
 }
 
 export function makeLiveEntry(
@@ -141,12 +163,13 @@ export function makeLiveEntry(
     slug: liveSlugFor(wire.id),
     capturedAt: Date.now(),
     kind: input.kind,
-    wire,
+    wire: input.place && !wire.place ? { ...wire, place: input.place } : wire,
     // BFF 수용 상한과 동일 — sessionStorage 도 무한정 커지지 않게
     text: input.text?.slice(0, 2000),
     url: input.url,
     memo: input.memo?.slice(0, 500),
     thumb: input.thumb,
+    retrievalHint: input.retrievalHint?.slice(0, 120),
   };
 }
 
@@ -187,11 +210,14 @@ export function resolveLiveCapture(entry: LiveCaptureEntry): ResolvedItem {
     channel: entry.kind === "screenshot" ? "screenshot" : "appDirectInput",
     source: SOURCE_LABEL[entry.kind],
     title: entry.wire.title,
-    url: entry.url,
-    text: entry.text,
-    userMemo: entry.memo,
+    url: entry.url ?? entry.wire.url,
+    text: entry.text ?? entry.wire.text,
+    userMemo: entry.memo ?? entry.wire.userMemo,
     category: entry.wire.category,
     summary: entry.wire.summary,
+    shoppingProductQuery: entry.wire.shoppingProductQuery,
+    referenceLinks: entry.wire.referenceLinks,
+    place: entry.wire.place,
     // 스킴 가드 — sessionStorage 값이 어떤 경로로 오염돼도 이미지 data URL 만 렌더에 올린다
     image:
       entry.thumb && entry.thumb.dataUrl.startsWith("data:image/")
@@ -204,9 +230,23 @@ export function resolveLiveCapture(entry: LiveCaptureEntry): ResolvedItem {
     capturedAt: entry.capturedAt,
     instances,
     primaryIntent: pickPrimaryIntent(instances),
+    retrievalHint: entry.retrievalHint,
   };
 }
 
 export function resolveLiveCaptures(entries: LiveCaptureEntry[]): ResolvedItem[] {
   return entries.map(resolveLiveCapture);
+}
+
+/** 현재 브라우저 세션에서 보낸 기록만 리마인드 덱에 합성한다. */
+export function liveRecallEntries(items: ResolvedItem[]): SeedRecallEntry[] {
+  return items.map((item) => {
+    const labels = [...new Set(item.instances.map((instance) => instance.label).filter(Boolean))];
+    return {
+      itemSlug: item.slug,
+      kind: "linkedToRecent",
+      oneline: `‘${item.title}’, 다시 가져왔어요`,
+      gist: [item.summary, labels.join(" · ")].filter(Boolean).slice(0, 2),
+    };
+  });
 }

@@ -5,7 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ExternalLink } from "lucide-react";
+import { TESTFLIGHT_URL } from "@/lib/productLinks";
 
 const LandingCanvas = dynamic(() => import("./LandingCanvas"), { ssr: false });
 
@@ -151,15 +152,23 @@ export function LandingHero() {
 
       {/* 미션 카피 — LCP */}
       <div className="relative z-10 mx-auto flex w-full max-w-3xl flex-1 flex-col items-center justify-center px-6 pb-24 text-center">
-        <motion.p
-          className="text-[13.5px] font-bold tracking-wide text-lavender-500"
+        <motion.h1
+          className="font-display text-[42px] leading-none tracking-head text-lavender-900 md:text-[52px]"
           initial={reduce ? false : { opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, ease: "easeOut" }}
         >
+          모찌
+        </motion.h1>
+        <motion.p
+          className="mt-3 text-[13.5px] font-bold tracking-wide text-lavender-500"
+          initial={reduce ? false : { opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.55, ease: "easeOut", delay: 0.05 }}
+        >
           스크린샷 · 링크 · 기록을 맡아두는 기억 에이전트
         </motion.p>
-        <motion.h1
+        <motion.h2
           className="mt-4 font-display text-[clamp(28px,5vw,52px)] leading-[1.22] tracking-head text-lavender-900 [text-wrap:balance]"
           initial={reduce ? false : { opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
@@ -171,7 +180,7 @@ export function LandingHero() {
           <span className="bg-gradient-to-r from-purple-500 to-purple-600 bg-clip-text text-transparent">
             쉽게 떠오른다
           </span>
-        </motion.h1>
+        </motion.h2>
         <motion.p
           className="mt-5 max-w-xl text-[15px] leading-relaxed text-ink-700 md:text-[16.5px]"
           initial={reduce ? false : { opacity: 0, y: 18 }}
@@ -217,6 +226,29 @@ export function LandingHero() {
           <p className="text-[12.5px] font-medium text-ink-500">
             설치 없이 세 사람 중 한 명의 일주일을 체험해요
           </p>
+          <div className="mt-1 flex items-center gap-3 border-t border-ink-900/10 pt-3">
+            <Image
+              src="/qr-testflight.svg"
+              alt="모찌 TestFlight 설치 QR 코드"
+              width={68}
+              height={68}
+              className="hidden size-[68px] rounded-lg border border-ink-100 bg-white p-1 md:block"
+            />
+            <div className="text-left">
+              <p className="text-[12px] font-semibold text-ink-500">
+                iPhone에서 실제 모찌 써보기
+              </p>
+              <a
+                href={TESTFLIGHT_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-1 inline-flex items-center gap-1 text-[13px] font-bold text-purple-600 underline-offset-2 hover:underline"
+              >
+                TestFlight에서 설치하기
+                <ExternalLink className="size-3.5" aria-hidden />
+              </a>
+            </div>
+          </div>
         </motion.div>
       </div>
 

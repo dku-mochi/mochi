@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: "체험할 사람 선택" };
 
 const INTENT_PRIORITY: IntentType[] = ["schedule", "todo", "knowledge", "memo"];
 
-function toCard(p: (typeof PERSONAS)[number], recommended: boolean): PersonaCardData {
+function toCard(p: (typeof PERSONAS)[number]): PersonaCardData {
   const byIntent: Record<IntentType, number> = { schedule: 0, todo: 0, knowledge: 0, memo: 0 };
   for (const item of p.items) {
     const primary =
@@ -39,11 +39,10 @@ function toCard(p: (typeof PERSONAS)[number], recommended: boolean): PersonaCard
     heroImages,
     byIntent,
     itemCount: p.items.length,
-    recommended,
   };
 }
 
 export default function PersonaSelectPage() {
-  const cards = PERSONAS.map((p, i) => toCard(p, i === 0));
+  const cards = PERSONAS.map(toCard);
   return <PersonaSelect cards={cards} />;
 }

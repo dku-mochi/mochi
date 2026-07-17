@@ -2,7 +2,7 @@
 level: 3
 mode: log
 status: active
-last_verified: 2026-06-25
+last_verified: 2026-07-15
 confidence: 0.9
 owners: [송준서, 이용찬, 박세현]
 description: 외부 설정·비밀값 체크리스트 + 활성 작업·다음 sprint 목표. 다음 중 하나라도 손대기 전 읽어라 — 인증·외부 통합, sprint 작업 분배, /sprint-end 직후. 자주 바뀜 · `/sprint-end` 가 done 항목을 docs/archive/ 로 이관.
@@ -147,6 +147,8 @@ ShareExtension/`MochiItemSyncWorker` 가 영구 `captures/<captureID>.png` 로 �
 - [x] [네이버 클라우드 플랫폼](https://console.ncloud.com) 가입 + Maps Application 등록(Mobile Dynamic Map, 번들ID `app.mochi`) (2026-07-09)
 - [x] 발급된 **Client ID** 를 `mochi-ios/Targets/App/Support/Info.plist` 의 `NMFNcpKeyId` 값에 입력 (2026-07-09)
   - GIDClientID 처럼 비밀값 아닌 앱 식별자(번들ID 바인딩) — plist 커밋 OK.
+- [ ] 같은 Maps Application에서 **Web Dynamic Map**을 활성화하고 Web 서비스 URL에 `https://mochi-demo.vercel.app` 등록
+- [x] 같은 공개 Client ID를 Vercel Production의 `NEXT_PUBLIC_NAVER_MAP_CLIENT_ID`에 등록 (2026-07-15)
 
 ---
 

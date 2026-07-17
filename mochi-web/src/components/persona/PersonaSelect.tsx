@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, Shuffle } from "lucide-react";
-import { BorderBeam } from "border-beam";
 import type { IntentType, PersonaAccent } from "@seed/schema";
 import { INTENT_META } from "@/components/primitives/IntentChip";
 import { RiseIn } from "@/components/primitives/RiseIn";
@@ -12,7 +11,7 @@ import { cn } from "@/lib/cn";
 
 /*
  * S1 페르소나 카드 3장 — 이름·페인포인트·대표 캡처 스택·intent 분포.
- * hover 시 캡처 스택이 부채꼴로 펼쳐진다. 추천 카드 1장에만 border-beam (플랜 제약).
+ * hover 시 캡처 스택이 부채꼴로 펼쳐진다.
  * 선택 → 여정 첫 씬(기록)으로, guided 모드 진입.
  */
 
@@ -27,7 +26,6 @@ export interface PersonaCardData {
   heroImages: string[];
   byIntent: Record<IntentType, number>;
   itemCount: number;
-  recommended: boolean;
 }
 
 const ACCENT_BG: Record<PersonaAccent, string> = {
@@ -142,37 +140,17 @@ function PersonaCard({ card, index }: { card: PersonaCardData; index: number }) 
           </span>
         </div>
       </div>
-
-      {card.recommended && (
-        <span className="absolute right-3 top-3 rounded-full bg-purple-500 px-2.5 py-1 text-[11px] font-bold text-white shadow-fab">
-          추천
-        </span>
-      )}
     </motion.article>
   );
 
   return (
     <RiseIn index={index + 1} className="h-full">
       <Link
-        href={`/p/${card.slug}/capture?guided=1`}
+        href={`/p/${card.slug}/capture?guided=1&new=1`}
         className="block h-full rounded-lg focus-visible:outline-2"
         aria-label={`${card.name} — ${card.tagline}. 이 사람으로 체험 시작`}
       >
-        {card.recommended ? (
-          <BorderBeam
-            colorVariant="ocean"
-            theme="light"
-	        size="pulse-outside"
-            borderRadius={20}
-            brightness={1.6}
-            hueRange={10}
-            className="h-full"
-          >
-            {inner}
-          </BorderBeam>
-        ) : (
-          inner
-        )}
+        {inner}
       </Link>
     </RiseIn>
   );
@@ -183,7 +161,7 @@ export function PersonaSelect({ cards }: { cards: PersonaCardData[] }) {
 
   const pickRandom = () => {
     const pick = cards[Math.floor(Math.random() * cards.length)];
-    router.push(`/p/${pick.slug}/capture?guided=1`);
+    router.push(`/p/${pick.slug}/capture?guided=1&new=1`);
   };
 
   return (

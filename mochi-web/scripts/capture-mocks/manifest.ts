@@ -9,13 +9,22 @@ export const SHOTS: Array<{ out: string; html: string }> = [
       course: "운영체제 (김정민)",
       title: "[과제 4] 페이지 교체 알고리즘 시뮬레이터 구현",
       author: "김정민 교수",
-      date: "7월 3일 14:22",
+      date: "8월 3일 14:22",
       body: [
         "FIFO, LRU, Clock 세 가지 페이지 교체 알고리즘을 구현하고, 참조 문자열에 대한 페이지 폴트 횟수를 비교 분석하시오.",
         "보고서에는 알고리즘별 시간 복잡도와 실험 결과 그래프를 반드시 포함해야 합니다.",
         "지연 제출 시 일당 10% 감점됩니다.",
       ],
-      due: "7월 12일 (일) 23:59 · LMS 업로드",
+      due: "8월 12일 (수) 23:59 · LMS 업로드",
+    }),
+  },
+  {
+    out: "sena-dacon.jpg",
+    html: t.poster({
+      kicker: "2026 DATA CHALLENGE",
+      title: "데이콘 AI<br/>경진대회",
+      lines: ["기획서 — 8월 7일(금) 마감", "최종 산출물 — 8월 21일(금) 마감", "팀 단위 1~4인 · 온라인 제출"],
+      footer: "주최 · 데이콘",
     }),
   },
   {
@@ -50,8 +59,20 @@ export const SHOTS: Array<{ out: string; html: string }> = [
     html: t.poster({
       kicker: "제 10 회",
       title: "교내 창업<br/>아이디어 공모전",
-      lines: ["접수 — 7월 27일(월)까지", "팀 단위 1~4인 · 총상금 500만원", "본선 발표 — 8월 21일(금)"],
+      lines: ["접수 — 8월 7일(금)까지", "팀 단위 1~4인 · 총상금 500만원", "본선 발표 — 8월 28일(금)"],
       footer: "주최 · 창업지원단",
+    }),
+  },
+  {
+    out: "sena-student-loan.jpg",
+    html: t.article({
+      outlet: "한국장학재단 · 학자금 지원 안내",
+      title: "학자금 대출 이자 납부 안내",
+      paras: [
+        "납부 기한은 8월 19일(수) 18:00까지입니다.",
+        "자동이체 계좌의 잔액과 등록 계좌 정보를 미리 확인해 주세요.",
+        "납부 결과는 홈페이지의 대출 내역에서 확인할 수 있습니다.",
+      ],
     }),
   },
   {
@@ -96,7 +117,7 @@ export const SHOTS: Array<{ out: string; html: string }> = [
         {
           card: {
             title: "여름 MT 공지 🏕",
-            lines: ["7/19(일) ~ 20(월) · 가평", "회비 45,000원 (버스 포함)", "참석 투표는 이번 주까지!"],
+            lines: ["8/22(토) ~ 23(일) · 가평", "회비 45,000원 (버스 포함)", "참석 투표는 8/7(금)까지!"],
             deco: "SUMMER MT",
           },
         },
@@ -315,7 +336,7 @@ export const SHOTS: Array<{ out: string; html: string }> = [
         {
           card: {
             title: "김수민 ♥ 이준호",
-            lines: ["7월 20일 (월) 12:30", "더채플앳청담 3F 아모리스홀", "마음 편히 오셔서 축하해 주세요"],
+            lines: ["8월 30일 (일) 12:30", "더채플앳청담 3F 아모리스홀", "마음 편히 오셔서 축하해 주세요"],
             deco: "INVITATION",
           },
         },
@@ -337,6 +358,23 @@ export const SHOTS: Array<{ out: string; html: string }> = [
       likes: "864",
       caption: "7/16(목) 19:30 여름 꽃다발 클래스. 자리 얼마 없어요, DM 주세요 🌷",
       time: "2일 전",
+    }),
+  },
+  {
+    out: "yuna-namyangju.jpg",
+    html: t.kakao({
+      room: "주말 나들이",
+      count: 4,
+      messages: [
+        {
+          card: {
+            title: "남양주 당일치기 코스",
+            lines: ["8월 29일(토) · 친구들과", "물의정원 → 카페거리", "정약용 유적지에서 마무리"],
+            deco: "DAY TRIP",
+          },
+        },
+        { from: "유나", text: "오전 10시에 물의정원 입구에서 만나자!", time: "오후 8:42" },
+      ],
     }),
   },
 ];
