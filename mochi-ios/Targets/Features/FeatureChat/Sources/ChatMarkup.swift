@@ -34,9 +34,10 @@ enum ChatMarkup {
     }
 
     /// citation 마커. 전각 「【item:id】」 이 canonical 이지만, 작은 모델(flash-lite)이 반각
-    /// 「[item:id]」 으로 흘리는 경우가 잦아 양쪽 괄호를 모두 받는다(백엔드 `_CITATION_PATTERN`
-    /// 과 동일 정책). UUID 36자 제약이라 일반 본문 대괄호와의 오탐은 사실상 없다.
-    private static let marker = #/[【\[]item:([0-9a-fA-F-]{36})[】\]]/#
+    /// 「[item:id]」 으로 흘리거나 UUID 를 앞 8자로 줄이는 경우가 있어 양쪽을 받는다(백엔드
+    /// `_CITATION_PATTERN` 과 동일 정책). 축약형은 citation 이벤트의 전체 UUID 중 유일한
+    /// prefix 일 때만 뱃지로 바꾼다.
+    private static let marker = #/[【\[]item:([0-9a-fA-F-]{8,36})[】\]]/#
 
     /// raw 본문 → 표시 세그먼트.
     /// - 마커는 매칭 citation 의 index 뱃지로 치환, 매칭 없으면(스트리밍 중·미실재 id) 숨김.
@@ -49,10 +50,9 @@ enum ChatMarkup {
             text = trimStreamingTail(text)
         }
 
-        let indexByID = Dictionary(
-            citations.map { ($0.mochiItemID, $0.index) },
-            uniquingKeysWith: { first, _ in first }
-        )
+        let citationIDs = citations.map {
+            (id: $0.mochiItemID.uuidString.lowercased(), index: $0.index)
+        }
 
         var segments: [Segment] = []
         var cursor = text.startIndex
@@ -60,7 +60,9 @@ enum ChatMarkup {
             if cursor < match.range.lowerBound {
                 segments.append(.text(String(text[cursor..<match.range.lowerBound])))
             }
-            if let id = UUID(uuidString: String(match.1)), let index = indexByID[id] {
+            let markerID = String(match.1).lowercased()
+            let matches = citationIDs.filter { $0.id == markerID || $0.id.hasPrefix(markerID) }
+            if matches.count == 1, let index = matches.first?.index {
                 segments.append(.badge(index: index))
             }
             cursor = match.range.upperBound

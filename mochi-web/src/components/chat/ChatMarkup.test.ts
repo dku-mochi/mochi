@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { trimStreamingTail } from "./ChatMarkup";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { ChatMarkup, parseChatBlocks, trimStreamingTail } from "./ChatMarkup";
 
 /* 스트리밍 꼬리 정리 — iOS ChatMarkup.trimStreamingTail 과 같은 정책 */
 
@@ -22,5 +24,37 @@ describe("trimStreamingTail", () => {
   it("짝이 안 맞는 마지막 ** 이후를 자른다", () => {
     expect(trimStreamingTail("정리하면 **핵심")).toBe("정리하면 ");
     expect(trimStreamingTail("정리하면 **핵심** 입니다")).toBe("정리하면 **핵심** 입니다");
+  });
+
+  it("축약 item id 를 전체 citation 과 유일하게 맞춰 뱃지로 바꾼다", () => {
+    const html = renderToStaticMarkup(
+      createElement(ChatMarkup, {
+        text: "근거예요[item:7a7f11f7].",
+        citations: [
+          {
+            index: 3,
+            itemId: "7a7f11f7-2982-4b2c-9311-6ee02e0e134b",
+            slug: null,
+            title: "근거",
+            snippet: "발췌",
+          },
+        ],
+      }),
+    );
+    expect(html).not.toContain("item:7a7f11f7");
+    expect(html).toContain(">3</sup>");
+  });
+
+  it("제목과 불릿이 같은 문단에 섞여도 별도 리스트 블록으로 나눈다", () => {
+    const blocks = parseChatBlocks("**1. 기초 학습**\n* LangChain 입문\n* RAG 구축\n\n마무리");
+    expect(blocks.map((block) => block.kind)).toEqual(["paragraph", "list", "paragraph"]);
+
+    const html = renderToStaticMarkup(
+      createElement(ChatMarkup, {
+        text: "**1. 기초 학습**\n* LangChain 입문\n* RAG 구축",
+      }),
+    );
+    expect(html).toContain('role="list"');
+    expect(html).not.toContain("* LangChain");
   });
 });
