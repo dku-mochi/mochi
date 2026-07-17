@@ -205,8 +205,33 @@ def test_citation_pattern_accepts_fullwidth_and_ascii_brackets() -> None:
     fid = "b63546c1-1d56-4882-94ba-6cc035dcf680"
     assert _CITATION_PATTERN.findall(f"과제【item:{fid}】 챙겨요") == [fid]
     assert _CITATION_PATTERN.findall(f"과제[item:{fid}] 챙겨요") == [fid]
-    # 일반 본문 대괄호는 오탐하지 않는다(UUID 36자 제약).
+    assert _CITATION_PATTERN.findall("과제[item:b63546c1] 챙겨요") == ["b63546c1"]
+    # 일반 본문 대괄호와 임의 문자열은 오탐하지 않는다(item: + 8자리 hex 최소).
     assert _CITATION_PATTERN.findall("배열[0] 과 [item:not-a-uuid] 는 무시") == []
+
+
+async def test_short_citation_id_resolves_only_from_current_tool_results() -> None:
+    short = str(_KNOWN_ITEM)[:8]
+    llm = FakeLLM(
+        rounds=[
+            [ChatLLMChunk(tool_call=("search_items", {"query": "카페"}))],
+            [ChatLLMChunk(text_delta=f"저장한 카페예요[item:{short}]")],
+        ]
+    )
+    store = FakeStore()
+    registry = RunRegistry()
+    run_id = uuid4()
+    queue = registry.create(run_id)
+
+    await _runner(llm, store, registry).execute(
+        owner_id=_OWNER, conversation_id=_CONVERSATION, run_id=run_id
+    )
+    events = await _drain(queue)
+
+    assistant = store.appended[-1]
+    assert [citation.mochi_item_id for citation in assistant.citations] == [_KNOWN_ITEM]
+    citation_event = next(event for event in events if event.kind == "citation")
+    assert citation_event.payload["item_id"] == str(_KNOWN_ITEM)
 
 
 async def test_first_round_forces_tool_call_then_releases() -> None:

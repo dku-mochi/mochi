@@ -49,6 +49,13 @@ final class ChatMarkupTests: XCTestCase {
         XCTAssertEqual(segments, [.text("여기가 좋아요"), .badge(index: 1), .text(". 가보세요.")])
     }
 
+    func test_short_marker_uniquely_matching_citation_becomes_badge() {
+        let shortID = String(itemID.uuidString.lowercased().prefix(8))
+        let raw = "여기가 좋아요[item:\(shortID)]."
+        let segments = ChatMarkup.segments(raw: raw, citations: [citation(index: 3)], isStreaming: false)
+        XCTAssertEqual(segments, [.text("여기가 좋아요"), .badge(index: 3), .text(".")])
+    }
+
     func test_ascii_trailing_partial_marker_is_trimmed_only_while_streaming() {
         let raw = "여기가 좋아요[item:1111"
         let streaming = ChatMarkup.segments(raw: raw, citations: [], isStreaming: true)

@@ -44,11 +44,10 @@ _TIMEZONE = "Asia/Seoul"
 #: 프로필 로드 상한 — 프로필은 부가라, DB 가 막혀도 전체 run timeout 을 태우지 않고 빨리 포기한다.
 _PROFILE_LOAD_TIMEOUT = 3.0
 
-# 전각 「【item:id】」 이 canonical 이지만, 작은 모델(flash-lite)이 더 흔한 반각 「[item:id]」 으로
-# 흘리는 경우가 잦아 양쪽 괄호를 모두 받는다 — 안 받으면 citation 미생성 + 본문에 마커 원문이
-# 그대로 노출된다(iOS ChatMarkup.marker 와 동일 정책). UUID 36자 제약이라 일반 본문 대괄호와의
-# 오탐은 사실상 없다.
-_CITATION_PATTERN = re.compile(r"[【\[]item:([0-9a-fA-F-]{36})[】\]]")
+# 전각 「【item:id】」 이 canonical 이지만, 작은 모델이 반각 괄호를 쓰거나 UUID 를 앞 8자로
+# 줄이는 경우도 수용한다. 짧은 토큰은 현재 턴의 owner-scoped 도구 결과 안에서 유일할 때만
+# 전체 UUID 로 복구한다(``_resolve_marker_ids``) — DB 전체 prefix 추측은 하지 않는다.
+_CITATION_PATTERN = re.compile(r"[【\[]item:([0-9a-fA-F-]{8,36})[】\]]")
 
 #: 한도 도달 시 마지막 라운드에 주입 — 에러 대신 폴백 답변을 끌어낸다.
 _FALLBACK_INSTRUCTION = (
@@ -102,6 +101,7 @@ class RunChatTurn:
 
         assistant_text = ""
         proposals: list[dict[str, Any]] = []
+        citation_candidates: list[UUID] = []
         calls = 0
         llm_tokens_in = 0
         llm_tokens_out = 0
@@ -158,6 +158,9 @@ class RunChatTurn:
                     name=name,
                     args=args,
                 )
+                for candidate in _citation_candidates(name, result.payload):
+                    if candidate not in citation_candidates:
+                        citation_candidates.append(candidate)
                 if result.proposal is not None:
                     # propose_* 툴의 확인 카드 — 쓰기 없음. 즉시 스트림으로 흘리고
                     # assistant 행 영속 시 proposals 에 함께 싣는다(스냅샷 재조회 정합).
@@ -207,6 +210,7 @@ class RunChatTurn:
             run_id=run_id,
             text=assistant_text,
             proposals=proposals,
+            citation_candidates=citation_candidates,
         )
         try:
             await self.store.record_usage(
@@ -264,16 +268,10 @@ class RunChatTurn:
         run_id: UUID,
         text: str,
         proposals: list[dict[str, Any]] | None = None,
+        citation_candidates: list[UUID] | None = None,
     ) -> UUID:
         """citation 마커 파싱·owner 검증 → assistant 행 + citations 영속 + citation 이벤트."""
-        marker_ids: list[UUID] = []
-        for raw in _CITATION_PATTERN.findall(text):
-            try:
-                marker_id = UUID(raw)
-            except ValueError:
-                continue
-            if marker_id not in marker_ids:
-                marker_ids.append(marker_id)
+        marker_ids = _resolve_marker_ids(text, citation_candidates or [])
         resolved = await self.store.resolve_citations(owner_id=owner_id, mochi_item_ids=marker_ids)
 
         citations = tuple(
@@ -340,6 +338,55 @@ class RunChatTurn:
             await self.store.set_run_status(owner_id=owner_id, run_id=run_id, status=RunStatus.FAILED)
         finally:
             self._publish(run_id, run_events.ERROR, {"code": code, "message": message})
+
+
+_CITABLE_TOOL_NAMES = frozenset(
+    {"search_items", "get_item_detail", "view_item_image", "list_notifications"}
+)
+
+
+def _citation_candidates(tool_name: str, payload: dict[str, Any]) -> list[UUID]:
+    """현재 턴의 기록 조회 도구가 실제 반환한 item UUID 만 citation 후보로 모은다."""
+    if tool_name not in _CITABLE_TOOL_NAMES:
+        return []
+    rows: list[dict[str, Any]] = [payload]
+    for key in ("items", "notifications"):
+        value = payload.get(key)
+        if isinstance(value, list):
+            rows.extend(row for row in value if isinstance(row, dict))
+
+    candidates: list[UUID] = []
+    for row in rows:
+        for key in ("id", "mochi_item_id"):
+            raw = row.get(key)
+            try:
+                candidate = UUID(str(raw))
+            except (TypeError, ValueError, AttributeError):
+                continue
+            if candidate not in candidates:
+                candidates.append(candidate)
+    return candidates
+
+
+def _resolve_marker_ids(text: str, candidates: list[UUID]) -> list[UUID]:
+    """본문 marker 를 입력 순서대로 UUID 로 복구한다.
+
+    전체 UUID 는 기존처럼 owner 검증 단계로 넘긴다. 축약 토큰은 이번 답변의 도구 결과 중
+    유일한 prefix 일 때만 허용해 다른 기록을 잘못 인용하는 것보다 citation 누락을 택한다.
+    """
+    resolved: list[UUID] = []
+    for raw in _CITATION_PATTERN.findall(text):
+        try:
+            marker_id = UUID(raw)
+        except ValueError:
+            prefix = raw.lower()
+            matches = [candidate for candidate in candidates if str(candidate).startswith(prefix)]
+            if len(matches) != 1:
+                continue
+            marker_id = matches[0]
+        if marker_id not in resolved:
+            resolved.append(marker_id)
+    return resolved
 
 
 def _profile_block(profile: str | None) -> str:
