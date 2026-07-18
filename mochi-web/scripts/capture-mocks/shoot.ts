@@ -13,7 +13,12 @@ async function main() {
   const filter = process.argv[2];
   mkdirSync(OUT_DIR, { recursive: true });
 
-  const browser = await chromium.launch();
+  const browser = await chromium.launch({
+    executablePath:
+      process.env.CHROME_PATH ??
+      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    args: ["--disable-gpu-sandbox"],
+  });
   const ctx = await browser.newContext({
     viewport: { width: 390, height: 844 },
     deviceScaleFactor: 2,

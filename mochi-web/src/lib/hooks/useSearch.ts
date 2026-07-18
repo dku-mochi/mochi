@@ -17,6 +17,12 @@ export interface SearchState {
   slugs: string[];
 }
 
+export interface SearchLiveContext {
+  id: string;
+  title: string;
+  summary: string;
+}
+
 const IDLE: SearchState = { status: "idle", query: "", slugs: [] };
 
 export function useSearch(
@@ -30,7 +36,7 @@ export function useSearch(
   useEffect(() => () => abortRef.current?.abort(), []);
 
   const run = useCallback(
-    async (query: string) => {
+    async (query: string, liveContext?: SearchLiveContext) => {
       const q = query.trim();
       if (!q) return;
       const seq = ++seqRef.current;
@@ -42,7 +48,7 @@ export function useSearch(
         const res = await fetch("/api/bff/search", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query: q, persona: personaSlug }),
+          body: JSON.stringify({ query: q, persona: personaSlug, liveContext }),
           signal: ac.signal,
         });
         if (!res.ok) throw new Error(`search_http_${res.status}`);

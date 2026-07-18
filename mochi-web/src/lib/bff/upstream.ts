@@ -1,9 +1,9 @@
 import "server-only";
 
 import { createHash } from "node:crypto";
-import type { AnalyzedItemWire } from "@/lib/api/wire";
+import type { AnalyzedItemWire, ProposalType } from "@/lib/api/wire";
 import { parseSseStream } from "@/lib/sse/parse";
-import { chatWireEvents, type IngestInput } from "./fallback";
+import { chatWireEvents, type ChatLiveContext, type IngestInput } from "./fallback";
 import { personaToken } from "./token";
 import type { OutEvent } from "./sse";
 
@@ -91,6 +91,7 @@ interface LiveChatOpts extends Upstream {
   conversationId: string;
   personaSlug: string;
   text: string;
+  liveContext?: ChatLiveContext;
   /** 클라이언트 단절 신호 (req.signal) */
   signal?: AbortSignal;
 }
@@ -146,6 +147,8 @@ async function* chatStitched(
 ): AsyncGenerator<OutEvent> {
   let sawDelta = false;
   let sawDone = false;
+  let sawContextCitation = false;
+  let maxCitationIndex = 0;
   let runId = `live_${crypto.randomUUID().slice(0, 8)}`;
 
   try {
@@ -179,7 +182,26 @@ async function* chatStitched(
           throw new Error("chat_upstream_error");
         }
         if (kind === "message_delta") sawDelta = true;
-        if (kind === "done") sawDone = true;
+        if (kind === "citation" && data && typeof data === "object") {
+          const citation = data as { item_id?: unknown; index?: unknown };
+          if (citation.item_id === opts.liveContext?.id) sawContextCitation = true;
+          if (typeof citation.index === "number") maxCitationIndex = Math.max(maxCitationIndex, citation.index);
+        }
+        if (kind === "done") {
+          sawDone = true;
+          if (opts.liveContext && !sawContextCitation) {
+            yield {
+              event: "citation",
+              data: {
+                run_id: runId,
+                index: maxCitationIndex + 1,
+                item_id: opts.liveContext.id,
+                title: opts.liveContext.title,
+                snippet: opts.liveContext.summary,
+              },
+            };
+          }
+        }
         yield { event: kind, data };
         if (kind === "done") return;
       }
@@ -189,13 +211,25 @@ async function* chatStitched(
       void err;
       if (sawDelta) {
         // 본문이 나간 뒤의 절단 — 완결 신호만 이어붙인다
+        if (opts.liveContext && !sawContextCitation) {
+          yield {
+            event: "citation",
+            data: {
+              run_id: runId,
+              index: maxCitationIndex + 1,
+              item_id: opts.liveContext.id,
+              title: opts.liveContext.title,
+              snippet: opts.liveContext.summary,
+            },
+          };
+        }
         yield {
           event: "done",
           data: { run_id: runId, message_id: `stitch_${crypto.randomUUID().slice(0, 8)}` },
         };
       } else {
         // 본문 전 실패 — 폴백 대본 전체로 완결 (delayMs 페이싱은 sseResponse 가 소화)
-        yield* arrayToAsync(chatWireEvents(opts.personaSlug, opts.text));
+        yield* arrayToAsync(chatWireEvents(opts.personaSlug, opts.text, opts.liveContext));
       }
     }
   } finally {
@@ -230,6 +264,167 @@ export async function liveSearch(
     return await res.json();
   } catch {
     return null;
+  }
+}
+
+/* ── 채팅 proposal 확정 실행 ─────────────────────────────── */
+
+function stringRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function camelPayload(value: unknown): Record<string, unknown> {
+  const raw = stringRecord(value);
+  const out: Record<string, unknown> = {};
+  for (const [key, field] of Object.entries(raw)) {
+    const camel = key.replace(/_([a-z])/g, (_, letter: string) => letter.toUpperCase());
+    out[camel] = field;
+  }
+  return out;
+}
+
+export type LiveProposalResult = "confirmed" | "preview" | "expired" | "failed";
+
+interface StoredProposal {
+  type: ProposalType;
+  payload: Record<string, unknown>;
+}
+
+const PROPOSAL_TYPES = new Set<ProposalType>([
+  "item_update",
+  "item_delete",
+  "create_schedule",
+  "reminder",
+  "create_memo",
+]);
+
+async function storedProposal(
+  up: Upstream,
+  conversationId: string,
+  proposalId: string,
+): Promise<StoredProposal | "expired" | "failed"> {
+  let sawSnapshot = false;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const response = await fetch(`${up.base}/conversations/${conversationId}`, {
+        headers: { authorization: `Bearer ${up.token}` },
+        signal: AbortSignal.timeout(JSON_TIMEOUT_MS),
+        cache: "no-store",
+      });
+      if (response.status === 404) return "expired";
+      if (response.ok) {
+        sawSnapshot = true;
+        const snapshot = (await response.json()) as {
+          messages?: Array<{ proposals?: Array<Record<string, unknown>> }>;
+        };
+        for (const message of snapshot.messages ?? []) {
+          for (const proposal of message.proposals ?? []) {
+            if (proposal.id !== proposalId || typeof proposal.type !== "string") continue;
+            if (!PROPOSAL_TYPES.has(proposal.type as ProposalType)) return "expired";
+            return {
+              type: proposal.type as ProposalType,
+              payload: stringRecord(proposal.payload),
+            };
+          }
+        }
+      }
+    } catch {
+      if (attempt === 2) return "failed";
+    }
+    // proposal 이벤트 직후 assistant 스냅샷 영속이 끝나기 전 누를 수 있어 짧게 재조회한다.
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+  return sawSnapshot ? "expired" : "failed";
+}
+
+export async function executeLiveProposal(
+  up: Upstream,
+  conversationId: string,
+  proposalId: string,
+): Promise<LiveProposalResult> {
+  const stored = await storedProposal(up, conversationId, proposalId);
+  if (stored === "expired" || stored === "failed") return stored;
+  const { type, payload } = stored;
+  // 공유 페르소나의 기존 기록을 바꾸는 파괴적 작업과 기기 알림은 웹에서 실행하지 않는다.
+  if (type === "item_update" || type === "item_delete" || type === "reminder") return "preview";
+  let action: Response;
+  try {
+    if (type === "create_schedule") {
+      const confirmed = Array.isArray(payload.confirmed_instances)
+        ? payload.confirmed_instances.map((value) => {
+            const instance = stringRecord(value);
+            return {
+              intentType: instance.intent_type,
+              payload: camelPayload(instance.payload),
+              ...(typeof instance.label === "string" ? { label: instance.label } : {}),
+            };
+          })
+        : [];
+      if (confirmed.length === 0) return "failed";
+      action = await fetch(`${up.base}/mochi_items`, {
+        method: "POST",
+        headers: { ...authHeaders(up), "Idempotency-Key": proposalId },
+        body: JSON.stringify({
+          channel: "chat",
+          text: typeof payload.text === "string" ? payload.text : null,
+          confirmedInstances: confirmed,
+          category: typeof payload.category === "string" ? payload.category : null,
+          summary: typeof payload.summary === "string" ? payload.summary : null,
+        }),
+        signal: AbortSignal.timeout(JSON_TIMEOUT_MS),
+        cache: "no-store",
+      });
+    } else if (type === "create_memo") {
+      const text = typeof payload.text === "string" ? payload.text.trim() : "";
+      if (!text) return "failed";
+      action = await fetch(`${up.base}/mochi_items`, {
+        method: "POST",
+        headers: { ...authHeaders(up), "Idempotency-Key": proposalId },
+        body: JSON.stringify({ channel: "chat", text }),
+        signal: AbortSignal.timeout(JSON_TIMEOUT_MS),
+        cache: "no-store",
+      });
+    } else {
+      return "failed";
+    }
+  } catch {
+    return "failed";
+  }
+
+  if (action.status === 404) return "expired";
+  if (!action.ok) return "failed";
+
+  try {
+    await fetch(`${up.base}/conversations/${conversationId}/proposals/${proposalId}`, {
+      method: "PATCH",
+      headers: authHeaders(up),
+      body: JSON.stringify({ status: "confirmed" }),
+      signal: AbortSignal.timeout(JSON_TIMEOUT_MS),
+      cache: "no-store",
+    });
+  } catch {
+    // 실행 자체는 완료됐다. 카드 상태 영속은 iOS와 같은 best-effort다.
+  }
+  return "confirmed";
+}
+
+export async function cancelLiveProposal(
+  up: Upstream,
+  conversationId: string,
+  proposalId: string,
+): Promise<void> {
+  try {
+    await fetch(`${up.base}/conversations/${conversationId}/proposals/${proposalId}`, {
+      method: "PATCH",
+      headers: authHeaders(up),
+      body: JSON.stringify({ status: "cancelled" }),
+      signal: AbortSignal.timeout(JSON_TIMEOUT_MS),
+      cache: "no-store",
+    });
+  } catch {
+    /* 취소 카드 영속은 best-effort */
   }
 }
 
@@ -448,6 +643,31 @@ interface LiveItemResponse {
   userMemo?: string | null;
   summary?: string | null;
   category?: string | null;
+  shoppingProductQuery?: string | null;
+  referenceLinks?: Array<{
+    url: string;
+    title: string;
+    label: string;
+    role: string;
+    provider: string;
+    rankProfile: string;
+    source?: string | null;
+    usefulness?: number | null;
+    subtitle?: string | null;
+    priceText?: string | null;
+  }>;
+  place?: {
+    name: string;
+    lat: number;
+    lng: number;
+    category?: string | null;
+    address?: string | null;
+    roadAddress?: string | null;
+    mapUrl?: string | null;
+    rating?: number | null;
+    ratingCount?: number | null;
+    imageUrl?: string | null;
+  } | null;
   lifecycleKind: string;
   intentInstances?: Array<{
     intentType: "schedule" | "todo" | "knowledge" | "memo";
@@ -497,6 +717,36 @@ function mapLiveItem(item: LiveItemResponse): AnalyzedItemWire {
     title,
     summary: item.summary?.trim() || fallbackSummary,
     category: item.category?.trim() || "새 기록",
+    url: item.url ?? undefined,
+    text: item.text ?? undefined,
+    userMemo: item.userMemo ?? undefined,
+    shoppingProductQuery: item.shoppingProductQuery ?? undefined,
+    referenceLinks: item.referenceLinks?.map((link) => ({
+      url: link.url,
+      title: link.title,
+      label: link.label,
+      role: link.role,
+      provider: link.provider,
+      rankProfile: link.rankProfile,
+      source: link.source ?? undefined,
+      usefulness: link.usefulness ?? undefined,
+      subtitle: link.subtitle ?? undefined,
+      priceText: link.priceText ?? undefined,
+    })),
+    place: item.place
+      ? {
+          name: item.place.name,
+          lat: item.place.lat,
+          lng: item.place.lng,
+          category: item.place.category ?? undefined,
+          address: item.place.address ?? undefined,
+          roadAddress: item.place.roadAddress ?? undefined,
+          mapUrl: item.place.mapUrl ?? undefined,
+          rating: item.place.rating ?? undefined,
+          ratingCount: item.place.ratingCount ?? undefined,
+          imageUrl: item.place.imageUrl ?? undefined,
+        }
+      : undefined,
     intents,
   };
 }

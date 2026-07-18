@@ -44,12 +44,44 @@ export interface SearchWireResponse {
   citations: Array<{ mochiItemId: string; snippet?: string; score: number }>;
 }
 
+export interface ReferenceLinkWire {
+  url: string;
+  title: string;
+  label: string;
+  role: string;
+  provider: string;
+  rankProfile: string;
+  source?: string;
+  usefulness?: number;
+  subtitle?: string;
+  priceText?: string;
+}
+
+export interface PlaceWire {
+  name: string;
+  lat: number;
+  lng: number;
+  category?: string;
+  address?: string;
+  roadAddress?: string;
+  mapUrl?: string;
+  rating?: number;
+  ratingCount?: number;
+  imageUrl?: string;
+}
+
 /** 폴백/라이브 공용 — 분석 완료 후 조회되는 아이템 요약 */
 export interface AnalyzedItemWire {
   id: string;
   title: string;
   summary: string;
   category: string;
+  url?: string;
+  text?: string;
+  userMemo?: string;
+  shoppingProductQuery?: string;
+  referenceLinks?: ReferenceLinkWire[];
+  place?: PlaceWire;
   intents: Array<{
     intentType: "schedule" | "todo" | "knowledge" | "memo";
     label?: string;

@@ -2,7 +2,7 @@
 level: 2
 mode: reference
 status: active
-last_verified: 2026-06-16
+last_verified: 2026-07-15
 confidence: 0.9
 owners: [송준서, 이용찬, 박세현]
 description: FastAPI 백엔드 진입점·빌드 가이드·모듈 구조. 백엔드 코드 시작 시 또는 make 명령·헥사고날 레이어 규칙·Idempotency·SSRF 가드 작업 시 읽어라. 모듈 경계 테스트(test_module_boundaries.py) 의도 + openapi.json 생성 흐름 포함.
@@ -63,7 +63,7 @@ app/
 │   │   └── presentation/router.py
 │   ├── conversations/             채팅(질문 탭) 멀티턴 대화 — 설계: journal/2026-06-10-chat-tab-design.md
 │   │   ├── domain/                Conversation/Message/MessageCitation + ChatTool·ChatLLMClient·ChatTurnStore ports + run_events
-│   │   ├── application/           BeginChatTurn(암묵 생성·동시 run 409) · RunChatTurn(detached run — 한도 폴백·citation 파싱) · queries
+│   │   ├── application/           BeginChatTurn(암묵 생성·동시 run 409) · RunChatTurn(detached run — 한도 폴백·owner-scoped citation 복구) · queries
 │   │   ├── infrastructure/        ORM·repository · RunRegistry(in-process queue) · GeminiChatClient(첫 라운드 ANY→AUTO, stream) · turn_store · tools/(read-only)
 │   │   ├── prompts/               chat@v10 — PromptVersion 버저닝, 기준+why
 │   │   └── presentation/router.py POST /{id}/messages(POST-as-SSE) · GET 목록/스냅샷 · DELETE

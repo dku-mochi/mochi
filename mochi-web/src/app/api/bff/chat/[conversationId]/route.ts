@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { chatWireEvents } from "@/lib/bff/fallback";
+import { chatWireEvents, type ChatLiveContext } from "@/lib/bff/fallback";
 import { takeToken } from "@/lib/bff/ratelimit";
 import { sseResponse } from "@/lib/bff/sse";
 import { isUuid, openLiveChat, prepareUpstream } from "@/lib/bff/upstream";
@@ -15,7 +15,7 @@ export async function POST(
   { params }: { params: Promise<{ conversationId: string }> },
 ) {
   const { conversationId } = await params;
-  let body: { text?: string; persona?: string };
+  let body: { text?: string; persona?: string; liveContext?: ChatLiveContext };
   try {
     body = await req.json();
   } catch {
@@ -23,6 +23,17 @@ export async function POST(
   }
   const text = (body.text ?? "").slice(0, 4000);
   const persona = body.persona ?? "";
+  const liveContext =
+    body.liveContext &&
+    typeof body.liveContext.id === "string" &&
+    typeof body.liveContext.title === "string" &&
+    typeof body.liveContext.summary === "string"
+      ? {
+          id: body.liveContext.id.slice(0, 200),
+          title: body.liveContext.title.slice(0, 120),
+          summary: body.liveContext.summary.slice(0, 600),
+        }
+      : undefined;
   if (!text.trim()) {
     return Response.json({ error: "empty_text" }, { status: 422 });
   }
@@ -35,9 +46,10 @@ export async function POST(
       conversationId,
       personaSlug: persona,
       text,
+      liveContext,
       signal: req.signal,
     });
     if (live) return sseResponse(live, { mode: "live", signal: req.signal });
   }
-  return sseResponse(chatWireEvents(persona, text), { mode: "fallback", signal: req.signal });
+  return sseResponse(chatWireEvents(persona, text, liveContext), { mode: "fallback", signal: req.signal });
 }

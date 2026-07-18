@@ -1,10 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { ChatWireEvent, ProposalType } from "@/lib/api/wire";
+import type { AnalyzedItemWire, ChatWireEvent, ProposalType } from "@/lib/api/wire";
 import { parseSseStream, toTagged } from "@/lib/sse/parse";
 import { recordMode } from "@/lib/liveStats";
 import backendIds from "@seed/backend-ids.json";
+import { markProposalExperience } from "@/lib/journeySession";
 
 /*
  * 채팅 스트림 훅 — POST-as-SSE 소비. 라이브/폴백이 같은 wire 라 이 아래는 단일 경로.
@@ -27,13 +28,21 @@ export interface ChatCitation {
   snippet: string;
 }
 
-export type ProposalStatus = "pending" | "confirming" | "confirmed" | "cancelled";
+export type ProposalStatus =
+  | "pending"
+  | "confirming"
+  | "confirmed"
+  | "preview"
+  | "failed"
+  | "expired"
+  | "cancelled";
 
 export interface ChatProposal {
   id: string;
   type: ProposalType;
   payload: Record<string, unknown>;
   status: ProposalStatus;
+  error?: string;
 }
 
 export interface AssistantMessage {
@@ -76,14 +85,40 @@ function conversationId(persona: string): string {
   return id;
 }
 
-export function useChatStream(personaSlug: string, knownSlugs: Set<string>) {
+interface LiveChatContext {
+  id: string;
+  title: string;
+  summary: string;
+}
+
+function contextForQuestion(text: string, context?: LiveChatContext): LiveChatContext | undefined {
+  if (!context) return undefined;
+  const lower = text.toLowerCase();
+  if (lower.includes("방금 보낸")) return context;
+  const titleTokens = context.title
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((token) => token.length > 1);
+  return titleTokens.some((token) => lower.includes(token)) ? context : undefined;
+}
+
+export function useChatStream(
+  personaSlug: string,
+  resolveSlug: (itemId: string) => string | null,
+  liveContext?: LiveChatContext,
+  onCreatedItem?: (item: AnalyzedItemWire) => void,
+) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [streaming, setStreaming] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+  const messagesRef = useRef<ChatMessage[]>([]);
   // state 클로저보다 빠른 동기 가드 — 같은 프레임 중복 send 방지
   const streamingRef = useRef(false);
 
   useEffect(() => () => abortRef.current?.abort(), []);
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
 
   const patchLast = useCallback(
     (fn: (m: AssistantMessage) => AssistantMessage) => {
@@ -97,7 +132,7 @@ export function useChatStream(personaSlug: string, knownSlugs: Set<string>) {
   );
 
   const send = useCallback(
-    async (text: string) => {
+    async (text: string, options?: { useLiveContext?: boolean }) => {
       const trimmed = text.trim();
       if (!trimmed || streamingRef.current) return;
 
@@ -119,12 +154,15 @@ export function useChatStream(personaSlug: string, knownSlugs: Set<string>) {
 
       const ac = new AbortController();
       abortRef.current = ac;
+      const relevantContext = options?.useLiveContext
+        ? liveContext
+        : contextForQuestion(trimmed, liveContext);
 
       try {
         const res = await fetch(`/api/bff/chat/${conversationId(personaSlug)}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: trimmed, persona: personaSlug }),
+          body: JSON.stringify({ text: trimmed, persona: personaSlug, liveContext: relevantContext }),
           signal: ac.signal,
         });
         if (!res.ok || !res.body) throw new Error(`chat_http_${res.status}`);
@@ -161,7 +199,7 @@ export function useChatStream(personaSlug: string, knownSlugs: Set<string>) {
                   {
                     index: e.index,
                     itemId: e.item_id,
-                    slug: resolveItemSlug(e.item_id, knownSlugs),
+                    slug: resolveSlug(e.item_id),
                     title: e.title,
                     snippet: e.snippet,
                   },
@@ -201,18 +239,18 @@ export function useChatStream(personaSlug: string, knownSlugs: Set<string>) {
         abortRef.current = null;
       }
     },
-    [personaSlug, patchLast, knownSlugs],
+    [liveContext, personaSlug, patchLast, resolveSlug],
   );
 
   const setProposalStatus = useCallback(
-    (proposalId: string, status: ProposalStatus) => {
+    (proposalId: string, status: ProposalStatus, error?: string) => {
       setMessages((prev) =>
         prev.map((m) =>
           m.role === "assistant"
             ? {
                 ...m,
                 proposals: m.proposals.map((p) =>
-                  p.id === proposalId ? { ...p, status } : p,
+                  p.id === proposalId ? { ...p, status, error } : p,
                 ),
               }
             : m,
@@ -222,18 +260,67 @@ export function useChatStream(personaSlug: string, knownSlugs: Set<string>) {
     [],
   );
 
-  /** proposal 확정 — pending → confirming → confirmed (LLM 은 read-only, 확정 탭이 유일한 쓰기) */
+  /** proposal 확정 — REST/로컬 실행 성공 뒤에만 confirmed 로 바뀐다. */
   const confirmProposal = useCallback(
-    (proposalId: string) => {
+    async (proposalId: string) => {
+      const proposal = messagesRef.current
+        .flatMap((message) => (message.role === "assistant" ? message.proposals : []))
+        .find((candidate) => candidate.id === proposalId);
+      if (!proposal || (proposal.status !== "pending" && proposal.status !== "failed")) return;
       setProposalStatus(proposalId, "confirming");
-      setTimeout(() => setProposalStatus(proposalId, "confirmed"), 750);
+      try {
+        const cid = conversationId(personaSlug);
+        const response = await fetch(`/api/bff/chat/${cid}/proposals/${proposalId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "confirm",
+            persona: personaSlug,
+            type: proposal.type,
+            payload: proposal.payload,
+          }),
+        });
+        if (!response.ok) throw new Error(`proposal_http_${response.status}`);
+        const result = (await response.json()) as {
+          status?: ProposalStatus;
+          createdItem?: AnalyzedItemWire;
+        };
+        if (result.createdItem) onCreatedItem?.(result.createdItem);
+        if (result.status === "confirmed" || result.status === "preview") {
+          setProposalStatus(proposalId, result.status);
+          markProposalExperience(personaSlug, result.status);
+        } else if (result.status === "expired") {
+          setProposalStatus(proposalId, "expired", "대상 기록이 이미 바뀌었어요.");
+        } else {
+          setProposalStatus(proposalId, "failed", "잠시 후 다시 시도해주세요.");
+        }
+      } catch {
+        setProposalStatus(proposalId, "failed", "잠시 후 다시 시도해주세요.");
+      }
     },
-    [setProposalStatus],
+    [onCreatedItem, personaSlug, setProposalStatus],
   );
 
   const cancelProposal = useCallback(
-    (proposalId: string) => setProposalStatus(proposalId, "cancelled"),
-    [setProposalStatus],
+    (proposalId: string) => {
+      const proposal = messagesRef.current
+        .flatMap((message) => (message.role === "assistant" ? message.proposals : []))
+        .find((candidate) => candidate.id === proposalId);
+      setProposalStatus(proposalId, "cancelled");
+      if (!proposal) return;
+      const cid = conversationId(personaSlug);
+      void fetch(`/api/bff/chat/${cid}/proposals/${proposalId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "cancel",
+          persona: personaSlug,
+          type: proposal.type,
+          payload: proposal.payload,
+        }),
+      });
+    },
+    [personaSlug, setProposalStatus],
   );
 
   return { messages, streaming, send, confirmProposal, cancelProposal };

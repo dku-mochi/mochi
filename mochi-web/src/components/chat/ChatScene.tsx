@@ -1,11 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowUp } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ArrowUp, Sparkles } from "lucide-react";
 import { BorderBeam } from "border-beam";
 import { usePersona } from "@/components/journey/PersonaProvider";
-import { useChatStream } from "@/lib/hooks/useChatStream";
+import { resolveItemSlug, useChatStream } from "@/lib/hooks/useChatStream";
+import { makeLiveEntry } from "@/lib/liveOverlay";
+import { markJourneyStep } from "@/lib/journeySession";
+import { retrievalSuggestionsFor } from "@/lib/retrievalSuggestions";
 import { RiseIn } from "@/components/primitives/RiseIn";
 import { ChatBubble } from "./ChatBubble";
 import { cn } from "@/lib/cn";
@@ -15,13 +18,50 @@ import { cn } from "@/lib/cn";
  * 증명: 근거 인용(citation) + 쓰기는 proposal 확정으로만 (신뢰 가능한 에이전트).
  */
 export function ChatScene({ initialQuery }: { initialQuery?: string }) {
-  const { persona, items } = usePersona();
+  const { persona, items, liveItems, liveIdToSlug, addLiveCapture } = usePersona();
   const knownSlugs = useMemo(() => new Set(items.map((i) => i.slug)), [items]);
+  const resolveSlug = useCallback(
+    (id: string) => resolveItemSlug(id, knownSlugs) ?? liveIdToSlug.get(id) ?? null,
+    [knownSlugs, liveIdToSlug],
+  );
+  const latest = liveItems[0];
+  const liveContext = useMemo(() => {
+    if (!latest) return undefined;
+    const id = [...liveIdToSlug].find(([, slug]) => slug === latest.slug)?.[0];
+    if (!id) return undefined;
+    const place = latest.place
+      ? `장소: ${latest.place.name}${latest.place.roadAddress ? ` (${latest.place.roadAddress})` : ""}.`
+      : "";
+    return {
+      id,
+      title: latest.title,
+      summary: [latest.summary, place].filter(Boolean).join(" "),
+    };
+  }, [latest, liveIdToSlug]);
+  const addProposalItem = useCallback(
+    (item: Parameters<typeof makeLiveEntry>[0]) => {
+      addLiveCapture(makeLiveEntry(item, { kind: "memo", text: item.text }));
+    },
+    [addLiveCapture],
+  );
   const { messages, streaming, send, confirmProposal, cancelProposal } =
-    useChatStream(persona.slug, knownSlugs);
+    useChatStream(persona.slug, resolveSlug, liveContext, addProposalItem);
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const autoSent = useRef(false);
+  const recentRetrieval = useMemo(
+    () => (latest ? retrievalSuggestionsFor(latest).chat : null),
+    [latest],
+  );
+  const suggestions = useMemo(
+    () => [
+      ...(recentRetrieval
+        ? [{ ...recentRetrieval, recent: true }]
+        : []),
+      ...persona.suggestedChat.map((text) => ({ text, label: text, recent: false })),
+    ],
+    [recentRetrieval, persona.suggestedChat],
+  );
 
   // 검색 빈 결과 → "모찌에게 물어보기" 위임 (?q=)
   useEffect(() => {
@@ -38,10 +78,17 @@ export function ChatScene({ initialQuery }: { initialQuery?: string }) {
     if (el) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
-  const submit = (text: string) => {
+  useEffect(() => {
+    const answered = messages.some(
+      (message) => message.role === "assistant" && !message.streaming && !message.error,
+    );
+    if (answered) markJourneyStep(persona.slug, "chat");
+  }, [messages, persona.slug]);
+
+  const submit = (text: string, recent = false) => {
     if (!text.trim() || streaming) return;
     setInput("");
-    void send(text);
+    void send(text, { useLiveContext: recent });
   };
 
   const empty = messages.length === 0;
@@ -76,17 +123,23 @@ export function ChatScene({ initialQuery }: { initialQuery?: string }) {
                 무엇이든 물어보세요
               </h1>
               <p className="mt-2 text-[14px] text-ink-500">
-                {persona.name}님의 기록 {items.length}건을 근거와 함께 꺼내드려요
+                추천으로 시작하거나 자유롭게 물어보세요. 기록을 근거와 함께 꺼내드려요
               </p>
             </RiseIn>
             <RiseIn index={2} className="mt-6 flex flex-wrap justify-center gap-2">
-              {persona.suggestedChat.map((q) => (
+              {suggestions.map((suggestion) => (
                 <button
-                  key={q}
-                  onClick={() => submit(q)}
-                  className="rounded-full border border-purple-100 bg-purple-50 px-4 py-2.5 text-[13.5px] font-semibold text-purple-600 transition-[background-color,border-color,transform] hover:border-purple-200 hover:bg-purple-100 active:scale-[0.97]"
+                  key={`${suggestion.recent ? "recent" : "seed"}-${suggestion.text}`}
+                  onClick={() => submit(suggestion.text, suggestion.recent)}
+                  className={cn(
+                    "inline-flex max-w-full items-center gap-1.5 rounded-full border px-4 py-2.5 text-center text-[13.5px] font-semibold leading-snug transition-[background-color,border-color,transform] active:scale-[0.97]",
+                    suggestion.recent
+                      ? "border-purple-300 bg-purple-600 text-white shadow-card hover:bg-purple-500"
+                      : "border-purple-100 bg-purple-50 text-purple-600 hover:border-purple-200 hover:bg-purple-100",
+                  )}
                 >
-                  {q}
+                  {suggestion.recent && <Sparkles className="size-3.5 flex-none" aria-hidden />}
+                  <span className="min-w-0 whitespace-normal">{suggestion.label}</span>
                 </button>
               ))}
             </RiseIn>
@@ -108,14 +161,19 @@ export function ChatScene({ initialQuery }: { initialQuery?: string }) {
       <div className="pb-6 pt-2">
         {!empty && (
           <div className="-mx-1 mb-2.5 flex gap-2 overflow-x-auto px-1">
-            {persona.suggestedChat.map((q) => (
+            {suggestions.map((suggestion) => (
               <button
-                key={q}
-                onClick={() => submit(q)}
+                key={`${suggestion.recent ? "recent" : "seed"}-${suggestion.text}`}
+                onClick={() => submit(suggestion.text, suggestion.recent)}
                 disabled={streaming}
-                className="flex-none whitespace-nowrap rounded-full border border-ink-100 bg-surface px-3.5 py-1.5 text-[12.5px] font-semibold text-ink-500 transition-colors hover:text-purple-600 disabled:opacity-50"
+                className={cn(
+                  "flex-none whitespace-nowrap rounded-full border px-3.5 py-1.5 text-[12.5px] font-semibold transition-colors disabled:opacity-50",
+                  suggestion.recent
+                    ? "border-purple-200 bg-purple-50 text-purple-600"
+                    : "border-ink-100 bg-surface text-ink-500 hover:text-purple-600",
+                )}
               >
-                {q}
+                {suggestion.label}
               </button>
             ))}
           </div>

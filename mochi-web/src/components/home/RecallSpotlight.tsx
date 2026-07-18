@@ -18,7 +18,7 @@ import { ReasonChip } from "@/components/primitives/ReasonChip";
 const seenKey = (slug: string) => `mochi-spotlight-${slug}`;
 
 export function RecallSpotlight() {
-  const { persona, items } = usePersona();
+  const { persona, items, liveItems } = usePersona();
   const reduce = useReducedMotion();
   const [visible, setVisible] = useState(false);
 
@@ -26,7 +26,7 @@ export function RecallSpotlight() {
   const item = entry ? findItem(items, entry.itemSlug) : undefined;
 
   useEffect(() => {
-    if (!entry || !item) return;
+    if (!entry || !item || liveItems.length > 0) return;
     if (sessionStorage.getItem(seenKey(persona.slug))) return;
     // 홈이 먼저 자리 잡은 뒤에 조용히 등장 — 헤드라인과 시선을 다투지 않는다.
     // seen 은 표시 시점에 기록 — 다른 씬에 다녀와도 같은 세션에선 다시 뜨지 않는다.
@@ -35,11 +35,11 @@ export function RecallSpotlight() {
       setVisible(true);
     }, reduce ? 400 : 1400);
     return () => clearTimeout(t);
-  }, [entry, item, persona.slug, reduce]);
+  }, [entry, item, liveItems.length, persona.slug, reduce]);
 
   const dismiss = () => setVisible(false);
 
-  if (!entry || !item) return null;
+  if (!entry || !item || liveItems.length > 0) return null;
 
   return (
     <AnimatePresence>

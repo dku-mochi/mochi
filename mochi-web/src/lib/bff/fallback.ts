@@ -33,6 +33,12 @@ export function pickCannedChat(
   return best;
 }
 
+export interface ChatLiveContext {
+  id: string;
+  title: string;
+  summary: string;
+}
+
 function rid() {
   return `fb_${Math.random().toString(36).slice(2, 10)}`;
 }
@@ -40,12 +46,43 @@ function rid() {
 export function chatWireEvents(
   personaSlug: string,
   text: string,
+  liveContext?: ChatLiveContext,
 ): OutEvent[] {
   const persona = getPersona(personaSlug);
   const run_id = rid();
   const out: OutEvent[] = [];
 
   const canned = persona ? pickCannedChat(persona, text) : null;
+
+  if (persona && liveContext) {
+    out.push({
+      event: "tool_started",
+      data: { run_id, name: "search_items", label: "관련 기록을 찾고 있어요…" },
+      delayMs: 250,
+    });
+    out.push({
+      event: "tool_finished",
+      data: { run_id, name: "search_items", summary: `‘${liveContext.title}’ 확인` },
+      delayMs: 850,
+    });
+    const msg = `저장해둔 **${liveContext.title}** 기록을 기준으로 보면, ${liveContext.summary}`;
+    for (const chunk of chunkText(msg)) {
+      out.push({ event: "message_delta", data: { run_id, text: chunk }, delayMs: 22 });
+    }
+    out.push({
+      event: "citation",
+      data: {
+        run_id,
+        index: 1,
+        item_id: liveContext.id,
+        title: liveContext.title,
+        snippet: liveContext.summary,
+      },
+      delayMs: 160,
+    });
+    out.push({ event: "done", data: { run_id, message_id: rid() }, delayMs: 150 });
+    return out;
+  }
 
   if (!persona || !canned) {
     // 정직한 무매칭 응답 — 추천 질문으로 유도
@@ -139,9 +176,18 @@ export function chatWireEvents(
 export function searchFallback(
   personaSlug: string,
   query: string,
+  liveContext?: ChatLiveContext,
 ): SearchWireResponse {
   const persona = getPersona(personaSlug);
   if (!persona) return { citations: [] };
+
+  // 추천 검색은 이 탭에서 방금 만든 기록을 가리킨다. 실검색 불가 시에도
+  // 공유 페르소나 시드가 아니라 현재 방문자의 세션 기록으로 정직하게 강등한다.
+  if (liveContext) {
+    return {
+      citations: [{ mochiItemId: liveContext.id, snippet: liveContext.summary, score: 1 }],
+    };
+  }
 
   let best = null as null | (typeof persona.cannedSearch)[number];
   let bestScore = 0;
@@ -315,6 +361,9 @@ export function analyzeHeuristic(input: IngestInput): AnalyzedItemWire {
     title,
     summary: summaryByIntent[primary],
     category,
+    url: input.url,
+    text: input.text,
+    userMemo: input.memo,
     intents,
   };
 }

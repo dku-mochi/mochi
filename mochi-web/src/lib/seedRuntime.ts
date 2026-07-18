@@ -48,6 +48,8 @@ export interface ResolvedItem
   instances: ResolvedInstance[];
   /** iOS representativeIntent 규칙 — schedule > todo > knowledge > memo */
   primaryIntent: IntentType;
+  /** 데모 예시가 가진 원래 의미 단서 — 검색/질문 추천에서만 사용 */
+  retrievalHint?: string;
 }
 
 const INTENT_PRIORITY: IntentType[] = ["schedule", "todo", "knowledge", "memo"];

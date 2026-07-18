@@ -2,19 +2,21 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Search, Sparkles } from "lucide-react";
 import type { IntentType } from "@seed/schema";
 import { usePersona } from "@/components/journey/PersonaProvider";
 import { useSearch } from "@/lib/hooks/useSearch";
 import { resolveItemSlug } from "@/lib/hooks/useChatStream";
+import { retrievalSuggestionsFor } from "@/lib/retrievalSuggestions";
 import { findItem, type ResolvedItem } from "@/lib/seedRuntime";
 import { ItemTile } from "@/components/tiles/ItemTile";
 import { RiseIn } from "@/components/primitives/RiseIn";
 import { ToolStatusPill } from "@/components/primitives/ToolStatusPill";
 import { INTENT_META } from "@/components/primitives/IntentChip";
 import { cn } from "@/lib/cn";
+import { markJourneyStep } from "@/lib/journeySession";
 
 /*
  * S4 검색 씬 — "뭐라고 저장했는지 기억 안 나도" 자연어로 다시 찾는다.
@@ -41,6 +43,7 @@ function literalMatch(items: ResolvedItem[], query: string): string[] {
     .map((item) => {
       const hay = [
         item.title,
+        item.retrievalHint ?? "",
         item.summary,
         item.category,
         item.ocrText ?? "",
@@ -57,7 +60,7 @@ function literalMatch(items: ResolvedItem[], query: string): string[] {
 }
 
 export function SearchScene() {
-  const { persona, items, liveIdToSlug, liveSlugs, now } = usePersona();
+  const { persona, items, liveItems, liveIdToSlug, liveSlugs, now } = usePersona();
   const knownSlugs = useMemo(() => new Set(items.map((i) => i.slug)), [items]);
 
   // citation id 해석 — 시드 uuid 매핑에 더해, 이 세션의 내 라이브 기록도 되살린다.
@@ -69,10 +72,29 @@ export function SearchScene() {
   const search = useSearch(persona.slug, resolveSlug);
   const [input, setInput] = useState("");
   const [scope, setScope] = useState<IntentType | "all">("all");
+  const latest = liveItems[0];
+  const recentRetrieval = useMemo(
+    () => (latest ? retrievalSuggestionsFor(latest).search : null),
+    [latest],
+  );
+  const liveContext = useMemo(() => {
+    if (!latest) return undefined;
+    const id = [...liveIdToSlug].find(([, slug]) => slug === latest.slug)?.[0];
+    return id ? { id, title: latest.title, summary: latest.summary } : undefined;
+  }, [latest, liveIdToSlug]);
+  const suggestions = useMemo(
+    () => [
+      ...(recentRetrieval
+        ? [{ ...recentRetrieval, recent: true }]
+        : []),
+      ...persona.suggestedSearch.map((query) => ({ label: query, query, recent: false })),
+    ],
+    [recentRetrieval, persona.suggestedSearch],
+  );
 
-  const submit = (q: string) => {
+  const submit = (q: string, recent = false) => {
     setInput(q);
-    void search.run(q);
+    void search.run(q, recent ? liveContext : undefined);
   };
 
   const inScope = (item: ResolvedItem) =>
@@ -93,10 +115,15 @@ export function SearchScene() {
   const settled = search.status === "done" || search.status === "error";
   const showResults = settled || search.status === "loading";
 
+  useEffect(() => {
+    if (!settled || !search.query.trim()) return;
+    markJourneyStep(persona.slug, "search");
+  }, [persona.slug, search.query, settled]);
+
   // 결과 중 모찌가 이미 먼저 떠올려둔 것 — 리마인드(클라이맥스)를 미리 심는다
   const recallSlugs = useMemo(
-    () => new Set(persona.recall.map((r) => r.itemSlug)),
-    [persona.recall],
+    () => new Set([...persona.recall.map((r) => r.itemSlug), ...liveSlugs]),
+    [liveSlugs, persona.recall],
   );
   const rememberedCount = resultItems.filter((i) => recallSlugs.has(i.slug)).length;
 
@@ -135,13 +162,19 @@ export function SearchScene() {
 
       <RiseIn index={1}>
         <div className="mt-3.5 flex flex-wrap items-center justify-center gap-2">
-          {persona.suggestedSearch.map((q) => (
+          {suggestions.map((suggestion) => (
             <button
-              key={q}
-              onClick={() => submit(q)}
-              className="rounded-full border border-purple-100 bg-purple-50 px-3.5 py-2 text-[13px] font-semibold text-purple-600 transition-[background-color,border-color,transform] hover:border-purple-200 hover:bg-purple-100 active:scale-[0.97]"
+              key={`${suggestion.recent ? "recent" : "seed"}-${suggestion.query}`}
+              onClick={() => submit(suggestion.query, suggestion.recent)}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-[13px] font-semibold transition-[background-color,border-color,transform] active:scale-[0.97]",
+                suggestion.recent
+                  ? "border-purple-300 bg-purple-600 text-white shadow-card hover:bg-purple-500"
+                  : "border-purple-100 bg-purple-50 text-purple-600 hover:border-purple-200 hover:bg-purple-100",
+              )}
             >
-              {q}
+              {suggestion.recent && <Sparkles className="size-3.5" aria-hidden />}
+              {suggestion.label}
             </button>
           ))}
         </div>

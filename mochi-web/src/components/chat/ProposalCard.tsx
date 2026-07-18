@@ -9,6 +9,8 @@ import {
   PencilLine,
   Trash2,
   Loader2,
+  AlertCircle,
+  Smartphone,
 } from "lucide-react";
 import type { ProposalType } from "@/lib/api/wire";
 import type { ChatProposal } from "@/lib/hooks/useChatStream";
@@ -28,8 +30,11 @@ const META: Record<ProposalType, { label: string; Icon: typeof Calendar; danger?
 };
 
 function payloadSummary(p: ChatProposal): string {
-  const { title, note, date, time } = p.payload as Record<string, string | undefined>;
-  return [title, [date, time].filter(Boolean).join(" "), note]
+  const { title, note, date, time, text } = p.payload as Record<string, string | undefined>;
+  const display = p.payload.display && typeof p.payload.display === "object"
+    ? (p.payload.display as Record<string, string | undefined>)
+    : {};
+  return [display.title, title, [date, time].filter(Boolean).join(" "), note, text]
     .filter(Boolean)
     .join(" · ");
 }
@@ -45,6 +50,7 @@ export function ProposalCard({
 }) {
   const meta = META[proposal.type];
   const done = proposal.status === "confirmed";
+  const preview = proposal.status === "preview";
   const cancelled = proposal.status === "cancelled";
 
   return (
@@ -55,6 +61,8 @@ export function ProposalCard({
           ? "border-blush-100 bg-blush-100/40"
           : done
             ? "border-mint-100 bg-mint-100/40"
+            : preview
+              ? "border-sky-100 bg-sky-100/40"
             : "border-purple-100 bg-purple-50/70",
         cancelled && "opacity-55",
       )}
@@ -76,9 +84,9 @@ export function ProposalCard({
         </div>
 
         <AnimatePresence mode="wait" initial={false}>
-          {proposal.status === "pending" && (
+          {(proposal.status === "pending" || proposal.status === "failed") && (
             <motion.div
-              key="pending"
+                key={proposal.status}
               className="flex gap-1.5"
               exit={{ opacity: 0, scale: 0.96 }}
               transition={{ duration: 0.15 }}
@@ -100,7 +108,11 @@ export function ProposalCard({
                     : "bg-gradient-to-r from-purple-400 to-purple-600 shadow-fab",
                 )}
               >
-                {meta.danger ? "삭제할게요" : "해주세요"}
+                  {proposal.status === "failed"
+                    ? "다시 시도"
+                    : meta.danger
+                      ? "삭제할게요"
+                      : "해주세요"}
               </button>
             </motion.div>
           )}
@@ -126,6 +138,21 @@ export function ProposalCard({
               <Check className="size-4" strokeWidth={3} aria-hidden /> 완료했어요
             </motion.span>
           )}
+          {preview && (
+            <motion.span
+              key="preview"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="inline-flex items-center gap-1.5 text-[12.5px] font-bold text-sky-700"
+            >
+              <Smartphone className="size-4" aria-hidden /> 앱에서 확정
+            </motion.span>
+          )}
+          {proposal.status === "expired" && (
+            <span className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-ink-500">
+              <AlertCircle className="size-4" aria-hidden /> 대상이 바뀌었어요
+            </span>
+          )}
           {cancelled && (
             <span key="cancelled" className="text-[12.5px] font-semibold text-ink-300">
               다음에 할게요
@@ -133,6 +160,18 @@ export function ProposalCard({
           )}
         </AnimatePresence>
       </div>
+      {proposal.status === "failed" && proposal.error && (
+        <p className="border-t border-blush-100 px-3.5 py-2 text-[11.5px] font-medium text-blush-400">
+          {proposal.error}
+        </p>
+      )}
+      {preview && (
+        <p className="border-t border-sky-100 px-3.5 py-2 text-[11.5px] font-medium text-ink-500">
+          {proposal.type === "reminder"
+            ? "기기 알림은 iOS 앱 권한이 필요해 웹에서는 미리보기만 제공해요."
+            : "공유 시드 기록 변경은 iOS 앱에서 확정할 수 있어요."}
+        </p>
+      )}
     </div>
   );
 }

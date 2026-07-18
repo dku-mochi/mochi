@@ -62,6 +62,32 @@ export const seedImageSchema = z.object({
 /** iOS MochiItemKind 3변형 — 검색 그리드·카드 렌더의 분기 축 */
 export const seedKindSchema = z.enum(["screenshot", "url", "memo"]);
 
+export const referenceLinkSchema = z.object({
+  url: z.string().url(),
+  title: z.string(),
+  label: z.string(),
+  role: z.string(),
+  provider: z.string(),
+  rankProfile: z.string(),
+  source: z.string().optional(),
+  usefulness: z.number().int().optional(),
+  subtitle: z.string().optional(),
+  priceText: z.string().optional(),
+});
+
+export const placeSchema = z.object({
+  name: z.string(),
+  lat: z.number(),
+  lng: z.number(),
+  category: z.string().optional(),
+  address: z.string().optional(),
+  roadAddress: z.string().optional(),
+  mapUrl: z.string().url().optional(),
+  rating: z.number().optional(),
+  ratingCount: z.number().int().optional(),
+  imageUrl: z.string().url().optional(),
+});
+
 export const seedItemSchema = z
   .object({
     slug: z.string().regex(/^[a-z0-9-]+$/),
@@ -81,6 +107,10 @@ export const seedItemSchema = z
     category: z.string(),
     /** "모찌가 정리했어요" 요약 */
     summary: z.string(),
+    /** iOS 상세와 같은 Agent 보강 정보 */
+    shoppingProductQuery: z.string().optional(),
+    referenceLinks: z.array(referenceLinkSchema).optional(),
+    place: placeSchema.optional(),
     instances: z.array(seedInstanceSchema).min(1),
     image: seedImageSchema.optional(),
     capturedDaysAgo: z.number().nonnegative(),
@@ -183,6 +213,8 @@ export type SeedChannel = z.infer<typeof channelSchema>;
 export type SeedPayload = z.infer<typeof seedPayloadSchema>;
 export type SeedInstance = z.infer<typeof seedInstanceSchema>;
 export type SeedItem = z.infer<typeof seedItemSchema>;
+export type ReferenceLink = z.infer<typeof referenceLinkSchema>;
+export type Place = z.infer<typeof placeSchema>;
 export type RecallKind = z.infer<typeof recallKindSchema>;
 export type SeedRecallEntry = z.infer<typeof seedRecallSchema>;
 export type ChatScriptEvent = z.infer<typeof chatScriptEventSchema>;

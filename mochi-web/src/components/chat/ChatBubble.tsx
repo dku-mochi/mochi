@@ -13,7 +13,7 @@ import { cn } from "@/lib/cn";
 
 /*
  * iOS ChatBubbleView 이식 — 3단 연출:
- * ToolStatusPill(호흡) → TypingDots → 마크다운 본문 → 근거 미니카드 → "과정 보기" 접기.
+ * ToolStatusPill(호흡) → TypingDots → 과정 보기 → 마크다운 본문 → 근거 미니카드.
  */
 
 export function ChatBubble({
@@ -66,6 +66,8 @@ function AssistantBubble({
         {waiting &&
           (runningTool ? <ToolStatusPill label={runningTool.label} /> : <TypingDots />)}
 
+        {!m.streaming && m.tools.length > 0 && <ProcessDisclosure m={m} />}
+
         {m.text.length > 0 && (
           <ChatMarkup text={m.text} citations={m.citations} streaming={m.streaming} />
         )}
@@ -89,7 +91,6 @@ function AssistantBubble({
           <p className="text-[13px] font-medium text-blush-400">{m.error}</p>
         )}
 
-        {!m.streaming && m.tools.length > 0 && <ProcessDisclosure m={m} />}
       </div>
     </motion.div>
   );

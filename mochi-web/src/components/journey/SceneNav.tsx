@@ -10,8 +10,8 @@ import { cn } from "@/lib/cn";
  * 페르소나 씬 상단 네비 — 자유 탐색 축. guided 진행은 JourneyRail(하단)이 담당.
  */
 const TABS = [
-  { seg: "", label: "홈" },
   { seg: "capture", label: "기록" },
+  { seg: "", label: "홈" },
   { seg: "search", label: "검색" },
   { seg: "chat", label: "질문" },
   { seg: "recall", label: "리마인드" },

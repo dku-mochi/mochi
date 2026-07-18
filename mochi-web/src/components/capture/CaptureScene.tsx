@@ -3,11 +3,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import {
+  useCallback,
   useEffect,
+  forwardRef,
+  useImperativeHandle,
   useMemo,
   useRef,
   useState,
   type DragEvent,
+  type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
@@ -18,6 +22,7 @@ import {
   Camera,
   Check,
   FileText,
+  GripVertical,
   ImagePlus,
   Inbox,
   Link2,
@@ -40,6 +45,8 @@ import {
   type CaptureThumb,
 } from "@/lib/captureImage";
 import { makeLiveEntry, type LiveCaptureInput } from "@/lib/liveOverlay";
+import { markJourneyStep } from "@/lib/journeySession";
+import type { CaptureExample } from "@/lib/captureExamples";
 import { useLiveAnalysis, STAGE_LABEL, type AnalysisStage } from "@/lib/hooks/useLiveAnalysis";
 import { MiniCalendar } from "@/components/primitives/MiniCalendar";
 import { RiseIn } from "@/components/primitives/RiseIn";
@@ -49,49 +56,32 @@ import { cn } from "@/lib/cn";
 
 /*
  * S2 기록 씬 — "캡처는 0노력, 정리는 자동".
- * 좌: 보내는 무대(시나리오 3건 → 직접 보내기 컴포저).
+ * 좌: 직접 보내기 컴포저.
  * 우: 보낸 것이 꽂히는 보드 4칸 — 할 일 · 캘린더(클릭) · 지식 · 기록.
  * 분류를 자랑하지 않는다: 어떤 intent 든 "기록"에는 반드시 쌓인다(사라지는 캡처 없음).
  * 직접 보낸 것은 세션 오버레이(liveOverlay)로 홈까지 이어진다.
  */
 
-export function CaptureScene() {
-  const { persona, items, liveItems, liveSlugs, now } = usePersona();
-  const reduce = useReducedMotion();
+export function CaptureScene({ examples }: { examples: CaptureExample[] }) {
+  const { persona, liveItems, liveSlugs, now } = usePersona();
+  const [draggedExample, setDraggedExample] = useState<CaptureExample | null>(null);
+  const [dragPoint, setDragPoint] = useState<{ x: number; y: number } | null>(null);
+  const [exampleDragOver, setExampleDragOver] = useState(false);
+  const composerRef = useRef<LiveComposerHandle>(null);
 
-  // 페르소나에서 시나리오 3건 도출 — 메모→할일 / 캡처→일정·마감 / 링크→지식
-  const steps = useMemo(() => {
-    const seed = items.filter((i) => !liveSlugs.has(i.slug));
-    const memo = seed.find(
-      (i) => i.kind === "memo" && i.instances.some((x) => x.intentType === "todo" && !x.done),
-    );
-    const shot = seed.find(
-      (i) => i.kind === "screenshot" && i.instances.some((x) => x.intentType === "schedule"),
-    );
-    const link = seed.find(
-      (i) => i.kind === "url" && i.instances.some((x) => x.intentType === "knowledge"),
-    );
-    return [memo, shot, link].filter((x): x is ResolvedItem => Boolean(x));
-  }, [items, liveSlugs]);
+  const moveExample = (example: CaptureExample, x: number, y: number) => {
+    setDraggedExample(example);
+    setDragPoint({ x, y });
+    setExampleDragOver(composerRef.current?.containsPoint(x, y) ?? false);
+  };
 
-  const [done, setDone] = useState(0); // 정리 완료된 스텝 수
-  const [saving, setSaving] = useState(false); // "기억했어요!" 토스트 중
-  const allSorted = done >= steps.length;
-  const current = steps[done];
-
-  // 보드 = 이번 데모에서 보낸 것 — 시나리오 완료분 + 이 세션의 라이브 기록
-  const boardItems = useMemo(
-    () => [...liveItems, ...steps.slice(0, done).slice().reverse()],
-    [liveItems, steps, done],
-  );
-
-  const sendCurrent = () => {
-    if (!current || saving) return;
-    setSaving(true);
-    setTimeout(() => {
-      setSaving(false);
-      setDone((d) => d + 1);
-    }, reduce ? 250 : 1050);
+  const finishExample = (example: CaptureExample, x: number, y: number) => {
+    if (composerRef.current?.containsPoint(x, y)) {
+      composerRef.current.applyExample(example);
+    }
+    setDraggedExample(null);
+    setDragPoint(null);
+    setExampleDragOver(false);
   };
 
   return (
@@ -108,81 +98,11 @@ export function CaptureScene() {
         <div className="lg:col-span-5">
           <RiseIn index={1} className="h-full">
             <div className="relative flex h-full min-h-[478px] flex-col rounded-3xl border border-ink-100 bg-surface p-6 shadow-card">
-              <AnimatePresence mode="wait">
-                {!allSorted && current ? (
-                  <motion.div
-                    key={current.slug}
-                    className="flex flex-1 flex-col"
-                    initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.94, y: 16 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={
-                      reduce
-                        ? { opacity: 0 }
-                        : { opacity: 0, x: 140, scale: 0.6, transition: { duration: 0.38 } }
-                    }
-                    transition={{ type: "spring", duration: 0.55, bounce: 0.24 }}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="rounded-full bg-bg px-2.5 py-1 text-[11.5px] font-bold text-ink-500">
-                        {current.source}
-                      </span>
-                      <span className="text-[12px] font-semibold text-ink-300 tnum">
-                        {done + 1} / {steps.length}
-                      </span>
-                    </div>
-                    <div className="flex min-h-[290px] flex-1 items-center justify-center py-4">
-                      <StageCard item={current} />
-                    </div>
-                    <button
-                      onClick={sendCurrent}
-                      disabled={saving}
-                      className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-purple-400 to-purple-600 text-[15px] font-bold text-white shadow-fab transition-transform active:scale-[0.97] disabled:opacity-70"
-                    >
-                      <Send className="size-4" aria-hidden /> 모찌에게 보내기
-                    </button>
-                    <div className="mt-4 flex items-center justify-between">
-                      <StepDots total={steps.length} done={done} />
-                      <button
-                        onClick={() => setDone(steps.length)}
-                        className="inline-flex items-center gap-1 text-[12.5px] font-semibold text-ink-500 transition-colors hover:text-ink-900"
-                      >
-                        건너뛰고 직접 보내보기 <ArrowRight className="size-3.5" aria-hidden />
-                      </button>
-                    </div>
-                  </motion.div>
-                ) : (
-                  <LiveComposer key="live" homeHref={`/p/${persona.slug}`} />
-                )}
-              </AnimatePresence>
-
-              {/* "기억했어요!" 저장 모먼트 (ShareExtension 이식) */}
-              <AnimatePresence>
-                {saving && (
-                  <motion.div
-                    className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-3xl bg-surface/85 backdrop-blur-sm"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                  >
-                    <motion.div
-                      initial={reduce ? {} : { scale: 0.5, y: 22 }}
-                      animate={{ scale: 1, y: 0 }}
-                      transition={{ type: "spring", duration: 0.55, bounce: 0.55 }}
-                    >
-                      <Image
-                        src="/brand/mochi-cheer.png"
-                        alt=""
-                        width={96}
-                        height={96}
-                        className="h-[88px] w-auto drop-shadow-[0_10px_24px_rgba(139,108,255,0.35)]"
-                      />
-                    </motion.div>
-                    <p className="mt-3 font-display text-[20px] tracking-head text-purple-600">
-                      기억했어요!
-                    </p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              <LiveComposer
+                ref={composerRef}
+                homeHref={`/p/${persona.slug}`}
+                exampleDragOver={exampleDragOver}
+              />
             </div>
           </RiseIn>
         </div>
@@ -191,17 +111,17 @@ export function CaptureScene() {
         <div className="lg:col-span-7">
           <div className="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2">
             <RiseIn index={2} className="h-full">
-              <BoardTodos items={boardItems} now={now} />
+              <BoardTodos items={liveItems} now={now} />
             </RiseIn>
             <RiseIn index={3} className="h-full">
-              <BoardCalendar items={boardItems} now={now} personaSlug={persona.slug} />
+              <BoardCalendar items={liveItems} now={now} personaSlug={persona.slug} />
             </RiseIn>
             <RiseIn index={4} className="h-full">
-              <BoardKnowledge items={boardItems} personaSlug={persona.slug} />
+              <BoardKnowledge items={liveItems} personaSlug={persona.slug} />
             </RiseIn>
             <RiseIn index={5} className="h-full">
               <BoardInbox
-                items={boardItems}
+                items={liveItems}
                 liveSlugs={liveSlugs}
                 now={now}
                 personaSlug={persona.slug}
@@ -210,66 +130,298 @@ export function CaptureScene() {
           </div>
         </div>
       </div>
+
+      <RiseIn index={6}>
+        <CaptureExamples
+          examples={examples}
+          onDragMove={moveExample}
+          onDragEnd={finishExample}
+          onDragCancel={() => {
+            setDraggedExample(null);
+            setDragPoint(null);
+            setExampleDragOver(false);
+          }}
+        />
+      </RiseIn>
+
+      <AnimatePresence>
+        {draggedExample && dragPoint && (
+          <motion.div
+            className="pointer-events-none fixed z-[70] w-28 overflow-hidden rounded-xl border border-purple-200 bg-surface shadow-card-lift"
+            style={{ left: dragPoint.x, top: dragPoint.y }}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 0.92, scale: 1, x: 14, y: 14 }}
+            exit={{ opacity: 0, scale: 0.94 }}
+            aria-hidden
+          >
+            {draggedExample.kind === "memo" ? (
+              <p className="line-clamp-4 min-h-24 bg-butter-50 p-3 text-[11.5px] font-semibold leading-relaxed text-ink-900">
+                {draggedExample.text}
+              </p>
+            ) : (
+              <Image
+                src={draggedExample.image.file}
+                alt=""
+                width={draggedExample.image.width}
+                height={draggedExample.image.height}
+                className="h-24 w-full object-cover object-top"
+              />
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </main>
   );
 }
 
-/* ── 무대 위 캡처 카드 — 소스별 3변형 ── */
+const EXAMPLE_TABS = [
+  { kind: "screenshot", label: "스크린샷", Icon: Camera },
+  { kind: "url", label: "링크", Icon: Link2 },
+  { kind: "memo", label: "메모", Icon: FileText },
+] as const;
 
-function StageCard({ item }: { item: ResolvedItem }) {
-  if (item.kind === "screenshot" && item.image) {
-    return (
-      <div className="w-full max-w-[280px] overflow-hidden rounded-2xl shadow-card-lift ring-1 ring-black/10">
-        <Image
-          src={item.image.file}
-          alt={item.title}
-          width={item.image.width}
-          height={item.image.height}
-          className="max-h-[264px] w-full object-cover object-top"
-        />
-      </div>
-    );
-  }
-  if (item.kind === "url") {
-    return (
-      <div className="w-full max-w-[280px] rounded-2xl bg-purple-50 p-5 ring-1 ring-inset ring-purple-100">
-        <span className="flex size-10 items-center justify-center rounded-xl bg-surface shadow-card">
-          <Link2 className="size-4.5 text-purple-500" aria-hidden />
-        </span>
-        <p className="mt-3 text-[15px] font-bold leading-snug">{item.title}</p>
-        <p className="mt-1.5 truncate text-[12px] font-medium text-purple-600/80">
-          {domainOf(item.url)}
-        </p>
-      </div>
-    );
-  }
-  // source 는 무대 상단 칩이 이미 말한다 — 카드는 원문만
-  return (
-    <div className="w-full max-w-[280px] rounded-2xl bg-butter-50 p-5 ring-1 ring-inset ring-butter-100">
-      <p className="text-[15px] font-semibold leading-relaxed text-ink-900">
-        “{item.text ?? item.title}”
-      </p>
-    </div>
+function CaptureExamples({
+  examples,
+  onDragMove,
+  onDragEnd,
+  onDragCancel,
+}: {
+  examples: CaptureExample[];
+  onDragMove: (example: CaptureExample, x: number, y: number) => void;
+  onDragEnd: (example: CaptureExample, x: number, y: number) => void;
+  onDragCancel: () => void;
+}) {
+  const reduce = useReducedMotion();
+  const [active, setActive] = useState<CaptureExample["kind"]>("screenshot");
+  const pointerDrag = useRef<{
+    pointerId: number;
+    startX: number;
+    startY: number;
+    clientX: number;
+    clientY: number;
+    example: CaptureExample;
+    moved: boolean;
+  } | null>(null);
+  const autoScrollFrame = useRef<number | null>(null);
+  const visible = examples.filter((example) => example.kind === active);
+
+  const stopAutoScroll = () => {
+    if (autoScrollFrame.current !== null) cancelAnimationFrame(autoScrollFrame.current);
+    autoScrollFrame.current = null;
+  };
+
+  const keepAutoScrolling = () => {
+    if (autoScrollFrame.current !== null) return;
+    const tick = () => {
+      const drag = pointerDrag.current;
+      if (!drag?.moved) {
+        autoScrollFrame.current = null;
+        return;
+      }
+      const edge = 88;
+      const delta =
+        drag.clientY < edge
+          ? -Math.ceil((edge - drag.clientY) / 5)
+          : drag.clientY > window.innerHeight - edge
+            ? Math.ceil((drag.clientY - (window.innerHeight - edge)) / 5)
+            : 0;
+      if (delta === 0) {
+        autoScrollFrame.current = null;
+        return;
+      }
+      window.scrollBy(0, delta);
+      onDragMove(drag.example, drag.clientX, drag.clientY);
+      autoScrollFrame.current = requestAnimationFrame(tick);
+    };
+    autoScrollFrame.current = requestAnimationFrame(tick);
+  };
+
+  useEffect(
+    () => () => {
+      if (autoScrollFrame.current !== null) cancelAnimationFrame(autoScrollFrame.current);
+    },
+    [],
   );
-}
 
-function StepDots({ total, done }: { total: number; done: number }) {
+  const startPointerDrag = (event: ReactPointerEvent<HTMLElement>, example: CaptureExample) => {
+    stopAutoScroll();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    pointerDrag.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      clientX: event.clientX,
+      clientY: event.clientY,
+      example,
+      moved: false,
+    };
+  };
+
+  const movePointerDrag = (event: ReactPointerEvent<HTMLElement>) => {
+    const drag = pointerDrag.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    drag.clientX = event.clientX;
+    drag.clientY = event.clientY;
+    event.preventDefault();
+    if (Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY) < 10) return;
+    if (!drag.moved) {
+      drag.moved = true;
+    }
+    onDragMove(drag.example, event.clientX, event.clientY);
+    keepAutoScrolling();
+  };
+
+  const finishPointerDrag = (event: ReactPointerEvent<HTMLElement>) => {
+    const drag = pointerDrag.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    pointerDrag.current = null;
+    stopAutoScroll();
+    if (drag.moved) {
+      onDragEnd(drag.example, event.clientX, event.clientY);
+    }
+  };
+
+  const cancelPointerDrag = (event: ReactPointerEvent<HTMLElement>) => {
+    if (pointerDrag.current?.pointerId === event.pointerId) pointerDrag.current = null;
+    stopAutoScroll();
+    onDragCancel();
+  };
+
   return (
-    <span className="flex items-center gap-1.5" aria-label={`${total}건 중 ${done}건 보냄`}>
-      {Array.from({ length: total }, (_, i) => (
-        <i
-          key={i}
-          className={cn(
-            "rounded-full transition-all duration-300",
-            i < done
-              ? "size-[7px] bg-purple-500"
-              : i === done
-                ? "size-[7px] bg-purple-200 ring-2 ring-purple-100"
-                : "size-[6px] bg-ink-100",
-          )}
-        />
-      ))}
-    </span>
+    <section aria-label="직접 입력 예시" className="mt-10 border-t border-ink-100 pt-7">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-[12px] font-bold text-purple-600">직접 보내기 예시</p>
+          <h2 className="mt-1 font-display text-[20px] tracking-head">이런 순간을 맡겨보세요</h2>
+          <p className="mt-1.5 text-[12.5px] text-ink-500">
+            마우스를 올려 크게 보고, 카드째 위 입력창으로 끌어다 놓아보세요.
+          </p>
+        </div>
+        <div
+          role="tablist"
+          aria-label="예시 종류"
+          className="flex w-fit items-center gap-1 rounded-full bg-ink-100/70 p-1"
+        >
+          {EXAMPLE_TABS.map(({ kind, label, Icon }) => (
+            <button
+              key={kind}
+              type="button"
+              role="tab"
+              aria-selected={active === kind}
+              aria-controls="capture-example-panel"
+              onClick={() => setActive(kind)}
+              className={cn(
+                "inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[12.5px] font-bold transition-colors",
+                active === kind
+                  ? "bg-surface text-ink-900 shadow-card"
+                  : "text-ink-500 hover:text-ink-900",
+              )}
+            >
+              <Icon className="size-3.5" aria-hidden />
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div
+        id="capture-example-panel"
+        role="tabpanel"
+        className={cn(
+          "mt-5 grid gap-3.5 py-2",
+          active === "screenshot"
+            ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-5"
+            : "grid-cols-2 md:grid-cols-3",
+        )}
+      >
+        {visible.map((example) => (
+            <motion.div
+              key={example.id}
+              draggable={false}
+              role="img"
+              aria-label={`${example.title}. 입력창으로 끌어다 놓을 수 있는 예시`}
+              title="입력창으로 끌어다 놓기"
+              onPointerDown={(event) => {
+                if (event.pointerType === "mouse") startPointerDrag(event, example);
+              }}
+              onPointerMove={movePointerDrag}
+              onPointerUp={finishPointerDrag}
+              onPointerCancel={cancelPointerDrag}
+              whileHover={reduce ? undefined : { scale: 1.015, y: -2 }}
+              transition={{ type: "spring", stiffness: 380, damping: 30, mass: 0.55 }}
+              className="group relative z-0 min-w-0 origin-center cursor-grab select-none overflow-hidden rounded-2xl border border-ink-100 bg-surface text-left shadow-card transition-[border-color,box-shadow] duration-200 ease-out hover:z-20 hover:border-purple-200 hover:shadow-card-lift active:cursor-grabbing"
+            >
+              <>
+                  <span
+                    data-example-drag-handle
+                    className="absolute right-2 top-2 z-10 flex size-7 touch-none items-center justify-center rounded-lg bg-surface/90 text-ink-500 shadow-card backdrop-blur sm:hidden"
+                    aria-hidden
+                    onPointerDown={(event) => {
+                      if (event.pointerType !== "mouse") {
+                        event.stopPropagation();
+                        startPointerDrag(event, example);
+                      }
+                    }}
+                    onPointerMove={movePointerDrag}
+                    onPointerUp={finishPointerDrag}
+                    onPointerCancel={cancelPointerDrag}
+                  >
+                    <GripVertical className="size-3.5" />
+                  </span>
+                  {example.kind === "screenshot" ? (
+                    <>
+                      <Image
+                        src={example.image.file}
+                        alt={example.title}
+                        width={example.image.width}
+                        height={example.image.height}
+                        draggable={false}
+                        className="aspect-[0.85] w-full object-cover object-top transition-transform duration-300 group-hover:scale-[1.02]"
+                      />
+                      <span className="block min-h-14 px-3 py-2.5 text-[12.5px] font-bold leading-snug">
+                        {example.title}
+                      </span>
+                    </>
+                  ) : example.kind === "url" ? (
+                    <>
+                      <div className="relative aspect-[2/1] overflow-hidden bg-purple-50">
+                        <Image
+                          src={example.image.file}
+                          alt=""
+                          fill
+                          sizes="224px"
+                          draggable={false}
+                          className="object-cover object-top"
+                        />
+                        <span className="absolute bottom-2 left-2 flex size-7 items-center justify-center rounded-lg bg-surface/90 shadow-card backdrop-blur">
+                          <Link2 className="size-3.5 text-purple-600" aria-hidden />
+                        </span>
+                      </div>
+                      <span className="block px-3 py-2.5">
+                        <span className="line-clamp-2 min-h-9 text-[12.5px] font-bold leading-snug">
+                          {example.title}
+                        </span>
+                        <span className="mt-1 block truncate text-[11px] font-medium text-purple-600">
+                          {domainOf(example.url)}
+                        </span>
+                      </span>
+                    </>
+                  ) : (
+                    <span className="flex h-[170px] flex-col bg-butter-50 p-4">
+                      <FileText className="size-4 text-butter-400" aria-hidden />
+                      <span className="mt-3 line-clamp-4 text-[13px] font-semibold leading-relaxed text-ink-900">
+                        {example.text}
+                      </span>
+                      <span className="mt-auto truncate pt-2 text-[11px] font-bold text-[#8A6410]">
+                        {example.title}
+                      </span>
+                    </span>
+                  )}
+              </>
+            </motion.div>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -287,16 +439,33 @@ interface Attachment {
   previewUrl: string;
 }
 
-function LiveComposer({ homeHref }: { homeHref: string }) {
+interface LiveComposerHandle {
+  applyExample: (example: CaptureExample) => void;
+  containsPoint: (x: number, y: number) => boolean;
+}
+
+const LiveComposer = forwardRef<LiveComposerHandle, {
+  homeHref: string;
+  exampleDragOver: boolean;
+}>(function LiveComposer({
+  homeHref,
+  exampleDragOver,
+}, ref) {
   const { persona, addLiveCapture } = usePersona();
   const live = useLiveAnalysis(persona.slug);
+  const resetLive = live.reset;
+  const reduce = useReducedMotion();
   const [text, setText] = useState("");
   const [attach, setAttach] = useState<Attachment | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [preparing, setPreparing] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const composerRootRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const pendingRef = useRef<LiveCaptureInput | null>(null);
   const savedIdsRef = useRef(new Set<string>());
+  const exampleAbortRef = useRef<AbortController | null>(null);
+  const appliedExampleRef = useRef<CaptureExample | null>(null);
 
   const running =
     live.stage !== "idle" && live.stage !== "done" && live.stage !== "failed";
@@ -309,6 +478,7 @@ function LiveComposer({ homeHref }: { homeHref: string }) {
   }, [attach]);
   useEffect(
     () => () => {
+      exampleAbortRef.current?.abort();
       if (attachRef.current) URL.revokeObjectURL(attachRef.current.previewUrl);
     },
     [],
@@ -320,11 +490,15 @@ function LiveComposer({ homeHref }: { homeHref: string }) {
     const sent = pendingRef.current;
     if (!sent || savedIdsRef.current.has(live.result.id)) return;
     savedIdsRef.current.add(live.result.id);
-    addLiveCapture(makeLiveEntry(live.result, sent));
-  }, [live.stage, live.result, addLiveCapture]);
+    const entry = makeLiveEntry(live.result, sent);
+    addLiveCapture(entry);
+    markJourneyStep(persona.slug, "capture", {
+      capture: { slug: entry.slug, title: entry.wire.title },
+    });
+  }, [live.stage, live.result, addLiveCapture, persona.slug]);
 
-  const acceptFile = async (file: File) => {
-    if (preparing || running || !IMAGE_TYPES.test(file.type)) return;
+  const acceptFile = useCallback(async (file: File) => {
+    if (!IMAGE_TYPES.test(file.type)) return;
     setPreparing(true);
     try {
       let blob: Blob = file;
@@ -341,14 +515,70 @@ function LiveComposer({ homeHref }: { homeHref: string }) {
     } finally {
       setPreparing(false);
     }
-  };
+  }, []);
 
-  const clearAttach = () => {
+  const clearAttach = useCallback(() => {
     setAttach((prev) => {
       if (prev) URL.revokeObjectURL(prev.previewUrl);
       return null;
     });
-  };
+  }, []);
+
+  const revealComposer = useCallback((focusText: boolean) => {
+    requestAnimationFrame(() => {
+      composerRootRef.current?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
+      if (focusText) textareaRef.current?.focus({ preventScroll: true });
+    });
+  }, [reduce]);
+
+  const applyExample = useCallback(
+    (example: CaptureExample) => {
+      if (running) return;
+      exampleAbortRef.current?.abort();
+      resetLive();
+      pendingRef.current = null;
+      clearAttach();
+      appliedExampleRef.current = example;
+
+      if (example.kind === "memo") {
+        setText(example.text);
+        revealComposer(true);
+        return;
+      }
+      if (example.kind === "url") {
+        setText(example.url);
+        revealComposer(true);
+        return;
+      }
+
+      setText("");
+      revealComposer(false);
+      const ac = new AbortController();
+      exampleAbortRef.current = ac;
+      void fetch(example.image.file, { signal: ac.signal })
+        .then((response) => (response.ok ? response.blob() : null))
+        .then((blob) => {
+          if (!blob || ac.signal.aborted) return;
+          const mime = IMAGE_TYPES.test(blob.type) ? blob.type : "image/jpeg";
+          return acceptFile(new File([blob], `${example.id}.jpg`, { type: mime }));
+        })
+        .catch(() => undefined);
+    },
+    [acceptFile, clearAttach, resetLive, revealComposer, running],
+  );
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      applyExample,
+      containsPoint: (x, y) => {
+        if (running || preparing) return false;
+        const rect = composerRootRef.current?.getBoundingClientRect();
+        return Boolean(rect && x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom);
+      },
+    }),
+    [applyExample, preparing, running],
+  );
 
   const send = () => {
     const trimmed = text.trim();
@@ -358,13 +588,25 @@ function LiveComposer({ homeHref }: { homeHref: string }) {
         kind: "screenshot",
         memo: trimmed || undefined,
         thumb: attach.thumb ?? undefined,
+        place: appliedExampleRef.current?.place,
+        retrievalHint: appliedExampleRef.current?.title,
       };
       void live.run({ imageFile: attach.blob, memo: trimmed || undefined });
     } else if (/^https?:\/\//.test(trimmed)) {
-      pendingRef.current = { kind: "url", url: trimmed };
+      pendingRef.current = {
+        kind: "url",
+        url: trimmed,
+        place: appliedExampleRef.current?.place,
+        retrievalHint: appliedExampleRef.current?.title,
+      };
       void live.run({ url: trimmed });
     } else {
-      pendingRef.current = { kind: "memo", text: trimmed };
+      pendingRef.current = {
+        kind: "memo",
+        text: trimmed,
+        place: appliedExampleRef.current?.place,
+        retrievalHint: appliedExampleRef.current?.title,
+      };
       void live.run({ text: trimmed });
     }
   };
@@ -374,25 +616,32 @@ function LiveComposer({ homeHref }: { homeHref: string }) {
     setText("");
     clearAttach();
     pendingRef.current = null;
+    appliedExampleRef.current = null;
   };
 
   const onDrop = (e: DragEvent) => {
     e.preventDefault();
     setDragOver(false);
     const file = [...e.dataTransfer.files].find((f) => IMAGE_TYPES.test(f.type));
-    if (file) void acceptFile(file);
+    if (file && !preparing && !running) {
+      appliedExampleRef.current = null;
+      void acceptFile(file);
+    }
   };
 
   return (
     <motion.div
+      ref={composerRootRef}
       className="relative flex flex-1 flex-col"
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: "spring", duration: 0.5, bounce: 0.15 }}
       onDragOver={(e) => {
-        if ([...e.dataTransfer.types].includes("Files")) {
+        const types = [...e.dataTransfer.types];
+        if (types.includes("Files")) {
           e.preventDefault();
-          if (!running) setDragOver(true);
+          e.dataTransfer.dropEffect = "copy";
+          if (!running && !preparing) setDragOver(true);
         }
       }}
       onDragLeave={(e) => {
@@ -401,17 +650,18 @@ function LiveComposer({ homeHref }: { homeHref: string }) {
       onDrop={onDrop}
       onPaste={(e) => {
         const file = [...e.clipboardData.files].find((f) => IMAGE_TYPES.test(f.type));
-        if (file) {
+        if (file && !preparing && !running) {
           e.preventDefault();
+          appliedExampleRef.current = null;
           void acceptFile(file);
         }
       }}
     >
       <h2 className="text-[18px] font-extrabold tracking-snug">
-        이번엔 직접 보내보세요
+        직접 보내보세요
       </h2>
       <p className="mt-1 text-[13px] leading-relaxed text-ink-500">
-        해야 할 일 한 줄, 약속, 링크, 스크린샷. 무엇이든 좋아요.
+        직접 적거나, 아래 예시를 이곳으로 끌어와도 좋아요.
       </p>
 
       {running && live.stage !== "idle" ? (
@@ -447,7 +697,10 @@ function LiveComposer({ homeHref }: { homeHref: string }) {
                 </div>
                 <button
                   type="button"
-                  onClick={clearAttach}
+                  onClick={() => {
+                    clearAttach();
+                    appliedExampleRef.current = null;
+                  }}
                   aria-label="첨부 제거"
                   className="flex size-7 flex-none items-center justify-center rounded-full text-ink-300 transition-colors hover:bg-ink-100/70 hover:text-ink-700"
                 >
@@ -456,8 +709,20 @@ function LiveComposer({ homeHref }: { homeHref: string }) {
               </div>
             )}
             <textarea
+              ref={textareaRef}
               value={text}
-              onChange={(e) => setText(e.target.value)}
+              onChange={(e) => {
+                const next = e.target.value;
+                const applied = appliedExampleRef.current;
+                if (
+                  applied &&
+                  applied.kind !== "screenshot" &&
+                  next !== (applied.kind === "url" ? applied.url : applied.text)
+                ) {
+                  appliedExampleRef.current = null;
+                }
+                setText(next);
+              }}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
                   e.preventDefault();
@@ -483,7 +748,10 @@ function LiveComposer({ homeHref }: { homeHref: string }) {
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   e.target.value = ""; // 같은 파일 재선택 허용
-                  if (file) void acceptFile(file);
+                  if (file && !preparing && !running) {
+                    appliedExampleRef.current = null;
+                    void acceptFile(file);
+                  }
                 }}
               />
               <button
@@ -510,17 +778,17 @@ function LiveComposer({ homeHref }: { homeHref: string }) {
               </button>
             </div>
           </div>
-          <p className="mt-2.5 text-center text-[11.5px] text-ink-300">
-            이미지는 붙여넣기(⌘V)나 드래그로도 보낼 수 있어요
+          <p className="mt-3 text-center text-[12.5px] font-bold text-purple-600">
+            아래의 예시에서 끌어와 넣어보세요!
           </p>
         </>
       )}
 
       {/* 드래그 오버레이 */}
       <AnimatePresence>
-        {dragOver && (
+        {(dragOver || exampleDragOver) && (
           <motion.div
-            className="absolute -inset-2 z-10 flex items-center justify-center rounded-3xl border-2 border-dashed border-purple-400 bg-purple-50/90 backdrop-blur-[2px]"
+            className="pointer-events-none absolute -inset-2 z-10 flex items-center justify-center rounded-3xl border-2 border-dashed border-purple-400 bg-purple-50/90 backdrop-blur-[2px]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -533,7 +801,7 @@ function LiveComposer({ homeHref }: { homeHref: string }) {
       </AnimatePresence>
     </motion.div>
   );
-}
+});
 
 /** 진행 타임라인 — 단계가 눈앞에서 하나씩 접히는 "AI 가 일하는 중" */
 function ProgressTimeline({

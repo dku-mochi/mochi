@@ -37,3 +37,11 @@ export function readStats(): LiveStats {
     return { live: 0, fallback: 0 };
   }
 }
+
+export function resetStats(): void {
+  try {
+    sessionStorage.removeItem(KEY);
+  } catch {
+    /* 통계 초기화 실패는 체험에 영향을 주지 않는다 */
+  }
+}
