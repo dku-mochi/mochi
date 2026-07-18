@@ -10,8 +10,22 @@ description: 모찌 저장소의 의미 있는 변경 이력. append-only log. �
 
 # CHANGELOG
 
+## 2026-07-15 — ios
+- App Info.plist 에 `NSLocationWhenInUseUsageDescription` 추가 — App Store Connect ITMS-90683 경고 해소. 앱은 위치 권한을 요청하지 않지만 NMapsMap 바이너리 SDK 의 CoreLocation 참조가 정적 검사에 걸림(문구는 사용자에게 표시될 일 없음).
+
 ## 2026-07-14 — backend, docs (저장 시 전체기간 카테고리 어휘로 장기 명명 일관성 보강)
 - 저장 분석에 owner-scoped 전체기간 category 어휘를 약한 컨텍스트로 추가했다. 정규화 라벨 우선→사용빈도→최근 사용순 최대 50개이며 raw 라벨도 fallback으로 포함해, 월간 digest 미실행·30일 휴면·최근 18건 eviction에도 기존 철자를 재사용할 수 있다. 추가 LLM/cron/API/DB 변경은 없고, 월간 정규화는 이미 생긴 alias를 실제 write로 합치는 repair 역할을 유지한다. 실제 활성 98건 exact-label 노출은 현행 98.8%였지만 31일/60건 통제 probe는 0%→100%로 회수했다(`lab/active/category-consistency-eval/REPORT.md`).
+
+## 2026-07-14 — ios (silent push 백그라운드 EK 동기화 불발 fix — 체크리스트 (e) 실기기 리포트)
+- **증상**: 앱 백그라운드 상태에서 ShareExt 캡처 → silent push 가 와도 캘린더·미리알림 미등록, 앱을 열어야 동기화. GCP(mochi-svc journald)로 서버 정상 송신 확정(`push.calendar_sync_sent`+`apns.sent` background/priority5, 실패 0) — 문제는 iOS 수신 측.
+- **근본원인**: `didReceiveRemoteNotification` 이 `reconcile(serverID:)`+`syncNow()` 만 불렀는데, ShareExt 캡처는 push 도착 시점 로컬 Realm 에 없다(App Group inbound 큐 JSON 뿐, drain 은 foreground tick 전용). `reconcile` 은 `uploaded:<serverID>` 매칭이라 조용히 no-op → 엔진도 등록할 것이 없음.
+- **fix**: 핸들러가 foreground tick 과 같은 순서로 따라잡는다 — `drain`(큐→Realm, 신규 `inboundQueueDrainer` DI) → `runOnce`(멱등 업로드 — ShareExt 직접 전송과 같은 행, 이미지 objectKey 재사용) → `reconcile`(분석 반영) → `syncNow`(EK). 전 단계 멱등(runOnce·syncNow 단일 비행)이라 foreground 경합·중복 push 안전. 25초 watchdog 으로 `completionHandler` 정확히 1회 보장(codex P1 — 예산 초과 시 잔여 협조 취소 + `.failed`, 미호출 시 OS 가 이후 백그라운드 push 를 스로틀).
+- **동반 fix**: APNs 등록을 알림 권한 게이트에서 해방(`PushAuthorization.registerForRemoteNotifications` — 무조건 등록). silent push 는 alert 권한과 무관한 데이터 신호인데, 알림 거부 사용자는 토큰 자체가 없어 자동 관리 전체가 죽던 갭.
+- **테스트 수복(기존 드리프트)**: 84cb282(회수 반응 item 기준 전환)·0028(알림 선호)가 테스트 스텁 4곳(`MochiAPIClient` 미준수)과 `RecallFeatureTests` 단언(event 기준)을 안 따라가 `tuist test` 가 컴파일 불가였다 — 스텁 표면 보충 + 단언을 item 기준으로 갱신. 전 스위트 green.
+- **fix ①: 캘린더는 되는데 미리알림은 안 됨** — 근본원인: iOS 17+ 에서 이벤트/미리알림은 별개 권한인데 **미리알림 권한을 요청하는 순간이 실사용 흐름에 없었다**(캘린더 탭=이벤트만, 채팅 확정=proposal 에 todo 있을 때만, 캡처 분석發 todo 는 프롬프트 지점 자체가 없음 → `.notDetermined` → 엔진은 규약상 묻지 않고 조용히 대기). 엔진 게이트(`hasEventAccess`/`hasReminderAccess`)·diff·kind 분기는 정상임을 코드로 배제 확인. fix: 모든 프롬프트 지점(채팅 확정·캘린더 탭 저장·설정 토글 on·온보딩 ⑤)에서 두 권한을 각각 확보 — proposal 에 있는 종류는 try(거부=failed 카드 유지), 없는 종류는 best-effort(try?).
+- **fix ②: 미리알림 앱에서 완료 토글 → 모찌 진입 시 되돌아감(사용자 리포트)** — 근본원인: 엔진의 단방향 덮어쓰기가 모찌 instance(active) 기준 `completed=false` 를 매 동기화마다 되밀어 사용자 완료와 싸움. fix: **완료 상태만 양방향** — 링크에 `lastSyncedCompleted`(마지막 합의 상태, Realm v17→18) 를 영속해 3-way merge 로 변경 방향을 판별, EK 쪽 변경은 `TodoLifecycleSync` 공용 경로(로컬 전이+서버 push, 실패 롤백)로 모찌에 역반영, 동시 변경은 모찌 승리(정본). 제목·시각·삭제는 단방향 유지.
+- **온보딩 ⑤ "동기화 선택" 신설**(사용자 요구, `CalendarSyncPage`) — 백탭 다음 마지막 페이지에서 캘린더·미리알림 자동 등록을 묻는다: "일정은 캘린더에, 할 일은 미리알림에" + CTA "자동으로 챙길게요"(EK 권한 2종 각각 요청 → 하나라도 허용 시 밸브 on + 즉시 따라잡기) / "나중에 할게요"(off — 설정 §3.4d 토글로 재개), 전부 거부 시 off + 안내. 히어로는 ③의 clay 아이콘이 목적지 앱 카드로 승격되고 일정·할 일 조각이 안착 + 체크가 채워지는 1회 연출(HomeDesign 팔레트, Reduce Motion 정적). **게이트 승계**: "백탭이 마지막이라 전진 표면이 없다"던 구조적 게이트가 사라져 `pageChanged` 리듀서 가드 + 스와이프 rubber-band 로 명시 차단(완료는 CTA만 불변식 유지). 기존 유저(온보딩 기완료)는 무영향(기본 on 유지).
+- docs: UX_SPEC §3.3 5페이지 재작성·§1.5 완료 양방향·§3.8, journal 체크리스트 (d-2)(d-3) 시나리오 보강(권한 한쪽만 허용·미리알림 토글 왕복).
 
 ## 2026-07-14 — infra (mochi-svc 배포 — 지도 수복 게이트 · 검색 answer 제거 · 알림 전역 선호 0028 · 캘린더 silent push)
 - develop `11bc5f1` 을 `mochi-svc` 배포 (INFRA §2.5 런북: 0단계 tracked-clean 게이트 + 배포 커밋 해시 기록 → 사전 `make test` 560 passed → COPYFILE_DISABLE tar → IAP scp(원격 `gzip -t` 재검증) → `~/mochi-svc-setup.sh`: 코드 교체 + .env 재생성(백업) + `uv sync --frozen --no-dev` + `alembic upgrade head` **0027→0028 신규 적용**(users.notify_recall_enabled/notify_analysis_enabled) + restart).

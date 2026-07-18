@@ -19,11 +19,22 @@ public struct SystemCalendarLink: Equatable, Sendable {
     /// EK 항목이 식별자로 더는 안 잡혔던 링크(사용자가 캘린더 앱에서 직접 삭제, 또는 iCloud 동기화로
     /// 식별자 재발급). 재생성하면 중복·사용자 삭제 무시 위험이라 **엔진이 이 표시를 보고 재등록을 막는다**.
     public let tombstoned: Bool
+    /// (reminder 링크 한정) 마지막으로 양쪽이 합의한 완료 상태 — 완료 상태 3-way merge 의 기준점.
+    /// 미리알림 앱에서의 사용자 완료 토글을 모찌로 역반영하기 위해 필요하다(어느 쪽이 변했는지 판별,
+    /// 2026-07-14 실기기 버그: 단방향 덮어쓰기가 미리알림 완료를 매 동기화마다 되돌렸음). event 링크는 nil.
+    public let lastSyncedCompleted: Bool?
 
-    public init(instanceID: UUID, kind: Kind, ekIdentifier: String, tombstoned: Bool = false) {
+    public init(
+        instanceID: UUID,
+        kind: Kind,
+        ekIdentifier: String,
+        tombstoned: Bool = false,
+        lastSyncedCompleted: Bool? = nil
+    ) {
         self.instanceID = instanceID
         self.kind = kind
         self.ekIdentifier = ekIdentifier
         self.tombstoned = tombstoned
+        self.lastSyncedCompleted = lastSyncedCompleted
     }
 }

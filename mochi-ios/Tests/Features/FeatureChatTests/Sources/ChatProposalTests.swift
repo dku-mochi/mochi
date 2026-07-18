@@ -501,6 +501,21 @@ private actor StubAPIClient: MochiAPIClient {
     func sentNotifications(limit: Int) async throws -> [SentNotificationDTO] {
         try await unimplemented.sentNotifications(limit: limit)
     }
+    func recordRecallItemReaction(itemID: UUID, reaction: RecallReaction) async throws {
+        try await unimplemented.recordRecallItemReaction(itemID: itemID, reaction: reaction)
+    }
+    func notificationPreferences() async throws -> NotificationPreferencesDTO {
+        try await unimplemented.notificationPreferences()
+    }
+    func updateNotificationPreferences(
+        recallEnabled: Bool?,
+        analysisEnabled: Bool?
+    ) async throws -> NotificationPreferencesDTO {
+        try await unimplemented.updateNotificationPreferences(
+            recallEnabled: recallEnabled,
+            analysisEnabled: analysisEnabled
+        )
+    }
 }
 
 private struct DenyingReminderScheduler: ReminderScheduler {
@@ -552,6 +567,7 @@ private actor SpyCalendarSyncer: CalendarSyncing {
     func updateReminder(identifier: String, title: String, due: Date?, completed: Bool) async throws -> Bool {
         true
     }
+    func reminderCompleted(identifier: String) async throws -> Bool? { false }
     func removeEvent(identifier: String) async throws {}
     func removeReminder(identifier: String) async throws {}
 }

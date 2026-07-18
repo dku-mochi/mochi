@@ -150,6 +150,9 @@ public final class RealmSystemCalendarLink: Object {
     /// EK 항목 소실 확인 시각(묘비) — nil 이면 살아있는 링크. 재등록(중복 생성)을 막는 표식이라
     /// 행을 지우지 않고 남긴다(엔진 규약: 소실 보고 = 사용자 삭제 존중 + 식별자 재발급 중복 방지).
     @Persisted public var tombstonedAt: Date?
+    /// (reminder 한정) 마지막으로 양쪽이 합의한 완료 상태 — 완료 3-way merge 기준점(v18).
+    /// 미리알림 앱에서의 사용자 토글을 모찌로 역반영하기 위한 변경 방향 판별에 쓴다. event 는 nil.
+    @Persisted public var lastSyncedCompleted: Bool?
 }
 
 public final class RealmActionCandidate: EmbeddedObject {

@@ -1,3 +1,4 @@
+import os
 import UIKit
 import UserNotifications
 import Dependencies
@@ -11,6 +12,10 @@ import CorePersistence
 /// 이연하고(미인증 콜드스타트 팝업 회피), 등록은 매 active(``MochiApp``) 안전 호출한다. 거부해도 앱 내
 /// needsReview 버킷이 always-on fallback.
 public final class MochiAppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
+    /// silent push 백그라운드 체인 진단용 — Console.app(기기 연결)/Xcode 콘솔에서 `app.mochi` subsystem,
+    /// `silent-sync` category 로 필터. 백그라운드 경로는 UI 가 없어 로그가 유일한 관측 수단이다
+    /// (ShareExt `direct-upload` Logger 와 같은 관례). 토큰·본문은 절대 로그하지 않는다.
+    private static let syncLogger = Logger(subsystem: "app.mochi", category: "silent-sync")
     public func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
@@ -47,25 +52,63 @@ public final class MochiAppDelegate: NSObject, UIApplicationDelegate, UNUserNoti
     }
 
     /// silent 동기화 push (content-available, alert 없음) — 분석 완료가 확정 schedule/todo 를 포함하면
-    /// 서버가 보낸다(§1.5 자동 관리). 앱을 열지 않아도 해당 항목을 reconcile(단건 fetch·Realm 반영)하고
-    /// EK 동기화 엔진이 따라잡아, 몇 분 내 아이폰 캘린더·미리알림에 선다. 사용자 노출 알림이 아니라
+    /// 서버가 보낸다(§1.5 자동 관리). 앱을 열지 않아도 아래 체인이 foreground tick 과 같은 순서로
+    /// 따라잡아, 몇 분 내 아이폰 캘린더·미리알림에 선다. 사용자 노출 알림이 아니라
     /// 데이터 동기화 신호라 알림 선호(preference_off) 게이트와 무관하다. OS 스로틀·강제종료로 미도달할 수
     /// 있으므로 최종 보증은 앱 실행/복귀 시 엔진 reconcile 백스톱(MochiApp).
+    ///
+    /// **체인이 reconcile 하나로 안 되는 이유**(2026-07-14 실기기 버그 fix): ShareExt 캡처는 push 도착
+    /// 시점에 로컬 Realm 에 없다 — App Group inbound 큐(JSON)에만 있고, 큐→Realm drain 은 foreground
+    /// tick 에서만 돌았다. `reconcile` 은 `uploaded:<serverID>` 링크로만 항목을 찾으므로(find(serverID:))
+    /// drain(큐→Realm) → runOnce(멱등 업로드, ShareExt 직접 전송과 같은 행 반환 → serverID 확보) 가
+    /// 선행돼야 한다. 전 단계가 멱등이고(runOnce·syncNow 는 단일 비행) foreground 경합·중복 push 에도
+    /// 안전하다.
     public func application(
         _ application: UIApplication,
         didReceiveRemoteNotification userInfo: [AnyHashable: Any],
         fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void
     ) {
         guard let raw = userInfo["mochiItemID"] as? String, let id = UUID(uuidString: raw) else {
+            Self.syncLogger.notice("push received: mochiItemID 없음/파싱 실패 → noData")
             completionHandler(.noData)
             return
         }
+        Self.syncLogger.notice("push received: item=\(raw, privacy: .public) state=\(application.applicationState.rawValue)")
+        let drainer = DependencyValues._current.inboundQueueDrainer
         let syncTrigger = DependencyValues._current.syncTrigger
         let engine = DependencyValues._current.systemCalendarSyncEngine
-        Task {
+        // 백그라운드 예산(~30초) 안에 completionHandler 를 **정확히 한 번** 보장하는 watchdog(codex P1) —
+        // runOnce 는 이미지 presign→PUT 까지 포함하므로 느린 망에서 예산을 넘길 수 있고, 제때 못 부르면
+        // OS 가 이후 백그라운드 push 전달을 스로틀한다. 초과 시 잔여 체인을 협조 취소하고 .failed 로 마감 —
+        // 남은 작업은 전부 멱등이라 다음 push/foreground 백스톱이 이어받는다.
+        let hasFinished = OSAllocatedUnfairLock(initialState: false)
+        // 첫 호출만 completionHandler 전달 — 승자였는지 반환(watchdog 이 뒷북 로그를 남기지 않게).
+        let finish: @Sendable (UIBackgroundFetchResult) -> Bool = { result in
+            let isFirst = hasFinished.withLock { finished in
+                defer { finished = true }
+                return !finished
+            }
+            if isFirst { completionHandler(result) }
+            return isFirst
+        }
+        let work = Task {
+            let drained = await drainer.drain()
+            Self.syncLogger.notice("drain: consumed=\(drained.consumed) failed=\(drained.failedFiles.count)")
+            await syncTrigger.runOnce()
+            Self.syncLogger.notice("runOnce done")
             await syncTrigger.reconcile(serverID: id)
+            Self.syncLogger.notice("reconcile done: item=\(raw, privacy: .public)")
             await engine.syncNow()
-            completionHandler(.newData)
+            if finish(.newData) {
+                Self.syncLogger.notice("syncNow done → newData")
+            }
+        }
+        Task {
+            try? await Task.sleep(for: .seconds(25))
+            work.cancel()   // 이미 끝난 작업 cancel 은 no-op.
+            if finish(.failed) {
+                Self.syncLogger.notice("watchdog: 25s 예산 초과 — 잔여 체인 협조 취소 → failed")
+            }
         }
     }
 

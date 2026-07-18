@@ -27,6 +27,10 @@ public protocol CalendarSyncing: Sendable {
     func updateEvent(identifier: String, title: String, start: Date, end: Date?, allDay: Bool) async throws -> Bool
     func updateReminder(identifier: String, title: String, due: Date?, completed: Bool) async throws -> Bool
 
+    /// 영속 식별자의 EKReminder **현재 완료 상태** 조회 — 미리알림 앱에서의 사용자 토글을 모찌로
+    /// 역반영(완료 3-way merge)하기 위해 쓰기 전에 읽는다. 안 잡히면 nil(호출자가 tombstone 판단).
+    func reminderCompleted(identifier: String) async throws -> Bool?
+
     /// 영속 식별자의 EK 항목 제거. 이미 없으면 성공으로 간주(멱등).
     func removeEvent(identifier: String) async throws
     func removeReminder(identifier: String) async throws
@@ -130,6 +134,11 @@ public actor LiveCalendarSyncer: CalendarSyncing {
         } catch {
             throw CalendarSyncError.underlying(message: error.localizedDescription)
         }
+    }
+
+    public func reminderCompleted(identifier: String) async throws -> Bool? {
+        guard let reminder = store.calendarItem(withIdentifier: identifier) as? EKReminder else { return nil }
+        return reminder.isCompleted
     }
 
     public func removeEvent(identifier: String) async throws {

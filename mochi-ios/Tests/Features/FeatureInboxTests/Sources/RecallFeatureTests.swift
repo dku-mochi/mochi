@@ -77,18 +77,22 @@ final class RecallFeatureTests: XCTestCase {
         await store.receive(\.markReportedOpen) { $0.hasReportedOpen = true }
         await store.finish()
         let reactions = await api.reactions
-        XCTAssertEqual(reactions, [Reaction(eventID: eventID, reaction: .opened)])
+        XCTAssertEqual(reactions, [Reaction(itemID: itemID, reaction: .opened)])
     }
 
-    func test_detail_onAppear_recallEventID없으면_보고생략() async {
+    func test_detail_onAppear_recallEventID없어도_item기준으로_보고() async {
+        // event 기준이던 시절엔 recallEventID 없으면 생략했지만, item 기준 전환(84cb282)으로
+        // 이제 항상 보고한다 — event 부재/pending 카드에서 opened 유실 → 재fetch 부활을 막는다.
         let api = RecallStubAPIClient(feed: [])
         let store = TestStore(initialState: RecallDetailFeature.State(entry: entry(recallEventID: nil))) {
             RecallDetailFeature()
         } withDependencies: { $0.mochiAPIClient = api }
 
-        await store.send(.onAppear)   // 효과 없음
+        await store.send(.onAppear)
+        await store.receive(\.markReportedOpen) { $0.hasReportedOpen = true }
+        await store.finish()
         let reactions = await api.reactions
-        XCTAssertTrue(reactions.isEmpty)
+        XCTAssertEqual(reactions, [Reaction(itemID: itemID, reaction: .opened)])
     }
 
     func test_detail_landing진입은_onAppear에서_중복보고_안함() async {
@@ -121,7 +125,7 @@ final class RecallFeatureTests: XCTestCase {
         await store.receive(\.dismissToast) { $0.toast = nil }
 
         let reactions = await api.reactions
-        XCTAssertEqual(reactions, [Reaction(eventID: eventID, reaction: .stop)])
+        XCTAssertEqual(reactions, [Reaction(itemID: itemID, reaction: .stop)])
     }
 
     func test_detail_기억났어요는_opened로_보고() async {
@@ -140,7 +144,7 @@ final class RecallFeatureTests: XCTestCase {
         await store.receive(\.dismissToast) { $0.toast = nil }
 
         let reactions = await api.reactions
-        XCTAssertEqual(reactions, [Reaction(eventID: eventID, reaction: .opened)])
+        XCTAssertEqual(reactions, [Reaction(itemID: itemID, reaction: .opened)])
     }
 
     func test_detail_원본보기_delegate로_위임() async {
@@ -178,7 +182,7 @@ final class RecallFeatureTests: XCTestCase {
 // MARK: - Stub
 
 private struct Reaction: Equatable {
-    let eventID: UUID
+    let itemID: UUID
     let reaction: RecallReaction
 }
 
@@ -197,8 +201,9 @@ private actor RecallStubAPIClient: MochiAPIClient {
         guard let landing else { throw NotConfiguredAPIClient().asError() }
         return landing
     }
-    func recordRecallReaction(eventID: UUID, reaction: RecallReaction) async throws {
-        reactions.append(Reaction(eventID: eventID, reaction: reaction))
+    // 상세의 reaction 보고는 item 기준(84cb282 — event 기준이면 pending/부재 카드에서 유실돼 부활).
+    func recordRecallItemReaction(itemID: UUID, reaction: RecallReaction) async throws {
+        reactions.append(Reaction(itemID: itemID, reaction: reaction))
     }
 
     // 미사용 표면 — 호출되면 테스트가 드러나게 NotConfigured 에 위임.
@@ -261,6 +266,21 @@ private actor RecallStubAPIClient: MochiAPIClient {
     }
     func sentNotifications(limit: Int) async throws -> [SentNotificationDTO] {
         try await unimplemented.sentNotifications(limit: limit)
+    }
+    func recordRecallReaction(eventID: UUID, reaction: RecallReaction) async throws {
+        try await unimplemented.recordRecallReaction(eventID: eventID, reaction: reaction)
+    }
+    func notificationPreferences() async throws -> NotificationPreferencesDTO {
+        try await unimplemented.notificationPreferences()
+    }
+    func updateNotificationPreferences(
+        recallEnabled: Bool?,
+        analysisEnabled: Bool?
+    ) async throws -> NotificationPreferencesDTO {
+        try await unimplemented.updateNotificationPreferences(
+            recallEnabled: recallEnabled,
+            analysisEnabled: analysisEnabled
+        )
     }
 }
 

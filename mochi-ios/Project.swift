@@ -349,6 +349,10 @@ let project = Project(
             "FeatureOnboarding",
             layer: .feature,
             dependencies: [
+                // 동기화 선택(마지막 페이지)이 EK 권한 프롬프트(calendarSyncer)와
+                // 자동 등록 밸브·엔진(SystemCalendarAutoRegistrationPreference·SyncEngine)을 쓴다.
+                .target(name: "CoreIntegrations"),
+                .target(name: "CorePersistence"),
                 .target(name: "DesignSystem"),
                 .package(product: "ComposableArchitecture"),
                 .package(product: "Dependencies"),

@@ -243,8 +243,12 @@ public struct MochiCalendarFeature: Sendable {
                     // 관찰해 수행한다(§1.5 자동 관리 — call-site 등록 배선 제거, 2026-07-14). 엔진은
                     // 권한을 묻지 않는 규약이라 명시 저장 순간인 여기서 프롬프트만 확보한다 — 거부 시
                     // 조용히 진행(기존 try? 규약: 모찌 기록은 이미 저장됐다).
+                    // 미리알림 권한도 함께(2026-07-14 실기기 버그 fix) — iOS 17+ 는 이벤트/미리알림이
+                    // 별개 권한이고, 캡처 분석發 todo 는 프롬프트 지점이 없어 여기서 안 물으면 영영
+                    // notDetermined 로 남는다(엔진은 조용히 대기만).
                     if SystemCalendarAutoRegistrationPreference.load() {
                         try? await calendarSyncer.requestEventAccess()
+                        try? await calendarSyncer.requestReminderAccess()
                     }
                     await send(.draftSaveFinished(nil))
                 }

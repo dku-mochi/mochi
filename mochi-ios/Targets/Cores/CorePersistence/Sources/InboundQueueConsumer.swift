@@ -1,3 +1,4 @@
+import Dependencies
 import Foundation
 import CoreDomain
 
@@ -52,6 +53,40 @@ public actor InboundQueueConsumer {
 public struct InboundDrainResult: Equatable, Sendable {
     public let consumed: Int
     public let failedFiles: [URL]
+}
+
+// MARK: - DI
+
+/// silent push 백그라운드 핸들러(`MochiAppDelegate`)가 inbound 큐를 흡수하기 위한 추상화 —
+/// ShareExt 캡처는 push 도착 시점에 로컬 Realm 에 없고 큐 JSON 에만 있으므로, drain 없이는
+/// reconcile 이 항목을 못 찾는다. ``MochiApp`` 이 실제 consumer 를 주입한다(`syncTrigger` 와 동일 패턴).
+public protocol InboundQueueDraining: Sendable {
+    @discardableResult
+    func drain() async -> InboundDrainResult
+}
+
+extension InboundQueueConsumer: InboundQueueDraining {}
+
+/// 주입 누락 시 no-op. 기본값을 실제 consumer 로 두면 안 된다 — 잘못된 repository 로 drain 하면
+/// 큐 파일이 삭제돼 캡처가 유실된다.
+public struct NoopInboundQueueDrainer: InboundQueueDraining {
+    public init() {}
+    @discardableResult
+    public func drain() async -> InboundDrainResult {
+        InboundDrainResult(consumed: 0, failedFiles: [])
+    }
+}
+
+public enum InboundQueueDrainerKey: DependencyKey {
+    public static let liveValue: any InboundQueueDraining = NoopInboundQueueDrainer()
+    public static let testValue: any InboundQueueDraining = NoopInboundQueueDrainer()
+}
+
+public extension DependencyValues {
+    var inboundQueueDrainer: any InboundQueueDraining {
+        get { self[InboundQueueDrainerKey.self] }
+        set { self[InboundQueueDrainerKey.self] = newValue }
+    }
 }
 
 /// ShareExtension 이 사용하는 inbound payload 포맷.

@@ -6,7 +6,7 @@ import RealmSwift
 /// - App Group 컨테이너에 파일을 두고
 /// - schemaVersion·migrationBlock을 중앙에서 한 곳에 정의해 모든 프로세스가 동일 스키마 가정으로 열도록 한다.
 public enum RealmStoreFactory {
-    public static let currentSchemaVersion: UInt64 = 17
+    public static let currentSchemaVersion: UInt64 = 18
 
     public static func makeConfiguration() -> Realm.Configuration {
         let config = Realm.Configuration(
@@ -29,6 +29,8 @@ public enum RealmStoreFactory {
             // v15 → v16: RealmPlace.rating/ratingCount/imageURLString 추가 (장소 카드 별점·매장사진 — Google Places 보강).
             // v16 → v17: RealmSystemCalendarLink 추가 (EK 식별자 영속 — SystemCalendarSyncEngine 의
             //            시스템 캘린더·미리알림 자동 관리, UX_SPEC §1.5 known-drift 해소).
+            // v17 → v18: RealmSystemCalendarLink.lastSyncedCompleted 추가 (완료 상태 3-way merge —
+            //            미리알림 앱 토글 역반영. 단방향 덮어쓰기가 사용자 완료를 되돌리던 실기기 버그 fix).
             // prod 아님 — 실데이터 폐기 허용이라 점진 migration 대신 파일을 재생성한다.
             deleteRealmIfMigrationNeeded: true,
             objectTypes: [

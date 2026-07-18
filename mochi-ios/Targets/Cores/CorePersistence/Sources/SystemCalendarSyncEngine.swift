@@ -1,6 +1,7 @@
 import Foundation
 import CoreDomain
 import CoreIntegrations
+import CoreNetworking
 import Dependencies
 
 /// 시스템 캘린더(EKEvent)·미리알림(EKReminder) 자동 동기화 엔진 — EK 반영의 **단일 소유자**.
@@ -19,12 +20,17 @@ import Dependencies
 ///   보고하면 재생성하지 않고 tombstone — EK 식별자는 iCloud 동기화로 재발급될 수 있어(항목은
 ///   살아있는데 식별자만 바뀜) 소실 보고를 삭제로 단정해 재생성하면 중복이 난다. 사용자가 캘린더
 ///   앱에서 직접 지운 경우도 tombstone 이 재등록 루프를 막는다(사용자 삭제 존중).
-/// - **단방향**: 모찌 → EK 로만 민다. EK 쪽 수정·삭제를 모찌로 되가져오지 않는다(스코프 밖).
+/// - **제목·시각은 단방향**(모찌 → EK), **완료 상태만 양방향**(2026-07-14 실기기 버그 fix):
+///   미리알림 앱에서의 사용자 완료 토글을 링크의 `lastSyncedCompleted` 기준 3-way merge 로
+///   모찌에 역반영한다 — 단방향 덮어쓰기는 사용자의 미리알림 완료를 매 동기화마다 되돌렸다.
+///   양쪽이 동시에 변한 충돌은 모찌가 이긴다(앱이 기록의 정본). EK 쪽 삭제·시각 수정은 여전히
+///   되가져오지 않는다(스코프 밖 — 삭제는 tombstone 존중).
 /// - best-effort: EK 실패는 기록 자체에 영향을 주지 않고, 다음 동기화가 재시도한다.
 public actor SystemCalendarSyncEngine {
     private let repository: any MochiItemRepository
     private let linkStore: any SystemCalendarLinkStoring
     private let syncer: any CalendarSyncing
+    private let apiClient: any MochiAPIClient
     private let isEnabled: @Sendable () -> Bool
 
     private var observeTask: Task<Void, Never>?
@@ -35,11 +41,13 @@ public actor SystemCalendarSyncEngine {
         repository: any MochiItemRepository,
         linkStore: any SystemCalendarLinkStoring,
         syncer: any CalendarSyncing,
+        apiClient: any MochiAPIClient,
         isEnabled: @escaping @Sendable () -> Bool = { SystemCalendarAutoRegistrationPreference.load() }
     ) {
         self.repository = repository
         self.linkStore = linkStore
         self.syncer = syncer
+        self.apiClient = apiClient
         self.isEnabled = isEnabled
     }
 
@@ -175,7 +183,11 @@ public actor SystemCalendarSyncEngine {
                 return
             }
             try? await linkStore.save([
-                SystemCalendarLink(instanceID: instance.id, kind: .reminder, ekIdentifier: ekID)
+                // 생성 직후는 미완료 — 완료 3-way merge 기준점을 함께 영속한다.
+                SystemCalendarLink(
+                    instanceID: instance.id, kind: .reminder, ekIdentifier: ekID,
+                    lastSyncedCompleted: false
+                )
             ])
         }
     }
@@ -200,30 +212,92 @@ public actor SystemCalendarSyncEngine {
             return
         }
         let payload = SystemCalendarRegistrar.stringMap(instance.payload)
-        let found: Bool?
         switch link.kind {
         case .event:
             guard hasEvent,
                   let (start, allDay) = SystemCalendarRegistrar.scheduleStart(from: payload)
             else { return }   // 날짜가 파싱 불가로 바뀜 — EK 는 이전 시각 유지(등록 시 규약과 동일)
-            found = try? await syncer.updateEvent(
+            let found = try? await syncer.updateEvent(
                 identifier: link.ekIdentifier,
                 title: title(for: instance, item: item, fallback: "모찌 일정"),
                 start: start,
                 end: SystemCalendarRegistrar.scheduleEnd(from: payload, start: start),
                 allDay: allDay
             )
+            if found == false {
+                try? await linkStore.tombstone(instanceIDs: [link.instanceID])
+            }
         case .reminder:
             guard hasReminder else { return }
-            found = try? await syncer.updateReminder(
-                identifier: link.ekIdentifier,
-                title: title(for: instance, item: item, fallback: "모찌 할 일"),
-                due: dueDate(of: instance),
-                completed: instance.lifecycle.kind == .archived
-            )
+            await updateReminderMergingCompletion(link: link, instance: instance, item: item)
         }
+    }
+
+    /// reminder 갱신 — **완료 상태만 3-way merge** (2026-07-14 실기기 버그 fix).
+    ///
+    /// 이전엔 모찌 상태를 무조건 덮어써서, 미리알림 앱에서 사용자가 완료를 체크해도 다음 동기화가
+    /// `completed=false` 로 되돌렸다(치명: 사용자 행동과 싸움). 링크에 영속한 "마지막 합의 상태"
+    /// (`lastSyncedCompleted`) 를 기준으로 **어느 쪽이 변했는지** 판별한다:
+    /// - EK 쪽만 변함 → 모찌로 역반영(로컬 lifecycle 전이 + 서버 push — 상세·캘린더 토글과 같은
+    ///   `TodoLifecycleSync` 공용 경로). push 실패 시 공용 경로가 로컬을 롤백하고 기준점을 안 옮겨
+    ///   다음 동기화가 재시도한다.
+    /// - 모찌 쪽만 변함/동시 변경 → 모찌가 이긴다(앱이 기록의 정본) — 기존대로 EK 에 민다.
+    /// 제목·due 는 여전히 단방향(모찌 → EK)이다.
+    ///
+    /// 동시성: 이 merge 는 언제나 `performSync` 안에서만 돌고, `syncNow` 의 single-flight(`running`
+    /// 가드)가 performSync 인터리브를 차단한다 — 역반영의 로컬 전이가 울린 observeChanges 재진입은
+    /// `pendingRerun` 큐로 접혀 **push 성공(기준점 이동)/실패(롤백+기준점 유지)가 끝난 뒤에만** 다음
+    /// 사이클이 시작되므로, 중간 상태를 보고 기준점을 잘못 전진시키는 레이스가 없다(codex 재리뷰 검토).
+    private func updateReminderMergingCompletion(
+        link: SystemCalendarLink, instance: IntentInstance, item: MochiItem
+    ) async {
+        // 쓰기 전에 EK 현재 완료 상태를 읽는다. 조회 실패(권한 등)는 이번 사이클 보류,
+        // 항목 소실(nil)은 event 와 동일하게 tombstone. `try?` 는 Optional 반환(Bool?)을
+        // 평탄화해 실패와 소실이 한 nil 로 뭉개지므로 do/catch 로 구분한다.
+        let lookup: Bool?
+        do {
+            lookup = try await syncer.reminderCompleted(identifier: link.ekIdentifier)
+        } catch {
+            return
+        }
+        guard let ekCompleted = lookup else {
+            try? await linkStore.tombstone(instanceIDs: [link.instanceID])
+            return
+        }
+        let mochiCompleted = instance.lifecycle.kind == .archived
+        let lastSynced = link.lastSyncedCompleted ?? false
+
+        if ekCompleted != lastSynced, mochiCompleted == lastSynced {
+            // 미리알림 앱에서의 사용자 토글 → 모찌 역반영.
+            let target: InstanceLifecycle = ekCompleted ? .archived(reason: .todoCompleted) : .active
+            guard (try? await repository.updateInstanceLifecycle(
+                mochiItemID: item.id, instanceID: instance.id, to: target
+            )) != nil else { return }
+            let failure = await TodoLifecycleSync.pushToggle(
+                item: item, instance: instance, target: target,
+                repository: repository, apiClient: apiClient
+            )
+            if failure == nil {
+                // 수렴 성공 — 기준점 이동. (실패면 공용 경로가 로컬을 롤백했고 기준점 유지 → 재시도.)
+                try? await linkStore.setLastSyncedCompleted(instanceID: link.instanceID, completed: ekCompleted)
+            }
+            // 로컬 전이가 observeChanges 를 울려 다음 사이클에서 제목·due 포함 상태가 재수렴한다.
+            return
+        }
+
+        // 모찌 정본을 EK 로 민다(완료 무변경이면 unchanged-skip 이 save 를 생략한다).
+        let found = try? await syncer.updateReminder(
+            identifier: link.ekIdentifier,
+            title: title(for: instance, item: item, fallback: "모찌 할 일"),
+            due: dueDate(of: instance),
+            completed: mochiCompleted
+        )
         if found == false {
             try? await linkStore.tombstone(instanceIDs: [link.instanceID])
+            return
+        }
+        if found == true, mochiCompleted != lastSynced {
+            try? await linkStore.setLastSyncedCompleted(instanceID: link.instanceID, completed: mochiCompleted)
         }
     }
 
@@ -250,12 +324,14 @@ public enum SystemCalendarSyncEngineKey: DependencyKey {
     public static let liveValue = SystemCalendarSyncEngine(
         repository: InMemoryMochiItemRepository(),
         linkStore: InMemorySystemCalendarLinkStore(),
-        syncer: UnconfiguredCalendarSyncer()
+        syncer: UnconfiguredCalendarSyncer(),
+        apiClient: NotConfiguredAPIClient()
     )
     public static let testValue = SystemCalendarSyncEngine(
         repository: InMemoryMochiItemRepository(),
         linkStore: InMemorySystemCalendarLinkStore(),
-        syncer: UnconfiguredCalendarSyncer()
+        syncer: UnconfiguredCalendarSyncer(),
+        apiClient: NotConfiguredAPIClient()
     )
 }
 

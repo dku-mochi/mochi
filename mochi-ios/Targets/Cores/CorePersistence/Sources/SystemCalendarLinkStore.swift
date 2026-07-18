@@ -11,6 +11,8 @@ public protocol SystemCalendarLinkStoring: Sendable {
     func remove(instanceIDs: [UUID]) async throws
     /// EK 항목이 식별자로 안 잡혔을 때(사용자 직접 삭제·iCloud 식별자 재발급) 재생성을 막는 묘비 표시.
     func tombstone(instanceIDs: [UUID]) async throws
+    /// (reminder 링크) 완료 3-way merge 기준점 갱신 — 양쪽 상태가 수렴에 성공했을 때만 호출한다.
+    func setLastSyncedCompleted(instanceID: UUID, completed: Bool) async throws
 }
 
 /// App Group Realm 파일(`RealmStoreFactory`) 기반 구현 — 앱이 `AppDependencies.bootstrap` 에서
@@ -32,6 +34,7 @@ public actor RealmSystemCalendarLinkStore: SystemCalendarLinkStoring {
                     row.ekIdentifier = link.ekIdentifier
                     row.createdAt = Date()
                     row.tombstonedAt = link.tombstoned ? Date() : nil
+                    row.lastSyncedCompleted = link.lastSyncedCompleted
                     realm.add(row, update: .modified)
                 }
             }
@@ -50,7 +53,8 @@ public actor RealmSystemCalendarLinkStore: SystemCalendarLinkStoring {
                         instanceID: instanceID,
                         kind: kind,
                         ekIdentifier: row.ekIdentifier,
-                        tombstoned: row.tombstonedAt != nil
+                        tombstoned: row.tombstonedAt != nil,
+                        lastSyncedCompleted: row.lastSyncedCompleted
                     )
                 }
         }.value
@@ -81,6 +85,17 @@ public actor RealmSystemCalendarLinkStore: SystemCalendarLinkStoring {
             }
         }.value
     }
+
+    public func setLastSyncedCompleted(instanceID: UUID, completed: Bool) async throws {
+        let key = instanceID.uuidString
+        try await Task.detached {
+            let realm = try RealmStoreFactory.openRealm()
+            try realm.write {
+                realm.object(ofType: RealmSystemCalendarLink.self, forPrimaryKey: key)?
+                    .lastSyncedCompleted = completed
+            }
+        }.value
+    }
 }
 
 /// 테스트·프리뷰 기본값 — Realm 을 열지 않는다 (`MochiItemRepositoryKey` liveValue=InMemory 관례와 동일).
@@ -101,8 +116,17 @@ public actor InMemorySystemCalendarLinkStore: SystemCalendarLinkStoring {
             guard let link = storage[id] else { continue }
             storage[id] = SystemCalendarLink(
                 instanceID: link.instanceID, kind: link.kind,
-                ekIdentifier: link.ekIdentifier, tombstoned: true
+                ekIdentifier: link.ekIdentifier, tombstoned: true,
+                lastSyncedCompleted: link.lastSyncedCompleted
             )
         }
+    }
+    public func setLastSyncedCompleted(instanceID: UUID, completed: Bool) async throws {
+        guard let link = storage[instanceID] else { return }
+        storage[instanceID] = SystemCalendarLink(
+            instanceID: link.instanceID, kind: link.kind,
+            ekIdentifier: link.ekIdentifier, tombstoned: link.tombstoned,
+            lastSyncedCompleted: completed
+        )
     }
 }

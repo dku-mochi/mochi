@@ -316,7 +316,7 @@ AgentOrchestrator(persistence=AgentRunPersistence(session)).run(mochi_item_id)
   ↓
 성공: mochi_item_outbox status='done'
   └─ (done 커밋 직후, 분석 try 밖, best-effort) SendAnalysisNotification → APNs alert(전 단말, 완료/needs_review 분기 문구) + needs_review=true 면 LA **push-to-start**(`la_start` 토큰으로 background LA 시작). push 실패는 격리(done 유지) — 누락은 iOS reconcile 이 메움. **전역 선호 게이트(2026-07-14)**: `users.notify_analysis_enabled=false` 면 needs_review confirm push 를 `push.notify_skipped(reason=preference_off)` 로그 후 미발송(발송 시점 게이트만 — 분석·인앱 헷갈려요 버킷 불변)
-  └─ (같은 훅) 확정(needs_review=false) schedule/todo 포함 시 **silent push**(`SendCalendarSyncPush` — apns-push-type=background·priority 5·`content-available:1`+`mochiItemID`, alert 없음) → iOS `didReceiveRemoteNotification` 이 해당 item reconcile 후 `SystemCalendarSyncEngine` 이 시스템 캘린더·미리알림 반영(UX_SPEC §1.5 자동 관리, 2026-07-14). 사용자 노출 알림이 아니라 **알림 선호 게이트 미적용**. 미도달(OS 스로틀·강제종료)은 앱 실행/복귀 reconcile 백스톱이 따라잡는다
+  └─ (같은 훅) 확정(needs_review=false) schedule/todo 포함 시 **silent push**(`SendCalendarSyncPush` — apns-push-type=background·priority 5·`content-available:1`+`mochiItemID`, alert 없음) → iOS `didReceiveRemoteNotification` 이 foreground tick 과 같은 순서로 따라잡는다: **inbound 큐 drain(ShareExt 캡처는 push 도착 시점 로컬 Realm 에 없다 — 큐 JSON 뿐) → 멱등 업로드(runOnce, ShareExt 직접 전송과 같은 행) → 해당 item reconcile → `SystemCalendarSyncEngine` 이 시스템 캘린더·미리알림 반영**(UX_SPEC §1.5 자동 관리, 2026-07-14 — drain·upload 선행은 같은 날 실기기 불발 fix: reconcile 은 `uploaded:` 링크로만 항목을 찾는다). 사용자 노출 알림이 아니라 **알림 선호 게이트 미적용**. 미도달(OS 스로틀·강제종료)은 앱 실행/복귀 reconcile 백스톱이 따라잡는다
 실패 + attempt<max: status='pending' (재시도)
 실패 + attempt=max: status='dead_letter' + mochi_items.lifecycle_kind='failed'
 ```

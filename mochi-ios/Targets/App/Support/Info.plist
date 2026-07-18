@@ -50,6 +50,10 @@
 	<string>일정 Intent로 분류된 기록을 캘린더에 등록·동기화하기 위해 사용합니다.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>현장에서 자료를 즉시 캡처하기 위해 사용합니다.</string>
+	<!-- 앱은 위치 권한을 요청하지 않음 — NMapsMap(바이너리 SDK)의 CoreLocation 참조로
+	     ITMS-90683 정적 검사를 통과시키기 위한 문구 (2026-07-15). -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>장소로 저장된 기록을 지도에 표시하기 위해 사용합니다.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>스크린샷에서 URL·제목 등 정보를 추출하기 위해 사용합니다.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>

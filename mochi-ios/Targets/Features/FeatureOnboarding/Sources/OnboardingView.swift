@@ -1,7 +1,7 @@
 import ComposableArchitecture
 import SwiftUI
 
-/// 온보딩 진입 화면 — 4개 페이지를 **콘텐츠 크로스페이드**로 한 방향 진행.
+/// 온보딩 진입 화면 — 5개 페이지를 **콘텐츠 크로스페이드**로 한 방향 진행.
 ///
 /// **전환**: 모든 페이지가 같은 라벤더 그라데이션을 공유하므로 배경은 한 번만 깔아 고정하고,
 /// 그 위에서 콘텐츠(글씨·히어로)만 크로스페이드한다. 화면이 통째로 슬라이드하지 않아
@@ -61,9 +61,10 @@ public struct OnboardingView: View {
     /// 갈 곳 없는 끝(첫·마지막 페이지)에선 rubber-band 로 저항한다. `minimumDistance` 12 라
     /// 탭은 트리거하지 않아 카드 안 버튼과 충돌하지 않는다.
     ///
-    /// **게이트 유지**: 백탭이 마지막이라 전진 드래그가 갈 수 있는 끝이 백탭이고 그 뒤엔 페이지가
-    /// 없어 건너뛸 대상이 없다. 홈으로 나가는 `finished` 는 CTA 만 발행하므로 드래그로 미설정
-    /// 채 빠져나갈 수 없다. ⇒ "완료는 CTA만" 불변식이 게이트를 지킨다.
+    /// **게이트 유지**(2026-07-14, 동기화 선택 페이지가 백탭 뒤에 붙으며 재설계): 미해결 백탭에서의
+    /// 전진 드래그는 여기(커밋 억제 + rubber-band)와 리듀서 `pageChanged` 가드가 이중으로 막는다 —
+    /// "검증 성공 or 명시 스킵 전엔 전진 불가". 홈으로 나가는 `finished` 는 마지막 페이지 CTA 만
+    /// 발행하므로 드래그로 미설정 채 빠져나갈 수 없다. ⇒ "완료는 CTA만" 불변식 유지.
     private var pageDrag: some Gesture {
         DragGesture(minimumDistance: 12)
             .onChanged { value in
@@ -78,7 +79,7 @@ public struct OnboardingView: View {
 
                 var target: Int?
                 if committed {
-                    if dx < 0, store.currentPage < lastPageIndex {
+                    if dx < 0, store.currentPage < lastPageIndex, !forwardGated {
                         target = store.currentPage + 1          // 왼쪽 = 앞으로
                     } else if dx > 0, store.currentPage > 0 {
                         target = store.currentPage - 1          // 오른쪽 = 뒤로
@@ -94,10 +95,15 @@ public struct OnboardingView: View {
             }
     }
 
-    /// 갈 곳 없는 방향(첫 페이지에서 뒤로 / 마지막에서 앞으로)으로 끌면 0.3배로 저항(rubber-band).
+    /// 미해결 백탭에서의 전진 여부 — 게이트에 막힌 방향(리듀서 가드와 동일 조건).
+    private var forwardGated: Bool {
+        store.currentSpec == .backTap && !store.backTapStepResolved
+    }
+
+    /// 갈 곳 없는 방향(첫 페이지에서 뒤로 / 마지막·게이트에서 앞으로)으로 끌면 0.3배로 저항(rubber-band).
     private func rubberBanded(_ raw: CGFloat) -> CGFloat {
         if raw > 0, store.currentPage == 0 { return raw * 0.3 }
-        if raw < 0, store.currentPage == lastPageIndex { return raw * 0.3 }
+        if raw < 0, store.currentPage == lastPageIndex || forwardGated { return raw * 0.3 }
         return raw
     }
 
@@ -124,10 +130,11 @@ public struct OnboardingView: View {
     @ViewBuilder
     private func content(_ spec: OnboardingPage) -> some View {
         switch spec {
-        case .intro:    IntroPage()
-        case .backTap:  BackTapPage(store: store)
-        case .share:    SharePage()
-        case .autoSort: AutoSortPage()
+        case .intro:        IntroPage()
+        case .backTap:      BackTapPage(store: store)
+        case .share:        SharePage()
+        case .autoSort:     AutoSortPage()
+        case .calendarSync: CalendarSyncPage(store: store)
         }
     }
 
@@ -138,7 +145,7 @@ public struct OnboardingView: View {
         Group {
             if spec == .backTap && store.verifyPhase != .detected {
                 // 백탭 미해결: 약한 "나중에 할게요" 만. 단계 진행은 카드 내부 버튼이 담당.
-                // 백탭은 마지막 페이지라 skip 이 곧 온보딩 완료다.
+                // skip 은 다음 페이지(동기화 선택)로 넘어간다 — 온보딩 완료는 마지막 페이지 CTA 만.
                 Button("나중에 할게요") {
                     store.send(.skipVerificationTapped)
                 }
@@ -146,7 +153,9 @@ public struct OnboardingView: View {
                 .foregroundStyle(OnboardingTheme.mutedTextColor)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
-                .accessibilityHint(Text("백탭 설정을 건너뛰고 시작합니다"))
+                .accessibilityHint(Text("백탭 설정을 건너뛰고 다음으로 넘어갑니다"))
+            } else if spec == .calendarSync {
+                calendarSyncFooter
             } else {
                 OnboardingButton(title: spec.primaryCTA) {
                     if spec == .backTap {
@@ -160,6 +169,37 @@ public struct OnboardingView: View {
         .padding(.horizontal, 24)
         .padding(.bottom, 28)
         .padding(.top, 8)
+    }
+
+    /// 동기화 선택(마지막) footer — 수락이 primary, "나중에" 는 약한 보조. 전부 거부 후에는
+    /// 안내(페이지 본문)와 함께 "시작하기"로 종료만 남긴다(재프롬프트는 iOS 규격상 불가 —
+    /// iOS 설정 + 모찌 설정 §3.4d 경로 안내가 담당).
+    @ViewBuilder
+    private var calendarSyncFooter: some View {
+        if store.calendarSyncPhase == .denied {
+            OnboardingButton(title: "시작하기") {
+                store.send(.nextTapped)
+            }
+        } else {
+            VStack(spacing: 4) {
+                OnboardingButton(title: OnboardingPage.calendarSync.primaryCTA) {
+                    store.send(.calendarSyncAccepted)
+                }
+                .disabled(store.calendarSyncPhase == .requesting)
+                .opacity(store.calendarSyncPhase == .requesting ? 0.6 : 1)
+                .accessibilityHint(Text("캘린더와 미리알림 권한을 요청합니다"))
+
+                Button("나중에 할게요") {
+                    store.send(.calendarSyncDeclined)
+                }
+                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                .foregroundStyle(OnboardingTheme.mutedTextColor)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .disabled(store.calendarSyncPhase == .requesting)
+                .accessibilityHint(Text("자동 등록 없이 시작합니다. 설정에서 언제든 켤 수 있어요"))
+            }
+        }
     }
 }
 

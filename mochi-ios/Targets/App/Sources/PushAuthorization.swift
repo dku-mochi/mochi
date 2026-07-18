@@ -9,17 +9,13 @@ import UserNotifications
 /// 앱 내 재요청이 불가하므로, 거부가 회수 알림(미션 핵심 전달 채널)을 영구히 죽인다. 따라서 팝업은 인증 완료
 /// 후에만(`RootFeature` 가 트리거), 등록은 매 active 안전하게 호출한다(시스템 토큰 캐시라 저렴, 회전 복구).
 enum PushAuthorization {
-    /// 팝업 없이, 이미 권한이 있을 때만 remote 등록 — 매 진입(active) 호출해도 안전(토큰 회전·첫 실패 복구).
+    /// 팝업 없는 remote 등록 — 알림 권한과 **무관하게 항상** 등록한다(2026-07-14). APNs 토큰은 alert
+    /// 표시 권한이 아니라 기기 주소다: silent 동기화 push(시스템 캘린더·미리알림 자동 관리, §1.5)는
+    /// 알림을 거부한 사용자에게도 가야 한다. alert 표시는 어차피 OS 가 권한으로 거른다.
+    /// 매 진입(active) 호출해도 안전(토큰 회전·첫 실패 복구).
     @MainActor
-    static func registerForRemoteNotificationsIfAuthorized() {
-        UNUserNotificationCenter.current().getNotificationSettings { settings in
-            switch settings.authorizationStatus {
-            case .authorized, .provisional, .ephemeral:
-                Task { @MainActor in UIApplication.shared.registerForRemoteNotifications() }
-            default:
-                break  // .notDetermined 면 여기선 팝업을 띄우지 않는다. .denied 는 앱 내 needsReview fallback.
-            }
-        }
+    static func registerForRemoteNotifications() {
+        UIApplication.shared.registerForRemoteNotifications()
     }
 
     /// `.notDetermined` 면 권한 팝업(1회) — **인증 완료 후에만** 호출. 이미 허용돼 있으면 재등록만.

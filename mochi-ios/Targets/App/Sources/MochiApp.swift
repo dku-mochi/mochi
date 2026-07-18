@@ -52,9 +52,11 @@ struct MochiApp: App {
         self.calendarSyncEngine = DependencyValues._current.systemCalendarSyncEngine
 
         // Feature 레이어 (InboxFeature·MochiHomeFeature) 가 pull-to-refresh / quick memo 저장 시 즉시 sync 를
-        // 트리거할 수 있게 노출.
+        // 트리거할 수 있게 노출. inbound 큐 drain 은 silent push 백그라운드 핸들러(MochiAppDelegate)가
+        // ShareExt 캡처를 따라잡을 때 필요하다 — drain 없이는 reconcile 이 항목을 못 찾는다.
         prepareDependencies {
             $0.syncTrigger = self.syncWorker
+            $0.inboundQueueDrainer = self.inboundConsumer
         }
         self.liveActivity.observePushToStartToken()
     }
@@ -68,7 +70,8 @@ struct MochiApp: App {
                     // EK 자동 동기화 시작 — Realm 관찰 + 초기 따라잡기(silent push 를 놓친 창의 백스톱).
                     await calendarSyncEngine.start()
                     // 팝업 없이 등록만 — 권한 팝업은 인증 후 RootFeature 가 띄운다(미인증 콜드스타트 팝업 회피).
-                    PushAuthorization.registerForRemoteNotificationsIfAuthorized()
+                    // 등록은 알림 권한과 무관(silent 동기화 push 는 거부 사용자에게도 가야 한다).
+                    PushAuthorization.registerForRemoteNotifications()
                 }
                 .onChange(of: scenePhase) { _, newPhase in
                     if newPhase == .active {
@@ -78,7 +81,7 @@ struct MochiApp: App {
                             // 복귀 백스톱 — Realm 쓰기 없이 바뀐 조건(설정 앱 권한 허용 등)도 따라잡는다.
                             await calendarSyncEngine.syncNow()
                         }
-                        PushAuthorization.registerForRemoteNotificationsIfAuthorized()
+                        PushAuthorization.registerForRemoteNotifications()
                     } else {
                         // background/inactive 진입 시 metadata-only 폴링 중단 (foreground 한정).
                         Task { await syncWorker.stopForegroundPolling() }

@@ -503,10 +503,21 @@ public struct ChatFeature: Sendable {
                 // 규약이라 **확정 순간인 여기서만 프롬프트**를 띄운다. 거부 시 기존 규약대로 failed
                 // 카드 + 설정 링크 — 기록은 이미 생성됐고 ingest 멱등이라 재확정도, 권한 허용 후
                 // 다음 동기화의 자동 따라잡기도 안전하다.
+                //
+                // **두 권한을 모두 확보한다** (2026-07-14 실기기 버그 fix): 이벤트/미리알림은 iOS 17+
+                // 에서 별개 권한인데, proposal 에 있는 종류만 요청하면 캡처 분석發 todo 는 프롬프트
+                // 지점이 없어 미리알림이 영영 notDetermined → 엔진이 조용히 대기만 했다("캘린더는
+                // 되는데 미리알림은 안 됨"). 두 요청을 **독립적으로** 수행해 결과만 모은다 — 순차
+                // try 는 첫 거부가 두 번째 프롬프트까지 막아 같은 버그가 재현된다(codex P1).
+                // proposal 에 포함된 종류의 거부만 마지막에 failed 카드(설정 링크)로 올린다.
                 if SystemCalendarAutoRegistrationPreference.load() {
                     let types = Set(payload.instances.map(\.intentType))
-                    if types.contains("schedule") { try await calendarSyncer.requestEventAccess() }
-                    if types.contains("todo") { try await calendarSyncer.requestReminderAccess() }
+                    let eventDenied = (try? await calendarSyncer.requestEventAccess()) == nil
+                    let reminderDenied = (try? await calendarSyncer.requestReminderAccess()) == nil
+                    if (types.contains("schedule") && eventDenied)
+                        || (types.contains("todo") && reminderDenied) {
+                        throw CalendarSyncError.accessDenied
+                    }
                 }
 
             case let .createMemo(text):

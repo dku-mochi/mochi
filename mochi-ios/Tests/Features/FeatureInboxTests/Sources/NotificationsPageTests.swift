@@ -244,4 +244,19 @@ private actor NotificationsStubAPIClient: MochiAPIClient {
     func recordRecallReaction(eventID: UUID, reaction: RecallReaction) async throws {
         try await unimplemented.recordRecallReaction(eventID: eventID, reaction: reaction)
     }
+    func recordRecallItemReaction(itemID: UUID, reaction: RecallReaction) async throws {
+        try await unimplemented.recordRecallItemReaction(itemID: itemID, reaction: reaction)
+    }
+    func notificationPreferences() async throws -> NotificationPreferencesDTO {
+        try await unimplemented.notificationPreferences()
+    }
+    func updateNotificationPreferences(
+        recallEnabled: Bool?,
+        analysisEnabled: Bool?
+    ) async throws -> NotificationPreferencesDTO {
+        try await unimplemented.updateNotificationPreferences(
+            recallEnabled: recallEnabled,
+            analysisEnabled: analysisEnabled
+        )
+    }
 }

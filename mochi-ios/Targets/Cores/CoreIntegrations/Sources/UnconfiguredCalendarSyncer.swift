@@ -20,6 +20,9 @@ public actor UnconfiguredCalendarSyncer: CalendarSyncing {
     public func updateReminder(identifier: String, title: String, due: Date?, completed: Bool) async throws -> Bool {
         throw CalendarSyncError.underlying(message: "CalendarSyncer not configured")
     }
+    public func reminderCompleted(identifier: String) async throws -> Bool? {
+        throw CalendarSyncError.underlying(message: "CalendarSyncer not configured")
+    }
     public func removeEvent(identifier: String) async throws {
         throw CalendarSyncError.underlying(message: "CalendarSyncer not configured")
     }
