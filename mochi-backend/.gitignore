@@ -27,9 +27,7 @@ venv/
 *.key
 service-account*.json
 
-# Infra 프로비저닝 스크립트 — repo 트리에 두되 미추적 (DB 내부 IP·SA email·공개 client id 등
-# 인프라 식별자를 git 히스토리에 남기지 않는다). 실제 배포본은 mochi-svc VM 의 ~/mochi-svc-setup.sh.
-# 절차·의미는 docs/INFRA.md §2.5·§4 가 정본.
+# Infra 프로비저닝 스크립트 — repo 트리에 두되 미추적 (인프라 식별자를 git 히스토리에 남기지 않는다)
 scripts/mochi-svc-setup.sh
 
 # Test / Coverage

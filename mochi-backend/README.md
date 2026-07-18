@@ -1,13 +1,3 @@
----
-level: 2
-mode: reference
-status: active
-last_verified: 2026-07-15
-confidence: 0.9
-owners: [송준서, 이용찬, 박세현]
-description: FastAPI 백엔드 진입점·빌드 가이드·모듈 구조. 백엔드 코드 시작 시 또는 make 명령·헥사고날 레이어 규칙·Idempotency·SSRF 가드 작업 시 읽어라. 모듈 경계 테스트(test_module_boundaries.py) 의도 + openapi.json 생성 흐름 포함.
----
-
 # 모찌 백엔드 (mochi-backend)
 
 > Multimodal AI 기반 스크린샷·링크·기록 통합관리 에이전트 — FastAPI 백엔드
@@ -61,7 +51,7 @@ app/
 │   │   ├── application/           HybridSearch use case (BM25 + 벡터 → RRF → reranker)
 │   │   ├── infrastructure/        PostgresHybridIndex, rrf
 │   │   └── presentation/router.py
-│   ├── conversations/             채팅(질문 탭) 멀티턴 대화 — 설계: journal/2026-06-10-chat-tab-design.md
+│   ├── conversations/             채팅(질문 탭) 멀티턴 대화
 │   │   ├── domain/                Conversation/Message/MessageCitation + ChatTool·ChatLLMClient·ChatTurnStore ports + run_events
 │   │   ├── application/           BeginChatTurn(암묵 생성·동시 run 409) · RunChatTurn(detached run — 한도 폴백·owner-scoped citation 복구) · queries
 │   │   ├── infrastructure/        ORM·repository · RunRegistry(in-process queue) · GeminiChatClient(첫 라운드 ANY→AUTO, stream) · turn_store · tools/(read-only)
@@ -99,7 +89,7 @@ infrastructure  ──────►   ports  ──────┘
 
 - 외부 I/O(LLM·HTTP·DB)는 **native async** 로 호출한다 — `httpx.AsyncClient`, SQLAlchemy async 엔진, google-genai `client.aio.*`. sync SDK 를 `asyncio.to_thread` 로 감싸 "스레드로 동시성 흉내" 내지 않는다 (이 서비스는 I/O-bound 라 코루틴 동시성이 본질).
 - native async 가 **없는 sync-only SDK 만** 예외로 `to_thread` 허용(예: `google-cloud-storage` blob 서명 — `gcs_storage.py`). 단 `to_thread` 는 `wait_for` 타임아웃으로 **실제 취소되지 않으므로**(좀비 스레드), 타임아웃을 거는 경로엔 그 한계를 주석으로 남긴다.
-- ruff `ASYNC`(flake8-async) 룰셋이 코루틴 내 일부 blocking 호출을 ②티어로 검출한다 — 규약은 린터가 못 잡는 "native async 우선" 판단만 담는다.
+- ruff `ASYNC`(flake8-async) 룰셋이 코루틴 내 일부 blocking 호출을 자동 검출한다 — 규약은 린터가 못 잡는 "native async 우선" 판단만 담는다.
 
 ## 시작하기
 
@@ -130,7 +120,7 @@ make typecheck
 make eval       # 분석 에이전트 golden eval (live Gemini, RUN_EVAL 가드). 결정적 채점기 단위테스트는 make test(tests/eval) 에 이미 포함
 ```
 
-> **eval 안전망** (`eval/`): `scorer.py`(결정적 8축 채점) + `run_golden.py`(production drift-0 러너) + `golden/`(케이스) + `tests/eval/`(hermetic ② 게이트). `make eval CASES=eval/golden/<name>.json RUNS=3` 로 live 측정. golden 정본 버전은 `system_prompts.ACTIVE_PROMPT.eval_dataset_version`.
+> **eval 안전망** (`eval/`): `scorer.py`(결정적 8축 채점) + `run_golden.py`(production drift-0 러너) + `golden/`(케이스) + `tests/eval/`(hermetic 게이트). `make eval CASES=eval/golden/<name>.json RUNS=3` 로 live 측정. golden 정본 버전은 `system_prompts.ACTIVE_PROMPT.eval_dataset_version`.
 
 ### Vertex AI 인증
 ```bash
@@ -182,7 +172,7 @@ ingested → normalized → analyzed → routed → persisted → indexed → sy
 - DB 풀은 `DB_POOL_SIZE`(기본 5) / `DB_MAX_OVERFLOW`(기본 10). 워커를 올리면 풀도 함께 상향 — `인스턴스수 × (pool_size + max_overflow) < Postgres max_connections`(기본 100), 초과 시 PgBouncer
 
 ### 능동 회수 알림 (트랙 A/B)
-"놓치기 쉬운 순간은 쉽게 남기고, 필요한 기억은 쉽게 떠오른다" — 모찌가 먼저 떠올려준다. "생성 분리(plan) / 발송 통합(outbox)" 2테이블 구조 (정본 `journal/proactive-recall/`).
+"놓치기 쉬운 순간은 쉽게 남기고, 필요한 기억은 쉽게 떠오른다" — 모찌가 먼저 떠올려준다. "생성 분리(plan) / 발송 통합(outbox)" 2테이블 구조.
 - **`notification_plan`** — 계획 1행. `plan_kind`(`deadline_backoff`/`recurring_nudge`/`spaced`) + JSONB `stages` DSL(relative/recurring/spaced trigger, `RecallPlanStages` Pydantic 검증 후 삽입). 같은 `source_intent_id` 에 active plan 1개(부분 UNIQUE). anchor(마감·일정일)는 심볼 참조 — 발송 시 `intent_instances.payload` 최신 조회(사용자 수정 자동 추종).
 - **`notification_outbox`** — 발송+반응 큐. occurrence 를 lazy materialize, `sent`/`opened_at`/`dismissed_at`(recall_log 흡수).
 - **플래너** (`PlanRecallNotifications`) — 메인 분석 후단 best-effort hook(독립세션·격리)이 결정적 eligibility 게이트(intent 종류·미래 date·importance)로 후보를 거른 뒤, Gemini tool-loop 플래너(`get_scheduled` 묶기 tool + 구조화 finalize, flash-lite)가 plan 1행 생성(같은 source_intent supersede).
@@ -225,6 +215,6 @@ ingested → normalized → analyzed → routed → persisted → indexed → sy
 
 ## API 개요
 
-전체 엔드포인트·요청/응답 스키마의 단일 원천은 **`openapi.json`** 이다 (`make openapi` 생성물, 서버 구동 시 `GET /docs` Swagger UI). iOS 배선 예외(서버만 실재·라우트 미존재 등)는 [`docs/DOMAIN_DESIGN.md`](../docs/DOMAIN_DESIGN.md) §6.4 를 본다.
+전체 엔드포인트·요청/응답 스키마의 단일 원천은 **`openapi.json`** 이다 (`make openapi` 생성물, 서버 구동 시 `GET /docs` Swagger UI).
 
 대분류: `auth/*`(Apple·Google·dev·refresh·logout) · `users/me` · `mochi_items`(ingest(+confirmedInstances §5.2 예외) · PATCH 콘텐츠+instance · presign · 조회 · list · calendar · todos/upcoming · instance lifecycle 완료/완료취소 · reanalyze · SSE stream) · `search`(Hybrid RAG) · `conversations`(채팅 — 메시지 전송 POST-as-SSE·세션 목록·메시지 스냅샷·삭제·proposal 카드 상태 PATCH) · `recall`(능동 회수 — feed·landing fallback·reaction) · `devices`(push 토큰) · `health`. 모든 보호 라우트는 `Authorization: Bearer`, `POST /mochi_items` 는 `Idempotency-Key` 필수. (2026-06-04 단일 ingest — back-tap·intent override 라우트 폐기)

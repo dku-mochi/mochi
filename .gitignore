@@ -1,0 +1,9 @@
+# macOS
+.DS_Store
+
+# Env / Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key

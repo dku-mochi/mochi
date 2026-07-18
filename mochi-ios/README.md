@@ -1,13 +1,3 @@
----
-level: 2
-mode: reference
-status: active
-last_verified: 2026-06-16
-confidence: 0.9
-owners: [송준서, 이용찬, 박세현]
-description: iOS 클라이언트 진입점·빌드 가이드·모듈 구조. iOS 코드를 처음 보거나 Tuist generate/test/빌드 명령이 필요할 때 읽어라. App Group, Cores/Features/App 레이어 규칙, App Intents 배치, swift-openapi-runtime 의존성 포함.
----
-
 # 모찌 iOS (mochi-ios)
 
 > Multimodal AI 기반 스크린샷·링크·기록 통합관리 에이전트 — iOS 클라이언트
@@ -72,7 +62,7 @@ App, ShareExtension 두 타겟이 동일 App Group `group.app.mochi` 에 속한�
 - 공유 Realm: `<container>/mochi.realm`
 - Inbound 큐(ShareExtension 진입 → 메인 앱): `<container>/inbound-queue/*.json`
 - Pending Back-Tap 디렉터리: 옛 snippet stash(`.png`/`.memo`)는 제거(2026-06-25), 지금은 아래 백탭 온보딩 검증 마커 전용
-- 백탭 온보딩 검증 핸드셰이크 (1회성): `<container>/pending-backtap/verify.active` (검증 창, TTL 120s) + `<container>/pending-backtap/verify.hit` (백탭 도달 마커) — 온보딩이 폴링, 상세는 [`docs/UX_SPEC.md`](../docs/UX_SPEC.md) §3.7
+- 백탭 온보딩 검증 핸드셰이크 (1회성): `<container>/pending-backtap/verify.active` (검증 창, TTL 120s) + `<container>/pending-backtap/verify.hit` (백탭 도달 마커) — 온보딩이 폴링
 - 캡처 이미지: `<container>/captures/...`
 - 공유 Keychain (access group, App ↔ ShareExtension): service `app.mochi.auth` 에 두 item — `session`(`KeychainTokenStore`, access/refresh 토큰) + `capture_token`(`KeychainCaptureTokenStore`, ShareExt 직접 전송용 장수명 capture-scoped 토큰 — 메인 앱이 로그인/부팅 시 발급·갱신, ShareExt 는 읽기만)
 
@@ -116,7 +106,7 @@ tuist test
 | 백탭 | 사용자 단축어 → `Take Screenshot` → **앱과 공유**(Share Sheet) → `ShareExtensionPrincipal`. 외부 공유 시트와 동일 ShareExtension 경로로 합류(단축어가 share 자동 호출). 옛 snippet/AppIntent 직행 경로는 2026-06-25 제거 | `ShareExtension` 타겟 (공유 시트와 공통) |
 | 앱 내 직접 입력 | `MochiItemFeature` (TCA) | `FeatureMochiItem` |
 
-외부 입력은 모두 ShareExtension 단일 진입점으로 수렴한다 — 공유시트(의식적·메모 입력)·백탭(단축어가 자동 share). 둘 다 `InboundIngestPayload` JSON 큐를 거치고 캡처 직후 선감지·민감 가림을 공유한다. 앱 내 직접 입력만 별개(`MochiItemFeature`). AppIntents/AppShortcuts(`QuickCaptureIntent` 텍스트 메모 포함)는 2026-06-25 전부 제거됐다. surface 상세는 [`docs/ARCHITECTURE.md`](../docs/ARCHITECTURE.md) §2.3.
+외부 입력은 모두 ShareExtension 단일 진입점으로 수렴한다 — 공유시트(의식적·메모 입력)·백탭(단축어가 자동 share). 둘 다 `InboundIngestPayload` JSON 큐를 거치고 캡처 직후 선감지·민감 가림을 공유한다. 앱 내 직접 입력만 별개(`MochiItemFeature`). AppIntents/AppShortcuts(`QuickCaptureIntent` 텍스트 메모 포함)는 2026-06-25 전부 제거됐다.
 
 ## 백엔드 계약
 
@@ -135,4 +125,3 @@ tuist test
 ## 참고
 
 - iOS UI 스택 결정: SwiftUI + TCA (greenfield · state-heavy · extension-heavy · 2026 Apple 투자 방향과 정렬)
-- 베이스 패턴 일부는 [지금알바 iOS](../../work/nowalba/our-school-ios/our-school-app) 의 Tuist 멀티 타겟 구조를 참고
