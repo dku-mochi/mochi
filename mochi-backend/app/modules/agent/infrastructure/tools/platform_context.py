@@ -3,7 +3,7 @@ import json
 import re
 import time
 import zlib
-from typing import Literal, cast
+from typing import Literal
 from urllib.parse import parse_qs, urlencode, urlparse
 
 import httpx
@@ -75,50 +75,34 @@ class PlatformContextTool(Tool[PlatformContextInput, PlatformContextOutput]):
         return output, usage
 
     async def _youtube_context(self, url: str) -> PlatformContextOutput:
+        # 공식 oEmbed 만 사용한다. 영상 페이지(watch) HTML 조회·파싱은 제거했다
+        # (운영진 소명 2026-07-24). description/duration 은 제공하지 않는다.
         oembed_url = "https://www.youtube.com/oembed?" + urlencode({"url": url, "format": "json"})
         oembed_resp = await self._guarded_get_json(oembed_url)
         oembed = oembed_resp.json()
 
-        page_url = _youtube_watch_url(url)
+        page_url = _youtube_watch_url(url)  # 입력 URL 로부터 정규 watch URL 구성(네트워크 없음)
         title = _clean(oembed.get("title"))
         author = _clean(oembed.get("author_name"))
         thumbnail_url = _clean(oembed.get("thumbnail_url"))
         canonical_url = _clean(oembed.get("provider_url")) or page_url
-        description: str | None = None
-        duration_seconds: int | None = None
-
-        if page_url:
-            try:
-                page_resp = await self._guarded_get_text(page_url)
-                player = parse_youtube_player_response(page_resp.text)
-                if player:
-                    details = player.get("videoDetails") or {}
-                    details = cast(dict[str, object], details)
-                    description = _clean(details.get("shortDescription"))
-                    duration_seconds = _int_or_none(details.get("lengthSeconds"))
-                    canonical_url = page_url
-            except ToolExecutionError:
-                pass
 
         lines = [
             "platform: YouTube",
             f"title: {title or ''}",
             f"channel: {author or ''}",
-            f"description: {description or ''}",
         ]
-        if duration_seconds is not None:
-            lines.append(f"duration_seconds: {duration_seconds}")
         return PlatformContextOutput(
             platform="youtube",
             final_url=page_url or url,
             status_code=oembed_resp.status_code,
             title=title,
             author=author,
-            description=description,
-            duration_seconds=duration_seconds,
+            description=None,
+            duration_seconds=None,
             thumbnail_url=thumbnail_url,
             canonical_url=canonical_url,
-            source="youtube_oembed+watch_page",
+            source="youtube_oembed",
             sufficient=bool(title and author),
             confidence=0.9 if title and author else 0.65,
             text="\n".join(lines),
@@ -308,17 +292,6 @@ def detect_platform(url: str) -> str:
     return "unknown"
 
 
-def parse_youtube_player_response(text: str) -> dict[str, object] | None:
-    match = re.search(r"ytInitialPlayerResponse\s*=\s*", text)
-    if not match:
-        return None
-    try:
-        value, _ = json.JSONDecoder().raw_decode(text[match.end() :])
-    except json.JSONDecodeError:
-        return None
-    return value if isinstance(value, dict) else None
-
-
 def extract_meta_tags(text: str) -> dict[str, str]:
     meta: dict[str, str] = {}
     title_match = re.search(r"<title[^>]*>(.*?)</title>", text, re.IGNORECASE | re.DOTALL)
@@ -364,12 +337,3 @@ def _clean(value: object | None) -> str | None:
         return None
     cleaned = re.sub(r"\s+", " ", str(value)).strip()
     return html.unescape(cleaned) if cleaned else None
-
-
-def _int_or_none(value: object | None) -> int | None:
-    if value is None:
-        return None
-    try:
-        return int(str(value))
-    except ValueError:
-        return None

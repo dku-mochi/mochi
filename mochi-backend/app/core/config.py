@@ -99,8 +99,8 @@ class Settings(BaseSettings):
     naver_client_secret: str | None = None
 
     # recoverYoutubeUrl tool — YouTube Data API v3 (Secret: mochi-youtube-api-key).
-    # 무키 youtube 검색의 confidence 가 낮을 때(인덱스 지연·봇차단) 폴백: 채널 식별→uploads
-    # playlist 직접 조회(인덱스 무관)→search.list. 미설정 시 무키 검색만 동작(폴백·채널주소 비활성).
+    # 채널 식별→uploads playlist 직접 조회(인덱스 무관)→search.list. 공식 API 전용이며
+    # 미설정 시 tool 자체가 레지스트리에서 제외된다(무키 HTML 스크래핑 경로 제거, 소명 2026-07-24).
     youtube_api_key: str | None = None
 
     # searchPlaceGeo 보강 — Google Places(New) 별점·리뷰수·매장사진 (네이버는 별점 공개 API 가

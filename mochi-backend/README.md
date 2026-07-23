@@ -195,7 +195,7 @@ ingested → normalized → analyzed → routed → persisted → indexed → sy
 
 ### PlatformContext
 - Agent loop 는 YouTube/X/Instagram URL 에 대해 `webFetch` 보다 먼저 `platformContext` 를 호출한다.
-- YouTube: oEmbed 제목/채널 + watch page 의 `ytInitialPlayerResponse` 설명/길이를 결합한다.
+- YouTube: 공식 oEmbed 의 제목/채널만 사용한다(영상 페이지 HTML 조회·파싱 경로는 제거).
 - X/Twitter: `publish.x.com/oembed` 로 post text/author embed HTML 을 구조화한다.
 - Instagram: `INSTAGRAM_OEMBED_ACCESS_TOKEN` 이 있으면 Meta Instagram oEmbed, 없으면 OG meta fallback. Instagram은 이미지 맥락 의존도가 높아 screenshot Vision 결과를 primary context 로 두고 platform metadata 는 보조 신호로 쓴다.
 

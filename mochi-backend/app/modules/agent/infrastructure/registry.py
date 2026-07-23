@@ -34,13 +34,15 @@ class StaticToolRegistry(ToolRegistry):
         self._tools: dict[ToolName, Tool[Any, Any]] = {
             ToolName.PLATFORM_CONTEXT: PlatformContextTool(),
             ToolName.WEB_FETCH: WebFetchTool(),
-            # recoverYoutubeUrl 은 무키(공개 youtube 검색)라 항상 노출.
-            ToolName.RECOVER_YOUTUBE_URL: RecoverYoutubeUrlTool(),
         }
+        settings = get_settings()
+        # recoverYoutubeUrl 은 공식 YouTube Data API v3 전용이라 키가 있을 때만 노출한다
+        # (무키 HTML 스크래핑 경로 제거, 소명 2026-07-24). 키 없으면 미등록.
+        if settings.youtube_api_key:
+            self._tools[ToolName.RECOVER_YOUTUBE_URL] = RecoverYoutubeUrlTool()
         # findReferenceUrls/searchPlaceGeo 는 네이버 검색 키가 있을 때만 노출(키 발급이
         # 머지를 블록하지 않게 — web_search/Tavily 선례와 동일 패턴). secret 까지 확인 —
         # id 만 있으면 노출된 tool 이 전부 401 빈손으로 조용히 무력화된다(codex P3).
-        settings = get_settings()
         if settings.naver_client_id and settings.naver_client_secret:
             self._tools[ToolName.RESOURCE_FINDER] = ResourceFinderTool()
             self._tools[ToolName.SEARCH_PLACE_GEO] = SearchPlaceGeoTool()
