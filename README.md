@@ -62,33 +62,13 @@
 
 ## 시스템 아키텍처
 
-저장소 코드 기준의 논리 구성도. 운영 배포 구성 문서 별도 준비 중.
+### System Architecture
 
-```mermaid
-flowchart TB
-    App["iOS 앱 · Share Extension<br/>SwiftUI · TCA · Realm"]
-    API["FastAPI 백엔드<br/>API · 분석 · 검색 · 대화 · 알림"]
-    DB[("PostgreSQL · pgvector")]
-    AI["Vertex AI · Gemini<br/>멀티모달 분석 · 대화"]
-    Search["Voyage AI<br/>임베딩 · 리랭킹"]
-    Storage["Google Cloud Storage<br/>이미지 저장"]
-    Push["APNs<br/>푸시 알림"]
-    Calendar["기기 캘린더 · 미리알림"]
+![모찌 시스템 아키텍처](docs/images/architecture-system.png)
 
-    App <-->|REST · SSE| API
-    App -->|EventKit| Calendar
-    App -->|Signed URL 업로드| Storage
-    API <--> DB
-    API --> AI
-    API --> Search
-    AI -->|이미지 읽기| Storage
-    API --> Push
-    Push --> App
-```
+### iOS Architecture
 
-- **iOS**: 화면·상태 관리, 앱·공유 확장의 데이터 공유, 기기 기능 연동
-- **백엔드**: 기능별 모듈과 비동기 분석·알림 워커
-- **데이터·AI**: 기록·대화 저장, 이미지 분석, 키워드·벡터 검색과 리랭킹
+![모찌 iOS 아키텍처](docs/images/architecture-ios.png)
 
 ## ERD
 
@@ -152,6 +132,7 @@ erDiagram
 | 시연 영상 | [YouTube 시연](https://www.youtube.com/watch?v=Y2UenIJ6z1w&t=2s) |
 | 발표자료 | [발표자료 PDF](docs/mochi-presentation.pdf) |
 | 최종 발표자료 | [최종 발표자료 PDF](docs/mochi-presentation.pdf) |
+| 포스터 | [모찌 포스터 PNG](docs/mochi-poster.png) |
 | 프로젝트 결과보고서 | 준비 중 |
 | API 명세 | [OpenAPI](mochi-backend/openapi.json) |
 | 개발 문서 | [iOS](mochi-ios/README.md) · [백엔드](mochi-backend/README.md) |
