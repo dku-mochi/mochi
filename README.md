@@ -50,7 +50,7 @@
   <img src="docs/images/chat-preview.png" alt="모찌 채팅 — 저장 기록 기반 답변과 변경 제안 화면" width="230" />
 </p>
 
-<p align="center"><b>일정·할 일 관리</b> &nbsp; · &nbsp; <b>저장 기록 기반 대화</b><br /><sub>첨부 발표자료 17–18쪽의 서비스 화면 발췌</sub></p>
+<p align="center"><b>일정·할 일 관리</b> &nbsp; · &nbsp; <b>저장 기록 기반 대화</b><br /></p>
 
 ## 시연
 
