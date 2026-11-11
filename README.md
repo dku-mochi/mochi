@@ -131,7 +131,6 @@ erDiagram
 | --- | --- |
 | 시연 영상 | [YouTube 시연](https://www.youtube.com/watch?v=Y2UenIJ6z1w&t=2s) |
 | 발표자료 | [발표자료 PDF](docs/mochi-presentation.pdf) |
-| 최종 발표자료 | [최종 발표자료 PDF](docs/mochi-presentation.pdf) |
 | 포스터 | [모찌 포스터 PNG](docs/mochi-poster.png) |
 | 프로젝트 결과보고서 | 준비 중 |
 | API 명세 | [OpenAPI](mochi-backend/openapi.json) |
@@ -152,8 +151,8 @@ AI·스토리지·로그인·푸시 사용 시 외부 서비스 설정 필요. �
 
 | 이름 | 담당 역할 | GitHub |
 | --- | --- | --- |
-| 준비 중 | 준비 중 | 준비 중 |
-| 준비 중 | 준비 중 | 준비 중 |
-| 준비 중 | 준비 중 | 준비 중 |
+| 송준서 | 팀장 | 준비 중 |
+| 이용찬 | 팀원 | 준비 중 |
+| 박세현 | 팀원 | 준비 중 |
 
 <!-- 설치 안내·결과보고서·팀원 정보 확보 후 ‘준비 중’ 항목 교체 -->
