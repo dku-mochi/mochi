@@ -234,7 +234,7 @@ public actor MochiItemSyncWorker {
     ) async throws -> ImageRefDTO? {
         if let objectKey = imageRef.objectKey, !objectKey.isEmpty {
             // objectKey 는 정책 적용 후 생성된다(블러 정책이면 블러본 key). 방어: blurredUpload 인데
-            // 블러본이 없으면 이 objectKey 는 원본일 수 있어 재사용하지 않는다(원본 유출 방지, codex P1).
+            // 블러본이 없으면 이 objectKey 는 원본일 수 있어 재사용하지 않는다(원본 유출 방지).
             if policy == .blurredUpload, imageRef.redactedRelativePath == nil { return nil }
             return ImageRefDTO(
                 objectKey: objectKey,

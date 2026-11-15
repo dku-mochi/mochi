@@ -1,9 +1,6 @@
 """능동 회수 알림 반응 수집(P5) 도메인 — 반응 종류 + outbox 반응 포트.
 
-정본 `journal/proactive-recall/notification-agent.md` §5(반응 수집·codex-6 멱등)·§6(신호) /
-`ux-ui.md` §4("그만" scope 1:1 codex-7) / `schema.md` §2(outbox opened_at/dismissed_at).
-
-신호 의미(§6): opened 만 양성. dismissed/stop=명시 부정. 안 누름 ≠ negative. 여기선 기록만(학습 후속).
+신호 의미: opened 만 양성. dismissed/stop=명시 부정. 안 누름 ≠ negative. 여기선 기록만(학습 후속).
 
 프레임워크 import 금지(sqlalchemy 는 infrastructure 한정 — 모듈 경계테스트).
 """
@@ -18,9 +15,9 @@ from uuid import UUID
 class ReactionKind(StrEnum):
     """알림 반응 종류 — iOS 가 보고하는 3종.
 
-    - opened: 알림 탭(양성 신호). spaced 면 회수 소생 트리거(HIGH-2).
+    - opened: 알림 탭(양성 신호). spaced 면 회수 소생 트리거.
     - dismissed: soft 부정(cooldown 신호). 멱등.
-    - stop: "이 기억 그만" 영구 부정 → plan cancelled(codex-7 1:1).
+    - stop: "이 기억 그만" 영구 부정 → plan cancelled(1:1).
     """
 
     OPENED = "opened"
@@ -32,7 +29,7 @@ class ReactionKind(StrEnum):
 class SentRecallEvent:
     """status='sent' 인 outbox 반응 대상 행의 식별·소생 정보.
 
-    멱등 분기(0행 UPDATE 후 404 vs no-op)와 spaced 소생(HIGH-2)에 필요한 필드만 담는다.
+    멱등 분기(0행 UPDATE 후 404 vs no-op)와 spaced 소생에 필요한 필드만 담는다.
     """
 
     event_id: UUID
@@ -45,7 +42,7 @@ class SentRecallEvent:
 class RecallReactionRepositoryPort(ABC):
     """notification_outbox 반응 컬럼 갱신 + stop 의 plan cancel. owner-scoped, first-write-wins.
 
-    멱등·보안(codex-6): 모든 갱신은 `(event_id, owner_id)` + `status='sent'` 인 행만 atomic UPDATE
+    멱등·보안: 모든 갱신은 `(event_id, owner_id)` + `status='sent'` 인 행만 atomic UPDATE
     가드로 친다. 남의 event_id 조작·중복 탭 방어. P3+P4 worker 와 별개 파일(worker 비접촉).
     """
 
@@ -83,7 +80,7 @@ class RecallReactionRepositoryPort(ABC):
 
         plan 이 없어 cancel_plan 으로 못 거르는 트랙 C 를 피드에서 영구 제외한다 — 피드 쿼리는
         status IN ('pending','sent') 만 후보로 보므로, skipped 면 재fetch(앱 재시작)에도 다시
-        안 뜬다(codex-7 stop=영구). owner-scope + status='sent' 가드.
+        안 뜬다(stop=영구). owner-scope + status='sent' 가드.
         """
 
     # ---- 피드 반응(item 기준) — event 가 없거나 pending 인 피드 카드용 (부활 버그 수정) ----
@@ -118,6 +115,6 @@ class RecallReactionRepositoryPort(ABC):
         """best-effort 부수효과(spaced 소생)를 감쌀 트랜잭션 savepoint(중첩 트랜잭션).
 
         안에서 DB 에러가 나도 이 savepoint 만 롤백되고 outer 트랜잭션(이미 flush 된 opened_at)은
-        aborted 되지 않아 라우터의 commit 이 PendingRollbackError 없이 성공한다(codex P1#4).
+        aborted 되지 않아 라우터의 commit 이 PendingRollbackError 없이 성공한다.
         infra 는 `session.begin_nested()`. 예외는 그대로 전파(호출부 try/except 가 격리 책임).
         """

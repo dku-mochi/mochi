@@ -530,12 +530,12 @@ async def test_google_signin_uses_id_token_name_as_display_hint() -> None:
     assert result.was_signup is True
 
 
-# ---------- Codex review follow-ups ----------
+# ---------- Unverified email / concurrent refresh race ----------
 
 
 @pytest.mark.asyncio
 async def test_signin_with_unverified_email_uses_placeholder_not_real_address() -> None:
-    """codex review P2: email_verified=false 인 IdP 토큰의 이메일을 그대로 저장하면 안 된다.
+    """email_verified=false 인 IdP 토큰의 이메일을 그대로 저장하면 안 된다.
 
     공격자가 다른 사용자의 실 이메일을 unverified 상태로 보내 ``users.email UNIQUE`` 를 선점할 수 있다.
     """
@@ -558,7 +558,7 @@ async def test_signin_with_unverified_email_uses_placeholder_not_real_address() 
 
 @pytest.mark.asyncio
 async def test_concurrent_refresh_only_one_wins_other_triggers_reuse_detection() -> None:
-    """codex review P1: 동시 회전 race 에서 진 호출은 새 자식 토큰을 발급해선 안 된다.
+    """동시 회전 race 에서 진 호출은 새 자식 토큰을 발급해선 안 된다.
 
     ``mark_used`` 가 ``where used_at IS NULL`` atomic compare-and-set 으로 1번만 성공한다.
     진 호출은 ``False`` 를 받아 reuse_detected 분기로 들어가고, family 전체가 revoke 된다.

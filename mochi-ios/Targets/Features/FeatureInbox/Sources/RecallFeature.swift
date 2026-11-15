@@ -3,17 +3,17 @@ import SwiftUI
 import ComposableArchitecture
 import CoreNetworking
 
-/// 능동 회수 — "다시 볼 가치 있는 기억을 모찌가 먼저 떠올려준다"(분류 아님, journal/proactive-recall/ux-ui §1).
+/// 능동 회수 — "다시 볼 가치 있는 기억을 모찌가 먼저 떠올려준다"(분류 아님).
 ///
 /// 3단 구조를 두 reducer 로 나눈다:
 ///  - ``RecallListFeature`` — ② 자세히(통일 카드 목록). 홈 회수 히어로의 "모두 보기"에서 진입.
 ///  - ``RecallDetailFeature`` — ③ 기록 상세(kind별 디테일 + 응답 액션). 목록 탭 / 알림 landing 직행.
 ///
 /// 홈 회수 히어로(① 3D 코버플로우)는 별도 화면이 아니라 ``MochiHomeFeature`` 의 state(`recall`)로 둔다
-/// (고정 틀·레이아웃 안정, ux-ui §6). 회수=가변이므로 목록·상세만 화면을 갖는다.
+/// (고정 틀·레이아웃 안정). 회수=가변이므로 목록·상세만 화면을 갖는다.
 ///
-/// 응답 액션 ↔ 서버 reaction 1:1(codex-7): 탭 진입/열기/기억남=`opened`, "그만 보기"=`stop`(plan cancel).
-/// 학습은 행동 신호(open) 우선 — primary 는 "목적 수행"이고 피드백은 보조(codex-8, ux-ui §4).
+/// 응답 액션 ↔ 서버 reaction 1:1 — 탭 진입/열기/기억남=`opened`, "그만 보기"=`stop`(plan cancel).
+/// 학습은 행동 신호(open) 우선 — primary 는 "목적 수행"이고 피드백은 보조.
 
 // MARK: - ② 자세히 보기 (통일 카드 목록)
 
@@ -96,7 +96,7 @@ public struct RecallDetailFeature: Sendable {
     @ObservableState
     public struct State: Equatable, Sendable {
         public var entry: RecallFeedEntryDTO
-        /// 탭하여 상세 진입한 사실 자체를 한 번만 opened 로 보고(행동 신호 우선, ux-ui §6).
+        /// 탭하여 상세 진입한 사실 자체를 한 번만 opened 로 보고(행동 신호 우선).
         public var hasReportedOpen: Bool = false
         /// "그만 보기" 낙관적 표시 — 한 번 누르면 잠그고 토스트.
         public var didStop: Bool = false
@@ -168,7 +168,7 @@ public struct RecallDetailFeature: Sendable {
                 return .send(.delegate(.openRelated(itemID: item.itemID)))
 
             case .rememberedTapped:
-                // "기억났어요" — 양성 신호(opened). primary 가 아니라 보조 피드백(codex-8).
+                // "기억났어요" — 양성 신호(opened). primary 가 아니라 보조 피드백.
                 // item 기준 — event 없는 카드에서도 신호가 서버에 남는다.
                 let rememberedItemID = state.entry.itemID
                 return .merge(
@@ -179,7 +179,7 @@ public struct RecallDetailFeature: Sendable {
                 )
 
             case .stopTapped:
-                // "그만 보기" = stop(영구, plan cancel). destructive — 1:1 매핑(codex-7).
+                // "그만 보기" = stop(영구, plan cancel). destructive — 1:1 매핑.
                 // item 기준 — event 없는 카드에서 event 기준 stop 이 유실되면 카드가 부활한다.
                 guard !state.didStop else { return .none }
                 state.didStop = true
@@ -215,8 +215,8 @@ public struct RecallDetailFeature: Sendable {
 
 // MARK: - 회수 이유 (분류 아님 — "왜 지금 떠올렸나")
 
-/// 백엔드 `reason` 문자열 → 표시 모델. 색/아이콘/라벨은 iOS 가 매핑한다(UI 필드 비계약, ux-ui §3).
-/// 접근성: VoiceOver 가 "회수 이유: …"로 의미를 읽게 ``accessibilityLabel`` 을 제공한다(codex-9).
+/// 백엔드 `reason` 문자열 → 표시 모델. 색/아이콘/라벨은 iOS 가 매핑한다(UI 필드 비계약).
+/// 접근성: VoiceOver 가 "회수 이유: …"로 의미를 읽게 ``accessibilityLabel`` 을 제공한다.
 public enum RecallReasonKind: String, Sendable, CaseIterable {
     case relatedCluster   // 관련 기록이 모임
     case fadingValue      // 안 본 지 오래 — "잊기 전에 한 번"
@@ -237,7 +237,7 @@ public enum RecallReasonKind: String, Sendable, CaseIterable {
         }
     }
 
-    /// VoiceOver 라벨 — 칩 색·아이콘만으론 의미가 안 읽혀 명시한다(codex-9).
+    /// VoiceOver 라벨 — 칩 색·아이콘만으론 의미가 안 읽혀 명시한다.
     public var accessibilityLabel: String { "회수 이유: \(label)" }
 
     public var icon: String {

@@ -1,7 +1,5 @@
 """능동 회수 알림 플래너(P2) 유스케이스 — eligibility 게이트 + LLM 설계 + 검증 + 영속.
 
-정본 `journal/proactive-recall/notification-agent.md` §1·§2 / `schema.md` §1·§4.
-
 분석 done 후 worker 가 best-effort 로 호출한다. 분석을 롤백하지 않고, 실패해도 worker 루프를
 죽이지 않는다(호출부가 예외 격리). 여기서는 후보 분류 + LLM 호출 + stages 검증 + 1 row 영속만 한다.
 """
@@ -58,10 +56,10 @@ def compute_eligible_candidates(
     source_item_id: UUID,
     now: datetime,
 ) -> list[EligibleCandidate]:
-    """결정적 eligibility 게이트 — "알림 가치 있는 신규/변경 intent" 만 통과(notification-agent.md §1).
+    """결정적 eligibility 게이트 — "알림 가치 있는 신규/변경 intent" 만 통과.
 
     이 게이트가 "needs_notification 판정"을 대신한다 — v21 system prompt / finalizeAnalysis 구조화
-    출력(eval-튜닝된 핵심 분석 경로)을 건드리지 않기 위한 결정(부모 Claude). 분석 결과만 읽는다.
+    출력(eval-튜닝된 핵심 분석 경로)을 건드리지 않기 위한 팀 결정이다. 분석 결과만 읽는다.
 
     통과:
       - schedule + 미래 date/end_date  → deadline_backoff (anchor=event_date)
@@ -188,7 +186,7 @@ class PlanRecallNotifications:
         candidate: EligibleCandidate,
         context: PlanningContext,
     ) -> bool:
-        # plan 폭증 방지(codex-3): 같은 source_intent 에 이미 active plan 이 있으면 supersede 후보다.
+        # plan 폭증 방지: 같은 source_intent 에 이미 active plan 이 있으면 supersede 후보다.
         existing = await self._repo.find_active_by_intent(
             owner_id=owner_id, source_intent_id=candidate.source_intent_id
         )
@@ -243,7 +241,7 @@ class PlanRecallNotifications:
             )
             return False
 
-        # supersede: 같은 source_intent 의 기존 active plan 을 같은 흐름에서 교체(schema.md §4-2).
+        # supersede: 같은 source_intent 의 기존 active plan 을 같은 흐름에서 교체.
         # planner 가 명시 supersede_plan_id 를 줬으면 그것을, 아니면 게이트가 찾은 existing 을 교체한다.
         supersede_id = decision.supersede_plan_id or (existing.id if existing else None)
         if supersede_id is not None and supersede_id != new_plan_id:

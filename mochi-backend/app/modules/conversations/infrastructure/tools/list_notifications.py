@@ -90,7 +90,7 @@ class ListNotificationsTool:
                 )
         fire_from = _parse_dt(args.get("fire_from"))
         fire_to = _parse_dt(args.get("fire_to"))
-        # 명시된 시각이 파싱 불가면 error — 조용히 무시하면 "내일 알림?" 에 전체를 답해 오도한다(codex P3).
+        # 명시된 시각이 파싱 불가면 error — 조용히 무시하면 "내일 알림?" 에 전체를 답해 오도한다.
         # (search_items 의 occurs graceful 과 갈라지는 이유: 여기선 시각이 질문의 본질이다.)
         if args.get("fire_from") and fire_from is None:
             return ChatToolResult(

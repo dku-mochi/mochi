@@ -1,8 +1,7 @@
 """메시지 전송의 동기 구간 — 대화 암묵 생성 + 동시 run 차단 + user 행 영속.
 
 여기까지가 request 트랜잭션(router 가 commit), 이후 run 은 detached task (``RunChatTurn``).
-conversationID 는 클라이언트가 생성한다 — 첫 메시지가 대화를 암묵 생성(라운드트립 절약,
-journal 2026-06-10).
+conversationID 는 클라이언트가 생성한다 — 첫 메시지가 대화를 암묵 생성(라운드트립 절약).
 """
 
 from dataclasses import dataclass

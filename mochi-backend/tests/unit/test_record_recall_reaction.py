@@ -299,7 +299,7 @@ async def test_revival_failure_does_not_break_opened() -> None:
 
 
 async def test_revive_wraps_lifecycle_write_in_savepoint() -> None:
-    # P1#4: spaced 소생의 lifecycle write 는 savepoint(begin_nested) 안에서 실행돼야 outer
+    # spaced 소생의 lifecycle write 는 savepoint(begin_nested) 안에서 실행돼야 outer
     # opened_at 이 aborted-tx 로 롤백되지 않는다. 실세션 격리 증거는 통합 검증(verify_recall_p1.py);
     # 단위는 소생 경로가 savepoint() 를 실제로 연다는 것만 보장.
     inst = IntentInstance(

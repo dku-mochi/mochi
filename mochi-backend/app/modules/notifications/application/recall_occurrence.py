@@ -1,13 +1,13 @@
 """능동 회수 알림 — occurrence-math (순수함수, DB 무관).
 
 cron 워커(P3)가 active plan 의 "다음 발송할 occurrence" 를 계산하는 핵심 로직을 DB·세션과
-분리해 단위테스트 가능하게 둔다. 정본 `journal/proactive-recall/schema.md` §3(lazy 동작)·§4(불변식).
+분리해 단위테스트 가능하게 둔다.
 
 세 trigger(relative / recurring / spaced) 각각 다음 occurrence 의 (stage_seq, occurrence_seq,
 fire_at, expires_at) 또는 "더 없음/대기/종료" 신호를 반환한다. 입력은 전부 값(plan stages·anchor·
 직전 발송 이력)이라 워커가 DB 에서 읽어 넘긴다 — 이 모듈은 시계도 세션도 모른다.
 
-KST 단일 타임존 전제(codex-1) — whole-day offset/time_hint 의 시각 부여는 KST local 기준.
+KST 단일 타임존 전제 — whole-day offset/time_hint 의 시각 부여는 KST local 기준.
 """
 
 from dataclasses import dataclass
@@ -19,11 +19,11 @@ from app.modules.notifications.domain.recall_plan import (
     TriggerType,
 )
 
-# 단일 KST 전제(schema.md §3 codex-1). owner local date·time_hint·whole-day 시각 부여 기준.
+# 단일 KST 전제. owner local date·time_hint·whole-day 시각 부여 기준.
 KST = timezone(timedelta(hours=9))
 
 # whole-day(시각 미지정) relative offset 또는 recurring/spaced 의 time_hint 가 없을 때 쓰는 기본 발송시각.
-# planner §3: 활동 히스토그램 없으면 10~20시 윈도우 — 보수적 기본값 9시.
+# 활동 히스토그램 없으면 10~20시 윈도우 — 보수적 기본값 9시.
 _DEFAULT_FIRE_HOUR_KST = 9
 
 
@@ -41,7 +41,7 @@ def parse_iso_duration(value: str) -> timedelta:
     """부호부 ISO-8601 duration → timedelta. DSL 검증(`_is_valid_duration`)을 통과한 값 전제.
 
     지원 component: W/D/H/M(분)/S. Y/M(월)은 정확한 일수가 없어 **미지원**(들어오면 ValueError) —
-    회수 알림 offset 은 -P15D / -PT2H 류라 월/년 단위는 실제로 안 쓴다(planner §3).
+    회수 알림 offset 은 -P15D / -PT2H 류라 월/년 단위는 실제로 안 쓴다.
     """
     sign = -1 if value[0] == "-" else 1
     body = value[1:]  # drop sign
@@ -101,7 +101,7 @@ def resolve_anchor_time(
 ) -> datetime | None:
     """relative anchor 심볼 → 실제 기준 시각(UTC aware). 파싱 실패/없음 = None.
 
-    schema.md §1: anchor 값은 캐시하지 않고 cron 이 발송 때 최신 payload 를 조회한다(여기 인자로 받음).
+    anchor 값은 캐시하지 않고 cron 이 발송 때 최신 payload 를 조회한다(여기 인자로 받음).
     deadline/event_date 는 free-text(payload.deadline / payload.date[+time]) — KST naive 가정.
     saved_at 은 item.created_at(UTC 저장)이라 그대로.
     """
@@ -202,10 +202,10 @@ def next_recurring_occurrence(
 
 @dataclass(frozen=True, slots=True)
 class SpacedState:
-    """직전 spaced occurrence 의 식별·반응 — 전진 판단 입력(schema.md §4 #1: 반응 기준, sent_at 아님).
+    """직전 spaced occurrence 의 식별·반응 — 전진 판단 입력(반응 기준, sent_at 아님).
 
     ``vetoed`` 는 user_veto 로 skip 된 occurrence(발송 전 사용자가 "이번 회차만 건너뛰기") —
-    반응(opened)은 아니지만 명시적 "다음은 받겠다" 신호라 전진시킨다(§4 #1 예외). 이때 ``fire_at``
+    반응(opened)은 아니지만 명시적 "다음은 받겠다" 신호라 전진시킨다. 이때 ``fire_at``
     (veto 된 칸의 예정 시각)이 다음 occurrence 의 전진 base 가 된다(opened_at 이 없으므로).
     """
 
@@ -228,7 +228,7 @@ def next_spaced_occurrence(
     base: datetime,
     last: SpacedState | None,
 ) -> NextOccurrence | str | None:
-    """spaced(지식 정착) 다음 occurrence — **전진은 반응 기준**(schema.md §4 #1).
+    """spaced(지식 정착) 다음 occurrence — **전진은 반응 기준**.
 
     반환:
       - NextOccurrence: materialize 할 다음 칸.
@@ -239,7 +239,7 @@ def next_spaced_occurrence(
     occurrence0 = base + schedule_days[0]. occurrence i>0 은 occurrence(i-1) 이 opened 일 때만,
     fire_at = opened_at + (schedule_days[i] - schedule_days[i-1]).
 
-    예외(§4 #1): 직전이 user_veto("이번 회차만 건너뛰기")면 opened 없이도 다음 칸으로 전진하되,
+    예외: 직전이 user_veto("이번 회차만 건너뛰기")면 opened 없이도 다음 칸으로 전진하되,
     base 는 veto 된 칸의 예정 시각(fire_at)을 써 원래 간격을 유지한다("다음 회차는 예정대로").
     """
     schedule = stage.trigger.schedule_days or []
@@ -259,7 +259,7 @@ def next_spaced_occurrence(
         return None  # 마지막 칸까지 발송·반응 완료
     gap_days = schedule[next_i] - schedule[next_i - 1]
     if last.vetoed:
-        # user_veto("이번 회차만 건너뛰기") — opened 없이도 다음 칸으로 전진(§4 #1 예외).
+        # user_veto("이번 회차만 건너뛰기") — opened 없이도 다음 칸으로 전진.
         # base 는 veto 된 칸의 예정 시각(fire_at) → 원래 간격대로 "다음 회차는 예정대로".
         base_veto = last.fire_at or (_ensure_utc(base) + timedelta(days=schedule[last.occurrence_seq]))
         return NextOccurrence(

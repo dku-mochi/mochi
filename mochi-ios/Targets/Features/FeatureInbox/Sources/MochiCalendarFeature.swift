@@ -11,7 +11,7 @@ import DesignSystem
 /// 로컬 Realm(`mochiItemRepository`)을 단일 소스로 ① 월간 캘린더(날짜별 개수·대표 Intent·대표 썸네일),
 /// ② 날짜 선택 시 그날 모찌 목록, ③ 하단 "마감 임박 할 일"(미완료 todo) 을 구성한다.
 /// 서버 list/calendar API 는 존재하지만(openapi.json), 이 탭은 즉시성·오프라인·실시간 반영
-/// (`observeChanges`)을 위해 로컬 구동한다 — `DOMAIN_DESIGN.md §6`("캘린더 탭은 iOS 로컬 Realm 구동")과 정합.
+/// (`observeChanges`)을 위해 로컬 구동한다.
 @Reducer
 public struct MochiCalendarFeature: Sendable {
 
@@ -556,7 +556,7 @@ enum CalendarDueDate {
                 return (date, nil, .todo)
             case .schedule:
                 // active 일정만 — 끝났거나(scheduleEnded) 사용자가 치운(userManual) 일정은 캘린더에서 제외
-                // (todo 의 active 가드와 대칭, DOMAIN_DESIGN schedule lifecycle 정합).
+                // (todo 의 active 가드와 대칭, schedule lifecycle 정합).
                 guard inst.lifecycle == .active,
                       let start = parse(inst.payload.date) else { return nil }
                 return (start, scheduleEnd(of: inst, start: start), .schedule)

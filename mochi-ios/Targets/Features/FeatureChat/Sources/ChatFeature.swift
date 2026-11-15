@@ -162,7 +162,7 @@ public struct ChatFeature: Sendable {
     @Dependency(\.uuid) var uuid
     @Dependency(\.continuousClock) var clock
 
-    /// 비활성 자동분리 임계 — 30분 (journal 2026-06-10 플랜).
+    /// 비활성 자동분리 임계 — 30분.
     static let sessionMaxIdleSeconds: TimeInterval = 30 * 60
     /// 복귀 폴링 상한 — run 60초 + stale 임계(90초) 여유. 2초 간격이라 최대 ~90초.
     static let maxSnapshotPolls = 45
@@ -482,7 +482,7 @@ public struct ChatFeature: Sendable {
                 // observeChanges 로 감지해 따라간다(§1.5 자동 관리) — call-site 배선 없음.
 
             case let .createSchedule(payload):
-                // 분석 생략 직행 생성 (§5.2 예외). proposal id 가 Idempotency-Key — 재탭 멱등.
+                // 분석 생략 직행 생성. proposal id 가 Idempotency-Key — 재탭 멱등.
                 _ = try await apiClient.ingestMochiItem(
                     MochiItemIngestRequest(
                         channel: .chat,
@@ -490,7 +490,7 @@ public struct ChatFeature: Sendable {
                         confirmedInstances: payload.instances.map {
                             ConfirmedInstanceIngestDTO(intentType: $0.intentType, payload: $0.payload)
                         },
-                        // propose-시점 도출 메타 — confirmedInstances 와 함께 운반(§5.2 는 instance 재분석만 생략).
+                        // propose-시점 도출 메타 — confirmedInstances 와 함께 운반(instance 재분석만 생략).
                         category: payload.category,
                         summary: payload.summary
                     ),

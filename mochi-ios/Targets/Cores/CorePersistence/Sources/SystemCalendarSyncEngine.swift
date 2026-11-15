@@ -91,7 +91,7 @@ public actor SystemCalendarSyncEngine {
             }
         }
 
-        // 링크 조회 실패를 "링크 없음"으로 간주하면 전부 중복 생성된다 — 실패 시 이번 동기화 보류(codex P1).
+        // 링크 조회 실패를 "링크 없음"으로 간주하면 전부 중복 생성된다 — 실패 시 이번 동기화 보류.
         guard let links = try? await linkStore.allLinks() else { return }
         let linkByID = Dictionary(links.map { ($0.instanceID, $0) }, uniquingKeysWith: { first, _ in first })
 
@@ -108,7 +108,7 @@ public actor SystemCalendarSyncEngine {
 
         // 기록 삭제·재분석(delete-reinsert)으로 instance 가 저장소에서 **사라졌을 때만** EK 도 거둔다.
         // desired 부재만으론 부족하다 — 스캔 상한(2000) 밖의 오래된 기록이나 미확정(needsReview) 강등을
-        // 삭제로 오인해 사용자 캘린더를 지우면 안 되므로(codex P1), 전수 instance id 로 재확인한다.
+        // 삭제로 오인해 사용자 캘린더를 지우면 안 되므로, 전수 instance id 로 재확인한다.
         // 전수 조회가 실패하면 제거를 전부 보류한다(파괴적 동작은 확신 있을 때만 — 다음 동기화 재시도).
         let allInstanceIDs = try? await repository.allIntentInstanceIDs()
         guard let allInstanceIDs else { return }
@@ -134,7 +134,7 @@ public actor SystemCalendarSyncEngine {
         }
     }
 
-    /// 생성은 **선영속 잠금** 2단계다(codex P1): EK 생성과 링크 저장 사이의 크래시/쓰기 실패로
+    /// 생성은 **선영속 잠금** 2단계다: EK 생성과 링크 저장 사이의 크래시/쓰기 실패로
     /// "EK 항목만 있고 링크 없음"이 되면 다음 동기화가 같은 instance 를 중복 생성한다. 그래서
     /// ① 빈 ekIdentifier 잠금 행을 먼저 영속하고(실패하면 생성 자체를 미룸 — 중복 0 > 등록 지연),
     /// ② EK 생성 후 실제 식별자로 되쓴다. ②가 유실돼 빈 잠금이 남으면 update 경로가 소실(false)로
@@ -163,7 +163,7 @@ public actor SystemCalendarSyncEngine {
             guard hasReminder else { return }
             // 이미 완료된 할 일은 새로 세우지 않는다 — 완료 항목을 뒤늦게 미리알림에 만드는 건
             // 클러터일 뿐이다(재설치 reconcile 때 다량 발생). 미완료로 되돌리면 이 게이트를 지나
-            // 생성된다. (codex 제기 — 의도된 동작으로 유지)
+            // 생성된다. (의도된 동작으로 유지)
             guard instance.lifecycle.kind != .archived else { return }
             let lock = SystemCalendarLink(instanceID: instance.id, kind: .reminder, ekIdentifier: "")
             guard (try? await linkStore.save([lock])) != nil else { return }
@@ -183,7 +183,7 @@ public actor SystemCalendarSyncEngine {
     private func update(link: SystemCalendarLink, instance: IntentInstance, item: MochiItem,
                         hasEvent: Bool, hasReminder: Bool) async {
         // intent 종류가 바뀐 드문 경우(schedule↔todo, 같은 instanceID) — 이전 종류의 EK 항목을 거두고
-        // 링크를 지워 다음 동기화가 새 종류로 생성하게 한다(codex P2 — 알려진 경로는 재분석
+        // 링크를 지워 다음 동기화가 새 종류로 생성하게 한다(알려진 경로는 재분석
         // delete-reinsert 라 실제 발생은 드물지만 값싼 방어).
         let expectedKind: SystemCalendarLink.Kind = instance.intentType == .schedule ? .event : .reminder
         guard link.kind == expectedKind else {
@@ -196,7 +196,7 @@ public actor SystemCalendarSyncEngine {
                 guard (try? await syncer.removeReminder(identifier: link.ekIdentifier)) != nil else { return }
             }
             try? await linkStore.remove(instanceIDs: [link.instanceID])
-            pendingRerun = true   // 같은 syncNow 안에서 한 바퀴 더 돌아 새 종류로 즉시 재생성(codex P2)
+            pendingRerun = true   // 같은 syncNow 안에서 한 바퀴 더 돌아 새 종류로 즉시 재생성
             return
         }
         let payload = SystemCalendarRegistrar.stringMap(instance.payload)

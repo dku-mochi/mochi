@@ -1,7 +1,6 @@
 """conversations — 채팅(질문 탭) 멀티턴 대화 영속.
 
-2026-06-10: 채팅 탭 설계 확정(journal 2026-06-10-chat-tab-design.md)으로 DOMAIN_DESIGN §10.3
-design-ahead 게이트 개방. 3테이블:
+2026-06-10: 채팅 탭 설계 확정. 3테이블:
 
 - ``conversations`` — 세션. soft delete(deleted_at), 히스토리 정렬은 updated_at(마지막 메시지 시각).
 - ``messages`` — user/assistant/tool 행. run 영속은 별도 테이블 없이 트리거한 user 행의

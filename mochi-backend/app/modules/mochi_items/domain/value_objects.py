@@ -2,7 +2,7 @@
 
 LLM(Vertex AI Gemini)이 한 캡쳐에 대해 출력하는 의도 instance 들(``IntentInstance``).
 각 instance 는 저장되면 곧 active 인 1급 의도다 — 점수(applicability/confidence/threshold)·
-위계(primary/secondary)·대표(representative)는 폐기됐다(2026-06-04 빅뱅, lab FINDINGS).
+위계(primary/secondary)·대표(representative)는 폐기됐다(2026-06-04 빅뱅).
 한 캡쳐가 같은 type 의 instance 를 여러 개 가질 수 있고(TODO 여러 개), 각 instance 는
 독립 lifecycle 을 갖는다.
 
@@ -71,7 +71,7 @@ class IntentPayload:
     """instance 의 구조화 속성 — 전부 optional typed field.
 
     자유 object 가 아니라 공통 typed field 로 둔 이유: 열린 object 는 Gemini structured
-    output 이 빈 객체를 내기 쉬웠다(lab FINDINGS §19). title/deadline 등은 typed 컬럼이 아니라
+    output 이 빈 객체를 내기 쉬웠다. title/deadline 등은 typed 컬럼이 아니라
     이 payload 안에 보관하며, calendar/todo materialize 가 실제로 필요해질 때 파싱한다.
     """
 

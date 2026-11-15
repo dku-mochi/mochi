@@ -128,7 +128,7 @@ async def test_fire_window_passes_through_as_kst(monkeypatch: pytest.MonkeyPatch
 
 
 async def test_invalid_fire_window_returns_error(monkeypatch: pytest.MonkeyPatch) -> None:
-    # 파싱 불가한 값("내일")은 error — 조용히 무시하면 "내일 알림?" 에 전체를 답해 오도한다(codex P3).
+    # 파싱 불가한 값("내일")은 error — 조용히 무시하면 "내일 알림?" 에 전체를 답해 오도한다.
     feed = _FakeFeed([_notif()])
     result = await _tool(monkeypatch, feed).run(owner_id=_OWNER, args={"fire_from": "내일"})
     assert "error" in result.payload

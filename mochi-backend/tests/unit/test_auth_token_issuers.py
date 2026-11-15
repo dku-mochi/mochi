@@ -97,7 +97,7 @@ def test_refresh_token_each_call_is_unique() -> None:
 
 
 def test_access_token_rejects_dev_default_secret_in_non_local_env() -> None:
-    """codex review P1: prod 에 .env 가 없어 default secret 이 그대로 들어오는 시나리오를 막는다.
+    """prod 에 .env 가 없어 default secret 이 그대로 들어오는 시나리오를 막는다.
 
     default 가 32+ chars 라 길이 검사로는 못 거른다 → 정확 값 비교로 reject.
     """

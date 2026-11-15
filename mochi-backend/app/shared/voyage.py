@@ -1,7 +1,7 @@
 """Voyage AI 어댑터 — 임베딩(voyage-4-large) + 리랭크(rerank-2.5).
 
-모델은 ``lab/archive/rag-search`` 선정(voyage-4-large@1024 × summary+labels, nDCG@5 0.925),
-리랭커·입력 구성은 ``lab/archive/rag-rerank-eval``(2026-06-12) 확정값:
+모델은 voyage-4-large@1024 × summary+labels 선정(nDCG@5 0.925),
+리랭커·입력 구성은 2026-06-12 확정값:
 
 - 임베딩: ``voyage-4-large`` @ 1024, 문서는 ``input_type=document`` / 쿼리는 ``query``
 - 임베딩 input: summary + intent labels (``build_embedding_text``)

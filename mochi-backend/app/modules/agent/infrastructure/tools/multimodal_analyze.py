@@ -18,7 +18,7 @@ class ExtractedEntityDTO(BaseModel):
 
 
 class IntentPayloadDTO(BaseModel):
-    """instance 의 구조화 속성 — 전부 optional typed field (lab FINDINGS §19)."""
+    """instance 의 구조화 속성 — 전부 optional typed field."""
 
     title: str | None = None
     date: str | None = None

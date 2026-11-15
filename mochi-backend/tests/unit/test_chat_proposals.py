@@ -2,7 +2,7 @@
 
 고정하는 보장: ① propose_* 는 검증 실패 시 카드를 만들지 않는다(불법 전이·미실재 대상)
 ② run 루프가 proposal 을 SSE 이벤트로 흘리고 assistant 행에 영속한다
-③ confirmedInstances ingest 는 분석 파이프라인을 생략한다(§5.2 예외 — outbox 미적재·즉시 analyzed)
+③ confirmedInstances ingest 는 분석 파이프라인을 생략한다(outbox 미적재·즉시 analyzed)
 ④ UpdateMochiItem 은 콘텐츠+instance 를 한 트랜잭션 의미로 — payload 병합·불법 전이 409·미실재 404.
 """
 
@@ -202,7 +202,7 @@ async def test_propose_schedule_range_validates_and_carries_end_date() -> None:
 
 async def test_propose_schedule_carries_derived_meta() -> None:
     # propose-시점 경량 LLM 이 도출한 category/summary 가 카드 payload 에 실려야 한다 —
-    # 월간정리·검색이 "그 외"·빈약으로 빠지지 않게(§5.2 는 instance 재분석만 생략, 메타는 채움).
+    # 월간정리·검색이 "그 외"·빈약으로 빠지지 않게(instance 재분석만 생략, 메타는 채움).
     meta = _StubScheduleMeta(ScheduleMeta(category="병원", summary="치과 정기 검진"))
     tool = ProposeCreateScheduleTool(meta, _stub_categories(("병원", "데이트")))
     result = await tool.run(
@@ -223,7 +223,7 @@ async def test_propose_schedule_carries_derived_meta() -> None:
 
 async def test_propose_schedule_creates_card_when_meta_empty() -> None:
     # 메타 도출 실패(GeminiScheduleMeta 가 graceful 로 빈 ScheduleMeta 반환)·빈 window 여도
-    # 일정 카드는 생성된다 — 메타는 부가, 카드 생성을 막지 않는다(§5.2 graceful).
+    # 일정 카드는 생성된다 — 메타는 부가, 카드 생성을 막지 않는다(graceful).
     tool = ProposeCreateScheduleTool(_StubScheduleMeta(ScheduleMeta()), _stub_categories())
     result = await tool.run(owner_id=_OWNER, args={"title": "치과 예약", "date": "2026-06-25", **_DISPLAY})
     assert result.proposal is not None
@@ -499,7 +499,7 @@ async def test_run_loop_streams_proposal_event_and_persists_on_assistant_row() -
     assert store.statuses == [(run_id, RunStatus.COMPLETED)]
 
 
-# ---------- ③ confirmedInstances ingest — 분석 생략 (§5.2 예외) ----------
+# ---------- ③ confirmedInstances ingest — 분석 생략 ----------
 
 
 class _IngestStubRepo:
@@ -536,7 +536,7 @@ def _confirmed_command(key: str = "k1") -> IngestCommand:
         text="회의",
         user_memo=None,
         idempotency_key=key,
-        # propose-시점 도출 메타 — 확정 instance 와 함께 item 레벨로 운반된다(§5.2 는 재분석만 생략).
+        # propose-시점 도출 메타 — 확정 instance 와 함께 item 레벨로 운반된다(재분석만 생략).
         category="회의",
         summary="민수와의 주간 회의",
         confirmed_instances=(

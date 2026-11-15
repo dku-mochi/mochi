@@ -3,13 +3,13 @@
 `MochiItemWorker` 패턴(run_forever 폴링, FOR UPDATE SKIP LOCKED, locked_until reclaim, lifespan stop).
 한 tick 에 두 pass:
 
-  (1) Materialize — active plan(next_eligible_at<=now) 스캔 → source intent fresh 로드(종료연동 HIGH-2)
+  (1) Materialize — active plan(next_eligible_at<=now) 스캔 → source intent fresh 로드(종료연동)
       → occurrence-math(순수, recall_occurrence) → 하드가드(순수, recall_guards) → outbox 1 row INSERT.
-      per-owner advisory lock 으로 두 워커 동시 카운트 방지(schema.md §4 #5).
-  (2) Send — fire_at 도달 outbox claim(plan active JOIN 보장, §4 #2) → dry-run/실발송 → APNs 410 분류.
+      per-owner advisory lock 으로 두 워커 동시 카운트 방지.
+  (2) Send — fire_at 도달 outbox claim(plan active JOIN 보장) → dry-run/실발송 → APNs 410 분류.
 
-킬스위치 recall_worker_enabled=False 면 루프는 no-op(기동은 함). dry-run 기본 True(발송 0 튜닝, §6/§7).
-occurrence-math·가드는 순수함수로 분리(DB 무관·단위테스트 가능). 정본 schema.md / notification-agent.md.
+킬스위치 recall_worker_enabled=False 면 루프는 no-op(기동은 함). dry-run 기본 True(발송 0 튜닝).
+occurrence-math·가드는 순수함수로 분리(DB 무관·단위테스트 가능).
 """
 
 import asyncio
@@ -79,7 +79,7 @@ _MATERIALIZE_BATCH = 50
 # materialize 시 과거 anchor 유예 — 이 시각을 넘겨 놓친 relative occurrence 는 stale(만료) 처리.
 _STALE_GRACE = timedelta(hours=6)
 # 반응 대기(spaced) plan 의 bounded 재폴 — 반응(opened)이 들어오면 다음 tick 에서 전진하도록.
-# FAR_FUTURE(영구 수면)로 두면 recurring 주기·spaced 전진이 정지한다(P1#2).
+# FAR_FUTURE(영구 수면)로 두면 recurring 주기·spaced 전진이 정지한다.
 _SPACED_REPOLL = timedelta(days=1)
 # recurring lazy lookahead(P2): until/max 없는 recurring 이 tick 마다 미래 occurrence 를 줄줄이 pending
 # 으로 미리 박지 않게, 다음 occurrence 가 이 창 안(due 임박)일 때만 materialize. 밖이면 그 fire_at 까지
@@ -103,7 +103,7 @@ class NotificationWorker:
         poll = settings.recall_worker_poll_interval_seconds
         while not self._stop.is_set():
             if not settings.recall_worker_enabled:
-                # 킬스위치 — 기동은 하되 루프는 no-op(schema/notification-agent §7).
+                # 킬스위치 — 기동은 하되 루프는 no-op.
                 await asyncio.sleep(poll)
                 continue
             try:
@@ -124,18 +124,18 @@ class NotificationWorker:
 
         ``active → decaying → reviewRequested``. **시계 = ``updated_at``**(= 마지막 상태변경 시각). spaced
         회수 트랙(트랙A)은 decaying/reviewRequested knowledge 만 피드에 노출하므로(``get_recall_feed``),
-        이 전이가 없으면 instance 가 영원히 active 라 spaced 알림을 열어도 항상 빈 피드였다(트랙A 무력, HIGH-2).
+        이 전이가 없으면 instance 가 영원히 active 라 spaced 알림을 열어도 항상 빈 피드였다(트랙A 무력).
 
         ``updated_at`` 을 시계로 쓰는 이유: 회수 소생(opened+spaced → decaying/reviewRequested→active,
         `record_recall_reaction`)이 ``update_instance_lifecycle`` 로 updated_at 을 now 로 리셋하므로,
-        소생된 knowledge 는 다시 30일 active 를 보장받는다(created_at 시계면 소생 직후 즉시 재decay). §5.4
+        소생된 knowledge 는 다시 30일 active 를 보장받는다(created_at 시계면 소생 직후 즉시 재decay).
         의미("마지막 회수 후 30일 → decaying", "decaying 진입 후 180일 → reviewRequested")와 정합 —
         active→decaying 이 updated_at 을 now 로 갱신해 "decaying 진입 시각" 도 같은 컬럼이 된다.
 
         두 UPDATE 는 같은 트랜잭션 — 오래 방치된 active 는 먼저 decaying(updated_at=now) 으로만 가고,
         이번에 막 decaying 된 행은 review_cutoff(now-180) 밖이라 같은 패스에서 review 로 안 넘어간다(정상).
         전이 합법성은 ``lifecycle_policy`` 가 정본(test_lifecycle_policy 가 불변식 고정).
-        정본: DOMAIN_DESIGN §5.4 / `intents.domain.lifecycle_policy`.
+        정본: `intents.domain.lifecycle_policy`.
         """
         now = datetime.now(UTC)
         if self._last_decay_at is not None and now - self._last_decay_at < _DECAY_INTERVAL:
@@ -205,7 +205,7 @@ class NotificationWorker:
                     ).bindparams(bindparam("now", now), bindparam("limit", _MATERIALIZE_BATCH))
                 )
             ).all()
-            # supersede 청소(§4-2): superseded plan 의 pending/deferred outbox 를 skipped(superseded).
+            # supersede 청소: superseded plan 의 pending/deferred outbox 를 skipped(superseded).
             await scan_session.execute(
                 text(
                     """
@@ -239,12 +239,12 @@ class NotificationWorker:
         source_intent_id: UUID = plan_row.source_intent_id
         plan_kind = PlanKind(plan_row.plan_kind)
 
-        # per-owner 직렬화(§4 #5) — 두 워커가 같은 owner cap 을 동시에 세지 못하게.
+        # per-owner 직렬화 — 두 워커가 같은 owner cap 을 동시에 세지 못하게.
         await session.execute(
             text("SELECT pg_advisory_xact_lock(hashtext(:owner))").bindparams(owner=str(owner_id))
         )
 
-        # source intent fresh 로드 + 종료연동(HIGH-2).
+        # source intent fresh 로드 + 종료연동.
         item = (
             await GetMochiItemForOwner(repository=make_mochi_item_repository(session)).execute(
                 owner_id=owner_id, mochi_item_id=plan_row.source_item_id
@@ -264,7 +264,7 @@ class NotificationWorker:
             await self._cancel_plan_intent_archived(session, plan_id=plan_id, owner_id=owner_id, now=now)
             return
 
-        # deferred 회생(P1#1): cap/야간/트랙B 로 미뤄진 occurrence 를 next_retry_at 도달 시 재평가 →
+        # deferred 회생: cap/야간/트랙B 로 미뤄진 occurrence 를 next_retry_at 도달 시 재평가 →
         # 가드 통과면 pending 으로 전이, 아니면 재-defer/만료. 이게 없으면 deferred 가 영구 소실된다.
         await self._reactivate_deferred(session, settings, plan_row=plan_row, now=now)
 
@@ -280,7 +280,7 @@ class NotificationWorker:
             return
 
         kind = outbox_kind_for(plan_kind).value
-        # 과거 occurrence stale skip(P1#2): _compute_next 가 과거 target 에 expires_at(과거)인 occ 를
+        # 과거 occurrence stale skip: _compute_next 가 과거 target 에 expires_at(과거)인 occ 를
         # 반환(stale 신호)했는데 가드만 거쳐 status='pending' 으로 INSERT 하면 _claim_next(expires_at>now)
         # 가 영원히 claim 못 해 plan 이 영구 재폴된다. 가드 실행 전에 terminal skip(stale)+즉시 재평가.
         if occ.expires_at is not None and occ.expires_at <= now:
@@ -372,9 +372,9 @@ class NotificationWorker:
     async def _cancel_plan_intent_archived(
         self, session: AsyncSession, *, plan_id: UUID, owner_id: UUID, now: datetime
     ) -> None:
-        # 종료연동(HIGH-2): intent 없음/archived → plan cancelled + pending/deferred outbox skipped(cancelled).
+        # 종료연동: intent 없음/archived → plan cancelled + pending/deferred outbox skipped(cancelled).
         # skip_reason='cancelled' 는 plan 취소(intent_archived·user stop) terminal — 재평가 교체('superseded')와
-        # 구별(P1#3). 구체 사유는 plan.cancel_reason 이 보유. schema.md §2 어휘.
+        # 구별. 구체 사유는 plan.cancel_reason 이 보유.
         await session.execute(
             text(
                 """
@@ -526,7 +526,7 @@ class NotificationWorker:
     async def _reactivate_deferred(
         self, session: AsyncSession, settings: Settings, *, plan_row: Any, now: datetime
     ) -> None:
-        """next_retry_at 도달 deferred occurrence 재평가(P1#1) — 영구 소실 방지.
+        """next_retry_at 도달 deferred occurrence 재평가 — 영구 소실 방지.
 
         만료(expires) 지났으면 stale terminal. 아니면 next_retry_at 시각으로 가드 재실행 →
         통과(ALLOW)면 pending 전이(가드가 다시 shift 했을 수 있는 fire_at), 여전히 DEFER 면 next_retry_at
@@ -610,7 +610,7 @@ class NotificationWorker:
         collapse = (
             str(plan_row.source_intent_id) if plan_row.source_intent_id else f"{plan_row.id}:{occ.stage_seq}"
         )[:64]
-        # owner_id 복사(§4 #3). UNIQUE(plan_id,stage_seq,occurrence_seq) 가 중복 차단(IntegrityError 시 plan 단위 격리).
+        # owner_id 복사. UNIQUE(plan_id,stage_seq,occurrence_seq) 가 중복 차단(IntegrityError 시 plan 단위 격리).
         # event_id 명시 생성 — raw text() INSERT 는 ORM 의 insert_default=uuid4(orm.py) 를 우회하고
         # event_id 는 NOT NULL·DB default 없음(migration 0023)이라 여기서 채워야 NotNullViolation 안 난다.
         await session.execute(
@@ -692,13 +692,13 @@ class NotificationWorker:
                     any_active = True
 
         # 미발송(pending/deferred) outbox 가 남아 있으면 done 아님 — relative 단발이 pending(미발송)인데
-        # occurrence_exists 만 보고 done 처리되던 조기 종료 버그 방지(P1#2).
+        # occurrence_exists 만 보고 done 처리되던 조기 종료 버그 방지.
         if not any_active and await self._has_unsent_outbox(session, plan_id):
             any_active = True
 
         if any_active:
             # FAR_FUTURE(영구 수면) 금지 — pending fire_at / deferred next_retry_at 중 가장 이른 시각으로
-            # bounded 재폴(recurring 주기·spaced 전진 정지 방지, P1#2). 없으면 spaced 반응대기 → 1일 재폴.
+            # bounded 재폴(recurring 주기·spaced 전진 정지 방지). 없으면 spaced 반응대기 → 1일 재폴.
             await self._set_next_eligible(
                 session, plan_id, await self._earliest_pending_or_retry(session, plan_id, now)
             )
@@ -719,7 +719,7 @@ class NotificationWorker:
         )
 
     async def _has_unsent_outbox(self, session: AsyncSession, plan_id: UUID) -> bool:
-        """plan 에 아직 발송 전(pending/deferred) outbox 가 있나 — 조기 done 방지(P1#2)."""
+        """plan 에 아직 발송 전(pending/deferred) outbox 가 있나 — 조기 done 방지."""
         return bool(
             (
                 await session.execute(
@@ -772,7 +772,7 @@ class NotificationWorker:
         )
 
     async def _max_occurrence_seq(self, session: AsyncSession, plan_id: UUID, stage_seq: int) -> int | None:
-        # skipped 포함 전체 MAX(P1#3): skipped 를 빼면 recurring occ N 이 SKIP terminal(dismiss_cooldown
+        # skipped 포함 전체 MAX: skipped 를 빼면 recurring occ N 이 SKIP terminal(dismiss_cooldown
         # 등) 됐을 때 같은 N 을 재계산 → _occurrence_exists True → occ N+1 로 못 넘어가 영구 정지.
         # 중복 차단은 _occurrence_exists + UNIQUE(plan_id,stage_seq,occurrence_seq) 가 이미 담당.
         value = (
@@ -899,7 +899,7 @@ class NotificationWorker:
             await self._close(session_factory, claimed.id, status="skipped", skip_reason="preference_off")
             return
 
-        # dry-run(기본 True, §6/§7): 실제 APNs 호출 없이 payload 로깅 + skipped(dry_run) terminal.
+        # dry-run(기본 True): 실제 APNs 호출 없이 payload 로깅 + skipped(dry_run) terminal.
         if settings.recall_notifications_dry_run:
             log.info(
                 "recall_worker.dry_run",
@@ -929,7 +929,7 @@ class NotificationWorker:
                     collapse_id=claimed.collapse_id,
                 ),
             )
-            # 무효 토큰 삭제(codex-5) — 같은 세션.
+            # 무효 토큰 삭제 — 같은 세션.
             for tok in result.invalid_tokens:
                 await make_push_token_repository(session).delete(token=tok)
             await session.commit()
@@ -1045,7 +1045,7 @@ class ClaimedNotification:
 
 
 def _render_content(stage: Stage, instance: IntentInstance) -> tuple[str, str]:
-    """content_template 을 근거 명사(payload)로 렌더 — generic/단정 금지 톤(notification-agent.md §3).
+    """content_template 을 근거 명사(payload)로 렌더 — generic/단정 금지 톤.
 
     슬롯 {title} 만 채운다(라벨/제목). 알 수 없는 슬롯은 빈 문자열로(KeyError 로 죽지 않게). title 은
     OS 알림 제목, 렌더된 template 은 body. template 이 비면 라벨/제목을 body 로 폴백.

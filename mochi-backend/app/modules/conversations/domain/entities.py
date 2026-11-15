@@ -1,7 +1,7 @@
 """채팅(질문 탭) 도메인 엔티티 — Conversation · Message · MessageCitation.
 
-설계 정본: ``journal/2026-06-10-chat-tab-design.md`` (proposal 패턴 — LLM 루프는 read-only,
-쓰기는 proposal 카드 → 사용자 확정 → 기존 REST). 대화는 서버 단일원천(iOS Realm 미러 없음).
+설계: proposal 패턴 — LLM 루프는 read-only,
+쓰기는 proposal 카드 → 사용자 확정 → 기존 REST. 대화는 서버 단일원천(iOS Realm 미러 없음).
 
 run 영속은 별도 테이블 없이 **트리거한 user message 행**에 ``run_id/run_status/run_started_at``
 으로 싣는다 — turn 당 run 1개라 자연스럽고, stale 판정(읽기 시점 lazy repair)까지 컬럼 3개로 끝난다.

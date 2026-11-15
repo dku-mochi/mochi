@@ -154,7 +154,7 @@ class ChatLLMClient(Protocol):
 class ScheduleMeta:
     """채팅 일정 proposal 확정 항목의 경량 메타 — ``MochiItem.category/summary`` 운반용.
 
-    instance(날짜·일정)는 채팅 확정값 그대로 보존하고(DOMAIN_DESIGN §5.2 "재분석 안 함" 유지),
+    instance(날짜·일정)는 채팅 확정값 그대로 보존하고("재분석 안 함" 유지),
     월간정리 분류·리스트·검색이 빈약해지지 않게 이 두 필드만 채운다. 도출 실패 시 둘 다 None —
     항목은 메타 없이 생성된다(iOS '정리 중' 폴백).
     """

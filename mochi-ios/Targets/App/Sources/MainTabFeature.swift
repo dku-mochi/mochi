@@ -370,12 +370,12 @@ struct MainTabFeature: Sendable {
 
             case let .openRecallLandingFromNotification(recallEventID):
                 // 회수 알림 landing — recallEventID 로 단건 entry 를 서버 fetch 해 ③ 상세를 push 한다
-                // (로컬 피드에 없을 수 있어 항상 fetch — 빈 상세 금지, codex-2). 404·네트워크 실패면
+                // (로컬 피드에 없을 수 있어 항상 fetch — 빈 상세 금지). 404·네트워크 실패면
                 // 조용히 포기(홈 한 칸이 always-on fallback). 연속 탭은 cancelInFlight 로 마지막만.
                 // 알림 탭 = opened(양성)는 fetch·effect 취소 둘 다와 분리한다 — 별도 비취소
                 // fire-and-forget effect 라 다음 알림 탭의 cancelInFlight 가 이전 opened POST 를
                 // in-flight 중 취소하지 못한다. landing push 는 alreadyReportedOpen:true 라 이 보고가
-                // 그 알림의 유일한 opened 경로 → 취소로 유실되면 복구 불가(codex). best-effort(try?)
+                // 그 알림의 유일한 opened 경로 → 취소로 유실되면 복구 불가. best-effort(try?)
                 // 라 네트워크 실패엔 양보하되 취소로는 유실되지 않는다(reaction 1:1 정확도).
                 let reportOpened = Effect<Action>.run { _ in
                     try? await apiClient.recordRecallReaction(eventID: recallEventID, reaction: .opened)

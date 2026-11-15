@@ -17,7 +17,7 @@ class IngestChannel(StrEnum):
     APP_INTENT = "appIntent"
     APP_SHARE_SHEET = "appShareSheet"
     APP_DIRECT_INPUT = "appDirectInput"
-    # 채팅 proposal 확정으로 생성된 기록 (propose_create_memo/schedule — journal 2026-06-10).
+    # 채팅 proposal 확정으로 생성된 기록 (propose_create_memo/schedule).
     CHAT = "chat"
     # 캘린더 탭 날짜에서 사용자가 직접 만든 일정 (confirmedInstances schedule — 2026-06-15).
     APP_CALENDAR = "appCalendar"
@@ -131,7 +131,7 @@ class SyncState:
 class MochiItem:
     """MochiItem aggregate root — URL·이미지·링크를 통합한 모찌 항목.
 
-    Intent 표현 (2026-06-04 빅뱅 — lab FINDINGS):
+    Intent 표현 (2026-06-04 빅뱅):
     - ``intent_instances``: LLM 이 펼친 의도들. 저장된 instance 는 곧 active. **위계 없음** —
       같은 type 다중 허용. 점수(applicability/confidence)·대표(primary)·threshold 폐기.
       worker 가 비동기로 채운다(별도 ``intent_instances`` 테이블).

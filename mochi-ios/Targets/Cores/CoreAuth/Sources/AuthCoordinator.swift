@@ -127,7 +127,7 @@ public final class AuthCoordinator: AuthTokenProvider, @unchecked Sendable {
             if record.userID == session.user.id, record.expiresAt > reissueThreshold {
                 return
             }
-            // 다른 계정의 record 는 재발급 *시도 전에* 폐기한다 (codex review P1) —
+            // 다른 계정의 record 는 재발급 *시도 전에* 폐기한다 —
             // 발급이 실패(오프라인 등)해도 stale 토큰이 남아 ShareExt 가 이전 계정
             // 명의로 업로드하는 cross-account 오염을 원천 차단. 같은 계정의 만료 임박
             // record 는 발급 실패 시 계속 쓸 수 있도록 유지한다.
@@ -176,7 +176,7 @@ public final class AuthCoordinator: AuthTokenProvider, @unchecked Sendable {
 
     /// 401 응답 후 호출 — refresh 가 성공하면 새 access token 을 반환. 실패하면 throw.
     ///
-    /// **단일 비행 보장 (codex review P1):** "snapshot → setPending" 두 단계가 분리되어 있으면
+    /// **단일 비행 보장:** "snapshot → setPending" 두 단계가 분리되어 있으면
     /// 두 보호 요청이 동시에 만료를 보고 각자 refresh 를 시작해 rotating refresh token 한 장으로
     /// 두 번 호출 → 서버가 두 번째 호출을 reuse_detected 로 거부 → 정상 사용자도 로그아웃.
     /// 모든 lookup-or-install 을 하나의 lock scope 에서 처리해 race 를 닫는다.

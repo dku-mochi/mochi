@@ -1,6 +1,6 @@
 """findReferenceUrls — 캡처에 붙일 "참고 가능한 실재 URL" 을 찾아오는 tool.
 
-배경 (lab/active/shopping-product-link exp4~7, journal 2026-06-14):
+배경:
   네이버 검색 API(shop/local/blog/news 단일 백본) + Tavily(해외/일반 web 폴백)로 캡처가
   가리킨 대상의 실재 URL 을 찾는다. 환각 0(전부 실재 검색). 무용한 결과는 final judge
   게이트가 빈손으로 막는다("혹시 이거?" 신뢰의 핵심).
@@ -10,9 +10,9 @@ exp 와의 차이 — 키워드 추출은 이 tool 이 아니라 **메인 에이
   보는 메인이 queries+category 를 결정해 넘기면 그 원인이 제거된다(라이브 테스트 가설1).
   따라서 이 tool 은 route 단계 없이 search→judge 게이트→액션티어 랭킹만 수행한다.
 
-  exp5~7 의 self-critique loop 는 제거했다 — baseline 에서 refine 기여가 낮았고(대부분 1-iter),
-  무엇보다 loop 가 매 iter `collected` 를 덮어써 judge 가 마지막 검색만 보던 버그가 있었다
-  (codex 리뷰 2026-06-14). 메인이 좋은 키워드를 주므로 검색 1회 + judge 게이트로 충분하다.
+  self-critique loop 는 제거했다 — baseline 에서 refine 기여가 낮았고(대부분 1-iter),
+  무엇보다 loop 가 매 iter `collected` 를 덮어써 judge 가 마지막 검색만 보던 버그가 있었다.
+  메인이 좋은 키워드를 주므로 검색 1회 + judge 게이트로 충분하다.
 
 내부 LLM(judge=3.5-flash)은 ``_shared_client`` 를 재사용하고 토큰을 ``ToolUsage`` 로 반환해
 orchestrator 가 비용에 집계한다. 외부 검색은 고정 호스트(openapi.naver.com / api.tavily.com)라
@@ -48,8 +48,8 @@ _MAX_VISIBLE_URLS = 5
 _TAG_RE = re.compile(r"<[^>]+>")
 
 
-# ── judge 프롬프트 (lab exp5~7 + per-URL 전환 2026-06-14) ──────────────────────
-# picks 의 usefulness 는 "자료 품질"이 아니라 "캡처 대상 일치도"다(codex 토론). 5/4 만 받는다 —
+# ── judge 프롬프트 (per-URL 전환 2026-06-14) ──────────────────────────────────
+# picks 의 usefulness 는 "자료 품질"이 아니라 "캡처 대상 일치도"다. 5/4 만 받는다 —
 # 빗나간 링크는 picks 에 넣지 않고(=대상 아님), reference 로 자연 강등시킨다. 5 만 iOS "딱 맞아요"
 # 뱃지를 켜므로 4("같은 대상군이나 정확한 그것인지 확신 부족")는 액션은 주되 뱃지는 끈다.
 _JUDGE_PROMPT = (
@@ -87,11 +87,11 @@ class _FinalJudge(BaseModel):
 
 def _exact_picks(picks: list[_Pick]) -> list[_Pick]:
     """대상 일치도 4/5 만 남긴다 — judge 가 빗나간 링크(3 이하)를 picks 에 넣어도(대상이 아님)
-    구조검증 hard-fail 없이 걸러내, 그 URL 은 reference 로 자연 강등시킨다(codex 리뷰 내성)."""
+    구조검증 hard-fail 없이 걸러내, 그 URL 은 reference 로 자연 강등시킨다."""
     return [p for p in picks if p.usefulness >= 4]
 
 
-# ── 액션티어 랭킹 (결정적, LLM 아님 — lab exp7 정본) ───────────────────────────
+# ── 액션티어 랭킹 (결정적, LLM 아님) ────────────────────────────────────────
 # tier = "들어가서 바로 액션(예약/구매/시청)이 되는가 + 정확한가". 작을수록 우선.
 #   0 원본일치 / 1 공식 / 2 편집샵 / 3 오픈마켓·직구·가격비교 / 4 정보.
 _DOMAIN_TIER: dict[str, float] = {
@@ -331,7 +331,7 @@ class ResourceFinderTool(Tool[ResourceFinderInput, ResourceFinderOutput]):
         return out, tin, tout
 
 
-# ── 검색·정제·랭킹 헬퍼 (lab exp5~7 정본) ─────────────────────────────────────
+# ── 검색·정제·랭킹 헬퍼 ──────────────────────────────────────────────────────
 def _strip_tags(text: str) -> str:
     return _TAG_RE.sub("", text).strip()
 
@@ -627,9 +627,9 @@ def _dedupe_key(url: str) -> str:
         host = host[2:]
     key = host.rstrip("/")
     # 쿼리로 식별되는 페이지(youtube ?v=, goods_view.php?goodsNo=, 검색 ?q= 등)가 host+path
-    # 만으로 충돌하면 한 pick 이 다른 URL 에 usefulness 를 잘못 전염시킨다(codex P1). judge 는 후보
+    # 만으로 충돌하면 한 pick 이 다른 URL 에 usefulness 를 잘못 전염시킨다. judge 는 후보
     # link 를 그대로 복사하므로(프롬프트) 원본 쿼리 보존 비교로 충분. 쿼리 값은 대소문자를 구분
-    # (youtube ?v=AbC ≠ ?v=abc, 토큰/ID) 하므로 host·path 와 달리 소문자화하지 않는다(codex P1).
+    # (youtube ?v=AbC ≠ ?v=abc, 토큰/ID) 하므로 host·path 와 달리 소문자화하지 않는다.
     try:
         query = urlparse(url).query
     except ValueError:
@@ -711,7 +711,7 @@ def _label(provider: str, role: str) -> str:
 
 
 # role 은 provider 가 가리키는 행동 종류(iOS roleIcon·CTA 동사). payload 단위 하나가 아니라
-# URL 단위로 정해야 한다 — local 이라고 블로그 후기까지 "예약"이 되면 안 된다(codex 리뷰).
+# URL 단위로 정해야 한다 — local 이라고 블로그 후기까지 "예약"이 되면 안 된다.
 _PROVIDER_ROLE: dict[str, str] = {
     "naver_map": "reserve",
     "catchtable": "reserve",
@@ -999,7 +999,7 @@ def _rank_results(
     if not judge.useful:
         return []
     # picked 가 랭킹의 핵심 신호이므로 raw string 이 아니라 _dedupe_key 로 정규화 비교한다 —
-    # judge 가 trailing slash·m.·쿼리만 손대도 매칭이 깨지지 않게(codex 리뷰).
+    # judge 가 trailing slash·m.·쿼리만 손대도 매칭이 깨지지 않게.
     picked = {_dedupe_key(p.url) for p in judge.picks if p.url}
     profile = _rank_profile(payload)
     rows: list[_Cand] = []
@@ -1015,7 +1015,7 @@ def _rank_results(
         # 예약/구매 액션 링크는 judge 가 "정말 그 대상"이라 인정(picked)한 것만 상위 액션 슬롯에.
         # judge 가 안 고른 액션(엉뚱한 가게·다른 SKU·본품 아닌 부속품)은 참고로 강등하고 뒤로 민다.
         # 의미 판단을 룰이 아니라 judge 에 맡겨, 진짜 그 부속품을 찾는 캡처는 그대로 액션으로 산다.
-        # 경계는 "synthetic 여부"가 아니라 "링크 종류"다(codex 토론): real PDP/place URL 은
+        # 경계는 "synthetic 여부"가 아니라 "링크 종류"다: real PDP/place URL 은
         # "이게 그 대상"이라는 주장이라 picked 가 없으면(judge 확신 0) 강등하지만, synthetic 검색
         # 상태 링크는 "이 검색에서 이어서 확인"하는 핸드오프라 picks=[] 여도 fallback 액션으로 남는다.
         demoted = bucket == "primary_action" and not is_picked and not is_synthetic
@@ -1027,7 +1027,7 @@ def _rank_results(
     results: list[RankedUrl] = []
     for c in _select_diverse(rows, profile):
         # 강등된 액션은 출력의 CTA·role·tier 까지 참고로 낮춘다 — bucket 만 바꾸면 화면엔
-        # 여전히 "쿠팡에서 보기" 액션 버튼으로 나가던 버그(codex 리뷰).
+        # 여전히 "쿠팡에서 보기" 액션 버튼으로 나가던 버그.
         role = "reference" if c.demoted else _role(c.provider, payload)
         label = "관련 링크 보기" if c.demoted else _label(c.provider, role)
         tier_num = 4.0 if c.demoted else c.tier_num

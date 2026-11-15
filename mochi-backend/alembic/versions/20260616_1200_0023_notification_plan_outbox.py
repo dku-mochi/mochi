@@ -1,7 +1,7 @@
 """notification_plan + notification_outbox — 능동 회수 알림 발송 스키마.
 
-"생성 분리(notification_plan) / 발송 통합(notification_outbox)". 정본
-`journal/proactive-recall/schema.md` §1~§4. plan=계획(stages JSONB, 1 row), outbox=발송+반응 큐
+"생성 분리(notification_plan) / 발송 통합(notification_outbox)".
+plan=계획(stages JSONB, 1 row), outbox=발송+반응 큐
 (mochi_item_outbox 패턴의 시간축 확장 — BigInteger PK, FOR UPDATE SKIP LOCKED 클레임).
 
 closed enum(plan_kind/status/cancel_reason/kind/skip_reason 일부)은 CheckConstraint 로 강제(0019
@@ -80,7 +80,7 @@ def upgrade() -> None:
         "notification_plan",
         ["status", "next_eligible_at"],
     )
-    # 같은 source_intent 에 active plan 1개만(plan 폭증 방지, codex-3). 앱 read-then-write 만으론
+    # 같은 source_intent 에 active plan 1개만(plan 폭증 방지). 앱 read-then-write 만으론
     # worker_concurrency 동시성에서 race → DB 부분 UNIQUE 로 보장. 충돌 시 유스케이스가 skip.
     op.create_index(
         "ux_notification_plan_active_intent",
@@ -139,7 +139,7 @@ def upgrade() -> None:
             name="ck_no__status_enum",
         ),
         # plan 기반 row 는 두 seq 가 항상 채워져야 한다 — 안 그러면 부분 UNIQUE 가 NULL 을 distinct
-        # 취급해 중복 발송 방지 불변식이 DB 레벨에서 붕괴한다(schema.md §5). 트랙 C 직행(plan_id NULL)은 허용.
+        # 취급해 중복 발송 방지 불변식이 DB 레벨에서 붕괴한다. 트랙 C 직행(plan_id NULL)은 허용.
         sa.CheckConstraint(
             "plan_id IS NULL OR (stage_seq IS NOT NULL AND occurrence_seq IS NOT NULL)",
             name="ck_no__plan_row_has_seq",

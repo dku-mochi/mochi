@@ -71,7 +71,7 @@ def test_row_to_entity_place_requires_coordinates() -> None:
 
 def test_row_to_entity_place_revalidates_bounds_at_projection() -> None:
     """entity value 는 LLM 이 복사한 문자열 — tool 검증을 통과했다고 믿지 않고 projection 경계에서
-    한국 bounds·finite 를 재검증한다(오복사·주입 가드, codex P2). 스케일 원값(×1e7)·NaN·bool 전부 폐기."""
+    한국 bounds·finite 를 재검증한다(오복사·주입 가드). 스케일 원값(×1e7)·NaN·bool 전부 폐기."""
     unscaled = json.dumps({"name": "몽탄", "lat": 375360103, "lng": 1269722500})  # ×1e7 원값 오복사
     nan = json.dumps({"name": "몽탄", "lat": float("nan"), "lng": 126.97})
     bool_coords = json.dumps({"name": "몽탄", "lat": True, "lng": 126.97})
@@ -126,7 +126,7 @@ def test_persistable_entities_rejects_broken_place_keeps_rest() -> None:
 
 def test_row_to_entity_place_map_url_allowlist() -> None:
     """mapUrl 은 iOS 가 그대로 openURL — 네이버 지도 https 만 통과, 그 외는 None 으로 떨어뜨려
-    iOS 가 장소명 검색 URL 을 재합성하게 한다(임의 URL open 표면 차단, codex P2). 장소 자체는 유지."""
+    iOS 가 장소명 검색 URL 을 재합성하게 한다(임의 URL open 표면 차단). 장소 자체는 유지."""
     evil = _row(entities=[("place", _place_json(mapUrl="https://evil.example.com/phish"))])
     http_only = _row(entities=[("place", _place_json(mapUrl="http://map.naver.com/p/search/x"))])
     good = _row(entities=[("place", _place_json(mapUrl="https://place.naver.com/restaurant/123"))])

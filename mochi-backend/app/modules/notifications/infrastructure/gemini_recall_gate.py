@@ -1,6 +1,6 @@
 """트랙 C 회수 선별 게이트 — Vertex AI Gemini 어댑터 (`RecallGatePort` 구현, 2026-06-17).
 
-정본 `journal/proactive-recall/track-c-llm-gate-decision.md` §5,§7. 트랙 A/B 의 `GeminiRecallPlanner`
+트랙 A/B 의 `GeminiRecallPlanner`
 와 동형(genai client / call / function-call 추출 패턴 재사용). 단일 함수콜 `submitRecallDecision`
 구조화 출력 — tool loop 불필요(v5 프롬프트는 컨텍스트 자급). 비용 우선 flash-lite + thinking_budget=0.
 temperature=0.2 는 실험(v5) 재현값 — 다양성은 프롬프트 anti-template 가 담당.
@@ -107,7 +107,7 @@ def _to_decision(args: dict[str, Any]) -> RecallGateDecision:
     ci = args.get("chosen_index")
     message = str(args.get("message", "") or "").strip()
     if recall and not message:
-        # generic copy 금지(§4): 본문 없으면 발송 가치 없음 — decline.
+        # generic copy 금지: 본문 없으면 발송 가치 없음 — decline.
         return _DECLINE
     return RecallGateDecision(
         recall=recall,

@@ -9,14 +9,14 @@ import DesignSystem
 /// riseIn stagger 등장, PressableStyle, cardShadow, 보라 그라데이션 CTA, 파스텔 이유 칩.
 /// 회수=분류 아님: category 통계·주제 라벨 0개. "왜 지금 떠올렸나"(이유 칩)만 신호로 노출.
 ///
-/// 접근성(codex-9): 이유 칩 VoiceOver 의미 라벨 · Dynamic Type 큰 글자에서 미리보기 2줄 확장 ·
+/// 접근성: 이유 칩 VoiceOver 의미 라벨 · Dynamic Type 큰 글자에서 미리보기 2줄 확장 ·
 /// 상세 액션 가로→세로 스택 전환 · destructive "그만"은 primary 와 시각적 분리.
 
 // MARK: - 회수 이유의 시각 언어 (분류 아님 — "왜 지금" 신호의 단일 색 소스)
 
 /// reason → 색을 한 곳에서 정한다. 칩·썸네일·상세 히어로가 같은 reason엔 같은 색을 쓰도록 통일
 /// (이전엔 칩 tint 와 썸네일 grad 가 reason마다 따로 놀아 같은 "왜 지금"이 두 색으로 보였다).
-/// 색은 UI 전용이라 ``RecallReasonKind``(Feature) 가 아니라 View 레이어에 둔다(ux-ui §3).
+/// 색은 UI 전용이라 ``RecallReasonKind``(Feature) 가 아니라 View 레이어에 둔다.
 private extension RecallReasonKind {
     /// 단일 강조색 — 칩 글자·테두리, 상세 워터마크·primary 톤.
     var tint: Color {
@@ -166,8 +166,8 @@ private struct RecallThumb: View {
 // MARK: - ① 홈 "한 칸" (고정 틀 + 가장 가치 높은 1개 미리보기)
 
 /// 홈에 고정으로 노출되는 회수 요약 카드. count + 최상위 1건 미리보기(안 눌러도 떠오르게).
-/// 비면 "지금은 없어요"로 채워 레이아웃이 출렁이지 않게 한다(고정 틀, ux-ui §2·§6).
-/// Dynamic Type 확대 시 미리보기는 2줄까지 확장(잘림 금지, codex-9).
+/// 비면 "지금은 없어요"로 채워 레이아웃이 출렁이지 않게 한다(고정 틀).
+/// Dynamic Type 확대 시 미리보기는 2줄까지 확장(잘림 금지).
 struct RecallEntryCard: View {
     let entries: [RecallFeedEntryDTO]
     let onTap: () -> Void
@@ -477,7 +477,7 @@ public struct RecallDetailView: View {
     @Bindable var store: StoreOf<RecallDetailFeature>
     /// 진입 시 섹션 순차 등장 트리거 (한 번만).
     @State private var hasEntered = false
-    /// Dynamic Type 큰 글자면 액션 버튼을 세로로 쌓는다(가로 잘림 방지, codex-9).
+    /// Dynamic Type 큰 글자면 액션 버튼을 세로로 쌓는다(가로 잘림 방지).
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     public init(store: StoreOf<RecallDetailFeature>) {
@@ -563,7 +563,7 @@ public struct RecallDetailView: View {
         .accessibilityElement(children: .combine)
     }
 
-    /// 저장한 원본 — 탭하면 원본 mochiItem 상세를 연다(원본 대체 금지, ux-ui §5).
+    /// 저장한 원본 — 탭하면 원본 mochiItem 상세를 연다(원본 대체 금지).
     private var originCard: some View {
         Button { store.send(.openOriginalTapped) } label: {
             HStack(spacing: HomeDesign.Spacing.md) {
@@ -796,7 +796,7 @@ private struct RecallAction: View {
     }
 
     /// primary(filled)는 보라 그라데이션 + 글로우로 "목적 수행"을 가장 또렷한 행동 신호로 띄운다.
-    /// 나머지는 단색 캡슐(보조) / 투명+점선(destructive, 오탭 분리, codex-9).
+    /// 나머지는 단색 캡슐(보조) / 투명+점선(destructive, 오탭 분리).
     @ViewBuilder
     private var capsuleBackground: some View {
         if filled {

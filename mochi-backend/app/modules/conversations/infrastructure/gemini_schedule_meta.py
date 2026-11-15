@@ -3,7 +3,7 @@
 비용 최우선: digest 요약기와 동일 flash-lite + ``thinking_budget=0``. ``response_schema`` 로
 ``{category, summary}`` JSON 을 강제한다. 호출/파싱 실패는 빈 메타로 흡수 — 일정 카드 생성을
 막지 않는다(메타 없이 항목 생성 → iOS '정리 중' 폴백). 재분석이 아니라 메타 채움만 한다
-(DOMAIN_DESIGN §5.2 "재분석 안 함" 유지 — instance 는 채팅 확정값 그대로).
+("재분석 안 함" 유지 — instance 는 채팅 확정값 그대로).
 
 agent prompts 모듈을 import 하지 않고 자체 상수로 둔다(모듈 경계 — conversations 가 agent 에
 의존하지 않게. ``gemini_monthly_digest`` 와 동일 방침). category/summary 기준은

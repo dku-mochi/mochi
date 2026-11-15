@@ -137,7 +137,7 @@ class MochiItemRepository(Protocol):
         summary: str | None,
     ) -> bool:
         """제공된(non-None) 콘텐츠 필드만 갱신 + updated_at bump — 채팅 수정 proposal 확정
-        (`PATCH /mochi_items/{id}`, journal 2026-06-10). None = 변경 없음(null 클리어 미지원).
+        (`PATCH /mochi_items/{id}`). None = 변경 없음(null 클리어 미지원).
         owner-scoped, 없으면 False."""
         ...
 

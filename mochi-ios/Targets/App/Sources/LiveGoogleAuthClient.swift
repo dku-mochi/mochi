@@ -16,7 +16,7 @@ final class LiveGoogleAuthClient: GoogleAuthClient {
     func authorize() async throws -> GoogleRawCredential {
         // docs/TODO.md §3.1 에서 Reversed Client ID 를 채우기 전까지 Info.plist 에 placeholder 가
         // 남아 있다. 그대로 사용자에게 흐릿한 SDK 에러를 보여주는 대신, 빌드 단계에서 잡지 못한 설정 누락을
-        // 명시적으로 알린다 (codex review P1).
+        // 명시적으로 알린다.
         if Self.googleClientIDLooksLikePlaceholder() {
             throw AuthError.providerFailed(
                 message: "Google 로그인 설정이 비어 있습니다. docs/TODO.md §3.1 의 Reversed Client ID 를 채워 주세요."

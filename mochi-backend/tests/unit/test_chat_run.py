@@ -508,7 +508,7 @@ def test_router_tool_registry_is_read_only() -> None:
     }
     assert bare == base
 
-    # web_search 는 키가 있을 때만 — 키 발급이 머지를 블록하지 않는 설계 (journal 2026-06-10).
+    # web_search 는 키가 있을 때만 — 키 발급이 머지를 블록하지 않는 설계.
     # view_item_image 는 버킷이 있을 때만 — 없는데 등록하면 항상 "no image" 로 모델을 오도.
     full = {
         tool.name

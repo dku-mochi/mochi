@@ -156,7 +156,7 @@ def test_accessory_kept_when_user_wants_it() -> None:
 def test_picks_empty_demotes_real_action_keeps_synthetic() -> None:
     """picks=[] (judge 확신 0): 실 PDP 는 reference 로 강등, 합성 검색 링크만 액션 유지.
 
-    경계는 'synthetic 여부'가 아니라 '검색-상태 링크 종류'다(codex 토론). 실 PDP 는 '이게
+    경계는 'synthetic 여부'가 아니라 '검색-상태 링크 종류'다. 실 PDP 는 '이게
     그 대상'이라는 주장이라 확신이 없으면 강등하지만, 합성 검색은 핸드오프라 살린다.
     """
     payload = ResourceFinderInput(
@@ -210,7 +210,7 @@ def test_exact_picks_drops_below_four() -> None:
 
 def test_dedupe_key_distinguishes_query_identified_pages() -> None:
     """쿼리로 식별되는 페이지는 host+path 가 같아도 다른 키 — 한 pick 이 다른 URL 에
-    usefulness 를 잘못 전염시키지 않게(codex P1)."""
+    usefulness 를 잘못 전염시키지 않게."""
     a = "https://www.youtube.com/watch?v=AAA"
     b = "https://www.youtube.com/watch?v=BBB"
     assert _dedupe_key(a) != _dedupe_key(b)

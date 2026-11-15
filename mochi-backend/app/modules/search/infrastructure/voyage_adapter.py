@@ -4,7 +4,7 @@
 - 쿼리 임베딩 실패 → ``None`` 반환 → vector 후보 생략, BM25 단독 degrade
 - 리랭크 실패 → RRF 순서 그대로 상위 N 반환
 
-모델 선택 근거는 ``lab/active/rag-rerank-eval``(2026-06-12) — rerank-2.5 가
+모델 선택 근거(2026-06-12) — rerank-2.5 가
 vector 단독 대비 R@1 0.15→0.43, MRR 0.56→0.88.
 """
 

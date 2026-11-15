@@ -2,7 +2,7 @@
 
 모듈 경계 규칙(ARCHITECTURE §3.3)상 다른 모듈은 agent ``infrastructure/`` 를 직접
 import 할 수 없다 — cross-module 진입은 ``application/`` 까지만. 채팅 web_fetch
-(conversations, journal 2026-06-10 PR-4)가 SSRF·redirect 재검증·사이즈·MIME 가드를
+(conversations)가 SSRF·redirect 재검증·사이즈·MIME 가드를
 **무수정 재사용**하도록 이 팩토리를 경유한다.
 """
 

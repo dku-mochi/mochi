@@ -1,7 +1,7 @@
 """conversations · messages · message_citations ORM — 마이그레이션 0016 과 1:1.
 
 대화는 서버 단일원천(iOS Realm 미러 없음). run 영속은 트리거한 user message 행의
-``run_id/run_status/run_started_at`` 3컬럼 — 별도 run 테이블 없음 (journal 2026-06-10).
+``run_id/run_status/run_started_at`` 3컬럼 — 별도 run 테이블 없음.
 """
 
 from datetime import datetime

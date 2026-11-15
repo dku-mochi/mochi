@@ -20,7 +20,7 @@ router = APIRouter(prefix="/search", tags=["search"])
 # (mochi_items 라우터가 search.infrastructure 를 import 하면 모듈 경계 위반이라 여기 둔다).
 similar_router = APIRouter(prefix="/mochi_items", tags=["search"])
 
-# voyage-4-large cosine 유사도 보수적 임계 — lab 벤치(rag-rerank-eval)로 튜닝 (DOMAIN_DESIGN §10.5).
+# voyage-4-large cosine 유사도 보수적 임계 — 벤치로 튜닝.
 # 0.6→0.7 상향: 0.6 은 의미상 약하게 가까운 항목까지 통과시켜 "관련 없는 기록"이 섞였다(사용자 리포트).
 _SIMILAR_MIN_SCORE = 0.7
 
@@ -99,7 +99,7 @@ async def get_similar_items(
     user: CurrentUser,
     limit: int = 6,
 ) -> SimilarItemsResponse:
-    """상세 화면 "비슷한 기록" — 대상 item 의 cosine 이웃 top-k (DOMAIN_DESIGN §10.5).
+    """상세 화면 "비슷한 기록" — 대상 item 의 cosine 이웃 top-k.
 
     자기 제외 + owner-scoped + 임계값(`_SIMILAR_MIN_SCORE`) 미달이면 빈 배열 + 같은 출처 URL
     dedup. 대상에 embedding 이 없으면(미색인·`VOYAGE_API_KEY` 미설정) 빈 배열로 degrade —

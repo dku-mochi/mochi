@@ -1,6 +1,6 @@
 """PostgresHybridIndex.similar 검증 — fake 세션으로 SQL·바인드와 reasons 파생을 캡처한다.
 
-similar 는 "비슷한 기록"(상세 화면, DOMAIN_DESIGN §10.5)을 위한 seed-vector 이웃 조회다.
+similar 는 "비슷한 기록"(상세 화면)을 위한 seed-vector 이웃 조회다.
 실DB 없이 단위로 검증하는 항목 — (a) 자기 제외·owner-scope SQL 구조, (b) 임계값/fanout 바인드,
 (c) 같은 출처 URL dedup, (d) reasons(sharedSource/sameIntent) 파생, (e) 대상에
 embedding 이 없을 때(메인 쿼리 0행) 빈 배열 degrade — 두 번째 intent 쿼리도 생략.

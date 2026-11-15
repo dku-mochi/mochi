@@ -176,7 +176,7 @@ public protocol APIProtocol: Sendable {
     func get_mochi_item_api_v1_mochi_items__mochi_item_id__get(_ input: Operations.get_mochi_item_api_v1_mochi_items__mochi_item_id__get.Input) async throws -> Operations.get_mochi_item_api_v1_mochi_items__mochi_item_id__get.Output
     /// Update Mochi Item
     ///
-    /// 채팅 수정 proposal 확정 실행 — 콘텐츠 + instance 변경을 한 트랜잭션으로 (journal 2026-06-10 M1).
+    /// 채팅 수정 proposal 확정 실행 — 콘텐츠 + instance 변경을 한 트랜잭션으로.
     ///
     /// - 콘텐츠(text/userMemo/summary): 제공 필드만 갱신 (null 클리어 미지원).
     /// - instances[]: payload 병합("일정 3시로" = time 만 교체) · label · lifecycle 전이
@@ -330,7 +330,7 @@ public protocol APIProtocol: Sendable {
     func search_api_v1_search_post(_ input: Operations.search_api_v1_search_post.Input) async throws -> Operations.search_api_v1_search_post.Output
     /// Get Similar Items
     ///
-    /// 상세 화면 "비슷한 기록" — 대상 item 의 cosine 이웃 top-k (DOMAIN_DESIGN §10.5).
+    /// 상세 화면 "비슷한 기록" — 대상 item 의 cosine 이웃 top-k.
     ///
     /// 자기 제외 + owner-scoped + 임계값(`_SIMILAR_MIN_SCORE`) 미달이면 빈 배열 + 같은 출처 URL
     /// dedup. 대상에 embedding 이 없으면(미색인·`VOYAGE_API_KEY` 미설정) 빈 배열로 degrade —
@@ -728,7 +728,7 @@ extension APIProtocol {
     }
     /// Update Mochi Item
     ///
-    /// 채팅 수정 proposal 확정 실행 — 콘텐츠 + instance 변경을 한 트랜잭션으로 (journal 2026-06-10 M1).
+    /// 채팅 수정 proposal 확정 실행 — 콘텐츠 + instance 변경을 한 트랜잭션으로.
     ///
     /// - 콘텐츠(text/userMemo/summary): 제공 필드만 갱신 (null 클리어 미지원).
     /// - instances[]: payload 병합("일정 3시로" = time 만 교체) · label · lifecycle 전이
@@ -984,7 +984,7 @@ extension APIProtocol {
     }
     /// Get Similar Items
     ///
-    /// 상세 화면 "비슷한 기록" — 대상 item 의 cosine 이웃 top-k (DOMAIN_DESIGN §10.5).
+    /// 상세 화면 "비슷한 기록" — 대상 item 의 cosine 이웃 top-k.
     ///
     /// 자기 제외 + owner-scoped + 임계값(`_SIMILAR_MIN_SCORE`) 미달이면 빈 배열 + 같은 출처 URL
     /// dedup. 대상에 embedding 이 없으면(미색인·`VOYAGE_API_KEY` 미설정) 빈 배열로 degrade —
@@ -1362,7 +1362,7 @@ public enum Components {
                 case score
             }
         }
-        /// 채팅 proposal 확정으로 생성되는 **사용자 확정 instance** — 분석 생략 (§5.2 예외).
+        /// 채팅 proposal 확정으로 생성되는 **사용자 확정 instance** — 분석 생략.
         ///
         /// 사용자가 카드에서 확정한 구조라 LLM 재분석이 덮으면 안 된다 — instance 가 곧바로
         /// active 로 태어나고 outbox(분석 파이프라인)에 들어가지 않는다.
@@ -2158,7 +2158,7 @@ public enum Components {
         ///
         /// iOS는 본 스키마와 동일한 모양의 ``MochiItemIngestRequest`` 를 송신한다 — 양쪽이 OpenAPI 로 검증된다.
         /// ``confirmedInstances`` 가 있으면 분석 파이프라인을 생략하고 확정 instance 를 직접 생성한다
-        /// (채팅 schedule proposal 확정 — DOMAIN_DESIGN §5.2 예외).
+        /// (채팅 schedule proposal 확정).
         ///
         /// - Remark: Generated from `#/components/schemas/MochiItemCreateRequest`.
         public struct MochiItemCreateRequest: Codable, Hashable, Sendable {
@@ -2720,9 +2720,9 @@ public enum Components {
         }
         /// 알림 반응 종류 — iOS 가 보고하는 3종.
         ///
-        /// - opened: 알림 탭(양성 신호). spaced 면 회수 소생 트리거(HIGH-2).
+        /// - opened: 알림 탭(양성 신호). spaced 면 회수 소생 트리거.
         /// - dismissed: soft 부정(cooldown 신호). 멱등.
-        /// - stop: "이 기억 그만" 영구 부정 → plan cancelled(codex-7 1:1).
+        /// - stop: "이 기억 그만" 영구 부정 → plan cancelled(1:1).
         ///
         /// - Remark: Generated from `#/components/schemas/ReactionKind`.
         @frozen public enum ReactionKind: String, Codable, Hashable, Sendable, CaseIterable {
@@ -2853,8 +2853,7 @@ public enum Components {
         }
         /// 알림 반응 보고 — iOS 가 알림 탭/dismiss/그만 시 `recallEventID`(=outbox.event_id)로 보고.
         ///
-        /// opened=양성, dismissed=soft 부정, stop="이 기억 그만" 영구(plan cancel). 신호 의미는
-        /// notification-agent.md §6, 반응→상태전이 1:1 은 ux-ui.md §4.
+        /// opened=양성, dismissed=soft 부정, stop="이 기억 그만" 영구(plan cancel).
         ///
         /// - Remark: Generated from `#/components/schemas/RecordRecallReactionRequest`.
         public struct RecordRecallReactionRequest: Codable, Hashable, Sendable {
@@ -3343,7 +3342,7 @@ public enum Components {
         }
         /// "왜 비슷한지" 연결 이유 신호 — 서버 계산 enum. 한국어 카피는 iOS 가 매핑한다
         /// (카피 변경이 ⓪ openapi 폭포를 안 타도록). 1차는 기본 컬럼만 쓰는 3종 — 엔티티 겹침은
-        /// 후속(`DOMAIN_DESIGN.md` §10.5).
+        /// 후속.
         ///
         /// - Remark: Generated from `#/components/schemas/SimilarReasonKind`.
         @frozen public enum SimilarReasonKind: String, Codable, Hashable, Sendable, CaseIterable {
@@ -6171,7 +6170,7 @@ public enum Operations {
     }
     /// Update Mochi Item
     ///
-    /// 채팅 수정 proposal 확정 실행 — 콘텐츠 + instance 변경을 한 트랜잭션으로 (journal 2026-06-10 M1).
+    /// 채팅 수정 proposal 확정 실행 — 콘텐츠 + instance 변경을 한 트랜잭션으로.
     ///
     /// - 콘텐츠(text/userMemo/summary): 제공 필드만 갱신 (null 클리어 미지원).
     /// - instances[]: payload 병합("일정 3시로" = time 만 교체) · label · lifecycle 전이
@@ -7766,7 +7765,7 @@ public enum Operations {
     }
     /// Get Similar Items
     ///
-    /// 상세 화면 "비슷한 기록" — 대상 item 의 cosine 이웃 top-k (DOMAIN_DESIGN §10.5).
+    /// 상세 화면 "비슷한 기록" — 대상 item 의 cosine 이웃 top-k.
     ///
     /// 자기 제외 + owner-scoped + 임계값(`_SIMILAR_MIN_SCORE`) 미달이면 빈 배열 + 같은 출처 URL
     /// dedup. 대상에 embedding 이 없으면(미색인·`VOYAGE_API_KEY` 미설정) 빈 배열로 degrade —

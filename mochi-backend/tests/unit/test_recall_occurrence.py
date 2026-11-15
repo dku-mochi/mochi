@@ -2,7 +2,6 @@
 
 relative(offset 음/양·time_hint·whole-day vs T) / recurring(interval·max·until) /
 spaced(opened→전진·dismissed→terminal·미반응→대기) + edge(과거 anchor→stale).
-정본 schema.md §3·§4.
 """
 
 from datetime import UTC, datetime, timedelta

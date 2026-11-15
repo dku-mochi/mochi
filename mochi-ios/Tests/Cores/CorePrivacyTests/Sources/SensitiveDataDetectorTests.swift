@@ -104,19 +104,19 @@ final class SensitiveDataDetectorTests: XCTestCase {
     }
 
     func test_ignoresImpossibleDateNationalID() {
-        // 2월 31일 — 형식은 맞지만 불가능한 날짜(codex P2: 월별 일수 검증).
+        // 2월 31일 — 형식은 맞지만 불가능한 날짜(월별 일수 검증).
         let signals = detector.detect(in: "코드 990231-1234567")
         XCTAssertNil(signals.first { $0.type == .nationalID })
     }
 
     func test_detectsOTPCaseInsensitive() {
-        // 소문자 otp 도 잡아야 한다(codex P2: caseInsensitive).
+        // 소문자 otp 도 잡아야 한다(caseInsensitive).
         let signals = detector.detect(in: "otp 482910 입력하세요")
         XCTAssertTrue(signals.contains { $0.type == .otpCode && $0.isHighPrecision })
     }
 
     func test_detectsBearerToken() {
-        // `Bearer <token>` 형식(구분자 없는 공백) — codex P2.
+        // `Bearer <token>` 형식(구분자 없는 공백).
         let signals = detector.detect(in: "Authorization: Bearer abc123XYZ789tok")
         XCTAssertTrue(signals.contains { $0.type == .passwordOrToken && $0.isHighPrecision })
     }
@@ -137,7 +137,7 @@ final class SensitiveDataDetectorTests: XCTestCase {
         XCTAssertTrue(detector.detect(in: "").isEmpty)
     }
 
-    // MARK: - 정규식 커버리지 보강 (codex review: FN 축소)
+    // MARK: - 정규식 커버리지 보강
 
     func test_labeledSecretWithSpaces_capturesFullValue() {
         // 라벨값에 공백이 끼어도(카드번호 4그룹) textRange 가 마지막 그룹까지 덮어야 블러가 전체를 가린다.

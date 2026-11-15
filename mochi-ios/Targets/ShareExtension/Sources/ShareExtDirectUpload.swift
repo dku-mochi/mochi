@@ -79,7 +79,7 @@ enum ShareExtDirectUpload {
     ///
     /// capture token 은 **세션 사용자와 ``CaptureTokenRecord/userID`` 가 일치할 때만** 쓴다 —
     /// 메인 앱이 재발급에 실패한 채 계정이 바뀌었으면 이전 계정 명의로 업로드되는
-    /// cross-account 오염이 생기므로, 사용 지점에서도 불변식을 강제한다 (codex review P1).
+    /// cross-account 오염이 생기므로, 사용 지점에서도 불변식을 강제한다.
     /// 로컬 ``CaptureTokenRecord/expiresAt`` 으로는 **게이트하지 않는다** — 서버가 사용 시
     /// 연장하는 sliding 이라 로컬 값은 최소 보장일 뿐이고(ShareExt 자신의 캡처도 연장을
     /// 일으킨다), 만료 판단의 정본은 서버다. 서버가 거부(401)하면 큐가 처리한다.
@@ -121,7 +121,7 @@ enum ShareExtDirectUpload {
         for imageRef in imageRefs {
             if let objectKey = imageRef.objectKey, !objectKey.isEmpty {
                 // objectKey 는 정책 적용 후 생성된다(블러 정책이면 블러본 key). 방어: blurredUpload 인데
-                // 블러본이 없으면 이 objectKey 는 원본일 수 있어 재사용하지 않는다(원본 유출 방지, codex P1).
+                // 블러본이 없으면 이 objectKey 는 원본일 수 있어 재사용하지 않는다(원본 유출 방지).
                 if policy == .blurredUpload, imageRef.redactedRelativePath == nil {
                     enrichedRefs.append(imageRef)
                     continue

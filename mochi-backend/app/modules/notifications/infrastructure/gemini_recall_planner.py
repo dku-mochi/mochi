@@ -1,15 +1,15 @@
 """알림 설계 Agent — Vertex AI Gemini 어댑터 (`RecallPlannerPort` 구현, P2).
 
-notification-agent.md §2.2 의 플래너. 비용 우선 flash-lite + thinking_budget=0(settings.gemini_agent_model).
+비용 우선 flash-lite + thinking_budget=0(settings.gemini_agent_model).
 
-모듈 경계(부모 Claude 결정): notifications 는 agent.infrastructure(gemini_agent_client 등)를 직접
+모듈 경계(팀 결정): notifications 는 agent.infrastructure(gemini_agent_client 등)를 직접
 import 하지 않는다(타모듈 비공개). genai 사용 패턴(_shared_client / Content 변환 / function_call 추출)을
 **읽어 참고**하되 여기 독립 어댑터로 둔다(복제 최소화 — 단일 함수콜 + 선택적 1-tool 루프라 단순).
 
 tool loop: `get_scheduled(date)` 1종만. "일반 시간대 발송이면 필수 호출"(묶기·중복방지). 모델이 이를
 부르면 ScheduledLookup 으로 그날 예정 알림을 돌려주고 다시 호출 — finalize 가 나오면 종료.
 finalize = `finalizeNotificationPlan(plan_kind, stages)` 구조화 출력. plan_kind="none" = 알림 없음
-("애매하면 안 보낸다", §3). supersede 는 유스케이스가 결정적으로 처리(같은 source_intent 의 기존
+("애매하면 안 보낸다"). supersede 는 유스케이스가 결정적으로 처리(같은 source_intent 의 기존
 active plan 교체)하므로 LLM 출력에 두지 않는다 — 어댑터엔 plan id 컨텍스트가 없어 환각 위험만 있다.
 """
 
@@ -43,7 +43,7 @@ _FINALIZE = "finalizeNotificationPlan"
 _GET_SCHEDULED = "get_scheduled"
 _MAX_TOOL_ROUNDS = 3  # get_scheduled 왕복 상한 — 폭주 방지(보통 0~1회).
 
-# stages DSL 의 trigger 모양(schema.md §3). LLM 이 직접 채운다 — extra 키는 Pydantic 검증에서 컷.
+# stages DSL 의 trigger 모양. LLM 이 직접 채운다 — extra 키는 Pydantic 검증에서 컷.
 _TRIGGER_PROPS: dict[str, Any] = {
     "type": {"type": "string", "enum": ["relative", "recurring", "spaced"]},
     "anchor": {"type": "string", "enum": ["deadline", "event_date", "saved_at"]},

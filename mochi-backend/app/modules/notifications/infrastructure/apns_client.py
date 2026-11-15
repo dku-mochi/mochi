@@ -27,7 +27,7 @@ _JWT_TTL_SECONDS = 3000
 class APNsError(RuntimeError):
     """APNs 가 non-200 을 반환했을 때. 호출부(worker)가 best-effort 로 격리한다.
 
-    status_code/reason 을 담아 호출부가 실패를 분류한다(codex-5): 410 또는 reason 이
+    status_code/reason 을 담아 호출부가 실패를 분류한다: 410 또는 reason 이
     Unregistered/BadDeviceToken 이면 토큰 무효화(영구), 5xx/timeout 은 transient backoff.
     """
 
@@ -83,7 +83,7 @@ class HttpxAPNsClient(APNsClient):
             headers["apns-collapse-id"] = collapse_id[:64]
         resp = await self._client.post(f"https://{host}/3/device/{token}", json=payload, headers=headers)
         if resp.status_code != 200:
-            # APNs 실패 body 는 {"reason": "..."} JSON — 분류용으로 추출(codex-5).
+            # APNs 실패 body 는 {"reason": "..."} JSON — 분류용으로 추출.
             reason: str | None = None
             try:
                 reason = resp.json().get("reason")

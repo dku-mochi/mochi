@@ -1,7 +1,5 @@
 """능동 회수 홈 피드 + 알림 landing(P5b) 도메인 — 읽기 전용 후보 조회 포트.
 
-정본 `journal/2026-06-15-proactive-recall-ux-decision.md` §4(3단 구조)·§5(landing은 회수 목록/상세로 착지).
-
 이번 마일스톤(트랙 A/B)의 피드 실데이터 = **active spaced plan 이 걸린 knowledge 항목**(다시 볼 지식).
 related/context(트랙 C: 관련/맥락 후보 생성)는 범위 밖이라 DTO 에서 빈 배열·relatedCount=1 로 둔다(후속).
 

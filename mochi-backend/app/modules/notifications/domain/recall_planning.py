@@ -1,12 +1,10 @@
 """능동 회수 알림 플래너(P2) 도메인 — 값객체 + 포트.
 
-정본 `journal/proactive-recall/notification-agent.md` §1·§2 / `schema.md` §1·§3.
-
-아키텍처 결정(부모 Claude): tech-plan §4 는 "메인 Agent 가 needs_notification 판정"이라 하지만
+팀 아키텍처 결정: 메인 Agent 가 needs_notification 을 판정하지 않고
 eval-튜닝된 핵심 분석 경로(v21 system prompt / finalizeAnalysis 구조화 출력)는 **무손상**으로 둔다.
 대신 분석 결과(intent_instances + importance)로부터 **결정적(LLM 아님) eligibility 게이트**가
 "알림 가치 있는 신규/변경 intent" 만 통과시키고(= needs_notification 판정 대체), LLM 플래너는
-eligible 건의 시점·시각·문구만 설계한다. 이로써 분석 경로를 건드리지 않는다(Surgical Changes).
+eligible 건의 시점·시각·문구만 설계한다. 이로써 분석 경로를 건드리지 않는다.
 
 프레임워크 import 금지(sqlalchemy/google/httpx 는 infrastructure 한정 — 모듈 경계테스트).
 """
@@ -25,7 +23,7 @@ class EligibleCandidate:
     """eligibility 게이트를 통과한 알림 후보 1건 (intent 1개에 1:1).
 
     suggested_plan_kind 는 게이트의 보수적 추천 — LLM 플래너가 시점·시각·문구를 채운다.
-    payload 의 anchor 값(date/deadline)은 캐시하지 않는다(schema.md §1): stages 는 심볼 참조이고
+    payload 의 anchor 값(date/deadline)은 캐시하지 않는다: stages 는 심볼 참조이고
     cron 이 발송 때 최신 조회한다. 여기 anchor_date 는 LLM 컨텍스트용(긴급도·간격 판단)일 뿐이다.
     """
 
@@ -51,7 +49,7 @@ class RecentItem:
 
 @dataclass(frozen=True, slots=True)
 class PastNotification:
-    """과거 발송 알림 1건. opened *시각* 만 신호다 — 안 누름 ≠ negative(notification-agent.md §6)."""
+    """과거 발송 알림 1건. opened *시각* 만 신호다 — 안 누름 ≠ negative."""
 
     title: str
     fire_at: datetime | None
@@ -69,7 +67,7 @@ class ScheduledNotification:
 
 @dataclass(slots=True)
 class PlanningContext:
-    """LLM 플래너에 주입하는 맥락. notification-agent.md §2.2.
+    """LLM 플래너에 주입하는 맥락.
 
     similar 가 비어 있을 수 있다(임베딩 미설정/미색인) — 그 경우 컨텍스트에서 생략(설계 허용).
     """
@@ -85,7 +83,7 @@ class PlannerDecision:
     """LLM 플래너의 finalize 출력 (구조화).
 
     stages 는 미검증 dict — 유스케이스가 `RecallPlanStages.model_validate(...).validate_for(...)`
-    로 **삽입 전** 검증한다(malformed/adversarial 차단, schema.md §3).
+    로 **삽입 전** 검증한다(malformed/adversarial 차단).
     supersede_plan_id 가 있으면 같은 source_intent 의 기존 active plan 을 교체한다.
     """
 
@@ -98,7 +96,7 @@ class PlannerDecision:
 class RecallPlannerPort(ABC):
     """알림 설계 Agent(LLM) 추상화. 테스트는 stub 주입(고정 decision 반환).
 
-    None 반환 = "이 후보는 알림 가치 없음/애매함" → plan 미생성("애매하면 안 보낸다", §3).
+    None 반환 = "이 후보는 알림 가치 없음/애매함" → plan 미생성("애매하면 안 보낸다").
     """
 
     @abstractmethod
@@ -163,5 +161,5 @@ class RecallPlanRepositoryPort(ABC):
         """기존 plan.status='superseded' + superseded_by=new (같은 트랜잭션).
 
         owner-scope + status='active' 가드로 cross-tenant update·이미 종료된 plan 재교체를 막는다
-        (schema.md §4-3 owner 일관성). 이 시점엔 outbox 가 없어 outbox skip(schema.md §4-2)은
+        (owner 일관성). 이 시점엔 outbox 가 없어 outbox skip 은
         P3 cron 몫(여기선 plan 만 교체)."""

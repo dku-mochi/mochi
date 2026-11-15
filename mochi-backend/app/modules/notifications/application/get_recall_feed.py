@@ -1,6 +1,6 @@
 """능동 회수 홈 피드 + 알림 landing(P5b) 유스케이스 — 후보 하이드레이션 + 표시 entry 조립.
 
-정본 `journal/2026-06-15-proactive-recall-ux-decision.md` §4. 두 소스를 합류한다:
+두 소스를 합류한다:
 - 트랙 A(spaced): active spaced plan knowledge → kind="knowledge", reason="fadingValue", related=[].
 - 트랙 C(recall): kind=recall outbox 직행 앵커 → kind="recall", reason="linkedToRecent",
   related=앵커 item 의 ANN 이웃(관련 기억 N개). related 는 캐시하지 않고 조회 시점에 재실행.
@@ -39,7 +39,7 @@ _DEFAULT_RELATED_MIN_SCORE = 0.5
 _DEFAULT_RELATED_LIMIT = 3
 # spaced 회수가 떠올리는 "잊혀가는" knowledge lifecycle. active 는 제외한다 — 사용자가
 # (저장 직후거나, 회수를 열어 소생시켜) 지금 활발히 보는 중이라 회수 대상이 아니다. 이 제외가
-# "opened → instance active 소생"(§5.4)과 "다음 feed 에서 빠짐"을 잇는 고리다(소생=다시 안 보여줌).
+# "opened → instance active 소생"과 "다음 feed 에서 빠짐"을 잇는 고리다(소생=다시 안 보여줌).
 # archived 도 당연히 제외(사용자가 이미 닫음).
 _RECALLABLE_SPACED_KINDS = frozenset(
     {

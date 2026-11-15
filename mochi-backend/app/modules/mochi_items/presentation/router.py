@@ -286,7 +286,7 @@ async def create_mochi_item(
             # 채팅 일정 proposal 이 propose-시점에 도출한 item 메타 — confirmed_instances 경로에서만 채워진다.
             category=payload.category,
             summary=payload.summary,
-            # 채팅 proposal 확정 — 사용자 확정 instance 는 분석 생략·직접 생성 (§5.2 예외).
+            # 채팅 proposal 확정 — 사용자 확정 instance 는 분석 생략·직접 생성.
             confirmed_instances=tuple(
                 IntentInstance(
                     intent_type=ci.intent_type,
@@ -511,7 +511,7 @@ async def update_mochi_item(
     db: DBSession,
     user: CurrentUser,
 ) -> MochiItemResponse:
-    """채팅 수정 proposal 확정 실행 — 콘텐츠 + instance 변경을 한 트랜잭션으로 (journal 2026-06-10 M1).
+    """채팅 수정 proposal 확정 실행 — 콘텐츠 + instance 변경을 한 트랜잭션으로.
 
     - 콘텐츠(text/userMemo/summary): 제공 필드만 갱신 (null 클리어 미지원).
     - instances[]: payload 병합("일정 3시로" = time 만 교체) · label · lifecycle 전이
