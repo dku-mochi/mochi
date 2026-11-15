@@ -61,7 +61,7 @@ def compute_eligible_candidates(
     """결정적 eligibility 게이트 — "알림 가치 있는 신규/변경 intent" 만 통과(notification-agent.md §1).
 
     이 게이트가 "needs_notification 판정"을 대신한다 — v21 system prompt / finalizeAnalysis 구조화
-    출력(eval-튜닝된 핵심 분석 경로)을 건드리지 않기 위한 결정(부모 Claude). 분석 결과만 읽는다.
+    출력(eval-튜닝된 핵심 분석 경로)을 건드리지 않기 위한 팀 결정이다. 분석 결과만 읽는다.
 
     통과:
       - schedule + 미래 date/end_date  → deadline_backoff (anchor=event_date)

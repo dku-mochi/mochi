@@ -2,7 +2,7 @@
 
 notification-agent.md §2.2 의 플래너. 비용 우선 flash-lite + thinking_budget=0(settings.gemini_agent_model).
 
-모듈 경계(부모 Claude 결정): notifications 는 agent.infrastructure(gemini_agent_client 등)를 직접
+모듈 경계(팀 결정): notifications 는 agent.infrastructure(gemini_agent_client 등)를 직접
 import 하지 않는다(타모듈 비공개). genai 사용 패턴(_shared_client / Content 변환 / function_call 추출)을
 **읽어 참고**하되 여기 독립 어댑터로 둔다(복제 최소화 — 단일 함수콜 + 선택적 1-tool 루프라 단순).
 

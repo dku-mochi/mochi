@@ -2,7 +2,7 @@
 
 정본 `journal/proactive-recall/notification-agent.md` §1·§2 / `schema.md` §1·§3.
 
-아키텍처 결정(부모 Claude): tech-plan §4 는 "메인 Agent 가 needs_notification 판정"이라 하지만
+팀 아키텍처 결정: tech-plan §4 는 "메인 Agent 가 needs_notification 판정"이라 하지만
 eval-튜닝된 핵심 분석 경로(v21 system prompt / finalizeAnalysis 구조화 출력)는 **무손상**으로 둔다.
 대신 분석 결과(intent_instances + importance)로부터 **결정적(LLM 아님) eligibility 게이트**가
 "알림 가치 있는 신규/변경 intent" 만 통과시키고(= needs_notification 판정 대체), LLM 플래너는
