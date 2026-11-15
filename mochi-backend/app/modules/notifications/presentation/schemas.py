@@ -28,8 +28,7 @@ class RegisterPushTokenRequest(BaseModel):
 class RecordRecallReactionRequest(BaseModel):
     """알림 반응 보고 — iOS 가 알림 탭/dismiss/그만 시 `recallEventID`(=outbox.event_id)로 보고.
 
-    opened=양성, dismissed=soft 부정, stop="이 기억 그만" 영구(plan cancel). 신호 의미는
-    notification-agent.md §6, 반응→상태전이 1:1 은 ux-ui.md §4.
+    opened=양성, dismissed=soft 부정, stop="이 기억 그만" 영구(plan cancel).
     """
 
     reaction: ReactionKind

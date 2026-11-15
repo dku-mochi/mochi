@@ -1,6 +1,6 @@
 """알림 설계 Agent system prompt (criteria + why, overfit 예시 나열 금지 — skill-creator 철학).
 
-notification-agent.md §2.2 의 강한 규칙을 "기준 + 왜"로 옮겼다. 좁은 예시를 외우게 하지 않고
+강한 규칙을 "기준 + 왜"로 옮겼다. 좁은 예시를 외우게 하지 않고
 판단 기준과 그 근거를 준다. 프롬프트 버전은 generated_model 에 기록돼 재현성을 받친다.
 """
 

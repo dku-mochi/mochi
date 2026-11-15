@@ -4,7 +4,7 @@ import UserNotifications
 
 /// 채팅 reminder proposal 확정 → **iOS 로컬 알림** 등록.
 ///
-/// 백엔드 테이블·스케줄러·푸시 배선 없음(journal 2026-06-10 설계 — 크로스디바이스 필요가
+/// 백엔드 테이블·스케줄러·푸시 배선 없음(크로스디바이스 필요가
 /// 생기면 그때 서버 푸시로 승격). 권한 거부는 에러가 아니라 명시적 실패 상태로 — 카드가
 /// "설정에서 알림 허용"을 안내한다.
 public protocol ReminderScheduler: Sendable {

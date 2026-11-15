@@ -3,7 +3,7 @@ import Foundation
 /// 채팅 탭 멀티턴 대화 스트림 — 백엔드 `POST /conversations/{id}/messages` (POST-as-SSE).
 ///
 /// 메시지 전송의 HTTP 응답이 곧 SSE 이벤트 스트림이다(202+별도 GET 분리안은 구독 전 이벤트
-/// 유실 레이스로 기각 — journal 2026-06-10). conversationID 는 클라이언트가 생성하고,
+/// 유실 레이스로 기각). conversationID 는 클라이언트가 생성하고,
 /// 서버는 첫 메시지에서 대화를 암묵 생성한다.
 ///
 /// 기존 ``AgentStreamClient``(item 분석 진행 스트림)와 의미가 전혀 달라 **별도 프로토콜** —

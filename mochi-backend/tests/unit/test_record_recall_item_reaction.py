@@ -143,7 +143,7 @@ async def test_opened_revives_knowledge_and_marks_track_c(frm: InstanceLifecycle
     assert repo.opened_items == [(item.id, _OWNER)]  # 트랙 C 행 기록/종결
     assert inst.lifecycle.kind is InstanceLifecycleKind.ACTIVE  # 트랙 A 소생
     assert mochi.lifecycle_updates == [(inst.id, InstanceLifecycleKind.ACTIVE)]
-    assert repo.savepoint_calls == 1  # 소생 write 는 savepoint 로 격리(P1#4)
+    assert repo.savepoint_calls == 1  # 소생 write 는 savepoint 로 격리
 
 
 async def test_opened_active_knowledge_is_noop_revive() -> None:

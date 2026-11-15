@@ -1,4 +1,4 @@
-"""PATCH /mochi_items/{id} — 채팅 수정 proposal 확정의 실행 유스케이스 (journal 2026-06-10 M1).
+"""PATCH /mochi_items/{id} — 채팅 수정 proposal 확정의 실행 유스케이스.
 
 콘텐츠 필드(text/user_memo/summary)와 instance 변경(payload 병합·label·lifecycle 전이)을
 **한 요청·한 트랜잭션**으로 처리한다 — proposal 카드 확정 = REST 1콜 (부분 적용 실패 모드 회피).

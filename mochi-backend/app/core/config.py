@@ -41,9 +41,8 @@ class Settings(BaseSettings):
     gcs_signed_url_ttl_seconds: int = 900  # 15분
     gemini_model: str = "gemini-3.5-flash"
 
-    # Embedding / Rerank — Voyage AI. 모델 선정: lab/archive/rag-search
-    # (voyage-4-large@1024 × summary+labels, nDCG@5 0.925). 리랭커: lab/archive/rag-rerank-eval
-    # (2026-06-12, rerank-2.5). voyage-4-large@1024 + rerank-2.5: vector 단독 대비 R@1 0.15→0.43, MRR 0.56→0.88.
+    # Embedding / Rerank — Voyage AI. 모델 선정: voyage-4-large@1024 × summary+labels
+    # (nDCG@5 0.925). 리랭커: rerank-2.5 (2026-06-12). voyage-4-large@1024 + rerank-2.5: vector 단독 대비 R@1 0.15→0.43, MRR 0.56→0.88.
     # 키 미설정 시 vector·rerank 경로만 비활성(BM25/키워드 검색으로 degrade) — 서버는 정상 기동.
     voyage_api_key: str | None = None
     voyage_embedding_model: str = "voyage-4-large"
@@ -68,8 +67,8 @@ class Settings(BaseSettings):
     gemini_agent_model: str = "gemini-3.1-flash-lite"
     gemini_agent_location: str = "global"
 
-    # 채팅 탭 멀티턴 run (journal 2026-06-10). 비용 최우선 flash-lite 기본 —
-    # 멀티스텝 툴콜 신뢰도가 부족하면 lab 벤치 후 .env 로 상향 (코드 수정 없이 교체).
+    # 채팅 탭 멀티턴 run. 비용 최우선 flash-lite 기본 —
+    # 멀티스텝 툴콜 신뢰도가 부족하면 벤치 후 .env 로 상향 (코드 수정 없이 교체).
     gemini_chat_model: str = "gemini-3.1-flash-lite"
     chat_run_timeout_seconds: float = 60.0  # SSE 로 기다리는 사용자 기준 — run 전체 상한
 
@@ -88,7 +87,7 @@ class Settings(BaseSettings):
         "0.0.0.0",
     )
 
-    # 채팅 web_search — Tavily (journal 2026-06-10 PR-4). 미설정 시 web_search 툴만
+    # 채팅 web_search — Tavily. 미설정 시 web_search 툴만
     # 레지스트리에서 제외되고 서버는 정상 기동한다 (키 발급이 머지를 블록하지 않게).
     # ResourceFinder tool 의 web(해외/일반) 폴백 검색도 같은 키를 쓴다.
     tavily_api_key: str | None = None
@@ -160,9 +159,9 @@ class Settings(BaseSettings):
     apns_bundle_id: str = "app.mochi"
     apns_auth_key_p8_base64: str | None = None
 
-    # 능동 회수 알림 cron 워커 (P3/P4). 정본 journal/proactive-recall/.
-    # killswitch False 면 워커 기동은 하되 루프가 no-op(§7). dry_run True 면 실발송 없이 payload 로그만
-    # (발송 0 으로 threshold 튜닝, §6/§7). 운영 실발송이 기본값(2026-06-19) — dry-run 으로 되돌리려면
+    # 능동 회수 알림 cron 워커 (P3/P4).
+    # killswitch False 면 워커 기동은 하되 루프가 no-op. dry_run True 면 실발송 없이 payload 로그만
+    # (발송 0 으로 threshold 튜닝). 운영 실발송이 기본값(2026-06-19) — dry-run 으로 되돌리려면
     # .env 로 recall_notifications_dry_run=true. 야간 무음·하루 cap 은 제거(2026-06-19, LLM 게이트가 필터).
     recall_worker_enabled: bool = True
     recall_notifications_dry_run: bool = False
@@ -174,7 +173,7 @@ class Settings(BaseSettings):
     recall_candidate_limit: int = 10  # ANN 후보 조회 상한 (best 1건이 회수 앵커)
     recall_dedup_cooldown_days: int = 7  # 같은 item 재회수 방지 윈도우 (재스팸 dedup)
     recall_expires_days: int = 14  # 회수 outbox expires (지나면 stale skip)
-    # 트랙 C LLM 선별 게이트 (2026-06-17, journal/proactive-recall/track-c-llm-gate-decision.md).
+    # 트랙 C LLM 선별 게이트 (2026-06-17).
     recall_gate_enabled: bool = True  # False 면 LLM 건너뛰고 결정적 best-1 경로(롤백 안전판)
     recall_gate_dry_run: bool = False  # 기본 False=트랙C 후보 실적재(2026-06-19). True 면 LLM 결정 로그만·outbox 미적재(발송측 dry_run 과 별개)
     recall_overfetch_limit: int = 40  # ANN overfetch 상한(필터 전)

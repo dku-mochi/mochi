@@ -1,4 +1,4 @@
-"""능동 회수 알림 stages DSL — Pydantic 검증 모델. 정본 `journal/proactive-recall/schema.md` §3.
+"""능동 회수 알림 stages DSL — Pydantic 검증 모델.
 
 LLM 플래너가 `notification_plan.stages`(JSONB) 를 생성하므로 **삽입 전 검증 필수**(malformed/adversarial
 방지). trigger 3종(relative/recurring/spaced) + 시각·문구·무게. anchor↔plan_kind 정합은 plan_kind 를
@@ -55,7 +55,7 @@ class OutboxKind(StrEnum):
     RECALL = "recall"  # 트랙 C 직행(plan 없음)
 
 
-# plan_kind(3종) → outbox.kind(4종) 매핑. recall 은 plan 없이 직행이라 매핑 대상 아님. schema.md §3 표.
+# plan_kind(3종) → outbox.kind(4종) 매핑. recall 은 plan 없이 직행이라 매핑 대상 아님.
 _PLAN_TO_OUTBOX_KIND: dict[PlanKind, OutboxKind] = {
     PlanKind.DEADLINE_BACKOFF: OutboxKind.DEADLINE,
     PlanKind.RECURRING_NUDGE: OutboxKind.NUDGE,
@@ -89,12 +89,12 @@ def _is_valid_duration(value: str) -> bool:
 
 
 def outbox_kind_for(plan_kind: PlanKind) -> OutboxKind:
-    """plan_kind 에 대응하는 outbox.kind. schema.md §3 매핑표."""
+    """plan_kind 에 대응하는 outbox.kind."""
     return _PLAN_TO_OUTBOX_KIND[plan_kind]
 
 
 class Trigger(BaseModel):
-    """stage 의 발생 규칙. type 별로 필요한 필드가 다르다(아래 model_validator 가 강제). schema.md §3."""
+    """stage 의 발생 규칙. type 별로 필요한 필드가 다르다(아래 model_validator 가 강제)."""
 
     model_config = ConfigDict(extra="forbid")  # adversarial 키 차단
 

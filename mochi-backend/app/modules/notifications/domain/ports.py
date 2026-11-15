@@ -45,4 +45,4 @@ class PushTokenRepository(ABC):
 
     @abstractmethod
     async def delete(self, *, token: str) -> None:
-        """무효 토큰(APNs 410 Unregistered/BadDeviceToken)을 영구 삭제한다 (codex-5)."""
+        """무효 토큰(APNs 410 Unregistered/BadDeviceToken)을 영구 삭제한다."""

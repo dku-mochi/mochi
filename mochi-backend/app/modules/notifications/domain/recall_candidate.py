@@ -1,7 +1,5 @@
 """능동 회수 트랙 C — 후보 생성 도메인 (관련/맥락 회수, 1:1 임베딩 ANN).
 
-정본 `journal/proactive-recall/tech-plan.md` §8 P7~P9 / `schema.md`(outbox kind=recall 직행).
-
 트랙 C 는 새 기록 저장·분석이 트리거다 — 새 item(B) 의 임베딩으로 유사한 과거 기록(A)을 ANN 으로
 찾아 "지금 맥락과 이어지는 기억"으로 떠올린다. 트랙 A/B 와 달리 plan 없이 `notification_outbox` 로
 직행(plan_id NULL, kind=recall)해 기존 발송·반응·landing 파이프라인을 재사용한다.

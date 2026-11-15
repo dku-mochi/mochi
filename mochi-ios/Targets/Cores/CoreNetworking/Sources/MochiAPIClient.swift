@@ -260,16 +260,16 @@ public struct UpcomingNotificationDTO: Sendable, Hashable, Codable, Identifiable
     }
 }
 
-/// 알림/회수 반응 — 백엔드 `ReactionKind` 와 1:1. 액션 ↔ 서버 상태전이 매핑(ux-ui §4 codex-7):
+/// 알림/회수 반응 — 백엔드 `ReactionKind` 와 1:1. 액션 ↔ 서버 상태전이 매핑:
 /// 탭/열기/기억남=`opened`, 알림 swipe-away=`dismissed`, "그만 보기"=`stop`(영구, plan cancelled).
 public enum RecallReaction: String, Sendable, Codable {
-    /// 알림 탭·상세 진입·"기억났어요"(행동 양성 신호). 학습 우선 신호(ux-ui §6).
+    /// 알림 탭·상세 진입·"기억났어요"(행동 양성 신호). 학습 우선 신호.
     case opened
     /// 알림을 열지 않고 swipe-away 한 soft 부정(cooldown). **OS 알림 dismiss 신호**라 앱 내
     /// 화면에는 대응 제스처가 없다(back-navigation 은 이미 opened). 캡처하려면
     /// `UNNotificationCategory` + customDismissAction 등록이 필요 — 알림 인프라 후속 스코프.
     case dismissed
-    /// "이 기억 그만"(영구 부정 → plan cancelled, codex-7 1:1). destructive 액션.
+    /// "이 기억 그만"(영구 부정 → plan cancelled, 1:1). destructive 액션.
     case stop
 }
 
@@ -393,10 +393,10 @@ public struct MochiItemIngestRequest: Sendable, Hashable, Codable {
     public let userMemo: String?
     public let imageRefs: [ImageRefDTO]
     /// 사용자 확정 instance — 존재 시 서버가 **분석을 생략**하고 instance 를 그대로 생성한다
-    /// (DOMAIN_DESIGN §5.2 예외: 사용자 확정 = 분석보다 상위 신뢰). 채팅 일정 proposal 확정 경로.
+    /// (예외: 사용자 확정 = 분석보다 상위 신뢰). 채팅 일정 proposal 확정 경로.
     public let confirmedInstances: [ConfirmedInstanceIngestDTO]?
     /// 채팅 일정 proposal 이 propose-시점에 도출한 item 메타 — confirmedInstances 경로에서만 채워진다
-    /// (instance 재분석 아님 — §5.2 는 outbox 재분석만 생략, category/summary 는 채운다).
+    /// (instance 재분석 아님 — outbox 재분석만 생략, category/summary 는 채운다).
     public let category: String?
     public let summary: String?
     /// 분석 전용 ephemeral OCR(화면 transcript). 업로드 경로가 정책에 따라 채운다(originalUpload 일 때만).

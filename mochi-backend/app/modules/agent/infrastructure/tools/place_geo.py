@@ -56,7 +56,7 @@ _GOOGLE_LOCATION_BIAS_METERS = 500.0
 # 네이버 후보 좌표와 Google 결과 좌표가 이보다 멀면 다른 가게로 보고 보강을 포기한다.
 _GOOGLE_MATCH_MAX_METERS = 300.0
 # photo name 은 응답 유래 문자열이지만 URL path 로 들어간다 — 리소스 형식을 정규식으로 강제해
-# `?`/`#`/`..`/중복 slash 로 의도 밖 path·query 가 합성되는 것을 막는다(codex P2).
+# `?`/`#`/`..`/중복 slash 로 의도 밖 path·query 가 합성되는 것을 막는다.
 _GOOGLE_PHOTO_NAME_RE = re.compile(r"^places/[^/?#]+/photos/[^/?#]+$")
 
 
@@ -93,7 +93,7 @@ class SearchPlaceGeoTool(Tool[SearchPlaceGeoInput, SearchPlaceGeoOutput]):
 
     async def run(self, payload: SearchPlaceGeoInput) -> tuple[SearchPlaceGeoOutput, ToolUsage]:
         settings = get_settings()
-        # secret 까지 확인 — id 만 있으면 전 요청이 401 로 빈손이 돼 조용히 무력화된다(codex P3).
+        # secret 까지 확인 — id 만 있으면 전 요청이 401 로 빈손이 돼 조용히 무력화된다.
         if not settings.naver_client_id or not settings.naver_client_secret:
             raise ToolExecutionError(self.name, "Naver search API key not configured")
         started = time.perf_counter()
@@ -256,12 +256,12 @@ async def _google_search_text(http: httpx.AsyncClient, cand: PlaceCandidate) -> 
     g_lat, g_lng = location.get("latitude"), location.get("longitude")
     if not isinstance(g_lat, int | float) or not isinstance(g_lng, int | float):
         return None
-    # NaN 좌표는 모든 비교가 False 라 거리 게이트를 그대로 통과한다 — finite 를 강제(codex P3).
+    # NaN 좌표는 모든 비교가 False 라 거리 게이트를 그대로 통과한다 — finite 를 강제.
     if not math.isfinite(float(g_lat)) or not math.isfinite(float(g_lng)):
         return None
     if _haversine_m(cand.lat, cand.lng, float(g_lat), float(g_lng)) > _GOOGLE_MATCH_MAX_METERS:
         return None
-    # 좌표만으론 몰·역세권의 동명·인접 매장을 못 가른다 — 상호까지 겹쳐야 같은 가게(codex P2).
+    # 좌표만으론 몰·역세권의 동명·인접 매장을 못 가른다 — 상호까지 겹쳐야 같은 가게.
     display_name = place.get("displayName") or {}
     google_name = display_name.get("text") if isinstance(display_name, dict) else None
     if not isinstance(google_name, str) or not _names_overlap(cand.name, google_name):

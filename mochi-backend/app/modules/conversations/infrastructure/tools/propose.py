@@ -1,13 +1,13 @@
 """propose_* 채팅 툴 5종 — 확인 카드 제안. **어떤 것도 DB 에 쓰지 않는다.**
 
-LLM 루프는 read-only(journal 2026-06-10) — 이 툴들은 대상 실재·전이 합법성을 *지금* 검증해
+LLM 루프는 read-only — 이 툴들은 대상 실재·전이 합법성을 *지금* 검증해
 proposal payload 를 반환할 뿐이고, 실행은 사용자 확정 탭 → REST 가 한다:
 
 | type            | 확정 시 실행 경로 |
 |-----------------|------------------|
 | item_update     | ``PATCH /mochi_items/{id}`` (콘텐츠 + instance 변경, 한 트랜잭션) |
 | item_delete     | ``DELETE /mochi_items/{id}`` |
-| create_schedule | ``POST /mochi_items`` + ``confirmedInstances`` (분석 생략 — §5.2 예외) |
+| create_schedule | ``POST /mochi_items`` + ``confirmedInstances`` (분석 생략) |
 | create_memo     | ``POST /mochi_items`` 일반 ingestion (자유 텍스트 — 분석 경유) |
 | reminder        | 백엔드 없음 — iOS ``UNUserNotificationCenter`` 로컬 알림 |
 
@@ -357,7 +357,7 @@ class ProposeCreateScheduleTool:
             for key in ("title", "date", "time", "end_date", "end_time", "person", "note")
             if isinstance(args.get(key), str) and args[key]
         }
-        # category/summary 도출 — instance(날짜·일정)는 확정값 그대로 보존하고(§5.2 "재분석 안 함"),
+        # category/summary 도출 — instance(날짜·일정)는 확정값 그대로 보존하고("재분석 안 함"),
         # 월간정리 분류·리스트·검색이 빈약해지지 않게 item 메타만 채운다. 최근 카테고리 window 로
         # 라벨 흔들림을 줄인다. 도출 실패는 graceful(빈 메타) — 카드 생성을 막지 않는다.
         meta = await self._meta.derive(fields=payload, known_categories=await self._categories(owner_id))

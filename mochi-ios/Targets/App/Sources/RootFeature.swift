@@ -59,7 +59,7 @@ struct RootFeature: Sendable {
         /// 분석완료 알림 탭 — 해당 항목 상세를 연다. 인자는 server PK(server→local 역매핑은 MainTab 이 수행).
         case notificationTapped(UUID)
         /// 능동 회수 알림 탭 — ③ 회수 상세로 직행한다. recallEventID 로 단건 entry 를 서버 fetch 해
-        /// 렌더(빈 상세 금지). landing 은 회수 목록·상세로 착지(ux-decision §4·§5).
+        /// 렌더(빈 상세 금지). landing 은 회수 목록·상세로 착지.
         case recallNotificationTapped(recallEventID: UUID)
         /// foreground 완료 푸시 수신(탭 아님) — 폴링 tick 을 기다리지 않고 그 항목을 즉시 reconcile 한다.
         /// 인자는 server PK. 반영은 observeChanges 로 열린 상세·홈에 전파(별도 화면 전환 없음).

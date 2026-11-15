@@ -1434,7 +1434,7 @@ public struct Client: APIProtocol {
     }
     /// Update Mochi Item
     ///
-    /// 채팅 수정 proposal 확정 실행 — 콘텐츠 + instance 변경을 한 트랜잭션으로 (journal 2026-06-10 M1).
+    /// 채팅 수정 proposal 확정 실행 — 콘텐츠 + instance 변경을 한 트랜잭션으로.
     ///
     /// - 콘텐츠(text/userMemo/summary): 제공 필드만 갱신 (null 클리어 미지원).
     /// - instances[]: payload 병합("일정 3시로" = time 만 교체) · label · lifecycle 전이
@@ -2310,7 +2310,7 @@ public struct Client: APIProtocol {
     }
     /// Get Similar Items
     ///
-    /// 상세 화면 "비슷한 기록" — 대상 item 의 cosine 이웃 top-k (DOMAIN_DESIGN §10.5).
+    /// 상세 화면 "비슷한 기록" — 대상 item 의 cosine 이웃 top-k.
     ///
     /// 자기 제외 + owner-scoped + 임계값(`_SIMILAR_MIN_SCORE`) 미달이면 빈 배열 + 같은 출처 URL
     /// dedup. 대상에 embedding 이 없으면(미색인·`VOYAGE_API_KEY` 미설정) 빈 배열로 degrade —

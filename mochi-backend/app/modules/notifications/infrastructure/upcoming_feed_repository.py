@@ -47,7 +47,7 @@ class PostgresUpcomingFeedRepository(UpcomingFeedRepositoryPort):
             NotificationOutboxRow.fire_at > func.now(),
             NotificationPlanRow.status == "active",
             # defense-in-depth: join 된 plan 도 같은 owner 로 묶는다 — outbox owner 가드가 이미 있어
-            # 정상 데이터엔 무영향이나 멀티테넌트 방어를 한 겹 더 단단히 한다(codex P3).
+            # 정상 데이터엔 무영향이나 멀티테넌트 방어를 한 겹 더 단단히 한다.
             NotificationPlanRow.owner_id == owner_id,
         ]
         # item_id·시각 필터는 limit 앞에 걸어야 한다 — 전체를 limit 로 자른 뒤 필터하면 대상을 놓친다.

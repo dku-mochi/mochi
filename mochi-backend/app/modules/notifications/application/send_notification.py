@@ -84,7 +84,7 @@ class SendAnalysisNotification:
                 )
             except APNsError as exc:
                 # 410/Unregistered/BadDeviceToken → 죽은 토큰 무효화(삭제). 안 그러면 앱 재설치로
-                # 죽은 토큰이 영영 쌓여 매번 재발송된다(회수 경로와 동일 정책, codex-5).
+                # 죽은 토큰이 영영 쌓여 매번 재발송된다(회수 경로와 동일 정책).
                 if _is_invalid_token(exc):
                     await self._tokens.delete(token=tok.token)
                     log.info(
@@ -284,7 +284,7 @@ class SendCalendarSyncPush:
                     environment=tok.environment.value,
                 )
             except APNsError as exc:
-                # 죽은 토큰 무효화 — alert/회수 경로와 동일 정책(codex-5).
+                # 죽은 토큰 무효화 — alert/회수 경로와 동일 정책.
                 if _is_invalid_token(exc):
                     await self._tokens.delete(token=tok.token)
                     log.info(

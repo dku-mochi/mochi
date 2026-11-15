@@ -2,7 +2,7 @@
 
 Apple/Google Sign-In + 자체 발행 access/refresh token rotation 을 위한 3개 테이블.
 
-- ``users``: DOMAIN_DESIGN §4.2 그대로. email 은 lower-case CHECK + active partial unique.
+- ``users``: email 은 lower-case CHECK + active partial unique.
 - ``auth_accounts``: provider ∈ {'apple','google'}, (provider, subject) UNIQUE.
 - ``refresh_tokens``: 신규. token_hash UNIQUE + family_id 로 rotation chain 유지,
   used_at 마크된 토큰 재사용 시 family 전체 revoke (reuse_detected) 가능하도록 컬럼 보강.

@@ -186,7 +186,7 @@ struct BackTapPage: View {
     /// `App-Prefs:` 딥링크는 iOS 17/18 에서 동작하지 않고 심사 리스크가 있다(확정 결정으로
     /// 유지 — 미래 iOS 복구 대비 방어 코드). 가이드 시트가 *이미* 떠 있는 위에서 best-effort
     /// 로 시도하므로, 열리지 않아도 화면은 그대로다. `canOpenURL` 선체크는 Info.plist 에
-    /// query scheme 이 없어 무조건 false 라 의미가 없어 쓰지 않는다 (codex P2).
+    /// query scheme 이 없어 무조건 false 라 의미가 없어 쓰지 않는다.
     private func openSettingsBestEffort() {
         guard let url = URL(string: "App-Prefs:root=ACCESSIBILITY") else { return }
         openURL(url) { _ in }
@@ -419,7 +419,7 @@ struct BackTapSettingsGuideSheet: View {
 /// 스크린샷은 강조 없는 깨끗본(에셋, 세로 0.82 portrait 비율)이고 강조는 런타임 오버레이다.
 /// 강조 항목 위치는 컷별 `ringY`(대부분 중앙, 화면 상단 항목 '두 번 탭'만 위쪽).
 /// 텍스트 칩·말풍선을 모두 대체 — 글 경로는 따라가기 어려웠고 말풍선은 어색했다
-/// (gemini/codex 디자인 리뷰로 9.4·9.0 확정한 안).
+/// (디자인 리뷰로 확정한 안).
 private struct BackTapGuideCarousel: View {
     @State private var page = 0
 
@@ -499,7 +499,7 @@ private struct BackTapGuideCarousel: View {
 
 /// 강조 항목만 스포트라이트 — 카드를 살짝(≈22%) 어둡게 덮되 강조 행만 뚫어 밝게 두고,
 /// 그 위에 펄스 테두리 + 글로우를 얹는다. 주변 행과의 경쟁을 없애 "여기" 가 즉시 보인다.
-/// dim 을 약하게 둬 설정 화면 컨텍스트는 살아있게 유지한다(codex 리뷰 반영).
+/// dim 을 약하게 둬 설정 화면 컨텍스트는 살아있게 유지한다.
 private struct BackTapSpotlight: View {
     let width: CGFloat
     let height: CGFloat

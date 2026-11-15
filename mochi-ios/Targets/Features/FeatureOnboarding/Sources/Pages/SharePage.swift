@@ -7,7 +7,7 @@ import SwiftUI
 /// 쓰지 않는다 — 상표/저작권·App Store 심사(5.2.1) 리스크 회피이자, "어디서(출처)"가 아니라
 /// "모찌에 저장된다(결과)"를 보여주는 게 본질이기 때문 (검토·근거: docs/CHANGELOG 2026-06-07).
 /// 카드·배지·chevron·빔·글로우는 모두 SwiftUI 로 그리고, 모찌(`mochi-share-base`, 누끼본)만
-/// PNG 자산. 디자인 리뷰 통과본 (codex 9.1 · gemini 9.6 / 10).
+/// PNG 자산. 디자인 리뷰 통과본.
 struct SharePage: View {
     var body: some View {
         OnboardingPageScaffold(

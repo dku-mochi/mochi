@@ -340,7 +340,7 @@ async def test_capture_token_is_rejected_by_general_route_dependency() -> None:
 
 
 def test_capture_scope_is_exactly_ingest_and_presign() -> None:
-    """capture token 수용 라우트 집합을 구조적으로 고정한다 (codex review P2).
+    """capture token 수용 라우트 집합을 구조적으로 고정한다.
 
     누군가 다른 라우트의 ``CurrentUser`` 를 ``CurrentCaptureUser`` 로 바꾸면(스코프 확장)
     이 테스트가 즉시 깨진다. FastAPI 라우트의 의존성 트리를 재귀 순회해 검사한다.

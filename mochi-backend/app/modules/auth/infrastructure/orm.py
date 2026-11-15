@@ -1,6 +1,6 @@
 """SQLAlchemy ORM rows for users / auth_accounts / refresh_tokens.
 
-DOMAIN_DESIGN §4.2 + 마이그레이션 0004 와 1:1 매칭. domain entity 와는 별개로 둔다.
+마이그레이션 0004 와 1:1 매칭. domain entity 와는 별개로 둔다.
 """
 
 from datetime import datetime

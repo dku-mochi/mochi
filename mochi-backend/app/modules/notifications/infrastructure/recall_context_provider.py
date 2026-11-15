@@ -1,6 +1,6 @@
 """알림 플래너 맥락 수집 — `RecallContextProviderPort` + `ScheduledLookup` 구현 (P2).
 
-맥락: 최근 저장 10 / 유사 저장 10(임베딩) / 과거 알림 10(opened 시각만). notification-agent.md §2.2.
+맥락: 최근 저장 10 / 유사 저장 10(임베딩) / 과거 알림 10(opened 시각만).
 
 모듈 경계: mochi_items 접근은 `mochi_items.application`(factory)만 통한다(agent worker 와 동형 —
 infrastructure 직접 reach 없음). 유사 검색은 search 모듈을 cross-import 하면 경계 위반이라(search 에
@@ -25,7 +25,7 @@ from app.modules.notifications.domain.recall_planning import (
 )
 from app.modules.notifications.infrastructure.orm import NotificationOutboxRow
 
-# 단일 KST 전제(codex-1) — 모든 시각 판정은 owner KST local 기준.
+# 단일 KST 전제 — 모든 시각 판정은 owner KST local 기준.
 _KST = timezone(timedelta(hours=9))
 
 _RECENT_LIMIT = 10
@@ -94,7 +94,7 @@ class PostgresRecallContextProvider(RecallContextProviderPort):
         ]
 
     async def _past_notifications(self, *, owner_id: UUID) -> list[PastNotification]:
-        # 발송된(sent) 알림만. opened_at 만 양성 신호 — 안 누름 ≠ negative(§6). 최근 발송순.
+        # 발송된(sent) 알림만. opened_at 만 양성 신호 — 안 누름 ≠ negative. 최근 발송순.
         stmt = (
             NotificationOutboxRow.__table__.select()
             .where(

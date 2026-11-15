@@ -10,7 +10,7 @@
 - system prompt = ``ACTIVE_PROMPT.body`` 직접 import (복붙 금지)
 - function schema = ``_FINALIZE`` / ``_FINALIZE_PARAMS`` 직접 import
 - generation config(temp 0.3 / max_output_tokens 4096 / thinking_budget 0 / mode=ANY) = production 값
-  (lab/active/dacon-schedule-extraction 선례 + V25 의 1024→4096 상향 반영)
+  (V25 의 1024→4096 상향 반영)
 - user message = ``orchestrator._initial_user_text`` 의 블록 구조를 **pinned_now 로 재현**
   (``_initial_user_text`` 는 now 인자가 없어 실행시각을 쓰므로 직접 호출 불가 → 블록 문구를 복제;
   문구가 1바이트라도 어긋나면 drift 이므로 orchestrator 와 동일 문자열 유지)

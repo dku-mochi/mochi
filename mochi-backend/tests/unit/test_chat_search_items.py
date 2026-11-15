@@ -151,7 +151,7 @@ async def test_occurs_from_compares_against_end_date_for_ranges() -> None:
 
 
 def test_occurs_end_sql_converges_inverted_range_to_start() -> None:
-    # 역전(end<start) 데이터는 점 일정으로 수렴(DOMAIN_DESIGN §4.2 불변식) —
+    # 역전(end<start) 데이터는 점 일정으로 수렴(불변식) —
     # CASE 가 end 모양 + end>=start 둘 다 만족할 때만 end 를 쓰고, 아니면 시작일 폴백.
     assert f">= {_OCCURS_DATE_SQL} " in _OCCURS_END_DATE_SQL
     assert _OCCURS_END_DATE_SQL.endswith(f"{_OCCURS_DATE_SQL})")

@@ -2,7 +2,7 @@
 
 P3+P4 worker(notification_worker/recall_occurrence)와 별개 파일 — worker 비접촉.
 
-멱등·보안(codex-6): 모든 반응 갱신은 `(event_id, owner_id)` + `status='sent'` atomic UPDATE
+멱등·보안: 모든 반응 갱신은 `(event_id, owner_id)` + `status='sent'` atomic UPDATE
 가드로 친다. opened/dismissed 는 `... IS NULL` 조건까지 더해 first-write-wins(중복 탭·남의
 event_id 조작 방어). rowcount 로 호출부가 "이번이 첫 기록인가"를 판정한다.
 """
@@ -87,7 +87,7 @@ class PostgresRecallReactionRepository(RecallReactionRepositoryPort):
         return result.rowcount or 0
 
     async def cancel_plan(self, *, plan_id: UUID, owner_id: UUID) -> None:
-        # "이 기억 그만" 영구(codex-7) — owner-scope + status='active' 가드(cross-tenant·재취소 차단).
+        # "이 기억 그만" 영구 — owner-scope + status='active' 가드(cross-tenant·재취소 차단).
         stmt = (
             update(NotificationPlanRow)
             .where(
@@ -219,5 +219,5 @@ class PostgresRecallReactionRepository(RecallReactionRepositoryPort):
 
     def savepoint(self) -> AbstractAsyncContextManager[None]:
         # begin_nested = SAVEPOINT — 안에서 DB 에러가 나면 이 savepoint 만 롤백되어 outer 트랜잭션
-        # (이미 flush 된 opened_at)이 aborted 되지 않는다(P1#4). recall_plan_repository 컨벤션과 동일.
+        # (이미 flush 된 opened_at)이 aborted 되지 않는다. recall_plan_repository 컨벤션과 동일.
         return cast(AbstractAsyncContextManager[None], self._session.begin_nested())

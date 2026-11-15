@@ -127,7 +127,7 @@ public struct SettingsFeature: Sendable {
             case let .recallNotificationsToggled(enabled):
                 guard let current = state.notificationPreferences else { return .none }
                 // 낙관 반영 → 서버 PATCH(해당 필드만), 실패 시 그 필드만 롤백(FavoriteSync 관례의 축소판).
-                // 롤백은 현재 상태 위에 얹는다 — 병행 중인 다른 토글의 성공을 덮어쓰지 않게(codex P1).
+                // 롤백은 현재 상태 위에 얹는다 — 병행 중인 다른 토글의 성공을 덮어쓰지 않게.
                 // 같은 필드 연타는 cancelInFlight 로 마지막 요청만 살아 stale 롤백이 없다(취소는 catch 미호출).
                 let previousValue = current.recallEnabled
                 state.notificationPreferences = NotificationPreferencesDTO(

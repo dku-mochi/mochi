@@ -12,7 +12,7 @@ open/stop 보고가 event 기준(`POST /recall/events/{id}/reaction`)이라 두 
 - opened: ① 트랙 C 종결 — kind='recall' pending/sent 행에 opened_at(+pending 은 skipped(opened)
   로 종결해 이미 본 카드의 뒷북 푸시 방지; sent 는 피드 쿼리의 opened 필터가 제외).
   ② 트랙 A 소생 — 그 item 의 decaying/reviewRequested knowledge instance → active
-  (DOMAIN_DESIGN §5.2 와 동일 전이, 피드의 live-knowledge 필터에서 자동으로 빠짐). best-effort.
+  (피드의 live-knowledge 필터에서 자동으로 빠짐). best-effort.
 - stop: ① 그 item 의 active spaced plan 전부 cancelled(user_dismiss) ② kind='recall'
   pending/sent 행 skipped(cancelled)+dismissed_at(재생성 dismiss-cooldown 신호 보존).
 - dismissed: 피드 표면에 없는 제스처 — 400.
@@ -82,7 +82,7 @@ class RecordRecallItemReaction:
             raise NotFoundError("Mochi item not found", code="mochi_item.not_found")
         if command.reaction is ReactionKind.OPENED:
             await self._handle_opened(command, item)
-        else:  # ReactionKind.STOP — "이 기억 그만"(피드 표면, codex-7 과 동일 영구 의미)
+        else:  # ReactionKind.STOP — "이 기억 그만"(피드 표면, 알림 stop 과 동일 영구 의미)
             await self._handle_stop(command)
 
     async def _handle_opened(self, command: RecordRecallItemReactionCommand, item: MochiItem) -> None:
@@ -104,7 +104,7 @@ class RecordRecallItemReaction:
         """피드 open = 회수 소비 — decaying/reviewRequested knowledge instance 를 active 로 소생.
 
         best-effort: 어떤 실패(전이 불가·DB 에러)도 삼켜서 opened 기록(트랙 C UPDATE)을 보존한다.
-        savepoint(P1#4) — 소생 write 의 DB 에러가 outer 트랜잭션을 aborted 시키지 않게 격리.
+        savepoint — 소생 write 의 DB 에러가 outer 트랜잭션을 aborted 시키지 않게 격리.
         """
         try:
             for instance in item.intent_instances:

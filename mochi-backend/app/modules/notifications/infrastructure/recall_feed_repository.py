@@ -29,7 +29,7 @@ class PostgresRecallFeedRepository(RecallFeedRepositoryPort):
 
     async def list_candidates(self, *, owner_id: UUID, limit: int) -> list[RecallFeedCandidate]:
         # 트랙 C(recall outbox) 를 먼저(지금 맥락이라 신선) + 트랙 A(spaced knowledge) 합류,
-        # 같은 item 은 dedup(recall 우선), recency 순. 랭킹 공식(ux-ui §7)은 후속 — 현재 recency.
+        # 같은 item 은 dedup(recall 우선), recency 순. 랭킹 공식은 후속 — 현재 recency.
         merged: list[RecallFeedCandidate] = []
         seen: set[UUID] = set()
         for cand in [

@@ -1,6 +1,6 @@
 """intent 스키마 빅뱅: intent_instances 테이블 신설 + needs_review, mochi_items intent 5컬럼 DROP.
 
-2026-06-04 빅뱅(lab FINDINGS): boolean instance 모델이 score_flat(applicability+threshold)을
+2026-06-04 빅뱅: boolean instance 모델이 score_flat(applicability+threshold)을
 intent F1 0.809→0.935 로 이겼다. intent 저장을 ``mochi_items`` 5컬럼 파생중복 → 별도
 ``intent_instances`` 테이블(1급 행, instance 단위 lifecycle)로 교체. 점수/대표/위계 폐기.
 

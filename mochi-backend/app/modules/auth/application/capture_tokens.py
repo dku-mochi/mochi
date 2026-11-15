@@ -60,7 +60,7 @@ class IssueCaptureToken:
     async def execute(self, cmd: IssueCaptureTokenCommand) -> IssuedCaptureToken:
         now = datetime.now(UTC)
         # 발급을 사용자 단위로 직렬화 — list→revoke→add 가 비원자라 동시 발급이 같은
-        # active 목록을 보면 cap 을 초과한다 (codex review P2). 트랜잭션 종료 시 자동 해제.
+        # active 목록을 보면 cap 을 초과한다. 트랜잭션 종료 시 자동 해제.
         await self._capture_tokens.acquire_issue_lock(user_id=cmd.user_id)
         # cap-eviction — 디바이스 고유 식별자가 없으므로(iPhone+iPad 멀티디바이스 공존 허용)
         # "재발급 시 기존 revoke" 대신 개수 상한으로 통제한다. Keychain 유실(재설치)로 고아가

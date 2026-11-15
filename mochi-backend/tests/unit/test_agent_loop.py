@@ -358,7 +358,7 @@ async def test_max_steps_exhausted_raises_and_emits_failed():
 @pytest.mark.asyncio
 async def test_reanalysis_hint_forces_needs_review_false():
     # 재분석(사용자 의도 확정, hint 필수)은 LLM 이 needs_review=true 를 내도 false 로 강제하고
-    # review_options 를 비운다 — "확정했는데 모찌가 되묻는" 미션 위반 방지(DOMAIN_DESIGN §6.3).
+    # review_options 를 비운다 — "확정했는데 모찌가 되묻는" 미션 위반 방지.
     gateway = _FakeGateway(AnalysisInput(text="영수증", url=None, user_memo=None))
     chunk = _finalize_chunk(
         needs_review=True,

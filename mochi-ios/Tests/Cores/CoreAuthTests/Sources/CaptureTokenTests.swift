@@ -207,7 +207,7 @@ final class CaptureTokenTests: XCTestCase {
     }
 
     func test_ensure_clears_other_user_record_even_when_issue_fails() async throws {
-        // cross-account 오염 차단 (codex review P1) — 다른 계정의 레코드는 재발급 시도 *전에*
+        // cross-account 오염 차단 — 다른 계정의 레코드는 재발급 시도 *전에*
         // 폐기한다. 발급이 실패해도 이전 계정 토큰이 남아선 안 된다.
         let api = FakeAuthAPIClient()
         api.issueError = AuthError.network(message: "offline")

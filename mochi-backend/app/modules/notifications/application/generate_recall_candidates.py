@@ -1,7 +1,5 @@
 """능동 회수 트랙 C — 후보 생성 + LLM 선별 게이트 (P7~P9, 2026-06-17 LLM 게이트 전환).
 
-정본 `journal/proactive-recall/track-c-llm-gate-decision.md` / `notification-agent.md` §3.
-
 분석 done 후 worker 가 best-effort 로 호출. 흐름:
   새 item(B) → ANN overfetch → 얇은 필터(근중복·archived) → LLM 선별 게이트(0~1건 채택 + 한국어 작문)
   → 결정적 백스톱(owner 쿨다운·dedup·dismiss·cap·야간·트랙B) → notification_outbox(kind=recall) 직행.

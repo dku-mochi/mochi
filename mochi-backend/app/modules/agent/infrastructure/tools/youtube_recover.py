@@ -1,11 +1,11 @@
 """recoverYoutubeUrl — 이미지 단서(채널+제목)로 원본 유튜브 URL 을 회수하는 tool.
 
-배경 (lab/active/shopping-product-link FINDINGS, journal 2026-06-14):
+배경:
   "영상 속 추천 리스트"는 텍스트 검색으로 못 찾는다 → 답은 검색이 아니라 **원본 영상 URL
   회수**. 출처앱이 YouTube 이고 화면이 영상/쇼츠/댓글일 때, 메인 에이전트가 이미지에서 읽은
   제목(query)+채널(channel_hint)을 넘기면 이 tool 이 원본 watch URL 을 찾아 검증한다.
 
-3단계 (confidence 낮으면 다음 단계로 — lab baseline + codex 평가 + youtube API 검증 2026-06-14):
+3단계 (confidence 낮으면 다음 단계로 — youtube API 검증 2026-06-14):
   1. **무키 검색**(무료): youtube `results` HTML → videoId → oEmbed 채널/제목 매칭. 채택되면 끝.
   2. **YouTube Data API**(키 있을 때 폴백): 무키가 못 찾으면 — youtube 무키 검색은 막 올라온
      영상의 인덱스 지연·봇차단에 약하다. 채널 식별(forHandle/search) → **uploads playlist 직접

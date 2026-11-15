@@ -23,10 +23,10 @@ class IngestCommand:
     idempotency_key: str
     image_refs: tuple[ImageRef, ...] = field(default_factory=tuple)
     # 채팅 proposal 확정으로 사용자가 직접 확정한 instance — 있으면 분석 파이프라인을 생략한다
-    # (DOMAIN_DESIGN §5.2 예외: "사용자 확정 = 분석보다 상위 신뢰". journal 2026-06-10 M2).
+    # (예외: 사용자 확정 = 분석보다 상위 신뢰).
     confirmed_instances: tuple[IntentInstance, ...] = ()
     # 확정 instance 와 함께 propose-시점에 도출된 item 메타(분류·요약). instance 는 그대로 두고
-    # category/summary 만 채운다 — 월간정리 "그 외"·검색 빈약 방지(§5.2 는 instance 재분석만 생략).
+    # category/summary 만 채운다 — 월간정리 "그 외"·검색 빈약 방지(instance 재분석만 생략).
     category: str | None = None
     summary: str | None = None
     # 분석 전용 ephemeral OCR(iOS Vision OCR). 일반 ingest(분석 파이프라인)에서만 실린다 —
@@ -74,7 +74,7 @@ class Ingest:
             image_refs=command.image_refs,
         )
         if command.confirmed_instances:
-            # §5.2 예외 — 사용자 확정 proposal: instance 즉시 active 생성 + 분석 완료 상태,
+            # 예외 — 사용자 확정 proposal: instance 즉시 active 생성 + 분석 완료 상태,
             # outbox 미적재(재분석이 확정 내용을 덮으면 "확정했는데 모찌가 되묻는" UX 파탄).
             item = MochiItem(
                 id=source.id,

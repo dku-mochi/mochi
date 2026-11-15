@@ -183,7 +183,7 @@ def _reference_links(row: MochiItemRow) -> tuple[ReferenceLink, ...]:
 _PLACE_LAT_RANGE = (33.0, 39.5)
 _PLACE_LNG_RANGE = (124.0, 132.0)
 # mapUrl 은 iOS 가 그대로 openURL 하므로 네이버 지도 https 만 통과 — 그 외는 None 으로 떨어뜨려
-# iOS 가 장소명 검색 URL 을 재합성하게 한다(임의 URL open 표면 차단, codex P2).
+# iOS 가 장소명 검색 URL 을 재합성하게 한다(임의 URL open 표면 차단).
 _PLACE_MAP_URL_HOSTS = frozenset({"map.naver.com", "place.naver.com"})
 # 별점·매장사진(Google Places 보강 값)도 좌표와 같은 원칙으로 projection 경계에서 재검증한다.
 _PLACE_RATING_RANGE = (0.0, 5.0)
@@ -659,7 +659,7 @@ class PostgresMochiItemRepository(MochiItemRepository):
         row.updated_at = datetime.utcnow()
 
         # intent_instances 재적재 — 재분석 시 전량 delete-reinsert (멱등). 사용자 완료상태도
-        # 함께 폐기되나 prod 전까지 실데이터 없어 안전(handoff §4 — 보존은 후속 sprint).
+        # 함께 폐기되나 prod 전까지 실데이터 없어 안전(보존은 후속 sprint).
         await self._session.execute(
             delete(IntentInstanceRow).where(IntentInstanceRow.mochi_item_id == mochi_item_id)
         )

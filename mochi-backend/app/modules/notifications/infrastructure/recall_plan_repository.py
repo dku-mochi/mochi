@@ -1,7 +1,7 @@
 """notification_plan 영속 — `RecallPlanRepositoryPort` 구현 (P2).
 
-같은 source_intent 1 active 불변(plan 폭증 방지, codex-3) + supersede(같은 트랜잭션 교체).
-이 시점엔 outbox 가 없어 outbox skip(schema.md §4-2)은 P3 cron 몫이다.
+같은 source_intent 1 active 불변(plan 폭증 방지) + supersede(같은 트랜잭션 교체).
+이 시점엔 outbox 가 없어 outbox skip 은 P3 cron 몫이다.
 """
 
 from datetime import datetime
@@ -66,8 +66,8 @@ class PostgresRecallPlanRepository(RecallPlanRepositoryPort):
         return row.id
 
     async def supersede(self, *, owner_id: UUID, old_plan_id: UUID, new_plan_id: UUID) -> None:
-        # owner-scope + status='active' 가드 — cross-tenant update·이미 종료된 plan 재교체 차단(§4-3).
-        # cancelled_at 은 비운다: schema.md §1 상 cancelled_at=영구 dismiss 시각이라 supersede(재평가 교체)
+        # owner-scope + status='active' 가드 — cross-tenant update·이미 종료된 plan 재교체 차단.
+        # cancelled_at 은 비운다: cancelled_at=영구 dismiss 시각이라 supersede(재평가 교체)
         # 에선 의미상 비우는 게 맞다(cancel_reason='superseded' 만 사유로 기록).
         stmt = (
             update(NotificationPlanRow)

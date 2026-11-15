@@ -1,7 +1,7 @@
 """search_items — 기록 검색 채팅 툴 (read-only, hybrid retrieval).
 
-두 갈래 후보를 합쳐 ``rerank-2.5`` 로 최종 순위를 정한다 (lab/active/rag-rerank-eval
-2026-06-12 — reranker 가 R@1 0.15→0.43, MRR 0.56→0.88 의 승부처):
+두 갈래 후보를 합쳐 ``rerank-2.5`` 로 최종 순위를 정한다
+(2026-06-12 — reranker 가 R@1 0.15→0.43, MRR 0.56→0.88 의 승부처):
 
 - **키워드**: 단어별 substring(ILIKE AND) — 'simple' tsvector 토큰 동일성은 조사 붙은
   한국어("민수와" vs "민수")가 0건이 되기 때문(2026-06-10). 고유명사 exact 질의의 보험.
@@ -11,7 +11,7 @@
 
 voyage 미설정·일시 장애 시 키워드 단독으로 degrade 한다 — 채팅 검색이 외부 API 장애로
 죽지 않는다. **구조화 필터가 본질**: "이번주 공부 기록" 류 대표 시나리오는 키워드가
-아니라 시간 범위 + intent 필터 문제다(journal 2026-06-10). 필터는 두 갈래에 동일하게
+아니라 시간 범위 + intent 필터 문제다. 필터는 두 갈래에 동일하게
 적용된다.
 
 시간 축은 둘이다: ``date_from``/``date_to`` 는 **저장 시각**(``captured_at``),
@@ -44,7 +44,7 @@ log = get_logger("chat.search_items")
 
 #: 한 검색이 회수하는 상한. Gemini 100만+ 컨텍스트에서 8은 회상·브라우징(정답 다수) 질문의 재현율
 #: 병목이라 상향했다 — 후보를 넓게 돌려 모델이 스스로 취사하게 한다(기록은 값진 컨텍스트). 실측은
-#: rag-rerank-eval 코퍼스가 @10 천장이라 이 축을 못 재므로(FINDINGS 한계), 코퍼스 1000+ 확장 후로 미룸.
+#: 코퍼스가 @10 천장이라 이 축을 못 재므로, 코퍼스 1000+ 확장 후로 미룸.
 TOP_K = 25
 SNIPPET_CHARS = 300
 #: rerank 입력 후보 수 (갈래당) — 키워드 50 + 의미 50 을 합쳐 rerank-2.5 가 최종 limit 을 뽑는다.
@@ -127,7 +127,7 @@ _OCCURS_DATE_SQL = (
 _OCCURS_SHAPE_GUARD = rf"{_OCCURS_DATE_SQL} ~ '^\d{{4}}-\d{{2}}-\d{{2}}'"
 _OCCURS_END_RAW_SQL = "translate(left(nullif(ii.payload->>'end_date',''), 10), './', '--')"
 #: 발생 "종료일" — 기간형 일정의 ``end_date``. 모양이 어긋나거나 없거나 **시작보다 앞서면**
-#: (역전 데이터) 시작일로 수렴 — "역전·비정형 end 는 점 일정" 불변식 (DOMAIN_DESIGN §4.2).
+#: (역전 데이터) 시작일로 수렴 — "역전·비정형 end 는 점 일정" 불변식.
 #: 기간 질의는 overlap 의미: 시작 <= occurs_to AND 종료 >= occurs_from.
 _OCCURS_END_DATE_SQL = (
     rf"coalesce(CASE WHEN {_OCCURS_END_RAW_SQL} ~ '^\d{{4}}-\d{{2}}-\d{{2}}' "

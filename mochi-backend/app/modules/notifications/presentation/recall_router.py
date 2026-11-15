@@ -2,11 +2,11 @@
 
 조회(P5b): `GET /recall/feed`(홈 한 칸·자세히 목록), `GET /recall/events/{id}`(알림 landing fallback —
 iOS 로컬 역매핑 실패 시 recallEventID 로 서버 fetch). 트랙 A/B 의 피드 실데이터는 active spaced plan 이
-걸린 knowledge(다시 볼 지식)뿐이다(`journal/2026-06-15-proactive-recall-ux-decision.md` §4·§5).
+걸린 knowledge(다시 볼 지식)뿐이다.
 
 반응(P5): iOS 가 알림 탭(opened)·dismiss(dismissed)·"이 기억 그만"(stop) 시 `recallEventID`(=outbox.event_id)
 로 보고한다. 멱등·owner 가드는 application(`RecordRecallReaction`) + infrastructure atomic UPDATE.
-opened+spaced 면 회수로 knowledge 를 소생(ux-ui.md §5 / DOMAIN_DESIGN.md §5.2).
+opened+spaced 면 회수로 knowledge 를 소생.
 """
 
 from uuid import UUID

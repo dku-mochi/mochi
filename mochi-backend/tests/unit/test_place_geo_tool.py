@@ -263,7 +263,7 @@ async def test_enrich_candidate_rejects_far_google_match() -> None:
 
 @pytest.mark.asyncio
 async def test_enrich_candidate_rejects_name_mismatch() -> None:
-    """거리 게이트(300m)만 통과한 인접 남의 가게 — 상호가 안 겹치면 보강하지 않는다(codex P2)."""
+    """거리 게이트(300m)만 통과한 인접 남의 가게 — 상호가 안 겹치면 보강하지 않는다."""
     cand = _to_candidate(_item())
     assert cand is not None
     http = _FakeHttp(search={"places": [_google_place(displayName={"text": "스타벅스 용산점"})]})
@@ -275,7 +275,7 @@ async def test_enrich_candidate_rejects_name_mismatch() -> None:
 
 @pytest.mark.asyncio
 async def test_enrich_candidate_rejects_nan_location() -> None:
-    """NaN 좌표는 거리 비교가 항상 False 라 게이트를 그대로 통과한다 — finite 강제(codex P3)."""
+    """NaN 좌표는 거리 비교가 항상 False 라 게이트를 그대로 통과한다 — finite 강제."""
     cand = _to_candidate(_item())
     assert cand is not None
     http = _FakeHttp(search={"places": [_google_place(lat=float("nan"), lng=float("nan"))]})
@@ -322,7 +322,7 @@ async def test_first_photo_uri_requires_https_googleusercontent() -> None:
 @pytest.mark.asyncio
 async def test_first_photo_uri_rejects_malformed_photo_name() -> None:
     """photo name 은 URL path 로 들어간다 — `places/{id}/photos/{res}` 형식 밖(경로 탈출·query·
-    fragment·중복 segment)이면 요청 자체를 만들지 않는다(codex P2)."""
+    fragment·중복 segment)이면 요청 자체를 만들지 않는다."""
     http = _FakeHttp(photo={"photoUri": "https://lh3.googleusercontent.com/x"})
 
     for bad in (

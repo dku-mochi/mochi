@@ -2,10 +2,10 @@
 
 워커(NotificationWorker)가 materialize 된 outbox 1건을 이 use case 로 발송한다. owner 의
 apns_device 토큰들에 alert push 를 best-effort(토큰별)로 쏘고, **실패 분류 결과**를 호출부에
-돌려준다(codex-5) — 410/Unregistered/BadDeviceToken 은 invalid_tokens, 5xx/timeout 은 transient.
+돌려준다 — 410/Unregistered/BadDeviceToken 은 invalid_tokens, 5xx/timeout 은 transient.
 호출부(워커)가 invalid 토큰 무효화·sent/dead_letter/pending 전이를 결정한다.
 
-payload(notification-agent.md §5): aps.alert + mochiItemID + sourceIntentID + routeType + recallEventID
+payload: aps.alert + mochiItemID + sourceIntentID + routeType + recallEventID
 + kind. collapse_id 는 호출부가 outbox 에서 넘긴다(기존대로).
 """
 
@@ -21,10 +21,10 @@ from app.modules.notifications.infrastructure.apns_client import APNsError
 log = get_logger("notifications.send_recall")
 
 _ALERT_BODY_MAX = 178
-# 알림 탭 → 단건 상세 직행(ux-ui.md §4). list 분기는 트랙 C 묶기 후속이라 지금은 detail 고정.
+# 알림 탭 → 단건 상세 직행. list 분기는 트랙 C 묶기 후속이라 지금은 detail 고정.
 _ROUTE_TYPE_DETAIL = "detail"
 
-# APNs 영구 실패 reason — 토큰 무효화 대상(codex-5). 410 status_code 도 영구로 본다.
+# APNs 영구 실패 reason — 토큰 무효화 대상. 410 status_code 도 영구로 본다.
 _INVALID_TOKEN_REASONS = frozenset({"Unregistered", "BadDeviceToken", "DeviceTokenNotForTopic"})
 
 
@@ -141,7 +141,7 @@ class SendRecallNotification:
             "routeType": _ROUTE_TYPE_DETAIL,
             "kind": n.kind,  # 빌더 분기(iOS landing 섹션)
         }
-        # 딥링크 — 로컬 역매핑 후보(없으면 iOS 가 recallEventID 로 서버 landing fetch, codex-2).
+        # 딥링크 — 로컬 역매핑 후보(없으면 iOS 가 recallEventID 로 서버 landing fetch).
         if n.source_item_id is not None:
             payload["mochiItemID"] = str(n.source_item_id)
         if n.source_intent_id is not None:

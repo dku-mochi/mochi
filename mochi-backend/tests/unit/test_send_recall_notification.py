@@ -1,7 +1,7 @@
 """SendRecallNotification 단위테스트 (P4) — payload 키 / 성공 / 410 무효 분류 / transient / no-op.
 
 dead_letter·backoff 전이는 워커(NotificationWorker)의 결과 해석이라 여기선 SendRecallResult 분류만
-검증한다(워커는 send 결과로 _close/_defer 한다 — integration). 정본 notification-agent.md §5 / codex-5.
+검증한다(워커는 send 결과로 _close/_defer 한다 — integration).
 """
 
 from uuid import uuid4

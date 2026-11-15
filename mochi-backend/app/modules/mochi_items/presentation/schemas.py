@@ -58,7 +58,7 @@ class IntentPayloadPatchDTO(BaseModel):
 
 
 class ConfirmedInstanceDTO(BaseModel):
-    """채팅 proposal 확정으로 생성되는 **사용자 확정 instance** — 분석 생략 (§5.2 예외).
+    """채팅 proposal 확정으로 생성되는 **사용자 확정 instance** — 분석 생략.
 
     사용자가 카드에서 확정한 구조라 LLM 재분석이 덮으면 안 된다 — instance 가 곧바로
     active 로 태어나고 outbox(분석 파이프라인)에 들어가지 않는다.
@@ -76,7 +76,7 @@ class MochiItemCreateRequest(BaseModel):
 
     iOS는 본 스키마와 동일한 모양의 ``MochiItemIngestRequest`` 를 송신한다 — 양쪽이 OpenAPI 로 검증된다.
     ``confirmedInstances`` 가 있으면 분석 파이프라인을 생략하고 확정 instance 를 직접 생성한다
-    (채팅 schedule proposal 확정 — DOMAIN_DESIGN §5.2 예외).
+    (채팅 schedule proposal 확정).
     """
 
     channel: IngestChannel
@@ -85,7 +85,7 @@ class MochiItemCreateRequest(BaseModel):
     user_memo: str | None = Field(default=None, alias="userMemo")
     image_refs: list[ImageRefDTO] = Field(default_factory=list, alias="imageRefs")
     confirmed_instances: list[ConfirmedInstanceDTO] = Field(default_factory=list, alias="confirmedInstances")
-    # 채팅 일정 proposal 이 propose-시점 경량 LLM 으로 도출한 item 메타(instance 재분석 아님 — §5.2).
+    # 채팅 일정 proposal 이 propose-시점 경량 LLM 으로 도출한 item 메타(instance 재분석 아님).
     # confirmed_instances 경로에서만 실린다. 일반 ingest 는 None → worker 분석이 채운다.
     category: str | None = None
     summary: str | None = None

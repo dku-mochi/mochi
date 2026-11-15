@@ -1,7 +1,7 @@
 """/conversations 라우터 — 채팅 세션 목록·스냅샷·삭제 + 메시지 전송(POST-as-SSE).
 
 메시지 전송은 응답이 곧 SSE 스트림이다 — 202+별도 GET 분리안은 구독 전 이벤트 유실
-레이스로 기각(journal 2026-06-10). agent run 은 detached task 로 분리돼 클라이언트가
+레이스로 기각. agent run 은 detached task 로 분리돼 클라이언트가
 끊겨도 완주하고, 복귀는 ``GET /{id}/messages`` 스냅샷 재조회가 담당한다.
 """
 

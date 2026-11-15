@@ -8,7 +8,7 @@ import CoreDomain
 /// - 실제 Gemini 호출은 stub. 기존 `MochiItemAnalysis.importance` 값을 그대로 활용.
 /// - 24시간 안에 이미 돌렸으면 캐시된 ID 리스트만 반환.
 /// - 결과는 App Group `daily-importance/` 디렉토리에 `YYYY-MM-DD.json` 으로 저장
-///   (사용자 요청: GCS 업로드 우회, filepath 만 저장).
+///   (GCS 업로드 우회, filepath 만 저장).
 ///
 /// **추후 (Gemini 1일 재분석 단계)**:
 /// - `analyze()` 안에서 최근 24시간 항목 묶음을 Gemini 에 보내 importance 재산출.

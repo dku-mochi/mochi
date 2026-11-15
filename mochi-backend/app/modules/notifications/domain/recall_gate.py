@@ -1,7 +1,5 @@
 """트랙 C LLM 선별 게이트 도메인 — 포트 + 입출력 (2026-06-17).
 
-정본 `journal/proactive-recall/track-c-llm-gate-decision.md`.
-
 ANN overfetch → 얇은 필터(archived·근중복)를 통과한 후보 N건을 LLM 이 보고 "다시 볼 가치 있는 1건"을
 고르거나(recall=false) 아무것도 안 고른다. 코사인은 판별자가 아니라 후보 추림용 바닥값일 뿐 —
 선별·작문은 LLM 이 한다(같은 결정 재등장 vs 단순 토픽 유사 구분, 한국어 회수 메시지 작성).

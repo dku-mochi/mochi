@@ -1,6 +1,6 @@
 """분석 에이전트 eval — 결정적 채점기 (Tier 1).
 
-`lab/active/dacon-schedule-extraction/v23_ab_bench.py` 의 `score_dacon` 8축 채점 로직을
+`score_dacon` 8축 채점 로직을
 **케이스-구동형**으로 일반화했다. 한 이미지에 하드코딩돼 있던 `CORE`/`FORBIDDEN`/`noise_kw` 를
 케이스가 데이터로 들고 오고, 이 모듈은 분석 출력(`finalizeAnalysis` args =
 `gemini_agent_client._FINALIZE_PARAMS` 모양)을 그에 대해 채점한다.
@@ -34,7 +34,7 @@
       "needs_review": False,          # (opt) 기대 needs_review boolean
     }
 
-intent 정의/payload 의미는 `docs/DOMAIN_DESIGN.md` 가 정본 — 이 채점기는 그 정의의 소비자일 뿐
+이 채점기는 intent 정의/payload 의미의 소비자일 뿐
 정의를 새로 만들지 않는다.
 """
 

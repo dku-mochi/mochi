@@ -4,7 +4,7 @@ import XCTest
 
 @testable import FeatureChat
 
-/// citation 마커 표시 변환 — raw 보관·표시 직전 치환 (journal 2026-06-10 설계 PR-2 절).
+/// citation 마커 표시 변환 — raw 보관·표시 직전 치환.
 final class ChatMarkupTests: XCTestCase {
     private let itemID = UUID(uuidString: "11111111-2222-3333-4444-555555555555")!
 

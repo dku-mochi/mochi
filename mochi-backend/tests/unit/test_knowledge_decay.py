@@ -1,4 +1,4 @@
-"""NotificationWorker.`_maybe_decay_knowledge` — knowledge 시간 전이 패스(트랙A 무력 해소, 리뷰 HIGH-2).
+"""NotificationWorker.`_maybe_decay_knowledge` — knowledge 시간 전이 패스(트랙A 무력 해소).
 
 전이 합법성은 `test_lifecycle_policy.test_knowledge_can_decay_then_review_requested` 가 고정한다.
 여기서는 DB 없이 (1) 하루 1회 throttle, (2) due 일 때 2개 UPDATE 발행 + 시각 기록을 검증한다.

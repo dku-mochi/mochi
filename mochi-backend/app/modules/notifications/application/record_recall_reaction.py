@@ -1,12 +1,9 @@
 """능동 회수 알림 반응 기록(P5) 유스케이스 — opened/dismissed/stop + spaced 소생.
 
-정본 `journal/proactive-recall/notification-agent.md` §5(반응 수집·codex-6 멱등) /
-`ux-ui.md` §4("그만" scope 1:1 codex-7)·§5(소생) / `docs/DOMAIN_DESIGN.md` §5.2("회수로 소생").
-
-멱등·보안(codex-6): `(event_id, owner_id)` + `status='sent'` 인 행만 atomic UPDATE 가드로 친다.
+멱등·보안: `(event_id, owner_id)` + `status='sent'` 인 행만 atomic UPDATE 가드로 친다.
 0행이면 sent 행 존재 여부로 분기 — 존재→멱등 no-op, 미존재→404(남의 event_id·중복 탭 방어).
 
-신호 의미(§6): opened 만 양성. dismissed/stop=명시 부정. 여기선 기록만(학습 후속).
+신호 의미: opened 만 양성. dismissed/stop=명시 부정. 여기선 기록만(학습 후속).
 """
 
 from dataclasses import dataclass
@@ -73,7 +70,7 @@ class RecordRecallReaction:
         elif command.reaction is ReactionKind.DISMISSED:
             # soft 부정(cooldown 신호) — 멱등 atomic UPDATE. 0행=이미 dismissed(no-op).
             await self._reactions.mark_dismissed(event_id=command.event_id, owner_id=command.owner_id)
-        else:  # ReactionKind.STOP — "이 기억 그만" 영구(codex-7)
+        else:  # ReactionKind.STOP — "이 기억 그만" 영구
             await self._handle_stop(command, event)
 
     async def _handle_opened(self, command: RecordRecallReactionCommand, event: SentRecallEvent) -> None:
@@ -81,7 +78,7 @@ class RecordRecallReaction:
         # 0행=이미 opened(중복 탭 멱등 no-op, 소생 재시도 안 함).
         updated = await self._reactions.mark_opened(event_id=command.event_id, owner_id=command.owner_id)
         if updated and event.kind == _SPACED_KIND:
-            # HIGH-2: 회수로 소생. best-effort — 실패가 opened_at 기록을 롤백/실패시키지 않게 격리.
+            # 회수로 소생. best-effort — 실패가 opened_at 기록을 롤백/실패시키지 않게 격리.
             await self._revive_spaced(command, event)
 
     async def _handle_stop(self, command: RecordRecallReactionCommand, event: SentRecallEvent) -> None:
@@ -123,7 +120,7 @@ class RecordRecallReaction:
             # 방어적 재확인 — lifecycle_policy 가 decaying/reviewRequested→active 를 허용해야만 전이.
             if not is_allowed(instance.intent_type, instance.lifecycle, target):
                 return
-            # savepoint(P1#4) — 소생 write 가 DB 에러를 던져도 이 savepoint 만 롤백되고 outer 트랜잭션
+            # savepoint — 소생 write 가 DB 에러를 던져도 이 savepoint 만 롤백되고 outer 트랜잭션
             # (이미 flush 된 opened_at)이 aborted 되지 않는다. except 가 예외를 삼켜 best-effort 격리.
             async with self._reactions.savepoint():
                 await UpdateInstanceLifecycle(repository=self._mochi_items).execute(

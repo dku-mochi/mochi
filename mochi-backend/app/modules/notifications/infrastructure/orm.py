@@ -4,7 +4,7 @@ device_push_tokens: owner 1:N 단말(apns_device) + owner 1:N Live Activity push
 토큰을 한 테이블에 token_type 으로 구분 저장한다. 둘 다 owner 단위라 mochi_item_id 는 NULL.
 
 notification_plan / notification_outbox: 능동 회수 알림 — "생성 분리 / 발송 통합".
-정본 `journal/proactive-recall/schema.md` §1~§4. plan=계획(stages JSONB), outbox=발송+반응 큐.
+plan=계획(stages JSONB), outbox=발송+반응 큐.
 """
 
 from datetime import datetime
@@ -60,7 +60,7 @@ class DevicePushTokenRow(Base):
 
 
 class NotificationPlanRow(Base):
-    """능동 회수 알림 "계획" — 알림 설계 Agent 가 1 row 로 적재. schema.md §1.
+    """능동 회수 알림 "계획" — 알림 설계 Agent 가 1 row 로 적재.
 
     `stages`(JSONB) 가 계획 전체(다단/주기/spaced)를 담는다. anchor 값은 캐시하지 않고 심볼로 참조 →
     cron 이 발송 때 `intent_instances.payload` 를 최신 조회(마감 수정 자동 추종). owner_id 는 FK 를
@@ -123,7 +123,7 @@ class NotificationPlanRow(Base):
         Index("ix_notification_plan_owner_status", "owner_id", "status"),
         # 대량 import/재분석 시 plan 폭증 대비 cron 스캔 — next_eligible_at <= now 인 active 만.
         Index("ix_notification_plan_status_next_eligible", "status", "next_eligible_at"),
-        # 같은 source_intent 에 active plan 1개만(plan 폭증 방지, codex-3). 동시 워커 race 를 DB 가 막는다.
+        # 같은 source_intent 에 active plan 1개만(plan 폭증 방지). 동시 워커 race 를 DB 가 막는다.
         Index(
             "ux_notification_plan_active_intent",
             "owner_id",
@@ -135,7 +135,7 @@ class NotificationPlanRow(Base):
 
 
 class NotificationOutboxRow(Base):
-    """능동 회수 알림 "발송 + 반응" 큐 — mochi_item_outbox 패턴(BigInteger PK)의 시간축 확장. schema.md §2.
+    """능동 회수 알림 "발송 + 반응" 큐 — mochi_item_outbox 패턴(BigInteger PK)의 시간축 확장.
 
     cron 이 active plan 의 다음 occurrence 를 lazy materialize → 가드 통과분만 1 row.
     트랙 C 회수는 plan 없이 직행(plan_id NULL, kind=recall). sent/opened/dismissed 가 recall_log 흡수.
@@ -200,7 +200,7 @@ class NotificationOutboxRow(Base):
             name="ck_no__status_enum",
         ),
         # plan 기반 row 는 두 seq 가 항상 채워져야 한다 — NULL 이면 부분 UNIQUE 가 distinct 취급해
-        # 중복 발송 방지 불변식이 DB 레벨에서 붕괴(schema.md §5). 트랙 C 직행(plan_id NULL)은 허용.
+        # 중복 발송 방지 불변식이 DB 레벨에서 붕괴. 트랙 C 직행(plan_id NULL)은 허용.
         CheckConstraint(
             "plan_id IS NULL OR (stage_seq IS NOT NULL AND occurrence_seq IS NOT NULL)",
             name="ck_no__plan_row_has_seq",

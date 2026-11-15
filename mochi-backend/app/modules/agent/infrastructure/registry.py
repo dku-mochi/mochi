@@ -39,7 +39,7 @@ class StaticToolRegistry(ToolRegistry):
         }
         # findReferenceUrls/searchPlaceGeo 는 네이버 검색 키가 있을 때만 노출(키 발급이
         # 머지를 블록하지 않게 — web_search/Tavily 선례와 동일 패턴). secret 까지 확인 —
-        # id 만 있으면 노출된 tool 이 전부 401 빈손으로 조용히 무력화된다(codex P3).
+        # id 만 있으면 노출된 tool 이 전부 401 빈손으로 조용히 무력화된다.
         settings = get_settings()
         if settings.naver_client_id and settings.naver_client_secret:
             self._tools[ToolName.RESOURCE_FINDER] = ResourceFinderTool()

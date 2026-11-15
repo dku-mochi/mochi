@@ -3,7 +3,7 @@
 기존 agent ``WebFetchTool``(SSRF·redirect 재검증·사이즈·MIME 가드)을 **무수정 재사용**
 한다 — 모듈 경계상 타 모듈 infrastructure 직접 import 가 금지라
 ``agent.application.tool_factories``(허용 진입점) 경유로 인스턴스를 받는다.
-채팅 컨텍스트 예산(~16k tokens, journal 2026-06-10)에 맞춰 HTML 텍스트화와
+채팅 컨텍스트 예산(~16k tokens)에 맞춰 HTML 텍스트화와
 truncation 만 더한다. web_search 결과뿐 아니라 기록에 저장된 링크 읽기에도 쓰여
 키 없이 항상 등록된다.
 """
