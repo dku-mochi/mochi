@@ -139,7 +139,7 @@ erDiagram
 | --- | --- |
 | 시연 영상 | [YouTube 시연](https://www.youtube.com/watch?v=Y2UenIJ6z1w&t=2s) |
 | 발표자료 | [발표자료 PDF](docs/mochi-presentation.pdf) |
-| 포스터 | [모찌 포스터 PNG](docs/mochi-poster.png) |
+| 포스터 | [모찌 포스터 PDF](docs/mochi-poster.pdf) |
 | 프로젝트 결과보고서 | [결과보고서 PDF](docs/mochi-project-report.pdf) · [Word 원본](docs/mochi-project-report.docx) |
 | API 명세 | [OpenAPI](mochi-backend/openapi.json) |
 | 개발 문서 | [iOS](mochi-ios/README.md) · [백엔드](mochi-backend/README.md) |
